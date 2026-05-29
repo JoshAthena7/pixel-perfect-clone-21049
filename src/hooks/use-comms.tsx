@@ -143,7 +143,7 @@ export function CommsProvider({ children }: { children: ReactNode }) {
       sender_name: member.display_name,
       recipient_id: recipientId,
     });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     lastNudgeAtRef.current[recipientId] = Date.now();
     toast.success(`Nudge sent to ${recipientName}`);
   };
