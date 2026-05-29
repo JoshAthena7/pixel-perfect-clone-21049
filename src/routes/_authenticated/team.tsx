@@ -253,8 +253,8 @@ function TeamPage() {
           {isLeadership && (
             <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-xs font-semibold hover:bg-surface-hover">
               <Upload className="h-3.5 w-3.5" />
-              Upload CSV
-              <input type="file" accept=".csv,text/csv" className="hidden" onChange={handleCSVUpload} />
+              Upload CSV / XLSX
+              <input type="file" accept=".csv,.xlsx,.xls,text/csv" className="hidden" onChange={handleFileUpload} />
             </label>
           )}
           <div className="text-right text-xs text-muted-foreground">
