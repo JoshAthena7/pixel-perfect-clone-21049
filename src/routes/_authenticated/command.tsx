@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
 import { HealthCircle } from "@/components/war-room/HealthCircle";
 import { StatusPill, type StatusColor } from "@/components/war-room/StatusPill";
+import { Thermometer, calcTemperature } from "@/components/war-room/Thermometer";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Siren, Users, ShieldAlert, Megaphone, Grid3x3 } from "lucide-react";
