@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
+import { sendTransactionalEmail } from "@/lib/email/send";
 import { useEngagement } from "@/hooks/use-engagement";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
