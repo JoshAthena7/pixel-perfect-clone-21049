@@ -36,17 +36,17 @@ function WriterSubmitRisk() {
     if (!engagement || !user || !member || !risk.trim()) return;
     setSubmitting(true);
     const title = risk.trim().split("\n")[0].slice(0, 120);
+    const description = section ? `Section: ${section}\n\n${risk.trim()}` : risk.trim();
     const { error } = await supabase.from("risks").insert({
       engagement_id: engagement.id,
       title,
-      description: risk.trim(),
+      description,
       severity: URGENCY_TO_SEV[urgency],
       likelihood: "Possible",
       status: "Open",
       owner_name: member.display_name,
-      impacted_areas: section || null,
       created_by: user.id,
-    } as any);
+    });
     setSubmitting(false);
     if (error) return toast.error(error.message);
     notifySlack({
