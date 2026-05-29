@@ -13,6 +13,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
+import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
 import { Route as AuthenticatedSosRouteImport } from './routes/_authenticated/sos'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedRisksRouteImport } from './routes/_authenticated/risks'
@@ -48,6 +49,11 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   id: '/email/unsubscribe',
   path: '/email/unsubscribe',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedSosRoute = AuthenticatedSosRouteImport.update({
   id: '/sos',
@@ -148,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/risks': typeof AuthenticatedRisksRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/sos': typeof AuthenticatedSosRoute
+  '/team': typeof AuthenticatedTeamRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
@@ -169,6 +176,7 @@ export interface FileRoutesByTo {
   '/risks': typeof AuthenticatedRisksRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/sos': typeof AuthenticatedSosRoute
+  '/team': typeof AuthenticatedTeamRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
@@ -192,6 +200,7 @@ export interface FileRoutesById {
   '/_authenticated/risks': typeof AuthenticatedRisksRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/sos': typeof AuthenticatedSosRoute
+  '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
@@ -215,6 +224,7 @@ export interface FileRouteTypes {
     | '/risks'
     | '/settings'
     | '/sos'
+    | '/team'
     | '/email/unsubscribe'
     | '/lovable/email/suppression'
     | '/api/public/hooks/daily-digest'
@@ -236,6 +246,7 @@ export interface FileRouteTypes {
     | '/risks'
     | '/settings'
     | '/sos'
+    | '/team'
     | '/email/unsubscribe'
     | '/lovable/email/suppression'
     | '/api/public/hooks/daily-digest'
@@ -258,6 +269,7 @@ export interface FileRouteTypes {
     | '/_authenticated/risks'
     | '/_authenticated/settings'
     | '/_authenticated/sos'
+    | '/_authenticated/team'
     | '/email/unsubscribe'
     | '/lovable/email/suppression'
     | '/api/public/hooks/daily-digest'
@@ -307,6 +319,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/email/unsubscribe'
       preLoaderRoute: typeof EmailUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/team': {
+      id: '/_authenticated/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof AuthenticatedTeamRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/sos': {
       id: '/_authenticated/sos'
@@ -435,6 +454,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedRisksRoute: typeof AuthenticatedRisksRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSosRoute: typeof AuthenticatedSosRoute
+  AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -449,6 +469,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedRisksRoute: AuthenticatedRisksRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSosRoute: AuthenticatedSosRoute,
+  AuthenticatedTeamRoute: AuthenticatedTeamRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

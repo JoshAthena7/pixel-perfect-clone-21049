@@ -12,6 +12,7 @@ import {
   Bot,
   Settings,
   LogOut,
+  Contact,
 } from "lucide-react";
 import {
   Sidebar,
@@ -33,6 +34,7 @@ const ops = [
   { title: "Command Center", url: "/command", icon: LayoutDashboard },
   { title: "Daily Huddle", url: "/huddle", icon: Users },
   { title: "SOS Alerts", url: "/sos", icon: Siren },
+  { title: "Team Roster", url: "/team", icon: Contact },
 ];
 const intel = [
   { title: "Risks", url: "/risks", icon: ShieldAlert },
