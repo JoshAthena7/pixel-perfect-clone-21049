@@ -558,6 +558,17 @@ function TeamPage() {
                     )}
                   </div>
                 )}
+                {isLeadership && !editing && (
+                  <MemberRecognitionPanel
+                    member={{ id: m.id, display_name: m.display_name }}
+                    engagementId={engagement!.id}
+                    pulse={pulses[m.id]}
+                    openForm={openPulseForm?.memberId === m.id ? openPulseForm.kind : null}
+                    onOpen={(kind) => setOpenPulseForm({ memberId: m.id, kind })}
+                    onClose={() => setOpenPulseForm(null)}
+                    onSaved={async () => { await refreshPulses(); }}
+                  />
+                )}
               </li>
             );
           })}
