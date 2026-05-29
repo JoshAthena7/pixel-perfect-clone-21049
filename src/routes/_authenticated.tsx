@@ -17,7 +17,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/huddle": "Daily Huddle",
   "/sos": "SOS Alerts",
   "/team": "Team Roster",
-  "/recognition": "Recognition",
+  
   "/risks": "Risks",
   "/heatmap": "Heat Map",
   "/intel": "Intelligence Center",
