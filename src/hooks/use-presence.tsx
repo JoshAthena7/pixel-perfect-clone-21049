@@ -18,7 +18,14 @@ export function usePresence(currentPath?: string) {
 
   useEffect(() => {
     if (!user || !engagement || !member) return;
-    const channel = supabase.channel(`presence:engagement:${engagement.id}`, {
+    const topic = `presence:engagement:${engagement.id}`;
+    // Remove any stale channel with the same topic (StrictMode double-mount, HMR, etc.)
+    for (const c of supabase.getChannels()) {
+      if (c.topic === `realtime:${topic}` || c.topic === topic) {
+        supabase.removeChannel(c);
+      }
+    }
+    const channel = supabase.channel(topic, {
       config: { presence: { key: user.id } },
     });
 
