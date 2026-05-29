@@ -57,6 +57,49 @@ function CommandCenter() {
     setHeatmap((heat.data as Heat[]) ?? []);
     setBroadcasts((bc.data as Broadcast[]) ?? []);
     setLatestPulse((pulse.data as { sentiment: string } | null) ?? null);
+
+    const today = new Date().toISOString().slice(0, 10);
+    const { data: snap } = await supabase
+      .from("snapshots")
+      .select("id")
+      .eq("engagement_id", eid)
+      .eq("snapshot_date", today)
+      .maybeSingle();
+    setTodaySnapshotId((snap as { id: string } | null)?.id ?? null);
+  }
+
+  async function takeSnapshot() {
+    if (!engagement || !member) return;
+    setSavingSnap(true);
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const heatmapJson = heatmap.map((h) => ({ section_name: h.section_name, status: h.status }));
+      const payload = {
+        engagement_id: engagement.id,
+        snapshot_date: today,
+        health: (latestHuddle?.health ?? "Unknown"),
+        temperature_score: temperature,
+        open_sos_count: openSos.length,
+        open_risk_count: openRisks.length,
+        client_sentiment: latestPulse?.sentiment ?? null,
+        heatmap_json: heatmapJson,
+        top_priority: latestHuddle?.priority ?? null,
+        top_risk: latestHuddle?.risk ?? null,
+        taken_by_name: member.display_name,
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabase
+        .from("snapshots")
+        .upsert(payload, { onConflict: "engagement_id,snapshot_date" });
+      if (error) throw error;
+      toast.success(todaySnapshotId ? "Snapshot updated" : "Snapshot saved");
+      await loadAll(engagement.id);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to save snapshot";
+      toast.error(msg);
+    } finally {
+      setSavingSnap(false);
+    }
   }
 
   useEffect(() => {
