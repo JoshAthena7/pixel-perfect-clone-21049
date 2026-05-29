@@ -14,15 +14,18 @@ import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
+import { Route as AuthenticatedWinThemesRouteImport } from './routes/_authenticated/win-themes'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
 import { Route as AuthenticatedSosRouteImport } from './routes/_authenticated/sos'
 import { Route as AuthenticatedSnapshotsRouteImport } from './routes/_authenticated/snapshots'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedSectionAssignmentsRouteImport } from './routes/_authenticated/section-assignments'
 import { Route as AuthenticatedRisksRouteImport } from './routes/_authenticated/risks'
 import { Route as AuthenticatedPulseRouteImport } from './routes/_authenticated/pulse'
 import { Route as AuthenticatedIntelRouteImport } from './routes/_authenticated/intel'
 import { Route as AuthenticatedHuddleRouteImport } from './routes/_authenticated/huddle'
 import { Route as AuthenticatedHeatmapRouteImport } from './routes/_authenticated/heatmap'
+import { Route as AuthenticatedFaqRouteImport } from './routes/_authenticated/faq'
 import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authenticated/decisions'
 import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticated/command'
 import { Route as AuthenticatedBroadcastsRouteImport } from './routes/_authenticated/broadcasts'
@@ -69,6 +72,11 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   path: '/email/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedWinThemesRoute = AuthenticatedWinThemesRouteImport.update({
+  id: '/win-themes',
+  path: '/win-themes',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
   id: '/team',
   path: '/team',
@@ -89,6 +97,12 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedSectionAssignmentsRoute =
+  AuthenticatedSectionAssignmentsRouteImport.update({
+    id: '/section-assignments',
+    path: '/section-assignments',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedRisksRoute = AuthenticatedRisksRouteImport.update({
   id: '/risks',
   path: '/risks',
@@ -112,6 +126,11 @@ const AuthenticatedHuddleRoute = AuthenticatedHuddleRouteImport.update({
 const AuthenticatedHeatmapRoute = AuthenticatedHeatmapRouteImport.update({
   id: '/heatmap',
   path: '/heatmap',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedFaqRoute = AuthenticatedFaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedDecisionsRoute = AuthenticatedDecisionsRouteImport.update({
@@ -242,15 +261,18 @@ export interface FileRoutesByFullPath {
   '/broadcasts': typeof AuthenticatedBroadcastsRoute
   '/command': typeof AuthenticatedCommandRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
+  '/faq': typeof AuthenticatedFaqRoute
   '/heatmap': typeof AuthenticatedHeatmapRoute
   '/huddle': typeof AuthenticatedHuddleRoute
   '/intel': typeof AuthenticatedIntelRoute
   '/pulse': typeof AuthenticatedPulseRoute
   '/risks': typeof AuthenticatedRisksRoute
+  '/section-assignments': typeof AuthenticatedSectionAssignmentsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/snapshots': typeof AuthenticatedSnapshotsRoute
   '/sos': typeof AuthenticatedSosRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/win-themes': typeof AuthenticatedWinThemesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/writer/broadcasts': typeof AuthenticatedWriterBroadcastsRoute
   '/writer/decisions': typeof AuthenticatedWriterDecisionsRoute
@@ -278,15 +300,18 @@ export interface FileRoutesByTo {
   '/broadcasts': typeof AuthenticatedBroadcastsRoute
   '/command': typeof AuthenticatedCommandRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
+  '/faq': typeof AuthenticatedFaqRoute
   '/heatmap': typeof AuthenticatedHeatmapRoute
   '/huddle': typeof AuthenticatedHuddleRoute
   '/intel': typeof AuthenticatedIntelRoute
   '/pulse': typeof AuthenticatedPulseRoute
   '/risks': typeof AuthenticatedRisksRoute
+  '/section-assignments': typeof AuthenticatedSectionAssignmentsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/snapshots': typeof AuthenticatedSnapshotsRoute
   '/sos': typeof AuthenticatedSosRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/win-themes': typeof AuthenticatedWinThemesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/writer/broadcasts': typeof AuthenticatedWriterBroadcastsRoute
   '/writer/decisions': typeof AuthenticatedWriterDecisionsRoute
@@ -316,15 +341,18 @@ export interface FileRoutesById {
   '/_authenticated/broadcasts': typeof AuthenticatedBroadcastsRoute
   '/_authenticated/command': typeof AuthenticatedCommandRoute
   '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
+  '/_authenticated/faq': typeof AuthenticatedFaqRoute
   '/_authenticated/heatmap': typeof AuthenticatedHeatmapRoute
   '/_authenticated/huddle': typeof AuthenticatedHuddleRoute
   '/_authenticated/intel': typeof AuthenticatedIntelRoute
   '/_authenticated/pulse': typeof AuthenticatedPulseRoute
   '/_authenticated/risks': typeof AuthenticatedRisksRoute
+  '/_authenticated/section-assignments': typeof AuthenticatedSectionAssignmentsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/snapshots': typeof AuthenticatedSnapshotsRoute
   '/_authenticated/sos': typeof AuthenticatedSosRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
+  '/_authenticated/win-themes': typeof AuthenticatedWinThemesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/_authenticated/writer/broadcasts': typeof AuthenticatedWriterBroadcastsRoute
   '/_authenticated/writer/decisions': typeof AuthenticatedWriterDecisionsRoute
@@ -354,15 +382,18 @@ export interface FileRouteTypes {
     | '/broadcasts'
     | '/command'
     | '/decisions'
+    | '/faq'
     | '/heatmap'
     | '/huddle'
     | '/intel'
     | '/pulse'
     | '/risks'
+    | '/section-assignments'
     | '/settings'
     | '/snapshots'
     | '/sos'
     | '/team'
+    | '/win-themes'
     | '/email/unsubscribe'
     | '/writer/broadcasts'
     | '/writer/decisions'
@@ -390,15 +421,18 @@ export interface FileRouteTypes {
     | '/broadcasts'
     | '/command'
     | '/decisions'
+    | '/faq'
     | '/heatmap'
     | '/huddle'
     | '/intel'
     | '/pulse'
     | '/risks'
+    | '/section-assignments'
     | '/settings'
     | '/snapshots'
     | '/sos'
     | '/team'
+    | '/win-themes'
     | '/email/unsubscribe'
     | '/writer/broadcasts'
     | '/writer/decisions'
@@ -427,15 +461,18 @@ export interface FileRouteTypes {
     | '/_authenticated/broadcasts'
     | '/_authenticated/command'
     | '/_authenticated/decisions'
+    | '/_authenticated/faq'
     | '/_authenticated/heatmap'
     | '/_authenticated/huddle'
     | '/_authenticated/intel'
     | '/_authenticated/pulse'
     | '/_authenticated/risks'
+    | '/_authenticated/section-assignments'
     | '/_authenticated/settings'
     | '/_authenticated/snapshots'
     | '/_authenticated/sos'
     | '/_authenticated/team'
+    | '/_authenticated/win-themes'
     | '/email/unsubscribe'
     | '/_authenticated/writer/broadcasts'
     | '/_authenticated/writer/decisions'
@@ -506,6 +543,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmailUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/win-themes': {
+      id: '/_authenticated/win-themes'
+      path: '/win-themes'
+      fullPath: '/win-themes'
+      preLoaderRoute: typeof AuthenticatedWinThemesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/team': {
       id: '/_authenticated/team'
       path: '/team'
@@ -532,6 +576,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/section-assignments': {
+      id: '/_authenticated/section-assignments'
+      path: '/section-assignments'
+      fullPath: '/section-assignments'
+      preLoaderRoute: typeof AuthenticatedSectionAssignmentsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/risks': {
@@ -567,6 +618,13 @@ declare module '@tanstack/react-router' {
       path: '/heatmap'
       fullPath: '/heatmap'
       preLoaderRoute: typeof AuthenticatedHeatmapRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/faq': {
+      id: '/_authenticated/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof AuthenticatedFaqRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/decisions': {
@@ -724,15 +782,18 @@ interface AuthenticatedRouteChildren {
   AuthenticatedBroadcastsRoute: typeof AuthenticatedBroadcastsRoute
   AuthenticatedCommandRoute: typeof AuthenticatedCommandRoute
   AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRoute
+  AuthenticatedFaqRoute: typeof AuthenticatedFaqRoute
   AuthenticatedHeatmapRoute: typeof AuthenticatedHeatmapRoute
   AuthenticatedHuddleRoute: typeof AuthenticatedHuddleRoute
   AuthenticatedIntelRoute: typeof AuthenticatedIntelRoute
   AuthenticatedPulseRoute: typeof AuthenticatedPulseRoute
   AuthenticatedRisksRoute: typeof AuthenticatedRisksRoute
+  AuthenticatedSectionAssignmentsRoute: typeof AuthenticatedSectionAssignmentsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSnapshotsRoute: typeof AuthenticatedSnapshotsRoute
   AuthenticatedSosRoute: typeof AuthenticatedSosRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
+  AuthenticatedWinThemesRoute: typeof AuthenticatedWinThemesRoute
   AuthenticatedWriterBroadcastsRoute: typeof AuthenticatedWriterBroadcastsRoute
   AuthenticatedWriterDecisionsRoute: typeof AuthenticatedWriterDecisionsRoute
   AuthenticatedWriterFaqRoute: typeof AuthenticatedWriterFaqRoute
@@ -752,15 +813,18 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedBroadcastsRoute: AuthenticatedBroadcastsRoute,
   AuthenticatedCommandRoute: AuthenticatedCommandRoute,
   AuthenticatedDecisionsRoute: AuthenticatedDecisionsRoute,
+  AuthenticatedFaqRoute: AuthenticatedFaqRoute,
   AuthenticatedHeatmapRoute: AuthenticatedHeatmapRoute,
   AuthenticatedHuddleRoute: AuthenticatedHuddleRoute,
   AuthenticatedIntelRoute: AuthenticatedIntelRoute,
   AuthenticatedPulseRoute: AuthenticatedPulseRoute,
   AuthenticatedRisksRoute: AuthenticatedRisksRoute,
+  AuthenticatedSectionAssignmentsRoute: AuthenticatedSectionAssignmentsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSnapshotsRoute: AuthenticatedSnapshotsRoute,
   AuthenticatedSosRoute: AuthenticatedSosRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
+  AuthenticatedWinThemesRoute: AuthenticatedWinThemesRoute,
   AuthenticatedWriterBroadcastsRoute: AuthenticatedWriterBroadcastsRoute,
   AuthenticatedWriterDecisionsRoute: AuthenticatedWriterDecisionsRoute,
   AuthenticatedWriterFaqRoute: AuthenticatedWriterFaqRoute,
