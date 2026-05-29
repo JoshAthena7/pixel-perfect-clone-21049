@@ -15,6 +15,7 @@ import { RecognitionSummary, MemberRecognitionPanel, usePulses, type FormKind } 
 import { PresenceDot } from "@/components/war-room/comms/PresenceDot";
 import { NudgeButton } from "@/components/war-room/comms/NudgeButton";
 import { useComms } from "@/hooks/use-comms";
+import { useTriviaWinnerId } from "@/hooks/use-trivia-winner";
 
 const VALID_ROLES = new Set(["founder", "pm", "engagement_lead", "writer", "reviewer", "viewer"]);
 
