@@ -223,12 +223,31 @@ function TeamPage() {
       })
       .select("token")
       .single();
-    setInviteSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) { setInviteSaving(false); return toast.error(error.message); }
     const link = inviteLinkFor(data.token);
     setLastInviteLink(link);
-    try { await navigator.clipboard.writeText(link); toast.success("Invite link copied to clipboard"); }
-    catch { toast.success("Invite created"); }
+    try { await navigator.clipboard.writeText(link); } catch { /* clipboard may be blocked */ }
+
+    // Fire-and-await email send
+    try {
+      await sendTransactionalEmail({
+        templateName: "engagement-invite",
+        recipientEmail: email,
+        idempotencyKey: `invite-${data.token}`,
+        templateData: {
+          recipientName: name,
+          inviterName: me.display_name,
+          engagementName: engagement.name,
+          client: engagement.client ?? "",
+          roleLabel: preset.label,
+          acceptUrl: link,
+        },
+      });
+      toast.success(`Invite emailed to ${email}`);
+    } catch (e: any) {
+      toast.warning(`Invite created, but email send failed: ${e.message ?? e}. Use Copy link to share manually.`);
+    }
+    setInviteSaving(false);
     setInviteForm({ preset: INVITE_PRESETS[0].key, display_name: "", email: "" });
     loadInvites(engagement.id);
   }
