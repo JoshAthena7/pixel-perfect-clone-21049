@@ -13,4 +13,5 @@ export interface TemplateEntry {
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'daily-digest': dailyDigestTemplate,
+  'engagement-invite': engagementInviteTemplate,
 }
