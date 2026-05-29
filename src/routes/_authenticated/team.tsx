@@ -732,3 +732,12 @@ function TeamPage() {
   );
 }
 
+
+function TeamMemberName({ id, name }: { id: string; name: string }) {
+  const { openChatWith } = useComms();
+  return (
+    <button onClick={() => openChatWith(id, name)} className="text-base font-semibold hover:text-[var(--gold)]">
+      {name}
+    </button>
+  );
+}
