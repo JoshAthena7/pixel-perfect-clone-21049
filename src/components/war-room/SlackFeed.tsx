@@ -26,9 +26,12 @@ export function SlackFeed() {
   const channelsFn = useServerFn(listSlackChannels);
   const messagesFn = useServerFn(getSlackMessages);
 
-  const [channelId, setChannelId] = useState<string>(() =>
-    typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) ?? "" : "",
-  );
+  const [channelId, setChannelId] = useState<string>("");
+
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) setChannelId(saved);
+  }, []);
 
   const channelsQ = useQuery({
     queryKey: ["slack", "channels"],
