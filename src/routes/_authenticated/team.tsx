@@ -12,6 +12,9 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogD
 import { toast } from "sonner";
 import { Phone, MessageSquare, Mail, Hash, Radio, Pencil, X, Check, Upload, AlertTriangle, UserPlus, Copy, Link as LinkIcon } from "lucide-react";
 import { RecognitionSummary, MemberRecognitionPanel, usePulses, type FormKind } from "@/components/war-room/Recognition";
+import { PresenceDot } from "@/components/war-room/comms/PresenceDot";
+import { NudgeButton } from "@/components/war-room/comms/NudgeButton";
+import { useComms } from "@/hooks/use-comms";
 
 const VALID_ROLES = new Set(["founder", "pm", "engagement_lead", "writer", "reviewer", "viewer"]);
 
@@ -512,10 +515,12 @@ function TeamPage() {
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-base font-semibold">{m.display_name}</span>
+                        <PresenceDot memberId={m.id} />
+                        <TeamMemberName id={m.id} name={m.display_name} />
                         <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${roleAccent(m.role)}`}>
                           {ROLE_LABEL[m.role] ?? m.role}
                         </span>
+                        <NudgeButton memberId={m.id} displayName={m.display_name} />
                         {m.on_call && (
                           <span className="inline-flex items-center gap-1 rounded-full border border-[var(--gold)]/50 bg-[var(--gold)]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--gold)]">
                             <Radio className="h-3 w-3" /> On call
@@ -727,3 +732,12 @@ function TeamPage() {
   );
 }
 
+
+function TeamMemberName({ id, name }: { id: string; name: string }) {
+  const { openChatWith } = useComms();
+  return (
+    <button onClick={() => openChatWith(id, name)} className="text-base font-semibold hover:text-[var(--gold)]">
+      {name}
+    </button>
+  );
+}

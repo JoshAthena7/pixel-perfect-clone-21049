@@ -5,6 +5,9 @@ import { useEngagement } from "@/hooks/use-engagement";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Mail, Phone } from "lucide-react";
+import { PresenceDot } from "@/components/war-room/comms/PresenceDot";
+import { NudgeButton } from "@/components/war-room/comms/NudgeButton";
+import { useComms } from "@/hooks/use-comms";
 
 export const Route = createFileRoute("/_authenticated/writer/team")({
   head: () => ({ meta: [{ title: "Team Directory — Writer Portal" }] }),
@@ -13,6 +16,7 @@ export const Route = createFileRoute("/_authenticated/writer/team")({
 
 function WriterTeam() {
   const { engagement } = useEngagement();
+  const { openChatWith } = useComms();
   const [members, setMembers] = useState<any[]>([]);
   const [q, setQ] = useState("");
 
@@ -42,7 +46,13 @@ function WriterTeam() {
         <div className="space-y-2">
           {visible.map((m) => (
             <Card key={m.id} className="border-border bg-surface p-4">
-              <div className="text-sm font-semibold">{m.display_name}</div>
+              <div className="flex items-center justify-between gap-3">
+                <button onClick={() => openChatWith(m.id, m.display_name)} className="flex items-center gap-2 text-sm font-semibold hover:text-[var(--gold)]">
+                  <PresenceDot memberId={m.id} />
+                  {m.display_name}
+                </button>
+                <NudgeButton memberId={m.id} displayName={m.display_name} />
+              </div>
               <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground">
                 {m.email && (
                   <a className="inline-flex items-center gap-1.5 hover:text-foreground" href={`mailto:${m.email}`}>

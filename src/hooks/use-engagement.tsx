@@ -12,6 +12,7 @@ export type Engagement = {
 };
 
 export type Member = {
+  id: string;
   role: string;
   display_name: string;
 };
@@ -93,7 +94,7 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
     if (current) {
       const { data: m } = await supabase
         .from("engagement_members")
-        .select("role, display_name")
+        .select("id, role, display_name")
         .eq("engagement_id", current.id)
         .eq("user_id", uid)
         .single();

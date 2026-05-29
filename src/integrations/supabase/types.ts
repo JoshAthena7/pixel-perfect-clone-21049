@@ -610,6 +610,57 @@ export type Database = {
           },
         ]
       }
+      nudges: {
+        Row: {
+          created_at: string
+          engagement_id: string
+          id: string
+          read: boolean
+          recipient_id: string
+          sender_id: string
+          sender_name: string
+        }
+        Insert: {
+          created_at?: string
+          engagement_id: string
+          id?: string
+          read?: boolean
+          recipient_id: string
+          sender_id: string
+          sender_name: string
+        }
+        Update: {
+          created_at?: string
+          engagement_id?: string
+          id?: string
+          read?: boolean
+          recipient_id?: string
+          sender_id?: string
+          sender_name?: string
+        }
+        Relationships: []
+      }
+      presence: {
+        Row: {
+          engagement_id: string
+          last_seen: string
+          member_id: string
+          user_id: string
+        }
+        Insert: {
+          engagement_id: string
+          last_seen?: string
+          member_id: string
+          user_id: string
+        }
+        Update: {
+          engagement_id?: string
+          last_seen?: string
+          member_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -628,6 +679,42 @@ export type Database = {
           display_name?: string
           id?: string
           title?: string | null
+        }
+        Relationships: []
+      }
+      quick_chats: {
+        Row: {
+          created_at: string
+          engagement_id: string
+          expires_at: string
+          id: string
+          message: string
+          read: boolean
+          recipient_id: string
+          sender_id: string
+          sender_name: string
+        }
+        Insert: {
+          created_at?: string
+          engagement_id: string
+          expires_at?: string
+          id?: string
+          message: string
+          read?: boolean
+          recipient_id: string
+          sender_id: string
+          sender_name: string
+        }
+        Update: {
+          created_at?: string
+          engagement_id?: string
+          expires_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          recipient_id?: string
+          sender_id?: string
+          sender_name?: string
         }
         Relationships: []
       }
@@ -720,6 +807,36 @@ export type Database = {
           user_id?: string
           word_count_max?: number | null
           word_count_min?: number | null
+        }
+        Relationships: []
+      }
+      section_threads: {
+        Row: {
+          author_name: string
+          created_at: string
+          engagement_id: string
+          id: string
+          member_id: string
+          message: string
+          section_id: string
+        }
+        Insert: {
+          author_name: string
+          created_at?: string
+          engagement_id: string
+          id?: string
+          member_id: string
+          message: string
+          section_id: string
+        }
+        Update: {
+          author_name?: string
+          created_at?: string
+          engagement_id?: string
+          id?: string
+          member_id?: string
+          message?: string
+          section_id?: string
         }
         Relationships: []
       }
@@ -979,6 +1096,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_quick_chats: { Args: never; Returns: undefined }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
