@@ -449,6 +449,13 @@ function TeamPage() {
         </Card>
       )}
 
+      {isLeadership && members.length > 0 && (
+        <RecognitionSummary
+          members={members.map((m) => ({ id: m.id, display_name: m.display_name }))}
+          pulses={pulses}
+        />
+      )}
+
       <Card className="border-border bg-surface p-0 overflow-hidden">
         <ul className="divide-y divide-border">
           {members.map((m) => {
