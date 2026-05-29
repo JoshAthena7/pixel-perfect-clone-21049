@@ -502,18 +502,12 @@ function TlcForm({
       } finally {
         setDrafting(false);
       }
-      await onSavedRefresh();
+      await onSaved();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Couldn't save");
     } finally {
       setSaving(false);
     }
-  }
-
-  // Refresh summary counts in parent without closing the form (so the user can read the draft)
-  async function onSavedRefresh() {
-    await onSaved();
-    // onSaved closes the form by default — but we want the draft visible. Re-open by parent flow.
   }
 
   return (
