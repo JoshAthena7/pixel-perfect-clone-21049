@@ -346,6 +346,11 @@ function TeamPage() {
         </div>
         <div className="flex items-center gap-3">
           {isLeadership && (
+            <Button size="sm" onClick={() => { setLastInviteLink(null); setInviteOpen(true); }}>
+              <UserPlus className="h-3.5 w-3.5 mr-1.5" /> Invite Leader
+            </Button>
+          )}
+          {isLeadership && (
             <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-xs font-semibold hover:bg-surface-hover">
               <Upload className="h-3.5 w-3.5" />
               Upload CSV / XLSX
