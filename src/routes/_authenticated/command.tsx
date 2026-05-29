@@ -127,6 +127,19 @@ function CommandCenter() {
         </div>
       </Card>
 
+      {/* Engagement Temperature */}
+      <Card className="border-border bg-surface p-6">
+        <Thermometer score={temperature} />
+        <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-1 text-[11px] text-muted-foreground sm:grid-cols-4">
+          <div><span className="inline-block h-2 w-2 rounded-full mr-1.5 align-middle" style={{ background: "#3b82f6" }} />0–30 Stable</div>
+          <div><span className="inline-block h-2 w-2 rounded-full mr-1.5 align-middle" style={{ background: "var(--yellow)" }} />31–55 Warming</div>
+          <div><span className="inline-block h-2 w-2 rounded-full mr-1.5 align-middle" style={{ background: "var(--orange)" }} />56–75 Elevated</div>
+          <div><span className="inline-block h-2 w-2 rounded-full mr-1.5 align-middle" style={{ background: "var(--red)" }} />76–100 Critical</div>
+        </div>
+      </Card>
+
+
+
       {/* Metrics */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Metric icon={<Siren className="h-4 w-4" />} label="Open SOS" value={openSos.length} accent="Red" />
