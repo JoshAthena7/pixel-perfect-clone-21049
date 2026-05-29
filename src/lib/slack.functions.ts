@@ -125,5 +125,5 @@ export const getSlackMessages = createServerFn({ method: "POST" })
       }))
       .reverse(); // oldest -> newest
 
-    return { messages };
+    return { messages, needsInvite: false as const };
   });
