@@ -97,6 +97,7 @@ function RoleGuardedShell() {
           <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-border bg-background/85 px-3 backdrop-blur">
             <SidebarTrigger />
             <AppHeaderContent />
+            <ChatNavButton />
           </header>
           {!isWriter && <SubmissionBanner />}
           {isWriter && (
@@ -112,6 +113,7 @@ function RoleGuardedShell() {
           {isWriter && <WriterContactBar />}
         </div>
       </div>
+      <QuickChatPanel />
       <Toaster theme="dark" position="top-right" />
     </SidebarProvider>
   );
