@@ -14,6 +14,7 @@ import { burstConfetti } from "@/lib/confetti";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Flame } from "lucide-react";
+import { SectionThread } from "@/components/war-room/comms/SectionThread";
 
 export const Route = createFileRoute("/_authenticated/writer/my-sections")({
   head: () => ({ meta: [{ title: "My Sections — Writer Portal" }] }),
@@ -150,6 +151,7 @@ function WriterMySections() {
                 </Select>
               </div>
               <p className="mt-3 text-[11px] italic text-muted-foreground">Submit drafts in the client environment.</p>
+              <SectionThread sectionId={a.section_id} />
             </Card>
           ))}
         </div>
