@@ -5,6 +5,9 @@ import { useEngagement } from "@/hooks/use-engagement";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Mail, Phone } from "lucide-react";
+import { PresenceDot } from "@/components/war-room/comms/PresenceDot";
+import { NudgeButton } from "@/components/war-room/comms/NudgeButton";
+import { useComms } from "@/hooks/use-comms";
 
 export const Route = createFileRoute("/_authenticated/writer/team")({
   head: () => ({ meta: [{ title: "Team Directory — Writer Portal" }] }),
