@@ -625,7 +625,7 @@ function TeamPage() {
           {lastInviteLink ? (
             <div className="space-y-3">
               <div className="rounded-md border border-emerald-500/40 bg-emerald-500/10 p-3 text-sm text-emerald-200">
-                Invite created — link copied to your clipboard.
+                Invitation sent — email delivered and link copied to your clipboard as a backup.
               </div>
               <div className="rounded-md border border-border bg-surface-hover p-2 text-xs break-all">{lastInviteLink}</div>
               <div className="flex justify-end gap-2">
