@@ -64,9 +64,21 @@
 
 @layer base {
   html, body { background: var(--background); color: var(--foreground); }
-  body { font-family: var(--font-sans); }
+  body { font-family: var(--font-sans); overflow-x: hidden; }
   * { border-color: var(--color-border); }
   ::selection { background: color-mix(in oklab, var(--primary) 35%, transparent); }
+
+  /* Mobile: prevent iOS auto-zoom on inputs (font must be >= 16px) */
+  @media (max-width: 640px) {
+    input, textarea, select {
+      font-size: 16px !important;
+    }
+    /* Bigger touch targets for primary actions on small screens */
+    button:not([data-sidebar="trigger"]):not([role="tab"]),
+    [role="button"]:not([data-sidebar="trigger"]) {
+      min-height: 44px;
+    }
+  }
 }
 
 @layer utilities {
