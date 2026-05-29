@@ -37,13 +37,16 @@ function CommandCenter() {
   const [heatmap, setHeatmap] = useState<Heat[]>([]);
   const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
 
+  const [latestPulse, setLatestPulse] = useState<{ sentiment: string } | null>(null);
+
   async function loadAll(eid: string) {
-    const [h, sos, risks, heat, bc] = await Promise.all([
+    const [h, sos, risks, heat, bc, pulse] = await Promise.all([
       supabase.from("huddles").select("*").eq("engagement_id", eid).order("created_at", { ascending: false }).limit(5),
       supabase.from("sos_alerts").select("*").eq("engagement_id", eid).neq("status", "Resolved").order("created_at", { ascending: false }),
       supabase.from("risks").select("id,title,severity,likelihood,status").eq("engagement_id", eid).neq("status", "Closed").order("updated_at", { ascending: false }),
       supabase.from("heatmap_sections").select("*").eq("engagement_id", eid).order("sort_order"),
       supabase.from("broadcasts").select("*").eq("engagement_id", eid).order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(3),
+      supabase.from("client_pulses").select("sentiment").eq("engagement_id", eid).order("interaction_date", { ascending: false }).order("created_at", { ascending: false }).limit(1).maybeSingle(),
     ]);
     setRecentHuddles((h.data as Huddle[]) ?? []);
     setLatestHuddle(((h.data as Huddle[]) ?? [])[0] ?? null);
@@ -51,6 +54,7 @@ function CommandCenter() {
     setOpenRisks((risks.data as Risk[]) ?? []);
     setHeatmap((heat.data as Heat[]) ?? []);
     setBroadcasts((bc.data as Broadcast[]) ?? []);
+    setLatestPulse((pulse.data as { sentiment: string } | null) ?? null);
   }
 
   useEffect(() => {
