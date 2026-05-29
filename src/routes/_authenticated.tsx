@@ -15,6 +15,7 @@ import { WriterContactBar } from "@/components/war-room/writer/WriterContactBar"
 import { CommsProvider } from "@/hooks/use-comms";
 import { QuickChatPanel } from "@/components/war-room/comms/QuickChatPanel";
 import { ChatNavButton } from "@/components/war-room/comms/ChatNavButton";
+import { WriterActionLauncher } from "@/components/war-room/writer/WriterActionLauncher";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthLayout,
