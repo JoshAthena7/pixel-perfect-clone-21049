@@ -53,6 +53,8 @@ const leadership = [
 export function AppSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const { engagement, member } = useEngagement();
+  const isLeadership = !!member && ["founder", "pm", "engagement_lead"].includes(member.role);
+  const ops = isLeadership ? opsLeadership : opsBase;
   const isActive = (p: string) => pathname === p;
 
   async function signOut() {
