@@ -756,6 +756,16 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_engagement_member_contacts: {
+        Args: { _engagement_id: string }
+        Returns: {
+          display_name: string
+          email: string
+          phone: string
+          slack_handle: string
+          user_id: string
+        }[]
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
