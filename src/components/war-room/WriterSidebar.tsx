@@ -64,7 +64,13 @@ export function WriterSidebar() {
 
   const renderItem = (i: { title: string; url: string; icon: any }) => (
     <SidebarMenuItem key={i.url}>
-      <SidebarMenuButton asChild isActive={isActive(i.url)} tooltip={i.title}>
+      <SidebarMenuButton
+        asChild
+        size="sm"
+        isActive={isActive(i.url)}
+        tooltip={i.title}
+        className="py-1.5 text-[12px]"
+      >
         <Link to={i.url}>
           <i.icon className="h-4 w-4" />
           <span>{i.title}</span>
@@ -92,25 +98,25 @@ export function WriterSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Work</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px]">Work</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>{WORK.map(renderItem)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel>Engagement</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px]">Engagement</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>{ENGAGEMENT.map(renderItem)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel>Flag</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px]">Flag</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>{FLAG.map(renderItem)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel>Team</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px]">Team</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>{TEAM.map(renderItem)}</SidebarMenu>
           </SidebarGroupContent>
