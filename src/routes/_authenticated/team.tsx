@@ -165,6 +165,92 @@ function TeamPage() {
   const [pending, setPending] = useState<PendingRow[] | null>(null);
   const [importing, setImporting] = useState(false);
 
+  // ===== Invite flow =====
+  type InviteRow = {
+    id: string;
+    email: string;
+    display_name: string;
+    role: string;
+    title: string | null;
+    token: string;
+    created_at: string;
+    accepted_at: string | null;
+    revoked_at: string | null;
+  };
+  const [invites, setInvites] = useState<InviteRow[]>([]);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteSaving, setInviteSaving] = useState(false);
+  const [inviteForm, setInviteForm] = useState({
+    preset: INVITE_PRESETS[0].key as (typeof INVITE_PRESETS)[number]["key"],
+    display_name: "",
+    email: "",
+  });
+  const [lastInviteLink, setLastInviteLink] = useState<string | null>(null);
+
+  async function loadInvites(eid: string) {
+    const { data } = await supabase
+      .from("engagement_invites")
+      .select("id, email, display_name, role, title, token, created_at, accepted_at, revoked_at")
+      .eq("engagement_id", eid)
+      .order("created_at", { ascending: false });
+    setInvites((data as InviteRow[]) ?? []);
+  }
+  useEffect(() => { if (engagement && isLeadership) loadInvites(engagement.id); }, [engagement?.id, isLeadership]);
+
+  function inviteLinkFor(token: string) {
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    return `${origin}/accept-invite?token=${token}`;
+  }
+
+  async function createInvite() {
+    if (!engagement || !me) return;
+    const preset = INVITE_PRESETS.find((p) => p.key === inviteForm.preset)!;
+    const name = inviteForm.display_name.trim();
+    const email = inviteForm.email.trim().toLowerCase();
+    if (!name) return toast.error("Enter the leader's name.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast.error("Enter a valid email.");
+    setInviteSaving(true);
+    const { data, error } = await supabase
+      .from("engagement_invites")
+      .insert({
+        engagement_id: engagement.id,
+        email,
+        display_name: name,
+        role: preset.role,
+        title: preset.title,
+        invited_by: (await supabase.auth.getUser()).data.user!.id,
+        invited_by_name: me.display_name,
+      })
+      .select("token")
+      .single();
+    setInviteSaving(false);
+    if (error) return toast.error(error.message);
+    const link = inviteLinkFor(data.token);
+    setLastInviteLink(link);
+    try { await navigator.clipboard.writeText(link); toast.success("Invite link copied to clipboard"); }
+    catch { toast.success("Invite created"); }
+    setInviteForm({ preset: INVITE_PRESETS[0].key, display_name: "", email: "" });
+    loadInvites(engagement.id);
+  }
+
+  async function revokeInvite(id: string) {
+    if (!engagement) return;
+    const { error } = await supabase
+      .from("engagement_invites")
+      .update({ revoked_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Invite revoked");
+    loadInvites(engagement.id);
+  }
+
+  async function copyLink(token: string) {
+    const link = inviteLinkFor(token);
+    try { await navigator.clipboard.writeText(link); toast.success("Link copied"); }
+    catch { toast.error("Couldn't copy — link: " + link); }
+  }
+
+
   function rowsToPending(rows: string[][]): PendingRow[] {
     const headers = rows[0].map((h) => String(h).trim().toLowerCase());
     const idx = (name: string) => headers.indexOf(name);
