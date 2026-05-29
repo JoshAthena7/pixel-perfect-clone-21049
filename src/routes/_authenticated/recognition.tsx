@@ -215,7 +215,7 @@ function RecognitionPage() {
             openForm={openForm?.memberId === m.id ? openForm.kind : null}
             onOpen={(kind) => setOpenForm({ memberId: m.id, kind })}
             onClose={() => setOpenForm(null)}
-            onSaved={async () => { setOpenForm(null); await refresh(); }}
+            onSaved={async () => { await refresh(); }}
             engagementId={engagement.id}
           />
         ))}
