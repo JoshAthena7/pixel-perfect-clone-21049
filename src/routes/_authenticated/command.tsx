@@ -219,8 +219,8 @@ function CommandCenter() {
         )}
       </section>
 
-      {/* 4. Bottom two columns */}
-      <div className="grid grid-cols-1 md:grid-cols-2" style={{ borderTop: `0.5px solid ${BORDER}` }}>
+      {/* 4. Bottom — 3-column equal grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3" style={{ borderTop: `0.5px solid ${BORDER}` }}>
         {/* Broadcasts */}
         <section className="p-5" style={{ borderRight: `0.5px solid ${BORDER}` }}>
           <div className="mb-3 flex items-center justify-between">
@@ -229,65 +229,185 @@ function CommandCenter() {
             </div>
             <Link to="/broadcasts" className="text-xs text-primary hover:underline">All →</Link>
           </div>
-          {broadcasts.length === 0 ? (
-            <div className="rounded-lg p-4 text-sm text-muted-foreground" style={{ background: "#1a2333", border: `0.5px solid ${BORDER}` }}>
-              No broadcasts yet — leadership messages will appear here.
-            </div>
-          ) : (
-            <ul className="space-y-2">
-              {broadcasts.map((b) => (
+          <ul className="space-y-2">
+            {Array.from({ length: 3 }).map((_, i) => {
+              const b = broadcasts[i];
+              if (!b) {
+                return (
+                  <li key={`empty-${i}`} className="rounded-lg px-3 py-2.5 text-[12px] text-muted-foreground" style={{ background: "#1a2333", border: `0.5px solid ${BORDER}` }}>
+                    No recent broadcasts
+                  </li>
+                );
+              }
+              return (
                 <li key={b.id} className="rounded-lg px-3 py-2.5" style={{ background: "#1a2333", border: `0.5px solid ${BORDER}` }}>
                   <div className="flex items-start gap-2">
                     <span className="text-base leading-none">{b.pinned ? "📌" : "📣"}</span>
                     <div className="min-w-0 flex-1">
-                      <div className="text-[12px] font-medium line-clamp-2">{b.content}</div>
+                      <div className="text-[12px] font-medium text-white line-clamp-2">{b.content}</div>
                       <div className="mt-1 text-[11px] text-muted-foreground">
                         {b.author_name} · {relativeTime(b.created_at)}
                       </div>
                     </div>
                   </div>
                 </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        {/* Slack feed */}
-        <section className="p-5">
-          <div className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-            <Hash className="h-3.5 w-3.5" /> Slack Feed
-          </div>
-          <SlackFeed />
-        </section>
-      </div>
-
-      {/* Recent huddles */}
-      <section className="border-t p-5" style={{ borderColor: BORDER }}>
-        <div className="mb-3 flex items-center justify-between">
-          <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Recent Huddles (last 7d)</div>
-          <Link to="/huddle" className="text-xs text-primary hover:underline">New →</Link>
-        </div>
-        {recentHuddles.length === 0 ? (
-          <div className="text-sm text-muted-foreground">No huddles in the last 7 days.</div>
-        ) : (
-          <ul className="divide-y" style={{ borderColor: BORDER }}>
-            {recentHuddles.slice(0, 5).map((h) => {
-              const c = HEAT_COLOR[h.health as HeatStatus] ?? HEAT_COLOR.Green;
-              return (
-                <li key={h.id} className="flex flex-wrap items-center gap-3 py-3">
-                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase" style={{ color: c }}>
-                    <span className="h-1.5 w-1.5 rounded-full" style={{ background: c }} />{h.health}
-                  </span>
-                  <span className="text-sm font-medium">{h.priority}</span>
-                  <span className="text-sm text-muted-foreground truncate flex-1">{h.risk ?? h.client_concern ?? h.writer_concern ?? "—"}</span>
-                  <span className="text-xs text-muted-foreground">{h.submitter_name} · {relativeTime(h.created_at)}</span>
-                </li>
               );
             })}
           </ul>
-        )}
-      </section>
+        </section>
+
+        {/* Slack feed (compact) */}
+        <section className="p-5" style={{ borderRight: `0.5px solid ${BORDER}` }}>
+          <CompactSlackPanel />
+        </section>
+
+        {/* Recent Huddles */}
+        <section className="p-5">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+              <Users className="h-3.5 w-3.5" /> Recent Huddles
+            </div>
+            <Link to="/huddle" className="text-xs text-primary hover:underline">New →</Link>
+          </div>
+          {recentHuddles.length === 0 ? (
+            <div className="rounded-lg px-3 py-2.5 text-[12px] text-muted-foreground" style={{ background: "#1a2333", border: `0.5px solid ${BORDER}` }}>
+              No huddles in the last 7 days
+            </div>
+          ) : (
+            <ul className="space-y-2">
+              {recentHuddles.slice(0, 3).map((h) => {
+                const c = huddleHealthColor(h.health);
+                const label = (h.health || "").toUpperCase();
+                const note = h.risk ?? h.client_concern ?? h.writer_concern ?? h.priority ?? "—";
+                return (
+                  <li key={h.id} className="rounded-lg px-3 py-2.5" style={{ background: "#1a2333", border: `0.5px solid ${BORDER}` }}>
+                    <div className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ background: c }} />
+                      <span className="text-[10px] font-bold uppercase tracking-wider rounded-full px-1.5 py-0.5"
+                        style={{ color: c, background: `color-mix(in oklab, ${c} 14%, transparent)`, border: `0.5px solid color-mix(in oklab, ${c} 45%, transparent)` }}>
+                        {label}
+                      </span>
+                      <span className="text-[12px] text-white truncate flex-1">{note}</span>
+                    </div>
+                    <div className="mt-1 text-[11px] text-muted-foreground pl-3.5">
+                      {h.submitter_name} · {relativeTime(h.created_at)}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      </div>
     </div>
+  );
+}
+
+function huddleHealthColor(health: string): string {
+  const h = (health || "").toLowerCase();
+  if (h.includes("block") || h === "red") return "#ef4444";
+  if (h.includes("risk") || h === "yellow" || h === "orange" || h.includes("warn")) return "#f97316";
+  return "#22c55e";
+}
+
+const SLACK_CH_KEY = "slackFeed.channelId";
+function relSlack(ts: string) {
+  const ms = Number(ts) * 1000;
+  const diff = Date.now() - ms;
+  if (diff < 60_000) return "just now";
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m`;
+  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h`;
+  return new Date(ms).toLocaleDateString();
+}
+function slackInitials(name: string) {
+  return name.split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("") || "?";
+}
+
+function CompactSlackPanel() {
+  const channelsFn = useServerFn(listSlackChannels);
+  const messagesFn = useServerFn(getSlackMessages);
+  const [channelId, setChannelId] = useState<string>("");
+
+  useEffect(() => {
+    const saved = typeof window !== "undefined" ? localStorage.getItem(SLACK_CH_KEY) : null;
+    if (saved) setChannelId(saved);
+  }, []);
+
+  const channelsQ = useQuery({
+    queryKey: ["slack", "channels"],
+    queryFn: () => channelsFn(),
+    staleTime: 5 * 60_000,
+    retry: false,
+  });
+  const joined = (channelsQ.data?.channels ?? []).filter((c) => c.is_member);
+
+  const messagesQ = useQuery({
+    queryKey: ["slack", "messages", channelId, 10],
+    queryFn: () => messagesFn({ data: { channelId, limit: 10 } }),
+    enabled: !!channelId,
+    refetchInterval: 30_000,
+    retry: false,
+  });
+
+  const slackUnavailable = channelsQ.isError;
+  const showEmpty = slackUnavailable || !channelId || (!!channelId && messagesQ.data?.needsInvite);
+  const messages = messagesQ.data?.messages ?? [];
+
+  return (
+    <>
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+          <Hash className="h-3.5 w-3.5" /> Slack Feed
+        </div>
+        <Select
+          value={channelId}
+          onValueChange={(v) => { setChannelId(v); localStorage.setItem(SLACK_CH_KEY, v); }}
+          disabled={slackUnavailable || joined.length === 0}
+        >
+          <SelectTrigger className="h-7 w-[160px] text-[11px]">
+            <SelectValue placeholder={channelsQ.isLoading ? "Loading…" : "Pick channel"} />
+          </SelectTrigger>
+          <SelectContent>
+            {joined.map((c) => (
+              <SelectItem key={c.id} value={c.id} className="text-xs">
+                <span className="inline-flex items-center gap-1"><Hash className="h-3 w-3" />{c.name}</span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {showEmpty ? (
+        <div className="rounded-lg px-3 py-2.5 flex items-start gap-2 text-[12px] text-muted-foreground" style={{ background: "#1a2333", border: `0.5px solid ${BORDER}` }}>
+          <Plug className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+          <span>Invite the Slack bot to a channel, then select it above to start streaming.</span>
+        </div>
+      ) : (
+        <ul className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
+          {messagesQ.isLoading && messages.length === 0 && (
+            <li className="text-[12px] text-muted-foreground">Loading…</li>
+          )}
+          {!messagesQ.isLoading && messages.length === 0 && (
+            <li className="text-[12px] text-muted-foreground">No messages yet.</li>
+          )}
+          {messages.slice(-10).map((m) => (
+            <li key={m.ts} className="flex gap-2 rounded-lg px-3 py-2" style={{ background: "#1a2333", border: `0.5px solid ${BORDER}` }}>
+              <Avatar className="h-6 w-6 shrink-0">
+                {m.userAvatar && <AvatarImage src={m.userAvatar} alt={m.userName} />}
+                <AvatarFallback className="text-[9px]">{slackInitials(m.userName)}</AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-[12px] font-semibold text-white truncate">{m.userName}</span>
+                  <span className="text-[10px] text-muted-foreground">{relSlack(m.ts)}</span>
+                </div>
+                <div className="text-[12px] text-white/90 break-words whitespace-pre-wrap line-clamp-3">{m.text}</div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
   );
 }
 
