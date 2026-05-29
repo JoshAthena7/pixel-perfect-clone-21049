@@ -120,6 +120,8 @@ function TeamPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Partial<Member>>({});
+  const { pulses, refresh: refreshPulses } = usePulses(engagement?.id);
+  const [openPulseForm, setOpenPulseForm] = useState<{ memberId: string; kind: FormKind } | null>(null);
 
   async function load(eid: string) {
     const { data } = await supabase
