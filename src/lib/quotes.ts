@@ -150,3 +150,9 @@ export const QUOTES = [
   { q: "The two most important days in your life are the day you are born and the day you find out why.", a: "Mark Twain" },
   { q: "Whatever the mind of man can conceive and believe, it can achieve.", a: "Napoleon Hill" },
 ];
+
+export function quoteOfTheDay(d: Date = new Date()) {
+  const start = new Date(d.getFullYear(), 0, 0);
+  const day = Math.floor((d.getTime() - start.getTime()) / 86400000);
+  return QUOTES[((day % QUOTES.length) + QUOTES.length) % QUOTES.length];
+}
