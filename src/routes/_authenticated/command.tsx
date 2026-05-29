@@ -30,15 +30,16 @@ type Heat = { id: string; section_name: string; status: StatusColor; sort_order:
 type Broadcast = { id: string; content: string; author_name: string; created_at: string; pinned: boolean };
 
 function CommandCenter() {
-  const { engagement } = useEngagement();
+  const { engagement, member } = useEngagement();
   const [latestHuddle, setLatestHuddle] = useState<Huddle | null>(null);
   const [recentHuddles, setRecentHuddles] = useState<Huddle[]>([]);
   const [openSos, setOpenSos] = useState<Sos[]>([]);
   const [openRisks, setOpenRisks] = useState<Risk[]>([]);
   const [heatmap, setHeatmap] = useState<Heat[]>([]);
   const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
-
   const [latestPulse, setLatestPulse] = useState<{ sentiment: string } | null>(null);
+  const [todaySnapshotId, setTodaySnapshotId] = useState<string | null>(null);
+  const [savingSnap, setSavingSnap] = useState(false);
 
   async function loadAll(eid: string) {
     const [h, sos, risks, heat, bc, pulse] = await Promise.all([
