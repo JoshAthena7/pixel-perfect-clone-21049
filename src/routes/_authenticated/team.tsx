@@ -7,7 +7,37 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Phone, MessageSquare, Mail, Hash, Radio, Pencil, X, Check } from "lucide-react";
+import { Phone, MessageSquare, Mail, Hash, Radio, Pencil, X, Check, Upload } from "lucide-react";
+
+const VALID_ROLES = new Set(["founder", "pm", "engagement_lead", "writer", "reviewer", "viewer"]);
+
+function parseCSV(text: string): string[][] {
+  const rows: string[][] = [];
+  let cur: string[] = [];
+  let field = "";
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+      else if (c === '"') inQuotes = false;
+      else field += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ",") { cur.push(field); field = ""; }
+      else if (c === "\n") { cur.push(field); rows.push(cur); cur = []; field = ""; }
+      else if (c === "\r") { /* skip */ }
+      else field += c;
+    }
+  }
+  if (field.length || cur.length) { cur.push(field); rows.push(cur); }
+  return rows.filter((r) => r.some((v) => v.trim().length > 0));
+}
+
+function parseBool(v: string | undefined): boolean {
+  if (!v) return false;
+  return /^(true|yes|y|1)$/i.test(v.trim());
+}
 
 export const Route = createFileRoute("/_authenticated/team")({
   head: () => ({ meta: [{ title: "Team Roster — Athena War Room" }] }),
