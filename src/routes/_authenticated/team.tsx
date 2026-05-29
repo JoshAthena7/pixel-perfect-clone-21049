@@ -7,7 +7,37 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Phone, MessageSquare, Mail, Hash, Radio, Pencil, X, Check } from "lucide-react";
+import { Phone, MessageSquare, Mail, Hash, Radio, Pencil, X, Check, Upload } from "lucide-react";
+
+const VALID_ROLES = new Set(["founder", "pm", "engagement_lead", "writer", "reviewer", "viewer"]);
+
+function parseCSV(text: string): string[][] {
+  const rows: string[][] = [];
+  let cur: string[] = [];
+  let field = "";
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+      else if (c === '"') inQuotes = false;
+      else field += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ",") { cur.push(field); field = ""; }
+      else if (c === "\n") { cur.push(field); rows.push(cur); cur = []; field = ""; }
+      else if (c === "\r") { /* skip */ }
+      else field += c;
+    }
+  }
+  if (field.length || cur.length) { cur.push(field); rows.push(cur); }
+  return rows.filter((r) => r.some((v) => v.trim().length > 0));
+}
+
+function parseBool(v: string | undefined): boolean {
+  if (!v) return false;
+  return /^(true|yes|y|1)$/i.test(v.trim());
+}
 
 export const Route = createFileRoute("/_authenticated/team")({
   head: () => ({ meta: [{ title: "Team Roster — Athena War Room" }] }),
@@ -110,19 +140,70 @@ function TeamPage() {
     if (engagement) load(engagement.id);
   }
 
+  async function handleCSVUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !engagement) return;
+    try {
+      const text = await file.text();
+      const rows = parseCSV(text);
+      if (rows.length < 2) { toast.error("CSV needs a header row and at least one data row."); return; }
+      const headers = rows[0].map((h) => h.trim().toLowerCase());
+      const idx = (name: string) => headers.indexOf(name);
+      const iName = idx("display_name");
+      const iRole = idx("role");
+      if (iName === -1 || iRole === -1) { toast.error("CSV must include 'display_name' and 'role' columns."); return; }
+      const iTitle = idx("title"), iEmail = idx("email"), iPhone = idx("phone");
+      const iSlack = idx("slack_handle"), iTz = idx("timezone"), iOnCall = idx("on_call");
+
+      const records = rows.slice(1).map((r) => {
+        const role = (r[iRole] ?? "").trim().toLowerCase();
+        return {
+          engagement_id: engagement.id,
+          user_id: crypto.randomUUID(),
+          display_name: (r[iName] ?? "").trim(),
+          role: VALID_ROLES.has(role) ? role : "viewer",
+          title: iTitle >= 0 ? (r[iTitle] ?? "").trim() || null : null,
+          email: iEmail >= 0 ? (r[iEmail] ?? "").trim() || null : null,
+          phone: iPhone >= 0 ? (r[iPhone] ?? "").trim() || null : null,
+          slack_handle: iSlack >= 0 ? (r[iSlack] ?? "").trim() || null : null,
+          timezone: iTz >= 0 ? (r[iTz] ?? "").trim() || null : null,
+          on_call: iOnCall >= 0 ? parseBool(r[iOnCall]) : false,
+        };
+      }).filter((r) => r.display_name);
+
+      if (!records.length) { toast.error("No valid rows found."); return; }
+      const { error } = await supabase.from("engagement_members").insert(records);
+      if (error) { toast.error(error.message); return; }
+      toast.success(`Imported ${records.length} member${records.length === 1 ? "" : "s"}.`);
+      load(engagement.id);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to parse CSV.");
+    }
+  }
+
   const onCall = members.filter((m) => m.on_call);
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
-      <div className="flex items-end justify-between">
+      <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Team Roster</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Who's on this engagement — and how to reach them right now.
           </p>
         </div>
-        <div className="text-right text-xs text-muted-foreground">
-          {members.length} {members.length === 1 ? "member" : "members"} • {onCall.length} on call
+        <div className="flex items-center gap-3">
+          {isLeadership && (
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-xs font-semibold hover:bg-surface-hover">
+              <Upload className="h-3.5 w-3.5" />
+              Upload CSV
+              <input type="file" accept=".csv,text/csv" className="hidden" onChange={handleCSVUpload} />
+            </label>
+          )}
+          <div className="text-right text-xs text-muted-foreground">
+            {members.length} {members.length === 1 ? "member" : "members"} • {onCall.length} on call
+          </div>
         </div>
       </div>
 
@@ -274,7 +355,7 @@ function TeamPage() {
 
       {isLeadership && (
         <p className="text-xs text-muted-foreground">
-          Tip: To add new teammates, invite them via the engagement settings — they'll appear here once they accept.
+          Tip: Use "Upload CSV" to bulk-add the roster. Required columns: <code>display_name</code>, <code>role</code>. Optional: <code>title, email, phone, slack_handle, timezone, on_call</code>.
         </p>
       )}
     </div>
