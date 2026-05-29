@@ -206,7 +206,12 @@ function SosPage() {
         <Card className="border-border bg-surface p-6">
           <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Open ({open.length})</h2>
           {open.length === 0 ? (
-            <div className="mt-4 text-sm text-muted-foreground">No open alerts. 👌</div>
+            <EmptyState
+              icon={ShieldCheck}
+              title="All clear"
+              description="No open SOS alerts right now. If something urgent comes up, raise an SOS from the form on the left."
+              className="mt-4"
+            />
           ) : (
             <ul className="mt-4 space-y-3">
               {open.map((a) => (
@@ -223,7 +228,13 @@ function SosPage() {
                   {isLeadership && (
                     <div className="mt-3 flex gap-2">
                       {a.status === "Open" && <Button size="sm" variant="outline" onClick={() => setStatus(a.id, "Acknowledged")}>Acknowledge</Button>}
-                      <Button size="sm" onClick={() => setStatus(a.id, "Resolved")}>Resolve</Button>
+                      <ConfirmAction
+                        trigger={<Button size="sm">Resolve</Button>}
+                        title="Resolve this SOS alert?"
+                        description="Mark this alert as resolved. It will move to the resolved list and stop appearing on the Command Center banner."
+                        confirmLabel="Resolve alert"
+                        onConfirm={() => setStatus(a.id, "Resolved")}
+                      />
                     </div>
                   )}
                 </li>
@@ -247,6 +258,7 @@ function SosPage() {
             </ul>
           </Card>
         )}
+      </div>
       </div>
     </div>
   );
