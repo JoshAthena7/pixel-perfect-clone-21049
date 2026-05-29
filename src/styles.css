@@ -39,23 +39,27 @@
   --color-yellow: var(--yellow);
   --color-orange: var(--orange);
   --color-red: var(--red);
+  --color-gold: var(--gold);
+  --color-navy: var(--navy);
 }
 
 :root,
 .dark {
-  /* Athena War Room — dark executive theme (no light mode) */
-  --background: oklch(0.16 0.02 260);          /* #0a0e1a */
-  --surface: oklch(0.21 0.03 260);             /* #111827 */
-  --surface-hover: oklch(0.26 0.03 260);       /* #1a2235 */
-  --border: oklch(0.34 0.04 260);              /* #2a3a55 */
-  --foreground: oklch(0.94 0.01 250);          /* #e8edf5 */
-  --muted-foreground: oklch(0.68 0.03 255);    /* #8b9ab5 */
-  --primary: oklch(0.66 0.18 254);             /* #3b7fff */
-  --primary-foreground: oklch(0.98 0 0);
-  --green: oklch(0.72 0.18 145);               /* #22c55e */
-  --yellow: oklch(0.78 0.16 80);               /* #f59e0b */
-  --orange: oklch(0.72 0.19 50);               /* #f97316 */
-  --red: oklch(0.65 0.23 25);                  /* #ef4444 */
+  /* Athena Strategy Group — dark executive theme (navy + gold) */
+  --background: oklch(0.16 0.03 255);          /* deep navy-black */
+  --surface: oklch(0.22 0.04 255);             /* navy panel */
+  --surface-hover: oklch(0.27 0.05 255);
+  --border: oklch(0.35 0.05 255);
+  --foreground: oklch(0.95 0.01 250);
+  --muted-foreground: oklch(0.70 0.03 255);
+  --navy: oklch(0.34 0.09 257);                /* #1e3a5f Athena navy */
+  --gold: oklch(0.76 0.13 78);                 /* #d4a04a Athena gold */
+  --primary: oklch(0.76 0.13 78);              /* gold as primary accent */
+  --primary-foreground: oklch(0.18 0.04 255);  /* navy text on gold */
+  --green: oklch(0.72 0.18 145);
+  --yellow: oklch(0.78 0.16 80);
+  --orange: oklch(0.72 0.19 50);
+  --red: oklch(0.65 0.23 25);
 }
 
 @layer base {

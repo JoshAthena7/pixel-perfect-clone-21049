@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
+import athenaLogo from "@/assets/athena-logo.png";
 
 const ops = [
   { title: "Command Center", url: "/command", icon: LayoutDashboard },
@@ -57,11 +58,11 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-1">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary font-black">A</div>
+        <div className="flex items-center gap-2 px-2 py-1.5">
+          <img src={athenaLogo} alt="Athena Strategy Group" className="h-10 w-auto object-contain" />
           <div className="leading-tight">
-            <div className="text-sm font-bold">Athena</div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">War Room</div>
+            <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--gold)] font-semibold">War Room</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Command</div>
           </div>
         </div>
         {engagement && (

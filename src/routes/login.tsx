@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import athenaLogo from "@/assets/athena-logo.png";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — Athena War Room" }] }),
@@ -59,8 +60,8 @@ function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-8 shadow-xl">
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 text-primary text-2xl font-black">A</div>
-          <h1 className="text-2xl font-bold tracking-tight">Athena War Room</h1>
+          <img src={athenaLogo} alt="Athena Strategy Group" className="mx-auto mb-4 h-20 w-auto object-contain" />
+          <h1 className="text-xl font-bold tracking-tight">War Room Command</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Executive command for live engagements
           </p>
