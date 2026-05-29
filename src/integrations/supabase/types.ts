@@ -974,6 +974,72 @@ export type Database = {
         }
         Relationships: []
       }
+      trivia_answers: {
+        Row: {
+          answered_at: string
+          correct: boolean
+          engagement_id: string
+          id: string
+          member_id: string
+          question_day: number
+          user_id: string
+        }
+        Insert: {
+          answered_at?: string
+          correct: boolean
+          engagement_id: string
+          id?: string
+          member_id: string
+          question_day: number
+          user_id: string
+        }
+        Update: {
+          answered_at?: string
+          correct?: boolean
+          engagement_id?: string
+          id?: string
+          member_id?: string
+          question_day?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      trivia_winners: {
+        Row: {
+          declared_at: string
+          declared_by: string
+          declared_by_name: string
+          engagement_id: string
+          id: string
+          message: string | null
+          prize: string | null
+          winner_member_id: string
+          winner_name: string
+        }
+        Insert: {
+          declared_at?: string
+          declared_by: string
+          declared_by_name: string
+          engagement_id: string
+          id?: string
+          message?: string | null
+          prize?: string | null
+          winner_member_id: string
+          winner_name: string
+        }
+        Update: {
+          declared_at?: string
+          declared_by?: string
+          declared_by_name?: string
+          engagement_id?: string
+          id?: string
+          message?: string | null
+          prize?: string | null
+          winner_member_id?: string
+          winner_name?: string
+        }
+        Relationships: []
+      }
       win_of_the_day: {
         Row: {
           body: string | null

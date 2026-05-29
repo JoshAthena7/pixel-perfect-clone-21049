@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { WinOfTheDayBanner } from "@/components/war-room/writer/WinOfTheDayBanner";
 import { bigConfetti } from "@/lib/confetti";
 import { Trophy } from "lucide-react";
+import { TriviaLeaderboard } from "@/components/war-room/writer/TriviaLeaderboard";
 
 export const Route = createFileRoute("/_authenticated/writer/progress")({
   head: () => ({ meta: [{ title: "Progress — Writer Portal" }] }),
@@ -23,7 +24,7 @@ const STATUS_COLORS: Record<string, string> = {
 const MILESTONES = [25, 50, 75, 100];
 
 function WriterProgress() {
-  const { engagement } = useEngagement();
+  const { engagement, member } = useEngagement();
   const [rows, setRows] = useState<any[]>([]);
   const celebrated = useRef(false);
 
@@ -90,6 +91,10 @@ function WriterProgress() {
           ))}
         </div>
       </Card>
+
+      <TriviaLeaderboard currentMemberId={member?.id} />
+
+
 
       <div className="grid gap-3 sm:grid-cols-2">
         {STATUSES.map((s) => {

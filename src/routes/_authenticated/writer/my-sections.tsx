@@ -9,7 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { triviaOfTheDay } from "@/lib/trivia";
+import { getQuestionDay, questionForDay } from "@/lib/trivia-helpers";
+import { Link } from "@tanstack/react-router";
+import { Trophy } from "lucide-react";
 import { burstConfetti } from "@/lib/confetti";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -109,6 +111,8 @@ function WriterMySections() {
       </div>
 
       <TriviaCard />
+      <TriviaScoreCard />
+
 
       {items.length === 0 ? (
         <Card className="border-border bg-surface p-6 text-sm text-muted-foreground">
@@ -189,8 +193,52 @@ function WriterMySections() {
 }
 
 function TriviaCard() {
-  const t = triviaOfTheDay();
+  const { engagement, member } = useEngagement();
+  const { user } = useSession();
+  const day = getQuestionDay();
+  const t = questionForDay(day);
   const [picked, setPicked] = useState<number | null>(null);
+  const [locked, setLocked] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Load existing answer for today (locks UI if already submitted)
+  useEffect(() => {
+    if (!engagement || !member) return;
+    supabase
+      .from("trivia_answers")
+      .select("correct")
+      .eq("engagement_id", engagement.id)
+      .eq("member_id", member.id)
+      .eq("question_day", day)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          setLocked(true);
+          // We don't store which option they picked — just reveal correct answer.
+          setPicked(data.correct ? t.answerIndex : -1);
+        }
+      });
+  }, [engagement?.id, member?.id, day]);
+
+  async function pick(i: number) {
+    if (locked || saving || !engagement || !member || !user) return;
+    setSaving(true);
+    setPicked(i);
+    setLocked(true);
+    const { error } = await supabase.from("trivia_answers").insert({
+      engagement_id: engagement.id,
+      member_id: member.id,
+      user_id: user.id,
+      question_day: day,
+      correct: i === t.answerIndex,
+    });
+    setSaving(false);
+    if (error) {
+      // Race / dup — keep locked, just inform softly
+      toast.error(error.message);
+    }
+  }
+
   return (
     <Card className="border-[var(--gold)]/30 bg-surface p-4">
       <div className="text-[10px] uppercase tracking-[0.22em] text-[var(--gold)] font-semibold">
@@ -201,13 +249,13 @@ function TriviaCard() {
         {t.options.map((opt, i) => {
           const isCorrect = i === t.answerIndex;
           const isPicked = picked === i;
-          const reveal = picked !== null;
+          const reveal = locked;
           return (
             <button
               key={i}
               type="button"
-              disabled={reveal}
-              onClick={() => setPicked(i)}
+              disabled={reveal || saving}
+              onClick={() => pick(i)}
               className={`rounded-md border px-3 py-2 text-left text-xs transition ${
                 reveal
                   ? isCorrect
@@ -223,9 +271,44 @@ function TriviaCard() {
           );
         })}
       </div>
-      {picked !== null && (
+      {locked && (
         <div className="mt-3 text-xs text-muted-foreground">{t.fact}</div>
       )}
+      {locked && (
+        <div className="mt-2 text-[11px] italic text-muted-foreground">Locked for today — come back tomorrow for a new question.</div>
+      )}
     </Card>
+  );
+}
+
+function TriviaScoreCard() {
+  const { engagement, member } = useEngagement();
+  const [score, setScore] = useState<{ correct: number; answered: number } | null>(null);
+
+  useEffect(() => {
+    if (!engagement || !member) return;
+    supabase
+      .from("trivia_answers")
+      .select("correct")
+      .eq("engagement_id", engagement.id)
+      .eq("member_id", member.id)
+      .then(({ data }) => {
+        const rows = (data as { correct: boolean }[] | null) ?? [];
+        setScore({ correct: rows.filter((r) => r.correct).length, answered: rows.length });
+      });
+  }, [engagement?.id, member?.id]);
+
+  if (!score) return null;
+  return (
+    <Link
+      to="/writer/progress"
+      className="flex items-center justify-between rounded-md border border-border bg-surface px-4 py-3 text-sm hover:border-[var(--gold)]/60"
+    >
+      <div className="flex items-center gap-2">
+        <Trophy className="h-4 w-4 text-[var(--gold)]" />
+        <span className="font-medium">Trivia score: {score.correct} correct / {score.answered} answered</span>
+      </div>
+      <span className="text-[11px] uppercase tracking-wider text-muted-foreground">View leaderboard →</span>
+    </Link>
   );
 }
