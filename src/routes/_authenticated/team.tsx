@@ -79,7 +79,7 @@ export const Route = createFileRoute("/_authenticated/team")({
 
 type Member = {
   id: string;
-  user_id: string;
+  user_id: string | null;
   display_name: string;
   role: string;
   title: string | null;
@@ -370,7 +370,6 @@ function TeamPage() {
     setImporting(true);
     const records = valid.map((p) => ({
       engagement_id: engagement.id,
-      user_id: crypto.randomUUID(),
       display_name: p.display_name,
       role: p.role,
       title: p.title,

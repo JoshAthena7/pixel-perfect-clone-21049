@@ -291,7 +291,7 @@ export type Database = {
           slack_handle: string | null
           timezone: string | null
           title: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           added_at?: string | null
@@ -305,7 +305,7 @@ export type Database = {
           slack_handle?: string | null
           timezone?: string | null
           title?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           added_at?: string | null
@@ -319,7 +319,7 @@ export type Database = {
           slack_handle?: string | null
           timezone?: string | null
           title?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
