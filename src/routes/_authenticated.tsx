@@ -37,6 +37,7 @@ function AuthLayout() {
               <SidebarTrigger />
               <EngagementHeader />
             </header>
+            <SubmissionBanner />
             <main className="flex-1 overflow-auto">
               <Outlet />
             </main>
