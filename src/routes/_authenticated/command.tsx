@@ -127,6 +127,21 @@ function CommandCenter() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
+      {/* Topbar */}
+      <div className="flex items-center justify-between">
+        <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Command Center</div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-xs"
+          onClick={takeSnapshot}
+          disabled={savingSnap}
+        >
+          <Camera className="mr-1.5 h-3.5 w-3.5" />
+          {savingSnap ? "Saving…" : todaySnapshotId ? "📸 Update Today's Snapshot" : "📸 Snapshot"}
+        </Button>
+      </div>
+
       {/* SOS banner */}
       {openSos.length > 0 && (
         <div className="rounded-xl border border-[color:var(--red)]/40 bg-[color:color-mix(in_oklab,var(--red)_14%,transparent)] p-4 glow-red">
