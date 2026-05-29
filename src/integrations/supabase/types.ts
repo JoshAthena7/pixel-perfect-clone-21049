@@ -361,6 +361,48 @@ export type Database = {
         }
         Relationships: []
       }
+      engagement_pulses: {
+        Row: {
+          created_at: string
+          engagement_id: string
+          id: string
+          last_flag_note: string | null
+          last_flag_type: string | null
+          last_recognition_note: string | null
+          last_recognition_type: string | null
+          member_id: string
+          star_count: number
+          tlc_count: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          engagement_id: string
+          id?: string
+          last_flag_note?: string | null
+          last_flag_type?: string | null
+          last_recognition_note?: string | null
+          last_recognition_type?: string | null
+          member_id: string
+          star_count?: number
+          tlc_count?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          engagement_id?: string
+          id?: string
+          last_flag_note?: string | null
+          last_flag_type?: string | null
+          last_recognition_note?: string | null
+          last_recognition_type?: string | null
+          member_id?: string
+          star_count?: number
+          tlc_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       engagements: {
         Row: {
           client: string
