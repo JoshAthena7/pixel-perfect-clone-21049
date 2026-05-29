@@ -7,7 +7,8 @@ import { StatusPill, type StatusColor } from "@/components/war-room/StatusPill";
 import { Thermometer, calcTemperature } from "@/components/war-room/Thermometer";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Siren, Users, ShieldAlert, Megaphone, Grid3x3 } from "lucide-react";
+import { Siren, Users, ShieldAlert, Megaphone, Grid3x3, Camera } from "lucide-react";
+import { toast } from "sonner";
 import { relativeTime, hoursSince } from "@/lib/time";
 
 export const Route = createFileRoute("/_authenticated/command")({
