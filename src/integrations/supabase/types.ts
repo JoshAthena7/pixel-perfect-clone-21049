@@ -14,13 +14,487 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      broadcasts: {
+        Row: {
+          author_id: string
+          author_name: string
+          content: string
+          created_at: string | null
+          engagement_id: string
+          id: string
+          pinned: boolean | null
+        }
+        Insert: {
+          author_id: string
+          author_name: string
+          content: string
+          created_at?: string | null
+          engagement_id: string
+          id?: string
+          pinned?: boolean | null
+        }
+        Update: {
+          author_id?: string
+          author_name?: string
+          content?: string
+          created_at?: string | null
+          engagement_id?: string
+          id?: string
+          pinned?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "broadcasts_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_pulses: {
+        Row: {
+          action_items: string | null
+          created_at: string | null
+          engagement_id: string
+          id: string
+          interaction_date: string
+          recorded_by: string
+          recorder_name: string
+          sentiment: string
+          summary: string
+        }
+        Insert: {
+          action_items?: string | null
+          created_at?: string | null
+          engagement_id: string
+          id?: string
+          interaction_date?: string
+          recorded_by: string
+          recorder_name: string
+          sentiment: string
+          summary: string
+        }
+        Update: {
+          action_items?: string | null
+          created_at?: string | null
+          engagement_id?: string
+          id?: string
+          interaction_date?: string
+          recorded_by?: string
+          recorder_name?: string
+          sentiment?: string
+          summary?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_pulses_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      decisions: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          decision_date: string
+          engagement_id: string
+          id: string
+          impacted_areas: string | null
+          owner_name: string | null
+          rationale: string | null
+          status: string
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          decision_date?: string
+          engagement_id: string
+          id?: string
+          impacted_areas?: string | null
+          owner_name?: string | null
+          rationale?: string | null
+          status?: string
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          decision_date?: string
+          engagement_id?: string
+          id?: string
+          impacted_areas?: string | null
+          owner_name?: string | null
+          rationale?: string | null
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "decisions_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      engagement_members: {
+        Row: {
+          added_at: string | null
+          display_name: string
+          engagement_id: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          added_at?: string | null
+          display_name: string
+          engagement_id: string
+          id?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          added_at?: string | null
+          display_name?: string
+          engagement_id?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engagement_members_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      engagements: {
+        Row: {
+          client: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          name: string
+          slack_webhook: string | null
+          status: string
+          submission_date: string | null
+        }
+        Insert: {
+          client: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          name: string
+          slack_webhook?: string | null
+          status?: string
+          submission_date?: string | null
+        }
+        Update: {
+          client?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          name?: string
+          slack_webhook?: string | null
+          status?: string
+          submission_date?: string | null
+        }
+        Relationships: []
+      }
+      heatmap_sections: {
+        Row: {
+          engagement_id: string
+          id: string
+          notes: string | null
+          section_name: string
+          sort_order: number | null
+          status: string
+          updated_at: string | null
+          updated_by_name: string | null
+        }
+        Insert: {
+          engagement_id: string
+          id?: string
+          notes?: string | null
+          section_name: string
+          sort_order?: number | null
+          status?: string
+          updated_at?: string | null
+          updated_by_name?: string | null
+        }
+        Update: {
+          engagement_id?: string
+          id?: string
+          notes?: string | null
+          section_name?: string
+          sort_order?: number | null
+          status?: string
+          updated_at?: string | null
+          updated_by_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "heatmap_sections_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      huddles: {
+        Row: {
+          client_concern: string | null
+          created_at: string | null
+          engagement_id: string
+          health: string
+          id: string
+          needs_leadership: boolean | null
+          notes: string | null
+          priority: string
+          risk: string | null
+          submitted_by: string
+          submitter_name: string
+          writer_concern: string | null
+        }
+        Insert: {
+          client_concern?: string | null
+          created_at?: string | null
+          engagement_id: string
+          health: string
+          id?: string
+          needs_leadership?: boolean | null
+          notes?: string | null
+          priority: string
+          risk?: string | null
+          submitted_by: string
+          submitter_name: string
+          writer_concern?: string | null
+        }
+        Update: {
+          client_concern?: string | null
+          created_at?: string | null
+          engagement_id?: string
+          health?: string
+          id?: string
+          needs_leadership?: boolean | null
+          notes?: string | null
+          priority?: string
+          risk?: string | null
+          submitted_by?: string
+          submitter_name?: string
+          writer_concern?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "huddles_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      intel_documents: {
+        Row: {
+          category: string
+          created_at: string | null
+          engagement_id: string
+          file_path: string | null
+          id: string
+          name: string
+          notes: string | null
+          uploaded_by: string | null
+          uploader_name: string | null
+          url: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          engagement_id: string
+          file_path?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          uploaded_by?: string | null
+          uploader_name?: string | null
+          url?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          engagement_id?: string
+          file_path?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          uploaded_by?: string | null
+          uploader_name?: string | null
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intel_documents_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          display_name: string
+          id: string
+          title: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_name: string
+          id: string
+          title?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_name?: string
+          id?: string
+          title?: string | null
+        }
+        Relationships: []
+      }
+      risks: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          engagement_id: string
+          id: string
+          likelihood: string
+          owner_name: string | null
+          severity: string
+          status: string
+          target_date: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          engagement_id: string
+          id?: string
+          likelihood: string
+          owner_name?: string | null
+          severity: string
+          status?: string
+          target_date?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          engagement_id?: string
+          id?: string
+          likelihood?: string
+          owner_name?: string | null
+          severity?: string
+          status?: string
+          target_date?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "risks_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sos_alerts: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string
+          engagement_id: string
+          id: string
+          owner_name: string | null
+          recommended_action: string | null
+          resolved_at: string | null
+          severity: string
+          status: string
+          submitted_by: string
+          submitter_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description: string
+          engagement_id: string
+          id?: string
+          owner_name?: string | null
+          recommended_action?: string | null
+          resolved_at?: string | null
+          severity: string
+          status?: string
+          submitted_by: string
+          submitter_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string
+          engagement_id?: string
+          id?: string
+          owner_name?: string | null
+          recommended_action?: string | null
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          submitted_by?: string
+          submitter_name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sos_alerts_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_engagement_role: {
+        Args: { _engagement_id: string; _roles: string[] }
+        Returns: boolean
+      }
+      is_engagement_member: {
+        Args: { _engagement_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
