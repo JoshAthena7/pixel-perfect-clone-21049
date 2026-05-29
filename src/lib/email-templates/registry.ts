@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react'
 import { template as dailyDigestTemplate } from './daily-digest'
+import { template as engagementInviteTemplate } from './engagement-invite'
 
 export interface TemplateEntry {
   component: ComponentType<any>
