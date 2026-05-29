@@ -98,25 +98,25 @@ export function WriterSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Work</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px]">Work</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>{WORK.map(renderItem)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel>Engagement</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px]">Engagement</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>{ENGAGEMENT.map(renderItem)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel>Flag</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px]">Flag</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>{FLAG.map(renderItem)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel>Team</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px]">Team</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>{TEAM.map(renderItem)}</SidebarMenu>
           </SidebarGroupContent>
