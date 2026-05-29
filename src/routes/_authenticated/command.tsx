@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Siren, Users, ShieldAlert, Megaphone, Grid3x3, Camera, Info, Sparkles, Clock, Settings as SettingsIcon } from "lucide-react";
+import { LivePresence } from "@/components/war-room/LivePresence";
 import { toast } from "sonner";
 import { relativeTime, hoursSince } from "@/lib/time";
 
@@ -275,6 +276,8 @@ function CommandCenter() {
           <Metric icon={<Grid3x3 className="h-4 w-4" />} label="Heat sections" value={heatmap.length} accent="Green" tip="Number of tracked engagement sections (LTSS, Care Mgmt, Quality, etc.)." />
           <Metric icon={<Users className="h-4 w-4" />} label="Huddles (recent)" value={recentHuddles.length} accent="Green" tip="Last 5 daily huddles submitted by anyone on the team." />
         </div>
+
+        <LivePresence variant="full" />
 
         <div className="grid gap-4 lg:grid-cols-3">
           {/* Heatmap mini */}
