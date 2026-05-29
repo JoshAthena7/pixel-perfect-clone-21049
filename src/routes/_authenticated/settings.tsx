@@ -25,6 +25,7 @@ function SettingsPage() {
   const [client, setClient] = useState("");
   const [status, setStatus] = useState("Active");
   const [date, setDate] = useState<Date | undefined>();
+  const [slackWebhook, setSlackWebhook] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -33,6 +34,7 @@ function SettingsPage() {
     setClient(engagement.client);
     setStatus(engagement.status);
     setDate(engagement.submission_date ? new Date(engagement.submission_date) : undefined);
+    setSlackWebhook((engagement as any).slack_webhook ?? "");
   }, [engagement?.id]);
 
   if (!engagement) return null;
@@ -47,6 +49,7 @@ function SettingsPage() {
         client,
         status,
         submission_date: date ? format(date, "yyyy-MM-dd") : null,
+        slack_webhook: slackWebhook.trim() || null,
       })
       .eq("id", engagement.id);
     setSaving(false);
