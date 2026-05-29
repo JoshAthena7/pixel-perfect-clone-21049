@@ -3,7 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Hash, MessageSquare, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { listSlackChannels, getSlackMessages } from "@/lib/slack.functions";
 
@@ -19,7 +25,13 @@ function relTime(ts: string) {
 }
 
 function initials(name: string) {
-  return name.split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("") || "?";
+  return (
+    name
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((w) => w[0]?.toUpperCase() ?? "")
+      .join("") || "?"
+  );
 }
 
 export function SlackFeed() {
@@ -39,19 +51,27 @@ export function SlackFeed() {
     staleTime: 5 * 60_000,
   });
 
-  // Default to indiana-* channel if nothing saved
+  const joinedChannels = useMemo(
+    () => channelsQ.data?.channels.filter((c) => c.is_member) ?? [],
+    [channelsQ.data],
+  );
+
+  // Only auto-select channels the connected bot can actually read.
   useEffect(() => {
-    if (channelId || !channelsQ.data) return;
-    const list = channelsQ.data.channels;
+    if (!channelsQ.data) return;
+    const savedIsReadable = joinedChannels.some((c) => c.id === channelId);
+    if (channelId && savedIsReadable) return;
+
     const guess =
-      list.find((c) => c.name.toLowerCase().includes("indiana")) ??
-      list.find((c) => c.is_member) ??
-      list[0];
+      joinedChannels.find((c) => c.name.toLowerCase().includes("indiana")) ?? joinedChannels[0];
     if (guess) {
       setChannelId(guess.id);
       localStorage.setItem(STORAGE_KEY, guess.id);
+    } else if (channelId) {
+      setChannelId("");
+      localStorage.removeItem(STORAGE_KEY);
     }
-  }, [channelId, channelsQ.data]);
+  }, [channelId, channelsQ.data, joinedChannels]);
 
   const messagesQ = useQuery({
     queryKey: ["slack", "messages", channelId],
@@ -103,7 +123,7 @@ export function SlackFeed() {
             <SelectValue placeholder={channelsQ.isLoading ? "Loading…" : "Pick a channel"} />
           </SelectTrigger>
           <SelectContent>
-            {channelsQ.data?.channels.map((c) => (
+            {joinedChannels.map((c) => (
               <SelectItem key={c.id} value={c.id} className="text-xs">
                 <span className="inline-flex items-center gap-1">
                   <Hash className="h-3 w-3" />
@@ -142,10 +162,20 @@ export function SlackFeed() {
             <strong>#{channelName}</strong>, then messages will appear here.
           </div>
         )}
-        {channelId && messages.length === 0 && !messagesQ.isLoading && !messagesQ.isError && !messagesQ.data?.needsInvite && (
-          <div className="text-sm text-muted-foreground">No messages yet.</div>
+        {!channelId && !channelsQ.isLoading && joinedChannels.length === 0 && (
+          <div className="rounded-md border border-[color:var(--yellow)]/40 bg-[color:var(--yellow)]/10 p-3 text-xs">
+            The connected Slack bot is not in any readable channels yet. Invite it to the channel
+            you want to monitor, then refresh this page.
+          </div>
         )}
-        {messages.map((m: typeof messages[number]) => (
+        {channelId &&
+          messages.length === 0 &&
+          !messagesQ.isLoading &&
+          !messagesQ.isError &&
+          !messagesQ.data?.needsInvite && (
+            <div className="text-sm text-muted-foreground">No messages yet.</div>
+          )}
+        {messages.map((m: (typeof messages)[number]) => (
           <div key={m.ts} className="flex gap-2.5">
             <Avatar className="h-7 w-7 shrink-0">
               {m.userAvatar && <AvatarImage src={m.userAvatar} alt={m.userName} />}
