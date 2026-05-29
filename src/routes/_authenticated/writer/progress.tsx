@@ -92,6 +92,10 @@ function WriterProgress() {
         </div>
       </Card>
 
+      <TriviaLeaderboard currentMemberId={member?.id} />
+
+
+
       <div className="grid gap-3 sm:grid-cols-2">
         {STATUSES.map((s) => {
           const pct = total ? Math.round((counts[s] / total) * 100) : 0;
