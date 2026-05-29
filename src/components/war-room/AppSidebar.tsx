@@ -54,7 +54,6 @@ const intel: NavItem[] = [
   { title: "Intel Library", url: "/intel", icon: FolderOpen, hint: "Single source of truth for documents" },
 ];
 const leadership: NavItem[] = [
-  { title: "Recognition", url: "/recognition", icon: Heart, hint: "Stars, TLC flags, and team pulse" },
   { title: "Decisions", url: "/decisions", icon: GitBranch, hint: "Log key decisions to avoid re-litigation" },
   { title: "Client Pulse", url: "/pulse", icon: Activity, hint: "Track how the client is feeling" },
   { title: "Broadcasts", url: "/broadcasts", icon: Megaphone, hint: "Team-wide announcements" },
