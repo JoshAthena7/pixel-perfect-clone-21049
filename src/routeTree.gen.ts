@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
 import { Route as AuthenticatedSosRouteImport } from './routes/_authenticated/sos'
+import { Route as AuthenticatedSnapshotsRouteImport } from './routes/_authenticated/snapshots'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedRisksRouteImport } from './routes/_authenticated/risks'
 import { Route as AuthenticatedPulseRouteImport } from './routes/_authenticated/pulse'
@@ -58,6 +59,11 @@ const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
 const AuthenticatedSosRoute = AuthenticatedSosRouteImport.update({
   id: '/sos',
   path: '/sos',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSnapshotsRoute = AuthenticatedSnapshotsRouteImport.update({
+  id: '/snapshots',
+  path: '/snapshots',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
@@ -153,6 +159,7 @@ export interface FileRoutesByFullPath {
   '/pulse': typeof AuthenticatedPulseRoute
   '/risks': typeof AuthenticatedRisksRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/snapshots': typeof AuthenticatedSnapshotsRoute
   '/sos': typeof AuthenticatedSosRoute
   '/team': typeof AuthenticatedTeamRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
@@ -175,6 +182,7 @@ export interface FileRoutesByTo {
   '/pulse': typeof AuthenticatedPulseRoute
   '/risks': typeof AuthenticatedRisksRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/snapshots': typeof AuthenticatedSnapshotsRoute
   '/sos': typeof AuthenticatedSosRoute
   '/team': typeof AuthenticatedTeamRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
@@ -199,6 +207,7 @@ export interface FileRoutesById {
   '/_authenticated/pulse': typeof AuthenticatedPulseRoute
   '/_authenticated/risks': typeof AuthenticatedRisksRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/snapshots': typeof AuthenticatedSnapshotsRoute
   '/_authenticated/sos': typeof AuthenticatedSosRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
@@ -223,6 +232,7 @@ export interface FileRouteTypes {
     | '/pulse'
     | '/risks'
     | '/settings'
+    | '/snapshots'
     | '/sos'
     | '/team'
     | '/email/unsubscribe'
@@ -245,6 +255,7 @@ export interface FileRouteTypes {
     | '/pulse'
     | '/risks'
     | '/settings'
+    | '/snapshots'
     | '/sos'
     | '/team'
     | '/email/unsubscribe'
@@ -268,6 +279,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pulse'
     | '/_authenticated/risks'
     | '/_authenticated/settings'
+    | '/_authenticated/snapshots'
     | '/_authenticated/sos'
     | '/_authenticated/team'
     | '/email/unsubscribe'
@@ -332,6 +344,13 @@ declare module '@tanstack/react-router' {
       path: '/sos'
       fullPath: '/sos'
       preLoaderRoute: typeof AuthenticatedSosRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/snapshots': {
+      id: '/_authenticated/snapshots'
+      path: '/snapshots'
+      fullPath: '/snapshots'
+      preLoaderRoute: typeof AuthenticatedSnapshotsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/settings': {
@@ -453,6 +472,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedPulseRoute: typeof AuthenticatedPulseRoute
   AuthenticatedRisksRoute: typeof AuthenticatedRisksRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedSnapshotsRoute: typeof AuthenticatedSnapshotsRoute
   AuthenticatedSosRoute: typeof AuthenticatedSosRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
 }
@@ -468,6 +488,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedPulseRoute: AuthenticatedPulseRoute,
   AuthenticatedRisksRoute: AuthenticatedRisksRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedSnapshotsRoute: AuthenticatedSnapshotsRoute,
   AuthenticatedSosRoute: AuthenticatedSosRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
 }
@@ -490,3 +511,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
