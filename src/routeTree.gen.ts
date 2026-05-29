@@ -19,6 +19,7 @@ import { Route as AuthenticatedSosRouteImport } from './routes/_authenticated/so
 import { Route as AuthenticatedSnapshotsRouteImport } from './routes/_authenticated/snapshots'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedRisksRouteImport } from './routes/_authenticated/risks'
+import { Route as AuthenticatedRecognitionRouteImport } from './routes/_authenticated/recognition'
 import { Route as AuthenticatedPulseRouteImport } from './routes/_authenticated/pulse'
 import { Route as AuthenticatedIntelRouteImport } from './routes/_authenticated/intel'
 import { Route as AuthenticatedHuddleRouteImport } from './routes/_authenticated/huddle'
@@ -82,6 +83,12 @@ const AuthenticatedRisksRoute = AuthenticatedRisksRouteImport.update({
   path: '/risks',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedRecognitionRoute =
+  AuthenticatedRecognitionRouteImport.update({
+    id: '/recognition',
+    path: '/recognition',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedPulseRoute = AuthenticatedPulseRouteImport.update({
   id: '/pulse',
   path: '/pulse',
@@ -164,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/huddle': typeof AuthenticatedHuddleRoute
   '/intel': typeof AuthenticatedIntelRoute
   '/pulse': typeof AuthenticatedPulseRoute
+  '/recognition': typeof AuthenticatedRecognitionRoute
   '/risks': typeof AuthenticatedRisksRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/snapshots': typeof AuthenticatedSnapshotsRoute
@@ -188,6 +196,7 @@ export interface FileRoutesByTo {
   '/huddle': typeof AuthenticatedHuddleRoute
   '/intel': typeof AuthenticatedIntelRoute
   '/pulse': typeof AuthenticatedPulseRoute
+  '/recognition': typeof AuthenticatedRecognitionRoute
   '/risks': typeof AuthenticatedRisksRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/snapshots': typeof AuthenticatedSnapshotsRoute
@@ -214,6 +223,7 @@ export interface FileRoutesById {
   '/_authenticated/huddle': typeof AuthenticatedHuddleRoute
   '/_authenticated/intel': typeof AuthenticatedIntelRoute
   '/_authenticated/pulse': typeof AuthenticatedPulseRoute
+  '/_authenticated/recognition': typeof AuthenticatedRecognitionRoute
   '/_authenticated/risks': typeof AuthenticatedRisksRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/snapshots': typeof AuthenticatedSnapshotsRoute
@@ -240,6 +250,7 @@ export interface FileRouteTypes {
     | '/huddle'
     | '/intel'
     | '/pulse'
+    | '/recognition'
     | '/risks'
     | '/settings'
     | '/snapshots'
@@ -264,6 +275,7 @@ export interface FileRouteTypes {
     | '/huddle'
     | '/intel'
     | '/pulse'
+    | '/recognition'
     | '/risks'
     | '/settings'
     | '/snapshots'
@@ -289,6 +301,7 @@ export interface FileRouteTypes {
     | '/_authenticated/huddle'
     | '/_authenticated/intel'
     | '/_authenticated/pulse'
+    | '/_authenticated/recognition'
     | '/_authenticated/risks'
     | '/_authenticated/settings'
     | '/_authenticated/snapshots'
@@ -385,6 +398,13 @@ declare module '@tanstack/react-router' {
       path: '/risks'
       fullPath: '/risks'
       preLoaderRoute: typeof AuthenticatedRisksRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/recognition': {
+      id: '/_authenticated/recognition'
+      path: '/recognition'
+      fullPath: '/recognition'
+      preLoaderRoute: typeof AuthenticatedRecognitionRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/pulse': {
@@ -490,6 +510,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedHuddleRoute: typeof AuthenticatedHuddleRoute
   AuthenticatedIntelRoute: typeof AuthenticatedIntelRoute
   AuthenticatedPulseRoute: typeof AuthenticatedPulseRoute
+  AuthenticatedRecognitionRoute: typeof AuthenticatedRecognitionRoute
   AuthenticatedRisksRoute: typeof AuthenticatedRisksRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSnapshotsRoute: typeof AuthenticatedSnapshotsRoute
@@ -506,6 +527,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHuddleRoute: AuthenticatedHuddleRoute,
   AuthenticatedIntelRoute: AuthenticatedIntelRoute,
   AuthenticatedPulseRoute: AuthenticatedPulseRoute,
+  AuthenticatedRecognitionRoute: AuthenticatedRecognitionRoute,
   AuthenticatedRisksRoute: AuthenticatedRisksRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSnapshotsRoute: AuthenticatedSnapshotsRoute,

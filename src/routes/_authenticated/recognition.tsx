@@ -373,32 +373,23 @@ async function upsertPulse(opts: {
   const cur = (existing as { id: string; star_count: number; tlc_count: number } | null) ?? null;
 
   if (cur) {
-    const update =
+    const update: Record<string, unknown> =
       opts.kind === "tlc"
         ? { tlc_count: cur.tlc_count + 1, last_flag_note: opts.note, last_flag_type: opts.followUp }
         : { star_count: cur.star_count + 1, last_recognition_note: opts.note, last_recognition_type: opts.followUp };
     const { error } = await supabase.from("engagement_pulses").update(update).eq("id", cur.id);
     if (error) throw error;
   } else {
-    const insert =
-      opts.kind === "tlc"
-        ? {
-            engagement_id: opts.engagementId,
-            member_id: opts.memberId,
-            star_count: 0,
-            tlc_count: 1,
-            last_flag_note: opts.note,
-            last_flag_type: opts.followUp,
-          }
-        : {
-            engagement_id: opts.engagementId,
-            member_id: opts.memberId,
-            star_count: 1,
-            tlc_count: 0,
-            last_recognition_note: opts.note,
-            last_recognition_type: opts.followUp,
-          };
-    const { error } = await supabase.from("engagement_pulses").insert(insert);
+    const insert: Record<string, unknown> = {
+      engagement_id: opts.engagementId,
+      member_id: opts.memberId,
+      star_count: opts.kind === "star" ? 1 : 0,
+      tlc_count: opts.kind === "tlc" ? 1 : 0,
+      ...(opts.kind === "tlc"
+        ? { last_flag_note: opts.note, last_flag_type: opts.followUp }
+        : { last_recognition_note: opts.note, last_recognition_type: opts.followUp }),
+    };
+    const { error } = await supabase.from("engagement_pulses").insert(insert as never);
     if (error) throw error;
   }
 }
