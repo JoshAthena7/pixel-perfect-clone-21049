@@ -12,6 +12,7 @@ import { StatusPill, type StatusColor } from "@/components/war-room/StatusPill";
 import { toast } from "sonner";
 import { relativeTime } from "@/lib/time";
 import { Siren } from "lucide-react";
+import { notifySlack } from "@/lib/api/slack.functions";
 
 export const Route = createFileRoute("/_authenticated/sos")({
   head: () => ({ meta: [{ title: "SOS Alerts — Athena" }] }),
@@ -69,6 +70,19 @@ function SosPage() {
     setSubmitting(false);
     if (error) return toast.error(error.message);
     toast.success("SOS raised");
+    notifySlack({
+      data: {
+        engagementId: engagement.id,
+        event: "sos",
+        title: `[${severity}] ${category}`,
+        body: description,
+        fields: [
+          ...(owner ? [{ label: "Owner", value: owner }] : []),
+          ...(action ? [{ label: "Action", value: action }] : []),
+        ],
+        author: member.display_name,
+      },
+    }).catch(() => {});
     setDescription(""); setOwner(""); setAction("");
   }
 
