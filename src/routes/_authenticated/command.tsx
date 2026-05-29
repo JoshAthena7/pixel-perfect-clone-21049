@@ -7,7 +7,8 @@ import { StatusPill, type StatusColor } from "@/components/war-room/StatusPill";
 import { Thermometer, calcTemperature } from "@/components/war-room/Thermometer";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Siren, Users, ShieldAlert, Megaphone, Grid3x3 } from "lucide-react";
+import { Siren, Users, ShieldAlert, Megaphone, Grid3x3, Camera } from "lucide-react";
+import { toast } from "sonner";
 import { relativeTime, hoursSince } from "@/lib/time";
 
 export const Route = createFileRoute("/_authenticated/command")({
@@ -29,15 +30,16 @@ type Heat = { id: string; section_name: string; status: StatusColor; sort_order:
 type Broadcast = { id: string; content: string; author_name: string; created_at: string; pinned: boolean };
 
 function CommandCenter() {
-  const { engagement } = useEngagement();
+  const { engagement, member } = useEngagement();
   const [latestHuddle, setLatestHuddle] = useState<Huddle | null>(null);
   const [recentHuddles, setRecentHuddles] = useState<Huddle[]>([]);
   const [openSos, setOpenSos] = useState<Sos[]>([]);
   const [openRisks, setOpenRisks] = useState<Risk[]>([]);
   const [heatmap, setHeatmap] = useState<Heat[]>([]);
   const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
-
   const [latestPulse, setLatestPulse] = useState<{ sentiment: string } | null>(null);
+  const [todaySnapshotId, setTodaySnapshotId] = useState<string | null>(null);
+  const [savingSnap, setSavingSnap] = useState(false);
 
   async function loadAll(eid: string) {
     const [h, sos, risks, heat, bc, pulse] = await Promise.all([
@@ -55,6 +57,49 @@ function CommandCenter() {
     setHeatmap((heat.data as Heat[]) ?? []);
     setBroadcasts((bc.data as Broadcast[]) ?? []);
     setLatestPulse((pulse.data as { sentiment: string } | null) ?? null);
+
+    const today = new Date().toISOString().slice(0, 10);
+    const { data: snap } = await supabase
+      .from("snapshots")
+      .select("id")
+      .eq("engagement_id", eid)
+      .eq("snapshot_date", today)
+      .maybeSingle();
+    setTodaySnapshotId((snap as { id: string } | null)?.id ?? null);
+  }
+
+  async function takeSnapshot() {
+    if (!engagement || !member) return;
+    setSavingSnap(true);
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const heatmapJson = heatmap.map((h) => ({ section_name: h.section_name, status: h.status }));
+      const payload = {
+        engagement_id: engagement.id,
+        snapshot_date: today,
+        health: (latestHuddle?.health ?? "Unknown"),
+        temperature_score: temperature,
+        open_sos_count: openSos.length,
+        open_risk_count: openRisks.length,
+        client_sentiment: latestPulse?.sentiment ?? null,
+        heatmap_json: heatmapJson,
+        top_priority: latestHuddle?.priority ?? null,
+        top_risk: latestHuddle?.risk ?? null,
+        taken_by_name: member.display_name,
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabase
+        .from("snapshots")
+        .upsert(payload, { onConflict: "engagement_id,snapshot_date" });
+      if (error) throw error;
+      toast.success(todaySnapshotId ? "Snapshot updated" : "Snapshot saved");
+      await loadAll(engagement.id);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to save snapshot";
+      toast.error(msg);
+    } finally {
+      setSavingSnap(false);
+    }
   }
 
   useEffect(() => {
@@ -82,6 +127,21 @@ function CommandCenter() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
+      {/* Topbar */}
+      <div className="flex items-center justify-between">
+        <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Command Center</div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-xs"
+          onClick={takeSnapshot}
+          disabled={savingSnap}
+        >
+          <Camera className="mr-1.5 h-3.5 w-3.5" />
+          {savingSnap ? "Saving…" : todaySnapshotId ? "📸 Update Today's Snapshot" : "📸 Snapshot"}
+        </Button>
+      </div>
+
       {/* SOS banner */}
       {openSos.length > 0 && (
         <div className="rounded-xl border border-[color:var(--red)]/40 bg-[color:color-mix(in_oklab,var(--red)_14%,transparent)] p-4 glow-red">

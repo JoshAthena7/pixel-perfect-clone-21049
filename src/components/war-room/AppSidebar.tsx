@@ -13,6 +13,7 @@ import {
   Settings,
   LogOut,
   Contact,
+  Camera,
 } from "lucide-react";
 import {
   Sidebar,
@@ -48,6 +49,7 @@ const leadership = [
   { title: "Decisions", url: "/decisions", icon: GitBranch },
   { title: "Client Pulse", url: "/pulse", icon: Activity },
   { title: "Broadcasts", url: "/broadcasts", icon: Megaphone },
+  { title: "Snapshots", url: "/snapshots", icon: Camera },
 ];
 
 export function AppSidebar() {

@@ -561,6 +561,60 @@ export type Database = {
           },
         ]
       }
+      snapshots: {
+        Row: {
+          client_sentiment: string | null
+          created_at: string
+          engagement_id: string
+          health: string
+          heatmap_json: Json
+          id: string
+          open_risk_count: number
+          open_sos_count: number
+          snapshot_date: string
+          taken_by: string | null
+          taken_by_name: string
+          temperature_score: number
+          top_priority: string | null
+          top_risk: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_sentiment?: string | null
+          created_at?: string
+          engagement_id: string
+          health: string
+          heatmap_json?: Json
+          id?: string
+          open_risk_count?: number
+          open_sos_count?: number
+          snapshot_date?: string
+          taken_by?: string | null
+          taken_by_name: string
+          temperature_score?: number
+          top_priority?: string | null
+          top_risk?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_sentiment?: string | null
+          created_at?: string
+          engagement_id?: string
+          health?: string
+          heatmap_json?: Json
+          id?: string
+          open_risk_count?: number
+          open_sos_count?: number
+          snapshot_date?: string
+          taken_by?: string | null
+          taken_by_name?: string
+          temperature_score?: number
+          top_priority?: string | null
+          top_risk?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sos_alerts: {
         Row: {
           category: string
