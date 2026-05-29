@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
-import athenaLogo from "@/assets/athena-logo.png";
+import athenaLogo from "@/assets/athena-logo-dark.png";
 import type { ComponentType } from "react";
 import type { LucideProps } from "lucide-react";
 
@@ -82,15 +82,14 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-1.5">
-          <img src={athenaLogo} alt="Athena Strategy Group" className="h-10 w-auto object-contain" />
-          <div className="leading-tight">
-            <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--gold)] font-semibold">War Room</div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Command</div>
+        <div className="flex flex-col items-center gap-2 px-2 py-3 border-b border-border/40">
+          <img src={athenaLogo} alt="Athena Strategy Group" className="h-14 w-auto object-contain" />
+          <div className="text-[10px] uppercase tracking-[0.28em] text-[var(--gold)] font-semibold">
+            War Room · Command
           </div>
         </div>
         {engagement && (
-          <div className="mx-2 mt-2 rounded-md border border-border bg-surface-hover/50 px-2 py-1.5">
+          <div className="mx-2 mt-2 rounded-md border border-[var(--gold)]/20 bg-surface-hover/50 px-2 py-1.5">
             <div className="truncate text-xs font-semibold">{engagement.name}</div>
             <div className="truncate text-[10px] text-muted-foreground">{engagement.client}</div>
           </div>
