@@ -64,13 +64,23 @@ export const getSlackMessages = createServerFn({ method: "POST" })
     try {
       await slackFetch("conversations.join", `channel=${data.channelId}`);
     } catch {
-      // not_in_channel resolved on next call; or private channel
+      // join may fail (missing scope, private channel) — handled below
     }
 
-    const history = await slackFetch(
-      "conversations.history",
-      `channel=${data.channelId}&limit=${limit}`,
-    );
+    let history: any;
+    try {
+      history = await slackFetch(
+        "conversations.history",
+        `channel=${data.channelId}&limit=${limit}`,
+      );
+    } catch (err: any) {
+      const msg = err?.message ?? "";
+      if (msg.includes("not_in_channel") || msg.includes("channel_not_found")) {
+        return { messages: [], needsInvite: true as const };
+      }
+      throw err;
+    }
+
 
     // Build user map for IDs referenced in messages
     const userIds = new Set<string>();
