@@ -174,33 +174,8 @@ function SosPage() {
           </Button>
         </form>
       </Card>
-          <div>
-            <Label className="mb-2 block">Category</Label>
-            <div className="flex flex-wrap gap-2">
-              {CATEGORY.map((c) => (
-                <button key={c} type="button" onClick={() => setCategory(c)} className={`rounded-full border px-3 py-1.5 text-xs font-medium ${category === c ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground hover:text-foreground"}`}>
-                  {c}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <Label htmlFor="desc">What's happening?</Label>
-            <Textarea id="desc" required rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
-          </div>
-          <div>
-            <Label htmlFor="owner">Suggested owner</Label>
-            <Input id="owner" value={owner} onChange={(e) => setOwner(e.target.value)} placeholder="Who should drive resolution?" />
-          </div>
-          <div>
-            <Label htmlFor="action">Recommended action</Label>
-            <Textarea id="action" rows={2} value={action} onChange={(e) => setAction(e.target.value)} />
-          </div>
-          <Button type="submit" variant="destructive" disabled={submitting} className="w-full">
-            {submitting ? "Raising…" : "Raise SOS"}
-          </Button>
-        </form>
-      </Card>
+
+
 
       <div className="space-y-6 lg:col-span-3">
         <Card className="border-border bg-surface p-6">
