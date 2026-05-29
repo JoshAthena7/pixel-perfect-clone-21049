@@ -12,6 +12,7 @@ import { StatusPill, type StatusColor } from "@/components/war-room/StatusPill";
 import { toast } from "sonner";
 import { relativeTime } from "@/lib/time";
 import { Siren } from "lucide-react";
+import { notifySlack } from "@/lib/api/slack.functions";
 
 export const Route = createFileRoute("/_authenticated/sos")({
   head: () => ({ meta: [{ title: "SOS Alerts — Athena" }] }),
