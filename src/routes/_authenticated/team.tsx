@@ -1,13 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Phone, MessageSquare, Mail, Hash, Radio, Pencil, X, Check, Upload } from "lucide-react";
+import { Phone, MessageSquare, Mail, Hash, Radio, Pencil, X, Check, Upload, AlertTriangle } from "lucide-react";
 
 const VALID_ROLES = new Set(["founder", "pm", "engagement_lead", "writer", "reviewer", "viewer"]);
 
