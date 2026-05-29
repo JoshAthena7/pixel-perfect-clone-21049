@@ -377,7 +377,7 @@ async function upsertPulse(opts: {
       opts.kind === "tlc"
         ? { tlc_count: cur.tlc_count + 1, last_flag_note: opts.note, last_flag_type: opts.followUp }
         : { star_count: cur.star_count + 1, last_recognition_note: opts.note, last_recognition_type: opts.followUp };
-    const { error } = await supabase.from("engagement_pulses").update(update).eq("id", cur.id);
+    const { error } = await supabase.from("engagement_pulses").update(update as never).eq("id", cur.id);
     if (error) throw error;
   } else {
     const insert: Record<string, unknown> = {
