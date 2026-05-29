@@ -73,6 +73,13 @@ function CommandCenter() {
   const staleHours = latestHuddle ? hoursSince(latestHuddle.created_at) : Infinity;
   const stale = staleHours > 24;
 
+  const temperature = calcTemperature({
+    sos: openSos,
+    risks: openRisks,
+    latestPulseSentiment: latestPulse?.sentiment ?? null,
+    recentHuddles,
+  });
+
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
       {/* SOS banner */}
