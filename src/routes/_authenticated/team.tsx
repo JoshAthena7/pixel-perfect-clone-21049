@@ -411,7 +411,7 @@ function TeamPage() {
 
       {isLeadership && (
         <p className="text-xs text-muted-foreground">
-          Tip: Use "Upload CSV" to bulk-add the roster. Required columns: <code>display_name</code>, <code>role</code>. Optional: <code>title, email, phone, slack_handle, timezone, on_call</code>.
+          Tip: Upload a CSV or XLSX to bulk-add the roster. Required columns: <code>display_name</code>, <code>role</code>. Optional: <code>title, email, phone, slack_handle, timezone, on_call</code>. You'll see a preview before anything is inserted.
         </p>
       )}
 
