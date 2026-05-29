@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { relativeTime } from "@/lib/time";
 import { FileText, LinkIcon, Upload, Download, ExternalLink } from "lucide-react";
+import { DeclareTriviaWinnerCard } from "@/components/war-room/DeclareTriviaWinnerCard";
 
 export const Route = createFileRoute("/_authenticated/intel")({
   head: () => ({ meta: [{ title: "Intel Library — Athena" }] }),
@@ -100,6 +101,7 @@ function IntelPage() {
 
   return (
     <div className="mx-auto grid max-w-7xl gap-6 p-4 md:p-8 lg:grid-cols-5">
+      <DeclareTriviaWinnerCard />
       <Card className="border-border bg-surface p-6 lg:col-span-2">
         <h1 className="text-xl font-bold">Add to Library</h1>
         <p className="mt-1 text-sm text-muted-foreground">Files or links — keep the source of truth in one place.</p>
