@@ -11,8 +11,10 @@ import { Label } from "@/components/ui/label";
 import { StatusPill, type StatusColor } from "@/components/war-room/StatusPill";
 import { toast } from "sonner";
 import { relativeTime } from "@/lib/time";
-import { Siren } from "lucide-react";
+import { Siren, ShieldCheck } from "lucide-react";
 import { notifySlack } from "@/lib/api/slack.functions";
+import { EmptyState } from "@/components/war-room/EmptyState";
+import { ConfirmAction } from "@/components/war-room/ConfirmAction";
 
 export const Route = createFileRoute("/_authenticated/sos")({
   head: () => ({ meta: [{ title: "SOS Alerts — Athena" }] }),
@@ -69,7 +71,7 @@ function SosPage() {
     });
     setSubmitting(false);
     if (error) return toast.error(error.message);
-    toast.success("SOS raised");
+    toast.success("🚨 SOS Alert submitted. Leadership has been notified.");
     notifySlack({
       data: {
         engagementId: engagement.id,
@@ -97,23 +99,56 @@ function SosPage() {
   const resolved = alerts.filter((a) => a.status === "Resolved");
 
   return (
-    <div className="mx-auto grid max-w-7xl gap-6 p-4 md:p-8 lg:grid-cols-5">
+    <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">SOS Alerts</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Escalate urgent issues that need immediate leadership attention.</p>
+      </div>
+
+      {/* Top banner — visible whenever there are open alerts */}
+      {open.length > 0 && (
+        <div className="rounded-xl border border-[color:var(--red)]/40 bg-[color:color-mix(in_oklab,var(--red)_14%,transparent)] px-5 py-3 glow-red">
+          <div className="flex items-center gap-3">
+            <Siren className="h-5 w-5 text-[color:var(--red)]" />
+            <span className="text-sm font-bold uppercase tracking-wide text-[color:var(--red)]">
+              🚨 {open.length} alert{open.length > 1 ? "s" : ""} require attention
+            </span>
+          </div>
+        </div>
+      )}
+
+      <div className="grid gap-6 lg:grid-cols-5">
       <Card className="border-[color:var(--red)]/40 bg-surface p-6 lg:col-span-2">
-        <h1 className="flex items-center gap-2 text-xl font-bold text-[color:var(--red)]"><Siren className="h-5 w-5" /> Raise SOS</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Escalate something that needs immediate leadership attention.</p>
+        <h2 className="flex items-center gap-2 text-xl font-bold text-[color:var(--red)]"><Siren className="h-5 w-5" /> Raise SOS</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Takes less than 30 seconds. Required fields marked with <span className="text-[color:var(--red)]">*</span></p>
         <form onSubmit={raise} className="mt-6 space-y-4">
           <div>
-            <Label className="mb-2 block">Severity</Label>
-            <div className="flex gap-2">
-              {SEVERITY.map((s) => (
-                <button key={s} type="button" onClick={() => setSeverity(s)} className={`rounded-md px-3 py-1.5 text-sm transition ${severity === s ? "ring-2 ring-primary" : "opacity-60 hover:opacity-100"}`}>
-                  <StatusPill status={sevColor(s)} label={s} />
-                </button>
-              ))}
+            <Label className="mb-2 block">Severity <span className="text-[color:var(--red)]">*</span></Label>
+            <div className="grid grid-cols-3 gap-2">
+              {SEVERITY.map((s) => {
+                const color = sevColor(s);
+                const cssVar = color === "Red" ? "--red" : color === "Orange" ? "--orange" : "--yellow";
+                const active = severity === s;
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setSeverity(s)}
+                    className={`flex flex-col items-center justify-center rounded-lg border-2 px-3 py-4 text-sm font-bold uppercase tracking-wide transition ${
+                      active
+                        ? `border-[color:var(${cssVar})] bg-[color:color-mix(in_oklab,var(${cssVar})_20%,transparent)] text-[color:var(${cssVar})] ring-2 ring-[color:var(${cssVar})]/40`
+                        : "border-border opacity-70 hover:opacity-100"
+                    }`}
+                  >
+                    <span className="text-xl">{s === "Critical" ? "🔴" : s === "High" ? "🟠" : "🟡"}</span>
+                    <span className="mt-1">{s}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
           <div>
-            <Label className="mb-2 block">Category</Label>
+            <Label className="mb-2 block">Category <span className="text-[color:var(--red)]">*</span></Label>
             <div className="flex flex-wrap gap-2">
               {CATEGORY.map((c) => (
                 <button key={c} type="button" onClick={() => setCategory(c)} className={`rounded-full border px-3 py-1.5 text-xs font-medium ${category === c ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground hover:text-foreground"}`}>
@@ -123,8 +158,8 @@ function SosPage() {
             </div>
           </div>
           <div>
-            <Label htmlFor="desc">What's happening?</Label>
-            <Textarea id="desc" required rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
+            <Label htmlFor="desc">What's happening? <span className="text-[color:var(--red)]">*</span></Label>
+            <Textarea id="desc" required rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe what's wrong in plain language — who, what, when, impact." />
           </div>
           <div>
             <Label htmlFor="owner">Suggested owner</Label>
@@ -132,19 +167,26 @@ function SosPage() {
           </div>
           <div>
             <Label htmlFor="action">Recommended action</Label>
-            <Textarea id="action" rows={2} value={action} onChange={(e) => setAction(e.target.value)} />
+            <Textarea id="action" rows={2} value={action} onChange={(e) => setAction(e.target.value)} placeholder="What should leadership do right now?" />
           </div>
-          <Button type="submit" variant="destructive" disabled={submitting} className="w-full">
-            {submitting ? "Raising…" : "Raise SOS"}
+          <Button type="submit" variant="destructive" disabled={submitting || !description.trim()} className="w-full">
+            {submitting ? "Raising…" : "🚨 Raise SOS"}
           </Button>
         </form>
       </Card>
+
+
 
       <div className="space-y-6 lg:col-span-3">
         <Card className="border-border bg-surface p-6">
           <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Open ({open.length})</h2>
           {open.length === 0 ? (
-            <div className="mt-4 text-sm text-muted-foreground">No open alerts. 👌</div>
+            <EmptyState
+              icon={ShieldCheck}
+              title="All clear"
+              description="No open SOS alerts right now. If something urgent comes up, raise an SOS from the form on the left."
+              className="mt-4"
+            />
           ) : (
             <ul className="mt-4 space-y-3">
               {open.map((a) => (
@@ -161,7 +203,13 @@ function SosPage() {
                   {isLeadership && (
                     <div className="mt-3 flex gap-2">
                       {a.status === "Open" && <Button size="sm" variant="outline" onClick={() => setStatus(a.id, "Acknowledged")}>Acknowledge</Button>}
-                      <Button size="sm" onClick={() => setStatus(a.id, "Resolved")}>Resolve</Button>
+                      <ConfirmAction
+                        trigger={<Button size="sm">Resolve</Button>}
+                        title="Resolve this SOS alert?"
+                        description="Mark this alert as resolved. It will move to the resolved list and stop appearing on the Command Center banner."
+                        confirmLabel="Resolve alert"
+                        onConfirm={() => setStatus(a.id, "Resolved")}
+                      />
                     </div>
                   )}
                 </li>
@@ -185,6 +233,7 @@ function SosPage() {
             </ul>
           </Card>
         )}
+      </div>
       </div>
     </div>
   );

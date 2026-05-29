@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/war-room/AppSidebar";
@@ -10,6 +10,22 @@ import { SubmissionBanner } from "@/components/war-room/SubmissionBanner";
 export const Route = createFileRoute("/_authenticated")({
   component: AuthLayout,
 });
+
+const PAGE_TITLES: Record<string, string> = {
+  "/command": "Command Center",
+  "/huddle": "Daily Huddle",
+  "/sos": "SOS Alerts",
+  "/team": "Team Roster",
+  "/risks": "Risks",
+  "/heatmap": "Heat Map",
+  "/intel": "Intelligence Center",
+  "/decisions": "Decision Log",
+  "/pulse": "Client Pulse",
+  "/broadcasts": "Broadcasts",
+  "/snapshots": "Snapshot Log",
+  "/assistant": "AI Assistant",
+  "/settings": "Settings",
+};
 
 function AuthLayout() {
   const { user, loading } = useSession();
@@ -33,9 +49,9 @@ function AuthLayout() {
         <div className="flex min-h-screen w-full bg-background text-foreground">
           <AppSidebar />
           <div className="flex-1 flex flex-col min-w-0">
-            <header className="sticky top-0 z-20 flex h-12 items-center gap-2 border-b border-border bg-background/80 px-3 backdrop-blur">
+            <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-border bg-background/85 px-3 backdrop-blur">
               <SidebarTrigger />
-              <EngagementHeader />
+              <AppHeaderContent />
             </header>
             <SubmissionBanner />
             <main className="flex-1 overflow-auto">
@@ -49,16 +65,36 @@ function AuthLayout() {
   );
 }
 
-function EngagementHeader() {
+function AppHeaderContent() {
   const { engagement, loading } = useEngagement();
-  if (loading) return <span className="text-xs text-muted-foreground">Bootstrapping engagement…</span>;
-  if (!engagement) return <span className="text-xs text-muted-foreground">No engagement</span>;
+  const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const pageTitle = PAGE_TITLES[pathname] ?? "";
+
   return (
-    <div className="flex items-center gap-2 text-xs">
-      <span className="live-dot text-muted-foreground">Live</span>
-      <span className="text-muted-foreground">•</span>
-      <span className="font-semibold">{engagement.name}</span>
-      <span className="text-muted-foreground">/ {engagement.client}</span>
+    <div className="flex min-w-0 flex-1 items-center gap-2 text-xs">
+      {/* Brand — hidden on small screens since sidebar trigger covers it */}
+      <span className="hidden md:inline text-[10px] uppercase tracking-[0.18em] text-[var(--gold)] font-semibold whitespace-nowrap">
+        Athena War Room
+      </span>
+      <span className="hidden md:inline text-muted-foreground">/</span>
+
+      {/* Current page name — always visible (essential on mobile) */}
+      {pageTitle && <span className="font-bold text-sm truncate">{pageTitle}</span>}
+
+      <span className="ml-auto flex items-center gap-2 min-w-0">
+        {loading ? (
+          <span className="text-muted-foreground truncate">Loading engagement…</span>
+        ) : engagement ? (
+          <>
+            <span className="live-dot text-muted-foreground hidden sm:inline">Live</span>
+            <span className="text-muted-foreground hidden sm:inline">•</span>
+            <span className="font-semibold truncate max-w-[40vw]">{engagement.name}</span>
+            <span className="text-muted-foreground hidden sm:inline truncate">/ {engagement.client}</span>
+          </>
+        ) : (
+          <span className="text-muted-foreground">No engagement</span>
+        )}
+      </span>
     </div>
   );
 }
