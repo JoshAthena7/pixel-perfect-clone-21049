@@ -24,7 +24,7 @@ const STATUS_COLORS: Record<string, string> = {
 const MILESTONES = [25, 50, 75, 100];
 
 function WriterProgress() {
-  const { engagement } = useEngagement();
+  const { engagement, member } = useEngagement();
   const [rows, setRows] = useState<any[]>([]);
   const celebrated = useRef(false);
 
