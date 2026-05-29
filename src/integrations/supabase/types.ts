@@ -436,10 +436,41 @@ export type Database = {
         }
         Relationships: []
       }
+      faqs: {
+        Row: {
+          answer: string
+          created_at: string
+          engagement_id: string
+          id: string
+          question: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          engagement_id: string
+          id?: string
+          question: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          engagement_id?: string
+          id?: string
+          question?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       heatmap_sections: {
         Row: {
           engagement_id: string
           id: string
+          instructions: string | null
           notes: string | null
           section_name: string
           sort_order: number | null
@@ -450,6 +481,7 @@ export type Database = {
         Insert: {
           engagement_id: string
           id?: string
+          instructions?: string | null
           notes?: string | null
           section_name: string
           sort_order?: number | null
@@ -460,6 +492,7 @@ export type Database = {
         Update: {
           engagement_id?: string
           id?: string
+          instructions?: string | null
           notes?: string | null
           section_name?: string
           sort_order?: number | null
@@ -651,6 +684,45 @@ export type Database = {
           },
         ]
       }
+      section_assignments: {
+        Row: {
+          created_at: string
+          due_date: string | null
+          engagement_id: string
+          id: string
+          section_id: string
+          status: string
+          updated_at: string
+          user_id: string
+          word_count_max: number | null
+          word_count_min: number | null
+        }
+        Insert: {
+          created_at?: string
+          due_date?: string | null
+          engagement_id: string
+          id?: string
+          section_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          word_count_max?: number | null
+          word_count_min?: number | null
+        }
+        Update: {
+          created_at?: string
+          due_date?: string | null
+          engagement_id?: string
+          id?: string
+          section_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          word_count_max?: number | null
+          word_count_min?: number | null
+        }
+        Relationships: []
+      }
       snapshots: {
         Row: {
           client_sentiment: string | null
@@ -782,6 +854,123 @@ export type Database = {
           id?: string
           metadata?: Json | null
           reason?: string
+        }
+        Relationships: []
+      }
+      win_of_the_day: {
+        Row: {
+          body: string | null
+          engagement_id: string
+          id: string
+          posted_at: string
+          posted_by: string | null
+          posted_by_name: string
+          title: string
+        }
+        Insert: {
+          body?: string | null
+          engagement_id: string
+          id?: string
+          posted_at?: string
+          posted_by?: string | null
+          posted_by_name: string
+          title: string
+        }
+        Update: {
+          body?: string | null
+          engagement_id?: string
+          id?: string
+          posted_at?: string
+          posted_by?: string | null
+          posted_by_name?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      win_themes: {
+        Row: {
+          created_at: string
+          description: string | null
+          engagement_id: string
+          id: string
+          section_names: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          engagement_id: string
+          id?: string
+          section_names?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          engagement_id?: string
+          id?: string
+          section_names?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      work_log: {
+        Row: {
+          created_at: string
+          description: string
+          engagement_id: string
+          id: string
+          section: string | null
+          time_spent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          engagement_id: string
+          id?: string
+          section?: string | null
+          time_spent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          engagement_id?: string
+          id?: string
+          section?: string | null
+          time_spent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      writer_last_seen: {
+        Row: {
+          engagement_id: string
+          id: string
+          last_seen_at: string
+          streak_count: number
+          streak_last_day: string
+          user_id: string
+        }
+        Insert: {
+          engagement_id: string
+          id?: string
+          last_seen_at?: string
+          streak_count?: number
+          streak_last_day?: string
+          user_id: string
+        }
+        Update: {
+          engagement_id?: string
+          id?: string
+          last_seen_at?: string
+          streak_count?: number
+          streak_last_day?: string
+          user_id?: string
         }
         Relationships: []
       }

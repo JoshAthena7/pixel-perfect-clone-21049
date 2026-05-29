@@ -22,6 +22,7 @@ type Section = {
   section_name: string;
   status: StatusColor;
   notes: string | null;
+  instructions: string | null;
   sort_order: number;
   updated_at: string | null;
   updated_by_name: string | null;
@@ -36,6 +37,7 @@ function HeatmapPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftStatus, setDraftStatus] = useState<StatusColor>("Green");
   const [draftNotes, setDraftNotes] = useState("");
+  const [draftInstructions, setDraftInstructions] = useState("");
   const [saving, setSaving] = useState(false);
 
   async function load(eid: string) {
@@ -67,6 +69,7 @@ function HeatmapPage() {
     setEditingId(s.id);
     setDraftStatus(s.status);
     setDraftNotes(s.notes ?? "");
+    setDraftInstructions(s.instructions ?? "");
   }
 
   async function save(s: Section) {
@@ -77,6 +80,7 @@ function HeatmapPage() {
       .update({
         status: draftStatus,
         notes: draftNotes || null,
+        instructions: draftInstructions || null,
         updated_at: new Date().toISOString(),
         updated_by_name: member.display_name,
       })
@@ -162,6 +166,16 @@ function HeatmapPage() {
                       value={draftNotes}
                       onChange={(e) => setDraftNotes(e.target.value)}
                       placeholder="What's driving this status?"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor={`instructions-${s.id}`} className="text-xs">Instructions for writer (section brief)</Label>
+                    <Textarea
+                      id={`instructions-${s.id}`}
+                      rows={3}
+                      value={draftInstructions}
+                      onChange={(e) => setDraftInstructions(e.target.value)}
+                      placeholder="What does the writer need to know to draft this section?"
                     />
                   </div>
                   <div className="flex gap-2">

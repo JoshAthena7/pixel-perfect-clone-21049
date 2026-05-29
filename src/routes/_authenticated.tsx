@@ -8,6 +8,10 @@ import { useSession } from "@/hooks/use-session";
 import { Toaster } from "@/components/ui/sonner";
 import { SubmissionBanner } from "@/components/war-room/SubmissionBanner";
 import { LivePresence } from "@/components/war-room/LivePresence";
+import { TMinusStrip } from "@/components/war-room/writer/TMinusStrip";
+import { DailyQuote } from "@/components/war-room/writer/DailyQuote";
+import { SinceLastSeenStrip } from "@/components/war-room/writer/SinceLastSeenStrip";
+import { WriterContactBar } from "@/components/war-room/writer/WriterContactBar";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthLayout,
@@ -27,9 +31,15 @@ const PAGE_TITLES: Record<string, string> = {
   "/snapshots": "Snapshot Log",
   "/assistant": "AI Assistant",
   "/settings": "Settings",
+  "/writer/my-sections": "My Sections",
   "/writer/broadcasts": "Broadcasts",
   "/writer/decisions": "Decisions",
   "/writer/intel-library": "Intel Library",
+  "/writer/win-themes": "Win Themes",
+  "/writer/work-log": "Work Log",
+  "/writer/progress": "Progress",
+  "/writer/recognition-feed": "Recognition Feed",
+  "/writer/faq": "FAQ",
   "/writer/submit-risk": "Submit a Risk",
   "/writer/submit-sos": "Submit an SOS",
   "/writer/team": "Team Directory",
@@ -68,7 +78,7 @@ function RoleGuardedShell() {
   useEffect(() => {
     if (loading || !member) return;
     if (isWriter && !isWriterPath) {
-      navigate({ to: "/writer/broadcasts", replace: true });
+      navigate({ to: "/writer/my-sections", replace: true });
     } else if (!isWriter && isWriterPath) {
       navigate({ to: "/command", replace: true });
     }
@@ -84,9 +94,17 @@ function RoleGuardedShell() {
             <AppHeaderContent />
           </header>
           {!isWriter && <SubmissionBanner />}
-          <main className="flex-1 overflow-auto">
+          {isWriter && (
+            <>
+              <TMinusStrip />
+              <DailyQuote />
+              <SinceLastSeenStrip />
+            </>
+          )}
+          <main className={`flex-1 overflow-auto ${isWriter ? "pb-16" : ""}`}>
             <Outlet />
           </main>
+          {isWriter && <WriterContactBar />}
         </div>
       </div>
       <Toaster theme="dark" position="top-right" />

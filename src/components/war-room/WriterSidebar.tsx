@@ -1,8 +1,14 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
+  LayoutGrid,
   Megaphone,
   GitBranch,
   FolderOpen,
+  Lightbulb,
+  ClipboardList,
+  TrendingUp,
+  Award,
+  HelpCircle,
   ShieldAlert,
   Siren,
   Contact,
@@ -26,9 +32,17 @@ import { useEngagement } from "@/hooks/use-engagement";
 import athenaLogo from "@/assets/athena-logo-dark.png";
 
 const WORK = [
+  { title: "My Sections", url: "/writer/my-sections", icon: LayoutGrid },
   { title: "Broadcasts", url: "/writer/broadcasts", icon: Megaphone },
   { title: "Decisions", url: "/writer/decisions", icon: GitBranch },
   { title: "Intel Library", url: "/writer/intel-library", icon: FolderOpen },
+  { title: "Win Themes", url: "/writer/win-themes", icon: Lightbulb },
+  { title: "Work Log", url: "/writer/work-log", icon: ClipboardList },
+] as const;
+const ENGAGEMENT = [
+  { title: "Progress", url: "/writer/progress", icon: TrendingUp },
+  { title: "Recognition Feed", url: "/writer/recognition-feed", icon: Award },
+  { title: "FAQ", url: "/writer/faq", icon: HelpCircle },
 ] as const;
 const FLAG = [
   { title: "Submit a Risk", url: "/writer/submit-risk", icon: ShieldAlert },
@@ -84,6 +98,12 @@ export function WriterSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
+          <SidebarGroupLabel>Engagement</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>{ENGAGEMENT.map(renderItem)}</SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
           <SidebarGroupLabel>Flag</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>{FLAG.map(renderItem)}</SidebarMenu>
@@ -109,7 +129,7 @@ export function WriterSidebar() {
                 className="text-muted-foreground"
               >
                 <ExternalLink className="h-4 w-4" />
-                <span className="flex-1">Go to Talent Desk</span>
+                <span className="flex-1">→ Go to Talent Desk</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
