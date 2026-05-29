@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
@@ -11,8 +11,15 @@ import { relativeTime, hoursSince } from "@/lib/time";
 
 export const Route = createFileRoute("/_authenticated/command")({
   head: () => ({ meta: [{ title: "Command Center — Athena" }] }),
-  component: CommandCenter,
+  component: CommandCenterGate,
 });
+
+function CommandCenterGate() {
+  const { loading, isLeadership } = useEngagement();
+  if (loading) return null;
+  if (!isLeadership) return <Navigate to="/huddle" replace />;
+  return <CommandCenter />;
+}
 
 type Huddle = { id: string; health: string; priority: string; risk: string | null; client_concern: string | null; writer_concern: string | null; submitter_name: string; created_at: string; needs_leadership: boolean };
 type Sos = { id: string; severity: string; category: string; description: string; submitter_name: string; status: string; created_at: string };

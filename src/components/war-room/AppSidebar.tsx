@@ -30,11 +30,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
 import athenaLogo from "@/assets/athena-logo.png";
 
-const ops = [
-  { title: "Command Center", url: "/command", icon: LayoutDashboard },
+const opsBase = [
   { title: "Daily Huddle", url: "/huddle", icon: Users },
   { title: "SOS Alerts", url: "/sos", icon: Siren },
   { title: "Team Roster", url: "/team", icon: Contact },
+];
+const opsLeadership = [
+  { title: "Command Center", url: "/command", icon: LayoutDashboard },
+  ...opsBase,
 ];
 const intel = [
   { title: "Risks", url: "/risks", icon: ShieldAlert },
