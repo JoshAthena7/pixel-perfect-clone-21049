@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { WinOfTheDayBanner } from "@/components/war-room/writer/WinOfTheDayBanner";
 import { bigConfetti } from "@/lib/confetti";
 import { Trophy } from "lucide-react";
+import { TriviaLeaderboard } from "@/components/war-room/writer/TriviaLeaderboard";
 
 export const Route = createFileRoute("/_authenticated/writer/progress")({
   head: () => ({ meta: [{ title: "Progress — Writer Portal" }] }),
