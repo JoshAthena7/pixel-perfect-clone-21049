@@ -28,6 +28,12 @@ import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedBroadcastsRouteImport } from './routes/_authenticated/broadcasts'
 import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
+import { Route as AuthenticatedWriterTeamRouteImport } from './routes/_authenticated/writer/team'
+import { Route as AuthenticatedWriterSubmitSosRouteImport } from './routes/_authenticated/writer/submit-sos'
+import { Route as AuthenticatedWriterSubmitRiskRouteImport } from './routes/_authenticated/writer/submit-risk'
+import { Route as AuthenticatedWriterIntelLibraryRouteImport } from './routes/_authenticated/writer/intel-library'
+import { Route as AuthenticatedWriterDecisionsRouteImport } from './routes/_authenticated/writer/decisions'
+import { Route as AuthenticatedWriterBroadcastsRouteImport } from './routes/_authenticated/writer/broadcasts'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -127,6 +133,41 @@ const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   path: '/lovable/email/suppression',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedWriterTeamRoute = AuthenticatedWriterTeamRouteImport.update({
+  id: '/writer/team',
+  path: '/writer/team',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedWriterSubmitSosRoute =
+  AuthenticatedWriterSubmitSosRouteImport.update({
+    id: '/writer/submit-sos',
+    path: '/writer/submit-sos',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedWriterSubmitRiskRoute =
+  AuthenticatedWriterSubmitRiskRouteImport.update({
+    id: '/writer/submit-risk',
+    path: '/writer/submit-risk',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedWriterIntelLibraryRoute =
+  AuthenticatedWriterIntelLibraryRouteImport.update({
+    id: '/writer/intel-library',
+    path: '/writer/intel-library',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedWriterDecisionsRoute =
+  AuthenticatedWriterDecisionsRouteImport.update({
+    id: '/writer/decisions',
+    path: '/writer/decisions',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedWriterBroadcastsRoute =
+  AuthenticatedWriterBroadcastsRouteImport.update({
+    id: '/writer/broadcasts',
+    path: '/writer/broadcasts',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const LovableEmailTransactionalSendRoute =
   LovableEmailTransactionalSendRouteImport.update({
     id: '/lovable/email/transactional/send',
@@ -170,6 +211,12 @@ export interface FileRoutesByFullPath {
   '/sos': typeof AuthenticatedSosRoute
   '/team': typeof AuthenticatedTeamRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/writer/broadcasts': typeof AuthenticatedWriterBroadcastsRoute
+  '/writer/decisions': typeof AuthenticatedWriterDecisionsRoute
+  '/writer/intel-library': typeof AuthenticatedWriterIntelLibraryRoute
+  '/writer/submit-risk': typeof AuthenticatedWriterSubmitRiskRoute
+  '/writer/submit-sos': typeof AuthenticatedWriterSubmitSosRoute
+  '/writer/team': typeof AuthenticatedWriterTeamRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -194,6 +241,12 @@ export interface FileRoutesByTo {
   '/sos': typeof AuthenticatedSosRoute
   '/team': typeof AuthenticatedTeamRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/writer/broadcasts': typeof AuthenticatedWriterBroadcastsRoute
+  '/writer/decisions': typeof AuthenticatedWriterDecisionsRoute
+  '/writer/intel-library': typeof AuthenticatedWriterIntelLibraryRoute
+  '/writer/submit-risk': typeof AuthenticatedWriterSubmitRiskRoute
+  '/writer/submit-sos': typeof AuthenticatedWriterSubmitSosRoute
+  '/writer/team': typeof AuthenticatedWriterTeamRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -220,6 +273,12 @@ export interface FileRoutesById {
   '/_authenticated/sos': typeof AuthenticatedSosRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/_authenticated/writer/broadcasts': typeof AuthenticatedWriterBroadcastsRoute
+  '/_authenticated/writer/decisions': typeof AuthenticatedWriterDecisionsRoute
+  '/_authenticated/writer/intel-library': typeof AuthenticatedWriterIntelLibraryRoute
+  '/_authenticated/writer/submit-risk': typeof AuthenticatedWriterSubmitRiskRoute
+  '/_authenticated/writer/submit-sos': typeof AuthenticatedWriterSubmitSosRoute
+  '/_authenticated/writer/team': typeof AuthenticatedWriterTeamRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -246,6 +305,12 @@ export interface FileRouteTypes {
     | '/sos'
     | '/team'
     | '/email/unsubscribe'
+    | '/writer/broadcasts'
+    | '/writer/decisions'
+    | '/writer/intel-library'
+    | '/writer/submit-risk'
+    | '/writer/submit-sos'
+    | '/writer/team'
     | '/lovable/email/suppression'
     | '/api/public/hooks/daily-digest'
     | '/lovable/email/queue/process'
@@ -270,6 +335,12 @@ export interface FileRouteTypes {
     | '/sos'
     | '/team'
     | '/email/unsubscribe'
+    | '/writer/broadcasts'
+    | '/writer/decisions'
+    | '/writer/intel-library'
+    | '/writer/submit-risk'
+    | '/writer/submit-sos'
+    | '/writer/team'
     | '/lovable/email/suppression'
     | '/api/public/hooks/daily-digest'
     | '/lovable/email/queue/process'
@@ -295,6 +366,12 @@ export interface FileRouteTypes {
     | '/_authenticated/sos'
     | '/_authenticated/team'
     | '/email/unsubscribe'
+    | '/_authenticated/writer/broadcasts'
+    | '/_authenticated/writer/decisions'
+    | '/_authenticated/writer/intel-library'
+    | '/_authenticated/writer/submit-risk'
+    | '/_authenticated/writer/submit-sos'
+    | '/_authenticated/writer/team'
     | '/lovable/email/suppression'
     | '/api/public/hooks/daily-digest'
     | '/lovable/email/queue/process'
@@ -450,6 +527,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailSuppressionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/writer/team': {
+      id: '/_authenticated/writer/team'
+      path: '/writer/team'
+      fullPath: '/writer/team'
+      preLoaderRoute: typeof AuthenticatedWriterTeamRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/writer/submit-sos': {
+      id: '/_authenticated/writer/submit-sos'
+      path: '/writer/submit-sos'
+      fullPath: '/writer/submit-sos'
+      preLoaderRoute: typeof AuthenticatedWriterSubmitSosRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/writer/submit-risk': {
+      id: '/_authenticated/writer/submit-risk'
+      path: '/writer/submit-risk'
+      fullPath: '/writer/submit-risk'
+      preLoaderRoute: typeof AuthenticatedWriterSubmitRiskRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/writer/intel-library': {
+      id: '/_authenticated/writer/intel-library'
+      path: '/writer/intel-library'
+      fullPath: '/writer/intel-library'
+      preLoaderRoute: typeof AuthenticatedWriterIntelLibraryRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/writer/decisions': {
+      id: '/_authenticated/writer/decisions'
+      path: '/writer/decisions'
+      fullPath: '/writer/decisions'
+      preLoaderRoute: typeof AuthenticatedWriterDecisionsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/writer/broadcasts': {
+      id: '/_authenticated/writer/broadcasts'
+      path: '/writer/broadcasts'
+      fullPath: '/writer/broadcasts'
+      preLoaderRoute: typeof AuthenticatedWriterBroadcastsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/lovable/email/transactional/send': {
       id: '/lovable/email/transactional/send'
       path: '/lovable/email/transactional/send'
@@ -495,6 +614,12 @@ interface AuthenticatedRouteChildren {
   AuthenticatedSnapshotsRoute: typeof AuthenticatedSnapshotsRoute
   AuthenticatedSosRoute: typeof AuthenticatedSosRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
+  AuthenticatedWriterBroadcastsRoute: typeof AuthenticatedWriterBroadcastsRoute
+  AuthenticatedWriterDecisionsRoute: typeof AuthenticatedWriterDecisionsRoute
+  AuthenticatedWriterIntelLibraryRoute: typeof AuthenticatedWriterIntelLibraryRoute
+  AuthenticatedWriterSubmitRiskRoute: typeof AuthenticatedWriterSubmitRiskRoute
+  AuthenticatedWriterSubmitSosRoute: typeof AuthenticatedWriterSubmitSosRoute
+  AuthenticatedWriterTeamRoute: typeof AuthenticatedWriterTeamRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -511,6 +636,12 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedSnapshotsRoute: AuthenticatedSnapshotsRoute,
   AuthenticatedSosRoute: AuthenticatedSosRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
+  AuthenticatedWriterBroadcastsRoute: AuthenticatedWriterBroadcastsRoute,
+  AuthenticatedWriterDecisionsRoute: AuthenticatedWriterDecisionsRoute,
+  AuthenticatedWriterIntelLibraryRoute: AuthenticatedWriterIntelLibraryRoute,
+  AuthenticatedWriterSubmitRiskRoute: AuthenticatedWriterSubmitRiskRoute,
+  AuthenticatedWriterSubmitSosRoute: AuthenticatedWriterSubmitSosRoute,
+  AuthenticatedWriterTeamRoute: AuthenticatedWriterTeamRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
