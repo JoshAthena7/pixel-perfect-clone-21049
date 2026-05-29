@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -16,13 +18,26 @@ export const Route = createFileRoute("/_authenticated/writer/work-log")({
   component: WriterWorkLog,
 });
 
+function formatTime(stored: string | null | undefined) {
+  if (!stored) return "";
+  const m = parseInt(stored, 10);
+  if (Number.isNaN(m)) return stored; // legacy free-text entries
+  if (m % 60 === 0) {
+    const h = m / 60;
+    return `${h} hour${h === 1 ? "" : "s"}`;
+  }
+  return `${m} minute${m === 1 ? "" : "s"}`;
+}
+
 function WriterWorkLog() {
   const { engagement } = useEngagement();
   const { user } = useSession();
   const [items, setItems] = useState<any[]>([]);
+  const [sections, setSections] = useState<{ id: string; section_name: string }[]>([]);
   const [desc, setDesc] = useState("");
   const [section, setSection] = useState("");
-  const [time, setTime] = useState("");
+  const [timeVal, setTimeVal] = useState("");
+  const [timeUnit, setTimeUnit] = useState<"hours" | "minutes">("hours");
   const [saving, setSaving] = useState(false);
 
   async function load() {
@@ -35,25 +50,50 @@ function WriterWorkLog() {
       .order("created_at", { ascending: false });
     setItems(data ?? []);
   }
-  useEffect(() => { load(); }, [engagement?.id, user?.id]);
+  async function loadSections() {
+    if (!engagement || !user) return;
+    const { data } = await supabase
+      .from("section_assignments")
+      .select("section_id, heatmap_sections!inner(id, section_name)")
+      .eq("engagement_id", engagement.id)
+      .eq("user_id", user.id);
+    const secs = ((data as any[]) ?? [])
+      .map((r) => r.heatmap_sections)
+      .filter(Boolean)
+      .reduce<{ id: string; section_name: string }[]>((acc, s) => {
+        if (!acc.find((x) => x.section_name === s.section_name)) acc.push(s);
+        return acc;
+      }, []);
+    setSections(secs);
+  }
+  useEffect(() => { load(); loadSections(); }, [engagement?.id, user?.id]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!engagement || !user || !desc.trim()) return;
+    let timeStored: string | null = null;
+    if (timeVal.trim()) {
+      const n = Number(timeVal);
+      if (!Number.isFinite(n) || n <= 0) return toast.error("Enter a valid time.");
+      const minutes = timeUnit === "hours" ? Math.round(n * 60) : Math.round(n);
+      timeStored = String(minutes);
+    }
     setSaving(true);
     const { error } = await supabase.from("work_log").insert({
       engagement_id: engagement.id,
       user_id: user.id,
       description: desc.trim(),
       section: section || null,
-      time_spent: time || null,
+      time_spent: timeStored,
     });
     setSaving(false);
     if (error) return toast.error(error.message);
-    setDesc(""); setSection(""); setTime("");
+    setDesc(""); setSection(""); setTimeVal(""); setTimeUnit("hours");
     toast.success("Logged");
     load();
   }
+
+  const hasSections = sections.length > 0;
 
   return (
     <div className="mx-auto max-w-2xl space-y-4 p-4 md:p-8">
@@ -70,25 +110,56 @@ function WriterWorkLog() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Section</Label>
-              <Input value={section} onChange={(e) => setSection(e.target.value)} placeholder="e.g. LTSS" />
+              <Select value={section} onValueChange={setSection} disabled={!hasSections}>
+                <SelectTrigger>
+                  <SelectValue placeholder={hasSections ? "Choose section" : "No sections assigned yet."} />
+                </SelectTrigger>
+                <SelectContent>
+                  {sections.map((s) => (
+                    <SelectItem key={s.id} value={s.section_name}>{s.section_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label>Time spent</Label>
-              <Input value={time} onChange={(e) => setTime(e.target.value)} placeholder="e.g. 2h" />
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={1}
+                  max={timeUnit === "hours" ? 24 : 1440}
+                  value={timeVal}
+                  onChange={(e) => setTimeVal(e.target.value)}
+                  placeholder="e.g. 2"
+                  className="flex-1"
+                />
+                <ToggleGroup
+                  type="single"
+                  size="sm"
+                  value={timeUnit}
+                  onValueChange={(v) => v && setTimeUnit(v as any)}
+                  className="shrink-0"
+                >
+                  <ToggleGroupItem value="hours" className="px-2 text-[11px]">Hrs</ToggleGroupItem>
+                  <ToggleGroupItem value="minutes" className="px-2 text-[11px]">Min</ToggleGroupItem>
+                </ToggleGroup>
+              </div>
             </div>
           </div>
-          <Button type="submit" disabled={saving || !desc.trim()}>{saving ? "Saving…" : "Log entry"}</Button>
+          <Button type="submit" variant="outline" disabled={saving || !desc.trim()}>
+            {saving ? "Saving…" : "Log entry"}
+          </Button>
         </form>
       </Card>
       {items.length === 0 ? (
-        <Card className="border-border bg-surface p-6 text-sm text-muted-foreground">No entries yet.</Card>
+        <p className="px-4 text-sm text-muted-foreground">No entries yet — your first log will appear here.</p>
       ) : (
         items.map((it) => (
           <Card key={it.id} className="border-border bg-surface p-4">
             <div className="text-sm whitespace-pre-wrap">{it.description}</div>
             <div className="mt-2 text-[11px] text-muted-foreground">
               {it.section && <>{it.section} · </>}
-              {it.time_spent && <>{it.time_spent} · </>}
+              {it.time_spent && <>{formatTime(it.time_spent)} · </>}
               {format(new Date(it.created_at), "MMM d, yyyy h:mm a")}
             </div>
           </Card>
