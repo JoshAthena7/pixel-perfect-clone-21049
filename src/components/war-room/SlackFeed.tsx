@@ -135,7 +135,14 @@ export function SlackFeed() {
         {!channelId && !channelsQ.isLoading && (
           <div className="text-sm text-muted-foreground">Pick a channel to start streaming.</div>
         )}
-        {channelId && messages.length === 0 && !messagesQ.isLoading && !messagesQ.isError && (
+        {channelId && messagesQ.data?.needsInvite && (
+          <div className="rounded-md border border-[color:var(--yellow)]/40 bg-[color:var(--yellow)]/10 p-3 text-xs">
+            The Lovable bot isn't in this channel yet. In Slack, run{" "}
+            <code className="rounded bg-surface-hover px-1">/invite @Lovable App</code> in{" "}
+            <strong>#{channelName}</strong>, then messages will appear here.
+          </div>
+        )}
+        {channelId && messages.length === 0 && !messagesQ.isLoading && !messagesQ.isError && !messagesQ.data?.needsInvite && (
           <div className="text-sm text-muted-foreground">No messages yet.</div>
         )}
         {messages.map((m: typeof messages[number]) => (
