@@ -2,17 +2,12 @@ import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
-import { HealthCircle } from "@/components/war-room/HealthCircle";
-import { StatusPill, type StatusColor } from "@/components/war-room/StatusPill";
-import { Thermometer, calcTemperature } from "@/components/war-room/Thermometer";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Siren, Users, ShieldAlert, Megaphone, Grid3x3, Camera, Info, Sparkles, Clock, Settings as SettingsIcon } from "lucide-react";
+import { calcTemperature } from "@/components/war-room/Thermometer";
+import { Siren, Users, ShieldAlert, Megaphone, Grid3x3, Sparkles, Clock, Settings as SettingsIcon, Hash } from "lucide-react";
 import { LivePresence } from "@/components/war-room/LivePresence";
 import { SlackFeed } from "@/components/war-room/SlackFeed";
 import { ActionLauncher } from "@/components/war-room/ActionLauncher";
-import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { relativeTime, hoursSince } from "@/lib/time";
 
 export const Route = createFileRoute("/_authenticated/command")({
@@ -30,11 +25,27 @@ function CommandCenterGate() {
 type Huddle = { id: string; health: string; priority: string; risk: string | null; client_concern: string | null; writer_concern: string | null; submitter_name: string; created_at: string; needs_leadership: boolean };
 type Sos = { id: string; severity: string; category: string; description: string; submitter_name: string; status: string; created_at: string };
 type Risk = { id: string; title: string; severity: string; likelihood: string; status: string };
-type Heat = { id: string; section_name: string; status: StatusColor; sort_order: number };
+type HeatStatus = "Green" | "Yellow" | "Orange" | "Red";
+type Heat = { id: string; section_name: string; status: HeatStatus; sort_order: number };
 type Broadcast = { id: string; content: string; author_name: string; created_at: string; pinned: boolean };
 
+const BORDER = "rgba(255,255,255,0.08)";
+const HEAT_COLOR: Record<HeatStatus, string> = {
+  Green: "#22c55e",
+  Yellow: "#eab308",
+  Orange: "#f97316",
+  Red: "#ef4444",
+};
+
+function tempTier(score: number): { label: string; color: string } {
+  if (score <= 30) return { label: "Stable", color: "#22c55e" };
+  if (score <= 55) return { label: "Warming", color: "#eab308" };
+  if (score <= 75) return { label: "Elevated", color: "#f97316" };
+  return { label: "Critical", color: "#ef4444" };
+}
+
 function CommandCenter() {
-  const { engagement, member } = useEngagement();
+  const { engagement } = useEngagement();
   const [latestHuddle, setLatestHuddle] = useState<Huddle | null>(null);
   const [recentHuddles, setRecentHuddles] = useState<Huddle[]>([]);
   const [openSos, setOpenSos] = useState<Sos[]>([]);
@@ -42,12 +53,11 @@ function CommandCenter() {
   const [heatmap, setHeatmap] = useState<Heat[]>([]);
   const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
   const [latestPulse, setLatestPulse] = useState<{ sentiment: string } | null>(null);
-  const [todaySnapshotId, setTodaySnapshotId] = useState<string | null>(null);
-  const [savingSnap, setSavingSnap] = useState(false);
 
   async function loadAll(eid: string) {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
     const [h, sos, risks, heat, bc, pulse] = await Promise.all([
-      supabase.from("huddles").select("*").eq("engagement_id", eid).order("created_at", { ascending: false }).limit(5),
+      supabase.from("huddles").select("*").eq("engagement_id", eid).gte("created_at", sevenDaysAgo).order("created_at", { ascending: false }),
       supabase.from("sos_alerts").select("*").eq("engagement_id", eid).neq("status", "Resolved").order("created_at", { ascending: false }),
       supabase.from("risks").select("id,title,severity,likelihood,status").eq("engagement_id", eid).neq("status", "Closed").order("updated_at", { ascending: false }),
       supabase.from("heatmap_sections").select("*").eq("engagement_id", eid).order("sort_order"),
@@ -61,49 +71,6 @@ function CommandCenter() {
     setHeatmap((heat.data as Heat[]) ?? []);
     setBroadcasts((bc.data as Broadcast[]) ?? []);
     setLatestPulse((pulse.data as { sentiment: string } | null) ?? null);
-
-    const today = new Date().toISOString().slice(0, 10);
-    const { data: snap } = await supabase
-      .from("snapshots")
-      .select("id")
-      .eq("engagement_id", eid)
-      .eq("snapshot_date", today)
-      .maybeSingle();
-    setTodaySnapshotId((snap as { id: string } | null)?.id ?? null);
-  }
-
-  async function takeSnapshot() {
-    if (!engagement || !member) return;
-    setSavingSnap(true);
-    try {
-      const today = new Date().toISOString().slice(0, 10);
-      const heatmapJson = heatmap.map((h) => ({ section_name: h.section_name, status: h.status }));
-      const payload = {
-        engagement_id: engagement.id,
-        snapshot_date: today,
-        health: (latestHuddle?.health ?? "Unknown"),
-        temperature_score: temperature,
-        open_sos_count: openSos.length,
-        open_risk_count: openRisks.length,
-        client_sentiment: latestPulse?.sentiment ?? null,
-        heatmap_json: heatmapJson,
-        top_priority: latestHuddle?.priority ?? null,
-        top_risk: latestHuddle?.risk ?? null,
-        taken_by_name: member.display_name,
-        updated_at: new Date().toISOString(),
-      };
-      const { error } = await supabase
-        .from("snapshots")
-        .upsert(payload, { onConflict: "engagement_id,snapshot_date" });
-      if (error) throw error;
-      toast.success(todaySnapshotId ? "Snapshot updated" : "Snapshot saved");
-      await loadAll(engagement.id);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Failed to save snapshot";
-      toast.error(msg);
-    } finally {
-      setSavingSnap(false);
-    }
   }
 
   useEffect(() => {
@@ -118,275 +85,230 @@ function CommandCenter() {
 
   if (!engagement) return null;
 
-  const health = (latestHuddle?.health ?? "Unknown") as "Green" | "Yellow" | "Red" | "Unknown";
-  const staleHours = latestHuddle ? hoursSince(latestHuddle.created_at) : Infinity;
-  const stale = staleHours > 24;
-
   const temperature = calcTemperature({
     sos: openSos,
     risks: openRisks,
     latestPulseSentiment: latestPulse?.sentiment ?? null,
     recentHuddles,
   });
+  const tier = tempTier(temperature);
 
-  const isFirstTime = recentHuddles.length === 0;
+  const isFirstTime = recentHuddles.length === 0 && !latestHuddle;
   const hasSubmissionDate = !!engagement.submission_date;
-  const noCheckinToday = !!latestHuddle && staleHours > 24;
+  const noCheckinToday = !!latestHuddle && hoursSince(latestHuddle.created_at) > 24;
 
   return (
-    <TooltipProvider delayDuration={150}>
-      <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
-        {/* Topbar */}
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Command Center</h1>
-            <p className="text-xs text-muted-foreground">Live executive view — health, risks, signals, and team activity.</p>
-          </div>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs"
-                onClick={takeSnapshot}
-                disabled={savingSnap}
-              >
-                <Camera className="mr-1.5 h-3.5 w-3.5" />
-                {savingSnap ? "Saving…" : todaySnapshotId ? "📸 Update Today's Snapshot" : "📸 Snapshot"}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Capture today's engagement state to the Snapshot Log</TooltipContent>
-          </Tooltip>
+    <div className="w-full">
+      {/* 1. Header bar */}
+      <header
+        className="flex items-center justify-between gap-4 px-5 py-3"
+        style={{ borderBottom: `0.5px solid ${BORDER}` }}
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="text-[13px] font-medium truncate">{engagement.name}</span>
+          <span
+            className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium"
+            style={{
+              borderColor: `color-mix(in oklab, ${tier.color} 55%, transparent)`,
+              color: tier.color,
+              background: `color-mix(in oklab, ${tier.color} 10%, transparent)`,
+            }}
+          >
+            <span className="h-1.5 w-1.5 rounded-full" style={{ background: tier.color }} />
+            {tier.label} · {temperature}/100
+          </span>
         </div>
+        <div className="flex items-center gap-3">
+          <span className="hidden text-[11px] uppercase tracking-wider text-muted-foreground sm:inline">Online now</span>
+          <LivePresence variant="compact" />
+        </div>
+      </header>
 
-        {/* Quick action launcher (leadership) */}
-        <ActionLauncher />
-
-
-
-        {/* First-time welcome banner */}
-        {isFirstTime && (
-          <div className="rounded-xl border border-primary/40 bg-primary/10 p-5">
-            <div className="flex items-start gap-3">
-              <Sparkles className="mt-0.5 h-5 w-5 text-primary" />
-              <div className="flex-1">
-                <div className="text-base font-bold">👋 Welcome to your War Room</div>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Start by submitting a Daily Huddle to activate your engagement health status.
-                </p>
-                <Button asChild className="mt-4" size="sm">
-                  <Link to="/huddle"><Users className="mr-2 h-4 w-4" />Submit Your First Huddle</Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Submission date prompt */}
-        {!hasSubmissionDate && !isFirstTime && (
-          <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-surface-hover/40 px-4 py-3 text-sm">
-            <SettingsIcon className="h-4 w-4 text-muted-foreground" />
-            <span>⚙️ Set your submission date in Settings to activate the countdown clock</span>
-            <Button asChild size="sm" variant="outline" className="ml-auto">
-              <Link to="/settings">Open Settings</Link>
-            </Button>
-          </div>
-        )}
-
-        {/* No-checkin-today yellow nudge */}
-        {noCheckinToday && (
-          <div className="flex flex-wrap items-center gap-3 rounded-lg border border-[color:var(--yellow)]/40 bg-[color:var(--yellow)]/10 px-4 py-3 text-sm">
-            <Clock className="h-4 w-4 text-[color:var(--yellow)]" />
-            <span>No check-in today — submit a Daily Huddle to update engagement health</span>
-            <Button asChild size="sm" className="ml-auto">
-              <Link to="/huddle">Submit Huddle</Link>
-            </Button>
-          </div>
-        )}
-
-        {/* SOS banner */}
+      {/* Contextual alert banners */}
+      <div className="px-5 pt-4 space-y-3">
         {openSos.length > 0 && (
-          <div className="rounded-xl border border-[color:var(--red)]/40 bg-[color:color-mix(in_oklab,var(--red)_14%,transparent)] p-4 glow-red">
-            <div className="flex items-start gap-3">
-              <Siren className="mt-0.5 h-5 w-5 text-[color:var(--red)]" />
-              <div className="flex-1">
-                <div className="text-sm font-bold text-[color:var(--red)] uppercase tracking-wide">
-                  🚨 {openSos.length} alert{openSos.length > 1 ? "s" : ""} require attention
-                </div>
-                <ul className="mt-2 space-y-1 text-sm">
-                  {openSos.slice(0, 3).map((s) => (
-                    <li key={s.id} className="flex items-baseline gap-2">
-                      <StatusPill status={s.severity === "Critical" ? "Red" : s.severity === "High" ? "Orange" : "Yellow"} label={s.severity} />
-                      <span className="font-medium">{s.category}</span>
-                      <span className="text-muted-foreground">— {s.description}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Link to="/sos" className="mt-3 inline-block text-xs font-medium text-[color:var(--red)] underline">View SOS board →</Link>
+          <div className="rounded-lg border border-[#ef4444]/40 bg-[#ef4444]/[0.08] px-4 py-3">
+            <div className="flex items-start gap-2.5">
+              <Siren className="mt-0.5 h-4 w-4 text-[#ef4444]" />
+              <div className="flex-1 text-sm">
+                <span className="font-bold text-[#ef4444]">{openSos.length} alert{openSos.length > 1 ? "s" : ""} require attention</span>
+                <Link to="/sos" className="ml-3 text-xs text-[#ef4444] underline">View SOS →</Link>
               </div>
             </div>
           </div>
         )}
-
-        {/* Health banner */}
-        <Card className="flex flex-col gap-6 border-border bg-surface p-6 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-5">
-            <HealthCircle health={health} />
-            <div>
-              <div className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground">
-                Engagement Health
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button type="button" aria-label="What do these mean?" className="text-muted-foreground hover:text-foreground">
-                      <Info className="h-3 w-3" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <div className="space-y-1 text-xs">
-                      <div><strong className="text-[color:var(--green)]">Green</strong> — on track, no major issues</div>
-                      <div><strong className="text-[color:var(--yellow)]">Yellow</strong> — pushing hard, watching closely</div>
-                      <div><strong className="text-[color:var(--red)]">Red</strong> — at risk or blocked, needs leadership</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <div className="text-2xl font-bold">
-                {health === "Unknown" ? "No huddle yet" : `${health} — ${latestHuddle?.priority ?? ""}`}
-              </div>
-              <div className="mt-1 text-sm text-muted-foreground">
-                {latestHuddle ? `Updated ${relativeTime(latestHuddle.created_at)} by ${latestHuddle.submitter_name}` : "Submit your first daily huddle"}
-                {stale && latestHuddle && <span className="ml-2 text-[color:var(--yellow)]">• stale</span>}
-              </div>
-            </div>
+        {isFirstTime && (
+          <div className="rounded-lg border border-primary/40 bg-primary/[0.08] px-4 py-3 flex items-center gap-3 text-sm">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span>Welcome — submit your first Daily Huddle to activate engagement health.</span>
+            <Button asChild size="sm" className="ml-auto"><Link to="/huddle">Start Huddle</Link></Button>
           </div>
-          <div className="flex gap-2">
-            <Button asChild><Link to="/huddle"><Users className="mr-2 h-4 w-4" />New Huddle</Link></Button>
-            <Button asChild variant="destructive"><Link to="/sos"><Siren className="mr-2 h-4 w-4" />Raise SOS</Link></Button>
+        )}
+        {!hasSubmissionDate && !isFirstTime && (
+          <div className="rounded-lg border px-4 py-3 flex items-center gap-3 text-sm" style={{ borderColor: BORDER, background: "#1a2333" }}>
+            <SettingsIcon className="h-4 w-4 text-muted-foreground" />
+            <span>Set your submission date in Settings to activate the countdown.</span>
+            <Button asChild size="sm" variant="outline" className="ml-auto"><Link to="/settings">Settings</Link></Button>
           </div>
-        </Card>
-
-        {/* Engagement Temperature */}
-        <Card className="border-border bg-surface p-6">
-          <Thermometer score={temperature} />
-          <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-1 text-[11px] text-muted-foreground sm:grid-cols-4">
-            <div><span className="inline-block h-2 w-2 rounded-full mr-1.5 align-middle" style={{ background: "#3b82f6" }} />0–30 Stable</div>
-            <div><span className="inline-block h-2 w-2 rounded-full mr-1.5 align-middle" style={{ background: "var(--yellow)" }} />31–55 Warming</div>
-            <div><span className="inline-block h-2 w-2 rounded-full mr-1.5 align-middle" style={{ background: "var(--orange)" }} />56–75 Elevated</div>
-            <div><span className="inline-block h-2 w-2 rounded-full mr-1.5 align-middle" style={{ background: "var(--red)" }} />76–100 Critical</div>
+        )}
+        {noCheckinToday && (
+          <div className="rounded-lg border border-[#eab308]/40 bg-[#eab308]/[0.08] px-4 py-3 flex items-center gap-3 text-sm">
+            <Clock className="h-4 w-4 text-[#eab308]" />
+            <span>No check-in today — submit a Daily Huddle to refresh health.</span>
+            <Button asChild size="sm" className="ml-auto"><Link to="/huddle">Submit</Link></Button>
           </div>
-        </Card>
+        )}
+      </div>
 
-        {/* Metrics */}
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <Metric icon={<Siren className="h-4 w-4" />} label="Open SOS" value={openSos.length} accent="Red" tip="Count of SOS alerts that are not yet Resolved. Click an alert in the SOS board to acknowledge or resolve." />
-          <Metric icon={<ShieldAlert className="h-4 w-4" />} label="Open Risks" value={openRisks.length} accent="Orange" tip="Risks with status Open or Mitigating. Closed risks are excluded." />
-          <Metric icon={<Grid3x3 className="h-4 w-4" />} label="Heat sections" value={heatmap.length} accent="Green" tip="Number of tracked engagement sections (LTSS, Care Mgmt, Quality, etc.)." />
-          <Metric icon={<Users className="h-4 w-4" />} label="Huddles (recent)" value={recentHuddles.length} accent="Green" tip="Last 5 daily huddles submitted by anyone on the team." />
+      {/* 2. Metric row — 4 equal cells, 0.5px dividers */}
+      <div className="mt-4 grid grid-cols-4" style={{ borderTop: `0.5px solid ${BORDER}`, borderBottom: `0.5px solid ${BORDER}` }}>
+        <MetricCell icon={<Siren className="h-5 w-5" />} value={openSos.length} label="Open SOS" alert={openSos.length > 0} />
+        <MetricCell icon={<ShieldAlert className="h-5 w-5" />} value={openRisks.length} label="Open risks" alert={openRisks.length > 0} divider />
+        <MetricCell icon={<Grid3x3 className="h-5 w-5" />} value={heatmap.length} label="Heat sections" divider />
+        <MetricCell icon={<Users className="h-5 w-5" />} value={recentHuddles.length} label="Recent huddles" divider />
+      </div>
+
+      {/* Quick action launcher (leadership) */}
+      <div className="px-5 pt-5">
+        <ActionLauncher />
+      </div>
+
+      {/* 3. Heat map hero */}
+      <section className="p-5">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+            <Grid3x3 className="h-3.5 w-3.5" /> Heat Map
+          </div>
+          <Link to="/heatmap" className="text-xs text-primary hover:underline">Open →</Link>
         </div>
-
-        <LivePresence variant="full" />
-
-        <div className="grid gap-4 lg:grid-cols-3">
-          {/* Heatmap mini */}
-          <Card className="border-border bg-surface p-5 lg:col-span-2">
-            <div className="mb-3 flex items-center justify-between">
-              <div className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Heat Map</div>
-              <Link to="/heatmap" className="text-xs text-primary hover:underline">Open →</Link>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {heatmap.map((h) => (
-                <div key={h.id} className="flex items-center justify-between rounded-md border border-border bg-surface-hover/50 px-3 py-2">
+        {heatmap.length === 0 ? (
+          <div className="rounded-lg p-6 text-center text-sm text-muted-foreground" style={{ background: "#1a2333", border: `0.5px solid ${BORDER}` }}>
+            No heat map sections yet.
+          </div>
+        ) : (
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {heatmap.map((h) => {
+              const color = HEAT_COLOR[h.status] ?? HEAT_COLOR.Green;
+              return (
+                <Link
+                  key={h.id}
+                  to="/heatmap"
+                  className="group flex items-center justify-between rounded-lg px-4 py-3 transition hover:border-[color:var(--primary)]"
+                  style={{ background: "#1a2333", border: `0.5px solid ${BORDER}` }}
+                >
                   <span className="truncate text-sm font-medium">{h.section_name}</span>
-                  <StatusPill status={h.status} />
-                </div>
-              ))}
-            </div>
-          </Card>
-
-          {/* Broadcasts */}
-          <Card className="border-border bg-surface p-5">
-            <div className="mb-3 flex items-center justify-between">
-              <div className="text-sm font-bold uppercase tracking-wider text-muted-foreground"><Megaphone className="inline h-3.5 w-3.5 mr-1" />Broadcasts</div>
-              <Link to="/broadcasts" className="text-xs text-primary hover:underline">All →</Link>
-            </div>
-            {broadcasts.length === 0 ? (
-              <div className="text-sm text-muted-foreground">No broadcasts yet — leadership messages will appear here.</div>
-            ) : (
-              <ul className="space-y-3">
-                {broadcasts.map((b) => (
-                  <li key={b.id} className="rounded-md border border-border bg-surface-hover/40 p-3">
-                    <div className="text-sm">{b.content}</div>
-                    <div className="mt-1 text-[11px] text-muted-foreground">{b.author_name} • {relativeTime(b.created_at)}{b.pinned && " • 📌"}</div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
-        </div>
-
-        {/* Slack live feed */}
-        <SlackFeed />
-
-
-        {/* Recent huddles */}
-        <Card className="border-border bg-surface p-5">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Recent Huddles</div>
-            <Link to="/huddle" className="text-xs text-primary hover:underline">New →</Link>
-          </div>
-          {recentHuddles.length === 0 ? (
-            <div className="text-sm text-muted-foreground">No huddles yet — submit one to start tracking health.</div>
-          ) : (
-            <ul className="divide-y divide-border">
-              {recentHuddles.map((h) => (
-                <li key={h.id} className="flex flex-wrap items-center gap-3 py-3">
-                  <StatusPill status={h.health as StatusColor} />
-                  <span className="text-sm font-medium">{h.priority}</span>
-                  <span className="text-sm text-muted-foreground truncate flex-1">
-                    {h.risk ?? h.client_concern ?? h.writer_concern ?? "—"}
+                  <span className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+                    style={{
+                      color,
+                      background: `color-mix(in oklab, ${color} 14%, transparent)`,
+                      border: `0.5px solid color-mix(in oklab, ${color} 45%, transparent)`,
+                    }}
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full" style={{ background: color }} />
+                    {h.status}
                   </span>
-                  {h.needs_leadership && <StatusPill status="Orange" label="Needs Leadership" />}
-                  <span className="text-xs text-muted-foreground">{h.submitter_name} • {relativeTime(h.created_at)}</span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* 4. Bottom two columns */}
+      <div className="grid grid-cols-1 md:grid-cols-2" style={{ borderTop: `0.5px solid ${BORDER}` }}>
+        {/* Broadcasts */}
+        <section className="p-5" style={{ borderRight: `0.5px solid ${BORDER}` }}>
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+              <Megaphone className="h-3.5 w-3.5" /> Broadcasts
+            </div>
+            <Link to="/broadcasts" className="text-xs text-primary hover:underline">All →</Link>
+          </div>
+          {broadcasts.length === 0 ? (
+            <div className="rounded-lg p-4 text-sm text-muted-foreground" style={{ background: "#1a2333", border: `0.5px solid ${BORDER}` }}>
+              No broadcasts yet — leadership messages will appear here.
+            </div>
+          ) : (
+            <ul className="space-y-2">
+              {broadcasts.map((b) => (
+                <li key={b.id} className="rounded-lg px-3 py-2.5" style={{ background: "#1a2333", border: `0.5px solid ${BORDER}` }}>
+                  <div className="flex items-start gap-2">
+                    <span className="text-base leading-none">{b.pinned ? "📌" : "📣"}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[12px] font-medium line-clamp-2">{b.content}</div>
+                      <div className="mt-1 text-[11px] text-muted-foreground">
+                        {b.author_name} · {relativeTime(b.created_at)}
+                      </div>
+                    </div>
+                  </div>
                 </li>
               ))}
             </ul>
           )}
-        </Card>
+        </section>
+
+        {/* Slack feed */}
+        <section className="p-5">
+          <div className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+            <Hash className="h-3.5 w-3.5" /> Slack Feed
+          </div>
+          <SlackFeed />
+        </section>
       </div>
-    </TooltipProvider>
+
+      {/* Recent huddles */}
+      <section className="border-t p-5" style={{ borderColor: BORDER }}>
+        <div className="mb-3 flex items-center justify-between">
+          <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Recent Huddles (last 7d)</div>
+          <Link to="/huddle" className="text-xs text-primary hover:underline">New →</Link>
+        </div>
+        {recentHuddles.length === 0 ? (
+          <div className="text-sm text-muted-foreground">No huddles in the last 7 days.</div>
+        ) : (
+          <ul className="divide-y" style={{ borderColor: BORDER }}>
+            {recentHuddles.slice(0, 5).map((h) => {
+              const c = HEAT_COLOR[h.health as HeatStatus] ?? HEAT_COLOR.Green;
+              return (
+                <li key={h.id} className="flex flex-wrap items-center gap-3 py-3">
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase" style={{ color: c }}>
+                    <span className="h-1.5 w-1.5 rounded-full" style={{ background: c }} />{h.health}
+                  </span>
+                  <span className="text-sm font-medium">{h.priority}</span>
+                  <span className="text-sm text-muted-foreground truncate flex-1">{h.risk ?? h.client_concern ?? h.writer_concern ?? "—"}</span>
+                  <span className="text-xs text-muted-foreground">{h.submitter_name} · {relativeTime(h.created_at)}</span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+    </div>
   );
 }
 
-function Metric({
+function MetricCell({
   icon,
-  label,
   value,
-  accent,
-  tip,
+  label,
+  alert,
+  divider,
 }: {
   icon: React.ReactNode;
-  label: string;
   value: number;
-  accent: StatusColor;
-  tip: string;
+  label: string;
+  alert?: boolean;
+  divider?: boolean;
 }) {
-  const color = value === 0 ? "Green" : accent;
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Card className="cursor-help border-border bg-surface p-4">
-          <div className="flex items-center justify-between">
-            <div className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              {icon}
-              {label}
-              <Info className="h-3 w-3 opacity-60" />
-            </div>
-            <StatusPill status={color} label={String(value)} />
-          </div>
-          <div className="mt-2 text-3xl font-black">{value}</div>
-        </Card>
-      </TooltipTrigger>
-      <TooltipContent className="max-w-xs text-xs">{tip}</TooltipContent>
-    </Tooltip>
+    <div
+      className="flex items-center gap-4 px-5 py-5"
+      style={divider ? { borderLeft: `0.5px solid ${BORDER}` } : undefined}
+    >
+      <span className="text-muted-foreground">{icon}</span>
+      <div className="min-w-0">
+        <div className="text-3xl font-bold leading-none" style={{ color: alert ? "#ef4444" : "white" }}>{value}</div>
+        <div className="mt-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">{label}</div>
+      </div>
+    </div>
   );
 }
