@@ -13,7 +13,9 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedSosRouteImport } from './routes/_authenticated/sos'
+import { Route as AuthenticatedRisksRouteImport } from './routes/_authenticated/risks'
 import { Route as AuthenticatedHuddleRouteImport } from './routes/_authenticated/huddle'
+import { Route as AuthenticatedHeatmapRouteImport } from './routes/_authenticated/heatmap'
 import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticated/command'
 
 const LoginRoute = LoginRouteImport.update({
@@ -35,9 +37,19 @@ const AuthenticatedSosRoute = AuthenticatedSosRouteImport.update({
   path: '/sos',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedRisksRoute = AuthenticatedRisksRouteImport.update({
+  id: '/risks',
+  path: '/risks',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedHuddleRoute = AuthenticatedHuddleRouteImport.update({
   id: '/huddle',
   path: '/huddle',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedHeatmapRoute = AuthenticatedHeatmapRouteImport.update({
+  id: '/heatmap',
+  path: '/heatmap',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedCommandRoute = AuthenticatedCommandRouteImport.update({
@@ -50,14 +62,18 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/command': typeof AuthenticatedCommandRoute
+  '/heatmap': typeof AuthenticatedHeatmapRoute
   '/huddle': typeof AuthenticatedHuddleRoute
+  '/risks': typeof AuthenticatedRisksRoute
   '/sos': typeof AuthenticatedSosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/command': typeof AuthenticatedCommandRoute
+  '/heatmap': typeof AuthenticatedHeatmapRoute
   '/huddle': typeof AuthenticatedHuddleRoute
+  '/risks': typeof AuthenticatedRisksRoute
   '/sos': typeof AuthenticatedSosRoute
 }
 export interface FileRoutesById {
@@ -66,21 +82,32 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/command': typeof AuthenticatedCommandRoute
+  '/_authenticated/heatmap': typeof AuthenticatedHeatmapRoute
   '/_authenticated/huddle': typeof AuthenticatedHuddleRoute
+  '/_authenticated/risks': typeof AuthenticatedRisksRoute
   '/_authenticated/sos': typeof AuthenticatedSosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/command' | '/huddle' | '/sos'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/command'
+    | '/heatmap'
+    | '/huddle'
+    | '/risks'
+    | '/sos'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/command' | '/huddle' | '/sos'
+  to: '/' | '/login' | '/command' | '/heatmap' | '/huddle' | '/risks' | '/sos'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/login'
     | '/_authenticated/command'
+    | '/_authenticated/heatmap'
     | '/_authenticated/huddle'
+    | '/_authenticated/risks'
     | '/_authenticated/sos'
   fileRoutesById: FileRoutesById
 }
@@ -120,11 +147,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSosRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/risks': {
+      id: '/_authenticated/risks'
+      path: '/risks'
+      fullPath: '/risks'
+      preLoaderRoute: typeof AuthenticatedRisksRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/huddle': {
       id: '/_authenticated/huddle'
       path: '/huddle'
       fullPath: '/huddle'
       preLoaderRoute: typeof AuthenticatedHuddleRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/heatmap': {
+      id: '/_authenticated/heatmap'
+      path: '/heatmap'
+      fullPath: '/heatmap'
+      preLoaderRoute: typeof AuthenticatedHeatmapRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/command': {
@@ -139,13 +180,17 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedCommandRoute: typeof AuthenticatedCommandRoute
+  AuthenticatedHeatmapRoute: typeof AuthenticatedHeatmapRoute
   AuthenticatedHuddleRoute: typeof AuthenticatedHuddleRoute
+  AuthenticatedRisksRoute: typeof AuthenticatedRisksRoute
   AuthenticatedSosRoute: typeof AuthenticatedSosRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCommandRoute: AuthenticatedCommandRoute,
+  AuthenticatedHeatmapRoute: AuthenticatedHeatmapRoute,
   AuthenticatedHuddleRoute: AuthenticatedHuddleRoute,
+  AuthenticatedRisksRoute: AuthenticatedRisksRoute,
   AuthenticatedSosRoute: AuthenticatedSosRoute,
 }
 
