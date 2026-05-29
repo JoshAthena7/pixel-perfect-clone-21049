@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const EVENT_CONFIG = {
   sos: { emoji: "🚨", color: "#dc2626", title: "SOS Alert" },
@@ -12,6 +13,7 @@ const EVENT_CONFIG = {
 type EventType = keyof typeof EVENT_CONFIG;
 
 export const notifySlack = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator(
     z.object({
       engagementId: z.string().uuid(),
@@ -25,7 +27,18 @@ export const notifySlack = createServerFn({ method: "POST" })
       author: z.string().max(120).optional(),
     }),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    // Verify caller is a member of the engagement (RLS-scoped client)
+    const { data: membership } = await context.supabase
+      .from("engagement_members")
+      .select("user_id")
+      .eq("engagement_id", data.engagementId)
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (!membership) {
+      return { sent: false, reason: "not_a_member" };
+    }
+
     const { data: eng } = await supabaseAdmin
       .from("engagements")
       .select("slack_webhook, name, client")

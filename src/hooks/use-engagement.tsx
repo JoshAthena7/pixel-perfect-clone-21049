@@ -50,7 +50,7 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
       const ids = mems.map((m) => m.engagement_id);
       const { data: engs } = await supabase
         .from("engagements")
-        .select("*")
+        .select("id, name, client, status, submission_date, created_by")
         .in("id", ids)
         .order("created_at", { ascending: false });
       list = (engs as Engagement[]) ?? [];
