@@ -5,6 +5,7 @@ import { AppSidebar } from "@/components/war-room/AppSidebar";
 import { EngagementProvider, useEngagement } from "@/hooks/use-engagement";
 import { useSession } from "@/hooks/use-session";
 import { Toaster } from "@/components/ui/sonner";
+import { SubmissionBanner } from "@/components/war-room/SubmissionBanner";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthLayout,
