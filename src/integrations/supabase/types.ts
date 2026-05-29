@@ -230,6 +230,54 @@ export type Database = {
         }
         Relationships: []
       }
+      engagement_invites: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          display_name: string
+          email: string
+          engagement_id: string
+          id: string
+          invited_by: string
+          invited_by_name: string
+          revoked_at: string | null
+          role: string
+          title: string | null
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          display_name: string
+          email: string
+          engagement_id: string
+          id?: string
+          invited_by: string
+          invited_by_name: string
+          revoked_at?: string | null
+          role: string
+          title?: string | null
+          token?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          display_name?: string
+          email?: string
+          engagement_id?: string
+          id?: string
+          invited_by?: string
+          invited_by_name?: string
+          revoked_at?: string | null
+          role?: string
+          title?: string | null
+          token?: string
+        }
+        Relationships: []
+      }
       engagement_members: {
         Row: {
           added_at: string | null
