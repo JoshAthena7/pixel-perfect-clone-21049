@@ -64,7 +64,13 @@ export function WriterSidebar() {
 
   const renderItem = (i: { title: string; url: string; icon: any }) => (
     <SidebarMenuItem key={i.url}>
-      <SidebarMenuButton asChild isActive={isActive(i.url)} tooltip={i.title}>
+      <SidebarMenuButton
+        asChild
+        size="sm"
+        isActive={isActive(i.url)}
+        tooltip={i.title}
+        className="py-1.5 text-[12px]"
+      >
         <Link to={i.url}>
           <i.icon className="h-4 w-4" />
           <span>{i.title}</span>
