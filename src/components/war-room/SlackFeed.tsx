@@ -62,7 +62,8 @@ export function SlackFeed() {
     const savedIsReadable = joinedChannels.some((c) => c.id === channelId);
     if (channelId && savedIsReadable) return;
 
-    const guess = joinedChannels.find((c) => c.name.toLowerCase().includes("indiana")) ?? joinedChannels[0];
+    const guess =
+      joinedChannels.find((c) => c.name.toLowerCase().includes("indiana")) ?? joinedChannels[0];
     if (guess) {
       setChannelId(guess.id);
       localStorage.setItem(STORAGE_KEY, guess.id);
@@ -163,8 +164,8 @@ export function SlackFeed() {
         )}
         {!channelId && !channelsQ.isLoading && joinedChannels.length === 0 && (
           <div className="rounded-md border border-[color:var(--yellow)]/40 bg-[color:var(--yellow)]/10 p-3 text-xs">
-            The connected Slack bot is not in any readable channels yet. Invite it to the channel you want to monitor,
-            then refresh this page.
+            The connected Slack bot is not in any readable channels yet. Invite it to the channel
+            you want to monitor, then refresh this page.
           </div>
         )}
         {channelId &&
@@ -172,8 +173,8 @@ export function SlackFeed() {
           !messagesQ.isLoading &&
           !messagesQ.isError &&
           !messagesQ.data?.needsInvite && (
-          <div className="text-sm text-muted-foreground">No messages yet.</div>
-        )}
+            <div className="text-sm text-muted-foreground">No messages yet.</div>
+          )}
         {messages.map((m: (typeof messages)[number]) => (
           <div key={m.ts} className="flex gap-2.5">
             <Avatar className="h-7 w-7 shrink-0">
