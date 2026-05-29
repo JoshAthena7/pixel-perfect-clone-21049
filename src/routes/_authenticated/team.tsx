@@ -355,7 +355,7 @@ function TeamPage() {
 
       {isLeadership && (
         <p className="text-xs text-muted-foreground">
-          Tip: To add new teammates, invite them via the engagement settings — they'll appear here once they accept.
+          Tip: Use "Upload CSV" to bulk-add the roster. Required columns: <code>display_name</code>, <code>role</code>. Optional: <code>title, email, phone, slack_handle, timezone, on_call</code>.
         </p>
       )}
     </div>
