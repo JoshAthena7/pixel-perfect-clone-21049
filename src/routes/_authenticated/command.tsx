@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
 import { HealthCircle } from "@/components/war-room/HealthCircle";
 import { StatusPill, type StatusColor } from "@/components/war-room/StatusPill";
+import { Thermometer, calcTemperature } from "@/components/war-room/Thermometer";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Siren, Users, ShieldAlert, Megaphone, Grid3x3 } from "lucide-react";
@@ -36,13 +37,16 @@ function CommandCenter() {
   const [heatmap, setHeatmap] = useState<Heat[]>([]);
   const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
 
+  const [latestPulse, setLatestPulse] = useState<{ sentiment: string } | null>(null);
+
   async function loadAll(eid: string) {
-    const [h, sos, risks, heat, bc] = await Promise.all([
+    const [h, sos, risks, heat, bc, pulse] = await Promise.all([
       supabase.from("huddles").select("*").eq("engagement_id", eid).order("created_at", { ascending: false }).limit(5),
       supabase.from("sos_alerts").select("*").eq("engagement_id", eid).neq("status", "Resolved").order("created_at", { ascending: false }),
       supabase.from("risks").select("id,title,severity,likelihood,status").eq("engagement_id", eid).neq("status", "Closed").order("updated_at", { ascending: false }),
       supabase.from("heatmap_sections").select("*").eq("engagement_id", eid).order("sort_order"),
       supabase.from("broadcasts").select("*").eq("engagement_id", eid).order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(3),
+      supabase.from("client_pulses").select("sentiment").eq("engagement_id", eid).order("interaction_date", { ascending: false }).order("created_at", { ascending: false }).limit(1).maybeSingle(),
     ]);
     setRecentHuddles((h.data as Huddle[]) ?? []);
     setLatestHuddle(((h.data as Huddle[]) ?? [])[0] ?? null);
@@ -50,6 +54,7 @@ function CommandCenter() {
     setOpenRisks((risks.data as Risk[]) ?? []);
     setHeatmap((heat.data as Heat[]) ?? []);
     setBroadcasts((bc.data as Broadcast[]) ?? []);
+    setLatestPulse((pulse.data as { sentiment: string } | null) ?? null);
   }
 
   useEffect(() => {
@@ -67,6 +72,13 @@ function CommandCenter() {
   const health = (latestHuddle?.health ?? "Unknown") as "Green" | "Yellow" | "Red" | "Unknown";
   const staleHours = latestHuddle ? hoursSince(latestHuddle.created_at) : Infinity;
   const stale = staleHours > 24;
+
+  const temperature = calcTemperature({
+    sos: openSos,
+    risks: openRisks,
+    latestPulseSentiment: latestPulse?.sentiment ?? null,
+    recentHuddles,
+  });
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
@@ -114,6 +126,19 @@ function CommandCenter() {
           <Button asChild variant="destructive"><Link to="/sos"><Siren className="mr-2 h-4 w-4" />Raise SOS</Link></Button>
         </div>
       </Card>
+
+      {/* Engagement Temperature */}
+      <Card className="border-border bg-surface p-6">
+        <Thermometer score={temperature} />
+        <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-1 text-[11px] text-muted-foreground sm:grid-cols-4">
+          <div><span className="inline-block h-2 w-2 rounded-full mr-1.5 align-middle" style={{ background: "#3b82f6" }} />0–30 Stable</div>
+          <div><span className="inline-block h-2 w-2 rounded-full mr-1.5 align-middle" style={{ background: "var(--yellow)" }} />31–55 Warming</div>
+          <div><span className="inline-block h-2 w-2 rounded-full mr-1.5 align-middle" style={{ background: "var(--orange)" }} />56–75 Elevated</div>
+          <div><span className="inline-block h-2 w-2 rounded-full mr-1.5 align-middle" style={{ background: "var(--red)" }} />76–100 Critical</div>
+        </div>
+      </Card>
+
+
 
       {/* Metrics */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
