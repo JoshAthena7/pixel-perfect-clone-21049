@@ -52,6 +52,9 @@ const intel: NavItem[] = [
   { title: "Risks", url: "/risks", icon: ShieldAlert, hint: "Track risks and mitigations" },
   { title: "Heat Map", url: "/heatmap", icon: Grid3x3, hint: "Section-by-section health" },
   { title: "Intel Library", url: "/intel", icon: FolderOpen, hint: "Single source of truth for documents" },
+  { title: "Section Assignments", url: "/section-assignments", icon: Grid3x3, hint: "Assign writers to sections" },
+  { title: "Win Themes", url: "/win-themes", icon: FolderOpen, hint: "Win themes writers should land" },
+  { title: "FAQ", url: "/faq", icon: FolderOpen, hint: "Q&A for writers" },
 ];
 const leadership: NavItem[] = [
   { title: "Decisions", url: "/decisions", icon: GitBranch, hint: "Log key decisions to avoid re-litigation" },
