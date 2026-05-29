@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Phone, MessageSquare, Mail, Hash, Radio, Pencil, X, Check, Upload, AlertTriangle, UserPlus, Copy, Link as LinkIcon } from "lucide-react";
+import { RecognitionSummary, MemberRecognitionPanel, usePulses, type FormKind } from "@/components/war-room/Recognition";
 
 const VALID_ROLES = new Set(["founder", "pm", "engagement_lead", "writer", "reviewer", "viewer"]);
 
@@ -119,6 +120,8 @@ function TeamPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Partial<Member>>({});
+  const { pulses, refresh: refreshPulses } = usePulses(engagement?.id);
+  const [openPulseForm, setOpenPulseForm] = useState<{ memberId: string; kind: FormKind } | null>(null);
 
   async function load(eid: string) {
     const { data } = await supabase
@@ -446,6 +449,13 @@ function TeamPage() {
         </Card>
       )}
 
+      {isLeadership && members.length > 0 && (
+        <RecognitionSummary
+          members={members.map((m) => ({ id: m.id, display_name: m.display_name }))}
+          pulses={pulses}
+        />
+      )}
+
       <Card className="border-border bg-surface p-0 overflow-hidden">
         <ul className="divide-y divide-border">
           {members.map((m) => {
@@ -554,6 +564,17 @@ function TeamPage() {
                       </div>
                     )}
                   </div>
+                )}
+                {isLeadership && !editing && (
+                  <MemberRecognitionPanel
+                    member={{ id: m.id, display_name: m.display_name }}
+                    engagementId={engagement!.id}
+                    pulse={pulses[m.id]}
+                    openForm={openPulseForm?.memberId === m.id ? openPulseForm.kind : null}
+                    onOpen={(kind) => setOpenPulseForm({ memberId: m.id, kind })}
+                    onClose={() => setOpenPulseForm(null)}
+                    onSaved={async () => { await refreshPulses(); }}
+                  />
                 )}
               </li>
             );
