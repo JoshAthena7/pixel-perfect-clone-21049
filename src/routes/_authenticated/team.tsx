@@ -121,6 +121,7 @@ function smsHref(phone: string | null) {
 
 function TeamPage() {
   const { engagement, isLeadership, member: me } = useEngagement();
+  const triviaWinnerId = useTriviaWinnerId();
   const [members, setMembers] = useState<Member[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Partial<Member>>({});
@@ -517,7 +518,7 @@ function TeamPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <PresenceDot memberId={m.id} />
-                        <span className="font-semibold">{m.display_name}</span>
+                        <span className="font-semibold">{m.display_name}{triviaWinnerId === m.id && <span title="Indiana Trivia Champion" className="ml-1">🏆</span>}</span>
                         <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${roleAccent(m.role)}`}>
                           {ROLE_LABEL[m.role] ?? m.role}
                         </span>
