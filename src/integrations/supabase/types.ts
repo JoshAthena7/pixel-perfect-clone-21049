@@ -234,25 +234,43 @@ export type Database = {
         Row: {
           added_at: string | null
           display_name: string
+          email: string | null
           engagement_id: string
           id: string
+          on_call: boolean
+          phone: string | null
           role: string
+          slack_handle: string | null
+          timezone: string | null
+          title: string | null
           user_id: string
         }
         Insert: {
           added_at?: string | null
           display_name: string
+          email?: string | null
           engagement_id: string
           id?: string
+          on_call?: boolean
+          phone?: string | null
           role?: string
+          slack_handle?: string | null
+          timezone?: string | null
+          title?: string | null
           user_id: string
         }
         Update: {
           added_at?: string | null
           display_name?: string
+          email?: string | null
           engagement_id?: string
           id?: string
+          on_call?: boolean
+          phone?: string | null
           role?: string
+          slack_handle?: string | null
+          timezone?: string | null
+          title?: string | null
           user_id?: string
         }
         Relationships: [
