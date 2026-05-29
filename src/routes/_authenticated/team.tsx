@@ -414,6 +414,59 @@ function TeamPage() {
           Tip: Use "Upload CSV" to bulk-add the roster. Required columns: <code>display_name</code>, <code>role</code>. Optional: <code>title, email, phone, slack_handle, timezone, on_call</code>.
         </p>
       )}
+
+      <Dialog open={!!pending} onOpenChange={(open) => !open && setPending(null)}>
+        <DialogContent className="max-w-5xl">
+          <DialogHeader>
+            <DialogTitle>Preview import</DialogTitle>
+            <DialogDescription>
+              {pending?.length ?? 0} row{(pending?.length ?? 0) === 1 ? "" : "s"} parsed. Review, then confirm to add them to this engagement.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[50vh] overflow-auto rounded-md border border-border">
+            <table className="w-full text-left text-xs">
+              <thead className="sticky top-0 bg-surface text-[10px] uppercase tracking-wider text-muted-foreground">
+                <tr>
+                  <th className="p-2">Name</th>
+                  <th className="p-2">Role</th>
+                  <th className="p-2">Title</th>
+                  <th className="p-2">Email</th>
+                  <th className="p-2">Phone</th>
+                  <th className="p-2">Slack</th>
+                  <th className="p-2">On call</th>
+                  <th className="p-2">Issues</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pending?.map((p, i) => (
+                  <tr key={i} className="border-t border-border">
+                    <td className="p-2 font-medium">{p.display_name || <span className="text-destructive">—</span>}</td>
+                    <td className="p-2">{p.role}</td>
+                    <td className="p-2">{p.title ?? ""}</td>
+                    <td className="p-2">{p.email ?? ""}</td>
+                    <td className="p-2">{p.phone ?? ""}</td>
+                    <td className="p-2">{p.slack_handle ?? ""}</td>
+                    <td className="p-2">{p.on_call ? "Yes" : ""}</td>
+                    <td className="p-2">
+                      {p._issues.length > 0 && (
+                        <span className="inline-flex items-center gap-1 text-[var(--gold)]">
+                          <AlertTriangle className="h-3 w-3" /> {p._issues.join("; ")}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPending(null)} disabled={importing}>Cancel</Button>
+            <Button onClick={confirmImport} disabled={importing}>
+              {importing ? "Importing…" : `Import ${pending?.filter((p) => p.display_name).length ?? 0} member${(pending?.filter((p) => p.display_name).length ?? 0) === 1 ? "" : "s"}`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
