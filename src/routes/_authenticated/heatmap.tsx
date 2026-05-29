@@ -11,6 +11,7 @@ import { StatusPill, type StatusColor } from "@/components/war-room/StatusPill";
 import { toast } from "sonner";
 import { relativeTime } from "@/lib/time";
 import { notifySlack } from "@/lib/api/slack.functions";
+import { SectionThread } from "@/components/war-room/comms/SectionThread";
 
 export const Route = createFileRoute("/_authenticated/heatmap")({
   head: () => ({ meta: [{ title: "Heat Map — Athena" }] }),
@@ -188,6 +189,8 @@ function HeatmapPage() {
                   </div>
                 </div>
               )}
+
+              <SectionThread sectionId={s.id} />
             </Card>
           );
         })}
