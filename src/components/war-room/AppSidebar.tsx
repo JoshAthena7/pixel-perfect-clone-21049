@@ -15,6 +15,7 @@ import {
   Contact,
   Camera,
   MessageSquare,
+  Heart,
   Briefcase,
   ExternalLink,
 } from "lucide-react";
