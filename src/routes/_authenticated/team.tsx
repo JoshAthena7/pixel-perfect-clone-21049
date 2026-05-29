@@ -9,9 +9,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Phone, MessageSquare, Mail, Hash, Radio, Pencil, X, Check, Upload, AlertTriangle } from "lucide-react";
+import { Phone, MessageSquare, Mail, Hash, Radio, Pencil, X, Check, Upload, AlertTriangle, UserPlus, Copy, Link as LinkIcon } from "lucide-react";
 
 const VALID_ROLES = new Set(["founder", "pm", "engagement_lead", "writer", "reviewer", "viewer"]);
+
+// 5 leader presets — map display label to the underlying RLS role token + a default title.
+const INVITE_PRESETS = [
+  { key: "executive_lead", label: "Executive Lead", role: "founder", title: "Executive Lead" },
+  { key: "engagement_quality_lead", label: "Engagement Quality Lead", role: "engagement_lead", title: "Engagement Quality Lead" },
+  { key: "project_manager", label: "Project Manager", role: "pm", title: "Project Manager" },
+  { key: "graphics_lead", label: "Graphics Lead", role: "writer", title: "Graphics Lead" },
+  { key: "lead_writer", label: "Lead Writer", role: "writer", title: "Lead Writer" },
+] as const;
 
 function parseCSV(text: string): string[][] {
   const rows: string[][] = [];
