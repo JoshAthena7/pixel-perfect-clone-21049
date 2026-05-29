@@ -766,6 +766,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_engagement_slack_webhook: {
+        Args: { _engagement_id: string }
+        Returns: string
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
