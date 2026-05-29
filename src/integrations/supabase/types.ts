@@ -265,6 +265,36 @@ export type Database = {
           },
         ]
       }
+      engagement_milestones: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          due_date: string
+          engagement_id: string
+          id: string
+          label: string
+          sort_order: number
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          due_date: string
+          engagement_id: string
+          id?: string
+          label: string
+          sort_order?: number
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          due_date?: string
+          engagement_id?: string
+          id?: string
+          label?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       engagements: {
         Row: {
           client: string

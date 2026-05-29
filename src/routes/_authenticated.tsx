@@ -5,6 +5,7 @@ import { AppSidebar } from "@/components/war-room/AppSidebar";
 import { EngagementProvider, useEngagement } from "@/hooks/use-engagement";
 import { useSession } from "@/hooks/use-session";
 import { Toaster } from "@/components/ui/sonner";
+import { SubmissionBanner } from "@/components/war-room/SubmissionBanner";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthLayout,
@@ -36,6 +37,7 @@ function AuthLayout() {
               <SidebarTrigger />
               <EngagementHeader />
             </header>
+            <SubmissionBanner />
             <main className="flex-1 overflow-auto">
               <Outlet />
             </main>

@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { daysUntil } from "@/lib/time";
+import { MilestonesCard } from "@/components/war-room/MilestonesCard";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings — Athena" }] }),
@@ -148,6 +149,10 @@ function SettingsPage() {
           </Button>
         </div>
       </Card>
+
+      <MilestonesCard />
+
+
 
       <Card className="border-border bg-surface p-6">
         <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Session</h2>
