@@ -487,14 +487,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_engagement_role: {
-        Args: { _engagement_id: string; _roles: string[] }
-        Returns: boolean
-      }
-      is_engagement_member: {
-        Args: { _engagement_id: string }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
