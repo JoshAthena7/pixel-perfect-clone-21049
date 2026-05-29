@@ -12,6 +12,9 @@ import { TMinusStrip } from "@/components/war-room/writer/TMinusStrip";
 import { DailyQuote } from "@/components/war-room/writer/DailyQuote";
 import { SinceLastSeenStrip } from "@/components/war-room/writer/SinceLastSeenStrip";
 import { WriterContactBar } from "@/components/war-room/writer/WriterContactBar";
+import { CommsProvider } from "@/hooks/use-comms";
+import { QuickChatPanel } from "@/components/war-room/comms/QuickChatPanel";
+import { ChatNavButton } from "@/components/war-room/comms/ChatNavButton";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthLayout,
@@ -63,7 +66,9 @@ function AuthLayout() {
 
   return (
     <EngagementProvider>
-      <RoleGuardedShell />
+      <CommsProvider>
+        <RoleGuardedShell />
+      </CommsProvider>
     </EngagementProvider>
   );
 }
