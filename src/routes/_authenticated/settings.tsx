@@ -119,6 +119,36 @@ function SettingsPage() {
         </div>
       </Card>
 
+      <Card className="border-border bg-surface p-6 space-y-4">
+        <div>
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Slack notifications</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Get real-time pings for SOS alerts, sections turning Red, and new broadcasts.
+            Create an{" "}
+            <a className="underline" href="https://api.slack.com/messaging/webhooks" target="_blank" rel="noreferrer">
+              Incoming Webhook
+            </a>{" "}
+            in Slack and paste the URL below.
+          </p>
+        </div>
+        <div>
+          <Label htmlFor="slack">Webhook URL</Label>
+          <Input
+            id="slack"
+            value={slackWebhook}
+            onChange={(e) => setSlackWebhook(e.target.value)}
+            placeholder="https://hooks.slack.com/services/..."
+            disabled={!isLeadership}
+            type="url"
+          />
+        </div>
+        <div className="flex justify-end">
+          <Button onClick={save} disabled={saving || !isLeadership} variant="outline">
+            {saving ? "Saving…" : "Save webhook"}
+          </Button>
+        </div>
+      </Card>
+
       <Card className="border-border bg-surface p-6">
         <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Session</h2>
         <Button
