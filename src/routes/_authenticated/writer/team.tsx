@@ -8,6 +8,7 @@ import { Mail, Phone } from "lucide-react";
 import { PresenceDot } from "@/components/war-room/comms/PresenceDot";
 import { NudgeButton } from "@/components/war-room/comms/NudgeButton";
 import { useComms } from "@/hooks/use-comms";
+import { useTriviaWinnerId } from "@/hooks/use-trivia-winner";
 
 export const Route = createFileRoute("/_authenticated/writer/team")({
   head: () => ({ meta: [{ title: "Team Directory — Writer Portal" }] }),
@@ -17,6 +18,7 @@ export const Route = createFileRoute("/_authenticated/writer/team")({
 function WriterTeam() {
   const { engagement } = useEngagement();
   const { openChatWith } = useComms();
+  const winnerId = useTriviaWinnerId();
   const [members, setMembers] = useState<any[]>([]);
   const [q, setQ] = useState("");
 
@@ -50,6 +52,7 @@ function WriterTeam() {
                 <button onClick={() => openChatWith(m.id, m.display_name)} className="flex items-center gap-2 text-sm font-semibold hover:text-[var(--gold)]">
                   <PresenceDot memberId={m.id} />
                   {m.display_name}
+                  {winnerId === m.id && <span title="Indiana Trivia Champion">🏆</span>}
                 </button>
                 <NudgeButton memberId={m.id} displayName={m.display_name} />
               </div>
