@@ -159,6 +159,11 @@ function CommandCenter() {
           </Tooltip>
         </div>
 
+        {/* Quick action launcher (leadership) */}
+        <ActionLauncher />
+
+
+
         {/* First-time welcome banner */}
         {isFirstTime && (
           <div className="rounded-xl border border-primary/40 bg-primary/10 p-5">
