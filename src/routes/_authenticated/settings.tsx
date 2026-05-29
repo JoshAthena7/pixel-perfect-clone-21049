@@ -150,6 +150,10 @@ function SettingsPage() {
         </div>
       </Card>
 
+      <MilestonesCard />
+
+
+
       <Card className="border-border bg-surface p-6">
         <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Session</h2>
         <Button
