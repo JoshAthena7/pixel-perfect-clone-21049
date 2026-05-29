@@ -224,17 +224,16 @@ function LauncherTile({
   onClick: () => void;
 }) {
   const Icon = tile.icon;
-  return (
+  const btn = (
     <button
       type="button"
-      disabled={disabled}
-      onClick={onClick}
-      title={disabled ? "You have no assigned sections yet" : undefined}
+      onClick={disabled ? undefined : onClick}
+      aria-disabled={disabled}
       className={cn(
         "relative w-full rounded-md px-3 py-2.5 text-left transition border border-transparent",
         "hover:bg-white/[0.04]",
         active && "bg-white/[0.06]",
-        disabled && "opacity-40 cursor-not-allowed hover:bg-transparent",
+        disabled && "opacity-60 cursor-not-allowed hover:bg-transparent",
       )}
       style={active ? { borderLeftWidth: 3, borderLeftColor: tile.color, paddingLeft: 9 } : undefined}
     >
@@ -243,6 +242,11 @@ function LauncherTile({
         <div className="min-w-0 flex-1">
           <div className="text-[12px] font-semibold leading-tight">{tile.label}</div>
           <div className="mt-0.5 text-[10.5px] leading-snug text-muted-foreground">{tile.desc}</div>
+          {disabled && (
+            <div className="mt-1 text-[10px] italic text-muted-foreground/80">
+              You have no assigned sections yet
+            </div>
+          )}
         </div>
         {badge !== undefined && (
           <span className="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[color:var(--red)] px-1 text-[9px] font-bold text-white">
@@ -251,6 +255,15 @@ function LauncherTile({
         )}
       </div>
     </button>
+  );
+  if (!disabled) return btn;
+  return (
+    <TooltipProvider delayDuration={150}>
+      <Tooltip>
+        <TooltipTrigger asChild>{btn}</TooltipTrigger>
+        <TooltipContent side="right">Assigned sections required to post a thread</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
