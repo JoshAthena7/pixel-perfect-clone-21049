@@ -390,7 +390,7 @@ function CompactSlackPanel() {
           {!messagesQ.isLoading && messages.length === 0 && (
             <li className="text-[12px] text-muted-foreground">No messages yet.</li>
           )}
-          {messages.slice(-10).map((m) => (
+          {messages.slice(-10).map((m: typeof messages[number]) => (
             <li key={m.ts} className="flex gap-2 rounded-lg px-3 py-2" style={{ background: "#1a2333", border: `0.5px solid ${BORDER}` }}>
               <Avatar className="h-6 w-6 shrink-0">
                 {m.userAvatar && <AvatarImage src={m.userAvatar} alt={m.userName} />}
