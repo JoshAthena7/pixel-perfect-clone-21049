@@ -46,13 +46,23 @@ async function summarize(apiKey: string, context: any): Promise<string> {
 export const Route = createFileRoute('/api/public/hooks/daily-digest')({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
         const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
         const apiKey = process.env.LOVABLE_API_KEY
         if (!supabaseUrl || !serviceKey || !apiKey) {
           return Response.json({ error: 'Server configuration error' }, { status: 500 })
         }
+
+        // Require the service-role key as a bearer token (same pattern as
+        // /lovable/email/queue/process). This endpoint is only meant to be
+        // triggered by an internal scheduler.
+        const auth = request.headers.get('authorization') ?? ''
+        const provided = auth.startsWith('Bearer ') ? auth.slice(7).trim() : ''
+        if (!provided || provided !== serviceKey) {
+          return new Response('Unauthorized', { status: 401 })
+        }
+
         const supabase = createClient(supabaseUrl, serviceKey)
 
         const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
