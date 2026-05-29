@@ -55,6 +55,17 @@ export function QuickChatPanel() {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [msgs.length, chatOpenWith]);
 
+  useEffect(() => {
+    function onPrefill(e: Event) {
+      const detail = (e as CustomEvent).detail as { memberId: string; message: string };
+      if (detail?.memberId && peerId && detail.memberId === peerId) {
+        setDraft(detail.message);
+      }
+    }
+    window.addEventListener("quick-chat-prefill", onPrefill);
+    return () => window.removeEventListener("quick-chat-prefill", onPrefill);
+  }, [peerId]);
+
   async function send() {
     if (!engagement || !member || !peerId || !draft.trim()) return;
     setBusy(true);
