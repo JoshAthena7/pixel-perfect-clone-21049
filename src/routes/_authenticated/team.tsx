@@ -305,16 +305,31 @@ function TeamPage() {
       .filter((r) => r.some((v) => String(v ?? "").trim().length > 0))
       .map((r) => {
         const display_name = get(r, iName);
-        const rawRole = get(r, iRole).toLowerCase();
+        const rawRole = get(r, iRole);
+        const rawTitle = get(r, iTitle);
         const issues: string[] = [];
         if (!display_name) issues.push("missing display_name");
-        if (!VALID_ROLES.has(rawRole)) issues.push(`unknown role '${rawRole || "—"}' → viewer`);
+
+        // 1. exact token match, else 2. heuristic mapping of role text,
+        // else 3. heuristic mapping of title text, else viewer fallback.
+        let mappedRole = VALID_ROLES.has(rawRole.toLowerCase()) ? rawRole.toLowerCase() : null;
+        if (!mappedRole) mappedRole = mapFreeTextRole(rawRole);
+        if (!mappedRole) mappedRole = mapFreeTextRole(rawTitle);
+        if (!mappedRole) {
+          mappedRole = "viewer";
+          issues.push(`unmapped role '${rawRole || "—"}' → viewer`);
+        }
+
+        // If role column held free text and title column was empty, preserve
+        // the human-readable role text in title so context isn't lost.
+        const finalTitle = rawTitle || (rawRole && !VALID_ROLES.has(rawRole.toLowerCase()) ? rawRole : "") || null;
+
         const email = get(r, iEmail) || null;
         if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) issues.push("invalid email");
         return {
           display_name,
-          role: VALID_ROLES.has(rawRole) ? rawRole : "viewer",
-          title: get(r, iTitle) || null,
+          role: mappedRole,
+          title: finalTitle,
           email,
           phone: get(r, iPhone) || null,
           slack_handle: get(r, iSlack) || null,
