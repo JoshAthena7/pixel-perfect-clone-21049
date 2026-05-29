@@ -135,7 +135,7 @@ export function SlackFeed() {
         {channelId && messages.length === 0 && !messagesQ.isLoading && !messagesQ.isError && (
           <div className="text-sm text-muted-foreground">No messages yet.</div>
         )}
-        {messages.map((m) => (
+        {messages.map((m: typeof messages[number]) => (
           <div key={m.ts} className="flex gap-2.5">
             <Avatar className="h-7 w-7 shrink-0">
               {m.userAvatar && <AvatarImage src={m.userAvatar} alt={m.userName} />}
@@ -149,7 +149,7 @@ export function SlackFeed() {
               <div className="text-sm break-words whitespace-pre-wrap">{m.text}</div>
               {m.reactions.length > 0 && (
                 <div className="mt-1 flex flex-wrap gap-1">
-                  {m.reactions.map((r) => (
+                  {m.reactions.map((r: { name: string; count: number }) => (
                     <span
                       key={r.name}
                       className="rounded-full border border-border bg-surface-hover/60 px-1.5 py-0.5 text-[10px]"
