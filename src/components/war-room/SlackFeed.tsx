@@ -3,7 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Hash, MessageSquare, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { listSlackChannels, getSlackMessages } from "@/lib/slack.functions";
 
@@ -19,7 +25,13 @@ function relTime(ts: string) {
 }
 
 function initials(name: string) {
-  return name.split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("") || "?";
+  return (
+    name
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((w) => w[0]?.toUpperCase() ?? "")
+      .join("") || "?"
+  );
 }
 
 export function SlackFeed() {
@@ -50,9 +62,7 @@ export function SlackFeed() {
     const savedIsReadable = joinedChannels.some((c) => c.id === channelId);
     if (channelId && savedIsReadable) return;
 
-    const guess =
-      joinedChannels.find((c) => c.name.toLowerCase().includes("indiana")) ??
-      joinedChannels[0];
+    const guess = joinedChannels.find((c) => c.name.toLowerCase().includes("indiana")) ?? joinedChannels[0];
     if (guess) {
       setChannelId(guess.id);
       localStorage.setItem(STORAGE_KEY, guess.id);
@@ -153,13 +163,18 @@ export function SlackFeed() {
         )}
         {!channelId && !channelsQ.isLoading && joinedChannels.length === 0 && (
           <div className="rounded-md border border-[color:var(--yellow)]/40 bg-[color:var(--yellow)]/10 p-3 text-xs">
-            The connected Slack bot is not in any readable channels yet. Invite it to the channel you want to monitor, then refresh this page.
+            The connected Slack bot is not in any readable channels yet. Invite it to the channel you want to monitor,
+            then refresh this page.
           </div>
         )}
-        {channelId && messages.length === 0 && !messagesQ.isLoading && !messagesQ.isError && !messagesQ.data?.needsInvite && (
+        {channelId &&
+          messages.length === 0 &&
+          !messagesQ.isLoading &&
+          !messagesQ.isError &&
+          !messagesQ.data?.needsInvite && (
           <div className="text-sm text-muted-foreground">No messages yet.</div>
         )}
-        {messages.map((m: typeof messages[number]) => (
+        {messages.map((m: (typeof messages)[number]) => (
           <div key={m.ts} className="flex gap-2.5">
             <Avatar className="h-7 w-7 shrink-0">
               {m.userAvatar && <AvatarImage src={m.userAvatar} alt={m.userName} />}
