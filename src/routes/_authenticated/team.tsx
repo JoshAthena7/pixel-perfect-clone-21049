@@ -14,6 +14,27 @@ import { Phone, MessageSquare, Mail, Hash, Radio, Pencil, X, Check, Upload, Aler
 
 const VALID_ROLES = new Set(["founder", "pm", "engagement_lead", "writer", "reviewer", "viewer"]);
 
+// Map free-text role/title strings (e.g. "Project Executive", "SME — LTSS Lead",
+// "Graphic Artist", "Proposal Quality Manager") to a permission token.
+// Returns null when no confident mapping is possible.
+function mapFreeTextRole(raw: string): string | null {
+  const s = raw.toLowerCase().trim();
+  if (!s) return null;
+  if (VALID_ROLES.has(s)) return s;
+  // Executive / founder level
+  if (/\b(project\s+executive|executive\s+lead|founder|principal|managing\s+partner|ceo)\b/.test(s)) return "founder";
+  // Project Manager / PMO
+  if (/\b(project\s+manager|pmo|program\s+manager|capture\s+manager)\b/.test(s)) return "pm";
+  // Quality / engagement lead
+  if (/\b(quality\s+(manager|lead)|proposal\s+quality|engagement\s+(quality\s+)?lead|review\s+lead)\b/.test(s)) return "engagement_lead";
+  // Content contributors → writer bucket
+  if (/\b(sme|writer|graphic\s+artist|graphics?\s+lead|designer|illustrator|editor|analyst|consultant)\b/.test(s)) return "writer";
+  // Read-only buckets
+  if (/\breviewer\b/.test(s)) return "reviewer";
+  if (/\bviewer\b/.test(s)) return "viewer";
+  return null;
+}
+
 // 5 leader presets — map display label to the underlying RLS role token + a default title.
 const INVITE_PRESETS = [
   { key: "executive_lead", label: "Executive Lead", role: "founder", title: "Executive Lead" },
