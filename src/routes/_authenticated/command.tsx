@@ -11,6 +11,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Siren, Users, ShieldAlert, Megaphone, Grid3x3, Camera, Info, Sparkles, Clock, Settings as SettingsIcon } from "lucide-react";
 import { LivePresence } from "@/components/war-room/LivePresence";
 import { SlackFeed } from "@/components/war-room/SlackFeed";
+import { ActionLauncher } from "@/components/war-room/ActionLauncher";
 import { toast } from "sonner";
 import { relativeTime, hoursSince } from "@/lib/time";
 
