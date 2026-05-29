@@ -30,26 +30,30 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
 import athenaLogo from "@/assets/athena-logo.png";
+import type { ComponentType } from "react";
+import type { LucideProps } from "lucide-react";
 
-const opsBase = [
-  { title: "Daily Huddle", url: "/huddle", icon: Users },
-  { title: "SOS Alerts", url: "/sos", icon: Siren },
-  { title: "Team Roster", url: "/team", icon: Contact },
+type NavItem = { title: string; url: string; icon: ComponentType<LucideProps>; hint: string };
+
+const opsBase: NavItem[] = [
+  { title: "Daily Huddle", url: "/huddle", icon: Users, hint: "60-second status from the front line" },
+  { title: "SOS Alerts", url: "/sos", icon: Siren, hint: "Raise and track urgent issues" },
+  { title: "Team Roster", url: "/team", icon: Contact, hint: "Who is on this engagement" },
 ];
-const opsLeadership = [
-  { title: "Command Center", url: "/command", icon: LayoutDashboard },
+const opsLeadership: NavItem[] = [
+  { title: "Command Center", url: "/command", icon: LayoutDashboard, hint: "Executive overview of engagement health" },
   ...opsBase,
 ];
-const intel = [
-  { title: "Risks", url: "/risks", icon: ShieldAlert },
-  { title: "Heat Map", url: "/heatmap", icon: Grid3x3 },
-  { title: "Intel Library", url: "/intel", icon: FolderOpen },
+const intel: NavItem[] = [
+  { title: "Risks", url: "/risks", icon: ShieldAlert, hint: "Track risks and mitigations" },
+  { title: "Heat Map", url: "/heatmap", icon: Grid3x3, hint: "Section-by-section health" },
+  { title: "Intel Library", url: "/intel", icon: FolderOpen, hint: "Single source of truth for documents" },
 ];
-const leadership = [
-  { title: "Decisions", url: "/decisions", icon: GitBranch },
-  { title: "Client Pulse", url: "/pulse", icon: Activity },
-  { title: "Broadcasts", url: "/broadcasts", icon: Megaphone },
-  { title: "Snapshots", url: "/snapshots", icon: Camera },
+const leadership: NavItem[] = [
+  { title: "Decisions", url: "/decisions", icon: GitBranch, hint: "Log key decisions to avoid re-litigation" },
+  { title: "Client Pulse", url: "/pulse", icon: Activity, hint: "Track how the client is feeling" },
+  { title: "Broadcasts", url: "/broadcasts", icon: Megaphone, hint: "Team-wide announcements" },
+  { title: "Snapshots", url: "/snapshots", icon: Camera, hint: "Daily captures of engagement state" },
 ];
 
 export function AppSidebar() {
@@ -63,6 +67,17 @@ export function AppSidebar() {
     await supabase.auth.signOut();
     window.location.href = "/login";
   }
+
+  const renderItem = (i: NavItem) => (
+    <SidebarMenuItem key={i.url}>
+      <SidebarMenuButton asChild isActive={isActive(i.url)} tooltip={`${i.title} — ${i.hint}`}>
+        <Link to={i.url}>
+          <i.icon className="h-4 w-4" />
+          <span>{i.title}</span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
 
   return (
     <Sidebar collapsible="icon">
@@ -86,55 +101,40 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>Operations</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {ops.map((i) => (
-                <SidebarMenuItem key={i.url}>
-                  <SidebarMenuButton asChild isActive={isActive(i.url)}>
-                    <Link to={i.url}><i.icon className="h-4 w-4" /><span>{i.title}</span></Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
+            <SidebarMenu>{ops.map(renderItem)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
         <SidebarGroup>
           <SidebarGroupLabel>Intel</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {intel.map((i) => (
-                <SidebarMenuItem key={i.url}>
-                  <SidebarMenuButton asChild isActive={isActive(i.url)}>
-                    <Link to={i.url}><i.icon className="h-4 w-4" /><span>{i.title}</span></Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
+            <SidebarMenu>{intel.map(renderItem)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Leadership</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {leadership.map((i) => (
-                <SidebarMenuItem key={i.url}>
-                  <SidebarMenuButton asChild isActive={isActive(i.url)}>
-                    <Link to={i.url}><i.icon className="h-4 w-4" /><span>{i.title}</span></Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {isLeadership && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Leadership</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>{leadership.map(renderItem)}</SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         <SidebarGroup>
           <SidebarGroupLabel>AI</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/assistant")}>
-                  <Link to="/assistant"><Bot className="h-4 w-4" /><span>Assistant</span></Link>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive("/assistant")}
+                  tooltip="Assistant — Ask questions grounded in your war room data"
+                >
+                  <Link to="/assistant">
+                    <Bot className="h-4 w-4" />
+                    <span>Assistant</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -145,12 +145,15 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/settings")}>
-              <Link to="/settings"><Settings className="h-4 w-4" /><span>Settings</span></Link>
+            <SidebarMenuButton asChild isActive={isActive("/settings")} tooltip="Settings — Engagement configuration and notifications">
+              <Link to="/settings">
+                <Settings className="h-4 w-4" />
+                <span>Settings</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={signOut}>
+            <SidebarMenuButton onClick={signOut} tooltip="Sign out of your account">
               <LogOut className="h-4 w-4" />
               <span>{member?.display_name ? `Sign out (${member.display_name})` : "Sign out"}</span>
             </SidebarMenuButton>
