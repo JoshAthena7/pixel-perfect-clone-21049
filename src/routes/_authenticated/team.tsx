@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
+import { sendTransactionalEmail } from "@/lib/email/send";
 import { useEngagement } from "@/hooks/use-engagement";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -223,12 +224,31 @@ function TeamPage() {
       })
       .select("token")
       .single();
-    setInviteSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) { setInviteSaving(false); return toast.error(error.message); }
     const link = inviteLinkFor(data.token);
     setLastInviteLink(link);
-    try { await navigator.clipboard.writeText(link); toast.success("Invite link copied to clipboard"); }
-    catch { toast.success("Invite created"); }
+    try { await navigator.clipboard.writeText(link); } catch { /* clipboard may be blocked */ }
+
+    // Fire-and-await email send
+    try {
+      await sendTransactionalEmail({
+        templateName: "engagement-invite",
+        recipientEmail: email,
+        idempotencyKey: `invite-${data.token}`,
+        templateData: {
+          recipientName: name,
+          inviterName: me.display_name,
+          engagementName: engagement.name,
+          client: engagement.client ?? "",
+          roleLabel: preset.label,
+          acceptUrl: link,
+        },
+      });
+      toast.success(`Invite emailed to ${email}`);
+    } catch (e: any) {
+      toast.warning(`Invite created, but email send failed: ${e.message ?? e}. Use Copy link to share manually.`);
+    }
+    setInviteSaving(false);
     setInviteForm({ preset: INVITE_PRESETS[0].key, display_name: "", email: "" });
     loadInvites(engagement.id);
   }
@@ -605,7 +625,7 @@ function TeamPage() {
           {lastInviteLink ? (
             <div className="space-y-3">
               <div className="rounded-md border border-emerald-500/40 bg-emerald-500/10 p-3 text-sm text-emerald-200">
-                Invite created — link copied to your clipboard.
+                Invitation sent — email delivered and link copied to your clipboard as a backup.
               </div>
               <div className="rounded-md border border-border bg-surface-hover p-2 text-xs break-all">{lastInviteLink}</div>
               <div className="flex justify-end gap-2">
