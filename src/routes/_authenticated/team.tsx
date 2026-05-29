@@ -142,47 +142,101 @@ function TeamPage() {
     if (engagement) load(engagement.id);
   }
 
-  async function handleCSVUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  type PendingRow = {
+    display_name: string;
+    role: string;
+    title: string | null;
+    email: string | null;
+    phone: string | null;
+    slack_handle: string | null;
+    timezone: string | null;
+    on_call: boolean;
+    _issues: string[];
+  };
+  const [pending, setPending] = useState<PendingRow[] | null>(null);
+  const [importing, setImporting] = useState(false);
+
+  function rowsToPending(rows: string[][]): PendingRow[] {
+    const headers = rows[0].map((h) => String(h).trim().toLowerCase());
+    const idx = (name: string) => headers.indexOf(name);
+    const iName = idx("display_name"), iRole = idx("role");
+    const iTitle = idx("title"), iEmail = idx("email"), iPhone = idx("phone");
+    const iSlack = idx("slack_handle"), iTz = idx("timezone"), iOnCall = idx("on_call");
+    if (iName === -1 || iRole === -1) throw new Error("File must include 'display_name' and 'role' columns.");
+    const get = (r: string[], i: number) => (i >= 0 ? String(r[i] ?? "").trim() : "");
+
+    return rows.slice(1)
+      .filter((r) => r.some((v) => String(v ?? "").trim().length > 0))
+      .map((r) => {
+        const display_name = get(r, iName);
+        const rawRole = get(r, iRole).toLowerCase();
+        const issues: string[] = [];
+        if (!display_name) issues.push("missing display_name");
+        if (!VALID_ROLES.has(rawRole)) issues.push(`unknown role '${rawRole || "—"}' → viewer`);
+        const email = get(r, iEmail) || null;
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) issues.push("invalid email");
+        return {
+          display_name,
+          role: VALID_ROLES.has(rawRole) ? rawRole : "viewer",
+          title: get(r, iTitle) || null,
+          email,
+          phone: get(r, iPhone) || null,
+          slack_handle: get(r, iSlack) || null,
+          timezone: get(r, iTz) || null,
+          on_call: iOnCall >= 0 ? parseBool(get(r, iOnCall)) : false,
+          _issues: issues,
+        };
+      });
+  }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file || !engagement) return;
     try {
-      const text = await file.text();
-      const rows = parseCSV(text);
-      if (rows.length < 2) { toast.error("CSV needs a header row and at least one data row."); return; }
-      const headers = rows[0].map((h) => h.trim().toLowerCase());
-      const idx = (name: string) => headers.indexOf(name);
-      const iName = idx("display_name");
-      const iRole = idx("role");
-      if (iName === -1 || iRole === -1) { toast.error("CSV must include 'display_name' and 'role' columns."); return; }
-      const iTitle = idx("title"), iEmail = idx("email"), iPhone = idx("phone");
-      const iSlack = idx("slack_handle"), iTz = idx("timezone"), iOnCall = idx("on_call");
-
-      const records = rows.slice(1).map((r) => {
-        const role = (r[iRole] ?? "").trim().toLowerCase();
-        return {
-          engagement_id: engagement.id,
-          user_id: crypto.randomUUID(),
-          display_name: (r[iName] ?? "").trim(),
-          role: VALID_ROLES.has(role) ? role : "viewer",
-          title: iTitle >= 0 ? (r[iTitle] ?? "").trim() || null : null,
-          email: iEmail >= 0 ? (r[iEmail] ?? "").trim() || null : null,
-          phone: iPhone >= 0 ? (r[iPhone] ?? "").trim() || null : null,
-          slack_handle: iSlack >= 0 ? (r[iSlack] ?? "").trim() || null : null,
-          timezone: iTz >= 0 ? (r[iTz] ?? "").trim() || null : null,
-          on_call: iOnCall >= 0 ? parseBool(r[iOnCall]) : false,
-        };
-      }).filter((r) => r.display_name);
-
-      if (!records.length) { toast.error("No valid rows found."); return; }
-      const { error } = await supabase.from("engagement_members").insert(records);
-      if (error) { toast.error(error.message); return; }
-      toast.success(`Imported ${records.length} member${records.length === 1 ? "" : "s"}.`);
-      load(engagement.id);
+      let rows: string[][];
+      if (/\.(xlsx|xls)$/i.test(file.name)) {
+        const buf = await file.arrayBuffer();
+        const wb = XLSX.read(buf, { type: "array" });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: false }) as string[][];
+      } else {
+        rows = parseCSV(await file.text());
+      }
+      if (rows.length < 2) { toast.error("File needs a header row and at least one data row."); return; }
+      const parsed = rowsToPending(rows);
+      if (!parsed.length) { toast.error("No data rows found."); return; }
+      setPending(parsed);
     } catch (err: any) {
-      toast.error(err?.message ?? "Failed to parse CSV.");
+      toast.error(err?.message ?? "Failed to parse file.");
     }
   }
+
+  async function confirmImport() {
+    if (!pending || !engagement) return;
+    const valid = pending.filter((p) => p.display_name);
+    if (!valid.length) { toast.error("Nothing to import — all rows missing display_name."); return; }
+    setImporting(true);
+    const records = valid.map((p) => ({
+      engagement_id: engagement.id,
+      user_id: crypto.randomUUID(),
+      display_name: p.display_name,
+      role: p.role,
+      title: p.title,
+      email: p.email,
+      phone: p.phone,
+      slack_handle: p.slack_handle,
+      timezone: p.timezone,
+      on_call: p.on_call,
+    }));
+    const { error } = await supabase.from("engagement_members").insert(records);
+    setImporting(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Imported ${records.length} member${records.length === 1 ? "" : "s"}.`);
+    setPending(null);
+    load(engagement.id);
+  }
+
 
   const onCall = members.filter((m) => m.on_call);
 
