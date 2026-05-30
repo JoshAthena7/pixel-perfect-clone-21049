@@ -31,13 +31,13 @@ import type { LucideProps } from "lucide-react";
 type Item = { title: string; url: string; icon: ComponentType<LucideProps>; hint: string };
 
 const NAV: Item[] = [
-  { title: "Dashboard",       url: "/admin",               icon: LayoutDashboard, hint: "Platform overview across every Command Center" },
-  { title: "Engagements",     url: "/admin/engagements",   icon: Building2,       hint: "All active, closed, and archived war rooms" },
+  { title: "Dashboard",       url: "/admin",               icon: LayoutDashboard, hint: "Platform overview across every Mission" },
+  { title: "Engagements",     url: "/admin/engagements",   icon: Building2,       hint: "All active, closed, and archived Missions" },
   { title: "Collective™",     url: "/admin/collective",    icon: Users,           hint: "People across all engagements" },
-  { title: "Global Messaging",url: "/admin/messaging",     icon: Megaphone,       hint: "Broadcast to any or all war rooms" },
+  { title: "Global Messaging",url: "/admin/messaging",     icon: Megaphone,       hint: "Broadcast to any or all Missions" },
   { title: "Intelligence",    url: "/admin/intelligence",  icon: Brain,           hint: "Insights engine + market intel oversight" },
   { title: "Pipeline",        url: "/admin/pipeline",      icon: TrendingUp,      hint: "Procurement opportunity tracker" },
-  { title: "Alerts",          url: "/admin/alerts",        icon: AlertTriangle,   hint: "SOS, risks, and stuck flags across every room" },
+  { title: "Alerts",          url: "/admin/alerts",        icon: AlertTriangle,   hint: "SOS, risks, and stuck flags across every Mission" },
   { title: "Activity",        url: "/admin/activity",      icon: Activity,        hint: "Unified platform activity feed" },
   { title: "Settings",        url: "/admin/settings",      icon: Settings,        hint: "Platform configuration" },
 ];
