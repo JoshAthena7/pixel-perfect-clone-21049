@@ -299,6 +299,8 @@ function NewEngagementPage() {
             engagementType={engagementType} setEngagementType={setEngagementType}
             contractValue={contractValue} setContractValue={setContractValue}
             states={states} stateInfo={stateInfo} trivia={trivia}
+            rfpFile={rfpFile} setRfpFile={setRfpFile}
+            rfpPlaceholder={rfpPlaceholder} setRfpPlaceholder={setRfpPlaceholder}
             onNext={submitStep1} saving={saving}
           />
         )}
