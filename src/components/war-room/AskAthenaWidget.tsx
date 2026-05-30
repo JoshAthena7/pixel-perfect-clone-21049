@@ -26,7 +26,7 @@ const ROUTE_CHIPS: Record<string, string[]> = {
   ],
   "/research": [
     "What's the incumbent's biggest weakness?",
-    "Which Collective members know this state?",
+    "Which Collective™ members know this state?",
     "What did we win on in similar bids?",
     "Summarize the competitive landscape",
   ],

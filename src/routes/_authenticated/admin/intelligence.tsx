@@ -9,7 +9,7 @@ export const Route = createFileRoute("/_authenticated/admin/intelligence")({
       icon={Brain}
       title="Intelligence"
       description="Oversight for the insights engine and market intel pipeline."
-      comingSoon="Triage Radar, Compass, and WinIQ insights across all engagements, tune source weights, and action high-signal items."
+      comingSoon="Triage Radar™, Compass™, and WinIQ insights across all engagements, tune source weights, and action high-signal items."
     />
   ),
 });

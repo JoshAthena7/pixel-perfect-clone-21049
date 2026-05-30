@@ -327,7 +327,7 @@ function OverviewPage() {
             value={formatTCV(kpis.totalTcv)}
             tone="gold"
           />
-          <KpiCard icon={<Users className="h-4 w-4" />} label="Collective members" value={String(collectiveCount)} />
+          <KpiCard icon={<Users className="h-4 w-4" />} label="Collective™ members" value={String(collectiveCount)} />
         </div>
 
         <HookFailuresPanel />

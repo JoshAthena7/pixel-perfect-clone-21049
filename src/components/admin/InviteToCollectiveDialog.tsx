@@ -159,7 +159,7 @@ export function InviteToCollectiveDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserPlus className="h-4 w-4 text-[var(--gold)]" />
-            Invite to Collective
+            Invite to Collective™
           </DialogTitle>
           <DialogDescription className="text-xs">
             Add a new member to a war room. They'll get an invite link to accept.

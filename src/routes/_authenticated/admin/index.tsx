@@ -282,8 +282,8 @@ function SourceBadge({ type }: { type: string }) {
   const t = (type || "").toLowerCase();
   let label = "Athena AI";
   let color = "#9b8cc7";
-  if (t.includes("market") || t.includes("radar")) { label = "Radar"; color = "#5fb8a8"; }
-  else if (t.includes("compass")) { label = "Compass"; color = "#C49A2A"; }
+  if (t.includes("market") || t.includes("radar")) { label = "Radar™"; color = "#5fb8a8"; }
+  else if (t.includes("compass")) { label = "Compass™"; color = "#C49A2A"; }
   else if (t.includes("win")) { label = "WinIQ"; color = "#e89556"; }
   return <span className="font-bold" style={{ color }}>{label}</span>;
 }
