@@ -83,7 +83,7 @@ function BroadcastsPage() {
     if (nextPinned && engagement && member) {
       logActivity({
         engagementId: engagement.id,
-        userId: member.user_id ?? null,
+        userId: null,
         actorName: member.display_name,
         action: "broadcast_pinned",
         targetTable: "broadcasts",
