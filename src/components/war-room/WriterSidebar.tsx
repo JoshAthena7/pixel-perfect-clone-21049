@@ -55,7 +55,7 @@ const TEAM = [
 
 export function WriterSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
-  const { engagement, member } = useEngagement();
+  const { engagement, member, isArchived } = useEngagement();
   const isActive = (p: string) => pathname === p;
 
   async function signOut() {
