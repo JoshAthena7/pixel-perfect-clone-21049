@@ -359,6 +359,11 @@ function SectionEditorPage() {
         </Card>
       )}
 
+      {/* Policy alerts */}
+      {user && (
+        <WriterPolicyAlertsPanel engagementId={engagementId} sectionId={sectionId} userId={user.id} />
+      )}
+
       {/* Win Themes reference */}
       <WinThemesReferencePanel engagementId={engagementId} sectionId={sectionId} />
 
