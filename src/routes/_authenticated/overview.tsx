@@ -225,10 +225,9 @@ function OverviewPage() {
       openSos += r.open_sos;
       openRisks += r.open_risks;
     }
-    const totalTcv = 0;
-    return { activeCount, openSos, openRisks, totalTcv };
-
+    return { activeCount, openSos, openRisks };
   }, [leadership, rollups]);
+
 
   const sortedEngagements = useMemo(() => {
     return [...leadership].sort((a, b) => {
