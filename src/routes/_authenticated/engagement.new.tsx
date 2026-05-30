@@ -6,6 +6,7 @@ import { useIsAdmin } from "@/hooks/use-admin";
 import { useSession } from "@/hooks/use-session";
 import { useServerFn } from "@tanstack/react-start";
 import { extractRfpIntakeDetails } from "@/lib/ai/rfp-intake.functions";
+import { seedStateTrivia } from "@/lib/ai/trivia.functions";
 import { ChevronLeft, Plus, X, ShieldCheck, ArrowRight, Link as LinkIcon, Sparkles, FileText, Upload, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -341,6 +342,13 @@ function NewEngagementPage() {
           .update({ state_specific_notes: preNote })
           .eq("engagement_id", data.id);
         setStateNotes(preNote);
+      }
+
+      // Auto-seed state-specific trivia bank (fire-and-forget; idempotent)
+      if (stateCode) {
+        seedStateTrivia({ data: { state: stateCode } }).catch((e: any) => {
+          console.warn("Trivia seed skipped:", e?.message);
+        });
       }
 
       // RFP: either upload the real file, or drop a placeholder row
