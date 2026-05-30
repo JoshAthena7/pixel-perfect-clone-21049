@@ -369,8 +369,10 @@ export function AskAthenaWidget() {
                 )}
                 {history.map((ex) => {
                   const wordCount = ex.question.trim().split(/\s+/).length;
-                  const showDeepBtn = wordCount > 8 && ex.source !== "deep-search";
+                  const isIris = ex.source === "iris-identity";
+                  const showDeepBtn = !isIris && wordCount > 8 && ex.source !== "deep-search";
                   const isDeepLoading = deepLoadingId === ex.id;
+                  const irisParts = isIris ? splitIrisSignature(ex.answer) : null;
                   return (
                     <div key={ex.id} className="space-y-2">
                       <div className="flex justify-end">
@@ -392,9 +394,23 @@ export function AskAthenaWidget() {
                             Deep Research
                           </div>
                         )}
-                        <div className="whitespace-pre-wrap">{isDeepLoading ? "Running deep research…" : ex.answer}</div>
+                        {isIris && irisParts ? (
+                          <>
+                            <div className="whitespace-pre-wrap">{irisParts.body}</div>
+                            {irisParts.signature && (
+                              <div
+                                className="mt-3 italic"
+                                style={{ color: "#D4AE4A", fontSize: "10px" }}
+                              >
+                                {irisParts.signature}
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="whitespace-pre-wrap">{isDeepLoading ? "Running deep research…" : ex.answer}</div>
+                        )}
 
-                        {ex.citations.length > 0 && !isDeepLoading && (
+                        {!isIris && ex.citations.length > 0 && !isDeepLoading && (
                           <div className="mt-2 flex flex-wrap gap-1">
                             {ex.citations.slice(0, 12).map((c, i) => (
                               <a
@@ -412,7 +428,7 @@ export function AskAthenaWidget() {
                           </div>
                         )}
 
-                        {ex.sources.length > 0 && !isDeepLoading && (
+                        {!isIris && ex.sources.length > 0 && !isDeepLoading && (
                           <div className="mt-2 flex flex-wrap gap-1">
                             {ex.sources.slice(0, 8).map((s) => (
                               <span
