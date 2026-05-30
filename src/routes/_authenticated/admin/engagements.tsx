@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useEngagement } from "@/hooks/use-engagement";
 import { daysUntil, relativeTime } from "@/lib/time";
-import { ArrowRight, Plus, Search, Building2 } from "lucide-react";
+import { ArrowRight, Plus, Search, Building2, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin/engagements")({
   component: AdminEngagementsList,
@@ -67,6 +68,25 @@ function AdminEngagementsList() {
   async function enterRoom(id: string) {
     await switchEngagement(id);
     window.location.href = "/command";
+  }
+
+  async function deleteEngagement(e: Eng) {
+    const confirmed = window.confirm(
+      `Permanently delete "${e.name}"?\n\nThis removes the engagement and all its data. This cannot be undone.`,
+    );
+    if (!confirmed) return;
+    const typed = window.prompt(`Type the engagement name to confirm:\n${e.name}`);
+    if (typed !== e.name) {
+      toast.error("Name didn't match — delete cancelled.");
+      return;
+    }
+    const { error } = await supabase.from("engagements").delete().eq("id", e.id);
+    if (error) {
+      toast.error(`Delete failed: ${error.message}`);
+      return;
+    }
+    setEngs((prev) => prev.filter((x) => x.id !== e.id));
+    toast.success(`Deleted ${e.name}`);
   }
 
   return (
@@ -151,9 +171,20 @@ function AdminEngagementsList() {
                   >
                     {e.status}
                   </Badge>
-                  <Button size="sm" className="h-8 gap-1" onClick={() => enterRoom(e.id)}>
-                    Enter <ArrowRight className="h-3 w-3" />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button size="sm" className="h-8 gap-1" onClick={() => enterRoom(e.id)}>
+                      Enter <ArrowRight className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-red-400"
+                      onClick={() => deleteEngagement(e)}
+                      title="Delete engagement"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </div>
               );
             })}
