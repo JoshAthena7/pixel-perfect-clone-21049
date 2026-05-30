@@ -121,7 +121,8 @@ function RoleGuardedShell() {
   if (onPicker || onNdaGate) {
     return (
       <>
-        <Outlet />
+        <div className="pb-14"><Outlet /></div>
+        <AskAthenaWidget />
         <Toaster theme="dark" position="top-right" />
       </>
     );
