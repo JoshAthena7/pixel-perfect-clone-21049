@@ -471,37 +471,58 @@ export type Database = {
       engagement_config: {
         Row: {
           competitors: string[]
+          contract_value_estimate: string | null
           created_at: string
           engagement_id: string
+          engagement_type: string | null
           evaluation_criteria: string[]
           id: string
           incumbent: string | null
           key_differentiators: string[]
           local_requirements: string | null
+          market: string | null
+          radar_keywords: string[] | null
+          radar_monitoring: boolean
+          research_completed_at: string | null
+          state: string | null
           state_specific_notes: string | null
           updated_at: string
         }
         Insert: {
           competitors?: string[]
+          contract_value_estimate?: string | null
           created_at?: string
           engagement_id: string
+          engagement_type?: string | null
           evaluation_criteria?: string[]
           id?: string
           incumbent?: string | null
           key_differentiators?: string[]
           local_requirements?: string | null
+          market?: string | null
+          radar_keywords?: string[] | null
+          radar_monitoring?: boolean
+          research_completed_at?: string | null
+          state?: string | null
           state_specific_notes?: string | null
           updated_at?: string
         }
         Update: {
           competitors?: string[]
+          contract_value_estimate?: string | null
           created_at?: string
           engagement_id?: string
+          engagement_type?: string | null
           evaluation_criteria?: string[]
           id?: string
           incumbent?: string | null
           key_differentiators?: string[]
           local_requirements?: string | null
+          market?: string | null
+          radar_keywords?: string[] | null
+          radar_monitoring?: boolean
+          research_completed_at?: string | null
+          state?: string | null
           state_specific_notes?: string | null
           updated_at?: string
         }
@@ -776,6 +797,56 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      engagement_research: {
+        Row: {
+          category: string
+          confidence_score: number | null
+          content: Json | null
+          created_at: string
+          engagement_id: string
+          human_input_note: string | null
+          id: string
+          needs_human_input: boolean
+          source: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          confidence_score?: number | null
+          content?: Json | null
+          created_at?: string
+          engagement_id: string
+          human_input_note?: string | null
+          id?: string
+          needs_human_input?: boolean
+          source?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          confidence_score?: number | null
+          content?: Json | null
+          created_at?: string
+          engagement_id?: string
+          human_input_note?: string | null
+          id?: string
+          needs_human_input?: boolean
+          source?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engagement_research_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       engagements: {
         Row: {
