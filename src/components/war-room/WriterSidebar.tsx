@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
+import { EngagementSwitcher } from "@/components/EngagementSwitcher";
 import athenaLogo from "@/assets/athena-logo-dark.png";
 
 const WORK = [
@@ -88,12 +89,7 @@ export function WriterSidebar() {
             Writer Portal
           </div>
         </div>
-        {engagement && (
-          <div className="mx-2 mt-2 rounded-md border border-[var(--gold)]/20 bg-surface-hover/50 px-2 py-1.5">
-            <div className="truncate text-xs font-semibold">{engagement.name}</div>
-            <div className="truncate text-[10px] text-muted-foreground">{engagement.client}</div>
-          </div>
-        )}
+        {engagement && <EngagementSwitcher />}
       </SidebarHeader>
 
       <SidebarContent>

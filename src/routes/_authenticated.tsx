@@ -75,21 +75,49 @@ function AuthLayout() {
   );
 }
 
+const PICKER_PATHS = new Set(["/select-engagement", "/overview"]);
+
 function RoleGuardedShell() {
-  const { member, loading } = useEngagement();
+  const { member, memberships, loading, engagement } = useEngagement();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const navigate = useNavigate();
   const isWriterPath = pathname.startsWith("/writer");
   const isWriter = member?.role === "writer";
+  const onPicker = PICKER_PATHS.has(pathname);
 
   useEffect(() => {
-    if (loading || !member) return;
+    if (loading) return;
+    if (onPicker) return;
+    // No engagement selected but user has memberships → send to picker
+    if (!engagement) {
+      navigate({ to: "/select-engagement", replace: true });
+      return;
+    }
+    if (!member) return;
     if (isWriter && !isWriterPath) {
       navigate({ to: "/writer/my-sections", replace: true });
     } else if (!isWriter && isWriterPath) {
       navigate({ to: "/command", replace: true });
     }
-  }, [loading, member, isWriter, isWriterPath, navigate]);
+  }, [loading, member, engagement, isWriter, isWriterPath, onPicker, navigate]);
+
+  // Picker / overview pages render full-bleed without the war-room shell
+  if (onPicker) {
+    return (
+      <>
+        <Outlet />
+        <Toaster theme="dark" position="top-right" />
+      </>
+    );
+  }
+
+  if (!engagement) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground">
+        {memberships.length === 0 ? "Setting up your workspace…" : "Loading engagement…"}
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider>

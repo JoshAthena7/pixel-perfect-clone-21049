@@ -19,9 +19,11 @@ import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/t
 import { Route as AuthenticatedSosRouteImport } from './routes/_authenticated/sos'
 import { Route as AuthenticatedSnapshotsRouteImport } from './routes/_authenticated/snapshots'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedSelectEngagementRouteImport } from './routes/_authenticated/select-engagement'
 import { Route as AuthenticatedSectionAssignmentsRouteImport } from './routes/_authenticated/section-assignments'
 import { Route as AuthenticatedRisksRouteImport } from './routes/_authenticated/risks'
 import { Route as AuthenticatedPulseRouteImport } from './routes/_authenticated/pulse'
+import { Route as AuthenticatedOverviewRouteImport } from './routes/_authenticated/overview'
 import { Route as AuthenticatedNeedsAttentionRouteImport } from './routes/_authenticated/needs-attention'
 import { Route as AuthenticatedIntelRouteImport } from './routes/_authenticated/intel'
 import { Route as AuthenticatedHuddleRouteImport } from './routes/_authenticated/huddle'
@@ -98,6 +100,12 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedSelectEngagementRoute =
+  AuthenticatedSelectEngagementRouteImport.update({
+    id: '/select-engagement',
+    path: '/select-engagement',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedSectionAssignmentsRoute =
   AuthenticatedSectionAssignmentsRouteImport.update({
     id: '/section-assignments',
@@ -112,6 +120,11 @@ const AuthenticatedRisksRoute = AuthenticatedRisksRouteImport.update({
 const AuthenticatedPulseRoute = AuthenticatedPulseRouteImport.update({
   id: '/pulse',
   path: '/pulse',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedOverviewRoute = AuthenticatedOverviewRouteImport.update({
+  id: '/overview',
+  path: '/overview',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedNeedsAttentionRoute =
@@ -273,9 +286,11 @@ export interface FileRoutesByFullPath {
   '/huddle': typeof AuthenticatedHuddleRoute
   '/intel': typeof AuthenticatedIntelRoute
   '/needs-attention': typeof AuthenticatedNeedsAttentionRoute
+  '/overview': typeof AuthenticatedOverviewRoute
   '/pulse': typeof AuthenticatedPulseRoute
   '/risks': typeof AuthenticatedRisksRoute
   '/section-assignments': typeof AuthenticatedSectionAssignmentsRoute
+  '/select-engagement': typeof AuthenticatedSelectEngagementRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/snapshots': typeof AuthenticatedSnapshotsRoute
   '/sos': typeof AuthenticatedSosRoute
@@ -313,9 +328,11 @@ export interface FileRoutesByTo {
   '/huddle': typeof AuthenticatedHuddleRoute
   '/intel': typeof AuthenticatedIntelRoute
   '/needs-attention': typeof AuthenticatedNeedsAttentionRoute
+  '/overview': typeof AuthenticatedOverviewRoute
   '/pulse': typeof AuthenticatedPulseRoute
   '/risks': typeof AuthenticatedRisksRoute
   '/section-assignments': typeof AuthenticatedSectionAssignmentsRoute
+  '/select-engagement': typeof AuthenticatedSelectEngagementRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/snapshots': typeof AuthenticatedSnapshotsRoute
   '/sos': typeof AuthenticatedSosRoute
@@ -355,9 +372,11 @@ export interface FileRoutesById {
   '/_authenticated/huddle': typeof AuthenticatedHuddleRoute
   '/_authenticated/intel': typeof AuthenticatedIntelRoute
   '/_authenticated/needs-attention': typeof AuthenticatedNeedsAttentionRoute
+  '/_authenticated/overview': typeof AuthenticatedOverviewRoute
   '/_authenticated/pulse': typeof AuthenticatedPulseRoute
   '/_authenticated/risks': typeof AuthenticatedRisksRoute
   '/_authenticated/section-assignments': typeof AuthenticatedSectionAssignmentsRoute
+  '/_authenticated/select-engagement': typeof AuthenticatedSelectEngagementRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/snapshots': typeof AuthenticatedSnapshotsRoute
   '/_authenticated/sos': typeof AuthenticatedSosRoute
@@ -397,9 +416,11 @@ export interface FileRouteTypes {
     | '/huddle'
     | '/intel'
     | '/needs-attention'
+    | '/overview'
     | '/pulse'
     | '/risks'
     | '/section-assignments'
+    | '/select-engagement'
     | '/settings'
     | '/snapshots'
     | '/sos'
@@ -437,9 +458,11 @@ export interface FileRouteTypes {
     | '/huddle'
     | '/intel'
     | '/needs-attention'
+    | '/overview'
     | '/pulse'
     | '/risks'
     | '/section-assignments'
+    | '/select-engagement'
     | '/settings'
     | '/snapshots'
     | '/sos'
@@ -478,9 +501,11 @@ export interface FileRouteTypes {
     | '/_authenticated/huddle'
     | '/_authenticated/intel'
     | '/_authenticated/needs-attention'
+    | '/_authenticated/overview'
     | '/_authenticated/pulse'
     | '/_authenticated/risks'
     | '/_authenticated/section-assignments'
+    | '/_authenticated/select-engagement'
     | '/_authenticated/settings'
     | '/_authenticated/snapshots'
     | '/_authenticated/sos'
@@ -591,6 +616,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/select-engagement': {
+      id: '/_authenticated/select-engagement'
+      path: '/select-engagement'
+      fullPath: '/select-engagement'
+      preLoaderRoute: typeof AuthenticatedSelectEngagementRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/section-assignments': {
       id: '/_authenticated/section-assignments'
       path: '/section-assignments'
@@ -610,6 +642,13 @@ declare module '@tanstack/react-router' {
       path: '/pulse'
       fullPath: '/pulse'
       preLoaderRoute: typeof AuthenticatedPulseRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/overview': {
+      id: '/_authenticated/overview'
+      path: '/overview'
+      fullPath: '/overview'
+      preLoaderRoute: typeof AuthenticatedOverviewRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/needs-attention': {
@@ -807,9 +846,11 @@ interface AuthenticatedRouteChildren {
   AuthenticatedHuddleRoute: typeof AuthenticatedHuddleRoute
   AuthenticatedIntelRoute: typeof AuthenticatedIntelRoute
   AuthenticatedNeedsAttentionRoute: typeof AuthenticatedNeedsAttentionRoute
+  AuthenticatedOverviewRoute: typeof AuthenticatedOverviewRoute
   AuthenticatedPulseRoute: typeof AuthenticatedPulseRoute
   AuthenticatedRisksRoute: typeof AuthenticatedRisksRoute
   AuthenticatedSectionAssignmentsRoute: typeof AuthenticatedSectionAssignmentsRoute
+  AuthenticatedSelectEngagementRoute: typeof AuthenticatedSelectEngagementRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSnapshotsRoute: typeof AuthenticatedSnapshotsRoute
   AuthenticatedSosRoute: typeof AuthenticatedSosRoute
@@ -839,9 +880,11 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHuddleRoute: AuthenticatedHuddleRoute,
   AuthenticatedIntelRoute: AuthenticatedIntelRoute,
   AuthenticatedNeedsAttentionRoute: AuthenticatedNeedsAttentionRoute,
+  AuthenticatedOverviewRoute: AuthenticatedOverviewRoute,
   AuthenticatedPulseRoute: AuthenticatedPulseRoute,
   AuthenticatedRisksRoute: AuthenticatedRisksRoute,
   AuthenticatedSectionAssignmentsRoute: AuthenticatedSectionAssignmentsRoute,
+  AuthenticatedSelectEngagementRoute: AuthenticatedSelectEngagementRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSnapshotsRoute: AuthenticatedSnapshotsRoute,
   AuthenticatedSosRoute: AuthenticatedSosRoute,
