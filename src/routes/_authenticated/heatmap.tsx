@@ -91,17 +91,6 @@ function HeatmapPage() {
     setSaving(false);
     if (error) return toast.error(error.message);
     toast.success(`${s.section_name} updated`);
-    if (draftStatus === "Red" && s.status !== "Red") {
-      notifySlack({
-        data: {
-          engagementId: engagement!.id,
-          event: "heatmap_red",
-          title: `${s.section_name} went Red`,
-          body: draftNotes || undefined,
-          author: member.display_name,
-        },
-      }).catch(() => {});
-    }
     setEditingId(null);
   }
 
