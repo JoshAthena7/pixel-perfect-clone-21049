@@ -189,6 +189,44 @@ export type Database = {
           },
         ]
       }
+      content_library: {
+        Row: {
+          body: string
+          category: string
+          created_at: string
+          id: string
+          source_engagement_id: string | null
+          tags: string[] | null
+          title: string
+        }
+        Insert: {
+          body: string
+          category?: string
+          created_at?: string
+          id?: string
+          source_engagement_id?: string | null
+          tags?: string[] | null
+          title: string
+        }
+        Update: {
+          body?: string
+          category?: string
+          created_at?: string
+          id?: string
+          source_engagement_id?: string | null
+          tags?: string[] | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_library_source_engagement_id_fkey"
+            columns: ["source_engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_checkins: {
         Row: {
           checkin_date: string
@@ -349,6 +387,86 @@ export type Database = {
           used_at?: string | null
         }
         Relationships: []
+      }
+      embedding_queue: {
+        Row: {
+          attempts: number
+          content_text: string
+          engagement_id: string | null
+          id: string
+          last_error: string | null
+          priority: number
+          processed_at: string | null
+          queued_at: string
+          source_id: string
+          source_table: string
+        }
+        Insert: {
+          attempts?: number
+          content_text: string
+          engagement_id?: string | null
+          id?: string
+          last_error?: string | null
+          priority?: number
+          processed_at?: string | null
+          queued_at?: string
+          source_id: string
+          source_table: string
+        }
+        Update: {
+          attempts?: number
+          content_text?: string
+          engagement_id?: string | null
+          id?: string
+          last_error?: string | null
+          priority?: number
+          processed_at?: string | null
+          queued_at?: string
+          source_id?: string
+          source_table?: string
+        }
+        Relationships: []
+      }
+      embeddings: {
+        Row: {
+          content_text: string
+          created_at: string
+          embedding: string | null
+          engagement_id: string | null
+          id: string
+          source_id: string
+          source_table: string
+          updated_at: string
+        }
+        Insert: {
+          content_text: string
+          created_at?: string
+          embedding?: string | null
+          engagement_id?: string | null
+          id?: string
+          source_id: string
+          source_table: string
+          updated_at?: string
+        }
+        Update: {
+          content_text?: string
+          created_at?: string
+          embedding?: string | null
+          engagement_id?: string | null
+          id?: string
+          source_id?: string
+          source_table?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "embeddings_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       engagement_config: {
         Row: {
@@ -531,6 +649,91 @@ export type Database = {
           sort_order?: number
         }
         Relationships: []
+      }
+      engagement_outcomes: {
+        Row: {
+          award_amount: number | null
+          awardee: string | null
+          created_at: string
+          decision_date: string | null
+          engagement_id: string
+          id: string
+          notes: string | null
+          outcome: string
+          recorded_by: string | null
+          recorder_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          award_amount?: number | null
+          awardee?: string | null
+          created_at?: string
+          decision_date?: string | null
+          engagement_id: string
+          id?: string
+          notes?: string | null
+          outcome: string
+          recorded_by?: string | null
+          recorder_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          award_amount?: number | null
+          awardee?: string | null
+          created_at?: string
+          decision_date?: string | null
+          engagement_id?: string
+          id?: string
+          notes?: string | null
+          outcome?: string
+          recorded_by?: string | null
+          recorder_name?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engagement_outcomes_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: true
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      engagement_postmortems: {
+        Row: {
+          engagement_id: string
+          generated_at: string
+          id: string
+          lessons_learned: Json | null
+          outcome: string
+          summary: string
+        }
+        Insert: {
+          engagement_id: string
+          generated_at?: string
+          id?: string
+          lessons_learned?: Json | null
+          outcome: string
+          summary: string
+        }
+        Update: {
+          engagement_id?: string
+          generated_at?: string
+          id?: string
+          lessons_learned?: Json | null
+          outcome?: string
+          summary?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engagement_postmortems_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       engagement_pulses: {
         Row: {
@@ -746,6 +949,33 @@ export type Database = {
           },
         ]
       }
+      insight_type_weights: {
+        Row: {
+          accuracy_rate: number | null
+          base_confidence: number
+          confirmed_count: number
+          insight_type: string
+          total_count: number
+          updated_at: string
+        }
+        Insert: {
+          accuracy_rate?: number | null
+          base_confidence?: number
+          confirmed_count?: number
+          insight_type: string
+          total_count?: number
+          updated_at?: string
+        }
+        Update: {
+          accuracy_rate?: number | null
+          base_confidence?: number
+          confirmed_count?: number
+          insight_type?: string
+          total_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       intel_documents: {
         Row: {
           category: string
@@ -792,6 +1022,131 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      intelligence_insights: {
+        Row: {
+          actioned: boolean
+          actioned_at: string | null
+          actioned_by: string | null
+          body: string
+          confidence_score: number
+          confirmed_predictive: boolean | null
+          created_at: string
+          engagement_id: string | null
+          id: string
+          insight_type: string
+          severity: string
+          supporting_data: Json | null
+          title: string
+        }
+        Insert: {
+          actioned?: boolean
+          actioned_at?: string | null
+          actioned_by?: string | null
+          body: string
+          confidence_score?: number
+          confirmed_predictive?: boolean | null
+          created_at?: string
+          engagement_id?: string | null
+          id?: string
+          insight_type: string
+          severity?: string
+          supporting_data?: Json | null
+          title: string
+        }
+        Update: {
+          actioned?: boolean
+          actioned_at?: string | null
+          actioned_by?: string | null
+          body?: string
+          confidence_score?: number
+          confirmed_predictive?: boolean | null
+          created_at?: string
+          engagement_id?: string | null
+          id?: string
+          insight_type?: string
+          severity?: string
+          supporting_data?: Json | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intelligence_insights_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_intelligence: {
+        Row: {
+          embedding: string | null
+          id: string
+          ingested_at: string
+          published_at: string | null
+          raw_data: Json | null
+          relevant_categories: string[] | null
+          relevant_states: string[] | null
+          source: string
+          summary: string | null
+          title: string
+          url: string | null
+        }
+        Insert: {
+          embedding?: string | null
+          id?: string
+          ingested_at?: string
+          published_at?: string | null
+          raw_data?: Json | null
+          relevant_categories?: string[] | null
+          relevant_states?: string[] | null
+          source: string
+          summary?: string | null
+          title: string
+          url?: string | null
+        }
+        Update: {
+          embedding?: string | null
+          id?: string
+          ingested_at?: string
+          published_at?: string | null
+          raw_data?: Json | null
+          relevant_categories?: string[] | null
+          relevant_states?: string[] | null
+          source?: string
+          summary?: string | null
+          title?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
+      monitoring_targets: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          created_by_name: string | null
+          id: string
+          target_type: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          id?: string
+          target_type: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          id?: string
+          target_type?: string
+          value?: string
+        }
+        Relationships: []
       }
       nudges: {
         Row: {
@@ -1491,6 +1846,36 @@ export type Database = {
           message: Json
           msg_id: number
           read_ct: number
+        }[]
+      }
+      search_similar_content: {
+        Args: {
+          match_count?: number
+          match_engagement_id?: string
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          content_text: string
+          engagement_id: string
+          similarity: number
+          source_id: string
+          source_table: string
+        }[]
+      }
+      search_similar_market_intel: {
+        Args: {
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          id: string
+          similarity: number
+          source: string
+          summary: string
+          title: string
+          url: string
         }[]
       }
     }
