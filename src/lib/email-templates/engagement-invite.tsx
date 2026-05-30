@@ -34,11 +34,11 @@ export function EngagementInvite({
   return (
     <Html>
       <Head />
-      <Preview>{`${inviterName} invited you to ${engagementName} on Athena Command Center`}</Preview>
+      <Preview>{`${inviterName} invited you to ${engagementName} on Athena Command™`}</Preview>
       <Body style={{ backgroundColor: C.bg, fontFamily: "system-ui, -apple-system, Segoe UI, sans-serif", color: C.text, margin: 0, padding: 0 }}>
         <Container style={{ maxWidth: 560, margin: "0 auto", padding: "32px 24px" }}>
           <Text style={{ fontSize: 11, letterSpacing: 2, textTransform: "uppercase", color: C.gold, margin: 0, fontWeight: 700 }}>
-            Athena Command Center
+            Athena Command™
           </Text>
           <Heading style={{ fontSize: 22, lineHeight: "30px", margin: "12px 0 8px", color: C.text }}>
             You've been invited to the Command Center

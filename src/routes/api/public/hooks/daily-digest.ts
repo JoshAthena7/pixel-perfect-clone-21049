@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 import { DailyDigest, type DailyDigestProps } from '@/lib/email-templates/daily-digest'
 
-const SITE_NAME = 'Athena Command Center'
+const SITE_NAME = 'Athena Command™'
 const SENDER_DOMAIN = 'notify.athenacommandcenter.com'
 const FROM_DOMAIN = 'athenacommandcenter.com'
 const APP_URL = 'https://athenacommandcenter.com'

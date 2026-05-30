@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/accept-invite")({
-  head: () => ({ meta: [{ title: "Accept Invitation — Athena Command Center" }] }),
+  head: () => ({ meta: [{ title: "Accept Invitation — Athena Command™" }] }),
   validateSearch: (s: Record<string, unknown>) => ({
     token: typeof s.token === "string" ? s.token : "",
   }),

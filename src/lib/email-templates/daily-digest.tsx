@@ -60,7 +60,7 @@ export function DailyDigest({
         <Container style={{ maxWidth: 600, margin: '0 auto', padding: '32px 24px' }}>
           <Section>
             <Text style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: COLORS.muted, margin: 0 }}>
-              Athena Command Center
+              Athena Command™
             </Text>
             <Heading style={{ fontSize: 24, fontWeight: 700, margin: '4px 0 0' }}>
               Daily Brief — {dateLabel}

@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { logActivity } from "@/lib/activity-log";
 
 export const Route = createFileRoute("/_authenticated/issues")({
-  head: () => ({ meta: [{ title: "Issues — Athena" }] }),
+  head: () => ({ meta: [{ title: "Escalations — Athena" }] }),
   component: IssuesPage,
 });
 

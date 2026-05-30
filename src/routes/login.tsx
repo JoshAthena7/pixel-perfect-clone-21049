@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { AthenaMark } from "@/components/ui/AthenaMark";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Sign in — Athena Command Center" }] }),
+  head: () => ({ meta: [{ title: "Sign in — Athena Command™" }] }),
   component: LoginPage,
 });
 

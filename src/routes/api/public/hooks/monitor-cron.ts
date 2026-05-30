@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 
-const SITE_NAME = 'Athena Command Center'
+const SITE_NAME = 'Athena Command™'
 const SENDER_DOMAIN = 'notify.athenacommandcenter.com'
 const FROM_DOMAIN = 'athenacommandcenter.com'
 const APP_URL = 'https://athenacommandcenter.com'

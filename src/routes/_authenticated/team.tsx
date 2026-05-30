@@ -79,7 +79,7 @@ function parseBool(v: string | undefined): boolean {
 }
 
 export const Route = createFileRoute("/_authenticated/team")({
-  head: () => ({ meta: [{ title: "Collective™ — Athena Command Center" }] }),
+  head: () => ({ meta: [{ title: "Collective™ — Athena Command™" }] }),
   component: TeamPage,
 });
 

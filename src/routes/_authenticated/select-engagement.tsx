@@ -7,7 +7,7 @@ import { LogOut, Archive, Plus, Siren, Users, FileText, Clock } from "lucide-rea
 import { daysUntil } from "@/lib/time";
 
 export const Route = createFileRoute("/_authenticated/select-engagement")({
-  head: () => ({ meta: [{ title: "Command Lobby — Athena" }] }),
+  head: () => ({ meta: [{ title: "Command Home — Athena" }] }),
   component: SelectEngagementPage,
 });
 
