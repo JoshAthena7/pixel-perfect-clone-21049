@@ -1506,6 +1506,63 @@ export type Database = {
         }
         Relationships: []
       }
+      section_drafts: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          engagement_id: string
+          id: string
+          return_note: string | null
+          section_id: string
+          status: string
+          updated_at: string
+          version: number
+          word_count: number
+        }
+        Insert: {
+          author_id: string
+          body?: string
+          created_at?: string
+          engagement_id: string
+          id?: string
+          return_note?: string | null
+          section_id: string
+          status?: string
+          updated_at?: string
+          version?: number
+          word_count?: number
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          engagement_id?: string
+          id?: string
+          return_note?: string | null
+          section_id?: string
+          status?: string
+          updated_at?: string
+          version?: number
+          word_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "section_drafts_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "section_drafts_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "heatmap_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       section_threads: {
         Row: {
           author_name: string
