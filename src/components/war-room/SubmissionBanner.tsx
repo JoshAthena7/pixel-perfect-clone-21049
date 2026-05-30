@@ -99,6 +99,12 @@ export function SubmissionBanner() {
         ? "Submission today"
         : `${Math.abs(dleft)}d past submission`;
 
+  const archived = engagement.status === "Archived" || engagement.status === "Complete";
+  const overdueActive = (tone === "past" || tone === "critical") && !archived;
+  const overdueLabel = dleft !== null && dleft < 0 && !archived
+    ? "SUBMISSION OVERDUE"
+    : label;
+
   return (
     <div className={cn("border-b backdrop-blur px-3 py-2", toneClasses)}>
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 text-xs">
@@ -108,8 +114,9 @@ export function SubmissionBanner() {
           ) : (
             <Clock className="h-3.5 w-3.5" />
           )}
-          {label}
+          {overdueLabel}
         </div>
+
         <span className="text-muted-foreground">
           Submission{" "}
           {new Date(engagement.submission_date).toLocaleDateString(undefined, {
