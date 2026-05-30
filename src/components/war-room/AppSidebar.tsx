@@ -43,7 +43,7 @@ type NavItem = { title: string; url: string; icon: ComponentType<LucideProps>; h
 
 const opsBase: NavItem[] = [
   { title: "Daily Huddle", url: "/huddle", icon: Users, hint: "60-second status from the front line" },
-  { title: "SOS Alerts", url: "/sos", icon: Siren, hint: "Raise and track urgent issues" },
+  { title: "Issues", url: "/issues", icon: Siren, hint: "Unified board for SOS blockers and risks" },
   { title: "Team Roster", url: "/team", icon: Contact, hint: "Who is on this engagement" },
 ];
 const opsLeadership: NavItem[] = [
@@ -52,7 +52,6 @@ const opsLeadership: NavItem[] = [
   ...opsBase,
 ];
 const intel: NavItem[] = [
-  { title: "Risks", url: "/risks", icon: ShieldAlert, hint: "Track risks and mitigations" },
   { title: "Heat Map", url: "/heatmap", icon: Grid3x3, hint: "Section-by-section health" },
   { title: "Intel Library", url: "/intel", icon: FolderOpen, hint: "Single source of truth for documents" },
   { title: "Section Assignments", url: "/section-assignments", icon: Grid3x3, hint: "Assign writers to sections" },

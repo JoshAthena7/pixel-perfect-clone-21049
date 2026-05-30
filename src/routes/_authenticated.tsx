@@ -26,9 +26,8 @@ export const Route = createFileRoute("/_authenticated")({
 const PAGE_TITLES: Record<string, string> = {
   "/command": "Command Center",
   "/huddle": "Daily Huddle",
-  "/sos": "SOS Alerts",
+  "/issues": "Issues",
   "/team": "Team Roster",
-  "/risks": "Risks",
   "/heatmap": "Heat Map",
   "/intel": "Intelligence Center",
   "/decisions": "Decision Log",
