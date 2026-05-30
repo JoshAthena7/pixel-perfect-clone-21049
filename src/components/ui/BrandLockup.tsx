@@ -53,15 +53,14 @@ export function BrandLockup({ size = "md", markOnly = false, className }: Props)
           <span
             style={{
               fontFamily: "'Montserrat', sans-serif",
-              fontSize: SUB_PX[size],
-              letterSpacing: "0.16em",
-              fontWeight: 600,
+              fontSize: TITLE_PX[size],
+              letterSpacing: "0.01em",
+              fontWeight: 700,
               color: "#C49A2A",
               marginTop: 4,
             }}
-            className="uppercase"
           >
-            Command™
+            Strategy Group
           </span>
         </div>
       )}
