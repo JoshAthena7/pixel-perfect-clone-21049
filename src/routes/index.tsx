@@ -2,7 +2,8 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
   beforeLoad: () => {
-    // Front door — let _authenticated guard auth, then route through the picker
-    throw redirect({ to: "/select-engagement" });
+    // Front door — auth gate runs in _authenticated; pass ?auto=1 so single-engagement
+    // users get fast-routed past the lobby, while explicit /select-engagement always shows it.
+    throw redirect({ to: "/select-engagement", search: { auto: "1" } as never });
   },
 });
