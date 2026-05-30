@@ -95,6 +95,7 @@ function HeatmapPage() {
     if (!engagement) return;
     load(engagement.id);
     loadReviewCount(engagement.id);
+    loadPolicyCounts(engagement.id);
     const ch = supabase
       .channel(`heat:${engagement.id}`)
       .on(
@@ -106,6 +107,11 @@ function HeatmapPage() {
         "postgres_changes",
         { event: "*", schema: "public", table: "win_theme_mappings", filter: `engagement_id=eq.${engagement.id}` },
         () => loadReviewCount(engagement.id),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "policy_section_mappings", filter: `engagement_id=eq.${engagement.id}` },
+        () => loadPolicyCounts(engagement.id),
       )
       .subscribe();
     return () => {
