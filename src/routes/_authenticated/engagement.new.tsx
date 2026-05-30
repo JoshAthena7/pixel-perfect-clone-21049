@@ -6,6 +6,9 @@ import { useIsAdmin } from "@/hooks/use-admin";
 import { useSession } from "@/hooks/use-session";
 import { ChevronLeft, Plus, X, ShieldCheck, ArrowRight, Link as LinkIcon, Sparkles, FileText, Upload, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import * as mammoth from "mammoth";
+import * as pdfjs from "pdfjs-dist";
+import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
 export const Route = createFileRoute("/_authenticated/engagement/new")({
   head: () => ({ meta: [{ title: "New Engagement — Athena" }] }),
@@ -99,10 +102,32 @@ function detectValue(source: string) {
   return String(Math.round(base * multiplier));
 }
 
+async function extractRfpText(file: File) {
+  if (file.type.startsWith("text/") || /\.(txt|rtf|md|csv)$/i.test(file.name)) return file.text();
+  if (/\.docx$/i.test(file.name)) {
+    const result = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
+    return result.value;
+  }
+  if (file.type === "application/pdf" || /\.pdf$/i.test(file.name)) {
+    pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+    const task = pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) });
+    const doc = await task.promise;
+    const pages = await Promise.all(
+      Array.from({ length: Math.min(doc.numPages, 12) }, async (_, index) => {
+        const page = await doc.getPage(index + 1);
+        const content = await page.getTextContent();
+        return content.items.map((item: any) => item.str ?? "").join(" ");
+      }),
+    );
+    await doc.destroy();
+    return pages.join("\n");
+  }
+  return "";
+}
+
 async function buildSeedFromRfpFile(file: File, states: StateRow[]): Promise<RfpSeed> {
   const filename = titleCase(cleanDocName(file.name));
-  const isReadableText = file.type.startsWith("text/") || /\.(txt|rtf|md|csv)$/i.test(file.name);
-  const body = isReadableText ? (await file.text()).slice(0, 30000) : "";
+  const body = (await extractRfpText(file)).slice(0, 30000);
   const source = `${filename}\n${body}`;
   const client = firstMatch(source, [
     /(?:issued by|issuing agency|agency|client|department)\s*[:\-]\s*([^\n]{3,100})/i,
@@ -125,7 +150,7 @@ async function buildSeedFromRfpFile(file: File, states: StateRow[]): Promise<Rfp
     contractValue: detectValue(source) || undefined,
     evalCriteria: evalCriteria.length ? evalCriteria : undefined,
     localRequirements: body ? firstMatch(source, [/(?:mandatory requirements|minimum requirements|local requirements)\s*[:\-]\s*([^\n]{10,220})/i]) || undefined : undefined,
-    stateNotes: isReadableText ? "Seeded from uploaded RFP text. Review and refine during setup." : "Seeded from uploaded RFP filename. Review and refine during setup.",
+    stateNotes: body ? "Seeded from uploaded RFP text. Review and refine during setup." : "Seeded from uploaded RFP filename. Review and refine during setup.",
   };
 }
 
