@@ -16,6 +16,7 @@ import { NeedsAttentionPanel } from "@/components/war-room/NeedsAttentionPanel";
 import { relativeTime } from "@/lib/time";
 import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
 import { SnapshotsPanel } from "@/components/war-room/SnapshotsPanel";
+import { IntelligenceInsightsPanel } from "@/components/war-room/IntelligenceInsightsPanel";
 
 export const Route = createFileRoute("/_authenticated/command")({
   head: () => ({ meta: [{ title: "Command Center — Athena" }] }),
