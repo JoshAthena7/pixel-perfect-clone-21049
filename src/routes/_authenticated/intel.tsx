@@ -89,7 +89,7 @@ function IntelPage() {
       const text = await extractTextFromFile(file);
       if (!text || text.trim().length < 50) throw new Error("Could not extract enough text from this file.");
       toast.info("Running Holy Grail analysis…");
-      await analyzeHolyGrail({ data: { engagementId: engagement.id, documentId: it.id, fileName: it.name, text } });
+      await analyzeOpportunity({ data: { engagementId: engagement.id, documentId: it.id, fileName: it.name, text } });
       toast.success("Holy Grail ready");
       setHgRefresh((n) => n + 1);
     } catch (err: any) {
