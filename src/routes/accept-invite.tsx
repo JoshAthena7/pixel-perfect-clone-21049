@@ -61,7 +61,7 @@ function AcceptInvitePage() {
           <>
             <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-500" />
             <h1 className="mt-4 text-xl font-bold">You're in.</h1>
-            <p className="mt-2 text-sm text-muted-foreground">Opening the Command Center…</p>
+            <p className="mt-2 text-sm text-muted-foreground">Opening the Mission…</p>
           </>
         )}
         {state === "error" && (
