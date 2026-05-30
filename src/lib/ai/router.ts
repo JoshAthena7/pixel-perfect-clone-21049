@@ -105,7 +105,10 @@ export async function runAI(input: RunAIInput): Promise<RunAIResult> {
   }
 
   // extract | analyze → Claude
-  const deep = "deep" in input ? input.deep : false;
+  if (input.task !== "extract" && input.task !== "analyze") {
+    throw new Error(`Unsupported AI task: ${(input as { task: string }).task}`);
+  }
+  const deep = input.deep ?? false;
   const model: ClaudeModel =
     input.model ?? (deep ? "claude-opus-4-5" : "claude-sonnet-4-5");
   const text = await askClaude({
