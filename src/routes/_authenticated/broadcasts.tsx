@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { relativeTime } from "@/lib/time";
 import { Pin, ChevronDown, ChevronUp, Check, Minus } from "lucide-react";
+import { logActivity } from "@/lib/activity-log";
 
 
 export const Route = createFileRoute("/_authenticated/broadcasts")({
