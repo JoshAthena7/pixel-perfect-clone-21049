@@ -123,6 +123,16 @@ export function AppSidebar() {
 
       <SidebarFooter>
         <SidebarMenu>
+          {isAdmin && (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={pathname.startsWith("/admin")} tooltip="Admin Portal — Platform-wide control across every war room">
+                <Link to="/admin">
+                  <Shield className="h-4 w-4" />
+                  <span>Admin</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
           <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={isActive("/select-engagement")} tooltip="War Rooms — Switch engagements or open a new one">
               <Link to="/select-engagement">
