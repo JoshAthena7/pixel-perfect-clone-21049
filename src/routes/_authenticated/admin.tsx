@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
-import { AdminTopbar } from "@/components/admin/AdminTopbar";
+import { MissionHierarchyTopbar } from "@/components/war-room/MissionHierarchyTopbar";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { Toaster } from "@/components/ui/sonner";
 
