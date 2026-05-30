@@ -970,6 +970,48 @@ export type Database = {
           },
         ]
       }
+      holy_grail_runs: {
+        Row: {
+          created_at: string
+          current_step: string | null
+          engagement_id: string
+          error: string | null
+          id: string
+          status: string
+          steps_done: number
+          steps_total: number
+          triggered_by: string | null
+          triggered_by_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_step?: string | null
+          engagement_id: string
+          error?: string | null
+          id?: string
+          status?: string
+          steps_done?: number
+          steps_total?: number
+          triggered_by?: string | null
+          triggered_by_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_step?: string | null
+          engagement_id?: string
+          error?: string | null
+          id?: string
+          status?: string
+          steps_done?: number
+          steps_total?: number
+          triggered_by?: string | null
+          triggered_by_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       hook_failures: {
         Row: {
           acknowledged_at: string | null
@@ -1933,6 +1975,39 @@ export type Database = {
           prize?: string | null
           winner_member_id?: string
           winner_name?: string
+        }
+        Relationships: []
+      }
+      web_research_cache: {
+        Row: {
+          cache_key: string
+          category: string
+          created_at: string
+          expires_at: string
+          id: string
+          query: string
+          result: Json
+          source_urls: string[] | null
+        }
+        Insert: {
+          cache_key: string
+          category: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          query: string
+          result: Json
+          source_urls?: string[] | null
+        }
+        Update: {
+          cache_key?: string
+          category?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          query?: string
+          result?: Json
+          source_urls?: string[] | null
         }
         Relationships: []
       }
