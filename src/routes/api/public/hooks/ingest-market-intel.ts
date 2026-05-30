@@ -536,13 +536,15 @@ async function handler() {
   });
   const openaiKey = process.env.OPENAI_API_KEY;
   const runStart = new Date().toISOString();
+  const runStartMs = Date.parse(runStart);
 
-  // Run RSS (preserved) + 3 new sources in parallel
-  const [rssRes, frRes, congressRes, kffRes] = await Promise.allSettled([
+  // Run RSS (preserved) + 4 new sources in parallel
+  const [rssRes, frRes, congressRes, kffRes, newsRes] = await Promise.allSettled([
     ingestRSS(supabase, openaiKey),
     ingestFederalRegister(supabase, openaiKey),
     ingestCongress(supabase, openaiKey),
     ingestKFF(supabase, openaiKey),
+    ingestNewsAPI(supabase, openaiKey, runStartMs),
   ]);
 
   async function logFailure(name: string, err: unknown) {
@@ -562,6 +564,7 @@ async function handler() {
     federal_register: frRes.status === "fulfilled" ? { ...frRes.value, error: null } : { inserted: 0, skipped: 0, error: String(frRes.reason) },
     congress: congressRes.status === "fulfilled" ? { ...congressRes.value, error: null } : { inserted: 0, skipped: 0, error: String(congressRes.reason) },
     kff: kffRes.status === "fulfilled" ? { ...kffRes.value, error: null } : { states_updated: 0, error: String(kffRes.reason) },
+    newsapi: newsRes.status === "fulfilled" ? { ...newsRes.value, error: null } : { inserted: 0, skipped: 0, error: String(newsRes.reason) },
     matches_created: 0,
   };
 
@@ -569,6 +572,7 @@ async function handler() {
   if (frRes.status === "rejected") await logFailure("federal_register", frRes.reason);
   if (congressRes.status === "rejected") await logFailure("congress", congressRes.reason);
   if (kffRes.status === "rejected") await logFailure("kff", kffRes.reason);
+  if (newsRes.status === "rejected") await logFailure("newsapi", newsRes.reason);
 
   // Run engagement matching
   try {
