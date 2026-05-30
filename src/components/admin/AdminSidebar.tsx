@@ -31,7 +31,7 @@ import type { LucideProps } from "lucide-react";
 type Item = { title: string; url: string; icon: ComponentType<LucideProps>; hint: string };
 
 const NAV: Item[] = [
-  { title: "Dashboard",       url: "/admin",               icon: LayoutDashboard, hint: "Platform overview across every war room" },
+  { title: "Dashboard",       url: "/admin",               icon: LayoutDashboard, hint: "Platform overview across every Command Center" },
   { title: "Engagements",     url: "/admin/engagements",   icon: Building2,       hint: "All active, closed, and archived war rooms" },
   { title: "Collective™",     url: "/admin/collective",    icon: Users,           hint: "People across all engagements" },
   { title: "Global Messaging",url: "/admin/messaging",     icon: Megaphone,       hint: "Broadcast to any or all war rooms" },
