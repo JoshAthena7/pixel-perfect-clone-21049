@@ -78,11 +78,12 @@ function LoginPage() {
       <div className="relative w-full max-w-md rounded-2xl border border-[var(--gold)]/25 bg-surface/95 p-8 shadow-2xl backdrop-blur">
         <div className="mb-7 text-center">
           <AthenaMark
-            size="xl"
+            size="lg"
             variant="lockup"
             tone="white"
             className="mx-auto mb-5 drop-shadow-[0_4px_20px_rgba(196,154,42,0.25)]"
           />
+
 
           <div className="mx-auto mb-3 h-px w-16 bg-gradient-to-r from-transparent via-[var(--gold)] to-transparent" />
           <h1 className="text-xl font-semibold tracking-[0.2em] uppercase text-foreground">

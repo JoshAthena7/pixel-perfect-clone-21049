@@ -6,8 +6,9 @@ import { AthenaMark } from "@/components/ui/AthenaMark";
 export function AdminTopbar() {
   return (
     <div className="flex min-w-0 flex-1 items-center gap-3 text-xs">
-      <AthenaMark size="sm" variant="lockup" tone="white" className="hidden md:block" />
+      <AthenaMark size="md" variant="lockup" tone="white" className="hidden md:block" />
       <AthenaMark size="sm" variant="mark" tone="white" className="md:hidden" />
+
       <span className="hidden md:inline text-muted-foreground">·</span>
 
       <span className="font-bold text-sm truncate">Executive Command</span>
