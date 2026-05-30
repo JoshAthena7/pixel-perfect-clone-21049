@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 
+/**
+ * Platform admin access is STRICTLY gated by profiles.is_platform_admin.
+ * Engagement roles like "founder" do NOT grant admin portal access —
+ * they only grant leadership within a specific war room.
+ */
 export function useIsAdmin() {
   const { user, loading: sessionLoading } = useSession();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -16,17 +21,13 @@ export function useIsAdmin() {
         return;
       }
       setLoading(true);
-      const [{ data: prof }, { data: founderRows }] = await Promise.all([
-        supabase.from("profiles").select("is_platform_admin").eq("id", user.id).maybeSingle(),
-        supabase
-          .from("engagement_members")
-          .select("id")
-          .eq("user_id", user.id)
-          .eq("role", "founder")
-          .limit(1),
-      ]);
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("is_platform_admin")
+        .eq("id", user.id)
+        .maybeSingle();
       if (cancelled) return;
-      setIsAdmin(Boolean(prof?.is_platform_admin) || (founderRows?.length ?? 0) > 0);
+      setIsAdmin(Boolean(prof?.is_platform_admin));
       setLoading(false);
     }
     if (!sessionLoading) check();

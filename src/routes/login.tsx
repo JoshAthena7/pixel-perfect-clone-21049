@@ -21,11 +21,20 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    async function routeForUser(userId: string) {
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("is_platform_admin")
+        .eq("id", userId)
+        .maybeSingle();
+      const dest = prof?.is_platform_admin ? "/admin" : "/select-engagement?auto=1";
+      navigate({ to: dest, replace: true });
+    }
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
-      if (s?.user) navigate({ to: "/select-engagement", replace: true });
+      if (s?.user) routeForUser(s.user.id);
     });
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session?.user) navigate({ to: "/select-engagement", replace: true });
+      if (data.session?.user) routeForUser(data.session.user.id);
     });
     return () => subscription.unsubscribe();
   }, [navigate]);
@@ -39,7 +48,7 @@ function LoginPage() {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/select-engagement`,
+            emailRedirectTo: `${window.location.origin}/login`,
             data: { display_name: name || email.split("@")[0] },
           },
         });
