@@ -34,7 +34,7 @@ type Assignment = {
   word_count_min: number | null;
   word_count_max: number | null;
   section_id: string;
-  section?: { section_name: string; instructions: string | null };
+  section?: { section_name: string; instructions: string | null; evaluation_weight_pct: number | null };
 };
 
 const STATUS_STYLES: Record<string, string> = {
