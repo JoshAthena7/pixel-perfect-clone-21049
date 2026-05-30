@@ -49,7 +49,7 @@ export const askAssistant = createServerFn({ method: "POST" })
         const [{ data: sim }, { data: msim }] = await Promise.all([
           supabase.rpc("search_similar_content", {
             query_embedding: lit as any,
-            match_engagement_id: null, // search across all engagements the user can see
+            match_engagement_id: undefined, // search across all engagements the user can see
             match_threshold: 0.75,
             match_count: 6,
           }),
