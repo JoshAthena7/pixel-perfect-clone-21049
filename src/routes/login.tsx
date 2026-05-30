@@ -97,6 +97,18 @@ function LoginPage() {
             Operator-Led. Intelligence-Driven.
           </p>
 
+          <div className="mt-5 flex flex-col items-center gap-1.5">
+            <div className="flex items-center gap-2 text-foreground/80">
+              <IrisIcon size={18} />
+              <span className="text-sm font-semibold tracking-wide">Iris</span>
+            </div>
+            <div
+              className="italic"
+              style={{ fontSize: "10px", color: "#C49A2A", letterSpacing: "0.1em", opacity: 0.9 }}
+            >
+              Athena thinks. Iris delivers.
+            </div>
+          </div>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-4">
