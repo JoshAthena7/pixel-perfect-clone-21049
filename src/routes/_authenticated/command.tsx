@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
 import { calcTemperature } from "@/components/war-room/Thermometer";
-import { Siren, Users, ShieldAlert, Megaphone, Grid3x3, Sparkles, Clock, Settings as SettingsIcon, Hash } from "lucide-react";
+import { Siren, Users, ShieldAlert, Megaphone, Grid3x3, Sparkles, Clock, Settings as SettingsIcon, Hash, Inbox } from "lucide-react";
 import { LivePresence } from "@/components/war-room/LivePresence";
 import { ActionLauncher } from "@/components/war-room/ActionLauncher";
 import { NeedsAttentionPanel } from "@/components/war-room/NeedsAttentionPanel";
@@ -15,6 +15,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { listSlackChannels, getSlackMessages } from "@/lib/slack.functions";
 import { Plug } from "lucide-react";
 import { relativeTime, hoursSince } from "@/lib/time";
+import { useNeedsAttention } from "@/hooks/use-needs-attention";
 
 export const Route = createFileRoute("/_authenticated/command")({
   head: () => ({ meta: [{ title: "Command Center — Athena" }] }),
