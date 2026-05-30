@@ -11,6 +11,21 @@ function fmt(ts: string) {
   return new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
+function expiryLabel(expiresAt: string): string | null {
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  if (ms <= 0) return "Expired";
+  const twoH = 2 * 60 * 60 * 1000;
+  if (ms > twoH) return null;
+  const mins = Math.max(1, Math.round(ms / 60000));
+  if (mins >= 60) {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return m === 0 ? `Expires in ${h}h` : `Expires in ${h}h ${m}m`;
+  }
+  return `Expires in ${mins}m`;
+}
+
+
 export function QuickChatPanel() {
   const { engagement, member } = useEngagement();
   const { chatOpenWith, closeChat } = useComms();
