@@ -71,16 +71,6 @@ function BroadcastsPage() {
     });
     setSubmitting(false);
     if (error) return toast.error(error.message);
-    const msg = content.trim();
-    notifySlack({
-      data: {
-        engagementId: engagement.id,
-        event: "broadcast",
-        title: pinned ? "📌 Pinned broadcast" : "Broadcast",
-        body: msg,
-        author: member.display_name,
-      },
-    }).catch(() => {});
     setContent(""); setPinned(false);
     toast.success("Broadcast sent");
   }
