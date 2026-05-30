@@ -118,8 +118,8 @@ function RoleGuardedShell() {
     }
   }, [loading, member, engagement, isWriter, isWriterPath, onPicker, onNdaGate, ndaSatisfied, isLeadership, pathname, navigate]);
 
-  // Picker / overview pages render full-bleed without the war-room shell
-  if (onPicker) {
+  // Picker / overview / NDA gate render full-bleed without the war-room shell
+  if (onPicker || onNdaGate) {
     return (
       <>
         <Outlet />
