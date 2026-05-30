@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { StatusPill, type StatusColor } from "@/components/war-room/StatusPill";
 import { toast } from "sonner";
 import { relativeTime } from "@/lib/time";
+import { createIssue } from "@/lib/flag-issue";
 
 export const Route = createFileRoute("/_authenticated/huddle")({
   head: () => ({ meta: [{ title: "Daily Huddle — Athena" }] }),
@@ -95,16 +96,16 @@ function HuddlePage() {
         }
 
         if (!anyAvailable) {
-          await supabase.from("sos_alerts").insert({
-            engagement_id: engagement.id,
-            submitted_by: user.id,
-            submitter_name: member.display_name,
+          await createIssue({
+            type: "sos",
+            severity: "Yellow",
+            engagementId: engagement.id,
+            userId: user.id,
+            memberName: member.display_name,
             category: "Leadership Needed",
-            severity: "Medium",
             description:
               (notes && notes.trim()) ||
               `Huddle from ${member.display_name} flagged for leadership attention.`,
-            status: "Open",
           });
           toast.success(
             "Your request has been flagged. No leadership is currently online — they will be notified.",
