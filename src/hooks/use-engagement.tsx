@@ -37,6 +37,7 @@ type Ctx = {
   canWrite: boolean;
   isWriter: boolean;
   isViewer: boolean;
+  isArchived: boolean;
   refresh: () => Promise<void>;
 };
 
