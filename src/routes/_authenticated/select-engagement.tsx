@@ -263,7 +263,7 @@ function SelectEngagementPage() {
               className="mt-4 inline-flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold uppercase tracking-[0.18em]"
               style={{ background: GOLD, color: "#0D0F1A" }}
             >
-              <Plus className="h-3.5 w-3.5" /> Open New Room
+              <Plus className="h-3.5 w-3.5" /> New Mission
             </button>
           </EmptyState>
         ) : (
