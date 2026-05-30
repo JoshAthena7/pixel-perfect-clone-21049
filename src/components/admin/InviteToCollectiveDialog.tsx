@@ -134,6 +134,7 @@ export function InviteToCollectiveDialog({
       reset();
       onOpenChange(false);
       onInvited?.();
+      setCooldown(COOLDOWN_SECONDS);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to send invite";
       toast.error("Invite failed", { description: message });
