@@ -60,6 +60,8 @@ function CommandCenter() {
   const [heatmap, setHeatmap] = useState<Heat[]>([]);
   const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
   const [latestPulse, setLatestPulse] = useState<{ sentiment: string } | null>(null);
+  const { items: attentionItems } = useNeedsAttention(engagement?.id);
+  const attentionCount = attentionItems.filter((i) => !i.resolved).length;
 
   async function loadAll(eid: string) {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
