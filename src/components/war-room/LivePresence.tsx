@@ -25,6 +25,7 @@ const PATH_LABEL: Record<string, string> = {
   "/command": "Command Center",
   "/huddle": "Daily Huddle",
   "/issues": "Issues",
+  "/team": "Team Roster",
   "/heatmap": "Heat Map",
   "/intel": "Intel",
   "/decisions": "Decisions",
