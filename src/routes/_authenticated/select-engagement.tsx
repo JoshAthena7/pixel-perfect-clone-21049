@@ -59,7 +59,7 @@ function SelectEngagementPage() {
   const [showArchived, setShowArchived] = useState(false);
   const [statsById, setStatsById] = useState<Record<string, Stats>>({});
   const [horizon, setHorizon] = useState<Horizon[]>([]);
-  const [creating, setCreating] = useState(false);
+  const creating = false;
 
   const active = useMemo(
     () => memberships.filter((m) => m.engagement.status !== "Archived"),
