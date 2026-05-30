@@ -16,6 +16,7 @@ import { CommsProvider } from "@/hooks/use-comms";
 import { QuickChatPanel } from "@/components/war-room/comms/QuickChatPanel";
 import { ChatNavButton } from "@/components/war-room/comms/ChatNavButton";
 import { WriterActionLauncher } from "@/components/war-room/writer/WriterActionLauncher";
+import { DailyCheckin } from "@/components/war-room/writer/DailyCheckin";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthLayout,
@@ -122,6 +123,7 @@ function RoleGuardedShell() {
         </div>
       </div>
       <QuickChatPanel />
+      {isWriter && <DailyCheckin />}
       <Toaster theme="dark" position="top-right" />
     </SidebarProvider>
   );
