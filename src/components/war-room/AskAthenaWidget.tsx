@@ -538,6 +538,12 @@ export function AskAthenaWidget() {
                   <Send className="h-3.5 w-3.5" /> Send
                 </button>
               </form>
+              <div
+                className="italic text-center pb-1"
+                style={{ fontSize: "9px", color: "#1e2240", letterSpacing: "0.1em" }}
+              >
+                Athena thinks. Iris delivers.
+              </div>
             </>
           ) : (
             <div className="flex-1 overflow-auto px-4 py-3 space-y-3">
