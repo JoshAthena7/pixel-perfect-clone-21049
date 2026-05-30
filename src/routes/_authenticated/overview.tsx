@@ -141,6 +141,8 @@ function OverviewPage() {
           </div>
         </div>
 
+        <HookFailuresPanel />
+
         {fetching ? (
           <div className="text-sm text-muted-foreground">Loading rollups…</div>
         ) : (
