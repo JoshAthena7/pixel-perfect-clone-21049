@@ -44,9 +44,9 @@ export function WriterSidebar() {
   return (
     <Sidebar collapsible="icon" style={{ ["--sidebar-width" as any]: "180px" }}>
       <SidebarHeader>
-        <div className="flex flex-col items-center gap-2 px-2 py-3 border-b border-border/40">
-          <AthenaMark size="md" tone="color" />
-          <div className="text-[10px] uppercase tracking-[0.28em] text-[var(--gold)] font-semibold">
+        <div className="flex flex-col items-center gap-1.5 px-2 py-3 border-b border-border/40">
+          <BrandLockup size="md" />
+          <div className="text-[9px] uppercase tracking-[0.28em] text-[var(--gold)] font-semibold">
             Writer Portal
           </div>
         </div>
