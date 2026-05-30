@@ -98,6 +98,30 @@ function SectionAssignments() {
           </div>
         </form>
       </Card>
+
+      <Card className="border-border bg-surface p-4">
+        <div className="mb-3">
+          <h2 className="text-sm font-bold">Section sensitivity</h2>
+          <p className="text-[11px] text-muted-foreground">Restricted sections are hidden from writers until unlocked.</p>
+        </div>
+        <div className="space-y-1.5">
+          {sections.map((s: any) => {
+            const restricted = s.sensitivity === "restricted";
+            return (
+              <div key={s.id} className="flex items-center justify-between rounded border border-border/60 px-3 py-2">
+                <div className="flex items-center gap-2 text-sm">
+                  {restricted ? <Lock className="h-3.5 w-3.5 text-[var(--gold)]" /> : <Unlock className="h-3.5 w-3.5 text-muted-foreground" />}
+                  <span>{s.section_name}</span>
+                  {restricted && <Badge variant="outline" className="border-[var(--gold)]/50 text-[10px] text-[var(--gold)]">Restricted</Badge>}
+                </div>
+                <Button size="sm" variant="ghost" onClick={() => toggleSensitivity(s.id, s.sensitivity)}>
+                  {restricted ? "Unlock for writers" : "Lock to leadership"}
+                </Button>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
       {assignments.length === 0 ? (
         <Card className="border-border bg-surface p-6 text-sm text-muted-foreground">No assignments yet.</Card>
       ) : (
