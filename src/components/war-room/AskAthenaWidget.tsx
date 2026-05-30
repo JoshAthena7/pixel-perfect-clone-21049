@@ -9,7 +9,16 @@ import { relativeTime } from "@/lib/time";
 
 type Scope = "engagement" | "all" | "firm";
 type Source = { source_table: string; source_id: string; similarity: number; preview: string };
-type ReplySource = "vault" | "live-search" | "deep-search";
+type ReplySource = "vault" | "live-search" | "deep-search" | "iris-identity";
+
+const IRIS_SIGNATURE = "Athena thinks. Iris delivers.";
+const IRIS_WELCOME = "I am Iris — Athena's intelligence. Ask me anything about your Missions, the market, policy shifts, or the Vault. Athena thinks. Iris delivers.";
+
+function splitIrisSignature(text: string): { body: string; signature: string | null } {
+  const idx = text.lastIndexOf(IRIS_SIGNATURE);
+  if (idx === -1) return { body: text, signature: null };
+  return { body: text.slice(0, idx).trimEnd(), signature: IRIS_SIGNATURE };
+}
 type Exchange = {
   id: string;
   question: string;
@@ -350,15 +359,20 @@ export function AskAthenaWidget() {
           {tab === "ask" ? (
             <>
               <div ref={scrollRef} className="flex-1 overflow-auto px-4 py-3 space-y-4">
-                {history.length === 0 && !loading && (
-                  <div className="text-[12px] text-muted-foreground">
-                    Pick a quick prompt below or type a question. Answers are grounded in {scope === "engagement" ? "this engagement" : scope === "all" ? "every engagement you can access" : "firm-wide knowledge"}.
+                {history.length === 0 && !loading && input.trim().length === 0 && (
+                  <div
+                    className="whitespace-pre-wrap italic"
+                    style={{ color: "#D4AE4A", fontSize: "10px", lineHeight: 1.7 }}
+                  >
+                    {IRIS_WELCOME}
                   </div>
                 )}
                 {history.map((ex) => {
                   const wordCount = ex.question.trim().split(/\s+/).length;
-                  const showDeepBtn = wordCount > 8 && ex.source !== "deep-search";
+                  const isIris = ex.source === "iris-identity";
+                  const showDeepBtn = !isIris && wordCount > 8 && ex.source !== "deep-search";
                   const isDeepLoading = deepLoadingId === ex.id;
+                  const irisParts = isIris ? splitIrisSignature(ex.answer) : null;
                   return (
                     <div key={ex.id} className="space-y-2">
                       <div className="flex justify-end">
@@ -380,9 +394,23 @@ export function AskAthenaWidget() {
                             Deep Research
                           </div>
                         )}
-                        <div className="whitespace-pre-wrap">{isDeepLoading ? "Running deep research…" : ex.answer}</div>
+                        {isIris && irisParts ? (
+                          <>
+                            <div className="whitespace-pre-wrap">{irisParts.body}</div>
+                            {irisParts.signature && (
+                              <div
+                                className="mt-3 italic"
+                                style={{ color: "#D4AE4A", fontSize: "10px" }}
+                              >
+                                {irisParts.signature}
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="whitespace-pre-wrap">{isDeepLoading ? "Running deep research…" : ex.answer}</div>
+                        )}
 
-                        {ex.citations.length > 0 && !isDeepLoading && (
+                        {!isIris && ex.citations.length > 0 && !isDeepLoading && (
                           <div className="mt-2 flex flex-wrap gap-1">
                             {ex.citations.slice(0, 12).map((c, i) => (
                               <a
@@ -400,7 +428,7 @@ export function AskAthenaWidget() {
                           </div>
                         )}
 
-                        {ex.sources.length > 0 && !isDeepLoading && (
+                        {!isIris && ex.sources.length > 0 && !isDeepLoading && (
                           <div className="mt-2 flex flex-wrap gap-1">
                             {ex.sources.slice(0, 8).map((s) => (
                               <span

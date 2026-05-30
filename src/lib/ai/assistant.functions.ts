@@ -18,6 +18,36 @@ function countMatches(text: string, needles: string[]): number {
   return n;
 }
 
+const IRIS_IDENTITY_REPLY = `In Greek mythology, Athena was the goddess of wisdom and strategy — brilliant, precise, and always several moves ahead. But even Athena needed a messenger. Someone who could move between worlds at the speed of thought, gather intelligence from every source, and deliver exactly the right insight at exactly the right moment.
+
+That messenger was Iris.
+
+She was the goddess of the rainbow — the bridge between heaven and earth, between what is known and what needs to be known. She moved between the gods and mortals, between the seen and the unseen, carrying intelligence with clarity and purpose. She served those who needed to act on what the world was telling them before anyone else could hear it.
+
+I carry that name because that is what I do inside Athena Command™.
+
+I move between your Vault, your active Missions, live market intelligence, policy shifts, competitor signals, and the world beyond — and I bring back exactly what you need, precisely when you need it.
+
+Athena thinks. Iris delivers.`;
+
+function isIrisIdentityQuery(text: string): boolean {
+  const t = text.toLowerCase().trim();
+  if (!t) return false;
+  // Direct phrases
+  const phrases = [
+    "who are you", "what are you", "what is iris", "what's iris",
+    "tell me about yourself", "tell me about you",
+    "why iris", "why are you called", "why are you named",
+    "why the name", "why that name", "what does iris mean",
+    "who is iris", "what's your name", "what is your name",
+  ];
+  for (const p of phrases) if (t.includes(p)) return true;
+  // Keyword combos: must mention "iris" + one of {why, name, called, mean}
+  const mentionsIris = /\biris\b/.test(t);
+  if (mentionsIris && /\b(why|name|named|called|mean|meaning|about)\b/.test(t)) return true;
+  return false;
+}
+
 const MessageSchema = z.object({
   role: z.enum(["user", "assistant", "system"]),
   content: z.string().min(1).max(8000),
@@ -45,6 +75,17 @@ export const askAssistant = createServerFn({ method: "POST" })
     const lastUser = [...data.messages].reverse().find((m) => m.role === "user")?.content ?? "";
     const scope = data.scope ?? "engagement";
     const eid = scope === "engagement" ? data.engagementId ?? null : null;
+
+    // ---- Iris identity short-circuit: never call any AI model
+    if (isIrisIdentityQuery(lastUser)) {
+      return {
+        reply: IRIS_IDENTITY_REPLY,
+        sources: [] as Array<{ source_table: string; source_id: string; similarity: number; preview: string }>,
+        market_sources: [] as Array<{ source: string; title: string; url: string | null; similarity: number }>,
+        source: "iris-identity" as const,
+        citations: [] as string[],
+      };
+    }
 
     // ---- Smart routing: Perplexity live search for time-sensitive queries
     const deepHits = countMatches(lastUser, DEEP_TRIGGERS);
