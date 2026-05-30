@@ -168,6 +168,8 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
         id: currentMembership.member_id,
         role: currentMembership.role,
         display_name: currentMembership.display_name,
+        nda_required: currentMembership.nda_required,
+        nda_confirmed: currentMembership.nda_confirmed,
       }
     : null;
   const role = member?.role ?? null;
@@ -176,6 +178,9 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
   const canWrite = isLeadership && !isArchived;
   const isWriter = role === "writer";
   const isViewer = role === "viewer";
+  const ndaSatisfied = !member
+    ? false
+    : isLeadership || !member.nda_required || member.nda_confirmed;
 
   return (
     <EngagementContext.Provider
@@ -193,6 +198,7 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
         isWriter,
         isViewer,
         isArchived,
+        ndaSatisfied,
         refresh: async () => {
           if (user) await load(user.id);
         },
