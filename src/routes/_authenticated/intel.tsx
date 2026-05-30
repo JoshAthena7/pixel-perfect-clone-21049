@@ -68,6 +68,38 @@ function IntelPage() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [analyzingId, setAnalyzingId] = useState<string | null>(null);
+  const [hgRefresh, setHgRefresh] = useState(0);
+
+  async function runAnalyze(it: any) {
+    if (!engagement || !it.file_path) {
+      toast.error("Holy Grail analysis needs an uploaded file (PDF/DOCX/TXT).");
+      return;
+    }
+    setAnalyzingId(it.id);
+    try {
+      const { data: signed, error: sErr } = await supabase.storage
+        .from("intel-files")
+        .createSignedUrl(it.file_path, 120);
+      if (sErr || !signed) throw new Error(sErr?.message ?? "Could not access file");
+      const resp = await fetch(signed.signedUrl);
+      const blob = await resp.blob();
+      const file = new File([blob], it.name || "rfp", { type: blob.type });
+      toast.info("Extracting text…");
+      const text = await extractTextFromFile(file);
+      if (!text || text.trim().length < 50) throw new Error("Could not extract enough text from this file.");
+      toast.info("Running Holy Grail analysis…");
+      await analyzeHolyGrail({ data: { engagementId: engagement.id, documentId: it.id, fileName: it.name, text } });
+      toast.success("Holy Grail ready");
+      setHgRefresh((n) => n + 1);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Analysis failed");
+    } finally {
+      setAnalyzingId(null);
+    }
+  }
+
+
 
   async function load(eid: string) {
     const { data } = await supabase.from("intel_documents").select("*").eq("engagement_id", eid).order("created_at", { ascending: false });
