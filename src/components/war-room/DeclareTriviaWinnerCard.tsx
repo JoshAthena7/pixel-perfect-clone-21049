@@ -46,7 +46,8 @@ export function DeclareTriviaWinnerCard() {
     );
     if (wErr) { setSaving(false); return toast.error(wErr.message); }
 
-    const parts = [`🏆 Congratulations to ${winner.first_name} — Indiana Trivia Champion!`];
+    const stateLabel = engagement.state ?? "";
+    const parts = [`🏆 Congratulations to ${winner.first_name} — ${stateLabel ? stateLabel + " " : ""}Trivia Champion!`];
     if (message.trim()) parts.push(message.trim());
     if (prize.trim()) parts.push(prize.trim());
     const { error: bErr } = await supabase.from("broadcasts").insert({
@@ -70,7 +71,7 @@ export function DeclareTriviaWinnerCard() {
           <div className="flex items-center gap-2">
             <Trophy className="h-4 w-4 text-[var(--gold)]" />
             <div>
-              <div className="text-sm font-semibold">Indiana Trivia Contest</div>
+              <div className="text-sm font-semibold">{engagement?.state ? `${engagement.state} ` : ""}Trivia Contest</div>
               <div className="text-xs text-muted-foreground">
                 {winnerId
                   ? `Champion declared: ${entries.find((e) => e.member_id === winnerId)?.first_name ?? "—"}`

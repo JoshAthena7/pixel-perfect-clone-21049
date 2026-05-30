@@ -80,15 +80,17 @@ export function useTriviaLeaderboard() {
 
 export function TriviaLeaderboard({ currentMemberId }: { currentMemberId?: string | null }) {
   const { entries, unlocked, winnerId } = useTriviaLeaderboard();
+  const { engagement } = useEngagement();
+  const stateLabel = engagement?.state ?? "";
 
   return (
     <Card className="border-[var(--gold)]/30 bg-surface p-5">
       <div className="flex items-center gap-2">
         <Trophy className="h-4 w-4 text-[var(--gold)]" />
-        <div className="text-[10px] uppercase tracking-[0.22em] text-[var(--gold)] font-semibold">Indiana Trivia Leaderboard</div>
+        <div className="text-[10px] uppercase tracking-[0.22em] text-[var(--gold)] font-semibold">{stateLabel ? `${stateLabel} ` : ""}Trivia Leaderboard</div>
       </div>
       <p className="mt-2 text-xs text-muted-foreground">
-        Indiana Trivia Contest — most correct answers wins a prize at the end of the engagement 🏆
+        {stateLabel ? `${stateLabel} Trivia` : "Trivia"} Contest — most correct answers wins a prize at the end of the engagement 🏆
       </p>
 
       {!unlocked ? (
