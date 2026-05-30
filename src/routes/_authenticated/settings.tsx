@@ -26,7 +26,7 @@ function SettingsPage() {
   const [client, setClient] = useState("");
   const [status, setStatus] = useState("Active");
   const [date, setDate] = useState<Date | undefined>();
-  const [slackWebhook, setSlackWebhook] = useState("");
+  const [saving, setSaving] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
