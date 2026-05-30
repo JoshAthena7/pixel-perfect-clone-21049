@@ -178,30 +178,62 @@ function SosPage() {
 
 
       <div className="space-y-6 lg:col-span-3">
+        {isLeadership && unownedCount > 0 && (
+          <div className="rounded-lg border border-[color:var(--orange)]/40 bg-[color:var(--orange)]/10 px-4 py-2 text-sm font-semibold text-[color:var(--orange)]">
+            {unownedCount} open SOS alert{unownedCount === 1 ? "" : "s"} {unownedCount === 1 ? "has" : "have"} no assigned owner.
+          </div>
+        )}
         <Card className="border-border bg-surface p-6">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Open ({open.length})</h2>
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Open ({open.length})</h2>
+            {unownedCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowUnownedOnly((v) => !v)}
+                className={`rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${
+                  showUnownedOnly
+                    ? "border-[color:var(--orange)] bg-[color:var(--orange)]/15 text-[color:var(--orange)]"
+                    : "border-border text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Unowned ({unownedCount}){showUnownedOnly ? " ×" : ""}
+              </button>
+            )}
+          </div>
           {open.length === 0 ? (
             <EmptyState
               icon={ShieldCheck}
               title="All clear"
-              description="No open SOS alerts right now. If something urgent comes up, raise an SOS from the form on the left."
+              description={showUnownedOnly ? "No unowned alerts — every open SOS has an owner." : "No open SOS alerts right now. If something urgent comes up, raise an SOS from the form on the left."}
               className="mt-4"
             />
           ) : (
             <ul className="mt-4 space-y-3">
-              {open.map((a) => (
+              {open.map((a) => {
+                const noOwner = !a.owner_name || !a.owner_name.trim();
+                return (
                 <li key={a.id} className="rounded-md border border-border bg-surface-hover/40 p-4">
                   <div className="flex flex-wrap items-center gap-2">
                     <StatusPill status={sevColor(a.severity)} label={a.severity} />
                     <span className="text-sm font-bold">{a.category}</span>
                     <StatusPill status={a.status === "Acknowledged" ? "Yellow" : "Red"} label={a.status} />
+                    {noOwner && (
+                      <span className="inline-flex items-center rounded-full border border-[color:var(--orange)]/50 bg-[color:var(--orange)]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--orange)]">
+                        No Owner
+                      </span>
+                    )}
                     <span className="ml-auto text-xs text-muted-foreground">{a.submitter_name} • {relativeTime(a.created_at)}</span>
                   </div>
                   <div className="mt-2 text-sm">{a.description}</div>
                   {a.owner_name && <div className="mt-1 text-xs"><span className="text-muted-foreground">Owner:</span> {a.owner_name}</div>}
                   {a.recommended_action && <div className="mt-1 text-xs"><span className="text-muted-foreground">Action:</span> {a.recommended_action}</div>}
                   {isLeadership && (
-                    <div className="mt-3 flex gap-2">
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {noOwner && (
+                        <Button size="sm" variant="outline" onClick={() => assignToMe(a.id)}>
+                          Assign to me
+                        </Button>
+                      )}
                       {a.status === "Open" && <Button size="sm" variant="outline" onClick={() => setStatus(a.id, "Acknowledged")}>Acknowledge</Button>}
                       <ConfirmAction
                         trigger={<Button size="sm">Resolve</Button>}
@@ -213,10 +245,12 @@ function SosPage() {
                     </div>
                   )}
                 </li>
-              ))}
+                );
+              })}
             </ul>
           )}
         </Card>
+
 
         {resolved.length > 0 && (
           <Card className="border-border bg-surface p-6">
