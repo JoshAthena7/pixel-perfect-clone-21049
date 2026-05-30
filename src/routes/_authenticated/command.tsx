@@ -178,7 +178,7 @@ function CommandCenter() {
       <div className="mt-4 grid grid-cols-5" style={{ borderTop: `0.5px solid ${BORDER}`, borderBottom: `0.5px solid ${BORDER}` }}>
         <MetricCell icon={<Siren className="h-5 w-5" />} value={openSos.length} label="Open SOS" alert={openSos.length > 0} />
         <MetricCell icon={<ShieldAlert className="h-5 w-5" />} value={openRisks.length} label="Open risks" alert={openRisks.length > 0} divider />
-        <MetricCell icon={<Inbox className="h-5 w-5" />} value={attentionCount} label="Needs attention" alert={attentionCount > 0} divider to="/needs-attention" />
+        <MetricCell icon={<Inbox className="h-5 w-5" />} value={attentionCount} label="Needs attention" alert={attentionCount > 0} divider />
         <MetricCell icon={<Grid3x3 className="h-5 w-5" />} value={heatmap.length} label="Heat sections" divider />
         <MetricCell icon={<Users className="h-5 w-5" />} value={recentHuddles.length} label="Recent huddles" divider />
       </div>
