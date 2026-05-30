@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { useSession } from "@/hooks/use-session";
+import { useServerFn } from "@tanstack/react-start";
+import { extractRfpIntakeDetails } from "@/lib/ai/rfp-intake.functions";
 import { ChevronLeft, Plus, X, ShieldCheck, ArrowRight, Link as LinkIcon, Sparkles, FileText, Upload, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import * as mammoth from "mammoth";
@@ -163,6 +165,23 @@ function buildPlaceholderSeed(): RfpSeed {
     differentiators: ["Athena win themes TBD"],
     localRequirements: "Pending real RFP upload.",
     stateNotes: "Placeholder loaded first. Replace with the real RFP when available.",
+  };
+}
+
+function sanitizeAiSeed(raw: any): RfpSeed {
+  const engagementType = ENGAGEMENT_TYPES.find((type) => type === raw?.engagementType);
+  return {
+    name: typeof raw?.name === "string" ? raw.name : undefined,
+    client: typeof raw?.client === "string" ? raw.client : undefined,
+    stateCode: typeof raw?.stateCode === "string" && STATE_NAMES[raw.stateCode.toUpperCase()] ? raw.stateCode.toUpperCase() : undefined,
+    market: typeof raw?.market === "string" ? raw.market : undefined,
+    submissionDate: typeof raw?.submissionDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(raw.submissionDate) ? raw.submissionDate : undefined,
+    engagementType,
+    contractValue: raw?.contractValue == null ? undefined : String(raw.contractValue).replace(/[^0-9.]/g, ""),
+    evalCriteria: Array.isArray(raw?.evalCriteria) ? raw.evalCriteria.filter((v: unknown) => typeof v === "string").slice(0, 10) : undefined,
+    differentiators: Array.isArray(raw?.differentiators) ? raw.differentiators.filter((v: unknown) => typeof v === "string").slice(0, 10) : undefined,
+    localRequirements: typeof raw?.localRequirements === "string" ? raw.localRequirements : undefined,
+    stateNotes: typeof raw?.stateNotes === "string" ? raw.stateNotes : undefined,
   };
 }
 
