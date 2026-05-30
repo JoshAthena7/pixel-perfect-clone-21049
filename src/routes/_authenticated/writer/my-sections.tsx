@@ -61,7 +61,7 @@ function WriterMySections() {
     setLoadError(null);
     const { data, error } = await supabase
       .from("section_assignments")
-      .select("id, status, due_date, word_count_min, word_count_max, section_id, heatmap_sections!inner(section_name, instructions)")
+      .select("id, status, due_date, word_count_min, word_count_max, section_id, heatmap_sections!inner(section_name, instructions, evaluation_weight_pct)")
       .eq("engagement_id", engagement.id)
       .eq("user_id", user.id);
     setIsLoading(false);
