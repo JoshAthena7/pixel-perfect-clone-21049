@@ -142,7 +142,7 @@ function AdminEngagementsList() {
               return (
                 <div
                   key={e.id}
-                  className="grid grid-cols-[2.2fr_1.2fr_90px_130px_130px_120px_110px] items-center gap-3 px-5 py-3 hover:bg-white/[0.02] transition"
+                  className="grid grid-cols-[2.2fr_1.2fr_90px_130px_130px_120px_160px] items-center gap-3 px-5 py-3 hover:bg-white/[0.02] transition"
                 >
                   <div className="min-w-0">
                     <div className="text-sm font-bold truncate">{e.name}</div>
