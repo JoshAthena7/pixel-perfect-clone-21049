@@ -34,7 +34,7 @@ type Section = {
   updated_by_name: string | null;
 };
 
-const STATUSES: StatusColor[] = ["Green", "Yellow", "Orange", "Red"];
+const STATUSES: StatusColor[] = ["Green", "Yellow", "Orange", "Red", "N/A"];
 
 function HeatmapPage() {
   const { engagement, member, isLeadership } = useEngagement();
