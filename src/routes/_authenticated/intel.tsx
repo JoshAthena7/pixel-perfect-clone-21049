@@ -87,6 +87,17 @@ function IntelPage() {
   }
 
   async function openItem(it: any) {
+    if (engagement && member) {
+      logActivity({
+        engagementId: engagement.id,
+        userId: user?.id ?? null,
+        actorName: member.display_name,
+        action: "view_intel_document",
+        targetTable: "intel_documents",
+        targetId: it.id,
+        metadata: { name: it.name, category: it.category },
+      });
+    }
     if (it.url) return window.open(it.url, "_blank", "noopener");
     if (it.file_path) {
       const { data, error } = await supabase.storage.from("intel-files").createSignedUrl(it.file_path, 60 * 10);
