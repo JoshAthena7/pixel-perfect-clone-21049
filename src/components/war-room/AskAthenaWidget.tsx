@@ -359,9 +359,12 @@ export function AskAthenaWidget() {
           {tab === "ask" ? (
             <>
               <div ref={scrollRef} className="flex-1 overflow-auto px-4 py-3 space-y-4">
-                {history.length === 0 && !loading && (
-                  <div className="text-[12px] text-muted-foreground">
-                    Pick a quick prompt below or type a question. Answers are grounded in {scope === "engagement" ? "this engagement" : scope === "all" ? "every engagement you can access" : "firm-wide knowledge"}.
+                {history.length === 0 && !loading && input.trim().length === 0 && (
+                  <div
+                    className="whitespace-pre-wrap italic"
+                    style={{ color: "#D4AE4A", fontSize: "10px", lineHeight: 1.7 }}
+                  >
+                    {IRIS_WELCOME}
                   </div>
                 )}
                 {history.map((ex) => {
