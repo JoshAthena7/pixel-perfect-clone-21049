@@ -303,7 +303,7 @@ export function AskAthenaWidget() {
         <div className="flex h-full flex-col border-t border-border bg-background shadow-2xl">
           <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2.5">
             <div className="flex items-center gap-2">
-              <Brain className="h-4 w-4 text-primary" />
+              <IrisIcon size={16} className="text-white" />
               <span className="text-sm font-semibold">Ask Iris</span>
               <div className="ml-3 flex items-center gap-1">
                 <button
