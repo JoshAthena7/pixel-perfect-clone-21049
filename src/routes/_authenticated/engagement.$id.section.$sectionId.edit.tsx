@@ -242,12 +242,13 @@ function SectionEditorPage() {
           .eq("id", assignment.id);
       }
 
-      await logActivity({
+      logActivity({
         engagementId,
+        userId: user!.id,
         action: "submitted section for review",
         actorName: member?.display_name ?? "Writer",
         targetTable: "section_drafts",
-        targetId: current?.id,
+        targetId: current?.id ?? null,
         metadata: { section_id: sectionId, section_name: section?.section_name },
       });
 
