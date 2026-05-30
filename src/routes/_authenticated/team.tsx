@@ -165,7 +165,8 @@ function TeamPage() {
         timezone: draft.timezone?.trim() || null,
         on_call: !!draft.on_call,
       })
-      .eq("id", editingId);
+      .eq("id", editingId)
+      .eq("engagement_id", engagement?.id ?? "");
     if (error) return toast.error(error.message);
     toast.success("Saved");
     cancelEdit();
