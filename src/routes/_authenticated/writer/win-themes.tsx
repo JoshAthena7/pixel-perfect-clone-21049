@@ -9,27 +9,42 @@ export const Route = createFileRoute("/_authenticated/writer/win-themes")({
   component: WriterWinThemes,
 });
 
+type Section = { id: string; section_name: string };
+
 function WriterWinThemes() {
   const { engagement } = useEngagement();
   const [items, setItems] = useState<any[]>([]);
+  const [sectionsList, setSectionsList] = useState<Section[]>([]);
   const [section, setSection] = useState("All");
 
   useEffect(() => {
     if (!engagement) return;
-    supabase
-      .from("win_themes")
-      .select("*")
-      .eq("engagement_id", engagement.id)
-      .order("created_at", { ascending: false })
-      .then(({ data }) => setItems(data ?? []));
+    Promise.all([
+      supabase.from("win_themes").select("*").eq("engagement_id", engagement.id).order("created_at", { ascending: false }),
+      supabase.from("heatmap_sections").select("id, section_name").eq("engagement_id", engagement.id).order("sort_order"),
+    ]).then(([t, s]) => {
+      setItems(t.data ?? []);
+      setSectionsList((s.data ?? []) as Section[]);
+    });
   }, [engagement?.id]);
 
-  const sections = useMemo(() => {
+  const sectionMap = useMemo(
+    () => Object.fromEntries(sectionsList.map((s) => [s.id, s.section_name])),
+    [sectionsList],
+  );
+
+  const sectionOptions = useMemo(() => {
     const s = new Set<string>();
-    items.forEach((t) => (t.section_names || []).forEach((x: string) => s.add(x)));
+    items.forEach((t) => (t.section_ids ?? []).forEach((id: string) => {
+      const name = sectionMap[id];
+      if (name) s.add(name);
+    }));
     return ["All", ...Array.from(s).sort()];
-  }, [items]);
-  const visible = section === "All" ? items : items.filter((t) => (t.section_names || []).includes(section));
+  }, [items, sectionMap]);
+
+  const visible = section === "All"
+    ? items
+    : items.filter((t) => (t.section_ids ?? []).some((id: string) => sectionMap[id] === section));
 
   return (
     <div className="mx-auto max-w-3xl space-y-4 p-4 md:p-8">
@@ -45,23 +60,26 @@ function WriterWinThemes() {
           onChange={(e) => setSection(e.target.value)}
           className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm"
         >
-          {sections.map((s) => <option key={s} value={s}>{s}</option>)}
+          {sectionOptions.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
       </div>
       {visible.length === 0 ? (
         <Card className="border-border bg-surface p-6 text-sm text-muted-foreground">No win themes yet.</Card>
       ) : (
-        visible.map((t) => (
-          <Card key={t.id} className="border-border bg-surface p-4">
-            <div className="text-sm font-semibold">{t.title}</div>
-            {t.description && <div className="mt-1 text-sm text-muted-foreground whitespace-pre-wrap">{t.description}</div>}
-            {(t.section_names ?? []).length > 0 && (
-              <div className="mt-2 text-[11px] uppercase tracking-wider text-muted-foreground">
-                Applies to: {(t.section_names || []).join(", ")}
-              </div>
-            )}
-          </Card>
-        ))
+        visible.map((t) => {
+          const names = (t.section_ids ?? []).map((id: string) => sectionMap[id]).filter(Boolean);
+          return (
+            <Card key={t.id} className="border-border bg-surface p-4">
+              <div className="text-sm font-semibold">{t.title}</div>
+              {t.description && <div className="mt-1 text-sm text-muted-foreground whitespace-pre-wrap">{t.description}</div>}
+              {names.length > 0 && (
+                <div className="mt-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+                  Applies to: {names.join(", ")}
+                </div>
+              )}
+            </Card>
+          );
+        })
       )}
     </div>
   );
