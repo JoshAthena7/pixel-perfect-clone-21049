@@ -179,8 +179,8 @@ function OverviewPage() {
         id: `sos-${r.id}`,
         engagement_id: r.engagement_id,
         engagement_name: idToName.get(r.engagement_id) ?? "—",
-        kind: "SOS",
-        title: r.description ?? r.category ?? "SOS alert",
+        kind: "Signal",
+        title: r.description ?? r.category ?? "Signal raised",
         severity: r.severity,
         created_at: r.created_at,
       });
