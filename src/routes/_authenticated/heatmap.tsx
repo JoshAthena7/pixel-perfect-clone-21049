@@ -77,12 +77,18 @@ function HeatmapPage() {
   useEffect(() => {
     if (!engagement) return;
     load(engagement.id);
+    loadReviewCount(engagement.id);
     const ch = supabase
       .channel(`heat:${engagement.id}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "heatmap_sections", filter: `engagement_id=eq.${engagement.id}` },
         () => load(engagement.id),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "win_theme_mappings", filter: `engagement_id=eq.${engagement.id}` },
+        () => loadReviewCount(engagement.id),
       )
       .subscribe();
     return () => {
