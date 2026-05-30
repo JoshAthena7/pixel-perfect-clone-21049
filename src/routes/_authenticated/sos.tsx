@@ -72,19 +72,6 @@ function SosPage() {
     setSubmitting(false);
     if (error) return toast.error(error.message);
     toast.success("🚨 SOS Alert submitted. Leadership has been notified.");
-    notifySlack({
-      data: {
-        engagementId: engagement.id,
-        event: "sos",
-        title: `[${severity}] ${category}`,
-        body: description,
-        fields: [
-          ...(owner ? [{ label: "Owner", value: owner }] : []),
-          ...(action ? [{ label: "Action", value: action }] : []),
-        ],
-        author: member.display_name,
-      },
-    }).catch(() => {});
     setDescription(""); setOwner(""); setAction("");
   }
 
