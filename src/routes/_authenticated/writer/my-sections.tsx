@@ -18,6 +18,7 @@ import { Flame } from "lucide-react";
 import { SectionThread } from "@/components/war-room/comms/SectionThread";
 import { dueState } from "@/lib/due-date";
 import { StuckButton } from "@/components/war-room/writer/StuckButton";
+import { logActivity } from "@/lib/activity-log";
 import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
 
 export const Route = createFileRoute("/_authenticated/writer/my-sections")({
