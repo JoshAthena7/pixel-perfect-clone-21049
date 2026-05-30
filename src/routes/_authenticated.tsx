@@ -100,12 +100,13 @@ function RoleGuardedShell() {
       return;
     }
     if (!member) return;
-    if (isWriter && !isWriterPath) {
+    const isWriterAllowed = isWriterPath || WRITER_ALLOWED_SHARED.has(pathname);
+    if (isWriter && !isWriterAllowed) {
       navigate({ to: "/writer/my-sections", replace: true });
     } else if (!isWriter && isWriterPath) {
       navigate({ to: "/command", replace: true });
     }
-  }, [loading, member, engagement, isWriter, isWriterPath, onPicker, navigate]);
+  }, [loading, member, engagement, isWriter, isWriterPath, onPicker, pathname, navigate]);
 
   // Picker / overview pages render full-bleed without the war-room shell
   if (onPicker) {
