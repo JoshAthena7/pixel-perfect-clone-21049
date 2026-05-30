@@ -12,7 +12,7 @@ import {
   LogOut,
   Users,
   Briefcase,
-  DollarSign,
+  
   TrendingUp,
   ArrowRight,
   Radio,
@@ -73,12 +73,6 @@ function daysColor(days: number | null): string {
   return "text-emerald-300";
 }
 
-function formatTCV(n: number): string {
-  if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(2)}B`;
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
-  return `$${n.toFixed(0)}`;
-}
 
 function OverviewPage() {
   const { memberships, loading, switchEngagement } = useEngagement();
@@ -231,12 +225,9 @@ function OverviewPage() {
       openSos += r.open_sos;
       openRisks += r.open_risks;
     }
-    const totalTcv = leadership.reduce(
-      (sum, m) => sum + Number((m.engagement as any).contract_value_estimate ?? 0),
-      0
-    );
-    return { activeCount, openSos, openRisks, totalTcv };
+    return { activeCount, openSos, openRisks };
   }, [leadership, rollups]);
+
 
   const sortedEngagements = useMemo(() => {
     return [...leadership].sort((a, b) => {
@@ -307,7 +298,7 @@ function OverviewPage() {
         </div>
 
         {/* KPI strip */}
-        <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-5">
+        <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
           <KpiCard icon={<Briefcase className="h-4 w-4" />} label="Active engagements" value={String(kpis.activeCount)} />
           <KpiCard
             icon={<Siren className="h-4 w-4" />}
@@ -321,14 +312,9 @@ function OverviewPage() {
             value={String(kpis.openRisks)}
             tone={kpis.openRisks > 0 ? "amber" : "default"}
           />
-          <KpiCard
-            icon={<DollarSign className="h-4 w-4" />}
-            label="Pipeline TCV"
-            value={formatTCV(kpis.totalTcv)}
-            tone="gold"
-          />
           <KpiCard icon={<Users className="h-4 w-4" />} label="Collective™ members" value={String(collectiveCount)} />
         </div>
+
 
         <HookFailuresPanel />
 

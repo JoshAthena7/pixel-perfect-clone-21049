@@ -9,7 +9,7 @@ import { useEngagement } from "@/hooks/use-engagement";
 import {
   Building2,
   Siren,
-  DollarSign,
+  
   Users,
   Brain,
   ArrowRight,
@@ -117,7 +117,7 @@ function AdminDashboard() {
   }, []);
 
   const active = engagements.filter((e) => e.status === "Active");
-  const tcvTotal = active.reduce((sum, e) => sum + (e.contract_value_estimate ?? 0), 0);
+
 
   async function enterRoom(engagementId: string) {
     await switchEngagement(engagementId);
@@ -127,13 +127,13 @@ function AdminDashboard() {
   return (
     <div className="mx-auto max-w-[1600px] p-6 space-y-6">
       {/* KPI strip */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Kpi icon={Building2} label="Active engagements" value={active.length} accent="#9b8cc7" />
         <Kpi icon={Siren} label="Open SOS" value={openSosTotal} accent="#e85d5d" />
-        <Kpi icon={DollarSign} label="Pipeline TCV" value={fmtCurrency(tcvTotal)} accent="#C49A2A" />
         <Kpi icon={Users} label="Active collective" value={collectiveActive} accent="#5fb8a8" />
         <Kpi icon={Brain} label="Unreviewed intel" value={intelUnreviewed} accent="#5fb8a8" />
       </div>
+
 
       {/* War rooms table */}
       <Card className="border-border/60 bg-[#141628]">
