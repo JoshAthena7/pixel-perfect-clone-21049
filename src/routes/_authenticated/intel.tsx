@@ -90,8 +90,35 @@ function IntelPage() {
       if (!text || text.trim().length < 50) throw new Error("Could not extract enough text from this file.");
       toast.info("Running Holy Grail analysis…");
       await analyzeOpportunity({ data: { engagementId: engagement.id, documentId: it.id, fileName: it.name, text } });
-      toast.success("Holy Grail ready");
+      toast.success("Opportunity ready");
       setHgRefresh((n) => n + 1);
+
+      // Auto-run the 6 web-research categories in the background (leadership only)
+      if (isLeadership) {
+        toast.info("Auto-researching market, political, competitive, customer, provider, community…");
+        (async () => {
+          let runId: string | null = null;
+          try {
+            const run = (await startHolyGrailRun({ data: { engagementId: engagement.id } })) as any;
+            runId = run?.id ?? null;
+            const cats = ["market", "political", "competitive", "customer", "provider", "community"] as const;
+            for (const cat of cats) {
+              try {
+                await analyzeCategory({ data: { engagementId: engagement.id, category: cat, runId: runId ?? undefined, force: false } });
+                setHgRefresh((n) => n + 1);
+              } catch (e: any) {
+                console.warn(`Holy Grail ${cat} failed:`, e?.message);
+              }
+            }
+            if (runId) await finishHolyGrailRun({ data: { runId, status: "done" } });
+            toast.success("Full Holy Grail intelligence ready");
+            setHgRefresh((n) => n + 1);
+          } catch (e: any) {
+            toast.error(`Auto-research failed: ${e?.message ?? "unknown"}`);
+            if (runId) try { await finishHolyGrailRun({ data: { runId, status: "failed", error: e?.message } }); } catch {}
+          }
+        })();
+      }
     } catch (err: any) {
       toast.error(err?.message ?? "Analysis failed");
     } finally {
