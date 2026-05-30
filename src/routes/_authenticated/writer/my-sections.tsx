@@ -243,7 +243,64 @@ function TriviaCard() {
   const { engagement, member } = useEngagement();
   const { user } = useSession();
   const day = getQuestionDay();
-  const t = questionForDay(day);
+  const stateCode = engagement?.state ?? null;
+
+  // Question: prefer state_trivia_bank rotated by day; fall back to hardcoded TRIVIA.
+  type BankQ = { question: string; choices: string[]; correct_index: number; explanation: string | null };
+  const [bankQ, setBankQ] = useState<BankQ | null>(null);
+  const [bankLoaded, setBankLoaded] = useState(false);
+  const [seedingBank, setSeedingBank] = useState(false);
+
+  // Load (and lazily seed) the bank for this state
+  useEffect(() => {
+    let cancelled = false;
+    if (!stateCode) { setBankQ(null); setBankLoaded(true); return; }
+    setBankLoaded(false);
+    (async () => {
+      const { data } = await supabase
+        .from("state_trivia_bank")
+        .select("question, choices, correct_index, explanation")
+        .eq("state", stateCode)
+        .order("id", { ascending: true });
+      if (cancelled) return;
+      const rows = (data as BankQ[] | null) ?? [];
+      if (rows.length > 0) {
+        setBankQ(rows[((day % rows.length) + rows.length) % rows.length]);
+        setBankLoaded(true);
+        return;
+      }
+      // No bank yet for this state — auto-seed in the background, then retry once.
+      setSeedingBank(true);
+      try {
+        await seedStateTrivia({ data: { state: stateCode } });
+        const { data: after } = await supabase
+          .from("state_trivia_bank")
+          .select("question, choices, correct_index, explanation")
+          .eq("state", stateCode)
+          .order("id", { ascending: true });
+        if (cancelled) return;
+        const rows2 = (after as BankQ[] | null) ?? [];
+        if (rows2.length > 0) {
+          setBankQ(rows2[((day % rows2.length) + rows2.length) % rows2.length]);
+        }
+      } catch {
+        // fall through to hardcoded fallback
+      } finally {
+        if (!cancelled) {
+          setSeedingBank(false);
+          setBankLoaded(true);
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [stateCode, day]);
+
+  // Unified shape for rendering
+  const fallback = questionForDay(day);
+  const t = bankQ
+    ? { q: bankQ.question, options: bankQ.choices, answerIndex: bankQ.correct_index, fact: bankQ.explanation ?? "" }
+    : fallback;
+
   const [picked, setPicked] = useState<number | null>(null);
   const [locked, setLocked] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -261,11 +318,10 @@ function TriviaCard() {
       .then(({ data }) => {
         if (data) {
           setLocked(true);
-          // We don't store which option they picked — just reveal correct answer.
           setPicked(data.correct ? t.answerIndex : -1);
         }
       });
-  }, [engagement?.id, member?.id, day]);
+  }, [engagement?.id, member?.id, day, t.answerIndex]);
 
   async function pick(i: number) {
     if (locked || saving || !engagement || !member || !user) return;
@@ -280,49 +336,54 @@ function TriviaCard() {
       correct: i === t.answerIndex,
     });
     setSaving(false);
-    if (error) {
-      // Race / dup — keep locked, just inform softly
-      toast.error(error.message);
-    }
+    if (error) toast.error(error.message);
   }
 
   return (
     <Card className="border-[var(--gold)]/30 bg-surface p-4">
       <div className="text-[10px] uppercase tracking-[0.22em] text-[var(--gold)] font-semibold">
-        {engagement?.state ? `${engagement.state} Trivia` : "Daily Trivia"} · Daily
+        {stateCode ? `${stateCode} Trivia` : "Daily Trivia"} · Daily
       </div>
-      <div className="mt-2 text-sm font-semibold">{t.q}</div>
-      <div className="mt-3 grid gap-2 md:grid-cols-2">
-        {t.options.map((opt, i) => {
-          const isCorrect = i === t.answerIndex;
-          const isPicked = picked === i;
-          const reveal = locked;
-          return (
-            <button
-              key={i}
-              type="button"
-              disabled={reveal || saving}
-              onClick={() => pick(i)}
-              className={`rounded-md border px-3 py-2 text-left text-xs transition ${
-                reveal
-                  ? isCorrect
-                    ? "border-emerald-500/60 bg-emerald-500/10 text-emerald-200"
-                    : isPicked
-                    ? "border-[color:var(--red)]/60 bg-[color:var(--red)]/10 text-foreground"
-                    : "border-border opacity-60"
-                  : "border-border hover:border-[var(--gold)]/60"
-              }`}
-            >
-              {opt}
-            </button>
-          );
-        })}
-      </div>
-      {locked && (
-        <div className="mt-3 text-xs text-muted-foreground">{t.fact}</div>
-      )}
-      {locked && (
-        <div className="mt-2 text-[11px] italic text-muted-foreground">Locked for today — come back tomorrow for a new question.</div>
+      {!bankLoaded ? (
+        <div className="mt-3 text-xs italic text-muted-foreground">
+          {seedingBank ? `Generating ${stateCode} trivia bank…` : "Loading…"}
+        </div>
+      ) : (
+        <>
+          <div className="mt-2 text-sm font-semibold">{t.q}</div>
+          <div className="mt-3 grid gap-2 md:grid-cols-2">
+            {t.options.map((opt, i) => {
+              const isCorrect = i === t.answerIndex;
+              const isPicked = picked === i;
+              const reveal = locked;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  disabled={reveal || saving}
+                  onClick={() => pick(i)}
+                  className={`rounded-md border px-3 py-2 text-left text-xs transition ${
+                    reveal
+                      ? isCorrect
+                        ? "border-emerald-500/60 bg-emerald-500/10 text-emerald-200"
+                        : isPicked
+                        ? "border-[color:var(--red)]/60 bg-[color:var(--red)]/10 text-foreground"
+                        : "border-border opacity-60"
+                      : "border-border hover:border-[var(--gold)]/60"
+                  }`}
+                >
+                  {opt}
+                </button>
+              );
+            })}
+          </div>
+          {locked && t.fact && (
+            <div className="mt-3 text-xs text-muted-foreground">{t.fact}</div>
+          )}
+          {locked && (
+            <div className="mt-2 text-[11px] italic text-muted-foreground">Locked for today — come back tomorrow for a new question.</div>
+          )}
+        </>
       )}
     </Card>
   );
