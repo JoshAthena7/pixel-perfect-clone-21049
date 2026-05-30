@@ -60,6 +60,7 @@ import { Route as ApiPublicHooksIntelligenceEngineRouteImport } from './routes/a
 import { Route as ApiPublicHooksIngestMarketIntelRouteImport } from './routes/api/public/hooks/ingest-market-intel'
 import { Route as ApiPublicHooksDailyDigestRouteImport } from './routes/api/public/hooks/daily-digest'
 import { Route as ApiPublicHooksBackfillEmbeddingsRouteImport } from './routes/api/public/hooks/backfill-embeddings'
+import { Route as AuthenticatedEngagementIdSizingRouteImport } from './routes/_authenticated/engagement.$id.sizing'
 import { Route as AuthenticatedEngagementIdComplianceRouteImport } from './routes/_authenticated/engagement.$id.compliance'
 import { Route as AuthenticatedEngagementIdSectionSectionIdEditRouteImport } from './routes/_authenticated/engagement.$id.section.$sectionId.edit'
 
@@ -343,6 +344,12 @@ const ApiPublicHooksBackfillEmbeddingsRoute =
     path: '/api/public/hooks/backfill-embeddings',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedEngagementIdSizingRoute =
+  AuthenticatedEngagementIdSizingRouteImport.update({
+    id: '/engagement/$id/sizing',
+    path: '/engagement/$id/sizing',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedEngagementIdComplianceRoute =
   AuthenticatedEngagementIdComplianceRouteImport.update({
     id: '/engagement/$id/compliance',
@@ -397,6 +404,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/engagement/$id/compliance': typeof AuthenticatedEngagementIdComplianceRoute
+  '/engagement/$id/sizing': typeof AuthenticatedEngagementIdSizingRoute
   '/api/public/hooks/backfill-embeddings': typeof ApiPublicHooksBackfillEmbeddingsRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
   '/api/public/hooks/ingest-market-intel': typeof ApiPublicHooksIngestMarketIntelRoute
@@ -450,6 +458,7 @@ export interface FileRoutesByTo {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/engagement/$id/compliance': typeof AuthenticatedEngagementIdComplianceRoute
+  '/engagement/$id/sizing': typeof AuthenticatedEngagementIdSizingRoute
   '/api/public/hooks/backfill-embeddings': typeof ApiPublicHooksBackfillEmbeddingsRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
   '/api/public/hooks/ingest-market-intel': typeof ApiPublicHooksIngestMarketIntelRoute
@@ -506,6 +515,7 @@ export interface FileRoutesById {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/engagement/$id/compliance': typeof AuthenticatedEngagementIdComplianceRoute
+  '/_authenticated/engagement/$id/sizing': typeof AuthenticatedEngagementIdSizingRoute
   '/api/public/hooks/backfill-embeddings': typeof ApiPublicHooksBackfillEmbeddingsRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
   '/api/public/hooks/ingest-market-intel': typeof ApiPublicHooksIngestMarketIntelRoute
@@ -562,6 +572,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/admin/'
     | '/engagement/$id/compliance'
+    | '/engagement/$id/sizing'
     | '/api/public/hooks/backfill-embeddings'
     | '/api/public/hooks/daily-digest'
     | '/api/public/hooks/ingest-market-intel'
@@ -615,6 +626,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/admin'
     | '/engagement/$id/compliance'
+    | '/engagement/$id/sizing'
     | '/api/public/hooks/backfill-embeddings'
     | '/api/public/hooks/daily-digest'
     | '/api/public/hooks/ingest-market-intel'
@@ -670,6 +682,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/_authenticated/admin/'
     | '/_authenticated/engagement/$id/compliance'
+    | '/_authenticated/engagement/$id/sizing'
     | '/api/public/hooks/backfill-embeddings'
     | '/api/public/hooks/daily-digest'
     | '/api/public/hooks/ingest-market-intel'
@@ -1063,6 +1076,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksBackfillEmbeddingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/engagement/$id/sizing': {
+      id: '/_authenticated/engagement/$id/sizing'
+      path: '/engagement/$id/sizing'
+      fullPath: '/engagement/$id/sizing'
+      preLoaderRoute: typeof AuthenticatedEngagementIdSizingRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/engagement/$id/compliance': {
       id: '/_authenticated/engagement/$id/compliance'
       path: '/engagement/$id/compliance'
@@ -1134,6 +1154,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedEngagementNewRoute: typeof AuthenticatedEngagementNewRoute
   AuthenticatedWriterMySectionsRoute: typeof AuthenticatedWriterMySectionsRoute
   AuthenticatedEngagementIdComplianceRoute: typeof AuthenticatedEngagementIdComplianceRoute
+  AuthenticatedEngagementIdSizingRoute: typeof AuthenticatedEngagementIdSizingRoute
   AuthenticatedEngagementIdSectionSectionIdEditRoute: typeof AuthenticatedEngagementIdSectionSectionIdEditRoute
 }
 
@@ -1165,6 +1186,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedWriterMySectionsRoute: AuthenticatedWriterMySectionsRoute,
   AuthenticatedEngagementIdComplianceRoute:
     AuthenticatedEngagementIdComplianceRoute,
+  AuthenticatedEngagementIdSizingRoute: AuthenticatedEngagementIdSizingRoute,
   AuthenticatedEngagementIdSectionSectionIdEditRoute:
     AuthenticatedEngagementIdSectionSectionIdEditRoute,
 }

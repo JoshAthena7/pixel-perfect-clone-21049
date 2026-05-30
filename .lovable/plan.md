@@ -1,95 +1,95 @@
 
-# Holy Grail v2: Full Opportunity Intelligence
+# RFP Sizing Engine & Services Checklist
 
-Today's Holy Grail only does **Category 1 (Opportunity Intelligence)** from your list, and only from the uploaded RFP. The other six (Market, Political, Competitive, Customer, Provider, Community) require external research — they aren't in the RFP.
+A new "Step 2B — Size the Opportunity" between intake Steps 2 and 3, revisitable at `/engagement/:id/sizing`. Drives writer staffing, surfaces evaluation weights through the heatmap and writer views, and captures the full services scope.
 
-## What needs to change
+## Part 1 — Extract from RFP
 
-### 1. Schema rework
+Extend `extractRfpQuestionsFromOpportunity` (and the underlying extraction prompt in `src/lib/ai/*`) to additionally return:
 
-Restructure the `engagement_research` `holy_grail` row from a single blob into seven labeled sections, one per intelligence category, each with its own sub-fields. Writers can expand/collapse and jump to a section.
+- `total_page_limit: number`
+- `total_questions: number`
+- `sections[]`: `{ name, page_limit, evaluation_weight_pct, questions[] }`
+- `questions[]` (per section): `{ question_number, question_text, page_limit, evaluation_weight_pct }`
+- `ai_estimated: boolean` per weight when weights aren't explicit in RFP (estimate from length, question count, scoring language)
 
+Persist to `engagement_config.sizing_data` (new jsonb column). Compute `submission_days_remaining` from today → `engagements.submission_date` and store alongside.
+
+## Part 2 — Sizing assumptions
+
+New jsonb `engagement_config.sizing_assumptions`:
+- `baseline`: weak (50) | moderate (70) | solid (90) pages-per-writer
+- `turnaround_override`: auto-set to 30 when `submission_days_remaining < 90`, displayed with warning banner; locks capacity at 30
+- `complexity`: standard (0) | high LTSS/HCBS/IDD/Dual (-10)
+
+Effective `writer_capacity = max(turnaround_override ?? baseline + complexity_mod, 10)`.
+
+## Part 3 — Calculations & UI
+
+`/engagement/:id/sizing` route (also embedded as Step 2B in `IntakeWizard`):
+
+- Summary strip: total pages, sections, questions, writer_capacity, writers_needed, recommended_team_size (`writers_needed + (any section weight > 30 ? 1 : 0)`).
+- Section table sorted by weight desc with: health dot (placeholder), name, weight%, weight bar, page limit, question count, writers-for-section, HIGH/MED weight badges.
+- Expandable section rows showing per-question rows with weight color coding (red >10, amber 5-10, gray <5) and "Assign" button.
+- Writer load panel: per assigned writer load bar (green/amber/red), question list, OVER CAPACITY badge. Unassigned box with totals.
+
+Question assignments stored on `rfp_questions.assigned_to` (uuid → engagement_members.id, nullable). Add column if missing.
+
+### Heatmap & writer integration
+- New column `heatmap_sections.evaluation_weight_pct numeric`. Populate from `sizing_data` on save.
+- `heatmap.tsx`: show weight% badge on section header; default sort by weight desc.
+- `/writer/my-sections` (and the editor's question card): show question's `evaluation_weight_pct` prominently.
+
+## Part 4 — Services checklist
+
+New jsonb `engagement_config.services_checklist`:
 ```
-holy_grail.content = {
-  opportunity: { program_name, state, agency, population_served,
-                 enrollment, budget, incumbents[], contract_term,
-                 regions[], timeline[], evaluation_criteria[],
-                 mandatory_requirements[], procurement_vehicle,
-                 historical_awards[] },
-  market:      { program_structure, mco_landscape[], market_share[],
-                 enrollment_trends, population_change, fiscal_outlook,
-                 managed_care_maturity, recent_legislation[],
-                 provider_market_dynamics },
-  political:   { governor_priorities[], medicaid_director_priorities[],
-                 leadership_changes[], legislative_pressures[],
-                 budget_pressures[], advocacy_influence[],
-                 provider_association_influence[], election_considerations,
-                 inferred_political_problem },
-  competitive: { likely_bidders: [{ name, strengths[], weaknesses[],
-                 recent_wins[], recent_losses[], local_footprint,
-                 provider_relationships, community_relationships,
-                 state_reputation, executive_relationships,
-                 known_performance_issues }],
-                 likely_winner_if_nothing_changes },
-  customer:    { keeps_them_up_at_night[], embarrassments[],
-                 auditor_criticisms[], legislator_criticisms[],
-                 advocate_criticisms[], stated_fixes[],
-                 inferred_real_problem, sources[] },
-  provider:    { hospital_systems[], fqhcs[], behavioral_health[],
-                 hcbs[], idd[], ltss[], associations[],
-                 happy[], angry[], ignored[], influential[] },
-  community:   { disability_advocates[], aging_advocates[],
-                 family_orgs[], child_welfare[], behavioral_coalitions[],
-                 provider_coalitions[], tribal_orgs[], community_leaders[],
-                 complaints[], frustrations[], gaps[], emerging_needs[] }
+{
+  categories: {
+    pre_writing: { items: [{key, label, checked, notes, estimated_hours}], category_hours },
+    writing: {...}, sme: {...}, creative: {...}, qa: {...}, post_submission: {...}
+  },
+  total_estimated_hours: number
 }
 ```
 
-Each section also gets `confidence` and `sources[]` so writers can see what's solid vs. speculative.
+Hard-coded item list matches the prompt verbatim. UI: collapsible categories, per-item checkbox + notes textarea + hours input, category subtotal, grand total at bottom.
 
-### 2. Research pipeline
+### Surfacing
+- Admin dashboard engagement card: chips for checked high-signal services (Graphic Design, Oral Prep, Red Team, BAFO).
+- Executive dashboard: same chips + total estimated hours.
+- War Room command page: compact strip "X writers · Y services · Z est. hours" linking to `/engagement/:id/sizing`.
 
-Three input streams feed Gemini 2.5 Pro:
+## Technical layout
 
-1. **RFP text** (already extracted) — drives Category 1 + seeds names/dates for the others.
-2. **Engagement config** (state, market, incumbent, competitors already entered in the wizard) — seeds Categories 4 and 6.
-3. **Web research** (NEW) — Firecrawl search + scrape across:
-   - State Medicaid agency site (priorities, leadership, advisory minutes)
-   - State legislature site (recent hearings, bills)
-   - CMS reports / OIG reports about that state
-   - News on incumbent + likely competitors (recent wins/losses, performance issues)
-   - Advocacy org sites (disability, aging, behavioral health) for that state
+**Migration** (`supabase/migrations/...`):
+- `ALTER TABLE engagement_config ADD COLUMN sizing_data jsonb, sizing_assumptions jsonb, services_checklist jsonb, submission_days_remaining int;`
+- `ALTER TABLE heatmap_sections ADD COLUMN evaluation_weight_pct numeric;`
+- `ALTER TABLE rfp_questions ADD COLUMN IF NOT EXISTS assigned_to uuid REFERENCES engagement_members(id) ON DELETE SET NULL, ADD COLUMN IF NOT EXISTS evaluation_weight_pct numeric, ADD COLUMN IF NOT EXISTS page_limit numeric;`
 
-Pipeline runs as ONE leadership-triggered job per engagement, ~2–4 min, ~$0.30–0.80 per run. Status is persisted so the spinner doesn't hang (background pattern, polled from UI).
+**Server functions** (`src/lib/ai/sizing.functions.ts`):
+- `extractSizingData(engagementId)` — calls Gemini with extraction prompt over RFP text, writes sizing_data + heatmap weights.
+- `saveSizingAssumptions(engagementId, assumptions)`
+- `saveServicesChecklist(engagementId, checklist)`
+- `assignQuestionToWriter(questionId, memberId | null)`
 
-### 3. UI changes (`/intel` Holy Grail panel)
+**Components**:
+- `src/components/sizing/SizingEngine.tsx` (main, used by route + wizard step)
+- `src/components/sizing/AssumptionsPanel.tsx`
+- `src/components/sizing/SectionWeightTable.tsx`
+- `src/components/sizing/WriterLoadPanel.tsx`
+- `src/components/sizing/ServicesChecklist.tsx`
+- `src/components/sizing/SizingSummaryStrip.tsx` (war room)
 
-- Tabbed layout: Opportunity · Market · Political · Competitive · Customer · Provider · Community.
-- Each section shows: extracted bullets, confidence chip, "Sources" expandable with links.
-- "Refresh this section" button per tab (so you can re-run Political without redoing the whole thing).
-- Visible to all writers (read-only); only leadership can trigger / refresh.
+**Routes**:
+- `src/routes/_authenticated/engagement.$id.sizing.tsx`
+- Insert Step 2B in `IntakeWizard` (find existing wizard file).
 
-## What I need from you before building
+**Wizard integration**: locate current intake wizard, add step `size` between review and warroom. Runs `extractSizingData` on mount if `sizing_data` is null.
 
-### a. Web research connector
+## Out of scope (note to user)
+- I won't rewrite the entire heatmap re-sort behavior — just add the weight badge + default sort key.
+- "Health color dot" in section table uses existing `heatmap_sections.status` color; placeholder gray if section not yet in heatmap.
+- Real-time recompute on every keystroke is debounced (500ms).
 
-External research needs **Firecrawl** (web search + scrape). Not connected yet. Two options:
-
-1. **Connect Firecrawl** — clean, server-side, handles JS-heavy gov sites, ~$0.001 per page. Recommended.
-2. **Use Lovable AI's web grounding only** — cheaper, but shallower, often misses state-specific PDFs/advisory minutes.
-
-### b. Scope of first build
-
-The seven categories are roughly **3 weeks of solo work** if done well. Three options:
-
-1. **Full build**, all 7 categories, one shot. ~6–8 hrs of agent time, more iteration risk.
-2. **Phase 1**: Opportunity (expand current) + Competitive + Customer. The three with the highest writer ROI. Add the rest in follow-ups.
-3. **Phase 1 lite**: Just restructure existing Opportunity into proper sub-fields + add Competitive (uses competitors already in engagement_config). Smallest, fastest.
-
-### c. Caching
-
-Web research is slow and expensive. Should re-running Holy Grail:
-- Always re-fetch everything (fresh but slow/$$)
-- Cache web results for 7 days unless force-refresh (recommended)
-
-Tell me **(a)** connect Firecrawl or use built-in only, **(b)** which phase to start with, **(c)** caching preference — and I'll start building.
+Ready to build — confirm and I'll execute the migration + code in one pass.

@@ -34,6 +34,7 @@ type Section = {
   sort_order: number;
   updated_at: string | null;
   updated_by_name: string | null;
+  evaluation_weight_pct: number | null;
 };
 
 const STATUSES: StatusColor[] = ["Green", "Yellow", "Orange", "Red", "N/A"];
@@ -85,6 +86,7 @@ function HeatmapPage() {
       .from("heatmap_sections")
       .select("*")
       .eq("engagement_id", eid)
+      .order("evaluation_weight_pct", { ascending: false, nullsFirst: false })
       .order("sort_order");
     setIsLoading(false);
     if (error) { setLoadError(error.message); return; }
@@ -197,7 +199,14 @@ function HeatmapPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="text-xs uppercase tracking-wider text-muted-foreground">Section</div>
-                      <div className="text-lg font-bold">{s.section_name}</div>
+                      <div className="text-lg font-bold flex items-center gap-2">
+                        {s.section_name}
+                        {s.evaluation_weight_pct != null && (
+                          <Badge className="bg-[var(--gold)]/15 text-[var(--gold)] hover:bg-[var(--gold)]/15 text-[10px] tabular-nums">
+                            {Number(s.evaluation_weight_pct).toFixed(0)}%
+                          </Badge>
+                        )}
+                      </div>
                       {policyCounts[s.id] > 0 && (
                         <Badge className="mt-1 bg-red-500/15 text-red-600 hover:bg-red-500/15 text-[10px]">
                           <ShieldAlert className="h-3 w-3 mr-1" />
