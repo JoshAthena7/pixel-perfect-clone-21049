@@ -22,6 +22,7 @@ import { Route as AuthenticatedSectionAssignmentsRouteImport } from './routes/_a
 import { Route as AuthenticatedPulseRouteImport } from './routes/_authenticated/pulse'
 import { Route as AuthenticatedOverviewRouteImport } from './routes/_authenticated/overview'
 import { Route as AuthenticatedNeedsAttentionRouteImport } from './routes/_authenticated/needs-attention'
+import { Route as AuthenticatedNdaRequiredRouteImport } from './routes/_authenticated/nda-required'
 import { Route as AuthenticatedIssuesRouteImport } from './routes/_authenticated/issues'
 import { Route as AuthenticatedIntelRouteImport } from './routes/_authenticated/intel'
 import { Route as AuthenticatedHuddleRouteImport } from './routes/_authenticated/huddle'
@@ -107,6 +108,12 @@ const AuthenticatedNeedsAttentionRoute =
   AuthenticatedNeedsAttentionRouteImport.update({
     id: '/needs-attention',
     path: '/needs-attention',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedNdaRequiredRoute =
+  AuthenticatedNdaRequiredRouteImport.update({
+    id: '/nda-required',
+    path: '/nda-required',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedIssuesRoute = AuthenticatedIssuesRouteImport.update({
@@ -227,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/huddle': typeof AuthenticatedHuddleRoute
   '/intel': typeof AuthenticatedIntelRoute
   '/issues': typeof AuthenticatedIssuesRoute
+  '/nda-required': typeof AuthenticatedNdaRequiredRoute
   '/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/overview': typeof AuthenticatedOverviewRoute
   '/pulse': typeof AuthenticatedPulseRoute
@@ -260,6 +268,7 @@ export interface FileRoutesByTo {
   '/huddle': typeof AuthenticatedHuddleRoute
   '/intel': typeof AuthenticatedIntelRoute
   '/issues': typeof AuthenticatedIssuesRoute
+  '/nda-required': typeof AuthenticatedNdaRequiredRoute
   '/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/overview': typeof AuthenticatedOverviewRoute
   '/pulse': typeof AuthenticatedPulseRoute
@@ -295,6 +304,7 @@ export interface FileRoutesById {
   '/_authenticated/huddle': typeof AuthenticatedHuddleRoute
   '/_authenticated/intel': typeof AuthenticatedIntelRoute
   '/_authenticated/issues': typeof AuthenticatedIssuesRoute
+  '/_authenticated/nda-required': typeof AuthenticatedNdaRequiredRoute
   '/_authenticated/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/_authenticated/overview': typeof AuthenticatedOverviewRoute
   '/_authenticated/pulse': typeof AuthenticatedPulseRoute
@@ -330,6 +340,7 @@ export interface FileRouteTypes {
     | '/huddle'
     | '/intel'
     | '/issues'
+    | '/nda-required'
     | '/needs-attention'
     | '/overview'
     | '/pulse'
@@ -363,6 +374,7 @@ export interface FileRouteTypes {
     | '/huddle'
     | '/intel'
     | '/issues'
+    | '/nda-required'
     | '/needs-attention'
     | '/overview'
     | '/pulse'
@@ -397,6 +409,7 @@ export interface FileRouteTypes {
     | '/_authenticated/huddle'
     | '/_authenticated/intel'
     | '/_authenticated/issues'
+    | '/_authenticated/nda-required'
     | '/_authenticated/needs-attention'
     | '/_authenticated/overview'
     | '/_authenticated/pulse'
@@ -521,6 +534,13 @@ declare module '@tanstack/react-router' {
       path: '/needs-attention'
       fullPath: '/needs-attention'
       preLoaderRoute: typeof AuthenticatedNeedsAttentionRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/nda-required': {
+      id: '/_authenticated/nda-required'
+      path: '/nda-required'
+      fullPath: '/nda-required'
+      preLoaderRoute: typeof AuthenticatedNdaRequiredRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/issues': {
@@ -670,6 +690,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedHuddleRoute: typeof AuthenticatedHuddleRoute
   AuthenticatedIntelRoute: typeof AuthenticatedIntelRoute
   AuthenticatedIssuesRoute: typeof AuthenticatedIssuesRoute
+  AuthenticatedNdaRequiredRoute: typeof AuthenticatedNdaRequiredRoute
   AuthenticatedNeedsAttentionRoute: typeof AuthenticatedNeedsAttentionRoute
   AuthenticatedOverviewRoute: typeof AuthenticatedOverviewRoute
   AuthenticatedPulseRoute: typeof AuthenticatedPulseRoute
@@ -695,6 +716,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHuddleRoute: AuthenticatedHuddleRoute,
   AuthenticatedIntelRoute: AuthenticatedIntelRoute,
   AuthenticatedIssuesRoute: AuthenticatedIssuesRoute,
+  AuthenticatedNdaRequiredRoute: AuthenticatedNdaRequiredRoute,
   AuthenticatedNeedsAttentionRoute: AuthenticatedNeedsAttentionRoute,
   AuthenticatedOverviewRoute: AuthenticatedOverviewRoute,
   AuthenticatedPulseRoute: AuthenticatedPulseRoute,

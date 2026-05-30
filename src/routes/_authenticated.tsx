@@ -80,14 +80,16 @@ function AuthLayout() {
 }
 
 const PICKER_PATHS = new Set(["/select-engagement", "/overview"]);
+const NDA_PATH = "/nda-required";
 
 function RoleGuardedShell() {
-  const { member, memberships, loading, engagement } = useEngagement();
+  const { member, memberships, loading, engagement, ndaSatisfied, isLeadership } = useEngagement();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const navigate = useNavigate();
   const isWriterPath = pathname.startsWith("/writer");
   const isWriter = member?.role === "writer";
   const onPicker = PICKER_PATHS.has(pathname);
+  const onNdaGate = pathname === NDA_PATH;
 
   useEffect(() => {
     if (loading) return;
@@ -98,13 +100,23 @@ function RoleGuardedShell() {
       return;
     }
     if (!member) return;
+    // NDA gate — non-leadership members without confirmed NDA see only the gate page
+    if (!isLeadership && !ndaSatisfied) {
+      if (!onNdaGate) navigate({ to: NDA_PATH, replace: true });
+      return;
+    }
+    // If they're satisfied but still on the gate page, route them home
+    if (onNdaGate) {
+      navigate({ to: isWriter ? "/writer/my-sections" : "/command", replace: true });
+      return;
+    }
     const isWriterAllowed = isWriterPath || WRITER_ALLOWED_SHARED.has(pathname);
     if (isWriter && !isWriterAllowed) {
       navigate({ to: "/writer/my-sections", replace: true });
     } else if (!isWriter && isWriterPath) {
       navigate({ to: "/command", replace: true });
     }
-  }, [loading, member, engagement, isWriter, isWriterPath, onPicker, pathname, navigate]);
+  }, [loading, member, engagement, isWriter, isWriterPath, onPicker, onNdaGate, ndaSatisfied, isLeadership, pathname, navigate]);
 
   // Picker / overview pages render full-bleed without the war-room shell
   if (onPicker) {
