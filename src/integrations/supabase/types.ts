@@ -350,6 +350,45 @@ export type Database = {
         }
         Relationships: []
       }
+      engagement_config: {
+        Row: {
+          competitors: string[]
+          created_at: string
+          engagement_id: string
+          evaluation_criteria: string[]
+          id: string
+          incumbent: string | null
+          key_differentiators: string[]
+          local_requirements: string | null
+          state_specific_notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          competitors?: string[]
+          created_at?: string
+          engagement_id: string
+          evaluation_criteria?: string[]
+          id?: string
+          incumbent?: string | null
+          key_differentiators?: string[]
+          local_requirements?: string | null
+          state_specific_notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          competitors?: string[]
+          created_at?: string
+          engagement_id?: string
+          evaluation_criteria?: string[]
+          id?: string
+          incumbent?: string | null
+          key_differentiators?: string[]
+          local_requirements?: string | null
+          state_specific_notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       engagement_invites: {
         Row: {
           accepted_at: string | null
@@ -538,31 +577,43 @@ export type Database = {
       engagements: {
         Row: {
           client: string
+          contract_value_estimate: number | null
           created_at: string | null
           created_by: string | null
+          engagement_type: string | null
           id: string
+          market: string | null
           name: string
           slack_webhook: string | null
+          state: string | null
           status: string
           submission_date: string | null
         }
         Insert: {
           client: string
+          contract_value_estimate?: number | null
           created_at?: string | null
           created_by?: string | null
+          engagement_type?: string | null
           id?: string
+          market?: string | null
           name: string
           slack_webhook?: string | null
+          state?: string | null
           status?: string
           submission_date?: string | null
         }
         Update: {
           client?: string
+          contract_value_estimate?: number | null
           created_at?: string | null
           created_by?: string | null
+          engagement_type?: string | null
           id?: string
+          market?: string | null
           name?: string
           slack_webhook?: string | null
+          state?: string | null
           status?: string
           submission_date?: string | null
         }
@@ -1084,6 +1135,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      state_resources: {
+        Row: {
+          notes: string | null
+          procurement_portal_url: string | null
+          small_business_program: string | null
+          state: string
+          state_name: string
+          updated_at: string
+        }
+        Insert: {
+          notes?: string | null
+          procurement_portal_url?: string | null
+          small_business_program?: string | null
+          state: string
+          state_name: string
+          updated_at?: string
+        }
+        Update: {
+          notes?: string | null
+          procurement_portal_url?: string | null
+          small_business_program?: string | null
+          state?: string
+          state_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      state_trivia_bank: {
+        Row: {
+          choices: string[]
+          correct_index: number
+          created_at: string
+          explanation: string | null
+          id: string
+          question: string
+          state: string
+        }
+        Insert: {
+          choices: string[]
+          correct_index: number
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          question: string
+          state: string
+        }
+        Update: {
+          choices?: string[]
+          correct_index?: number
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          question?: string
+          state?: string
+        }
+        Relationships: []
       }
       stuck_flags: {
         Row: {

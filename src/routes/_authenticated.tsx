@@ -79,7 +79,7 @@ function AuthLayout() {
   );
 }
 
-const PICKER_PATHS = new Set(["/select-engagement", "/overview"]);
+const PICKER_PATHS = new Set(["/select-engagement", "/overview", "/engagement/new"]);
 const NDA_PATH = "/nda-required";
 
 function RoleGuardedShell() {

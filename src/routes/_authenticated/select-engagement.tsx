@@ -59,7 +59,7 @@ function SelectEngagementPage() {
   const [showArchived, setShowArchived] = useState(false);
   const [statsById, setStatsById] = useState<Record<string, Stats>>({});
   const [horizon, setHorizon] = useState<Horizon[]>([]);
-  const [creating, setCreating] = useState(false);
+  const creating = false;
 
   const active = useMemo(
     () => memberships.filter((m) => m.engagement.status !== "Archived"),
@@ -140,35 +140,8 @@ function SelectEngagementPage() {
     window.location.href = "/login";
   }
 
-  async function createNewEngagement() {
-    if (!user) return;
-    const name = window.prompt("Engagement name?");
-    if (!name) return;
-    const client = window.prompt("Client name?");
-    if (!client) return;
-    setCreating(true);
-    try {
-      const { data, error } = await supabase
-        .from("engagements")
-        .insert({ name, client, created_by: user.id })
-        .select()
-        .single();
-      if (error) throw error;
-      const profile = await supabase.from("profiles").select("display_name").eq("id", user.id).single();
-      await supabase.from("engagement_members").insert({
-        engagement_id: data.id,
-        user_id: user.id,
-        role: "founder",
-        display_name: profile.data?.display_name ?? user.email ?? "Founder",
-      });
-      switchEngagement(data.id);
-      window.location.href = "/command";
-    } catch (e) {
-      console.error(e);
-      alert("Could not create engagement");
-    } finally {
-      setCreating(false);
-    }
+  function createNewEngagement() {
+    navigate({ to: "/engagement/new" });
   }
 
   if (loading) {

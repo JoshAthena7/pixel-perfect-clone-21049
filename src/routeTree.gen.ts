@@ -38,6 +38,7 @@ import { Route as AuthenticatedWriterWorkLogRouteImport } from './routes/_authen
 import { Route as AuthenticatedWriterRecognitionFeedRouteImport } from './routes/_authenticated/writer/recognition-feed'
 import { Route as AuthenticatedWriterProgressRouteImport } from './routes/_authenticated/writer/progress'
 import { Route as AuthenticatedWriterMySectionsRouteImport } from './routes/_authenticated/writer/my-sections'
+import { Route as AuthenticatedEngagementNewRouteImport } from './routes/_authenticated/engagement.new'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -195,6 +196,12 @@ const AuthenticatedWriterMySectionsRoute =
     path: '/writer/my-sections',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedEngagementNewRoute =
+  AuthenticatedEngagementNewRouteImport.update({
+    id: '/engagement/new',
+    path: '/engagement/new',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const LovableEmailTransactionalSendRoute =
   LovableEmailTransactionalSendRouteImport.update({
     id: '/lovable/email/transactional/send',
@@ -244,6 +251,7 @@ export interface FileRoutesByFullPath {
   '/team': typeof AuthenticatedTeamRoute
   '/win-themes': typeof AuthenticatedWinThemesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/engagement/new': typeof AuthenticatedEngagementNewRoute
   '/writer/my-sections': typeof AuthenticatedWriterMySectionsRoute
   '/writer/progress': typeof AuthenticatedWriterProgressRoute
   '/writer/recognition-feed': typeof AuthenticatedWriterRecognitionFeedRoute
@@ -278,6 +286,7 @@ export interface FileRoutesByTo {
   '/team': typeof AuthenticatedTeamRoute
   '/win-themes': typeof AuthenticatedWinThemesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/engagement/new': typeof AuthenticatedEngagementNewRoute
   '/writer/my-sections': typeof AuthenticatedWriterMySectionsRoute
   '/writer/progress': typeof AuthenticatedWriterProgressRoute
   '/writer/recognition-feed': typeof AuthenticatedWriterRecognitionFeedRoute
@@ -314,6 +323,7 @@ export interface FileRoutesById {
   '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/_authenticated/win-themes': typeof AuthenticatedWinThemesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/_authenticated/engagement/new': typeof AuthenticatedEngagementNewRoute
   '/_authenticated/writer/my-sections': typeof AuthenticatedWriterMySectionsRoute
   '/_authenticated/writer/progress': typeof AuthenticatedWriterProgressRoute
   '/_authenticated/writer/recognition-feed': typeof AuthenticatedWriterRecognitionFeedRoute
@@ -350,6 +360,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/win-themes'
     | '/email/unsubscribe'
+    | '/engagement/new'
     | '/writer/my-sections'
     | '/writer/progress'
     | '/writer/recognition-feed'
@@ -384,6 +395,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/win-themes'
     | '/email/unsubscribe'
+    | '/engagement/new'
     | '/writer/my-sections'
     | '/writer/progress'
     | '/writer/recognition-feed'
@@ -419,6 +431,7 @@ export interface FileRouteTypes {
     | '/_authenticated/team'
     | '/_authenticated/win-themes'
     | '/email/unsubscribe'
+    | '/_authenticated/engagement/new'
     | '/_authenticated/writer/my-sections'
     | '/_authenticated/writer/progress'
     | '/_authenticated/writer/recognition-feed'
@@ -648,6 +661,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWriterMySectionsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/engagement/new': {
+      id: '/_authenticated/engagement/new'
+      path: '/engagement/new'
+      fullPath: '/engagement/new'
+      preLoaderRoute: typeof AuthenticatedEngagementNewRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/lovable/email/transactional/send': {
       id: '/lovable/email/transactional/send'
       path: '/lovable/email/transactional/send'
@@ -699,6 +719,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
   AuthenticatedWinThemesRoute: typeof AuthenticatedWinThemesRoute
+  AuthenticatedEngagementNewRoute: typeof AuthenticatedEngagementNewRoute
   AuthenticatedWriterMySectionsRoute: typeof AuthenticatedWriterMySectionsRoute
   AuthenticatedWriterProgressRoute: typeof AuthenticatedWriterProgressRoute
   AuthenticatedWriterRecognitionFeedRoute: typeof AuthenticatedWriterRecognitionFeedRoute
@@ -725,6 +746,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
   AuthenticatedWinThemesRoute: AuthenticatedWinThemesRoute,
+  AuthenticatedEngagementNewRoute: AuthenticatedEngagementNewRoute,
   AuthenticatedWriterMySectionsRoute: AuthenticatedWriterMySectionsRoute,
   AuthenticatedWriterProgressRoute: AuthenticatedWriterProgressRoute,
   AuthenticatedWriterRecognitionFeedRoute:
