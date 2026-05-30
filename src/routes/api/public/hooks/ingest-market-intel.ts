@@ -386,7 +386,74 @@ async function ingestNewsAPI(supabase: SupabaseClient, openaiKey?: string, runSt
   return { inserted, skipped };
 }
 
+// ---------------- Source 5: Perplexity Live (per-engagement) ----------------
+
+async function ingestPerplexity(supabase: SupabaseClient, openaiKey?: string) {
+  if (!process.env.PERPLEXITY_API_KEY) throw new Error("PERPLEXITY_API_KEY not configured");
+
+  const { data: engagements } = await supabase
+    .from("engagements")
+    .select("id,name,state")
+    .not("status", "in", "(Archived,Closed)");
+
+  if (!engagements || engagements.length === 0) return { inserted: 0, skipped: 0, engagements: 0 };
+
+  let inserted = 0;
+  let skipped = 0;
+  const seenUrls = new Set<string>();
+
+  for (const eng of engagements) {
+    const state = eng.state || "the relevant state";
+    const program = eng.name || "this program";
+    const query = `Latest news and policy developments for ${program} in ${state} Medicaid managed care in the last 7 days`;
+    const result = await searchWeb(query);
+    if (!result.text || result.citations.length === 0) continue;
+
+    for (const url of result.citations) {
+      if (!url || seenUrls.has(url)) continue;
+      seenUrls.add(url);
+
+      const { count } = await supabase
+        .from("market_intelligence")
+        .select("id", { count: "exact", head: true })
+        .eq("url", url);
+      if ((count ?? 0) > 0) { skipped++; continue; }
+
+      let host = url;
+      try { host = new URL(url).hostname.replace(/^www\./, ""); } catch {/* noop */}
+      const title = `${host} — ${program}`.slice(0, 500);
+      const summary = result.text.slice(0, 2000);
+
+      let embedding: string | null = null;
+      if (openaiKey) {
+        const vec = await embedText(`${title} ${summary}`, openaiKey);
+        if (vec) embedding = pgvectorLiteral(vec);
+      }
+
+      const states = eng.state ? [eng.state] : [];
+      const { error } = await supabase.from("market_intelligence").insert({
+        source: "Perplexity Live",
+        title,
+        summary,
+        url,
+        relevant_states: states,
+        relevant_categories: [],
+        published_at: new Date().toISOString(),
+        raw_data: {
+          source_detail: "Perplexity Sonar",
+          engagement_id: eng.id,
+          query,
+        } as any,
+        embedding: embedding as any,
+      });
+      if (!error) inserted++; else skipped++;
+    }
+  }
+  return { inserted, skipped, engagements: engagements.length };
+}
+
 // ---------------- Existing RSS sources (preserved) ----------------
+
 
 const BASE_FEEDS: Array<{ source: string; url: string }> = [
   { source: "CMS Newsroom", url: "https://www.cms.gov/newsroom/rss-feeds/all-press-releases.xml" },
