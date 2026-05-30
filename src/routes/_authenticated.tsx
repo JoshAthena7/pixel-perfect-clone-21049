@@ -75,16 +75,47 @@ const WRITER_ALLOWED_SHARED = new Set<string>([]);
 function AuthLayout() {
   const { user, loading } = useSession();
   const navigate = useNavigate();
+  const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const needsMfa = useMfaGate(user?.id ?? null);
+
+  useSessionTimeout(!!user);
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/login", replace: true });
+    if (!loading && !user) {
+      resetLoginTracker();
+      navigate({ to: "/login", replace: true });
+    }
   }, [user, loading, navigate]);
+
+  useEffect(() => {
+    if (user) void trackLogin(user.id, user.email ?? null);
+  }, [user]);
+
+  // Force MFA enrollment before any war-room content is accessible
+  useEffect(() => {
+    if (!user || needsMfa === null) return;
+    if (needsMfa && pathname !== MFA_PATH) {
+      navigate({ to: MFA_PATH, replace: true });
+    } else if (!needsMfa && pathname === MFA_PATH) {
+      navigate({ to: "/command", replace: true });
+    }
+  }, [user, needsMfa, pathname, navigate]);
 
   if (loading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground">
         Loading…
       </div>
+    );
+  }
+
+  // MFA gate page — render bare (no engagement context required)
+  if (needsMfa && pathname === MFA_PATH) {
+    return (
+      <>
+        <Outlet />
+        <Toaster theme="dark" position="top-right" />
+      </>
     );
   }
 
