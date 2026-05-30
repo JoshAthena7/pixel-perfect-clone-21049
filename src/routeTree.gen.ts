@@ -34,13 +34,16 @@ import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticated/command'
 import { Route as AuthenticatedBroadcastsRouteImport } from './routes/_authenticated/broadcasts'
 import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated/activity'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as AuthenticatedWriterWorkLogRouteImport } from './routes/_authenticated/writer/work-log'
 import { Route as AuthenticatedWriterRecognitionFeedRouteImport } from './routes/_authenticated/writer/recognition-feed'
 import { Route as AuthenticatedWriterProgressRouteImport } from './routes/_authenticated/writer/progress'
 import { Route as AuthenticatedWriterMySectionsRouteImport } from './routes/_authenticated/writer/my-sections'
 import { Route as AuthenticatedEngagementNewRouteImport } from './routes/_authenticated/engagement.new'
+import { Route as AuthenticatedAdminEngagementsRouteImport } from './routes/_authenticated/admin/engagements'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -181,10 +184,20 @@ const AuthenticatedAssistantRoute = AuthenticatedAssistantRouteImport.update({
   path: '/assistant',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedActivityRoute = AuthenticatedActivityRouteImport.update({
   id: '/activity',
   path: '/activity',
   getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
 const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   id: '/lovable/email/suppression',
@@ -220,6 +233,12 @@ const AuthenticatedEngagementNewRoute =
     id: '/engagement/new',
     path: '/engagement/new',
     getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedAdminEngagementsRoute =
+  AuthenticatedAdminEngagementsRouteImport.update({
+    id: '/engagements',
+    path: '/engagements',
+    getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const LovableEmailTransactionalSendRoute =
   LovableEmailTransactionalSendRouteImport.update({
@@ -293,6 +312,7 @@ export interface FileRoutesByFullPath {
   '/accept-invite': typeof AcceptInviteRoute
   '/login': typeof LoginRoute
   '/activity': typeof AuthenticatedActivityRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/assistant': typeof AuthenticatedAssistantRoute
   '/broadcasts': typeof AuthenticatedBroadcastsRoute
   '/command': typeof AuthenticatedCommandRoute
@@ -314,12 +334,14 @@ export interface FileRoutesByFullPath {
   '/team': typeof AuthenticatedTeamRoute
   '/win-themes': typeof AuthenticatedWinThemesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/admin/engagements': typeof AuthenticatedAdminEngagementsRoute
   '/engagement/new': typeof AuthenticatedEngagementNewRoute
   '/writer/my-sections': typeof AuthenticatedWriterMySectionsRoute
   '/writer/progress': typeof AuthenticatedWriterProgressRoute
   '/writer/recognition-feed': typeof AuthenticatedWriterRecognitionFeedRoute
   '/writer/work-log': typeof AuthenticatedWriterWorkLogRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/api/public/hooks/backfill-embeddings': typeof ApiPublicHooksBackfillEmbeddingsRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
   '/api/public/hooks/ingest-market-intel': typeof ApiPublicHooksIngestMarketIntelRoute
@@ -358,12 +380,14 @@ export interface FileRoutesByTo {
   '/team': typeof AuthenticatedTeamRoute
   '/win-themes': typeof AuthenticatedWinThemesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/admin/engagements': typeof AuthenticatedAdminEngagementsRoute
   '/engagement/new': typeof AuthenticatedEngagementNewRoute
   '/writer/my-sections': typeof AuthenticatedWriterMySectionsRoute
   '/writer/progress': typeof AuthenticatedWriterProgressRoute
   '/writer/recognition-feed': typeof AuthenticatedWriterRecognitionFeedRoute
   '/writer/work-log': typeof AuthenticatedWriterWorkLogRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/api/public/hooks/backfill-embeddings': typeof ApiPublicHooksBackfillEmbeddingsRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
   '/api/public/hooks/ingest-market-intel': typeof ApiPublicHooksIngestMarketIntelRoute
@@ -383,6 +407,7 @@ export interface FileRoutesById {
   '/accept-invite': typeof AcceptInviteRoute
   '/login': typeof LoginRoute
   '/_authenticated/activity': typeof AuthenticatedActivityRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
   '/_authenticated/broadcasts': typeof AuthenticatedBroadcastsRoute
   '/_authenticated/command': typeof AuthenticatedCommandRoute
@@ -404,12 +429,14 @@ export interface FileRoutesById {
   '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/_authenticated/win-themes': typeof AuthenticatedWinThemesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/_authenticated/admin/engagements': typeof AuthenticatedAdminEngagementsRoute
   '/_authenticated/engagement/new': typeof AuthenticatedEngagementNewRoute
   '/_authenticated/writer/my-sections': typeof AuthenticatedWriterMySectionsRoute
   '/_authenticated/writer/progress': typeof AuthenticatedWriterProgressRoute
   '/_authenticated/writer/recognition-feed': typeof AuthenticatedWriterRecognitionFeedRoute
   '/_authenticated/writer/work-log': typeof AuthenticatedWriterWorkLogRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/api/public/hooks/backfill-embeddings': typeof ApiPublicHooksBackfillEmbeddingsRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
   '/api/public/hooks/ingest-market-intel': typeof ApiPublicHooksIngestMarketIntelRoute
@@ -429,6 +456,7 @@ export interface FileRouteTypes {
     | '/accept-invite'
     | '/login'
     | '/activity'
+    | '/admin'
     | '/assistant'
     | '/broadcasts'
     | '/command'
@@ -450,12 +478,14 @@ export interface FileRouteTypes {
     | '/team'
     | '/win-themes'
     | '/email/unsubscribe'
+    | '/admin/engagements'
     | '/engagement/new'
     | '/writer/my-sections'
     | '/writer/progress'
     | '/writer/recognition-feed'
     | '/writer/work-log'
     | '/lovable/email/suppression'
+    | '/admin/'
     | '/api/public/hooks/backfill-embeddings'
     | '/api/public/hooks/daily-digest'
     | '/api/public/hooks/ingest-market-intel'
@@ -494,12 +524,14 @@ export interface FileRouteTypes {
     | '/team'
     | '/win-themes'
     | '/email/unsubscribe'
+    | '/admin/engagements'
     | '/engagement/new'
     | '/writer/my-sections'
     | '/writer/progress'
     | '/writer/recognition-feed'
     | '/writer/work-log'
     | '/lovable/email/suppression'
+    | '/admin'
     | '/api/public/hooks/backfill-embeddings'
     | '/api/public/hooks/daily-digest'
     | '/api/public/hooks/ingest-market-intel'
@@ -518,6 +550,7 @@ export interface FileRouteTypes {
     | '/accept-invite'
     | '/login'
     | '/_authenticated/activity'
+    | '/_authenticated/admin'
     | '/_authenticated/assistant'
     | '/_authenticated/broadcasts'
     | '/_authenticated/command'
@@ -539,12 +572,14 @@ export interface FileRouteTypes {
     | '/_authenticated/team'
     | '/_authenticated/win-themes'
     | '/email/unsubscribe'
+    | '/_authenticated/admin/engagements'
     | '/_authenticated/engagement/new'
     | '/_authenticated/writer/my-sections'
     | '/_authenticated/writer/progress'
     | '/_authenticated/writer/recognition-feed'
     | '/_authenticated/writer/work-log'
     | '/lovable/email/suppression'
+    | '/_authenticated/admin/'
     | '/api/public/hooks/backfill-embeddings'
     | '/api/public/hooks/daily-digest'
     | '/api/public/hooks/ingest-market-intel'
@@ -755,12 +790,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAssistantRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/activity': {
       id: '/_authenticated/activity'
       path: '/activity'
       fullPath: '/activity'
       preLoaderRoute: typeof AuthenticatedActivityRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/lovable/email/suppression': {
       id: '/lovable/email/suppression'
@@ -803,6 +852,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/engagement/new'
       preLoaderRoute: typeof AuthenticatedEngagementNewRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/engagements': {
+      id: '/_authenticated/admin/engagements'
+      path: '/engagements'
+      fullPath: '/admin/engagements'
+      preLoaderRoute: typeof AuthenticatedAdminEngagementsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/lovable/email/transactional/send': {
       id: '/lovable/email/transactional/send'
@@ -884,8 +940,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminEngagementsRoute: typeof AuthenticatedAdminEngagementsRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminEngagementsRoute: AuthenticatedAdminEngagementsRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedRouteChildren {
   AuthenticatedActivityRoute: typeof AuthenticatedActivityRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
   AuthenticatedBroadcastsRoute: typeof AuthenticatedBroadcastsRoute
   AuthenticatedCommandRoute: typeof AuthenticatedCommandRoute
@@ -915,6 +985,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedActivityRoute: AuthenticatedActivityRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
   AuthenticatedBroadcastsRoute: AuthenticatedBroadcastsRoute,
   AuthenticatedCommandRoute: AuthenticatedCommandRoute,

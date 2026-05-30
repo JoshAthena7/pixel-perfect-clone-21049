@@ -14,6 +14,7 @@ import {
   Briefcase,
   ExternalLink,
   DoorOpen,
+  Shield,
 } from "lucide-react";
 import {
   Sidebar,
@@ -30,6 +31,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
 import { EngagementSwitcher } from "@/components/EngagementSwitcher";
 import athenaLogo from "@/assets/athena-logo-dark.png";
+import { useIsAdmin } from "@/hooks/use-admin";
 import type { ComponentType } from "react";
 import type { LucideProps } from "lucide-react";
 
@@ -50,6 +52,7 @@ const NAV: NavItem[] = [
 export function AppSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const { engagement, member, isArchived } = useEngagement();
+  const { isAdmin } = useIsAdmin();
   const isActive = (p: string) => pathname === p;
 
   async function signOut() {
@@ -120,6 +123,16 @@ export function AppSidebar() {
 
       <SidebarFooter>
         <SidebarMenu>
+          {isAdmin && (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={pathname.startsWith("/admin")} tooltip="Admin Portal — Platform-wide control across every war room">
+                <Link to="/admin">
+                  <Shield className="h-4 w-4" />
+                  <span>Admin</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
           <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={isActive("/select-engagement")} tooltip="War Rooms — Switch engagements or open a new one">
               <Link to="/select-engagement">
