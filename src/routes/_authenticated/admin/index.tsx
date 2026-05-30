@@ -148,10 +148,9 @@ function AdminDashboard() {
         </div>
         <div className="divide-y divide-border/30">
           {loading ? (
-            <div className="px-5 py-10 text-center text-sm text-muted-foreground">Loading war rooms…</div>
-          ) : active.length === 0 ? (
-            <div className="px-5 py-10 text-center text-sm text-muted-foreground">
-              No active war rooms yet.{" "}
+            <div className="px-5 py-10 text-center text-sm text-muted-foreground">Loading Missions…</div>
+...
+              No active Missions yet.{" "}
               <Link to="/engagement/new" className="text-[var(--gold)] underline">Create one →</Link>
             </div>
           ) : (
