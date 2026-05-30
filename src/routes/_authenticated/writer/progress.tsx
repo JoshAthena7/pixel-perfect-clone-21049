@@ -51,14 +51,8 @@ function WriterProgress() {
       celebrated.current = true;
       bigConfetti();
       localStorage.setItem(key, String(crossed));
-      // Auto-post celebratory broadcast
-      supabase.from("broadcasts").insert({
-        engagement_id: engagement.id,
-        author_id: "00000000-0000-0000-0000-000000000000",
-        author_name: "War Room",
-        content: `🎉 We just hit ${crossed}% sections Complete! Keep going, team.`,
-        pinned: crossed === 100,
-      }).then(() => {}, () => {});
+      // Note: auto-broadcast removed — writers can't insert into broadcasts (RLS leadership-only).
+      // Confetti + local milestone tracking stays; a leader can post the celebration manually.
     }
   }, [completePct, engagement?.id, total]);
 

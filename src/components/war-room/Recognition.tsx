@@ -213,6 +213,7 @@ async function upsertPulse(opts: {
   const { data: existing } = await supabase
     .from("engagement_pulses")
     .select("id, star_count, tlc_count")
+    .eq("engagement_id", opts.engagementId)
     .eq("member_id", opts.memberId)
     .maybeSingle();
 
