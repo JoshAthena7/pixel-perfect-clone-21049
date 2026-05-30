@@ -896,6 +896,54 @@ export type Database = {
           },
         ]
       }
+      hook_failures: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+          dedupe_key: string | null
+          error_message: string | null
+          hook_name: string
+          id: string
+          jobid: number | null
+          notified_at: string | null
+          payload: Json | null
+          runid: number | null
+          source: string
+          status_code: number | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          error_message?: string | null
+          hook_name: string
+          id?: string
+          jobid?: number | null
+          notified_at?: string | null
+          payload?: Json | null
+          runid?: number | null
+          source: string
+          status_code?: number | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          error_message?: string | null
+          hook_name?: string
+          id?: string
+          jobid?: number | null
+          notified_at?: string | null
+          payload?: Json | null
+          runid?: number | null
+          source?: string
+          status_code?: number | null
+        }
+        Relationships: []
+      }
       huddles: {
         Row: {
           client_concern: string | null
@@ -1849,6 +1897,17 @@ export type Database = {
           read_ct: number
         }[]
       }
+      record_hook_failure: {
+        Args: {
+          _error: string
+          _hook_name: string
+          _payload?: Json
+          _source: string
+          _status: number
+        }
+        Returns: string
+      }
+      scan_cron_failures: { Args: { _since?: string }; Returns: number }
       search_similar_content: {
         Args: {
           match_count?: number
