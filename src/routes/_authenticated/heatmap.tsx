@@ -127,12 +127,26 @@ function HeatmapPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
       <Watermark />
-      <div>
-        <h1 className="text-2xl font-bold">Heat Map</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Section-by-section health across the engagement.
-          {!isLeadership && " View-only — leadership can update statuses."}
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Heat Map</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Section-by-section health across the engagement.
+            {!isLeadership && " View-only — leadership can update statuses."}
+          </p>
+        </div>
+        {isLeadership && reviewCount > 0 && (
+          <Link
+            to="/win-themes"
+            className="inline-flex items-center gap-2 rounded-md border border-purple-500/40 bg-purple-500/10 px-3 py-1.5 text-xs font-semibold text-purple-600 hover:bg-purple-500/20"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            {reviewCount} win-theme mapping{reviewCount === 1 ? "" : "s"} to review
+            <Badge variant="outline" className="ml-1 border-purple-500/40 bg-purple-500/20 text-[10px] text-purple-700">
+              AI
+            </Badge>
+          </Link>
+        )}
       </div>
 
       <ErrorBanner error={loadError} onRetry={() => engagement && load(engagement.id)} label="Couldn't load the heat map." />
