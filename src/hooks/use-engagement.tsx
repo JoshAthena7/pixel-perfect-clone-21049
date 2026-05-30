@@ -42,6 +42,7 @@ type Ctx = {
   isWriter: boolean;
   isViewer: boolean;
   isArchived: boolean;
+  ndaSatisfied: boolean;
   refresh: () => Promise<void>;
 };
 
