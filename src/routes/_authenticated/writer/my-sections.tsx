@@ -149,7 +149,20 @@ function WriterMySections() {
             <Card key={a.id} className="border-border bg-surface p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="text-sm font-semibold">{a.section?.section_name}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm font-semibold">{a.section?.section_name}</div>
+                    {a.section?.evaluation_weight_pct != null && (
+                      <Badge
+                        variant="outline"
+                        className={`border-[var(--gold)]/40 bg-[var(--gold)]/10 text-[10px] font-bold tracking-wider text-[var(--gold)] ${
+                          (a.section.evaluation_weight_pct ?? 0) > 10 ? "border-red-500/60 bg-red-500/10 text-red-300" : ""
+                        }`}
+                        title="Evaluation weight"
+                      >
+                        {a.section.evaluation_weight_pct}% wt
+                      </Badge>
+                    )}
+                  </div>
                   {(() => {
                     const ds = dueState(a.due_date);
                     if (!ds) return null;
