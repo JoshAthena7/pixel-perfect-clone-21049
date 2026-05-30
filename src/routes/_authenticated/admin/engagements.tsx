@@ -9,6 +9,16 @@ import { useEngagement } from "@/hooks/use-engagement";
 import { daysUntil, relativeTime } from "@/lib/time";
 import { ArrowRight, Plus, Search, Building2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { SERVICE_CATEGORIES, type ServicesChecklist } from "@/lib/ai/sizing.functions";
+
+const SERVICE_SHORT: Record<string, string> = {
+  pre_writing: "Pre-Write",
+  writing: "Write",
+  sme: "SME",
+  creative: "Creative",
+  qa: "QA",
+  post_submission: "Post",
+};
 
 export const Route = createFileRoute("/_authenticated/admin/engagements")({
   component: AdminEngagementsList,
