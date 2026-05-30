@@ -1,18 +1,28 @@
 // Central AI router. Picks the right provider/model per task.
 //
-//   chat       → Lovable AI Gateway (Gemini 3 Flash) — fast conversational
-//   summarize  → Lovable AI Gateway (Gemini 3 Flash) — short classifications
-//   extract    → Anthropic Claude Sonnet — structured extraction from docs
-//   analyze    → Anthropic Claude Sonnet (Opus for `deep:true`) — reasoning
-//   embed      → OpenAI text-embedding-3-large (1536 dims) — RAG vectors
+//   chat        → Lovable AI Gateway (Gemini 2.5 Flash) — fast conversational
+//   summarize   → Lovable AI Gateway (Gemini 2.5 Flash) — short classifications
+//   extract     → Anthropic Claude Sonnet — structured extraction from docs
+//   analyze     → Anthropic Claude Sonnet (Opus for `deep:true`) — reasoning
+//   embed       → OpenAI text-embedding-3-large (1536 dims) — RAG vectors
+//   search      → Perplexity Sonar — live web search with citations
+//   deep-search → Perplexity Sonar Pro — deeper live research with citations
 //
 // All callers should go through runAI() rather than calling the providers
 // directly. Server-only.
 
 import { askClaude, type ClaudeModel } from "./anthropic";
 import { embedText } from "@/lib/intelligence/embed";
+import { searchWeb, searchDeep, type PerplexityResult } from "./perplexity";
 
-export type AITask = "chat" | "extract" | "analyze" | "embed" | "summarize";
+export type AITask =
+  | "chat"
+  | "extract"
+  | "analyze"
+  | "embed"
+  | "summarize"
+  | "search"
+  | "deep-search";
 
 type ChatMsg = { role: "system" | "user" | "assistant"; content: string };
 
@@ -21,11 +31,8 @@ export type RunAIInput =
       task: "chat" | "summarize";
       system: string;
       prompt?: string;
-      /** Optional full message thread (overrides `prompt` when provided). */
       messages?: ChatMsg[];
-      /** Force JSON output via response_format. */
       json?: boolean;
-      /** Override default model. */
       model?: string;
     }
   | {
@@ -33,18 +40,22 @@ export type RunAIInput =
       system: string;
       prompt: string;
       json?: boolean;
-      /** Use Opus for high-reasoning workloads (compliance, deep pattern). */
       deep?: boolean;
       model?: ClaudeModel;
     }
   | {
       task: "embed";
       input: string;
+    }
+  | {
+      task: "search" | "deep-search";
+      prompt: string;
     };
 
 export type RunAIResult =
   | { kind: "text"; text: string }
-  | { kind: "embedding"; vector: number[] | null };
+  | { kind: "embedding"; vector: number[] | null }
+  | { kind: "search"; text: string; citations: string[] };
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const DEFAULT_CHAT_MODEL = "google/gemini-2.5-flash";
@@ -93,6 +104,12 @@ export async function runAI(input: RunAIInput): Promise<RunAIResult> {
     return { kind: "embedding", vector };
   }
 
+  if (input.task === "search" || input.task === "deep-search") {
+    const r: PerplexityResult =
+      input.task === "search" ? await searchWeb(input.prompt) : await searchDeep(input.prompt);
+    return { kind: "search", text: r.text, citations: r.citations };
+  }
+
   if (input.task === "chat" || input.task === "summarize") {
     const text = await callGateway({
       model: input.model ?? DEFAULT_CHAT_MODEL,
@@ -120,9 +137,11 @@ export async function runAI(input: RunAIInput): Promise<RunAIResult> {
   return { kind: "text", text };
 }
 
-/** Convenience: run a task and return raw text (throws for embed). */
-export async function runAIText(input: Exclude<RunAIInput, { task: "embed" }>): Promise<string> {
+/** Convenience: run a task and return raw text (throws for embed/search). */
+export async function runAIText(
+  input: Exclude<RunAIInput, { task: "embed" } | { task: "search" | "deep-search" }>,
+): Promise<string> {
   const r = await runAI(input);
-  if (r.kind !== "text") throw new Error("runAIText called with embed task");
+  if (r.kind !== "text") throw new Error("runAIText called with non-text task");
   return r.text;
 }
