@@ -19,6 +19,8 @@ export function HookFailuresPanel() {
   const [showAcked, setShowAcked] = useState(false);
   // ids that are optimistically acked but not yet committed (undo window open)
   const pendingRef = useRef<Map<string, { timer: ReturnType<typeof setTimeout>; row: Failure }>>(new Map());
+  // ids whose DB commit is currently in flight — guard against duplicate Retry clicks
+  const inflightRef = useRef<Set<string>>(new Set());
 
   async function load() {
     setLoading(true);
@@ -54,6 +56,7 @@ export function HookFailuresPanel() {
   }
 
   async function commitAck(row: Failure) {
+    inflightRef.current.add(row.id);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       const { data, error } = await supabase
@@ -77,25 +80,40 @@ export function HookFailuresPanel() {
         if (!fresh?.acknowledged_at) {
           // Not acked in DB and our update affected nothing → permission/network mismatch
           restoreRow(row);
-          toast.error("Couldn't acknowledge", {
-            description: "The change wasn't saved. Restored the failure to the list.",
-            action: { label: "Retry", onClick: () => ack(row) },
-          });
+          showRetryToast(row, "The change wasn't saved. Restored the failure to the list.");
         }
         // else: someone else already acked it — leave it removed from UI
       }
     } catch (e) {
       pendingRef.current.delete(row.id);
       restoreRow(row);
-      const msg = e instanceof Error ? e.message : "Unknown error";
-      toast.error("Couldn't acknowledge", {
-        description: msg,
-        action: { label: "Retry", onClick: () => ack(row) },
-      });
+      showRetryToast(row, e instanceof Error ? e.message : "Unknown error");
+    } finally {
+      inflightRef.current.delete(row.id);
     }
   }
 
+  function showRetryToast(row: Failure, description: string) {
+    const toastId = `hook-ack-error-${row.id}`;
+    toast.error("Couldn't acknowledge", {
+      id: toastId,
+      description,
+      action: {
+        label: "Retry",
+        onClick: () => {
+          // Guard: if a commit is already in flight or queued, ignore the click.
+          if (inflightRef.current.has(row.id) || pendingRef.current.has(row.id)) return;
+          // Dismiss immediately so the action can't be clicked again while we retry.
+          toast.dismiss(toastId);
+          ack(row);
+        },
+      },
+    });
+  }
+
   function ack(row: Failure) {
+    // No-op if this row already has a queued or in-flight commit.
+    if (pendingRef.current.has(row.id) || inflightRef.current.has(row.id)) return;
     // Optimistic remove
     setRows((prev) => prev.filter((r) => r.id !== row.id));
     // Schedule the actual DB write after the undo window
