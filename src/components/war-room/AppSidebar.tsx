@@ -16,6 +16,7 @@ import {
   ExternalLink,
   DoorOpen,
   Shield,
+  UserCheck,
 } from "lucide-react";
 import {
   Sidebar,
