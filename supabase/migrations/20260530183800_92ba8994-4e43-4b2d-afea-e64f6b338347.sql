@@ -1,0 +1,2 @@
+ALTER TABLE public.heatmap_sections DROP CONSTRAINT IF EXISTS heatmap_sections_status_check;
+ALTER TABLE public.heatmap_sections ADD CONSTRAINT heatmap_sections_status_check CHECK (status = ANY (ARRAY['Green'::text, 'Yellow'::text, 'Orange'::text, 'Red'::text, 'N/A'::text]));

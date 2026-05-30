@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
@@ -34,7 +34,7 @@ type Section = {
   updated_by_name: string | null;
 };
 
-const STATUSES: StatusColor[] = ["Green", "Yellow", "Orange", "Red"];
+const STATUSES: StatusColor[] = ["Green", "Yellow", "Orange", "Red", "N/A"];
 
 function HeatmapPage() {
   const { engagement, member, isLeadership } = useEngagement();
@@ -153,9 +153,16 @@ function HeatmapPage() {
                         {s.updated_by_name ? `${s.updated_by_name} • ${relativeTime(s.updated_at)}` : "No updates yet"}
                       </div>
                       {isLeadership && (
-                        <Button size="sm" variant="outline" className="mt-4 w-full" onClick={() => startEdit(s)}>
-                          Update
-                        </Button>
+                        <div className="mt-4 flex gap-2">
+                          <Button size="sm" variant="outline" className="flex-1" onClick={() => startEdit(s)}>
+                            Update
+                          </Button>
+                          <Button asChild size="sm" variant="ghost" className="flex-1">
+                            <Link to="/section-assignments" search={{ section: s.id } as any}>
+                              Assign writer
+                            </Link>
+                          </Button>
+                        </div>
                       )}
                     </>
                   )}

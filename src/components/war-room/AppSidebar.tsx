@@ -16,6 +16,7 @@ import {
   ExternalLink,
   DoorOpen,
   Shield,
+  UserCheck,
 } from "lucide-react";
 import {
   Sidebar,
@@ -53,7 +54,7 @@ const NAV: NavItem[] = [
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
-  const { engagement, member, isArchived } = useEngagement();
+  const { engagement, member, isArchived, isLeadership } = useEngagement();
   const { isAdmin } = useIsAdmin();
   const isActive = (p: string) => pathname === p;
 
@@ -93,9 +94,26 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>{NAV.map(renderItem)}</SidebarMenu>
+            <SidebarMenu>
+              {NAV.map(renderItem)}
+              {isLeadership && engagement && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive("/section-assignments")}
+                    tooltip="Section Assignments — Assign writers and reviewers to each Heat Map section"
+                  >
+                    <Link to="/section-assignments">
+                      <UserCheck className="h-4 w-4" />
+                      <span>Assignments</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
 
         <SidebarGroup>
           <SidebarGroupContent>

@@ -13,17 +13,22 @@ import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated/section-assignments")({
   head: () => ({ meta: [{ title: "Section Assignments — Athena" }] }),
+  validateSearch: (s: Record<string, unknown>) => ({ section: typeof s.section === "string" ? s.section : undefined }),
   component: SectionAssignments,
 });
 
 function SectionAssignments() {
   const { engagement, isLeadership } = useEngagement();
+  const { section: presetSection } = Route.useSearch();
   const [sections, setSections] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
   const [assignments, setAssignments] = useState<any[]>([]);
-  const [sectionId, setSectionId] = useState("");
+  const [sectionId, setSectionId] = useState(presetSection ?? "");
   const [userId, setUserId] = useState("");
   const [due, setDue] = useState("");
+
+  useEffect(() => { if (presetSection) setSectionId(presetSection); }, [presetSection]);
+
 
   async function load() {
     if (!engagement) return;
