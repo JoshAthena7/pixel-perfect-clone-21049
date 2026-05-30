@@ -165,7 +165,7 @@ function AdminEngagementsList() {
               return (
                 <div
                   key={e.id}
-                  className="grid grid-cols-[2.2fr_1.2fr_90px_130px_130px_120px_160px] items-center gap-3 px-5 py-3 hover:bg-white/[0.02] transition"
+                  className="grid grid-cols-[2.2fr_1.2fr_90px_1.4fr_120px_130px_120px_160px] items-center gap-3 px-5 py-3 hover:bg-white/[0.02] transition"
                 >
                   <div className="min-w-0">
                     <div className="text-sm font-bold truncate">{e.name}</div>
@@ -175,6 +175,7 @@ function AdminEngagementsList() {
                   </div>
                   <div className="text-xs truncate">{e.client}</div>
                   <div className="text-xs text-muted-foreground">{e.state ?? "—"}</div>
+                  <ServicesChips services={e.services ?? null} />
                   <div className="text-xs">
                     {fmtCurrency(e.contract_value_estimate ?? 0)}
                   </div>
