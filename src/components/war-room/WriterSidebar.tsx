@@ -1,9 +1,9 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutGrid,
+  ListChecks,
   Megaphone,
-  FolderOpen,
-  Flag,
+  Vault as VaultIcon,
+  Antenna,
   HelpCircle,
   LogOut,
   ExternalLink,
@@ -23,12 +23,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
 import { EngagementSwitcher } from "@/components/EngagementSwitcher";
 import { openFlagIssue } from "@/components/war-room/FlagIssueButton";
-import athenaLogo from "@/assets/athena-logo-dark.png";
+import { AthenaMark } from "@/components/ui/AthenaMark";
 
 const NAV = [
-  { title: "My Sections",    url: "/writer/my-sections", icon: LayoutGrid },
-  { title: "Broadcasts",     url: "/broadcasts",         icon: Megaphone },
-  { title: "Vault",  url: "/intel",              icon: FolderOpen },
+  { title: "My Sections", url: "/writer/my-sections", icon: ListChecks },
+  { title: "Broadcasts",  url: "/broadcasts",         icon: Megaphone },
+  { title: "Vault",       url: "/intel",              icon: VaultIcon },
 ] as const;
 
 export function WriterSidebar() {
@@ -45,7 +45,7 @@ export function WriterSidebar() {
     <Sidebar collapsible="icon" style={{ ["--sidebar-width" as any]: "180px" }}>
       <SidebarHeader>
         <div className="flex flex-col items-center gap-2 px-2 py-3 border-b border-border/40">
-          <img src={athenaLogo} alt="Athena Strategy Group" className="h-12 w-auto object-contain" />
+          <AthenaMark size="md" tone="white" />
           <div className="text-[10px] uppercase tracking-[0.28em] text-[var(--gold)] font-semibold">
             Writer Portal
           </div>
@@ -82,11 +82,11 @@ export function WriterSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton
                   size="sm"
-                  tooltip="Raise a Signal — Raise a blocker or risk"
-                  className="py-1.5 text-[12px]"
+                  tooltip="Raise a Signal — Flag a blocker or risk"
+                  className="py-1.5 text-[12px] text-[var(--red)]/90"
                   onClick={() => openFlagIssue()}
                 >
-                  <Flag className="h-4 w-4" />
+                  <Antenna className="h-4 w-4" />
                   <span>Raise a Signal</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -115,12 +115,7 @@ export function WriterSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Open Slack">
-              <a
-                href="https://slack.com/app_redirect?app=A"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground"
-              >
+              <a href="https://slack.com/app_redirect?app=A" target="_blank" rel="noopener noreferrer" className="text-muted-foreground">
                 <ExternalLink className="h-4 w-4" />
                 <span className="flex-1">→ Go to Slack</span>
               </a>
@@ -128,12 +123,7 @@ export function WriterSidebar() {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Open Talent Desk">
-              <a
-                href="https://app.talentdesk.io/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground"
-              >
+              <a href="https://app.talentdesk.io/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground">
                 <ExternalLink className="h-4 w-4" />
                 <span className="flex-1">→ Go to Talent Desk</span>
               </a>
