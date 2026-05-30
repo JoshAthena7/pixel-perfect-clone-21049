@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Phone, MessageSquare, Mail, Hash, Radio, Pencil, X, Check, Upload, AlertTriangle, UserPlus, Copy, Link as LinkIcon } from "lucide-react";
+import { Phone, MessageSquare, Mail, Hash, Radio, Pencil, X, Check, Upload, AlertTriangle, UserPlus, Copy, Link as LinkIcon, ShieldCheck, ShieldAlert } from "lucide-react";
 import { RecognitionSummary, MemberRecognitionPanel, usePulses, type FormKind } from "@/components/war-room/Recognition";
 import { PresenceDot } from "@/components/war-room/comms/PresenceDot";
 import { NudgeButton } from "@/components/war-room/comms/NudgeButton";
@@ -94,6 +94,9 @@ type Member = {
   slack_handle: string | null;
   timezone: string | null;
   on_call: boolean;
+  nda_required: boolean;
+  nda_confirmed: boolean;
+  nda_confirmed_at: string | null;
 };
 
 const ROLE_LABEL: Record<string, string> = {
@@ -132,12 +135,30 @@ function TeamPage() {
   async function load(eid: string) {
     const { data } = await supabase
       .from("engagement_members")
-      .select("id, user_id, display_name, role, title, email, phone, slack_handle, timezone, on_call")
+      .select("id, user_id, display_name, role, title, email, phone, slack_handle, timezone, on_call, nda_required, nda_confirmed, nda_confirmed_at")
       .eq("engagement_id", eid)
       .order("on_call", { ascending: false })
       .order("role")
       .order("display_name");
     setMembers((data as Member[]) ?? []);
+  }
+
+  async function toggleNda(m: Member) {
+    if (!isLeadership) return;
+    const next = !m.nda_confirmed;
+    const { data: u } = await supabase.auth.getUser();
+    const { error } = await supabase
+      .from("engagement_members")
+      .update({
+        nda_confirmed: next,
+        nda_confirmed_at: next ? new Date().toISOString() : null,
+        nda_confirmed_by: next ? (u.user?.id ?? null) : null,
+      })
+      .eq("id", m.id)
+      .eq("engagement_id", engagement?.id ?? "");
+    if (error) return toast.error(error.message);
+    toast.success(next ? "NDA confirmed" : "NDA confirmation revoked");
+    if (engagement) load(engagement.id);
   }
 
   useEffect(() => {
@@ -535,6 +556,17 @@ function TeamPage() {
                             <Radio className="h-3 w-3" /> On call
                           </span>
                         )}
+                        {m.nda_required && (
+                          m.nda_confirmed ? (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-400" title={m.nda_confirmed_at ? `Confirmed ${new Date(m.nda_confirmed_at).toLocaleDateString()}` : "NDA on file"}>
+                              <ShieldCheck className="h-3 w-3" /> NDA
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-red-500/40 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-red-400" title="Access locked until NDA confirmed">
+                              <ShieldAlert className="h-3 w-3" /> NDA pending
+                            </span>
+                          )
+                        )}
                       </div>
                       {(m.title || m.timezone) && (
                         <div className="mt-0.5 text-xs text-muted-foreground">
@@ -575,6 +607,20 @@ function TeamPage() {
                         <Button variant="ghost" size="sm" onClick={() => toggleOnCall(m)} className="text-xs">
                           {m.on_call ? "Clear on-call" : "Mark on-call"}
                         </Button>
+                        {m.nda_required && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleNda(m)}
+                            className={`text-xs ${m.nda_confirmed ? "text-red-400 hover:text-red-300" : "text-emerald-400 hover:text-emerald-300"}`}
+                          >
+                            {m.nda_confirmed ? (
+                              <><ShieldAlert className="h-3.5 w-3.5 mr-1" /> Revoke NDA</>
+                            ) : (
+                              <><ShieldCheck className="h-3.5 w-3.5 mr-1" /> Confirm NDA</>
+                            )}
+                          </Button>
+                        )}
                       </div>
                     )}
                   </div>

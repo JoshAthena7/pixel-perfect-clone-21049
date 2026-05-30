@@ -15,12 +15,16 @@ export type Member = {
   id: string;
   role: string;
   display_name: string;
+  nda_required: boolean;
+  nda_confirmed: boolean;
 };
 
 export type Membership = {
   member_id: string;
   role: string;
   display_name: string;
+  nda_required: boolean;
+  nda_confirmed: boolean;
   engagement: Engagement;
 };
 
@@ -38,6 +42,7 @@ type Ctx = {
   isWriter: boolean;
   isViewer: boolean;
   isArchived: boolean;
+  ndaSatisfied: boolean;
   refresh: () => Promise<void>;
 };
 
@@ -58,7 +63,7 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
     // /select-engagement filters them visually.
     const { data } = await supabase
       .from("engagement_members")
-      .select("id, role, display_name, engagement:engagements!inner(id, name, client, status, submission_date, created_by)")
+      .select("id, role, display_name, nda_required, nda_confirmed, engagement:engagements!inner(id, name, client, status, submission_date, created_by)")
       .eq("user_id", uid);
 
 
@@ -68,6 +73,8 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
         member_id: row.id as string,
         role: row.role as string,
         display_name: row.display_name as string,
+        nda_required: row.nda_required ?? true,
+        nda_confirmed: row.nda_confirmed ?? false,
         engagement: row.engagement as Engagement,
       }));
 
@@ -100,7 +107,7 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
         // Re-fetch memberships to pick up the seed trigger's founder row
         const { data: again } = await supabase
           .from("engagement_members")
-          .select("id, role, display_name, engagement:engagements!inner(id, name, client, status, submission_date, created_by)")
+          .select("id, role, display_name, nda_required, nda_confirmed, engagement:engagements!inner(id, name, client, status, submission_date, created_by)")
           .eq("user_id", uid);
 
         list = ((again as any[]) ?? [])
@@ -109,6 +116,8 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
             member_id: r.id,
             role: r.role,
             display_name: r.display_name,
+            nda_required: r.nda_required ?? true,
+            nda_confirmed: r.nda_confirmed ?? false,
             engagement: r.engagement,
           }));
       }
@@ -159,6 +168,8 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
         id: currentMembership.member_id,
         role: currentMembership.role,
         display_name: currentMembership.display_name,
+        nda_required: currentMembership.nda_required,
+        nda_confirmed: currentMembership.nda_confirmed,
       }
     : null;
   const role = member?.role ?? null;
@@ -167,6 +178,9 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
   const canWrite = isLeadership && !isArchived;
   const isWriter = role === "writer";
   const isViewer = role === "viewer";
+  const ndaSatisfied = !member
+    ? false
+    : isLeadership || !member.nda_required || member.nda_confirmed;
 
   return (
     <EngagementContext.Provider
@@ -184,6 +198,7 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
         isWriter,
         isViewer,
         isArchived,
+        ndaSatisfied,
         refresh: async () => {
           if (user) await load(user.id);
         },
