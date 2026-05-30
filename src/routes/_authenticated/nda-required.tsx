@@ -30,7 +30,7 @@ function NdaRequiredPage() {
           <ol className="list-decimal pl-5 space-y-1.5">
             <li>Sign and return your NDA to your engagement leader.</li>
             <li>A founder, PM, or engagement lead marks your NDA as confirmed in the Collective™.</li>
-            <li>Refresh this page and you'll be routed into the war room.</li>
+            <li>Refresh this page and you'll be routed into the Mission.</li>
           </ol>
         </div>
         {member?.display_name && (
