@@ -40,7 +40,8 @@ type NavItem = { title: string; url: string; icon: ComponentType<LucideProps>; h
 
 // The 9 canonical items, in order.
 const NAV: NavItem[] = [
-  { title: "Command",    url: "/command",    icon: LayoutDashboard, hint: "Executive overview of engagement health" },
+  { title: "Overview",   url: "/overview",   icon: Compass,         hint: "Portfolio-wide executive view across every engagement" },
+  { title: "Command",    url: "/command",    icon: LayoutDashboard, hint: "Executive overview of this engagement" },
   { title: "Huddle",     url: "/huddle",     icon: Users,           hint: "Daily 60-second status from the front line" },
   { title: "Heatmap",    url: "/heatmap",    icon: Grid3x3,         hint: "Section-by-section health" },
   { title: "Issues",     url: "/issues",     icon: Siren,           hint: "Unified board for SOS blockers and risks" },
