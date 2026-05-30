@@ -189,6 +189,125 @@ export type Database = {
           },
         ]
       }
+      compliance_documents: {
+        Row: {
+          created_at: string
+          doc_type: string
+          engagement_id: string
+          file_path: string | null
+          id: string
+          name: string
+          page_count: number | null
+          requirement_count: number
+          source: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          doc_type: string
+          engagement_id: string
+          file_path?: string | null
+          id?: string
+          name: string
+          page_count?: number | null
+          requirement_count?: number
+          source?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          doc_type?: string
+          engagement_id?: string
+          file_path?: string | null
+          id?: string
+          name?: string
+          page_count?: number | null
+          requirement_count?: number
+          source?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_documents_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      compliance_requirements: {
+        Row: {
+          addressed_in_questions: string[]
+          addressed_in_sections: string[]
+          ai_confidence: number | null
+          ai_explanation: string | null
+          ai_quote: string | null
+          ai_verified: boolean
+          created_at: string
+          document_id: string
+          engagement_id: string
+          id: string
+          last_checked_at: string | null
+          notes: string | null
+          requirement_text: string
+          requirement_type: string | null
+          section_reference: string | null
+          status: string
+        }
+        Insert: {
+          addressed_in_questions?: string[]
+          addressed_in_sections?: string[]
+          ai_confidence?: number | null
+          ai_explanation?: string | null
+          ai_quote?: string | null
+          ai_verified?: boolean
+          created_at?: string
+          document_id: string
+          engagement_id: string
+          id?: string
+          last_checked_at?: string | null
+          notes?: string | null
+          requirement_text: string
+          requirement_type?: string | null
+          section_reference?: string | null
+          status?: string
+        }
+        Update: {
+          addressed_in_questions?: string[]
+          addressed_in_sections?: string[]
+          ai_confidence?: number | null
+          ai_explanation?: string | null
+          ai_quote?: string | null
+          ai_verified?: boolean
+          created_at?: string
+          document_id?: string
+          engagement_id?: string
+          id?: string
+          last_checked_at?: string | null
+          notes?: string | null
+          requirement_text?: string
+          requirement_type?: string | null
+          section_reference?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_requirements_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compliance_requirements_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_library: {
         Row: {
           body: string
@@ -2395,6 +2514,10 @@ export type Database = {
       }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
+        Returns: number
+      }
+      get_engagement_compliance_score: {
+        Args: { _engagement_id: string }
         Returns: number
       }
       get_engagement_member_contacts: {

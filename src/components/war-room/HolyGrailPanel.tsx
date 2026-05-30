@@ -7,6 +7,7 @@ import { analyzeCategory, startHolyGrailRun, finishHolyGrailRun, generateHolyGra
 import { toast } from "sonner";
 import { RfpQuestionsThemesPanel } from "./RfpQuestionsThemesPanel";
 import { PolicyPanel } from "./PolicyPanel";
+import { CompliancePanel } from "./CompliancePanel";
 
 type CategoryKey = "opportunity" | "market" | "political" | "competitive" | "customer" | "provider" | "community";
 
@@ -274,6 +275,7 @@ export function HolyGrailPanel({
           </div>
 
           <PolicyPanel engagementId={engagementId} isLeadership={isLeadership} />
+          <CompliancePanel engagementId={engagementId} isLeadership={isLeadership} />
           <RfpQuestionsThemesPanel engagementId={engagementId} isLeadership={isLeadership} />
         </>
       )}
