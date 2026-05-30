@@ -41,15 +41,15 @@ export function FlagIssueButton() {
   const [action, setAction] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener("athena:open-flag-issue", handler);
+    return () => window.removeEventListener("athena:open-flag-issue", handler);
+  }, []);
+
   if (!engagement || !member || !user) return null;
   // Archived engagements: keep button hidden so users don't try to write
   if (!canWrite && member.role !== "writer") return null;
-
-  useEffect(() => {
-    const open = () => setOpen(true);
-    window.addEventListener("athena:open-flag-issue", open);
-    return () => window.removeEventListener("athena:open-flag-issue", open);
-  }, []);
 
   function reset() {
     setSeverity("Orange");
