@@ -474,7 +474,7 @@ function NewEngagementPage() {
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-3.5 w-3.5" style={{ color: GOLD }} />
           <span className="text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: GOLD }}>
-            New Command Center · Restricted
+            New Mission · Restricted
           </span>
         </div>
       </header>
