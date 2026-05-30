@@ -2113,6 +2113,33 @@ export type Database = {
           },
         ]
       }
+      state_market_data: {
+        Row: {
+          data_year: string | null
+          managed_care_pct: number | null
+          medicaid_enrollment: number | null
+          source_url: string | null
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          data_year?: string | null
+          managed_care_pct?: number | null
+          medicaid_enrollment?: number | null
+          source_url?: string | null
+          state: string
+          updated_at?: string
+        }
+        Update: {
+          data_year?: string | null
+          managed_care_pct?: number | null
+          medicaid_enrollment?: number | null
+          source_url?: string | null
+          state?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       state_resources: {
         Row: {
           medicaid_agency_url: string | null
