@@ -38,7 +38,7 @@ type CriticalAlert = {
   id: string;
   engagement_id: string;
   engagement_name: string;
-  kind: "SOS" | "Risk";
+  kind: "Signal" | "Risk";
   title: string;
   severity: string | null;
   created_at: string;
