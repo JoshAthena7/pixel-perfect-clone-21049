@@ -165,7 +165,8 @@ function TeamPage() {
         timezone: draft.timezone?.trim() || null,
         on_call: !!draft.on_call,
       })
-      .eq("id", editingId);
+      .eq("id", editingId)
+      .eq("engagement_id", engagement?.id ?? "");
     if (error) return toast.error(error.message);
     toast.success("Saved");
     cancelEdit();
@@ -177,7 +178,8 @@ function TeamPage() {
     const { error } = await supabase
       .from("engagement_members")
       .update({ on_call: !m.on_call })
-      .eq("id", m.id);
+      .eq("id", m.id)
+      .eq("engagement_id", engagement?.id ?? "");
     if (error) return toast.error(error.message);
     if (engagement) load(engagement.id);
   }

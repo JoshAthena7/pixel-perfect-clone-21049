@@ -18,6 +18,7 @@ import {
   Inbox,
   Briefcase,
   ExternalLink,
+  ScrollText,
 } from "lucide-react";
 import {
   Sidebar,
@@ -63,6 +64,7 @@ const leadership: NavItem[] = [
   { title: "Client Pulse", url: "/pulse", icon: Activity, hint: "Track how the client is feeling" },
   { title: "Broadcasts", url: "/broadcasts", icon: Megaphone, hint: "Team-wide announcements" },
   { title: "Snapshots", url: "/snapshots", icon: Camera, hint: "Daily captures of engagement state" },
+  { title: "Activity Log", url: "/activity", icon: ScrollText, hint: "Audit trail of significant events" },
 ];
 
 export function AppSidebar() {

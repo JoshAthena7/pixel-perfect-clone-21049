@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { relativeTime } from "@/lib/time";
 import { Pin, ChevronDown, ChevronUp, Check, Minus } from "lucide-react";
+import { logActivity } from "@/lib/activity-log";
 
 
 export const Route = createFileRoute("/_authenticated/broadcasts")({
@@ -76,8 +77,19 @@ function BroadcastsPage() {
   }
 
   async function togglePin(b: any) {
-    const { error } = await supabase.from("broadcasts").update({ pinned: !b.pinned }).eq("id", b.id);
-    if (error) toast.error(error.message);
+    const nextPinned = !b.pinned;
+    const { error } = await supabase.from("broadcasts").update({ pinned: nextPinned }).eq("id", b.id).eq("engagement_id", engagement?.id ?? "");
+    if (error) return toast.error(error.message);
+    if (nextPinned && engagement && member) {
+      logActivity({
+        engagementId: engagement.id,
+        userId: null,
+        actorName: member.display_name,
+        action: "broadcast_pinned",
+        targetTable: "broadcasts",
+        targetId: b.id,
+      });
+    }
   }
 
   async function nudgeUnread(b: any) {

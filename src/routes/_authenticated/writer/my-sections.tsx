@@ -18,6 +18,7 @@ import { Flame } from "lucide-react";
 import { SectionThread } from "@/components/war-room/comms/SectionThread";
 import { dueState } from "@/lib/due-date";
 import { StuckButton } from "@/components/war-room/writer/StuckButton";
+import { logActivity } from "@/lib/activity-log";
 import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
 
 export const Route = createFileRoute("/_authenticated/writer/my-sections")({
@@ -44,7 +45,7 @@ const STATUS_STYLES: Record<string, string> = {
 const STATUSES = ["Not Started", "In Progress", "Under Review", "Complete"] as const;
 
 function WriterMySections() {
-  const { engagement } = useEngagement();
+  const { engagement, member } = useEngagement();
   const { user } = useSession();
   const [items, setItems] = useState<Assignment[]>([]);
   const [streak, setStreak] = useState<number | null>(null);
@@ -99,6 +100,17 @@ function WriterMySections() {
     burstConfetti(2000);
     const { error } = await supabase.from("section_assignments").update({ status: "Complete" }).eq("id", completeFor.id);
     if (error) return toast.error(error.message);
+    if (engagement && member) {
+      logActivity({
+        engagementId: engagement.id,
+        userId: user?.id ?? null,
+        actorName: member.display_name,
+        action: "section_completed",
+        targetTable: "section_assignments",
+        targetId: completeFor.id,
+        metadata: { section_name: completeFor.section?.section_name ?? null },
+      });
+    }
     setCompleteFor(null);
     toast.success("Section marked Complete 🎉");
     load();
