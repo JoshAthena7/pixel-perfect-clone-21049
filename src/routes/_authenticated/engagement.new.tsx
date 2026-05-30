@@ -346,7 +346,7 @@ function NewEngagementPage() {
 
       // Auto-seed state-specific trivia bank (fire-and-forget; idempotent)
       if (stateCode) {
-        seedStateTrivia({ data: { state: stateCode } }).catch((e) => {
+        seedStateTrivia({ data: { state: stateCode } }).catch((e: any) => {
           console.warn("Trivia seed skipped:", e?.message);
         });
       }
