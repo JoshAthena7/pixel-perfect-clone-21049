@@ -1,8 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-
-const GATEWAY = "https://ai.gateway.lovable.dev/v1";
+import { runAIText } from "@/lib/ai/router";
 
 export const DOC_TYPES = [
   "State Contract Template",
@@ -13,27 +12,15 @@ export const DOC_TYPES = [
   "Other",
 ] as const;
 
-async function callAI(apiKey: string, sys: string, user: string) {
-  const res = await fetch(`${GATEWAY}/chat/completions`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: sys },
-        { role: "user", content: user },
-      ],
-    }),
+async function callAI(sys: string, user: string) {
+  // Compliance analysis: use Claude (analyze) — Opus for deeper reasoning.
+  const raw = await runAIText({
+    task: "analyze",
+    system: sys,
+    prompt: user,
+    json: true,
+    deep: true,
   });
-  if (!res.ok) {
-    if (res.status === 429) throw new Error("AI rate limit hit — try again in a minute.");
-    if (res.status === 402)
-      throw new Error("AI credits exhausted — top up in Settings → Workspace.");
-    throw new Error(`AI gateway error ${res.status}`);
-  }
-  const json = (await res.json()) as any;
-  const raw = json.choices?.[0]?.message?.content ?? "{}";
   try {
     return JSON.parse(raw);
   } catch {
@@ -54,8 +41,6 @@ export const extractComplianceRequirements = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("AI is not configured.");
 
     const { data: doc, error: docErr } = await supabase
       .from("compliance_documents")
@@ -89,7 +74,7 @@ Do NOT invent requirements. Do NOT paraphrase. Skip recitals and preambles. Skip
     let totalInserted = 0;
     for (let idx = 0; idx < chunks.length; idx++) {
       const userMsg = `DOCUMENT: ${(doc as any).name}\nSOURCE: ${(doc as any).source ?? "unknown"}\n\nCHUNK ${idx + 1}/${chunks.length}:\n\n${chunks[idx]}\n\nReturn JSON only.`;
-      const parsed = await callAI(apiKey, sys, userMsg);
+      const parsed = await callAI(sys, userMsg);
       const reqs: any[] = Array.isArray(parsed?.requirements) ? parsed.requirements : [];
       if (!reqs.length) continue;
 
@@ -137,8 +122,6 @@ export const checkDraftCompliance = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ sectionId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("AI is not configured.");
 
     const { data: section, error: secErr } = await supabase
       .from("heatmap_sections")
@@ -195,7 +178,7 @@ Return STRICT JSON: {"results":[{"requirement_id": string, "status": "Covered"|"
             `- id=${r.id} type=${r.requirement_type ?? ""} ref=${r.section_reference ?? ""}\n  ${r.requirement_text}`,
         )
         .join("\n")}\n\nReturn JSON only.`;
-      const parsed = await callAI(apiKey, sys, userMsg);
+      const parsed = await callAI(sys, userMsg);
       const results: any[] = Array.isArray(parsed?.results) ? parsed.results : [];
 
       for (const r of results) {
