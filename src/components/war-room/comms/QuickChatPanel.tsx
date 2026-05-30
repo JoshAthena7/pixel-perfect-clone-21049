@@ -114,10 +114,14 @@ export function QuickChatPanel() {
       </div>
       <div ref={scrollRef} className="flex-1 overflow-auto px-3 py-3 space-y-2">
         {msgs.length === 0 ? (
-          <div className="text-xs text-muted-foreground text-center mt-8">No messages yet. Say hello.</div>
+          <div className="text-xs text-muted-foreground text-center mt-8 space-y-1">
+            <div>No active messages.</div>
+            <div className="text-[10px] italic">Messages older than 24h have expired.</div>
+          </div>
         ) : (
           msgs.map((m) => {
             const mine = m.sender_id === member?.id;
+            const expLabel = expiryLabel(m.expires_at);
             return (
               <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                 <div
@@ -126,13 +130,19 @@ export function QuickChatPanel() {
                   }`}
                 >
                   <div className="whitespace-pre-wrap">{m.message}</div>
-                  <div className="mt-0.5 text-[9px] text-muted-foreground text-right">{fmt(m.created_at)}</div>
+                  <div className="mt-0.5 flex items-center justify-end gap-2 text-[9px] text-muted-foreground">
+                    {expLabel && (
+                      <span className="text-[color:var(--orange)] font-medium">{expLabel}</span>
+                    )}
+                    <span>{fmt(m.created_at)}</span>
+                  </div>
                 </div>
               </div>
             );
           })
         )}
       </div>
+
       <div className="flex items-center gap-2 border-t border-border p-3">
         <Input
           value={draft}
