@@ -89,9 +89,17 @@ function IntelPage() {
       const text = await extractTextFromFile(file);
       if (!text || text.trim().length < 50) throw new Error("Could not extract enough text from this file.");
       toast.info("Running Holy Grail analysis…");
-      await analyzeOpportunity({ data: { engagementId: engagement.id, documentId: it.id, fileName: it.name, text } });
+      const result = (await analyzeOpportunity({ data: { engagementId: engagement.id, documentId: it.id, fileName: it.name, text } })) as any;
       toast.success("Opportunity ready");
+      if (result?.deadlineUpdated?.to) {
+        toast.success(
+          result.deadlineUpdated.from
+            ? `Deadline updated from RFP: ${result.deadlineUpdated.from} → ${result.deadlineUpdated.to}`
+            : `Deadline auto-populated from RFP: ${result.deadlineUpdated.to}`,
+        );
+      }
       setHgRefresh((n) => n + 1);
+
 
       // Auto-run the 6 web-research categories in the background (leadership only)
       if (isLeadership) {
