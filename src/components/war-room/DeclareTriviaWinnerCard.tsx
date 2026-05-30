@@ -46,7 +46,8 @@ export function DeclareTriviaWinnerCard() {
     );
     if (wErr) { setSaving(false); return toast.error(wErr.message); }
 
-    const parts = [`🏆 Congratulations to ${winner.first_name} — Indiana Trivia Champion!`];
+    const stateLabel = engagement.state ?? "";
+    const parts = [`🏆 Congratulations to ${winner.first_name} — ${stateLabel ? stateLabel + " " : ""}Trivia Champion!`];
     if (message.trim()) parts.push(message.trim());
     if (prize.trim()) parts.push(prize.trim());
     const { error: bErr } = await supabase.from("broadcasts").insert({
