@@ -8,6 +8,7 @@ import { useSession } from "@/hooks/use-session";
 import { Toaster } from "@/components/ui/sonner";
 import { SubmissionBanner } from "@/components/war-room/SubmissionBanner";
 import { LivePresence } from "@/components/war-room/LivePresence";
+import { MissionHierarchyTopbar } from "@/components/war-room/MissionHierarchyTopbar";
 import { TMinusStrip } from "@/components/war-room/writer/TMinusStrip";
 import { DailyQuote } from "@/components/war-room/writer/DailyQuote";
 import { SinceLastSeenStrip } from "@/components/war-room/writer/SinceLastSeenStrip";
