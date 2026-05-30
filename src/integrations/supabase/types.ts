@@ -1938,6 +1938,10 @@ export type Database = {
           url: string
         }[]
       }
+      user_has_any_leadership_role: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

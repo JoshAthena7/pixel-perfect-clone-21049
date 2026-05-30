@@ -115,6 +115,28 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
           )
         }
 
+        // Authorization: if the template does NOT have a fixed `to`, the recipient
+        // is caller-controlled. Restrict sending to leadership roles to prevent
+        // any authenticated user from abusing the platform domain to send
+        // attacker-controlled content (e.g. phishing invites) to arbitrary addresses.
+        if (!template.to) {
+          const { data: hasLeadership, error: roleError } = await supabase.rpc(
+            'user_has_any_leadership_role',
+            { _user_id: user.id }
+          )
+          if (roleError || !hasLeadership) {
+            console.warn('Blocked transactional send: caller is not leadership', {
+              user_id: user.id,
+              templateName,
+              recipient_redacted: redactEmail(effectiveRecipient),
+            })
+            return Response.json(
+              { error: 'Forbidden: leadership role required for this template' },
+              { status: 403 }
+            )
+          }
+        }
+
         // 2. Check suppression list (fail-closed: if we can't verify, don't send)
         const { data: suppressed, error: suppressionError } = await supabase
           .from('suppressed_emails')
