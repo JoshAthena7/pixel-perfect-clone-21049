@@ -44,6 +44,7 @@ import { Route as AuthenticatedWriterProgressRouteImport } from './routes/_authe
 import { Route as AuthenticatedWriterMySectionsRouteImport } from './routes/_authenticated/writer/my-sections'
 import { Route as AuthenticatedEngagementNewRouteImport } from './routes/_authenticated/engagement.new'
 import { Route as AuthenticatedAdminEngagementsRouteImport } from './routes/_authenticated/admin/engagements'
+import { Route as AuthenticatedAdminCollectiveRouteImport } from './routes/_authenticated/admin/collective'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -240,6 +241,12 @@ const AuthenticatedAdminEngagementsRoute =
     path: '/engagements',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminCollectiveRoute =
+  AuthenticatedAdminCollectiveRouteImport.update({
+    id: '/collective',
+    path: '/collective',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const LovableEmailTransactionalSendRoute =
   LovableEmailTransactionalSendRouteImport.update({
     id: '/lovable/email/transactional/send',
@@ -334,6 +341,7 @@ export interface FileRoutesByFullPath {
   '/team': typeof AuthenticatedTeamRoute
   '/win-themes': typeof AuthenticatedWinThemesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/admin/collective': typeof AuthenticatedAdminCollectiveRoute
   '/admin/engagements': typeof AuthenticatedAdminEngagementsRoute
   '/engagement/new': typeof AuthenticatedEngagementNewRoute
   '/writer/my-sections': typeof AuthenticatedWriterMySectionsRoute
@@ -380,6 +388,7 @@ export interface FileRoutesByTo {
   '/team': typeof AuthenticatedTeamRoute
   '/win-themes': typeof AuthenticatedWinThemesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/admin/collective': typeof AuthenticatedAdminCollectiveRoute
   '/admin/engagements': typeof AuthenticatedAdminEngagementsRoute
   '/engagement/new': typeof AuthenticatedEngagementNewRoute
   '/writer/my-sections': typeof AuthenticatedWriterMySectionsRoute
@@ -429,6 +438,7 @@ export interface FileRoutesById {
   '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/_authenticated/win-themes': typeof AuthenticatedWinThemesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/_authenticated/admin/collective': typeof AuthenticatedAdminCollectiveRoute
   '/_authenticated/admin/engagements': typeof AuthenticatedAdminEngagementsRoute
   '/_authenticated/engagement/new': typeof AuthenticatedEngagementNewRoute
   '/_authenticated/writer/my-sections': typeof AuthenticatedWriterMySectionsRoute
@@ -478,6 +488,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/win-themes'
     | '/email/unsubscribe'
+    | '/admin/collective'
     | '/admin/engagements'
     | '/engagement/new'
     | '/writer/my-sections'
@@ -524,6 +535,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/win-themes'
     | '/email/unsubscribe'
+    | '/admin/collective'
     | '/admin/engagements'
     | '/engagement/new'
     | '/writer/my-sections'
@@ -572,6 +584,7 @@ export interface FileRouteTypes {
     | '/_authenticated/team'
     | '/_authenticated/win-themes'
     | '/email/unsubscribe'
+    | '/_authenticated/admin/collective'
     | '/_authenticated/admin/engagements'
     | '/_authenticated/engagement/new'
     | '/_authenticated/writer/my-sections'
@@ -860,6 +873,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminEngagementsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/collective': {
+      id: '/_authenticated/admin/collective'
+      path: '/collective'
+      fullPath: '/admin/collective'
+      preLoaderRoute: typeof AuthenticatedAdminCollectiveRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/lovable/email/transactional/send': {
       id: '/lovable/email/transactional/send'
       path: '/lovable/email/transactional/send'
@@ -941,11 +961,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminCollectiveRoute: typeof AuthenticatedAdminCollectiveRoute
   AuthenticatedAdminEngagementsRoute: typeof AuthenticatedAdminEngagementsRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminCollectiveRoute: AuthenticatedAdminCollectiveRoute,
   AuthenticatedAdminEngagementsRoute: AuthenticatedAdminEngagementsRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
