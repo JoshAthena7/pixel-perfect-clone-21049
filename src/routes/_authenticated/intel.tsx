@@ -10,10 +10,41 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { relativeTime } from "@/lib/time";
-import { FileText, LinkIcon, Upload, Download, ExternalLink } from "lucide-react";
+import { FileText, LinkIcon, Upload, Download, ExternalLink, Sparkles, Loader2 } from "lucide-react";
 import { DeclareTriviaWinnerCard } from "@/components/war-room/DeclareTriviaWinnerCard";
 import { Watermark } from "@/components/war-room/Watermark";
+import { HolyGrailPanel } from "@/components/war-room/HolyGrailPanel";
+import { analyzeHolyGrail } from "@/lib/ai/holy-grail.functions";
 import { logActivity } from "@/lib/activity-log";
+
+async function extractTextFromFile(file: File): Promise<string> {
+  if (file.type.startsWith("text/") || /\.(txt|md|csv|rtf)$/i.test(file.name)) return file.text();
+  if (/\.docx$/i.test(file.name)) {
+    const mammoth = await import("mammoth");
+    const r = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
+    return r.value;
+  }
+  if (file.type === "application/pdf" || /\.pdf$/i.test(file.name)) {
+    const [pdfjs, worker] = await Promise.all([
+      import("pdfjs-dist"),
+      import("pdfjs-dist/build/pdf.worker.min.mjs?url"),
+    ]);
+    pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
+    const task = pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) });
+    const doc = await task.promise;
+    const pageCount = Math.min(doc.numPages, 40);
+    const pages = await Promise.all(
+      Array.from({ length: pageCount }, async (_, i) => {
+        const page = await doc.getPage(i + 1);
+        const content = await page.getTextContent();
+        return content.items.map((item: any) => item.str ?? "").join(" ");
+      }),
+    );
+    await doc.destroy();
+    return pages.join("\n");
+  }
+  return "";
+}
 
 export const Route = createFileRoute("/_authenticated/intel")({
   head: () => ({ meta: [{ title: "Intel Library — Athena" }] }),
@@ -37,6 +68,38 @@ function IntelPage() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [analyzingId, setAnalyzingId] = useState<string | null>(null);
+  const [hgRefresh, setHgRefresh] = useState(0);
+
+  async function runAnalyze(it: any) {
+    if (!engagement || !it.file_path) {
+      toast.error("Holy Grail analysis needs an uploaded file (PDF/DOCX/TXT).");
+      return;
+    }
+    setAnalyzingId(it.id);
+    try {
+      const { data: signed, error: sErr } = await supabase.storage
+        .from("intel-files")
+        .createSignedUrl(it.file_path, 120);
+      if (sErr || !signed) throw new Error(sErr?.message ?? "Could not access file");
+      const resp = await fetch(signed.signedUrl);
+      const blob = await resp.blob();
+      const file = new File([blob], it.name || "rfp", { type: blob.type });
+      toast.info("Extracting text…");
+      const text = await extractTextFromFile(file);
+      if (!text || text.trim().length < 50) throw new Error("Could not extract enough text from this file.");
+      toast.info("Running Holy Grail analysis…");
+      await analyzeHolyGrail({ data: { engagementId: engagement.id, documentId: it.id, fileName: it.name, text } });
+      toast.success("Holy Grail ready");
+      setHgRefresh((n) => n + 1);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Analysis failed");
+    } finally {
+      setAnalyzingId(null);
+    }
+  }
+
+
 
   async function load(eid: string) {
     const { data } = await supabase.from("intel_documents").select("*").eq("engagement_id", eid).order("created_at", { ascending: false });
@@ -115,6 +178,7 @@ function IntelPage() {
   return (
     <div className="mx-auto grid max-w-7xl gap-6 p-4 md:p-8 lg:grid-cols-5">
       <Watermark />
+      {engagement && <HolyGrailPanel engagementId={engagement.id} refreshKey={hgRefresh} />}
       {isLeadership && <DeclareTriviaWinnerCard />}
       {isLeadership && (
         <Card className="border-border bg-surface p-6 lg:col-span-2">
@@ -198,9 +262,22 @@ function IntelPage() {
                   </div>
                   {it.notes && <p className="mt-1 text-xs text-muted-foreground">{it.notes}</p>}
                 </div>
-                <button onClick={() => openItem(it)} className="shrink-0 rounded-md border border-border p-1.5 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:border-primary/50 hover:text-foreground">
-                  {it.url ? <ExternalLink className="h-3.5 w-3.5" /> : <Download className="h-3.5 w-3.5" />}
-                </button>
+                <div className="flex shrink-0 items-center gap-1">
+                  {isLeadership && it.file_path && (it.category === "RFP" || it.category === "Amendment") && (
+                    <button
+                      onClick={() => runAnalyze(it)}
+                      disabled={analyzingId === it.id}
+                      title="Run Holy Grail analysis"
+                      className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2 py-1 text-[11px] font-medium text-primary hover:bg-primary/20 disabled:opacity-60"
+                    >
+                      {analyzingId === it.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                      {analyzingId === it.id ? "Analyzing…" : "Holy Grail"}
+                    </button>
+                  )}
+                  <button onClick={() => openItem(it)} className="rounded-md border border-border p-1.5 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:border-primary/50 hover:text-foreground">
+                    {it.url ? <ExternalLink className="h-3.5 w-3.5" /> : <Download className="h-3.5 w-3.5" />}
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
