@@ -167,6 +167,15 @@ export function InviteToCollectiveDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-3">
+          {errorMessage && (
+            <div
+              role="alert"
+              className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+            >
+              <span className="font-medium uppercase tracking-wider text-[10px]">Invite failed:</span>{" "}
+              {errorMessage}
+            </div>
+          )}
           <fieldset disabled={submitting} className="space-y-3 disabled:opacity-60 disabled:cursor-not-allowed">
             <div className="grid gap-1.5">
               <Label htmlFor="invite-name" className="text-[10px] uppercase tracking-wider text-muted-foreground">
