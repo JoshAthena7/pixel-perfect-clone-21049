@@ -52,7 +52,16 @@ export function InviteToCollectiveDialog({
   const [role, setRole] = useState("writer");
   const [engagementId, setEngagementId] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
   const lockRef = useRef(false);
+
+  const COOLDOWN_SECONDS = 5;
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => Math.max(0, c - 1)), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
 
 
   useEffect(() => {
@@ -81,7 +90,7 @@ export function InviteToCollectiveDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Synchronous re-entry guard — blocks double clicks before React flushes setSubmitting.
-    if (lockRef.current) return;
+    if (lockRef.current || cooldown > 0) return;
     const parsed = inviteSchema.safeParse({
       email,
       display_name: name,
@@ -125,6 +134,7 @@ export function InviteToCollectiveDialog({
       reset();
       onOpenChange(false);
       onInvited?.();
+      setCooldown(COOLDOWN_SECONDS);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to send invite";
       toast.error("Invite failed", { description: message });
@@ -244,11 +254,13 @@ export function InviteToCollectiveDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" size="sm" disabled={submitting || !engagementId} className="gap-1.5">
+            <Button type="submit" size="sm" disabled={submitting || cooldown > 0 || !engagementId} className="gap-1.5">
               {submitting ? (
                 <>
                   <Loader2 className="h-3.5 w-3.5 animate-spin" /> Sending…
                 </>
+              ) : cooldown > 0 ? (
+                <>Wait {cooldown}s</>
               ) : (
                 <>
                   <UserPlus className="h-3.5 w-3.5" /> Send Invite
