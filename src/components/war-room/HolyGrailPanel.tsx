@@ -145,6 +145,9 @@ export function HolyGrailPanel({
   const activeRow = rows[activeDef.storage];
   const oppRow = rows["holy_grail_opportunity"];
   const hasOpportunity = !!oppRow;
+  const summaryRow = rows["holy_grail_summary"];
+  const categoryCount = CATEGORIES.reduce((n, c) => n + (rows[c.storage] ? 1 : 0), 0);
+  const canSummarize = categoryCount >= 1;
 
   return (
     <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-surface p-6 lg:col-span-5">
@@ -159,6 +162,15 @@ export function HolyGrailPanel({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => runSummary("executive")}
+            disabled={summarizing || !canSummarize}
+            title={canSummarize ? "Synthesize all sections into a 90-second executive summary" : "Run at least one category first"}
+            className="inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-600 hover:bg-amber-500/20 disabled:opacity-50"
+          >
+            {summarizing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+            {summarizing ? "Summarizing…" : summaryRow ? "Regenerate Summary" : "Generate Summary"}
+          </button>
           {isLeadership && (
             <button
               onClick={runFullAnalysis}
