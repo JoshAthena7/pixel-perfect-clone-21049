@@ -209,6 +209,7 @@ function HeatmapPage() {
               );
             })}
           </div>
+          )}
         </TabsContent>
 
         <TabsContent value="health">
