@@ -302,7 +302,7 @@ function OverviewPage() {
           <KpiCard icon={<Briefcase className="h-4 w-4" />} label="Active engagements" value={String(kpis.activeCount)} />
           <KpiCard
             icon={<Siren className="h-4 w-4" />}
-            label="Open SOS"
+            label="Open Signals"
             value={String(kpis.openSos)}
             tone={kpis.openSos > 0 ? "red" : "default"}
           />
