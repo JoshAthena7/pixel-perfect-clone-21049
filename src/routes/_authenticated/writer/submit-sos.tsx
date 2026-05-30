@@ -42,19 +42,6 @@ function WriterSubmitSos() {
     });
     setSubmitting(false);
     if (error) return toast.error(error.message);
-    notifySlack({
-      data: {
-        engagementId: engagement.id,
-        event: "sos",
-        title: "SOS from writer",
-        body: blocker.trim(),
-        fields: [
-          ...(who ? [{ label: "Who needs to know", value: who }] : []),
-          ...(resolveBy ? [{ label: "Resolve by", value: resolveBy }] : []),
-        ],
-        author: member.display_name,
-      },
-    }).catch(() => {});
     setBlocker(""); setWho(""); setResolveBy("");
     toast.success("SOS sent — your lead has been alerted");
   }
