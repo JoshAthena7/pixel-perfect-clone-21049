@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { notifySlack } from "@/lib/api/slack.functions";
+
 
 export const Route = createFileRoute("/_authenticated/writer/submit-risk")({
   head: () => ({ meta: [{ title: "Submit a Risk — Writer Portal" }] }),
