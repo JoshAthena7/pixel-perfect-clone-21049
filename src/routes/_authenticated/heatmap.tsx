@@ -34,6 +34,7 @@ type Section = {
   sort_order: number;
   updated_at: string | null;
   updated_by_name: string | null;
+  evaluation_weight_pct: number | null;
 };
 
 const STATUSES: StatusColor[] = ["Green", "Yellow", "Orange", "Red", "N/A"];
