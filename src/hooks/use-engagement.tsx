@@ -15,12 +15,16 @@ export type Member = {
   id: string;
   role: string;
   display_name: string;
+  nda_required: boolean;
+  nda_confirmed: boolean;
 };
 
 export type Membership = {
   member_id: string;
   role: string;
   display_name: string;
+  nda_required: boolean;
+  nda_confirmed: boolean;
   engagement: Engagement;
 };
 
