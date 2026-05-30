@@ -362,10 +362,11 @@ export function AskAthenaWidget() {
               <div ref={scrollRef} className="flex-1 overflow-auto px-4 py-3 space-y-4">
                 {history.length === 0 && !loading && input.trim().length === 0 && (
                   <div
-                    className="whitespace-pre-wrap italic"
-                    style={{ color: "#D4AE4A", fontSize: "10px", lineHeight: 1.7 }}
+                    className="flex items-start gap-2 whitespace-pre-wrap italic"
+                    style={{ color: "#C49A2A", fontSize: "10px", lineHeight: 1.7 }}
                   >
-                    {IRIS_WELCOME}
+                    <IrisIcon size={14} className="mt-0.5 shrink-0" />
+                    <span>{IRIS_WELCOME}</span>
                   </div>
                 )}
                 {history.map((ex) => {
