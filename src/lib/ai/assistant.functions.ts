@@ -2,6 +2,21 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { embedText, pgvectorLiteral } from "@/lib/intelligence/embed";
+import { runAI } from "@/lib/ai/router";
+
+const LIVE_TRIGGERS = [
+  "latest", "recent", "this week", "today", "new", "just released",
+  "current", "now", "announced", "published", "2025", "2026",
+  "news", "update", "what happened", "any changes",
+];
+const DEEP_TRIGGERS = ["deep research", "full analysis", "comprehensive", "everything about"];
+
+function countMatches(text: string, needles: string[]): number {
+  const lower = text.toLowerCase();
+  let n = 0;
+  for (const k of needles) if (lower.includes(k)) n++;
+  return n;
+}
 
 const MessageSchema = z.object({
   role: z.enum(["user", "assistant", "system"]),
@@ -22,6 +37,7 @@ export const askAssistant = createServerFn({ method: "POST" })
       engagementId: z.string().uuid().nullable().optional(),
       scope: z.enum(["engagement", "all", "firm"]).default("engagement"),
       messages: z.array(MessageSchema).min(1).max(40),
+      forceLive: z.boolean().optional(),
     }),
   )
   .handler(async ({ data, context }) => {
@@ -29,6 +45,27 @@ export const askAssistant = createServerFn({ method: "POST" })
     const lastUser = [...data.messages].reverse().find((m) => m.role === "user")?.content ?? "";
     const scope = data.scope ?? "engagement";
     const eid = scope === "engagement" ? data.engagementId ?? null : null;
+
+    // ---- Smart routing: Perplexity live search for time-sensitive queries
+    const deepHits = countMatches(lastUser, DEEP_TRIGGERS);
+    const liveHits = countMatches(lastUser, LIVE_TRIGGERS);
+    const wantDeep = deepHits >= 1;
+    const wantLive = data.forceLive === true || liveHits >= 2;
+
+    if (lastUser && (wantDeep || wantLive)) {
+      const task = wantDeep ? "deep-search" : "search";
+      const r = await runAI({ task, prompt: lastUser });
+      if (r.kind === "search") {
+        return {
+          reply: r.text || "Live search returned no result.",
+          sources: [] as Array<{ source_table: string; source_id: string; similarity: number; preview: string }>,
+          market_sources: [] as Array<{ source: string; title: string; url: string | null; similarity: number }>,
+          source: task === "deep-search" ? "deep-search" : "live-search",
+          citations: r.citations,
+        };
+      }
+    }
+
 
     // ---- Pull standard engagement context (RLS-scoped) only for engagement scope
     let eng: any = null;
@@ -133,6 +170,8 @@ SCOPE: ${scopeLabel}.${engagementBlock}${ragBlock}${marketBlock}${firmBlock}`;
         preview: s.content_text.slice(0, 240),
       })),
       market_sources: marketSources.map((m) => ({ source: m.source, title: m.title, url: m.url, similarity: m.similarity })),
+      source: "vault" as const,
+      citations: [] as string[],
     };
   });
 

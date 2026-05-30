@@ -449,7 +449,11 @@ See §1.
 | `SUPABASE_SERVICE_ROLE_KEY` | admin client (bypasses RLS) |
 | `SUPABASE_DB_URL` | direct Postgres connection |
 | `LOVABLE_API_KEY` | AI Gateway + Lovable Email + connectors |
-| `OPENAI_API_KEY` | reserved |
+| `ANTHROPIC_API_KEY` | Claude Sonnet/Opus for extract + analyze tasks |
+| `OPENAI_API_KEY` | embeddings (`text-embedding-3-large`, 1536 dims) |
+| `PERPLEXITY_API_KEY` | live web intelligence (Sonar / Sonar Pro / People) |
+| `NEWS_API_KEY` | NewsAPI ingestion in market-intel hook |
+| `CONGRESS_API_KEY` | Congress.gov ingestion in market-intel hook |
 | `FIRECRAWL_API_KEY` | web scraping (connector-managed) |
 
 Names only. Never commit values.
@@ -462,7 +466,7 @@ Names only. Never commit values.
 2. **Run migrations** in `supabase/migrations/` chronologically. They create the `private` schema helpers, all 61 public tables, RLS policies, GRANTs (`anon`, `authenticated`, `service_role`), triggers, and functions.
 3. **Auth:** enable Email + Password and Google OAuth; configure redirect URLs; set `auto_confirm_email=false`; enable HIBP password check.
 4. **Storage:** create private buckets `intel-files`, `compliance-docs`. Apply RLS policies on `storage.objects` scoped via `(storage.foldername(name))[1] = engagement_id`.
-5. **Secrets:** set `LOVABLE_API_KEY`, `OPENAI_API_KEY`, `FIRECRAWL_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY` in Lovable Cloud project secrets.
+5. **Secrets:** set `LOVABLE_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `PERPLEXITY_API_KEY`, `NEWS_API_KEY`, `CONGRESS_API_KEY`, `FIRECRAWL_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY` in Lovable Cloud project secrets. Perplexity calls are rate-capped in-process to 200 `searchWeb` and 20 `searchDeep` per hour (see `src/lib/ai/perplexity.ts`).
 6. **Email infrastructure:** run `setup_email_infra` to provision `pgmq` queues (`auth_emails`, `transactional_emails`, DLQs), the `process-email-queue` cron, and the Vault secret. Configure email domain in Cloud → Emails.
 7. **Realtime:** `ALTER PUBLICATION supabase_realtime ADD TABLE ...` for every table in §7.
 8. **Deploy app:** push the TanStack Start project to Lovable Cloud. Server routes under `src/routes/api/public/hooks/*` deploy automatically.

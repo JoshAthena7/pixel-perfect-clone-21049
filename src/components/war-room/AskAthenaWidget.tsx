@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Brain, X, Send, Bookmark, BookmarkCheck, Trash2, Globe, Building, Briefcase } from "lucide-react";
+import { Brain, X, Send, Bookmark, BookmarkCheck, Trash2, Globe, Building, Briefcase, Radar, ExternalLink, Sparkles } from "lucide-react";
 import { askAssistant, saveInsight, listSavedInsights, deleteSavedInsight } from "@/lib/ai/assistant.functions";
 import { useEngagement } from "@/hooks/use-engagement";
 import { toast } from "sonner";
@@ -9,55 +9,71 @@ import { relativeTime } from "@/lib/time";
 
 type Scope = "engagement" | "all" | "firm";
 type Source = { source_table: string; source_id: string; similarity: number; preview: string };
-type Exchange = { id: string; question: string; answer: string; sources: Source[]; at: string };
+type ReplySource = "vault" | "live-search" | "deep-search";
+type Exchange = {
+  id: string;
+  question: string;
+  answer: string;
+  sources: Source[];
+  citations: string[];
+  source: ReplySource;
+  at: string;
+};
 
-const ROUTE_CHIPS: Record<string, string[]> = {
+type Chip = { label: string; live?: boolean };
+
+const ROUTE_CHIPS: Record<string, Chip[]> = {
   "/command": [
-    "Summarize engagement health",
-    "What needs attention today?",
-    "What have we decided about strategy?",
-    "Who is at risk of being overloaded?",
+    { label: "Summarize engagement health" },
+    { label: "What needs attention today?" },
+    { label: "What have we decided about strategy?" },
+    { label: "Who is at risk of being overloaded?" },
+    { label: "Any new policy affecting this engagement?", live: true },
   ],
   "/heatmap": [
-    "Which sections are highest risk?",
-    "What does the RFP require for this section?",
-    "How did similar bids handle this?",
-    "What's the evaluator weight for this section?",
+    { label: "Which sections are highest risk?" },
+    { label: "What does the RFP require for this section?" },
+    { label: "How did similar bids handle this?" },
+    { label: "What's the evaluator weight for this section?" },
   ],
   "/research": [
-    "What's the incumbent's biggest weakness?",
-    "Which Collective™ members know this state?",
-    "What did we win on in similar bids?",
-    "Summarize the competitive landscape",
+    { label: "What's the incumbent's biggest weakness?" },
+    { label: "Which Collective™ members know this state?" },
+    { label: "What did we win on in similar bids?" },
+    { label: "Summarize the competitive landscape" },
+    { label: "What did CMS release this week?", live: true },
+    { label: "Latest state Medicaid news", live: true },
+    { label: "Recent competitor activity in this state", live: true },
   ],
   "/writer/my-sections": [
-    "What are the win themes for my section?",
-    "What does the RFP say I must address?",
-    "Find similar approved content",
-    "What word count should I aim for?",
+    { label: "What are the win themes for my section?" },
+    { label: "What does the RFP say I must address?" },
+    { label: "Find similar approved content" },
+    { label: "What word count should I aim for?" },
+    { label: "Latest guidance on this section topic", live: true },
   ],
   "/admin": [
-    "Which engagement needs attention most urgently?",
-    "Are any writers overloaded across rooms?",
-    "What intelligence alerts are unreviewed?",
-    "Summarize portfolio health",
+    { label: "Which engagement needs attention most urgently?" },
+    { label: "Are any writers overloaded across rooms?" },
+    { label: "What intelligence alerts are unreviewed?" },
+    { label: "Summarize portfolio health" },
   ],
   "/issues": [
-    "What patterns do you see in our SOS alerts?",
-    "Which risks are highest priority?",
-    "How have we resolved similar issues before?",
-    "Who should own this?",
+    { label: "What patterns do you see in our SOS alerts?" },
+    { label: "Which risks are highest priority?" },
+    { label: "How have we resolved similar issues before?" },
+    { label: "Who should own this?" },
   ],
 };
 
-const DEFAULT_CHIPS = [
-  "Summarize what's happening right now",
-  "What should I focus on next?",
-  "Find something I've worked on before",
-  "Brainstorm with me",
+const DEFAULT_CHIPS: Chip[] = [
+  { label: "Summarize what's happening right now" },
+  { label: "What should I focus on next?" },
+  { label: "Find something I've worked on before" },
+  { label: "Brainstorm with me" },
 ];
 
-function chipsForRoute(path: string): string[] {
+function chipsForRoute(path: string): Chip[] {
   if (path.startsWith("/admin")) return ROUTE_CHIPS["/admin"];
   if (path.startsWith("/writer/my-sections")) return ROUTE_CHIPS["/writer/my-sections"];
   for (const key of Object.keys(ROUTE_CHIPS)) {
@@ -65,6 +81,14 @@ function chipsForRoute(path: string): string[] {
     if (path === key || path.startsWith(key + "/")) return ROUTE_CHIPS[key];
   }
   return DEFAULT_CHIPS;
+}
+
+function domainOf(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url.slice(0, 32);
+  }
 }
 
 export function AskAthenaWidget() {
@@ -81,8 +105,10 @@ export function AskAthenaWidget() {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<"ask" | "saved">("ask");
   const [scope, setScope] = useState<Scope>("engagement");
+  const [liveSearch, setLiveSearch] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [deepLoadingId, setDeepLoadingId] = useState<string | null>(null);
   const [history, setHistory] = useState<Exchange[]>([]);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [saved, setSaved] = useState<Array<{
@@ -92,12 +118,10 @@ export function AskAthenaWidget() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // force scope to engagement for writers
   useEffect(() => {
     if (writerOnly && scope !== "engagement") setScope("engagement");
   }, [writerOnly, scope]);
 
-  // ⌘K / Ctrl+K toggle; Escape close
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -112,9 +136,7 @@ export function AskAthenaWidget() {
   }, [open]);
 
   useEffect(() => {
-    if (open) {
-      setTimeout(() => inputRef.current?.focus(), 60);
-    }
+    if (open) setTimeout(() => inputRef.current?.focus(), 60);
   }, [open]);
 
   useEffect(() => {
@@ -137,7 +159,7 @@ export function AskAthenaWidget() {
     if (open && tab === "saved") loadSaved();
   }, [open, tab]);
 
-  async function send(text: string) {
+  async function send(text: string, opts?: { forceLive?: boolean }) {
     const q = text.trim();
     if (!q || loading) return;
     setInput("");
@@ -152,6 +174,7 @@ export function AskAthenaWidget() {
           engagementId: scope === "engagement" ? engagement?.id ?? null : null,
           scope,
           messages: [...prevMsgs, { role: "user", content: q }],
+          forceLive: opts?.forceLive ?? liveSearch,
         },
       });
       const ex: Exchange = {
@@ -159,13 +182,55 @@ export function AskAthenaWidget() {
         question: q,
         answer: res.reply,
         sources: (res.sources ?? []) as Source[],
+        citations: (res.citations ?? []) as string[],
+        source: ((res as any).source ?? "vault") as ReplySource,
         at: new Date().toISOString(),
       };
       setHistory((prev) => [...prev.slice(-9), ex]);
     } catch (e: any) {
-      toast.error(e?.message ?? "Athena couldn't answer that.");
+      toast.error(e?.message ?? "Navigator couldn't answer that.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function runDeep(ex: Exchange) {
+    if (deepLoadingId) return;
+    setDeepLoadingId(ex.id);
+    try {
+      // Build prior context (up to and excluding this exchange)
+      const idx = history.findIndex((h) => h.id === ex.id);
+      const priors = (idx > 0 ? history.slice(0, idx) : []).flatMap((h) => [
+        { role: "user" as const, content: h.question },
+        { role: "assistant" as const, content: h.answer },
+      ]);
+      const deepQuery = ex.question.toLowerCase().includes("deep research")
+        ? ex.question
+        : `Deep research: ${ex.question}`;
+      const res = await ask({
+        data: {
+          engagementId: scope === "engagement" ? engagement?.id ?? null : null,
+          scope,
+          messages: [...priors, { role: "user", content: deepQuery }],
+        },
+      });
+      setHistory((prev) =>
+        prev.map((h) =>
+          h.id === ex.id
+            ? {
+                ...h,
+                answer: res.reply,
+                sources: (res.sources ?? []) as Source[],
+                citations: (res.citations ?? []) as string[],
+                source: ((res as any).source ?? "deep-search") as ReplySource,
+              }
+            : h,
+        ),
+      );
+    } catch (e: any) {
+      toast.error(e?.message ?? "Deep research failed.");
+    } finally {
+      setDeepLoadingId(null);
     }
   }
 
@@ -202,7 +267,6 @@ export function AskAthenaWidget() {
 
   return (
     <>
-      {/* Fixed bottom bar */}
       <button
         type="button"
         onClick={() => setOpen(true)}
@@ -221,17 +285,12 @@ export function AskAthenaWidget() {
         </kbd>
       </button>
 
-      {/* Slide-up panel */}
       <div
         className={`fixed bottom-0 left-0 right-0 z-40 transform transition-transform duration-300 ease-out ${open ? "translate-y-0" : "translate-y-full"}`}
-        style={{
-          height: "42vh",
-          paddingLeft: "var(--sidebar-width, 0px)",
-        }}
+        style={{ height: "42vh", paddingLeft: "var(--sidebar-width, 0px)" }}
         aria-hidden={!open}
       >
         <div className="flex h-full flex-col border-t border-border bg-background shadow-2xl">
-          {/* Top bar */}
           <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2.5">
             <div className="flex items-center gap-2">
               <Brain className="h-4 w-4 text-primary" />
@@ -252,6 +311,21 @@ export function AskAthenaWidget() {
                   Saved
                 </button>
               </div>
+              {tab === "ask" && (
+                <button
+                  type="button"
+                  onClick={() => setLiveSearch((v) => !v)}
+                  title="Route every query to live web search (Perplexity)"
+                  className={`ml-2 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider transition ${
+                    liveSearch
+                      ? "border-blue-500/60 bg-blue-500/15 text-blue-300"
+                      : "border-border bg-surface text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Radar className={`h-3 w-3 ${liveSearch ? "animate-pulse" : ""}`} />
+                  Live Search {liveSearch ? "On" : "Off"}
+                </button>
+              )}
             </div>
 
             <div className="flex items-center gap-2">
@@ -275,71 +349,126 @@ export function AskAthenaWidget() {
 
           {tab === "ask" ? (
             <>
-              {/* History */}
               <div ref={scrollRef} className="flex-1 overflow-auto px-4 py-3 space-y-4">
                 {history.length === 0 && !loading && (
                   <div className="text-[12px] text-muted-foreground">
                     Pick a quick prompt below or type a question. Answers are grounded in {scope === "engagement" ? "this engagement" : scope === "all" ? "every engagement you can access" : "firm-wide knowledge"}.
                   </div>
                 )}
-                {history.map((ex) => (
-                  <div key={ex.id} className="space-y-2">
-                    <div className="flex justify-end">
-                      <div className="max-w-[85%] rounded-lg bg-primary/15 px-3 py-2 text-sm">{ex.question}</div>
-                    </div>
-                    <div className="rounded-lg border border-border bg-surface/60 px-3 py-2.5 text-sm leading-relaxed whitespace-pre-wrap">
-                      {ex.answer}
-                      {ex.sources.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {ex.sources.slice(0, 8).map((s) => (
-                            <span
-                              key={`${s.source_table}-${s.source_id}`}
-                              title={s.preview}
-                              className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] text-muted-foreground"
-                            >
-                              {s.source_table.replace(/_/g, " ")} · {s.source_id.slice(0, 6)}
+                {history.map((ex) => {
+                  const wordCount = ex.question.trim().split(/\s+/).length;
+                  const showDeepBtn = wordCount > 8 && ex.source !== "deep-search";
+                  const isDeepLoading = deepLoadingId === ex.id;
+                  return (
+                    <div key={ex.id} className="space-y-2">
+                      <div className="flex justify-end">
+                        <div className="max-w-[85%] rounded-lg bg-primary/15 px-3 py-2 text-sm">{ex.question}</div>
+                      </div>
+                      <div className="rounded-lg border border-border bg-surface/60 px-3 py-2.5 text-sm leading-relaxed">
+                        {ex.source === "live-search" && (
+                          <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-full border border-blue-500/40 bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-300">
+                            <span className="relative flex h-1.5 w-1.5">
+                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
+                              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-blue-400" />
                             </span>
-                          ))}
+                            Live
+                          </div>
+                        )}
+                        {ex.source === "deep-search" && (
+                          <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-full border border-purple-500/40 bg-purple-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-purple-300">
+                            <Sparkles className="h-3 w-3" />
+                            Deep Research
+                          </div>
+                        )}
+                        <div className="whitespace-pre-wrap">{isDeepLoading ? "Running deep research…" : ex.answer}</div>
+
+                        {ex.citations.length > 0 && !isDeepLoading && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {ex.citations.slice(0, 12).map((c, i) => (
+                              <a
+                                key={`${i}-${c}`}
+                                href={c}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-[10px] text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                                title={c}
+                              >
+                                {domainOf(c)}
+                                <ExternalLink className="h-2.5 w-2.5" />
+                              </a>
+                            ))}
+                          </div>
+                        )}
+
+                        {ex.sources.length > 0 && !isDeepLoading && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {ex.sources.slice(0, 8).map((s) => (
+                              <span
+                                key={`${s.source_table}-${s.source_id}`}
+                                title={s.preview}
+                                className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] text-muted-foreground"
+                              >
+                                {s.source_table.replace(/_/g, " ")} · {s.source_id.slice(0, 6)}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="mt-2 flex items-center justify-between gap-2">
+                          <span className="text-[10px] text-muted-foreground">{relativeTime(ex.at)}</span>
+                          <div className="flex items-center gap-2">
+                            {showDeepBtn && (
+                              <button
+                                type="button"
+                                onClick={() => runDeep(ex)}
+                                disabled={isDeepLoading}
+                                className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-purple-300 hover:text-purple-200 disabled:opacity-50"
+                              >
+                                <Sparkles className="h-3 w-3" />
+                                {isDeepLoading ? "Running deep research..." : "Deep Research"}
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => onSave(ex)}
+                              disabled={savedIds.has(ex.id)}
+                              className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-50"
+                            >
+                              {savedIds.has(ex.id) ? <BookmarkCheck className="h-3 w-3 text-primary" /> : <Bookmark className="h-3 w-3" />}
+                              {savedIds.has(ex.id) ? "Saved" : "Save this answer"}
+                            </button>
+                          </div>
                         </div>
-                      )}
-                      <div className="mt-2 flex items-center justify-between">
-                        <span className="text-[10px] text-muted-foreground">{relativeTime(ex.at)}</span>
-                        <button
-                          type="button"
-                          onClick={() => onSave(ex)}
-                          disabled={savedIds.has(ex.id)}
-                          className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-50"
-                        >
-                          {savedIds.has(ex.id) ? <BookmarkCheck className="h-3 w-3 text-primary" /> : <Bookmark className="h-3 w-3" />}
-                          {savedIds.has(ex.id) ? "Saved" : "Save this answer"}
-                        </button>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 {loading && (
                   <div className="rounded-lg border border-border bg-surface/60 px-3 py-2.5 text-[12px] text-muted-foreground">
-                    Athena is thinking…
+                    Navigator is thinking…
                   </div>
                 )}
               </div>
 
-              {/* Quick prompts */}
               <div className="flex flex-wrap gap-1.5 border-t border-border bg-surface/40 px-4 py-2">
                 {chips.map((c) => (
                   <button
-                    key={c}
+                    key={c.label}
                     type="button"
-                    onClick={() => send(c)}
+                    onClick={() => send(c.label, { forceLive: c.live })}
                     disabled={loading}
-                    className="rounded-full border border-border bg-background px-2.5 py-1 text-[11px] text-muted-foreground hover:border-primary/50 hover:text-foreground disabled:opacity-50"
+                    className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] hover:text-foreground disabled:opacity-50 ${
+                      c.live
+                        ? "border-blue-500/40 bg-blue-500/5 text-blue-300 hover:border-blue-500/70"
+                        : "border-border bg-background text-muted-foreground hover:border-primary/50"
+                    }`}
                   >
-                    {c}
+                    {c.live && <Radar className="h-3 w-3" />}
+                    {c.label}
                   </button>
                 ))}
               </div>
 
-              {/* Input */}
               <form
                 onSubmit={(e) => { e.preventDefault(); send(input); }}
                 className="flex items-end gap-2 border-t border-border px-4 py-3"
@@ -352,7 +481,7 @@ export function AskAthenaWidget() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); }
                   }}
-                  placeholder="Type a question — Enter to send, Shift+Enter for new line"
+                  placeholder={liveSearch ? "Live web search — Enter to send" : "Type a question — Enter to send, Shift+Enter for new line"}
                   className="flex-1 resize-none rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary/50 max-h-32"
                 />
                 <button
