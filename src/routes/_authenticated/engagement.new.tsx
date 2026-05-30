@@ -133,6 +133,40 @@ function NewEngagementPage() {
         setStateNotes(preNote);
       }
 
+      // RFP: either upload the real file, or drop a placeholder row
+      try {
+        if (rfpFile) {
+          const safeName = rfpFile.name.replace(/[^\w.\-]+/g, "_");
+          const path = `${data.id}/rfp/${Date.now()}_${safeName}`;
+          const up = await supabase.storage.from("intel-files").upload(path, rfpFile, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: rfpFile.type || undefined,
+          });
+          if (up.error) throw up.error;
+          await supabase.from("intel_documents").insert({
+            engagement_id: data.id,
+            name: rfpFile.name,
+            category: "RFP",
+            file_path: path,
+            uploaded_by: user.id,
+            notes: "Primary RFP document — uploaded during engagement setup.",
+          });
+          toast.success("RFP uploaded.");
+        } else if (rfpPlaceholder) {
+          await supabase.from("intel_documents").insert({
+            engagement_id: data.id,
+            name: "RFP — placeholder",
+            category: "RFP",
+            notes: "Placeholder — replace with the real RFP when available.",
+            uploaded_by: user.id,
+          });
+        }
+      } catch (rfpErr: any) {
+        console.error(rfpErr);
+        toast.error(`Engagement created, but RFP upload failed: ${rfpErr.message ?? "unknown error"}`);
+      }
+
       await refresh();
       setStep(1);
     } catch (e: any) {
