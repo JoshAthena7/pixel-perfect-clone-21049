@@ -159,7 +159,8 @@ export function DailyDigest({
 export const template: TemplateEntry = {
   component: DailyDigest,
   subject: (data: Record<string, any>) =>
-    `[Athena] ${data.engagementName || 'Daily brief'} — ${data.dateLabel || 'Daily brief'}`,
+    `Athena Command · Daily Briefing — ${data.engagementName || 'Engagement'}, ${data.dateLabel || ''}`,
+
   displayName: 'Athena Command · Daily Briefing',
   previewData: {
     recipientName: 'Drew',
