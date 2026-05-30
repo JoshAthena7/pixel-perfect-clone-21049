@@ -55,7 +55,7 @@ export function HookFailuresPanel() {
     );
   }
 
-  async function commitAck(row: Failure) {
+  async function commitAck(row: Failure, loadingToastId?: string) {
     inflightRef.current.add(row.id);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -81,8 +81,14 @@ export function HookFailuresPanel() {
           // Not acked in DB and our update affected nothing → permission/network mismatch
           restoreRow(row);
           showRetryToast(row, "The change wasn't saved. Restored the failure to the list.");
+          return;
         }
         // else: someone else already acked it — leave it removed from UI
+      }
+
+      // Success path — clear any retry loading toast
+      if (loadingToastId) {
+        toast.success(`Acknowledged ${row.hook_name}`, { id: loadingToastId, duration: 3_000 });
       }
     } catch (e) {
       pendingRef.current.delete(row.id);
@@ -103,9 +109,13 @@ export function HookFailuresPanel() {
         onClick: () => {
           // Guard: if a commit is already in flight or queued, ignore the click.
           if (inflightRef.current.has(row.id) || pendingRef.current.has(row.id)) return;
-          // Dismiss immediately so the action can't be clicked again while we retry.
-          toast.dismiss(toastId);
-          ack(row);
+          // Swap the error toast for a loading toast (sonner renders a spinner).
+          // Reusing the same id replaces the toast in place so the Retry action
+          // is gone and can't be clicked again while the commit is in flight.
+          toast.loading("Retrying acknowledgment…", { id: toastId });
+          // Optimistic remove again, then commit immediately (no undo window).
+          setRows((prev) => prev.filter((r) => r.id !== row.id));
+          void commitAck(row, toastId);
         },
       },
     });
