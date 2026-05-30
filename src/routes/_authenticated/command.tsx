@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { relativeTime, hoursSince } from "@/lib/time";
 import { useNeedsAttention } from "@/hooks/use-needs-attention";
 import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
+import { SnapshotsPanel } from "@/components/war-room/SnapshotsPanel";
 
 export const Route = createFileRoute("/_authenticated/command")({
   head: () => ({ meta: [{ title: "Command Center — Athena" }] }),
@@ -130,6 +131,7 @@ function CommandCenter() {
           </span>
         </div>
         <div className="flex items-center gap-3">
+          <SnapshotsPanel />
           <span className="hidden text-[11px] uppercase tracking-wider text-muted-foreground sm:inline">Online now</span>
           <LivePresence variant="compact" />
         </div>

@@ -31,7 +31,7 @@ const PATH_LABEL: Record<string, string> = {
   "/decisions": "Decisions",
   "/pulse": "Client Pulse",
   "/broadcasts": "Broadcasts",
-  "/snapshots": "Snapshots",
+  
   "/assistant": "Assistant",
   "/settings": "Settings",
 };
