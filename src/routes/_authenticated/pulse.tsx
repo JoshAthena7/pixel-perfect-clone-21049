@@ -62,7 +62,7 @@ function PulsePage() {
     });
     setSubmitting(false);
     if (error) return toast.error(error.message);
-    toast.success("Pulse recorded");
+    toast.success("Pulse™ recorded");
     setSummary(""); setActions(""); setSentiment("Neutral");
     load(engagement.id);
   }
@@ -114,14 +114,14 @@ function PulsePage() {
                 <Textarea id="actions" rows={2} value={actions} onChange={(e) => setActions(e.target.value)} placeholder="Follow-ups, commitments, owners" />
               </div>
               <Button type="submit" disabled={submitting || !summary.trim()} className="w-full">
-                {submitting ? "Saving…" : "Record Pulse"}
+                {submitting ? "Saving…" : "Record Pulse™"}
               </Button>
             </form>
           </Card>
         )}
 
         <Card className={`border-border bg-surface p-6 ${isLeadership ? "lg:col-span-3" : "lg:col-span-5"}`}>
-          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Pulse History</h2>
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Pulse™ History</h2>
           {items.length === 0 ? (
             <div className="mt-4 text-sm text-muted-foreground">No pulse entries yet.</div>
           ) : (

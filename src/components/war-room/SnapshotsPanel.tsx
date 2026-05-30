@@ -157,7 +157,7 @@ export function SnapshotsPanel({ triggerVariant = "outline" }: { triggerVariant?
                       <Stat label="Temp" value={s.temperature_score} />
                       <Stat label="SOS" value={s.open_sos_count} />
                       <Stat label="Risks" value={s.open_risk_count} />
-                      <Stat label="Pulse" value={sentimentEmoji(s.client_sentiment)} />
+                      <Stat label="Pulse™" value={sentimentEmoji(s.client_sentiment)} />
                     </div>
 
                     <MiniHeatmap heat={s.heatmap_json ?? []} />
@@ -276,7 +276,7 @@ function Col({ title, s }: { title: string; s: Snapshot }) {
         <div>Health: <StatusPill status={healthToPill(s.health)} label={s.health} /></div>
         <div>Temp: {s.temperature_score}</div>
         <div>SOS: {s.open_sos_count} • Risks: {s.open_risk_count}</div>
-        <div>Pulse: {sentimentEmoji(s.client_sentiment)} {s.client_sentiment ?? ""}</div>
+        <div>Pulse™: {sentimentEmoji(s.client_sentiment)} {s.client_sentiment ?? ""}</div>
         <div className="pt-1"><span className="text-muted-foreground">Priority:</span> {s.top_priority || "—"}</div>
         <div><span className="text-muted-foreground">Risk:</span> {s.top_risk || "—"}</div>
       </div>

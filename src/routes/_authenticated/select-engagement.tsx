@@ -203,7 +203,7 @@ function SelectEngagementPage() {
       <section className="px-6 py-4" style={{ borderBottom: `1px solid ${BORDER}` }}>
         <div className="mb-2 flex items-center justify-between">
           <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-500">
-            Opportunities on the Horizon
+            Opportunities on the Horizon™
           </div>
           <div className="text-[10px] uppercase tracking-[0.2em] text-zinc-600">{horizon.length} signal{horizon.length === 1 ? "" : "s"}</div>
         </div>

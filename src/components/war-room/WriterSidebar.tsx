@@ -82,12 +82,12 @@ export function WriterSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton
                   size="sm"
-                  tooltip="Raise a Signal — Flag a blocker or risk"
+                  tooltip="Raise a Signal™ — Flag a blocker or risk"
                   className="py-1.5 text-[12px] text-[var(--red)]/90"
                   onClick={() => openFlagIssue()}
                 >
                   <Antenna className="h-4 w-4" />
-                  <span>Raise a Signal</span>
+                  <span>Raise a Signal™</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
