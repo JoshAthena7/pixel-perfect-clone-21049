@@ -87,7 +87,7 @@ export function AdminSidebar() {
             <SidebarMenuButton asChild tooltip="Open the engagement lobby">
               <Link to="/select-engagement">
                 <DoorOpen className="h-4 w-4" />
-                <span>Command Centers</span>
+                <span>Command Center</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
