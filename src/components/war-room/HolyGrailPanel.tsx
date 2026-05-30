@@ -190,6 +190,16 @@ export function HolyGrailPanel({
 
       {open && (
         <>
+          {summaryRow && (
+            <SummaryCard
+              row={summaryRow}
+              show={showSummary}
+              onToggle={() => setShowSummary((v) => !v)}
+              onRegenerate={(style) => runSummary(style)}
+              regenerating={summarizing}
+            />
+          )}
+
           {/* Tab bar */}
           <div className="mt-4 flex flex-wrap gap-1 border-b border-border/60">
             {CATEGORIES.map((c) => {
