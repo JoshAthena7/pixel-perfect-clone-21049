@@ -17,6 +17,8 @@ import { SectionHealthTab } from "@/components/war-room/SectionHealthTab";
 import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
 import { SectionReviewQueue } from "@/components/war-room/SectionReviewQueue";
 import { Watermark } from "@/components/war-room/Watermark";
+import { Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated/heatmap")({
   head: () => ({ meta: [{ title: "Heat Map — Athena" }] }),
