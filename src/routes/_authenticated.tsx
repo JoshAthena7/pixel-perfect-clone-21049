@@ -18,6 +18,7 @@ import { ChatNavButton } from "@/components/war-room/comms/ChatNavButton";
 import { WriterActionLauncher } from "@/components/war-room/writer/WriterActionLauncher";
 import { DailyCheckin } from "@/components/war-room/writer/DailyCheckin";
 import { FlagIssueButton } from "@/components/war-room/FlagIssueButton";
+import { AskAthenaWidget } from "@/components/war-room/AskAthenaWidget";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthLayout,
