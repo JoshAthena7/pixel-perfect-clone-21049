@@ -70,7 +70,7 @@ function AcceptInvitePage() {
             <h1 className="mt-4 text-xl font-bold">Couldn't accept this invite</h1>
             <p className="mt-2 text-sm text-muted-foreground">{message}</p>
             <Button className="mt-6" onClick={() => navigate({ to: "/command" })}>
-              Go to Command Center
+              Go to Mission
             </Button>
           </>
         )}
