@@ -343,6 +343,13 @@ function NewEngagementPage() {
         setStateNotes(preNote);
       }
 
+      // Auto-seed state-specific trivia bank (fire-and-forget; idempotent)
+      if (stateCode) {
+        seedStateTrivia({ data: { state: stateCode } }).catch((e) => {
+          console.warn("Trivia seed skipped:", e?.message);
+        });
+      }
+
       // RFP: either upload the real file, or drop a placeholder row
       try {
         if (rfpFile) {
