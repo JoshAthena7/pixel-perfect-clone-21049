@@ -10,17 +10,31 @@ const SECURITY_HEADERS: Record<string, string> = {
   "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
 };
 
+function withSecurityHeaders(response: Response): Response {
+  try {
+    const headers = new Headers(response.headers);
+    for (const [k, v] of Object.entries(SECURITY_HEADERS)) {
+      if (!headers.has(k)) headers.set(k, v);
+    }
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
+  } catch {
+    return response;
+  }
+}
+
 const securityHeadersMiddleware = createMiddleware().server(async ({ next }) => {
   const result = await next();
-  // Mutate response headers on the returned context if available
-  // TanStack Start: response is built later — set via setResponseHeader if needed.
+  if (result instanceof Response) return withSecurityHeaders(result);
   return result;
 });
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
-    const result = await next();
-    return result;
+    return await next();
   } catch (error) {
     if (error != null && typeof error === "object" && "statusCode" in error) {
       throw error;
@@ -34,8 +48,8 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
 });
 
 export const startInstance = createStart(() => ({
-  requestMiddleware: [errorMiddleware, securityHeadersMiddleware],
+  requestMiddleware: [securityHeadersMiddleware, errorMiddleware],
   functionMiddleware: [attachSupabaseAuth],
-  defaultHeaders: SECURITY_HEADERS,
 }));
+
 
