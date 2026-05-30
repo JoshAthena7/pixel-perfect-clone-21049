@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
 import { calcTemperature } from "@/components/war-room/Thermometer";
-import { Siren, Users, ShieldAlert, Megaphone, Grid3x3, Sparkles, Clock, Settings as SettingsIcon, Hash } from "lucide-react";
+import { Siren, Users, ShieldAlert, Megaphone, Grid3x3, Sparkles, Clock, Settings as SettingsIcon, Hash, Inbox } from "lucide-react";
 import { LivePresence } from "@/components/war-room/LivePresence";
 import { ActionLauncher } from "@/components/war-room/ActionLauncher";
 import { NeedsAttentionPanel } from "@/components/war-room/NeedsAttentionPanel";
@@ -15,6 +15,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { listSlackChannels, getSlackMessages } from "@/lib/slack.functions";
 import { Plug } from "lucide-react";
 import { relativeTime, hoursSince } from "@/lib/time";
+import { useNeedsAttention } from "@/hooks/use-needs-attention";
 
 export const Route = createFileRoute("/_authenticated/command")({
   head: () => ({ meta: [{ title: "Command Center — Athena" }] }),
@@ -59,6 +60,8 @@ function CommandCenter() {
   const [heatmap, setHeatmap] = useState<Heat[]>([]);
   const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
   const [latestPulse, setLatestPulse] = useState<{ sentiment: string } | null>(null);
+  const { items: attentionItems } = useNeedsAttention(engagement?.id);
+  const attentionCount = attentionItems.filter((i) => !i.resolved).length;
 
   async function loadAll(eid: string) {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -167,10 +170,11 @@ function CommandCenter() {
         )}
       </div>
 
-      {/* 2. Metric row — 4 equal cells, 0.5px dividers */}
-      <div className="mt-4 grid grid-cols-4" style={{ borderTop: `0.5px solid ${BORDER}`, borderBottom: `0.5px solid ${BORDER}` }}>
+      {/* 2. Metric row — 0.5px dividers */}
+      <div className="mt-4 grid grid-cols-5" style={{ borderTop: `0.5px solid ${BORDER}`, borderBottom: `0.5px solid ${BORDER}` }}>
         <MetricCell icon={<Siren className="h-5 w-5" />} value={openSos.length} label="Open SOS" alert={openSos.length > 0} />
         <MetricCell icon={<ShieldAlert className="h-5 w-5" />} value={openRisks.length} label="Open risks" alert={openRisks.length > 0} divider />
+        <MetricCell icon={<Inbox className="h-5 w-5" />} value={attentionCount} label="Needs attention" alert={attentionCount > 0} divider to="/needs-attention" />
         <MetricCell icon={<Grid3x3 className="h-5 w-5" />} value={heatmap.length} label="Heat sections" divider />
         <MetricCell icon={<Users className="h-5 w-5" />} value={recentHuddles.length} label="Recent huddles" divider />
       </div>
@@ -419,16 +423,18 @@ function MetricCell({
   label,
   alert,
   divider,
+  to,
 }: {
   icon: React.ReactNode;
   value: number;
   label: string;
   alert?: boolean;
   divider?: boolean;
+  to?: string;
 }) {
-  return (
+  const content = (
     <div
-      className="flex items-center gap-4 px-5 py-5"
+      className="flex items-center gap-4 px-5 py-5 w-full text-left"
       style={divider ? { borderLeft: `0.5px solid ${BORDER}` } : undefined}
     >
       <span className="text-muted-foreground">{icon}</span>
@@ -438,4 +444,6 @@ function MetricCell({
       </div>
     </div>
   );
+  if (to) return <Link to={to} className="hover:bg-white/[0.02] transition">{content}</Link>;
+  return content;
 }

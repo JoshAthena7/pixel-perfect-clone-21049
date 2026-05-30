@@ -15,7 +15,7 @@ import {
   Contact,
   Camera,
   MessageSquare,
-  
+  Inbox,
   Briefcase,
   ExternalLink,
 } from "lucide-react";
@@ -46,6 +46,7 @@ const opsBase: NavItem[] = [
 ];
 const opsLeadership: NavItem[] = [
   { title: "Command Center", url: "/command", icon: LayoutDashboard, hint: "Executive overview of engagement health" },
+  { title: "Needs Attention", url: "/needs-attention", icon: Inbox, hint: "Everything requiring lead action in one feed" },
   ...opsBase,
 ];
 const intel: NavItem[] = [
