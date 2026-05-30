@@ -25,12 +25,12 @@ export interface WeeklyBriefProps {
 
 const COLORS = {
   bg: '#ffffff',
-  header: '#0b0b14',
+  header: '#1B3B72',
   gold: '#C49A2A',
   text: '#0b1220',
   muted: '#475569',
   border: '#e2e8f0',
-  accent: '#1e3a8a',
+  accent: '#1B3B72',
 }
 
 export function WeeklyBrief({
