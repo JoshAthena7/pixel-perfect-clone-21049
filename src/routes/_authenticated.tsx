@@ -33,7 +33,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/decisions": "Decision Log",
   "/pulse": "Client Pulse",
   "/broadcasts": "Broadcasts",
-  "/snapshots": "Snapshot Log",
+  
   "/assistant": "AI Assistant",
   "/settings": "Settings",
   "/win-themes": "Win Themes",
