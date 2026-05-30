@@ -45,7 +45,7 @@ const STATUS_STYLES: Record<string, string> = {
 const STATUSES = ["Not Started", "In Progress", "Under Review", "Complete"] as const;
 
 function WriterMySections() {
-  const { engagement } = useEngagement();
+  const { engagement, member } = useEngagement();
   const { user } = useSession();
   const [items, setItems] = useState<Assignment[]>([]);
   const [streak, setStreak] = useState<number | null>(null);
