@@ -1,13 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import { Megaphone, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AthenaMark } from "@/components/ui/AthenaMark";
+import { BrandLockup } from "@/components/ui/BrandLockup";
 
 export function AdminTopbar() {
   return (
     <div className="flex min-w-0 flex-1 items-center gap-3 text-xs">
-      <AthenaMark size="md" variant="lockup" tone="color" className="hidden md:block" />
-      <AthenaMark size="sm" variant="mark" tone="color" className="md:hidden" />
+      <BrandLockup size="md" className="hidden md:flex" />
+      <BrandLockup size="sm" markOnly className="md:hidden" />
 
       <span className="hidden md:inline text-muted-foreground">·</span>
 
