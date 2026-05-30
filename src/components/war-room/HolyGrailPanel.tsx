@@ -6,6 +6,7 @@ import { relativeTime } from "@/lib/time";
 import { analyzeCategory, startHolyGrailRun, finishHolyGrailRun, generateHolyGrailSummary } from "@/lib/ai/holy-grail.functions";
 import { toast } from "sonner";
 import { RfpQuestionsThemesPanel } from "./RfpQuestionsThemesPanel";
+import { PolicyPanel } from "./PolicyPanel";
 
 type CategoryKey = "opportunity" | "market" | "political" | "competitive" | "customer" | "provider" | "community";
 
