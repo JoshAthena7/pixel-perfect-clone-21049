@@ -121,6 +121,17 @@ export const Route = createFileRoute('/api/public/hooks/daily-digest')({
           const dateLabel = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
 
           for (const r of recipients) {
+            // Skip suppressed recipients
+            const { data: suppressed } = await supabase
+              .from('suppressed_emails')
+              .select('email')
+              .eq('email', r.email.toLowerCase())
+              .maybeSingle()
+            if (suppressed) {
+              console.log('Skipping suppressed recipient', r.email)
+              continue
+            }
+
             const props: DailyDigestProps = {
               recipientName: r.name,
               engagementName: eng.name,
