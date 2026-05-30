@@ -24,10 +24,122 @@ const TEAL = "#5fb8a8";
 const ENGAGEMENT_TYPES = ["RFP", "Sole Source", "Recompete", "Task Order"] as const;
 const STEPS = ["Identity", "Intelligence", "Team"] as const;
 
+type RfpSeed = {
+  name?: string;
+  client?: string;
+  stateCode?: string;
+  market?: string;
+  submissionDate?: string;
+  engagementType?: typeof ENGAGEMENT_TYPES[number];
+  contractValue?: string;
+  evalCriteria?: string[];
+  differentiators?: string[];
+  localRequirements?: string;
+  stateNotes?: string;
+};
+
+const STATE_NAMES: Record<string, string> = {
+  AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California", CO: "Colorado", CT: "Connecticut", DE: "Delaware", FL: "Florida", GA: "Georgia",
+  HI: "Hawaii", ID: "Idaho", IL: "Illinois", IN: "Indiana", IA: "Iowa", KS: "Kansas", KY: "Kentucky", LA: "Louisiana", ME: "Maine", MD: "Maryland",
+  MA: "Massachusetts", MI: "Michigan", MN: "Minnesota", MS: "Mississippi", MO: "Missouri", MT: "Montana", NE: "Nebraska", NV: "Nevada", NH: "New Hampshire", NJ: "New Jersey",
+  NM: "New Mexico", NY: "New York", NC: "North Carolina", ND: "North Dakota", OH: "Ohio", OK: "Oklahoma", OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina",
+  SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah", VT: "Vermont", VA: "Virginia", WA: "Washington", WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming", DC: "District of Columbia",
+};
+
 type StateRow = { state: string; state_name: string; procurement_portal_url: string | null; small_business_program: string | null };
 type TriviaRow = { id: string; question: string; choices: string[]; correct_index: number };
 
 type Invitee = { display_name: string; email: string; role: string; title: string };
+
+function cleanDocName(name: string) {
+  return name
+    .replace(/\.[^.]+$/, "")
+    .replace(/[_-]+/g, " ")
+    .replace(/\b(final|draft|copy|signed|rfp|request for proposals?)\b/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function titleCase(value: string) {
+  return value.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase()).replace(/\b(Rfp|Rfi|Sda|Mco|Hhsc|Cms|Medicaid)\b/g, (match) => match.toUpperCase());
+}
+
+function firstMatch(source: string, patterns: RegExp[]) {
+  for (const pattern of patterns) {
+    const match = source.match(pattern);
+    const value = match?.[1]?.replace(/[\r\n|]+/g, " ").replace(/\s+/g, " ").trim();
+    if (value && value.length > 1) return value.replace(/[.;:,]+$/, "");
+  }
+  return "";
+}
+
+function dateForInput(raw: string) {
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return parsed.toISOString().slice(0, 10);
+}
+
+function detectStateCode(source: string, states: StateRow[]) {
+  const candidates = states.length ? states.map((s) => [s.state, s.state_name] as const) : Object.entries(STATE_NAMES);
+  const lower = source.toLowerCase();
+  for (const [code, stateName] of candidates) {
+    if (lower.includes(stateName.toLowerCase())) return code;
+  }
+  const explicit = source.match(/\b(?:state|jurisdiction)\s*[:\-]?\s*([A-Z]{2})\b/);
+  return explicit?.[1] && STATE_NAMES[explicit[1]] ? explicit[1] : "";
+}
+
+function detectValue(source: string) {
+  const match = source.match(/\$\s*([0-9][0-9,]*(?:\.\d+)?)\s*(billion|million|m|k)?/i);
+  if (!match) return "";
+  const base = Number(match[1].replace(/,/g, ""));
+  if (!Number.isFinite(base)) return "";
+  const unit = match[2]?.toLowerCase();
+  const multiplier = unit === "billion" ? 1_000_000_000 : unit === "million" || unit === "m" ? 1_000_000 : unit === "k" ? 1_000 : 1;
+  return String(Math.round(base * multiplier));
+}
+
+async function buildSeedFromRfpFile(file: File, states: StateRow[]): Promise<RfpSeed> {
+  const filename = titleCase(cleanDocName(file.name));
+  const isReadableText = file.type.startsWith("text/") || /\.(txt|rtf|md|csv)$/i.test(file.name);
+  const body = isReadableText ? (await file.text()).slice(0, 30000) : "";
+  const source = `${filename}\n${body}`;
+  const client = firstMatch(source, [
+    /(?:issued by|issuing agency|agency|client|department)\s*[:\-]\s*([^\n]{3,100})/i,
+    /(?:state of [A-Za-z\s]+\s+)?(Department of [A-Za-z\s&]+|Health and Human Services Commission|HHSC|Medicaid Agency)/i,
+  ]);
+  const market = firstMatch(source, [/(?:market|region|service area|sda)\s*[:\-]\s*([^\n]{2,80})/i]);
+  const rawDueDate = firstMatch(source, [
+    /(?:proposal due|submission deadline|responses due|due date|closing date)\s*[:\-]?\s*([A-Za-z]+\s+\d{1,2},\s+\d{4}|\d{1,2}\/\d{1,2}\/\d{2,4}|\d{4}-\d{2}-\d{2})/i,
+  ]);
+  const evalCriteria = ["Technical Approach", "Staffing", "Past Performance", "Price", "Quality", "Implementation", "Network Adequacy"]
+    .filter((term) => new RegExp(`\\b${term.replace(/ /g, "\\s+")}\\b`, "i").test(source));
+
+  return {
+    name: filename || file.name,
+    client: client ? titleCase(client) : undefined,
+    stateCode: detectStateCode(source, states) || undefined,
+    market: market || undefined,
+    submissionDate: rawDueDate ? dateForInput(rawDueDate) : undefined,
+    engagementType: /sole source/i.test(source) ? "Sole Source" : /task order/i.test(source) ? "Task Order" : /recompete/i.test(source) ? "Recompete" : "RFP",
+    contractValue: detectValue(source) || undefined,
+    evalCriteria: evalCriteria.length ? evalCriteria : undefined,
+    localRequirements: body ? firstMatch(source, [/(?:mandatory requirements|minimum requirements|local requirements)\s*[:\-]\s*([^\n]{10,220})/i]) || undefined : undefined,
+    stateNotes: isReadableText ? "Seeded from uploaded RFP text. Review and refine during setup." : "Seeded from uploaded RFP filename. Review and refine during setup.",
+  };
+}
+
+function buildPlaceholderSeed(): RfpSeed {
+  return {
+    name: "RFP Placeholder Intake",
+    client: "Client Agency TBD",
+    engagementType: "RFP",
+    evalCriteria: ["Technical Approach", "Staffing", "Past Performance", "Price"],
+    differentiators: ["Athena win themes TBD"],
+    localRequirements: "Pending real RFP upload.",
+    stateNotes: "Placeholder loaded first. Replace with the real RFP when available.",
+  };
+}
 
 function NewEngagementPage() {
   const { user } = useSession();
