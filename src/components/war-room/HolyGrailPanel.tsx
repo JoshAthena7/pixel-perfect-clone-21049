@@ -38,6 +38,8 @@ export function HolyGrailPanel({
   const [currentStep, setCurrentStep] = useState<string | null>(null);
   const [stepDone, setStepDone] = useState(0);
   const [refreshingCat, setRefreshingCat] = useState<CategoryKey | null>(null);
+  const [summarizing, setSummarizing] = useState(false);
+  const [showSummary, setShowSummary] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
