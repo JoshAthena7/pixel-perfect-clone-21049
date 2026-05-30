@@ -1,15 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { relativeTime } from "@/lib/time";
 import { Search, UserPlus, MoreVertical, Users } from "lucide-react";
+import { InviteToCollectiveDialog } from "@/components/admin/InviteToCollectiveDialog";
 
 export const Route = createFileRoute("/_authenticated/admin/collective")({
   component: AdminCollective,
 });
+
 
 type MemberRow = {
   id: string;
