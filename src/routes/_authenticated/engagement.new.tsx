@@ -486,8 +486,8 @@ function Step1(p: {
   engagementType: string; setEngagementType: (v: any) => void;
   contractValue: string; setContractValue: (v: string) => void;
   states: StateRow[]; stateInfo: StateRow | null; trivia: TriviaRow[];
-  rfpFile: File | null; setRfpFile: (f: File | null) => void;
-  rfpPlaceholder: boolean; setRfpPlaceholder: (v: boolean) => void;
+  rfpFile: File | null; setRfpFile: (f: File | null) => void; onRfpFileSelected: (f: File) => void;
+  rfpPlaceholder: boolean; toggleRfpPlaceholder: () => void; rfpSeeded: boolean;
   onNext: () => void; saving: boolean;
 }) {
   const [dragOver, setDragOver] = useState(false);
@@ -502,7 +502,7 @@ function Step1(p: {
         onDrop={(e) => {
           e.preventDefault(); setDragOver(false);
           const f = e.dataTransfer.files?.[0];
-          if (f) { p.setRfpFile(f); p.setRfpPlaceholder(false); }
+          if (f) p.onRfpFileSelected(f);
         }}
         className="rounded-lg p-5 transition"
         style={{
@@ -537,14 +537,14 @@ function Step1(p: {
                 className="hidden"
                 onChange={(e) => {
                   const f = e.target.files?.[0];
-                  if (f) { p.setRfpFile(f); p.setRfpPlaceholder(false); }
+                  if (f) p.onRfpFileSelected(f);
                 }}
               />
             </label>
             <div className="mt-3 flex items-center justify-center gap-2 border-t pt-3 text-[11px]" style={{ borderColor: BORDER }}>
               <span className="text-zinc-500">Don't have it yet?</span>
               <button
-                onClick={() => p.setRfpPlaceholder(!p.rfpPlaceholder)}
+                onClick={p.toggleRfpPlaceholder}
                 className="rounded px-2 py-1 text-[10px] font-bold uppercase tracking-[0.2em] transition"
                 style={{
                   background: p.rfpPlaceholder ? "rgba(201,179,112,0.15)" : "transparent",
@@ -558,6 +558,12 @@ function Step1(p: {
           </>
         )}
       </div>
+
+      {p.rfpSeeded && (
+        <div className="rounded-md px-3 py-2 text-[11px] text-zinc-400" style={{ background: "rgba(95,184,168,0.08)", border: `1px solid rgba(95,184,168,0.24)` }}>
+          Details were auto-populated from the RFP starting point. Review them before continuing.
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Field label="Engagement Name" required>
