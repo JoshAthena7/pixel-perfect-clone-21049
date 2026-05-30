@@ -19,6 +19,8 @@ export function HookFailuresPanel() {
   const [showAcked, setShowAcked] = useState(false);
   // ids that are optimistically acked but not yet committed (undo window open)
   const pendingRef = useRef<Map<string, { timer: ReturnType<typeof setTimeout>; row: Failure }>>(new Map());
+  // ids whose DB commit is currently in flight — guard against duplicate Retry clicks
+  const inflightRef = useRef<Set<string>>(new Set());
 
   async function load() {
     setLoading(true);
