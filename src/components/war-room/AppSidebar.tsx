@@ -13,6 +13,7 @@ import {
   MessageSquare,
   Briefcase,
   ExternalLink,
+  DoorOpen,
 } from "lucide-react";
 import {
   Sidebar,
