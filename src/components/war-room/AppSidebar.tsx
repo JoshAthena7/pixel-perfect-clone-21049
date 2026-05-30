@@ -165,7 +165,7 @@ export function AppSidebar() {
         <SidebarMenu>
           {isAdmin && (
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname.startsWith("/admin")} tooltip="Command Operations — Platform-wide control across every Command Center">
+              <SidebarMenuButton asChild isActive={pathname.startsWith("/admin")} tooltip="Command Operations — Platform-wide control across every Mission">
                 <Link to="/admin">
                   <Shield className="h-4 w-4" />
                   <span>Command Ops</span>
