@@ -31,7 +31,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
 import { EngagementSwitcher } from "@/components/EngagementSwitcher";
-import { AthenaMark } from "@/components/ui/AthenaMark";
+import { BrandLockup } from "@/components/ui/BrandLockup";
 import { useIsAdmin } from "@/hooks/use-admin";
 import type { ComponentType } from "react";
 import type { LucideProps } from "lucide-react";
@@ -87,11 +87,8 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className="flex flex-col items-center gap-2 px-2 py-3 border-b border-border/40">
-          <AthenaMark size="md" tone="color" />
-          <div className="text-[10px] uppercase tracking-[0.28em] text-[var(--gold)] font-semibold">
-            Command™
-          </div>
+        <div className="flex items-center justify-center px-2 py-3 border-b border-border/40">
+          <BrandLockup size="md" />
         </div>
         {engagement && <EngagementSwitcher />}
         {isArchived && (
