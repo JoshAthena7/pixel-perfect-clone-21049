@@ -90,7 +90,7 @@ export function InviteToCollectiveDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Synchronous re-entry guard — blocks double clicks before React flushes setSubmitting.
-    if (lockRef.current) return;
+    if (lockRef.current || cooldown > 0) return;
     const parsed = inviteSchema.safeParse({
       email,
       display_name: name,
