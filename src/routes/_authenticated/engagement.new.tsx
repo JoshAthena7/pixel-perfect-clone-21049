@@ -175,6 +175,7 @@ function NewEngagementPage() {
   // RFP doc (uploaded as part of step 1)
   const [rfpFile, setRfpFile] = useState<File | null>(null);
   const [rfpPlaceholder, setRfpPlaceholder] = useState(false);
+  const [rfpSeeded, setRfpSeeded] = useState(false);
 
   // State preview
   const [states, setStates] = useState<StateRow[]>([]);
@@ -205,6 +206,43 @@ function NewEngagementPage() {
   const [invitees, setInvitees] = useState<Invitee[]>([
     { display_name: "", email: "", role: "engagement_lead", title: "" },
   ]);
+
+  function applyRfpSeed(seed: RfpSeed) {
+    if (seed.name && !name.trim()) setName(seed.name);
+    if (seed.client && !client.trim()) setClient(seed.client);
+    if (seed.stateCode && !stateCode) setStateCode(seed.stateCode);
+    if (seed.market && !market.trim()) setMarket(seed.market);
+    if (seed.submissionDate && !submissionDate) setSubmissionDate(seed.submissionDate);
+    if (seed.engagementType && !engagementType) setEngagementType(seed.engagementType);
+    if (seed.contractValue && !contractValue.trim()) setContractValue(seed.contractValue);
+    if (seed.evalCriteria?.length && evalCriteria.length === 0) setEvalCriteria(seed.evalCriteria);
+    if (seed.differentiators?.length && differentiators.length === 0) setDifferentiators(seed.differentiators);
+    if (seed.localRequirements && !localRequirements.trim()) setLocalRequirements(seed.localRequirements);
+    if (seed.stateNotes && !stateNotes.trim()) setStateNotes(seed.stateNotes);
+    setRfpSeeded(true);
+  }
+
+  async function handleRfpFile(file: File) {
+    setRfpFile(file);
+    setRfpPlaceholder(false);
+    try {
+      applyRfpSeed(await buildSeedFromRfpFile(file, states));
+      toast.success("RFP details populated — review before continuing.");
+    } catch (error) {
+      console.error(error);
+      toast.error("RFP attached, but details could not be auto-populated.");
+    }
+  }
+
+  function toggleRfpPlaceholder() {
+    const next = !rfpPlaceholder;
+    setRfpPlaceholder(next);
+    if (next) {
+      setRfpFile(null);
+      applyRfpSeed(buildPlaceholderSeed());
+      toast.success("Placeholder details populated — edit anything you know now.");
+    }
+  }
 
   // ─── actions ───
   async function submitStep1() {
@@ -411,8 +449,8 @@ function NewEngagementPage() {
             engagementType={engagementType} setEngagementType={setEngagementType}
             contractValue={contractValue} setContractValue={setContractValue}
             states={states} stateInfo={stateInfo} trivia={trivia}
-            rfpFile={rfpFile} setRfpFile={setRfpFile}
-            rfpPlaceholder={rfpPlaceholder} setRfpPlaceholder={setRfpPlaceholder}
+            rfpFile={rfpFile} setRfpFile={setRfpFile} onRfpFileSelected={handleRfpFile}
+            rfpPlaceholder={rfpPlaceholder} toggleRfpPlaceholder={toggleRfpPlaceholder} rfpSeeded={rfpSeeded}
             onNext={submitStep1} saving={saving}
           />
         )}
