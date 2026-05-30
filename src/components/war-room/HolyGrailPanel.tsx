@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Sparkles, ChevronDown, ChevronUp, RefreshCw, Loader2, ExternalLink } from "lucide-react";
 import { relativeTime } from "@/lib/time";
-import { analyzeCategory, startHolyGrailRun, finishHolyGrailRun } from "@/lib/ai/holy-grail.functions";
+import { analyzeCategory, startHolyGrailRun, finishHolyGrailRun, generateHolyGrailSummary } from "@/lib/ai/holy-grail.functions";
 import { toast } from "sonner";
 
 type CategoryKey = "opportunity" | "market" | "political" | "competitive" | "customer" | "provider" | "community";
