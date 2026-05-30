@@ -67,7 +67,7 @@ const leadership: NavItem[] = [
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
-  const { engagement, member } = useEngagement();
+  const { engagement, member, isArchived } = useEngagement();
   const isLeadership = !!member && ["founder", "pm", "engagement_lead"].includes(member.role);
   const ops = isLeadership ? opsLeadership : opsBase;
   const isActive = (p: string) => pathname === p;
@@ -98,6 +98,11 @@ export function AppSidebar() {
           </div>
         </div>
         {engagement && <EngagementSwitcher />}
+        {isArchived && (
+          <div className="mx-2 mt-2 rounded border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-amber-300">
+            Archived — read only
+          </div>
+        )}
       </SidebarHeader>
 
       <SidebarContent>

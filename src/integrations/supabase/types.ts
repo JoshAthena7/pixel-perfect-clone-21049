@@ -1308,6 +1308,7 @@ export type Database = {
         Args: { _engagement_id: string }
         Returns: string
       }
+      leadership_count: { Args: { _engagement_id: string }; Returns: number }
       move_to_dlq: {
         Args: {
           dlq_name: string

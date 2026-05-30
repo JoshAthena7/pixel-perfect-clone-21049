@@ -55,7 +55,7 @@ const TEAM = [
 
 export function WriterSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
-  const { engagement, member } = useEngagement();
+  const { engagement, member, isArchived } = useEngagement();
   const isActive = (p: string) => pathname === p;
 
   async function signOut() {
@@ -90,6 +90,11 @@ export function WriterSidebar() {
           </div>
         </div>
         {engagement && <EngagementSwitcher />}
+        {isArchived && (
+          <div className="mx-2 mt-2 rounded border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-amber-300">
+            Archived — read only
+          </div>
+        )}
       </SidebarHeader>
 
       <SidebarContent>

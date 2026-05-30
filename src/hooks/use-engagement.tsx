@@ -37,6 +37,7 @@ type Ctx = {
   canWrite: boolean;
   isWriter: boolean;
   isViewer: boolean;
+  isArchived: boolean;
   refresh: () => Promise<void>;
 };
 
@@ -53,12 +54,13 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
 
   const load = useCallback(async (uid: string) => {
     setLoading(true);
-    // One query: memberships joined with engagements (non-archived)
+    // Include archived engagements so users can still navigate to a read-only view;
+    // /select-engagement filters them visually.
     const { data } = await supabase
       .from("engagement_members")
       .select("id, role, display_name, engagement:engagements!inner(id, name, client, status, submission_date, created_by)")
-      .eq("user_id", uid)
-      .neq("engagements.status", "Archived");
+      .eq("user_id", uid);
+
 
     let list: Membership[] = ((data as any[]) ?? [])
       .filter((row) => row.engagement)
@@ -99,8 +101,8 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
         const { data: again } = await supabase
           .from("engagement_members")
           .select("id, role, display_name, engagement:engagements!inner(id, name, client, status, submission_date, created_by)")
-          .eq("user_id", uid)
-          .neq("engagements.status", "Archived");
+          .eq("user_id", uid);
+
         list = ((again as any[]) ?? [])
           .filter((r) => r.engagement)
           .map((r) => ({
@@ -161,7 +163,8 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
     : null;
   const role = member?.role ?? null;
   const isLeadership = !!role && LEADERSHIP.has(role);
-  const canWrite = isLeadership;
+  const isArchived = engagement?.status === "Archived";
+  const canWrite = isLeadership && !isArchived;
   const isWriter = role === "writer";
   const isViewer = role === "viewer";
 
@@ -180,6 +183,7 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
         canWrite,
         isWriter,
         isViewer,
+        isArchived,
         refresh: async () => {
           if (user) await load(user.id);
         },
