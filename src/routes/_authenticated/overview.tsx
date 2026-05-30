@@ -307,7 +307,7 @@ function OverviewPage() {
         </div>
 
         {/* KPI strip */}
-        <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-5">
+        <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
           <KpiCard icon={<Briefcase className="h-4 w-4" />} label="Active engagements" value={String(kpis.activeCount)} />
           <KpiCard
             icon={<Siren className="h-4 w-4" />}
@@ -321,14 +321,9 @@ function OverviewPage() {
             value={String(kpis.openRisks)}
             tone={kpis.openRisks > 0 ? "amber" : "default"}
           />
-          <KpiCard
-            icon={<DollarSign className="h-4 w-4" />}
-            label="Pipeline TCV"
-            value={formatTCV(kpis.totalTcv)}
-            tone="gold"
-          />
           <KpiCard icon={<Users className="h-4 w-4" />} label="Collective™ members" value={String(collectiveCount)} />
         </div>
+
 
         <HookFailuresPanel />
 
