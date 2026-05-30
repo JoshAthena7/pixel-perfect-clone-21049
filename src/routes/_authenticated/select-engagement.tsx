@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useEngagement, type Membership } from "@/hooks/use-engagement";
 import { useSession } from "@/hooks/use-session";
 import { supabase } from "@/integrations/supabase/client";
+import { AthenaMark } from "@/components/ui/AthenaMark";
+
 import { LogOut, Archive, Plus, Siren, Users, FileText, Clock } from "lucide-react";
 import { daysUntil } from "@/lib/time";
 
