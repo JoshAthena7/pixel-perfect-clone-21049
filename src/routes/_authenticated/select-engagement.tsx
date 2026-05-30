@@ -250,13 +250,13 @@ function SelectEngagementPage() {
 
         {writerArchivedOnly ? (
           <EmptyState
-            title="Your war room has been archived"
+            title="Your Command Center has been archived"
             body="Contact your engagement lead for next steps."
           />
         ) : list.length === 0 && active.length === 0 && archived.length === 0 ? (
           <EmptyState
-            title="No war rooms yet"
-            body="Create your first engagement to open a room, or ask a founder to invite you."
+            title="No Command Centers yet"
+            body="Create your first engagement to open a Command Center, or ask a founder to invite you."
           >
             <button
               onClick={createNewEngagement}
@@ -410,7 +410,7 @@ function DoorCard({
           <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: RED }}>
             <Siren className="h-3 w-3" />
             <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: RED }} />
-            {stats!.openSos} SOS
+            {stats!.openSos} Signal{stats!.openSos === 1 ? '' : 's'}
           </span>
         )}
       </div>

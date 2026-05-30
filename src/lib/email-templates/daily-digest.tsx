@@ -92,7 +92,7 @@ export function DailyDigest({
               </Text>
             ) : (
               <Text style={{ fontSize: 14, color: COLORS.muted, margin: 0 }}>
-                Nothing material overnight. War room is quiet.
+                Nothing material overnight. Command Center is quiet.
               </Text>
             )}
           </Section>
@@ -125,7 +125,7 @@ export function DailyDigest({
               <Hr style={{ borderColor: COLORS.border, margin: '24px 0' }} />
               <Section>
                 <Heading as="h2" style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: 1, color: COLORS.red, margin: '0 0 12px' }}>
-                  SOS — needs leadership
+                  Escalations — needs leadership
                 </Heading>
                 {openSos.map((s, i) => (
                   <Text key={i} style={{ fontSize: 13, margin: '0 0 8px', lineHeight: '20px' }}>
