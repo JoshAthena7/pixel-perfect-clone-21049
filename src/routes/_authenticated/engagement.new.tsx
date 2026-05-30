@@ -534,13 +534,51 @@ function NewEngagementPage() {
             onNext={submitStep2} onSkip={() => setStep(2)} saving={saving}
           />
         )}
-        {step === 2 && (
+        {step === 2 && engagementId && (
+          <StepSizing
+            engagementId={engagementId}
+            onNext={() => setStep(3)}
+            onSkip={() => setStep(3)}
+          />
+        )}
+        {step === 3 && (
           <Step3
             invitees={invitees} setInvitees={setInvitees}
             onOpen={submitStep3AndOpen} onSkip={skipToOpen} saving={saving}
           />
         )}
       </main>
+    </div>
+  );
+}
+
+// ───── Step 2B — Sizing ─────
+function StepSizing(p: { engagementId: string; onNext: () => void; onSkip: () => void }) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <div className="text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: GOLD }}>Step 2B</div>
+        <h2 className="mt-1 text-xl font-bold text-zinc-100">Size the Opportunity</h2>
+        <p className="mt-1 text-xs text-zinc-500">
+          AI extracts evaluation weights, page limits, and writer load from the RFP. Review and adjust assumptions before assembling your team.
+        </p>
+      </div>
+      <SizingEngine engagementId={p.engagementId} />
+      <div className="flex items-center justify-between pt-2">
+        <button
+          onClick={p.onSkip}
+          className="text-[11px] uppercase tracking-[0.25em] text-zinc-500 hover:text-zinc-200"
+        >
+          Skip for now
+        </button>
+        <button
+          onClick={p.onNext}
+          className="inline-flex items-center gap-2 rounded-md px-4 py-2 text-[11px] font-bold uppercase tracking-[0.25em]"
+          style={{ background: GOLD, color: "#0d0d14" }}
+        >
+          Continue to Team <ArrowRight className="h-3.5 w-3.5" />
+        </button>
+      </div>
     </div>
   );
 }
