@@ -139,6 +139,7 @@ function CommandCenter() {
 
         {/* ZONE 1 — Needs Attention + Intelligence Insights */}
         <NeedsAttentionPanel />
+        <SizingSummaryStrip engagementId={engagement.id} />
         <IntelligenceInsightsPanel />
 
         {/* ZONE 2 — Health strip: three blocks */}
