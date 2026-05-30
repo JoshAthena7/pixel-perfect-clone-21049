@@ -1,8 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-
-const GATEWAY = "https://ai.gateway.lovable.dev/v1";
+import { runAIText } from "@/lib/ai/router";
 
 export const DOC_TYPES = [
   "State Contract Template",
@@ -13,27 +12,15 @@ export const DOC_TYPES = [
   "Other",
 ] as const;
 
-async function callAI(apiKey: string, sys: string, user: string) {
-  const res = await fetch(`${GATEWAY}/chat/completions`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: sys },
-        { role: "user", content: user },
-      ],
-    }),
+async function callAI(sys: string, user: string) {
+  // Compliance analysis: use Claude (analyze) — Opus for deeper reasoning.
+  const raw = await runAIText({
+    task: "analyze",
+    system: sys,
+    prompt: user,
+    json: true,
+    deep: true,
   });
-  if (!res.ok) {
-    if (res.status === 429) throw new Error("AI rate limit hit — try again in a minute.");
-    if (res.status === 402)
-      throw new Error("AI credits exhausted — top up in Settings → Workspace.");
-    throw new Error(`AI gateway error ${res.status}`);
-  }
-  const json = (await res.json()) as any;
-  const raw = json.choices?.[0]?.message?.content ?? "{}";
   try {
     return JSON.parse(raw);
   } catch {
