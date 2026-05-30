@@ -346,15 +346,11 @@ function TriviaScoreCard() {
 
   if (!score) return null;
   return (
-    <Link
-      to="/writer/progress"
-      className="flex items-center justify-between rounded-md border border-border bg-surface px-4 py-3 text-sm hover:border-[var(--gold)]/60"
-    >
+    <div className="flex items-center justify-between rounded-md border border-border bg-surface px-4 py-3 text-sm">
       <div className="flex items-center gap-2">
         <Trophy className="h-4 w-4 text-[var(--gold)]" />
         <span className="font-medium">Trivia score: {score.correct} correct / {score.answered} answered</span>
       </div>
-      <span className="text-[11px] uppercase tracking-wider text-muted-foreground">View leaderboard →</span>
-    </Link>
+    </div>
   );
 }

@@ -49,6 +49,7 @@ function useMfaGate(userId: string | null | undefined) {
 }
 
 const PAGE_TITLES: Record<string, string> = {
+  "/overview": "Executive Overview",
   "/command": "Command Center",
   "/huddle": "Daily Huddle",
   "/issues": "Issues",
@@ -58,15 +59,11 @@ const PAGE_TITLES: Record<string, string> = {
   "/decisions": "Decision Log",
   "/pulse": "Client Pulse",
   "/broadcasts": "Broadcasts",
-  
   "/assistant": "AI Assistant",
   "/settings": "Settings",
   "/win-themes": "Win Themes",
   "/faq": "FAQ",
   "/writer/my-sections": "My Sections",
-  "/writer/work-log": "Work Log",
-  "/writer/progress": "Progress",
-  "/writer/recognition-feed": "Recognition Feed",
 };
 
 // Writer/SME users see ONLY the writer pages — no shared command-center routes.
