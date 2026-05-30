@@ -65,7 +65,15 @@ export function NeedsAttentionPanel() {
   if (loadError) {
     return <ErrorBanner error={loadError} onRetry={() => engagement && load(engagement.id)} label="Couldn't load needs-attention items." />;
   }
-  if (rows.length === 0) return null;
+  if (rows.length === 0) {
+    return (
+      <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/[0.07] px-4 py-3">
+        <div className="flex items-center gap-2 text-[12px] font-semibold text-emerald-400">
+          <Check className="h-4 w-4" /> All clear — nothing needs your attention right now.
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="rounded-lg border border-[#eab308]/40 bg-[#eab308]/[0.06] px-4 py-3">
       <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#eab308]">
