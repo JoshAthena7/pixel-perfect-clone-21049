@@ -9,7 +9,16 @@ import { relativeTime } from "@/lib/time";
 
 type Scope = "engagement" | "all" | "firm";
 type Source = { source_table: string; source_id: string; similarity: number; preview: string };
-type ReplySource = "vault" | "live-search" | "deep-search";
+type ReplySource = "vault" | "live-search" | "deep-search" | "iris-identity";
+
+const IRIS_SIGNATURE = "Athena thinks. Iris delivers.";
+const IRIS_WELCOME = "I am Iris — Athena's intelligence. Ask me anything about your Missions, the market, policy shifts, or the Vault. Athena thinks. Iris delivers.";
+
+function splitIrisSignature(text: string): { body: string; signature: string | null } {
+  const idx = text.lastIndexOf(IRIS_SIGNATURE);
+  if (idx === -1) return { body: text, signature: null };
+  return { body: text.slice(0, idx).trimEnd(), signature: IRIS_SIGNATURE };
+}
 type Exchange = {
   id: string;
   question: string;
