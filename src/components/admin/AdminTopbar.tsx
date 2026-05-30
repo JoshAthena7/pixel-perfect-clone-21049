@@ -24,7 +24,7 @@ export function AdminTopbar() {
         <Button asChild size="sm" className="h-8 gap-1.5">
           <Link to="/engagement/new">
             <Plus className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">New Engagement</span>
+            <span className="hidden sm:inline">New Command Center</span>
           </Link>
         </Button>
       </div>

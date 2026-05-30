@@ -57,7 +57,7 @@ export function AdminSidebar() {
         <div className="flex flex-col items-center gap-1 px-2 py-3 border-b border-border/40">
           <Shield className="h-7 w-7 text-[var(--gold)]" />
           <div className="text-[10px] uppercase tracking-[0.28em] text-[var(--gold)] font-semibold text-center leading-tight">
-            Athena<br />Admin Portal
+            Athena<br />Command Operations
           </div>
         </div>
       </SidebarHeader>
@@ -87,7 +87,7 @@ export function AdminSidebar() {
             <SidebarMenuButton asChild tooltip="Open the engagement lobby">
               <Link to="/select-engagement">
                 <DoorOpen className="h-4 w-4" />
-                <span>War Rooms</span>
+                <span>Command Centers</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

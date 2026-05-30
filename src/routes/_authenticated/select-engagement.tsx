@@ -12,8 +12,8 @@ export const Route = createFileRoute("/_authenticated/select-engagement")({
 });
 
 // ───────────── design tokens (scoped) ─────────────
-const LOBBY_BG = "#0d0d14";
-const CARD_BG = "#16161f";
+const LOBBY_BG = "#0D0F1A";
+const CARD_BG = "#141628";
 const CARD_BG_HOVER = "#1c1c27";
 const BORDER = "rgba(255,255,255,0.06)";
 const BORDER_STRONG = "rgba(255,255,255,0.12)";
@@ -165,7 +165,7 @@ function SelectEngagementPage() {
         <div className="flex items-center gap-3">
           <div
             className="flex h-10 w-10 items-center justify-center rounded-md text-lg font-black"
-            style={{ background: `linear-gradient(135deg, ${GOLD}, #8a7445)`, color: "#0d0d14" }}
+            style={{ background: `linear-gradient(135deg, ${GOLD}, #8a7445)`, color: "#0D0F1A" }}
           >
             A
           </div>
@@ -234,7 +234,7 @@ function SelectEngagementPage() {
       {/* WAR ROOMS */}
       <section className="px-6 py-6">
         <div className="mb-4 flex items-center justify-between">
-          <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-500">Active War Rooms</div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-500">Active Command Centers</div>
           {archived.length > 0 && (
             <button
               onClick={() => setShowArchived((v) => !v)}
@@ -261,7 +261,7 @@ function SelectEngagementPage() {
               onClick={createNewEngagement}
               disabled={creating}
               className="mt-4 inline-flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold uppercase tracking-[0.18em]"
-              style={{ background: GOLD, color: "#0d0d14" }}
+              style={{ background: GOLD, color: "#0D0F1A" }}
             >
               <Plus className="h-3.5 w-3.5" /> Open New Room
             </button>
@@ -280,7 +280,7 @@ function SelectEngagementPage() {
               >
                 <Plus className="h-6 w-6" />
                 <div className="text-[10px] font-bold uppercase tracking-[0.3em]">
-                  {creating ? "Opening…" : "New War Room"}
+                  {creating ? "Opening…" : "New Command Center"}
                 </div>
               </button>
             )}

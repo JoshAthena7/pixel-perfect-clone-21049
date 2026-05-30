@@ -91,13 +91,13 @@ export function FlagIssueButton() {
         aria-label="Flag an issue"
       >
         <Flag className="h-4 w-4" />
-        Flag an Issue
+        Raise a Signal
       </button>
 
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Flag an Issue</DialogTitle>
+            <DialogTitle>Raise a Signal</DialogTitle>
             <DialogDescription>One form for blockers and risks. Takes 30 seconds.</DialogDescription>
           </DialogHeader>
 

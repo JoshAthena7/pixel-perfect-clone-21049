@@ -42,7 +42,7 @@ type Tile = {
 const TILES: Tile[] = [
   { key: "huddle", label: "Huddle", desc: "Schedule a working session", color: "#0F6E56", icon: <Users className="h-4 w-4" /> },
   { key: "broadcast", label: "Broadcast", desc: "Send a team-wide message", color: "#533AB7", icon: <Megaphone className="h-4 w-4" /> },
-  { key: "pulse", label: "Client Pulse", desc: "Log a client touchpoint", color: "#185FA5", icon: <HeartPulse className="h-4 w-4" /> },
+  { key: "pulse", label: "Pulse™", desc: "Log a client touchpoint", color: "#185FA5", icon: <HeartPulse className="h-4 w-4" /> },
   { key: "decision", label: "Decisions", desc: "Record a leadership call", color: "#3B6D11", icon: <CheckCircle2 className="h-4 w-4" /> },
   { key: "heatmap", label: "Heat Map", desc: "Flag a writer/section issue", color: "#993C1D", icon: <LayoutGrid className="h-4 w-4" /> },
 ];
@@ -424,7 +424,7 @@ function BroadcastForm({ engagementId, userId, memberName, onSuccess, onCancel }
   );
 }
 
-// ---- Client Pulse ----
+// ---- Pulse™ ----
 function PulseForm({ engagementId, userId, memberName, roster, onSuccess, onCancel }: FormProps) {
   const [period, setPeriod] = useState("");
   const [pullRoster, setPullRoster] = useState(false);

@@ -80,7 +80,7 @@ export function AppSidebar() {
         <div className="flex flex-col items-center gap-2 px-2 py-3 border-b border-border/40">
           <img src={athenaLogo} alt="Athena Strategy Group" className="h-14 w-auto object-contain" />
           <div className="text-[10px] uppercase tracking-[0.28em] text-[var(--gold)] font-semibold">
-            War Room · Command
+            Command Center · Command
           </div>
         </div>
         {engagement && <EngagementSwitcher />}
@@ -159,7 +159,7 @@ export function AppSidebar() {
         <SidebarMenu>
           {isAdmin && (
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname.startsWith("/admin")} tooltip="Admin Portal — Platform-wide control across every war room">
+              <SidebarMenuButton asChild isActive={pathname.startsWith("/admin")} tooltip="Command Operations — Platform-wide control across every war room">
                 <Link to="/admin">
                   <Shield className="h-4 w-4" />
                   <span>Admin</span>
@@ -168,10 +168,10 @@ export function AppSidebar() {
             </SidebarMenuItem>
           )}
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/select-engagement")} tooltip="War Rooms — Switch engagements or open a new one">
+            <SidebarMenuButton asChild isActive={isActive("/select-engagement")} tooltip="Command Centers — Switch engagements or open a new one">
               <Link to="/select-engagement">
                 <DoorOpen className="h-4 w-4" />
-                <span>War Rooms</span>
+                <span>Command Centers</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

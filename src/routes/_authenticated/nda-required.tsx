@@ -9,8 +9,8 @@ export const Route = createFileRoute("/_authenticated/nda-required")({
 function NdaRequiredPage() {
   const { engagement, member } = useEngagement();
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#0d0d14] px-6">
-      <div className="max-w-lg w-full rounded-2xl border border-[#C49A2A]/30 bg-[#16161f] p-8 text-center shadow-2xl">
+    <div className="flex min-h-screen items-center justify-center bg-[#0D0F1A] px-6">
+      <div className="max-w-lg w-full rounded-2xl border border-[#C49A2A]/30 bg-[#141628] p-8 text-center shadow-2xl">
         <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[#C49A2A]/10 ring-1 ring-[#C49A2A]/40">
           <ShieldAlert className="h-7 w-7 text-[#C49A2A]" />
         </div>
@@ -29,7 +29,7 @@ function NdaRequiredPage() {
           </div>
           <ol className="list-decimal pl-5 space-y-1.5">
             <li>Sign and return your NDA to your engagement leader.</li>
-            <li>A founder, PM, or engagement lead marks your NDA as confirmed in the Team Roster.</li>
+            <li>A founder, PM, or engagement lead marks your NDA as confirmed in the Collective™.</li>
             <li>Refresh this page and you'll be routed into the war room.</li>
           </ol>
         </div>

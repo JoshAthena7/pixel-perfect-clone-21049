@@ -11,7 +11,7 @@ import type { ComponentType } from "react";
 import type { LucideProps } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/needs-attention")({
-  head: () => ({ meta: [{ title: "Needs Attention — Athena" }] }),
+  head: () => ({ meta: [{ title: "Active Signals — Athena" }] }),
   component: Gate,
 });
 
@@ -40,7 +40,7 @@ function NeedsAttentionPage() {
   return (
     <div className="w-full max-w-4xl mx-auto px-5 py-6">
       <div className="mb-5">
-        <h1 className="text-xl font-semibold">Needs Attention</h1>
+        <h1 className="text-xl font-semibold">Active Signals</h1>
         <p className="text-sm text-muted-foreground mt-1">Everything requiring lead action, in one feed.</p>
       </div>
 

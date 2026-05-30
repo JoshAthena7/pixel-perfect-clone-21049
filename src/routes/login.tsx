@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { AthenaMark } from "@/components/ui/AthenaMark";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Sign in — Athena War Room" }] }),
+  head: () => ({ meta: [{ title: "Sign in — Athena Command Center" }] }),
   component: LoginPage,
 });
 
@@ -87,7 +87,7 @@ function LoginPage() {
 
           <div className="mx-auto mb-3 h-px w-16 bg-gradient-to-r from-transparent via-[var(--gold)] to-transparent" />
           <h1 className="text-xl font-semibold tracking-[0.2em] uppercase text-foreground">
-            War Room Command
+            Command Center Command
           </h1>
           <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[var(--gold)]/90">
             Athena Strategy Group · Proprietary

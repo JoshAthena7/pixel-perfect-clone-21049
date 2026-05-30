@@ -314,7 +314,7 @@ export const analyzeOpportunity = createServerFn({ method: "POST" })
     );
 
     // Push parsed RFP text into the embedding queue in ~2k char chunks so
-    // Ask Athena can cite the actual RFP, not just the summary.
+    // Ask Navigator can cite the actual RFP, not just the summary.
     if (data.documentId) {
       const CHUNK = 2000;
       const chunks: { source_table: string; source_id: string; engagement_id: string; content_text: string; priority: number }[] = [];

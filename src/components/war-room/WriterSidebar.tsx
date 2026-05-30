@@ -28,7 +28,7 @@ import athenaLogo from "@/assets/athena-logo-dark.png";
 const NAV = [
   { title: "My Sections",    url: "/writer/my-sections", icon: LayoutGrid },
   { title: "Broadcasts",     url: "/broadcasts",         icon: Megaphone },
-  { title: "Intel Library",  url: "/intel",              icon: FolderOpen },
+  { title: "Vault",  url: "/intel",              icon: FolderOpen },
 ] as const;
 
 export function WriterSidebar() {
@@ -82,12 +82,12 @@ export function WriterSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton
                   size="sm"
-                  tooltip="Flag an Issue — Raise a blocker or risk"
+                  tooltip="Raise a Signal — Raise a blocker or risk"
                   className="py-1.5 text-[12px]"
                   onClick={() => openFlagIssue()}
                 >
                   <Flag className="h-4 w-4" />
-                  <span>Flag an Issue</span>
+                  <span>Raise a Signal</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
 

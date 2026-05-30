@@ -49,15 +49,15 @@ function useMfaGate(userId: string | null | undefined) {
 }
 
 const PAGE_TITLES: Record<string, string> = {
-  "/overview": "Executive Overview",
+  "/overview": "Command Dashboard",
   "/command": "Command Center",
   "/huddle": "Daily Huddle",
   "/issues": "Issues",
-  "/team": "Team Roster",
+  "/team": "Collective™",
   "/heatmap": "Heat Map",
   "/intel": "Intelligence Center",
   "/decisions": "Decision Log",
-  "/pulse": "Client Pulse",
+  "/pulse": "Pulse™",
   "/broadcasts": "Broadcasts",
   "/assistant": "AI Assistant",
   "/settings": "Settings",
@@ -237,7 +237,7 @@ function AppHeaderContent() {
   return (
     <div className="flex min-w-0 flex-1 items-center gap-2 text-xs">
       <span className="hidden md:inline text-[10px] uppercase tracking-[0.18em] text-[var(--gold)] font-semibold whitespace-nowrap">
-        {isWriter ? "Athena Writer Portal" : "Athena War Room"}
+        {isWriter ? "Athena Writer Portal" : "Athena Command Center"}
       </span>
       <span className="hidden md:inline text-muted-foreground">/</span>
       {pageTitle && <span className="font-bold text-sm truncate">{pageTitle}</span>}

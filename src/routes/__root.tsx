@@ -77,15 +77,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Athena War Room — Strategy Command Center" },
+      { title: "Athena Command Center — Strategy Command Center" },
       { name: "description", content: "Athena Strategy Group's executive command center for live proposal engagements." },
       { name: "author", content: "Athena Strategy Group" },
       { name: "theme-color", content: "#1e3a5f" },
-      { property: "og:title", content: "Athena War Room" },
+      { property: "og:title", content: "Athena Command Center" },
       { property: "og:description", content: "Executive command center for live proposal engagements." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Athena War Room" },
+      { name: "twitter:title", content: "Athena Command Center" },
       { name: "twitter:description", content: "Executive command center for live proposal engagements." },
     ],
     links: [

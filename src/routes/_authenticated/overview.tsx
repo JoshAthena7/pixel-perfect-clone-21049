@@ -20,7 +20,7 @@ import {
 import { HookFailuresPanel } from "@/components/HookFailuresPanel";
 
 export const Route = createFileRoute("/_authenticated/overview")({
-  head: () => ({ meta: [{ title: "Executive Overview — Athena" }] }),
+  head: () => ({ meta: [{ title: "Command Dashboard — Athena" }] }),
   component: OverviewPage,
 });
 
@@ -273,7 +273,7 @@ function OverviewPage() {
             <img src={athenaLogo} alt="Athena" className="h-10 w-auto" />
             <div>
               <div className="text-xs uppercase tracking-[0.2em] text-[var(--gold)]">Athena</div>
-              <h1 className="text-xl font-bold">Executive Overview</h1>
+              <h1 className="text-xl font-bold">Command Dashboard</h1>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/50 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-300">
                   <Radio className="h-2.5 w-2.5 animate-pulse" />
@@ -287,9 +287,9 @@ function OverviewPage() {
             <button
               onClick={() => navigate({ to: "/engagement/new" })}
               className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em]"
-              style={{ background: "var(--gold, #C49A2A)", color: "#0d0d14" }}
+              style={{ background: "var(--gold, #C49A2A)", color: "#0D0F1A" }}
             >
-              + New Engagement
+              + New Command Center
             </button>
             <button
               onClick={() => navigate({ to: "/select-engagement" })}
