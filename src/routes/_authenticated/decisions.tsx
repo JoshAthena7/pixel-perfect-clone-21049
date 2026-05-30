@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
 
 export const Route = createFileRoute("/_authenticated/decisions")({
   head: () => ({ meta: [{ title: "Decisions Log — Athena" }] }),
@@ -22,6 +23,8 @@ function DecisionsPage() {
   const { engagement, member, isLeadership } = useEngagement();
   const { user } = useSession();
   const [items, setItems] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const [title, setTitle] = useState("");
   const [rationale, setRationale] = useState("");
@@ -31,7 +34,11 @@ function DecisionsPage() {
   const [submitting, setSubmitting] = useState(false);
 
   async function load(eid: string) {
-    const { data } = await supabase.from("decisions").select("*").eq("engagement_id", eid).order("decision_date", { ascending: false });
+    setIsLoading(true);
+    setLoadError(null);
+    const { data, error } = await supabase.from("decisions").select("*").eq("engagement_id", eid).order("decision_date", { ascending: false });
+    setIsLoading(false);
+    if (error) { setLoadError(error.message); return; }
     setItems(data ?? []);
   }
 
@@ -60,6 +67,12 @@ function DecisionsPage() {
 
   return (
     <div className="mx-auto grid max-w-7xl gap-6 p-4 md:p-8 lg:grid-cols-5">
+      {(loadError || (isLoading && items.length === 0)) && (
+        <div className="lg:col-span-5 space-y-3">
+          <ErrorBanner error={loadError} onRetry={() => engagement && load(engagement.id)} label="Couldn't load decisions." />
+          {isLoading && items.length === 0 && <LoadingSkeleton label="Loading decisions…" />}
+        </div>
+      )}
       {isLeadership && (
         <Card className="border-border bg-surface p-6 lg:col-span-2">
           <h1 className="text-xl font-bold">Log Decision</h1>

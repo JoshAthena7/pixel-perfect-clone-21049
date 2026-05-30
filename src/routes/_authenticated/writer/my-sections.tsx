@@ -18,6 +18,7 @@ import { Flame } from "lucide-react";
 import { SectionThread } from "@/components/war-room/comms/SectionThread";
 import { dueState } from "@/lib/due-date";
 import { StuckButton } from "@/components/war-room/writer/StuckButton";
+import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
 
 export const Route = createFileRoute("/_authenticated/writer/my-sections")({
   head: () => ({ meta: [{ title: "My Sections — Writer Portal" }] }),
@@ -49,14 +50,20 @@ function WriterMySections() {
   const [streak, setStreak] = useState<number | null>(null);
   const [completeFor, setCompleteFor] = useState<Assignment | null>(null);
   const [checks, setChecks] = useState({ theme: false, compliance: false, words: false, draft: false });
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   async function load() {
     if (!engagement || !user) return;
-    const { data } = await supabase
+    setIsLoading(true);
+    setLoadError(null);
+    const { data, error } = await supabase
       .from("section_assignments")
       .select("id, status, due_date, word_count_min, word_count_max, section_id, heatmap_sections!inner(section_name, instructions)")
       .eq("engagement_id", engagement.id)
       .eq("user_id", user.id);
+    setIsLoading(false);
+    if (error) { setLoadError(error.message); return; }
     setItems(
       ((data as any[]) ?? []).map((r) => ({
         ...r,
@@ -111,11 +118,15 @@ function WriterMySections() {
         )}
       </div>
 
+      <ErrorBanner error={loadError} onRetry={load} label="Couldn't load your sections." />
+
       <TriviaCard />
       <TriviaScoreCard />
 
 
-      {items.length === 0 ? (
+      {isLoading && items.length === 0 ? (
+        <LoadingSkeleton label="Loading your sections…" />
+      ) : items.length === 0 ? (
         <Card className="border-border bg-surface p-6 text-sm text-muted-foreground">
           No sections assigned yet. Your lead will assign sections to you here.
         </Card>

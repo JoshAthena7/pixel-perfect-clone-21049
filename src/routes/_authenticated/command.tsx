@@ -10,6 +10,7 @@ import { NeedsAttentionPanel } from "@/components/war-room/NeedsAttentionPanel";
 import { Button } from "@/components/ui/button";
 import { relativeTime, hoursSince } from "@/lib/time";
 import { useNeedsAttention } from "@/hooks/use-needs-attention";
+import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
 
 export const Route = createFileRoute("/_authenticated/command")({
   head: () => ({ meta: [{ title: "Command Center — Athena" }] }),
@@ -54,10 +55,14 @@ function CommandCenter() {
   const [heatmap, setHeatmap] = useState<Heat[]>([]);
   const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
   const [latestPulse, setLatestPulse] = useState<{ sentiment: string } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const { items: attentionItems } = useNeedsAttention(engagement?.id);
   const attentionCount = attentionItems.filter((i) => !i.resolved).length;
 
   async function loadAll(eid: string) {
+    setIsLoading(true);
+    setLoadError(null);
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
     const [h, sos, risks, heat, bc, pulse] = await Promise.all([
       supabase.from("huddles").select("*").eq("engagement_id", eid).gte("created_at", sevenDaysAgo).order("created_at", { ascending: false }),
@@ -67,6 +72,9 @@ function CommandCenter() {
       supabase.from("broadcasts").select("*").eq("engagement_id", eid).order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(3),
       supabase.from("client_pulses").select("sentiment").eq("engagement_id", eid).order("interaction_date", { ascending: false }).order("created_at", { ascending: false }).limit(1).maybeSingle(),
     ]);
+    setIsLoading(false);
+    const firstErr = h.error ?? sos.error ?? risks.error ?? heat.error ?? bc.error ?? pulse.error;
+    if (firstErr) { setLoadError(firstErr.message); return; }
     setRecentHuddles((h.data as Huddle[]) ?? []);
     setLatestHuddle(((h.data as Huddle[]) ?? [])[0] ?? null);
     setOpenSos((sos.data as Sos[]) ?? []);
@@ -129,6 +137,8 @@ function CommandCenter() {
 
       {/* Contextual alert banners */}
       <div className="px-5 pt-4 space-y-3">
+        <ErrorBanner error={loadError} onRetry={() => engagement && loadAll(engagement.id)} label="Couldn't load command center data." />
+        {isLoading && heatmap.length === 0 && openSos.length === 0 && <LoadingSkeleton label="Loading command center…" />}
         <NeedsAttentionPanel />
         {openSos.length > 0 && (
           <div className="rounded-lg border border-[#ef4444]/40 bg-[#ef4444]/[0.08] px-4 py-3">

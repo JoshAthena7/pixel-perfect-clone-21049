@@ -15,6 +15,8 @@ import { Siren, ShieldCheck } from "lucide-react";
 
 import { EmptyState } from "@/components/war-room/EmptyState";
 import { ConfirmAction } from "@/components/war-room/ConfirmAction";
+import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
+import { logActivity } from "@/lib/activity-log";
 
 export const Route = createFileRoute("/_authenticated/sos")({
   head: () => ({ meta: [{ title: "SOS Alerts — Athena" }] }),
@@ -41,9 +43,15 @@ function SosPage() {
   const [showUnownedOnly, setShowUnownedOnly] = useState(false);
 
   const [alerts, setAlerts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   async function load(eid: string) {
-    const { data } = await supabase.from("sos_alerts").select("*").eq("engagement_id", eid).order("created_at", { ascending: false });
+    setIsLoading(true);
+    setLoadError(null);
+    const { data, error } = await supabase.from("sos_alerts").select("*").eq("engagement_id", eid).order("created_at", { ascending: false });
+    setIsLoading(false);
+    if (error) { setLoadError(error.message); return; }
     setAlerts(data ?? []);
   }
 
@@ -61,7 +69,7 @@ function SosPage() {
     e.preventDefault();
     if (!engagement || !user || !member) return;
     setSubmitting(true);
-    const { error } = await supabase.from("sos_alerts").insert({
+    const { data: inserted, error } = await supabase.from("sos_alerts").insert({
       engagement_id: engagement.id,
       submitted_by: user.id,
       submitter_name: member.display_name,
@@ -69,10 +77,18 @@ function SosPage() {
       owner_name: owner || null,
       recommended_action: action || null,
       status: "Open",
-    });
+    }).select("id").maybeSingle();
     setSubmitting(false);
     if (error) return toast.error(error.message);
     toast.success("🚨 SOS Alert submitted. Leadership has been notified.");
+    if (inserted?.id) {
+      logActivity({
+        engagementId: engagement.id, userId: user.id, actorName: member.display_name,
+        action: `raised SOS (${severity}/${category})`,
+        targetTable: "sos_alerts", targetId: inserted.id,
+        metadata: { severity, category },
+      });
+    }
     setDescription(""); setOwner(""); setAction("");
   }
 
@@ -80,14 +96,28 @@ function SosPage() {
     const patch: any = { status };
     if (status === "Resolved") patch.resolved_at = new Date().toISOString();
     const { error } = await supabase.from("sos_alerts").update(patch).eq("id", id);
-    if (error) toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
+    if (engagement && member && user && status === "Resolved") {
+      logActivity({
+        engagementId: engagement.id, userId: user.id, actorName: member.display_name,
+        action: "resolved SOS alert", targetTable: "sos_alerts", targetId: id,
+      });
+    }
   }
 
   async function assignToMe(id: string) {
     if (!member) return;
     const { error } = await supabase.from("sos_alerts").update({ owner_name: member.display_name }).eq("id", id);
     if (error) toast.error(error.message);
-    else toast.success(`Assigned to ${member.display_name}`);
+    else {
+      toast.success(`Assigned to ${member.display_name}`);
+      if (engagement && user) {
+        logActivity({
+          engagementId: engagement.id, userId: user.id, actorName: member.display_name,
+          action: `took ownership of SOS alert`, targetTable: "sos_alerts", targetId: id,
+        });
+      }
+    }
   }
 
   const openAll = alerts.filter((a) => a.status !== "Resolved");
@@ -104,6 +134,10 @@ function SosPage() {
         <h1 className="text-2xl font-bold tracking-tight">SOS Alerts</h1>
         <p className="mt-1 text-sm text-muted-foreground">Escalate urgent issues that need immediate leadership attention.</p>
       </div>
+
+      <ErrorBanner error={loadError} onRetry={() => engagement && load(engagement.id)} label="Couldn't load SOS alerts." />
+      {isLoading && alerts.length === 0 && <LoadingSkeleton label="Loading SOS alerts…" />}
+
 
       {/* Top banner — visible whenever there are open alerts */}
       {open.length > 0 && (

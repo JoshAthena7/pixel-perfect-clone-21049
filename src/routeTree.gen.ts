@@ -33,6 +33,7 @@ import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticated/command'
 import { Route as AuthenticatedBroadcastsRouteImport } from './routes/_authenticated/broadcasts'
 import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
+import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated/activity'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as AuthenticatedWriterWorkLogRouteImport } from './routes/_authenticated/writer/work-log'
 import { Route as AuthenticatedWriterWinThemesRouteImport } from './routes/_authenticated/writer/win-themes'
@@ -173,6 +174,11 @@ const AuthenticatedAssistantRoute = AuthenticatedAssistantRouteImport.update({
   path: '/assistant',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedActivityRoute = AuthenticatedActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   id: '/lovable/email/suppression',
   path: '/lovable/email/suppression',
@@ -277,6 +283,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accept-invite': typeof AcceptInviteRoute
   '/login': typeof LoginRoute
+  '/activity': typeof AuthenticatedActivityRoute
   '/assistant': typeof AuthenticatedAssistantRoute
   '/broadcasts': typeof AuthenticatedBroadcastsRoute
   '/command': typeof AuthenticatedCommandRoute
@@ -319,6 +326,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accept-invite': typeof AcceptInviteRoute
   '/login': typeof LoginRoute
+  '/activity': typeof AuthenticatedActivityRoute
   '/assistant': typeof AuthenticatedAssistantRoute
   '/broadcasts': typeof AuthenticatedBroadcastsRoute
   '/command': typeof AuthenticatedCommandRoute
@@ -363,6 +371,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/accept-invite': typeof AcceptInviteRoute
   '/login': typeof LoginRoute
+  '/_authenticated/activity': typeof AuthenticatedActivityRoute
   '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
   '/_authenticated/broadcasts': typeof AuthenticatedBroadcastsRoute
   '/_authenticated/command': typeof AuthenticatedCommandRoute
@@ -407,6 +416,7 @@ export interface FileRouteTypes {
     | '/'
     | '/accept-invite'
     | '/login'
+    | '/activity'
     | '/assistant'
     | '/broadcasts'
     | '/command'
@@ -449,6 +459,7 @@ export interface FileRouteTypes {
     | '/'
     | '/accept-invite'
     | '/login'
+    | '/activity'
     | '/assistant'
     | '/broadcasts'
     | '/command'
@@ -492,6 +503,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/accept-invite'
     | '/login'
+    | '/_authenticated/activity'
     | '/_authenticated/assistant'
     | '/_authenticated/broadcasts'
     | '/_authenticated/command'
@@ -714,6 +726,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAssistantRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/activity': {
+      id: '/_authenticated/activity'
+      path: '/activity'
+      fullPath: '/activity'
+      preLoaderRoute: typeof AuthenticatedActivityRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/lovable/email/suppression': {
       id: '/lovable/email/suppression'
       path: '/lovable/email/suppression'
@@ -837,6 +856,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedActivityRoute: typeof AuthenticatedActivityRoute
   AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
   AuthenticatedBroadcastsRoute: typeof AuthenticatedBroadcastsRoute
   AuthenticatedCommandRoute: typeof AuthenticatedCommandRoute
@@ -871,6 +891,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedActivityRoute: AuthenticatedActivityRoute,
   AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
   AuthenticatedBroadcastsRoute: AuthenticatedBroadcastsRoute,
   AuthenticatedCommandRoute: AuthenticatedCommandRoute,
