@@ -41,16 +41,9 @@ export function EngagementInvite({
             Athena Command™
           </Text>
           <Heading style={{ fontSize: 22, lineHeight: "30px", margin: "12px 0 8px", color: C.text }}>
-            You've been invited to the Command Center
-          </Heading>
-          <Text style={{ fontSize: 14, color: C.muted, margin: "0 0 24px" }}>
-            Hi {recipientName} — {inviterName} added you as <strong style={{ color: C.text }}>{roleLabel}</strong> on{" "}
-            <strong style={{ color: C.text }}>{engagementName}</strong>{client ? ` (${client})` : ""}.
-          </Text>
-
-          <Section style={{ backgroundColor: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: 20, margin: "0 0 24px" }}>
-            <Text style={{ fontSize: 13, color: C.text, margin: "0 0 16px", lineHeight: "20px" }}>
-              The Command Center is where this engagement's leadership tracks daily huddles, risks, escalations, client pulse, and decisions in one place. Click below to join.
+            You've been invited to the Mission
+...
+              The Mission is where this engagement's leadership tracks daily huddles, risks, escalations, client pulse, and decisions in one place. Click below to join.
             </Text>
             <Button
               href={acceptUrl}
