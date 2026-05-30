@@ -119,6 +119,13 @@ function OverviewPage() {
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={() => navigate({ to: "/engagement/new" })}
+              className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em]"
+              style={{ background: "var(--gold, #c9b370)", color: "#0d0d14" }}
+            >
+              + New Engagement
+            </button>
+            <button
               onClick={() => navigate({ to: "/select-engagement" })}
               className="rounded-md border border-border px-3 py-1.5 text-xs hover:bg-surface-hover"
             >
