@@ -22,6 +22,7 @@ import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedSectionAssignmentsRouteImport } from './routes/_authenticated/section-assignments'
 import { Route as AuthenticatedRisksRouteImport } from './routes/_authenticated/risks'
 import { Route as AuthenticatedPulseRouteImport } from './routes/_authenticated/pulse'
+import { Route as AuthenticatedNeedsAttentionRouteImport } from './routes/_authenticated/needs-attention'
 import { Route as AuthenticatedIntelRouteImport } from './routes/_authenticated/intel'
 import { Route as AuthenticatedHuddleRouteImport } from './routes/_authenticated/huddle'
 import { Route as AuthenticatedHeatmapRouteImport } from './routes/_authenticated/heatmap'
@@ -113,6 +114,12 @@ const AuthenticatedPulseRoute = AuthenticatedPulseRouteImport.update({
   path: '/pulse',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedNeedsAttentionRoute =
+  AuthenticatedNeedsAttentionRouteImport.update({
+    id: '/needs-attention',
+    path: '/needs-attention',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedIntelRoute = AuthenticatedIntelRouteImport.update({
   id: '/intel',
   path: '/intel',
@@ -265,6 +272,7 @@ export interface FileRoutesByFullPath {
   '/heatmap': typeof AuthenticatedHeatmapRoute
   '/huddle': typeof AuthenticatedHuddleRoute
   '/intel': typeof AuthenticatedIntelRoute
+  '/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/pulse': typeof AuthenticatedPulseRoute
   '/risks': typeof AuthenticatedRisksRoute
   '/section-assignments': typeof AuthenticatedSectionAssignmentsRoute
@@ -304,6 +312,7 @@ export interface FileRoutesByTo {
   '/heatmap': typeof AuthenticatedHeatmapRoute
   '/huddle': typeof AuthenticatedHuddleRoute
   '/intel': typeof AuthenticatedIntelRoute
+  '/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/pulse': typeof AuthenticatedPulseRoute
   '/risks': typeof AuthenticatedRisksRoute
   '/section-assignments': typeof AuthenticatedSectionAssignmentsRoute
@@ -345,6 +354,7 @@ export interface FileRoutesById {
   '/_authenticated/heatmap': typeof AuthenticatedHeatmapRoute
   '/_authenticated/huddle': typeof AuthenticatedHuddleRoute
   '/_authenticated/intel': typeof AuthenticatedIntelRoute
+  '/_authenticated/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/_authenticated/pulse': typeof AuthenticatedPulseRoute
   '/_authenticated/risks': typeof AuthenticatedRisksRoute
   '/_authenticated/section-assignments': typeof AuthenticatedSectionAssignmentsRoute
@@ -386,6 +396,7 @@ export interface FileRouteTypes {
     | '/heatmap'
     | '/huddle'
     | '/intel'
+    | '/needs-attention'
     | '/pulse'
     | '/risks'
     | '/section-assignments'
@@ -425,6 +436,7 @@ export interface FileRouteTypes {
     | '/heatmap'
     | '/huddle'
     | '/intel'
+    | '/needs-attention'
     | '/pulse'
     | '/risks'
     | '/section-assignments'
@@ -465,6 +477,7 @@ export interface FileRouteTypes {
     | '/_authenticated/heatmap'
     | '/_authenticated/huddle'
     | '/_authenticated/intel'
+    | '/_authenticated/needs-attention'
     | '/_authenticated/pulse'
     | '/_authenticated/risks'
     | '/_authenticated/section-assignments'
@@ -597,6 +610,13 @@ declare module '@tanstack/react-router' {
       path: '/pulse'
       fullPath: '/pulse'
       preLoaderRoute: typeof AuthenticatedPulseRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/needs-attention': {
+      id: '/_authenticated/needs-attention'
+      path: '/needs-attention'
+      fullPath: '/needs-attention'
+      preLoaderRoute: typeof AuthenticatedNeedsAttentionRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/intel': {
@@ -786,6 +806,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedHeatmapRoute: typeof AuthenticatedHeatmapRoute
   AuthenticatedHuddleRoute: typeof AuthenticatedHuddleRoute
   AuthenticatedIntelRoute: typeof AuthenticatedIntelRoute
+  AuthenticatedNeedsAttentionRoute: typeof AuthenticatedNeedsAttentionRoute
   AuthenticatedPulseRoute: typeof AuthenticatedPulseRoute
   AuthenticatedRisksRoute: typeof AuthenticatedRisksRoute
   AuthenticatedSectionAssignmentsRoute: typeof AuthenticatedSectionAssignmentsRoute
@@ -817,6 +838,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHeatmapRoute: AuthenticatedHeatmapRoute,
   AuthenticatedHuddleRoute: AuthenticatedHuddleRoute,
   AuthenticatedIntelRoute: AuthenticatedIntelRoute,
+  AuthenticatedNeedsAttentionRoute: AuthenticatedNeedsAttentionRoute,
   AuthenticatedPulseRoute: AuthenticatedPulseRoute,
   AuthenticatedRisksRoute: AuthenticatedRisksRoute,
   AuthenticatedSectionAssignmentsRoute: AuthenticatedSectionAssignmentsRoute,
