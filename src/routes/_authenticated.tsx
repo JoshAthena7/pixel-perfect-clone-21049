@@ -49,23 +49,6 @@ function useMfaGate(userId: string | null | undefined) {
   return needsEnroll;
 }
 
-const PAGE_TITLES: Record<string, string> = {
-  "/overview": "Command Dashboard",
-  "/command": "Mission",
-  "/huddle": "Daily Huddle",
-  "/issues": "Issues",
-  "/team": "Collective™",
-  "/heatmap": "Delivery Map",
-  "/intel": "Intelligence Center",
-  "/decisions": "Decision Log",
-  "/pulse": "Pulse™",
-  "/broadcasts": "Broadcasts",
-  "/assistant": "AI Assistant",
-  "/settings": "Settings",
-  "/win-themes": "Win Themes",
-  "/faq": "FAQ",
-  "/writer/my-sections": "My Brief",
-};
 
 
 
