@@ -556,6 +556,17 @@ function TeamPage() {
                             <Radio className="h-3 w-3" /> On call
                           </span>
                         )}
+                        {m.nda_required && (
+                          m.nda_confirmed ? (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-400" title={m.nda_confirmed_at ? `Confirmed ${new Date(m.nda_confirmed_at).toLocaleDateString()}` : "NDA on file"}>
+                              <ShieldCheck className="h-3 w-3" /> NDA
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-red-500/40 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-red-400" title="Access locked until NDA confirmed">
+                              <ShieldAlert className="h-3 w-3" /> NDA pending
+                            </span>
+                          )
+                        )}
                       </div>
                       {(m.title || m.timezone) && (
                         <div className="mt-0.5 text-xs text-muted-foreground">
