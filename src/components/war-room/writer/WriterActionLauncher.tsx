@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, Siren, MessageCircle, MessagesSquare, X } from "lucide-react";
+import { MessageCircle, MessagesSquare, X } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
@@ -12,19 +12,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-type TileKey = "risk" | "sos" | "thread" | "chat";
+type TileKey = "thread" | "chat";
 
 type Tile = {
   key: TileKey;
   label: string;
   desc: string;
-  icon: typeof AlertTriangle;
+  icon: typeof MessageCircle;
   color: string;
 };
 
 const TILES: Tile[] = [
-  { key: "risk",   label: "Submit a Risk",  desc: "Flag something that could affect your section", icon: AlertTriangle,   color: "#BA7517" },
-  { key: "sos",    label: "Submit an SOS",  desc: "Raise an urgent blocker",                       icon: Siren,           color: "#A32D2D" },
   { key: "thread", label: "Section Thread", desc: "Post a question or note on your section",       icon: MessageCircle,   color: "#185FA5" },
   { key: "chat",   label: "Quick Chat",     desc: "Start a conversation with a teammate",          icon: MessagesSquare,  color: "#0F6E56" },
 ];
@@ -279,8 +277,6 @@ function ActiveForm(props: {
   onChat: (memberId: string, name: string, message: string) => void;
   onSubmitted: () => void;
 }) {
-  if (props.tile.key === "risk") return <RiskForm {...props} />;
-  if (props.tile.key === "sos") return <SosForm {...props} />;
   if (props.tile.key === "thread") return <ThreadForm {...props} />;
   return <ChatForm {...props} />;
 }

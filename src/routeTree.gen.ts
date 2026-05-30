@@ -16,12 +16,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as AuthenticatedWinThemesRouteImport } from './routes/_authenticated/win-themes'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
-import { Route as AuthenticatedSosRouteImport } from './routes/_authenticated/sos'
 import { Route as AuthenticatedSnapshotsRouteImport } from './routes/_authenticated/snapshots'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSelectEngagementRouteImport } from './routes/_authenticated/select-engagement'
 import { Route as AuthenticatedSectionAssignmentsRouteImport } from './routes/_authenticated/section-assignments'
-import { Route as AuthenticatedRisksRouteImport } from './routes/_authenticated/risks'
 import { Route as AuthenticatedPulseRouteImport } from './routes/_authenticated/pulse'
 import { Route as AuthenticatedOverviewRouteImport } from './routes/_authenticated/overview'
 import { Route as AuthenticatedNeedsAttentionRouteImport } from './routes/_authenticated/needs-attention'
@@ -37,8 +35,6 @@ import { Route as AuthenticatedAssistantRouteImport } from './routes/_authentica
 import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated/activity'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as AuthenticatedWriterWorkLogRouteImport } from './routes/_authenticated/writer/work-log'
-import { Route as AuthenticatedWriterSubmitSosRouteImport } from './routes/_authenticated/writer/submit-sos'
-import { Route as AuthenticatedWriterSubmitRiskRouteImport } from './routes/_authenticated/writer/submit-risk'
 import { Route as AuthenticatedWriterRecognitionFeedRouteImport } from './routes/_authenticated/writer/recognition-feed'
 import { Route as AuthenticatedWriterProgressRouteImport } from './routes/_authenticated/writer/progress'
 import { Route as AuthenticatedWriterMySectionsRouteImport } from './routes/_authenticated/writer/my-sections'
@@ -81,11 +77,6 @@ const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
   path: '/team',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedSosRoute = AuthenticatedSosRouteImport.update({
-  id: '/sos',
-  path: '/sos',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedSnapshotsRoute = AuthenticatedSnapshotsRouteImport.update({
   id: '/snapshots',
   path: '/snapshots',
@@ -108,11 +99,6 @@ const AuthenticatedSectionAssignmentsRoute =
     path: '/section-assignments',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedRisksRoute = AuthenticatedRisksRouteImport.update({
-  id: '/risks',
-  path: '/risks',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedPulseRoute = AuthenticatedPulseRouteImport.update({
   id: '/pulse',
   path: '/pulse',
@@ -190,18 +176,6 @@ const AuthenticatedWriterWorkLogRoute =
     path: '/writer/work-log',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedWriterSubmitSosRoute =
-  AuthenticatedWriterSubmitSosRouteImport.update({
-    id: '/writer/submit-sos',
-    path: '/writer/submit-sos',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedWriterSubmitRiskRoute =
-  AuthenticatedWriterSubmitRiskRouteImport.update({
-    id: '/writer/submit-risk',
-    path: '/writer/submit-risk',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedWriterRecognitionFeedRoute =
   AuthenticatedWriterRecognitionFeedRouteImport.update({
     id: '/writer/recognition-feed',
@@ -262,20 +236,16 @@ export interface FileRoutesByFullPath {
   '/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/overview': typeof AuthenticatedOverviewRoute
   '/pulse': typeof AuthenticatedPulseRoute
-  '/risks': typeof AuthenticatedRisksRoute
   '/section-assignments': typeof AuthenticatedSectionAssignmentsRoute
   '/select-engagement': typeof AuthenticatedSelectEngagementRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/snapshots': typeof AuthenticatedSnapshotsRoute
-  '/sos': typeof AuthenticatedSosRoute
   '/team': typeof AuthenticatedTeamRoute
   '/win-themes': typeof AuthenticatedWinThemesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/writer/my-sections': typeof AuthenticatedWriterMySectionsRoute
   '/writer/progress': typeof AuthenticatedWriterProgressRoute
   '/writer/recognition-feed': typeof AuthenticatedWriterRecognitionFeedRoute
-  '/writer/submit-risk': typeof AuthenticatedWriterSubmitRiskRoute
-  '/writer/submit-sos': typeof AuthenticatedWriterSubmitSosRoute
   '/writer/work-log': typeof AuthenticatedWriterWorkLogRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
@@ -300,20 +270,16 @@ export interface FileRoutesByTo {
   '/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/overview': typeof AuthenticatedOverviewRoute
   '/pulse': typeof AuthenticatedPulseRoute
-  '/risks': typeof AuthenticatedRisksRoute
   '/section-assignments': typeof AuthenticatedSectionAssignmentsRoute
   '/select-engagement': typeof AuthenticatedSelectEngagementRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/snapshots': typeof AuthenticatedSnapshotsRoute
-  '/sos': typeof AuthenticatedSosRoute
   '/team': typeof AuthenticatedTeamRoute
   '/win-themes': typeof AuthenticatedWinThemesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/writer/my-sections': typeof AuthenticatedWriterMySectionsRoute
   '/writer/progress': typeof AuthenticatedWriterProgressRoute
   '/writer/recognition-feed': typeof AuthenticatedWriterRecognitionFeedRoute
-  '/writer/submit-risk': typeof AuthenticatedWriterSubmitRiskRoute
-  '/writer/submit-sos': typeof AuthenticatedWriterSubmitSosRoute
   '/writer/work-log': typeof AuthenticatedWriterWorkLogRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
@@ -340,20 +306,16 @@ export interface FileRoutesById {
   '/_authenticated/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/_authenticated/overview': typeof AuthenticatedOverviewRoute
   '/_authenticated/pulse': typeof AuthenticatedPulseRoute
-  '/_authenticated/risks': typeof AuthenticatedRisksRoute
   '/_authenticated/section-assignments': typeof AuthenticatedSectionAssignmentsRoute
   '/_authenticated/select-engagement': typeof AuthenticatedSelectEngagementRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/snapshots': typeof AuthenticatedSnapshotsRoute
-  '/_authenticated/sos': typeof AuthenticatedSosRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/_authenticated/win-themes': typeof AuthenticatedWinThemesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/_authenticated/writer/my-sections': typeof AuthenticatedWriterMySectionsRoute
   '/_authenticated/writer/progress': typeof AuthenticatedWriterProgressRoute
   '/_authenticated/writer/recognition-feed': typeof AuthenticatedWriterRecognitionFeedRoute
-  '/_authenticated/writer/submit-risk': typeof AuthenticatedWriterSubmitRiskRoute
-  '/_authenticated/writer/submit-sos': typeof AuthenticatedWriterSubmitSosRoute
   '/_authenticated/writer/work-log': typeof AuthenticatedWriterWorkLogRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
@@ -380,20 +342,16 @@ export interface FileRouteTypes {
     | '/needs-attention'
     | '/overview'
     | '/pulse'
-    | '/risks'
     | '/section-assignments'
     | '/select-engagement'
     | '/settings'
     | '/snapshots'
-    | '/sos'
     | '/team'
     | '/win-themes'
     | '/email/unsubscribe'
     | '/writer/my-sections'
     | '/writer/progress'
     | '/writer/recognition-feed'
-    | '/writer/submit-risk'
-    | '/writer/submit-sos'
     | '/writer/work-log'
     | '/lovable/email/suppression'
     | '/api/public/hooks/daily-digest'
@@ -418,20 +376,16 @@ export interface FileRouteTypes {
     | '/needs-attention'
     | '/overview'
     | '/pulse'
-    | '/risks'
     | '/section-assignments'
     | '/select-engagement'
     | '/settings'
     | '/snapshots'
-    | '/sos'
     | '/team'
     | '/win-themes'
     | '/email/unsubscribe'
     | '/writer/my-sections'
     | '/writer/progress'
     | '/writer/recognition-feed'
-    | '/writer/submit-risk'
-    | '/writer/submit-sos'
     | '/writer/work-log'
     | '/lovable/email/suppression'
     | '/api/public/hooks/daily-digest'
@@ -457,20 +411,16 @@ export interface FileRouteTypes {
     | '/_authenticated/needs-attention'
     | '/_authenticated/overview'
     | '/_authenticated/pulse'
-    | '/_authenticated/risks'
     | '/_authenticated/section-assignments'
     | '/_authenticated/select-engagement'
     | '/_authenticated/settings'
     | '/_authenticated/snapshots'
-    | '/_authenticated/sos'
     | '/_authenticated/team'
     | '/_authenticated/win-themes'
     | '/email/unsubscribe'
     | '/_authenticated/writer/my-sections'
     | '/_authenticated/writer/progress'
     | '/_authenticated/writer/recognition-feed'
-    | '/_authenticated/writer/submit-risk'
-    | '/_authenticated/writer/submit-sos'
     | '/_authenticated/writer/work-log'
     | '/lovable/email/suppression'
     | '/api/public/hooks/daily-digest'
@@ -543,13 +493,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTeamRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/sos': {
-      id: '/_authenticated/sos'
-      path: '/sos'
-      fullPath: '/sos'
-      preLoaderRoute: typeof AuthenticatedSosRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/snapshots': {
       id: '/_authenticated/snapshots'
       path: '/snapshots'
@@ -576,13 +519,6 @@ declare module '@tanstack/react-router' {
       path: '/section-assignments'
       fullPath: '/section-assignments'
       preLoaderRoute: typeof AuthenticatedSectionAssignmentsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/risks': {
-      id: '/_authenticated/risks'
-      path: '/risks'
-      fullPath: '/risks'
-      preLoaderRoute: typeof AuthenticatedRisksRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/pulse': {
@@ -690,20 +626,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWriterWorkLogRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/writer/submit-sos': {
-      id: '/_authenticated/writer/submit-sos'
-      path: '/writer/submit-sos'
-      fullPath: '/writer/submit-sos'
-      preLoaderRoute: typeof AuthenticatedWriterSubmitSosRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/writer/submit-risk': {
-      id: '/_authenticated/writer/submit-risk'
-      path: '/writer/submit-risk'
-      fullPath: '/writer/submit-risk'
-      preLoaderRoute: typeof AuthenticatedWriterSubmitRiskRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/writer/recognition-feed': {
       id: '/_authenticated/writer/recognition-feed'
       path: '/writer/recognition-feed'
@@ -770,19 +692,15 @@ interface AuthenticatedRouteChildren {
   AuthenticatedNeedsAttentionRoute: typeof AuthenticatedNeedsAttentionRoute
   AuthenticatedOverviewRoute: typeof AuthenticatedOverviewRoute
   AuthenticatedPulseRoute: typeof AuthenticatedPulseRoute
-  AuthenticatedRisksRoute: typeof AuthenticatedRisksRoute
   AuthenticatedSectionAssignmentsRoute: typeof AuthenticatedSectionAssignmentsRoute
   AuthenticatedSelectEngagementRoute: typeof AuthenticatedSelectEngagementRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSnapshotsRoute: typeof AuthenticatedSnapshotsRoute
-  AuthenticatedSosRoute: typeof AuthenticatedSosRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
   AuthenticatedWinThemesRoute: typeof AuthenticatedWinThemesRoute
   AuthenticatedWriterMySectionsRoute: typeof AuthenticatedWriterMySectionsRoute
   AuthenticatedWriterProgressRoute: typeof AuthenticatedWriterProgressRoute
   AuthenticatedWriterRecognitionFeedRoute: typeof AuthenticatedWriterRecognitionFeedRoute
-  AuthenticatedWriterSubmitRiskRoute: typeof AuthenticatedWriterSubmitRiskRoute
-  AuthenticatedWriterSubmitSosRoute: typeof AuthenticatedWriterSubmitSosRoute
   AuthenticatedWriterWorkLogRoute: typeof AuthenticatedWriterWorkLogRoute
 }
 
@@ -800,20 +718,16 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedNeedsAttentionRoute: AuthenticatedNeedsAttentionRoute,
   AuthenticatedOverviewRoute: AuthenticatedOverviewRoute,
   AuthenticatedPulseRoute: AuthenticatedPulseRoute,
-  AuthenticatedRisksRoute: AuthenticatedRisksRoute,
   AuthenticatedSectionAssignmentsRoute: AuthenticatedSectionAssignmentsRoute,
   AuthenticatedSelectEngagementRoute: AuthenticatedSelectEngagementRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSnapshotsRoute: AuthenticatedSnapshotsRoute,
-  AuthenticatedSosRoute: AuthenticatedSosRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
   AuthenticatedWinThemesRoute: AuthenticatedWinThemesRoute,
   AuthenticatedWriterMySectionsRoute: AuthenticatedWriterMySectionsRoute,
   AuthenticatedWriterProgressRoute: AuthenticatedWriterProgressRoute,
   AuthenticatedWriterRecognitionFeedRoute:
     AuthenticatedWriterRecognitionFeedRoute,
-  AuthenticatedWriterSubmitRiskRoute: AuthenticatedWriterSubmitRiskRoute,
-  AuthenticatedWriterSubmitSosRoute: AuthenticatedWriterSubmitSosRoute,
   AuthenticatedWriterWorkLogRoute: AuthenticatedWriterWorkLogRoute,
 }
 
@@ -836,3 +750,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

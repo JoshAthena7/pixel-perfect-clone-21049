@@ -57,10 +57,10 @@ export function StuckButton({ sectionId, sectionName }: { sectionId: string; sec
       onClick={send}
       disabled={sending || onCooldown}
       className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition"
-      title={onCooldown ? "Already flagged — reset in 30 minutes" : "Tell your lead you're stuck"}
+      title={onCooldown ? "Already flagged — reset in 30 minutes" : "Tell your lead you're stuck on this section"}
     >
       <HandHelping className="h-3.5 w-3.5" />
-      {onCooldown ? "Lead notified" : "I'm stuck"}
+      {onCooldown ? "Lead notified" : "I'm stuck on this section"}
     </button>
   );
 }
