@@ -27,7 +27,6 @@ function SettingsPage() {
   const [status, setStatus] = useState("Active");
   const [date, setDate] = useState<Date | undefined>();
   const [saving, setSaving] = useState(false);
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!engagement) return;
