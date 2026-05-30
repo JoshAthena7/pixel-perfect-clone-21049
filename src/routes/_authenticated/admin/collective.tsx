@@ -1,15 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { relativeTime } from "@/lib/time";
 import { Search, UserPlus, MoreVertical, Users } from "lucide-react";
+import { InviteToCollectiveDialog } from "@/components/admin/InviteToCollectiveDialog";
 
 export const Route = createFileRoute("/_authenticated/admin/collective")({
   component: AdminCollective,
 });
+
 
 type MemberRow = {
   id: string;
@@ -53,17 +55,21 @@ function AdminCollective() {
   const [tab, setTab] = useState<"roster" | "capacity">("roster");
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [inviteOpen, setInviteOpen] = useState(false);
+
+  const load = useCallback(async () => {
+    const { data } = await supabase
+      .from("engagement_members")
+      .select("id,user_id,engagement_id,role,display_name,email,title,added_at,engagements(id,name)")
+      .order("added_at", { ascending: false });
+    setRows((data ?? []) as unknown as MemberRow[]);
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase
-        .from("engagement_members")
-        .select("id,user_id,engagement_id,role,display_name,email,title,added_at,engagements(id,name)")
-        .order("added_at", { ascending: false });
-      setRows((data ?? []) as unknown as MemberRow[]);
-      setLoading(false);
-    })();
-  }, []);
+    load();
+  }, [load]);
+
 
   const roster: RosterEntry[] = useMemo(() => {
     const map = new Map<string, RosterEntry>();
@@ -116,10 +122,13 @@ function AdminCollective() {
           <h1 className="text-2xl font-bold tracking-tight">Collective</h1>
           <p className="text-xs text-muted-foreground mt-1">Network of advisors, operators, and partners across every war room.</p>
         </div>
-        <Button size="sm" className="gap-1.5 shadow-[0_0_20px_rgba(212,175,55,0.15)]">
+        <Button size="sm" className="gap-1.5 shadow-[0_0_20px_rgba(212,175,55,0.15)]" onClick={() => setInviteOpen(true)}>
           <UserPlus className="h-3.5 w-3.5" /> Invite to Collective
         </Button>
       </div>
+
+      <InviteToCollectiveDialog open={inviteOpen} onOpenChange={setInviteOpen} onInvited={load} />
+
 
       {/* KPI strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
