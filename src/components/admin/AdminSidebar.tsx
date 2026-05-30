@@ -37,7 +37,7 @@ const NAV: Item[] = [
   { title: "Global Messaging",url: "/admin/messaging",     icon: Megaphone,       hint: "Broadcast to any or all Missions" },
   { title: "Intelligence",    url: "/admin/intelligence",  icon: Brain,           hint: "Insights engine + market intel oversight" },
   { title: "Pipeline",        url: "/admin/pipeline",      icon: TrendingUp,      hint: "Procurement opportunity tracker" },
-  { title: "Alerts",          url: "/admin/alerts",        icon: AlertTriangle,   hint: "SOS, risks, and stuck flags across every Mission" },
+  { title: "Alerts",          url: "/admin/alerts",        icon: AlertTriangle,   hint: "Signals, risks, and stuck flags across every Mission" },
   { title: "Activity",        url: "/admin/activity",      icon: Activity,        hint: "Unified platform activity feed" },
   { title: "Settings",        url: "/admin/settings",      icon: Settings,        hint: "Platform configuration" },
 ];
