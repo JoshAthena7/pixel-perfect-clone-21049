@@ -435,7 +435,7 @@ function OverviewPage() {
                     <div className="flex items-center justify-between gap-2">
                       <span
                         className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
-                          a.kind === "SOS"
+                          a.kind === "Signal"
                             ? "bg-red-500/20 text-red-300"
                             : "bg-amber-500/20 text-amber-300"
                         }`}
