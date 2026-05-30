@@ -129,13 +129,13 @@ function AdminDashboard() {
       {/* KPI strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Kpi icon={Building2} label="Active engagements" value={active.length} accent="#9b8cc7" />
-        <Kpi icon={Siren} label="Open SOS" value={openSosTotal} accent="#e85d5d" />
+        <Kpi icon={Siren} label="Open Signals" value={openSosTotal} accent="#e85d5d" />
         <Kpi icon={Users} label="Active collective" value={collectiveActive} accent="#5fb8a8" />
         <Kpi icon={Brain} label="Unreviewed intel" value={intelUnreviewed} accent="#5fb8a8" />
       </div>
 
 
-      {/* War rooms table */}
+      {/* Missions table */}
       <Card className="border-border/60 bg-[#141628]">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border/40">
           <div>

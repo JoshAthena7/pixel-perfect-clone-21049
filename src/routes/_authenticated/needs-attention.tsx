@@ -24,7 +24,7 @@ function Gate() {
 
 const TYPE_META: Record<AttentionType, { color: string; label: string; icon: ComponentType<LucideProps> }> = {
   stuck:    { color: "#BA7517", label: "Stuck",    icon: HandHelping },
-  sos:      { color: "#A32D2D", label: "SOS",      icon: Siren },
+  sos:      { color: "#A32D2D", label: "Signal",   icon: Siren },
   risk:     { color: "#f97316", label: "Risk",     icon: AlertTriangle },
   overdue:  { color: "#ef4444", label: "Overdue",  icon: CalendarX },
   morale:   { color: "#533AB7", label: "Morale",   icon: Frown },

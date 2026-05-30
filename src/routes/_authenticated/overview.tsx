@@ -38,7 +38,7 @@ type CriticalAlert = {
   id: string;
   engagement_id: string;
   engagement_name: string;
-  kind: "SOS" | "Risk";
+  kind: "Signal" | "Risk";
   title: string;
   severity: string | null;
   created_at: string;
@@ -179,8 +179,8 @@ function OverviewPage() {
         id: `sos-${r.id}`,
         engagement_id: r.engagement_id,
         engagement_name: idToName.get(r.engagement_id) ?? "—",
-        kind: "SOS",
-        title: r.description ?? r.category ?? "SOS alert",
+        kind: "Signal",
+        title: r.description ?? r.category ?? "Signal raised",
         severity: r.severity,
         created_at: r.created_at,
       });
@@ -302,7 +302,7 @@ function OverviewPage() {
           <KpiCard icon={<Briefcase className="h-4 w-4" />} label="Active engagements" value={String(kpis.activeCount)} />
           <KpiCard
             icon={<Siren className="h-4 w-4" />}
-            label="Open SOS"
+            label="Open Signals"
             value={String(kpis.openSos)}
             tone={kpis.openSos > 0 ? "red" : "default"}
           />
@@ -435,7 +435,7 @@ function OverviewPage() {
                     <div className="flex items-center justify-between gap-2">
                       <span
                         className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
-                          a.kind === "SOS"
+                          a.kind === "Signal"
                             ? "bg-red-500/20 text-red-300"
                             : "bg-amber-500/20 text-amber-300"
                         }`}
