@@ -280,7 +280,7 @@ function SelectEngagementPage() {
               >
                 <Plus className="h-6 w-6" />
                 <div className="text-[10px] font-bold uppercase tracking-[0.3em]">
-                  {creating ? "Opening…" : "New Command Center"}
+                  {creating ? "Opening…" : "New Mission"}
                 </div>
               </button>
             )}
