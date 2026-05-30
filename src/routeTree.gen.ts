@@ -23,6 +23,7 @@ import { Route as AuthenticatedPulseRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedOverviewRouteImport } from './routes/_authenticated/overview'
 import { Route as AuthenticatedNeedsAttentionRouteImport } from './routes/_authenticated/needs-attention'
 import { Route as AuthenticatedNdaRequiredRouteImport } from './routes/_authenticated/nda-required'
+import { Route as AuthenticatedMfaEnrollmentRouteImport } from './routes/_authenticated/mfa-enrollment'
 import { Route as AuthenticatedMarketRouteImport } from './routes/_authenticated/market'
 import { Route as AuthenticatedIssuesRouteImport } from './routes/_authenticated/issues'
 import { Route as AuthenticatedIntelRouteImport } from './routes/_authenticated/intel'
@@ -135,6 +136,12 @@ const AuthenticatedNdaRequiredRoute =
   AuthenticatedNdaRequiredRouteImport.update({
     id: '/nda-required',
     path: '/nda-required',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMfaEnrollmentRoute =
+  AuthenticatedMfaEnrollmentRouteImport.update({
+    id: '/mfa-enrollment',
+    path: '/mfa-enrollment',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedMarketRoute = AuthenticatedMarketRouteImport.update({
@@ -380,6 +387,7 @@ export interface FileRoutesByFullPath {
   '/intel': typeof AuthenticatedIntelRoute
   '/issues': typeof AuthenticatedIssuesRoute
   '/market': typeof AuthenticatedMarketRoute
+  '/mfa-enrollment': typeof AuthenticatedMfaEnrollmentRoute
   '/nda-required': typeof AuthenticatedNdaRequiredRoute
   '/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/overview': typeof AuthenticatedOverviewRoute
@@ -434,6 +442,7 @@ export interface FileRoutesByTo {
   '/intel': typeof AuthenticatedIntelRoute
   '/issues': typeof AuthenticatedIssuesRoute
   '/market': typeof AuthenticatedMarketRoute
+  '/mfa-enrollment': typeof AuthenticatedMfaEnrollmentRoute
   '/nda-required': typeof AuthenticatedNdaRequiredRoute
   '/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/overview': typeof AuthenticatedOverviewRoute
@@ -491,6 +500,7 @@ export interface FileRoutesById {
   '/_authenticated/intel': typeof AuthenticatedIntelRoute
   '/_authenticated/issues': typeof AuthenticatedIssuesRoute
   '/_authenticated/market': typeof AuthenticatedMarketRoute
+  '/_authenticated/mfa-enrollment': typeof AuthenticatedMfaEnrollmentRoute
   '/_authenticated/nda-required': typeof AuthenticatedNdaRequiredRoute
   '/_authenticated/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/_authenticated/overview': typeof AuthenticatedOverviewRoute
@@ -548,6 +558,7 @@ export interface FileRouteTypes {
     | '/intel'
     | '/issues'
     | '/market'
+    | '/mfa-enrollment'
     | '/nda-required'
     | '/needs-attention'
     | '/overview'
@@ -602,6 +613,7 @@ export interface FileRouteTypes {
     | '/intel'
     | '/issues'
     | '/market'
+    | '/mfa-enrollment'
     | '/nda-required'
     | '/needs-attention'
     | '/overview'
@@ -658,6 +670,7 @@ export interface FileRouteTypes {
     | '/_authenticated/intel'
     | '/_authenticated/issues'
     | '/_authenticated/market'
+    | '/_authenticated/mfa-enrollment'
     | '/_authenticated/nda-required'
     | '/_authenticated/needs-attention'
     | '/_authenticated/overview'
@@ -815,6 +828,13 @@ declare module '@tanstack/react-router' {
       path: '/nda-required'
       fullPath: '/nda-required'
       preLoaderRoute: typeof AuthenticatedNdaRequiredRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/mfa-enrollment': {
+      id: '/_authenticated/mfa-enrollment'
+      path: '/mfa-enrollment'
+      fullPath: '/mfa-enrollment'
+      preLoaderRoute: typeof AuthenticatedMfaEnrollmentRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/market': {
@@ -1141,6 +1161,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedIntelRoute: typeof AuthenticatedIntelRoute
   AuthenticatedIssuesRoute: typeof AuthenticatedIssuesRoute
   AuthenticatedMarketRoute: typeof AuthenticatedMarketRoute
+  AuthenticatedMfaEnrollmentRoute: typeof AuthenticatedMfaEnrollmentRoute
   AuthenticatedNdaRequiredRoute: typeof AuthenticatedNdaRequiredRoute
   AuthenticatedNeedsAttentionRoute: typeof AuthenticatedNeedsAttentionRoute
   AuthenticatedOverviewRoute: typeof AuthenticatedOverviewRoute
@@ -1172,6 +1193,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIntelRoute: AuthenticatedIntelRoute,
   AuthenticatedIssuesRoute: AuthenticatedIssuesRoute,
   AuthenticatedMarketRoute: AuthenticatedMarketRoute,
+  AuthenticatedMfaEnrollmentRoute: AuthenticatedMfaEnrollmentRoute,
   AuthenticatedNdaRequiredRoute: AuthenticatedNdaRequiredRoute,
   AuthenticatedNeedsAttentionRoute: AuthenticatedNeedsAttentionRoute,
   AuthenticatedOverviewRoute: AuthenticatedOverviewRoute,

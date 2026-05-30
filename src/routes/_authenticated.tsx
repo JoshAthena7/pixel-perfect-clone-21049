@@ -19,10 +19,34 @@ import { WriterActionLauncher } from "@/components/war-room/writer/WriterActionL
 import { DailyCheckin } from "@/components/war-room/writer/DailyCheckin";
 import { FlagIssueButton } from "@/components/war-room/FlagIssueButton";
 import { AskAthenaWidget } from "@/components/war-room/AskAthenaWidget";
+import { supabase } from "@/integrations/supabase/client";
+import { trackLogin, resetLoginTracker } from "@/lib/login-tracking";
+import { useSessionTimeout } from "@/hooks/use-session-timeout";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthLayout,
 });
+
+const MFA_PATH = "/mfa-enrollment";
+
+function useMfaGate(userId: string | null | undefined) {
+  const [needsEnroll, setNeedsEnroll] = useState<boolean | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    if (!userId) { setNeedsEnroll(null); return; }
+    (async () => {
+      try {
+        const { data } = await supabase.auth.mfa.listFactors();
+        const hasVerified = !!data?.totp?.some((f) => f.status === "verified");
+        if (!cancelled) setNeedsEnroll(!hasVerified);
+      } catch {
+        if (!cancelled) setNeedsEnroll(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [userId]);
+  return needsEnroll;
+}
 
 const PAGE_TITLES: Record<string, string> = {
   "/command": "Command Center",
