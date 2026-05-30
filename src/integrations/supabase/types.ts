@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      attention_acks: {
+        Row: {
+          acknowledged_at: string
+          acknowledged_by: string
+          acknowledged_by_name: string
+          engagement_id: string
+          id: string
+          source_key: string
+          type: string
+        }
+        Insert: {
+          acknowledged_at?: string
+          acknowledged_by: string
+          acknowledged_by_name: string
+          engagement_id: string
+          id?: string
+          source_key: string
+          type: string
+        }
+        Update: {
+          acknowledged_at?: string
+          acknowledged_by?: string
+          acknowledged_by_name?: string
+          engagement_id?: string
+          id?: string
+          source_key?: string
+          type?: string
+        }
+        Relationships: []
+      }
       broadcast_reads: {
         Row: {
           broadcast_id: string
