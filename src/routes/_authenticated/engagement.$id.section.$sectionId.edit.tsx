@@ -120,7 +120,8 @@ function SectionEditorPage() {
   // Log leadership viewing another author's draft (security audit)
   useEffect(() => {
     if (!draft || !member || !user || !engagementId) return;
-    if (isLeadership && draft.author_id && draft.author_id !== user.id) {
+    const d: any = draft;
+    if (isLeadership && d.author_id && d.author_id !== user.id) {
       logActivity({
         engagementId,
         userId: user.id,
@@ -128,10 +129,9 @@ function SectionEditorPage() {
         action: "view_section_draft",
         targetTable: "section_drafts",
         targetId: draft.id,
-        metadata: { section_id: sectionId, author_id: draft.author_id },
+        metadata: { section_id: sectionId, author_id: d.author_id },
       });
     }
-    // Only re-log when draft id changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft?.id]);
 
