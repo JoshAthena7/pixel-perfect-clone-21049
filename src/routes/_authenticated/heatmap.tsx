@@ -49,6 +49,17 @@ function HeatmapPage() {
   const [saving, setSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reviewCount, setReviewCount] = useState(0);
+
+  async function loadReviewCount(eid: string) {
+    const { count } = await supabase
+      .from("win_theme_mappings")
+      .select("id", { count: "exact", head: true })
+      .eq("engagement_id", eid)
+      .eq("ai_suggested", true)
+      .eq("confirmed", false);
+    setReviewCount(count ?? 0);
+  }
 
   async function load(eid: string) {
     setIsLoading(true);
