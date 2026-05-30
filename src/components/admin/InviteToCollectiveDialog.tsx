@@ -130,8 +130,10 @@ export function InviteToCollectiveDialog({
       toast.error("Invite failed", { description: message });
     } finally {
       setSubmitting(false);
+      lockRef.current = false;
     }
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
