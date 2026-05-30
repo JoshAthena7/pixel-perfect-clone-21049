@@ -166,6 +166,23 @@ export function SubmissionBanner() {
           {milestones.length === 0 ? "Add milestones" : "Edit"}
         </Link>
       </div>
+      {overdueActive && (openRisksCount > 0 || openSosCount > 0) && (
+        <div className="mx-auto mt-1 max-w-7xl text-[11px] font-medium text-[color:var(--red)]">
+          {openRisksCount > 0 && (
+            <>
+              {openRisksCount} open risk{openRisksCount === 1 ? "" : "s"}
+            </>
+          )}
+          {openRisksCount > 0 && openSosCount > 0 && " and "}
+          {openSosCount > 0 && (
+            <>
+              {openSosCount} unresolved SOS alert{openSosCount === 1 ? "" : "s"}
+            </>
+          )}
+          {" remain."}
+        </div>
+      )}
     </div>
   );
+
 }
