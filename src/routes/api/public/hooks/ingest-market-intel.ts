@@ -297,6 +297,94 @@ function stateNameToAbbr(name: string): string | null {
   return STATE_NAME_TO_ABBR[cleaned] ?? null;
 }
 
+// ---------------- Source 4: NewsAPI ----------------
+
+const NEWS_PROGRAM_AREAS = [
+  "Care Management","Behavioral Health","LTSS","HCBS","Network Adequacy",
+  "Quality","Staffing","Financial","Dual Eligible","IDD",
+];
+
+async function classifyNewsProgramAreas(title: string, description: string): Promise<string[]> {
+  const prompt = `Classify the following news article into 0-3 of these program areas: ${NEWS_PROGRAM_AREAS.join(", ")}.
+Reply ONLY with a comma-separated list of matching area names, or "none" if no match.
+
+TITLE: ${title}
+DESCRIPTION: ${description.slice(0, 1500)}`;
+  const out = await lovableAIClassify(prompt);
+  if (!out || out.toLowerCase().includes("none")) return [];
+  return out.split(",").map((s) => s.trim()).filter((s) => NEWS_PROGRAM_AREAS.includes(s));
+}
+
+const STATE_NAMES_FOR_SCAN: Array<[string, string]> = Object.entries(STATE_NAME_TO_ABBR);
+function detectStatesFromText(text: string): string[] {
+  const lower = ` ${text.toLowerCase()} `;
+  const found = new Set<string>();
+  // Abbreviations (word-bounded uppercase)
+  for (const s of detectStates(text)) found.add(s);
+  // Full names
+  for (const [name, abbr] of STATE_NAMES_FOR_SCAN) {
+    if (lower.includes(` ${name} `) || lower.includes(` ${name},`) || lower.includes(` ${name}.`)) {
+      found.add(abbr);
+    }
+  }
+  return Array.from(found);
+}
+
+async function ingestNewsAPI(supabase: SupabaseClient, openaiKey?: string, runStartMs?: number) {
+  const key = process.env.NEWS_API_KEY;
+  if (!key) throw new Error("NEWS_API_KEY not configured");
+
+  const q = encodeURIComponent('Medicaid OR Medicare OR "managed care" OR LTSS OR HCBS OR "behavioral health" OR "dual eligible"');
+  const url = `https://newsapi.org/v2/everything?q=${q}&language=en&sortBy=publishedAt&pageSize=20&apiKey=${key}`;
+  const res = await fetch(url, { headers: { "User-Agent": "AthenaIntel/1.0" } });
+  if (!res.ok) throw new Error(`NewsAPI HTTP ${res.status}`);
+  const json: any = await res.json();
+  const articles: any[] = json?.articles ?? [];
+
+  const cutoff = (runStartMs ?? Date.now()) - 6 * 3600 * 1000;
+  let inserted = 0, skipped = 0;
+
+  for (const a of articles) {
+    const articleUrl: string = a?.url ?? "";
+    const publishedAtStr: string = a?.publishedAt ?? "";
+    const publishedMs = publishedAtStr ? new Date(publishedAtStr).getTime() : NaN;
+    if (!articleUrl || !isFinite(publishedMs) || publishedMs < cutoff) { skipped++; continue; }
+
+    const { count } = await supabase
+      .from("market_intelligence")
+      .select("id", { count: "exact", head: true })
+      .eq("url", articleUrl);
+    if ((count ?? 0) > 0) { skipped++; continue; }
+
+    const title = String(a.title ?? "").slice(0, 500);
+    const description = String(a.description ?? "");
+    const sourceDetail = String(a?.source?.name ?? "");
+    const blob = `${title} ${description}`;
+
+    const [areas, states] = [await classifyNewsProgramAreas(title, description), detectStatesFromText(blob)];
+
+    let embedding: string | null = null;
+    if (openaiKey) {
+      const vec = await embedText(blob, openaiKey);
+      if (vec) embedding = pgvectorLiteral(vec);
+    }
+
+    const { error } = await supabase.from("market_intelligence").insert({
+      source: "NewsAPI",
+      title,
+      summary: description.slice(0, 2000),
+      url: articleUrl,
+      relevant_states: states,
+      relevant_categories: areas,
+      published_at: new Date(publishedMs).toISOString(),
+      raw_data: { source_detail: sourceDetail } as any,
+      embedding: embedding as any,
+    });
+    if (!error) inserted++; else skipped++;
+  }
+  return { inserted, skipped };
+}
+
 // ---------------- Existing RSS sources (preserved) ----------------
 
 const BASE_FEEDS: Array<{ source: string; url: string }> = [
