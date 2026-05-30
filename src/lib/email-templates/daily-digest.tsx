@@ -92,7 +92,7 @@ export function DailyDigest({
               </Text>
             ) : (
               <Text style={{ fontSize: 14, color: COLORS.muted, margin: 0 }}>
-                Nothing material overnight. Command Center is quiet.
+                Nothing material overnight. Mission is quiet.
               </Text>
             )}
           </Section>
