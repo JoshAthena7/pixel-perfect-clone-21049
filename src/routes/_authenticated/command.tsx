@@ -17,6 +17,7 @@ import { relativeTime } from "@/lib/time";
 import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
 import { SnapshotsPanel } from "@/components/war-room/SnapshotsPanel";
 import { IntelligenceInsightsPanel } from "@/components/war-room/IntelligenceInsightsPanel";
+import { SizingSummaryStrip } from "@/components/sizing/SizingSummaryStrip";
 
 export const Route = createFileRoute("/_authenticated/command")({
   head: () => ({ meta: [{ title: "Command Center — Athena" }] }),
@@ -139,6 +140,7 @@ function CommandCenter() {
 
         {/* ZONE 1 — Needs Attention + Intelligence Insights */}
         <NeedsAttentionPanel />
+        <SizingSummaryStrip engagementId={engagement.id} />
         <IntelligenceInsightsPanel />
 
         {/* ZONE 2 — Health strip: three blocks */}
