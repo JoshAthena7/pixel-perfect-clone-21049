@@ -1375,6 +1375,131 @@ export type Database = {
         }
         Relationships: []
       }
+      policy_intelligence: {
+        Row: {
+          cfr_reference: string | null
+          created_at: string
+          effective_date: string | null
+          full_text: string | null
+          id: string
+          policy_type: string
+          published_date: string | null
+          relevant_program_areas: string[]
+          relevant_states: string[]
+          source: string
+          source_detail: string | null
+          summary: string | null
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          cfr_reference?: string | null
+          created_at?: string
+          effective_date?: string | null
+          full_text?: string | null
+          id?: string
+          policy_type: string
+          published_date?: string | null
+          relevant_program_areas?: string[]
+          relevant_states?: string[]
+          source: string
+          source_detail?: string | null
+          summary?: string | null
+          title: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          cfr_reference?: string | null
+          created_at?: string
+          effective_date?: string | null
+          full_text?: string | null
+          id?: string
+          policy_type?: string
+          published_date?: string | null
+          relevant_program_areas?: string[]
+          relevant_states?: string[]
+          source?: string
+          source_detail?: string | null
+          summary?: string | null
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
+      policy_section_mappings: {
+        Row: {
+          ai_generated: boolean
+          confirmed: boolean
+          created_at: string
+          engagement_id: string
+          id: string
+          policy_id: string
+          question_id: string | null
+          section_id: string | null
+          updated_at: string
+          writer_acknowledged: boolean
+          writing_implication: string | null
+        }
+        Insert: {
+          ai_generated?: boolean
+          confirmed?: boolean
+          created_at?: string
+          engagement_id: string
+          id?: string
+          policy_id: string
+          question_id?: string | null
+          section_id?: string | null
+          updated_at?: string
+          writer_acknowledged?: boolean
+          writing_implication?: string | null
+        }
+        Update: {
+          ai_generated?: boolean
+          confirmed?: boolean
+          created_at?: string
+          engagement_id?: string
+          id?: string
+          policy_id?: string
+          question_id?: string | null
+          section_id?: string | null
+          updated_at?: string
+          writer_acknowledged?: boolean
+          writing_implication?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "policy_section_mappings_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "policy_section_mappings_policy_id_fkey"
+            columns: ["policy_id"]
+            isOneToOne: false
+            referencedRelation: "policy_intelligence"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "policy_section_mappings_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "rfp_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "policy_section_mappings_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "heatmap_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       presence: {
         Row: {
           availability_status: string
@@ -1465,6 +1590,7 @@ export type Database = {
           created_at: string
           engagement_id: string
           id: string
+          policy_flagged: boolean
           question_number: string | null
           section_id: string | null
           sort_order: number
@@ -1477,6 +1603,7 @@ export type Database = {
           created_at?: string
           engagement_id: string
           id?: string
+          policy_flagged?: boolean
           question_number?: string | null
           section_id?: string | null
           sort_order?: number
@@ -1489,6 +1616,7 @@ export type Database = {
           created_at?: string
           engagement_id?: string
           id?: string
+          policy_flagged?: boolean
           question_number?: string | null
           section_id?: string | null
           sort_order?: number

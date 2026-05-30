@@ -17,7 +17,7 @@ import { SectionHealthTab } from "@/components/war-room/SectionHealthTab";
 import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
 import { SectionReviewQueue } from "@/components/war-room/SectionReviewQueue";
 import { Watermark } from "@/components/war-room/Watermark";
-import { Sparkles } from "lucide-react";
+import { Sparkles, ShieldAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated/heatmap")({
@@ -50,6 +50,7 @@ function HeatmapPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [reviewCount, setReviewCount] = useState(0);
+  const [policyCounts, setPolicyCounts] = useState<Record<string, number>>({});
 
   async function loadReviewCount(eid: string) {
     const { count } = await supabase
@@ -59,6 +60,22 @@ function HeatmapPage() {
       .eq("ai_suggested", true)
       .eq("confirmed", false);
     setReviewCount(count ?? 0);
+  }
+
+  async function loadPolicyCounts(eid: string) {
+    const { data } = await supabase
+      .from("policy_section_mappings")
+      .select("section_id")
+      .eq("engagement_id", eid)
+      .eq("confirmed", true)
+      .eq("writer_acknowledged", false)
+      .not("section_id", "is", null);
+    const counts: Record<string, number> = {};
+    for (const r of (data as any[]) ?? []) {
+      if (!r.section_id) continue;
+      counts[r.section_id] = (counts[r.section_id] ?? 0) + 1;
+    }
+    setPolicyCounts(counts);
   }
 
   async function load(eid: string) {
@@ -78,6 +95,7 @@ function HeatmapPage() {
     if (!engagement) return;
     load(engagement.id);
     loadReviewCount(engagement.id);
+    loadPolicyCounts(engagement.id);
     const ch = supabase
       .channel(`heat:${engagement.id}`)
       .on(
@@ -89,6 +107,11 @@ function HeatmapPage() {
         "postgres_changes",
         { event: "*", schema: "public", table: "win_theme_mappings", filter: `engagement_id=eq.${engagement.id}` },
         () => loadReviewCount(engagement.id),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "policy_section_mappings", filter: `engagement_id=eq.${engagement.id}` },
+        () => loadPolicyCounts(engagement.id),
       )
       .subscribe();
     return () => {
@@ -175,6 +198,12 @@ function HeatmapPage() {
                     <div>
                       <div className="text-xs uppercase tracking-wider text-muted-foreground">Section</div>
                       <div className="text-lg font-bold">{s.section_name}</div>
+                      {policyCounts[s.id] > 0 && (
+                        <Badge className="mt-1 bg-red-500/15 text-red-600 hover:bg-red-500/15 text-[10px]">
+                          <ShieldAlert className="h-3 w-3 mr-1" />
+                          {policyCounts[s.id]} policy update{policyCounts[s.id] === 1 ? "" : "s"}
+                        </Badge>
+                      )}
                     </div>
                     <StatusPill status={s.status} />
                   </div>

@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { logActivity } from "@/lib/activity-log";
 import { Watermark } from "@/components/war-room/Watermark";
 import { WinThemesReferencePanel } from "@/components/war-room/WinThemesReferencePanel";
+import { WriterPolicyAlertsPanel } from "@/components/war-room/WriterPolicyAlertsPanel";
 
 export const Route = createFileRoute("/_authenticated/engagement/$id/section/$sectionId/edit")({
   head: () => ({ meta: [{ title: "Section Editor — Athena" }] }),
@@ -356,6 +357,11 @@ function SectionEditorPage() {
           <span className="font-semibold">Returned by leadership: </span>
           <span className="whitespace-pre-wrap">{draft.return_note}</span>
         </Card>
+      )}
+
+      {/* Policy alerts */}
+      {user && (
+        <WriterPolicyAlertsPanel engagementId={engagementId} sectionId={sectionId} userId={user.id} />
       )}
 
       {/* Win Themes reference */}
