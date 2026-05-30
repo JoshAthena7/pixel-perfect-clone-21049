@@ -102,12 +102,15 @@ export function InviteToCollectiveDialog({
       engagement_id: engagementId,
     });
     if (!parsed.success) {
-      toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
+      const msg = parsed.error.issues[0]?.message ?? "Invalid input";
+      setErrorMessage(msg);
+      toast.error(msg);
       return;
     }
 
     lockRef.current = true;
     setSubmitting(true);
+    setErrorMessage(null);
     try {
 
       const { data: userRes } = await supabase.auth.getUser();
