@@ -65,22 +65,22 @@ function AdminDashboard() {
         supabase.from("engagements").select("id,name,client,status,submission_date,contract_value_estimate").order("submission_date", { ascending: true }),
         supabase.from("sos_alerts").select("engagement_id,status").eq("status", "Open"),
         supabase.from("engagement_members").select("engagement_id,user_id,role"),
-        supabase.from("intelligence_insights").select("id,engagement_id,body,severity,insight_type,created_at,actioned").order("created_at", { ascending: false }).limit(100),
-        supabase.from("broadcasts").select("id,engagement_id,body,created_at,author_name").order("created_at", { ascending: false }).limit(20),
+        supabase.from("intelligence_insights").select("id,engagement_id,title,body,severity,insight_type,created_at,actioned").order("created_at", { ascending: false }).limit(100),
+        supabase.from("broadcasts").select("id,engagement_id,content,created_at,author_name").order("created_at", { ascending: false }).limit(20),
       ]);
 
       // Temperature per engagement (latest snapshot)
       const engList = (engs ?? []) as Eng[];
       const activeIds = engList.filter((e) => e.status === "Active").map((e) => e.id);
-      let tempMap: Record<string, number | null> = {};
+      const tempMap: Record<string, number | null> = {};
       if (activeIds.length > 0) {
         const { data: snaps } = await supabase
-          .from("temperature_snapshots")
-          .select("engagement_id,temperature,created_at")
+          .from("snapshots")
+          .select("engagement_id,temperature_score,created_at")
           .in("engagement_id", activeIds)
           .order("created_at", { ascending: false });
         for (const s of (snaps ?? []) as Snap[]) {
-          if (!(s.engagement_id in tempMap)) tempMap[s.engagement_id] = s.temperature;
+          if (!(s.engagement_id in tempMap)) tempMap[s.engagement_id] = s.temperature_score;
         }
       }
 
