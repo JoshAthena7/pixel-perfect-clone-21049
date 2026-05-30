@@ -1459,6 +1459,60 @@ export type Database = {
         }
         Relationships: []
       }
+      rfp_questions: {
+        Row: {
+          body: string
+          created_at: string
+          engagement_id: string
+          id: string
+          question_number: string | null
+          section_id: string | null
+          sort_order: number
+          source_url: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          engagement_id: string
+          id?: string
+          question_number?: string | null
+          section_id?: string | null
+          sort_order?: number
+          source_url?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          engagement_id?: string
+          id?: string
+          question_number?: string | null
+          section_id?: string | null
+          sort_order?: number
+          source_url?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rfp_questions_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rfp_questions_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "heatmap_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       risks: {
         Row: {
           created_at: string | null
@@ -2041,13 +2095,86 @@ export type Database = {
         }
         Relationships: []
       }
+      win_theme_mappings: {
+        Row: {
+          ai_similarity: number | null
+          ai_suggested: boolean
+          confirmed: boolean
+          created_at: string
+          created_by: string | null
+          engagement_id: string
+          id: string
+          question_id: string | null
+          section_id: string | null
+          updated_at: string
+          win_theme_id: string
+          writer_hint: string | null
+        }
+        Insert: {
+          ai_similarity?: number | null
+          ai_suggested?: boolean
+          confirmed?: boolean
+          created_at?: string
+          created_by?: string | null
+          engagement_id: string
+          id?: string
+          question_id?: string | null
+          section_id?: string | null
+          updated_at?: string
+          win_theme_id: string
+          writer_hint?: string | null
+        }
+        Update: {
+          ai_similarity?: number | null
+          ai_suggested?: boolean
+          confirmed?: boolean
+          created_at?: string
+          created_by?: string | null
+          engagement_id?: string
+          id?: string
+          question_id?: string | null
+          section_id?: string | null
+          updated_at?: string
+          win_theme_id?: string
+          writer_hint?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "win_theme_mappings_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "win_theme_mappings_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "rfp_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "win_theme_mappings_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "heatmap_sections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "win_theme_mappings_win_theme_id_fkey"
+            columns: ["win_theme_id"]
+            isOneToOne: false
+            referencedRelation: "win_themes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       win_themes: {
         Row: {
           created_at: string
           description: string | null
           engagement_id: string
           id: string
-          section_ids: string[]
           title: string
           updated_at: string
         }
@@ -2056,7 +2183,6 @@ export type Database = {
           description?: string | null
           engagement_id: string
           id?: string
-          section_ids?: string[]
           title: string
           updated_at?: string
         }
@@ -2065,7 +2191,6 @@ export type Database = {
           description?: string | null
           engagement_id?: string
           id?: string
-          section_ids?: string[]
           title?: string
           updated_at?: string
         }
