@@ -607,6 +607,20 @@ function TeamPage() {
                         <Button variant="ghost" size="sm" onClick={() => toggleOnCall(m)} className="text-xs">
                           {m.on_call ? "Clear on-call" : "Mark on-call"}
                         </Button>
+                        {m.nda_required && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleNda(m)}
+                            className={`text-xs ${m.nda_confirmed ? "text-red-400 hover:text-red-300" : "text-emerald-400 hover:text-emerald-300"}`}
+                          >
+                            {m.nda_confirmed ? (
+                              <><ShieldAlert className="h-3.5 w-3.5 mr-1" /> Revoke NDA</>
+                            ) : (
+                              <><ShieldCheck className="h-3.5 w-3.5 mr-1" /> Confirm NDA</>
+                            )}
+                          </Button>
+                        )}
                       </div>
                     )}
                   </div>
