@@ -110,6 +110,20 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
+              {engagement && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.includes("/compliance")}
+                    tooltip="Compliance — Track SHALL/MUST requirements and gaps"
+                  >
+                    <Link to="/engagement/$id/compliance" params={{ id: engagement.id }}>
+                      <Shield className="h-4 w-4" />
+                      <span>Compliance</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
