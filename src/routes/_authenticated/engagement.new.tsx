@@ -851,7 +851,7 @@ function Step3(p: {
           Skip & open empty room →
         </button>
         <PrimaryButton onClick={p.onOpen} loading={p.saving}>
-          Open Command Center <ArrowRight className="h-3.5 w-3.5" />
+          Open Mission <ArrowRight className="h-3.5 w-3.5" />
         </PrimaryButton>
       </Footer>
     </section>
