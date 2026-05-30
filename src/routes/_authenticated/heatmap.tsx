@@ -217,6 +217,12 @@ function HeatmapPage() {
         <TabsContent value="health">
           <SectionHealthTab />
         </TabsContent>
+
+        {isLeadership && (
+          <TabsContent value="review">
+            <SectionReviewQueue />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
