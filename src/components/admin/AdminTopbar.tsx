@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Megaphone, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AthenaMark } from "@/components/AthenaMark";
+import { AthenaMark } from "@/components/ui/AthenaMark";
 
 export function AdminTopbar() {
   return (

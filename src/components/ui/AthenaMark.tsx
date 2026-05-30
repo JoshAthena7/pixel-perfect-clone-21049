@@ -1,14 +1,13 @@
 import { cn } from "@/lib/utils";
 
-type Size = "sm" | "md" | "lg" | "xl";
+type Size = "sm" | "md" | "lg";
 type Variant = "mark" | "lockup";
 type Tone = "color" | "white";
 
-const heights: Record<Size, number> = {
-  sm: 32,
-  md: 40,
-  lg: 60,
-  xl: 96,
+const HEIGHTS: Record<Size, number> = {
+  sm: 32, // mark only
+  md: 44, // full lockup
+  lg: 64, // full lockup
 };
 
 interface Props {
@@ -19,21 +18,23 @@ interface Props {
 }
 
 /**
- * Athena Strategy Group logo.
- * - tone="color" → navy + gold on light/white backgrounds
- * - tone="white" → white + gold on dark backgrounds
- * - variant="mark" → circular pinwheel mark only (best for favicons, tight chrome)
- * - variant="lockup" → mark + wordmark
+ * Athena Strategy Group logo lockup.
+ * - sm → 32px circular mark only (chrome, mobile topbars, favicons)
+ * - md → 44px full lockup
+ * - lg → 64px full lockup (heroes, login)
+ * tone="color" for white backgrounds, tone="white" for dark backgrounds.
  */
 export function AthenaMark({
   size = "md",
-  variant = "lockup",
+  variant,
   tone = "color",
   className,
 }: Props) {
-  const h = heights[size];
+  const h = HEIGHTS[size];
+  // sm defaults to mark-only per spec; md/lg default to lockup
+  const v: Variant = variant ?? (size === "sm" ? "mark" : "lockup");
   const file =
-    variant === "mark"
+    v === "mark"
       ? tone === "white"
         ? "/athena-mark-white.png"
         : "/athena-mark.png"
