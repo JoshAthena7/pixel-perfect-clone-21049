@@ -60,15 +60,70 @@ function HuddlePage() {
       needs_leadership: needsLeadership,
       notes: notes || null,
     });
-    setSubmitting(false);
     if (error) {
+      setSubmitting(false);
       toast.error(error.message);
       return;
     }
-    toast.success("Huddle submitted");
+
+    // Edge 8: if needs_leadership and no leadership is currently available,
+    // auto-create an SOS so the flag surfaces in NeedsAttentionPanel.
+    if (needsLeadership) {
+      try {
+        const { data: leaders } = await supabase
+          .from("engagement_members")
+          .select("user_id")
+          .eq("engagement_id", engagement.id)
+          .in("role", ["founder", "pm", "engagement_lead"]);
+        const leaderUserIds = ((leaders as { user_id: string | null }[]) ?? [])
+          .map((l) => l.user_id)
+          .filter((id): id is string => !!id);
+
+        let anyAvailable = false;
+        if (leaderUserIds.length > 0) {
+          const { data: pres } = await supabase
+            .from("presence")
+            .select("user_id, availability_status, last_seen")
+            .eq("engagement_id", engagement.id)
+            .in("user_id", leaderUserIds)
+            .eq("availability_status", "available");
+          // Treat presence rows updated within the last 5 minutes as live.
+          const cutoff = Date.now() - 5 * 60 * 1000;
+          anyAvailable = ((pres as { last_seen: string }[]) ?? []).some(
+            (p) => new Date(p.last_seen).getTime() >= cutoff,
+          );
+        }
+
+        if (!anyAvailable) {
+          await supabase.from("sos_alerts").insert({
+            engagement_id: engagement.id,
+            submitted_by: user.id,
+            submitter_name: member.display_name,
+            category: "Leadership Needed",
+            severity: "Medium",
+            description:
+              (notes && notes.trim()) ||
+              `Huddle from ${member.display_name} flagged for leadership attention.`,
+            status: "Open",
+          });
+          toast.success(
+            "Your request has been flagged. No leadership is currently online — they will be notified.",
+          );
+        } else {
+          toast.success("Huddle submitted");
+        }
+      } catch {
+        toast.success("Huddle submitted");
+      }
+    } else {
+      toast.success("Huddle submitted");
+    }
+
+    setSubmitting(false);
     setRisk(""); setClientConcern(""); setWriterConcern(""); setNotes(""); setNeedsLeadership(false);
     load(engagement.id);
   }
+
 
   return (
     <div className="mx-auto grid max-w-7xl gap-6 p-4 md:p-8 lg:grid-cols-5">
