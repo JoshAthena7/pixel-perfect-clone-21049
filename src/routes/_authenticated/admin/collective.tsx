@@ -122,10 +122,13 @@ function AdminCollective() {
           <h1 className="text-2xl font-bold tracking-tight">Collective</h1>
           <p className="text-xs text-muted-foreground mt-1">Network of advisors, operators, and partners across every war room.</p>
         </div>
-        <Button size="sm" className="gap-1.5 shadow-[0_0_20px_rgba(212,175,55,0.15)]">
+        <Button size="sm" className="gap-1.5 shadow-[0_0_20px_rgba(212,175,55,0.15)]" onClick={() => setInviteOpen(true)}>
           <UserPlus className="h-3.5 w-3.5" /> Invite to Collective
         </Button>
       </div>
+
+      <InviteToCollectiveDialog open={inviteOpen} onOpenChange={setInviteOpen} onInvited={load} />
+
 
       {/* KPI strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
