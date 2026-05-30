@@ -80,7 +80,10 @@ export function HookFailuresPanel() {
         inflightRef.current.delete(row.id);
         pendingRef.current.delete(row.id);
         restoreRow(row);
-        showRetryToast(row, `Request timed out after ${COMMIT_TIMEOUT_MS / 1000}s. No changes saved.`);
+        showRetryToast(
+          row,
+          `Request timed out after ${COMMIT_TIMEOUT_MS / 1000}s (COMMIT_TIMEOUT_MS=${COMMIT_TIMEOUT_MS}ms). No changes saved.`,
+        );
       }
     }, COMMIT_TIMEOUT_MS);
 
