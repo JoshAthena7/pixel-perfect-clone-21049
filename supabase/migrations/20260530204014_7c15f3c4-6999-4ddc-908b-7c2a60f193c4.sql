@@ -1,0 +1,1 @@
+DELETE FROM public.engagement_members WHERE engagement_id='1762a153-83e9-4c24-8268-667d20083ab6' AND user_id IS NULL;
