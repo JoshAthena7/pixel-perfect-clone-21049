@@ -4,6 +4,7 @@ import { useEngagement } from "@/hooks/use-engagement";
 import { supabase } from "@/integrations/supabase/client";
 import athenaLogo from "@/assets/athena-logo-dark.png";
 import { AlertTriangle, Siren, ShieldAlert, Thermometer, Calendar, LogOut } from "lucide-react";
+import { HookFailuresPanel } from "@/components/HookFailuresPanel";
 
 export const Route = createFileRoute("/_authenticated/overview")({
   head: () => ({ meta: [{ title: "Overview — Athena" }] }),
@@ -139,6 +140,8 @@ function OverviewPage() {
             </button>
           </div>
         </div>
+
+        <HookFailuresPanel />
 
         {fetching ? (
           <div className="text-sm text-muted-foreground">Loading rollups…</div>
