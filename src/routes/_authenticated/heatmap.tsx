@@ -120,6 +120,7 @@ function HeatmapPage() {
         <TabsList>
           <TabsTrigger value="map">Heat Map</TabsTrigger>
           <TabsTrigger value="health">Section Health</TabsTrigger>
+          {isLeadership && <TabsTrigger value="review">Review Queue</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="map" className="space-y-6">
