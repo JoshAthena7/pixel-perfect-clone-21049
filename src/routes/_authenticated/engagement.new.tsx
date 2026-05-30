@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { useSession } from "@/hooks/use-session";
-import { ChevronLeft, Plus, X, ShieldCheck, ArrowRight, Link as LinkIcon, Sparkles } from "lucide-react";
+import { ChevronLeft, Plus, X, ShieldCheck, ArrowRight, Link as LinkIcon, Sparkles, FileText, Upload, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/engagement/new")({
@@ -59,6 +59,10 @@ function NewEngagementPage() {
   const [submissionDate, setSubmissionDate] = useState("");
   const [engagementType, setEngagementType] = useState<typeof ENGAGEMENT_TYPES[number] | "">("");
   const [contractValue, setContractValue] = useState("");
+
+  // RFP doc (uploaded as part of step 1)
+  const [rfpFile, setRfpFile] = useState<File | null>(null);
+  const [rfpPlaceholder, setRfpPlaceholder] = useState(false);
 
   // State preview
   const [states, setStates] = useState<StateRow[]>([]);
@@ -127,6 +131,40 @@ function NewEngagementPage() {
           .update({ state_specific_notes: preNote })
           .eq("engagement_id", data.id);
         setStateNotes(preNote);
+      }
+
+      // RFP: either upload the real file, or drop a placeholder row
+      try {
+        if (rfpFile) {
+          const safeName = rfpFile.name.replace(/[^\w.\-]+/g, "_");
+          const path = `${data.id}/rfp/${Date.now()}_${safeName}`;
+          const up = await supabase.storage.from("intel-files").upload(path, rfpFile, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: rfpFile.type || undefined,
+          });
+          if (up.error) throw up.error;
+          await supabase.from("intel_documents").insert({
+            engagement_id: data.id,
+            name: rfpFile.name,
+            category: "RFP",
+            file_path: path,
+            uploaded_by: user.id,
+            notes: "Primary RFP document — uploaded during engagement setup.",
+          });
+          toast.success("RFP uploaded.");
+        } else if (rfpPlaceholder) {
+          await supabase.from("intel_documents").insert({
+            engagement_id: data.id,
+            name: "RFP — placeholder",
+            category: "RFP",
+            notes: "Placeholder — replace with the real RFP when available.",
+            uploaded_by: user.id,
+          });
+        }
+      } catch (rfpErr: any) {
+        console.error(rfpErr);
+        toast.error(`Engagement created, but RFP upload failed: ${rfpErr.message ?? "unknown error"}`);
       }
 
       await refresh();
@@ -261,6 +299,8 @@ function NewEngagementPage() {
             engagementType={engagementType} setEngagementType={setEngagementType}
             contractValue={contractValue} setContractValue={setContractValue}
             states={states} stateInfo={stateInfo} trivia={trivia}
+            rfpFile={rfpFile} setRfpFile={setRfpFile}
+            rfpPlaceholder={rfpPlaceholder} setRfpPlaceholder={setRfpPlaceholder}
             onNext={submitStep1} saving={saving}
           />
         )}
@@ -296,11 +336,78 @@ function Step1(p: {
   engagementType: string; setEngagementType: (v: any) => void;
   contractValue: string; setContractValue: (v: string) => void;
   states: StateRow[]; stateInfo: StateRow | null; trivia: TriviaRow[];
+  rfpFile: File | null; setRfpFile: (f: File | null) => void;
+  rfpPlaceholder: boolean; setRfpPlaceholder: (v: boolean) => void;
   onNext: () => void; saving: boolean;
 }) {
+  const [dragOver, setDragOver] = useState(false);
   return (
     <section className="space-y-5">
-      <Header title="Identity" subtitle="The basics that define this engagement and unlock its file." />
+      <Header title="Identity" subtitle="Drop the RFP (or mark it placeholder), then the basics that define this engagement." />
+
+      {/* RFP dropzone — the first thing */}
+      <div
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => {
+          e.preventDefault(); setDragOver(false);
+          const f = e.dataTransfer.files?.[0];
+          if (f) { p.setRfpFile(f); p.setRfpPlaceholder(false); }
+        }}
+        className="rounded-lg p-5 transition"
+        style={{
+          background: dragOver ? "rgba(201,179,112,0.08)" : CARD,
+          border: `1px dashed ${dragOver ? GOLD : BORDER_STRONG}`,
+        }}
+      >
+        <div className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em]" style={{ color: GOLD }}>
+          <FileText className="h-3 w-3" /> RFP Document · Step Zero
+        </div>
+
+        {p.rfpFile ? (
+          <div className="flex items-center justify-between gap-3 rounded p-3" style={{ background: "rgba(95,184,168,0.08)", border: `1px solid rgba(95,184,168,0.3)` }}>
+            <div className="flex min-w-0 items-center gap-2 text-sm text-zinc-200">
+              <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: TEAL }} />
+              <span className="truncate">{p.rfpFile.name}</span>
+              <span className="shrink-0 text-[10px] text-zinc-500">({(p.rfpFile.size / 1024).toFixed(0)} KB)</span>
+            </div>
+            <button onClick={() => p.setRfpFile(null)} className="text-zinc-500 hover:text-zinc-200">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
+          <>
+            <label className="flex cursor-pointer flex-col items-center justify-center gap-2 py-4 text-center">
+              <Upload className="h-5 w-5 text-zinc-500" />
+              <div className="text-sm text-zinc-300">Drop the RFP here, or <span style={{ color: GOLD }}>click to browse</span></div>
+              <div className="text-[10px] text-zinc-500">PDF, DOCX, or any procurement document</div>
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,.txt,.rtf"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) { p.setRfpFile(f); p.setRfpPlaceholder(false); }
+                }}
+              />
+            </label>
+            <div className="mt-3 flex items-center justify-center gap-2 border-t pt-3 text-[11px]" style={{ borderColor: BORDER }}>
+              <span className="text-zinc-500">Don't have it yet?</span>
+              <button
+                onClick={() => p.setRfpPlaceholder(!p.rfpPlaceholder)}
+                className="rounded px-2 py-1 text-[10px] font-bold uppercase tracking-[0.2em] transition"
+                style={{
+                  background: p.rfpPlaceholder ? "rgba(201,179,112,0.15)" : "transparent",
+                  border: `1px solid ${p.rfpPlaceholder ? GOLD : BORDER_STRONG}`,
+                  color: p.rfpPlaceholder ? GOLD : "#999",
+                }}
+              >
+                {p.rfpPlaceholder ? "✓ Placeholder set" : "Use a placeholder"}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Field label="Engagement Name" required>
