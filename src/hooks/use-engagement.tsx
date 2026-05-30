@@ -65,7 +65,7 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
     // /select-engagement filters them visually.
     const { data } = await supabase
       .from("engagement_members")
-      .select("id, role, display_name, nda_required, nda_confirmed, engagement:engagements!inner(id, name, client, status, submission_date, created_by, contract_value_estimate)")
+      .select("id, role, display_name, nda_required, nda_confirmed, engagement:engagements!inner(id, name, client, status, submission_date, created_by, contract_value_estimate, state)")
       .eq("user_id", uid);
 
 
@@ -109,7 +109,7 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
         // Re-fetch memberships to pick up the seed trigger's founder row
         const { data: again } = await supabase
           .from("engagement_members")
-          .select("id, role, display_name, nda_required, nda_confirmed, engagement:engagements!inner(id, name, client, status, submission_date, created_by, contract_value_estimate)")
+          .select("id, role, display_name, nda_required, nda_confirmed, engagement:engagements!inner(id, name, client, status, submission_date, created_by, contract_value_estimate, state)")
           .eq("user_id", uid);
 
         list = ((again as any[]) ?? [])
