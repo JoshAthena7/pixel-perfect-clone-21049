@@ -52,7 +52,16 @@ export function InviteToCollectiveDialog({
   const [role, setRole] = useState("writer");
   const [engagementId, setEngagementId] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
   const lockRef = useRef(false);
+
+  const COOLDOWN_SECONDS = 5;
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => Math.max(0, c - 1)), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
 
 
   useEffect(() => {
