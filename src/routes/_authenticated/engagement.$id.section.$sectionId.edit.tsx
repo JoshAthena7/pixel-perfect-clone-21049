@@ -368,6 +368,12 @@ function SectionEditorPage() {
       {/* Win Themes reference */}
       <WinThemesReferencePanel engagementId={engagementId} sectionId={sectionId} />
 
+      {/* Compliance requirements */}
+      {section && (
+        <WriterCompliancePanel engagementId={engagementId} sectionId={sectionId} sectionName={section.section_name} />
+      )}
+
+
       {/* Editor */}
       <Card className="p-4">
         <Textarea
