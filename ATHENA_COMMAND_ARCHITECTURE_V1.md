@@ -423,6 +423,8 @@ See §1.
 
 **Data nit:** engagement `1762a153-83e9-4c24-8268-667d20083ab6` has 17 `engagement_members` rows with NULL `user_id` (placeholder seats). Unique constraint permits this because `NULL ≠ NULL`. Decide whether to backfill or add a partial-unique on a synthetic key.
 
+**Data nit:** Sidebar item conflict — Briefing Room and Vault both mapped to `/intel` in architecture doc. Confirmed: Briefing Room = `/research`, Vault = `/intel`.
+
 ---
 
 ## 13. Environment Variables
