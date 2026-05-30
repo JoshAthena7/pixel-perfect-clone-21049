@@ -55,7 +55,19 @@ export function HookFailuresPanel() {
     );
   }
 
-  const COMMIT_TIMEOUT_MS = 15_000;
+  // Tunable per environment without code changes. Resolution order:
+  //   1. localStorage["athena.ack.commitTimeoutMs"] — runtime override (DevTools)
+  //   2. import.meta.env.VITE_ACK_COMMIT_TIMEOUT_MS — build-time per-env value
+  //   3. 15000ms default
+  // Clamped to a safe range so a bad value can't lock the UI forever or fire instantly.
+  const COMMIT_TIMEOUT_MS = (() => {
+    const fromStorage =
+      typeof window !== "undefined" ? window.localStorage?.getItem("athena.ack.commitTimeoutMs") : null;
+    const fromEnv = (import.meta.env as Record<string, string | undefined>).VITE_ACK_COMMIT_TIMEOUT_MS;
+    const raw = Number.parseInt(fromStorage ?? fromEnv ?? "", 10);
+    const v = Number.isFinite(raw) && raw > 0 ? raw : 15_000;
+    return Math.max(1_000, Math.min(120_000, v)); // 1s–120s
+  })();
 
   async function commitAck(row: Failure, loadingToastId?: string) {
     inflightRef.current.add(row.id);
