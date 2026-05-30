@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { SizingEngine } from "@/components/sizing/SizingEngine";
 
 export const Route = createFileRoute("/_authenticated/engagement/new")({
-  head: () => ({ meta: [{ title: "New Command Center — Athena" }] }),
+  head: () => ({ meta: [{ title: "New Mission — Athena" }] }),
   component: NewEngagementPage,
 });
 
