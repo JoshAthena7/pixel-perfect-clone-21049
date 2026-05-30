@@ -12,7 +12,7 @@ import {
   LogOut,
   Users,
   Briefcase,
-  DollarSign,
+  
   TrendingUp,
   ArrowRight,
   Radio,
