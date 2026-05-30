@@ -43,6 +43,7 @@ import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lova
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as ApiPublicHooksProcessEmbeddingsRouteImport } from './routes/api/public/hooks/process-embeddings'
+import { Route as ApiPublicHooksIntelligenceEngineRouteImport } from './routes/api/public/hooks/intelligence-engine'
 import { Route as ApiPublicHooksDailyDigestRouteImport } from './routes/api/public/hooks/daily-digest'
 import { Route as ApiPublicHooksBackfillEmbeddingsRouteImport } from './routes/api/public/hooks/backfill-embeddings'
 
@@ -228,6 +229,12 @@ const ApiPublicHooksProcessEmbeddingsRoute =
     path: '/api/public/hooks/process-embeddings',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksIntelligenceEngineRoute =
+  ApiPublicHooksIntelligenceEngineRouteImport.update({
+    id: '/api/public/hooks/intelligence-engine',
+    path: '/api/public/hooks/intelligence-engine',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksDailyDigestRoute =
   ApiPublicHooksDailyDigestRouteImport.update({
     id: '/api/public/hooks/daily-digest',
@@ -273,6 +280,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/backfill-embeddings': typeof ApiPublicHooksBackfillEmbeddingsRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
+  '/api/public/hooks/intelligence-engine': typeof ApiPublicHooksIntelligenceEngineRoute
   '/api/public/hooks/process-embeddings': typeof ApiPublicHooksProcessEmbeddingsRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -310,6 +318,7 @@ export interface FileRoutesByTo {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/backfill-embeddings': typeof ApiPublicHooksBackfillEmbeddingsRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
+  '/api/public/hooks/intelligence-engine': typeof ApiPublicHooksIntelligenceEngineRoute
   '/api/public/hooks/process-embeddings': typeof ApiPublicHooksProcessEmbeddingsRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -349,6 +358,7 @@ export interface FileRoutesById {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/backfill-embeddings': typeof ApiPublicHooksBackfillEmbeddingsRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
+  '/api/public/hooks/intelligence-engine': typeof ApiPublicHooksIntelligenceEngineRoute
   '/api/public/hooks/process-embeddings': typeof ApiPublicHooksProcessEmbeddingsRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -388,6 +398,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/api/public/hooks/backfill-embeddings'
     | '/api/public/hooks/daily-digest'
+    | '/api/public/hooks/intelligence-engine'
     | '/api/public/hooks/process-embeddings'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
@@ -425,6 +436,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/api/public/hooks/backfill-embeddings'
     | '/api/public/hooks/daily-digest'
+    | '/api/public/hooks/intelligence-engine'
     | '/api/public/hooks/process-embeddings'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
@@ -463,6 +475,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/api/public/hooks/backfill-embeddings'
     | '/api/public/hooks/daily-digest'
+    | '/api/public/hooks/intelligence-engine'
     | '/api/public/hooks/process-embeddings'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
@@ -478,6 +491,7 @@ export interface RootRouteChildren {
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksBackfillEmbeddingsRoute: typeof ApiPublicHooksBackfillEmbeddingsRoute
   ApiPublicHooksDailyDigestRoute: typeof ApiPublicHooksDailyDigestRoute
+  ApiPublicHooksIntelligenceEngineRoute: typeof ApiPublicHooksIntelligenceEngineRoute
   ApiPublicHooksProcessEmbeddingsRoute: typeof ApiPublicHooksProcessEmbeddingsRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -724,6 +738,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksProcessEmbeddingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/intelligence-engine': {
+      id: '/api/public/hooks/intelligence-engine'
+      path: '/api/public/hooks/intelligence-engine'
+      fullPath: '/api/public/hooks/intelligence-engine'
+      preLoaderRoute: typeof ApiPublicHooksIntelligenceEngineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/daily-digest': {
       id: '/api/public/hooks/daily-digest'
       path: '/api/public/hooks/daily-digest'
@@ -809,6 +830,7 @@ const rootRouteChildren: RootRouteChildren = {
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksBackfillEmbeddingsRoute: ApiPublicHooksBackfillEmbeddingsRoute,
   ApiPublicHooksDailyDigestRoute: ApiPublicHooksDailyDigestRoute,
+  ApiPublicHooksIntelligenceEngineRoute: ApiPublicHooksIntelligenceEngineRoute,
   ApiPublicHooksProcessEmbeddingsRoute: ApiPublicHooksProcessEmbeddingsRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
