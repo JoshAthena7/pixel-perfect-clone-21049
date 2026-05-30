@@ -108,7 +108,7 @@ function WriterMySections() {
         action: "section_completed",
         targetTable: "section_assignments",
         targetId: completeFor.id,
-        metadata: { section_name: completeFor.section_name },
+        metadata: { section_name: completeFor.section?.section_name ?? null },
       });
     }
     setCompleteFor(null);
