@@ -135,12 +135,29 @@ function TeamPage() {
   async function load(eid: string) {
     const { data } = await supabase
       .from("engagement_members")
-      .select("id, user_id, display_name, role, title, email, phone, slack_handle, timezone, on_call")
+      .select("id, user_id, display_name, role, title, email, phone, slack_handle, timezone, on_call, nda_required, nda_confirmed, nda_confirmed_at")
       .eq("engagement_id", eid)
       .order("on_call", { ascending: false })
       .order("role")
       .order("display_name");
     setMembers((data as Member[]) ?? []);
+  }
+
+  async function toggleNda(m: Member) {
+    if (!isLeadership) return;
+    const next = !m.nda_confirmed;
+    const { error } = await supabase
+      .from("engagement_members")
+      .update({
+        nda_confirmed: next,
+        nda_confirmed_at: next ? new Date().toISOString() : null,
+        nda_confirmed_by: next ? (me?.id ?? null) : null,
+      })
+      .eq("id", m.id)
+      .eq("engagement_id", engagement?.id ?? "");
+    if (error) return toast.error(error.message);
+    toast.success(next ? "NDA confirmed" : "NDA confirmation revoked");
+    if (engagement) load(engagement.id);
   }
 
   useEffect(() => {
