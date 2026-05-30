@@ -60,6 +60,10 @@ function NewEngagementPage() {
   const [engagementType, setEngagementType] = useState<typeof ENGAGEMENT_TYPES[number] | "">("");
   const [contractValue, setContractValue] = useState("");
 
+  // RFP doc (uploaded as part of step 1)
+  const [rfpFile, setRfpFile] = useState<File | null>(null);
+  const [rfpPlaceholder, setRfpPlaceholder] = useState(false);
+
   // State preview
   const [states, setStates] = useState<StateRow[]>([]);
   const [stateInfo, setStateInfo] = useState<StateRow | null>(null);
