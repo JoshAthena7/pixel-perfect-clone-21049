@@ -80,7 +80,7 @@ function LoginPage() {
           <AthenaMark
             size="lg"
             variant="lockup"
-            tone="white"
+            tone="color"
             className="mx-auto mb-5 drop-shadow-[0_4px_20px_rgba(196,154,42,0.25)]"
           />
 

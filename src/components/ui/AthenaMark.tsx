@@ -5,9 +5,9 @@ type Variant = "mark" | "lockup";
 type Tone = "color" | "white";
 
 const HEIGHTS: Record<Size, number> = {
-  sm: 32, // mark only
-  md: 44, // full lockup
-  lg: 64, // full lockup
+  sm: 44, // mark only
+  md: 64, // full lockup
+  lg: 112, // full lockup
 };
 
 interface Props {
