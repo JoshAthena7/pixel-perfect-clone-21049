@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
+import { logActivity } from "@/lib/activity-log";
 
 export const Route = createFileRoute("/_authenticated/risks")({
   head: () => ({ meta: [{ title: "Risks — Athena" }] }),
@@ -36,6 +38,8 @@ function RisksPage() {
   const { user } = useSession();
   const [items, setItems] = useState<any[]>([]);
   const [filter, setFilter] = useState<"All" | (typeof STATUSES)[number]>("Open");
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -46,11 +50,15 @@ function RisksPage() {
   const [submitting, setSubmitting] = useState(false);
 
   async function load(eid: string) {
-    const { data } = await supabase
+    setIsLoading(true);
+    setLoadError(null);
+    const { data, error } = await supabase
       .from("risks")
       .select("*")
       .eq("engagement_id", eid)
       .order("created_at", { ascending: false });
+    setIsLoading(false);
+    if (error) { setLoadError(error.message); return; }
     setItems(data ?? []);
   }
 
@@ -64,7 +72,7 @@ function RisksPage() {
     e.preventDefault();
     if (!engagement || !user || !title.trim()) return;
     setSubmitting(true);
-    const { error } = await supabase.from("risks").insert({
+    const { data: inserted, error } = await supabase.from("risks").insert({
       engagement_id: engagement.id,
       title: title.trim(),
       description: description || null,
@@ -74,10 +82,18 @@ function RisksPage() {
       owner_name: owner || null,
       target_date: targetDate || null,
       created_by: user.id,
-    });
+    }).select("id").maybeSingle();
     setSubmitting(false);
     if (error) return toast.error(error.message);
     toast.success("Risk logged");
+    if (member && inserted?.id) {
+      logActivity({
+        engagementId: engagement.id, userId: user.id, actorName: member.display_name,
+        action: `logged risk "${title.trim()}" (${severity})`,
+        targetTable: "risks", targetId: inserted.id,
+        metadata: { severity, likelihood },
+      });
+    }
     setTitle(""); setDescription(""); setSeverity("Medium"); setLikelihood("Possible"); setTargetDate("");
     load(engagement.id);
   }
@@ -85,6 +101,12 @@ function RisksPage() {
   async function updateStatus(r: any, status: (typeof STATUSES)[number]) {
     const { error } = await supabase.from("risks").update({ status, updated_at: new Date().toISOString() }).eq("id", r.id);
     if (error) return toast.error(error.message);
+    if (engagement && member && user && status === "Closed") {
+      logActivity({
+        engagementId: engagement.id, userId: user.id, actorName: member.display_name,
+        action: `closed risk "${r.title}"`, targetTable: "risks", targetId: r.id,
+      });
+    }
     load(engagement!.id);
   }
 
