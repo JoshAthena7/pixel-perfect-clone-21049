@@ -10,11 +10,11 @@ function NdaRequiredPage() {
   const { engagement, member } = useEngagement();
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#0d0d14] px-6">
-      <div className="max-w-lg w-full rounded-2xl border border-[#c9b370]/30 bg-[#16161f] p-8 text-center shadow-2xl">
-        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[#c9b370]/10 ring-1 ring-[#c9b370]/40">
-          <ShieldAlert className="h-7 w-7 text-[#c9b370]" />
+      <div className="max-w-lg w-full rounded-2xl border border-[#C49A2A]/30 bg-[#16161f] p-8 text-center shadow-2xl">
+        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[#C49A2A]/10 ring-1 ring-[#C49A2A]/40">
+          <ShieldAlert className="h-7 w-7 text-[#C49A2A]" />
         </div>
-        <div className="text-[10px] uppercase tracking-[0.22em] text-[#c9b370] font-semibold mb-2">
+        <div className="text-[10px] uppercase tracking-[0.22em] text-[#C49A2A] font-semibold mb-2">
           Restricted Access
         </div>
         <h1 className="text-2xl font-bold text-white mb-3">NDA confirmation required</h1>
@@ -25,7 +25,7 @@ function NdaRequiredPage() {
         </p>
         <div className="rounded-lg border border-zinc-800 bg-black/30 p-4 text-left text-xs text-zinc-400 space-y-2">
           <div className="flex items-center gap-2 text-zinc-300 font-semibold uppercase tracking-wider text-[10px]">
-            <Lock className="h-3.5 w-3.5 text-[#c9b370]" /> What happens next
+            <Lock className="h-3.5 w-3.5 text-[#C49A2A]" /> What happens next
           </div>
           <ol className="list-decimal pl-5 space-y-1.5">
             <li>Sign and return your NDA to your engagement leader.</li>

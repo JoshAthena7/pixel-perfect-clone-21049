@@ -22,7 +22,7 @@ const CARD = "#16161f";
 const CARD_HOVER = "#1c1c27";
 const BORDER = "rgba(255,255,255,0.06)";
 const BORDER_STRONG = "rgba(255,255,255,0.12)";
-const GOLD = "#c9b370";
+const GOLD = "#C49A2A";
 const TEAL = "#5fb8a8";
 
 const ENGAGEMENT_TYPES = ["RFP", "Sole Source", "Recompete", "Task Order"] as const;
@@ -892,7 +892,7 @@ function Input({ value, onChange, placeholder, type = "text", autoFocus }: { val
       autoFocus={autoFocus}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full rounded-md px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-[var(--ring,#c9b370)]"
+      className="w-full rounded-md px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-[var(--ring,#C49A2A)]"
       style={{ background: CARD, border: `1px solid ${BORDER_STRONG}` }}
     />
   );
