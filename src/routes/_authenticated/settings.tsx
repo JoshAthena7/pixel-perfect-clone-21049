@@ -37,6 +37,36 @@ function SettingsPage() {
   }, [engagement?.id, isLeadership]);
 
   if (!engagement) return null;
+  if (!isLeadership) {
+    return (
+      <div className="mx-auto max-w-3xl space-y-6 p-4 md:p-8">
+        <div>
+          <h1 className="text-2xl font-bold">Settings</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Engagement configuration and submission timeline.</p>
+        </div>
+        <Card className="border-border bg-surface p-6">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Engagement</h2>
+          <div className="mt-3 space-y-1 text-sm">
+            <div><span className="text-muted-foreground">Name:</span> {engagement.name}</div>
+            <div><span className="text-muted-foreground">Client:</span> {engagement.client}</div>
+            <div><span className="text-muted-foreground">Status:</span> {engagement.status}</div>
+            <div><span className="text-muted-foreground">Submission date:</span> {engagement.submission_date ?? "—"}</div>
+          </div>
+          <p className="mt-4 text-xs text-muted-foreground">Only founders and PMs can edit engagement settings.</p>
+        </Card>
+        <Card className="border-border bg-surface p-6">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Session</h2>
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={async () => { await supabase.auth.signOut(); }}
+          >
+            Sign out
+          </Button>
+        </Card>
+      </div>
+    );
+  }
 
   async function save() {
     if (!engagement) return;
