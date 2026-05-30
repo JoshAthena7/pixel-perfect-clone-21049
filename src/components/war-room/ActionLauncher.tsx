@@ -15,24 +15,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  AlertTriangle,
   Users,
   Megaphone,
   HeartPulse,
   CheckCircle2,
-  ShieldAlert,
   LayoutGrid,
   CheckCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 
 type TileKey =
-  | "sos"
   | "huddle"
   | "broadcast"
   | "pulse"
   | "decision"
-  | "risk"
   | "heatmap";
 
 type Tile = {
@@ -44,12 +40,10 @@ type Tile = {
 };
 
 const TILES: Tile[] = [
-  { key: "sos", label: "SOS", desc: "Raise an urgent blocker", color: "#A32D2D", icon: <AlertTriangle className="h-4 w-4" /> },
   { key: "huddle", label: "Huddle", desc: "Schedule a working session", color: "#0F6E56", icon: <Users className="h-4 w-4" /> },
   { key: "broadcast", label: "Broadcast", desc: "Send a team-wide message", color: "#533AB7", icon: <Megaphone className="h-4 w-4" /> },
   { key: "pulse", label: "Client Pulse", desc: "Log a client touchpoint", color: "#185FA5", icon: <HeartPulse className="h-4 w-4" /> },
   { key: "decision", label: "Decisions", desc: "Record a leadership call", color: "#3B6D11", icon: <CheckCircle2 className="h-4 w-4" /> },
-  { key: "risk", label: "Risks", desc: "Log a new risk", color: "#BA7517", icon: <ShieldAlert className="h-4 w-4" /> },
   { key: "heatmap", label: "Heat Map", desc: "Flag a writer/section issue", color: "#993C1D", icon: <LayoutGrid className="h-4 w-4" /> },
 ];
 
@@ -191,12 +185,10 @@ type FormProps = {
 
 function ActiveForm(props: FormProps) {
   switch (props.tile.key) {
-    case "sos": return <SosForm {...props} />;
     case "huddle": return <HuddleForm {...props} />;
     case "broadcast": return <BroadcastForm {...props} />;
     case "pulse": return <PulseForm {...props} />;
     case "decision": return <DecisionForm {...props} />;
-    case "risk": return <RiskForm {...props} />;
     case "heatmap": return <HeatmapForm {...props} />;
   }
 }

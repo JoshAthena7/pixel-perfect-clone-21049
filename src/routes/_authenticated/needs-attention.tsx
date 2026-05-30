@@ -162,8 +162,8 @@ function ActionButton({ item }: { item: AttentionItem }) {
   const btn = "inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2.5 py-1 text-[11px] text-muted-foreground hover:text-foreground shrink-0";
 
   if (item.type === "stuck") return <button type="button" onClick={resolveStuck} className={btn}>Mark resolved</button>;
-  if (item.type === "sos") return <Link to="/sos" className={btn}>Open SOS</Link>;
-  if (item.type === "risk") return <Link to="/risks" className={btn}>Open risk</Link>;
+  if (item.type === "sos") return <Link to="/issues" className={btn}>Open issue</Link>;
+  if (item.type === "risk") return <Link to="/issues" className={btn}>Open issue</Link>;
   if (item.type === "overdue") return <button type="button" onClick={contactWriter} className={btn}>Contact writer</button>;
   if (item.type === "morale") return <button type="button" onClick={() => ack("morale")} className={btn}>Acknowledge</button>;
   return null;

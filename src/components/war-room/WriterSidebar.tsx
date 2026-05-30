@@ -45,10 +45,6 @@ const ENGAGEMENT = [
   { title: "Recognition Feed", url: "/writer/recognition-feed", icon: Award },
   { title: "FAQ", url: "/faq", icon: HelpCircle },
 ] as const;
-const FLAG = [
-  { title: "Submit a Risk", url: "/writer/submit-risk", icon: ShieldAlert },
-  { title: "Submit an SOS", url: "/writer/submit-sos", icon: Siren },
-] as const;
 const TEAM = [
   { title: "Team Directory", url: "/team", icon: Contact },
 ] as const;
@@ -111,11 +107,12 @@ export function WriterSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px]">Flag</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px]">Team</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>{FLAG.map(renderItem)}</SidebarMenu>
+            <SidebarMenu>{TEAM.map(renderItem)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+      </SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-[10px]">Team</SidebarGroupLabel>
           <SidebarGroupContent>

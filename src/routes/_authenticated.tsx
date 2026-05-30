@@ -17,6 +17,7 @@ import { QuickChatPanel } from "@/components/war-room/comms/QuickChatPanel";
 import { ChatNavButton } from "@/components/war-room/comms/ChatNavButton";
 import { WriterActionLauncher } from "@/components/war-room/writer/WriterActionLauncher";
 import { DailyCheckin } from "@/components/war-room/writer/DailyCheckin";
+import { FlagIssueButton } from "@/components/war-room/FlagIssueButton";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthLayout,
@@ -25,9 +26,8 @@ export const Route = createFileRoute("/_authenticated")({
 const PAGE_TITLES: Record<string, string> = {
   "/command": "Command Center",
   "/huddle": "Daily Huddle",
-  "/sos": "SOS Alerts",
+  "/issues": "Issues",
   "/team": "Team Roster",
-  "/risks": "Risks",
   "/heatmap": "Heat Map",
   "/intel": "Intelligence Center",
   "/decisions": "Decision Log",
@@ -42,8 +42,6 @@ const PAGE_TITLES: Record<string, string> = {
   "/writer/work-log": "Work Log",
   "/writer/progress": "Progress",
   "/writer/recognition-feed": "Recognition Feed",
-  "/writer/submit-risk": "Submit a Risk",
-  "/writer/submit-sos": "Submit an SOS",
 };
 
 // Shared routes that writers can access (read-only via in-page isLeadership gates)
@@ -159,6 +157,7 @@ function RoleGuardedShell() {
       </div>
       <QuickChatPanel />
       {isWriter && <DailyCheckin />}
+      <FlagIssueButton />
       <Toaster theme="dark" position="top-right" />
     </SidebarProvider>
   );

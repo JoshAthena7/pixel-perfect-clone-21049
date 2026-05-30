@@ -146,7 +146,7 @@ function CommandCenter() {
               <Siren className="mt-0.5 h-4 w-4 text-[#ef4444]" />
               <div className="flex-1 text-sm">
                 <span className="font-bold text-[#ef4444]">{openSos.length} alert{openSos.length > 1 ? "s" : ""} require attention</span>
-                <Link to="/sos" className="ml-3 text-xs text-[#ef4444] underline">View SOS →</Link>
+                <Link to="/issues" className="ml-3 text-xs text-[#ef4444] underline">View issues →</Link>
               </div>
             </div>
           </div>
