@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { logActivity } from "@/lib/activity-log";
 import { Watermark } from "@/components/war-room/Watermark";
 import { WinThemesReferencePanel } from "@/components/war-room/WinThemesReferencePanel";
+import { WriterPolicyAlertsPanel } from "@/components/war-room/WriterPolicyAlertsPanel";
 
 export const Route = createFileRoute("/_authenticated/engagement/$id/section/$sectionId/edit")({
   head: () => ({ meta: [{ title: "Section Editor — Athena" }] }),
