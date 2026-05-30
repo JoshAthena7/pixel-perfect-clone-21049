@@ -41,8 +41,6 @@ export const extractComplianceRequirements = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("AI is not configured.");
 
     const { data: doc, error: docErr } = await supabase
       .from("compliance_documents")
@@ -124,8 +122,6 @@ export const checkDraftCompliance = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ sectionId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("AI is not configured.");
 
     const { data: section, error: secErr } = await supabase
       .from("heatmap_sections")
