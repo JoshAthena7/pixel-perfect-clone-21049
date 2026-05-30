@@ -603,8 +603,12 @@ export type Database = {
           radar_keywords: string[] | null
           radar_monitoring: boolean
           research_completed_at: string | null
+          services_checklist: Json | null
+          sizing_assumptions: Json | null
+          sizing_data: Json | null
           state: string | null
           state_specific_notes: string | null
+          submission_days_remaining: number | null
           updated_at: string
         }
         Insert: {
@@ -622,8 +626,12 @@ export type Database = {
           radar_keywords?: string[] | null
           radar_monitoring?: boolean
           research_completed_at?: string | null
+          services_checklist?: Json | null
+          sizing_assumptions?: Json | null
+          sizing_data?: Json | null
           state?: string | null
           state_specific_notes?: string | null
+          submission_days_remaining?: number | null
           updated_at?: string
         }
         Update: {
@@ -641,8 +649,12 @@ export type Database = {
           radar_keywords?: string[] | null
           radar_monitoring?: boolean
           research_completed_at?: string | null
+          services_checklist?: Json | null
+          sizing_assumptions?: Json | null
+          sizing_data?: Json | null
           state?: string | null
           state_specific_notes?: string | null
+          submission_days_remaining?: number | null
           updated_at?: string
         }
         Relationships: []
@@ -1045,6 +1057,7 @@ export type Database = {
       heatmap_sections: {
         Row: {
           engagement_id: string
+          evaluation_weight_pct: number | null
           id: string
           instructions: string | null
           notes: string | null
@@ -1057,6 +1070,7 @@ export type Database = {
         }
         Insert: {
           engagement_id: string
+          evaluation_weight_pct?: number | null
           id?: string
           instructions?: string | null
           notes?: string | null
@@ -1069,6 +1083,7 @@ export type Database = {
         }
         Update: {
           engagement_id?: string
+          evaluation_weight_pct?: number | null
           id?: string
           instructions?: string | null
           notes?: string | null
@@ -1705,10 +1720,13 @@ export type Database = {
       }
       rfp_questions: {
         Row: {
+          assigned_to: string | null
           body: string
           created_at: string
           engagement_id: string
+          evaluation_weight_pct: number | null
           id: string
+          page_limit: number | null
           policy_flagged: boolean
           question_number: string | null
           section_id: string | null
@@ -1718,10 +1736,13 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assigned_to?: string | null
           body: string
           created_at?: string
           engagement_id: string
+          evaluation_weight_pct?: number | null
           id?: string
+          page_limit?: number | null
           policy_flagged?: boolean
           question_number?: string | null
           section_id?: string | null
@@ -1731,10 +1752,13 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assigned_to?: string | null
           body?: string
           created_at?: string
           engagement_id?: string
+          evaluation_weight_pct?: number | null
           id?: string
+          page_limit?: number | null
           policy_flagged?: boolean
           question_number?: string | null
           section_id?: string | null
@@ -1744,6 +1768,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "rfp_questions_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "engagement_members"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "rfp_questions_engagement_id_fkey"
             columns: ["engagement_id"]
