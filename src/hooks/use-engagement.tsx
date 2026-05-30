@@ -54,12 +54,13 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
 
   const load = useCallback(async (uid: string) => {
     setLoading(true);
-    // One query: memberships joined with engagements (non-archived)
+    // Include archived engagements so users can still navigate to a read-only view;
+    // /select-engagement filters them visually.
     const { data } = await supabase
       .from("engagement_members")
       .select("id, role, display_name, engagement:engagements!inner(id, name, client, status, submission_date, created_by)")
-      .eq("user_id", uid)
-      .neq("engagements.status", "Archived");
+      .eq("user_id", uid);
+
 
     let list: Membership[] = ((data as any[]) ?? [])
       .filter((row) => row.engagement)
