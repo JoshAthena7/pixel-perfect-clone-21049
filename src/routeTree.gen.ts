@@ -34,7 +34,9 @@ import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticated/command'
 import { Route as AuthenticatedBroadcastsRouteImport } from './routes/_authenticated/broadcasts'
 import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated/activity'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as AuthenticatedWriterWorkLogRouteImport } from './routes/_authenticated/writer/work-log'
 import { Route as AuthenticatedWriterRecognitionFeedRouteImport } from './routes/_authenticated/writer/recognition-feed'
@@ -181,10 +183,20 @@ const AuthenticatedAssistantRoute = AuthenticatedAssistantRouteImport.update({
   path: '/assistant',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedActivityRoute = AuthenticatedActivityRouteImport.update({
   id: '/activity',
   path: '/activity',
   getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
 const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   id: '/lovable/email/suppression',
@@ -293,6 +305,7 @@ export interface FileRoutesByFullPath {
   '/accept-invite': typeof AcceptInviteRoute
   '/login': typeof LoginRoute
   '/activity': typeof AuthenticatedActivityRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/assistant': typeof AuthenticatedAssistantRoute
   '/broadcasts': typeof AuthenticatedBroadcastsRoute
   '/command': typeof AuthenticatedCommandRoute
@@ -320,6 +333,7 @@ export interface FileRoutesByFullPath {
   '/writer/recognition-feed': typeof AuthenticatedWriterRecognitionFeedRoute
   '/writer/work-log': typeof AuthenticatedWriterWorkLogRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/api/public/hooks/backfill-embeddings': typeof ApiPublicHooksBackfillEmbeddingsRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
   '/api/public/hooks/ingest-market-intel': typeof ApiPublicHooksIngestMarketIntelRoute
@@ -364,6 +378,7 @@ export interface FileRoutesByTo {
   '/writer/recognition-feed': typeof AuthenticatedWriterRecognitionFeedRoute
   '/writer/work-log': typeof AuthenticatedWriterWorkLogRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/api/public/hooks/backfill-embeddings': typeof ApiPublicHooksBackfillEmbeddingsRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
   '/api/public/hooks/ingest-market-intel': typeof ApiPublicHooksIngestMarketIntelRoute
@@ -383,6 +398,7 @@ export interface FileRoutesById {
   '/accept-invite': typeof AcceptInviteRoute
   '/login': typeof LoginRoute
   '/_authenticated/activity': typeof AuthenticatedActivityRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
   '/_authenticated/broadcasts': typeof AuthenticatedBroadcastsRoute
   '/_authenticated/command': typeof AuthenticatedCommandRoute
@@ -410,6 +426,7 @@ export interface FileRoutesById {
   '/_authenticated/writer/recognition-feed': typeof AuthenticatedWriterRecognitionFeedRoute
   '/_authenticated/writer/work-log': typeof AuthenticatedWriterWorkLogRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/api/public/hooks/backfill-embeddings': typeof ApiPublicHooksBackfillEmbeddingsRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
   '/api/public/hooks/ingest-market-intel': typeof ApiPublicHooksIngestMarketIntelRoute
@@ -429,6 +446,7 @@ export interface FileRouteTypes {
     | '/accept-invite'
     | '/login'
     | '/activity'
+    | '/admin'
     | '/assistant'
     | '/broadcasts'
     | '/command'
@@ -456,6 +474,7 @@ export interface FileRouteTypes {
     | '/writer/recognition-feed'
     | '/writer/work-log'
     | '/lovable/email/suppression'
+    | '/admin/'
     | '/api/public/hooks/backfill-embeddings'
     | '/api/public/hooks/daily-digest'
     | '/api/public/hooks/ingest-market-intel'
@@ -500,6 +519,7 @@ export interface FileRouteTypes {
     | '/writer/recognition-feed'
     | '/writer/work-log'
     | '/lovable/email/suppression'
+    | '/admin'
     | '/api/public/hooks/backfill-embeddings'
     | '/api/public/hooks/daily-digest'
     | '/api/public/hooks/ingest-market-intel'
@@ -518,6 +538,7 @@ export interface FileRouteTypes {
     | '/accept-invite'
     | '/login'
     | '/_authenticated/activity'
+    | '/_authenticated/admin'
     | '/_authenticated/assistant'
     | '/_authenticated/broadcasts'
     | '/_authenticated/command'
@@ -545,6 +566,7 @@ export interface FileRouteTypes {
     | '/_authenticated/writer/recognition-feed'
     | '/_authenticated/writer/work-log'
     | '/lovable/email/suppression'
+    | '/_authenticated/admin/'
     | '/api/public/hooks/backfill-embeddings'
     | '/api/public/hooks/daily-digest'
     | '/api/public/hooks/ingest-market-intel'
@@ -755,12 +777,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAssistantRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/activity': {
       id: '/_authenticated/activity'
       path: '/activity'
       fullPath: '/activity'
       preLoaderRoute: typeof AuthenticatedActivityRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/lovable/email/suppression': {
       id: '/lovable/email/suppression'
@@ -884,8 +920,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedRouteChildren {
   AuthenticatedActivityRoute: typeof AuthenticatedActivityRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
   AuthenticatedBroadcastsRoute: typeof AuthenticatedBroadcastsRoute
   AuthenticatedCommandRoute: typeof AuthenticatedCommandRoute
@@ -915,6 +963,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedActivityRoute: AuthenticatedActivityRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
   AuthenticatedBroadcastsRoute: AuthenticatedBroadcastsRoute,
   AuthenticatedCommandRoute: AuthenticatedCommandRoute,
@@ -969,3 +1018,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
