@@ -170,6 +170,8 @@ SCOPE: ${scopeLabel}.${engagementBlock}${ragBlock}${marketBlock}${firmBlock}`;
         preview: s.content_text.slice(0, 240),
       })),
       market_sources: marketSources.map((m) => ({ source: m.source, title: m.title, url: m.url, similarity: m.similarity })),
+      source: "vault" as const,
+      citations: [] as string[],
     };
   });
 
