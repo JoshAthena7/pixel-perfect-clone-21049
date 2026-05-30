@@ -70,6 +70,25 @@ function AdminEngagementsList() {
     window.location.href = "/command";
   }
 
+  async function deleteEngagement(e: Eng) {
+    const confirmed = window.confirm(
+      `Permanently delete "${e.name}"?\n\nThis removes the engagement and all its data. This cannot be undone.`,
+    );
+    if (!confirmed) return;
+    const typed = window.prompt(`Type the engagement name to confirm:\n${e.name}`);
+    if (typed !== e.name) {
+      toast.error("Name didn't match — delete cancelled.");
+      return;
+    }
+    const { error } = await supabase.from("engagements").delete().eq("id", e.id);
+    if (error) {
+      toast.error(`Delete failed: ${error.message}`);
+      return;
+    }
+    setEngs((prev) => prev.filter((x) => x.id !== e.id));
+    toast.success(`Deleted ${e.name}`);
+  }
+
   return (
     <div className="mx-auto max-w-[1600px] p-6 space-y-4">
       <div className="flex items-center justify-between">
