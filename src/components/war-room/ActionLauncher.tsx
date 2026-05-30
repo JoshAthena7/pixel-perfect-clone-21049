@@ -56,7 +56,7 @@ const TILES: Tile[] = [
 type Roster = { display_name: string; role: string }[];
 
 export function ActionLauncher() {
-  const { engagement, member } = useEngagement();
+  const { engagement, member, canWrite } = useEngagement();
   const { user } = useSession();
   const [active, setActive] = useState<TileKey | null>(null);
   const [roster, setRoster] = useState<Roster>([]);
@@ -81,6 +81,14 @@ export function ActionLauncher() {
   }
 
   if (!engagement || !member || !user) return null;
+  if (!canWrite) {
+    return (
+      <div className="rounded-xl border border-border bg-surface p-5 text-center text-sm text-muted-foreground">
+        <div className="font-semibold text-foreground">Read-only access</div>
+        <div className="mt-1 text-xs">Viewers can browse this engagement but cannot create new records.</div>
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-4 lg:grid-cols-[260px_1fr]">
