@@ -40,21 +40,24 @@ export function BrandLockup({ size = "md", markOnly = false, className }: Props)
         <div className="flex flex-col leading-none">
           <span
             style={{
+              fontFamily: "'Montserrat', sans-serif",
               fontSize: TITLE_PX[size],
-              letterSpacing: "0.16em",
-              fontWeight: 700,
+              letterSpacing: "0.12em",
+              fontWeight: 800,
+              color: "#FFFFFF",
             }}
-            className="uppercase text-white"
+            className="uppercase"
           >
             Athena
           </span>
           <span
             style={{
+              fontFamily: "'Montserrat', sans-serif",
               fontSize: SUB_PX[size],
-              letterSpacing: "0.22em",
+              letterSpacing: "0.16em",
               fontWeight: 600,
               color: "#C49A2A",
-              marginTop: 3,
+              marginTop: 4,
             }}
             className="uppercase"
           >
