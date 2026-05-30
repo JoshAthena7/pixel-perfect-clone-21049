@@ -17,17 +17,34 @@ type Milestone = {
 export function SubmissionBanner() {
   const { engagement } = useEngagement();
   const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [openRisksCount, setOpenRisksCount] = useState(0);
+  const [openSosCount, setOpenSosCount] = useState(0);
 
   useEffect(() => {
     if (!engagement) return;
     let cancelled = false;
     async function load(eid: string) {
-      const { data } = await supabase
-        .from("engagement_milestones")
-        .select("*")
-        .eq("engagement_id", eid)
-        .order("due_date");
-      if (!cancelled) setMilestones((data as Milestone[]) ?? []);
+      const [milestonesRes, risksRes, sosRes] = await Promise.all([
+        supabase
+          .from("engagement_milestones")
+          .select("*")
+          .eq("engagement_id", eid)
+          .order("due_date"),
+        supabase
+          .from("risks")
+          .select("id", { count: "exact", head: true })
+          .eq("engagement_id", eid)
+          .neq("status", "Closed"),
+        supabase
+          .from("sos_alerts")
+          .select("id", { count: "exact", head: true })
+          .eq("engagement_id", eid)
+          .neq("status", "Resolved"),
+      ]);
+      if (cancelled) return;
+      setMilestones((milestonesRes.data as Milestone[]) ?? []);
+      setOpenRisksCount(risksRes.count ?? 0);
+      setOpenSosCount(sosRes.count ?? 0);
     }
     load(engagement.id);
     const ch = supabase
@@ -37,12 +54,23 @@ export function SubmissionBanner() {
         { event: "*", schema: "public", table: "engagement_milestones", filter: `engagement_id=eq.${engagement.id}` },
         () => load(engagement.id),
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "risks", filter: `engagement_id=eq.${engagement.id}` },
+        () => load(engagement.id),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "sos_alerts", filter: `engagement_id=eq.${engagement.id}` },
+        () => load(engagement.id),
+      )
       .subscribe();
     return () => {
       cancelled = true;
       supabase.removeChannel(ch);
     };
   }, [engagement?.id]);
+
 
   if (!engagement?.submission_date) return null;
   const dleft = daysUntil(engagement.submission_date);
@@ -71,6 +99,12 @@ export function SubmissionBanner() {
         ? "Submission today"
         : `${Math.abs(dleft)}d past submission`;
 
+  const archived = engagement.status === "Archived" || engagement.status === "Complete";
+  const overdueActive = (tone === "past" || tone === "critical") && !archived;
+  const overdueLabel = dleft !== null && dleft < 0 && !archived
+    ? "SUBMISSION OVERDUE"
+    : label;
+
   return (
     <div className={cn("border-b backdrop-blur px-3 py-2", toneClasses)}>
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 text-xs">
@@ -80,8 +114,9 @@ export function SubmissionBanner() {
           ) : (
             <Clock className="h-3.5 w-3.5" />
           )}
-          {label}
+          {overdueLabel}
         </div>
+
         <span className="text-muted-foreground">
           Submission{" "}
           {new Date(engagement.submission_date).toLocaleDateString(undefined, {
@@ -131,6 +166,23 @@ export function SubmissionBanner() {
           {milestones.length === 0 ? "Add milestones" : "Edit"}
         </Link>
       </div>
+      {overdueActive && (openRisksCount > 0 || openSosCount > 0) && (
+        <div className="mx-auto mt-1 max-w-7xl text-[11px] font-medium text-[color:var(--red)]">
+          {openRisksCount > 0 && (
+            <>
+              {openRisksCount} open risk{openRisksCount === 1 ? "" : "s"}
+            </>
+          )}
+          {openRisksCount > 0 && openSosCount > 0 && " and "}
+          {openSosCount > 0 && (
+            <>
+              {openSosCount} unresolved SOS alert{openSosCount === 1 ? "" : "s"}
+            </>
+          )}
+          {" remain."}
+        </div>
+      )}
     </div>
   );
+
 }

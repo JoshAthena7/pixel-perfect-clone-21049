@@ -11,6 +11,21 @@ function fmt(ts: string) {
   return new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
+function expiryLabel(expiresAt: string): string | null {
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  if (ms <= 0) return "Expired";
+  const twoH = 2 * 60 * 60 * 1000;
+  if (ms > twoH) return null;
+  const mins = Math.max(1, Math.round(ms / 60000));
+  if (mins >= 60) {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return m === 0 ? `Expires in ${h}h` : `Expires in ${h}h ${m}m`;
+  }
+  return `Expires in ${mins}m`;
+}
+
+
 export function QuickChatPanel() {
   const { engagement, member } = useEngagement();
   const { chatOpenWith, closeChat } = useComms();
@@ -99,10 +114,14 @@ export function QuickChatPanel() {
       </div>
       <div ref={scrollRef} className="flex-1 overflow-auto px-3 py-3 space-y-2">
         {msgs.length === 0 ? (
-          <div className="text-xs text-muted-foreground text-center mt-8">No messages yet. Say hello.</div>
+          <div className="text-xs text-muted-foreground text-center mt-8 space-y-1">
+            <div>No active messages.</div>
+            <div className="text-[10px] italic">Messages older than 24h have expired.</div>
+          </div>
         ) : (
           msgs.map((m) => {
             const mine = m.sender_id === member?.id;
+            const expLabel = expiryLabel(m.expires_at);
             return (
               <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                 <div
@@ -111,13 +130,19 @@ export function QuickChatPanel() {
                   }`}
                 >
                   <div className="whitespace-pre-wrap">{m.message}</div>
-                  <div className="mt-0.5 text-[9px] text-muted-foreground text-right">{fmt(m.created_at)}</div>
+                  <div className="mt-0.5 flex items-center justify-end gap-2 text-[9px] text-muted-foreground">
+                    {expLabel && (
+                      <span className="text-[color:var(--orange)] font-medium">{expLabel}</span>
+                    )}
+                    <span>{fmt(m.created_at)}</span>
+                  </div>
                 </div>
               </div>
             );
           })
         )}
       </div>
+
       <div className="flex items-center gap-2 border-t border-border p-3">
         <Input
           value={draft}
