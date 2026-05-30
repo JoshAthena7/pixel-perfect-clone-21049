@@ -135,6 +135,10 @@ function SosPage() {
         <p className="mt-1 text-sm text-muted-foreground">Escalate urgent issues that need immediate leadership attention.</p>
       </div>
 
+      <ErrorBanner error={loadError} onRetry={() => engagement && load(engagement.id)} label="Couldn't load SOS alerts." />
+      {isLoading && alerts.length === 0 && <LoadingSkeleton label="Loading SOS alerts…" />}
+
+
       {/* Top banner — visible whenever there are open alerts */}
       {open.length > 0 && (
         <div className="rounded-xl border border-[color:var(--red)]/40 bg-[color:color-mix(in_oklab,var(--red)_14%,transparent)] px-5 py-3 glow-red">
