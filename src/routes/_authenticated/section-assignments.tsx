@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
+import { Trash2, Lock, Unlock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated/section-assignments")({
   head: () => ({ meta: [{ title: "Section Assignments — Athena" }] }),
@@ -27,7 +28,7 @@ function SectionAssignments() {
   async function load() {
     if (!engagement) return;
     const [{ data: s }, { data: m }, { data: a }] = await Promise.all([
-      supabase.from("heatmap_sections").select("id, section_name").eq("engagement_id", engagement.id).order("sort_order"),
+      supabase.from("heatmap_sections").select("id, section_name, sensitivity").eq("engagement_id", engagement.id).order("sort_order"),
       supabase.from("engagement_members").select("user_id, display_name, role").eq("engagement_id", engagement.id),
       supabase.from("section_assignments").select("id, section_id, user_id, status, due_date, heatmap_sections(section_name), engagement_members:engagement_members!inner(display_name)").eq("engagement_id", engagement.id),
     ]);
@@ -36,6 +37,14 @@ function SectionAssignments() {
     setAssignments(a ?? []);
   }
   useEffect(() => { load(); }, [engagement?.id]);
+
+  async function toggleSensitivity(id: string, current: string) {
+    const next = current === "restricted" ? "standard" : "restricted";
+    const { error } = await (supabase as any).from("heatmap_sections").update({ sensitivity: next }).eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success(next === "restricted" ? "Section locked to leadership" : "Section unlocked for writers");
+    load();
+  }
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
