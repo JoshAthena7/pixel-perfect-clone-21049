@@ -78,6 +78,9 @@ export function EngagementInvite({
           <Text style={{ fontSize: 11, color: C.muted, margin: 0 }}>
             If you weren't expecting this invite, you can safely ignore this email.
           </Text>
+          <Text style={{ fontSize: 11, color: C.muted, margin: "12px 0 0", letterSpacing: 1 }}>
+            Athena Strategy Group · Powered by Athena Command™
+          </Text>
         </Container>
       </Body>
     </Html>
