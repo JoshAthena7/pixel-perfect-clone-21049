@@ -171,9 +171,20 @@ function AdminEngagementsList() {
                   >
                     {e.status}
                   </Badge>
-                  <Button size="sm" className="h-8 gap-1" onClick={() => enterRoom(e.id)}>
-                    Enter <ArrowRight className="h-3 w-3" />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button size="sm" className="h-8 gap-1" onClick={() => enterRoom(e.id)}>
+                      Enter <ArrowRight className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-red-400"
+                      onClick={() => deleteEngagement(e)}
+                      title="Delete engagement"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </div>
               );
             })}
