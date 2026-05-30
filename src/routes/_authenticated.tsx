@@ -232,38 +232,3 @@ function RoleGuardedShell() {
   );
 }
 
-function AppHeaderContent() {
-  const { engagement, loading, member, isLeadership } = useEngagement();
-  const pathname = useRouterState({ select: (r) => r.location.pathname });
-  const pageTitle = PAGE_TITLES[pathname] ?? "";
-  const isWriter = !!member && !isLeadership;
-
-  return (
-    <div className="flex min-w-0 flex-1 items-center gap-2 text-xs">
-      <span className="hidden md:inline text-[10px] uppercase tracking-[0.18em] text-[var(--gold)] font-semibold whitespace-nowrap">
-        {isWriter ? "Athena Writer Portal" : "Athena Command™"}
-      </span>
-      <span className="hidden md:inline text-muted-foreground">/</span>
-      {pageTitle && <span className="font-bold text-sm truncate">{pageTitle}</span>}
-
-      <span className="ml-auto flex items-center gap-3 min-w-0">
-        {loading ? (
-          <span className="text-muted-foreground truncate">Loading engagement…</span>
-        ) : engagement ? (
-          <>
-            <span className="font-semibold truncate max-w-[28vw]">{engagement.name}</span>
-            <span className="text-muted-foreground hidden lg:inline truncate">/ {engagement.client}</span>
-            {!isWriter && (
-              <>
-                <span className="text-muted-foreground hidden md:inline">•</span>
-                <LivePresence />
-              </>
-            )}
-          </>
-        ) : (
-          <span className="text-muted-foreground">No engagement</span>
-        )}
-      </span>
-    </div>
-  );
-}
