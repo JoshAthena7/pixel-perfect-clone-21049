@@ -9,6 +9,16 @@ import { useEngagement } from "@/hooks/use-engagement";
 import { daysUntil, relativeTime } from "@/lib/time";
 import { ArrowRight, Plus, Search, Building2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { SERVICE_CATEGORIES, type ServicesChecklist } from "@/lib/ai/sizing.functions";
+
+const SERVICE_SHORT: Record<string, string> = {
+  pre_writing: "Pre-Write",
+  writing: "Write",
+  sme: "SME",
+  creative: "Creative",
+  qa: "QA",
+  post_submission: "Post",
+};
 
 export const Route = createFileRoute("/_authenticated/admin/engagements")({
   component: AdminEngagementsList,
@@ -23,6 +33,7 @@ type Eng = {
   submission_date: string | null;
   contract_value_estimate: number | null;
   created_at: string | null;
+  services?: ServicesChecklist | null;
 };
 
 const STATUS_TABS = ["Active", "Closed", "Archived", "All"] as const;
@@ -47,7 +58,19 @@ function AdminEngagementsList() {
         .from("engagements")
         .select("id,name,client,state,status,submission_date,contract_value_estimate,created_at")
         .order("created_at", { ascending: false });
-      setEngs((data ?? []) as Eng[]);
+      const rows = (data ?? []) as Eng[];
+      const ids = rows.map((r) => r.id);
+      if (ids.length) {
+        const { data: cfgs } = await supabase
+          .from("engagement_config")
+          .select("engagement_id, services_checklist")
+          .in("engagement_id", ids);
+        const byId = new Map<string, ServicesChecklist | null>(
+          ((cfgs ?? []) as any[]).map((c) => [c.engagement_id, (c.services_checklist as ServicesChecklist) ?? null]),
+        );
+        for (const r of rows) r.services = byId.get(r.id) ?? null;
+      }
+      setEngs(rows);
       setLoading(false);
     })();
   }, []);
@@ -142,7 +165,7 @@ function AdminEngagementsList() {
               return (
                 <div
                   key={e.id}
-                  className="grid grid-cols-[2.2fr_1.2fr_90px_130px_130px_120px_160px] items-center gap-3 px-5 py-3 hover:bg-white/[0.02] transition"
+                  className="grid grid-cols-[2.2fr_1.2fr_90px_1.4fr_120px_130px_120px_160px] items-center gap-3 px-5 py-3 hover:bg-white/[0.02] transition"
                 >
                   <div className="min-w-0">
                     <div className="text-sm font-bold truncate">{e.name}</div>
@@ -152,6 +175,7 @@ function AdminEngagementsList() {
                   </div>
                   <div className="text-xs truncate">{e.client}</div>
                   <div className="text-xs text-muted-foreground">{e.state ?? "—"}</div>
+                  <ServicesChips services={e.services ?? null} />
                   <div className="text-xs">
                     {fmtCurrency(e.contract_value_estimate ?? 0)}
                   </div>
@@ -200,4 +224,34 @@ function fmtCurrency(n: number): string {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
   return n > 0 ? `$${n.toFixed(0)}` : "—";
+}
+
+function ServicesChips({ services }: { services: ServicesChecklist | null }) {
+  if (!services) {
+    return <div className="text-[11px] italic text-muted-foreground">Not sized</div>;
+  }
+  const chips = SERVICE_CATEGORIES.map((cat) => {
+    const items = services[cat.key]?.items ?? [];
+    const checked = items.filter((i) => i.checked).length;
+    return { key: cat.key, label: SERVICE_SHORT[cat.key] ?? cat.label, count: checked };
+  }).filter((c) => c.count > 0);
+
+  if (chips.length === 0) {
+    return <div className="text-[11px] italic text-muted-foreground">None selected</div>;
+  }
+
+  return (
+    <div className="flex flex-wrap gap-1">
+      {chips.map((c) => (
+        <span
+          key={c.key}
+          title={`${c.label}: ${c.count} item${c.count === 1 ? "" : "s"}`}
+          className="inline-flex items-center gap-1 rounded border border-[var(--gold)]/30 bg-[var(--gold)]/10 px-1.5 py-0.5 text-[10px] font-semibold text-[var(--gold)]"
+        >
+          {c.label}
+          <span className="opacity-70">{c.count}</span>
+        </span>
+      ))}
+    </div>
+  );
 }
