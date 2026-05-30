@@ -138,7 +138,7 @@ export function HookFailuresPanel() {
             ) : null}
             {!showAcked && (
               <button
-                onClick={() => ack(f.id)}
+                onClick={() => ack(f)}
                 className="rounded border border-border px-2 py-0.5 text-[11px] hover:bg-surface-hover"
               >
                 Ack
