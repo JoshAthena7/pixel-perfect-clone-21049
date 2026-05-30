@@ -18,7 +18,7 @@ export function HookFailuresPanel() {
   const [loading, setLoading] = useState(true);
   const [showAcked, setShowAcked] = useState(false);
   // ids that are optimistically acked but not yet committed (undo window open)
-  const pendingRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const pendingRef = useRef<Map<string, { timer: ReturnType<typeof setTimeout>; row: Failure }>>(new Map());
 
   async function load() {
     setLoading(true);
