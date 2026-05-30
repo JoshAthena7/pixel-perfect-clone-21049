@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Brain, X, Send, Bookmark, BookmarkCheck, Trash2, Globe, Building, Briefcase, Radar, ExternalLink, Sparkles } from "lucide-react";
+import { X, Send, Bookmark, BookmarkCheck, Trash2, Globe, Building, Briefcase, Radar, ExternalLink, Sparkles } from "lucide-react";
+import { IrisIcon } from "@/components/ui/IrisIcon";
 import { askAssistant, saveInsight, listSavedInsights, deleteSavedInsight } from "@/lib/ai/assistant.functions";
 import { useEngagement } from "@/hooks/use-engagement";
 import { toast } from "sonner";
@@ -284,7 +285,7 @@ export function AskAthenaWidget() {
         aria-label="Open Ask Iris"
       >
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/15 text-primary">
-          <Brain className="h-4 w-4" />
+          <IrisIcon size={16} />
         </span>
         <span className="flex-1 truncate text-left text-sm text-muted-foreground">
           Ask Iris anything — research, brainstorm, reference…
@@ -302,7 +303,7 @@ export function AskAthenaWidget() {
         <div className="flex h-full flex-col border-t border-border bg-background shadow-2xl">
           <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2.5">
             <div className="flex items-center gap-2">
-              <Brain className="h-4 w-4 text-primary" />
+              <IrisIcon size={16} className="text-white" />
               <span className="text-sm font-semibold">Ask Iris</span>
               <div className="ml-3 flex items-center gap-1">
                 <button
@@ -361,10 +362,11 @@ export function AskAthenaWidget() {
               <div ref={scrollRef} className="flex-1 overflow-auto px-4 py-3 space-y-4">
                 {history.length === 0 && !loading && input.trim().length === 0 && (
                   <div
-                    className="whitespace-pre-wrap italic"
-                    style={{ color: "#D4AE4A", fontSize: "10px", lineHeight: 1.7 }}
+                    className="flex items-start gap-2 whitespace-pre-wrap italic"
+                    style={{ color: "#C49A2A", fontSize: "10px", lineHeight: 1.7 }}
                   >
-                    {IRIS_WELCOME}
+                    <IrisIcon size={14} className="mt-0.5 shrink-0" />
+                    <span>{IRIS_WELCOME}</span>
                   </div>
                 )}
                 {history.map((ex) => {
