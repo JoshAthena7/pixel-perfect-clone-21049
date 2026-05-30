@@ -43,16 +43,55 @@ export function HookFailuresPanel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showAcked]);
 
-  async function commitAck(id: string) {
-    const { data: { user } } = await supabase.auth.getUser();
-    const { error } = await supabase
-      .from("hook_failures")
-      .update({ acknowledged_at: new Date().toISOString(), acknowledged_by: user?.id })
-      .eq("id", id);
-    pendingRef.current.delete(id);
-    if (error) {
-      toast.error("Failed to acknowledge", { description: error.message });
-      load();
+  function restoreRow(row: Failure) {
+    setRows((prev) =>
+      prev.some((r) => r.id === row.id)
+        ? prev
+        : [row, ...prev].sort(
+            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+          ),
+    );
+  }
+
+  async function commitAck(row: Failure) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data, error } = await supabase
+        .from("hook_failures")
+        .update({ acknowledged_at: new Date().toISOString(), acknowledged_by: user?.id })
+        .eq("id", row.id)
+        .is("acknowledged_at", null) // don't clobber concurrent acks
+        .select("id");
+
+      pendingRef.current.delete(row.id);
+
+      if (error) throw error;
+
+      // Silent RLS denial OR row already acked elsewhere → revert UI to truth
+      if (!data || data.length === 0) {
+        const { data: fresh } = await supabase
+          .from("hook_failures")
+          .select("acknowledged_at")
+          .eq("id", row.id)
+          .maybeSingle();
+        if (!fresh?.acknowledged_at) {
+          // Not acked in DB and our update affected nothing → permission/network mismatch
+          restoreRow(row);
+          toast.error("Couldn't acknowledge", {
+            description: "The change wasn't saved. Restored the failure to the list.",
+            action: { label: "Retry", onClick: () => ack(row) },
+          });
+        }
+        // else: someone else already acked it — leave it removed from UI
+      }
+    } catch (e) {
+      pendingRef.current.delete(row.id);
+      restoreRow(row);
+      const msg = e instanceof Error ? e.message : "Unknown error";
+      toast.error("Couldn't acknowledge", {
+        description: msg,
+        action: { label: "Retry", onClick: () => ack(row) },
+      });
     }
   }
 
@@ -60,7 +99,7 @@ export function HookFailuresPanel() {
     // Optimistic remove
     setRows((prev) => prev.filter((r) => r.id !== row.id));
     // Schedule the actual DB write after the undo window
-    const timer = setTimeout(() => void commitAck(row.id), 10_000);
+    const timer = setTimeout(() => void commitAck(row), 10_000);
     pendingRef.current.set(row.id, timer);
 
     toast.success(`Acknowledged ${row.hook_name}`, {
@@ -71,12 +110,8 @@ export function HookFailuresPanel() {
           const t = pendingRef.current.get(row.id);
           if (t) clearTimeout(t);
           pendingRef.current.delete(row.id);
-          // Restore row and re-sort newest-first
-          setRows((prev) =>
-            [row, ...prev].sort(
-              (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-            ),
-          );
+          // Timer cleared before commit fired → no DB write happened → restore UI
+          restoreRow(row);
         },
       },
     });
