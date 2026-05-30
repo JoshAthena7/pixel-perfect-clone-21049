@@ -76,6 +76,17 @@ export const askAssistant = createServerFn({ method: "POST" })
     const scope = data.scope ?? "engagement";
     const eid = scope === "engagement" ? data.engagementId ?? null : null;
 
+    // ---- Iris identity short-circuit: never call any AI model
+    if (isIrisIdentityQuery(lastUser)) {
+      return {
+        reply: IRIS_IDENTITY_REPLY,
+        sources: [] as Array<{ source_table: string; source_id: string; similarity: number; preview: string }>,
+        market_sources: [] as Array<{ source: string; title: string; url: string | null; similarity: number }>,
+        source: "iris-identity" as const,
+        citations: [] as string[],
+      };
+    }
+
     // ---- Smart routing: Perplexity live search for time-sensitive queries
     const deepHits = countMatches(lastUser, DEEP_TRIGGERS);
     const liveHits = countMatches(lastUser, LIVE_TRIGGERS);
