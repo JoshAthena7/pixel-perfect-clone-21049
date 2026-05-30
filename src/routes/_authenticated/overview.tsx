@@ -225,11 +225,9 @@ function OverviewPage() {
       openSos += r.open_sos;
       openRisks += r.open_risks;
     }
-    const totalTcv = leadership.reduce(
-      (sum, m) => sum + Number((m.engagement as any).contract_value_estimate ?? 0),
-      0
-    );
+    const totalTcv = 0;
     return { activeCount, openSos, openRisks, totalTcv };
+
   }, [leadership, rollups]);
 
   const sortedEngagements = useMemo(() => {
