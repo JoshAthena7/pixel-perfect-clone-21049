@@ -347,6 +347,9 @@ All under `src/routes/api/public/hooks/*` (apikey-protected) and `src/routes/lov
 | Lovable AI Gateway | LLM + embeddings | `LOVABLE_API_KEY` | `src/lib/ai/*.functions.ts`, `process-embeddings` |
 | OpenAI | reserved | `OPENAI_API_KEY` | (not yet wired) |
 | Firecrawl | web scraping for market intel | `FIRECRAWL_API_KEY` (connector-managed) | `ingest-market-intel`, `holy-grail.functions` |
+| Federal Register | CMS rules + proposed rules | none (public API) | `ingest-market-intel` |
+| Congress.gov | Medicaid/Medicare legislation | `CONGRESS_API_KEY` (free, api.congress.gov) | `ingest-market-intel` |
+| KFF State Health Facts | per-state Medicaid enrollment + managed care | via `FIRECRAWL_API_KEY` | `ingest-market-intel` → `state_market_data` |
 | Lovable Email | transactional + auth emails | `LOVABLE_API_KEY` | `lovable/email/*` |
 | Slack | webhook notifications | per-engagement `engagements.slack_webhook` | hooks |
 | Supabase Storage | file uploads | service-role | `intel.tsx`, `compliance` flows |
