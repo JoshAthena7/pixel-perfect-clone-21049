@@ -62,6 +62,7 @@ import { Route as ApiPublicHooksIntelligenceEngineRouteImport } from './routes/a
 import { Route as ApiPublicHooksIngestMarketIntelRouteImport } from './routes/api/public/hooks/ingest-market-intel'
 import { Route as ApiPublicHooksDailyDigestRouteImport } from './routes/api/public/hooks/daily-digest'
 import { Route as ApiPublicHooksBackfillEmbeddingsRouteImport } from './routes/api/public/hooks/backfill-embeddings'
+import { Route as AuthenticatedEngagementIdSectionSectionIdEditRouteImport } from './routes/_authenticated/engagement.$id.section.$sectionId.edit'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -355,6 +356,12 @@ const ApiPublicHooksBackfillEmbeddingsRoute =
     path: '/api/public/hooks/backfill-embeddings',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedEngagementIdSectionSectionIdEditRoute =
+  AuthenticatedEngagementIdSectionSectionIdEditRouteImport.update({
+    id: '/engagement/$id/section/$sectionId/edit',
+    path: '/engagement/$id/section/$sectionId/edit',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -409,6 +416,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/engagement/$id/section/$sectionId/edit': typeof AuthenticatedEngagementIdSectionSectionIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -462,6 +470,7 @@ export interface FileRoutesByTo {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/engagement/$id/section/$sectionId/edit': typeof AuthenticatedEngagementIdSectionSectionIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -518,6 +527,7 @@ export interface FileRoutesById {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/_authenticated/engagement/$id/section/$sectionId/edit': typeof AuthenticatedEngagementIdSectionSectionIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -574,6 +584,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/engagement/$id/section/$sectionId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -627,6 +638,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/engagement/$id/section/$sectionId/edit'
   id:
     | '__root__'
     | '/'
@@ -682,6 +694,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/_authenticated/engagement/$id/section/$sectionId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1077,6 +1090,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksBackfillEmbeddingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/engagement/$id/section/$sectionId/edit': {
+      id: '/_authenticated/engagement/$id/section/$sectionId/edit'
+      path: '/engagement/$id/section/$sectionId/edit'
+      fullPath: '/engagement/$id/section/$sectionId/edit'
+      preLoaderRoute: typeof AuthenticatedEngagementIdSectionSectionIdEditRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
@@ -1135,6 +1155,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedWriterProgressRoute: typeof AuthenticatedWriterProgressRoute
   AuthenticatedWriterRecognitionFeedRoute: typeof AuthenticatedWriterRecognitionFeedRoute
   AuthenticatedWriterWorkLogRoute: typeof AuthenticatedWriterWorkLogRoute
+  AuthenticatedEngagementIdSectionSectionIdEditRoute: typeof AuthenticatedEngagementIdSectionSectionIdEditRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -1166,6 +1187,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedWriterRecognitionFeedRoute:
     AuthenticatedWriterRecognitionFeedRoute,
   AuthenticatedWriterWorkLogRoute: AuthenticatedWriterWorkLogRoute,
+  AuthenticatedEngagementIdSectionSectionIdEditRoute:
+    AuthenticatedEngagementIdSectionSectionIdEditRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
