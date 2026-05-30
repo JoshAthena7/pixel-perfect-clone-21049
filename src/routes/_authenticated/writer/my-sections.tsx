@@ -67,10 +67,9 @@ function WriterMySections() {
     setIsLoading(false);
     if (error) { setLoadError(error.message); return; }
     setItems(
-      ((data as any[]) ?? []).map((r) => ({
-        ...r,
-        section: r.heatmap_sections,
-      })),
+      ((data as any[]) ?? [])
+        .map((r) => ({ ...r, section: r.heatmap_sections }))
+        .sort((a, b) => (b.section?.evaluation_weight_pct ?? -1) - (a.section?.evaluation_weight_pct ?? -1)),
     );
     const { data: seen } = await supabase
       .from("writer_last_seen")
