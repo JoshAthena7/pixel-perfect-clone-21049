@@ -14,6 +14,7 @@ import { logActivity } from "@/lib/activity-log";
 import { Watermark } from "@/components/war-room/Watermark";
 import { WinThemesReferencePanel } from "@/components/war-room/WinThemesReferencePanel";
 import { WriterPolicyAlertsPanel } from "@/components/war-room/WriterPolicyAlertsPanel";
+import { WriterCompliancePanel } from "@/components/war-room/WriterCompliancePanel";
 
 export const Route = createFileRoute("/_authenticated/engagement/$id/section/$sectionId/edit")({
   head: () => ({ meta: [{ title: "Section Editor — Athena" }] }),
