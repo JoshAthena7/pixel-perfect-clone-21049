@@ -288,7 +288,7 @@ function TriviaCard() {
   return (
     <Card className="border-[var(--gold)]/30 bg-surface p-4">
       <div className="text-[10px] uppercase tracking-[0.22em] text-[var(--gold)] font-semibold">
-        Indiana Trivia · Daily
+        {engagement?.state ? `${engagement.state} Trivia` : "Daily Trivia"} · Daily
       </div>
       <div className="mt-2 text-sm font-semibold">{t.q}</div>
       <div className="mt-3 grid gap-2 md:grid-cols-2">
