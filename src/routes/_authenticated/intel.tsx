@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { relativeTime } from "@/lib/time";
 import { FileText, LinkIcon, Upload, Download, ExternalLink } from "lucide-react";
 import { DeclareTriviaWinnerCard } from "@/components/war-room/DeclareTriviaWinnerCard";
+import { Watermark } from "@/components/war-room/Watermark";
+import { logActivity } from "@/lib/activity-log";
 
 export const Route = createFileRoute("/_authenticated/intel")({
   head: () => ({ meta: [{ title: "Intel Library — Athena" }] }),
@@ -101,6 +103,7 @@ function IntelPage() {
 
   return (
     <div className="mx-auto grid max-w-7xl gap-6 p-4 md:p-8 lg:grid-cols-5">
+      <Watermark />
       {isLeadership && <DeclareTriviaWinnerCard />}
       {isLeadership && (
         <Card className="border-border bg-surface p-6 lg:col-span-2">
