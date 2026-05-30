@@ -6,6 +6,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createFileRoute } from "@tanstack/react-router";
 import { embedText, pgvectorLiteral } from "@/lib/intelligence/embed";
+import { searchWeb } from "@/lib/ai/perplexity";
 
 export const Route = createFileRoute("/api/public/hooks/ingest-market-intel")({
   server: {
