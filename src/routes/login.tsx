@@ -48,7 +48,7 @@ function LoginPage() {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/select-engagement`,
+            emailRedirectTo: `${window.location.origin}/login`,
             data: { display_name: name || email.split("@")[0] },
           },
         });
