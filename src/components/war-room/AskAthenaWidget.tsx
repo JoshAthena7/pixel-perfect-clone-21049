@@ -301,10 +301,14 @@ export function AskAthenaWidget() {
         aria-hidden={!open}
       >
         <div className="flex h-full flex-col border-t border-border bg-background shadow-2xl">
-          <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2.5">
+          <div className="border-b border-border">
+          <div className="flex items-center justify-between gap-3 px-4 py-2.5">
             <div className="flex items-center gap-2">
               <IrisIcon size={16} className="text-white" />
               <span className="text-sm font-semibold">Ask Iris</span>
+              <span className="text-[9px] font-medium uppercase tracking-[0.18em] text-muted-foreground/70">
+                Athena Intelligence
+              </span>
               <div className="ml-3 flex items-center gap-1">
                 <button
                   type="button"
