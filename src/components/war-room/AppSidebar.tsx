@@ -31,7 +31,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
 import { EngagementSwitcher } from "@/components/EngagementSwitcher";
-import { AthenaMark } from "@/components/ui/AthenaMark";
+import { BrandLockup } from "@/components/ui/BrandLockup";
 import { useIsAdmin } from "@/hooks/use-admin";
 import type { ComponentType } from "react";
 import type { LucideProps } from "lucide-react";
