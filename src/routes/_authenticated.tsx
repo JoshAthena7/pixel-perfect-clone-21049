@@ -174,10 +174,9 @@ function RoleGuardedShell() {
 }
 
 function AppHeaderContent() {
-  const { engagement, loading, member } = useEngagement();
+  const { engagement, loading, member, isLeadership } = useEngagement();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const pageTitle = PAGE_TITLES[pathname] ?? "";
-  const { isLeadership } = useEngagement();
   const isWriter = !!member && !isLeadership;
 
   return (
