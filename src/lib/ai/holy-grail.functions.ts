@@ -277,6 +277,8 @@ Extract OPPORTUNITY INTELLIGENCE — the basic facts about this procurement. Ret
   "incumbents": [string],
   "contract_term": string,
   "regions": [string],
+  "submission_due_date": string,
+  "submission_due_time": string,
   "timeline": [{"label": string, "date": string}],
   "evaluation_criteria": [{"criterion": string, "weight": string, "notes": string}],
   "mandatory_requirements": [string],
