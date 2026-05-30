@@ -168,11 +168,7 @@ export function DailyDigest({
   )
 }
 
-        </Container>
-      </Body>
-    </Html>
-  )
-}
+
 
 export const template: TemplateEntry = {
   component: DailyDigest,
