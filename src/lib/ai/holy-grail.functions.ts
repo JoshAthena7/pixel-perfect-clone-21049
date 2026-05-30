@@ -7,7 +7,10 @@ const Schema = z.object({
   engagementId: z.string().uuid(),
   documentId: z.string().uuid().optional(),
   fileName: z.string().min(1).max(240),
-  text: z.string().min(20).max(MAX_TEXT).transform((t) => t.slice(0, MAX_TEXT)),
+  text: z.preprocess(
+    (v) => (typeof v === "string" ? v.slice(0, MAX_TEXT) : v),
+    z.string().min(20).max(MAX_TEXT),
+  ),
 });
 
 function parseJsonObject(raw: string) {
