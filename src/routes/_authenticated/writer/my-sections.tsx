@@ -100,6 +100,17 @@ function WriterMySections() {
     burstConfetti(2000);
     const { error } = await supabase.from("section_assignments").update({ status: "Complete" }).eq("id", completeFor.id);
     if (error) return toast.error(error.message);
+    if (engagement && member) {
+      logActivity({
+        engagementId: engagement.id,
+        userId: user?.id ?? null,
+        actorName: member.display_name,
+        action: "section_completed",
+        targetTable: "section_assignments",
+        targetId: completeFor.id,
+        metadata: { section_name: completeFor.section_name },
+      });
+    }
     setCompleteFor(null);
     toast.success("Section marked Complete 🎉");
     load();
