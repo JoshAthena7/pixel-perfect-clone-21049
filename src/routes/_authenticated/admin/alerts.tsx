@@ -8,7 +8,7 @@ export const Route = createFileRoute("/_authenticated/admin/alerts")({
     <AdminPlaceholder
       icon={AlertTriangle}
       title="Alerts"
-      description="SOS, risks, and stuck flags across every war room."
+      description="SOS, risks, and stuck flags across every Mission."
       comingSoon="One queue for every Open SOS, risk escalation, and stuck section flag — with assign, snooze, and resolve actions."
     />
   ),
