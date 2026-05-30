@@ -35,7 +35,7 @@ const COLORS = {
   border: '#e2e8f0',
   red: '#dc2626',
   amber: '#d97706',
-  accent: '#1e3a8a',
+  accent: '#1B3B72',
 }
 
 export function DailyDigest({

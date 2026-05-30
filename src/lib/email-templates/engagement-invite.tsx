@@ -19,8 +19,8 @@ const C = {
   muted: "#475569",
   border: "#e2e8f0",
   card: "#f8fafc",
-  accent: "#1e3a8a",
-  gold: "#b8862f",
+  accent: "#1B3B72",
+  gold: "#C49A2A",
 };
 
 export function EngagementInvite({
@@ -77,6 +77,9 @@ export function EngagementInvite({
           <Hr style={{ borderColor: C.border, margin: "28px 0 16px" }} />
           <Text style={{ fontSize: 11, color: C.muted, margin: 0 }}>
             If you weren't expecting this invite, you can safely ignore this email.
+          </Text>
+          <Text style={{ fontSize: 11, color: C.muted, margin: "12px 0 0", letterSpacing: 1 }}>
+            Athena Strategy Group · Powered by Athena Command™
           </Text>
         </Container>
       </Body>
