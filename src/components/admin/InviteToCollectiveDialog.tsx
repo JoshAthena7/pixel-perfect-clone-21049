@@ -53,6 +53,7 @@ export function InviteToCollectiveDialog({
   const [engagementId, setEngagementId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const lockRef = useRef(false);
 
   const COOLDOWN_SECONDS = 5;
@@ -101,12 +102,15 @@ export function InviteToCollectiveDialog({
       engagement_id: engagementId,
     });
     if (!parsed.success) {
-      toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
+      const msg = parsed.error.issues[0]?.message ?? "Invalid input";
+      setErrorMessage(msg);
+      toast.error(msg);
       return;
     }
 
     lockRef.current = true;
     setSubmitting(true);
+    setErrorMessage(null);
     try {
 
       const { data: userRes } = await supabase.auth.getUser();
@@ -139,6 +143,7 @@ export function InviteToCollectiveDialog({
       setCooldown(COOLDOWN_SECONDS);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to send invite";
+      setErrorMessage(message);
       toast.error("Invite failed", { description: message });
       setCooldown(ERROR_COOLDOWN_SECONDS);
     } finally {
@@ -162,6 +167,15 @@ export function InviteToCollectiveDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-3">
+          {errorMessage && (
+            <div
+              role="alert"
+              className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+            >
+              <span className="font-medium uppercase tracking-wider text-[10px]">Invite failed:</span>{" "}
+              {errorMessage}
+            </div>
+          )}
           <fieldset disabled={submitting} className="space-y-3 disabled:opacity-60 disabled:cursor-not-allowed">
             <div className="grid gap-1.5">
               <Label htmlFor="invite-name" className="text-[10px] uppercase tracking-wider text-muted-foreground">
