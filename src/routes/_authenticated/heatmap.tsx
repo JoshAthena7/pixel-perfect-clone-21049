@@ -117,86 +117,99 @@ function HeatmapPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {sections.map((s) => {
-          const isEditing = editingId === s.id;
-          return (
-            <Card key={s.id} className="border-border bg-surface p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="text-xs uppercase tracking-wider text-muted-foreground">Section</div>
-                  <div className="text-lg font-bold">{s.section_name}</div>
-                </div>
-                <StatusPill status={s.status} />
-              </div>
+      <Tabs defaultValue="map" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="map">Heat Map</TabsTrigger>
+          <TabsTrigger value="health">Section Health</TabsTrigger>
+        </TabsList>
 
-              {!isEditing && (
-                <>
-                  {s.notes && <p className="mt-3 text-sm text-muted-foreground">{s.notes}</p>}
-                  <div className="mt-3 text-[11px] text-muted-foreground">
-                    {s.updated_by_name ? `${s.updated_by_name} • ${relativeTime(s.updated_at)}` : "No updates yet"}
-                  </div>
-                  {isLeadership && (
-                    <Button size="sm" variant="outline" className="mt-4 w-full" onClick={() => startEdit(s)}>
-                      Update
-                    </Button>
-                  )}
-                </>
-              )}
-
-              {isEditing && (
-                <div className="mt-4 space-y-3">
-                  <div>
-                    <Label className="mb-2 block text-xs">Status</Label>
-                    <div className="flex flex-wrap gap-1.5">
-                      {STATUSES.map((st) => (
-                        <button
-                          key={st}
-                          type="button"
-                          onClick={() => setDraftStatus(st)}
-                          className={`rounded-md px-2 py-1 transition ${draftStatus === st ? "ring-2 ring-primary" : "opacity-60 hover:opacity-100"}`}
-                        >
-                          <StatusPill status={st} />
-                        </button>
-                      ))}
+        <TabsContent value="map" className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {sections.map((s) => {
+              const isEditing = editingId === s.id;
+              return (
+                <Card key={s.id} className="border-border bg-surface p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-xs uppercase tracking-wider text-muted-foreground">Section</div>
+                      <div className="text-lg font-bold">{s.section_name}</div>
                     </div>
+                    <StatusPill status={s.status} />
                   </div>
-                  <div>
-                    <Label htmlFor={`notes-${s.id}`} className="text-xs">Notes</Label>
-                    <Textarea
-                      id={`notes-${s.id}`}
-                      rows={3}
-                      value={draftNotes}
-                      onChange={(e) => setDraftNotes(e.target.value)}
-                      placeholder="What's driving this status?"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor={`instructions-${s.id}`} className="text-xs">Instructions for writer (section brief)</Label>
-                    <Textarea
-                      id={`instructions-${s.id}`}
-                      rows={3}
-                      value={draftInstructions}
-                      onChange={(e) => setDraftInstructions(e.target.value)}
-                      placeholder="What does the writer need to know to draft this section?"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={() => save(s)} disabled={saving} className="flex-1">
-                      {saving ? "Saving…" : "Save"}
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              )}
 
-              <SectionThread sectionId={s.id} />
-            </Card>
-          );
-        })}
-      </div>
+                  {!isEditing && (
+                    <>
+                      {s.notes && <p className="mt-3 text-sm text-muted-foreground">{s.notes}</p>}
+                      <div className="mt-3 text-[11px] text-muted-foreground">
+                        {s.updated_by_name ? `${s.updated_by_name} • ${relativeTime(s.updated_at)}` : "No updates yet"}
+                      </div>
+                      {isLeadership && (
+                        <Button size="sm" variant="outline" className="mt-4 w-full" onClick={() => startEdit(s)}>
+                          Update
+                        </Button>
+                      )}
+                    </>
+                  )}
+
+                  {isEditing && (
+                    <div className="mt-4 space-y-3">
+                      <div>
+                        <Label className="mb-2 block text-xs">Status</Label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {STATUSES.map((st) => (
+                            <button
+                              key={st}
+                              type="button"
+                              onClick={() => setDraftStatus(st)}
+                              className={`rounded-md px-2 py-1 transition ${draftStatus === st ? "ring-2 ring-primary" : "opacity-60 hover:opacity-100"}`}
+                            >
+                              <StatusPill status={st} />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor={`notes-${s.id}`} className="text-xs">Notes</Label>
+                        <Textarea
+                          id={`notes-${s.id}`}
+                          rows={3}
+                          value={draftNotes}
+                          onChange={(e) => setDraftNotes(e.target.value)}
+                          placeholder="What's driving this status?"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`instructions-${s.id}`} className="text-xs">Instructions for writer (section brief)</Label>
+                        <Textarea
+                          id={`instructions-${s.id}`}
+                          rows={3}
+                          value={draftInstructions}
+                          onChange={(e) => setDraftInstructions(e.target.value)}
+                          placeholder="What does the writer need to know to draft this section?"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={() => save(s)} disabled={saving} className="flex-1">
+                          {saving ? "Saving…" : "Save"}
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  <SectionThread sectionId={s.id} />
+                </Card>
+              );
+            })}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="health">
+          <SectionHealthTab />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
