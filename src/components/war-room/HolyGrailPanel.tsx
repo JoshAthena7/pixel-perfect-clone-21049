@@ -7,6 +7,7 @@ import { analyzeCategory, startHolyGrailRun, finishHolyGrailRun, generateHolyGra
 import { toast } from "sonner";
 import { RfpQuestionsThemesPanel } from "./RfpQuestionsThemesPanel";
 import { PolicyPanel } from "./PolicyPanel";
+import { CompliancePanel } from "./CompliancePanel";
 
 type CategoryKey = "opportunity" | "market" | "political" | "competitive" | "customer" | "provider" | "community";
 
