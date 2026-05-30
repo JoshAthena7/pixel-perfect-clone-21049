@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Sparkles, ChevronDown, ChevronUp, RefreshCw, Loader2, ExternalLink } from "lucide-react";
 import { relativeTime } from "@/lib/time";
-import { analyzeCategory, startHolyGrailRun, finishHolyGrailRun } from "@/lib/ai/holy-grail.functions";
+import { analyzeCategory, startHolyGrailRun, finishHolyGrailRun, generateHolyGrailSummary } from "@/lib/ai/holy-grail.functions";
 import { toast } from "sonner";
 
 type CategoryKey = "opportunity" | "market" | "political" | "competitive" | "customer" | "provider" | "community";
@@ -38,6 +38,8 @@ export function HolyGrailPanel({
   const [currentStep, setCurrentStep] = useState<string | null>(null);
   const [stepDone, setStepDone] = useState(0);
   const [refreshingCat, setRefreshingCat] = useState<CategoryKey | null>(null);
+  const [summarizing, setSummarizing] = useState(false);
+  const [showSummary, setShowSummary] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -110,6 +112,21 @@ export function HolyGrailPanel({
     }
   }
 
+  async function runSummary(style: "executive" | "brief" | "actions" = "executive") {
+    if (summarizing) return;
+    setSummarizing(true);
+    try {
+      await generateHolyGrailSummary({ data: { engagementId, style } });
+      toast.success("Executive summary ready");
+      setShowSummary(true);
+      await load();
+    } catch (err: any) {
+      toast.error(err?.message ?? "Could not generate summary");
+    } finally {
+      setSummarizing(false);
+    }
+  }
+
   if (loading) return null;
 
   const anyContent = Object.keys(rows).length > 0;
@@ -128,6 +145,9 @@ export function HolyGrailPanel({
   const activeRow = rows[activeDef.storage];
   const oppRow = rows["holy_grail_opportunity"];
   const hasOpportunity = !!oppRow;
+  const summaryRow = rows["holy_grail_summary"];
+  const categoryCount = CATEGORIES.reduce((n, c) => n + (rows[c.storage] ? 1 : 0), 0);
+  const canSummarize = categoryCount >= 1;
 
   return (
     <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-surface p-6 lg:col-span-5">
@@ -142,6 +162,15 @@ export function HolyGrailPanel({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => runSummary("executive")}
+            disabled={summarizing || !canSummarize}
+            title={canSummarize ? "Synthesize all sections into a 90-second executive summary" : "Run at least one category first"}
+            className="inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-600 hover:bg-amber-500/20 disabled:opacity-50"
+          >
+            {summarizing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+            {summarizing ? "Summarizing…" : summaryRow ? "Regenerate Summary" : "Generate Summary"}
+          </button>
           {isLeadership && (
             <button
               onClick={runFullAnalysis}
@@ -161,6 +190,16 @@ export function HolyGrailPanel({
 
       {open && (
         <>
+          {summaryRow && (
+            <SummaryCard
+              row={summaryRow}
+              show={showSummary}
+              onToggle={() => setShowSummary((v) => !v)}
+              onRegenerate={(style) => runSummary(style)}
+              regenerating={summarizing}
+            />
+          )}
+
           {/* Tab bar */}
           <div className="mt-4 flex flex-wrap gap-1 border-b border-border/60">
             {CATEGORIES.map((c) => {
@@ -535,5 +574,132 @@ function BulletField({
         ))}
       </ul>
     </Section>
+  );
+}
+
+type SummaryStyle = "executive" | "brief" | "actions";
+
+function SummaryCard({
+  row,
+  show,
+  onToggle,
+  onRegenerate,
+  regenerating,
+}: {
+  row: Row;
+  show: boolean;
+  onToggle: () => void;
+  onRegenerate: (style: SummaryStyle) => void;
+  regenerating: boolean;
+}) {
+  const c = row.content ?? {};
+  const rec: string = c.bid_recommendation ?? "";
+  const recTone =
+    rec.startsWith("BID-WITH") ? "bg-amber-500/15 text-amber-600 border-amber-500/30"
+    : rec.startsWith("NO") ? "bg-red-500/15 text-red-600 border-red-500/30"
+    : rec.startsWith("BID") ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/30"
+    : "bg-muted text-muted-foreground border-border";
+
+  return (
+    <div className="mt-4 rounded-lg border border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-surface p-4">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-amber-600" />
+          <div>
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Executive Summary</p>
+            <p className="text-xs text-muted-foreground">Generated {relativeTime(row.updated_at)}</p>
+          </div>
+          {rec && (
+            <span className={`ml-2 rounded-full border px-2 py-0.5 text-[10px] font-bold ${recTone}`}>
+              {rec}
+            </span>
+          )}
+          {c.win_probability && (
+            <span className="rounded-full border border-border bg-surface/70 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+              Win: {c.win_probability}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => onRegenerate("brief")}
+            disabled={regenerating}
+            title="Tighten to ~180 words"
+            className="rounded-md border border-border px-2 py-1 text-[10px] font-medium text-muted-foreground hover:text-foreground disabled:opacity-50"
+          >Brief</button>
+          <button
+            onClick={() => onRegenerate("actions")}
+            disabled={regenerating}
+            title="Lead with next actions"
+            className="rounded-md border border-border px-2 py-1 text-[10px] font-medium text-muted-foreground hover:text-foreground disabled:opacity-50"
+          >Actions</button>
+          <button onClick={onToggle} className="rounded-md border border-border p-1 text-muted-foreground hover:text-foreground">
+            {show ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+          </button>
+        </div>
+      </div>
+
+      {show && (
+        <div className="mt-3 space-y-3">
+          {c.headline && <p className="text-sm font-semibold leading-snug">{c.headline}</p>}
+
+          {Array.isArray(c.key_findings) && c.key_findings.length > 0 && (
+            <SummaryList title="Key Findings" items={c.key_findings} />
+          )}
+
+          <div className="grid gap-3 md:grid-cols-2">
+            {Array.isArray(c.win_themes) && c.win_themes.length > 0 && (
+              <SummaryList title="Win Themes" items={c.win_themes} tone="success" />
+            )}
+            {Array.isArray(c.top_risks) && c.top_risks.length > 0 && (
+              <SummaryList title="Top Risks" items={c.top_risks} tone="danger" />
+            )}
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-3">
+            {c.competitive_picture && <SummaryBlock title="Competitive" text={c.competitive_picture} />}
+            {c.political_picture && <SummaryBlock title="Political" text={c.political_picture} />}
+            {c.customer_picture && <SummaryBlock title="Customer" text={c.customer_picture} />}
+          </div>
+
+          {Array.isArray(c.next_actions) && c.next_actions.length > 0 && (
+            <SummaryList title="Next Actions" items={c.next_actions} tone="primary" />
+          )}
+          {Array.isArray(c.open_questions) && c.open_questions.length > 0 && (
+            <SummaryList title="Open Questions" items={c.open_questions} />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SummaryList({ title, items, tone }: { title: string; items: string[]; tone?: "success" | "danger" | "primary" }) {
+  const dot =
+    tone === "success" ? "bg-emerald-500"
+    : tone === "danger" ? "bg-red-500"
+    : tone === "primary" ? "bg-primary"
+    : "bg-muted-foreground/50";
+  return (
+    <div>
+      <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{title}</p>
+      <ul className="space-y-1 text-sm">
+        {items.map((it, i) => (
+          <li key={i} className="flex gap-2">
+            <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${dot}`} />
+            <span className="leading-snug">{it}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function SummaryBlock({ title, text }: { title: string; text: string }) {
+  return (
+    <div className="rounded-md border border-border bg-surface/70 p-2.5">
+      <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{title}</p>
+      <p className="text-xs leading-relaxed">{text}</p>
+    </div>
   );
 }

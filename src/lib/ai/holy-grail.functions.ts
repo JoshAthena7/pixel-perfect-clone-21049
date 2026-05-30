@@ -587,3 +587,87 @@ Now produce the JSON.`;
     }
     return { ok: true, sources: research.urls.length, confidence };
   });
+
+// ---------- Executive Summary across all Holy Grail categories ----------
+export const generateHolyGrailSummary = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      engagementId: z.string().uuid(),
+      style: z.enum(["executive", "brief", "actions"]).default("executive"),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    // Any member of the engagement can request a summary
+    const { data: member } = await supabase
+      .from("engagement_members")
+      .select("role")
+      .eq("engagement_id", data.engagementId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (!member) throw new Error("You must be a member of this engagement.");
+
+    const { data: rows } = await supabase
+      .from("engagement_research")
+      .select("category, title, content, confidence_score, updated_at")
+      .eq("engagement_id", data.engagementId)
+      .like("category", "holy_grail%");
+
+    const sections = (rows ?? []).filter((r: any) => r.category !== "holy_grail_summary");
+    if (!sections.length) throw new Error("No Holy Grail intelligence to summarize yet.");
+
+    const ctx = await loadEngagementContext(supabase, data.engagementId);
+
+    const lengthHint =
+      data.style === "brief"
+        ? "Keep the headline + 5 bullets maximum. Total under 180 words."
+        : data.style === "actions"
+          ? "Focus heavily on next_actions (8-12 concrete, owner-ready items). Other fields stay short."
+          : "Executive-grade. Tight prose, no filler. ~300-450 words total across all fields.";
+
+    const system = `You are the chief strategist for a state-government bid pursuit. Synthesize multiple intelligence categories into ONE executive summary the founder can read in 90 seconds.
+
+Return STRICT JSON:
+{
+  "headline": "one-sentence verdict on whether/how to pursue",
+  "bid_recommendation": "BID | NO-BID | BID-WITH-CONDITIONS",
+  "confidence": 0.0-1.0,
+  "win_probability": "low | medium | high",
+  "key_findings": [ "3-6 short bullets that cut across categories" ],
+  "win_themes": [ "3-5 themes we should lead with" ],
+  "top_risks": [ "3-5 risks ranked by impact" ],
+  "competitive_picture": "2-3 sentences on who wins if nothing changes and why",
+  "political_picture": "2-3 sentences on the political/agency dynamics",
+  "customer_picture": "2-3 sentences on what the customer actually wants",
+  "next_actions": [ "concrete, owner-ready next steps" ],
+  "open_questions": [ "what we still need to learn" ]
+}
+
+${lengthHint} Cite nothing — this is synthesis. Be specific, not generic.`;
+
+    const sectionDump = sections
+      .map((r: any) => {
+        const c = r.content ?? {};
+        const { _sources, ...rest } = c;
+        return `## ${r.title ?? r.category} (confidence ${Math.round((r.confidence_score ?? 0) * 100)}%)\n${JSON.stringify(rest).slice(0, 8000)}`;
+      })
+      .join("\n\n");
+
+    const userPrompt = `ENGAGEMENT CONTEXT:\n${ctxLine(ctx)}\n\nINTELLIGENCE SECTIONS:\n${sectionDump.slice(0, MAX_TEXT)}\n\nProduce the JSON now.`;
+
+    const parsed = await callAi(system, userPrompt, "google/gemini-2.5-flash");
+    const confidence = typeof parsed.confidence === "number" ? Math.max(0, Math.min(1, parsed.confidence)) : 0.6;
+
+    await saveSection(
+      supabase,
+      data.engagementId,
+      "holy_grail_summary",
+      "Executive Summary",
+      { ...parsed, _style: data.style, _generated_at: new Date().toISOString() },
+      [],
+      confidence,
+    );
+
+    return { ok: true, summary: parsed };
+  });
