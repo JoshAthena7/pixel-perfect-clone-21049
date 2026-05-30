@@ -112,10 +112,12 @@ export function HookFailuresPanel() {
         toast.success(`Acknowledged ${row.hook_name}`, { id: loadingToastId, duration: 3_000 });
       }
     } catch (e) {
+      if (timedOut) return; // already handled by safety timer
       pendingRef.current.delete(row.id);
       restoreRow(row);
       showRetryToast(row, e instanceof Error ? e.message : "Unknown error");
     } finally {
+      clearTimeout(safetyTimer);
       inflightRef.current.delete(row.id);
     }
   }
