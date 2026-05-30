@@ -55,16 +55,37 @@ export function HookFailuresPanel() {
     );
   }
 
+  const COMMIT_TIMEOUT_MS = 15_000;
+
   async function commitAck(row: Failure, loadingToastId?: string) {
     inflightRef.current.add(row.id);
+    // Hard guard: if the request hangs (proxy stall, lost socket, etc.) release the
+    // lock after COMMIT_TIMEOUT_MS so the row never gets stuck in an in-flight state.
+    let timedOut = false;
+    const safetyTimer = setTimeout(() => {
+      timedOut = true;
+      if (inflightRef.current.has(row.id)) {
+        inflightRef.current.delete(row.id);
+        pendingRef.current.delete(row.id);
+        restoreRow(row);
+        showRetryToast(row, `Request timed out after ${COMMIT_TIMEOUT_MS / 1000}s. No changes saved.`);
+      }
+    }, COMMIT_TIMEOUT_MS);
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      const { data, error } = await supabase
+      const updatePromise = supabase
         .from("hook_failures")
         .update({ acknowledged_at: new Date().toISOString(), acknowledged_by: user?.id })
         .eq("id", row.id)
         .is("acknowledged_at", null) // don't clobber concurrent acks
         .select("id");
+
+      const { data, error } = await updatePromise;
+
+      // If the safety timer already fired, the user has been notified and the row
+      // restored — ignore the late response so we don't double-handle it.
+      if (timedOut) return;
 
       pendingRef.current.delete(row.id);
 
@@ -91,10 +112,12 @@ export function HookFailuresPanel() {
         toast.success(`Acknowledged ${row.hook_name}`, { id: loadingToastId, duration: 3_000 });
       }
     } catch (e) {
+      if (timedOut) return; // already handled by safety timer
       pendingRef.current.delete(row.id);
       restoreRow(row);
       showRetryToast(row, e instanceof Error ? e.message : "Unknown error");
     } finally {
+      clearTimeout(safetyTimer);
       inflightRef.current.delete(row.id);
     }
   }
