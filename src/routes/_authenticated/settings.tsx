@@ -34,13 +34,6 @@ function SettingsPage() {
     setClient(engagement.client);
     setStatus(engagement.status);
     setDate(engagement.submission_date ? new Date(engagement.submission_date) : undefined);
-    if (isLeadership) {
-      supabase
-        .rpc("get_engagement_slack_webhook", { _engagement_id: engagement.id })
-        .then(({ data }) => setSlackWebhook((data as string | null) ?? ""));
-    } else {
-      setSlackWebhook("");
-    }
   }, [engagement?.id, isLeadership]);
 
   if (!engagement) return null;
@@ -55,7 +48,6 @@ function SettingsPage() {
         client,
         status,
         submission_date: date ? format(date, "yyyy-MM-dd") : null,
-        slack_webhook: slackWebhook.trim() || null,
       })
       .eq("id", engagement.id);
     setSaving(false);
