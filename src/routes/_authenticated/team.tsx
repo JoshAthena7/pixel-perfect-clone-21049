@@ -94,6 +94,9 @@ type Member = {
   slack_handle: string | null;
   timezone: string | null;
   on_call: boolean;
+  nda_required: boolean;
+  nda_confirmed: boolean;
+  nda_confirmed_at: string | null;
 };
 
 const ROLE_LABEL: Record<string, string> = {
