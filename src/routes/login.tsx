@@ -22,10 +22,10 @@ function LoginPage() {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
-      if (s?.user) navigate({ to: "/command", replace: true });
+      if (s?.user) navigate({ to: "/select-engagement", replace: true });
     });
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session?.user) navigate({ to: "/command", replace: true });
+      if (data.session?.user) navigate({ to: "/select-engagement", replace: true });
     });
     return () => subscription.unsubscribe();
   }, [navigate]);
@@ -39,7 +39,7 @@ function LoginPage() {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/command`,
+            emailRedirectTo: `${window.location.origin}/select-engagement`,
             data: { display_name: name || email.split("@")[0] },
           },
         });
