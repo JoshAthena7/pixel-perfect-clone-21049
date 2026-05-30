@@ -174,10 +174,10 @@ export function AppSidebar() {
             </SidebarMenuItem>
           )}
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/select-engagement")} tooltip="Command Centers — Switch engagements or open a new one">
+            <SidebarMenuButton asChild isActive={isActive("/select-engagement")} tooltip="Command Center — Switch Missions or open a new one">
               <Link to="/select-engagement">
                 <DoorOpen className="h-4 w-4" />
-                <span>Command Centers</span>
+                <span>Command Center</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
