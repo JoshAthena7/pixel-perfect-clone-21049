@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.get_engagement_compliance_score(uuid) FROM PUBLIC, anon;
