@@ -285,7 +285,7 @@ export function AskAthenaWidget() {
         aria-label="Open Ask Iris"
       >
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/15 text-primary">
-          <Brain className="h-4 w-4" />
+          <IrisIcon size={16} />
         </span>
         <span className="flex-1 truncate text-left text-sm text-muted-foreground">
           Ask Iris anything — research, brainstorm, reference…
