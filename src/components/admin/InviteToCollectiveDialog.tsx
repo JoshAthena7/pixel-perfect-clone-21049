@@ -52,6 +52,8 @@ export function InviteToCollectiveDialog({
   const [role, setRole] = useState("writer");
   const [engagementId, setEngagementId] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const lockRef = useRef(false);
+
 
   useEffect(() => {
     if (!open) return;
