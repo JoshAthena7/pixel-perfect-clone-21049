@@ -16,6 +16,7 @@ import { NeedsAttentionPanel } from "@/components/war-room/NeedsAttentionPanel";
 import { relativeTime } from "@/lib/time";
 import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
 import { SnapshotsPanel } from "@/components/war-room/SnapshotsPanel";
+import { IntelligenceInsightsPanel } from "@/components/war-room/IntelligenceInsightsPanel";
 
 export const Route = createFileRoute("/_authenticated/command")({
   head: () => ({ meta: [{ title: "Command Center — Athena" }] }),
@@ -136,8 +137,9 @@ function CommandCenter() {
         <ErrorBanner error={loadError} onRetry={() => engagement && loadAll(engagement.id)} label="Couldn't load command center data." />
         {isLoading && heatmap.length === 0 && <LoadingSkeleton label="Loading command center…" />}
 
-        {/* ZONE 1 — Needs Attention only */}
+        {/* ZONE 1 — Needs Attention + Intelligence Insights */}
         <NeedsAttentionPanel />
+        <IntelligenceInsightsPanel />
 
         {/* ZONE 2 — Health strip: three blocks */}
         <section
