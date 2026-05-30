@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,21 +21,27 @@ function MfaEnrollmentPage() {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
+  const startedRef = useRef(false);
 
   useEffect(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
     (async () => {
       try {
-        // Check if already verified
         const { data: factors } = await supabase.auth.mfa.listFactors();
         if (factors?.totp?.some((f) => f.status === "verified")) {
           navigate({ to: "/command", replace: true });
           return;
         }
-        // Clean up any unverified factors first
+        // Unenroll any lingering unverified factors so enroll() doesn't conflict
         for (const f of factors?.totp ?? []) {
-          if (f.status !== "verified") await supabase.auth.mfa.unenroll({ factorId: f.id });
+          if (f.status !== "verified") {
+            try { await supabase.auth.mfa.unenroll({ factorId: f.id }); } catch { /* ignore */ }
+          }
         }
-        const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: "Athena TOTP" });
+        // Use a unique friendlyName to bypass any cached duplicate-name conflicts
+        const friendlyName = `Athena TOTP ${Date.now()}`;
+        const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName });
         if (error) throw error;
         setQr(data.totp.qr_code);
         setSecret(data.totp.secret);
@@ -47,6 +53,7 @@ function MfaEnrollmentPage() {
       }
     })();
   }, [navigate]);
+
 
   async function verify() {
     if (!factorId || !code) return;
