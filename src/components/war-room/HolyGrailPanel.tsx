@@ -5,6 +5,7 @@ import { Sparkles, ChevronDown, ChevronUp, RefreshCw, Loader2, ExternalLink } fr
 import { relativeTime } from "@/lib/time";
 import { analyzeCategory, startHolyGrailRun, finishHolyGrailRun, generateHolyGrailSummary } from "@/lib/ai/holy-grail.functions";
 import { toast } from "sonner";
+import { RfpQuestionsThemesPanel } from "./RfpQuestionsThemesPanel";
 
 type CategoryKey = "opportunity" | "market" | "political" | "competitive" | "customer" | "provider" | "community";
 
@@ -270,6 +271,8 @@ export function HolyGrailPanel({
               />
             )}
           </div>
+
+          <RfpQuestionsThemesPanel engagementId={engagementId} isLeadership={isLeadership} />
         </>
       )}
     </Card>

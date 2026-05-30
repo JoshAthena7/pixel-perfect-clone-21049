@@ -12,6 +12,7 @@ import { ChevronDown, ChevronRight, Download, ArrowLeft, Save, Send, CheckCircle
 import { toast } from "sonner";
 import { logActivity } from "@/lib/activity-log";
 import { Watermark } from "@/components/war-room/Watermark";
+import { WinThemesReferencePanel } from "@/components/war-room/WinThemesReferencePanel";
 
 export const Route = createFileRoute("/_authenticated/engagement/$id/section/$sectionId/edit")({
   head: () => ({ meta: [{ title: "Section Editor — Athena" }] }),
@@ -356,6 +357,9 @@ function SectionEditorPage() {
           <span className="whitespace-pre-wrap">{draft.return_note}</span>
         </Card>
       )}
+
+      {/* Win Themes reference */}
+      <WinThemesReferencePanel engagementId={engagementId} sectionId={sectionId} />
 
       {/* Editor */}
       <Card className="p-4">
