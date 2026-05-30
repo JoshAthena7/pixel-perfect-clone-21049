@@ -14,7 +14,7 @@ import { FileText, LinkIcon, Upload, Download, ExternalLink, Sparkles, Loader2 }
 import { DeclareTriviaWinnerCard } from "@/components/war-room/DeclareTriviaWinnerCard";
 import { Watermark } from "@/components/war-room/Watermark";
 import { HolyGrailPanel } from "@/components/war-room/HolyGrailPanel";
-import { analyzeHolyGrail } from "@/lib/ai/holy-grail.functions";
+import { analyzeOpportunity } from "@/lib/ai/holy-grail.functions";
 import { logActivity } from "@/lib/activity-log";
 
 async function extractTextFromFile(file: File): Promise<string> {
@@ -89,7 +89,7 @@ function IntelPage() {
       const text = await extractTextFromFile(file);
       if (!text || text.trim().length < 50) throw new Error("Could not extract enough text from this file.");
       toast.info("Running Holy Grail analysis…");
-      await analyzeHolyGrail({ data: { engagementId: engagement.id, documentId: it.id, fileName: it.name, text } });
+      await analyzeOpportunity({ data: { engagementId: engagement.id, documentId: it.id, fileName: it.name, text } });
       toast.success("Holy Grail ready");
       setHgRefresh((n) => n + 1);
     } catch (err: any) {
@@ -178,7 +178,7 @@ function IntelPage() {
   return (
     <div className="mx-auto grid max-w-7xl gap-6 p-4 md:p-8 lg:grid-cols-5">
       <Watermark />
-      {engagement && <HolyGrailPanel engagementId={engagement.id} refreshKey={hgRefresh} />}
+      {engagement && <HolyGrailPanel engagementId={engagement.id} refreshKey={hgRefresh} isLeadership={isLeadership} />}
       {isLeadership && <DeclareTriviaWinnerCard />}
       {isLeadership && (
         <Card className="border-border bg-surface p-6 lg:col-span-2">
