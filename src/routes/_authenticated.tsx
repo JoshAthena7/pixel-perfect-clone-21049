@@ -44,15 +44,8 @@ const PAGE_TITLES: Record<string, string> = {
   "/writer/recognition-feed": "Recognition Feed",
 };
 
-// Shared routes that writers can access (read-only via in-page isLeadership gates)
-const WRITER_ALLOWED_SHARED = new Set<string>([
-  "/broadcasts",
-  "/decisions",
-  "/faq",
-  "/win-themes",
-  "/intel",
-  "/team",
-]);
+// Writer/SME users see ONLY the writer pages — no shared command-center routes.
+const WRITER_ALLOWED_SHARED = new Set<string>([]);
 
 function AuthLayout() {
   const { user, loading } = useSession();
@@ -91,7 +84,7 @@ function RoleGuardedShell() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const navigate = useNavigate();
   const isWriterPath = pathname.startsWith("/writer");
-  const isWriter = member?.role === "writer";
+  const isWriter = !!member && !isLeadership;
   const onAdmin = isAdminPath(pathname);
   const onPicker = PICKER_PATHS.has(pathname) || onAdmin;
   const onNdaGate = pathname === NDA_PATH;
@@ -181,10 +174,10 @@ function RoleGuardedShell() {
 }
 
 function AppHeaderContent() {
-  const { engagement, loading, member } = useEngagement();
+  const { engagement, loading, member, isLeadership } = useEngagement();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const pageTitle = PAGE_TITLES[pathname] ?? "";
-  const isWriter = member?.role === "writer";
+  const isWriter = !!member && !isLeadership;
 
   return (
     <div className="flex min-w-0 flex-1 items-center gap-2 text-xs">

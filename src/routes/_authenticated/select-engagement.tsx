@@ -47,9 +47,9 @@ type Stats = {
 
 type Horizon = { id: string; name: string; category: string; created_at: string };
 
+const LEADERSHIP_ROLES = new Set(["founder", "pm", "engagement_lead"]);
 function routeForRole(role: string): string {
-  if (role === "writer") return "/writer/my-sections";
-  return "/command";
+  return LEADERSHIP_ROLES.has(role) ? "/command" : "/writer/my-sections";
 }
 
 function SelectEngagementPage() {

@@ -20,9 +20,9 @@ const ROLE_LABEL: Record<string, string> = {
   viewer: "Viewer",
 };
 
+const LEADERSHIP_ROLES = new Set(["founder", "pm", "engagement_lead"]);
 function routeForRole(role: string): string {
-  if (role === "writer") return "/writer/my-sections";
-  return "/command";
+  return LEADERSHIP_ROLES.has(role) ? "/command" : "/writer/my-sections";
 }
 
 export function EngagementSwitcher() {
