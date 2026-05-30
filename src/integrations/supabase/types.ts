@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      broadcast_reads: {
+        Row: {
+          broadcast_id: string
+          engagement_id: string
+          id: string
+          member_id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          broadcast_id: string
+          engagement_id: string
+          id?: string
+          member_id: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          broadcast_id?: string
+          engagement_id?: string
+          id?: string
+          member_id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       broadcasts: {
         Row: {
           author_id: string
@@ -95,6 +122,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      daily_checkins: {
+        Row: {
+          checkin_date: string
+          created_at: string
+          engagement_id: string
+          id: string
+          response: string
+        }
+        Insert: {
+          checkin_date?: string
+          created_at?: string
+          engagement_id: string
+          id?: string
+          response: string
+        }
+        Update: {
+          checkin_date?: string
+          created_at?: string
+          engagement_id?: string
+          id?: string
+          response?: string
+        }
+        Relationships: []
       }
       decisions: {
         Row: {
@@ -642,18 +693,21 @@ export type Database = {
       }
       presence: {
         Row: {
+          availability_status: string
           engagement_id: string
           last_seen: string
           member_id: string
           user_id: string
         }
         Insert: {
+          availability_status?: string
           engagement_id: string
           last_seen?: string
           member_id: string
           user_id: string
         }
         Update: {
+          availability_status?: string
           engagement_id?: string
           last_seen?: string
           member_id?: string
@@ -949,6 +1003,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      stuck_flags: {
+        Row: {
+          created_at: string
+          engagement_id: string
+          id: string
+          member_id: string
+          resolved: boolean
+          resolved_at: string | null
+          section_id: string
+          section_name: string
+          user_id: string
+          writer_name: string
+        }
+        Insert: {
+          created_at?: string
+          engagement_id: string
+          id?: string
+          member_id: string
+          resolved?: boolean
+          resolved_at?: string | null
+          section_id: string
+          section_name: string
+          user_id: string
+          writer_name: string
+        }
+        Update: {
+          created_at?: string
+          engagement_id?: string
+          id?: string
+          member_id?: string
+          resolved?: boolean
+          resolved_at?: string | null
+          section_id?: string
+          section_name?: string
+          user_id?: string
+          writer_name?: string
+        }
+        Relationships: []
       }
       suppressed_emails: {
         Row: {

@@ -16,6 +16,7 @@ import { PresenceDot } from "@/components/war-room/comms/PresenceDot";
 import { NudgeButton } from "@/components/war-room/comms/NudgeButton";
 import { useComms } from "@/hooks/use-comms";
 import { useTriviaWinnerId } from "@/hooks/use-trivia-winner";
+import { MoraleCard } from "@/components/war-room/MoraleCard";
 
 const VALID_ROLES = new Set(["founder", "pm", "engagement_lead", "writer", "reviewer", "viewer"]);
 
@@ -425,6 +426,10 @@ function TeamPage() {
           </div>
         </div>
       </div>
+
+      {isLeadership && <MoraleCard />}
+
+
 
       {onCall.length > 0 && (
         <Card className="border-[var(--gold)]/40 bg-[var(--gold)]/[0.06] p-5">

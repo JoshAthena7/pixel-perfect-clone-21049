@@ -7,7 +7,9 @@ import { toast } from "sonner";
 const ONLINE_MS = 5 * 60 * 1000;
 const HEARTBEAT_MS = 60 * 1000;
 
-type PresenceRow = { member_id: string; last_seen: string };
+export type AvailabilityStatus = "available" | "deep_work" | "away";
+
+type PresenceRow = { member_id: string; last_seen: string; availability_status?: AvailabilityStatus | null };
 type NudgeRow = { id: string; sender_id: string; sender_name: string; recipient_id: string; created_at: string; read: boolean };
 type ChatRow = {
   id: string;
@@ -21,8 +23,12 @@ type ChatRow = {
 };
 
 type Ctx = {
-  presence: Record<string, string>; // member_id -> last_seen ISO
+  presence: Record<string, string>;
+  availability: Record<string, AvailabilityStatus>;
   isOnline: (memberId: string) => boolean;
+  getAvailability: (memberId: string) => AvailabilityStatus;
+  ownAvailability: AvailabilityStatus;
+  setOwnAvailability: (s: AvailabilityStatus) => Promise<void>;
   openChatWith: (memberId: string, displayName: string) => void;
   closeChat: () => void;
   chatOpenWith: { memberId: string; displayName: string } | null;
@@ -38,40 +44,54 @@ export function CommsProvider({ children }: { children: ReactNode }) {
   const { engagement, member } = useEngagement();
   const { user } = useSession();
   const [presence, setPresence] = useState<Record<string, string>>({});
+  const [availability, setAvailability] = useState<Record<string, AvailabilityStatus>>({});
+  const [ownAvailability, setOwnAvailabilityState] = useState<AvailabilityStatus>("available");
   const [unreadChats, setUnreadChats] = useState(0);
   const [unreadNudges, setUnreadNudges] = useState<NudgeRow[]>([]);
   const [chatOpenWith, setChatOpenWith] = useState<{ memberId: string; displayName: string } | null>(null);
   const lastNudgeAtRef = useRef<Record<string, number>>({});
 
-  // Heartbeat
+  // Heartbeat — resets availability to current on each tick
   useEffect(() => {
     if (!engagement || !member || !user) return;
     let cancelled = false;
     async function tick() {
       if (cancelled) return;
       await supabase.from("presence").upsert(
-        { member_id: member!.id, engagement_id: engagement!.id, user_id: user!.id, last_seen: new Date().toISOString() },
+        {
+          member_id: member!.id,
+          engagement_id: engagement!.id,
+          user_id: user!.id,
+          last_seen: new Date().toISOString(),
+          availability_status: ownAvailability,
+        },
         { onConflict: "member_id" },
       );
     }
     tick();
     const i = setInterval(tick, HEARTBEAT_MS);
     return () => { cancelled = true; clearInterval(i); };
-  }, [engagement?.id, member?.id, user?.id]);
+  }, [engagement?.id, member?.id, user?.id, ownAvailability]);
 
-  // Load + subscribe presence
+  // Load + subscribe presence (last_seen + availability_status)
   useEffect(() => {
     if (!engagement) return;
     let active = true;
     async function load() {
       const { data } = await supabase
         .from("presence")
-        .select("member_id, last_seen")
+        .select("member_id, last_seen, availability_status")
         .eq("engagement_id", engagement!.id);
       if (!active) return;
-      const map: Record<string, string> = {};
-      (data as PresenceRow[] | null)?.forEach((r) => { map[r.member_id] = r.last_seen; });
-      setPresence(map);
+      const pmap: Record<string, string> = {};
+      const amap: Record<string, AvailabilityStatus> = {};
+      (data as PresenceRow[] | null)?.forEach((r) => {
+        pmap[r.member_id] = r.last_seen;
+        if (r.availability_status) amap[r.member_id] = r.availability_status;
+      });
+      setPresence(pmap);
+      setAvailability(amap);
+      if (member && amap[member.id]) setOwnAvailabilityState(amap[member.id]);
     }
     load();
     const ch = supabase
@@ -80,14 +100,22 @@ export function CommsProvider({ children }: { children: ReactNode }) {
         const row = (payload.new ?? payload.old) as PresenceRow;
         if (!row) return;
         setPresence((prev) => ({ ...prev, [row.member_id]: row.last_seen }));
+        if (row.availability_status) {
+          setAvailability((prev) => ({ ...prev, [row.member_id]: row.availability_status as AvailabilityStatus }));
+        }
       })
       .subscribe();
-    // Re-evaluate online state every 30s
     const tick = setInterval(() => setPresence((p) => ({ ...p })), 30_000);
     return () => { active = false; supabase.removeChannel(ch); clearInterval(tick); };
-  }, [engagement?.id]);
+  }, [engagement?.id, member?.id]);
 
-  // Load + subscribe unread chats and nudges for me
+  // Default own availability to 'available' on each new login session
+  useEffect(() => {
+    if (!member) return;
+    setOwnAvailabilityState("available");
+  }, [user?.id]);
+
+  // Load + subscribe unread chats and nudges
   useEffect(() => {
     if (!engagement || !member) return;
     let active = true;
@@ -119,10 +147,29 @@ export function CommsProvider({ children }: { children: ReactNode }) {
     return () => { active = false; supabase.removeChannel(ch); };
   }, [engagement?.id, member?.id]);
 
+  const getAvailability = (memberId: string): AvailabilityStatus => availability[memberId] ?? "available";
+
   const isOnline = (memberId: string) => {
+    if (getAvailability(memberId) === "away") return false;
     const ts = presence[memberId];
     if (!ts) return false;
     return Date.now() - new Date(ts).getTime() < ONLINE_MS;
+  };
+
+  const setOwnAvailability = async (s: AvailabilityStatus) => {
+    setOwnAvailabilityState(s);
+    if (!engagement || !member || !user) return;
+    await supabase.from("presence").upsert(
+      {
+        member_id: member.id,
+        engagement_id: engagement.id,
+        user_id: user.id,
+        last_seen: new Date().toISOString(),
+        availability_status: s,
+      },
+      { onConflict: "member_id" },
+    );
+    setAvailability((prev) => ({ ...prev, [member.id]: s }));
   };
 
   const openChatWith = (memberId: string, displayName: string) => {
@@ -132,6 +179,10 @@ export function CommsProvider({ children }: { children: ReactNode }) {
 
   const sendNudge = async (recipientId: string, recipientName: string) => {
     if (!engagement || !member) return;
+    if (getAvailability(recipientId) === "deep_work") {
+      toast.error(`${recipientName} is in deep work right now.`);
+      return;
+    }
     const last = lastNudgeAtRef.current[recipientId] ?? 0;
     if (Date.now() - last < 10 * 60 * 1000) {
       toast.error("You already nudged this person in the last 10 minutes.");
@@ -156,8 +207,9 @@ export function CommsProvider({ children }: { children: ReactNode }) {
   };
 
   const value = useMemo<Ctx>(() => ({
-    presence, isOnline, openChatWith, closeChat, chatOpenWith, unreadChats, unreadNudges, sendNudge, markNudgesRead,
-  }), [presence, chatOpenWith, unreadChats, unreadNudges]);
+    presence, availability, isOnline, getAvailability, ownAvailability, setOwnAvailability,
+    openChatWith, closeChat, chatOpenWith, unreadChats, unreadNudges, sendNudge, markNudgesRead,
+  }), [presence, availability, ownAvailability, chatOpenWith, unreadChats, unreadNudges]);
 
   return <CommsContext.Provider value={value}>{children}</CommsContext.Provider>;
 }

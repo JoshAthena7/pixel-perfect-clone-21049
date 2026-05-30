@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
+import { useSession } from "@/hooks/use-session";
 import { Card } from "@/components/ui/card";
 import { relativeTime } from "@/lib/time";
 import { Pin } from "lucide-react";
@@ -12,7 +13,8 @@ export const Route = createFileRoute("/_authenticated/writer/broadcasts")({
 });
 
 function WriterBroadcasts() {
-  const { engagement } = useEngagement();
+  const { engagement, member } = useEngagement();
+  const { user } = useSession();
   const [items, setItems] = useState<any[]>([]);
 
   useEffect(() => {
@@ -35,6 +37,18 @@ function WriterBroadcasts() {
       .subscribe();
     return () => { cancelled = true; supabase.removeChannel(ch); };
   }, [engagement?.id]);
+
+  // Mark all visible broadcasts as read when shown (transparent tracking)
+  useEffect(() => {
+    if (!engagement || !member || !user || items.length === 0) return;
+    const rows = items.map((b) => ({
+      broadcast_id: b.id,
+      engagement_id: engagement.id,
+      member_id: member.id,
+      user_id: user.id,
+    }));
+    supabase.from("broadcast_reads").upsert(rows, { onConflict: "broadcast_id,member_id", ignoreDuplicates: true });
+  }, [items, engagement?.id, member?.id, user?.id]);
 
   return (
     <div className="mx-auto max-w-3xl space-y-3 p-4 md:p-8">

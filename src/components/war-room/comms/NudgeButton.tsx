@@ -3,7 +3,11 @@ import { useComms } from "@/hooks/use-comms";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function NudgeButton({ memberId, displayName }: { memberId: string; displayName: string }) {
-  const { isOnline, sendNudge } = useComms();
+  const { isOnline, sendNudge, getAvailability } = useComms();
+  const availability = getAvailability(memberId);
+  if (availability === "deep_work") {
+    return <span className="text-[10px] uppercase tracking-wider text-muted-foreground">In deep work</span>;
+  }
   if (!isOnline(memberId)) return null;
   return (
     <TooltipProvider delayDuration={150}>

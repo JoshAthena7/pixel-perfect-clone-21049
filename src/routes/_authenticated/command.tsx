@@ -6,6 +6,7 @@ import { calcTemperature } from "@/components/war-room/Thermometer";
 import { Siren, Users, ShieldAlert, Megaphone, Grid3x3, Sparkles, Clock, Settings as SettingsIcon, Hash } from "lucide-react";
 import { LivePresence } from "@/components/war-room/LivePresence";
 import { ActionLauncher } from "@/components/war-room/ActionLauncher";
+import { NeedsAttentionPanel } from "@/components/war-room/NeedsAttentionPanel";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -131,6 +132,7 @@ function CommandCenter() {
 
       {/* Contextual alert banners */}
       <div className="px-5 pt-4 space-y-3">
+        <NeedsAttentionPanel />
         {openSos.length > 0 && (
           <div className="rounded-lg border border-[#ef4444]/40 bg-[#ef4444]/[0.08] px-4 py-3">
             <div className="flex items-start gap-2.5">
