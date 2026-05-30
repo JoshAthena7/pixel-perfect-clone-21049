@@ -19,8 +19,8 @@ const C = {
   muted: "#475569",
   border: "#e2e8f0",
   card: "#f8fafc",
-  accent: "#1e3a8a",
-  gold: "#b8862f",
+  accent: "#1B3B72",
+  gold: "#C49A2A",
 };
 
 export function EngagementInvite({
