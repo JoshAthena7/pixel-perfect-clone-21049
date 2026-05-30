@@ -113,13 +113,6 @@ export function WriterSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px]">Team</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>{TEAM.map(renderItem)}</SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
 
       <SidebarFooter>
         <div className="mx-2 mb-1 border-t border-border/40" />
