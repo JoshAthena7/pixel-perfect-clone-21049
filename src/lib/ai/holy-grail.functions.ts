@@ -351,9 +351,35 @@ export const analyzeOpportunity = createServerFn({ method: "POST" })
       }
     }
 
+    // Auto-populate the engagement's submission deadline from the parsed RFP.
+    // Only writes when we got an explicit ISO date and the engagement either
+    // has no deadline yet or the RFP says a different one (amendments etc.).
+    const isoDate: string | undefined =
+      typeof parsed?.submission_due_date === "string" &&
+      /^\d{4}-\d{2}-\d{2}$/.test(parsed.submission_due_date)
+        ? parsed.submission_due_date
+        : undefined;
+    let deadlineUpdated: { from: string | null; to: string } | null = null;
+    if (isoDate) {
+      const { data: eng } = await supabase
+        .from("engagements")
+        .select("submission_date")
+        .eq("id", data.engagementId)
+        .maybeSingle();
+      const current = (eng?.submission_date as string | null) ?? null;
+      if (current !== isoDate) {
+        const { error: updErr } = await supabase
+          .from("engagements")
+          .update({ submission_date: isoDate })
+          .eq("id", data.engagementId);
+        if (!updErr) deadlineUpdated = { from: current, to: isoDate };
+      }
+    }
+
     if (data.runId) await updateRun(supabase, data.runId, { steps_done: 1 });
-    return { ok: true };
+    return { ok: true, deadlineUpdated };
   });
+
 
 // ---------- 2-7. Web-research categories ----------
 
