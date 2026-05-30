@@ -6,6 +6,7 @@ import { useIsAdmin } from "@/hooks/use-admin";
 import { useSession } from "@/hooks/use-session";
 import { useServerFn } from "@tanstack/react-start";
 import { extractRfpIntakeDetails } from "@/lib/ai/rfp-intake.functions";
+import { seedStateTrivia } from "@/lib/ai/trivia.functions";
 import { ChevronLeft, Plus, X, ShieldCheck, ArrowRight, Link as LinkIcon, Sparkles, FileText, Upload, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
