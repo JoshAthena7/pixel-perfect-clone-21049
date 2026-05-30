@@ -41,6 +41,7 @@ type RfpSeed = {
   differentiators?: string[];
   localRequirements?: string;
   stateNotes?: string;
+  extractedText?: string;
 };
 
 const STATE_NAMES: Record<string, string> = {
@@ -153,6 +154,7 @@ async function buildSeedFromRfpFile(file: File, states: StateRow[]): Promise<Rfp
     evalCriteria: evalCriteria.length ? evalCriteria : undefined,
     localRequirements: body ? firstMatch(source, [/(?:mandatory requirements|minimum requirements|local requirements)\s*[:\-]\s*([^\n]{10,220})/i]) || undefined : undefined,
     stateNotes: body ? "Seeded from uploaded RFP text. Review and refine during setup." : "Seeded from uploaded RFP filename. Review and refine during setup.",
+    extractedText: body || undefined,
   };
 }
 
