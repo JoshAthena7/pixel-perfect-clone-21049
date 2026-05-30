@@ -5,26 +5,20 @@ import {
   Siren,
   Grid3x3,
   FolderOpen,
-  GitBranch,
   Activity,
   Megaphone,
   Bot,
   Settings,
   LogOut,
-  Contact,
-  Camera,
   MessageSquare,
-  Inbox,
   Briefcase,
   ExternalLink,
-  ScrollText,
 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarFooter,
   SidebarMenu,
@@ -40,36 +34,21 @@ import type { LucideProps } from "lucide-react";
 
 type NavItem = { title: string; url: string; icon: ComponentType<LucideProps>; hint: string };
 
-const opsBase: NavItem[] = [
-  { title: "Daily Huddle", url: "/huddle", icon: Users, hint: "60-second status from the front line" },
-  { title: "Issues", url: "/issues", icon: Siren, hint: "Unified board for SOS blockers and risks" },
-  { title: "Team Roster", url: "/team", icon: Contact, hint: "Who is on this engagement" },
-];
-const opsLeadership: NavItem[] = [
-  { title: "Command Center", url: "/command", icon: LayoutDashboard, hint: "Executive overview of engagement health" },
-  { title: "Needs Attention", url: "/needs-attention", icon: Inbox, hint: "Everything requiring lead action in one feed" },
-  ...opsBase,
-];
-const intel: NavItem[] = [
-  { title: "Heat Map", url: "/heatmap", icon: Grid3x3, hint: "Section-by-section health" },
-  { title: "Intel Library", url: "/intel", icon: FolderOpen, hint: "Single source of truth for documents" },
-  { title: "Section Assignments", url: "/section-assignments", icon: Grid3x3, hint: "Assign writers to sections" },
-  { title: "Win Themes", url: "/win-themes", icon: FolderOpen, hint: "Win themes writers should land" },
-  { title: "FAQ", url: "/faq", icon: FolderOpen, hint: "Q&A for writers" },
-];
-const leadership: NavItem[] = [
-  { title: "Decisions", url: "/decisions", icon: GitBranch, hint: "Log key decisions to avoid re-litigation" },
-  { title: "Client Pulse", url: "/pulse", icon: Activity, hint: "Track how the client is feeling" },
-  { title: "Broadcasts", url: "/broadcasts", icon: Megaphone, hint: "Team-wide announcements" },
-  { title: "Snapshots", url: "/snapshots", icon: Camera, hint: "Daily captures of engagement state" },
-  { title: "Activity Log", url: "/activity", icon: ScrollText, hint: "Audit trail of significant events" },
+// The 9 canonical items, in order.
+const NAV: NavItem[] = [
+  { title: "Command",    url: "/command",    icon: LayoutDashboard, hint: "Executive overview of engagement health" },
+  { title: "Huddle",     url: "/huddle",     icon: Users,           hint: "Daily 60-second status from the front line" },
+  { title: "Heatmap",    url: "/heatmap",    icon: Grid3x3,         hint: "Section-by-section health" },
+  { title: "Issues",     url: "/issues",     icon: Siren,           hint: "Unified board for SOS blockers and risks" },
+  { title: "Broadcasts", url: "/broadcasts", icon: Megaphone,       hint: "Team-wide announcements" },
+  { title: "Pulse",      url: "/pulse",      icon: Activity,        hint: "Track how the client is feeling" },
+  { title: "Intel",      url: "/intel",      icon: FolderOpen,      hint: "Single source of truth for documents" },
+  { title: "Assistant",  url: "/assistant",  icon: Bot,             hint: "Ask questions grounded in your war room data" },
 ];
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const { engagement, member, isArchived } = useEngagement();
-  const isLeadership = !!member && ["founder", "pm", "engagement_lead"].includes(member.role);
-  const ops = isLeadership ? opsLeadership : opsBase;
   const isActive = (p: string) => pathname === p;
 
   async function signOut() {
@@ -107,50 +86,12 @@ export function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Operations</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>{ops.map(renderItem)}</SidebarMenu>
+            <SidebarMenu>{NAV.map(renderItem)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Intel</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>{intel.map(renderItem)}</SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {isLeadership && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Leadership</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>{leadership.map(renderItem)}</SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        <SidebarGroup>
-          <SidebarGroupLabel>AI</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive("/assistant")}
-                  tooltip="Assistant — Ask questions grounded in your war room data"
-                >
-                  <Link to="/assistant">
-                    <Bot className="h-4 w-4" />
-                    <span>Assistant</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Workspaces</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
@@ -179,7 +120,7 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/settings")} tooltip="Settings — Engagement configuration and notifications">
+            <SidebarMenuButton asChild isActive={isActive("/settings")} tooltip="Settings — Team, sections, win themes, FAQ, activity log, and configuration">
               <Link to="/settings">
                 <Settings className="h-4 w-4" />
                 <span>Settings</span>

@@ -2,16 +2,9 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutGrid,
   Megaphone,
-  GitBranch,
   FolderOpen,
-  Lightbulb,
-  ClipboardList,
-  TrendingUp,
-  Award,
+  Flag,
   HelpCircle,
-  ShieldAlert,
-  Siren,
-  Contact,
   LogOut,
   ExternalLink,
 } from "lucide-react";
@@ -20,7 +13,6 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarFooter,
   SidebarMenu,
@@ -30,23 +22,13 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
 import { EngagementSwitcher } from "@/components/EngagementSwitcher";
+import { openFlagIssue } from "@/components/war-room/FlagIssueButton";
 import athenaLogo from "@/assets/athena-logo-dark.png";
 
-const WORK = [
-  { title: "My Sections", url: "/writer/my-sections", icon: LayoutGrid },
-  { title: "Broadcasts", url: "/broadcasts", icon: Megaphone },
-  { title: "Decisions", url: "/decisions", icon: GitBranch },
-  { title: "Intel Library", url: "/intel", icon: FolderOpen },
-  { title: "Win Themes", url: "/win-themes", icon: Lightbulb },
-  { title: "Work Log", url: "/writer/work-log", icon: ClipboardList },
-] as const;
-const ENGAGEMENT = [
-  { title: "Progress", url: "/writer/progress", icon: TrendingUp },
-  { title: "Recognition Feed", url: "/writer/recognition-feed", icon: Award },
-  { title: "FAQ", url: "/faq", icon: HelpCircle },
-] as const;
-const TEAM = [
-  { title: "Team Directory", url: "/team", icon: Contact },
+const NAV = [
+  { title: "My Sections",    url: "/writer/my-sections", icon: LayoutGrid },
+  { title: "Broadcasts",     url: "/broadcasts",         icon: Megaphone },
+  { title: "Intel Library",  url: "/intel",              icon: FolderOpen },
 ] as const;
 
 export function WriterSidebar() {
@@ -58,23 +40,6 @@ export function WriterSidebar() {
     await supabase.auth.signOut();
     window.location.href = "/login";
   }
-
-  const renderItem = (i: { title: string; url: string; icon: any }) => (
-    <SidebarMenuItem key={i.url}>
-      <SidebarMenuButton
-        asChild
-        size="sm"
-        isActive={isActive(i.url)}
-        tooltip={i.title}
-        className="py-1.5 text-[12px]"
-      >
-        <Link to={i.url}>
-          <i.icon className="h-4 w-4" />
-          <span>{i.title}</span>
-        </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
-  );
 
   return (
     <Sidebar collapsible="icon" style={{ ["--sidebar-width" as any]: "180px" }}>
@@ -95,21 +60,52 @@ export function WriterSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px]">Work</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>{WORK.map(renderItem)}</SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px]">Engagement</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>{ENGAGEMENT.map(renderItem)}</SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px]">Team</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>{TEAM.map(renderItem)}</SidebarMenu>
+            <SidebarMenu>
+              {NAV.map((i) => (
+                <SidebarMenuItem key={i.url}>
+                  <SidebarMenuButton
+                    asChild
+                    size="sm"
+                    isActive={isActive(i.url)}
+                    tooltip={i.title}
+                    className="py-1.5 text-[12px]"
+                  >
+                    <Link to={i.url}>
+                      <i.icon className="h-4 w-4" />
+                      <span>{i.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  size="sm"
+                  tooltip="Flag an Issue — Raise a blocker or risk"
+                  className="py-1.5 text-[12px]"
+                  onClick={() => openFlagIssue()}
+                >
+                  <Flag className="h-4 w-4" />
+                  <span>Flag an Issue</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  size="sm"
+                  isActive={isActive("/faq")}
+                  tooltip="Help — FAQ for writers"
+                  className="py-1.5 text-[12px]"
+                >
+                  <Link to="/faq">
+                    <HelpCircle className="h-4 w-4" />
+                    <span>Help</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
