@@ -254,11 +254,13 @@ export function InviteToCollectiveDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" size="sm" disabled={submitting || !engagementId} className="gap-1.5">
+            <Button type="submit" size="sm" disabled={submitting || cooldown > 0 || !engagementId} className="gap-1.5">
               {submitting ? (
                 <>
                   <Loader2 className="h-3.5 w-3.5 animate-spin" /> Sending…
                 </>
+              ) : cooldown > 0 ? (
+                <>Wait {cooldown}s</>
               ) : (
                 <>
                   <UserPlus className="h-3.5 w-3.5" /> Send Invite
