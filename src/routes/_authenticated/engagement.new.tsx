@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
+import { useIsAdmin } from "@/hooks/use-admin";
 import { useSession } from "@/hooks/use-session";
 import { ChevronLeft, Plus, X, ShieldCheck, ArrowRight, Link as LinkIcon, Sparkles } from "lucide-react";
 import { toast } from "sonner";
