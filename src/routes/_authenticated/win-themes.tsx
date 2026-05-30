@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
+import { Watermark } from "@/components/war-room/Watermark";
 
 export const Route = createFileRoute("/_authenticated/win-themes")({
   head: () => ({ meta: [{ title: "Win Themes — Athena" }] }),
@@ -64,6 +65,7 @@ function LeadWinThemes() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-4 p-4 md:p-8">
+      <Watermark />
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Win Themes</h1>
         <p className="mt-1 text-sm text-muted-foreground">Themes writers should land in every section.</p>

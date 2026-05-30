@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/war-room/AppSidebar";
 import { WriterSidebar } from "@/components/war-room/WriterSidebar";
@@ -19,10 +19,34 @@ import { WriterActionLauncher } from "@/components/war-room/writer/WriterActionL
 import { DailyCheckin } from "@/components/war-room/writer/DailyCheckin";
 import { FlagIssueButton } from "@/components/war-room/FlagIssueButton";
 import { AskAthenaWidget } from "@/components/war-room/AskAthenaWidget";
+import { supabase } from "@/integrations/supabase/client";
+import { trackLogin, resetLoginTracker } from "@/lib/login-tracking";
+import { useSessionTimeout } from "@/hooks/use-session-timeout";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthLayout,
 });
+
+const MFA_PATH = "/mfa-enrollment";
+
+function useMfaGate(userId: string | null | undefined) {
+  const [needsEnroll, setNeedsEnroll] = useState<boolean | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    if (!userId) { setNeedsEnroll(null); return; }
+    (async () => {
+      try {
+        const { data } = await supabase.auth.mfa.listFactors();
+        const hasVerified = !!data?.totp?.some((f) => f.status === "verified");
+        if (!cancelled) setNeedsEnroll(!hasVerified);
+      } catch {
+        if (!cancelled) setNeedsEnroll(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [userId]);
+  return needsEnroll;
+}
 
 const PAGE_TITLES: Record<string, string> = {
   "/command": "Command Center",
@@ -51,16 +75,47 @@ const WRITER_ALLOWED_SHARED = new Set<string>([]);
 function AuthLayout() {
   const { user, loading } = useSession();
   const navigate = useNavigate();
+  const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const needsMfa = useMfaGate(user?.id ?? null);
+
+  useSessionTimeout(!!user);
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/login", replace: true });
+    if (!loading && !user) {
+      resetLoginTracker();
+      navigate({ to: "/login", replace: true });
+    }
   }, [user, loading, navigate]);
+
+  useEffect(() => {
+    if (user) void trackLogin(user.id, user.email ?? null);
+  }, [user]);
+
+  // Force MFA enrollment before any war-room content is accessible
+  useEffect(() => {
+    if (!user || needsMfa === null) return;
+    if (needsMfa && pathname !== MFA_PATH) {
+      navigate({ to: MFA_PATH, replace: true });
+    } else if (!needsMfa && pathname === MFA_PATH) {
+      navigate({ to: "/command", replace: true });
+    }
+  }, [user, needsMfa, pathname, navigate]);
 
   if (loading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground">
         Loading…
       </div>
+    );
+  }
+
+  // MFA gate page — render bare (no engagement context required)
+  if (needsMfa && pathname === MFA_PATH) {
+    return (
+      <>
+        <Outlet />
+        <Toaster theme="dark" position="top-right" />
+      </>
     );
   }
 

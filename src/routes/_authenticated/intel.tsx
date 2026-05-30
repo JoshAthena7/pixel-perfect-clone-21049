@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { relativeTime } from "@/lib/time";
 import { FileText, LinkIcon, Upload, Download, ExternalLink } from "lucide-react";
 import { DeclareTriviaWinnerCard } from "@/components/war-room/DeclareTriviaWinnerCard";
+import { Watermark } from "@/components/war-room/Watermark";
+import { logActivity } from "@/lib/activity-log";
 
 export const Route = createFileRoute("/_authenticated/intel")({
   head: () => ({ meta: [{ title: "Intel Library — Athena" }] }),
@@ -85,6 +87,17 @@ function IntelPage() {
   }
 
   async function openItem(it: any) {
+    if (engagement && member) {
+      logActivity({
+        engagementId: engagement.id,
+        userId: user?.id ?? null,
+        actorName: member.display_name,
+        action: "view_intel_document",
+        targetTable: "intel_documents",
+        targetId: it.id,
+        metadata: { name: it.name, category: it.category },
+      });
+    }
     if (it.url) return window.open(it.url, "_blank", "noopener");
     if (it.file_path) {
       const { data, error } = await supabase.storage.from("intel-files").createSignedUrl(it.file_path, 60 * 10);
@@ -101,6 +114,7 @@ function IntelPage() {
 
   return (
     <div className="mx-auto grid max-w-7xl gap-6 p-4 md:p-8 lg:grid-cols-5">
+      <Watermark />
       {isLeadership && <DeclareTriviaWinnerCard />}
       {isLeadership && (
         <Card className="border-border bg-surface p-6 lg:col-span-2">

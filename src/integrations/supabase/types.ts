@@ -930,6 +930,7 @@ export type Database = {
           instructions: string | null
           notes: string | null
           section_name: string
+          sensitivity: string
           sort_order: number | null
           status: string
           updated_at: string | null
@@ -941,6 +942,7 @@ export type Database = {
           instructions?: string | null
           notes?: string | null
           section_name: string
+          sensitivity?: string
           sort_order?: number | null
           status?: string
           updated_at?: string | null
@@ -952,6 +954,7 @@ export type Database = {
           instructions?: string | null
           notes?: string | null
           section_name?: string
+          sensitivity?: string
           sort_order?: number | null
           status?: string
           updated_at?: string | null
@@ -1197,6 +1200,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      login_events: {
+        Row: {
+          created_at: string
+          device_fingerprint: string | null
+          email: string | null
+          id: string
+          ip_address: string | null
+          is_new_device: boolean
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_fingerprint?: string | null
+          email?: string | null
+          id?: string
+          ip_address?: string | null
+          is_new_device?: boolean
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_fingerprint?: string | null
+          email?: string | null
+          id?: string
+          ip_address?: string | null
+          is_new_device?: boolean
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       market_intelligence: {
         Row: {

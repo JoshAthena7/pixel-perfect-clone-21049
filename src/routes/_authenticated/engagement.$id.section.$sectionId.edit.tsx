@@ -11,6 +11,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ChevronDown, ChevronRight, Download, ArrowLeft, Save, Send, CheckCircle2, AlertCircle, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/activity-log";
+import { Watermark } from "@/components/war-room/Watermark";
 
 export const Route = createFileRoute("/_authenticated/engagement/$id/section/$sectionId/edit")({
   head: () => ({ meta: [{ title: "Section Editor — Athena" }] }),
@@ -115,6 +116,24 @@ function SectionEditorPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Log leadership viewing another author's draft (security audit)
+  useEffect(() => {
+    if (!draft || !member || !user || !engagementId) return;
+    const d: any = draft;
+    if (isLeadership && d.author_id && d.author_id !== user.id) {
+      logActivity({
+        engagementId,
+        userId: user.id,
+        actorName: member.display_name,
+        action: "view_section_draft",
+        targetTable: "section_drafts",
+        targetId: draft.id,
+        metadata: { section_id: sectionId, author_id: d.author_id },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft?.id]);
 
   const wordCount = useMemo(() => countWords(body), [body]);
   const minWords = assignment?.word_count_min ?? null;
@@ -280,6 +299,7 @@ function SectionEditorPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-4 p-6">
+      <Watermark />
       <div className="flex items-center justify-between gap-2">
         <Button variant="ghost" size="sm" asChild>
           <Link to="/writer/my-sections">

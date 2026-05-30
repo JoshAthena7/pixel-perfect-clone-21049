@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SectionHealthTab } from "@/components/war-room/SectionHealthTab";
 import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
 import { SectionReviewQueue } from "@/components/war-room/SectionReviewQueue";
+import { Watermark } from "@/components/war-room/Watermark";
 
 export const Route = createFileRoute("/_authenticated/heatmap")({
   head: () => ({ meta: [{ title: "Heat Map — Athena" }] }),
@@ -106,6 +107,7 @@ function HeatmapPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
+      <Watermark />
       <div>
         <h1 className="text-2xl font-bold">Heat Map</h1>
         <p className="mt-1 text-sm text-muted-foreground">
