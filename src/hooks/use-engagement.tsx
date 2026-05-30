@@ -163,7 +163,8 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
     : null;
   const role = member?.role ?? null;
   const isLeadership = !!role && LEADERSHIP.has(role);
-  const canWrite = isLeadership;
+  const isArchived = engagement?.status === "Archived";
+  const canWrite = isLeadership && !isArchived;
   const isWriter = role === "writer";
   const isViewer = role === "viewer";
 
@@ -182,6 +183,7 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
         canWrite,
         isWriter,
         isViewer,
+        isArchived,
         refresh: async () => {
           if (user) await load(user.id);
         },
