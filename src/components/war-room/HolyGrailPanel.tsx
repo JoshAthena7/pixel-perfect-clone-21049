@@ -273,6 +273,7 @@ export function HolyGrailPanel({
             )}
           </div>
 
+          <PolicyPanel engagementId={engagementId} isLeadership={isLeadership} />
           <RfpQuestionsThemesPanel engagementId={engagementId} isLeadership={isLeadership} />
         </>
       )}
