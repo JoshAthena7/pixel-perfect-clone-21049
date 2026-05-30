@@ -1615,6 +1615,7 @@ export type Database = {
       }
       state_resources: {
         Row: {
+          medicaid_agency_url: string | null
           notes: string | null
           procurement_portal_url: string | null
           small_business_program: string | null
@@ -1623,6 +1624,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          medicaid_agency_url?: string | null
           notes?: string | null
           procurement_portal_url?: string | null
           small_business_program?: string | null
@@ -1631,6 +1633,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          medicaid_agency_url?: string | null
           notes?: string | null
           procurement_portal_url?: string | null
           small_business_program?: string | null
@@ -2013,6 +2016,10 @@ export type Database = {
           title: string
           url: string
         }[]
+      }
+      seed_state_intel: {
+        Args: { _engagement_id: string; _state: string }
+        Returns: undefined
       }
       user_has_any_leadership_role: {
         Args: { _user_id: string }
