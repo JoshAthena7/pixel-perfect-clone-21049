@@ -130,7 +130,7 @@ function AdminDashboard() {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         <Kpi icon={Building2} label="Active engagements" value={active.length} accent="#9b8cc7" />
         <Kpi icon={Siren} label="Open SOS" value={openSosTotal} accent="#e85d5d" />
-        <Kpi icon={DollarSign} label="Pipeline TCV" value={fmtCurrency(tcvTotal)} accent="#c9b370" />
+        <Kpi icon={DollarSign} label="Pipeline TCV" value={fmtCurrency(tcvTotal)} accent="#C49A2A" />
         <Kpi icon={Users} label="Active collective" value={collectiveActive} accent="#5fb8a8" />
         <Kpi icon={Brain} label="Unreviewed intel" value={intelUnreviewed} accent="#5fb8a8" />
       </div>
@@ -283,7 +283,7 @@ function SourceBadge({ type }: { type: string }) {
   let label = "Athena AI";
   let color = "#9b8cc7";
   if (t.includes("market") || t.includes("radar")) { label = "Radar"; color = "#5fb8a8"; }
-  else if (t.includes("compass")) { label = "Compass"; color = "#c9b370"; }
+  else if (t.includes("compass")) { label = "Compass"; color = "#C49A2A"; }
   else if (t.includes("win")) { label = "WinIQ"; color = "#e89556"; }
   return <span className="font-bold" style={{ color }}>{label}</span>;
 }

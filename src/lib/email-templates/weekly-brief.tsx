@@ -26,7 +26,7 @@ export interface WeeklyBriefProps {
 const COLORS = {
   bg: '#ffffff',
   header: '#0b0b14',
-  gold: '#c9b370',
+  gold: '#C49A2A',
   text: '#0b1220',
   muted: '#475569',
   border: '#e2e8f0',
