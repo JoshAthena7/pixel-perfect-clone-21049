@@ -188,7 +188,15 @@ function WriterMySections() {
                     {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <div className="ml-auto">
+                <div className="ml-auto flex items-center gap-2">
+                  <Button asChild size="sm" variant="outline">
+                    <Link
+                      to="/engagement/$id/section/$sectionId/edit"
+                      params={{ id: engagement?.id ?? "", sectionId: a.section_id }}
+                    >
+                      Open editor
+                    </Link>
+                  </Button>
                   <StuckButton sectionId={a.section_id} sectionName={a.section?.section_name ?? "section"} />
                 </div>
               </div>
