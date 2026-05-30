@@ -178,7 +178,8 @@ function TeamPage() {
     const { error } = await supabase
       .from("engagement_members")
       .update({ on_call: !m.on_call })
-      .eq("id", m.id);
+      .eq("id", m.id)
+      .eq("engagement_id", engagement?.id ?? "");
     if (error) return toast.error(error.message);
     if (engagement) load(engagement.id);
   }
