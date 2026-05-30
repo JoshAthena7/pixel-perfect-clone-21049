@@ -1255,18 +1255,21 @@ export type Database = {
           created_at: string | null
           display_name: string
           id: string
+          is_platform_admin: boolean
           title: string | null
         }
         Insert: {
           created_at?: string | null
           display_name: string
           id: string
+          is_platform_admin?: boolean
           title?: string | null
         }
         Update: {
           created_at?: string | null
           display_name?: string
           id?: string
+          is_platform_admin?: boolean
           title?: string | null
         }
         Relationships: []
@@ -1857,6 +1860,7 @@ export type Database = {
     Functions: {
       call_hook: { Args: { path: string }; Returns: undefined }
       cleanup_quick_chats: { Args: never; Returns: undefined }
+      current_user_is_admin_or_founder: { Args: never; Returns: boolean }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -1879,6 +1883,7 @@ export type Database = {
         Args: { _engagement_id: string }
         Returns: string
       }
+      is_platform_admin: { Args: { _user_id: string }; Returns: boolean }
       leadership_count: { Args: { _engagement_id: string }; Returns: number }
       move_to_dlq: {
         Args: {
