@@ -73,12 +73,6 @@ function daysColor(days: number | null): string {
   return "text-emerald-300";
 }
 
-function formatTCV(n: number): string {
-  if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(2)}B`;
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
-  return `$${n.toFixed(0)}`;
-}
 
 function OverviewPage() {
   const { memberships, loading, switchEngagement } = useEngagement();
