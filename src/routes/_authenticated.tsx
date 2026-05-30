@@ -154,7 +154,7 @@ function RoleGuardedShell() {
               <SinceLastSeenStrip />
             </>
           )}
-          <main className={`flex-1 overflow-auto ${isWriter ? "pb-16" : ""}`}>
+          <main className={`flex-1 overflow-auto pb-14 ${isWriter ? "pb-20" : ""}`}>
             {isWriter ? (
               <div className="flex min-h-full">
                 <WriterActionLauncher />
@@ -170,6 +170,7 @@ function RoleGuardedShell() {
       <QuickChatPanel />
       {isWriter && <DailyCheckin />}
       <FlagIssueButton />
+      <AskAthenaWidget />
       <Toaster theme="dark" position="top-right" />
     </SidebarProvider>
   );
