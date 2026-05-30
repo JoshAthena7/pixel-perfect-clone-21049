@@ -262,9 +262,22 @@ function IntelPage() {
                   </div>
                   {it.notes && <p className="mt-1 text-xs text-muted-foreground">{it.notes}</p>}
                 </div>
-                <button onClick={() => openItem(it)} className="shrink-0 rounded-md border border-border p-1.5 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:border-primary/50 hover:text-foreground">
-                  {it.url ? <ExternalLink className="h-3.5 w-3.5" /> : <Download className="h-3.5 w-3.5" />}
-                </button>
+                <div className="flex shrink-0 items-center gap-1">
+                  {isLeadership && it.file_path && (it.category === "RFP" || it.category === "Amendment") && (
+                    <button
+                      onClick={() => runAnalyze(it)}
+                      disabled={analyzingId === it.id}
+                      title="Run Holy Grail analysis"
+                      className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2 py-1 text-[11px] font-medium text-primary hover:bg-primary/20 disabled:opacity-60"
+                    >
+                      {analyzingId === it.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                      {analyzingId === it.id ? "Analyzing…" : "Holy Grail"}
+                    </button>
+                  )}
+                  <button onClick={() => openItem(it)} className="rounded-md border border-border p-1.5 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:border-primary/50 hover:text-foreground">
+                    {it.url ? <ExternalLink className="h-3.5 w-3.5" /> : <Download className="h-3.5 w-3.5" />}
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
