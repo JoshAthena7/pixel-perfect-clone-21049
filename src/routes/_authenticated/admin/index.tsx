@@ -139,7 +139,7 @@ function AdminDashboard() {
       <Card className="border-border/60 bg-[#141628]">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border/40">
           <div>
-            <h2 className="text-sm font-bold tracking-wide">Command Centers</h2>
+            <h2 className="text-sm font-bold tracking-wide">Missions</h2>
             <p className="text-[11px] text-muted-foreground">Sorted by days to submission · click Enter to drop into any room</p>
           </div>
           <Button asChild size="sm" variant="ghost" className="text-xs gap-1">
