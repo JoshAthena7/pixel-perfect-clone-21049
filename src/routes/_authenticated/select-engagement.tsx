@@ -231,10 +231,10 @@ function SelectEngagementPage() {
         )}
       </section>
 
-      {/* WAR ROOMS */}
+      {/* MISSIONS */}
       <section className="px-6 py-6">
         <div className="mb-4 flex items-center justify-between">
-          <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-500">Active Command Centers</div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-500">Active Missions</div>
           {archived.length > 0 && (
             <button
               onClick={() => setShowArchived((v) => !v)}
