@@ -55,17 +55,21 @@ function AdminCollective() {
   const [tab, setTab] = useState<"roster" | "capacity">("roster");
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [inviteOpen, setInviteOpen] = useState(false);
+
+  const load = useCallback(async () => {
+    const { data } = await supabase
+      .from("engagement_members")
+      .select("id,user_id,engagement_id,role,display_name,email,title,added_at,engagements(id,name)")
+      .order("added_at", { ascending: false });
+    setRows((data ?? []) as unknown as MemberRow[]);
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase
-        .from("engagement_members")
-        .select("id,user_id,engagement_id,role,display_name,email,title,added_at,engagements(id,name)")
-        .order("added_at", { ascending: false });
-      setRows((data ?? []) as unknown as MemberRow[]);
-      setLoading(false);
-    })();
-  }, []);
+    load();
+  }, [load]);
+
 
   const roster: RosterEntry[] = useMemo(() => {
     const map = new Map<string, RosterEntry>();
