@@ -375,7 +375,7 @@ Props are typed locally in each file; see source for exact shapes.
 
 1. Command — `/command`
 2. Delivery Map — `/heatmap`
-3. Briefing Room — `/intel`
+3. Briefing Room — `/research`
 4. Escalations — `/issues` *(red accent)*
 5. Broadcasts — `/broadcasts`
 6. Pulse™ — `/pulse`
@@ -422,6 +422,8 @@ See §1.
 **Prompted, needs confirmation:** `process-email-queue` cron registration; CSP `Content-Security-Policy` (beyond X-Frame/Referrer/Content-Type which are now set); MFA enforcement policy.
 
 **Data nit:** engagement `1762a153-83e9-4c24-8268-667d20083ab6` has 17 `engagement_members` rows with NULL `user_id` (placeholder seats). Unique constraint permits this because `NULL ≠ NULL`. Decide whether to backfill or add a partial-unique on a synthetic key.
+
+**Data nit:** Sidebar item conflict — Briefing Room and Vault both mapped to `/intel` in architecture doc. Confirmed: Briefing Room = `/research`, Vault = `/intel`.
 
 ---
 
