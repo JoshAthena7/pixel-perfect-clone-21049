@@ -68,7 +68,7 @@ export const analyzeHolyGrail = createServerFn({ method: "POST" })
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: SYSTEM },
-          { role: "user", content: `File: ${data.fileName}\n\nRFP TEXT:\n${data.text.slice(0, 75000)}` },
+          { role: "user", content: `File: ${data.fileName}\n\nRFP TEXT:\n${data.text}` },
         ],
       }),
     });
