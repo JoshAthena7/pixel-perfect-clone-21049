@@ -14,9 +14,10 @@ import { Link } from "@tanstack/react-router";
 import { Trophy } from "lucide-react";
 import { burstConfetti } from "@/lib/confetti";
 import { toast } from "sonner";
-import { format } from "date-fns";
 import { Flame } from "lucide-react";
 import { SectionThread } from "@/components/war-room/comms/SectionThread";
+import { dueState } from "@/lib/due-date";
+import { StuckButton } from "@/components/war-room/writer/StuckButton";
 
 export const Route = createFileRoute("/_authenticated/writer/my-sections")({
   head: () => ({ meta: [{ title: "My Sections — Writer Portal" }] }),
@@ -125,11 +126,22 @@ function WriterMySections() {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="text-sm font-semibold">{a.section?.section_name}</div>
-                  {a.due_date && (
-                    <div className="mt-0.5 text-[11px] text-muted-foreground">
-                      Due {format(new Date(a.due_date), "MMM d, yyyy")}
-                    </div>
-                  )}
+                  {(() => {
+                    const ds = dueState(a.due_date);
+                    if (!ds) return null;
+                    return (
+                      <div
+                        className="mt-0.5 inline-flex items-center gap-1.5 text-[11px]"
+                        style={{ color: ds.color, fontWeight: ds.bold ? 700 : 400 }}
+                      >
+                        <span
+                          className={`inline-block h-1.5 w-1.5 rounded-full ${ds.pulse ? "animate-pulse" : ""}`}
+                          style={{ backgroundColor: ds.color }}
+                        />
+                        {ds.text}
+                      </div>
+                    );
+                  })()}
                 </div>
                 <Badge className={STATUS_STYLES[a.status] ?? ""}>{a.status}</Badge>
               </div>
