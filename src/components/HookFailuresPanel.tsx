@@ -17,6 +17,8 @@ export function HookFailuresPanel() {
   const [rows, setRows] = useState<Failure[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAcked, setShowAcked] = useState(false);
+  // ids that are optimistically acked but not yet committed (undo window open)
+  const pendingRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   async function load() {
     setLoading(true);
@@ -27,7 +29,10 @@ export function HookFailuresPanel() {
       .limit(20);
     if (!showAcked) q = q.is("acknowledged_at", null);
     const { data } = await q;
-    setRows((data ?? []) as Failure[]);
+    const fetched = (data ?? []) as Failure[];
+    // If we're in unacked view, hide rows still in the pending-undo window
+    const pendingIds = pendingRef.current;
+    setRows(showAcked ? fetched : fetched.filter((r) => !pendingIds.has(r.id)));
     setLoading(false);
   }
 
@@ -38,14 +43,55 @@ export function HookFailuresPanel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showAcked]);
 
-  async function ack(id: string) {
+  async function commitAck(id: string) {
     const { data: { user } } = await supabase.auth.getUser();
-    await supabase
+    const { error } = await supabase
       .from("hook_failures")
       .update({ acknowledged_at: new Date().toISOString(), acknowledged_by: user?.id })
       .eq("id", id);
-    load();
+    pendingRef.current.delete(id);
+    if (error) {
+      toast.error("Failed to acknowledge", { description: error.message });
+      load();
+    }
   }
+
+  function ack(row: Failure) {
+    // Optimistic remove
+    setRows((prev) => prev.filter((r) => r.id !== row.id));
+    // Schedule the actual DB write after the undo window
+    const timer = setTimeout(() => void commitAck(row.id), 10_000);
+    pendingRef.current.set(row.id, timer);
+
+    toast.success(`Acknowledged ${row.hook_name}`, {
+      duration: 10_000,
+      action: {
+        label: "Undo",
+        onClick: () => {
+          const t = pendingRef.current.get(row.id);
+          if (t) clearTimeout(t);
+          pendingRef.current.delete(row.id);
+          // Restore row and re-sort newest-first
+          setRows((prev) =>
+            [row, ...prev].sort(
+              (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+            ),
+          );
+        },
+      },
+    });
+  }
+
+  // Commit any pending acks if the panel unmounts before the timer fires
+  useEffect(() => {
+    return () => {
+      for (const [id, timer] of pendingRef.current.entries()) {
+        clearTimeout(timer);
+        void commitAck(id);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (loading) return null;
   if (rows.length === 0 && !showAcked) {
