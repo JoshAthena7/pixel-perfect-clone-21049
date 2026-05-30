@@ -29,10 +29,10 @@ type Eng = {
   submission_date: string | null;
   contract_value_estimate: number | null;
 };
-type Snap = { engagement_id: string; temperature: number | null; created_at: string };
+type Snap = { engagement_id: string; temperature_score: number; created_at: string };
 type SosRow = { engagement_id: string; status: string };
-type Broadcast = { id: string; engagement_id: string; body: string; created_at: string; author_name: string | null };
-type Intel = { id: string; engagement_id: string | null; body: string; severity: string; insight_type: string; created_at: string; actioned: boolean };
+type Broadcast = { id: string; engagement_id: string; content: string; created_at: string | null; author_name: string };
+type Intel = { id: string; engagement_id: string | null; title: string; body: string; severity: string; insight_type: string; created_at: string; actioned: boolean };
 type Member = { engagement_id: string; user_id: string | null; role: string };
 
 const HEALTH_FROM_TEMP = (t: number | null): { label: string; color: string } => {
