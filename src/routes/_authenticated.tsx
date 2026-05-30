@@ -84,7 +84,7 @@ function RoleGuardedShell() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const navigate = useNavigate();
   const isWriterPath = pathname.startsWith("/writer");
-  const isWriter = member?.role === "writer";
+  const isWriter = !!member && !isLeadership;
   const onAdmin = isAdminPath(pathname);
   const onPicker = PICKER_PATHS.has(pathname) || onAdmin;
   const onNdaGate = pathname === NDA_PATH;
