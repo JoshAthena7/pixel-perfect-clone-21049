@@ -165,6 +165,9 @@ function WriterMySections() {
                     {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                   </SelectContent>
                 </Select>
+                <div className="ml-auto">
+                  <StuckButton sectionId={a.section_id} sectionName={a.section?.section_name ?? "section"} />
+                </div>
               </div>
               <p className="mt-3 text-[11px] italic text-muted-foreground">Submit drafts in the client environment.</p>
               <SectionThread sectionId={a.section_id} />
