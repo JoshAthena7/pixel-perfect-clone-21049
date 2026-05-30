@@ -18,6 +18,7 @@ import {
   Inbox,
   Briefcase,
   ExternalLink,
+  ScrollText,
 } from "lucide-react";
 import {
   Sidebar,
