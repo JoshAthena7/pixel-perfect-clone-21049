@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/intel")({
 const CATEGORIES = ["RFP", "Amendment", "Q&A", "Client Doc", "Research", "Competitive", "Past Performance", "Other"] as const;
 
 function IntelPage() {
-  const { engagement, member } = useEngagement();
+  const { engagement, member, isLeadership } = useEngagement();
   const { user } = useSession();
   const [items, setItems] = useState<any[]>([]);
   const [filter, setFilter] = useState<"All" | (typeof CATEGORIES)[number]>("All");
