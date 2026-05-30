@@ -105,7 +105,7 @@ async function callPerplexity({ model, prompt, tools }: CallOpts): Promise<Perpl
 
 export async function searchWeb(prompt: string): Promise<PerplexityResult> {
   if (!checkPerplexityBudget("web")) return FALLBACK;
-  return callPerplexity({ model: "llama-3.1-sonar-large-128k-online", prompt });
+  return callPerplexity({ model: "sonar", prompt });
 }
 
 export async function searchDeep(prompt: string): Promise<PerplexityResult> {
