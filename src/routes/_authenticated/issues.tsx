@@ -267,7 +267,7 @@ function IssuesPage() {
                             title="Resolve this SOS?"
                             description="Mark this blocker as resolved. It will stop showing in open issues."
                             confirmLabel="Resolve"
-                            onConfirm={() => setSosStatus(i, "Resolved")}
+                            onConfirm={async () => { await setSosStatus(i, "Resolved"); }}
                           />
                         </>
                       ) : (
@@ -278,7 +278,7 @@ function IssuesPage() {
                             title="Close this risk?"
                             description="Mark this risk as closed."
                             confirmLabel="Close"
-                            onConfirm={() => setRiskStatus(i, "Closed")}
+                            onConfirm={async () => { await setRiskStatus(i, "Closed"); }}
                           />
                         </>
                       )}

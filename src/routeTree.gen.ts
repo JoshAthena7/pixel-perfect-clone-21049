@@ -25,6 +25,7 @@ import { Route as AuthenticatedRisksRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedPulseRouteImport } from './routes/_authenticated/pulse'
 import { Route as AuthenticatedOverviewRouteImport } from './routes/_authenticated/overview'
 import { Route as AuthenticatedNeedsAttentionRouteImport } from './routes/_authenticated/needs-attention'
+import { Route as AuthenticatedIssuesRouteImport } from './routes/_authenticated/issues'
 import { Route as AuthenticatedIntelRouteImport } from './routes/_authenticated/intel'
 import { Route as AuthenticatedHuddleRouteImport } from './routes/_authenticated/huddle'
 import { Route as AuthenticatedHeatmapRouteImport } from './routes/_authenticated/heatmap'
@@ -128,6 +129,11 @@ const AuthenticatedNeedsAttentionRoute =
     path: '/needs-attention',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedIssuesRoute = AuthenticatedIssuesRouteImport.update({
+  id: '/issues',
+  path: '/issues',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedIntelRoute = AuthenticatedIntelRouteImport.update({
   id: '/intel',
   path: '/intel',
@@ -252,6 +258,7 @@ export interface FileRoutesByFullPath {
   '/heatmap': typeof AuthenticatedHeatmapRoute
   '/huddle': typeof AuthenticatedHuddleRoute
   '/intel': typeof AuthenticatedIntelRoute
+  '/issues': typeof AuthenticatedIssuesRoute
   '/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/overview': typeof AuthenticatedOverviewRoute
   '/pulse': typeof AuthenticatedPulseRoute
@@ -289,6 +296,7 @@ export interface FileRoutesByTo {
   '/heatmap': typeof AuthenticatedHeatmapRoute
   '/huddle': typeof AuthenticatedHuddleRoute
   '/intel': typeof AuthenticatedIntelRoute
+  '/issues': typeof AuthenticatedIssuesRoute
   '/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/overview': typeof AuthenticatedOverviewRoute
   '/pulse': typeof AuthenticatedPulseRoute
@@ -328,6 +336,7 @@ export interface FileRoutesById {
   '/_authenticated/heatmap': typeof AuthenticatedHeatmapRoute
   '/_authenticated/huddle': typeof AuthenticatedHuddleRoute
   '/_authenticated/intel': typeof AuthenticatedIntelRoute
+  '/_authenticated/issues': typeof AuthenticatedIssuesRoute
   '/_authenticated/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/_authenticated/overview': typeof AuthenticatedOverviewRoute
   '/_authenticated/pulse': typeof AuthenticatedPulseRoute
@@ -367,6 +376,7 @@ export interface FileRouteTypes {
     | '/heatmap'
     | '/huddle'
     | '/intel'
+    | '/issues'
     | '/needs-attention'
     | '/overview'
     | '/pulse'
@@ -404,6 +414,7 @@ export interface FileRouteTypes {
     | '/heatmap'
     | '/huddle'
     | '/intel'
+    | '/issues'
     | '/needs-attention'
     | '/overview'
     | '/pulse'
@@ -442,6 +453,7 @@ export interface FileRouteTypes {
     | '/_authenticated/heatmap'
     | '/_authenticated/huddle'
     | '/_authenticated/intel'
+    | '/_authenticated/issues'
     | '/_authenticated/needs-attention'
     | '/_authenticated/overview'
     | '/_authenticated/pulse'
@@ -592,6 +604,13 @@ declare module '@tanstack/react-router' {
       path: '/needs-attention'
       fullPath: '/needs-attention'
       preLoaderRoute: typeof AuthenticatedNeedsAttentionRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/issues': {
+      id: '/_authenticated/issues'
+      path: '/issues'
+      fullPath: '/issues'
+      preLoaderRoute: typeof AuthenticatedIssuesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/intel': {
@@ -747,6 +766,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedHeatmapRoute: typeof AuthenticatedHeatmapRoute
   AuthenticatedHuddleRoute: typeof AuthenticatedHuddleRoute
   AuthenticatedIntelRoute: typeof AuthenticatedIntelRoute
+  AuthenticatedIssuesRoute: typeof AuthenticatedIssuesRoute
   AuthenticatedNeedsAttentionRoute: typeof AuthenticatedNeedsAttentionRoute
   AuthenticatedOverviewRoute: typeof AuthenticatedOverviewRoute
   AuthenticatedPulseRoute: typeof AuthenticatedPulseRoute
@@ -776,6 +796,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHeatmapRoute: AuthenticatedHeatmapRoute,
   AuthenticatedHuddleRoute: AuthenticatedHuddleRoute,
   AuthenticatedIntelRoute: AuthenticatedIntelRoute,
+  AuthenticatedIssuesRoute: AuthenticatedIssuesRoute,
   AuthenticatedNeedsAttentionRoute: AuthenticatedNeedsAttentionRoute,
   AuthenticatedOverviewRoute: AuthenticatedOverviewRoute,
   AuthenticatedPulseRoute: AuthenticatedPulseRoute,
@@ -815,13 +836,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
