@@ -165,10 +165,9 @@ function SelectEngagementPage() {
       {/* TOP BAR */}
       <header className="flex items-center justify-between px-6 py-4" style={{ borderBottom: `1px solid ${BORDER}` }}>
         <div className="flex items-center gap-3">
-          <AthenaMark size="md" tone="color" className="hidden md:block" />
-          <AthenaMark size="sm" tone="color" className="md:hidden" />
-          <div className="leading-tight">
-            <div className="text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: GOLD }}>Athena Command™</div>
+          <BrandLockup size="md" className="hidden md:flex" />
+          <BrandLockup size="sm" markOnly className="md:hidden" />
+          <div className="leading-tight hidden lg:block">
             <div className="text-[10px] font-medium uppercase tracking-[0.28em] text-zinc-500">
               Intelligence Infrastructure for Healthcare Growth
             </div>
