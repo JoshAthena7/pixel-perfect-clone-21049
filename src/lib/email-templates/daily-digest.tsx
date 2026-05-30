@@ -58,18 +58,27 @@ export function DailyDigest({
       <Preview>{`${engagementName} — Athena daily brief for ${dateLabel}`}</Preview>
       <Body style={{ backgroundColor: COLORS.bg, fontFamily: 'system-ui, -apple-system, Segoe UI, sans-serif', color: COLORS.text, margin: 0, padding: 0 }}>
         <Container style={{ maxWidth: 600, margin: '0 auto', padding: '32px 24px' }}>
-          <Section>
+          <Section style={{ background: '#1B3B72', padding: '20px 24px', borderRadius: 8, textAlign: 'center' }}>
+            <img
+              src="https://athenacommandcenter.com/athena-logo-white.png"
+              alt="Athena Strategy Group"
+              height={44}
+              style={{ height: 44, width: 'auto', margin: '0 auto', display: 'block' }}
+            />
+          </Section>
+          <Section style={{ paddingTop: 16 }}>
             <Text style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: COLORS.muted, margin: 0 }}>
               Athena Command™
             </Text>
             <Heading style={{ fontSize: 24, fontWeight: 700, margin: '4px 0 0' }}>
-              Daily Brief — {dateLabel}
+              Daily Briefing — {dateLabel}
             </Heading>
             <Text style={{ fontSize: 14, color: COLORS.muted, margin: '4px 0 0' }}>
               {engagementName}{client ? ` · ${client}` : ''}
               {typeof daysToSubmission === 'number' ? ` · T-${daysToSubmission} days to submission` : ''}
             </Text>
           </Section>
+
 
           <Hr style={{ borderColor: COLORS.border, margin: '24px 0' }} />
 
@@ -147,9 +156,18 @@ export function DailyDigest({
 
           <Section>
             <Text style={{ fontSize: 13, color: COLORS.muted, margin: 0 }}>
-              Open the war room: <a href={appUrl} style={{ color: COLORS.accent }}>{appUrl}</a>
+              Open the Command Center: <a href={appUrl} style={{ color: COLORS.accent }}>{appUrl}</a>
+            </Text>
+            <Text style={{ fontSize: 11, color: COLORS.muted, marginTop: 16 }}>
+              Athena Strategy Group · Powered by Athena Command™
             </Text>
           </Section>
+        </Container>
+      </Body>
+    </Html>
+  )
+}
+
         </Container>
       </Body>
     </Html>
