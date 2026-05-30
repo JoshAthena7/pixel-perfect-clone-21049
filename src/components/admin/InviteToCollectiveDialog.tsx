@@ -162,7 +162,7 @@ export function InviteToCollectiveDialog({
             Invite to Collective™
           </DialogTitle>
           <DialogDescription className="text-xs">
-            Add a new member to a war room. They'll get an invite link to accept.
+            Add a new member to a Mission. They'll get an invite link to accept.
           </DialogDescription>
         </DialogHeader>
 
