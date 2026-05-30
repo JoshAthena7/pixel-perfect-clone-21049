@@ -198,6 +198,7 @@ function MiniHeatmap({ heat }: { heat: HeatEntry[] }) {
     Yellow: "bg-[color:var(--yellow)]",
     Orange: "bg-[color:var(--orange)]",
     Red: "bg-[color:var(--red)]",
+    "N/A": "bg-muted-foreground",
   };
   return (
     <div className="grid grid-cols-3 gap-1">
