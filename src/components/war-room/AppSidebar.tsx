@@ -31,6 +31,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
 import { EngagementSwitcher } from "@/components/EngagementSwitcher";
 import athenaLogo from "@/assets/athena-logo-dark.png";
+import { useIsAdmin } from "@/hooks/use-admin";
 import type { ComponentType } from "react";
 import type { LucideProps } from "lucide-react";
 
