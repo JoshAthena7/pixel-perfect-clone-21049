@@ -160,6 +160,7 @@ function RoleGuardedShell() {
       </div>
       <QuickChatPanel />
       {isWriter && <DailyCheckin />}
+      <FlagIssueButton />
       <Toaster theme="dark" position="top-right" />
     </SidebarProvider>
   );
