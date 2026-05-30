@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { runAIText } from "@/lib/ai/router";
 
 const RfpIntakeSchema = z.object({
   fileName: z.string().min(1).max(240),
