@@ -16,7 +16,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as AuthenticatedWinThemesRouteImport } from './routes/_authenticated/win-themes'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
-import { Route as AuthenticatedSnapshotsRouteImport } from './routes/_authenticated/snapshots'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSelectEngagementRouteImport } from './routes/_authenticated/select-engagement'
 import { Route as AuthenticatedSectionAssignmentsRouteImport } from './routes/_authenticated/section-assignments'
@@ -75,11 +74,6 @@ const AuthenticatedWinThemesRoute = AuthenticatedWinThemesRouteImport.update({
 const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
   id: '/team',
   path: '/team',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedSnapshotsRoute = AuthenticatedSnapshotsRouteImport.update({
-  id: '/snapshots',
-  path: '/snapshots',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
@@ -239,7 +233,6 @@ export interface FileRoutesByFullPath {
   '/section-assignments': typeof AuthenticatedSectionAssignmentsRoute
   '/select-engagement': typeof AuthenticatedSelectEngagementRoute
   '/settings': typeof AuthenticatedSettingsRoute
-  '/snapshots': typeof AuthenticatedSnapshotsRoute
   '/team': typeof AuthenticatedTeamRoute
   '/win-themes': typeof AuthenticatedWinThemesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
@@ -273,7 +266,6 @@ export interface FileRoutesByTo {
   '/section-assignments': typeof AuthenticatedSectionAssignmentsRoute
   '/select-engagement': typeof AuthenticatedSelectEngagementRoute
   '/settings': typeof AuthenticatedSettingsRoute
-  '/snapshots': typeof AuthenticatedSnapshotsRoute
   '/team': typeof AuthenticatedTeamRoute
   '/win-themes': typeof AuthenticatedWinThemesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
@@ -309,7 +301,6 @@ export interface FileRoutesById {
   '/_authenticated/section-assignments': typeof AuthenticatedSectionAssignmentsRoute
   '/_authenticated/select-engagement': typeof AuthenticatedSelectEngagementRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
-  '/_authenticated/snapshots': typeof AuthenticatedSnapshotsRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/_authenticated/win-themes': typeof AuthenticatedWinThemesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
@@ -345,7 +336,6 @@ export interface FileRouteTypes {
     | '/section-assignments'
     | '/select-engagement'
     | '/settings'
-    | '/snapshots'
     | '/team'
     | '/win-themes'
     | '/email/unsubscribe'
@@ -379,7 +369,6 @@ export interface FileRouteTypes {
     | '/section-assignments'
     | '/select-engagement'
     | '/settings'
-    | '/snapshots'
     | '/team'
     | '/win-themes'
     | '/email/unsubscribe'
@@ -414,7 +403,6 @@ export interface FileRouteTypes {
     | '/_authenticated/section-assignments'
     | '/_authenticated/select-engagement'
     | '/_authenticated/settings'
-    | '/_authenticated/snapshots'
     | '/_authenticated/team'
     | '/_authenticated/win-themes'
     | '/email/unsubscribe'
@@ -491,13 +479,6 @@ declare module '@tanstack/react-router' {
       path: '/team'
       fullPath: '/team'
       preLoaderRoute: typeof AuthenticatedTeamRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/snapshots': {
-      id: '/_authenticated/snapshots'
-      path: '/snapshots'
-      fullPath: '/snapshots'
-      preLoaderRoute: typeof AuthenticatedSnapshotsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/settings': {
@@ -695,7 +676,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedSectionAssignmentsRoute: typeof AuthenticatedSectionAssignmentsRoute
   AuthenticatedSelectEngagementRoute: typeof AuthenticatedSelectEngagementRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
-  AuthenticatedSnapshotsRoute: typeof AuthenticatedSnapshotsRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
   AuthenticatedWinThemesRoute: typeof AuthenticatedWinThemesRoute
   AuthenticatedWriterMySectionsRoute: typeof AuthenticatedWriterMySectionsRoute
@@ -721,7 +701,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedSectionAssignmentsRoute: AuthenticatedSectionAssignmentsRoute,
   AuthenticatedSelectEngagementRoute: AuthenticatedSelectEngagementRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
-  AuthenticatedSnapshotsRoute: AuthenticatedSnapshotsRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
   AuthenticatedWinThemesRoute: AuthenticatedWinThemesRoute,
   AuthenticatedWriterMySectionsRoute: AuthenticatedWriterMySectionsRoute,
