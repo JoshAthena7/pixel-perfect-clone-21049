@@ -196,6 +196,7 @@ export type Database = {
           engagement_id: string
           id: string
           response: string
+          user_id: string | null
         }
         Insert: {
           checkin_date?: string
@@ -203,6 +204,7 @@ export type Database = {
           engagement_id: string
           id?: string
           response: string
+          user_id?: string | null
         }
         Update: {
           checkin_date?: string
@@ -210,6 +212,7 @@ export type Database = {
           engagement_id?: string
           id?: string
           response?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1078,7 +1081,7 @@ export type Database = {
           member_id: string
           resolved: boolean
           resolved_at: string | null
-          section_id: string
+          section_id: string | null
           section_name: string
           user_id: string
           writer_name: string
@@ -1090,7 +1093,7 @@ export type Database = {
           member_id: string
           resolved?: boolean
           resolved_at?: string | null
-          section_id: string
+          section_id?: string | null
           section_name: string
           user_id: string
           writer_name: string
@@ -1102,12 +1105,20 @@ export type Database = {
           member_id?: string
           resolved?: boolean
           resolved_at?: string | null
-          section_id?: string
+          section_id?: string | null
           section_name?: string
           user_id?: string
           writer_name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "stuck_flags_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "heatmap_sections"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       suppressed_emails: {
         Row: {
@@ -1235,7 +1246,7 @@ export type Database = {
           description: string | null
           engagement_id: string
           id: string
-          section_names: string[]
+          section_ids: string[]
           title: string
           updated_at: string
         }
@@ -1244,7 +1255,7 @@ export type Database = {
           description?: string | null
           engagement_id: string
           id?: string
-          section_names?: string[]
+          section_ids?: string[]
           title: string
           updated_at?: string
         }
@@ -1253,7 +1264,7 @@ export type Database = {
           description?: string | null
           engagement_id?: string
           id?: string
-          section_names?: string[]
+          section_ids?: string[]
           title?: string
           updated_at?: string
         }
