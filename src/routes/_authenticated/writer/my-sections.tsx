@@ -23,7 +23,7 @@ import { logActivity } from "@/lib/activity-log";
 import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
 
 export const Route = createFileRoute("/_authenticated/writer/my-sections")({
-  head: () => ({ meta: [{ title: "My Sections — Writer Portal" }] }),
+  head: () => ({ meta: [{ title: "My Brief — Writer Portal" }] }),
   component: WriterMySections,
 });
 
