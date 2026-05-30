@@ -71,7 +71,7 @@ export function DeclareTriviaWinnerCard() {
           <div className="flex items-center gap-2">
             <Trophy className="h-4 w-4 text-[var(--gold)]" />
             <div>
-              <div className="text-sm font-semibold">Indiana Trivia Contest</div>
+              <div className="text-sm font-semibold">{engagement?.state ? `${engagement.state} ` : ""}Trivia Contest</div>
               <div className="text-xs text-muted-foreground">
                 {winnerId
                   ? `Champion declared: ${entries.find((e) => e.member_id === winnerId)?.first_name ?? "—"}`
