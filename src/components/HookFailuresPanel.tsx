@@ -100,15 +100,15 @@ export function HookFailuresPanel() {
     setRows((prev) => prev.filter((r) => r.id !== row.id));
     // Schedule the actual DB write after the undo window
     const timer = setTimeout(() => void commitAck(row), 10_000);
-    pendingRef.current.set(row.id, timer);
+    pendingRef.current.set(row.id, { timer, row });
 
     toast.success(`Acknowledged ${row.hook_name}`, {
       duration: 10_000,
       action: {
         label: "Undo",
         onClick: () => {
-          const t = pendingRef.current.get(row.id);
-          if (t) clearTimeout(t);
+          const entry = pendingRef.current.get(row.id);
+          if (entry) clearTimeout(entry.timer);
           pendingRef.current.delete(row.id);
           // Timer cleared before commit fired → no DB write happened → restore UI
           restoreRow(row);
@@ -120,9 +120,9 @@ export function HookFailuresPanel() {
   // Commit any pending acks if the panel unmounts before the timer fires
   useEffect(() => {
     return () => {
-      for (const [id, timer] of pendingRef.current.entries()) {
-        clearTimeout(timer);
-        void commitAck(id);
+      for (const [, entry] of pendingRef.current.entries()) {
+        clearTimeout(entry.timer);
+        void commitAck(entry.row);
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
