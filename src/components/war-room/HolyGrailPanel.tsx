@@ -112,6 +112,21 @@ export function HolyGrailPanel({
     }
   }
 
+  async function runSummary(style: "executive" | "brief" | "actions" = "executive") {
+    if (summarizing) return;
+    setSummarizing(true);
+    try {
+      await generateHolyGrailSummary({ data: { engagementId, style } });
+      toast.success("Executive summary ready");
+      setShowSummary(true);
+      await load();
+    } catch (err: any) {
+      toast.error(err?.message ?? "Could not generate summary");
+    } finally {
+      setSummarizing(false);
+    }
+  }
+
   if (loading) return null;
 
   const anyContent = Object.keys(rows).length > 0;
