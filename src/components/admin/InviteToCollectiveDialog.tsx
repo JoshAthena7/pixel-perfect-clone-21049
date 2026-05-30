@@ -56,6 +56,8 @@ export function InviteToCollectiveDialog({
   const lockRef = useRef(false);
 
   const COOLDOWN_SECONDS = 5;
+  const ERROR_COOLDOWN_SECONDS = 2;
+
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -138,6 +140,7 @@ export function InviteToCollectiveDialog({
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to send invite";
       toast.error("Invite failed", { description: message });
+      setCooldown(ERROR_COOLDOWN_SECONDS);
     } finally {
       setSubmitting(false);
       lockRef.current = false;
