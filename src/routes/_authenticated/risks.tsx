@@ -118,6 +118,8 @@ function RisksPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
+      <ErrorBanner error={loadError} onRetry={() => engagement && load(engagement.id)} label="Couldn't load risks." />
+      {isLoading && items.length === 0 && <LoadingSkeleton label="Loading risks…" />}
       <div className="grid gap-4 md:grid-cols-4">
         <Card className="border-border bg-surface p-4">
           <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Total</div>
