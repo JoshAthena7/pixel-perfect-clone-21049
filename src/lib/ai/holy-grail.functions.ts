@@ -2,11 +2,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+const MAX_TEXT = 300000;
 const Schema = z.object({
   engagementId: z.string().uuid(),
   documentId: z.string().uuid().optional(),
   fileName: z.string().min(1).max(240),
-  text: z.string().min(20).max(80000),
+  text: z.string().min(20).max(MAX_TEXT).transform((t) => t.slice(0, MAX_TEXT)),
 });
 
 function parseJsonObject(raw: string) {
@@ -67,7 +68,7 @@ export const analyzeHolyGrail = createServerFn({ method: "POST" })
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: SYSTEM },
-          { role: "user", content: `File: ${data.fileName}\n\nRFP TEXT:\n${data.text.slice(0, 75000)}` },
+          { role: "user", content: `File: ${data.fileName}\n\nRFP TEXT:\n${data.text}` },
         ],
       }),
     });
