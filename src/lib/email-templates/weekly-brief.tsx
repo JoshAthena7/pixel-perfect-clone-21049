@@ -52,7 +52,7 @@ export function WeeklyBrief({
           {/* Dark header with gold accent */}
           <Section style={{ backgroundColor: COLORS.header, padding: '28px 24px', borderTop: `3px solid ${COLORS.gold}` }}>
             <Text style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: COLORS.gold, margin: 0 }}>
-              Athena · Weekly Intelligence Brief
+              Athena Command™ · Weekly Briefing
             </Text>
             <Heading style={{ fontSize: 22, fontWeight: 700, color: '#ffffff', margin: '6px 0 0' }}>
               {weekLabel}
@@ -140,7 +140,7 @@ export function WeeklyBrief({
             <Hr style={{ borderColor: COLORS.border, margin: '24px 0' }} />
             <Section>
               <Text style={{ fontSize: 13, color: COLORS.muted, margin: 0 }}>
-                Open the war room: <a href={appUrl} style={{ color: COLORS.accent }}>{appUrl}</a>
+                Open the Command Center: <a href={appUrl} style={{ color: COLORS.accent }}>{appUrl}</a>
               </Text>
             </Section>
           </Container>
