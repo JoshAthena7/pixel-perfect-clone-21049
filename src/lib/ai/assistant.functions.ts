@@ -2,6 +2,21 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { embedText, pgvectorLiteral } from "@/lib/intelligence/embed";
+import { runAI } from "@/lib/ai/router";
+
+const LIVE_TRIGGERS = [
+  "latest", "recent", "this week", "today", "new", "just released",
+  "current", "now", "announced", "published", "2025", "2026",
+  "news", "update", "what happened", "any changes",
+];
+const DEEP_TRIGGERS = ["deep research", "full analysis", "comprehensive", "everything about"];
+
+function countMatches(text: string, needles: string[]): number {
+  const lower = text.toLowerCase();
+  let n = 0;
+  for (const k of needles) if (lower.includes(k)) n++;
+  return n;
+}
 
 const MessageSchema = z.object({
   role: z.enum(["user", "assistant", "system"]),
