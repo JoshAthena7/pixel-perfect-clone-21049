@@ -197,7 +197,7 @@ export function AskAthenaWidget() {
       };
       setHistory((prev) => [...prev.slice(-9), ex]);
     } catch (e: any) {
-      toast.error(e?.message ?? "Navigator couldn't answer that.");
+      toast.error(e?.message ?? "Iris couldn't answer that.");
     } finally {
       setLoading(false);
     }
@@ -303,7 +303,7 @@ export function AskAthenaWidget() {
           <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2.5">
             <div className="flex items-center gap-2">
               <Brain className="h-4 w-4 text-primary" />
-              <span className="text-sm font-semibold">Ask Navigator</span>
+              <span className="text-sm font-semibold">Ask Iris</span>
               <div className="ml-3 flex items-center gap-1">
                 <button
                   type="button"
@@ -349,7 +349,7 @@ export function AskAthenaWidget() {
                 type="button"
                 onClick={() => setOpen(false)}
                 className="rounded p-1 text-muted-foreground hover:bg-surface hover:text-foreground"
-                aria-label="Close Ask Navigator (Esc)"
+                aria-label="Close Ask Iris (Esc)"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -473,7 +473,7 @@ export function AskAthenaWidget() {
                 })}
                 {loading && (
                   <div className="rounded-lg border border-border bg-surface/60 px-3 py-2.5 text-[12px] text-muted-foreground">
-                    Navigator is thinking…
+                    Iris is thinking…
                   </div>
                 )}
               </div>
