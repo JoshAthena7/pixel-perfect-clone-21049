@@ -64,8 +64,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/settings": "Settings",
   "/win-themes": "Win Themes",
   "/faq": "FAQ",
-  "/writer/my-sections": "My Sections",
-};
+  "/writer/my-sections": "My Brief",
 
 // Writer/SME users see ONLY the writer pages — no shared command-center routes.
 const WRITER_ALLOWED_SHARED = new Set<string>([]);
