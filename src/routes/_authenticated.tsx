@@ -18,6 +18,7 @@ import { ChatNavButton } from "@/components/war-room/comms/ChatNavButton";
 import { WriterActionLauncher } from "@/components/war-room/writer/WriterActionLauncher";
 import { DailyCheckin } from "@/components/war-room/writer/DailyCheckin";
 import { FlagIssueButton } from "@/components/war-room/FlagIssueButton";
+import { AskAthenaWidget } from "@/components/war-room/AskAthenaWidget";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthLayout,
@@ -120,7 +121,8 @@ function RoleGuardedShell() {
   if (onPicker || onNdaGate) {
     return (
       <>
-        <Outlet />
+        <div className="pb-14"><Outlet /></div>
+        <AskAthenaWidget />
         <Toaster theme="dark" position="top-right" />
       </>
     );
@@ -152,7 +154,7 @@ function RoleGuardedShell() {
               <SinceLastSeenStrip />
             </>
           )}
-          <main className={`flex-1 overflow-auto ${isWriter ? "pb-16" : ""}`}>
+          <main className={`flex-1 overflow-auto pb-14 ${isWriter ? "pb-20" : ""}`}>
             {isWriter ? (
               <div className="flex min-h-full">
                 <WriterActionLauncher />
@@ -168,6 +170,7 @@ function RoleGuardedShell() {
       <QuickChatPanel />
       {isWriter && <DailyCheckin />}
       <FlagIssueButton />
+      <AskAthenaWidget />
       <Toaster theme="dark" position="top-right" />
     </SidebarProvider>
   );

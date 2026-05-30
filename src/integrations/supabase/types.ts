@@ -1434,6 +1434,39 @@ export type Database = {
           },
         ]
       }
+      saved_insights: {
+        Row: {
+          answer: string
+          engagement_id: string | null
+          id: string
+          question: string
+          saved_at: string
+          scope: string
+          sources: Json
+          user_id: string
+        }
+        Insert: {
+          answer: string
+          engagement_id?: string | null
+          id?: string
+          question: string
+          saved_at?: string
+          scope?: string
+          sources?: Json
+          user_id?: string
+        }
+        Update: {
+          answer?: string
+          engagement_id?: string | null
+          id?: string
+          question?: string
+          saved_at?: string
+          scope?: string
+          sources?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       section_assignments: {
         Row: {
           created_at: string
