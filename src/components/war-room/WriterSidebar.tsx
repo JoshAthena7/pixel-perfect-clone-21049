@@ -23,7 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
 import { EngagementSwitcher } from "@/components/EngagementSwitcher";
 import { openFlagIssue } from "@/components/war-room/FlagIssueButton";
-import { AthenaMark } from "@/components/ui/AthenaMark";
+import { BrandLockup } from "@/components/ui/BrandLockup";
 
 const NAV = [
   { title: "My Sections", url: "/writer/my-sections", icon: ListChecks },
