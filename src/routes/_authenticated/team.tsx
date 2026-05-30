@@ -146,12 +146,13 @@ function TeamPage() {
   async function toggleNda(m: Member) {
     if (!isLeadership) return;
     const next = !m.nda_confirmed;
+    const { data: u } = await supabase.auth.getUser();
     const { error } = await supabase
       .from("engagement_members")
       .update({
         nda_confirmed: next,
         nda_confirmed_at: next ? new Date().toISOString() : null,
-        nda_confirmed_by: next ? (me?.id ?? null) : null,
+        nda_confirmed_by: next ? (u.user?.id ?? null) : null,
       })
       .eq("id", m.id)
       .eq("engagement_id", engagement?.id ?? "");
