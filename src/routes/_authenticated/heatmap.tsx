@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { relativeTime } from "@/lib/time";
 import { notifySlack } from "@/lib/api/slack.functions";
 import { SectionThread } from "@/components/war-room/comms/SectionThread";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SectionHealthTab } from "@/components/war-room/SectionHealthTab";
 
 export const Route = createFileRoute("/_authenticated/heatmap")({
   head: () => ({ meta: [{ title: "Heat Map — Athena" }] }),
