@@ -188,6 +188,7 @@ function sanitizeAiSeed(raw: any): RfpSeed {
 function NewEngagementPage() {
   const { user } = useSession();
   const { memberships, refresh, switchEngagement, loading: memLoading } = useEngagement();
+  const extractRfpDetails = useServerFn(extractRfpIntakeDetails);
   const navigate = useNavigate();
 
   // access gate — platform admins (Executives) and engagement leadership can create new engagements
@@ -270,7 +271,17 @@ function NewEngagementPage() {
     setRfpFile(file);
     setRfpPlaceholder(false);
     try {
-      applyRfpSeed(await buildSeedFromRfpFile(file, states));
+      const seed = await buildSeedFromRfpFile(file, states);
+      if (seed.extractedText) {
+        try {
+          applyRfpSeed({ ...seed, ...sanitizeAiSeed(await extractRfpDetails({ data: { fileName: file.name, text: seed.extractedText } })) });
+        } catch (aiError) {
+          console.error(aiError);
+          applyRfpSeed(seed);
+        }
+      } else {
+        applyRfpSeed(seed);
+      }
       toast.success("RFP details populated — review before continuing.");
     } catch (error) {
       console.error(error);
