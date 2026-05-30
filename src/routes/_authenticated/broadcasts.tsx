@@ -59,6 +59,19 @@ function BroadcastsPage() {
     return () => { supabase.removeChannel(ch); };
   }, [engagement?.id]);
 
+  // Writers: auto mark visible broadcasts as read (transparent tracking)
+  useEffect(() => {
+    if (isLeadership) return;
+    if (!engagement || !member || !user || items.length === 0) return;
+    const rows = items.map((b) => ({
+      broadcast_id: b.id,
+      engagement_id: engagement.id,
+      member_id: member.id,
+      user_id: user.id,
+    }));
+    supabase.from("broadcast_reads").upsert(rows, { onConflict: "broadcast_id,member_id", ignoreDuplicates: true });
+  }, [isLeadership, items, engagement?.id, member?.id, user?.id]);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!engagement || !user || !member || !content.trim()) return;

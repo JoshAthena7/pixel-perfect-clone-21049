@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/intel")({
 const CATEGORIES = ["RFP", "Amendment", "Q&A", "Client Doc", "Research", "Competitive", "Past Performance", "Other"] as const;
 
 function IntelPage() {
-  const { engagement, member } = useEngagement();
+  const { engagement, member, isLeadership } = useEngagement();
   const { user } = useSession();
   const [items, setItems] = useState<any[]>([]);
   const [filter, setFilter] = useState<"All" | (typeof CATEGORIES)[number]>("All");
@@ -101,57 +101,59 @@ function IntelPage() {
 
   return (
     <div className="mx-auto grid max-w-7xl gap-6 p-4 md:p-8 lg:grid-cols-5">
-      <DeclareTriviaWinnerCard />
-      <Card className="border-border bg-surface p-6 lg:col-span-2">
-        <h1 className="text-xl font-bold">Add to Library</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Files or links — keep the source of truth in one place.</p>
+      {isLeadership && <DeclareTriviaWinnerCard />}
+      {isLeadership && (
+        <Card className="border-border bg-surface p-6 lg:col-span-2">
+          <h1 className="text-xl font-bold">Add to Library</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Files or links — keep the source of truth in one place.</p>
 
-        <div className="mt-4 inline-flex rounded-md border border-border p-0.5">
-          <button onClick={() => setMode("file")} className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium transition ${mode === "file" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-            <Upload className="h-3.5 w-3.5" /> File
-          </button>
-          <button onClick={() => setMode("url")} className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium transition ${mode === "url" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-            <LinkIcon className="h-3.5 w-3.5" /> Link
-          </button>
-        </div>
+          <div className="mt-4 inline-flex rounded-md border border-border p-0.5">
+            <button onClick={() => setMode("file")} className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium transition ${mode === "file" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+              <Upload className="h-3.5 w-3.5" /> File
+            </button>
+            <button onClick={() => setMode("url")} className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium transition ${mode === "url" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+              <LinkIcon className="h-3.5 w-3.5" /> Link
+            </button>
+          </div>
 
-        <form onSubmit={submit} className="mt-4 space-y-4">
-          {mode === "file" ? (
+          <form onSubmit={submit} className="mt-4 space-y-4">
+            {mode === "file" ? (
+              <div>
+                <Label htmlFor="file">File</Label>
+                <Input id="file" ref={fileRef} type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+              </div>
+            ) : (
+              <div>
+                <Label htmlFor="url">URL</Label>
+                <Input id="url" type="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" />
+              </div>
+            )}
             <div>
-              <Label htmlFor="file">File</Label>
-              <Input id="file" ref={fileRef} type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+              <Label htmlFor="name">Display name</Label>
+              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder={file?.name ?? "What's this?"} />
             </div>
-          ) : (
             <div>
-              <Label htmlFor="url">URL</Label>
-              <Input id="url" type="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" />
+              <Label>Category</Label>
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                {CATEGORIES.map((c) => (
+                  <button key={c} type="button" onClick={() => setCategory(c)} className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${category === c ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground hover:text-foreground"}`}>
+                    {c}
+                  </button>
+                ))}
+              </div>
             </div>
-          )}
-          <div>
-            <Label htmlFor="name">Display name</Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder={file?.name ?? "What's this?"} />
-          </div>
-          <div>
-            <Label>Category</Label>
-            <div className="mt-1 flex flex-wrap gap-1.5">
-              {CATEGORIES.map((c) => (
-                <button key={c} type="button" onClick={() => setCategory(c)} className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${category === c ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground hover:text-foreground"}`}>
-                  {c}
-                </button>
-              ))}
+            <div>
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea id="notes" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Context, page refs, who cares about this" />
             </div>
-          </div>
-          <div>
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea id="notes" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Context, page refs, who cares about this" />
-          </div>
-          <Button type="submit" disabled={uploading} className="w-full">
-            {uploading ? "Saving…" : "Add to Library"}
-          </Button>
-        </form>
-      </Card>
+            <Button type="submit" disabled={uploading} className="w-full">
+              {uploading ? "Saving…" : "Add to Library"}
+            </Button>
+          </form>
+        </Card>
+      )}
 
-      <Card className="border-border bg-surface p-6 lg:col-span-3">
+      <Card className={`border-border bg-surface p-6 ${isLeadership ? "lg:col-span-3" : "lg:col-span-5"}`}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Library</h2>
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…" className="max-w-[200px]" />

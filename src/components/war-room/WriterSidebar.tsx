@@ -34,23 +34,23 @@ import athenaLogo from "@/assets/athena-logo-dark.png";
 
 const WORK = [
   { title: "My Sections", url: "/writer/my-sections", icon: LayoutGrid },
-  { title: "Broadcasts", url: "/writer/broadcasts", icon: Megaphone },
-  { title: "Decisions", url: "/writer/decisions", icon: GitBranch },
-  { title: "Intel Library", url: "/writer/intel-library", icon: FolderOpen },
-  { title: "Win Themes", url: "/writer/win-themes", icon: Lightbulb },
+  { title: "Broadcasts", url: "/broadcasts", icon: Megaphone },
+  { title: "Decisions", url: "/decisions", icon: GitBranch },
+  { title: "Intel Library", url: "/intel", icon: FolderOpen },
+  { title: "Win Themes", url: "/win-themes", icon: Lightbulb },
   { title: "Work Log", url: "/writer/work-log", icon: ClipboardList },
 ] as const;
 const ENGAGEMENT = [
   { title: "Progress", url: "/writer/progress", icon: TrendingUp },
   { title: "Recognition Feed", url: "/writer/recognition-feed", icon: Award },
-  { title: "FAQ", url: "/writer/faq", icon: HelpCircle },
+  { title: "FAQ", url: "/faq", icon: HelpCircle },
 ] as const;
 const FLAG = [
   { title: "Submit a Risk", url: "/writer/submit-risk", icon: ShieldAlert },
   { title: "Submit an SOS", url: "/writer/submit-sos", icon: Siren },
 ] as const;
 const TEAM = [
-  { title: "Team Directory", url: "/writer/team", icon: Contact },
+  { title: "Team Directory", url: "/team", icon: Contact },
 ] as const;
 
 export function WriterSidebar() {

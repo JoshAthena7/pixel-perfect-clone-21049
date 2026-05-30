@@ -36,17 +36,11 @@ import { Route as AuthenticatedAssistantRouteImport } from './routes/_authentica
 import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated/activity'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as AuthenticatedWriterWorkLogRouteImport } from './routes/_authenticated/writer/work-log'
-import { Route as AuthenticatedWriterWinThemesRouteImport } from './routes/_authenticated/writer/win-themes'
-import { Route as AuthenticatedWriterTeamRouteImport } from './routes/_authenticated/writer/team'
 import { Route as AuthenticatedWriterSubmitSosRouteImport } from './routes/_authenticated/writer/submit-sos'
 import { Route as AuthenticatedWriterSubmitRiskRouteImport } from './routes/_authenticated/writer/submit-risk'
 import { Route as AuthenticatedWriterRecognitionFeedRouteImport } from './routes/_authenticated/writer/recognition-feed'
 import { Route as AuthenticatedWriterProgressRouteImport } from './routes/_authenticated/writer/progress'
 import { Route as AuthenticatedWriterMySectionsRouteImport } from './routes/_authenticated/writer/my-sections'
-import { Route as AuthenticatedWriterIntelLibraryRouteImport } from './routes/_authenticated/writer/intel-library'
-import { Route as AuthenticatedWriterFaqRouteImport } from './routes/_authenticated/writer/faq'
-import { Route as AuthenticatedWriterDecisionsRouteImport } from './routes/_authenticated/writer/decisions'
-import { Route as AuthenticatedWriterBroadcastsRouteImport } from './routes/_authenticated/writer/broadcasts'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -190,17 +184,6 @@ const AuthenticatedWriterWorkLogRoute =
     path: '/writer/work-log',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedWriterWinThemesRoute =
-  AuthenticatedWriterWinThemesRouteImport.update({
-    id: '/writer/win-themes',
-    path: '/writer/win-themes',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedWriterTeamRoute = AuthenticatedWriterTeamRouteImport.update({
-  id: '/writer/team',
-  path: '/writer/team',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedWriterSubmitSosRoute =
   AuthenticatedWriterSubmitSosRouteImport.update({
     id: '/writer/submit-sos',
@@ -229,29 +212,6 @@ const AuthenticatedWriterMySectionsRoute =
   AuthenticatedWriterMySectionsRouteImport.update({
     id: '/writer/my-sections',
     path: '/writer/my-sections',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedWriterIntelLibraryRoute =
-  AuthenticatedWriterIntelLibraryRouteImport.update({
-    id: '/writer/intel-library',
-    path: '/writer/intel-library',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedWriterFaqRoute = AuthenticatedWriterFaqRouteImport.update({
-  id: '/writer/faq',
-  path: '/writer/faq',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedWriterDecisionsRoute =
-  AuthenticatedWriterDecisionsRouteImport.update({
-    id: '/writer/decisions',
-    path: '/writer/decisions',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedWriterBroadcastsRoute =
-  AuthenticatedWriterBroadcastsRouteImport.update({
-    id: '/writer/broadcasts',
-    path: '/writer/broadcasts',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const LovableEmailTransactionalSendRoute =
@@ -304,17 +264,11 @@ export interface FileRoutesByFullPath {
   '/team': typeof AuthenticatedTeamRoute
   '/win-themes': typeof AuthenticatedWinThemesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
-  '/writer/broadcasts': typeof AuthenticatedWriterBroadcastsRoute
-  '/writer/decisions': typeof AuthenticatedWriterDecisionsRoute
-  '/writer/faq': typeof AuthenticatedWriterFaqRoute
-  '/writer/intel-library': typeof AuthenticatedWriterIntelLibraryRoute
   '/writer/my-sections': typeof AuthenticatedWriterMySectionsRoute
   '/writer/progress': typeof AuthenticatedWriterProgressRoute
   '/writer/recognition-feed': typeof AuthenticatedWriterRecognitionFeedRoute
   '/writer/submit-risk': typeof AuthenticatedWriterSubmitRiskRoute
   '/writer/submit-sos': typeof AuthenticatedWriterSubmitSosRoute
-  '/writer/team': typeof AuthenticatedWriterTeamRoute
-  '/writer/win-themes': typeof AuthenticatedWriterWinThemesRoute
   '/writer/work-log': typeof AuthenticatedWriterWorkLogRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
@@ -347,17 +301,11 @@ export interface FileRoutesByTo {
   '/team': typeof AuthenticatedTeamRoute
   '/win-themes': typeof AuthenticatedWinThemesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
-  '/writer/broadcasts': typeof AuthenticatedWriterBroadcastsRoute
-  '/writer/decisions': typeof AuthenticatedWriterDecisionsRoute
-  '/writer/faq': typeof AuthenticatedWriterFaqRoute
-  '/writer/intel-library': typeof AuthenticatedWriterIntelLibraryRoute
   '/writer/my-sections': typeof AuthenticatedWriterMySectionsRoute
   '/writer/progress': typeof AuthenticatedWriterProgressRoute
   '/writer/recognition-feed': typeof AuthenticatedWriterRecognitionFeedRoute
   '/writer/submit-risk': typeof AuthenticatedWriterSubmitRiskRoute
   '/writer/submit-sos': typeof AuthenticatedWriterSubmitSosRoute
-  '/writer/team': typeof AuthenticatedWriterTeamRoute
-  '/writer/win-themes': typeof AuthenticatedWriterWinThemesRoute
   '/writer/work-log': typeof AuthenticatedWriterWorkLogRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
@@ -392,17 +340,11 @@ export interface FileRoutesById {
   '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/_authenticated/win-themes': typeof AuthenticatedWinThemesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
-  '/_authenticated/writer/broadcasts': typeof AuthenticatedWriterBroadcastsRoute
-  '/_authenticated/writer/decisions': typeof AuthenticatedWriterDecisionsRoute
-  '/_authenticated/writer/faq': typeof AuthenticatedWriterFaqRoute
-  '/_authenticated/writer/intel-library': typeof AuthenticatedWriterIntelLibraryRoute
   '/_authenticated/writer/my-sections': typeof AuthenticatedWriterMySectionsRoute
   '/_authenticated/writer/progress': typeof AuthenticatedWriterProgressRoute
   '/_authenticated/writer/recognition-feed': typeof AuthenticatedWriterRecognitionFeedRoute
   '/_authenticated/writer/submit-risk': typeof AuthenticatedWriterSubmitRiskRoute
   '/_authenticated/writer/submit-sos': typeof AuthenticatedWriterSubmitSosRoute
-  '/_authenticated/writer/team': typeof AuthenticatedWriterTeamRoute
-  '/_authenticated/writer/win-themes': typeof AuthenticatedWriterWinThemesRoute
   '/_authenticated/writer/work-log': typeof AuthenticatedWriterWorkLogRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
@@ -437,17 +379,11 @@ export interface FileRouteTypes {
     | '/team'
     | '/win-themes'
     | '/email/unsubscribe'
-    | '/writer/broadcasts'
-    | '/writer/decisions'
-    | '/writer/faq'
-    | '/writer/intel-library'
     | '/writer/my-sections'
     | '/writer/progress'
     | '/writer/recognition-feed'
     | '/writer/submit-risk'
     | '/writer/submit-sos'
-    | '/writer/team'
-    | '/writer/win-themes'
     | '/writer/work-log'
     | '/lovable/email/suppression'
     | '/api/public/hooks/daily-digest'
@@ -480,17 +416,11 @@ export interface FileRouteTypes {
     | '/team'
     | '/win-themes'
     | '/email/unsubscribe'
-    | '/writer/broadcasts'
-    | '/writer/decisions'
-    | '/writer/faq'
-    | '/writer/intel-library'
     | '/writer/my-sections'
     | '/writer/progress'
     | '/writer/recognition-feed'
     | '/writer/submit-risk'
     | '/writer/submit-sos'
-    | '/writer/team'
-    | '/writer/win-themes'
     | '/writer/work-log'
     | '/lovable/email/suppression'
     | '/api/public/hooks/daily-digest'
@@ -524,17 +454,11 @@ export interface FileRouteTypes {
     | '/_authenticated/team'
     | '/_authenticated/win-themes'
     | '/email/unsubscribe'
-    | '/_authenticated/writer/broadcasts'
-    | '/_authenticated/writer/decisions'
-    | '/_authenticated/writer/faq'
-    | '/_authenticated/writer/intel-library'
     | '/_authenticated/writer/my-sections'
     | '/_authenticated/writer/progress'
     | '/_authenticated/writer/recognition-feed'
     | '/_authenticated/writer/submit-risk'
     | '/_authenticated/writer/submit-sos'
-    | '/_authenticated/writer/team'
-    | '/_authenticated/writer/win-themes'
     | '/_authenticated/writer/work-log'
     | '/lovable/email/suppression'
     | '/api/public/hooks/daily-digest'
@@ -747,20 +671,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWriterWorkLogRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/writer/win-themes': {
-      id: '/_authenticated/writer/win-themes'
-      path: '/writer/win-themes'
-      fullPath: '/writer/win-themes'
-      preLoaderRoute: typeof AuthenticatedWriterWinThemesRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/writer/team': {
-      id: '/_authenticated/writer/team'
-      path: '/writer/team'
-      fullPath: '/writer/team'
-      preLoaderRoute: typeof AuthenticatedWriterTeamRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/writer/submit-sos': {
       id: '/_authenticated/writer/submit-sos'
       path: '/writer/submit-sos'
@@ -794,34 +704,6 @@ declare module '@tanstack/react-router' {
       path: '/writer/my-sections'
       fullPath: '/writer/my-sections'
       preLoaderRoute: typeof AuthenticatedWriterMySectionsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/writer/intel-library': {
-      id: '/_authenticated/writer/intel-library'
-      path: '/writer/intel-library'
-      fullPath: '/writer/intel-library'
-      preLoaderRoute: typeof AuthenticatedWriterIntelLibraryRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/writer/faq': {
-      id: '/_authenticated/writer/faq'
-      path: '/writer/faq'
-      fullPath: '/writer/faq'
-      preLoaderRoute: typeof AuthenticatedWriterFaqRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/writer/decisions': {
-      id: '/_authenticated/writer/decisions'
-      path: '/writer/decisions'
-      fullPath: '/writer/decisions'
-      preLoaderRoute: typeof AuthenticatedWriterDecisionsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/writer/broadcasts': {
-      id: '/_authenticated/writer/broadcasts'
-      path: '/writer/broadcasts'
-      fullPath: '/writer/broadcasts'
-      preLoaderRoute: typeof AuthenticatedWriterBroadcastsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/lovable/email/transactional/send': {
@@ -876,17 +758,11 @@ interface AuthenticatedRouteChildren {
   AuthenticatedSosRoute: typeof AuthenticatedSosRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
   AuthenticatedWinThemesRoute: typeof AuthenticatedWinThemesRoute
-  AuthenticatedWriterBroadcastsRoute: typeof AuthenticatedWriterBroadcastsRoute
-  AuthenticatedWriterDecisionsRoute: typeof AuthenticatedWriterDecisionsRoute
-  AuthenticatedWriterFaqRoute: typeof AuthenticatedWriterFaqRoute
-  AuthenticatedWriterIntelLibraryRoute: typeof AuthenticatedWriterIntelLibraryRoute
   AuthenticatedWriterMySectionsRoute: typeof AuthenticatedWriterMySectionsRoute
   AuthenticatedWriterProgressRoute: typeof AuthenticatedWriterProgressRoute
   AuthenticatedWriterRecognitionFeedRoute: typeof AuthenticatedWriterRecognitionFeedRoute
   AuthenticatedWriterSubmitRiskRoute: typeof AuthenticatedWriterSubmitRiskRoute
   AuthenticatedWriterSubmitSosRoute: typeof AuthenticatedWriterSubmitSosRoute
-  AuthenticatedWriterTeamRoute: typeof AuthenticatedWriterTeamRoute
-  AuthenticatedWriterWinThemesRoute: typeof AuthenticatedWriterWinThemesRoute
   AuthenticatedWriterWorkLogRoute: typeof AuthenticatedWriterWorkLogRoute
 }
 
@@ -911,18 +787,12 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedSosRoute: AuthenticatedSosRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
   AuthenticatedWinThemesRoute: AuthenticatedWinThemesRoute,
-  AuthenticatedWriterBroadcastsRoute: AuthenticatedWriterBroadcastsRoute,
-  AuthenticatedWriterDecisionsRoute: AuthenticatedWriterDecisionsRoute,
-  AuthenticatedWriterFaqRoute: AuthenticatedWriterFaqRoute,
-  AuthenticatedWriterIntelLibraryRoute: AuthenticatedWriterIntelLibraryRoute,
   AuthenticatedWriterMySectionsRoute: AuthenticatedWriterMySectionsRoute,
   AuthenticatedWriterProgressRoute: AuthenticatedWriterProgressRoute,
   AuthenticatedWriterRecognitionFeedRoute:
     AuthenticatedWriterRecognitionFeedRoute,
   AuthenticatedWriterSubmitRiskRoute: AuthenticatedWriterSubmitRiskRoute,
   AuthenticatedWriterSubmitSosRoute: AuthenticatedWriterSubmitSosRoute,
-  AuthenticatedWriterTeamRoute: AuthenticatedWriterTeamRoute,
-  AuthenticatedWriterWinThemesRoute: AuthenticatedWriterWinThemesRoute,
   AuthenticatedWriterWorkLogRoute: AuthenticatedWriterWorkLogRoute,
 }
 
@@ -945,3 +815,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

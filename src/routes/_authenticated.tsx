@@ -36,19 +36,25 @@ const PAGE_TITLES: Record<string, string> = {
   "/snapshots": "Snapshot Log",
   "/assistant": "AI Assistant",
   "/settings": "Settings",
+  "/win-themes": "Win Themes",
+  "/faq": "FAQ",
   "/writer/my-sections": "My Sections",
-  "/writer/broadcasts": "Broadcasts",
-  "/writer/decisions": "Decisions",
-  "/writer/intel-library": "Intel Library",
-  "/writer/win-themes": "Win Themes",
   "/writer/work-log": "Work Log",
   "/writer/progress": "Progress",
   "/writer/recognition-feed": "Recognition Feed",
-  "/writer/faq": "FAQ",
   "/writer/submit-risk": "Submit a Risk",
   "/writer/submit-sos": "Submit an SOS",
-  "/writer/team": "Team Directory",
 };
+
+// Shared routes that writers can access (read-only via in-page isLeadership gates)
+const WRITER_ALLOWED_SHARED = new Set<string>([
+  "/broadcasts",
+  "/decisions",
+  "/faq",
+  "/win-themes",
+  "/intel",
+  "/team",
+]);
 
 function AuthLayout() {
   const { user, loading } = useSession();
@@ -94,12 +100,13 @@ function RoleGuardedShell() {
       return;
     }
     if (!member) return;
-    if (isWriter && !isWriterPath) {
+    const isWriterAllowed = isWriterPath || WRITER_ALLOWED_SHARED.has(pathname);
+    if (isWriter && !isWriterAllowed) {
       navigate({ to: "/writer/my-sections", replace: true });
     } else if (!isWriter && isWriterPath) {
       navigate({ to: "/command", replace: true });
     }
-  }, [loading, member, engagement, isWriter, isWriterPath, onPicker, navigate]);
+  }, [loading, member, engagement, isWriter, isWriterPath, onPicker, pathname, navigate]);
 
   // Picker / overview pages render full-bleed without the war-room shell
   if (onPicker) {
