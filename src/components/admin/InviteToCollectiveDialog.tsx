@@ -141,87 +141,90 @@ export function InviteToCollectiveDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="grid gap-1.5">
-            <Label htmlFor="invite-name" className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              Full Name
-            </Label>
-            <Input
-              id="invite-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              maxLength={120}
-              placeholder="Jane Doe"
-              required
-            />
-          </div>
-
-          <div className="grid gap-1.5">
-            <Label htmlFor="invite-email" className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              Email
-            </Label>
-            <Input
-              id="invite-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              maxLength={255}
-              placeholder="jane@example.com"
-              required
-            />
-          </div>
-
-          <div className="grid gap-1.5">
-            <Label htmlFor="invite-title" className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              Title <span className="text-muted-foreground/60 normal-case">(optional)</span>
-            </Label>
-            <Input
-              id="invite-title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              maxLength={120}
-              placeholder="Senior Policy Advisor"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
+          <fieldset disabled={submitting} className="space-y-3 disabled:opacity-60 disabled:cursor-not-allowed">
             <div className="grid gap-1.5">
-              <Label htmlFor="invite-role" className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                Role
+              <Label htmlFor="invite-name" className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Full Name
               </Label>
-              <select
-                id="invite-role"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="h-9 text-sm rounded-md border border-input bg-background px-3 text-foreground"
-              >
-                {ROLES.map((r) => (
-                  <option key={r.value} value={r.value}>
-                    {r.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="grid gap-1.5">
-              <Label htmlFor="invite-engagement" className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                Engagement
-              </Label>
-              <select
-                id="invite-engagement"
-                value={engagementId}
-                onChange={(e) => setEngagementId(e.target.value)}
-                className="h-9 text-sm rounded-md border border-input bg-background px-3 text-foreground"
+              <Input
+                id="invite-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                maxLength={120}
+                placeholder="Jane Doe"
                 required
-              >
-                {engagements.length === 0 && <option value="">No engagements</option>}
-                {engagements.map((g) => (
-                  <option key={g.id} value={g.id}>
-                    {g.name}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
-          </div>
+
+            <div className="grid gap-1.5">
+              <Label htmlFor="invite-email" className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Email
+              </Label>
+              <Input
+                id="invite-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                maxLength={255}
+                placeholder="jane@example.com"
+                required
+              />
+            </div>
+
+            <div className="grid gap-1.5">
+              <Label htmlFor="invite-title" className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Title <span className="text-muted-foreground/60 normal-case">(optional)</span>
+              </Label>
+              <Input
+                id="invite-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                maxLength={120}
+                placeholder="Senior Policy Advisor"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="invite-role" className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Role
+                </Label>
+                <select
+                  id="invite-role"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="h-9 text-sm rounded-md border border-input bg-background px-3 text-foreground disabled:cursor-not-allowed"
+                >
+                  {ROLES.map((r) => (
+                    <option key={r.value} value={r.value}>
+                      {r.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label htmlFor="invite-engagement" className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Engagement
+                </Label>
+                <select
+                  id="invite-engagement"
+                  value={engagementId}
+                  onChange={(e) => setEngagementId(e.target.value)}
+                  className="h-9 text-sm rounded-md border border-input bg-background px-3 text-foreground disabled:cursor-not-allowed"
+                  required
+                >
+                  {engagements.length === 0 && <option value="">No engagements</option>}
+                  {engagements.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </fieldset>
+
 
           <DialogFooter className="pt-2">
             <Button
