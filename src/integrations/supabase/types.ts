@@ -1807,6 +1807,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      call_hook: { Args: { path: string }; Returns: undefined }
       cleanup_quick_chats: { Args: never; Returns: undefined }
       delete_email: {
         Args: { message_id: number; queue_name: string }

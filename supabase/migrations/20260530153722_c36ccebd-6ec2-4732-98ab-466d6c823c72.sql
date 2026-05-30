@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.call_hook(text) FROM PUBLIC, anon, authenticated;

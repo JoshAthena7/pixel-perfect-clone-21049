@@ -23,8 +23,10 @@ import { Route as AuthenticatedPulseRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedOverviewRouteImport } from './routes/_authenticated/overview'
 import { Route as AuthenticatedNeedsAttentionRouteImport } from './routes/_authenticated/needs-attention'
 import { Route as AuthenticatedNdaRequiredRouteImport } from './routes/_authenticated/nda-required'
+import { Route as AuthenticatedMarketRouteImport } from './routes/_authenticated/market'
 import { Route as AuthenticatedIssuesRouteImport } from './routes/_authenticated/issues'
 import { Route as AuthenticatedIntelRouteImport } from './routes/_authenticated/intel'
+import { Route as AuthenticatedInsightsRouteImport } from './routes/_authenticated/insights'
 import { Route as AuthenticatedHuddleRouteImport } from './routes/_authenticated/huddle'
 import { Route as AuthenticatedHeatmapRouteImport } from './routes/_authenticated/heatmap'
 import { Route as AuthenticatedFaqRouteImport } from './routes/_authenticated/faq'
@@ -42,8 +44,11 @@ import { Route as AuthenticatedEngagementNewRouteImport } from './routes/_authen
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as ApiPublicHooksWeeklyBriefRouteImport } from './routes/api/public/hooks/weekly-brief'
+import { Route as ApiPublicHooksProcessOutcomeRouteImport } from './routes/api/public/hooks/process-outcome'
 import { Route as ApiPublicHooksProcessEmbeddingsRouteImport } from './routes/api/public/hooks/process-embeddings'
 import { Route as ApiPublicHooksIntelligenceEngineRouteImport } from './routes/api/public/hooks/intelligence-engine'
+import { Route as ApiPublicHooksIngestMarketIntelRouteImport } from './routes/api/public/hooks/ingest-market-intel'
 import { Route as ApiPublicHooksDailyDigestRouteImport } from './routes/api/public/hooks/daily-digest'
 import { Route as ApiPublicHooksBackfillEmbeddingsRouteImport } from './routes/api/public/hooks/backfill-embeddings'
 
@@ -120,6 +125,11 @@ const AuthenticatedNdaRequiredRoute =
     path: '/nda-required',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedMarketRoute = AuthenticatedMarketRouteImport.update({
+  id: '/market',
+  path: '/market',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedIssuesRoute = AuthenticatedIssuesRouteImport.update({
   id: '/issues',
   path: '/issues',
@@ -128,6 +138,11 @@ const AuthenticatedIssuesRoute = AuthenticatedIssuesRouteImport.update({
 const AuthenticatedIntelRoute = AuthenticatedIntelRouteImport.update({
   id: '/intel',
   path: '/intel',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedInsightsRoute = AuthenticatedInsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedHuddleRoute = AuthenticatedHuddleRouteImport.update({
@@ -223,6 +238,18 @@ const LovableEmailQueueProcessRoute =
     path: '/lovable/email/queue/process',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksWeeklyBriefRoute =
+  ApiPublicHooksWeeklyBriefRouteImport.update({
+    id: '/api/public/hooks/weekly-brief',
+    path: '/api/public/hooks/weekly-brief',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksProcessOutcomeRoute =
+  ApiPublicHooksProcessOutcomeRouteImport.update({
+    id: '/api/public/hooks/process-outcome',
+    path: '/api/public/hooks/process-outcome',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksProcessEmbeddingsRoute =
   ApiPublicHooksProcessEmbeddingsRouteImport.update({
     id: '/api/public/hooks/process-embeddings',
@@ -233,6 +260,12 @@ const ApiPublicHooksIntelligenceEngineRoute =
   ApiPublicHooksIntelligenceEngineRouteImport.update({
     id: '/api/public/hooks/intelligence-engine',
     path: '/api/public/hooks/intelligence-engine',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksIngestMarketIntelRoute =
+  ApiPublicHooksIngestMarketIntelRouteImport.update({
+    id: '/api/public/hooks/ingest-market-intel',
+    path: '/api/public/hooks/ingest-market-intel',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicHooksDailyDigestRoute =
@@ -260,8 +293,10 @@ export interface FileRoutesByFullPath {
   '/faq': typeof AuthenticatedFaqRoute
   '/heatmap': typeof AuthenticatedHeatmapRoute
   '/huddle': typeof AuthenticatedHuddleRoute
+  '/insights': typeof AuthenticatedInsightsRoute
   '/intel': typeof AuthenticatedIntelRoute
   '/issues': typeof AuthenticatedIssuesRoute
+  '/market': typeof AuthenticatedMarketRoute
   '/nda-required': typeof AuthenticatedNdaRequiredRoute
   '/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/overview': typeof AuthenticatedOverviewRoute
@@ -280,8 +315,11 @@ export interface FileRoutesByFullPath {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/backfill-embeddings': typeof ApiPublicHooksBackfillEmbeddingsRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
+  '/api/public/hooks/ingest-market-intel': typeof ApiPublicHooksIngestMarketIntelRoute
   '/api/public/hooks/intelligence-engine': typeof ApiPublicHooksIntelligenceEngineRoute
   '/api/public/hooks/process-embeddings': typeof ApiPublicHooksProcessEmbeddingsRoute
+  '/api/public/hooks/process-outcome': typeof ApiPublicHooksProcessOutcomeRoute
+  '/api/public/hooks/weekly-brief': typeof ApiPublicHooksWeeklyBriefRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
@@ -298,8 +336,10 @@ export interface FileRoutesByTo {
   '/faq': typeof AuthenticatedFaqRoute
   '/heatmap': typeof AuthenticatedHeatmapRoute
   '/huddle': typeof AuthenticatedHuddleRoute
+  '/insights': typeof AuthenticatedInsightsRoute
   '/intel': typeof AuthenticatedIntelRoute
   '/issues': typeof AuthenticatedIssuesRoute
+  '/market': typeof AuthenticatedMarketRoute
   '/nda-required': typeof AuthenticatedNdaRequiredRoute
   '/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/overview': typeof AuthenticatedOverviewRoute
@@ -318,8 +358,11 @@ export interface FileRoutesByTo {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/backfill-embeddings': typeof ApiPublicHooksBackfillEmbeddingsRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
+  '/api/public/hooks/ingest-market-intel': typeof ApiPublicHooksIngestMarketIntelRoute
   '/api/public/hooks/intelligence-engine': typeof ApiPublicHooksIntelligenceEngineRoute
   '/api/public/hooks/process-embeddings': typeof ApiPublicHooksProcessEmbeddingsRoute
+  '/api/public/hooks/process-outcome': typeof ApiPublicHooksProcessOutcomeRoute
+  '/api/public/hooks/weekly-brief': typeof ApiPublicHooksWeeklyBriefRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
@@ -338,8 +381,10 @@ export interface FileRoutesById {
   '/_authenticated/faq': typeof AuthenticatedFaqRoute
   '/_authenticated/heatmap': typeof AuthenticatedHeatmapRoute
   '/_authenticated/huddle': typeof AuthenticatedHuddleRoute
+  '/_authenticated/insights': typeof AuthenticatedInsightsRoute
   '/_authenticated/intel': typeof AuthenticatedIntelRoute
   '/_authenticated/issues': typeof AuthenticatedIssuesRoute
+  '/_authenticated/market': typeof AuthenticatedMarketRoute
   '/_authenticated/nda-required': typeof AuthenticatedNdaRequiredRoute
   '/_authenticated/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/_authenticated/overview': typeof AuthenticatedOverviewRoute
@@ -358,8 +403,11 @@ export interface FileRoutesById {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/backfill-embeddings': typeof ApiPublicHooksBackfillEmbeddingsRoute
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
+  '/api/public/hooks/ingest-market-intel': typeof ApiPublicHooksIngestMarketIntelRoute
   '/api/public/hooks/intelligence-engine': typeof ApiPublicHooksIntelligenceEngineRoute
   '/api/public/hooks/process-embeddings': typeof ApiPublicHooksProcessEmbeddingsRoute
+  '/api/public/hooks/process-outcome': typeof ApiPublicHooksProcessOutcomeRoute
+  '/api/public/hooks/weekly-brief': typeof ApiPublicHooksWeeklyBriefRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
@@ -378,8 +426,10 @@ export interface FileRouteTypes {
     | '/faq'
     | '/heatmap'
     | '/huddle'
+    | '/insights'
     | '/intel'
     | '/issues'
+    | '/market'
     | '/nda-required'
     | '/needs-attention'
     | '/overview'
@@ -398,8 +448,11 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/api/public/hooks/backfill-embeddings'
     | '/api/public/hooks/daily-digest'
+    | '/api/public/hooks/ingest-market-intel'
     | '/api/public/hooks/intelligence-engine'
     | '/api/public/hooks/process-embeddings'
+    | '/api/public/hooks/process-outcome'
+    | '/api/public/hooks/weekly-brief'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
@@ -416,8 +469,10 @@ export interface FileRouteTypes {
     | '/faq'
     | '/heatmap'
     | '/huddle'
+    | '/insights'
     | '/intel'
     | '/issues'
+    | '/market'
     | '/nda-required'
     | '/needs-attention'
     | '/overview'
@@ -436,8 +491,11 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/api/public/hooks/backfill-embeddings'
     | '/api/public/hooks/daily-digest'
+    | '/api/public/hooks/ingest-market-intel'
     | '/api/public/hooks/intelligence-engine'
     | '/api/public/hooks/process-embeddings'
+    | '/api/public/hooks/process-outcome'
+    | '/api/public/hooks/weekly-brief'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
@@ -455,8 +513,10 @@ export interface FileRouteTypes {
     | '/_authenticated/faq'
     | '/_authenticated/heatmap'
     | '/_authenticated/huddle'
+    | '/_authenticated/insights'
     | '/_authenticated/intel'
     | '/_authenticated/issues'
+    | '/_authenticated/market'
     | '/_authenticated/nda-required'
     | '/_authenticated/needs-attention'
     | '/_authenticated/overview'
@@ -475,8 +535,11 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/api/public/hooks/backfill-embeddings'
     | '/api/public/hooks/daily-digest'
+    | '/api/public/hooks/ingest-market-intel'
     | '/api/public/hooks/intelligence-engine'
     | '/api/public/hooks/process-embeddings'
+    | '/api/public/hooks/process-outcome'
+    | '/api/public/hooks/weekly-brief'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
@@ -491,8 +554,11 @@ export interface RootRouteChildren {
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksBackfillEmbeddingsRoute: typeof ApiPublicHooksBackfillEmbeddingsRoute
   ApiPublicHooksDailyDigestRoute: typeof ApiPublicHooksDailyDigestRoute
+  ApiPublicHooksIngestMarketIntelRoute: typeof ApiPublicHooksIngestMarketIntelRoute
   ApiPublicHooksIntelligenceEngineRoute: typeof ApiPublicHooksIntelligenceEngineRoute
   ApiPublicHooksProcessEmbeddingsRoute: typeof ApiPublicHooksProcessEmbeddingsRoute
+  ApiPublicHooksProcessOutcomeRoute: typeof ApiPublicHooksProcessOutcomeRoute
+  ApiPublicHooksWeeklyBriefRoute: typeof ApiPublicHooksWeeklyBriefRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
   LovableEmailTransactionalSendRoute: typeof LovableEmailTransactionalSendRoute
@@ -598,6 +664,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNdaRequiredRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/market': {
+      id: '/_authenticated/market'
+      path: '/market'
+      fullPath: '/market'
+      preLoaderRoute: typeof AuthenticatedMarketRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/issues': {
       id: '/_authenticated/issues'
       path: '/issues'
@@ -610,6 +683,13 @@ declare module '@tanstack/react-router' {
       path: '/intel'
       fullPath: '/intel'
       preLoaderRoute: typeof AuthenticatedIntelRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/insights': {
+      id: '/_authenticated/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof AuthenticatedInsightsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/huddle': {
@@ -731,6 +811,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/weekly-brief': {
+      id: '/api/public/hooks/weekly-brief'
+      path: '/api/public/hooks/weekly-brief'
+      fullPath: '/api/public/hooks/weekly-brief'
+      preLoaderRoute: typeof ApiPublicHooksWeeklyBriefRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/process-outcome': {
+      id: '/api/public/hooks/process-outcome'
+      path: '/api/public/hooks/process-outcome'
+      fullPath: '/api/public/hooks/process-outcome'
+      preLoaderRoute: typeof ApiPublicHooksProcessOutcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/process-embeddings': {
       id: '/api/public/hooks/process-embeddings'
       path: '/api/public/hooks/process-embeddings'
@@ -743,6 +837,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/hooks/intelligence-engine'
       fullPath: '/api/public/hooks/intelligence-engine'
       preLoaderRoute: typeof ApiPublicHooksIntelligenceEngineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/ingest-market-intel': {
+      id: '/api/public/hooks/ingest-market-intel'
+      path: '/api/public/hooks/ingest-market-intel'
+      fullPath: '/api/public/hooks/ingest-market-intel'
+      preLoaderRoute: typeof ApiPublicHooksIngestMarketIntelRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/daily-digest': {
@@ -771,8 +872,10 @@ interface AuthenticatedRouteChildren {
   AuthenticatedFaqRoute: typeof AuthenticatedFaqRoute
   AuthenticatedHeatmapRoute: typeof AuthenticatedHeatmapRoute
   AuthenticatedHuddleRoute: typeof AuthenticatedHuddleRoute
+  AuthenticatedInsightsRoute: typeof AuthenticatedInsightsRoute
   AuthenticatedIntelRoute: typeof AuthenticatedIntelRoute
   AuthenticatedIssuesRoute: typeof AuthenticatedIssuesRoute
+  AuthenticatedMarketRoute: typeof AuthenticatedMarketRoute
   AuthenticatedNdaRequiredRoute: typeof AuthenticatedNdaRequiredRoute
   AuthenticatedNeedsAttentionRoute: typeof AuthenticatedNeedsAttentionRoute
   AuthenticatedOverviewRoute: typeof AuthenticatedOverviewRoute
@@ -798,8 +901,10 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedFaqRoute: AuthenticatedFaqRoute,
   AuthenticatedHeatmapRoute: AuthenticatedHeatmapRoute,
   AuthenticatedHuddleRoute: AuthenticatedHuddleRoute,
+  AuthenticatedInsightsRoute: AuthenticatedInsightsRoute,
   AuthenticatedIntelRoute: AuthenticatedIntelRoute,
   AuthenticatedIssuesRoute: AuthenticatedIssuesRoute,
+  AuthenticatedMarketRoute: AuthenticatedMarketRoute,
   AuthenticatedNdaRequiredRoute: AuthenticatedNdaRequiredRoute,
   AuthenticatedNeedsAttentionRoute: AuthenticatedNeedsAttentionRoute,
   AuthenticatedOverviewRoute: AuthenticatedOverviewRoute,
@@ -830,8 +935,11 @@ const rootRouteChildren: RootRouteChildren = {
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksBackfillEmbeddingsRoute: ApiPublicHooksBackfillEmbeddingsRoute,
   ApiPublicHooksDailyDigestRoute: ApiPublicHooksDailyDigestRoute,
+  ApiPublicHooksIngestMarketIntelRoute: ApiPublicHooksIngestMarketIntelRoute,
   ApiPublicHooksIntelligenceEngineRoute: ApiPublicHooksIntelligenceEngineRoute,
   ApiPublicHooksProcessEmbeddingsRoute: ApiPublicHooksProcessEmbeddingsRoute,
+  ApiPublicHooksProcessOutcomeRoute: ApiPublicHooksProcessOutcomeRoute,
+  ApiPublicHooksWeeklyBriefRoute: ApiPublicHooksWeeklyBriefRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
   LovableEmailTransactionalSendRoute: LovableEmailTransactionalSendRoute,
