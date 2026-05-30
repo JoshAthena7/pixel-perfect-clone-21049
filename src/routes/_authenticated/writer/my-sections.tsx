@@ -34,7 +34,7 @@ type Assignment = {
   word_count_min: number | null;
   word_count_max: number | null;
   section_id: string;
-  section?: { section_name: string; instructions: string | null };
+  section?: { section_name: string; instructions: string | null; evaluation_weight_pct: number | null };
 };
 
 const STATUS_STYLES: Record<string, string> = {
@@ -61,16 +61,15 @@ function WriterMySections() {
     setLoadError(null);
     const { data, error } = await supabase
       .from("section_assignments")
-      .select("id, status, due_date, word_count_min, word_count_max, section_id, heatmap_sections!inner(section_name, instructions)")
+      .select("id, status, due_date, word_count_min, word_count_max, section_id, heatmap_sections!inner(section_name, instructions, evaluation_weight_pct)")
       .eq("engagement_id", engagement.id)
       .eq("user_id", user.id);
     setIsLoading(false);
     if (error) { setLoadError(error.message); return; }
     setItems(
-      ((data as any[]) ?? []).map((r) => ({
-        ...r,
-        section: r.heatmap_sections,
-      })),
+      ((data as any[]) ?? [])
+        .map((r) => ({ ...r, section: r.heatmap_sections }))
+        .sort((a, b) => (b.section?.evaluation_weight_pct ?? -1) - (a.section?.evaluation_weight_pct ?? -1)),
     );
     const { data: seen } = await supabase
       .from("writer_last_seen")
@@ -149,7 +148,20 @@ function WriterMySections() {
             <Card key={a.id} className="border-border bg-surface p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="text-sm font-semibold">{a.section?.section_name}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm font-semibold">{a.section?.section_name}</div>
+                    {a.section?.evaluation_weight_pct != null && (
+                      <Badge
+                        variant="outline"
+                        className={`border-[var(--gold)]/40 bg-[var(--gold)]/10 text-[10px] font-bold tracking-wider text-[var(--gold)] ${
+                          (a.section.evaluation_weight_pct ?? 0) > 10 ? "border-red-500/60 bg-red-500/10 text-red-300" : ""
+                        }`}
+                        title="Evaluation weight"
+                      >
+                        {a.section.evaluation_weight_pct}% wt
+                      </Badge>
+                    )}
+                  </div>
                   {(() => {
                     const ds = dueState(a.due_date);
                     if (!ds) return null;
