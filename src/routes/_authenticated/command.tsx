@@ -3,17 +3,11 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
 import { calcTemperature } from "@/components/war-room/Thermometer";
-import { Siren, Users, ShieldAlert, Megaphone, Grid3x3, Sparkles, Clock, Settings as SettingsIcon, Hash, Inbox } from "lucide-react";
+import { Siren, Users, ShieldAlert, Megaphone, Grid3x3, Sparkles, Clock, Settings as SettingsIcon, Inbox } from "lucide-react";
 import { LivePresence } from "@/components/war-room/LivePresence";
 import { ActionLauncher } from "@/components/war-room/ActionLauncher";
 import { NeedsAttentionPanel } from "@/components/war-room/NeedsAttentionPanel";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
-import { listSlackChannels, getSlackMessages } from "@/lib/slack.functions";
-import { Plug } from "lucide-react";
 import { relativeTime, hoursSince } from "@/lib/time";
 import { useNeedsAttention } from "@/hooks/use-needs-attention";
 
