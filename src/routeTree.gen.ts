@@ -39,9 +39,6 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated/activity'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
-import { Route as AuthenticatedWriterWorkLogRouteImport } from './routes/_authenticated/writer/work-log'
-import { Route as AuthenticatedWriterRecognitionFeedRouteImport } from './routes/_authenticated/writer/recognition-feed'
-import { Route as AuthenticatedWriterProgressRouteImport } from './routes/_authenticated/writer/progress'
 import { Route as AuthenticatedWriterMySectionsRouteImport } from './routes/_authenticated/writer/my-sections'
 import { Route as AuthenticatedEngagementNewRouteImport } from './routes/_authenticated/engagement.new'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin/settings'
@@ -219,24 +216,6 @@ const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   path: '/lovable/email/suppression',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedWriterWorkLogRoute =
-  AuthenticatedWriterWorkLogRouteImport.update({
-    id: '/writer/work-log',
-    path: '/writer/work-log',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedWriterRecognitionFeedRoute =
-  AuthenticatedWriterRecognitionFeedRouteImport.update({
-    id: '/writer/recognition-feed',
-    path: '/writer/recognition-feed',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedWriterProgressRoute =
-  AuthenticatedWriterProgressRouteImport.update({
-    id: '/writer/progress',
-    path: '/writer/progress',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedWriterMySectionsRoute =
   AuthenticatedWriterMySectionsRouteImport.update({
     id: '/writer/my-sections',
@@ -408,9 +387,6 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/engagement/new': typeof AuthenticatedEngagementNewRoute
   '/writer/my-sections': typeof AuthenticatedWriterMySectionsRoute
-  '/writer/progress': typeof AuthenticatedWriterProgressRoute
-  '/writer/recognition-feed': typeof AuthenticatedWriterRecognitionFeedRoute
-  '/writer/work-log': typeof AuthenticatedWriterWorkLogRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/api/public/hooks/backfill-embeddings': typeof ApiPublicHooksBackfillEmbeddingsRoute
@@ -463,9 +439,6 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/engagement/new': typeof AuthenticatedEngagementNewRoute
   '/writer/my-sections': typeof AuthenticatedWriterMySectionsRoute
-  '/writer/progress': typeof AuthenticatedWriterProgressRoute
-  '/writer/recognition-feed': typeof AuthenticatedWriterRecognitionFeedRoute
-  '/writer/work-log': typeof AuthenticatedWriterWorkLogRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/api/public/hooks/backfill-embeddings': typeof ApiPublicHooksBackfillEmbeddingsRoute
@@ -521,9 +494,6 @@ export interface FileRoutesById {
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/engagement/new': typeof AuthenticatedEngagementNewRoute
   '/_authenticated/writer/my-sections': typeof AuthenticatedWriterMySectionsRoute
-  '/_authenticated/writer/progress': typeof AuthenticatedWriterProgressRoute
-  '/_authenticated/writer/recognition-feed': typeof AuthenticatedWriterRecognitionFeedRoute
-  '/_authenticated/writer/work-log': typeof AuthenticatedWriterWorkLogRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/api/public/hooks/backfill-embeddings': typeof ApiPublicHooksBackfillEmbeddingsRoute
@@ -579,9 +549,6 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/engagement/new'
     | '/writer/my-sections'
-    | '/writer/progress'
-    | '/writer/recognition-feed'
-    | '/writer/work-log'
     | '/lovable/email/suppression'
     | '/admin/'
     | '/api/public/hooks/backfill-embeddings'
@@ -634,9 +601,6 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/engagement/new'
     | '/writer/my-sections'
-    | '/writer/progress'
-    | '/writer/recognition-feed'
-    | '/writer/work-log'
     | '/lovable/email/suppression'
     | '/admin'
     | '/api/public/hooks/backfill-embeddings'
@@ -691,9 +655,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/settings'
     | '/_authenticated/engagement/new'
     | '/_authenticated/writer/my-sections'
-    | '/_authenticated/writer/progress'
-    | '/_authenticated/writer/recognition-feed'
-    | '/_authenticated/writer/work-log'
     | '/lovable/email/suppression'
     | '/_authenticated/admin/'
     | '/api/public/hooks/backfill-embeddings'
@@ -942,27 +903,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailSuppressionRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/writer/work-log': {
-      id: '/_authenticated/writer/work-log'
-      path: '/writer/work-log'
-      fullPath: '/writer/work-log'
-      preLoaderRoute: typeof AuthenticatedWriterWorkLogRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/writer/recognition-feed': {
-      id: '/_authenticated/writer/recognition-feed'
-      path: '/writer/recognition-feed'
-      fullPath: '/writer/recognition-feed'
-      preLoaderRoute: typeof AuthenticatedWriterRecognitionFeedRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/writer/progress': {
-      id: '/_authenticated/writer/progress'
-      path: '/writer/progress'
-      fullPath: '/writer/progress'
-      preLoaderRoute: typeof AuthenticatedWriterProgressRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/writer/my-sections': {
       id: '/_authenticated/writer/my-sections'
       path: '/writer/my-sections'
@@ -1173,9 +1113,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedWinThemesRoute: typeof AuthenticatedWinThemesRoute
   AuthenticatedEngagementNewRoute: typeof AuthenticatedEngagementNewRoute
   AuthenticatedWriterMySectionsRoute: typeof AuthenticatedWriterMySectionsRoute
-  AuthenticatedWriterProgressRoute: typeof AuthenticatedWriterProgressRoute
-  AuthenticatedWriterRecognitionFeedRoute: typeof AuthenticatedWriterRecognitionFeedRoute
-  AuthenticatedWriterWorkLogRoute: typeof AuthenticatedWriterWorkLogRoute
   AuthenticatedEngagementIdSectionSectionIdEditRoute: typeof AuthenticatedEngagementIdSectionSectionIdEditRoute
 }
 
@@ -1205,10 +1142,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedWinThemesRoute: AuthenticatedWinThemesRoute,
   AuthenticatedEngagementNewRoute: AuthenticatedEngagementNewRoute,
   AuthenticatedWriterMySectionsRoute: AuthenticatedWriterMySectionsRoute,
-  AuthenticatedWriterProgressRoute: AuthenticatedWriterProgressRoute,
-  AuthenticatedWriterRecognitionFeedRoute:
-    AuthenticatedWriterRecognitionFeedRoute,
-  AuthenticatedWriterWorkLogRoute: AuthenticatedWriterWorkLogRoute,
   AuthenticatedEngagementIdSectionSectionIdEditRoute:
     AuthenticatedEngagementIdSectionSectionIdEditRoute,
 }
@@ -1239,3 +1172,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
