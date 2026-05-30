@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { Sparkles, User } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/assistant")({
-  head: () => ({ meta: [{ title: "AI Assistant — Athena" }] }),
+  head: () => ({ meta: [{ title: "Navigator™ — Athena" }] }),
   component: AssistantPage,
 });
 

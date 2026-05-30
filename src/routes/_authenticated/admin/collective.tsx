@@ -156,7 +156,7 @@ function AdminCollective() {
       {tab === "roster" ? (
         <>
           {/* Filter bar */}
-          <div className="flex flex-wrap items-center gap-2 p-2 rounded-md border border-border/60 bg-[#16161f]">
+          <div className="flex flex-wrap items-center gap-2 p-2 rounded-md border border-border/60 bg-[#141628]">
             <div className="relative flex-1 min-w-[260px]">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
@@ -180,7 +180,7 @@ function AdminCollective() {
           </div>
 
           {/* Roster table */}
-          <Card className="border-border/60 bg-[#16161f] overflow-hidden">
+          <Card className="border-border/60 bg-[#141628] overflow-hidden">
             <div className="grid grid-cols-[2.2fr_110px_1.6fr_180px_120px_40px] gap-3 px-5 py-2.5 border-b border-border/60 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               <div>Member</div>
               <div>Role</div>
@@ -228,7 +228,7 @@ function AdminCollective() {
                             <span
                               key={r.id}
                               title={`${r.name} — ${r.role}`}
-                              className={`h-2 w-2 rounded-full ring-2 ring-[#16161f] ${ROOM_DOT[i % ROOM_DOT.length]}`}
+                              className={`h-2 w-2 rounded-full ring-2 ring-[#141628] ${ROOM_DOT[i % ROOM_DOT.length]}`}
                             />
                           ))}
                         </div>
@@ -266,7 +266,7 @@ function AdminCollective() {
           </Card>
         </>
       ) : (
-        <Card className="border-border/60 bg-[#16161f] p-12 text-center">
+        <Card className="border-border/60 bg-[#141628] p-12 text-center">
           <div className="text-sm font-semibold mb-1">Capacity matrix</div>
           <div className="text-xs text-muted-foreground max-w-md mx-auto">
             Weekly committed-hours heatmap across the Collective. Wiring up capacity tracking next — flip back to Roster for the live view.
@@ -279,7 +279,7 @@ function AdminCollective() {
 
 function Kpi({ label, value, accent, sub, bar }: { label: string; value: string | number; accent: string; sub?: string; bar?: number }) {
   return (
-    <Card className="border-border/60 bg-[#16161f] p-4">
+    <Card className="border-border/60 bg-[#141628] p-4">
       <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">{label}</div>
       <div className={`text-2xl font-bold font-mono tabular-nums ${accent}`}>{value}</div>
       {bar !== undefined ? (

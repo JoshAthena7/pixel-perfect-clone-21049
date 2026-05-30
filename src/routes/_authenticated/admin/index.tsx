@@ -136,10 +136,10 @@ function AdminDashboard() {
       </div>
 
       {/* War rooms table */}
-      <Card className="border-border/60 bg-[#16161f]">
+      <Card className="border-border/60 bg-[#141628]">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border/40">
           <div>
-            <h2 className="text-sm font-bold tracking-wide">War Rooms</h2>
+            <h2 className="text-sm font-bold tracking-wide">Command Centers</h2>
             <p className="text-[11px] text-muted-foreground">Sorted by days to submission · click Enter to drop into any room</p>
           </div>
           <Button asChild size="sm" variant="ghost" className="text-xs gap-1">
@@ -207,7 +207,7 @@ function AdminDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Recent global messages */}
-        <Card className="border-border/60 bg-[#16161f]">
+        <Card className="border-border/60 bg-[#141628]">
           <div className="flex items-center justify-between px-5 py-3 border-b border-border/40">
             <h3 className="text-xs font-bold tracking-wide uppercase text-muted-foreground">Recent broadcasts</h3>
             <Button asChild size="sm" variant="ghost" className="text-xs gap-1 h-7">
@@ -234,7 +234,7 @@ function AdminDashboard() {
         </Card>
 
         {/* Intelligence alerts feed */}
-        <Card className="border-border/60 bg-[#16161f]">
+        <Card className="border-border/60 bg-[#141628]">
           <div className="flex items-center justify-between px-5 py-3 border-b border-border/40">
             <h3 className="text-xs font-bold tracking-wide uppercase text-muted-foreground">Intelligence alerts</h3>
             <Button asChild size="sm" variant="ghost" className="text-xs gap-1 h-7">
@@ -268,7 +268,7 @@ function AdminDashboard() {
 
 function Kpi({ icon: Icon, label, value, accent }: { icon: any; label: string; value: number | string; accent: string }) {
   return (
-    <Card className="border-border/60 bg-[#16161f] p-4">
+    <Card className="border-border/60 bg-[#141628] p-4">
       <div className="flex items-center justify-between">
         <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-semibold">{label}</span>
         <Icon className="h-3.5 w-3.5" style={{ color: accent }} />

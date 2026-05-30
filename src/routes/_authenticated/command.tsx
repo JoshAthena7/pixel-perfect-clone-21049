@@ -138,7 +138,7 @@ function CommandCenter() {
         <ErrorBanner error={loadError} onRetry={() => engagement && loadAll(engagement.id)} label="Couldn't load command center data." />
         {isLoading && heatmap.length === 0 && <LoadingSkeleton label="Loading command center…" />}
 
-        {/* ZONE 1 — Needs Attention + Intelligence Insights */}
+        {/* ZONE 1 — Active Signals + Intelligence Insights */}
         <NeedsAttentionPanel />
         <SizingSummaryStrip engagementId={engagement.id} />
         <IntelligenceInsightsPanel />

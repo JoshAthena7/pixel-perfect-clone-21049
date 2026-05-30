@@ -155,7 +155,7 @@ export function InviteToCollectiveDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px] border-border/60 bg-[#16161f]">
+      <DialogContent className="sm:max-w-[480px] border-border/60 bg-[#141628]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserPlus className="h-4 w-4 text-[var(--gold)]" />

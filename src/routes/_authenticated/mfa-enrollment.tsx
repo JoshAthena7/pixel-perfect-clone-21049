@@ -9,7 +9,7 @@ import { ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/mfa-enrollment")({
-  head: () => ({ meta: [{ title: "Enable Two-Factor — Athena War Room" }] }),
+  head: () => ({ meta: [{ title: "Enable Two-Factor — Athena Command™" }] }),
   component: MfaEnrollmentPage,
 });
 

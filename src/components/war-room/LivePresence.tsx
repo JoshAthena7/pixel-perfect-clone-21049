@@ -25,11 +25,11 @@ const PATH_LABEL: Record<string, string> = {
   "/command": "Command Center",
   "/huddle": "Daily Huddle",
   "/issues": "Issues",
-  "/team": "Team Roster",
-  "/heatmap": "Heat Map",
+  "/team": "Collective™",
+  "/heatmap": "Delivery Map",
   "/intel": "Intel",
   "/decisions": "Decisions",
-  "/pulse": "Client Pulse",
+  "/pulse": "Pulse™",
   "/broadcasts": "Broadcasts",
   
   "/assistant": "Assistant",
@@ -57,7 +57,7 @@ export function LivePresence({ variant = "compact" }: { variant?: Variant }) {
       <div className="rounded-lg border border-[var(--gold)]/25 bg-surface-hover/40 p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="text-[10px] uppercase tracking-[0.22em] text-[var(--gold)] font-semibold">
-            Live in War Room
+            Live in Command Center
           </div>
           <div className="text-xs text-muted-foreground">
             {users.length} {users.length === 1 ? "operator" : "operators"} online

@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 
 export const Route = createFileRoute("/_authenticated/pulse")({
-  head: () => ({ meta: [{ title: "Client Pulse — Athena" }] }),
+  head: () => ({ meta: [{ title: "Pulse™ — Athena" }] }),
   component: PulsePage,
 });
 

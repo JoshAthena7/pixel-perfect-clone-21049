@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { AthenaMark } from "@/components/AthenaMark";
+import { AthenaMark } from "@/components/ui/AthenaMark";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Sign in — Athena War Room" }] }),
+  head: () => ({ meta: [{ title: "Sign in — Athena Command™" }] }),
   component: LoginPage,
 });
 
@@ -78,22 +78,24 @@ function LoginPage() {
       <div className="relative w-full max-w-md rounded-2xl border border-[var(--gold)]/25 bg-surface/95 p-8 shadow-2xl backdrop-blur">
         <div className="mb-7 text-center">
           <AthenaMark
-            size="xl"
+            size="lg"
             variant="lockup"
             tone="white"
             className="mx-auto mb-5 drop-shadow-[0_4px_20px_rgba(196,154,42,0.25)]"
           />
 
+
           <div className="mx-auto mb-3 h-px w-16 bg-gradient-to-r from-transparent via-[var(--gold)] to-transparent" />
           <h1 className="text-xl font-semibold tracking-[0.2em] uppercase text-foreground">
-            War Room Command
+            Athena Command™
           </h1>
           <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[var(--gold)]/90">
             Athena Strategy Group · Proprietary
           </p>
-          <p className="mt-3 text-sm text-muted-foreground">
-            Executive command for live engagements
+          <p className="mt-3 text-sm italic text-muted-foreground">
+            Operator-Led. Intelligence-Driven.
           </p>
+
         </div>
 
         <form onSubmit={onSubmit} className="space-y-4">

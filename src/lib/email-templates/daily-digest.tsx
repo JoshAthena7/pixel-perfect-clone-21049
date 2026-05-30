@@ -58,18 +58,27 @@ export function DailyDigest({
       <Preview>{`${engagementName} — Athena daily brief for ${dateLabel}`}</Preview>
       <Body style={{ backgroundColor: COLORS.bg, fontFamily: 'system-ui, -apple-system, Segoe UI, sans-serif', color: COLORS.text, margin: 0, padding: 0 }}>
         <Container style={{ maxWidth: 600, margin: '0 auto', padding: '32px 24px' }}>
-          <Section>
+          <Section style={{ background: '#1B3B72', padding: '20px 24px', borderRadius: 8, textAlign: 'center' }}>
+            <img
+              src="https://athenacommandcenter.com/athena-logo-white.png"
+              alt="Athena Strategy Group"
+              height={44}
+              style={{ height: 44, width: 'auto', margin: '0 auto', display: 'block' }}
+            />
+          </Section>
+          <Section style={{ paddingTop: 16 }}>
             <Text style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: COLORS.muted, margin: 0 }}>
-              Athena Command Center
+              Athena Command™
             </Text>
             <Heading style={{ fontSize: 24, fontWeight: 700, margin: '4px 0 0' }}>
-              Daily Brief — {dateLabel}
+              Daily Briefing — {dateLabel}
             </Heading>
             <Text style={{ fontSize: 14, color: COLORS.muted, margin: '4px 0 0' }}>
               {engagementName}{client ? ` · ${client}` : ''}
               {typeof daysToSubmission === 'number' ? ` · T-${daysToSubmission} days to submission` : ''}
             </Text>
           </Section>
+
 
           <Hr style={{ borderColor: COLORS.border, margin: '24px 0' }} />
 
@@ -107,7 +116,7 @@ export function DailyDigest({
               <strong>{newRisks.length}</strong> new risk{newRisks.length === 1 ? '' : 's'} in last 24h
             </Text>
             <Text style={{ fontSize: 14, margin: 0, color: openSos.length ? COLORS.red : COLORS.text }}>
-              <strong>{openSos.length}</strong> open SOS alert{openSos.length === 1 ? '' : 's'}
+              <strong>{openSos.length}</strong> open escalation{openSos.length === 1 ? '' : 's'}
             </Text>
           </Section>
 
@@ -147,7 +156,10 @@ export function DailyDigest({
 
           <Section>
             <Text style={{ fontSize: 13, color: COLORS.muted, margin: 0 }}>
-              Open the war room: <a href={appUrl} style={{ color: COLORS.accent }}>{appUrl}</a>
+              Open the Command Center: <a href={appUrl} style={{ color: COLORS.accent }}>{appUrl}</a>
+            </Text>
+            <Text style={{ fontSize: 11, color: COLORS.muted, marginTop: 16 }}>
+              Athena Strategy Group · Powered by Athena Command™
             </Text>
           </Section>
         </Container>
@@ -156,11 +168,14 @@ export function DailyDigest({
   )
 }
 
+
+
 export const template: TemplateEntry = {
   component: DailyDigest,
   subject: (data: Record<string, any>) =>
-    `[Athena] ${data.engagementName || 'Daily brief'} — ${data.dateLabel || 'Daily brief'}`,
-  displayName: 'Daily Digest',
+    `Athena Command · Daily Briefing — ${data.engagementName || 'Engagement'}, ${data.dateLabel || ''}`,
+
+  displayName: 'Athena Command · Daily Briefing',
   previewData: {
     recipientName: 'Drew',
     engagementName: 'Indiana Medicaid Pursuit',
@@ -168,7 +183,7 @@ export const template: TemplateEntry = {
     dateLabel: 'Friday, May 29',
     daysToSubmission: 14,
     summary:
-      'Two huddles overnight. LTSS slipped to red — staffing gap flagged by Maria. Quality remains yellow. One new severe risk on care management. No open SOS.',
+      'Two huddles overnight. LTSS slipped to red — staffing gap flagged by Maria. Quality remains yellow. One new severe risk on care management. No open escalations.',
     overnightHuddles: 2,
     redSections: ['LTSS'],
     yellowSections: ['Quality', 'Operations'],

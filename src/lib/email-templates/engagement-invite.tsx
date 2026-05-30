@@ -34,11 +34,11 @@ export function EngagementInvite({
   return (
     <Html>
       <Head />
-      <Preview>{`${inviterName} invited you to ${engagementName} on Athena War Room`}</Preview>
+      <Preview>{`${inviterName} invited you to ${engagementName} on Athena Command™`}</Preview>
       <Body style={{ backgroundColor: C.bg, fontFamily: "system-ui, -apple-system, Segoe UI, sans-serif", color: C.text, margin: 0, padding: 0 }}>
         <Container style={{ maxWidth: 560, margin: "0 auto", padding: "32px 24px" }}>
           <Text style={{ fontSize: 11, letterSpacing: 2, textTransform: "uppercase", color: C.gold, margin: 0, fontWeight: 700 }}>
-            Athena War Room
+            Athena Command™
           </Text>
           <Heading style={{ fontSize: 22, lineHeight: "30px", margin: "12px 0 8px", color: C.text }}>
             You've been invited to the Command Center
@@ -50,7 +50,7 @@ export function EngagementInvite({
 
           <Section style={{ backgroundColor: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: 20, margin: "0 0 24px" }}>
             <Text style={{ fontSize: 13, color: C.text, margin: "0 0 16px", lineHeight: "20px" }}>
-              The Command Center is where this engagement's leadership tracks daily huddles, risks, SOS alerts, client pulse, and decisions in one place. Click below to join.
+              The Command Center is where this engagement's leadership tracks daily huddles, risks, escalations, client pulse, and decisions in one place. Click below to join.
             </Text>
             <Button
               href={acceptUrl}

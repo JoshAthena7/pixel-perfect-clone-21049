@@ -252,7 +252,7 @@ function CompareView({ a, b }: { a: Snapshot; b: Snapshot }) {
         </div>
         {changes.length > 0 && (
           <div className="mt-3">
-            <div className="mb-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Heatmap changes</div>
+            <div className="mb-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Delivery Map changes</div>
             <ul className="space-y-0.5 text-xs">
               {changes.map((s) => (
                 <li key={s}>

@@ -7,7 +7,7 @@ import { useIsAdmin } from "@/hooks/use-admin";
 import { Toaster } from "@/components/ui/sonner";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Admin Portal — Athena" }] }),
+  head: () => ({ meta: [{ title: "Command Operations — Athena" }] }),
   component: AdminLayout,
 });
 

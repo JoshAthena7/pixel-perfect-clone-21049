@@ -12,13 +12,13 @@ import { toast } from "sonner";
 import { SizingEngine } from "@/components/sizing/SizingEngine";
 
 export const Route = createFileRoute("/_authenticated/engagement/new")({
-  head: () => ({ meta: [{ title: "New Engagement — Athena" }] }),
+  head: () => ({ meta: [{ title: "New Command Center — Athena" }] }),
   component: NewEngagementPage,
 });
 
 // ───── design tokens (match lobby) ─────
-const BG = "#0d0d14";
-const CARD = "#16161f";
+const BG = "#0D0F1A";
+const CARD = "#141628";
 const CARD_HOVER = "#1c1c27";
 const BORDER = "rgba(255,255,255,0.06)";
 const BORDER_STRONG = "rgba(255,255,255,0.12)";
@@ -474,7 +474,7 @@ function NewEngagementPage() {
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-3.5 w-3.5" style={{ color: GOLD }} />
           <span className="text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: GOLD }}>
-            New Engagement · Restricted
+            New Command Center · Restricted
           </span>
         </div>
       </header>
@@ -491,7 +491,7 @@ function NewEngagementPage() {
                   className="flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold"
                   style={{
                     background: done ? GOLD : current ? "rgba(201,179,112,0.15)" : CARD,
-                    color: done ? "#0d0d14" : current ? GOLD : "#666",
+                    color: done ? "#0D0F1A" : current ? GOLD : "#666",
                     border: `1px solid ${current || done ? GOLD : BORDER_STRONG}`,
                   }}
                 >
@@ -574,7 +574,7 @@ function StepSizing(p: { engagementId: string; onNext: () => void; onSkip: () =>
         <button
           onClick={p.onNext}
           className="inline-flex items-center gap-2 rounded-md px-4 py-2 text-[11px] font-bold uppercase tracking-[0.25em]"
-          style={{ background: GOLD, color: "#0d0d14" }}
+          style={{ background: GOLD, color: "#0D0F1A" }}
         >
           Continue to Team <ArrowRight className="h-3.5 w-3.5" />
         </button>
@@ -851,7 +851,7 @@ function Step3(p: {
           Skip & open empty room →
         </button>
         <PrimaryButton onClick={p.onOpen} loading={p.saving}>
-          Open War Room <ArrowRight className="h-3.5 w-3.5" />
+          Open Command Center <ArrowRight className="h-3.5 w-3.5" />
         </PrimaryButton>
       </Footer>
     </section>
@@ -962,7 +962,7 @@ function PrimaryButton({ onClick, loading, children }: { onClick: () => void; lo
       onClick={onClick}
       disabled={loading}
       className="inline-flex items-center gap-2 rounded-md px-4 py-2 text-[11px] font-bold uppercase tracking-[0.2em] transition disabled:opacity-50"
-      style={{ background: GOLD, color: "#0d0d14" }}
+      style={{ background: GOLD, color: "#0D0F1A" }}
       onMouseEnter={(e) => !loading && (e.currentTarget.style.background = "#d8c280")}
       onMouseLeave={(e) => !loading && (e.currentTarget.style.background = GOLD)}
     >

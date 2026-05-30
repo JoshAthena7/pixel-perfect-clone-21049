@@ -19,7 +19,7 @@ export function AdminPlaceholder({
         <p className="text-sm text-muted-foreground mt-1">{description}</p>
       </div>
 
-      <Card className="border-border/60 bg-[#16161f] border-dashed">
+      <Card className="border-border/60 bg-[#141628] border-dashed">
         <div className="flex flex-col items-center justify-center text-center px-6 py-20">
           <div className="rounded-full bg-white/[0.03] border border-border/40 p-4 mb-4">
             <Icon className="h-7 w-7 text-[var(--gold)]" />

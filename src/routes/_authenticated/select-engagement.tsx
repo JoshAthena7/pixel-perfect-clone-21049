@@ -3,17 +3,19 @@ import { useEffect, useMemo, useState } from "react";
 import { useEngagement, type Membership } from "@/hooks/use-engagement";
 import { useSession } from "@/hooks/use-session";
 import { supabase } from "@/integrations/supabase/client";
+import { AthenaMark } from "@/components/ui/AthenaMark";
+
 import { LogOut, Archive, Plus, Siren, Users, FileText, Clock } from "lucide-react";
 import { daysUntil } from "@/lib/time";
 
 export const Route = createFileRoute("/_authenticated/select-engagement")({
-  head: () => ({ meta: [{ title: "Command Lobby — Athena" }] }),
+  head: () => ({ meta: [{ title: "Command Home — Athena" }] }),
   component: SelectEngagementPage,
 });
 
 // ───────────── design tokens (scoped) ─────────────
-const LOBBY_BG = "#0d0d14";
-const CARD_BG = "#16161f";
+const LOBBY_BG = "#0D0F1A";
+const CARD_BG = "#141628";
 const CARD_BG_HOVER = "#1c1c27";
 const BORDER = "rgba(255,255,255,0.06)";
 const BORDER_STRONG = "rgba(255,255,255,0.12)";
@@ -163,17 +165,16 @@ function SelectEngagementPage() {
       {/* TOP BAR */}
       <header className="flex items-center justify-between px-6 py-4" style={{ borderBottom: `1px solid ${BORDER}` }}>
         <div className="flex items-center gap-3">
-          <div
-            className="flex h-10 w-10 items-center justify-center rounded-md text-lg font-black"
-            style={{ background: `linear-gradient(135deg, ${GOLD}, #8a7445)`, color: "#0d0d14" }}
-          >
-            A
-          </div>
+          <AthenaMark size="md" tone="white" className="hidden md:block" />
+          <AthenaMark size="sm" tone="white" className="md:hidden" />
           <div className="leading-tight">
-            <div className="text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: GOLD }}>Athena</div>
-            <div className="text-[10px] font-medium uppercase tracking-[0.3em] text-zinc-500">Command Center</div>
+            <div className="text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: GOLD }}>Athena Command™</div>
+            <div className="text-[10px] font-medium uppercase tracking-[0.28em] text-zinc-500">
+              Intelligence Infrastructure for Healthcare Growth
+            </div>
           </div>
         </div>
+
         <div className="flex items-center gap-3">
           <span
             className="rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em]"
@@ -234,7 +235,7 @@ function SelectEngagementPage() {
       {/* WAR ROOMS */}
       <section className="px-6 py-6">
         <div className="mb-4 flex items-center justify-between">
-          <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-500">Active War Rooms</div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-500">Active Command Centers</div>
           {archived.length > 0 && (
             <button
               onClick={() => setShowArchived((v) => !v)}
@@ -261,7 +262,7 @@ function SelectEngagementPage() {
               onClick={createNewEngagement}
               disabled={creating}
               className="mt-4 inline-flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold uppercase tracking-[0.18em]"
-              style={{ background: GOLD, color: "#0d0d14" }}
+              style={{ background: GOLD, color: "#0D0F1A" }}
             >
               <Plus className="h-3.5 w-3.5" /> Open New Room
             </button>
@@ -280,7 +281,7 @@ function SelectEngagementPage() {
               >
                 <Plus className="h-6 w-6" />
                 <div className="text-[10px] font-bold uppercase tracking-[0.3em]">
-                  {creating ? "Opening…" : "New War Room"}
+                  {creating ? "Opening…" : "New Command Center"}
                 </div>
               </button>
             )}
@@ -300,7 +301,7 @@ function SelectEngagementPage() {
         </div>
         <div className="flex items-center gap-2">
           <span className="h-1.5 w-1.5 rounded-full" style={{ background: GOLD }} />
-          Restricted Access · Clearance Verified
+          ATHENA COMMAND™ · RESTRICTED ACCESS · AUTHORIZED PERSONNEL ONLY
         </div>
       </footer>
     </div>

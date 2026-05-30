@@ -8,7 +8,7 @@ import { createClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
 import { WeeklyBrief, type WeeklyBriefProps } from '@/lib/email-templates/weekly-brief'
 
-const SITE_NAME = 'Athena Command Center'
+const SITE_NAME = 'Athena Command™'
 const SENDER_DOMAIN = 'notify.athenacommandcenter.com'
 const FROM_DOMAIN = 'athenacommandcenter.com'
 const APP_URL = 'https://athenacommandcenter.com'
@@ -76,7 +76,7 @@ This week's data:
 - ${totalInsights} intelligence insights generated, ${actioned} actioned
 - ${(market ?? []).length} new market intel items
 - ${(outcomes ?? []).length} engagement outcomes
-- ${(sos ?? []).length} SOS alerts
+- ${(sos ?? []).length} escalations
 - ${(risks ?? []).length} risks logged
 
 Insights: ${JSON.stringify((insights ?? []).slice(0, 15))}

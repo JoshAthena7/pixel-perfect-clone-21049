@@ -120,12 +120,12 @@ function AdminEngagementsList() {
           <p className="text-xs text-muted-foreground">Every war room across the platform.</p>
         </div>
         <Button asChild size="sm" className="gap-1.5">
-          <Link to="/engagement/new"><Plus className="h-3.5 w-3.5" /> New Engagement</Link>
+          <Link to="/engagement/new"><Plus className="h-3.5 w-3.5" /> New Command Center</Link>
         </Button>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex gap-1 rounded-md border border-border/60 bg-[#16161f] p-1">
+        <div className="flex gap-1 rounded-md border border-border/60 bg-[#141628] p-1">
           {STATUS_TABS.map((s) => (
             <button
               key={s}
@@ -149,7 +149,7 @@ function AdminEngagementsList() {
         </div>
       </div>
 
-      <Card className="border-border/60 bg-[#16161f]">
+      <Card className="border-border/60 bg-[#141628]">
         {loading ? (
           <div className="px-5 py-10 text-center text-sm text-muted-foreground">Loading…</div>
         ) : filtered.length === 0 ? (

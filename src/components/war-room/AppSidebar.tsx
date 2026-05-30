@@ -1,14 +1,13 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
-  Compass,
-  Users,
-  Siren,
   Grid3x3,
-  FolderOpen,
-  Activity,
+  Telescope,
+  AlertTriangle,
   Megaphone,
-  Bot,
+  Activity,
+  Vault as VaultIcon,
+  Brain,
   Settings,
   LogOut,
   MessageSquare,
@@ -32,24 +31,30 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
 import { EngagementSwitcher } from "@/components/EngagementSwitcher";
-import athenaLogo from "@/assets/athena-logo-dark.png";
+import { AthenaMark } from "@/components/ui/AthenaMark";
 import { useIsAdmin } from "@/hooks/use-admin";
 import type { ComponentType } from "react";
 import type { LucideProps } from "lucide-react";
 
-type NavItem = { title: string; url: string; icon: ComponentType<LucideProps>; hint: string };
+type NavItem = {
+  title: string;
+  url: string;
+  icon: ComponentType<LucideProps>;
+  hint: string;
+  accent?: "red";
+};
 
-// The 9 canonical items, in order.
+// The 9 canonical Command Center items, in order.
 const NAV: NavItem[] = [
-  { title: "Overview",   url: "/overview",   icon: Compass,         hint: "Portfolio-wide executive view across every engagement" },
-  { title: "Command",    url: "/command",    icon: LayoutDashboard, hint: "Executive overview of this engagement" },
-  { title: "Huddle",     url: "/huddle",     icon: Users,           hint: "Daily 60-second status from the front line" },
-  { title: "Heatmap",    url: "/heatmap",    icon: Grid3x3,         hint: "Section-by-section health" },
-  { title: "Issues",     url: "/issues",     icon: Siren,           hint: "Unified board for SOS blockers and risks" },
-  { title: "Broadcasts", url: "/broadcasts", icon: Megaphone,       hint: "Team-wide announcements" },
-  { title: "Pulse",      url: "/pulse",      icon: Activity,        hint: "Track how the client is feeling" },
-  { title: "Intel",      url: "/intel",      icon: FolderOpen,      hint: "Single source of truth for documents" },
-  { title: "Assistant",  url: "/assistant",  icon: Bot,             hint: "Ask questions grounded in your war room data" },
+  { title: "Command",      url: "/command",    icon: LayoutDashboard, hint: "Executive overview of this engagement" },
+  { title: "Delivery Map", url: "/heatmap",    icon: Grid3x3,         hint: "Section-by-section health" },
+  { title: "Briefing Room",url: "/intel",      icon: Telescope,       hint: "Research, intel, and source documents" },
+  { title: "Escalations",  url: "/issues",     icon: AlertTriangle,   hint: "Active blockers and risks", accent: "red" },
+  { title: "Broadcasts",   url: "/broadcasts", icon: Megaphone,       hint: "Team-wide announcements" },
+  { title: "Pulse™",       url: "/pulse",      icon: Activity,        hint: "Track how the client is feeling" },
+  { title: "Vault",        url: "/intel",      icon: VaultIcon,       hint: "Single source of truth for documents" },
+  { title: "Navigator™",   url: "/assistant",  icon: Brain,           hint: "Ask questions grounded in your engagement data" },
+  { title: "Settings",     url: "/settings",   icon: Settings,        hint: "Team, sections, win themes, and configuration" },
 ];
 
 export function AppSidebar() {
@@ -64,8 +69,13 @@ export function AppSidebar() {
   }
 
   const renderItem = (i: NavItem) => (
-    <SidebarMenuItem key={i.url}>
-      <SidebarMenuButton asChild isActive={isActive(i.url)} tooltip={`${i.title} — ${i.hint}`}>
+    <SidebarMenuItem key={i.title}>
+      <SidebarMenuButton
+        asChild
+        isActive={isActive(i.url)}
+        tooltip={`${i.title} — ${i.hint}`}
+        className={i.accent === "red" ? "text-[var(--red)]/90 data-[active=true]:text-[var(--red)]" : undefined}
+      >
         <Link to={i.url}>
           <i.icon className="h-4 w-4" />
           <span>{i.title}</span>
@@ -78,9 +88,9 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <div className="flex flex-col items-center gap-2 px-2 py-3 border-b border-border/40">
-          <img src={athenaLogo} alt="Athena Strategy Group" className="h-14 w-auto object-contain" />
+          <AthenaMark size="md" tone="white" />
           <div className="text-[10px] uppercase tracking-[0.28em] text-[var(--gold)] font-semibold">
-            War Room · Command
+            Command™
           </div>
         </div>
         {engagement && <EngagementSwitcher />}
@@ -101,7 +111,7 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     asChild
                     isActive={isActive("/section-assignments")}
-                    tooltip="Section Assignments — Assign writers and reviewers to each Heat Map section"
+                    tooltip="Section Assignments — Assign writers and reviewers to each Delivery Map section"
                   >
                     <Link to="/section-assignments">
                       <UserCheck className="h-4 w-4" />
@@ -127,7 +137,6 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
 
         <SidebarGroup>
           <SidebarGroupContent>
@@ -159,27 +168,19 @@ export function AppSidebar() {
         <SidebarMenu>
           {isAdmin && (
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname.startsWith("/admin")} tooltip="Admin Portal — Platform-wide control across every war room">
+              <SidebarMenuButton asChild isActive={pathname.startsWith("/admin")} tooltip="Command Operations — Platform-wide control across every Command Center">
                 <Link to="/admin">
                   <Shield className="h-4 w-4" />
-                  <span>Admin</span>
+                  <span>Command Ops</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/select-engagement")} tooltip="War Rooms — Switch engagements or open a new one">
+            <SidebarMenuButton asChild isActive={isActive("/select-engagement")} tooltip="Command Centers — Switch engagements or open a new one">
               <Link to="/select-engagement">
                 <DoorOpen className="h-4 w-4" />
-                <span>War Rooms</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/settings")} tooltip="Settings — Team, sections, win themes, FAQ, activity log, and configuration">
-              <Link to="/settings">
-                <Settings className="h-4 w-4" />
-                <span>Settings</span>
+                <span>Command Centers</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

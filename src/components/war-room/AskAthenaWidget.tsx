@@ -208,13 +208,13 @@ export function AskAthenaWidget() {
         onClick={() => setOpen(true)}
         className="fixed bottom-0 left-0 right-0 z-30 flex items-center gap-3 border-t border-border bg-background/95 px-4 py-2.5 backdrop-blur transition hover:bg-background"
         style={{ paddingLeft: "calc(var(--sidebar-width, 0px) + 1rem)" }}
-        aria-label="Open Ask Athena"
+        aria-label="Open Ask Navigator"
       >
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/15 text-primary">
           <Brain className="h-4 w-4" />
         </span>
         <span className="flex-1 truncate text-left text-sm text-muted-foreground">
-          Ask Athena anything — research, brainstorm, reference…
+          Ask Navigator anything — research, brainstorm, reference…
         </span>
         <kbd className="hidden rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground sm:inline">
           {shortcutLabel}
@@ -235,7 +235,7 @@ export function AskAthenaWidget() {
           <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2.5">
             <div className="flex items-center gap-2">
               <Brain className="h-4 w-4 text-primary" />
-              <span className="text-sm font-semibold">Ask Athena</span>
+              <span className="text-sm font-semibold">Ask Navigator</span>
               <div className="ml-3 flex items-center gap-1">
                 <button
                   type="button"
@@ -266,7 +266,7 @@ export function AskAthenaWidget() {
                 type="button"
                 onClick={() => setOpen(false)}
                 className="rounded p-1 text-muted-foreground hover:bg-surface hover:text-foreground"
-                aria-label="Close Ask Athena (Esc)"
+                aria-label="Close Ask Navigator (Esc)"
               >
                 <X className="h-4 w-4" />
               </button>

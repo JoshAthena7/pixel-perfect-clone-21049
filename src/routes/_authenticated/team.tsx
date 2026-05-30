@@ -79,7 +79,7 @@ function parseBool(v: string | undefined): boolean {
 }
 
 export const Route = createFileRoute("/_authenticated/team")({
-  head: () => ({ meta: [{ title: "Team Roster — Athena War Room" }] }),
+  head: () => ({ meta: [{ title: "Collective™ — Athena Command™" }] }),
   component: TeamPage,
 });
 
@@ -426,7 +426,7 @@ function TeamPage() {
     <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Team Roster</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Collective™</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Who's on this engagement — and how to reach them right now.
           </p>
