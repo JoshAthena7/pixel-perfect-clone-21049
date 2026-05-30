@@ -10,6 +10,7 @@ export type Engagement = {
   submission_date: string | null;
   created_by: string | null;
   contract_value_estimate?: number | null;
+  state?: string | null;
 };
 
 export type Member = {
