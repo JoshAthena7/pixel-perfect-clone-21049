@@ -49,16 +49,6 @@ function WriterSubmitRisk() {
     });
     setSubmitting(false);
     if (error) return toast.error(error.message);
-    notifySlack({
-      data: {
-        engagementId: engagement.id,
-        event: "risk",
-        title: `[${urgency}] ${title}`,
-        body: risk.trim(),
-        fields: section ? [{ label: "Section", value: section }] : undefined,
-        author: member.display_name,
-      },
-    }).catch(() => {});
     setRisk(""); setSection(""); setUrgency("Medium");
     toast.success("Risk logged — your lead has been notified");
   }
