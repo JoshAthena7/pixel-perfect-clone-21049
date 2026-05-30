@@ -10,10 +10,41 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { relativeTime } from "@/lib/time";
-import { FileText, LinkIcon, Upload, Download, ExternalLink } from "lucide-react";
+import { FileText, LinkIcon, Upload, Download, ExternalLink, Sparkles, Loader2 } from "lucide-react";
 import { DeclareTriviaWinnerCard } from "@/components/war-room/DeclareTriviaWinnerCard";
 import { Watermark } from "@/components/war-room/Watermark";
+import { HolyGrailPanel } from "@/components/war-room/HolyGrailPanel";
+import { analyzeHolyGrail } from "@/lib/ai/holy-grail.functions";
 import { logActivity } from "@/lib/activity-log";
+
+async function extractTextFromFile(file: File): Promise<string> {
+  if (file.type.startsWith("text/") || /\.(txt|md|csv|rtf)$/i.test(file.name)) return file.text();
+  if (/\.docx$/i.test(file.name)) {
+    const mammoth = await import("mammoth");
+    const r = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
+    return r.value;
+  }
+  if (file.type === "application/pdf" || /\.pdf$/i.test(file.name)) {
+    const [pdfjs, worker] = await Promise.all([
+      import("pdfjs-dist"),
+      import("pdfjs-dist/build/pdf.worker.min.mjs?url"),
+    ]);
+    pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
+    const task = pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) });
+    const doc = await task.promise;
+    const pageCount = Math.min(doc.numPages, 40);
+    const pages = await Promise.all(
+      Array.from({ length: pageCount }, async (_, i) => {
+        const page = await doc.getPage(i + 1);
+        const content = await page.getTextContent();
+        return content.items.map((item: any) => item.str ?? "").join(" ");
+      }),
+    );
+    await doc.destroy();
+    return pages.join("\n");
+  }
+  return "";
+}
 
 export const Route = createFileRoute("/_authenticated/intel")({
   head: () => ({ meta: [{ title: "Intel Library — Athena" }] }),
