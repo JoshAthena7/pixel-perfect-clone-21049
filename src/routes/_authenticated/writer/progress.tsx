@@ -8,6 +8,7 @@ import { WinOfTheDayBanner } from "@/components/war-room/writer/WinOfTheDayBanne
 import { bigConfetti } from "@/lib/confetti";
 import { Trophy } from "lucide-react";
 import { TriviaLeaderboard } from "@/components/war-room/writer/TriviaLeaderboard";
+import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
 
 export const Route = createFileRoute("/_authenticated/writer/progress")({
   head: () => ({ meta: [{ title: "Progress — Writer Portal" }] }),
@@ -26,16 +27,24 @@ const MILESTONES = [25, 50, 75, 100];
 function WriterProgress() {
   const { engagement, member } = useEngagement();
   const [rows, setRows] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const celebrated = useRef(false);
 
-  useEffect(() => {
+  async function load() {
     if (!engagement) return;
-    supabase
+    setIsLoading(true);
+    setLoadError(null);
+    const { data, error } = await supabase
       .from("section_assignments")
       .select("status")
-      .eq("engagement_id", engagement.id)
-      .then(({ data }) => setRows(data ?? []));
-  }, [engagement?.id]);
+      .eq("engagement_id", engagement.id);
+    setIsLoading(false);
+    if (error) { setLoadError(error.message); return; }
+    setRows(data ?? []);
+  }
+
+  useEffect(() => { load(); }, [engagement?.id]);
 
   const total = rows.length || 0;
   const counts: Record<string, number> = Object.fromEntries(STATUSES.map((s) => [s, 0]));
@@ -62,6 +71,9 @@ function WriterProgress() {
         <h1 className="text-2xl font-bold tracking-tight">Progress</h1>
         <p className="mt-1 text-sm text-muted-foreground">How the team is tracking — aggregate only.</p>
       </div>
+
+      <ErrorBanner error={loadError} onRetry={load} label="Couldn't load progress." />
+      {isLoading && rows.length === 0 && <LoadingSkeleton label="Loading progress…" />}
 
       <WinOfTheDayBanner />
 

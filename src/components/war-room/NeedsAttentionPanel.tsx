@@ -4,6 +4,7 @@ import { useEngagement } from "@/hooks/use-engagement";
 import { HandHelping, Check } from "lucide-react";
 import { relativeTime } from "@/lib/time";
 import { toast } from "sonner";
+import { ErrorBanner } from "@/components/war-room/LoadState";
 
 type StuckRow = {
   id: string;
@@ -17,8 +18,10 @@ export function NeedsAttentionPanel() {
   const { engagement } = useEngagement();
   const [rows, setRows] = useState<StuckRow[]>([]);
   const [unassignedSectionIds, setUnassignedSectionIds] = useState<Set<string>>(new Set());
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   async function load(eid: string) {
+    setLoadError(null);
     const [stuckRes, assignRes] = await Promise.all([
       supabase
         .from("stuck_flags")
@@ -33,6 +36,10 @@ export function NeedsAttentionPanel() {
         .eq("engagement_id", eid)
         .is("user_id", null),
     ]);
+    if (stuckRes.error || assignRes.error) {
+      setLoadError(stuckRes.error?.message ?? assignRes.error?.message ?? "Failed to load");
+      return;
+    }
     setRows((stuckRes.data as StuckRow[]) ?? []);
     setUnassignedSectionIds(
       new Set(((assignRes.data as { section_id: string }[]) ?? []).map((a) => a.section_id)),
@@ -55,6 +62,9 @@ export function NeedsAttentionPanel() {
     if (error) return toast.error(error.message);
   }
 
+  if (loadError) {
+    return <ErrorBanner error={loadError} onRetry={() => engagement && load(engagement.id)} label="Couldn't load needs-attention items." />;
+  }
   if (rows.length === 0) return null;
   return (
     <div className="rounded-lg border border-[#eab308]/40 bg-[#eab308]/[0.06] px-4 py-3">
