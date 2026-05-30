@@ -349,7 +349,7 @@ function DoorCard({
       {/* header */}
       <div className="mb-3 flex items-start justify-between">
         <div className="text-[10px] font-mono tracking-[0.3em] text-zinc-600">
-          ROOM {String(index).padStart(3, "0")}
+          MISSION {String(index).padStart(3, "0")}
         </div>
         <span
           className="rounded border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em]"
