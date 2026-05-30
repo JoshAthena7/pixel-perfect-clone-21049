@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
+import { useIsAdmin } from "@/hooks/use-admin";
 import { useSession } from "@/hooks/use-session";
 import { ChevronLeft, Plus, X, ShieldCheck, ArrowRight, Link as LinkIcon, Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -33,12 +34,14 @@ function NewEngagementPage() {
   const { memberships, refresh, switchEngagement, loading: memLoading } = useEngagement();
   const navigate = useNavigate();
 
-  // access gate
+  // access gate — platform admins (Executives) and engagement leadership can create new engagements
+  const { isAdmin, loading: adminLoading } = useIsAdmin();
   const isAllowed = useMemo(() => {
-    if (memLoading) return null;
+    if (memLoading || adminLoading) return null;
+    if (isAdmin) return true;
     if (memberships.length === 0) return true; // first-ever engagement
-    return memberships.some((m) => m.role === "founder" || m.role === "pm");
-  }, [memberships, memLoading]);
+    return memberships.some((m) => m.role === "founder" || m.role === "pm" || m.role === "engagement_lead");
+  }, [memberships, memLoading, isAdmin, adminLoading]);
 
   useEffect(() => {
     if (isAllowed === false) navigate({ to: "/select-engagement", replace: true });
