@@ -360,6 +360,18 @@ export function AskAthenaWidget() {
               </button>
             </div>
           </div>
+          <div
+            className="px-4 py-1.5"
+            style={{ borderTop: "0.5px solid #1e2240" }}
+          >
+            <div
+              className="italic"
+              style={{ fontSize: "9px", color: "#C49A2A", letterSpacing: "0.1em", opacity: 0.8 }}
+            >
+              Athena thinks. Iris delivers.
+            </div>
+          </div>
+          </div>
 
           {tab === "ask" ? (
             <>
