@@ -42,8 +42,6 @@ const PAGE_TITLES: Record<string, string> = {
   "/writer/work-log": "Work Log",
   "/writer/progress": "Progress",
   "/writer/recognition-feed": "Recognition Feed",
-  "/writer/submit-risk": "Submit a Risk",
-  "/writer/submit-sos": "Submit an SOS",
 };
 
 // Shared routes that writers can access (read-only via in-page isLeadership gates)
