@@ -219,8 +219,8 @@ function CommandCenter() {
         )}
       </section>
 
-      {/* 4. Bottom — 3-column equal grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3" style={{ borderTop: `0.5px solid ${BORDER}` }}>
+      {/* 4. Bottom — 2-column equal grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2" style={{ borderTop: `0.5px solid ${BORDER}` }}>
         {/* Broadcasts */}
         <section className="p-5" style={{ borderRight: `0.5px solid ${BORDER}` }}>
           <div className="mb-3 flex items-center justify-between">
@@ -254,11 +254,6 @@ function CommandCenter() {
               );
             })}
           </ul>
-        </section>
-
-        {/* Slack feed (compact) */}
-        <section className="p-5" style={{ borderRight: `0.5px solid ${BORDER}` }}>
-          <CompactSlackPanel />
         </section>
 
         {/* Recent Huddles */}
