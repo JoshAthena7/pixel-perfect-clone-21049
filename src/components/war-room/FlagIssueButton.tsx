@@ -1,4 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+export function openFlagIssue() {
+  window.dispatchEvent(new Event("athena:open-flag-issue"));
+}
 import { Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,6 +44,12 @@ export function FlagIssueButton() {
   if (!engagement || !member || !user) return null;
   // Archived engagements: keep button hidden so users don't try to write
   if (!canWrite && member.role !== "writer") return null;
+
+  useEffect(() => {
+    const open = () => setOpen(true);
+    window.addEventListener("athena:open-flag-issue", open);
+    return () => window.removeEventListener("athena:open-flag-issue", open);
+  }, []);
 
   function reset() {
     setSeverity("Orange");
