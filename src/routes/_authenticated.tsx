@@ -82,13 +82,18 @@ function AuthLayout() {
 const PICKER_PATHS = new Set(["/select-engagement", "/overview", "/engagement/new"]);
 const NDA_PATH = "/nda-required";
 
+function isAdminPath(p: string) {
+  return p === "/admin" || p.startsWith("/admin/");
+}
+
 function RoleGuardedShell() {
   const { member, memberships, loading, engagement, ndaSatisfied, isLeadership } = useEngagement();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const navigate = useNavigate();
   const isWriterPath = pathname.startsWith("/writer");
   const isWriter = member?.role === "writer";
-  const onPicker = PICKER_PATHS.has(pathname);
+  const onAdmin = isAdminPath(pathname);
+  const onPicker = PICKER_PATHS.has(pathname) || onAdmin;
   const onNdaGate = pathname === NDA_PATH;
 
   useEffect(() => {
