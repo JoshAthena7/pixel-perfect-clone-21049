@@ -178,6 +178,7 @@ function IntelPage() {
   return (
     <div className="mx-auto grid max-w-7xl gap-6 p-4 md:p-8 lg:grid-cols-5">
       <Watermark />
+      {engagement && <HolyGrailPanel engagementId={engagement.id} refreshKey={hgRefresh} />}
       {isLeadership && <DeclareTriviaWinnerCard />}
       {isLeadership && (
         <Card className="border-border bg-surface p-6 lg:col-span-2">
