@@ -63,7 +63,7 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
     // /select-engagement filters them visually.
     const { data } = await supabase
       .from("engagement_members")
-      .select("id, role, display_name, engagement:engagements!inner(id, name, client, status, submission_date, created_by)")
+      .select("id, role, display_name, nda_required, nda_confirmed, engagement:engagements!inner(id, name, client, status, submission_date, created_by)")
       .eq("user_id", uid);
 
 
@@ -73,6 +73,8 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
         member_id: row.id as string,
         role: row.role as string,
         display_name: row.display_name as string,
+        nda_required: row.nda_required ?? true,
+        nda_confirmed: row.nda_confirmed ?? false,
         engagement: row.engagement as Engagement,
       }));
 
