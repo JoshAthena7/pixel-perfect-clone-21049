@@ -12,7 +12,7 @@ import { StatusPill, type StatusColor } from "@/components/war-room/StatusPill";
 import { toast } from "sonner";
 import { relativeTime } from "@/lib/time";
 import { Siren, ShieldCheck } from "lucide-react";
-import { notifySlack } from "@/lib/api/slack.functions";
+
 import { EmptyState } from "@/components/war-room/EmptyState";
 import { ConfirmAction } from "@/components/war-room/ConfirmAction";
 
