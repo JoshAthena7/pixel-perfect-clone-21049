@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,6 +52,8 @@ export function InviteToCollectiveDialog({
   const [role, setRole] = useState("writer");
   const [engagementId, setEngagementId] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const lockRef = useRef(false);
+
 
   useEffect(() => {
     if (!open) return;
@@ -78,6 +80,8 @@ export function InviteToCollectiveDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Synchronous re-entry guard — blocks double clicks before React flushes setSubmitting.
+    if (lockRef.current) return;
     const parsed = inviteSchema.safeParse({
       email,
       display_name: name,
@@ -90,8 +94,10 @@ export function InviteToCollectiveDialog({
       return;
     }
 
+    lockRef.current = true;
     setSubmitting(true);
     try {
+
       const { data: userRes } = await supabase.auth.getUser();
       const user = userRes.user;
       if (!user) throw new Error("Not signed in");
@@ -124,8 +130,10 @@ export function InviteToCollectiveDialog({
       toast.error("Invite failed", { description: message });
     } finally {
       setSubmitting(false);
+      lockRef.current = false;
     }
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
