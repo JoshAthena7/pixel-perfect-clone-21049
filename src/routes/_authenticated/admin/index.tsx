@@ -9,7 +9,7 @@ import { useEngagement } from "@/hooks/use-engagement";
 import {
   Building2,
   Siren,
-  DollarSign,
+  
   Users,
   Brain,
   ArrowRight,
