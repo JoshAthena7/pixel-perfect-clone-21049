@@ -53,6 +53,7 @@ export function InviteToCollectiveDialog({
   const [engagementId, setEngagementId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const lockRef = useRef(false);
 
   const COOLDOWN_SECONDS = 5;
