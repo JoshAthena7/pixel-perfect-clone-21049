@@ -198,6 +198,12 @@ function HeatmapPage() {
                     <div>
                       <div className="text-xs uppercase tracking-wider text-muted-foreground">Section</div>
                       <div className="text-lg font-bold">{s.section_name}</div>
+                      {policyCounts[s.id] > 0 && (
+                        <Badge className="mt-1 bg-red-500/15 text-red-600 hover:bg-red-500/15 text-[10px]">
+                          <ShieldAlert className="h-3 w-3 mr-1" />
+                          {policyCounts[s.id]} policy update{policyCounts[s.id] === 1 ? "" : "s"}
+                        </Badge>
+                      )}
                     </div>
                     <StatusPill status={s.status} />
                   </div>
