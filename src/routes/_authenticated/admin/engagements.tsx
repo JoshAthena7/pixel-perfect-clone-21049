@@ -58,7 +58,19 @@ function AdminEngagementsList() {
         .from("engagements")
         .select("id,name,client,state,status,submission_date,contract_value_estimate,created_at")
         .order("created_at", { ascending: false });
-      setEngs((data ?? []) as Eng[]);
+      const rows = (data ?? []) as Eng[];
+      const ids = rows.map((r) => r.id);
+      if (ids.length) {
+        const { data: cfgs } = await supabase
+          .from("engagement_config")
+          .select("engagement_id, services_checklist")
+          .in("engagement_id", ids);
+        const byId = new Map<string, ServicesChecklist | null>(
+          ((cfgs ?? []) as any[]).map((c) => [c.engagement_id, (c.services_checklist as ServicesChecklist) ?? null]),
+        );
+        for (const r of rows) r.services = byId.get(r.id) ?? null;
+      }
+      setEngs(rows);
       setLoading(false);
     })();
   }, []);
