@@ -50,6 +50,7 @@ function HeatmapPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [reviewCount, setReviewCount] = useState(0);
+  const [policyCounts, setPolicyCounts] = useState<Record<string, number>>({});
 
   async function loadReviewCount(eid: string) {
     const { count } = await supabase
@@ -59,6 +60,22 @@ function HeatmapPage() {
       .eq("ai_suggested", true)
       .eq("confirmed", false);
     setReviewCount(count ?? 0);
+  }
+
+  async function loadPolicyCounts(eid: string) {
+    const { data } = await supabase
+      .from("policy_section_mappings")
+      .select("section_id")
+      .eq("engagement_id", eid)
+      .eq("confirmed", true)
+      .eq("writer_acknowledged", false)
+      .not("section_id", "is", null);
+    const counts: Record<string, number> = {};
+    for (const r of (data as any[]) ?? []) {
+      if (!r.section_id) continue;
+      counts[r.section_id] = (counts[r.section_id] ?? 0) + 1;
+    }
+    setPolicyCounts(counts);
   }
 
   async function load(eid: string) {
