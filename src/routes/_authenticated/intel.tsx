@@ -14,7 +14,7 @@ import { FileText, LinkIcon, Upload, Download, ExternalLink, Sparkles, Loader2 }
 import { DeclareTriviaWinnerCard } from "@/components/war-room/DeclareTriviaWinnerCard";
 import { Watermark } from "@/components/war-room/Watermark";
 import { HolyGrailPanel } from "@/components/war-room/HolyGrailPanel";
-import { analyzeHolyGrail } from "@/lib/ai/holy-grail.functions";
+import { analyzeOpportunity } from "@/lib/ai/holy-grail.functions";
 import { logActivity } from "@/lib/activity-log";
 
 async function extractTextFromFile(file: File): Promise<string> {
