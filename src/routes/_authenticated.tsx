@@ -177,7 +177,8 @@ function AppHeaderContent() {
   const { engagement, loading, member } = useEngagement();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const pageTitle = PAGE_TITLES[pathname] ?? "";
-  const isWriter = member?.role === "writer";
+  const { isLeadership } = useEngagement();
+  const isWriter = !!member && !isLeadership;
 
   return (
     <div className="flex min-w-0 flex-1 items-center gap-2 text-xs">
