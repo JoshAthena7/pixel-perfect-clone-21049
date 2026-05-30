@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getQuestionDay, questionForDay } from "@/lib/trivia-helpers";
+import { seedStateTrivia } from "@/lib/ai/trivia.functions";
 import { Link } from "@tanstack/react-router";
 import { Trophy } from "lucide-react";
 import { burstConfetti } from "@/lib/confetti";
