@@ -225,3 +225,33 @@ function fmtCurrency(n: number): string {
   if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
   return n > 0 ? `$${n.toFixed(0)}` : "—";
 }
+
+function ServicesChips({ services }: { services: ServicesChecklist | null }) {
+  if (!services) {
+    return <div className="text-[11px] italic text-muted-foreground">Not sized</div>;
+  }
+  const chips = SERVICE_CATEGORIES.map((cat) => {
+    const items = services[cat.key]?.items ?? [];
+    const checked = items.filter((i) => i.checked).length;
+    return { key: cat.key, label: SERVICE_SHORT[cat.key] ?? cat.label, count: checked };
+  }).filter((c) => c.count > 0);
+
+  if (chips.length === 0) {
+    return <div className="text-[11px] italic text-muted-foreground">None selected</div>;
+  }
+
+  return (
+    <div className="flex flex-wrap gap-1">
+      {chips.map((c) => (
+        <span
+          key={c.key}
+          title={`${c.label}: ${c.count} item${c.count === 1 ? "" : "s"}`}
+          className="inline-flex items-center gap-1 rounded border border-[var(--gold)]/30 bg-[var(--gold)]/10 px-1.5 py-0.5 text-[10px] font-semibold text-[var(--gold)]"
+        >
+          {c.label}
+          <span className="opacity-70">{c.count}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
