@@ -54,7 +54,7 @@ const NAV: NavItem[] = [
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
-  const { engagement, member, isArchived } = useEngagement();
+  const { engagement, member, isArchived, isLeadership } = useEngagement();
   const { isAdmin } = useIsAdmin();
   const isActive = (p: string) => pathname === p;
 
