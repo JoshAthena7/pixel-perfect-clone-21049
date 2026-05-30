@@ -76,7 +76,7 @@ Do NOT invent requirements. Do NOT paraphrase. Skip recitals and preambles. Skip
     let totalInserted = 0;
     for (let idx = 0; idx < chunks.length; idx++) {
       const userMsg = `DOCUMENT: ${(doc as any).name}\nSOURCE: ${(doc as any).source ?? "unknown"}\n\nCHUNK ${idx + 1}/${chunks.length}:\n\n${chunks[idx]}\n\nReturn JSON only.`;
-      const parsed = await callAI(apiKey, sys, userMsg);
+      const parsed = await callAI(sys, userMsg);
       const reqs: any[] = Array.isArray(parsed?.requirements) ? parsed.requirements : [];
       if (!reqs.length) continue;
 
@@ -182,7 +182,7 @@ Return STRICT JSON: {"results":[{"requirement_id": string, "status": "Covered"|"
             `- id=${r.id} type=${r.requirement_type ?? ""} ref=${r.section_reference ?? ""}\n  ${r.requirement_text}`,
         )
         .join("\n")}\n\nReturn JSON only.`;
-      const parsed = await callAI(apiKey, sys, userMsg);
+      const parsed = await callAI(sys, userMsg);
       const results: any[] = Array.isArray(parsed?.results) ? parsed.results : [];
 
       for (const r of results) {
