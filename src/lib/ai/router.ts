@@ -105,8 +105,9 @@ export async function runAI(input: RunAIInput): Promise<RunAIResult> {
   }
 
   // extract | analyze → Claude
+  const deep = "deep" in input ? input.deep : false;
   const model: ClaudeModel =
-    input.model ?? (input.deep ? "claude-opus-4-5" : "claude-sonnet-4-5");
+    input.model ?? (deep ? "claude-opus-4-5" : "claude-sonnet-4-5");
   const text = await askClaude({
     system: input.system,
     prompt: input.prompt,
