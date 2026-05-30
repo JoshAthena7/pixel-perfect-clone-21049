@@ -291,7 +291,8 @@ Extract OPPORTUNITY INTELLIGENCE — the basic facts about this procurement. Ret
   "risks": [string],
   "open_questions": [string]
 }
-Omit a key entirely if no information is available. Quote requirement numbers/section refs where possible.`;
+Omit a key entirely if no information is available. Quote requirement numbers/section refs where possible.
+submission_due_date MUST be ISO yyyy-mm-dd and only when the RFP explicitly states a final proposal submission deadline — never guess.`;
 
 export const analyzeOpportunity = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
