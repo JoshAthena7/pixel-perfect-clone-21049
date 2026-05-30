@@ -198,7 +198,8 @@ function RoleGuardedShell() {
         <div className="flex-1 flex flex-col min-w-0">
           <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-border bg-background/85 px-3 backdrop-blur">
             <SidebarTrigger />
-            <AppHeaderContent />
+            <MissionHierarchyTopbar />
+            {!isWriter && <LivePresence />}
             <ChatNavButton />
           </header>
           {!isWriter && <SubmissionBanner />}
