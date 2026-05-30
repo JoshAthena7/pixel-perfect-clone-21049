@@ -375,7 +375,7 @@ Props are typed locally in each file; see source for exact shapes.
 
 1. Command — `/command`
 2. Delivery Map — `/heatmap`
-3. Briefing Room — `/intel`
+3. Briefing Room — `/research`
 4. Escalations — `/issues` *(red accent)*
 5. Broadcasts — `/broadcasts`
 6. Pulse™ — `/pulse`
