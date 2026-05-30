@@ -405,6 +405,10 @@ export type Database = {
           email: string | null
           engagement_id: string
           id: string
+          nda_confirmed: boolean
+          nda_confirmed_at: string | null
+          nda_confirmed_by: string | null
+          nda_required: boolean
           on_call: boolean
           phone: string | null
           role: string
@@ -419,6 +423,10 @@ export type Database = {
           email?: string | null
           engagement_id: string
           id?: string
+          nda_confirmed?: boolean
+          nda_confirmed_at?: string | null
+          nda_confirmed_by?: string | null
+          nda_required?: boolean
           on_call?: boolean
           phone?: string | null
           role?: string
@@ -433,6 +441,10 @@ export type Database = {
           email?: string | null
           engagement_id?: string
           id?: string
+          nda_confirmed?: boolean
+          nda_confirmed_at?: string | null
+          nda_confirmed_by?: string | null
+          nda_required?: boolean
           on_call?: boolean
           phone?: string | null
           role?: string
