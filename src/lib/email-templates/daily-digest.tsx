@@ -160,7 +160,7 @@ export const template: TemplateEntry = {
   component: DailyDigest,
   subject: (data: Record<string, any>) =>
     `[Athena] ${data.engagementName || 'Daily brief'} — ${data.dateLabel || 'Daily brief'}`,
-  displayName: 'Daily Digest',
+  displayName: 'Athena Command · Daily Briefing',
   previewData: {
     recipientName: 'Drew',
     engagementName: 'Indiana Medicaid Pursuit',

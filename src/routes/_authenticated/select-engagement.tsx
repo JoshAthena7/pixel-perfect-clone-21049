@@ -300,7 +300,7 @@ function SelectEngagementPage() {
         </div>
         <div className="flex items-center gap-2">
           <span className="h-1.5 w-1.5 rounded-full" style={{ background: GOLD }} />
-          Restricted Access · Clearance Verified
+          ATHENA COMMAND™ · RESTRICTED ACCESS · AUTHORIZED PERSONNEL ONLY
         </div>
       </footer>
     </div>

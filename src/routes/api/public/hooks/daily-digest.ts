@@ -151,7 +151,7 @@ export const Route = createFileRoute('/api/public/hooks/daily-digest')({
             const html = await renderAsync(element)
             const plainText = await renderAsync(element, { plainText: true })
             const messageId = crypto.randomUUID()
-            const subject = `[Athena] ${eng.name} — Daily brief, ${dateLabel}`
+            const subject = `Athena Command · Daily Briefing — ${eng.name}, ${dateLabel}`
 
             await supabase.from('email_send_log').insert({
               message_id: messageId,
