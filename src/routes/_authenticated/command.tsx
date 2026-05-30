@@ -20,7 +20,7 @@ import { IntelligenceInsightsPanel } from "@/components/war-room/IntelligenceIns
 import { SizingSummaryStrip } from "@/components/sizing/SizingSummaryStrip";
 
 export const Route = createFileRoute("/_authenticated/command")({
-  head: () => ({ meta: [{ title: "Command Center — Athena" }] }),
+  head: () => ({ meta: [{ title: "Mission — Athena" }] }),
   component: CommandCenterGate,
 });
 

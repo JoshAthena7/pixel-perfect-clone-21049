@@ -140,7 +140,7 @@ export function WeeklyBrief({
             <Hr style={{ borderColor: COLORS.border, margin: '24px 0' }} />
             <Section>
               <Text style={{ fontSize: 13, color: COLORS.muted, margin: 0 }}>
-                Open the Command Center: <a href={appUrl} style={{ color: COLORS.accent }}>{appUrl}</a>
+                Open the Mission: <a href={appUrl} style={{ color: COLORS.accent }}>{appUrl}</a>
               </Text>
               <Text style={{ fontSize: 11, color: COLORS.muted, margin: '12px 0 0', letterSpacing: 1 }}>
                 Athena Strategy Group · Powered by Athena Command™

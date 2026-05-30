@@ -8,7 +8,7 @@ export const Route = createFileRoute("/_authenticated/admin/messaging")({
     <AdminPlaceholder
       icon={Megaphone}
       title="Global Messaging"
-      description="Broadcast announcements to one, several, or all war rooms."
+      description="Broadcast announcements to one, several, or all Missions."
       comingSoon="Compose multi-room broadcasts, schedule sends, and track read receipts across the collective."
     />
   ),

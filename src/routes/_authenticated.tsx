@@ -50,7 +50,7 @@ function useMfaGate(userId: string | null | undefined) {
 
 const PAGE_TITLES: Record<string, string> = {
   "/overview": "Command Dashboard",
-  "/command": "Command Center",
+  "/command": "Mission",
   "/huddle": "Daily Huddle",
   "/issues": "Issues",
   "/team": "Collective™",

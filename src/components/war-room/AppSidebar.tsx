@@ -165,7 +165,7 @@ export function AppSidebar() {
         <SidebarMenu>
           {isAdmin && (
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname.startsWith("/admin")} tooltip="Command Operations — Platform-wide control across every Command Center">
+              <SidebarMenuButton asChild isActive={pathname.startsWith("/admin")} tooltip="Command Operations — Platform-wide control across every Mission">
                 <Link to="/admin">
                   <Shield className="h-4 w-4" />
                   <span>Command Ops</span>
@@ -174,10 +174,10 @@ export function AppSidebar() {
             </SidebarMenuItem>
           )}
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/select-engagement")} tooltip="Command Centers — Switch engagements or open a new one">
+            <SidebarMenuButton asChild isActive={isActive("/select-engagement")} tooltip="Command Center — Switch Missions or open a new one">
               <Link to="/select-engagement">
                 <DoorOpen className="h-4 w-4" />
-                <span>Command Centers</span>
+                <span>Command Center</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

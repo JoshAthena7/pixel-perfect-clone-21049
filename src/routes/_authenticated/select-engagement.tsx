@@ -9,7 +9,7 @@ import { LogOut, Archive, Plus, Siren, Users, FileText, Clock } from "lucide-rea
 import { daysUntil } from "@/lib/time";
 
 export const Route = createFileRoute("/_authenticated/select-engagement")({
-  head: () => ({ meta: [{ title: "Command Home — Athena" }] }),
+  head: () => ({ meta: [{ title: "Command Center — Athena" }] }),
   component: SelectEngagementPage,
 });
 
@@ -231,10 +231,10 @@ function SelectEngagementPage() {
         )}
       </section>
 
-      {/* WAR ROOMS */}
+      {/* MISSIONS */}
       <section className="px-6 py-6">
         <div className="mb-4 flex items-center justify-between">
-          <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-500">Active Command Centers</div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-500">Active Missions</div>
           {archived.length > 0 && (
             <button
               onClick={() => setShowArchived((v) => !v)}
@@ -249,13 +249,13 @@ function SelectEngagementPage() {
 
         {writerArchivedOnly ? (
           <EmptyState
-            title="Your Command Center has been archived"
+            title="Your Mission has been archived"
             body="Contact your engagement lead for next steps."
           />
         ) : list.length === 0 && active.length === 0 && archived.length === 0 ? (
           <EmptyState
-            title="No Command Centers yet"
-            body="Create your first engagement to open a Command Center, or ask a founder to invite you."
+            title="No Missions yet"
+            body="Create your first engagement to open a Mission, or ask a founder to invite you."
           >
             <button
               onClick={createNewEngagement}
@@ -263,7 +263,7 @@ function SelectEngagementPage() {
               className="mt-4 inline-flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold uppercase tracking-[0.18em]"
               style={{ background: GOLD, color: "#0D0F1A" }}
             >
-              <Plus className="h-3.5 w-3.5" /> Open New Room
+              <Plus className="h-3.5 w-3.5" /> New Mission
             </button>
           </EmptyState>
         ) : (
@@ -280,7 +280,7 @@ function SelectEngagementPage() {
               >
                 <Plus className="h-6 w-6" />
                 <div className="text-[10px] font-bold uppercase tracking-[0.3em]">
-                  {creating ? "Opening…" : "New Command Center"}
+                  {creating ? "Opening…" : "New Mission"}
                 </div>
               </button>
             )}
@@ -349,7 +349,7 @@ function DoorCard({
       {/* header */}
       <div className="mb-3 flex items-start justify-between">
         <div className="text-[10px] font-mono tracking-[0.3em] text-zinc-600">
-          ROOM {String(index).padStart(3, "0")}
+          MISSION {String(index).padStart(3, "0")}
         </div>
         <span
           className="rounded border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em]"

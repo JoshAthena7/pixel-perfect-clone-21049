@@ -141,7 +141,7 @@ export function ActionLauncher() {
           <div className="flex h-full min-h-[180px] flex-col items-center justify-center text-center text-sm text-muted-foreground">
             <span className="text-base font-semibold text-foreground">Pick an action</span>
             <span className="mt-1 max-w-xs">
-              Choose a tile on the left to file an SOS, log a decision, broadcast to the team, and more — without leaving Command Center.
+              Choose a tile on the left to file an SOS, log a decision, broadcast to the team, and more — without leaving the Mission.
             </span>
           </div>
         ) : (

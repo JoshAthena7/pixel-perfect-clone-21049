@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { SizingEngine } from "@/components/sizing/SizingEngine";
 
 export const Route = createFileRoute("/_authenticated/engagement/new")({
-  head: () => ({ meta: [{ title: "New Command Center — Athena" }] }),
+  head: () => ({ meta: [{ title: "New Mission — Athena" }] }),
   component: NewEngagementPage,
 });
 
@@ -474,7 +474,7 @@ function NewEngagementPage() {
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-3.5 w-3.5" style={{ color: GOLD }} />
           <span className="text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: GOLD }}>
-            New Command Center · Restricted
+            New Mission · Restricted
           </span>
         </div>
       </header>
@@ -851,7 +851,7 @@ function Step3(p: {
           Skip & open empty room →
         </button>
         <PrimaryButton onClick={p.onOpen} loading={p.saving}>
-          Open Command Center <ArrowRight className="h-3.5 w-3.5" />
+          Open Mission <ArrowRight className="h-3.5 w-3.5" />
         </PrimaryButton>
       </Footer>
     </section>

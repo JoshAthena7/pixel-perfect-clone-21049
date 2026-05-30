@@ -9,7 +9,7 @@ export const Route = createFileRoute("/_authenticated/admin/settings")({
       icon={Settings}
       title="Settings"
       description="Platform configuration."
-      comingSoon="Manage roles, integrations, AI source toggles, branding, and global defaults for every war room."
+      comingSoon="Manage roles, integrations, AI source toggles, branding, and global defaults for every Mission."
     />
   ),
 });

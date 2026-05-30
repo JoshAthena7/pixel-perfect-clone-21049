@@ -117,10 +117,10 @@ function AdminEngagementsList() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold tracking-tight">Engagements</h1>
-          <p className="text-xs text-muted-foreground">Every war room across the platform.</p>
+          <p className="text-xs text-muted-foreground">Every Mission across the platform.</p>
         </div>
         <Button asChild size="sm" className="gap-1.5">
-          <Link to="/engagement/new"><Plus className="h-3.5 w-3.5" /> New Command Center</Link>
+          <Link to="/engagement/new"><Plus className="h-3.5 w-3.5" /> New Mission</Link>
         </Button>
       </div>
 

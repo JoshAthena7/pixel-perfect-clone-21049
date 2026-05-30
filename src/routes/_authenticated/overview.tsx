@@ -280,7 +280,7 @@ function OverviewPage() {
               className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em]"
               style={{ background: "var(--gold, #C49A2A)", color: "#0D0F1A" }}
             >
-              + New Command Center
+              + New Mission
             </button>
             <button
               onClick={() => navigate({ to: "/select-engagement" })}
