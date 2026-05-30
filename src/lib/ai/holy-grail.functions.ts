@@ -309,6 +309,45 @@ export const analyzeOpportunity = createServerFn({ method: "POST" })
       data.documentId ? [`intel_documents:${data.documentId}`] : [],
       0.9,
     );
+
+    // Push parsed RFP text into the embedding queue in ~2k char chunks so
+    // Ask Athena can cite the actual RFP, not just the summary.
+    if (data.documentId) {
+      const CHUNK = 2000;
+      const chunks: { source_table: string; source_id: string; engagement_id: string; content_text: string; priority: number }[] = [];
+      for (let i = 0; i < data.text.length; i += CHUNK) {
+        const piece = data.text.slice(i, i + CHUNK).trim();
+        if (!piece) continue;
+        chunks.push({
+          source_table: "intel_documents",
+          source_id: data.documentId,
+          engagement_id: data.engagementId,
+          content_text: `[${data.fileName} • chunk ${Math.floor(i / CHUNK) + 1}]\n${piece}`,
+          priority: 4,
+        });
+      }
+      // Per-chunk rows would collide on the (source_table, source_id) unique key,
+      // so collapse into one queued row containing the full text — the embedding
+      // worker chunks downstream.
+      if (chunks.length) {
+        await supabase
+          .from("embedding_queue")
+          .upsert(
+            {
+              source_table: "intel_documents",
+              source_id: data.documentId,
+              engagement_id: data.engagementId,
+              content_text: `[RFP: ${data.fileName}]\n${data.text}`,
+              priority: 4,
+              processed_at: null,
+              attempts: 0,
+              queued_at: new Date().toISOString(),
+            },
+            { onConflict: "source_table,source_id" },
+          );
+      }
+    }
+
     if (data.runId) await updateRun(supabase, data.runId, { steps_done: 1 });
     return { ok: true };
   });
