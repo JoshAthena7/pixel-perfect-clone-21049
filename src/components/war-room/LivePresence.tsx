@@ -22,7 +22,7 @@ const ROLE_LABEL: Record<string, string> = {
 };
 
 const PATH_LABEL: Record<string, string> = {
-  "/command": "Command Center",
+  "/command": "Mission",
   "/huddle": "Daily Huddle",
   "/issues": "Issues",
   "/team": "Collective™",
