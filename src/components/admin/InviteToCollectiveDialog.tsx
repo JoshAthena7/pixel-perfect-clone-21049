@@ -80,6 +80,8 @@ export function InviteToCollectiveDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Synchronous re-entry guard — blocks double clicks before React flushes setSubmitting.
+    if (lockRef.current) return;
     const parsed = inviteSchema.safeParse({
       email,
       display_name: name,
@@ -92,8 +94,10 @@ export function InviteToCollectiveDialog({
       return;
     }
 
+    lockRef.current = true;
     setSubmitting(true);
     try {
+
       const { data: userRes } = await supabase.auth.getUser();
       const user = userRes.user;
       if (!user) throw new Error("Not signed in");
