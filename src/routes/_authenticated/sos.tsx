@@ -12,7 +12,7 @@ import { StatusPill, type StatusColor } from "@/components/war-room/StatusPill";
 import { toast } from "sonner";
 import { relativeTime } from "@/lib/time";
 import { Siren, ShieldCheck } from "lucide-react";
-import { notifySlack } from "@/lib/api/slack.functions";
+
 import { EmptyState } from "@/components/war-room/EmptyState";
 import { ConfirmAction } from "@/components/war-room/ConfirmAction";
 
@@ -72,19 +72,6 @@ function SosPage() {
     setSubmitting(false);
     if (error) return toast.error(error.message);
     toast.success("🚨 SOS Alert submitted. Leadership has been notified.");
-    notifySlack({
-      data: {
-        engagementId: engagement.id,
-        event: "sos",
-        title: `[${severity}] ${category}`,
-        body: description,
-        fields: [
-          ...(owner ? [{ label: "Owner", value: owner }] : []),
-          ...(action ? [{ label: "Action", value: action }] : []),
-        ],
-        author: member.display_name,
-      },
-    }).catch(() => {});
     setDescription(""); setOwner(""); setAction("");
   }
 

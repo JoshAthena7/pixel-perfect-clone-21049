@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { notifySlack } from "@/lib/api/slack.functions";
+
 
 export const Route = createFileRoute("/_authenticated/writer/submit-risk")({
   head: () => ({ meta: [{ title: "Submit a Risk — Writer Portal" }] }),
@@ -49,16 +49,6 @@ function WriterSubmitRisk() {
     });
     setSubmitting(false);
     if (error) return toast.error(error.message);
-    notifySlack({
-      data: {
-        engagementId: engagement.id,
-        event: "risk",
-        title: `[${urgency}] ${title}`,
-        body: risk.trim(),
-        fields: section ? [{ label: "Section", value: section }] : undefined,
-        author: member.display_name,
-      },
-    }).catch(() => {});
     setRisk(""); setSection(""); setUrgency("Medium");
     toast.success("Risk logged — your lead has been notified");
   }

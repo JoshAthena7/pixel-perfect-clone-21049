@@ -153,15 +153,6 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Slack — Open Athena workspace in a new tab">
-                  <a href="https://slack.com/app_redirect?app=A" target="_blank" rel="noopener noreferrer">
-                    <MessageSquare className="h-4 w-4" />
-                    <span className="flex-1">Slack</span>
-                    <ExternalLink className="h-3 w-3 opacity-60" />
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip="Talent Desk — Open the talent platform in a new tab">
                   <a href="https://app.talentdesk.io/" target="_blank" rel="noopener noreferrer">
                     <Briefcase className="h-4 w-4" />

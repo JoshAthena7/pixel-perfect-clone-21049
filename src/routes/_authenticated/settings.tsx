@@ -26,7 +26,6 @@ function SettingsPage() {
   const [client, setClient] = useState("");
   const [status, setStatus] = useState("Active");
   const [date, setDate] = useState<Date | undefined>();
-  const [slackWebhook, setSlackWebhook] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -35,13 +34,6 @@ function SettingsPage() {
     setClient(engagement.client);
     setStatus(engagement.status);
     setDate(engagement.submission_date ? new Date(engagement.submission_date) : undefined);
-    if (isLeadership) {
-      supabase
-        .rpc("get_engagement_slack_webhook", { _engagement_id: engagement.id })
-        .then(({ data }) => setSlackWebhook((data as string | null) ?? ""));
-    } else {
-      setSlackWebhook("");
-    }
   }, [engagement?.id, isLeadership]);
 
   if (!engagement) return null;
@@ -56,7 +48,6 @@ function SettingsPage() {
         client,
         status,
         submission_date: date ? format(date, "yyyy-MM-dd") : null,
-        slack_webhook: slackWebhook.trim() || null,
       })
       .eq("id", engagement.id);
     setSaving(false);
@@ -126,35 +117,6 @@ function SettingsPage() {
         </div>
       </Card>
 
-      <Card className="border-border bg-surface p-6 space-y-4">
-        <div>
-          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Slack notifications</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Get real-time pings for SOS alerts, sections turning Red, and new broadcasts.
-            Create an{" "}
-            <a className="underline" href="https://api.slack.com/messaging/webhooks" target="_blank" rel="noreferrer">
-              Incoming Webhook
-            </a>{" "}
-            in Slack and paste the URL below.
-          </p>
-        </div>
-        <div>
-          <Label htmlFor="slack">Webhook URL</Label>
-          <Input
-            id="slack"
-            value={slackWebhook}
-            onChange={(e) => setSlackWebhook(e.target.value)}
-            placeholder="https://hooks.slack.com/services/..."
-            disabled={!isLeadership}
-            type="url"
-          />
-        </div>
-        <div className="flex justify-end">
-          <Button onClick={save} disabled={saving || !isLeadership} variant="outline">
-            {saving ? "Saving…" : "Save webhook"}
-          </Button>
-        </div>
-      </Card>
 
       <MilestonesCard />
 
