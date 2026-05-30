@@ -15,6 +15,7 @@ import { SectionThread } from "@/components/war-room/comms/SectionThread";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SectionHealthTab } from "@/components/war-room/SectionHealthTab";
 import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
+import { SectionReviewQueue } from "@/components/war-room/SectionReviewQueue";
 
 export const Route = createFileRoute("/_authenticated/heatmap")({
   head: () => ({ meta: [{ title: "Heat Map — Athena" }] }),
@@ -119,6 +120,7 @@ function HeatmapPage() {
         <TabsList>
           <TabsTrigger value="map">Heat Map</TabsTrigger>
           <TabsTrigger value="health">Section Health</TabsTrigger>
+          {isLeadership && <TabsTrigger value="review">Review Queue</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="map" className="space-y-6">
@@ -215,6 +217,12 @@ function HeatmapPage() {
         <TabsContent value="health">
           <SectionHealthTab />
         </TabsContent>
+
+        {isLeadership && (
+          <TabsContent value="review">
+            <SectionReviewQueue />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
