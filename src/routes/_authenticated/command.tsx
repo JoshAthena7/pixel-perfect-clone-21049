@@ -423,16 +423,18 @@ function MetricCell({
   label,
   alert,
   divider,
+  to,
 }: {
   icon: React.ReactNode;
   value: number;
   label: string;
   alert?: boolean;
   divider?: boolean;
+  to?: string;
 }) {
-  return (
+  const content = (
     <div
-      className="flex items-center gap-4 px-5 py-5"
+      className="flex items-center gap-4 px-5 py-5 w-full text-left"
       style={divider ? { borderLeft: `0.5px solid ${BORDER}` } : undefined}
     >
       <span className="text-muted-foreground">{icon}</span>
@@ -442,4 +444,6 @@ function MetricCell({
       </div>
     </div>
   );
+  if (to) return <Link to={to} className="hover:bg-white/[0.02] transition">{content}</Link>;
+  return content;
 }
