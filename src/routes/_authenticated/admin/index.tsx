@@ -226,7 +226,7 @@ function AdminDashboard() {
                     <span>·</span>
                     <span>{relativeTime(b.created_at)}</span>
                   </div>
-                  <div className="text-sm mt-1 line-clamp-2">{b.body}</div>
+                  <div className="text-sm mt-1 line-clamp-2">{b.content}</div>
                 </div>
               );
             })}
