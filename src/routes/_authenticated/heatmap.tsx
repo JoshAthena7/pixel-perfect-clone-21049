@@ -14,6 +14,7 @@ import { relativeTime } from "@/lib/time";
 import { SectionThread } from "@/components/war-room/comms/SectionThread";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SectionHealthTab } from "@/components/war-room/SectionHealthTab";
+import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
 
 export const Route = createFileRoute("/_authenticated/heatmap")({
   head: () => ({ meta: [{ title: "Heat Map — Athena" }] }),
@@ -42,13 +43,19 @@ function HeatmapPage() {
   const [draftNotes, setDraftNotes] = useState("");
   const [draftInstructions, setDraftInstructions] = useState("");
   const [saving, setSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   async function load(eid: string) {
-    const { data } = await supabase
+    setIsLoading(true);
+    setLoadError(null);
+    const { data, error } = await supabase
       .from("heatmap_sections")
       .select("*")
       .eq("engagement_id", eid)
       .order("sort_order");
+    setIsLoading(false);
+    if (error) { setLoadError(error.message); return; }
     setSections((data as Section[]) ?? []);
   }
 
@@ -106,6 +113,8 @@ function HeatmapPage() {
         </p>
       </div>
 
+      <ErrorBanner error={loadError} onRetry={() => engagement && load(engagement.id)} label="Couldn't load the heat map." />
+
       <Tabs defaultValue="map" className="space-y-6">
         <TabsList>
           <TabsTrigger value="map">Heat Map</TabsTrigger>
@@ -113,6 +122,13 @@ function HeatmapPage() {
         </TabsList>
 
         <TabsContent value="map" className="space-y-6">
+          {isLoading && sections.length === 0 ? (
+            <LoadingSkeleton label="Loading sections…" />
+          ) : sections.length === 0 ? (
+            <div className="rounded-md border border-border bg-surface/40 px-4 py-8 text-center text-sm text-muted-foreground">
+              No heat map sections yet. Sections are seeded automatically when an engagement is created.
+            </div>
+          ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {sections.map((s) => {
               const isEditing = editingId === s.id;
