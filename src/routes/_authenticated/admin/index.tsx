@@ -117,7 +117,7 @@ function AdminDashboard() {
   }, []);
 
   const active = engagements.filter((e) => e.status === "Active");
-  const tcvTotal = active.reduce((sum, e) => sum + (e.contract_value_estimate ?? 0), 0);
+
 
   async function enterRoom(engagementId: string) {
     await switchEngagement(engagementId);
