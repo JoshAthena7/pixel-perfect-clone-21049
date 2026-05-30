@@ -38,6 +38,7 @@ function SosPage() {
   const [owner, setOwner] = useState("");
   const [action, setAction] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showUnownedOnly, setShowUnownedOnly] = useState(false);
 
   const [alerts, setAlerts] = useState<any[]>([]);
 
@@ -82,8 +83,20 @@ function SosPage() {
     if (error) toast.error(error.message);
   }
 
-  const open = alerts.filter((a) => a.status !== "Resolved");
+  async function assignToMe(id: string) {
+    if (!member) return;
+    const { error } = await supabase.from("sos_alerts").update({ owner_name: member.display_name }).eq("id", id);
+    if (error) toast.error(error.message);
+    else toast.success(`Assigned to ${member.display_name}`);
+  }
+
+  const openAll = alerts.filter((a) => a.status !== "Resolved");
+  const open = showUnownedOnly
+    ? openAll.filter((a) => !a.owner_name || !a.owner_name.trim())
+    : openAll;
+  const unownedCount = openAll.filter((a) => !a.owner_name || !a.owner_name.trim()).length;
   const resolved = alerts.filter((a) => a.status === "Resolved");
+
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
