@@ -606,13 +606,14 @@ async function handler() {
   const runStart = new Date().toISOString();
   const runStartMs = Date.parse(runStart);
 
-  // Run RSS (preserved) + 4 new sources in parallel
-  const [rssRes, frRes, congressRes, kffRes, newsRes] = await Promise.allSettled([
+  // Run RSS (preserved) + 5 new sources in parallel
+  const [rssRes, frRes, congressRes, kffRes, newsRes, pplxRes] = await Promise.allSettled([
     ingestRSS(supabase, openaiKey),
     ingestFederalRegister(supabase, openaiKey),
     ingestCongress(supabase, openaiKey),
     ingestKFF(supabase, openaiKey),
     ingestNewsAPI(supabase, openaiKey, runStartMs),
+    ingestPerplexity(supabase, openaiKey),
   ]);
 
   async function logFailure(name: string, err: unknown) {
@@ -633,6 +634,7 @@ async function handler() {
     congress: congressRes.status === "fulfilled" ? { ...congressRes.value, error: null } : { inserted: 0, skipped: 0, error: String(congressRes.reason) },
     kff: kffRes.status === "fulfilled" ? { ...kffRes.value, error: null } : { states_updated: 0, error: String(kffRes.reason) },
     newsapi: newsRes.status === "fulfilled" ? { ...newsRes.value, error: null } : { inserted: 0, skipped: 0, error: String(newsRes.reason) },
+    perplexity: pplxRes.status === "fulfilled" ? { ...pplxRes.value, error: null } : { inserted: 0, skipped: 0, engagements: 0, error: String(pplxRes.reason) },
     matches_created: 0,
   };
 
@@ -641,6 +643,7 @@ async function handler() {
   if (congressRes.status === "rejected") await logFailure("congress", congressRes.reason);
   if (kffRes.status === "rejected") await logFailure("kff", kffRes.reason);
   if (newsRes.status === "rejected") await logFailure("newsapi", newsRes.reason);
+  if (pplxRes.status === "rejected") await logFailure("perplexity", pplxRes.reason);
 
   // Run engagement matching
   try {
