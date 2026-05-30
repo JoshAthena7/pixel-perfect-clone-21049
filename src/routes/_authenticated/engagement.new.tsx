@@ -25,7 +25,7 @@ const GOLD = "#c9b370";
 const TEAL = "#5fb8a8";
 
 const ENGAGEMENT_TYPES = ["RFP", "Sole Source", "Recompete", "Task Order"] as const;
-const STEPS = ["Identity", "Intelligence", "Team"] as const;
+const STEPS = ["Identity", "Intelligence", "Sizing", "Team"] as const;
 
 type RfpSeed = {
   name?: string;
