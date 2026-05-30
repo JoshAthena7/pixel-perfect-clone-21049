@@ -358,6 +358,9 @@ function SectionEditorPage() {
         </Card>
       )}
 
+      {/* Win Themes reference */}
+      <WinThemesReferencePanel engagementId={engagementId} sectionId={sectionId} />
+
       {/* Editor */}
       <Card className="p-4">
         <Textarea
