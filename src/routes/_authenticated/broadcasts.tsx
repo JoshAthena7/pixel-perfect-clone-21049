@@ -77,8 +77,19 @@ function BroadcastsPage() {
   }
 
   async function togglePin(b: any) {
-    const { error } = await supabase.from("broadcasts").update({ pinned: !b.pinned }).eq("id", b.id);
-    if (error) toast.error(error.message);
+    const nextPinned = !b.pinned;
+    const { error } = await supabase.from("broadcasts").update({ pinned: nextPinned }).eq("id", b.id).eq("engagement_id", engagement?.id ?? "");
+    if (error) return toast.error(error.message);
+    if (nextPinned && engagement && member) {
+      logActivity({
+        engagementId: engagement.id,
+        userId: member.user_id ?? null,
+        actorName: member.display_name,
+        action: "broadcast_pinned",
+        targetTable: "broadcasts",
+        targetId: b.id,
+      });
+    }
   }
 
   async function nudgeUnread(b: any) {
