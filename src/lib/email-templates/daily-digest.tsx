@@ -107,7 +107,7 @@ export function DailyDigest({
               <strong>{newRisks.length}</strong> new risk{newRisks.length === 1 ? '' : 's'} in last 24h
             </Text>
             <Text style={{ fontSize: 14, margin: 0, color: openSos.length ? COLORS.red : COLORS.text }}>
-              <strong>{openSos.length}</strong> open SOS alert{openSos.length === 1 ? '' : 's'}
+              <strong>{openSos.length}</strong> open escalation{openSos.length === 1 ? '' : 's'}
             </Text>
           </Section>
 
@@ -168,7 +168,7 @@ export const template: TemplateEntry = {
     dateLabel: 'Friday, May 29',
     daysToSubmission: 14,
     summary:
-      'Two huddles overnight. LTSS slipped to red — staffing gap flagged by Maria. Quality remains yellow. One new severe risk on care management. No open SOS.',
+      'Two huddles overnight. LTSS slipped to red — staffing gap flagged by Maria. Quality remains yellow. One new severe risk on care management. No open escalations.',
     overnightHuddles: 2,
     redSections: ['LTSS'],
     yellowSections: ['Quality', 'Operations'],

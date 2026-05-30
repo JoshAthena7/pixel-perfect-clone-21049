@@ -136,7 +136,7 @@ function IssuesPage() {
     if (engagement && member && user && status === "Resolved") {
       logActivity({
         engagementId: engagement.id, userId: user.id, actorName: member.display_name,
-        action: "resolved SOS alert", targetTable: "sos_alerts", targetId: i.id,
+        action: "resolved escalation", targetTable: "sos_alerts", targetId: i.id,
       });
     }
   }
@@ -163,7 +163,7 @@ function IssuesPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Issues</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          One board for everything that needs attention — blockers (SOS) and risks ahead.
+          One board for everything that needs attention — blockers and risks ahead.
         </p>
       </div>
 
@@ -189,7 +189,7 @@ function IssuesPage() {
             onChange={(v) => setTypeFilter(v as any)}
             options={[
               { v: "All", label: `All (${items.length})` },
-              { v: "sos", label: `SOS (${items.filter((i) => i.type === "sos").length})` },
+              { v: "sos", label: `Escalations (${items.filter((i) => i.type === "sos").length})` },
               { v: "risk", label: `Risk (${items.filter((i) => i.type === "risk").length})` },
             ]}
           />
@@ -234,7 +234,7 @@ function IssuesPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                       {i.type === "sos" ? <Siren className="h-3 w-3 text-[color:var(--red)]" /> : <ShieldAlert className="h-3 w-3 text-[color:var(--orange)]" />}
-                      {i.type === "sos" ? "SOS" : "Risk"}
+                      {i.type === "sos" ? "Escalation" : "Risk"}
                     </span>
                     <StatusPill status={sevColor(i.severity)} label={i.severity} />
                     <span className="text-sm font-bold">{i.title}</span>
@@ -264,7 +264,7 @@ function IssuesPage() {
                           {i.status === "Open" && <Button size="sm" variant="outline" onClick={() => setSosStatus(i, "Acknowledged")}>Acknowledge</Button>}
                           <ConfirmAction
                             trigger={<Button size="sm">Resolve</Button>}
-                            title="Resolve this SOS?"
+                            title="Resolve this escalation?"
                             description="Mark this blocker as resolved. It will stop showing in open issues."
                             confirmLabel="Resolve"
                             onConfirm={async () => { await setSosStatus(i, "Resolved"); }}

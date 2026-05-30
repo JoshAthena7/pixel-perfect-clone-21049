@@ -44,7 +44,7 @@ const TILES: Tile[] = [
   { key: "broadcast", label: "Broadcast", desc: "Send a team-wide message", color: "#533AB7", icon: <Megaphone className="h-4 w-4" /> },
   { key: "pulse", label: "Pulse™", desc: "Log a client touchpoint", color: "#185FA5", icon: <HeartPulse className="h-4 w-4" /> },
   { key: "decision", label: "Decisions", desc: "Record a leadership call", color: "#3B6D11", icon: <CheckCircle2 className="h-4 w-4" /> },
-  { key: "heatmap", label: "Heat Map", desc: "Flag a writer/section issue", color: "#993C1D", icon: <LayoutGrid className="h-4 w-4" /> },
+  { key: "heatmap", label: "Delivery Map", desc: "Flag a writer/section issue", color: "#993C1D", icon: <LayoutGrid className="h-4 w-4" /> },
 ];
 
 type Roster = { display_name: string; role: string }[];
@@ -603,7 +603,7 @@ function RiskForm({ engagementId, userId, roster, onSuccess, onCancel }: FormPro
   );
 }
 
-// ---- Heat Map ----
+// ---- Delivery Map ----
 function HeatmapForm({ engagementId, memberName, roster, onSuccess, onCancel }: FormProps) {
   const [writer, setWriter] = useState("");
   const [issue, setIssue] = useState("Completeness");

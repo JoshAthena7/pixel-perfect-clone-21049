@@ -42,7 +42,7 @@ async function handler({ request }: { request: Request }) {
     try {
       const prompt = `You are Athena. Write a postmortem for this engagement that ended with outcome="${outcome}".
 Engagement: ${JSON.stringify(eng)}
-Heatmap (final): ${JSON.stringify(heatmap)}
+Delivery Map (final): ${JSON.stringify(heatmap)}
 Risks: ${JSON.stringify(risks)}
 Recent huddles: ${JSON.stringify((huddles ?? []).slice(0, 15))}
 Insights generated during the engagement: ${JSON.stringify(insights)}

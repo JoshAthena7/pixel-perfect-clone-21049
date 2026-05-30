@@ -76,7 +76,7 @@ This week's data:
 - ${totalInsights} intelligence insights generated, ${actioned} actioned
 - ${(market ?? []).length} new market intel items
 - ${(outcomes ?? []).length} engagement outcomes
-- ${(sos ?? []).length} SOS alerts
+- ${(sos ?? []).length} escalations
 - ${(risks ?? []).length} risks logged
 
 Insights: ${JSON.stringify((insights ?? []).slice(0, 15))}

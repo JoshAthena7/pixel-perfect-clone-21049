@@ -54,7 +54,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/huddle": "Daily Huddle",
   "/issues": "Issues",
   "/team": "Collective™",
-  "/heatmap": "Heat Map",
+  "/heatmap": "Delivery Map",
   "/intel": "Intelligence Center",
   "/decisions": "Decision Log",
   "/pulse": "Pulse™",

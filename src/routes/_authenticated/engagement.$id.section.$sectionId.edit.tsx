@@ -418,7 +418,7 @@ function SectionEditorPage() {
 
       {isLeadership && (
         <p className="text-xs text-muted-foreground">
-          Leadership tip: use the Heat Map review queue to approve or return drafts.
+          Leadership tip: use the Delivery Map review queue to approve or return drafts.
         </p>
       )}
     </div>

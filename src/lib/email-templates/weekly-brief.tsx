@@ -161,7 +161,7 @@ export const template: TemplateEntry = {
     summary: 'Three engagements crossed into yellow. Two new SAM.gov solicitations match active pursuits. Win-rate trend stable at 41% over rolling 90 days.',
     portfolioPatterns: [
       'LTSS appears as a red section in 3 of 5 active engagements.',
-      'Average response time on SOS alerts dropped from 4h to 1.5h.',
+      'Average response time on escalations dropped from 4h to 1.5h.',
     ],
     competitorSignals: [
       { title: 'Maximus awarded $42M Indiana managed care extension', summary: 'Renewed incumbent — slow displacement window.' },

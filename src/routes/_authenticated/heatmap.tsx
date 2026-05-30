@@ -21,7 +21,7 @@ import { Sparkles, ShieldAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated/heatmap")({
-  head: () => ({ meta: [{ title: "Heat Map — Athena" }] }),
+  head: () => ({ meta: [{ title: "Delivery Map — Athena" }] }),
   component: HeatmapPage,
 });
 
@@ -154,7 +154,7 @@ function HeatmapPage() {
       <Watermark />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Heat Map</h1>
+          <h1 className="text-2xl font-bold">Delivery Map</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Section-by-section health across the engagement.
             {!isLeadership && " View-only — leadership can update statuses."}
@@ -178,7 +178,7 @@ function HeatmapPage() {
 
       <Tabs defaultValue="map" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="map">Heat Map</TabsTrigger>
+          <TabsTrigger value="map">Delivery Map</TabsTrigger>
           <TabsTrigger value="health">Section Health</TabsTrigger>
           {isLeadership && <TabsTrigger value="review">Review Queue</TabsTrigger>}
         </TabsList>

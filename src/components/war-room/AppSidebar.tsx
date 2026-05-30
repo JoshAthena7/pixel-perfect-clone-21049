@@ -44,7 +44,7 @@ const NAV: NavItem[] = [
   { title: "Overview",   url: "/overview",   icon: Compass,         hint: "Portfolio-wide executive view across every engagement" },
   { title: "Command",    url: "/command",    icon: LayoutDashboard, hint: "Executive overview of this engagement" },
   { title: "Huddle",     url: "/huddle",     icon: Users,           hint: "Daily 60-second status from the front line" },
-  { title: "Heatmap",    url: "/heatmap",    icon: Grid3x3,         hint: "Section-by-section health" },
+  { title: "Delivery Map",    url: "/heatmap",    icon: Grid3x3,         hint: "Section-by-section health" },
   { title: "Issues",     url: "/issues",     icon: Siren,           hint: "Unified board for SOS blockers and risks" },
   { title: "Broadcasts", url: "/broadcasts", icon: Megaphone,       hint: "Team-wide announcements" },
   { title: "Pulse",      url: "/pulse",      icon: Activity,        hint: "Track how the client is feeling" },
@@ -101,7 +101,7 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     asChild
                     isActive={isActive("/section-assignments")}
-                    tooltip="Section Assignments — Assign writers and reviewers to each Heat Map section"
+                    tooltip="Section Assignments — Assign writers and reviewers to each Delivery Map section"
                   >
                     <Link to="/section-assignments">
                       <UserCheck className="h-4 w-4" />
