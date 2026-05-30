@@ -3,7 +3,6 @@ import {
   LayoutDashboard,
   Users,
   Siren,
-  ShieldAlert,
   Grid3x3,
   FolderOpen,
   GitBranch,

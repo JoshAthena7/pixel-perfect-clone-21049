@@ -24,9 +24,7 @@ const ROLE_LABEL: Record<string, string> = {
 const PATH_LABEL: Record<string, string> = {
   "/command": "Command Center",
   "/huddle": "Daily Huddle",
-  "/sos": "SOS Alerts",
-  "/team": "Team Roster",
-  "/risks": "Risks",
+  "/issues": "Issues",
   "/heatmap": "Heat Map",
   "/intel": "Intel",
   "/decisions": "Decisions",
