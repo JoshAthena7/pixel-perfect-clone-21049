@@ -70,10 +70,13 @@ function SelectEngagementPage() {
     [memberships],
   );
 
-  // Single-engagement auto-route
+  // Single-engagement auto-route — only when arriving from root (?auto=1).
+  // Otherwise the lobby always renders so users can manage / add rooms.
   useEffect(() => {
     if (loading) return;
-    if (active.length === 1) {
+    if (typeof window === "undefined") return;
+    const auto = new URLSearchParams(window.location.search).get("auto");
+    if (auto === "1" && active.length === 1) {
       const m = active[0];
       switchEngagement(m.engagement.id);
       navigate({ to: routeForRole(m.role), replace: true });

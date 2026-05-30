@@ -13,6 +13,7 @@ import {
   MessageSquare,
   Briefcase,
   ExternalLink,
+  DoorOpen,
 } from "lucide-react";
 import {
   Sidebar,
@@ -119,6 +120,14 @@ export function AppSidebar() {
 
       <SidebarFooter>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={isActive("/select-engagement")} tooltip="War Rooms — Switch engagements or open a new one">
+              <Link to="/select-engagement">
+                <DoorOpen className="h-4 w-4" />
+                <span>War Rooms</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={isActive("/settings")} tooltip="Settings — Team, sections, win themes, FAQ, activity log, and configuration">
               <Link to="/settings">
