@@ -47,6 +47,7 @@ import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/e
 import { Route as ApiPublicHooksWeeklyBriefRouteImport } from './routes/api/public/hooks/weekly-brief'
 import { Route as ApiPublicHooksProcessOutcomeRouteImport } from './routes/api/public/hooks/process-outcome'
 import { Route as ApiPublicHooksProcessEmbeddingsRouteImport } from './routes/api/public/hooks/process-embeddings'
+import { Route as ApiPublicHooksMonitorCronRouteImport } from './routes/api/public/hooks/monitor-cron'
 import { Route as ApiPublicHooksIntelligenceEngineRouteImport } from './routes/api/public/hooks/intelligence-engine'
 import { Route as ApiPublicHooksIngestMarketIntelRouteImport } from './routes/api/public/hooks/ingest-market-intel'
 import { Route as ApiPublicHooksDailyDigestRouteImport } from './routes/api/public/hooks/daily-digest'
@@ -256,6 +257,12 @@ const ApiPublicHooksProcessEmbeddingsRoute =
     path: '/api/public/hooks/process-embeddings',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksMonitorCronRoute =
+  ApiPublicHooksMonitorCronRouteImport.update({
+    id: '/api/public/hooks/monitor-cron',
+    path: '/api/public/hooks/monitor-cron',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksIntelligenceEngineRoute =
   ApiPublicHooksIntelligenceEngineRouteImport.update({
     id: '/api/public/hooks/intelligence-engine',
@@ -317,6 +324,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
   '/api/public/hooks/ingest-market-intel': typeof ApiPublicHooksIngestMarketIntelRoute
   '/api/public/hooks/intelligence-engine': typeof ApiPublicHooksIntelligenceEngineRoute
+  '/api/public/hooks/monitor-cron': typeof ApiPublicHooksMonitorCronRoute
   '/api/public/hooks/process-embeddings': typeof ApiPublicHooksProcessEmbeddingsRoute
   '/api/public/hooks/process-outcome': typeof ApiPublicHooksProcessOutcomeRoute
   '/api/public/hooks/weekly-brief': typeof ApiPublicHooksWeeklyBriefRoute
@@ -360,6 +368,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
   '/api/public/hooks/ingest-market-intel': typeof ApiPublicHooksIngestMarketIntelRoute
   '/api/public/hooks/intelligence-engine': typeof ApiPublicHooksIntelligenceEngineRoute
+  '/api/public/hooks/monitor-cron': typeof ApiPublicHooksMonitorCronRoute
   '/api/public/hooks/process-embeddings': typeof ApiPublicHooksProcessEmbeddingsRoute
   '/api/public/hooks/process-outcome': typeof ApiPublicHooksProcessOutcomeRoute
   '/api/public/hooks/weekly-brief': typeof ApiPublicHooksWeeklyBriefRoute
@@ -405,6 +414,7 @@ export interface FileRoutesById {
   '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
   '/api/public/hooks/ingest-market-intel': typeof ApiPublicHooksIngestMarketIntelRoute
   '/api/public/hooks/intelligence-engine': typeof ApiPublicHooksIntelligenceEngineRoute
+  '/api/public/hooks/monitor-cron': typeof ApiPublicHooksMonitorCronRoute
   '/api/public/hooks/process-embeddings': typeof ApiPublicHooksProcessEmbeddingsRoute
   '/api/public/hooks/process-outcome': typeof ApiPublicHooksProcessOutcomeRoute
   '/api/public/hooks/weekly-brief': typeof ApiPublicHooksWeeklyBriefRoute
@@ -450,6 +460,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/daily-digest'
     | '/api/public/hooks/ingest-market-intel'
     | '/api/public/hooks/intelligence-engine'
+    | '/api/public/hooks/monitor-cron'
     | '/api/public/hooks/process-embeddings'
     | '/api/public/hooks/process-outcome'
     | '/api/public/hooks/weekly-brief'
@@ -493,6 +504,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/daily-digest'
     | '/api/public/hooks/ingest-market-intel'
     | '/api/public/hooks/intelligence-engine'
+    | '/api/public/hooks/monitor-cron'
     | '/api/public/hooks/process-embeddings'
     | '/api/public/hooks/process-outcome'
     | '/api/public/hooks/weekly-brief'
@@ -537,6 +549,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/daily-digest'
     | '/api/public/hooks/ingest-market-intel'
     | '/api/public/hooks/intelligence-engine'
+    | '/api/public/hooks/monitor-cron'
     | '/api/public/hooks/process-embeddings'
     | '/api/public/hooks/process-outcome'
     | '/api/public/hooks/weekly-brief'
@@ -556,6 +569,7 @@ export interface RootRouteChildren {
   ApiPublicHooksDailyDigestRoute: typeof ApiPublicHooksDailyDigestRoute
   ApiPublicHooksIngestMarketIntelRoute: typeof ApiPublicHooksIngestMarketIntelRoute
   ApiPublicHooksIntelligenceEngineRoute: typeof ApiPublicHooksIntelligenceEngineRoute
+  ApiPublicHooksMonitorCronRoute: typeof ApiPublicHooksMonitorCronRoute
   ApiPublicHooksProcessEmbeddingsRoute: typeof ApiPublicHooksProcessEmbeddingsRoute
   ApiPublicHooksProcessOutcomeRoute: typeof ApiPublicHooksProcessOutcomeRoute
   ApiPublicHooksWeeklyBriefRoute: typeof ApiPublicHooksWeeklyBriefRoute
@@ -832,6 +846,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksProcessEmbeddingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/monitor-cron': {
+      id: '/api/public/hooks/monitor-cron'
+      path: '/api/public/hooks/monitor-cron'
+      fullPath: '/api/public/hooks/monitor-cron'
+      preLoaderRoute: typeof ApiPublicHooksMonitorCronRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/intelligence-engine': {
       id: '/api/public/hooks/intelligence-engine'
       path: '/api/public/hooks/intelligence-engine'
@@ -937,6 +958,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksDailyDigestRoute: ApiPublicHooksDailyDigestRoute,
   ApiPublicHooksIngestMarketIntelRoute: ApiPublicHooksIngestMarketIntelRoute,
   ApiPublicHooksIntelligenceEngineRoute: ApiPublicHooksIntelligenceEngineRoute,
+  ApiPublicHooksMonitorCronRoute: ApiPublicHooksMonitorCronRoute,
   ApiPublicHooksProcessEmbeddingsRoute: ApiPublicHooksProcessEmbeddingsRoute,
   ApiPublicHooksProcessOutcomeRoute: ApiPublicHooksProcessOutcomeRoute,
   ApiPublicHooksWeeklyBriefRoute: ApiPublicHooksWeeklyBriefRoute,
