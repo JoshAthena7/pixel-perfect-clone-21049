@@ -33,6 +33,7 @@ type Eng = {
   submission_date: string | null;
   contract_value_estimate: number | null;
   created_at: string | null;
+  services?: ServicesChecklist | null;
 };
 
 const STATUS_TABS = ["Active", "Closed", "Archived", "All"] as const;
