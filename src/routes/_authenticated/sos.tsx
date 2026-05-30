@@ -15,6 +15,8 @@ import { Siren, ShieldCheck } from "lucide-react";
 
 import { EmptyState } from "@/components/war-room/EmptyState";
 import { ConfirmAction } from "@/components/war-room/ConfirmAction";
+import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
+import { logActivity } from "@/lib/activity-log";
 
 export const Route = createFileRoute("/_authenticated/sos")({
   head: () => ({ meta: [{ title: "SOS Alerts — Athena" }] }),
@@ -41,9 +43,15 @@ function SosPage() {
   const [showUnownedOnly, setShowUnownedOnly] = useState(false);
 
   const [alerts, setAlerts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   async function load(eid: string) {
-    const { data } = await supabase.from("sos_alerts").select("*").eq("engagement_id", eid).order("created_at", { ascending: false });
+    setIsLoading(true);
+    setLoadError(null);
+    const { data, error } = await supabase.from("sos_alerts").select("*").eq("engagement_id", eid).order("created_at", { ascending: false });
+    setIsLoading(false);
+    if (error) { setLoadError(error.message); return; }
     setAlerts(data ?? []);
   }
 
