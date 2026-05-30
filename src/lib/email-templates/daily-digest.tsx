@@ -156,7 +156,7 @@ export function DailyDigest({
 
           <Section>
             <Text style={{ fontSize: 13, color: COLORS.muted, margin: 0 }}>
-              Open the Command Center: <a href={appUrl} style={{ color: COLORS.accent }}>{appUrl}</a>
+              Open the Mission: <a href={appUrl} style={{ color: COLORS.accent }}>{appUrl}</a>
             </Text>
             <Text style={{ fontSize: 11, color: COLORS.muted, marginTop: 16 }}>
               Athena Strategy Group · Powered by Athena Command™
