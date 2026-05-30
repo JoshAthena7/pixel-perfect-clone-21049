@@ -69,7 +69,7 @@ function SosPage() {
     e.preventDefault();
     if (!engagement || !user || !member) return;
     setSubmitting(true);
-    const { error } = await supabase.from("sos_alerts").insert({
+    const { data: inserted, error } = await supabase.from("sos_alerts").insert({
       engagement_id: engagement.id,
       submitted_by: user.id,
       submitter_name: member.display_name,
@@ -77,10 +77,18 @@ function SosPage() {
       owner_name: owner || null,
       recommended_action: action || null,
       status: "Open",
-    });
+    }).select("id").maybeSingle();
     setSubmitting(false);
     if (error) return toast.error(error.message);
     toast.success("🚨 SOS Alert submitted. Leadership has been notified.");
+    if (inserted?.id) {
+      logActivity({
+        engagementId: engagement.id, userId: user.id, actorName: member.display_name,
+        action: `raised SOS (${severity}/${category})`,
+        targetTable: "sos_alerts", targetId: inserted.id,
+        metadata: { severity, category },
+      });
+    }
     setDescription(""); setOwner(""); setAction("");
   }
 
@@ -88,14 +96,28 @@ function SosPage() {
     const patch: any = { status };
     if (status === "Resolved") patch.resolved_at = new Date().toISOString();
     const { error } = await supabase.from("sos_alerts").update(patch).eq("id", id);
-    if (error) toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
+    if (engagement && member && user && status === "Resolved") {
+      logActivity({
+        engagementId: engagement.id, userId: user.id, actorName: member.display_name,
+        action: "resolved SOS alert", targetTable: "sos_alerts", targetId: id,
+      });
+    }
   }
 
   async function assignToMe(id: string) {
     if (!member) return;
     const { error } = await supabase.from("sos_alerts").update({ owner_name: member.display_name }).eq("id", id);
     if (error) toast.error(error.message);
-    else toast.success(`Assigned to ${member.display_name}`);
+    else {
+      toast.success(`Assigned to ${member.display_name}`);
+      if (engagement && user) {
+        logActivity({
+          engagementId: engagement.id, userId: user.id, actorName: member.display_name,
+          action: `took ownership of SOS alert`, targetTable: "sos_alerts", targetId: id,
+        });
+      }
+    }
   }
 
   const openAll = alerts.filter((a) => a.status !== "Resolved");
