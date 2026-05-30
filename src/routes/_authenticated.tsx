@@ -44,15 +44,8 @@ const PAGE_TITLES: Record<string, string> = {
   "/writer/recognition-feed": "Recognition Feed",
 };
 
-// Shared routes that writers can access (read-only via in-page isLeadership gates)
-const WRITER_ALLOWED_SHARED = new Set<string>([
-  "/broadcasts",
-  "/decisions",
-  "/faq",
-  "/win-themes",
-  "/intel",
-  "/team",
-]);
+// Writer/SME users see ONLY the writer pages — no shared command-center routes.
+const WRITER_ALLOWED_SHARED = new Set<string>([]);
 
 function AuthLayout() {
   const { user, loading } = useSession();
