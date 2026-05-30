@@ -72,6 +72,7 @@ function SettingsPage() {
   async function save() {
     if (!engagement) return;
     setSaving(true);
+    const prevStatus = engagement.status;
     const { error } = await supabase
       .from("engagements")
       .update({
@@ -84,6 +85,17 @@ function SettingsPage() {
     setSaving(false);
     if (error) return toast.error(error.message);
     toast.success("Engagement updated");
+    if (status !== prevStatus && status === "Archived") {
+      const { data: u } = await supabase.auth.getUser();
+      logActivity({
+        engagementId: engagement.id,
+        userId: u.user?.id ?? null,
+        actorName: u.user?.email ?? "Unknown",
+        action: "engagement_archived",
+        targetTable: "engagements",
+        targetId: engagement.id,
+      });
+    }
     refresh();
   }
 
