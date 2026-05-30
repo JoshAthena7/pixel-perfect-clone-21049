@@ -301,10 +301,14 @@ export function AskAthenaWidget() {
         aria-hidden={!open}
       >
         <div className="flex h-full flex-col border-t border-border bg-background shadow-2xl">
-          <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2.5">
+          <div className="border-b border-border">
+          <div className="flex items-center justify-between gap-3 px-4 py-2.5">
             <div className="flex items-center gap-2">
               <IrisIcon size={16} className="text-white" />
               <span className="text-sm font-semibold">Ask Iris</span>
+              <span className="text-[9px] font-medium uppercase tracking-[0.18em] text-muted-foreground/70">
+                Athena Intelligence
+              </span>
               <div className="ml-3 flex items-center gap-1">
                 <button
                   type="button"
@@ -355,6 +359,18 @@ export function AskAthenaWidget() {
                 <X className="h-4 w-4" />
               </button>
             </div>
+          </div>
+          <div
+            className="px-4 py-1.5"
+            style={{ borderTop: "0.5px solid #1e2240" }}
+          >
+            <div
+              className="italic"
+              style={{ fontSize: "9px", color: "#C49A2A", letterSpacing: "0.1em", opacity: 0.8 }}
+            >
+              Athena thinks. Iris delivers.
+            </div>
+          </div>
           </div>
 
           {tab === "ask" ? (
@@ -522,6 +538,12 @@ export function AskAthenaWidget() {
                   <Send className="h-3.5 w-3.5" /> Send
                 </button>
               </form>
+              <div
+                className="italic text-center pb-1"
+                style={{ fontSize: "9px", color: "#1e2240", letterSpacing: "0.1em" }}
+              >
+                Athena thinks. Iris delivers.
+              </div>
             </>
           ) : (
             <div className="flex-1 overflow-auto px-4 py-3 space-y-3">
