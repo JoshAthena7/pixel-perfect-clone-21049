@@ -43,6 +43,7 @@ export function EngagementInvite({
           <Heading style={{ fontSize: 22, lineHeight: "30px", margin: "12px 0 8px", color: C.text }}>
             You've been invited to the Mission
           </Heading>
+          <Section>
             <Text style={{ fontSize: 14, lineHeight: "22px", color: C.muted, margin: "0 0 24px" }}>
               The Mission is where this engagement's leadership tracks daily huddles, risks, escalations, client pulse, and decisions in one place. Click below to join.
             </Text>
