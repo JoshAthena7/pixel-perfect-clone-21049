@@ -86,6 +86,7 @@ function HeatmapPage() {
       .from("heatmap_sections")
       .select("*")
       .eq("engagement_id", eid)
+      .order("evaluation_weight_pct", { ascending: false, nullsFirst: false })
       .order("sort_order");
     setIsLoading(false);
     if (error) { setLoadError(error.message); return; }
