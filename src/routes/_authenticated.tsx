@@ -8,6 +8,7 @@ import { useSession } from "@/hooks/use-session";
 import { Toaster } from "@/components/ui/sonner";
 import { SubmissionBanner } from "@/components/war-room/SubmissionBanner";
 import { LivePresence } from "@/components/war-room/LivePresence";
+import { MissionHierarchyTopbar } from "@/components/war-room/MissionHierarchyTopbar";
 import { TMinusStrip } from "@/components/war-room/writer/TMinusStrip";
 import { DailyQuote } from "@/components/war-room/writer/DailyQuote";
 import { SinceLastSeenStrip } from "@/components/war-room/writer/SinceLastSeenStrip";
@@ -48,23 +49,8 @@ function useMfaGate(userId: string | null | undefined) {
   return needsEnroll;
 }
 
-const PAGE_TITLES: Record<string, string> = {
-  "/overview": "Command Dashboard",
-  "/command": "Mission",
-  "/huddle": "Daily Huddle",
-  "/issues": "Issues",
-  "/team": "Collective™",
-  "/heatmap": "Delivery Map",
-  "/intel": "Intelligence Center",
-  "/decisions": "Decision Log",
-  "/pulse": "Pulse™",
-  "/broadcasts": "Broadcasts",
-  "/assistant": "AI Assistant",
-  "/settings": "Settings",
-  "/win-themes": "Win Themes",
-  "/faq": "FAQ",
-  "/writer/my-sections": "My Sections",
-};
+
+
 
 // Writer/SME users see ONLY the writer pages — no shared command-center routes.
 const WRITER_ALLOWED_SHARED = new Set<string>([]);
@@ -195,7 +181,8 @@ function RoleGuardedShell() {
         <div className="flex-1 flex flex-col min-w-0">
           <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-border bg-background/85 px-3 backdrop-blur">
             <SidebarTrigger />
-            <AppHeaderContent />
+            <MissionHierarchyTopbar />
+            {!isWriter && <LivePresence />}
             <ChatNavButton />
           </header>
           {!isWriter && <SubmissionBanner />}
@@ -228,38 +215,3 @@ function RoleGuardedShell() {
   );
 }
 
-function AppHeaderContent() {
-  const { engagement, loading, member, isLeadership } = useEngagement();
-  const pathname = useRouterState({ select: (r) => r.location.pathname });
-  const pageTitle = PAGE_TITLES[pathname] ?? "";
-  const isWriter = !!member && !isLeadership;
-
-  return (
-    <div className="flex min-w-0 flex-1 items-center gap-2 text-xs">
-      <span className="hidden md:inline text-[10px] uppercase tracking-[0.18em] text-[var(--gold)] font-semibold whitespace-nowrap">
-        {isWriter ? "Athena Writer Portal" : "Athena Command™"}
-      </span>
-      <span className="hidden md:inline text-muted-foreground">/</span>
-      {pageTitle && <span className="font-bold text-sm truncate">{pageTitle}</span>}
-
-      <span className="ml-auto flex items-center gap-3 min-w-0">
-        {loading ? (
-          <span className="text-muted-foreground truncate">Loading engagement…</span>
-        ) : engagement ? (
-          <>
-            <span className="font-semibold truncate max-w-[28vw]">{engagement.name}</span>
-            <span className="text-muted-foreground hidden lg:inline truncate">/ {engagement.client}</span>
-            {!isWriter && (
-              <>
-                <span className="text-muted-foreground hidden md:inline">•</span>
-                <LivePresence />
-              </>
-            )}
-          </>
-        ) : (
-          <span className="text-muted-foreground">No engagement</span>
-        )}
-      </span>
-    </div>
-  );
-}

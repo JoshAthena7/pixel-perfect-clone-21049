@@ -23,7 +23,7 @@ import { logActivity } from "@/lib/activity-log";
 import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
 
 export const Route = createFileRoute("/_authenticated/writer/my-sections")({
-  head: () => ({ meta: [{ title: "My Sections — Writer Portal" }] }),
+  head: () => ({ meta: [{ title: "My Brief — Writer Portal" }] }),
   component: WriterMySections,
 });
 
@@ -120,8 +120,8 @@ function WriterMySections() {
     <div className="mx-auto max-w-5xl space-y-5 p-4 md:p-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">My Sections</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Submit drafts in the client environment.</p>
+          <h1 className="text-2xl font-bold tracking-tight">My Brief</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Your personal mission briefing — sections, deadlines, and what's next.</p>
         </div>
         {streak !== null && (
           <div className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold)]/40 bg-[var(--gold)]/10 px-3 py-1 text-xs font-semibold text-[var(--gold)]">
