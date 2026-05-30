@@ -98,7 +98,7 @@ function AuthLayout() {
     }
   }, [user, needsMfa, pathname, navigate]);
 
-  if (loading || !user) {
+  if (loading || !user || needsMfa === null) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground">
         Loading…
