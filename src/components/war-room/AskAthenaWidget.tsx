@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Brain, X, Send, Bookmark, BookmarkCheck, Trash2, Globe, Building, Briefcase, Radar, ExternalLink, Sparkles } from "lucide-react";
+import { X, Send, Bookmark, BookmarkCheck, Trash2, Globe, Building, Briefcase, Radar, ExternalLink, Sparkles } from "lucide-react";
+import { IrisIcon } from "@/components/ui/IrisIcon";
 import { askAssistant, saveInsight, listSavedInsights, deleteSavedInsight } from "@/lib/ai/assistant.functions";
 import { useEngagement } from "@/hooks/use-engagement";
 import { toast } from "sonner";
