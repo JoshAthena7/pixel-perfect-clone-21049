@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const MAX_TEXT = 300000;
+const MAX_TEXT = 60000;
 const Schema = z.object({
   engagementId: z.string().uuid(),
   documentId: z.string().uuid().optional(),
