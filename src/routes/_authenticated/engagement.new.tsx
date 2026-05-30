@@ -8,9 +8,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { extractRfpIntakeDetails } from "@/lib/ai/rfp-intake.functions";
 import { ChevronLeft, Plus, X, ShieldCheck, ArrowRight, Link as LinkIcon, Sparkles, FileText, Upload, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
-import * as mammoth from "mammoth";
-import * as pdfjs from "pdfjs-dist";
-import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
 export const Route = createFileRoute("/_authenticated/engagement/new")({
   head: () => ({ meta: [{ title: "New Engagement — Athena" }] }),
@@ -108,10 +105,16 @@ function detectValue(source: string) {
 async function extractRfpText(file: File) {
   if (file.type.startsWith("text/") || /\.(txt|rtf|md|csv)$/i.test(file.name)) return file.text();
   if (/\.docx$/i.test(file.name)) {
+    const mammoth = await import("mammoth");
     const result = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
     return result.value;
   }
   if (file.type === "application/pdf" || /\.pdf$/i.test(file.name)) {
+    const [pdfjs, worker] = await Promise.all([
+      import("pdfjs-dist"),
+      import("pdfjs-dist/build/pdf.worker.min.mjs?url"),
+    ]);
+    const pdfWorkerUrl = worker.default;
     pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
     const task = pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) });
     const doc = await task.promise;
