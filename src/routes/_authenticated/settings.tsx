@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { daysUntil } from "@/lib/time";
+import { logActivity } from "@/lib/activity-log";
 import { MilestonesCard } from "@/components/war-room/MilestonesCard";
 
 export const Route = createFileRoute("/_authenticated/settings")({
