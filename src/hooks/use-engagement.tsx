@@ -101,8 +101,8 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
         const { data: again } = await supabase
           .from("engagement_members")
           .select("id, role, display_name, engagement:engagements!inner(id, name, client, status, submission_date, created_by)")
-          .eq("user_id", uid)
-          .neq("engagements.status", "Archived");
+          .eq("user_id", uid);
+
         list = ((again as any[]) ?? [])
           .filter((r) => r.engagement)
           .map((r) => ({
