@@ -56,6 +56,8 @@ export function InviteToCollectiveDialog({
   const lockRef = useRef(false);
 
   const COOLDOWN_SECONDS = 5;
+  const ERROR_COOLDOWN_SECONDS = 2;
+
 
   useEffect(() => {
     if (cooldown <= 0) return;
