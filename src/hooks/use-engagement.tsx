@@ -176,7 +176,7 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
   const isLeadership = !!role && LEADERSHIP.has(role);
   const isArchived = engagement?.status === "Archived";
   const canWrite = isLeadership && !isArchived;
-  const isWriter = role === "writer";
+  const isWriter = !!role && !isLeadership;
   const isViewer = role === "viewer";
   const ndaSatisfied = !member
     ? false
