@@ -14,6 +14,7 @@ import {
   Briefcase,
   ExternalLink,
   DoorOpen,
+  Shield,
 } from "lucide-react";
 import {
   Sidebar,
