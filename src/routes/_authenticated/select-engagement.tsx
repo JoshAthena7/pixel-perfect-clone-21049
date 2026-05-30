@@ -249,13 +249,13 @@ function SelectEngagementPage() {
 
         {writerArchivedOnly ? (
           <EmptyState
-            title="Your Command Center has been archived"
+            title="Your Mission has been archived"
             body="Contact your engagement lead for next steps."
           />
         ) : list.length === 0 && active.length === 0 && archived.length === 0 ? (
           <EmptyState
-            title="No Command Centers yet"
-            body="Create your first engagement to open a Command Center, or ask a founder to invite you."
+            title="No Missions yet"
+            body="Create your first engagement to open a Mission, or ask a founder to invite you."
           >
             <button
               onClick={createNewEngagement}
