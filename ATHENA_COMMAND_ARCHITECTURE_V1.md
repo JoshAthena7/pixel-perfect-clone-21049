@@ -449,7 +449,11 @@ See §1.
 | `SUPABASE_SERVICE_ROLE_KEY` | admin client (bypasses RLS) |
 | `SUPABASE_DB_URL` | direct Postgres connection |
 | `LOVABLE_API_KEY` | AI Gateway + Lovable Email + connectors |
-| `OPENAI_API_KEY` | reserved |
+| `ANTHROPIC_API_KEY` | Claude Sonnet/Opus for extract + analyze tasks |
+| `OPENAI_API_KEY` | embeddings (`text-embedding-3-large`, 1536 dims) |
+| `PERPLEXITY_API_KEY` | live web intelligence (Sonar / Sonar Pro / People) |
+| `NEWS_API_KEY` | NewsAPI ingestion in market-intel hook |
+| `CONGRESS_API_KEY` | Congress.gov ingestion in market-intel hook |
 | `FIRECRAWL_API_KEY` | web scraping (connector-managed) |
 
 Names only. Never commit values.
