@@ -152,6 +152,7 @@ function CommandCenter() {
         <NeedsAttentionPanel />
         <SizingSummaryStrip engagementId={engagement.id} />
         <IntelligenceInsightsPanel />
+        <RisksSignalsPanel />
 
         {/* ZONE 2 — Health strip: three blocks */}
         <section
