@@ -273,7 +273,7 @@ export function SosForm({ engagementId, userId, memberName, onSuccess, onCancel 
       status: "Open",
     });
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error("Couldn't raise SOS", { description: error.message });
     setBlocker(""); setImpact(""); setWho(""); setBy("");
     onSuccess("SOS raised");
   }
@@ -331,7 +331,7 @@ export function HuddleForm({ engagementId, userId, memberName, roster, onSuccess
       needs_leadership: false,
     });
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error("Couldn't save huddle", { description: error.message });
     setFocus(""); setAttendees([]); setFlag("");
     onSuccess("Huddle scheduled");
   }
@@ -394,7 +394,7 @@ export function BroadcastForm({ engagementId, userId, memberName, onSuccess, onC
       pinned: tone === "Urgent",
     });
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error("Couldn't send broadcast", { description: error.message });
     setSubject(""); setMessage("");
     onSuccess("Broadcast sent");
   }
@@ -463,7 +463,7 @@ export function PulseForm({ engagementId, userId, memberName, roster, onSuccess,
       interaction_date: new Date().toISOString().slice(0, 10),
     });
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error("Couldn't log client pulse", { description: error.message });
     setPeriod(""); setCompleted(""); setInProgress(""); setIssues(""); setPullRoster(false);
     onSuccess("Client pulse logged");
   }
@@ -516,7 +516,7 @@ export function DecisionForm({ engagementId, userId, roster, onSuccess, onCancel
       status: "Final",
     });
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error("Couldn't record decision", { description: error.message });
     setDecision(""); setMadeBy(""); setRationale("");
     onSuccess("Decision recorded");
   }
@@ -571,7 +571,7 @@ export function RiskForm({ engagementId, userId, roster, onSuccess, onCancel }: 
       status: "Open",
     });
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error("Couldn't log risk", { description: error.message });
     setDescription(""); setSection(""); setMitigation(""); setOwner("");
     onSuccess("Risk logged");
   }
@@ -646,7 +646,7 @@ export function HeatmapForm({ engagementId, memberName, roster, onSuccess, onCan
       sort_order: 999,
     });
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error("Couldn't update delivery map", { description: error.message });
     setWriter(""); setSection(""); setNotes("");
     onSuccess("Heat map updated");
   }
