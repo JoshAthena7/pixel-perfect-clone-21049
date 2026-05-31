@@ -151,7 +151,7 @@ function CommandV2() {
 
   useEffect(() => {
     if (!engagement) return;
-    loadAll(engagement.id);
+    loadAll(engagement.id, { initial: true });
     const ch = supabase
       .channel(`cmdv2:${engagement.id}`)
       .on("postgres_changes", { event: "*", schema: "public", filter: `engagement_id=eq.${engagement.id}` }, () => loadAll(engagement.id))
