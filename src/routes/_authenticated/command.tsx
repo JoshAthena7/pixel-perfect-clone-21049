@@ -20,6 +20,7 @@ import { SnapshotsPanel } from "@/components/war-room/SnapshotsPanel";
 import { IntelligenceInsightsPanel } from "@/components/war-room/IntelligenceInsightsPanel";
 import { RisksSignalsPanel } from "@/components/war-room/RisksSignalsPanel";
 import { SosBanner } from "@/components/war-room/SosBanner";
+import { MissionSpotlight } from "@/components/war-room/MissionSpotlight";
 import { EnvironmentBanner } from "@/components/war-room/EnvironmentBanner";
 import { SizingSummaryStrip } from "@/components/sizing/SizingSummaryStrip";
 import { PageGate } from "@/components/war-room/PageGate";
@@ -449,6 +450,9 @@ function CommandCenter() {
             <Link to="/pulse" className="mt-3 inline-block text-[11px] text-primary hover:underline">View pulse →</Link>
           </div>
         </section>
+
+        {/* Mission Spotlight — culture, identity, daily rotation */}
+        <MissionSpotlight stateCode={(engagement as any).state} />
 
         {/* ZONE 3 — Collapsed broadcasts + latest huddle */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-6">
