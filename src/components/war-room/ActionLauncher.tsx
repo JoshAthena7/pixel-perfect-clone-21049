@@ -354,17 +354,21 @@ export function SosForm({ engagementId, userId, memberName, onSuccess, onCancel 
   const [values, setValues] = useState({ blocker: "", impact: "", who: "", by: "" });
   const [saving, setSaving] = useState(false);
   const t = useTouched<keyof typeof values>();
+  const server = useServerErrors<typeof values>();
   const { success, errors, data } = validate(sosSchema, values);
   const err = (k: keyof typeof values): string | undefined =>
-    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined);
-  const set = <K extends keyof typeof values>(k: K, v: string) =>
+    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined) ?? server.fieldErrors[k];
+  const set = <K extends keyof typeof values>(k: K, v: string) => {
     setValues((p) => ({ ...p, [k]: v }));
+    server.clearField(k);
+  };
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     t.setAttempted(true);
     if (!success || !data) return;
     setSaving(true);
+    server.reset();
     const desc = data.impact ? `${data.blocker}\n\nImpact: ${data.impact}` : data.blocker;
     const action = [data.who && `Owner: ${data.who}`, data.by && `Resolve by: ${data.by}`]
       .filter(Boolean).join(" · ");
@@ -380,13 +384,20 @@ export function SosForm({ engagementId, userId, memberName, onSuccess, onCancel 
       status: "Open",
     });
     setSaving(false);
-    if (error) return toast.error("Couldn't raise SOS", { description: error.message });
+    if (error) {
+      const mapped = mapSupabaseError<typeof values>(error, SOS_COLUMNS);
+      server.apply(mapped);
+      return toast.error("Couldn't raise SOS", {
+        description: summarizeServerErrors(mapped) ?? error.message,
+      });
+    }
     setValues({ blocker: "", impact: "", who: "", by: "" });
     onSuccess("SOS raised");
   }
 
   return (
     <form onSubmit={submit} className="space-y-3" noValidate>
+      <FormBanner message={server.formError} />
       <Field label="What is the blocker?" error={err("blocker")}>
         <Textarea rows={3} value={values.blocker} onChange={(e) => set("blocker", e.target.value)} onBlur={() => t.mark("blocker")} />
       </Field>
