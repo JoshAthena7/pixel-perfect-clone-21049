@@ -1092,6 +1092,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           engagement_type: string | null
+          health: string
           id: string
           market: string | null
           name: string
@@ -1106,6 +1107,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           engagement_type?: string | null
+          health?: string
           id?: string
           market?: string | null
           name: string
@@ -1120,6 +1122,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           engagement_type?: string | null
+          health?: string
           id?: string
           market?: string | null
           name?: string
