@@ -13,7 +13,7 @@ import { PageGate } from "@/components/war-room/PageGate";
 import { relativeTime } from "@/lib/time";
 
 export const Route = createFileRoute("/_authenticated/pulse")({
-  head: () => ({ meta: [{ title: "Alignment Hub — Athena" }] }),
+  head: () => ({ meta: [{ title: "Strategy — Athena" }] }),
   component: () => <PageGate page="pulse"><AlignmentHub /></PageGate>,
 });
 
@@ -98,7 +98,7 @@ function AlignmentHub() {
     <div className="mx-auto max-w-5xl px-4 py-6 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">Alignment Hub</h1>
+          <h1 className="text-xl font-bold">Strategy</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Strategic alignment for {engagement.name}</p>
         </div>
       </div>
@@ -106,10 +106,10 @@ function AlignmentHub() {
       <Tabs defaultValue="win-strategy" className="w-full">
         <TabsList className="flex h-auto flex-wrap gap-1 bg-transparent p-0 mb-6">
           {[
-            ["win-strategy", "Win Strategy"],
-            ["decisions", "Strategic Decisions"],
+            ["win-strategy", "Win Themes"],
+            ["decisions", "Decisions"],
             ["assumptions", "Assumptions"],
-            ["stakeholders", "Stakeholders & Partners"],
+            ["stakeholders", "People"],
           ].map(([v, l]) => (
             <TabsTrigger key={v} value={v}
               className="rounded-md border border-border/40 bg-card px-3 py-1.5 text-xs font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-primary/8">
@@ -180,7 +180,7 @@ function WinStrategyTab({ eid, winThemes, differentiators, canWrite, onSaved, us
         </div>
       )}
       {winThemes.length === 0 && differentiators.length === 0 ? (
-        <Empty>No win themes or differentiators yet. Add the first one above.</Empty>
+        <Empty>Win themes are the core story you're telling across every section. Add your first one to anchor the proposal.</Empty>
       ) : (
         <>
           {winThemes.length > 0 && (
@@ -271,7 +271,7 @@ function StakeholdersPartnersTab({ eid, stakeholders, partnerships, canWrite, on
         </div>
       )}
       {stakeholders.length === 0 && partnerships.length === 0 ? (
-        <Empty>No stakeholders or partners added yet.</Empty>
+        <Empty>Map the people who matter — champions, neutral contacts, and risks. IRIS uses this for alignment analysis.</Empty>
       ) : (
         <>
           {stakeholders.length > 0 && (
@@ -373,7 +373,7 @@ function DifferentiatorsTab({ eid, items, canWrite, onSaved, user }: any) {
           <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save"}</Button></div>
         </div>
       )}
-      {items.length === 0 ? <Empty>No differentiators yet.</Empty> : items.map((d: any) => (
+      {items.length === 0 ? <Empty>Differentiators explain what makes Athena distinctly better. Add one for each advantage you can substantiate.</Empty> : items.map((d: any) => (
         <div key={d.id} className={CARD}>
           <p className="font-semibold text-sm">{d.title}</p>
           {d.description && <p className="text-sm text-muted-foreground">{d.description}</p>}
@@ -416,7 +416,7 @@ function DecisionsTab({ eid, items, canWrite, onSaved, user }: any) {
           <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save"}</Button></div>
         </div>
       )}
-      {items.length === 0 ? <Empty>No decisions logged yet.</Empty> : items.map((d: any) => (
+      {items.length === 0 ? <Empty>Log decisions as you make them. This prevents revisiting the same ground and gives IRIS context for alignment monitoring.</Empty> : items.map((d: any) => (
         <div key={d.id} className={CARD}>
           <div className="flex items-start justify-between gap-2">
             <p className="font-semibold text-sm">{d.title}</p>
@@ -458,7 +458,7 @@ function AssumptionsTab({ eid, items, canWrite, onSaved, user }: any) {
           <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save"}</Button></div>
         </div>
       )}
-      {items.length === 0 ? <Empty>No assumptions logged yet.</Empty> : items.map((a: any) => (
+      {items.length === 0 ? <Empty>What is this proposal assuming? Capture it here so leadership can validate it before it becomes a problem.</Empty> : items.map((a: any) => (
         <div key={a.id} className={CARD}>
           <div className="flex items-start justify-between gap-2">
             <p className="text-sm">{a.text}</p>
@@ -501,7 +501,7 @@ function PartnershipsTab({ eid, items, canWrite, onSaved, user }: any) {
           <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save"}</Button></div>
         </div>
       )}
-      {items.length === 0 ? <Empty>No partners added yet.</Empty> : items.map((p: any) => (
+      {items.length === 0 ? <Empty>Add your teaming partners and track whether commitments are confirmed, negotiating, or still exploring.</Empty> : items.map((p: any) => (
         <div key={p.id} className={CARD}>
           <div className="flex items-start justify-between gap-2">
             <div><p className="font-semibold text-sm">{p.partner_name}</p>{p.role && <p className="text-xs text-muted-foreground">{p.role}</p>}</div>
@@ -541,7 +541,7 @@ function TerminologyTab({ eid, items, canWrite, onSaved, user, search, setSearch
           <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save"}</Button></div>
         </div>
       )}
-      {filtered.length === 0 ? <Empty>{search ? "No terms match your search." : "No terminology added yet."}</Empty> : (
+      {filtered.length === 0 ? <Empty>{search ? "No terms match your search." : "Add terms, acronyms, and preferred language so every writer uses consistent vocabulary."}</Empty> : (
         <div className="rounded-lg border border-border/60 overflow-hidden">
           <table className="w-full text-sm"><thead className="bg-muted/30"><tr><th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Term</th><th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Definition</th><th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden md:table-cell">Preferred Usage</th></tr></thead>
           <tbody>{filtered.map((t: any) => (<tr key={t.id} className="border-t border-border/40 hover:bg-muted/20"><td className="px-3 py-2 font-medium">{t.term}</td><td className="px-3 py-2 text-muted-foreground">{t.definition}</td><td className="px-3 py-2 text-muted-foreground hidden md:table-cell">{t.preferred_usage ?? "—"}</td></tr>))}</tbody>
@@ -624,7 +624,7 @@ function ChangesTab({ eid, items, canWrite, onSaved, user }: any) {
           <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save"}</Button></div>
         </div>
       )}
-      {items.length === 0 ? <Empty>No changes logged yet.</Empty> : items.map((c: any) => (
+      {items.length === 0 ? <Empty>Strategic changes are tracked here automatically when key items are updated.</Empty> : items.map((c: any) => (
         <div key={c.id} className={CARD}>
           <div className="flex items-center gap-2 mb-1">
             <span>{TYPE_ICONS[c.change_type] ?? "📝"}</span>

@@ -1,3 +1,4 @@
+import React from "react";
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +14,6 @@ import {
 } from "lucide-react";
 import { LivePresence } from "@/components/war-room/LivePresence";
 import { Signal, Siren, Pin } from "lucide-react";
-import { NeedsAttentionPanel } from "@/components/war-room/NeedsAttentionPanel";
 import { relativeTime } from "@/lib/time";
 import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
 import { SnapshotsPanel } from "@/components/war-room/SnapshotsPanel";
@@ -87,6 +87,44 @@ function huddleHealthColor(health: string): string {
   if (h.includes("block") || h === "red") return "#ef4444";
   if (h.includes("risk") || h === "yellow" || h === "orange" || h.includes("warn")) return "#f97316";
   return "#22c55e";
+}
+
+
+// ── Role Welcome (shows once per mission per user) ───────────────
+function RoleWelcome({ engagementName, role }: { engagementName: string; role: string }) {
+  const key = `athena_welcomed_${engagementName}`;
+  const [show, setShow] = React.useState(() => !localStorage.getItem(key));
+
+  function dismiss() {
+    localStorage.setItem(key, "1");
+    setShow(false);
+  }
+
+  if (!show) return null;
+
+  const MESSAGES: Record<string, { emoji: string; headline: string; sub: string }> = {
+    lead:           { emoji: "🎯", headline: "You're the Engagement Lead.", sub: "Mission Control gives you full situational awareness. IRIS will brief you on what matters." },
+    founder:        { emoji: "🎯", headline: "You're the Engagement Lead.", sub: "Mission Control gives you full situational awareness. IRIS will brief you on what matters." },
+    engagement_lead:{ emoji: "🎯", headline: "You're the Engagement Lead.", sub: "Mission Control gives you full situational awareness. IRIS will brief you on what matters." },
+    pm:             { emoji: "📋", headline: "You're the Project Manager.", sub: "Keep the mission on track. Review open risks and signals. Submit daily check-ins." },
+    exec:           { emoji: "👁️", headline: "You're in Executive view.", sub: "Review mission health and leadership signals. IRIS will surface what needs your attention." },
+    writer:         { emoji: "✍️", headline: "Welcome to the mission.", sub: "Your sections are in My Sections. Check Mission Intelligence for context on what you're writing." },
+    sme:            { emoji: "🔬", headline: "You're the Subject Matter Expert.", sub: "Review Mission Intelligence and contribute your expertise. Your insights shape the proposal." },
+    partner:        { emoji: "🤝", headline: "You have guest access.", sub: "You can view the RFP intelligence and reference documents relevant to your involvement." },
+  };
+
+  const msg = MESSAGES[role] ?? { emoji: "👋", headline: "Welcome to this mission.", sub: "Explore the sidebar to get started." };
+
+  return (
+    <div className="mx-5 mt-4 flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 p-4">
+      <span className="text-2xl flex-shrink-0">{msg.emoji}</span>
+      <div className="flex-1">
+        <p className="text-sm font-semibold">{msg.headline}</p>
+        <p className="text-xs text-muted-foreground mt-0.5">{msg.sub}</p>
+      </div>
+      <button onClick={dismiss} className="text-muted-foreground hover:text-foreground text-xs flex-shrink-0 mt-0.5">✕</button>
+    </div>
+  );
 }
 
 // ── Quick Action Bar ─────────────────────────────────────────────
@@ -337,6 +375,7 @@ function CommandCenter() {
       </header>
 
       <QuickActionBar engagementId={engagement.id} memberName={member?.display_name ?? ""} />
+      <RoleWelcome engagementName={engagement.name} role={member?.role ?? ""} />
 
       <div className="px-5 pt-4 space-y-4">
         <ErrorBanner error={loadError} onRetry={() => engagement && loadAll(engagement.id)} label="Couldn't load command center data." />
@@ -348,9 +387,7 @@ function CommandCenter() {
         {/* ONBOARDING — shows until mission is set up */}
         <OnboardingChecklist engagementId={engagement.id} />
 
-        {/* ZONE 1 — Active Signals + Intelligence Insights */}
-        <NeedsAttentionPanel />
-        <SizingSummaryStrip engagementId={engagement.id} />
+        {/* ZONE 1 — Intelligence Insights */}
         <IntelligenceInsightsPanel />
         <RisksSignalsPanel />
 

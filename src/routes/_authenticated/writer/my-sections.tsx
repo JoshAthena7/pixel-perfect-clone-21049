@@ -9,13 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getQuestionDay, questionForDay } from "@/lib/trivia-helpers";
-import { seedStateTrivia } from "@/lib/ai/trivia.functions";
 import { Link } from "@tanstack/react-router";
-import { Trophy } from "lucide-react";
-import { burstConfetti } from "@/lib/confetti";
 import { toast } from "sonner";
-import { Flame } from "lucide-react";
 import { SectionThread } from "@/components/war-room/comms/SectionThread";
 import { dueState } from "@/lib/due-date";
 import { StuckButton } from "@/components/war-room/writer/StuckButton";
@@ -45,8 +40,69 @@ const STATUS_STYLES: Record<string, string> = {
 };
 const STATUSES = ["Not Started", "In Progress", "Under Review", "Complete"] as const;
 
+
+// ── Writer SOS Button ─────────────────────────────────────────────
+function WriterSOSButton({ engagementId, memberName }: { engagementId: string; memberName: string }) {
+  const [open, setOpen] = useState(false);
+  const [desc, setDesc] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function submit() {
+    if (!desc.trim() || !engagementId) return;
+    setSaving(true);
+    await supabase.from("sos_alerts").insert({
+      engagement_id: engagementId,
+      severity: "Orange",
+      description: desc,
+      status: "Open",
+      submitted_by: memberName || "Writer",
+      category: "Writer Issue",
+    });
+    setSaving(false);
+    setDesc("");
+    setOpen(false);
+    toast.success("SOS submitted — leadership has been notified.");
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="inline-flex items-center gap-1.5 rounded-full border border-red-500/40 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400 hover:bg-red-500/20 transition-colors"
+      >
+        🚨 Raise SOS
+      </button>
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="w-full max-w-md rounded-xl border border-red-500/30 bg-background p-5 space-y-4">
+            <div>
+              <h2 className="text-base font-bold text-red-400">🚨 Raise SOS</h2>
+              <p className="text-xs text-muted-foreground mt-1">Use this when you need immediate leadership attention. Leadership will be notified.</p>
+            </div>
+            <textarea
+              className="w-full rounded-md border border-red-500/30 bg-muted/30 px-3 py-2 text-sm outline-none focus:border-red-500 resize-none"
+              placeholder="What's the issue? Be specific."
+              rows={3}
+              value={desc}
+              onChange={e => setDesc(e.target.value)}
+              autoFocus
+            />
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setOpen(false)} className="rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground">Cancel</button>
+              <button onClick={submit} disabled={saving || !desc.trim()}
+                className="rounded-md bg-red-600 px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-40">
+                {saving ? "Submitting…" : "Submit SOS"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 function WriterMySections() {
-  const { engagement, member } = useEngagement();
+  const { engagement, member, member } = useEngagement();
   const { user } = useSession();
   const [items, setItems] = useState<Assignment[]>([]);
   const [streak, setStreak] = useState<number | null>(null);
@@ -124,6 +180,7 @@ function WriterMySections() {
           <p className="mt-1 text-sm text-muted-foreground">Your personal mission briefing — sections, deadlines, and what's next.</p>
         </div>
         {streak !== null && (
+          <WriterSOSButton engagementId={engagement?.id ?? ""} memberName={member?.display_name ?? ""} />
           <div className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold)]/40 bg-[var(--gold)]/10 px-3 py-1 text-xs font-semibold text-[var(--gold)]">
             <Flame className="h-3.5 w-3.5" /> Day {streak} 🔥
           </div>
@@ -252,7 +309,7 @@ function WriterMySections() {
 }
 
 function TriviaCard() {
-  const { engagement, member } = useEngagement();
+  const { engagement, member, member } = useEngagement();
   const { user } = useSession();
   const day = getQuestionDay();
   const stateCode = engagement?.state ?? null;
@@ -402,7 +459,7 @@ function TriviaCard() {
 }
 
 function TriviaScoreCard() {
-  const { engagement, member } = useEngagement();
+  const { engagement, member, member } = useEngagement();
   const [score, setScore] = useState<{ correct: number; answered: number } | null>(null);
 
   useEffect(() => {

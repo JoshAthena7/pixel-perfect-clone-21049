@@ -324,6 +324,23 @@ function SelectEngagementPage() {
 
 // ─────────── components ───────────
 
+function irisOneLiner(engagement: any, stats: Stats | undefined): string {
+  if (!stats) return "Loading intelligence…";
+  const { openSos, openRisks, lastSignalAt } = stats;
+  const heat = stats.heat;
+  const redSections = heat.Red + heat.Orange;
+
+  if (openSos > 0) return `⚠️ ${openSos} active SOS — leadership attention needed.`;
+  if (openRisks > 2) return `${openRisks} open risks. Review before your next check-in.`;
+  if (redSections > 1) return `${redSections} sections need attention on the health map.`;
+  if (!lastSignalAt) return "No signals yet. Submit the first daily signal to activate monitoring.";
+
+  const daysSinceSignal = Math.floor((Date.now() - new Date(lastSignalAt).getTime()) / 86400000);
+  if (daysSinceSignal > 2) return `Last signal ${daysSinceSignal}d ago. Team check-in overdue.`;
+  if (openRisks > 0) return `${openRisks} open risk${openRisks > 1 ? "s" : ""}. Signals active.`;
+  return "Healthy. Signals flowing. No issues flagged.";
+}
+
 function DoorCard({
   m,
   index,
@@ -421,16 +438,22 @@ function DoorCard({
         </div>
       </div>
 
+      {/* IRIS one-liner */}
+      <div className="mb-3 rounded-md px-2.5 py-2 text-[11px] text-zinc-400" style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${BORDER}` }}>
+        <span className="font-medium" style={{ color: TEAL }}>IRIS · </span>
+        {irisOneLiner(m.engagement, stats)}
+      </div>
+
       {/* enter hint */}
       <div className="mt-auto flex items-center justify-between pt-2" style={{ borderTop: `1px solid ${BORDER}` }}>
         <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-500 transition group-hover:text-zinc-200">
-          Enter Room →
+          Enter Mission →
         </div>
         {hasSos && (
           <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: RED }}>
             <Siren className="h-3 w-3" />
             <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: RED }} />
-            {stats!.openSos} Signal{stats!.openSos === 1 ? '' : 's'}
+            {stats!.openSos} SOS active
           </span>
         )}
       </div>

@@ -13,7 +13,7 @@ import { PageGate } from "@/components/war-room/PageGate";
 import { relativeTime } from "@/lib/time";
 
 export const Route = createFileRoute("/_authenticated/issues")({
-  head: () => ({ meta: [{ title: "Team Signals — Athena" }] }),
+  head: () => ({ meta: [{ title: "Signals — Athena" }] }),
   component: () => <PageGate page="escalations"><TeamSignals /></PageGate>,
 });
 
@@ -80,16 +80,16 @@ function TeamSignals() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 space-y-4">
       <div>
-        <h1 className="text-xl font-bold">Team Signals</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Daily check-ins, escalations, and quality tracking for {engagement.name}</p>
+        <h1 className="text-xl font-bold">Signals</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">How the team is doing on {engagement.name}</p>
       </div>
       <Tabs defaultValue="daily" className="w-full">
         <TabsList className="flex h-auto flex-wrap gap-1 bg-transparent p-0 mb-6">
           {[
-            ["daily", `Daily (${huddles.length})`],
-            ["escalations", `Escalations (${(sos.filter((s:any) => s.status !== "Resolved").length + support.filter((s:any) => s.status !== "Resolved").length)})`],
-            ["quality", "Quality & Confidence"],
-            ["resource", "Resource Health"],
+            ["daily", `Daily Signal (${huddles.length})`],
+            ["escalations", `Issues (${(sos.filter((s:any) => s.status !== "Resolved").length + support.filter((s:any) => s.status !== "Resolved").length)})`],
+            ["quality", "Section Status"],
+            ["resource", "Team Health"],
           ].map(([v, l]) => (
             <TabsTrigger key={v} value={v}
               className="rounded-md border border-border/40 bg-card px-3 py-1.5 text-xs font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-primary/8">
@@ -171,7 +171,7 @@ function EscalationsTab({ eid, sos, support, canWrite, onSaved, user }: any) {
       )}
 
       {activeSos.length === 0 && activeSupport.length === 0 && (
-        <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4 text-center text-sm text-emerald-400">✅ No open escalations</div>
+        <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4 text-center text-sm text-emerald-400">✅ ✅ No open issues. Use this tab when something needs immediate leadership attention.</div>
       )}
 
       {activeSos.length > 0 && (
@@ -305,7 +305,7 @@ function QualityConfidenceTab({ eid, quality, confidence, canWrite, onSaved, use
         </div>
       )}
 
-      {confSections.length === 0 && qualitySorted.length === 0 && <Empty>No confidence ratings or quality flags yet.</Empty>}
+      {confSections.length === 0 && qualitySorted.length === 0 && <Empty>Writers rate their own sections. Reviewers flag quality concerns. Both show here.</Empty>}
     </div>
   );
 }
@@ -343,7 +343,7 @@ function DailyTab({ eid, items, canWrite, onSaved, user }: any) {
           <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving ? "Saving…" : "Submit Signal"}</Button></div>
         </div>
       )}
-      {items.length === 0 ? <Empty>No signals yet. Submit the first one above.</Empty> : items.map((h: any) => (
+      {items.length === 0 ? <Empty>Submit a signal to let leadership know where things stand. Takes 30 seconds.</Empty> : items.map((h: any) => (
         <div key={h.id} className={CARD}>
           <div className="flex items-center gap-2 flex-wrap">
             <StatusBadge value={h.health} map={HEALTH_MAP} />
@@ -603,7 +603,7 @@ function ResourceTab({ eid, items, canWrite, onSaved, user }: any) {
           <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving ? "Saving…" : "Log"}</Button></div>
         </div>
       )}
-      {items.length === 0 ? <Empty>No resource health logged yet.</Empty> : items.map((i: any) => (
+      {items.length === 0 ? <Empty>Track whether the team is properly staffed, SMEs are engaged, and the timeline is on track.</Empty> : items.map((i: any) => (
         <div key={i.id} className={CARD}>
           <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground"><span className="font-medium text-foreground">{i.submitted_by}</span><span>{relativeTime(i.created_at)}</span></div>
           <div className="flex gap-2 flex-wrap mt-1"><StatusBadge value={i.staffing} map={STATUS_MAP} /><StatusBadge value={i.sme_engagement} map={STATUS_MAP} /><StatusBadge value={i.timeline_status} map={STATUS_MAP} /></div>

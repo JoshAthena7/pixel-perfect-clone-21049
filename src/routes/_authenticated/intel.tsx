@@ -25,8 +25,6 @@ import {
   Lightbulb,
   BookOpen,
 } from "lucide-react";
-import { DeclareTriviaWinnerCard } from "@/components/war-room/DeclareTriviaWinnerCard";
-import { Watermark } from "@/components/war-room/Watermark";
 import { HolyGrailPanel } from "@/components/war-room/HolyGrailPanel";
 import {
   analyzeOpportunity,
@@ -68,7 +66,7 @@ async function extractTextFromFile(file: File): Promise<string> {
 }
 
 export const Route = createFileRoute("/_authenticated/intel")({
-  head: () => ({ meta: [{ title: "Mission Briefing — Athena" }] }),
+  head: () => ({ meta: [{ title: "Intelligence — Athena" }] }),
   component: () => (
     <PageGate page="briefing">
       <MissionBriefingPage />
@@ -97,31 +95,31 @@ type Category = (typeof CATEGORIES)[number];
 const BRIEFING_TABS = [
   {
     key: "rfp",
-    label: "RFP & Procurement",
+    label: "The Opportunity",
     icon: Target,
     categories: ["RFP", "Amendment", "Q&A", "Past Performance"] as Category[],
-    blurb: "RFP documents, amendments, Q&A, evaluation criteria, procurement history, and contract structure.",
+    blurb: "The opportunity itself — the RFP, amendments, procurement history, evaluation criteria, and compliance requirements.",
   },
   {
     key: "state",
-    label: "Context Intelligence",
+    label: "State & Community",
     icon: Landmark,
     categories: ["Client Doc", "Research"] as Category[],
-    blurb: "State priorities, program history, beneficiary data, community stakeholders, and political context.",
+    blurb: "Everything about the state — priorities, political climate, agency leadership, program history, and community context.",
   },
   {
     key: "competitor",
-    label: "Competitor Intelligence",
+    label: "The Competition",
     icon: Swords,
     categories: ["Competitive"] as Category[],
-    blurb: "Known competitors, their strengths, weaknesses, and likely strategies.",
+    blurb: "Who else is competing and what they're likely to do. Known competitors, strengths, weaknesses, and pricing strategy.",
   },
   {
     key: "strategic",
-    label: "Strategic Insights",
+    label: "Our Strategy",
     icon: Lightbulb,
     categories: [] as Category[],
-    blurb: "The strategic 'so what' — opportunities, threats, and positioning implications from all intelligence.",
+    blurb: "The strategic 'so what' — what the intelligence means for how we position and win this engagement.",
   },
 ] as const;
 type TabKey = (typeof BRIEFING_TABS)[number]["key"];
@@ -308,7 +306,6 @@ function MissionBriefingPage() {
 
   return (
     <div className="mx-auto max-w-7xl p-4 md:p-8">
-      <Watermark />
 
       <div className="mb-6">
         <h1 className="text-2xl font-bold">Mission Briefing</h1>
@@ -555,14 +552,6 @@ function MissionBriefingPage() {
                 </>
               )}
             </div>
-
-            {/* Trivia winner card stays accessible from RFP tab for leadership */}
-            {t.key === "rfp" && isLeadership && (
-              <div className="mt-6">
-                <DeclareTriviaWinnerCard />
-              </div>
-            )}
-          </TabsContent>
         ))}
       </Tabs>
     </div>

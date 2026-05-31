@@ -41,10 +41,10 @@ type NavItem = {
 
 const NAV: NavItem[] = [
   { title: "Mission Control",  url: "/command",  icon: LayoutDashboard, hint: "Mission dashboard and situational awareness",                          page: "missionControl" },
-  { title: "Mission Briefing", url: "/intel",    icon: Telescope,       hint: "Intelligence environment — RFP, state, program, competitor intel",     page: "briefing"       },
-  { title: "Alignment Hub",    url: "/pulse",    icon: Activity,        hint: "Win themes, differentiators, stakeholders, and alignment signals",      page: "pulse"          },
-  { title: "Team Signals",     url: "/issues",   icon: AlertTriangle,   hint: "Daily signals, SOS, quality, and resource health", accent: "red",      page: "escalations"    },
-  { title: "Mission Library",  url: "/library", icon: VaultIcon,       hint: "Research, reference, and intelligence documents",                       page: "library"        },
+  { title: "Intelligence",    url: "/intel",    icon: Telescope,       hint: "Everything you know about this engagement",     page: "briefing"       },
+  { title: "Strategy",        url: "/pulse",    icon: Activity,        hint: "Win themes, decisions, and assumptions",      page: "pulse"          },
+  { title: "Signals",         url: "/issues",   icon: AlertTriangle,   hint: "Daily check-ins, escalations, and team health", accent: "red",      page: "escalations"    },
+  { title: "Library",         url: "/library", icon: VaultIcon,       hint: "Research, reference, and intelligence documents",                       page: "library"        },
   { title: "Settings",         url: "/settings", icon: Settings,        hint: "Mission settings and configuration",                                    page: "settings"       },
 ];
 
@@ -139,7 +139,7 @@ export function AppSidebar() {
             <SidebarMenuButton
               asChild
               isActive={isActive("/select-engagement")}
-              tooltip="All Missions — Switch or open a mission"
+              tooltip="All Missions — Return to mission list"
             >
               <Link to="/select-engagement">
                 <DoorOpen className="h-4 w-4" />
