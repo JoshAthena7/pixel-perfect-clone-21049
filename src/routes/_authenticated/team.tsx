@@ -202,6 +202,7 @@ function TeamPage() {
         slack_handle: draft.slack_handle?.trim() || null,
         timezone: draft.timezone?.trim() || null,
         on_call: !!draft.on_call,
+        ...(draft.role ? { role: draft.role } : {}),
       })
       .eq("id", editingId)
       .eq("engagement_id", engagement?.id ?? "");
