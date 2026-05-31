@@ -842,9 +842,14 @@ export function HeatmapForm({ engagementId, memberName, roster, onSuccess, onCan
   }>({ writer: "", issue: "Completeness", section: "", notes: "" });
   const [saving, setSaving] = useState(false);
   const t = useTouched<keyof typeof values>();
+  const server = useServerErrors<typeof values>();
   const { success, errors, data } = validate(heatmapSchema, values);
   const err = (k: keyof typeof values): string | undefined =>
-    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined);
+    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined) ?? server.fieldErrors[k];
+  const setField = <K extends keyof typeof values>(k: K, v: typeof values[K]) => {
+    setValues((p) => ({ ...p, [k]: v }));
+    server.clearField(k);
+  };
 
   const statusForIssue: Record<string, string> = {
     "Completeness": "Yellow",
@@ -858,6 +863,7 @@ export function HeatmapForm({ engagementId, memberName, roster, onSuccess, onCan
     t.setAttempted(true);
     if (!success || !data) return;
     setSaving(true);
+    server.reset();
     const noteBody = [
       data.writer && `Writer: ${data.writer}`,
       `Issue: ${data.issue}`,
@@ -872,18 +878,25 @@ export function HeatmapForm({ engagementId, memberName, roster, onSuccess, onCan
       sort_order: 999,
     });
     setSaving(false);
-    if (error) return toast.error("Couldn't update delivery map", { description: error.message });
+    if (error) {
+      const mapped = mapSupabaseError<typeof values>(error, HEATMAP_COLUMNS);
+      server.apply(mapped);
+      return toast.error("Couldn't update delivery map", {
+        description: summarizeServerErrors(mapped) ?? error.message,
+      });
+    }
     setValues((p) => ({ ...p, writer: "", section: "", notes: "" }));
     onSuccess("Heat map updated");
   }
 
   return (
     <form onSubmit={submit} className="space-y-3" noValidate>
+      <FormBanner message={server.formError} />
       <Field label="Writer">
-        <RosterSelect value={values.writer} onChange={(v) => setValues((p) => ({ ...p, writer: v }))} roster={roster} />
+        <RosterSelect value={values.writer} onChange={(v) => setField("writer", v)} roster={roster} />
       </Field>
       <Field label="Issue">
-        <Select value={values.issue} onValueChange={(v) => setValues((p) => ({ ...p, issue: v as typeof p.issue }))}>
+        <Select value={values.issue} onValueChange={(v) => setField("issue", v as typeof values.issue)}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
             {["Completeness", "Compliance risk", "Win theme strength", "Behind schedule"].map((t) => (
@@ -893,10 +906,10 @@ export function HeatmapForm({ engagementId, memberName, roster, onSuccess, onCan
         </Select>
       </Field>
       <Field label="Section" error={err("section")}>
-        <Input value={values.section} onChange={(e) => setValues((p) => ({ ...p, section: e.target.value }))} onBlur={() => t.mark("section")} />
+        <Input value={values.section} onChange={(e) => setField("section", e.target.value)} onBlur={() => t.mark("section")} />
       </Field>
       <Field label="Notes (optional)" error={err("notes")}>
-        <Textarea rows={2} value={values.notes} onChange={(e) => setValues((p) => ({ ...p, notes: e.target.value }))} onBlur={() => t.mark("notes")} />
+        <Textarea rows={2} value={values.notes} onChange={(e) => setField("notes", e.target.value)} onBlur={() => t.mark("notes")} />
       </Field>
       <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
     </form>
