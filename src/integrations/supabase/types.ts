@@ -50,6 +50,56 @@ export type Database = {
         }
         Relationships: []
       }
+      alignment_signals: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          engagement_id: string
+          id: string
+          notes: string | null
+          owner_name: string | null
+          signal_type: string
+          source: string | null
+          status: string
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          engagement_id: string
+          id?: string
+          notes?: string | null
+          owner_name?: string | null
+          signal_type: string
+          source?: string | null
+          status?: string
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          engagement_id?: string
+          id?: string
+          notes?: string | null
+          owner_name?: string | null
+          signal_type?: string
+          source?: string | null
+          status?: string
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alignment_signals_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attention_acks: {
         Row: {
           acknowledged_at: string

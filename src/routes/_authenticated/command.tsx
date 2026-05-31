@@ -17,6 +17,7 @@ import { relativeTime } from "@/lib/time";
 import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
 import { SnapshotsPanel } from "@/components/war-room/SnapshotsPanel";
 import { IntelligenceInsightsPanel } from "@/components/war-room/IntelligenceInsightsPanel";
+import { RisksSignalsPanel } from "@/components/war-room/RisksSignalsPanel";
 import { SizingSummaryStrip } from "@/components/sizing/SizingSummaryStrip";
 import { PageGate } from "@/components/war-room/PageGate";
 
@@ -151,6 +152,7 @@ function CommandCenter() {
         <NeedsAttentionPanel />
         <SizingSummaryStrip engagementId={engagement.id} />
         <IntelligenceInsightsPanel />
+        <RisksSignalsPanel />
 
         {/* ZONE 2 — Health strip: three blocks */}
         <section
