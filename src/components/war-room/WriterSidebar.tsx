@@ -28,7 +28,7 @@ import { BrandLockup } from "@/components/ui/BrandLockup";
 const NAV = [
   { title: "My Sections", url: "/writer/my-sections", icon: ListChecks },
   { title: "Broadcasts",  url: "/broadcasts",         icon: Megaphone },
-  { title: "Vault",       url: "/intel",              icon: VaultIcon },
+  { title: "Library",     url: "/library",            icon: VaultIcon },
 ] as const;
 
 export function WriterSidebar() {
@@ -115,19 +115,11 @@ export function WriterSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Open Slack">
-              <a href="https://slack.com/app_redirect?app=A" target="_blank" rel="noopener noreferrer" className="text-muted-foreground">
-                <ExternalLink className="h-4 w-4" />
-                <span className="flex-1">→ Go to Slack</span>
-              </a>
-            </SidebarMenuButton>
+              </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Open Talent Desk">
-              <a href="https://app.talentdesk.io/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground">
-                <ExternalLink className="h-4 w-4" />
-                <span className="flex-1">→ Go to Talent Desk</span>
-              </a>
-            </SidebarMenuButton>
+              </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton onClick={signOut} tooltip="Sign out">

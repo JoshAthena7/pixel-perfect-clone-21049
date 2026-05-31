@@ -44,7 +44,7 @@ const NAV: NavItem[] = [
   { title: "Mission Briefing", url: "/intel",    icon: Telescope,       hint: "Intelligence environment — RFP, state, program, competitor intel",     page: "briefing"       },
   { title: "Alignment Hub",    url: "/pulse",    icon: Activity,        hint: "Win themes, differentiators, stakeholders, and alignment signals",      page: "pulse"          },
   { title: "Team Signals",     url: "/issues",   icon: AlertTriangle,   hint: "Daily signals, SOS, quality, and resource health", accent: "red",      page: "escalations"    },
-  { title: "Mission Library",  url: "/intel",    icon: VaultIcon,       hint: "Research, reference, and intelligence documents",                       page: "library"        },
+  { title: "Mission Library",  url: "/library", icon: VaultIcon,       hint: "Research, reference, and intelligence documents",                       page: "library"        },
   { title: "Settings",         url: "/settings", icon: Settings,        hint: "Mission settings and configuration",                                    page: "settings"       },
 ];
 

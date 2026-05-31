@@ -25,6 +25,7 @@ import { Route as AuthenticatedNeedsAttentionRouteImport } from './routes/_authe
 import { Route as AuthenticatedNdaRequiredRouteImport } from './routes/_authenticated/nda-required'
 import { Route as AuthenticatedMfaEnrollmentRouteImport } from './routes/_authenticated/mfa-enrollment'
 import { Route as AuthenticatedMarketRouteImport } from './routes/_authenticated/market'
+import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
 import { Route as AuthenticatedIssuesRouteImport } from './routes/_authenticated/issues'
 import { Route as AuthenticatedIntelRouteImport } from './routes/_authenticated/intel'
 import { Route as AuthenticatedInsightsRouteImport } from './routes/_authenticated/insights'
@@ -150,6 +151,12 @@ const AuthenticatedMarketRoute = AuthenticatedMarketRouteImport.update({
   path: '/market',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
+  id: '/_authenticated/library',
+  path: '/library',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
 const AuthenticatedIssuesRoute = AuthenticatedIssuesRouteImport.update({
   id: '/issues',
   path: '/issues',
@@ -1212,7 +1219,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHuddleRoute: AuthenticatedHuddleRoute,
   AuthenticatedInsightsRoute: AuthenticatedInsightsRoute,
   AuthenticatedIntelRoute: AuthenticatedIntelRoute,
-  AuthenticatedIssuesRoute: AuthenticatedIssuesRoute,
+  AuthenticatedIssuesRoute: AuthenticatedLibraryRoute,
+      AuthenticatedIssuesRoute,
   AuthenticatedMarketRoute: AuthenticatedMarketRoute,
   AuthenticatedMfaEnrollmentRoute: AuthenticatedMfaEnrollmentRoute,
   AuthenticatedNdaRequiredRoute: AuthenticatedNdaRequiredRoute,

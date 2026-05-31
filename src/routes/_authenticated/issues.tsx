@@ -81,17 +81,14 @@ function TeamSignals() {
     <div className="mx-auto max-w-5xl px-4 py-6 space-y-4">
       <div>
         <h1 className="text-xl font-bold">Team Signals</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">{engagement.name}</p>
+        <p className="text-sm text-muted-foreground mt-0.5">Daily check-ins, escalations, and quality tracking for {engagement.name}</p>
       </div>
       <Tabs defaultValue="daily" className="w-full">
         <TabsList className="flex h-auto flex-wrap gap-1 bg-transparent p-0 mb-6">
           {[
-            ["daily", `Daily Signals (${huddles.length})`],
-            ["sos", `SOS (${sos.filter(s => s.status !== "Resolved").length})`],
-            ["support", `Support Requests (${support.filter(s => s.status !== "Resolved").length})`],
-            ["quality", "Quality Signals"],
-            ["confidence", "Writer Confidence"],
-            ["health", "Mission Health"],
+            ["daily", `Daily (${huddles.length})`],
+            ["escalations", `Escalations (${(sos.filter((s:any) => s.status !== "Resolved").length + support.filter((s:any) => s.status !== "Resolved").length)})`],
+            ["quality", "Quality & Confidence"],
             ["resource", "Resource Health"],
           ].map(([v, l]) => (
             <TabsTrigger key={v} value={v}
@@ -102,13 +99,213 @@ function TeamSignals() {
         </TabsList>
 
         <TabsContent value="daily"><DailyTab eid={eid} items={huddles} canWrite={canWrite} onSaved={load} user={user} /></TabsContent>
-        <TabsContent value="sos"><SosTab eid={eid} items={sos} canWrite={canWrite} onSaved={load} user={user} /></TabsContent>
-        <TabsContent value="support"><SupportTab eid={eid} items={support} canWrite={true} onSaved={load} user={user} /></TabsContent>
-        <TabsContent value="quality"><QualityTab eid={eid} items={quality} canWrite={true} onSaved={load} user={user} /></TabsContent>
-        <TabsContent value="confidence"><ConfidenceTab eid={eid} items={confidence} canWrite={true} onSaved={load} user={user} /></TabsContent>
-        <TabsContent value="health"><MissionHealthTab huddles={huddles} quality={quality} sos={sos} confidence={confidence} resourceHealth={resourceHealth} /></TabsContent>
+        <TabsContent value="escalations"><EscalationsTab eid={eid} sos={sos} support={support} canWrite={canWrite} onSaved={load} user={user} /></TabsContent>
+        <TabsContent value="quality"><QualityConfidenceTab eid={eid} quality={quality} confidence={confidence} canWrite={true} onSaved={load} user={user} /></TabsContent>
         <TabsContent value="resource"><ResourceTab eid={eid} items={resourceHealth} canWrite={canWrite} onSaved={load} user={user} /></TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+
+// ── Escalations Tab (SOS + Support Requests combined) ────────────
+function EscalationsTab({ eid, sos, support, canWrite, onSaved, user }: any) {
+  const [mode, setMode] = useState<"sos"|"support">("sos");
+  const [sev, setSev] = useState("Orange");
+  const [desc, setDesc] = useState("");
+  const [cat, setCat] = useState("");
+  const [submitter, setSubmitter] = useState("");
+  const [needed, setNeeded] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  async function save() {
+    if (!desc.trim()) { toast.error("Description required"); return; }
+    setSaving(true);
+    if (mode === "sos") {
+      await supabase.from("sos_alerts").insert({ engagement_id: eid, category: cat||"Other", severity: sev, description: desc, status: "Open", submitted_by: submitter||"Team", created_by: user?.id });
+    } else {
+      await supabase.from("support_requests").insert({ engagement_id: eid, submitted_by: submitter||"Team", category: cat||"General", priority: sev==="Red"?"High":"Normal", description: desc, what_is_needed: needed, status: "Open", created_by: user?.id });
+    }
+    setSaving(false); toast.success("Submitted"); setDesc(""); setNeeded(""); setCat(""); setOpen(false); onSaved();
+  }
+
+  const activeSos = sos.filter((s:any) => s.status !== "Resolved");
+  const activeSupport = support.filter((s:any) => s.status !== "Resolved");
+
+  async function resolveSos(id: string) { await supabase.from("sos_alerts").update({ status: "Resolved" }).eq("id", id); onSaved(); }
+  async function resolveSupport(id: string) { await supabase.from("support_requests").update({ status: "Resolved" }).eq("id", id); onSaved(); }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">SOS = urgent, needs immediate leadership attention. Support = non-urgent request for help or resources.</p>
+        <Button size="sm" onClick={() => setOpen(v => !v)}>+ Raise Escalation</Button>
+      </div>
+
+      {open && (
+        <div className="rounded-lg border border-border/60 bg-card p-4 space-y-3">
+          <div className="flex gap-2">
+            {[["sos","🚨 SOS — Urgent"],["support","🙋 Support Request"]].map(([v,l]) => (
+              <button key={v} type="button" onClick={() => setMode(v as any)}
+                className={`rounded-full border px-3 py-1 text-xs font-semibold ${mode===v?(v==="sos"?"border-red-500 text-red-400 bg-red-500/10":"border-primary text-primary bg-primary/8"):"border-border text-muted-foreground"}`}>{l}</button>
+            ))}
+          </div>
+          {mode === "sos" && (
+            <div className="flex gap-2">{["Yellow","Orange","Red"].map(s => (
+              <button key={s} type="button" onClick={() => setSev(s)}
+                className={`rounded-full border px-3 py-1 text-xs font-semibold ${sev===s ? SEV_MAP[s] : "border-border text-muted-foreground"}`}>{s}</button>
+            ))}</div>
+          )}
+          <div className="grid grid-cols-2 gap-3">
+            <Input value={submitter} onChange={e=>setSubmitter(e.target.value)} placeholder="Submitted by" />
+            <Input value={cat} onChange={e=>setCat(e.target.value)} placeholder={mode==="sos"?"Category (optional)":"Category"} />
+          </div>
+          <Textarea value={desc} onChange={e=>setDesc(e.target.value)} placeholder={mode==="sos"?"Describe the urgent issue *":"What do you need help with? *"} rows={2} />
+          {mode === "support" && <Input value={needed} onChange={e=>setNeeded(e.target.value)} placeholder="What specifically is needed?" />}
+          <div className="flex gap-2 justify-end">
+            <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button size="sm" variant={mode==="sos"?"destructive":"default"} onClick={save} disabled={saving}>{saving?"Submitting…":mode==="sos"?"Submit SOS":"Submit Request"}</Button>
+          </div>
+        </div>
+      )}
+
+      {activeSos.length === 0 && activeSupport.length === 0 && (
+        <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4 text-center text-sm text-emerald-400">✅ No open escalations</div>
+      )}
+
+      {activeSos.length > 0 && (
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">🚨 SOS — Active ({activeSos.length})</div>
+          {activeSos.map((i:any) => (
+            <div key={i.id} className="rounded-lg border border-red-500/30 bg-red-500/5 p-3 mb-2 space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <StatusBadge value={i.severity} map={SEV_MAP} />
+                {i.category && <span className="text-xs text-muted-foreground">{i.category}</span>}
+                <span className="ml-auto text-xs text-muted-foreground">{i.submitted_by} · {relativeTime(i.created_at)}</span>
+              </div>
+              <p className="text-sm">{i.description}</p>
+              <Button size="sm" variant="ghost" onClick={() => resolveSos(i.id)}>Mark Resolved</Button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {activeSupport.length > 0 && (
+        <div className={activeSos.length > 0 ? "mt-4" : ""}>
+          <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">🙋 Support Requests — Open ({activeSupport.length})</div>
+          {activeSupport.map((i:any) => (
+            <div key={i.id} className={CARD + " mb-2"}>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium">{i.category}</span>
+                {i.priority==="High" && <StatusBadge value="High" map={{ High:"border-orange-500/40 text-orange-400 bg-orange-500/8" }} />}
+                <span className="ml-auto text-xs text-muted-foreground">{i.submitted_by} · {relativeTime(i.created_at)}</span>
+              </div>
+              <p className="text-sm">{i.description}</p>
+              {i.what_is_needed && <p className="text-xs text-muted-foreground">Needs: {i.what_is_needed}</p>}
+              <Button size="sm" variant="ghost" onClick={() => resolveSupport(i.id)}>Resolve</Button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Quality & Confidence Tab (combined) ───────────────────────────
+function QualityConfidenceTab({ eid, quality, confidence, canWrite, onSaved, user }: any) {
+  const [section, setSection] = useState<"quality"|"confidence">("confidence");
+  const [sectionName, setSectionName] = useState("");
+  const [submitter, setSubmitter] = useState("");
+  const [rating, setRating] = useState("Good");
+  const [conf, setConf] = useState(3);
+  const [notes, setNotes] = useState("");
+  const [flag, setFlag] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  async function save() {
+    if (!sectionName.trim()) { toast.error("Section name required"); return; }
+    setSaving(true);
+    if (section === "quality") {
+      await supabase.from("quality_signals").insert({ engagement_id: eid, section_name: sectionName, submitted_by: submitter||"Team", quality: rating, notes, leadership_needed: flag, created_by: user?.id });
+    } else {
+      await supabase.from("writer_confidence").insert({ engagement_id: eid, writer: submitter||"Team", section_name: sectionName, confidence: conf, notes, needs_help: flag, created_by: user?.id });
+    }
+    setSaving(false); toast.success("Saved"); setSectionName(""); setNotes(""); setOpen(false); onSaved();
+  }
+
+  // Latest confidence per section
+  const confBySection: Record<string,any> = {};
+  confidence.forEach((c:any) => { if (!confBySection[c.section_name] || c.created_at > confBySection[c.section_name].created_at) confBySection[c.section_name] = c; });
+  const confSections = Object.values(confBySection).sort((a:any,b:any) => a.confidence - b.confidence);
+
+  const qualitySorted = [...quality].sort((a:any,b:any) => ["At Risk","Needs Work","Good","Strong"].indexOf(a.quality) - ["At Risk","Needs Work","Good","Strong"].indexOf(b.quality));
+
+  const confColor = (c: number) => c <= 2 ? "border-red-500/40 text-red-400" : c === 3 ? "border-amber-500/40 text-amber-400" : "border-emerald-500/40 text-emerald-400";
+  const CONF_LABELS: Record<number,string> = { 1:"Not Started", 2:"Outline Only", 3:"Draft", 4:"Nearly Final", 5:"Complete" };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">Writer confidence ratings and quality flags by section.</p>
+        <Button size="sm" onClick={() => setOpen(v => !v)}>+ Log</Button>
+      </div>
+
+      {open && (
+        <div className="rounded-lg border border-border/60 bg-card p-4 space-y-3">
+          <div className="flex gap-2">
+            {[["confidence","Writer Confidence"],["quality","Quality Flag"]].map(([v,l]) => (
+              <button key={v} type="button" onClick={() => setSection(v as any)}
+                className={`rounded-full border px-3 py-1 text-xs font-semibold ${section===v?"border-primary text-primary bg-primary/8":"border-border text-muted-foreground"}`}>{l}</button>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Input value={sectionName} onChange={e=>setSectionName(e.target.value)} placeholder="Section name *" />
+            <Input value={submitter} onChange={e=>setSubmitter(e.target.value)} placeholder={section==="confidence"?"Writer name":"Submitted by"} />
+          </div>
+          {section === "confidence" ? (
+            <div><Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{conf} — {CONF_LABELS[conf]}</Label><input type="range" min={1} max={5} value={conf} onChange={e=>setConf(+e.target.value)} className="w-full mt-1" /></div>
+          ) : (
+            <div className="flex gap-2">{["Strong","Good","Needs Work","At Risk"].map(q=>(
+              <button key={q} type="button" onClick={()=>setRating(q)}
+                className={`rounded-full border px-3 py-1 text-xs font-semibold ${rating===q?QUALITY_MAP[q]:"border-border text-muted-foreground"}`}>{q}</button>
+            ))}</div>
+          )}
+          <Textarea value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Notes (optional)" rows={2} />
+          <div className="flex items-center gap-2"><input type="checkbox" checked={flag} onChange={e=>setFlag(e.target.checked)} className="rounded" /><label className="text-sm">{section==="confidence"?"I need help":"Leadership attention needed"}</label></div>
+          <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={()=>setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving?"Saving…":"Save"}</Button></div>
+        </div>
+      )}
+
+      {confSections.length > 0 && (
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Writer Confidence by Section</div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {confSections.map((s:any) => (
+              <div key={s.section_name} className={`rounded-lg border p-3 bg-card ${confColor(s.confidence)}`}>
+                <div className="flex items-center justify-between mb-0.5"><span className="text-sm font-semibold">{s.section_name}</span><span className="text-lg font-bold">{s.confidence}/5</span></div>
+                <div className="text-xs">{CONF_LABELS[s.confidence]}</div>
+                {s.needs_help && <div className="text-xs mt-1 text-amber-400">🙋 Needs help</div>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {qualitySorted.length > 0 && (
+        <div className={confSections.length > 0 ? "mt-4" : ""}>
+          <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Quality Flags</div>
+          {qualitySorted.map((i:any) => (
+            <div key={i.id} className={CARD + " mb-2"}>
+              <div className="flex items-center gap-2"><span className="font-medium text-sm">{i.section_name}</span><StatusBadge value={i.quality} map={QUALITY_MAP} />{i.leadership_needed&&<span className="text-xs text-amber-400">👋</span>}<span className="ml-auto text-xs text-muted-foreground">{i.submitted_by}</span></div>
+              {i.notes&&<p className="text-xs text-muted-foreground">{i.notes}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {confSections.length === 0 && qualitySorted.length === 0 && <Empty>No confidence ratings or quality flags yet.</Empty>}
     </div>
   );
 }

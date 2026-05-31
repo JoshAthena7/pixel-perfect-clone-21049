@@ -117,8 +117,8 @@ function CommandCenter() {
   const [latestSnapshot, setLatestSnapshot] = useState<Snapshot | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [showBroadcasts, setShowBroadcasts] = useState(false);
-  const [showHuddle, setShowHuddle] = useState(false);
+  const [showBroadcasts, setShowBroadcasts] = useState(true);
+  const [showHuddle, setShowHuddle] = useState(true);
 
   async function loadAll(eid: string) {
     setIsLoading(true);
@@ -208,20 +208,21 @@ function CommandCenter() {
               <div className="text-[12px] text-muted-foreground">No sections yet</div>
             ) : (
               <>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-2">
                   {heatmap.map((h) => {
                     const c = HEAT_COLOR[h.status] ?? HEAT_COLOR.Green;
                     return (
-                      <span
-                        key={h.id}
-                        title={`${h.section_name} · ${h.status}`}
-                        className="h-3 w-3 rounded-sm"
-                        style={{ background: c, boxShadow: `0 0 0 0.5px color-mix(in oklab, ${c} 60%, transparent)` }}
-                      />
+                      <div key={h.id} className="flex items-center gap-1.5">
+                        <span
+                          className="h-2.5 w-2.5 rounded-sm flex-shrink-0"
+                          style={{ background: c, boxShadow: `0 0 0 0.5px color-mix(in oklab, ${c} 60%, transparent)` }}
+                        />
+                        <span className="text-[10px] text-muted-foreground">{h.section_name}</span>
+                      </div>
                     );
                   })}
                 </div>
-                <Link to="/heatmap" className="mt-3 inline-block text-[11px] text-primary hover:underline">Open heatmap →</Link>
+                <Link to="/heatmap" className="mt-3 inline-block text-[11px] text-primary hover:underline">View section detail →</Link>
               </>
             )}
           </div>
@@ -293,7 +294,7 @@ function CommandCenter() {
               className="flex w-full items-center justify-between px-4 py-3"
             >
               <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                <Users className="h-3.5 w-3.5" /> Latest Signal
+                <Users className="h-3.5 w-3.5" /> Latest Team Signal
                 {latestHuddle && (
                   <span className="ml-2 text-[11px] text-muted-foreground normal-case tracking-normal">
                     {latestHuddle.submitter_name} · {relativeTime(latestHuddle.created_at)}

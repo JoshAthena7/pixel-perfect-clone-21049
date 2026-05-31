@@ -97,31 +97,17 @@ type Category = (typeof CATEGORIES)[number];
 const BRIEFING_TABS = [
   {
     key: "rfp",
-    label: "RFP Intelligence",
+    label: "RFP & Procurement",
     icon: Target,
-    categories: ["RFP", "Amendment", "Q&A"] as Category[],
-    blurb: "The opportunity itself: RFP documents, amendments, Q&A, evaluation criteria, and compliance requirements.",
-  },
-  {
-    key: "procurement",
-    label: "Procurement Analysis",
-    icon: BookOpen,
-    categories: ["Past Performance"] as Category[],
-    blurb: "Procurement history, contract structure, award timeline, incumbent performance, and protest risk.",
+    categories: ["RFP", "Amendment", "Q&A", "Past Performance"] as Category[],
+    blurb: "RFP documents, amendments, Q&A, evaluation criteria, procurement history, and contract structure.",
   },
   {
     key: "state",
-    label: "State Intelligence",
+    label: "Context Intelligence",
     icon: Landmark,
     categories: ["Client Doc", "Research"] as Category[],
-    blurb: "State priorities, agency leadership, budget context, political climate, and news.",
-  },
-  {
-    key: "program",
-    label: "Program Intelligence",
-    icon: BookOpen,
-    categories: ["Research"] as Category[],
-    blurb: "Program history, current provider issues, beneficiary data, performance gaps, and regulatory requirements.",
+    blurb: "State priorities, program history, beneficiary data, community stakeholders, and political context.",
   },
   {
     key: "competitor",
@@ -135,21 +121,7 @@ const BRIEFING_TABS = [
     label: "Strategic Insights",
     icon: Lightbulb,
     categories: [] as Category[],
-    blurb: "The 'so what' — strategic opportunities, threats, and positioning implications from all intelligence gathered.",
-  },
-  {
-    key: "community",
-    label: "Community Intelligence",
-    icon: Landmark,
-    categories: ["Research"] as Category[],
-    blurb: "Community stakeholders, advocacy organizations, local health context, and community needs.",
-  },
-  {
-    key: "win-themes",
-    label: "Mission Brief",
-    icon: Target,
-    categories: [] as Category[],
-    blurb: "IRIS-synthesized intelligence brief for this mission. Auto-generated from all intelligence tabs.",
+    blurb: "The strategic 'so what' — opportunities, threats, and positioning implications from all intelligence.",
   },
 ] as const;
 type TabKey = (typeof BRIEFING_TABS)[number]["key"];

@@ -103,17 +103,13 @@ function AlignmentHub() {
         </div>
       </div>
 
-      <Tabs defaultValue="win-themes" className="w-full">
+      <Tabs defaultValue="win-strategy" className="w-full">
         <TabsList className="flex h-auto flex-wrap gap-1 bg-transparent p-0 mb-6">
           {[
-            ["win-themes", "Win Themes"],
-            ["differentiators", "Differentiators"],
+            ["win-strategy", "Win Strategy"],
             ["decisions", "Strategic Decisions"],
             ["assumptions", "Assumptions"],
-            ["partnerships", "Partnerships"],
-            ["terminology", "Terminology"],
-            ["stakeholders", "Stakeholder Map"],
-            ["changes", "Change Tracker"],
+            ["stakeholders", "Stakeholders & Partners"],
           ].map(([v, l]) => (
             <TabsTrigger key={v} value={v}
               className="rounded-md border border-border/40 bg-card px-3 py-1.5 text-xs font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-primary/8">
@@ -122,14 +118,9 @@ function AlignmentHub() {
           ))}
         </TabsList>
 
-        {/* WIN THEMES */}
-        <TabsContent value="win-themes">
-          <WinThemesTab eid={eid} items={winThemes} canWrite={canWrite} onSaved={load} user={user} />
-        </TabsContent>
-
-        {/* DIFFERENTIATORS */}
-        <TabsContent value="differentiators">
-          <DifferentiatorsTab eid={eid} items={differentiators} canWrite={canWrite} onSaved={load} user={user} />
+        {/* WIN STRATEGY: Win Themes + Differentiators */}
+        <TabsContent value="win-strategy">
+          <WinStrategyTab eid={eid} winThemes={winThemes} differentiators={differentiators} canWrite={canWrite} onSaved={load} user={user} />
         </TabsContent>
 
         {/* STRATEGIC DECISIONS */}
@@ -142,26 +133,178 @@ function AlignmentHub() {
           <AssumptionsTab eid={eid} items={assumptions} canWrite={canWrite} onSaved={load} user={user} />
         </TabsContent>
 
-        {/* PARTNERSHIPS */}
-        <TabsContent value="partnerships">
-          <PartnershipsTab eid={eid} items={partnerships} canWrite={canWrite} onSaved={load} user={user} />
-        </TabsContent>
-
-        {/* TERMINOLOGY */}
-        <TabsContent value="terminology">
-          <TerminologyTab eid={eid} items={terminology} canWrite={canWrite} onSaved={load} user={user} search={search} setSearch={setSearch} />
-        </TabsContent>
-
-        {/* STAKEHOLDER MAP */}
+        {/* STAKEHOLDERS & PARTNERS */}
         <TabsContent value="stakeholders">
-          <StakeholdersTab eid={eid} items={stakeholders} canWrite={canWrite} onSaved={load} user={user} />
-        </TabsContent>
-
-        {/* CHANGE TRACKER */}
-        <TabsContent value="changes">
-          <ChangesTab eid={eid} items={changes} canWrite={canWrite} onSaved={load} user={user} />
+          <StakeholdersPartnersTab eid={eid} stakeholders={stakeholders} partnerships={partnerships} canWrite={canWrite} onSaved={load} user={user} />
         </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+// ── Win Strategy Tab (Win Themes + Differentiators) ─────────────
+function WinStrategyTab({ eid, winThemes, differentiators, canWrite, onSaved, user }: any) {
+  const [section, setSection] = useState<"themes"|"diff">("themes");
+  const [title, setTitle] = useState(""); const [desc, setDesc] = useState("");
+  const [extra1, setExtra1] = useState(""); const [extra2, setExtra2] = useState("");
+  const [saving, setSaving] = useState(false); const [open, setOpen] = useState(false);
+  async function save() {
+    if (!title.trim()) return;
+    setSaving(true);
+    if (section === "themes") {
+      await supabase.from("win_themes").insert({ engagement_id: eid, title, description: desc, evidence: extra1, owner: extra2, status: "Active", created_by: user?.id });
+    } else {
+      await supabase.from("differentiators").insert({ engagement_id: eid, title, description: desc, substantiation: extra1, versus: extra2, created_by: user?.id });
+    }
+    setSaving(false); toast.success("Saved"); setTitle(""); setDesc(""); setExtra1(""); setExtra2(""); setOpen(false); onSaved();
+  }
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">The core story you're telling — win themes and what makes Athena distinctly better.</p>
+        {canWrite && <Button size="sm" onClick={() => setOpen(v => !v)}>+ Add</Button>}
+      </div>
+      {open && canWrite && (
+        <div className="rounded-lg border border-border/60 bg-card p-4 space-y-3">
+          <div className="flex gap-2 mb-2">
+            {[["themes","Win Theme"],["diff","Differentiator"]].map(([v,l]) => (
+              <button key={v} type="button" onClick={() => { setSection(v as any); setExtra1(""); setExtra2(""); }}
+                className={`rounded-full border px-3 py-1 text-xs font-semibold ${section===v?"border-primary text-primary bg-primary/8":"border-border text-muted-foreground"}`}>{l}</button>
+            ))}
+          </div>
+          <Input value={title} onChange={e => setTitle(e.target.value)} placeholder={section==="themes" ? "Theme title e.g. Community-First Delivery" : "Differentiator e.g. Embedded clinical expertise"} />
+          <Textarea value={desc} onChange={e => setDesc(e.target.value)} placeholder="Description" rows={2} />
+          <Input value={extra1} onChange={e => setExtra1(e.target.value)} placeholder={section==="themes" ? "Evidence / substantiation" : "How we prove it"} />
+          <Input value={extra2} onChange={e => setExtra2(e.target.value)} placeholder={section==="themes" ? "Owner" : "Which competitors this beats"} />
+          <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving?"Saving…":"Save"}</Button></div>
+        </div>
+      )}
+      {winThemes.length === 0 && differentiators.length === 0 ? (
+        <Empty>No win themes or differentiators yet. Add the first one above.</Empty>
+      ) : (
+        <>
+          {winThemes.length > 0 && (
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Win Themes</div>
+              {winThemes.map((t: any) => (
+                <div key={t.id} className={CARD + " mb-2"}>
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-semibold text-sm">{t.title}</p>
+                    <StatusBadge value={t.status ?? "Active"} map={{ Active: "border-emerald-500/40 text-emerald-400 bg-emerald-500/8", Draft: "border-amber-500/40 text-amber-400 bg-amber-500/8", Retired: "border-slate-500/40 text-slate-400 bg-slate-500/8" }} />
+                  </div>
+                  {t.description && <p className="text-sm text-muted-foreground">{t.description}</p>}
+                  {t.evidence && <p className="text-xs text-muted-foreground border-t border-border/40 pt-2 mt-2"><span className="font-medium text-foreground/70">Evidence: </span>{t.evidence}</p>}
+                </div>
+              ))}
+            </div>
+          )}
+          {differentiators.length > 0 && (
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2 mt-4">Differentiators</div>
+              {differentiators.map((d: any) => (
+                <div key={d.id} className={CARD + " mb-2"}>
+                  <p className="font-semibold text-sm">{d.title}</p>
+                  {d.description && <p className="text-sm text-muted-foreground">{d.description}</p>}
+                  {d.substantiation && <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground/70">Proof: </span>{d.substantiation}</p>}
+                  {d.versus && <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground/70">Beats: </span>{d.versus}</p>}
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+// ── Stakeholders & Partners Tab ───────────────────────────────────
+function StakeholdersPartnersTab({ eid, stakeholders, partnerships, canWrite, onSaved, user }: any) {
+  const [section, setSection] = useState<"stak"|"part">("stak");
+  const [f1,setF1]=useState(""); const [f2,setF2]=useState(""); const [f3,setF3]=useState("");
+  const [f4,setF4]=useState("Unknown"); const [f5,setF5]=useState("Medium"); const [f6,setF6]=useState("");
+  const [saving,setSaving]=useState(false); const [open,setOpen]=useState(false);
+  async function save() {
+    if (!f1.trim()) return;
+    setSaving(true);
+    if (section==="stak") {
+      await supabase.from("stakeholders").insert({ engagement_id:eid, name:f1, title:f2, organization:f3, relationship:f4, priority:f5, notes:f6, created_by:user?.id });
+    } else {
+      await supabase.from("partnerships").insert({ engagement_id:eid, partner_name:f1, role:f2, commitment:f3||"Exploring", contact:f4!=="Unknown"?f4:"", notes:f6, created_by:user?.id });
+    }
+    setSaving(false); toast.success("Saved"); setF1(""); setF2(""); setF3(""); setF6(""); setOpen(false); onSaved();
+  }
+  const PRIORITY_MAP: Record<string,string> = { Critical:"border-red-500/40 text-red-400 bg-red-500/8", High:"border-orange-500/40 text-orange-400 bg-orange-500/8", Medium:"border-amber-500/40 text-amber-400 bg-amber-500/8", Low:"border-slate-500/40 text-slate-400 bg-slate-500/8" };
+  const REL_MAP: Record<string,string> = { Champion:"border-emerald-500/40 text-emerald-400 bg-emerald-500/8", Neutral:"border-amber-500/40 text-amber-400 bg-amber-500/8", Risk:"border-red-500/40 text-red-400 bg-red-500/8", Unknown:"border-slate-500/40 text-slate-400 bg-slate-500/8" };
+  const COMM_MAP: Record<string,string> = { Confirmed:"border-emerald-500/40 text-emerald-400 bg-emerald-500/8", Negotiating:"border-amber-500/40 text-amber-400 bg-amber-500/8", Exploring:"border-slate-500/40 text-slate-400 bg-slate-500/8" };
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">Key client stakeholders and teaming partners.</p>
+        {canWrite && <Button size="sm" onClick={() => setOpen(v => !v)}>+ Add</Button>}
+      </div>
+      {open && canWrite && (
+        <div className="rounded-lg border border-border/60 bg-card p-4 space-y-3">
+          <div className="flex gap-2 mb-2">
+            {[["stak","Stakeholder"],["part","Partner"]].map(([v,l]) => (
+              <button key={v} type="button" onClick={() => { setSection(v as any); setF3(""); setF4("Unknown"); setF5("Medium"); }}
+                className={`rounded-full border px-3 py-1 text-xs font-semibold ${section===v?"border-primary text-primary bg-primary/8":"border-border text-muted-foreground"}`}>{l}</button>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Input value={f1} onChange={e=>setF1(e.target.value)} placeholder={section==="stak"?"Name *":"Partner Name *"} />
+            <Input value={f2} onChange={e=>setF2(e.target.value)} placeholder={section==="stak"?"Title":"Role on Proposal"} />
+          </div>
+          {section==="stak" ? (
+            <div className="grid grid-cols-3 gap-3">
+              <Input value={f3} onChange={e=>setF3(e.target.value)} placeholder="Organization" />
+              <select className="rounded-md border border-border bg-background px-2 py-1.5 text-sm" value={f4} onChange={e=>setF4(e.target.value)}><option>Champion</option><option>Neutral</option><option>Risk</option><option>Unknown</option></select>
+              <select className="rounded-md border border-border bg-background px-2 py-1.5 text-sm" value={f5} onChange={e=>setF5(e.target.value)}><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <select className="rounded-md border border-border bg-background px-2 py-1.5 text-sm" value={f3||"Exploring"} onChange={e=>setF3(e.target.value)}><option>Confirmed</option><option>Negotiating</option><option>Exploring</option></select>
+              <Input value={f4!=="Unknown"?f4:""} onChange={e=>setF4(e.target.value)} placeholder="Contact name" />
+            </div>
+          )}
+          <Textarea value={f6} onChange={e=>setF6(e.target.value)} placeholder="Notes" rows={2} />
+          <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={()=>setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving?"Saving…":"Save"}</Button></div>
+        </div>
+      )}
+      {stakeholders.length === 0 && partnerships.length === 0 ? (
+        <Empty>No stakeholders or partners added yet.</Empty>
+      ) : (
+        <>
+          {stakeholders.length > 0 && (
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Stakeholders</div>
+              {[...stakeholders].sort((a:any,b:any)=>["Critical","High","Medium","Low"].indexOf(a.priority)-["Critical","High","Medium","Low"].indexOf(b.priority)).map((s: any) => (
+                <div key={s.id} className={CARD + " mb-2"}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div><p className="font-semibold text-sm">{s.name}</p>{(s.title||s.organization)&&<p className="text-xs text-muted-foreground">{[s.title,s.organization].filter(Boolean).join(" · ")}</p>}</div>
+                    <div className="flex gap-1.5"><StatusBadge value={s.priority} map={PRIORITY_MAP} /><StatusBadge value={s.relationship} map={REL_MAP} /></div>
+                  </div>
+                  {s.notes&&<p className="text-xs text-muted-foreground border-t border-border/40 pt-2 mt-2">{s.notes}</p>}
+                </div>
+              ))}
+            </div>
+          )}
+          {partnerships.length > 0 && (
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2 mt-4">Partners</div>
+              {partnerships.map((p: any) => (
+                <div key={p.id} className={CARD + " mb-2"}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div><p className="font-semibold text-sm">{p.partner_name}</p>{p.role&&<p className="text-xs text-muted-foreground">{p.role}</p>}</div>
+                    <StatusBadge value={p.commitment} map={COMM_MAP} />
+                  </div>
+                  {p.contact&&<p className="text-xs text-muted-foreground">Contact: {p.contact}</p>}
+                  {p.notes&&<p className="text-xs text-muted-foreground">{p.notes}</p>}
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
