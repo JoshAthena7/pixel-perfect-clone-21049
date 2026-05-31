@@ -15,6 +15,7 @@ import {
   Compass,
   BarChart3,
   ClipboardList,
+  Github,
 } from "lucide-react";
 import {
   Sidebar,
