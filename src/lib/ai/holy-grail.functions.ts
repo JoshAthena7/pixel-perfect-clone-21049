@@ -91,6 +91,13 @@ function snippetsToPrompt(snippets: Snippet[]): string {
     .join("\n\n---\n\n");
 }
 
+function formatList(value: unknown, fallback = "unknown"): string {
+  if (Array.isArray(value)) return value.filter(Boolean).join(", ") || fallback;
+  if (typeof value === "string") return value.trim() || fallback;
+  if (value == null) return fallback;
+  return String(value) || fallback;
+}
+
 // ---------- Cache (server-side via supabase context) ----------
 
 async function getCached(
@@ -175,8 +182,8 @@ function ctxLine(ctx: any): string {
   return [
     `Engagement: ${e.name ?? "?"} (client: ${e.client ?? "?"})`,
     `State: ${e.state ?? c.state ?? "?"} | Market: ${e.market ?? c.market ?? "?"}`,
-    `Incumbent: ${c.incumbent ?? (Array.isArray(o.incumbents) ? o.incumbents.join(", ") : o.incumbents) ?? "unknown"}`,
-    `Likely competitors: ${(c.competitors ?? []).join(", ") || "unknown"}`,
+    `Incumbent: ${formatList(c.incumbent ?? o.incumbents)}`,
+    `Likely competitors: ${formatList(c.competitors)}`,
     `Program: ${o.program_name ?? "?"} | Agency: ${o.agency ?? "?"}`,
     `Contract term: ${o.contract_term ?? "?"} | Budget: ${o.budget ?? "?"}`,
   ].join("\n");
