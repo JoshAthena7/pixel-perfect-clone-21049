@@ -1,162 +1,160 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+/**
+ * LOBBY — /select-engagement
+ * Athena Command's front door. Not a navigation page — a destination.
+ * VIP Lounge · Mission Intelligence Center · Executive Briefing Room
+ */
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useEngagement, type Membership } from "@/hooks/use-engagement";
 import { useSession } from "@/hooks/use-session";
 import { supabase } from "@/integrations/supabase/client";
 import { BrandLockup } from "@/components/ui/BrandLockup";
-
-import { LogOut, Archive, Plus, Siren, Users, FileText, Clock } from "lucide-react";
+import { LogOut, Plus, Siren, ChevronRight, Sparkles, Send } from "lucide-react";
 import { daysUntil } from "@/lib/time";
-import { PipelineHorizonLobby } from "@/components/war-room/PipelineHorizonLobby";
+import { generateIrisExecutiveBrief } from "@/lib/iris/iris-brief.functions";
 
 export const Route = createFileRoute("/_authenticated/select-engagement")({
-  head: () => ({ meta: [{ title: "Command Center — Athena" }] }),
-  component: SelectEngagementPage,
+  head: () => ({ meta: [{ title: "Athena Command" }] }),
+  component: LobbyPage,
 });
 
-// ───────────── design tokens (scoped) ─────────────
-const LOBBY_BG = "#0D0F1A";
-const CARD_BG = "#141628";
-const CARD_BG_HOVER = "#1c1c27";
+// ── Design tokens ────────────────────────────────────────────────
+const GOLD = "#C49A2A";
+const GOLD_LIGHT = "#D4AE4A";
+const BG = "#0D0F1A";
+const SURFACE = "#111827";
+const SURFACE2 = "#1a2235";
 const BORDER = "rgba(255,255,255,0.06)";
 const BORDER_STRONG = "rgba(255,255,255,0.12)";
-const GOLD = "#C49A2A";
-const TEAL = "#5fb8a8";
-const PURPLE = "#9b8cc7";
-const RED = "#e85d5d";
+const MUTED = "rgba(255,255,255,0.4)";
+const TEXT = "#e8edf5";
 
-const HEAT_COLOR: Record<string, string> = {
-  Green: "#5fb8a8",
-  Yellow: "#e8c46b",
-  Orange: "#e89556",
-  Red: "#e85d5d",
+const HEALTH_COLOR: Record<string, string> = {
+  Green: "#22c55e", Yellow: "#f59e0b", Orange: "#f97316", Red: "#ef4444",
 };
 
-const ROLE_LABEL: Record<string, string> = {
-  founder: "Founder",
-  pm: "PM",
-  engagement_lead: "Engagement Lead",
-  writer: "Writer",
-  viewer: "Viewer",
-};
-
+// ── Types ────────────────────────────────────────────────────────
 type Stats = {
-  sections: number;
-  members: number;
-  openSos: number;
-  openRisks: number;
-  lastSignalAt: string | null;
-  strategicAlerts: number;
-  heat: { Green: number; Yellow: number; Orange: number; Red: number };
-  mySections?: number;
+  openSos: number; openRisks: number; lastSignalAt: string | null;
+  health: string; pendingDecisions: number;
 };
 
-type Horizon = { id: string; name: string; category: string; created_at: string };
-
-const LEADERSHIP_ROLES = new Set(["founder", "pm", "engagement_lead"]);
-function routeForRole(role: string): string {
+const LEADERSHIP_ROLES = new Set(["founder", "pm", "engagement_lead", "lead", "exec"]);
+function routeForRole(role: string) {
   return LEADERSHIP_ROLES.has(role) ? "/command" : "/writer/my-sections";
 }
+function relTime(ts: string | null) {
+  if (!ts) return null;
+  const m = Math.floor((Date.now() - new Date(ts).getTime()) / 60000);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+function greet() {
+  const h = new Date().getHours();
+  return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+}
+function todayStr() {
+  return new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+}
 
-function SelectEngagementPage() {
+// ── Main Lobby ───────────────────────────────────────────────────
+function LobbyPage() {
   const { memberships, loading, switchEngagement } = useEngagement();
   const { user } = useSession();
   const navigate = useNavigate();
-  const [showArchived, setShowArchived] = useState(false);
+
   const [statsById, setStatsById] = useState<Record<string, Stats>>({});
-  const [horizon, setHorizon] = useState<Horizon[]>([]);
-  const creating = false;
+  const [broadcasts, setBroadcasts] = useState<any[]>([]);
+  const [recognition, setRecognition] = useState<any[]>([]);
+  const [horizonItems, setHorizonItems] = useState<any[]>([]);
+  const [irisBrief, setIrisBrief] = useState<string | null>(null);
+  const [irisLoading, setIrisLoading] = useState(false);
+  const [irisQuery, setIrisQuery] = useState("");
+  const [irisAnswer, setIrisAnswer] = useState<string | null>(null);
+  const [irisAnswering, setIrisAnswering] = useState(false);
 
   const active = useMemo(
     () => memberships.filter((m) => m.engagement.status !== "Archived"),
-    [memberships],
-  );
-  const archived = useMemo(
-    () => memberships.filter((m) => m.engagement.status === "Archived"),
-    [memberships],
+    [memberships]
   );
 
-  // Single-engagement auto-route — only when arriving from root (?auto=1).
-  // Otherwise the lobby always renders so users can manage / add rooms.
+  // Auto-route single mission
   useEffect(() => {
     if (loading) return;
-    if (typeof window === "undefined") return;
     const auto = new URLSearchParams(window.location.search).get("auto");
     if (auto === "1" && active.length === 1) {
       const m = active[0];
       switchEngagement(m.engagement.id);
       navigate({ to: routeForRole(m.role), replace: true });
     }
-  }, [loading, active, navigate, switchEngagement]);
+  }, [loading, active.length]);
 
-  // Per-engagement stat hydration
+  // Fetch all Lobby data
   useEffect(() => {
-    if (loading || active.length === 0) return;
+    if (loading || !active.length) return;
     const ids = active.map((m) => m.engagement.id);
+
     (async () => {
-      const [heatRes, memRes, sosRes, secRes, asnRes, riskRes, huddleRes, stratRes] = await Promise.all([
-        supabase.from("heatmap_sections").select("engagement_id,status").in("engagement_id", ids),
-        supabase.from("engagement_members").select("engagement_id").in("engagement_id", ids),
-        supabase.from("sos_alerts").select("engagement_id,status").in("engagement_id", ids).neq("status", "Resolved"),
-        supabase.from("heatmap_sections").select("engagement_id").in("engagement_id", ids),
-        supabase.from("risks").select("engagement_id,status").in("engagement_id", ids).in("status", ["Open","Monitoring"]),
-        supabase.from("huddles").select("engagement_id,created_at").in("engagement_id", ids).order("created_at", { ascending: false }).limit(ids.length * 2),
-        supabase.from("mission_strategic_signals").select("engagement_id").in("engagement_id", ids).neq("status","dismissed").in("classification",["escalation","alert","recommendation"]),
-        user
-          ? supabase.from("section_assignments").select("engagement_id,user_id").in("engagement_id", ids).eq("user_id", user.id)
-          : Promise.resolve({ data: [] as { engagement_id: string; user_id: string }[] }),
+      const [sosRes, riskRes, signalRes, decRes, bcRes, recRes, horizonRes] = await Promise.all([
+        supabase.from("sos_alerts").select("engagement_id").in("engagement_id", ids).neq("status", "Resolved"),
+        supabase.from("risks").select("engagement_id").in("engagement_id", ids).in("status", ["Open","Monitoring"]),
+        supabase.from("huddles").select("engagement_id,health,created_at").in("engagement_id", ids).order("created_at", { ascending: false }).limit(ids.length * 2),
+        supabase.from("decisions").select("engagement_id").in("engagement_id", ids).eq("status", "Pending Confirmation"),
+        supabase.from("broadcasts").select("content,author_name,created_at,engagement_id").order("created_at", { ascending: false }).limit(5),
+        supabase.from("recognition").select("from_name,to_name,type,message,created_at").order("created_at", { ascending: false }).limit(4),
+        supabase.from("pipeline_horizon").select("id,title,iris_headline,iris_type,iris_action,horizon_category,source,urgency_score,affected_states,ingested_at").eq("status","active").order("urgency_score", { ascending: false }).order("ingested_at", { ascending: false }).limit(6),
       ]);
 
       const map: Record<string, Stats> = {};
-      for (const id of ids) {
-        map[id] = { sections: 0, members: 0, openSos: 0, openRisks: 0, lastSignalAt: null, strategicAlerts: 0, heat: { Green: 0, Yellow: 0, Orange: 0, Red: 0 } };
-      }
-      for (const r of (heatRes.data as { engagement_id: string; status: string }[] | null) ?? []) {
-        const bucket = map[r.engagement_id]; if (!bucket) continue;
-        const k = r.status as keyof Stats["heat"];
-        if (k in bucket.heat) bucket.heat[k]++;
-      }
-      for (const r of (memRes.data as { engagement_id: string }[] | null) ?? []) {
-        const b = map[r.engagement_id]; if (b) b.members++;
-      }
-      for (const r of (sosRes.data as { engagement_id: string }[] | null) ?? []) {
-        const b = map[r.engagement_id]; if (b) b.openSos++;
-      }
-      for (const r of (secRes.data as { engagement_id: string }[] | null) ?? []) {
-        const b = map[r.engagement_id]; if (b) b.sections++;
-      }
-      for (const r of (asnRes.data as { engagement_id: string }[] | null) ?? []) {
-        const b = map[r.engagement_id]; if (b) b.mySections = (b.mySections ?? 0) + 1;
-      }
-      for (const r of (riskRes.data as { engagement_id: string }[] | null) ?? []) {
-        const b = map[r.engagement_id]; if (b) b.openRisks++;
-      }
-      // pick the most-recent huddle per engagement
-      const seenHuddle = new Set<string>();
-      for (const r of (huddleRes.data as { engagement_id: string; created_at: string }[] | null) ?? []) {
-        if (!seenHuddle.has(r.engagement_id)) {
-          const b = map[r.engagement_id];
-          if (b) { b.lastSignalAt = r.created_at; seenHuddle.add(r.engagement_id); }
+      for (const id of ids) map[id] = { openSos: 0, openRisks: 0, lastSignalAt: null, health: "Green", pendingDecisions: 0 };
+      for (const r of (sosRes.data ?? []) as any[]) { const b = map[r.engagement_id]; if (b) b.openSos++; }
+      for (const r of (riskRes.data ?? []) as any[]) { const b = map[r.engagement_id]; if (b) b.openRisks++; }
+      for (const r of (decRes.data ?? []) as any[]) { const b = map[r.engagement_id]; if (b) b.pendingDecisions++; }
+      const seen = new Set<string>();
+      for (const s of (signalRes.data ?? []) as any[]) {
+        if (!seen.has(s.engagement_id)) {
+          const b = map[s.engagement_id];
+          if (b) { b.lastSignalAt = s.created_at; b.health = s.health ?? "Green"; seen.add(s.engagement_id); }
         }
       }
-      for (const r of (stratRes.data as { engagement_id: string }[] | null) ?? []) {
-        const b = map[r.engagement_id]; if (b) b.strategicAlerts = (b.strategicAlerts ?? 0) + 1;
-      }
       setStatsById(map);
-
-      // Horizon: cross-engagement RFP / State Intelligence intel docs
-      const { data: h } = await supabase
-        .from("intel_documents")
-        .select("id,name,category,created_at")
-        .in("engagement_id", ids)
-        .in("category", ["RFP", "State Intelligence"])
-        .order("created_at", { ascending: false })
-        .limit(8);
-      setHorizon((h as Horizon[]) ?? []);
+      setBroadcasts((bcRes.data ?? []) as any[]);
+      setRecognition((recRes.data ?? []) as any[]);
+      setHorizonItems((horizonRes.data ?? []) as any[]);
     })();
-  }, [loading, active, user?.id]);
+  }, [loading, active.length]);
 
-  function pick(m: Membership) {
+  // IRIS brief
+  useEffect(() => {
+    if (!active.length || !user?.id) return;
+    const key = `iris_lobby_${user.id}_${new Date().toDateString()}`;
+    try {
+      const cached = JSON.parse(localStorage.getItem(key) ?? "null");
+      if (cached) { setIrisBrief(cached); return; }
+    } catch { /* ignore */ }
+    setIrisLoading(true);
+    const raw = user.email?.split("@")?.[0]?.split(".")?.[0] ?? "";
+    const name = raw.charAt(0).toUpperCase() + raw.slice(1);
+    generateIrisExecutiveBrief({ data: { userName: name } })
+      .then(r => { setIrisBrief(r.brief); localStorage.setItem(key, JSON.stringify(r.brief)); })
+      .catch(() => setIrisBrief(null))
+      .finally(() => setIrisLoading(false));
+  }, [active.length, user?.id]);
+
+  async function askIris(q: string) {
+    if (!q.trim()) return;
+    setIrisAnswering(true);
+    setIrisAnswer(null);
+    try {
+      const r = await generateIrisExecutiveBrief({ data: { userName: "", query: q } });
+      setIrisAnswer(r.brief);
+    } catch { setIrisAnswer("IRIS is unavailable right now. Try again shortly."); }
+    setIrisAnswering(false);
+  }
+
+  function enter(m: Membership) {
     switchEngagement(m.engagement.id);
     navigate({ to: routeForRole(m.role), replace: true });
   }
@@ -166,391 +164,339 @@ function SelectEngagementPage() {
     window.location.href = "/login";
   }
 
-  function createNewEngagement() {
-    navigate({ to: "/engagement/new" });
-  }
+  const firstName = user?.email?.split("@")?.[0]?.split(".")?.[0] ?? "";
+  const displayName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+  const totalSOS = active.reduce((a, m) => a + (statsById[m.engagement.id]?.openSos ?? 0), 0);
+  const needsAttention = active.filter(m => {
+    const s = statsById[m.engagement.id];
+    const d = daysUntil((m.engagement as any).submission_date);
+    return s && (s.openSos > 0 || (d !== null && d <= 7));
+  }).length;
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-xs uppercase tracking-[0.3em] text-zinc-500" style={{ background: LOBBY_BG }}>
-        Authenticating…
+  if (loading) return (
+    <div style={{ display: "flex", minHeight: "100vh", alignItems: "center", justifyContent: "center", background: BG }}>
+      <div style={{ fontSize: 10, letterSpacing: "0.3em", textTransform: "uppercase", color: MUTED, animation: "pulse 2s infinite" }}>
+        Preparing your briefing…
       </div>
-    );
-  }
+    </div>
+  );
 
-  const list = showArchived ? archived : active;
-  const writerArchivedOnly = active.length === 0 && archived.length > 0 && archived.every((m) => m.role === "writer");
+  // No missions
+  if (!active.length) return (
+    <div style={{ display: "flex", minHeight: "100vh", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 32, background: BG, padding: 24 }}>
+      <BrandLockup size="lg" />
+      <div style={{ textAlign: "center", maxWidth: 440 }}>
+        <h1 style={{ fontSize: 28, fontWeight: 700, color: TEXT, marginBottom: 12 }}>Welcome to Athena Command.</h1>
+        <p style={{ color: MUTED, lineHeight: 1.7, fontSize: 15 }}>
+          Create your first mission to begin. Once activated, Mission Brain, IRIS, and your team workspace will come to life.
+        </p>
+      </div>
+      <a href="/engagement/new" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 28px", borderRadius: 10, background: GOLD, color: "#0D0F1A", fontWeight: 800, fontSize: 14, textDecoration: "none", letterSpacing: "0.04em" }}>
+        <Plus style={{ width: 16, height: 16 }} /> Create First Mission
+      </a>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen text-zinc-200" style={{ background: LOBBY_BG }}>
-      {/* TOP BAR */}
-      <header className="flex items-center justify-between px-6 py-4" style={{ borderBottom: `1px solid ${BORDER}` }}>
-        <div className="flex items-center gap-3">
-          <BrandLockup size="md" className="hidden md:flex" />
-          <BrandLockup size="sm" markOnly className="md:hidden" />
-          <div className="leading-tight hidden lg:block">
-            <div className="text-[10px] font-medium uppercase tracking-[0.28em] text-zinc-500">
-              Intelligence Infrastructure for Healthcare Growth
-            </div>
-          </div>
-        </div>
+    <div style={{ minHeight: "100vh", background: BG, color: TEXT }}>
 
-        <div className="flex items-center gap-3">
-          <span
-            className="rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em]"
-            style={{ borderColor: BORDER_STRONG, color: GOLD, background: "rgba(201,179,112,0.06)" }}
-          >
-            {active.length} active room{active.length === 1 ? "" : "s"}
-          </span>
-          <div
-            className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold"
-            style={{ background: CARD_BG, border: `1px solid ${BORDER_STRONG}`, color: GOLD }}
-            title={user?.email ?? ""}
-          >
-            {(user?.email ?? "?").slice(0, 1).toUpperCase()}
-          </div>
-          <button
-            onClick={signOut}
-            className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] text-zinc-500 transition hover:text-zinc-200"
-            style={{ border: `1px solid ${BORDER}` }}
-          >
-            <LogOut className="h-3 w-3" /> Sign out
+      {/* ── Top Bar ── */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 40px", borderBottom: `0.5px solid ${BORDER}` }}>
+        <BrandLockup size="sm" />
+        <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+          <a href="/engagement/new" style={{ fontSize: 12, color: MUTED, textDecoration: "none", display: "flex", alignItems: "center", gap: 6 }}>
+            <Plus style={{ width: 13, height: 13 }} /> New Mission
+          </a>
+          <button onClick={signOut} style={{ fontSize: 12, color: MUTED, background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+            <LogOut style={{ width: 13, height: 13 }} /> Sign out
           </button>
         </div>
-      </header>
+      </div>
 
-      {/* HORIZON BAR */}
-      <section className="px-6 py-4" style={{ borderBottom: `1px solid ${BORDER}` }}>
-        <div className="mb-2 flex items-center justify-between">
-          <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-500">
-            Opportunities on the Horizon™
-          </div>
-          <div className="text-[10px] uppercase tracking-[0.2em] text-zinc-600">{horizon.length} signal{horizon.length === 1 ? "" : "s"}</div>
-        </div>
-        {horizon.length === 0 ? (
-          <div className="text-[11px] italic text-zinc-600">
-            No RFPs or state intelligence on file. Upload to Intel under any room to seed the procurement database.
-          </div>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            {horizon.map((h) => {
-              const ageDays = Math.floor((Date.now() - new Date(h.created_at).getTime()) / 86_400_000);
-              const dot = ageDays > 30 ? RED : ageDays > 14 ? "#e8c46b" : TEAL;
-              return (
-                <div
-                  key={h.id}
-                  className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px]"
-                  style={{ background: CARD_BG, border: `1px solid ${BORDER_STRONG}` }}
-                >
-                  <span className="h-1.5 w-1.5 rounded-full" style={{ background: dot }} />
-                  <span className="font-medium text-zinc-200">{h.name}</span>
-                  <span className="text-zinc-500">· {h.category}</span>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "48px 40px", display: "flex", flexDirection: "column", gap: 56 }}>
 
-      {/* MISSIONS */}
-      <section className="px-6 py-6">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-500">Active Missions</div>
-          {archived.length > 0 && (
-            <button
-              onClick={() => setShowArchived((v) => !v)}
-              className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] text-zinc-500 transition hover:text-zinc-200"
-              style={{ border: `1px solid ${BORDER}` }}
-            >
-              <Archive className="h-3 w-3" />
-              {showArchived ? `Active (${active.length})` : `Archived (${archived.length})`}
-            </button>
-          )}
-        </div>
+        {/* ══════════════════════════════════════════════════════
+            SECTION 1 — TODAY'S BRIEFING
+        ══════════════════════════════════════════════════════ */}
+        <section>
+          <SectionLabel>Today's Briefing</SectionLabel>
 
-        {writerArchivedOnly ? (
-          <EmptyState
-            title="Your Mission has been archived"
-            body="Contact your engagement lead for next steps."
-          />
-        ) : list.length === 0 && active.length === 0 && archived.length === 0 ? (
-          <EmptyState
-            title="No Missions yet"
-            body="Create your first engagement to open a Mission, or ask a founder to invite you."
-          >
-            <button
-              onClick={createNewEngagement}
-              disabled={creating}
-              className="mt-4 inline-flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold uppercase tracking-[0.18em]"
-              style={{ background: GOLD, color: "#0D0F1A" }}
-            >
-              <Plus className="h-3.5 w-3.5" /> New Mission
-            </button>
-          </EmptyState>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {list.map((m, idx) => (
-              <DoorCard key={m.engagement.id} m={m} index={idx + 1} stats={statsById[m.engagement.id]} onEnter={() => pick(m)} />
+          {/* Greeting + date */}
+          <div style={{ marginBottom: 32 }}>
+            <p style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: MUTED, marginBottom: 6 }}>{todayStr()}</p>
+            <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: "-0.02em", margin: 0, lineHeight: 1.2 }}>
+              {greet()}, {displayName}.
+            </h1>
+          </div>
+
+          {/* Key stats */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 28 }}>
+            {[
+              { label: "Active Missions", value: active.length, color: GOLD },
+              { label: "Need Attention", value: needsAttention, color: needsAttention > 0 ? "#f59e0b" : "#22c55e" },
+              { label: "Active SOS", value: totalSOS, color: totalSOS > 0 ? "#ef4444" : "#22c55e" },
+              { label: "Market Signals", value: horizonItems.length, color: "#60a5fa" },
+            ].map(({ label, value, color }) => (
+              <div key={label} style={{ background: SURFACE, border: `0.5px solid ${BORDER_STRONG}`, borderRadius: 12, padding: "20px 22px" }}>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: MUTED, marginBottom: 8 }}>{label}</div>
+                <div style={{ fontSize: 36, fontWeight: 800, color, lineHeight: 1 }}>{value}</div>
+              </div>
             ))}
-            {!showArchived && (
-              <button
-                onClick={createNewEngagement}
-                disabled={creating}
-                className="group flex min-h-[260px] flex-col items-center justify-center gap-3 rounded-lg text-zinc-500 transition hover:text-zinc-200"
-                style={{ background: "transparent", border: `1px dashed ${BORDER_STRONG}` }}
-              >
-                <Plus className="h-6 w-6" />
-                <div className="text-[10px] font-bold uppercase tracking-[0.3em]">
-                  {creating ? "Opening…" : "New Mission"}
-                </div>
-              </button>
+          </div>
+
+          {/* AI Brief */}
+          <div style={{ background: `linear-gradient(135deg, rgba(196,154,42,0.06), rgba(59,127,255,0.06))`, border: `0.5px solid rgba(196,154,42,0.2)`, borderRadius: 14, padding: "24px 28px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: GOLD, boxShadow: `0 0 8px ${GOLD}` }} />
+              <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.2em", textTransform: "uppercase", color: GOLD }}>IRIS · Daily Briefing</span>
+            </div>
+            {irisLoading ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {[90, 75, 85, 60].map((w, i) => (
+                  <div key={i} style={{ height: 12, borderRadius: 6, background: "rgba(255,255,255,0.04)", width: `${w}%`, animation: "pulse 1.5s ease-in-out infinite" }} />
+                ))}
+              </div>
+            ) : irisBrief ? (
+              <p style={{ fontSize: 15, lineHeight: 1.8, color: "rgba(255,255,255,0.85)", margin: 0, whiteSpace: "pre-line" }}>{irisBrief}</p>
+            ) : (
+              <p style={{ fontSize: 15, lineHeight: 1.8, color: MUTED, margin: 0 }}>
+                {needsAttention > 0
+                  ? `${needsAttention} mission${needsAttention > 1 ? "s" : ""} require your attention today. ${totalSOS > 0 ? `${totalSOS} active SOS alert${totalSOS > 1 ? "s" : ""} — immediate review recommended.` : ""}`
+                  : "Portfolio is healthy. All missions are within normal parameters."}
+              </p>
             )}
           </div>
-        )}
-      </section>
-
-      {/* PIPELINE HORIZON — Market Awareness Layer */}
-      {active.length > 0 && (
-        <section className="px-6 py-6" style={{ borderTop: "0.5px solid rgba(255,255,255,0.06)" }}>
-          <PipelineHorizonLobby limit={5} showHeader={true} />
         </section>
-      )}
 
-      {/* FOOTER */}
-      <footer
-        className="mt-6 flex items-center justify-between px-6 py-4 text-[10px] uppercase tracking-[0.3em] text-zinc-600"
-        style={{ borderTop: `1px solid ${BORDER}` }}
-      >
-        <div className="flex items-center gap-5">
-          <FooterLink to="/select-engagement" label="RFP Database" disabled />
-          <FooterLink to="/select-engagement" label="Pipeline" disabled />
-          <FooterLink to="/settings" label="Settings" />
+        {/* ══════════════════════════════════════════════════════
+            SECTION 2 — MISSIONS + IRIS CONCIERGE (side by side)
+        ══════════════════════════════════════════════════════ */}
+        <section style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 24 }}>
+
+          {/* Active Missions */}
+          <div>
+            <SectionLabel>Active Missions</SectionLabel>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {active.map(m => {
+                const s = statsById[m.engagement.id];
+                const days = daysUntil((m.engagement as any).submission_date);
+                const h = s?.health ?? "Green";
+                const hColor = HEALTH_COLOR[h] ?? HEALTH_COLOR.Green;
+                const urgent = s && (s.openSos > 0 || (days !== null && days <= 7));
+
+                return (
+                  <button key={m.engagement.id} onClick={() => enter(m)} style={{
+                    display: "flex", alignItems: "center", gap: 18, padding: "18px 22px",
+                    borderRadius: 12, background: urgent ? `color-mix(in oklab, ${hColor} 5%, ${SURFACE})` : SURFACE,
+                    border: `0.5px solid ${urgent ? `color-mix(in oklab, ${hColor} 30%, transparent)` : BORDER_STRONG}`,
+                    cursor: "pointer", textAlign: "left", transition: "all 0.15s", width: "100%",
+                  }}
+                    onMouseEnter={e => (e.currentTarget.style.borderColor = BORDER_STRONG)}
+                    onMouseLeave={e => (e.currentTarget.style.borderColor = urgent ? `color-mix(in oklab, ${hColor} 30%, transparent)` : BORDER_STRONG)}>
+
+                    {/* Health orb */}
+                    <div style={{ width: 44, height: 44, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: `color-mix(in oklab, ${hColor} 12%, transparent)`, border: `1.5px solid color-mix(in oklab, ${hColor} 40%, transparent)`, boxShadow: `0 0 16px color-mix(in oklab, ${hColor} 20%, transparent)` }}>
+                      <span style={{ fontSize: 16, fontWeight: 900, color: hColor }}>{h[0]}</span>
+                    </div>
+
+                    {/* Mission info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+                        <span style={{ fontSize: 15, fontWeight: 700, color: TEXT }}>{m.engagement.name}</span>
+                        {s?.openSos ? <span style={{ fontSize: 9, fontWeight: 800, padding: "2px 7px", borderRadius: 4, background: "#ef4444", color: "#fff", letterSpacing: "0.08em" }}>SOS</span> : null}
+                      </div>
+                      <div style={{ display: "flex", gap: 14, fontSize: 11, color: MUTED }}>
+                        <span>{m.engagement.client}</span>
+                        {days !== null && <span style={{ color: days <= 7 ? "#ef4444" : days <= 14 ? "#f59e0b" : MUTED }}>{days}d to submission</span>}
+                        {s?.lastSignalAt && <span>Signal {relTime(s.lastSignalAt)}</span>}
+                        {(s?.openRisks ?? 0) > 0 && <span style={{ color: "#f59e0b" }}>{s!.openRisks} risk{s!.openRisks > 1 ? "s" : ""}</span>}
+                      </div>
+                    </div>
+
+                    <ChevronRight style={{ width: 16, height: 16, color: MUTED, flexShrink: 0 }} />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* IRIS Concierge */}
+          <div>
+            <SectionLabel>IRIS Concierge</SectionLabel>
+            <div style={{ background: SURFACE, border: `0.5px solid rgba(196,154,42,0.2)`, borderRadius: 14, padding: "22px", height: "calc(100% - 36px)", display: "flex", flexDirection: "column", gap: 16 }}>
+              <div style={{ display: "flex", items: "center", gap: 8 }}>
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: GOLD, boxShadow: `0 0 10px ${GOLD}`, flexShrink: 0, marginTop: 2 }} />
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: TEXT }}>Ask IRIS anything</div>
+                  <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>Your strategic intelligence co-pilot</div>
+                </div>
+              </div>
+
+              {/* Suggested prompts */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {[
+                  "What needs my attention today?",
+                  "What missions are drifting?",
+                  "What risks are emerging?",
+                  "Who needs leadership support?",
+                  "What changed this week?",
+                ].map(q => (
+                  <button key={q} onClick={() => { setIrisQuery(q); askIris(q); }}
+                    style={{ textAlign: "left", padding: "9px 12px", borderRadius: 8, border: `0.5px solid ${BORDER_STRONG}`, background: "transparent", color: MUTED, fontSize: 12, cursor: "pointer", transition: "all 0.15s" }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = `rgba(196,154,42,0.3)`; (e.currentTarget as HTMLButtonElement).style.color = TEXT; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = BORDER_STRONG; (e.currentTarget as HTMLButtonElement).style.color = MUTED; }}>
+                    <span style={{ color: GOLD, marginRight: 6 }}>→</span>{q}
+                  </button>
+                ))}
+              </div>
+
+              {/* Custom input */}
+              <div style={{ display: "flex", gap: 8, marginTop: "auto" }}>
+                <input value={irisQuery} onChange={e => setIrisQuery(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && askIris(irisQuery)}
+                  placeholder="Ask IRIS…"
+                  style={{ flex: 1, background: SURFACE2, border: `0.5px solid ${BORDER_STRONG}`, borderRadius: 8, padding: "8px 12px", color: TEXT, fontSize: 12, outline: "none" }} />
+                <button onClick={() => askIris(irisQuery)} disabled={irisAnswering || !irisQuery.trim()}
+                  style={{ padding: "8px 12px", borderRadius: 8, background: GOLD, border: "none", cursor: "pointer", color: "#0D0F1A", display: "flex", alignItems: "center" }}>
+                  <Send style={{ width: 14, height: 14 }} />
+                </button>
+              </div>
+
+              {/* IRIS Response */}
+              {(irisAnswering || irisAnswer) && (
+                <div style={{ background: `rgba(196,154,42,0.06)`, border: `0.5px solid rgba(196,154,42,0.2)`, borderRadius: 8, padding: "12px 14px" }}>
+                  {irisAnswering ? (
+                    <div style={{ fontSize: 11, color: MUTED, animation: "pulse 1.5s ease-in-out infinite" }}>IRIS is thinking…</div>
+                  ) : (
+                    <p style={{ fontSize: 12, lineHeight: 1.7, color: "rgba(255,255,255,0.8)", margin: 0 }}>{irisAnswer}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════════════
+            SECTION 3 — QUICK ACTIONS
+        ══════════════════════════════════════════════════════ */}
+        <section>
+          <SectionLabel>Quick Actions</SectionLabel>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10 }}>
+            {[
+              { label: "Ask IRIS", icon: "🔮", action: () => document.querySelector<HTMLInputElement>('input[placeholder="Ask IRIS…"]')?.focus(), primary: true },
+              { label: "Submit Signal", icon: "📡", action: () => { if (active[0]) enter(active[0]); } },
+              { label: "Raise SOS", icon: "🚨", action: () => { if (active[0]) enter(active[0]); }, danger: true },
+              { label: "Mission Control", icon: "🎯", action: () => navigate({ to: "/intel" }) },
+              { label: "View All Missions", icon: "🗂️", action: () => {} },
+            ].map(({ label, icon, action, primary, danger }) => (
+              <button key={label} onClick={action} style={{
+                padding: "18px 12px", borderRadius: 12, border: `0.5px solid ${danger ? "rgba(239,68,68,0.3)" : primary ? "rgba(196,154,42,0.3)" : BORDER_STRONG}`,
+                background: danger ? "rgba(239,68,68,0.06)" : primary ? `rgba(196,154,42,0.08)` : SURFACE,
+                cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 10, transition: "all 0.15s",
+              }}>
+                <span style={{ fontSize: 24 }}>{icon}</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: danger ? "#ef4444" : primary ? GOLD_LIGHT : TEXT, letterSpacing: "0.03em" }}>{label}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════════════
+            SECTION 4 — MARKET SIGNALS + LOUNGE (side by side)
+        ══════════════════════════════════════════════════════ */}
+        <section style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+
+          {/* Market Signals */}
+          <div>
+            <SectionLabel>Market Signals</SectionLabel>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {horizonItems.length === 0 ? (
+                <div style={{ padding: "32px", textAlign: "center", color: MUTED, fontSize: 13, border: `0.5px dashed ${BORDER_STRONG}`, borderRadius: 12 }}>
+                  No market signals yet. IRIS is monitoring.
+                </div>
+              ) : horizonItems.map(item => {
+                const CAT_COLOR: Record<string, string> = {
+                  "Federal Signal": "#60a5fa", "Market Signal": "#a78bfa",
+                  "Procurement Signal": GOLD, "State Signal": "#34d399", "Athena Signal": GOLD,
+                };
+                const color = CAT_COLOR[item.horizon_category] ?? "#60a5fa";
+                return (
+                  <div key={item.id} style={{ background: SURFACE, border: `0.5px solid ${BORDER_STRONG}`, borderRadius: 10, padding: "14px 16px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                      <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color }}>{item.horizon_category}</span>
+                      {item.iris_type && <span style={{ fontSize: 9, color: MUTED }}>· IRIS {item.iris_type}</span>}
+                    </div>
+                    <p style={{ fontSize: 13, color: TEXT, margin: 0, lineHeight: 1.5 }}>{item.iris_headline ?? item.title}</p>
+                    {item.iris_action && <p style={{ fontSize: 11, color, marginTop: 6, margin: "6px 0 0", fontStyle: "italic" }}>→ {item.iris_action}</p>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Athena Collective Lounge */}
+          <div>
+            <SectionLabel>Athena Collective</SectionLabel>
+            <div style={{ background: SURFACE, border: `0.5px solid ${BORDER_STRONG}`, borderRadius: 14, padding: "22px", display: "flex", flexDirection: "column", gap: 0, overflow: "hidden" }}>
+
+              {/* Broadcasts */}
+              {broadcasts.length > 0 && (
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: MUTED, marginBottom: 10 }}>Leadership</div>
+                  {broadcasts.slice(0, 2).map((b, i) => (
+                    <div key={i} style={{ paddingBottom: 12, marginBottom: 12, borderBottom: i < 1 ? `0.5px solid ${BORDER}` : "none" }}>
+                      <div style={{ fontSize: 11, color: GOLD, fontWeight: 600, marginBottom: 3 }}>{b.author_name}</div>
+                      <p style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", margin: 0, lineHeight: 1.6 }}>{b.content}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Recognition */}
+              {recognition.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: MUTED, marginBottom: 10 }}>Recognition</div>
+                  {recognition.slice(0, 3).map((r, i) => (
+                    <div key={i} style={{ display: "flex", gap: 10, marginBottom: 12, paddingBottom: 12, borderBottom: i < recognition.length - 1 ? `0.5px solid ${BORDER}` : "none" }}>
+                      <span style={{ fontSize: 18, flexShrink: 0 }}>
+                        {r.type?.includes("Beyond") ? "⭐" : r.type?.includes("Clutch") ? "🛡️" : "🤝"}
+                      </span>
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: TEXT }}>{r.to_name} <span style={{ color: MUTED, fontWeight: 400 }}>recognized by {r.from_name}</span></div>
+                        <div style={{ fontSize: 12, color: MUTED, marginTop: 2, lineHeight: 1.5 }}>{r.message?.slice(0, 80)}{r.message?.length > 80 ? "…" : ""}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {broadcasts.length === 0 && recognition.length === 0 && (
+                <div style={{ textAlign: "center", padding: "32px 0", color: MUTED, fontSize: 13 }}>
+                  The Collective is quiet. Be the first to broadcast or recognize a teammate.
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <div style={{ textAlign: "center", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.15)", paddingBottom: 24 }}>
+          Athena Command™ · Mission Intelligence · {new Date().getFullYear()}
         </div>
-        <div className="flex items-center gap-2">
-          <span className="h-1.5 w-1.5 rounded-full" style={{ background: GOLD }} />
-          ATHENA COMMAND™ · RESTRICTED ACCESS · AUTHORIZED PERSONNEL ONLY
-        </div>
-      </footer>
+
+      </div>
     </div>
   );
 }
 
-// ─────────── components ───────────
-
-function irisOneLiner(engagement: any, stats: Stats | undefined): string {
-  if (!stats) return "Loading intelligence…";
-  const { openSos, openRisks, lastSignalAt, strategicAlerts } = stats;
-  if ((strategicAlerts ?? 0) > 0 && openSos === 0) return `${strategicAlerts} strategic intelligence signal${strategicAlerts > 1 ? "s" : ""} detected — review IRIS feed.`;
-  const heat = stats.heat;
-  const redSections = heat.Red + heat.Orange;
-
-  if (openSos > 0) return `⚠️ ${openSos} active SOS — leadership attention needed.`;
-  if (openRisks > 2) return `${openRisks} open risks. Review before your next check-in.`;
-  if (redSections > 1) return `${redSections} sections need attention on the health map.`;
-  if (!lastSignalAt) return "No signals yet. Submit the first daily signal to activate monitoring.";
-
-  const daysSinceSignal = Math.floor((Date.now() - new Date(lastSignalAt).getTime()) / 86400000);
-  if (daysSinceSignal > 2) return `Last signal ${daysSinceSignal}d ago. Team check-in overdue.`;
-  if (openRisks > 0) return `${openRisks} open risk${openRisks > 1 ? "s" : ""}. Signals active.`;
-  return "Healthy. Signals flowing. No issues flagged.";
-}
-
-function DoorCard({
-  m,
-  index,
-  stats,
-  onEnter,
-}: {
-  m: Membership;
-  index: number;
-  stats: Stats | undefined;
-  onEnter: () => void;
-}) {
-  const dleft = daysUntil(m.engagement.submission_date);
-  const overdue = dleft !== null && dleft < 0 && m.engagement.status !== "Complete" && m.engagement.status !== "Archived";
-  const hasSos = (stats?.openSos ?? 0) > 0;
-  const isWriter = m.role === "writer";
-
-  const accent = hasSos ? GOLD : isWriter ? PURPLE : TEAL;
-  const heat = stats?.heat ?? { Green: 0, Yellow: 0, Orange: 0, Red: 0 };
-  const totalHeat = heat.Green + heat.Yellow + heat.Orange + heat.Red;
-
-  // 5-segment bar driven by status distribution
-  const segments = buildSegments(heat);
-
+// ── Section label component ───────────────────────────────────────
+function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <button
-      onClick={onEnter}
-      className="group relative flex min-h-[260px] flex-col rounded-lg p-5 text-left transition"
-      style={{
-        background: CARD_BG,
-        border: `1px solid ${BORDER_STRONG}`,
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = CARD_BG_HOVER)}
-      onMouseLeave={(e) => (e.currentTarget.style.background = CARD_BG)}
-    >
-      {/* top accent */}
-      <div className="absolute inset-x-0 top-0 h-[2px] rounded-t-lg" style={{ background: accent }} />
-
-      {/* header */}
-      <div className="mb-3 flex items-start justify-between">
-        <div className="text-[10px] font-mono tracking-[0.3em] text-zinc-600">
-          MISSION {String(index).padStart(3, "0")}
-        </div>
-        <span
-          className="rounded border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em]"
-          style={{
-            borderColor: `color-mix(in oklab, ${accent} 50%, transparent)`,
-            color: accent,
-            background: `color-mix(in oklab, ${accent} 10%, transparent)`,
-          }}
-        >
-          {ROLE_LABEL[m.role] ?? m.role}
-        </span>
-      </div>
-
-      {/* name */}
-      <div className="mb-1 truncate text-base font-bold text-zinc-100">{m.engagement.name}</div>
-      <div className="mb-4 truncate text-xs text-zinc-500">{m.engagement.client}</div>
-
-      {/* stat blocks */}
-      <div className="mb-4 grid grid-cols-2 gap-2">
-        <Stat
-          icon={<Clock className="h-3 w-3" />}
-          label={overdue ? "Overdue" : "Days left"}
-          value={dleft === null ? "—" : overdue ? `${Math.abs(dleft)}d ago` : `${dleft}d`}
-          tone={overdue ? RED : dleft !== null && dleft <= 7 ? GOLD : undefined}
-        />
-        <Stat
-          icon={<Users className="h-3 w-3" />}
-          label="Last signal"
-          value={stats?.lastSignalAt ? relativeSignal(stats.lastSignalAt) : "None yet"}
-          tone={stats?.lastSignalAt ? undefined : "rgba(255,255,255,0.3)"}
-        />
-      </div>
-      {(stats?.openRisks ?? 0) > 0 && (
-        <div className="mb-3 flex items-center gap-1.5 text-[10px]" style={{ color: GOLD }}>
-          <span>⚠️</span>
-          <span className="font-semibold">{stats!.openRisks} open risk{stats!.openRisks === 1 ? "" : "s"}</span>
-        </div>
-      )}
-
-      {/* 5-segment health bar */}
-      <div className="mb-3">
-        <div className="mb-1 flex items-center justify-between text-[9px] uppercase tracking-[0.18em] text-zinc-600">
-          <span>Health</span>
-          <span>{totalHeat > 0 ? `${totalHeat} section${totalHeat === 1 ? "" : "s"}` : "no data"}</span>
-        </div>
-        <div className="flex gap-1">
-          {segments.map((seg, i) => (
-            <div
-              key={i}
-              className="h-1.5 flex-1 rounded-sm"
-              style={{ background: seg ?? "rgba(255,255,255,0.06)" }}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* IRIS one-liner */}
-      <div className="mb-3 rounded-md px-2.5 py-2 text-[11px] text-zinc-400" style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${BORDER}` }}>
-        <span className="font-medium" style={{ color: TEAL }}>IRIS · </span>
-        {irisOneLiner(m.engagement, stats)}
-      </div>
-
-      {/* enter hint */}
-      <div className="mt-auto flex items-center justify-between pt-2" style={{ borderTop: `1px solid ${BORDER}` }}>
-        <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-500 transition group-hover:text-zinc-200">
-          Enter Mission →
-        </div>
-        {hasSos && (
-          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: RED }}>
-            <Siren className="h-3 w-3" />
-            <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: RED }} />
-            {stats!.openSos} SOS active
-          </span>
-        )}
-      </div>
-    </button>
-  );
-}
-
-function Stat({
-  icon,
-  label,
-  value,
-  tone,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string | number;
-  tone?: string;
-}) {
-  return (
-    <div className="rounded-md px-2 py-2" style={{ background: "rgba(255,255,255,0.025)", border: `1px solid ${BORDER}` }}>
-      <div className="mb-1 flex items-center gap-1 text-[9px] uppercase tracking-[0.16em] text-zinc-600">
-        {icon}
-        {label}
-      </div>
-      <div className="text-sm font-bold" style={{ color: tone ?? "#e4e4e7" }}>{value}</div>
-    </div>
-  );
-}
-
-function EmptyState({ title, body, children }: { title: string; body: string; children?: React.ReactNode }) {
-  return (
-    <div className="rounded-lg p-10 text-center" style={{ background: CARD_BG, border: `1px solid ${BORDER_STRONG}` }}>
-      <h2 className="text-base font-bold text-zinc-100">{title}</h2>
-      <p className="mt-2 text-xs text-zinc-500">{body}</p>
-      {children}
-    </div>
-  );
-}
-
-function FooterLink({ to, label, disabled }: { to: string; label: string; disabled?: boolean }) {
-  if (disabled) {
-    return (
-      <span className="opacity-40" title="Coming soon">
-        {label}
+    <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
+      <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.2em", textTransform: "uppercase", color: GOLD, opacity: 0.7 }}>
+        {children}
       </span>
-    );
-  }
-  return (
-    <Link to={to} className="transition hover:text-zinc-200">
-      {label}
-    </Link>
+      <div style={{ flex: 1, height: "0.5px", background: `linear-gradient(to right, rgba(196,154,42,0.3), transparent)` }} />
+    </div>
   );
-}
-
-// Build a 5-cell bar where each segment is colored by the dominant
-// status of that proportional slot.
-function relativeSignal(ts: string): string {
-  const diff = Date.now() - new Date(ts).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 60) return m <= 1 ? "Just now" : `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  const d = Math.floor(h / 24);
-  return d === 1 ? "Yesterday" : `${d}d ago`;
-}
-
-function buildSegments(heat: Stats["heat"]): (string | null)[] {
-  const order: Array<keyof Stats["heat"]> = ["Green", "Yellow", "Orange", "Red"];
-  const total = order.reduce((a, k) => a + heat[k], 0);
-  if (total === 0) return Array(5).fill(null);
-  const out: (string | null)[] = [];
-  let remaining = 5;
-  for (let i = 0; i < order.length; i++) {
-    const k = order[i];
-    const count = heat[k];
-    if (count === 0) continue;
-    const isLast = i === order.length - 1 || order.slice(i + 1).every((kk) => heat[kk] === 0);
-    const segs = isLast ? remaining : Math.max(1, Math.round((count / total) * 5));
-    const take = Math.min(remaining, segs);
-    for (let j = 0; j < take; j++) out.push(HEAT_COLOR[k]);
-    remaining -= take;
-    if (remaining <= 0) break;
-  }
-  while (out.length < 5) out.push(null);
-  return out;
 }
