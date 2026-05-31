@@ -232,7 +232,7 @@ function CommandV2() {
           </div>
           {/* Open Risks */}
           <div className="panel">
-            <div className="panel-head"><span className="panel-title">Open Risks</span><button className="btn">+ Add</button></div>
+            <div className="panel-head"><span className="panel-title">Open Risks</span><button className="btn" onClick={() => setModal("risk")}>+ Add</button></div>
             <div className="panel-body">
               {risks.length === 0 && <div className="muted">No open risks. ✅</div>}
               {risks.map(r => (
