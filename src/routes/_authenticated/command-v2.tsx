@@ -14,6 +14,7 @@ import {
   type FormProps,
 } from "@/components/war-room/ActionLauncher";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 type ModalKey = "broadcast" | "signal" | "risk" | "sos" | "decision" | "pulse";
 const MODAL_TITLES: Record<ModalKey, string> = {
