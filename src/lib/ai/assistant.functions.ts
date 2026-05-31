@@ -115,16 +115,18 @@ export const askAssistant = createServerFn({ method: "POST" })
     let risks: any = null;
     let decisions: any = null;
     let pulses: any = null;
+    let signals: any = null;
     if (eid) {
-      const [r1, r2, r3, r4, r5, r6] = await Promise.all([
+      const [r1, r2, r3, r4, r5, r6, r7] = await Promise.all([
         supabase.from("engagements").select("name, client, status, submission_date, state").eq("id", eid).maybeSingle(),
         supabase.from("huddles").select("health, priority, risk, client_concern, writer_concern, needs_leadership, notes, submitter_name, created_at").eq("engagement_id", eid).order("created_at", { ascending: false }).limit(10),
         supabase.from("heatmap_sections").select("section_name, status, notes").eq("engagement_id", eid),
         supabase.from("risks").select("title, severity, status, owner_name, mitigation").eq("engagement_id", eid).limit(20),
         supabase.from("decisions").select("title, status, decision_date, rationale, owner_name").eq("engagement_id", eid).order("decision_date", { ascending: false }).limit(15),
         supabase.from("client_pulses").select("interaction_date, sentiment, summary, action_items").eq("engagement_id", eid).order("interaction_date", { ascending: false }).limit(10),
+        supabase.from("alignment_signals").select("topic, signal_type, status, notes, owner_name, created_at").eq("engagement_id", eid).order("created_at", { ascending: false }).limit(15),
       ]);
-      eng = r1.data; huddles = r2.data; heatmap = r3.data; risks = r4.data; decisions = r5.data; pulses = r6.data;
+      eng = r1.data; huddles = r2.data; heatmap = r3.data; risks = r4.data; decisions = r5.data; pulses = r6.data; signals = r7.data;
     }
 
     // ---- RAG: semantic search across allowed content
@@ -174,7 +176,7 @@ export const askAssistant = createServerFn({ method: "POST" })
       ? `\n\nFIRM KNOWLEDGE LIBRARY:\n${firmContent.map((f) => `- [${f.category}] ${f.title}: ${f.body.slice(0,300)}`).join("\n")}`
       : "";
     const engagementBlock = eid
-      ? `\nENGAGEMENT: ${JSON.stringify(eng)}\nHEAT MAP: ${JSON.stringify(heatmap)}\nRECENT HUDDLES: ${JSON.stringify(huddles)}\nRISKS: ${JSON.stringify(risks)}\nDECISIONS: ${JSON.stringify(decisions)}\nCLIENT PULSE: ${JSON.stringify(pulses)}`
+      ? `\nENGAGEMENT: ${JSON.stringify(eng)}\nHEAT MAP: ${JSON.stringify(heatmap)}\nRECENT HUDDLES: ${JSON.stringify(huddles)}\nRISKS: ${JSON.stringify(risks)}\nALIGNMENT SIGNALS: ${JSON.stringify(signals)}\nDECISIONS: ${JSON.stringify(decisions)}\nCLIENT PULSE: ${JSON.stringify(pulses)}`
       : "";
 
     const scopeLabel = scope === "engagement" ? "current engagement" : scope === "all" ? "every engagement the user can access" : "firm-wide knowledge";
