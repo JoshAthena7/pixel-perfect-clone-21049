@@ -196,6 +196,13 @@ function CommandV2() {
           <div className="rounded-md mb-4 px-3 py-2 text-[12px]" style={{ background: "rgba(239,68,68,.12)", color: "#ef4444", border: "1px solid rgba(239,68,68,.3)" }}>{err}</div>
         )}
 
+        {loadingData && (
+          <div className="flex items-center gap-2 mb-4 muted">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Loading live mission data…</span>
+          </div>
+        )}
+
         {/* Metrics row */}
         <div className="grid grid-cols-4 gap-3 mb-4">
           <div className="metric">
