@@ -81,6 +81,38 @@ export const heatmapSchema = z.object({
 });
 export type HeatmapValues = z.infer<typeof heatmapSchema>;
 
+export const flagIssueSchema = z.object({
+  severity: z.enum(["Yellow", "Orange", "Red"]),
+  type: z.enum(["sos", "risk"]),
+  description: requiredText(1, 2000, "Tell us what's wrong"),
+  action: longText(2000),
+});
+export type FlagIssueValues = z.infer<typeof flagIssueSchema>;
+
+export const tlcSchema = z.object({
+  note: requiredText(1, 2000, "Add a note"),
+  followUp: requiredText(1, 120),
+});
+export type TlcValues = z.infer<typeof tlcSchema>;
+
+export const starSchema = z.object({
+  note: requiredText(1, 2000, "Add a note"),
+  followUp: requiredText(1, 120),
+});
+export type StarValues = z.infer<typeof starSchema>;
+
+export const threadSchema = z.object({
+  sectionId: requiredText(1, 120, "Pick a section"),
+  message: requiredText(1, 4000, "Write a message"),
+});
+export type ThreadValues = z.infer<typeof threadSchema>;
+
+export const quickChatSchema = z.object({
+  peerId: requiredText(1, 120, "Pick a teammate"),
+  message: requiredText(1, 4000, "Write a message"),
+});
+export type QuickChatValues = z.infer<typeof quickChatSchema>;
+
 // Helper: shape that the form UI consumes ----------------------------------
 
 export type FieldErrors<T> = Partial<Record<keyof T, string>>;

@@ -15,6 +15,8 @@ import {
 import { Heart, Star, Sparkles, Copy, Gift } from "lucide-react";
 import { toast } from "sonner";
 import { draftPulseMessage } from "@/lib/ai/pulse.functions";
+import { useSchemaForm } from "./useSchemaForm";
+import { tlcSchema, starSchema } from "./action-schemas";
 
 export type RecognitionMember = {
   id: string;
@@ -316,50 +318,72 @@ function TlcForm({
   onCancel: () => void;
   onSaved: () => Promise<void>;
 }) {
-  const [note, setNote] = useState("");
-  const [followUp, setFollowUp] = useState("Personal check-in message");
-  const [saving, setSaving] = useState(false);
   const [draft, setDraft] = useState("");
   const [drafting, setDrafting] = useState(false);
   const draftFn = useServerFn(draftPulseMessage);
-  const isGift = followUp === "Gift card";
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!note.trim()) return toast.error("Add a note");
-    setSaving(true);
-    try {
-      await upsertPulse({ engagementId, memberId: member.id, kind: "tlc", note, followUp });
+  const f = useSchemaForm({
+    schema: tlcSchema,
+    initialValues: { note: "", followUp: "Personal check-in message" },
+    errorToast: "Couldn't save",
+    successLabel: "tlc-saved",
+    resetTo: { note: "" },
+    onSuccess: () => {
       toast.success(`Flagged TLC for ${member.display_name}`);
-      setDrafting(true);
+    },
+    onSubmit: async (data) => {
       try {
-        const { message } = await draftFn({
-          data: { engagementId, memberName: member.display_name, tone: "tlc", note, followUp },
+        await upsertPulse({
+          engagementId,
+          memberId: member.id,
+          kind: "tlc",
+          note: data.note,
+          followUp: data.followUp,
         });
-        setDraft(message);
+        setDrafting(true);
+        try {
+          const { message } = await draftFn({
+            data: {
+              engagementId,
+              memberName: member.display_name,
+              tone: "tlc",
+              note: data.note,
+              followUp: data.followUp,
+            },
+          });
+          setDraft(message);
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : "Couldn't draft message");
+        } finally {
+          setDrafting(false);
+        }
+        await onSaved();
+        return { error: null };
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Couldn't draft message");
-      } finally {
-        setDrafting(false);
+        return {
+          error: { message: err instanceof Error ? err.message : "Couldn't save" },
+        };
       }
-      await onSaved();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Couldn't save");
-    } finally {
-      setSaving(false);
-    }
-  }
+    },
+  });
+
+  const isGift = f.values.followUp === "Gift card";
 
   return (
-    <form onSubmit={submit} className="space-y-3">
+    <form onSubmit={f.handleSubmit} className="space-y-3" noValidate>
       <div className="text-sm font-bold" style={{ color: HEALTH.red }}>
         <Heart className="mr-1.5 inline h-4 w-4 fill-current" />Flag TLC for {member.display_name}
       </div>
-      <Field label="What's going on?">
-        <Textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} required />
+      <Field label="What's going on?" error={f.err("note")}>
+        <Textarea
+          rows={3}
+          value={f.values.note}
+          onChange={(e) => f.setField("note", e.target.value)}
+          onBlur={() => f.mark("note")}
+        />
       </Field>
       <Field label="Follow-up">
-        <Select value={followUp} onValueChange={setFollowUp}>
+        <Select value={f.values.followUp} onValueChange={(v) => f.setField("followUp", v)}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
             {["Personal check-in message", "Gift card", "Just flag for my awareness"].map((t) => (
@@ -372,8 +396,8 @@ function TlcForm({
       <DraftPanel draft={draft} loading={drafting} />
       <div className="flex items-center justify-end gap-2">
         <Button type="button" size="sm" variant="ghost" onClick={onCancel}>Close</Button>
-        <Button type="submit" size="sm" disabled={saving} style={{ background: HEALTH.red }}>
-          {saving ? "Saving…" : "Flag & draft"}
+        <Button type="submit" size="sm" disabled={f.saving || !f.valid} style={{ background: HEALTH.red }}>
+          {f.saving ? "Saving…" : "Flag & draft"}
         </Button>
       </div>
     </form>
@@ -391,50 +415,72 @@ function StarForm({
   onCancel: () => void;
   onSaved: () => Promise<void>;
 }) {
-  const [note, setNote] = useState("");
-  const [followUp, setFollowUp] = useState("Send a thank-you message");
-  const [saving, setSaving] = useState(false);
   const [draft, setDraft] = useState("");
   const [drafting, setDrafting] = useState(false);
   const draftFn = useServerFn(draftPulseMessage);
-  const isGift = followUp === "Gift card" || followUp === "All three";
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!note.trim()) return toast.error("Add a note");
-    setSaving(true);
-    try {
-      await upsertPulse({ engagementId, memberId: member.id, kind: "star", note, followUp });
+  const f = useSchemaForm({
+    schema: starSchema,
+    initialValues: { note: "", followUp: "Send a thank-you message" },
+    errorToast: "Couldn't save",
+    successLabel: "star-saved",
+    resetTo: { note: "" },
+    onSuccess: () => {
       toast.success(`Recognized ${member.display_name}`);
-      setDrafting(true);
+    },
+    onSubmit: async (data) => {
       try {
-        const { message } = await draftFn({
-          data: { engagementId, memberName: member.display_name, tone: "recognition", note, followUp },
+        await upsertPulse({
+          engagementId,
+          memberId: member.id,
+          kind: "star",
+          note: data.note,
+          followUp: data.followUp,
         });
-        setDraft(message);
+        setDrafting(true);
+        try {
+          const { message } = await draftFn({
+            data: {
+              engagementId,
+              memberName: member.display_name,
+              tone: "recognition",
+              note: data.note,
+              followUp: data.followUp,
+            },
+          });
+          setDraft(message);
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : "Couldn't draft message");
+        } finally {
+          setDrafting(false);
+        }
+        await onSaved();
+        return { error: null };
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Couldn't draft message");
-      } finally {
-        setDrafting(false);
+        return {
+          error: { message: err instanceof Error ? err.message : "Couldn't save" },
+        };
       }
-      await onSaved();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Couldn't save");
-    } finally {
-      setSaving(false);
-    }
-  }
+    },
+  });
+
+  const isGift = f.values.followUp === "Gift card" || f.values.followUp === "All three";
 
   return (
-    <form onSubmit={submit} className="space-y-3">
+    <form onSubmit={f.handleSubmit} className="space-y-3" noValidate>
       <div className="text-sm font-bold" style={{ color: HEALTH.green }}>
         <Star className="mr-1.5 inline h-4 w-4 fill-current" />Recognize {member.display_name}
       </div>
-      <Field label="What did they do?">
-        <Textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} required />
+      <Field label="What did they do?" error={f.err("note")}>
+        <Textarea
+          rows={3}
+          value={f.values.note}
+          onChange={(e) => f.setField("note", e.target.value)}
+          onBlur={() => f.mark("note")}
+        />
       </Field>
       <Field label="How to recognize">
-        <Select value={followUp} onValueChange={setFollowUp}>
+        <Select value={f.values.followUp} onValueChange={(v) => f.setField("followUp", v)}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
             {["Send a thank-you message", "Gift card", "Shout-out in next huddle", "All three"].map((t) => (
@@ -447,19 +493,21 @@ function StarForm({
       <DraftPanel draft={draft} loading={drafting} />
       <div className="flex items-center justify-end gap-2">
         <Button type="button" size="sm" variant="ghost" onClick={onCancel}>Close</Button>
-        <Button type="submit" size="sm" disabled={saving} style={{ background: HEALTH.green }}>
-          {saving ? "Saving…" : "Draft recognition"}
+        <Button type="submit" size="sm" disabled={f.saving || !f.valid} style={{ background: HEALTH.green }}>
+          {f.saving ? "Saving…" : "Draft recognition"}
         </Button>
       </div>
     </form>
   );
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
+
+function Field({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
   return (
     <div className="space-y-1.5">
       <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</Label>
       {children}
+      {error && <p className="text-[11px] font-medium text-[color:var(--red,#ef4444)]">{error}</p>}
     </div>
   );
 }

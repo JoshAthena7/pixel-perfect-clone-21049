@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useSchemaForm } from "../useSchemaForm";
+import { threadSchema, quickChatSchema } from "../action-schemas";
 
 type TileKey = "thread" | "chat";
 
@@ -281,164 +283,73 @@ function ActiveForm(props: {
   return <ChatForm {...props} />;
 }
 
-function Success({ msg }: { msg: string }) {
-  return <div className="mt-3 text-xs text-emerald-400">{msg}</div>;
-}
-
-function RiskForm({ engagementId, userId, memberName, onSubmitted }: any) {
-  const [desc, setDesc] = useState("");
-  const [section, setSection] = useState("");
-  const [urgency, setUrgency] = useState<"Low" | "Medium" | "High">("Medium");
-  const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState(false);
-
-  async function submit() {
-    if (!desc.trim()) return toast.error("Describe the risk.");
-    setBusy(true);
-    const title = section.trim() ? `${section.trim()} — ${desc.slice(0, 60)}` : desc.slice(0, 80);
-    const { error } = await supabase.from("risks").insert({
-      engagement_id: engagementId,
-      created_by: userId,
-      title,
-      description: desc.trim(),
-      owner_name: memberName,
-      severity: urgency,
-      likelihood: "Medium",
-    });
-    setBusy(false);
-    if (error) return toast.error(error.message);
-    setDone(true);
-    setDesc(""); setSection(""); setUrgency("Medium");
-    setTimeout(() => { setDone(false); onSubmitted(); }, 1800);
-  }
-
-  return (
-    <div className="space-y-4">
-      <Field label="What's the risk?">
-        <Textarea value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Describe what could go wrong…" rows={4} />
-      </Field>
-      <Field label="Section affected">
-        <Input value={section} onChange={(e) => setSection(e.target.value)} placeholder="e.g. LTSS, Behavioral Health" />
-      </Field>
-      <Field label="Urgency">
-        <Select value={urgency} onValueChange={(v: any) => setUrgency(v)}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Low">Low</SelectItem>
-            <SelectItem value="Medium">Medium</SelectItem>
-            <SelectItem value="High">High</SelectItem>
-          </SelectContent>
-        </Select>
-      </Field>
-      <Button onClick={submit} disabled={busy} className="w-full">Log risk</Button>
-      {done && <Success msg="Risk logged — your lead has been notified" />}
-    </div>
-  );
-}
-
-function SosForm({ engagementId, userId, memberName, onSubmitted }: any) {
-  const [desc, setDesc] = useState("");
-  const [who, setWho] = useState("");
-  const [resolveBy, setResolveBy] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState(false);
-
-  async function submit() {
-    if (!desc.trim()) return toast.error("Describe the blocker.");
-    setBusy(true);
-    const { error } = await supabase.from("sos_alerts").insert({
-      engagement_id: engagementId,
-      submitted_by: userId,
-      submitter_name: memberName,
-      category: "Blocker",
-      severity: "High",
-      description: desc.trim(),
-      owner_name: who.trim() || null,
-      recommended_action: resolveBy.trim() ? `Resolve by ${resolveBy.trim()}` : null,
-    });
-    setBusy(false);
-    if (error) return toast.error(error.message);
-    setDone(true);
-    setDesc(""); setWho(""); setResolveBy("");
-    setTimeout(() => { setDone(false); onSubmitted(); }, 1800);
-  }
-
-  return (
-    <div className="space-y-4">
-      <Field label="What's the blocker?">
-        <Textarea value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Describe the issue clearly…" rows={4} />
-      </Field>
-      <Field label="Who needs to know?">
-        <Input value={who} onChange={(e) => setWho(e.target.value)} placeholder="Name or role" />
-      </Field>
-      <Field label="Resolve by">
-        <Input value={resolveBy} onChange={(e) => setResolveBy(e.target.value)} placeholder="Date or time" />
-      </Field>
-      <Button onClick={submit} disabled={busy} className="w-full">Send SOS</Button>
-      {done && <Success msg="SOS sent — your lead has been alerted" />}
-    </div>
-  );
-}
-
 function ThreadForm({ engagementId, memberId, memberName, sections, onSubmitted }: any) {
-  const [sectionId, setSectionId] = useState<string>(sections[0]?.id ?? "");
-  const [msg, setMsg] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState(false);
-
-  async function submit() {
-    if (!sectionId) return toast.error("Pick a section.");
-    if (!msg.trim()) return toast.error("Write a message.");
-    setBusy(true);
-    const { error } = await supabase.from("section_threads").insert({
-      engagement_id: engagementId,
-      section_id: sectionId,
-      member_id: memberId,
-      author_name: memberName,
-      message: msg.trim(),
-    });
-    setBusy(false);
-    if (error) return toast.error(error.message);
-    setDone(true);
-    setMsg("");
-    setTimeout(() => { setDone(false); onSubmitted(); }, 1800);
-  }
+  const f = useSchemaForm({
+    schema: threadSchema,
+    initialValues: { sectionId: sections[0]?.id ?? "", message: "" },
+    errorToast: "Couldn't post to thread",
+    successLabel: "thread-posted",
+    resetTo: { message: "" },
+    onSuccess: () => {
+      toast.success("Posted — your lead will be notified");
+      setTimeout(onSubmitted, 1200);
+    },
+    onSubmit: async (data) => {
+      return supabase.from("section_threads").insert({
+        engagement_id: engagementId,
+        section_id: data.sectionId,
+        member_id: memberId,
+        author_name: memberName,
+        message: data.message,
+      });
+    },
+  });
 
   return (
-    <div className="space-y-4">
-      <Field label="Select your section">
-        <Select value={sectionId} onValueChange={setSectionId}>
+    <form onSubmit={f.handleSubmit} className="space-y-4" noValidate>
+      <Field label="Select your section" error={f.err("sectionId")}>
+        <Select value={f.values.sectionId} onValueChange={(v) => f.setField("sectionId", v)}>
           <SelectTrigger><SelectValue placeholder="Choose section" /></SelectTrigger>
           <SelectContent>
             {sections.map((s: any) => <SelectItem key={s.id} value={s.id}>{s.section_name}</SelectItem>)}
           </SelectContent>
         </Select>
       </Field>
-      <Field label="Message">
-        <Textarea value={msg} onChange={(e) => setMsg(e.target.value)} placeholder="Ask a question or leave a note…" rows={4} />
+      <Field label="Message" error={f.err("message")}>
+        <Textarea
+          value={f.values.message}
+          onChange={(e) => f.setField("message", e.target.value)}
+          onBlur={() => f.mark("message")}
+          placeholder="Ask a question or leave a note…"
+          rows={4}
+        />
       </Field>
-      <Button onClick={submit} disabled={busy} className="w-full">Post to thread</Button>
-      {done && <Success msg="Posted — your lead will be notified" />}
-    </div>
+      <Button type="submit" disabled={f.saving || !f.valid} className="w-full">
+        {f.saving ? "Posting…" : "Post to thread"}
+      </Button>
+    </form>
   );
 }
 
 function ChatForm({ teammates, isOnline, onChat }: any) {
-  const [peerId, setPeerId] = useState<string>("");
-  const [msg, setMsg] = useState("");
-
-  function start() {
-    if (!peerId) return toast.error("Pick a teammate.");
-    if (!msg.trim()) return toast.error("Write a message.");
-    const t = teammates.find((x: any) => x.id === peerId);
-    onChat(peerId, t?.display_name ?? "Teammate", msg.trim());
-    setMsg(""); setPeerId("");
-  }
+  const f = useSchemaForm({
+    schema: quickChatSchema,
+    initialValues: { peerId: "", message: "" },
+    errorToast: "Couldn't start chat",
+    successLabel: "chat-started",
+    resetTo: { peerId: "", message: "" },
+    onSuccess: () => {},
+    onSubmit: async (data) => {
+      const t = teammates.find((x: any) => x.id === data.peerId);
+      onChat(data.peerId, t?.display_name ?? "Teammate", data.message);
+      return { error: null };
+    },
+  });
 
   return (
-    <div className="space-y-4">
-      <Field label="Select teammate">
-        <Select value={peerId} onValueChange={setPeerId}>
+    <form onSubmit={f.handleSubmit} className="space-y-4" noValidate>
+      <Field label="Select teammate" error={f.err("peerId")}>
+        <Select value={f.values.peerId} onValueChange={(v) => f.setField("peerId", v)}>
           <SelectTrigger><SelectValue placeholder="Choose teammate" /></SelectTrigger>
           <SelectContent>
             {teammates.map((t: any) => (
@@ -455,19 +366,27 @@ function ChatForm({ teammates, isOnline, onChat }: any) {
           </SelectContent>
         </Select>
       </Field>
-      <Field label="Message">
-        <Textarea value={msg} onChange={(e) => setMsg(e.target.value)} placeholder="Hey, quick question…" rows={4} />
+      <Field label="Message" error={f.err("message")}>
+        <Textarea
+          value={f.values.message}
+          onChange={(e) => f.setField("message", e.target.value)}
+          onBlur={() => f.mark("message")}
+          placeholder="Hey, quick question…"
+          rows={4}
+        />
       </Field>
-      <Button onClick={start} className="w-full">Start chat</Button>
-    </div>
+      <Button type="submit" disabled={!f.valid} className="w-full">Start chat</Button>
+    </form>
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+
+function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
     <label className="block">
       <div className="mb-1.5 text-[10px] uppercase tracking-[0.18em] font-semibold text-muted-foreground">{label}</div>
       {children}
+      {error && <div className="mt-1 text-[11px] font-medium text-[color:var(--red,#ef4444)]">{error}</div>}
     </label>
   );
 }
