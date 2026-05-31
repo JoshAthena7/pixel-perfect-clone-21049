@@ -502,11 +502,12 @@ function StarForm({
 }
 
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
+function Field({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
   return (
     <div className="space-y-1.5">
       <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</Label>
       {children}
+      {error && <p className="text-[11px] font-medium text-[color:var(--red,#ef4444)]">{error}</p>}
     </div>
   );
 }
