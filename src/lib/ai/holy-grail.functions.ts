@@ -175,7 +175,7 @@ function ctxLine(ctx: any): string {
   return [
     `Engagement: ${e.name ?? "?"} (client: ${e.client ?? "?"})`,
     `State: ${e.state ?? c.state ?? "?"} | Market: ${e.market ?? c.market ?? "?"}`,
-    `Incumbent: ${c.incumbent ?? o.incumbents?.join(", ") ?? "unknown"}`,
+    `Incumbent: ${c.incumbent ?? (Array.isArray(o.incumbents) ? o.incumbents.join(", ") : o.incumbents) ?? "unknown"}`,
     `Likely competitors: ${(c.competitors ?? []).join(", ") || "unknown"}`,
     `Program: ${o.program_name ?? "?"} | Agency: ${o.agency ?? "?"}`,
     `Contract term: ${o.contract_term ?? "?"} | Budget: ${o.budget ?? "?"}`,
