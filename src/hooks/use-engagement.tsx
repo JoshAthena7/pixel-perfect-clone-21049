@@ -47,18 +47,24 @@ type Ctx = {
   switchEngagement: (id: string) => void;
   member: Member | null;
   role: string | null;
+  normalizedRole: NormalizedRole | null;
+  roleLabel: string | null;
   isLeadership: boolean;
   canWrite: boolean;
   isWriter: boolean;
   isViewer: boolean;
   isArchived: boolean;
   ndaSatisfied: boolean;
+  /** True if the current role has any access (read or write) to `page`. */
+  can: (page: PageKey) => boolean;
+  /** True if the current role has write access to `page` and the engagement is not archived. */
+  canEdit: (page: PageKey) => boolean;
   refresh: () => Promise<void>;
 };
 
 const EngagementContext = createContext<Ctx | null>(null);
 
-const LEADERSHIP = new Set(["founder", "pm", "engagement_lead"]);
+const LEADERSHIP = new Set(["founder", "pm", "engagement_lead", "lead"]);
 const LS_KEY = "athena.currentEngagementId";
 
 export function EngagementProvider({ children }: { children: ReactNode }) {
