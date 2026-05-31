@@ -14,6 +14,7 @@ import {
   Brain,
   Compass,
   BarChart3,
+  ClipboardList,
 } from "lucide-react";
 import {
   Sidebar,
@@ -146,6 +147,7 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 <NavItem href="/command"  label="Overview"        icon={LayoutDashboard} />
+                <NavItem href="/question-health" label="Question Health" icon={ClipboardList} />
                 <NavItem href="/issues"   label="Signals"         icon={AlertTriangle} />
                 <NavItem href="/heatmap"  label="Section Status"  icon={BarChart3} />
                 <NavItem href="/broadcasts" label="Broadcasts"    icon={Activity} />

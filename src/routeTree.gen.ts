@@ -26,6 +26,7 @@ import { Route as AuthenticatedNdaRequiredRouteImport } from './routes/_authenti
 import { Route as AuthenticatedMfaEnrollmentRouteImport } from './routes/_authenticated/mfa-enrollment'
 import { Route as AuthenticatedMarketRouteImport } from './routes/_authenticated/market'
 import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
+import { Route as AuthenticatedQuestionHealthRouteImport } from './routes/_authenticated/question-health'
 import { Route as AuthenticatedIssuesRouteImport } from './routes/_authenticated/issues'
 import { Route as AuthenticatedIntelRouteImport } from './routes/_authenticated/intel'
 import { Route as AuthenticatedInsightsRouteImport } from './routes/_authenticated/insights'
@@ -151,6 +152,12 @@ const AuthenticatedMarketRoute = AuthenticatedMarketRouteImport.update({
   path: '/market',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedQuestionHealthRoute = AuthenticatedQuestionHealthRouteImport.update({
+  id: '/_authenticated/question-health',
+  path: '/question-health',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
 const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
   id: '/library',
   path: '/library',

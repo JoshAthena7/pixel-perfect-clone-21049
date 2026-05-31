@@ -284,6 +284,49 @@ function OnboardingChecklist({ engagementId }: { engagementId: string }) {
   );
 }
 
+
+// ── Question Health Summary (Mission Overview) ───────────────────
+function QuestionHealthSummary({ engagementId }: { engagementId: string }) {
+  const [counts, setCounts] = useState<{critical:number;red:number;yellow:number;green:number;total:number} | null>(null);
+
+  useEffect(() => {
+    supabase.from("rfp_questions")
+      .select("health")
+      .eq("engagement_id", engagementId)
+      .then(({ data }) => {
+        if (!data?.length) return;
+        const c = { critical:0, red:0, yellow:0, green:0, total: data.length };
+        data.forEach((q:any) => {
+          if (q.health === "Critical") c.critical++;
+          else if (q.health === "Red") c.red++;
+          else if (q.health === "Yellow") c.yellow++;
+          else c.green++;
+        });
+        setCounts(c);
+      });
+  }, [engagementId]);
+
+  if (!counts || counts.total === 0) return (
+    <div style={{ fontSize: 11, color: "var(--muted-foreground)", opacity: 0.5 }}>No questions loaded</div>
+  );
+
+  const worst = counts.critical > 0 ? "Critical" : counts.red > 0 ? "Red" : counts.yellow > 0 ? "Yellow" : "Green";
+  const colors: Record<string,string> = { Green:"#22c55e", Yellow:"#f59e0b", Red:"#ef4444", Critical:"#dc2626" };
+
+  return (
+    <div>
+      <div style={{ fontSize: 22, fontWeight: 800, color: colors[worst], lineHeight: 1 }}>
+        {counts.critical + counts.red > 0 ? counts.critical + counts.red : counts.total}
+      </div>
+      <div style={{ fontSize: 11, color: "var(--muted-foreground)", marginTop: 3 }}>
+        {counts.critical + counts.red > 0
+          ? `of ${counts.total} need attention`
+          : `questions healthy`}
+      </div>
+    </div>
+  );
+}
+
 function PendingDecisionsCount({ engagementId }: { engagementId: string }) {
   const [count, setCount] = useState<number | null>(null);
   useEffect(() => {
@@ -428,12 +471,13 @@ function CommandCenter() {
             )}
           </div>
 
-          {/* Pending Decisions */}
-          <div className="p-5" style={{ borderLeft: `0.5px solid ${BORDER}` }}>
+          {/* Question Health */}
+          <div className="p-5" style={{ borderLeft: `0.5px solid ${BORDER}`, cursor: "pointer" }}
+            onClick={() => window.location.href = "/question-health"}>
             <div className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-              <ClipboardList className="h-3.5 w-3.5" /> Pending Decisions
+              <ClipboardList className="h-3.5 w-3.5" /> Question Health
             </div>
-            <PendingDecisionsCount engagementId={engagement.id} />
+            <QuestionHealthSummary engagementId={engagement.id} />
           </div>
 
           {/* Client sentiment */}
