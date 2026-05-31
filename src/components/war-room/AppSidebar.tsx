@@ -94,6 +94,11 @@ export function AppSidebar() {
           <BrandLockup size="md" />
         </div>
         {engagement && <EngagementSwitcher />}
+        {engagement && roleLabel && (
+          <div className="mx-2 mt-2 rounded border border-border/40 bg-muted/40 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Role · {roleLabel}
+          </div>
+        )}
         {isArchived && (
           <div className="mx-2 mt-2 rounded border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-amber-300">
             Archived — read only
@@ -105,8 +110,8 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {NAV.map(renderItem)}
-              {isLeadership && engagement && (
+              {visibleNav.map(renderItem)}
+              {isLeadership && engagement && can("settings") && (
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
@@ -120,7 +125,7 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
-              {engagement && (
+              {engagement && can("compliance") && (
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
