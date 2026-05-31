@@ -196,14 +196,23 @@ function ActiveForm(props: FormProps) {
 
 function FormActions({ saving, onCancel }: { saving: boolean; onCancel: () => void }) {
   return (
-    <div className="mt-5 flex items-center justify-end gap-2">
-      <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={saving}>
-        Cancel
-      </Button>
-      <Button type="submit" size="sm" disabled={saving}>
-        {saving ? "Saving…" : "Generate"}
-      </Button>
-    </div>
+    <>
+      {saving && (
+        <div className="mt-4 flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-xs text-muted-foreground">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          <span>Saving — please don't close this window…</span>
+        </div>
+      )}
+      <div className="mt-3 flex items-center justify-end gap-2">
+        <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={saving}>
+          Cancel
+        </Button>
+        <Button type="submit" size="sm" disabled={saving}>
+          {saving && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+          {saving ? "Saving…" : "Submit"}
+        </Button>
+      </div>
+    </>
   );
 }
 
