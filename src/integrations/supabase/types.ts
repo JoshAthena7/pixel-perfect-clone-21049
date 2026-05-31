@@ -445,33 +445,55 @@ export type Database = {
       }
       content_library: {
         Row: {
+          added_by: string | null
           body: string
           category: string
           created_at: string
+          engagement_id: string | null
           id: string
+          name: string | null
+          notes: string | null
           source_engagement_id: string | null
           tags: string[] | null
           title: string
+          url: string | null
         }
         Insert: {
+          added_by?: string | null
           body: string
           category?: string
           created_at?: string
+          engagement_id?: string | null
           id?: string
+          name?: string | null
+          notes?: string | null
           source_engagement_id?: string | null
           tags?: string[] | null
           title: string
+          url?: string | null
         }
         Update: {
+          added_by?: string | null
           body?: string
           category?: string
           created_at?: string
+          engagement_id?: string | null
           id?: string
+          name?: string | null
+          notes?: string | null
           source_engagement_id?: string | null
           tags?: string[] | null
           title?: string
+          url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "content_library_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "content_library_source_engagement_id_fkey"
             columns: ["source_engagement_id"]
@@ -1441,7 +1463,7 @@ export type Database = {
           notes: string | null
           priority: string
           risk: string | null
-          submitted_by: string
+          submitted_by: string | null
           submitter_name: string
           writer_concern: string | null
         }
@@ -1456,7 +1478,7 @@ export type Database = {
           notes?: string | null
           priority: string
           risk?: string | null
-          submitted_by: string
+          submitted_by?: string | null
           submitter_name: string
           writer_concern?: string | null
         }
@@ -1471,7 +1493,7 @@ export type Database = {
           notes?: string | null
           priority?: string
           risk?: string | null
-          submitted_by?: string
+          submitted_by?: string | null
           submitter_name?: string
           writer_concern?: string | null
         }
@@ -2485,7 +2507,7 @@ export type Database = {
           resolved_at: string | null
           severity: string
           status: string
-          submitted_by: string
+          submitted_by: string | null
           submitter_name: string | null
           updated_at: string | null
         }
@@ -2502,7 +2524,7 @@ export type Database = {
           resolved_at?: string | null
           severity: string
           status?: string
-          submitted_by: string
+          submitted_by?: string | null
           submitter_name?: string | null
           updated_at?: string | null
         }
@@ -2519,7 +2541,7 @@ export type Database = {
           resolved_at?: string | null
           severity?: string
           status?: string
-          submitted_by?: string
+          submitted_by?: string | null
           submitter_name?: string | null
           updated_at?: string | null
         }
@@ -3035,25 +3057,37 @@ export type Database = {
       win_themes: {
         Row: {
           created_at: string
+          created_by: string | null
           description: string | null
           engagement_id: string
+          evidence: string | null
           id: string
+          owner: string | null
+          status: string | null
           title: string
           updated_at: string
         }
         Insert: {
           created_at?: string
+          created_by?: string | null
           description?: string | null
           engagement_id: string
+          evidence?: string | null
           id?: string
+          owner?: string | null
+          status?: string | null
           title: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           description?: string | null
           engagement_id?: string
+          evidence?: string | null
           id?: string
+          owner?: string | null
+          status?: string | null
           title?: string
           updated_at?: string
         }
