@@ -8,10 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Sparkles, User } from "lucide-react";
+import { PageGate } from "@/components/war-room/PageGate";
 
 export const Route = createFileRoute("/_authenticated/assistant")({
   head: () => ({ meta: [{ title: "Navigator™ — Athena" }] }),
-  component: AssistantPage,
+  component: () => <PageGate page="alignmentHub"><AssistantPage /></PageGate>,
 });
 
 type Msg = { role: "user" | "assistant"; content: string };
