@@ -142,7 +142,7 @@ function RoleGuardedShell() {
     }
     // If they're satisfied but still on the gate page, route them home
     if (onNdaGate) {
-      navigate({ to: isWriter ? "/writer/my-sections" : "/command", replace: true });
+      navigate({ to: isWriter ? "/writer/my-sections" : "/select-engagement", replace: true });
       return;
     }
     const isWriterAllowed = isWriterPath || WRITER_ALLOWED_SHARED.has(pathname);

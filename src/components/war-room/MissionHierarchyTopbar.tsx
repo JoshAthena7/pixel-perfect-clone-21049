@@ -134,7 +134,7 @@ export function MissionHierarchyTopbar() {
         {showMissionControl && (
           <>
             <Link
-              to="/overview"
+              to="/command"
               className="rounded px-1.5 py-0.5 font-medium text-muted-foreground transition hover:bg-accent hover:text-foreground"
             >
               Mission Control
@@ -150,7 +150,7 @@ export function MissionHierarchyTopbar() {
               to="/select-engagement"
               className="rounded px-1.5 py-0.5 font-medium text-muted-foreground transition hover:bg-accent hover:text-foreground"
             >
-              Command Center
+              Morning Brief
             </Link>
             {engagement && <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground/50" />}
           </>

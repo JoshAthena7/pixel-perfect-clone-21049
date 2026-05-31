@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
+  Home,
   LayoutDashboard,
   Telescope,
   AlertTriangle,
@@ -99,6 +100,21 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
+              {/* Always-visible home navigation */}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive("/select-engagement")}
+                  tooltip="Morning Brief — Return to your daily command brief"
+                  className="font-semibold"
+                >
+                  <Link to="/select-engagement">
+                    <Home className="h-4 w-4" />
+                    <span>Morning Brief</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <div className="my-1 mx-3 border-t border-border/30" />
               {visibleNav.map(renderItem)}
               {isLeadership && engagement && can("settings") && (
                 <SidebarMenuItem>
@@ -139,11 +155,11 @@ export function AppSidebar() {
             <SidebarMenuButton
               asChild
               isActive={isActive("/select-engagement")}
-              tooltip="All Missions — Return to mission list"
+              tooltip="Morning Brief — Return to your daily command brief"
             >
               <Link to="/select-engagement">
-                <DoorOpen className="h-4 w-4" />
-                <span>All Missions</span>
+                <Home className="h-4 w-4" />
+                <span>Morning Brief</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
