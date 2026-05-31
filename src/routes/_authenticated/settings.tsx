@@ -23,7 +23,8 @@ export const Route = createFileRoute("/_authenticated/settings")({
 });
 
 function SettingsPage() {
-  const { engagement, isLeadership, refresh } = useEngagement();
+  const { engagement, canEdit, refresh } = useEngagement();
+  const canEditSettings = canEdit("settings");
   const [name, setName] = useState("");
   const [client, setClient] = useState("");
   const [status, setStatus] = useState("Active");
@@ -36,10 +37,10 @@ function SettingsPage() {
     setClient(engagement.client);
     setStatus(engagement.status);
     setDate(engagement.submission_date ? new Date(engagement.submission_date) : undefined);
-  }, [engagement?.id, isLeadership]);
+  }, [engagement?.id, canEditSettings]);
 
   if (!engagement) return null;
-  if (!isLeadership) {
+  if (!canEditSettings) {
     return (
       <div className="mx-auto max-w-3xl space-y-6 p-4 md:p-8">
         <div>
@@ -115,15 +116,15 @@ function SettingsPage() {
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <Label htmlFor="name">Name</Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} disabled={!isLeadership} />
+            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} disabled={!canEditSettings} />
           </div>
           <div>
             <Label htmlFor="client">Client</Label>
-            <Input id="client" value={client} onChange={(e) => setClient(e.target.value)} disabled={!isLeadership} />
+            <Input id="client" value={client} onChange={(e) => setClient(e.target.value)} disabled={!canEditSettings} />
           </div>
           <div>
             <Label htmlFor="status">Status</Label>
-            <Input id="status" value={status} onChange={(e) => setStatus(e.target.value)} disabled={!isLeadership} />
+            <Input id="status" value={status} onChange={(e) => setStatus(e.target.value)} disabled={!canEditSettings} />
           </div>
           <div>
             <Label>Submission date</Label>
@@ -131,7 +132,7 @@ function SettingsPage() {
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  disabled={!isLeadership}
+                  disabled={!canEditSettings}
                   className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
@@ -150,12 +151,12 @@ function SettingsPage() {
           </div>
         </div>
 
-        {!isLeadership && (
+        {!canEditSettings && (
           <p className="text-xs text-muted-foreground">Only founders and PMs can edit engagement settings.</p>
         )}
 
         <div className="flex justify-end">
-          <Button onClick={save} disabled={saving || !isLeadership}>
+          <Button onClick={save} disabled={saving || !canEditSettings}>
             {saving ? "Saving…" : "Save changes"}
           </Button>
         </div>

@@ -23,7 +23,8 @@ export const Route = createFileRoute("/_authenticated/broadcasts")({
 type Member = { id: string; display_name: string; role: string };
 
 function BroadcastsPage() {
-  const { engagement, member, isLeadership } = useEngagement();
+  const { engagement, member, canEdit } = useEngagement();
+  const canWriteBroadcasts = canEdit("broadcasts");
   const { user } = useSession();
   const [items, setItems] = useState<any[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
@@ -62,7 +63,7 @@ function BroadcastsPage() {
 
   // Writers: auto mark visible broadcasts as read (transparent tracking)
   useEffect(() => {
-    if (isLeadership) return;
+    if (canWriteBroadcasts) return;
     if (!engagement || !member || !user || items.length === 0) return;
     const rows = items.map((b) => ({
       broadcast_id: b.id,
@@ -71,7 +72,7 @@ function BroadcastsPage() {
       user_id: user.id,
     }));
     supabase.from("broadcast_reads").upsert(rows, { onConflict: "broadcast_id,member_id", ignoreDuplicates: true });
-  }, [isLeadership, items, engagement?.id, member?.id, user?.id]);
+  }, [canWriteBroadcasts, items, engagement?.id, member?.id, user?.id]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -127,7 +128,7 @@ function BroadcastsPage() {
 
   return (
     <div className="mx-auto grid max-w-7xl gap-6 p-4 md:p-8 lg:grid-cols-5">
-      {isLeadership && (
+      {canWriteBroadcasts && (
         <Card className="border-border bg-surface p-6 lg:col-span-2">
           <h1 className="text-xl font-bold">Send Broadcast</h1>
           <p className="mt-1 text-sm text-muted-foreground">Team-wide announcement from leadership.</p>
@@ -147,7 +148,7 @@ function BroadcastsPage() {
         </Card>
       )}
 
-      <Card className={`border-border bg-surface p-6 ${isLeadership ? "lg:col-span-3" : "lg:col-span-5"}`}>
+      <Card className={`border-border bg-surface p-6 ${canWriteBroadcasts ? "lg:col-span-3" : "lg:col-span-5"}`}>
         <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Feed</h2>
         {items.length === 0 ? (
           <div className="mt-4 text-sm text-muted-foreground">No broadcasts yet.</div>
@@ -166,7 +167,7 @@ function BroadcastsPage() {
                       <span className="text-sm font-semibold">{b.author_name}</span>
                       <span className="text-[11px] text-muted-foreground">{relativeTime(b.created_at)}</span>
                     </div>
-                    {isLeadership && (
+                    {canWriteBroadcasts && (
                       <button onClick={() => togglePin(b)} className="text-[11px] text-muted-foreground hover:text-foreground">
                         {b.pinned ? "Unpin" : "Pin"}
                       </button>
@@ -174,7 +175,7 @@ function BroadcastsPage() {
                   </div>
                   <p className="mt-2 whitespace-pre-wrap text-sm">{b.content}</p>
 
-                  {isLeadership && totalWriters > 0 && (
+                  {canWriteBroadcasts && totalWriters > 0 && (
                     <div className="mt-3 border-t border-border/60 pt-2">
                       <button
                         type="button"

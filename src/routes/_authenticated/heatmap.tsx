@@ -41,7 +41,8 @@ type Section = {
 const STATUSES: StatusColor[] = ["Green", "Yellow", "Orange", "Red", "N/A"];
 
 function HeatmapPage() {
-  const { engagement, member, isLeadership } = useEngagement();
+  const { engagement, member, isLeadership, canEdit } = useEngagement();
+  const canWriteMap = canEdit("deliveryMap");
   const { user } = useSession();
   const [sections, setSections] = useState<Section[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -158,7 +159,7 @@ function HeatmapPage() {
           <h1 className="text-2xl font-bold">Delivery Map</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Section-by-section health across the engagement.
-            {!isLeadership && " View-only — leadership can update statuses."}
+            {!canWriteMap && " View-only — leads and PMs can update statuses."}
           </p>
         </div>
         {isLeadership && reviewCount > 0 && (
@@ -224,7 +225,7 @@ function HeatmapPage() {
                       <div className="mt-3 text-[11px] text-muted-foreground">
                         {s.updated_by_name ? `${s.updated_by_name} • ${relativeTime(s.updated_at)}` : "No updates yet"}
                       </div>
-                      {isLeadership && (
+                      {canWriteMap && (
                         <div className="mt-4 flex gap-2">
                           <Button size="sm" variant="outline" className="flex-1" onClick={() => startEdit(s)}>
                             Update

@@ -25,7 +25,8 @@ const SENT_COLOR: Record<string, string> = {
 };
 
 function PulsePage() {
-  const { engagement, member, isLeadership } = useEngagement();
+  const { engagement, member, canEdit } = useEngagement();
+  const canWritePulse = canEdit("pulse");
   const { user } = useSession();
   const [items, setItems] = useState<any[]>([]);
 
@@ -87,7 +88,7 @@ function PulsePage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-5">
-        {isLeadership && (
+        {canWritePulse && (
           <Card className="border-border bg-surface p-6 lg:col-span-2">
             <h1 className="text-xl font-bold">Log Interaction</h1>
             <p className="mt-1 text-sm text-muted-foreground">How did the client read in the room today?</p>
@@ -121,7 +122,7 @@ function PulsePage() {
           </Card>
         )}
 
-        <Card className={`border-border bg-surface p-6 ${isLeadership ? "lg:col-span-3" : "lg:col-span-5"}`}>
+        <Card className={`border-border bg-surface p-6 ${canWritePulse ? "lg:col-span-3" : "lg:col-span-5"}`}>
           <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Pulse™ History</h2>
           {items.length === 0 ? (
             <div className="mt-4 text-sm text-muted-foreground">No pulse entries yet.</div>
