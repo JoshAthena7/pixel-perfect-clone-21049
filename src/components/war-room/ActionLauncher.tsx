@@ -184,7 +184,7 @@ export type FormProps = {
 };
 
 function ActiveForm(props: FormProps) {
-  switch (props.tile.key) {
+  switch (props.tile!.key) {
     case "huddle": return <HuddleForm {...props} />;
     case "broadcast": return <BroadcastForm {...props} />;
     case "pulse": return <PulseForm {...props} />;
