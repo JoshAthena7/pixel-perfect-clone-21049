@@ -5,8 +5,7 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
-import { supabase as _typedSupabase } from "@/integrations/supabase/client";
-const supabase = _typedSupabase as any;
+import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
 import { useSession } from "@/hooks/use-session";
 import { daysUntil, relativeTime } from "@/lib/time";
