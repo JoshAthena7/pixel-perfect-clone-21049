@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
+import { useIsAdmin } from "@/hooks/use-admin";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,12 +20,20 @@ import { PageGate } from "@/components/war-room/PageGate";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Configuration — Mission Control" }] }),
-  component: () => <PageGate page="settings"><SettingsPage /></PageGate>,
+  component: AdminSettingsGate,
 });
 
 
 // ── Mission Setup Checklist ──────────────────────────────────────
 // Appears in Mission Control → Configuration until setup is complete.
+
+function AdminSettingsGate() {
+  const { isAdmin, loading } = useIsAdmin();
+  if (loading) return null;
+  if (!isAdmin) return <Navigate to="/command" replace />;
+  return <PageGate page="settings"><SettingsPage /></PageGate>;
+}
+
 function MissionSetupChecklist({ engagementId }: { engagementId: string }) {
   const [status, setStatus] = useState({ hasDate: false, hasDoc: false, hasTeam: false, checked: false });
 

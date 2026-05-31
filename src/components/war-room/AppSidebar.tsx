@@ -36,11 +36,15 @@ import { BrandLockup } from "@/components/ui/BrandLockup";
 import { useIsAdmin } from "@/hooks/use-admin";
 
 // ── Environment detection ─────────────────────────────────────────
-function useEnvironment(pathname: string): "mission-control" | "mission" | "command-center" {
-  if (pathname.startsWith("/select-engagement") || pathname.startsWith("/overview")) return "command-center";
-  // Mission Control pages: intel, pulse (strategy), library, settings, section-assignments
-  if (["/intel","/pulse","/library","/settings","/section-assignments"].some(p => pathname.startsWith(p))) return "mission-control";
-  // Mission pages: command (overview), issues (signals), heatmap (section status)
+// admin-manage: settings, configuration, team — ADMIN ONLY
+// mission-control: intelligence, strategy, library — lead/PM/exec
+// mission: execute — all roles
+function useEnvironment(pathname: string): "mission-control" | "mission" | "admin-manage" {
+  // Admin Manage: configuration, settings, team setup
+  if (["/settings","/section-assignments","/team"].some(p => pathname.startsWith(p))) return "admin-manage";
+  // Mission Control: intelligence, strategy, library, Mission Brain
+  if (["/intel","/pulse","/library"].some(p => pathname.startsWith(p))) return "mission-control";
+  // Everything else: Execute (mission workspace)
   return "mission";
 }
 
@@ -50,6 +54,7 @@ export function AppSidebar() {
   const { isAdmin } = useIsAdmin();
   const isActive = (p: string) => pathname === p || pathname.startsWith(p + "/");
   const env = useEnvironment(pathname);
+  const canAccessMissionControl = isLeadership || can("missionControl");
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -106,19 +111,26 @@ export function AppSidebar() {
         {/* Environment tabs — only show when inside a mission */}
         {engagement && (
           <div className="mx-2 mt-2 mb-1 flex gap-1">
-            <EnvTab href="/intel" label="Mission Control — Manage intelligence and documents"
-              abbr="Manage" active={env === "mission-control"} />
-            <EnvTab href="/command" label="Mission — Execute and operate"
-              abbr="Execute" active={env === "mission"} />
-            <EnvTab href="/select-engagement" label="Command Center — Monitor and lead"
-              abbr="Monitor" active={env === "command-center"} />
+            {/* Execute — all roles */}
+            <EnvTab href="/command" label="Mission Studio — where the work happens"
+              abbr="Mission Studio" active={env === "mission"} />
+            {/* Mission Control — lead, PM, exec only */}
+            {canAccessMissionControl && (
+              <EnvTab href="/intel" label="Mission Control — intelligence, strategy, and Mission Brain"
+                abbr="Mission Control" active={env === "mission-control"} />
+            )}
+            {/* Admin Manage — admin only, route guarded */}
+            {isAdmin && (
+              <EnvTab href="/settings" label="Admin Manage — configuration and permissions"
+                abbr="Admin" active={env === "admin-manage"} />
+            )}
           </div>
         )}
       </SidebarHeader>
 
       <SidebarContent>
-        {/* MISSION CONTROL environment */}
-        {env === "mission-control" && engagement && (
+        {/* MISSION CONTROL — intelligence, strategy, library. Lead/PM/exec only. */}
+        {env === "mission-control" && engagement && canAccessMissionControl && (
           <SidebarGroup>
             <SidebarGroupLabel style={{ fontSize: 9, letterSpacing: "0.15em", opacity: 0.5 }}>
               MISSION CONTROL
@@ -128,12 +140,21 @@ export function AppSidebar() {
                 <NavItem href="/library"   label="Documents"     icon={FileText} />
                 <NavItem href="/intel"     label="Mission Brain" icon={Brain} />
                 <NavItem href="/pulse"     label="Strategy"      icon={Compass} />
-                {can("settings") && isLeadership && (
-                  <>
-                    <NavItem href="/settings"            label="Configuration" icon={Settings} />
-                    <NavItem href="/section-assignments" label="Team"          icon={Users} />
-                  </>
-                )}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {/* ADMIN MANAGE — configuration and permissions. Admin only. Route guarded. */}
+        {env === "admin-manage" && engagement && isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel style={{ fontSize: 9, letterSpacing: "0.15em", opacity: 0.5, color: "var(--gold)" }}>
+              ADMIN MANAGE
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <NavItem href="/settings"            label="Configuration" icon={Settings} />
+                <NavItem href="/section-assignments" label="Team"          icon={Users} />
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -143,7 +164,7 @@ export function AppSidebar() {
         {env === "mission" && engagement && (
           <SidebarGroup>
             <SidebarGroupLabel style={{ fontSize: 9, letterSpacing: "0.15em", opacity: 0.5 }}>
-              MISSION
+              MISSION STUDIO
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -157,20 +178,7 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {/* COMMAND CENTER environment — no mission sub-nav */}
-        {env === "command-center" && (
-          <SidebarGroup>
-            <SidebarGroupLabel style={{ fontSize: 9, letterSpacing: "0.15em", opacity: 0.5 }}>
-              COMMAND CENTER
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <NavItem href="/select-engagement" label="Morning Brief"   icon={Home} />
-                <NavItem href="/broadcasts"        label="Broadcasts"      icon={Activity} />
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+        {/* If somehow on a non-mission path while engagement is set — show execute */}
 
         {/* No mission selected — show top-level only */}
         {!engagement && (
