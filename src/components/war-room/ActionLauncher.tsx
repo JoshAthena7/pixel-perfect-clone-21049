@@ -606,15 +606,21 @@ export function PulseForm({ engagementId, userId, memberName, roster, onSuccess,
   });
   const [saving, setSaving] = useState(false);
   const t = useTouched<keyof typeof values>();
+  const server = useServerErrors<typeof values>();
   const { success, errors, data } = validate(pulseSchema, values);
   const err = (k: keyof typeof values): string | undefined =>
-    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined);
+    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined) ?? server.fieldErrors[k];
+  const setField = <K extends keyof typeof values>(k: K, v: typeof values[K]) => {
+    setValues((p) => ({ ...p, [k]: v }));
+    server.clearField(k);
+  };
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     t.setAttempted(true);
     if (!success || !data) return;
     setSaving(true);
+    server.reset();
     const team = data.pullRoster && roster.length ? `\n\nTeam: ${roster.map((m) => m.display_name).join(", ")}` : "";
     const summary = `Period: ${data.period || "—"}\n\nCompleted:\n${data.completed}${team}`;
     const action_items = [
@@ -631,28 +637,35 @@ export function PulseForm({ engagementId, userId, memberName, roster, onSuccess,
       interaction_date: new Date().toISOString().slice(0, 10),
     });
     setSaving(false);
-    if (error) return toast.error("Couldn't log client pulse", { description: error.message });
+    if (error) {
+      const mapped = mapSupabaseError<typeof values>(error, PULSE_COLUMNS);
+      server.apply(mapped);
+      return toast.error("Couldn't log client pulse", {
+        description: summarizeServerErrors(mapped) ?? error.message,
+      });
+    }
     setValues({ period: "", pullRoster: false, completed: "", inProgress: "", issues: "" });
     onSuccess("Client pulse logged");
   }
 
   return (
     <form onSubmit={submit} className="space-y-3" noValidate>
+      <FormBanner message={server.formError} />
       <Field label="Reporting period" error={err("period")}>
-        <Input value={values.period} onChange={(e) => setValues((p) => ({ ...p, period: e.target.value }))} onBlur={() => t.mark("period")} placeholder="e.g. Week of Jan 15" />
+        <Input value={values.period} onChange={(e) => setField("period", e.target.value)} onBlur={() => t.mark("period")} placeholder="e.g. Week of Jan 15" />
       </Field>
       <div className="flex items-center justify-between rounded-md border border-border bg-background px-3 py-2">
         <Label htmlFor="pull-roster" className="cursor-pointer text-sm">Pull from roster?</Label>
-        <Switch id="pull-roster" checked={values.pullRoster} onCheckedChange={(v) => setValues((p) => ({ ...p, pullRoster: v }))} />
+        <Switch id="pull-roster" checked={values.pullRoster} onCheckedChange={(v) => setField("pullRoster", v)} />
       </div>
       <Field label="Sections completed" error={err("completed")}>
-        <Textarea rows={3} value={values.completed} onChange={(e) => setValues((p) => ({ ...p, completed: e.target.value }))} onBlur={() => t.mark("completed")} />
+        <Textarea rows={3} value={values.completed} onChange={(e) => setField("completed", e.target.value)} onBlur={() => t.mark("completed")} />
       </Field>
       <Field label="In progress" error={err("inProgress")}>
-        <Textarea rows={2} value={values.inProgress} onChange={(e) => setValues((p) => ({ ...p, inProgress: e.target.value }))} onBlur={() => t.mark("inProgress")} />
+        <Textarea rows={2} value={values.inProgress} onChange={(e) => setField("inProgress", e.target.value)} onBlur={() => t.mark("inProgress")} />
       </Field>
       <Field label="Open issues / asks" error={err("issues")}>
-        <Textarea rows={2} value={values.issues} onChange={(e) => setValues((p) => ({ ...p, issues: e.target.value }))} onBlur={() => t.mark("issues")} />
+        <Textarea rows={2} value={values.issues} onChange={(e) => setField("issues", e.target.value)} onBlur={() => t.mark("issues")} />
       </Field>
       <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
     </form>
