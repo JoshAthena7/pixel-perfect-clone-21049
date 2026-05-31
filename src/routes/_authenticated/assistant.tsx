@@ -64,16 +64,24 @@ function AssistantPage() {
       <Card className="flex flex-1 flex-col border-border bg-surface">
         <div ref={scrollRef} className="flex-1 overflow-auto p-6">
           {messages.length === 0 ? (
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">Try one of these:</p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {SUGGESTIONS.map((s) => (
-                  <button key={s} onClick={() => send(s)} className="rounded-md border border-border bg-surface-hover/40 p-3 text-left text-sm hover:border-primary/50 hover:bg-surface-hover">
-                    {s}
-                  </button>
-                ))}
+            canAsk ? (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">Try one of these:</p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {SUGGESTIONS.map((s) => (
+                    <button key={s} onClick={() => send(s)} className="rounded-md border border-border bg-surface-hover/40 p-3 text-left text-sm hover:border-primary/50 hover:bg-surface-hover">
+                      {s}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="flex h-full flex-col items-center justify-center text-center text-sm text-muted-foreground">
+                <Sparkles className="mb-2 h-6 w-6 text-primary/60" />
+                <p className="font-medium text-foreground">Read-only view</p>
+                <p className="mt-1 max-w-sm">Your role can view Navigator conversations but cannot submit new questions. Ask a lead to run the prompt for you.</p>
+              </div>
+            )
           ) : (
             <div className="space-y-4">
               {messages.map((m, i) => (
@@ -95,22 +103,24 @@ function AssistantPage() {
           )}
         </div>
 
-        <form
-          onSubmit={(e) => { e.preventDefault(); send(input); }}
-          className="border-t border-border p-4"
-        >
-          <div className="flex gap-2">
-            <Textarea
-              rows={2}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
-              placeholder="Ask about risks, huddles, decisions, client signals…"
-              className="resize-none"
-            />
-            <Button type="submit" disabled={loading || !input.trim()}>Send</Button>
-          </div>
-        </form>
+        {canAsk && (
+          <form
+            onSubmit={(e) => { e.preventDefault(); send(input); }}
+            className="border-t border-border p-4"
+          >
+            <div className="flex gap-2">
+              <Textarea
+                rows={2}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
+                placeholder="Ask about risks, huddles, decisions, client signals…"
+                className="resize-none"
+              />
+              <Button type="submit" disabled={loading || !input.trim()}>Send</Button>
+            </div>
+          </form>
+        )}
       </Card>
     </div>
   );
