@@ -173,8 +173,8 @@ export function ActionLauncher() {
 
 // ----- forms -----
 
-type FormProps = {
-  tile: Tile;
+export type FormProps = {
+  tile?: Tile;
   engagementId: string;
   userId: string;
   memberName: string;
