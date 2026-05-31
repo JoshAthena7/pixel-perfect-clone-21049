@@ -16,6 +16,7 @@ import {
   BarChart3,
   ClipboardList,
   Github,
+  Rocket,
 } from "lucide-react";
 import {
   Sidebar,
@@ -210,6 +211,18 @@ export function AppSidebar() {
               >
                 <Github className="h-4 w-4" />
                 <span>GitHub</span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Open published site (use Lovable Publish to redeploy)">
+              <a
+                href="https://pixel-perfect-clone-21049.lovable.app"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Rocket className="h-4 w-4" />
+                <span>Live Site</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

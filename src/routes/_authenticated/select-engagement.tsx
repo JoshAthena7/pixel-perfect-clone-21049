@@ -103,7 +103,7 @@ function LobbyPage() {
         supabase.from("huddles").select("engagement_id,health,created_at").in("engagement_id", ids).order("created_at", { ascending: false }).limit(ids.length * 2),
         supabase.from("decisions").select("engagement_id").in("engagement_id", ids).eq("status", "Pending Confirmation"),
         supabase.from("broadcasts").select("content,author_name,created_at,engagement_id").order("created_at", { ascending: false }).limit(5),
-        supabase.from("recognition").select("from_name,to_name,type,message,created_at").order("created_at", { ascending: false }).limit(4),
+        (supabase as any).from("recognition").select("from_name,to_name,type,message,created_at").order("created_at", { ascending: false }).limit(4),
         supabase.from("pipeline_horizon").select("id,title,iris_headline,iris_type,iris_action,horizon_category,source,urgency_score,affected_states,ingested_at").eq("status","active").order("urgency_score", { ascending: false }).order("ingested_at", { ascending: false }).limit(6),
       ]);
 
@@ -148,7 +148,7 @@ function LobbyPage() {
     setIrisAnswering(true);
     setIrisAnswer(null);
     try {
-      const r = await generateIrisExecutiveBrief({ data: { userName: "", query: q } });
+      const r = await generateIrisExecutiveBrief({ data: { userName: "", query: q } as any });
       setIrisAnswer(r.brief);
     } catch { setIrisAnswer("IRIS is unavailable right now. Try again shortly."); }
     setIrisAnswering(false);
@@ -324,7 +324,7 @@ function LobbyPage() {
           <div>
             <SectionLabel>IRIS Concierge</SectionLabel>
             <div style={{ background: SURFACE, border: `0.5px solid rgba(196,154,42,0.2)`, borderRadius: 14, padding: "22px", height: "calc(100% - 36px)", display: "flex", flexDirection: "column", gap: 16 }}>
-              <div style={{ display: "flex", items: "center", gap: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <div style={{ width: 8, height: 8, borderRadius: "50%", background: GOLD, boxShadow: `0 0 10px ${GOLD}`, flexShrink: 0, marginTop: 2 }} />
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 700, color: TEXT }}>Ask IRIS anything</div>
