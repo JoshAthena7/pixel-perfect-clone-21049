@@ -106,11 +106,28 @@ const ROLE_LABEL: Record<string, string> = {
   writer: "Writer",
   reviewer: "Reviewer",
   viewer: "Viewer",
+  exec: "Executive",
+  sme: "SME",
+  partner: "External Partner",
 };
 
+// Canonical roles writeable from the UI. Legacy values (founder, reviewer,
+// viewer) are still readable but not offered as new assignments.
+const ROLE_OPTIONS: { value: string; label: string; hint: string }[] = [
+  { value: "engagement_lead", label: "Engagement Lead", hint: "Full access" },
+  { value: "pm", label: "Project Manager", hint: "Ops + signals + library" },
+  { value: "writer", label: "Writer", hint: "Pulse + read briefing" },
+  { value: "sme", label: "SME", hint: "Briefing notes + alignment read" },
+  { value: "exec", label: "Executive", hint: "Lobby + read-only command" },
+  { value: "partner", label: "External Partner", hint: "RFP + policy docs only" },
+];
+
 function roleAccent(role: string) {
-  if (role === "founder") return "border-[var(--gold)]/50 bg-[var(--gold)]/10 text-[var(--gold)]";
-  if (role === "pm" || role === "engagement_lead") return "border-primary/40 bg-primary/15 text-primary";
+  if (role === "founder" || role === "engagement_lead") return "border-[var(--gold)]/50 bg-[var(--gold)]/10 text-[var(--gold)]";
+  if (role === "pm") return "border-primary/40 bg-primary/15 text-primary";
+  if (role === "exec") return "border-purple-500/40 bg-purple-500/15 text-purple-300";
+  if (role === "sme") return "border-cyan-500/40 bg-cyan-500/15 text-cyan-300";
+  if (role === "partner") return "border-amber-500/40 bg-amber-500/15 text-amber-300";
   return "border-border bg-surface-hover text-muted-foreground";
 }
 
