@@ -287,6 +287,68 @@ function useTouched<K extends string>() {
   return { setAttempted, mark, show };
 }
 
+// Server-side (Supabase) error state, mirrored into the same field-keys
+// the zod schema uses so every modal renders failures consistently.
+function useServerErrors<V extends Record<string, unknown>>() {
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof V, string>>>({});
+  const [formError, setFormError] = useState<string | undefined>(undefined);
+  const clearField = (k: keyof V) =>
+    setFieldErrors((p) => (p[k] ? { ...p, [k]: undefined } : p));
+  const reset = () => {
+    setFieldErrors({});
+    setFormError(undefined);
+  };
+  const apply = (next: {
+    fieldErrors: Partial<Record<keyof V, string>>;
+    formError?: string;
+  }) => {
+    setFieldErrors(next.fieldErrors);
+    setFormError(next.formError);
+  };
+  return { fieldErrors, formError, clearField, reset, apply };
+}
+
+function FormBanner({ message }: { message?: string }) {
+  if (!message) return null;
+  return (
+    <div
+      role="alert"
+      className="flex items-start gap-2 rounded-md border border-[color:var(--red,#ef4444)]/40 bg-[color:color-mix(in_oklab,var(--red,#ef4444)_10%,transparent)] px-3 py-2 text-xs text-[color:var(--red,#ef4444)]"
+    >
+      <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+      <span className="font-medium">{message}</span>
+    </div>
+  );
+}
+
+// Column maps: DB column name -> form field key. Used by mapSupabaseError
+// so a Postgres error mentioning "description" surfaces under the user's
+// "blocker" field, etc.
+const SOS_COLUMNS = {
+  description: "blocker", owner_name: "who", recommended_action: "by",
+} as const;
+const HUDDLE_COLUMNS = {
+  notes: "focus",
+} as const;
+const BROADCAST_COLUMNS = {
+  content: "message",
+} as const;
+const PULSE_COLUMNS = {
+  summary: "completed", action_items: "inProgress", interaction_date: "period",
+} as const;
+const DECISION_COLUMNS = {
+  title: "decision", impacted_areas: "decision",
+  owner_name: "madeBy", rationale: "rationale", decision_date: "date",
+} as const;
+const RISK_COLUMNS = {
+  title: "description", description: "description",
+  likelihood: "likelihood", severity: "impact", owner_name: "owner",
+} as const;
+const HEATMAP_COLUMNS = {
+  section_name: "section", notes: "notes", status: "issue",
+} as const;
+
+
 // ---- SOS ----
 export function SosForm({ engagementId, userId, memberName, onSuccess, onCancel }: FormProps) {
   const [values, setValues] = useState({ blocker: "", impact: "", who: "", by: "" });
