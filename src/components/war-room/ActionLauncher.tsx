@@ -680,15 +680,21 @@ export function DecisionForm({ engagementId, userId, roster, onSuccess, onCancel
   });
   const [saving, setSaving] = useState(false);
   const t = useTouched<keyof typeof values>();
+  const server = useServerErrors<typeof values>();
   const { success, errors, data } = validate(decisionSchema, values);
   const err = (k: keyof typeof values): string | undefined =>
-    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined);
+    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined) ?? server.fieldErrors[k];
+  const setField = <K extends keyof typeof values>(k: K, v: typeof values[K]) => {
+    setValues((p) => ({ ...p, [k]: v }));
+    server.clearField(k);
+  };
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     t.setAttempted(true);
     if (!success || !data) return;
     setSaving(true);
+    server.reset();
     const title = data.decision.split("\n")[0].slice(0, 140);
     const impacted = data.decision.length > title.length ? data.decision.slice(title.length).trim() : null;
     const { error } = await supabase.from("decisions").insert({
@@ -702,24 +708,31 @@ export function DecisionForm({ engagementId, userId, roster, onSuccess, onCancel
       status: "Final",
     });
     setSaving(false);
-    if (error) return toast.error("Couldn't record decision", { description: error.message });
+    if (error) {
+      const mapped = mapSupabaseError<typeof values>(error, DECISION_COLUMNS);
+      server.apply(mapped);
+      return toast.error("Couldn't record decision", {
+        description: summarizeServerErrors(mapped) ?? error.message,
+      });
+    }
     setValues((p) => ({ ...p, decision: "", madeBy: "", rationale: "" }));
     onSuccess("Decision recorded");
   }
 
   return (
     <form onSubmit={submit} className="space-y-3" noValidate>
+      <FormBanner message={server.formError} />
       <Field label="Decision" error={err("decision")}>
-        <Textarea rows={3} value={values.decision} onChange={(e) => setValues((p) => ({ ...p, decision: e.target.value }))} onBlur={() => t.mark("decision")} />
+        <Textarea rows={3} value={values.decision} onChange={(e) => setField("decision", e.target.value)} onBlur={() => t.mark("decision")} />
       </Field>
       <Field label="Made by" error={err("madeBy")}>
-        <RosterSelect value={values.madeBy} onChange={(v) => setValues((p) => ({ ...p, madeBy: v }))} roster={roster} onBlur={() => t.mark("madeBy")} />
+        <RosterSelect value={values.madeBy} onChange={(v) => setField("madeBy", v)} roster={roster} onBlur={() => t.mark("madeBy")} />
       </Field>
       <Field label="Rationale" error={err("rationale")}>
-        <Textarea rows={3} value={values.rationale} onChange={(e) => setValues((p) => ({ ...p, rationale: e.target.value }))} onBlur={() => t.mark("rationale")} />
+        <Textarea rows={3} value={values.rationale} onChange={(e) => setField("rationale", e.target.value)} onBlur={() => t.mark("rationale")} />
       </Field>
       <Field label="Date" error={err("date")}>
-        <Input type="date" value={values.date} onChange={(e) => setValues((p) => ({ ...p, date: e.target.value }))} onBlur={() => t.mark("date")} />
+        <Input type="date" value={values.date} onChange={(e) => setField("date", e.target.value)} onBlur={() => t.mark("date")} />
       </Field>
       <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
     </form>
