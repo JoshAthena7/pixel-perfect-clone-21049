@@ -98,6 +98,12 @@ function formatList(value: unknown, fallback = "unknown"): string {
   return String(value) || fallback;
 }
 
+function listValues(value: unknown): string[] {
+  if (Array.isArray(value)) return value.filter(Boolean).map(String);
+  if (typeof value === "string" && value.trim()) return [value.trim()];
+  return [];
+}
+
 // ---------- Cache (server-side via supabase context) ----------
 
 async function getCached(
@@ -458,7 +464,7 @@ Confidence: 0.0 to 1.0 based on how well sources support claims. Omit keys with 
     searchLimit: 8,
     buildQuery: (ctx) => {
       const state = ctx.eng.state ?? ctx.cfg.state ?? "";
-      const competitors = [ctx.cfg.incumbent, ...(ctx.cfg.competitors ?? [])].filter(Boolean).slice(0, 4).join(" OR ");
+      const competitors = [ctx.cfg.incumbent, ...listValues(ctx.cfg.competitors)].filter(Boolean).slice(0, 4).join(" OR ");
       return competitors
         ? `${competitors} ${state} Medicaid contract performance ${new Date().getFullYear()}`
         : `${state} Medicaid MCO contract awards performance issues ${new Date().getFullYear()}`;
