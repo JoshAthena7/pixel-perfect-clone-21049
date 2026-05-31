@@ -319,22 +319,24 @@ const HEATMAP_COLUMNS = {
 export function SosForm({ engagementId, userId, memberName, onSuccess, onCancel }: FormProps) {
   const f = useSchemaForm({
     schema: sosSchema,
-    initialValues: { blocker: "", impact: "", who: "", by: "" },
+    initialValues: { blocker: "", impact: "", who: "", by: "", requestType: "sos" as const },
     columnMap: SOS_COLUMNS,
-    errorToast: "Couldn't raise SOS",
-    successLabel: "SOS raised",
+    errorToast: "Couldn't raise request",
+    successLabel: "Request raised",
     onSuccess,
-    resetTo: { blocker: "", impact: "", who: "", by: "" },
+    resetTo: { blocker: "", impact: "", who: "", by: "", requestType: "sos" as const },
     onSubmit: async (data) => {
       const desc = data.impact ? `${data.blocker}\n\nImpact: ${data.impact}` : data.blocker;
       const action = [data.who && `Owner: ${data.who}`, data.by && `Resolve by: ${data.by}`]
         .filter(Boolean).join(" · ");
+      const isSos = data.requestType === "sos";
       return supabase.from("sos_alerts").insert({
         engagement_id: engagementId,
         submitted_by: userId,
         submitter_name: memberName,
-        severity: "High",
-        category: "Blocker",
+        severity: isSos ? "High" : "Medium",
+        category: "Other",
+        request_type: data.requestType,
         description: desc,
         owner_name: data.who || null,
         recommended_action: action || null,
@@ -346,17 +348,43 @@ export function SosForm({ engagementId, userId, memberName, onSuccess, onCancel 
   return (
     <form onSubmit={f.handleSubmit} className="space-y-3" noValidate>
       <FormBanner message={f.formError} />
-      <Field label="What is the blocker?" error={f.err("blocker")}>
+      <Field label="Request type">
+        <div className="flex gap-2">
+          {([
+            { value: "sos", label: "🚨 SOS — urgent" },
+            { value: "support", label: "🤝 Support request" },
+          ] as const).map((opt) => {
+            const active = f.values.requestType === opt.value;
+            return (
+              <button
+                type="button"
+                key={opt.value}
+                onClick={() => f.setField("requestType", opt.value)}
+                className={`flex-1 rounded-md border px-3 py-2 text-[12px] font-medium transition ${
+                  active
+                    ? opt.value === "sos"
+                      ? "border-[#ef4444] bg-[#ef4444]/10 text-[#ef4444]"
+                      : "border-primary bg-primary/10 text-primary"
+                    : "border-white/10 text-muted-foreground hover:border-white/20"
+                }`}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+      </Field>
+      <Field label={f.values.requestType === "sos" ? "What is the blocker?" : "What do you need help with?"} error={f.err("blocker")}>
         <Textarea rows={3} value={f.values.blocker} onChange={(e) => f.setField("blocker", e.target.value)} onBlur={() => f.mark("blocker")} />
       </Field>
-      <Field label="Impact if unresolved" error={f.err("impact")}>
+      <Field label={f.values.requestType === "sos" ? "Impact if unresolved" : "Context (optional)"} error={f.err("impact")}>
         <Textarea rows={2} value={f.values.impact} onChange={(e) => f.setField("impact", e.target.value)} onBlur={() => f.mark("impact")} />
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Who needs to act?" error={f.err("who")}>
           <Input value={f.values.who} onChange={(e) => f.setField("who", e.target.value)} onBlur={() => f.mark("who")} />
         </Field>
-        <Field label="Resolve by" error={f.err("by")}>
+        <Field label={f.values.requestType === "sos" ? "Resolve by" : "Needed by"} error={f.err("by")}>
           <Input value={f.values.by} onChange={(e) => f.setField("by", e.target.value)} onBlur={() => f.mark("by")} placeholder="e.g. EOD Friday" />
         </Field>
       </div>
