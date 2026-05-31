@@ -1,34 +1,25 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+/**
+ * AppSidebar — Athena Command Navigation
+ *
+ * ARCHITECTURE:
+ *   Top level:     Lobby | Missions list
+ *   Inside mission: Mission Studio | Mission Control
+ *
+ * Mission Studio  = "How are we doing?" (monitoring, signals, intelligence)
+ * Mission Control = "How is it operated?" (setup, team, library, workflow)
+ */
+
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard,
-  Telescope,
-  Activity,
-  AlertTriangle,
-  Settings,
-  LogOut,
-  DoorOpen,
-  Shield,
-  Users,
-  Home,
-  FileText,
-  Brain,
-  Compass,
-  BarChart3,
-  ClipboardList,
-  Github,
-  Rocket,
+  LayoutDashboard, AlertTriangle, Activity, Settings,
+  LogOut, Shield, Home, ChevronRight, BookOpen, Users,
+  FileText, BarChart3, ClipboardList, Compass, Brain,
+  Zap, Building2,
 } from "lucide-react";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarFooter,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
+  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
+  SidebarGroupLabel, SidebarHeader, SidebarFooter,
+  SidebarMenu, SidebarMenuButton, SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
@@ -36,54 +27,38 @@ import { EngagementSwitcher } from "@/components/EngagementSwitcher";
 import { BrandLockup } from "@/components/ui/BrandLockup";
 import { useIsAdmin } from "@/hooks/use-admin";
 
-// ── Environment detection ─────────────────────────────────────────
-// admin-manage: settings, configuration, team — ADMIN ONLY
-// mission-control: intelligence, strategy, library — lead/PM/exec
-// mission: execute — all roles
-function useEnvironment(pathname: string): "mission-control" | "mission" | "admin-manage" {
-  // Admin Manage: configuration, settings, team setup
-  if (["/settings","/section-assignments","/team"].some(p => pathname.startsWith(p))) return "admin-manage";
-  // Mission Control: intelligence, strategy, library, Mission Brain
-  if (["/intel","/pulse","/library"].some(p => pathname.startsWith(p))) return "mission-control";
-  // Everything else: Execute (mission workspace)
-  return "mission";
+// ── Which experience is active ────────────────────────────────────
+type Experience = "studio" | "control" | "none";
+
+function useExperience(pathname: string): Experience {
+  // Mission Control paths
+  if (["/mission-control","/intel","/pulse","/library","/settings","/section-assignments","/mission-admin","/team"].some(p => pathname.startsWith(p)))
+    return "control";
+  // Mission Studio paths (everything else inside a mission)
+  if (["/command","/issues","/heatmap","/question-health","/broadcasts"].some(p => pathname.startsWith(p)))
+    return "studio";
+  return "none";
 }
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
-  const { engagement, member, isArchived, isLeadership, can, canEdit, roleLabel } = useEngagement();
+  const navigate = useNavigate();
+  const { engagement, member, isArchived, isLeadership, can } = useEngagement();
   const { isAdmin } = useIsAdmin();
+  const exp = useExperience(pathname);
   const isActive = (p: string) => pathname === p || pathname.startsWith(p + "/");
-  const env = useEnvironment(pathname);
-  const canAccessMissionControl = isLeadership || can("missionControl");
+
+  const canControl = isLeadership || isAdmin;
 
   async function signOut() {
     await supabase.auth.signOut();
     window.location.href = "/login";
   }
 
-  // ── Environment tab bar ───────────────────────────────────────
-  const EnvTab = ({ href, label, abbr, active }: { href: string; label: string; abbr: string; active: boolean }) => (
-    <Link to={href as any}
-      title={label}
-      style={{
-        flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
-        gap: 2, padding: "6px 4px", borderRadius: 6, textDecoration: "none",
-        background: active ? "rgba(196,154,42,0.12)" : "transparent",
-        border: active ? "0.5px solid rgba(196,154,42,0.3)" : "0.5px solid transparent",
-        transition: "all 0.15s",
-      }}>
-      <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase",
-        color: active ? "var(--gold)" : "var(--muted-foreground)", opacity: active ? 1 : 0.6 }}>
-        {abbr}
-      </span>
-    </Link>
-  );
-
-  const NavItem = ({ href, label, icon: Icon }: { href: string; label: string; icon: any }) => (
+  const NavItem = ({ href, label, icon: Icon, accent }: { href: string; label: string; icon: any; accent?: string }) => (
     <SidebarMenuItem>
       <SidebarMenuButton asChild isActive={isActive(href)} tooltip={label}>
-        <Link to={href as any}>
+        <Link to={href as any} style={accent && isActive(href) ? { color: accent } : undefined}>
           <Icon className="h-4 w-4" />
           <span>{label}</span>
         </Link>
@@ -98,9 +73,14 @@ export function AppSidebar() {
           <BrandLockup size="md" />
         </div>
         {engagement && <EngagementSwitcher />}
-        {engagement && roleLabel && (
+        {engagement && member?.role && (
           <div className="mx-2 mt-2 rounded border border-border/40 bg-muted/40 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Role · {roleLabel}
+            {member.role === "lead" || member.role === "engagement_lead" || member.role === "founder" ? "Engagement Lead"
+              : member.role === "pm" ? "Project Manager"
+              : member.role === "exec" ? "Executive"
+              : member.role === "writer" ? "Writer"
+              : member.role === "sme" ? "SME"
+              : member.role}
           </div>
         )}
         {isArchived && (
@@ -108,88 +88,94 @@ export function AppSidebar() {
             Archived — read only
           </div>
         )}
-
-        {/* Environment tabs — only show when inside a mission */}
-        {engagement && (
-          <div className="mx-2 mt-2 mb-1 flex gap-1">
-            {/* Execute — all roles */}
-            <EnvTab href="/command" label="Mission Studio — where the work happens"
-              abbr="Mission Studio" active={env === "mission"} />
-            {/* Mission Control — lead, PM, exec only */}
-            {canAccessMissionControl && (
-              <EnvTab href="/intel" label="Mission Control — intelligence, strategy, and Mission Brain"
-                abbr="Mission Control" active={env === "mission-control"} />
-            )}
-            {/* Admin Manage — admin only, route guarded */}
-            {isAdmin && (
-              <EnvTab href="/settings" label="Admin Manage — configuration and permissions"
-                abbr="Admin" active={env === "admin-manage"} />
-            )}
-          </div>
-        )}
       </SidebarHeader>
 
       <SidebarContent>
-        {/* MISSION CONTROL — intelligence, strategy, library. Lead/PM/exec only. */}
-        {env === "mission-control" && engagement && canAccessMissionControl && (
-          <SidebarGroup>
-            <SidebarGroupLabel style={{ fontSize: 9, letterSpacing: "0.15em", opacity: 0.5 }}>
-              MISSION CONTROL
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <NavItem href="/library"   label="Documents"     icon={FileText} />
-                <NavItem href="/intel"     label="Mission Brain" icon={Brain} />
-                <NavItem href="/pulse"     label="Strategy"      icon={Compass} />
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        {/* ADMIN MANAGE — configuration and permissions. Admin only. Route guarded. */}
-        {env === "admin-manage" && engagement && isAdmin && (
-          <SidebarGroup>
-            <SidebarGroupLabel style={{ fontSize: 9, letterSpacing: "0.15em", opacity: 0.5, color: "var(--gold)" }}>
-              ADMIN MANAGE
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <NavItem href="/settings"            label="Configuration" icon={Settings} />
-                <NavItem href="/section-assignments" label="Team"          icon={Users} />
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        {/* MISSION environment */}
-        {env === "mission" && engagement && (
-          <SidebarGroup>
-            <SidebarGroupLabel style={{ fontSize: 9, letterSpacing: "0.15em", opacity: 0.5 }}>
-              MISSION STUDIO
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <NavItem href="/command"  label="Overview"        icon={LayoutDashboard} />
-                <NavItem href="/question-health" label="Question Health" icon={ClipboardList} />
-                <NavItem href="/issues"   label="Signals"         icon={AlertTriangle} />
-                <NavItem href="/heatmap"  label="Section Status"  icon={BarChart3} />
-                <NavItem href="/broadcasts" label="Broadcasts"    icon={Activity} />
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        {/* If somehow on a non-mission path while engagement is set — show execute */}
-
-        {/* No mission selected — show top-level only */}
+        {/* ── No mission: Lobby + Mission list ── */}
         {!engagement && (
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
-                <NavItem href="/select-engagement" label="Command Center" icon={Home} />
+                <NavItem href="/select-engagement" label="Lobby" icon={Home} />
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+        )}
+
+        {/* ── Inside a mission: 2 primary experiences ── */}
+        {engagement && (
+          <>
+            {/* Experience switcher */}
+            <div className="mx-3 mt-1 mb-2 space-y-1">
+              {/* Mission Studio */}
+              <Link to="/command" className="block no-underline">
+                <div className={`rounded-lg px-3 py-2.5 transition-all cursor-pointer border ${exp === "studio"
+                  ? "bg-primary/10 border-primary/30 text-primary"
+                  : "border-transparent text-muted-foreground hover:bg-muted/30 hover:text-foreground"}`}>
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-4 w-4 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold leading-tight">Mission Studio</div>
+                      <div className="text-[10px] opacity-60 leading-tight">How are we doing?</div>
+                    </div>
+                    {exp === "studio" && <ChevronRight className="h-3 w-3 ml-auto flex-shrink-0" />}
+                  </div>
+                </div>
+              </Link>
+
+              {/* Mission Control — lead/PM/admin only */}
+              {canControl && (
+                <Link to="/mission-control" className="block no-underline">
+                  <div className={`rounded-lg px-3 py-2.5 transition-all cursor-pointer border ${exp === "control"
+                    ? "bg-amber-500/10 border-amber-500/30 text-amber-300"
+                    : "border-transparent text-muted-foreground hover:bg-muted/30 hover:text-foreground"}`}>
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <div className="text-xs font-bold leading-tight">Mission Control</div>
+                        <div className="text-[10px] opacity-60 leading-tight">How is it operated?</div>
+                      </div>
+                      {exp === "control" && <ChevronRight className="h-3 w-3 ml-auto flex-shrink-0" />}
+                    </div>
+                  </div>
+                </Link>
+              )}
+            </div>
+
+            <div className="mx-3 border-t border-border/30 mb-2" />
+
+            {/* ── MISSION STUDIO sub-nav ── */}
+            {exp === "studio" && (
+              <SidebarGroup>
+                <SidebarGroupLabel className="text-[9px] tracking-[0.2em] opacity-40">MISSION STUDIO</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    <NavItem href="/command"        label="Overview"         icon={LayoutDashboard} />
+                    <NavItem href="/question-health" label="Question Health" icon={ClipboardList} />
+                    <NavItem href="/issues"         label="Signals"          icon={AlertTriangle} />
+                    <NavItem href="/heatmap"        label="Section Status"   icon={BarChart3} />
+                    <NavItem href="/broadcasts"     label="Broadcasts"       icon={Activity} />
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
+
+            {/* ── MISSION CONTROL sub-nav ── */}
+            {exp === "control" && (
+              <SidebarGroup>
+                <SidebarGroupLabel className="text-[9px] tracking-[0.2em] opacity-40 text-amber-400/60">MISSION CONTROL</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    <NavItem href="/mission-control"    label="Mission Setup"      icon={Settings} />
+                    <NavItem href="/section-assignments" label="Team & Assignments" icon={Users} />
+                    <NavItem href="/library"            label="Library"            icon={FileText} />
+                    <NavItem href="/intel"              label="Mission Brain"       icon={Brain} />
+                    <NavItem href="/pulse"              label="Strategy"            icon={Compass} />
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
+          </>
         )}
       </SidebarContent>
 
@@ -197,38 +183,14 @@ export function AppSidebar() {
         <SidebarMenu>
           {isAdmin && (
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname.startsWith("/admin")} tooltip="Admin">
+              <SidebarMenuButton asChild isActive={pathname.startsWith("/admin")} tooltip="Admin Panel">
                 <Link to="/admin"><Shield className="h-4 w-4" /><span>Admin</span></Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Open GitHub repository">
-              <a
-                href="https://github.com/JoshAthena7/pixel-perfect-clone-21049"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Github className="h-4 w-4" />
-                <span>GitHub</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Open published site (use Lovable Publish to redeploy)">
-              <a
-                href="https://pixel-perfect-clone-21049.lovable.app"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Rocket className="h-4 w-4" />
-                <span>Live Site</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/select-engagement")} tooltip="Command Center — Morning Brief">
-              <Link to="/select-engagement"><DoorOpen className="h-4 w-4" /><span>Command Center</span></Link>
+            <SidebarMenuButton asChild isActive={isActive("/select-engagement")} tooltip="Lobby — Return to headquarters">
+              <Link to="/select-engagement"><Home className="h-4 w-4" /><span>Lobby</span></Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
