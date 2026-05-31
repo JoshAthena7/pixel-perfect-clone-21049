@@ -110,6 +110,7 @@ function CommandV2() {
   const [err, setErr] = useState<string | null>(null);
   const [modal, setModal] = useState<ModalKey | null>(null);
   const [roster, setRoster] = useState<{ display_name: string; role: string }[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
 
   useEffect(() => {
     if (!engagement) return;
