@@ -381,11 +381,12 @@ function ChatForm({ teammates, isOnline, onChat }: any) {
 }
 
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
     <label className="block">
       <div className="mb-1.5 text-[10px] uppercase tracking-[0.18em] font-semibold text-muted-foreground">{label}</div>
       {children}
+      {error && <div className="mt-1 text-[11px] font-medium text-[color:var(--red,#ef4444)]">{error}</div>}
     </label>
   );
 }
