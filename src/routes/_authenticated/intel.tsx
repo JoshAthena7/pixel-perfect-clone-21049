@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
 import { useSession } from "@/hooks/use-session";
@@ -8,14 +8,34 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { relativeTime } from "@/lib/time";
-import { FileText, LinkIcon, Upload, Download, ExternalLink, Sparkles, Loader2 } from "lucide-react";
+import {
+  FileText,
+  LinkIcon,
+  Upload,
+  Download,
+  ExternalLink,
+  Sparkles,
+  Loader2,
+  Target,
+  Landmark,
+  Swords,
+  Lightbulb,
+  BookOpen,
+} from "lucide-react";
 import { DeclareTriviaWinnerCard } from "@/components/war-room/DeclareTriviaWinnerCard";
 import { Watermark } from "@/components/war-room/Watermark";
 import { HolyGrailPanel } from "@/components/war-room/HolyGrailPanel";
-import { analyzeOpportunity, analyzeCategory, startHolyGrailRun, finishHolyGrailRun } from "@/lib/ai/holy-grail.functions";
+import {
+  analyzeOpportunity,
+  analyzeCategory,
+  startHolyGrailRun,
+  finishHolyGrailRun,
+} from "@/lib/ai/holy-grail.functions";
 import { logActivity } from "@/lib/activity-log";
+import { PageGate } from "@/components/war-room/PageGate";
 
 async function extractTextFromFile(file: File): Promise<string> {
   if (file.type.startsWith("text/") || /\.(txt|md|csv|rtf)$/i.test(file.name)) return file.text();
@@ -46,25 +66,84 @@ async function extractTextFromFile(file: File): Promise<string> {
   return "";
 }
 
-import { PageGate } from "@/components/war-room/PageGate";
-
 export const Route = createFileRoute("/_authenticated/intel")({
-  head: () => ({ meta: [{ title: "Vault — Athena" }] }),
-  component: () => <PageGate page="library"><IntelPage /></PageGate>,
+  head: () => ({ meta: [{ title: "Mission Briefing — Athena" }] }),
+  component: () => (
+    <PageGate page="briefing">
+      <MissionBriefingPage />
+    </PageGate>
+  ),
 });
 
-const CATEGORIES = ["RFP", "Amendment", "Q&A", "Client Doc", "Research", "Competitive", "Past Performance", "Other"] as const;
+const CATEGORIES = [
+  "RFP",
+  "Amendment",
+  "Q&A",
+  "Client Doc",
+  "Research",
+  "Competitive",
+  "Past Performance",
+  "Terminology",
+  "Other",
+] as const;
+type Category = (typeof CATEGORIES)[number];
 
-function IntelPage() {
-  const { engagement, member, isLeadership } = useEngagement();
+/**
+ * Briefing tab definitions per PROMPT-2 spec.
+ * Each tab maps to a set of intel categories so the library auto-filters
+ * to the relevant subset, plus optional inline panels.
+ */
+const BRIEFING_TABS = [
+  {
+    key: "rfp",
+    label: "RFP Intel",
+    icon: Target,
+    categories: ["RFP", "Amendment", "Q&A"] as Category[],
+    blurb: "The opportunity itself: RFPs, amendments, and Q&A.",
+  },
+  {
+    key: "state",
+    label: "State Intel",
+    icon: Landmark,
+    categories: ["Client Doc", "Research"] as Category[],
+    blurb: "Customer landscape — political pressures, history, and community context.",
+  },
+  {
+    key: "competitor",
+    label: "Competitor Intel",
+    icon: Swords,
+    categories: ["Competitive", "Past Performance"] as Category[],
+    blurb: "Who else is in the room, and what they've done before.",
+  },
+  {
+    key: "win-themes",
+    label: "Win Themes",
+    icon: Lightbulb,
+    categories: [] as Category[],
+    blurb: "Our positioning — the story we're telling across every section.",
+  },
+  {
+    key: "terminology",
+    label: "Terminology",
+    icon: BookOpen,
+    categories: ["Terminology"] as Category[],
+    blurb: "Project glossary — names, acronyms, and shared vocabulary.",
+  },
+] as const;
+type TabKey = (typeof BRIEFING_TABS)[number]["key"];
+
+function MissionBriefingPage() {
+  const { engagement, member, isLeadership, canEdit } = useEngagement();
   const { user } = useSession();
   const [items, setItems] = useState<any[]>([]);
-  const [filter, setFilter] = useState<"All" | (typeof CATEGORIES)[number]>("All");
   const [search, setSearch] = useState("");
+  const [tab, setTab] = useState<TabKey>("rfp");
+
+  const canWriteBriefing = canEdit("briefing");
 
   const [mode, setMode] = useState<"file" | "url">("file");
   const [name, setName] = useState("");
-  const [category, setCategory] = useState<(typeof CATEGORIES)[number]>("RFP");
+  const [category, setCategory] = useState<Category>("RFP");
   const [url, setUrl] = useState("");
   const [notes, setNotes] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -72,6 +151,15 @@ function IntelPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
   const [hgRefresh, setHgRefresh] = useState(0);
+
+  // When the active tab changes, default the upload category to the first
+  // category for that tab (if any) so leadership uploads into the right bucket.
+  useEffect(() => {
+    const active = BRIEFING_TABS.find((t) => t.key === tab);
+    if (active && active.categories.length > 0 && !active.categories.includes(category)) {
+      setCategory(active.categories[0]);
+    }
+  }, [tab]);
 
   async function runAnalyze(it: any) {
     if (!engagement || !it.file_path) {
@@ -86,12 +174,14 @@ function IntelPage() {
       if (sErr || !signed) throw new Error(sErr?.message ?? "Could not access file");
       const resp = await fetch(signed.signedUrl);
       const blob = await resp.blob();
-      const file = new File([blob], it.name || "rfp", { type: blob.type });
+      const f = new File([blob], it.name || "rfp", { type: blob.type });
       toast.info("Extracting text…");
-      const text = await extractTextFromFile(file);
+      const text = await extractTextFromFile(f);
       if (!text || text.trim().length < 50) throw new Error("Could not extract enough text from this file.");
       toast.info("Running Holy Grail analysis…");
-      const result = (await analyzeOpportunity({ data: { engagementId: engagement.id, documentId: it.id, fileName: it.name, text } })) as any;
+      const result = (await analyzeOpportunity({
+        data: { engagementId: engagement.id, documentId: it.id, fileName: it.name, text },
+      })) as any;
       toast.success("Opportunity ready");
       if (result?.deadlineUpdated?.to) {
         toast.success(
@@ -102,8 +192,6 @@ function IntelPage() {
       }
       setHgRefresh((n) => n + 1);
 
-
-      // Auto-run the 6 web-research categories in the background (leadership only)
       if (isLeadership) {
         toast.info("Auto-researching market, political, competitive, customer, provider, community…");
         (async () => {
@@ -114,7 +202,9 @@ function IntelPage() {
             const cats = ["market", "political", "competitive", "customer", "provider", "community"] as const;
             for (const cat of cats) {
               try {
-                await analyzeCategory({ data: { engagementId: engagement.id, category: cat, runId: runId ?? undefined, force: false } });
+                await analyzeCategory({
+                  data: { engagementId: engagement.id, category: cat, runId: runId ?? undefined, force: false },
+                });
                 setHgRefresh((n) => n + 1);
               } catch (e: any) {
                 console.warn(`Holy Grail ${cat} failed:`, e?.message);
@@ -136,14 +226,18 @@ function IntelPage() {
     }
   }
 
-
-
   async function load(eid: string) {
-    const { data } = await supabase.from("intel_documents").select("*").eq("engagement_id", eid).order("created_at", { ascending: false });
+    const { data } = await supabase
+      .from("intel_documents")
+      .select("*")
+      .eq("engagement_id", eid)
+      .order("created_at", { ascending: false });
     setItems(data ?? []);
   }
 
-  useEffect(() => { if (engagement) load(engagement.id); }, [engagement?.id]);
+  useEffect(() => {
+    if (engagement) load(engagement.id);
+  }, [engagement?.id]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -175,8 +269,11 @@ function IntelPage() {
         uploader_name: member.display_name,
       });
       if (error) throw error;
-      toast.success("Added to intel library");
-      setName(""); setUrl(""); setNotes(""); setFile(null);
+      toast.success("Added to briefing");
+      setName("");
+      setUrl("");
+      setNotes("");
+      setFile(null);
       if (fileRef.current) fileRef.current.value = "";
       load(engagement.id);
     } catch (err: any) {
@@ -206,120 +303,273 @@ function IntelPage() {
     }
   }
 
-  const visible = items.filter((it) => {
-    if (filter !== "All" && it.category !== filter) return false;
-    if (search && !`${it.name} ${it.notes ?? ""}`.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  });
+  const activeTab = BRIEFING_TABS.find((t) => t.key === tab)!;
+  const visible = useMemo(() => {
+    return items.filter((it) => {
+      if (activeTab.categories.length > 0 && !activeTab.categories.includes(it.category)) return false;
+      if (search && !`${it.name} ${it.notes ?? ""}`.toLowerCase().includes(search.toLowerCase())) return false;
+      return true;
+    });
+  }, [items, activeTab, search]);
 
   return (
-    <div className="mx-auto grid max-w-7xl gap-6 p-4 md:p-8 lg:grid-cols-5">
+    <div className="mx-auto max-w-7xl p-4 md:p-8">
       <Watermark />
-      {engagement && <HolyGrailPanel engagementId={engagement.id} refreshKey={hgRefresh} isLeadership={isLeadership} />}
-      {isLeadership && <DeclareTriviaWinnerCard />}
-      {isLeadership && (
-        <Card className="border-border bg-surface p-6 lg:col-span-2">
-          <h1 className="text-xl font-bold">Add to Library</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Files or links — keep the source of truth in one place.</p>
 
-          <div className="mt-4 inline-flex rounded-md border border-border p-0.5">
-            <button onClick={() => setMode("file")} className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium transition ${mode === "file" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-              <Upload className="h-3.5 w-3.5" /> File
-            </button>
-            <button onClick={() => setMode("url")} className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium transition ${mode === "url" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-              <LinkIcon className="h-3.5 w-3.5" /> Link
-            </button>
-          </div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold">Mission Briefing</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          The shared environment around this opportunity — everything the team needs to write with confidence.
+        </p>
+      </div>
 
-          <form onSubmit={submit} className="mt-4 space-y-4">
-            {mode === "file" ? (
-              <div>
-                <Label htmlFor="file">File</Label>
-                <Input id="file" ref={fileRef} type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-              </div>
-            ) : (
-              <div>
-                <Label htmlFor="url">URL</Label>
-                <Input id="url" type="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" />
+      <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
+          {BRIEFING_TABS.map((t) => {
+            const Icon = t.icon;
+            return (
+              <TabsTrigger key={t.key} value={t.key} className="gap-1.5">
+                <Icon className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{t.label}</span>
+                <span className="sm:hidden">{t.label.split(" ")[0]}</span>
+              </TabsTrigger>
+            );
+          })}
+        </TabsList>
+
+        {BRIEFING_TABS.map((t) => (
+          <TabsContent key={t.key} value={t.key} className="mt-6">
+            <p className="mb-4 text-sm text-muted-foreground">{t.blurb}</p>
+
+            <div className="grid gap-6 lg:grid-cols-5">
+              {/* RFP tab: full Holy Grail panel on left */}
+              {t.key === "rfp" && engagement && (
+                <div className="lg:col-span-5">
+                  <HolyGrailPanel
+                    engagementId={engagement.id}
+                    refreshKey={hgRefresh}
+                    isLeadership={isLeadership}
+                  />
+                </div>
+              )}
+
+              {/* Win Themes tab: full themes panel, no library */}
+              {t.key === "win-themes" && engagement && (
+                <div className="lg:col-span-5 space-y-4">
+                  <Card className="border-border bg-surface p-6">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <h2 className="text-base font-semibold">Win Themes</h2>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Confirmed themes drive section writing. Map themes to RFP questions to seed writer hints.
+                        </p>
+                      </div>
+                      <Button variant="outline" asChild>
+                        <a href="/win-themes">Open Win Themes editor</a>
+                      </Button>
+                    </div>
+                  </Card>
+                </div>
+              )}
+
+              {/* Library (file/link list) — shown on every tab except Win Themes */}
+              {t.key !== "win-themes" && (
+                <>
+                  {canWriteBriefing && (
+                    <Card className="border-border bg-surface p-6 lg:col-span-2">
+                      <h2 className="text-base font-semibold">Add to {t.label}</h2>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Files or links — they'll appear in the {t.label} list to the right.
+                      </p>
+
+                      <div className="mt-4 inline-flex rounded-md border border-border p-0.5">
+                        <button
+                          type="button"
+                          onClick={() => setMode("file")}
+                          className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium transition ${
+                            mode === "file"
+                              ? "bg-primary text-primary-foreground"
+                              : "text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          <Upload className="h-3.5 w-3.5" /> File
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setMode("url")}
+                          className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium transition ${
+                            mode === "url"
+                              ? "bg-primary text-primary-foreground"
+                              : "text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          <LinkIcon className="h-3.5 w-3.5" /> Link
+                        </button>
+                      </div>
+
+                      <form onSubmit={submit} className="mt-4 space-y-4">
+                        {mode === "file" ? (
+                          <div>
+                            <Label htmlFor="file">File</Label>
+                            <Input
+                              id="file"
+                              ref={fileRef}
+                              type="file"
+                              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                            />
+                          </div>
+                        ) : (
+                          <div>
+                            <Label htmlFor="url">URL</Label>
+                            <Input
+                              id="url"
+                              type="url"
+                              value={url}
+                              onChange={(e) => setUrl(e.target.value)}
+                              placeholder="https://…"
+                            />
+                          </div>
+                        )}
+                        <div>
+                          <Label htmlFor="name">Display name</Label>
+                          <Input
+                            id="name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder={file?.name ?? "What's this?"}
+                          />
+                        </div>
+                        <div>
+                          <Label>Category</Label>
+                          <div className="mt-1 flex flex-wrap gap-1.5">
+                            {(t.categories.length > 0 ? t.categories : CATEGORIES).map((c) => (
+                              <button
+                                key={c}
+                                type="button"
+                                onClick={() => setCategory(c)}
+                                className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${
+                                  category === c
+                                    ? "border-primary bg-primary/15 text-primary"
+                                    : "border-border text-muted-foreground hover:text-foreground"
+                                }`}
+                              >
+                                {c}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <Label htmlFor="notes">Notes</Label>
+                          <Textarea
+                            id="notes"
+                            rows={2}
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            placeholder="Context, page refs, who cares about this"
+                          />
+                        </div>
+                        <Button type="submit" disabled={uploading} className="w-full">
+                          {uploading ? "Saving…" : `Add to ${t.label}`}
+                        </Button>
+                      </form>
+                    </Card>
+                  )}
+
+                  <Card
+                    className={`border-border bg-surface p-6 ${
+                      canWriteBriefing ? "lg:col-span-3" : "lg:col-span-5"
+                    }`}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                        {t.label} · {visible.length}
+                      </h2>
+                      <Input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Search…"
+                        className="max-w-[200px]"
+                      />
+                    </div>
+
+                    {visible.length === 0 ? (
+                      <div className="mt-6 text-sm text-muted-foreground">
+                        Nothing in {t.label} yet.
+                        {canWriteBriefing && t.categories.length > 0
+                          ? ` Use the form to add the first ${t.categories[0]}.`
+                          : ""}
+                      </div>
+                    ) : (
+                      <ul className="mt-4 max-h-[70vh] space-y-2 overflow-auto">
+                        {visible.map((it) => (
+                          <li
+                            key={it.id}
+                            className="group flex items-start gap-3 rounded-md border border-border bg-surface-hover/40 p-3 hover:border-primary/40"
+                          >
+                            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                              {it.url ? <LinkIcon className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <button
+                                onClick={() => openItem(it)}
+                                className="text-left text-sm font-semibold hover:text-primary"
+                              >
+                                {it.name}
+                              </button>
+                              <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                                <span className="rounded-full border border-border px-2 py-0.5">{it.category}</span>
+                                <span>{it.uploader_name ?? "—"}</span>
+                                <span>{relativeTime(it.created_at)}</span>
+                              </div>
+                              {it.notes && <p className="mt-1 text-xs text-muted-foreground">{it.notes}</p>}
+                            </div>
+                            <div className="flex shrink-0 items-center gap-1">
+                              {isLeadership &&
+                                it.file_path &&
+                                (it.category === "RFP" || it.category === "Amendment") && (
+                                  <button
+                                    onClick={() => runAnalyze(it)}
+                                    disabled={analyzingId === it.id}
+                                    title="Run Holy Grail analysis"
+                                    className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2 py-1 text-[11px] font-medium text-primary hover:bg-primary/20 disabled:opacity-60"
+                                  >
+                                    {analyzingId === it.id ? (
+                                      <Loader2 className="h-3 w-3 animate-spin" />
+                                    ) : (
+                                      <Sparkles className="h-3 w-3" />
+                                    )}
+                                    {analyzingId === it.id ? "Analyzing…" : "Holy Grail"}
+                                  </button>
+                                )}
+                              <button
+                                onClick={() => openItem(it)}
+                                className="rounded-md border border-border p-1.5 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:border-primary/50 hover:text-foreground"
+                              >
+                                {it.url ? (
+                                  <ExternalLink className="h-3.5 w-3.5" />
+                                ) : (
+                                  <Download className="h-3.5 w-3.5" />
+                                )}
+                              </button>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </Card>
+                </>
+              )}
+            </div>
+
+            {/* Trivia winner card stays accessible from RFP tab for leadership */}
+            {t.key === "rfp" && isLeadership && (
+              <div className="mt-6">
+                <DeclareTriviaWinnerCard />
               </div>
             )}
-            <div>
-              <Label htmlFor="name">Display name</Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder={file?.name ?? "What's this?"} />
-            </div>
-            <div>
-              <Label>Category</Label>
-              <div className="mt-1 flex flex-wrap gap-1.5">
-                {CATEGORIES.map((c) => (
-                  <button key={c} type="button" onClick={() => setCategory(c)} className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${category === c ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground hover:text-foreground"}`}>
-                    {c}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea id="notes" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Context, page refs, who cares about this" />
-            </div>
-            <Button type="submit" disabled={uploading} className="w-full">
-              {uploading ? "Saving…" : "Add to Library"}
-            </Button>
-          </form>
-        </Card>
-      )}
-
-      <Card className={`border-border bg-surface p-6 ${isLeadership ? "lg:col-span-3" : "lg:col-span-5"}`}>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Library</h2>
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…" className="max-w-[200px]" />
-        </div>
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {(["All", ...CATEGORIES] as const).map((c) => (
-            <button key={c} onClick={() => setFilter(c)} className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${filter === c ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground hover:text-foreground"}`}>
-              {c}
-            </button>
-          ))}
-        </div>
-
-        {visible.length === 0 ? (
-          <div className="mt-6 text-sm text-muted-foreground">Nothing here yet.</div>
-        ) : (
-          <ul className="mt-4 space-y-2 max-h-[70vh] overflow-auto">
-            {visible.map((it) => (
-              <li key={it.id} className="group flex items-start gap-3 rounded-md border border-border bg-surface-hover/40 p-3 hover:border-primary/40">
-                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-                  {it.url ? <LinkIcon className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <button onClick={() => openItem(it)} className="text-left text-sm font-semibold hover:text-primary">{it.name}</button>
-                  <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-                    <span className="rounded-full border border-border px-2 py-0.5">{it.category}</span>
-                    <span>{it.uploader_name ?? "—"}</span>
-                    <span>{relativeTime(it.created_at)}</span>
-                  </div>
-                  {it.notes && <p className="mt-1 text-xs text-muted-foreground">{it.notes}</p>}
-                </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  {isLeadership && it.file_path && (it.category === "RFP" || it.category === "Amendment") && (
-                    <button
-                      onClick={() => runAnalyze(it)}
-                      disabled={analyzingId === it.id}
-                      title="Run Holy Grail analysis"
-                      className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2 py-1 text-[11px] font-medium text-primary hover:bg-primary/20 disabled:opacity-60"
-                    >
-                      {analyzingId === it.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-                      {analyzingId === it.id ? "Analyzing…" : "Holy Grail"}
-                    </button>
-                  )}
-                  <button onClick={() => openItem(it)} className="rounded-md border border-border p-1.5 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:border-primary/50 hover:text-foreground">
-                    {it.url ? <ExternalLink className="h-3.5 w-3.5" /> : <Download className="h-3.5 w-3.5" />}
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
+          </TabsContent>
+        ))}
+      </Tabs>
     </div>
   );
 }
