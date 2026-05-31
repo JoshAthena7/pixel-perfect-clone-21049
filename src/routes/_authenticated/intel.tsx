@@ -262,13 +262,36 @@ function MissionBriefingPage() {
         uploader_name: member.display_name,
       });
       if (error) throw error;
-      toast.success("Added to briefing");
-      setName("");
-      setUrl("");
-      setNotes("");
-      setFile(null);
-      if (fileRef.current) fileRef.current.value = "";
-      load(engagement.id);
+
+      // Auto-trigger Holy Grail analysis for RFP and Amendment uploads
+      if (file_path && (category === "RFP" || category === "Amendment")) {
+        toast.success("RFP uploaded — starting analysis automatically…");
+        // Fetch the new record so we have its id for runAnalyze
+        const { data: newDoc } = await supabase
+          .from("intel_documents")
+          .select("*")
+          .eq("engagement_id", engagement.id)
+          .eq("file_path", file_path)
+          .maybeSingle();
+        setName("");
+        setUrl("");
+        setNotes("");
+        setFile(null);
+        if (fileRef.current) fileRef.current.value = "";
+        await load(engagement.id);
+        if (newDoc) {
+          // Run analysis in background — don't block the UI
+          runAnalyze(newDoc);
+        }
+      } else {
+        toast.success("Added to briefing");
+        setName("");
+        setUrl("");
+        setNotes("");
+        setFile(null);
+        if (fileRef.current) fileRef.current.value = "";
+        load(engagement.id);
+      }
     } catch (err: any) {
       toast.error(err?.message ?? "Upload failed");
     } finally {
