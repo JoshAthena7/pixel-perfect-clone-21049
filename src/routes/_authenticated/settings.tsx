@@ -18,9 +18,74 @@ import { MilestonesCard } from "@/components/war-room/MilestonesCard";
 import { PageGate } from "@/components/war-room/PageGate";
 
 export const Route = createFileRoute("/_authenticated/settings")({
-  head: () => ({ meta: [{ title: "Settings — Athena" }] }),
+  head: () => ({ meta: [{ title: "Configuration — Mission Control" }] }),
   component: () => <PageGate page="settings"><SettingsPage /></PageGate>,
 });
+
+
+// ── Mission Setup Checklist ──────────────────────────────────────
+// Appears in Mission Control → Configuration until setup is complete.
+function MissionSetupChecklist({ engagementId }: { engagementId: string }) {
+  const [status, setStatus] = useState({ hasDate: false, hasDoc: false, hasTeam: false, checked: false });
+
+  useEffect(() => {
+    if (!engagementId) return;
+    (async () => {
+      const [eng, docs, members] = await Promise.all([
+        supabase.from("engagements").select("submission_date").eq("id", engagementId).single(),
+        supabase.from("intel_documents").select("id").eq("engagement_id", engagementId).limit(1),
+        supabase.from("engagement_members").select("id").eq("engagement_id", engagementId).limit(3),
+      ]);
+      setStatus({
+        hasDate: !!eng.data?.submission_date,
+        hasDoc: (docs.data?.length ?? 0) > 0,
+        hasTeam: (members.data?.length ?? 0) > 1,
+        checked: true,
+      });
+    })();
+  }, [engagementId]);
+
+  if (!status.checked) return null;
+  if (status.hasDate && status.hasDoc && status.hasTeam) return null;
+
+  const steps = [
+    { done: status.hasDate, icon: "📅", label: "Set your submission date", sub: "Enables the T-Minus countdown and deadline alerts", action: "Set it below →", href: null },
+    { done: status.hasDoc, icon: "📄", label: "Upload your first RFP document", sub: "IRIS processes it and populates Mission Brain automatically", action: "Go to Documents →", href: "/library" },
+    { done: status.hasTeam, icon: "👥", label: "Invite your first team member", sub: "Each role sees exactly what they need to do their job", action: "Go to Team →", href: "/section-assignments" },
+  ].filter(s => !s.done);
+
+  return (
+    <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-sm font-bold">Mission setup</span>
+        <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold text-primary">
+          {steps.length} step{steps.length > 1 ? "s" : ""} remaining
+        </span>
+      </div>
+      <div className="space-y-2">
+        {steps.map(s => (
+          s.href
+            ? <a key={s.label} href={s.href} className="flex items-start gap-3 rounded-md border border-border/40 bg-background/50 p-3 hover:border-primary/30 transition-colors no-underline">
+                <span className="text-lg flex-shrink-0">{s.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-foreground">{s.label}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{s.sub}</div>
+                </div>
+                <span className="text-xs text-primary flex-shrink-0 mt-0.5">{s.action}</span>
+              </a>
+            : <div key={s.label} className="flex items-start gap-3 rounded-md border border-border/40 bg-background/50 p-3">
+                <span className="text-lg flex-shrink-0">{s.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-foreground">{s.label}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{s.sub}</div>
+                </div>
+                <span className="text-xs text-muted-foreground flex-shrink-0 mt-0.5">{s.action}</span>
+              </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function SettingsPage() {
   const { engagement, canEdit, refresh } = useEngagement();
@@ -44,7 +109,8 @@ function SettingsPage() {
     return (
       <div className="mx-auto max-w-3xl space-y-6 p-4 md:p-8">
         <div>
-          <h1 className="text-2xl font-bold">Settings</h1>
+          <h1 className="text-2xl font-bold">Configuration</h1>
+      {engagement && <MissionSetupChecklist engagementId={engagement.id} />}
           <p className="mt-1 text-sm text-muted-foreground">Engagement configuration and submission timeline.</p>
         </div>
         <Card className="border-border bg-surface p-6">

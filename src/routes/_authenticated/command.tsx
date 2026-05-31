@@ -390,8 +390,6 @@ function CommandCenter() {
         {/* IRIS Strategic Intelligence Feed */}
         <StrategicIntelFeed engagementId={engagement.id} canRegenerate={canEdit("missionControl")} />
 
-        {/* ONBOARDING — shows until mission is set up */}
-        <OnboardingChecklist engagementId={engagement.id} />
 
         {/* ZONE 1 — Intelligence Insights */}
         <IntelligenceInsightsPanel />
