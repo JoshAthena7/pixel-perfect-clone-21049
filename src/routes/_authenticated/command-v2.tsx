@@ -203,7 +203,7 @@ function CommandV2() {
         <div className="grid grid-cols-2 gap-3 mb-4">
           {/* Leadership Focus */}
           <div className="panel">
-            <div className="panel-head"><span className="panel-title">Leadership Focus</span><button className="btn">+ Broadcast</button></div>
+            <div className="panel-head"><span className="panel-title">Leadership Focus</span><button className="btn" onClick={() => setModal("broadcast")}>+ Broadcast</button></div>
             <div className="panel-body">
               {broadcasts.length === 0 && <div className="muted">No broadcasts yet.</div>}
               {broadcasts.map(b => (
