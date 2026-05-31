@@ -25,7 +25,8 @@ const SENT_COLOR: Record<string, string> = {
 };
 
 function PulsePage() {
-  const { engagement, member, isLeadership } = useEngagement();
+  const { engagement, member, canEdit } = useEngagement();
+  const canWritePulse = canEdit("pulse");
   const { user } = useSession();
   const [items, setItems] = useState<any[]>([]);
 
