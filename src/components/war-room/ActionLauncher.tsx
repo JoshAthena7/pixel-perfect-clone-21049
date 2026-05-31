@@ -238,7 +238,7 @@ function RosterSelect({
 }
 
 // ---- SOS ----
-function SosForm({ engagementId, userId, memberName, onSuccess, onCancel }: FormProps) {
+export function SosForm({ engagementId, userId, memberName, onSuccess, onCancel }: FormProps) {
   const [blocker, setBlocker] = useState("");
   const [impact, setImpact] = useState("");
   const [who, setWho] = useState("");
@@ -290,7 +290,7 @@ function SosForm({ engagementId, userId, memberName, onSuccess, onCancel }: Form
 }
 
 // ---- Huddle ----
-function HuddleForm({ engagementId, userId, memberName, roster, onSuccess, onCancel }: FormProps) {
+export function HuddleForm({ engagementId, userId, memberName, roster, onSuccess, onCancel }: FormProps) {
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [focus, setFocus] = useState("");
   const [attendees, setAttendees] = useState<string[]>([]);
@@ -364,7 +364,7 @@ function HuddleForm({ engagementId, userId, memberName, roster, onSuccess, onCan
 }
 
 // ---- Broadcast ----
-function BroadcastForm({ engagementId, userId, memberName, onSuccess, onCancel }: FormProps) {
+export function BroadcastForm({ engagementId, userId, memberName, onSuccess, onCancel }: FormProps) {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [tone, setTone] = useState("Informational");
@@ -425,7 +425,7 @@ function BroadcastForm({ engagementId, userId, memberName, onSuccess, onCancel }
 }
 
 // ---- Pulse™ ----
-function PulseForm({ engagementId, userId, memberName, roster, onSuccess, onCancel }: FormProps) {
+export function PulseForm({ engagementId, userId, memberName, roster, onSuccess, onCancel }: FormProps) {
   const [period, setPeriod] = useState("");
   const [pullRoster, setPullRoster] = useState(false);
   const [completed, setCompleted] = useState("");
@@ -482,7 +482,7 @@ function PulseForm({ engagementId, userId, memberName, roster, onSuccess, onCanc
 }
 
 // ---- Decisions ----
-function DecisionForm({ engagementId, userId, roster, onSuccess, onCancel }: FormProps) {
+export function DecisionForm({ engagementId, userId, roster, onSuccess, onCancel }: FormProps) {
   const [decision, setDecision] = useState("");
   const [madeBy, setMadeBy] = useState("");
   const [rationale, setRationale] = useState("");
@@ -531,7 +531,7 @@ function DecisionForm({ engagementId, userId, roster, onSuccess, onCancel }: For
 }
 
 // ---- Risks ----
-function RiskForm({ engagementId, userId, roster, onSuccess, onCancel }: FormProps) {
+export function RiskForm({ engagementId, userId, roster, onSuccess, onCancel }: FormProps) {
   const [description, setDescription] = useState("");
   const [section, setSection] = useState("");
   const [likelihood, setLikelihood] = useState("Medium");
@@ -604,7 +604,7 @@ function RiskForm({ engagementId, userId, roster, onSuccess, onCancel }: FormPro
 }
 
 // ---- Delivery Map ----
-function HeatmapForm({ engagementId, memberName, roster, onSuccess, onCancel }: FormProps) {
+export function HeatmapForm({ engagementId, memberName, roster, onSuccess, onCancel }: FormProps) {
   const [writer, setWriter] = useState("");
   const [issue, setIssue] = useState("Completeness");
   const [section, setSection] = useState("");
