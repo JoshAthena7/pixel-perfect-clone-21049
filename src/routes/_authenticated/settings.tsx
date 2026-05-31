@@ -23,9 +23,8 @@ export const Route = createFileRoute("/_authenticated/settings")({
 });
 
 function SettingsPage() {
-  const { engagement, isLeadership, canEdit, refresh } = useEngagement();
+  const { engagement, canEdit, refresh } = useEngagement();
   const canEditSettings = canEdit("settings");
-  void isLeadership;
   const [name, setName] = useState("");
   const [client, setClient] = useState("");
   const [status, setStatus] = useState("Active");
