@@ -15,6 +15,8 @@ import {
 import { Heart, Star, Sparkles, Copy, Gift } from "lucide-react";
 import { toast } from "sonner";
 import { draftPulseMessage } from "@/lib/ai/pulse.functions";
+import { useSchemaForm } from "./useSchemaForm";
+import { tlcSchema, starSchema } from "./action-schemas";
 
 export type RecognitionMember = {
   id: string;
