@@ -752,15 +752,21 @@ export function RiskForm({ engagementId, userId, roster, onSuccess, onCancel }: 
   });
   const [saving, setSaving] = useState(false);
   const t = useTouched<keyof typeof values>();
+  const server = useServerErrors<typeof values>();
   const { success, errors, data } = validate(riskSchema, values);
   const err = (k: keyof typeof values): string | undefined =>
-    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined);
+    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined) ?? server.fieldErrors[k];
+  const setField = <K extends keyof typeof values>(k: K, v: typeof values[K]) => {
+    setValues((p) => ({ ...p, [k]: v }));
+    server.clearField(k);
+  };
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     t.setAttempted(true);
     if (!success || !data) return;
     setSaving(true);
+    server.reset();
     const title = data.description.split("\n")[0].slice(0, 140);
     const body = [
       data.section && `Section: ${data.section}`,
@@ -778,22 +784,29 @@ export function RiskForm({ engagementId, userId, roster, onSuccess, onCancel }: 
       status: "Open",
     });
     setSaving(false);
-    if (error) return toast.error("Couldn't log risk", { description: error.message });
+    if (error) {
+      const mapped = mapSupabaseError<typeof values>(error, RISK_COLUMNS);
+      server.apply(mapped);
+      return toast.error("Couldn't log risk", {
+        description: summarizeServerErrors(mapped) ?? error.message,
+      });
+    }
     setValues((p) => ({ ...p, description: "", section: "", mitigation: "", owner: "" }));
     onSuccess("Risk logged");
   }
 
   return (
     <form onSubmit={submit} className="space-y-3" noValidate>
+      <FormBanner message={server.formError} />
       <Field label="Description" error={err("description")}>
-        <Textarea rows={3} value={values.description} onChange={(e) => setValues((p) => ({ ...p, description: e.target.value }))} onBlur={() => t.mark("description")} />
+        <Textarea rows={3} value={values.description} onChange={(e) => setField("description", e.target.value)} onBlur={() => t.mark("description")} />
       </Field>
       <Field label="Section affected" error={err("section")}>
-        <Input value={values.section} onChange={(e) => setValues((p) => ({ ...p, section: e.target.value }))} onBlur={() => t.mark("section")} />
+        <Input value={values.section} onChange={(e) => setField("section", e.target.value)} onBlur={() => t.mark("section")} />
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Likelihood">
-          <Select value={values.likelihood} onValueChange={(v) => setValues((p) => ({ ...p, likelihood: v as typeof p.likelihood }))}>
+          <Select value={values.likelihood} onValueChange={(v) => setField("likelihood", v as typeof values.likelihood)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {["Low", "Medium", "High"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
@@ -801,7 +814,7 @@ export function RiskForm({ engagementId, userId, roster, onSuccess, onCancel }: 
           </Select>
         </Field>
         <Field label="Impact">
-          <Select value={values.impact} onValueChange={(v) => setValues((p) => ({ ...p, impact: v as typeof p.impact }))}>
+          <Select value={values.impact} onValueChange={(v) => setField("impact", v as typeof values.impact)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {["Low", "Medium", "High", "Critical"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
@@ -810,10 +823,10 @@ export function RiskForm({ engagementId, userId, roster, onSuccess, onCancel }: 
         </Field>
       </div>
       <Field label="Mitigation" error={err("mitigation")}>
-        <Textarea rows={2} value={values.mitigation} onChange={(e) => setValues((p) => ({ ...p, mitigation: e.target.value }))} onBlur={() => t.mark("mitigation")} />
+        <Textarea rows={2} value={values.mitigation} onChange={(e) => setField("mitigation", e.target.value)} onBlur={() => t.mark("mitigation")} />
       </Field>
       <Field label="Owner" error={err("owner")}>
-        <RosterSelect value={values.owner} onChange={(v) => setValues((p) => ({ ...p, owner: v }))} roster={roster} onBlur={() => t.mark("owner")} />
+        <RosterSelect value={values.owner} onChange={(v) => setField("owner", v)} roster={roster} onBlur={() => t.mark("owner")} />
       </Field>
       <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
     </form>
