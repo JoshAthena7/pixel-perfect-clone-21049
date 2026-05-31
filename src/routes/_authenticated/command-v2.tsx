@@ -267,7 +267,7 @@ function CommandV2() {
         {/* Second row */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="panel">
-            <div className="panel-head"><span className="panel-title">Pending Decisions</span><button className="btn">+ Log</button></div>
+            <div className="panel-head"><span className="panel-title">Pending Decisions</span><button className="btn" onClick={() => setModal("decision")}>+ Log</button></div>
             <div className="panel-body">
               {decisions.length === 0 && <div className="muted">Nothing pending confirmation.</div>}
               {decisions.map(d => (
