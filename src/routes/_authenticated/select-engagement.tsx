@@ -148,7 +148,7 @@ function LobbyPage() {
     setIrisAnswering(true);
     setIrisAnswer(null);
     try {
-      const r = await generateIrisExecutiveBrief({ data: { userName: "", query: q } });
+      const r = await generateIrisExecutiveBrief({ data: { userName: "", query: q } as any });
       setIrisAnswer(r.brief);
     } catch { setIrisAnswer("IRIS is unavailable right now. Try again shortly."); }
     setIrisAnswering(false);
