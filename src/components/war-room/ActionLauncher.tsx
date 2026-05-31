@@ -429,9 +429,14 @@ export function HuddleForm({ engagementId, userId, memberName, roster, onSuccess
   });
   const [saving, setSaving] = useState(false);
   const t = useTouched<keyof typeof values>();
+  const server = useServerErrors<typeof values>();
   const { success, errors, data } = validate(huddleSchema, values);
   const err = (k: keyof typeof values): string | undefined =>
-    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined);
+    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined) ?? server.fieldErrors[k];
+  const setField = <K extends keyof typeof values>(k: K, v: typeof values[K]) => {
+    setValues((p) => ({ ...p, [k]: v }));
+    server.clearField(k);
+  };
 
   function toggleAttendee(name: string) {
     setValues((p) => ({
@@ -440,6 +445,7 @@ export function HuddleForm({ engagementId, userId, memberName, roster, onSuccess
         ? p.attendees.filter((n) => n !== name)
         : [...p.attendees, name],
     }));
+    server.clearField("attendees" as keyof typeof values);
   }
 
   async function submit(e: React.FormEvent) {
@@ -447,6 +453,7 @@ export function HuddleForm({ engagementId, userId, memberName, roster, onSuccess
     t.setAttempted(true);
     if (!success || !data) return;
     setSaving(true);
+    server.reset();
     const notes = [
       `Date: ${data.date}`,
       data.attendees.length ? `Attendees: ${data.attendees.join(", ")}` : null,
@@ -463,18 +470,25 @@ export function HuddleForm({ engagementId, userId, memberName, roster, onSuccess
       needs_leadership: false,
     });
     setSaving(false);
-    if (error) return toast.error("Couldn't save huddle", { description: error.message });
+    if (error) {
+      const mapped = mapSupabaseError<typeof values>(error, HUDDLE_COLUMNS);
+      server.apply(mapped);
+      return toast.error("Couldn't save huddle", {
+        description: summarizeServerErrors(mapped) ?? error.message,
+      });
+    }
     setValues((p) => ({ ...p, focus: "", attendees: [], flag: "" }));
     onSuccess("Huddle scheduled");
   }
 
   return (
     <form onSubmit={submit} className="space-y-3" noValidate>
+      <FormBanner message={server.formError} />
       <Field label="Date" error={err("date")}>
-        <Input type="date" value={values.date} onChange={(e) => setValues((p) => ({ ...p, date: e.target.value }))} onBlur={() => t.mark("date")} />
+        <Input type="date" value={values.date} onChange={(e) => setField("date", e.target.value)} onBlur={() => t.mark("date")} />
       </Field>
       <Field label="Focus areas" error={err("focus")}>
-        <Textarea rows={3} value={values.focus} onChange={(e) => setValues((p) => ({ ...p, focus: e.target.value }))} onBlur={() => t.mark("focus")} />
+        <Textarea rows={3} value={values.focus} onChange={(e) => setField("focus", e.target.value)} onBlur={() => t.mark("focus")} />
       </Field>
       <Field label="Attendees">
         <div className="flex flex-wrap gap-1.5 rounded-md border border-border bg-background p-2">
@@ -498,7 +512,7 @@ export function HuddleForm({ engagementId, userId, memberName, roster, onSuccess
         </div>
       </Field>
       <Field label="Anything to flag? (optional)" error={err("flag")}>
-        <Textarea rows={2} value={values.flag} onChange={(e) => setValues((p) => ({ ...p, flag: e.target.value }))} onBlur={() => t.mark("flag")} />
+        <Textarea rows={2} value={values.flag} onChange={(e) => setField("flag", e.target.value)} onBlur={() => t.mark("flag")} />
       </Field>
       <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
     </form>
