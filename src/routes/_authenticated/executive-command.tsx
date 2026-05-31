@@ -12,7 +12,7 @@ import { daysUntil, relativeTime } from "@/lib/time";
 import { generateIrisExecutiveBrief } from "@/lib/iris/iris-brief.functions";
 
 export const Route = createFileRoute("/_authenticated/executive-command")({
-  head: () => ({ meta: [{ title: "Executive Command — Athena Command" }] }),
+  head: () => ({ meta: [{ title: "Command Center — Athena Command" }] }),
   component: ExecutiveCommand,
 });
 
@@ -91,8 +91,8 @@ function ExecutiveCommand() {
     <div style={{maxWidth:1100,margin:"0 auto",padding:"40px 32px",display:"flex",flexDirection:"column",gap:40}}>
       {/* Header */}
       <div>
-        <div style={{fontSize:10,letterSpacing:"0.2em",textTransform:"uppercase",color:"rgba(255,255,255,0.3)",marginBottom:6}}>Portfolio Intelligence</div>
-        <h1 style={{fontSize:30,fontWeight:700,letterSpacing:"-0.02em",margin:0}}>Executive Command</h1>
+        <div style={{fontSize:10,letterSpacing:"0.2em",textTransform:"uppercase",color:"rgba(255,255,255,0.3)",marginBottom:6}}>Fleet Intelligence</div>
+        <h1 style={{fontSize:30,fontWeight:700,letterSpacing:"-0.02em",margin:0}}>Command Center</h1>
         <p style={{fontSize:14,color:"rgba(255,255,255,0.45)",marginTop:6}}>Fleet-wide visibility across {active.length} active mission{active.length!==1?"s":""}.</p>
       </div>
 

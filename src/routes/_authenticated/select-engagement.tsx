@@ -14,7 +14,7 @@ import { daysUntil } from "@/lib/time";
 import { generateIrisExecutiveBrief } from "@/lib/iris/iris-brief.functions";
 
 export const Route = createFileRoute("/_authenticated/select-engagement")({
-  head: () => ({ meta: [{ title: "Athena Command" }] }),
+  head: () => ({ meta: [{ title: "Athena HQ — Athena Command" }] }),
   component: LobbyPage,
 });
 
