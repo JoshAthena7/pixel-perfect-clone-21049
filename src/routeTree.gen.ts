@@ -19,6 +19,7 @@ import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/t
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSelectEngagementRouteImport } from './routes/_authenticated/select-engagement'
 import { Route as AuthenticatedSectionAssignmentsRouteImport } from './routes/_authenticated/section-assignments'
+import { Route as AuthenticatedQuestionHealthRouteImport } from './routes/_authenticated/question-health'
 import { Route as AuthenticatedPulseRouteImport } from './routes/_authenticated/pulse'
 import { Route as AuthenticatedOverviewRouteImport } from './routes/_authenticated/overview'
 import { Route as AuthenticatedNeedsAttentionRouteImport } from './routes/_authenticated/needs-attention'
@@ -26,7 +27,6 @@ import { Route as AuthenticatedNdaRequiredRouteImport } from './routes/_authenti
 import { Route as AuthenticatedMfaEnrollmentRouteImport } from './routes/_authenticated/mfa-enrollment'
 import { Route as AuthenticatedMarketRouteImport } from './routes/_authenticated/market'
 import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
-import { Route as AuthenticatedQuestionHealthRouteImport } from './routes/_authenticated/question-health'
 import { Route as AuthenticatedIssuesRouteImport } from './routes/_authenticated/issues'
 import { Route as AuthenticatedIntelRouteImport } from './routes/_authenticated/intel'
 import { Route as AuthenticatedInsightsRouteImport } from './routes/_authenticated/insights'
@@ -58,6 +58,7 @@ import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/e
 import { Route as ApiPublicHooksWeeklyBriefRouteImport } from './routes/api/public/hooks/weekly-brief'
 import { Route as ApiPublicHooksProcessOutcomeRouteImport } from './routes/api/public/hooks/process-outcome'
 import { Route as ApiPublicHooksProcessEmbeddingsRouteImport } from './routes/api/public/hooks/process-embeddings'
+import { Route as ApiPublicHooksPipelineHorizonRouteImport } from './routes/api/public/hooks/pipeline-horizon'
 import { Route as ApiPublicHooksMonitorCronRouteImport } from './routes/api/public/hooks/monitor-cron'
 import { Route as ApiPublicHooksIntelligenceEngineRouteImport } from './routes/api/public/hooks/intelligence-engine'
 import { Route as ApiPublicHooksIngestMarketIntelRouteImport } from './routes/api/public/hooks/ingest-market-intel'
@@ -119,6 +120,12 @@ const AuthenticatedSectionAssignmentsRoute =
     path: '/section-assignments',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedQuestionHealthRoute =
+  AuthenticatedQuestionHealthRouteImport.update({
+    id: '/question-health',
+    path: '/question-health',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedPulseRoute = AuthenticatedPulseRouteImport.update({
   id: '/pulse',
   path: '/pulse',
@@ -152,12 +159,6 @@ const AuthenticatedMarketRoute = AuthenticatedMarketRouteImport.update({
   path: '/market',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedQuestionHealthRoute = AuthenticatedQuestionHealthRouteImport.update({
-  id: '/_authenticated/question-health',
-  path: '/question-health',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-
 const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
   id: '/library',
   path: '/library',
@@ -334,6 +335,12 @@ const ApiPublicHooksProcessEmbeddingsRoute =
     path: '/api/public/hooks/process-embeddings',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksPipelineHorizonRoute =
+  ApiPublicHooksPipelineHorizonRouteImport.update({
+    id: '/api/public/hooks/pipeline-horizon',
+    path: '/api/public/hooks/pipeline-horizon',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksMonitorCronRoute =
   ApiPublicHooksMonitorCronRouteImport.update({
     id: '/api/public/hooks/monitor-cron',
@@ -413,6 +420,7 @@ export interface FileRoutesByFullPath {
   '/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/overview': typeof AuthenticatedOverviewRoute
   '/pulse': typeof AuthenticatedPulseRoute
+  '/question-health': typeof AuthenticatedQuestionHealthRoute
   '/section-assignments': typeof AuthenticatedSectionAssignmentsRoute
   '/select-engagement': typeof AuthenticatedSelectEngagementRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -439,6 +447,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/ingest-market-intel': typeof ApiPublicHooksIngestMarketIntelRoute
   '/api/public/hooks/intelligence-engine': typeof ApiPublicHooksIntelligenceEngineRoute
   '/api/public/hooks/monitor-cron': typeof ApiPublicHooksMonitorCronRoute
+  '/api/public/hooks/pipeline-horizon': typeof ApiPublicHooksPipelineHorizonRoute
   '/api/public/hooks/process-embeddings': typeof ApiPublicHooksProcessEmbeddingsRoute
   '/api/public/hooks/process-outcome': typeof ApiPublicHooksProcessOutcomeRoute
   '/api/public/hooks/weekly-brief': typeof ApiPublicHooksWeeklyBriefRoute
@@ -470,6 +479,7 @@ export interface FileRoutesByTo {
   '/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/overview': typeof AuthenticatedOverviewRoute
   '/pulse': typeof AuthenticatedPulseRoute
+  '/question-health': typeof AuthenticatedQuestionHealthRoute
   '/section-assignments': typeof AuthenticatedSectionAssignmentsRoute
   '/select-engagement': typeof AuthenticatedSelectEngagementRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -496,6 +506,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/ingest-market-intel': typeof ApiPublicHooksIngestMarketIntelRoute
   '/api/public/hooks/intelligence-engine': typeof ApiPublicHooksIntelligenceEngineRoute
   '/api/public/hooks/monitor-cron': typeof ApiPublicHooksMonitorCronRoute
+  '/api/public/hooks/pipeline-horizon': typeof ApiPublicHooksPipelineHorizonRoute
   '/api/public/hooks/process-embeddings': typeof ApiPublicHooksProcessEmbeddingsRoute
   '/api/public/hooks/process-outcome': typeof ApiPublicHooksProcessOutcomeRoute
   '/api/public/hooks/weekly-brief': typeof ApiPublicHooksWeeklyBriefRoute
@@ -530,6 +541,7 @@ export interface FileRoutesById {
   '/_authenticated/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/_authenticated/overview': typeof AuthenticatedOverviewRoute
   '/_authenticated/pulse': typeof AuthenticatedPulseRoute
+  '/_authenticated/question-health': typeof AuthenticatedQuestionHealthRoute
   '/_authenticated/section-assignments': typeof AuthenticatedSectionAssignmentsRoute
   '/_authenticated/select-engagement': typeof AuthenticatedSelectEngagementRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
@@ -556,6 +568,7 @@ export interface FileRoutesById {
   '/api/public/hooks/ingest-market-intel': typeof ApiPublicHooksIngestMarketIntelRoute
   '/api/public/hooks/intelligence-engine': typeof ApiPublicHooksIntelligenceEngineRoute
   '/api/public/hooks/monitor-cron': typeof ApiPublicHooksMonitorCronRoute
+  '/api/public/hooks/pipeline-horizon': typeof ApiPublicHooksPipelineHorizonRoute
   '/api/public/hooks/process-embeddings': typeof ApiPublicHooksProcessEmbeddingsRoute
   '/api/public/hooks/process-outcome': typeof ApiPublicHooksProcessOutcomeRoute
   '/api/public/hooks/weekly-brief': typeof ApiPublicHooksWeeklyBriefRoute
@@ -590,6 +603,7 @@ export interface FileRouteTypes {
     | '/needs-attention'
     | '/overview'
     | '/pulse'
+    | '/question-health'
     | '/section-assignments'
     | '/select-engagement'
     | '/settings'
@@ -616,6 +630,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/ingest-market-intel'
     | '/api/public/hooks/intelligence-engine'
     | '/api/public/hooks/monitor-cron'
+    | '/api/public/hooks/pipeline-horizon'
     | '/api/public/hooks/process-embeddings'
     | '/api/public/hooks/process-outcome'
     | '/api/public/hooks/weekly-brief'
@@ -647,6 +662,7 @@ export interface FileRouteTypes {
     | '/needs-attention'
     | '/overview'
     | '/pulse'
+    | '/question-health'
     | '/section-assignments'
     | '/select-engagement'
     | '/settings'
@@ -673,6 +689,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/ingest-market-intel'
     | '/api/public/hooks/intelligence-engine'
     | '/api/public/hooks/monitor-cron'
+    | '/api/public/hooks/pipeline-horizon'
     | '/api/public/hooks/process-embeddings'
     | '/api/public/hooks/process-outcome'
     | '/api/public/hooks/weekly-brief'
@@ -706,6 +723,7 @@ export interface FileRouteTypes {
     | '/_authenticated/needs-attention'
     | '/_authenticated/overview'
     | '/_authenticated/pulse'
+    | '/_authenticated/question-health'
     | '/_authenticated/section-assignments'
     | '/_authenticated/select-engagement'
     | '/_authenticated/settings'
@@ -732,6 +750,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/ingest-market-intel'
     | '/api/public/hooks/intelligence-engine'
     | '/api/public/hooks/monitor-cron'
+    | '/api/public/hooks/pipeline-horizon'
     | '/api/public/hooks/process-embeddings'
     | '/api/public/hooks/process-outcome'
     | '/api/public/hooks/weekly-brief'
@@ -754,6 +773,7 @@ export interface RootRouteChildren {
   ApiPublicHooksIngestMarketIntelRoute: typeof ApiPublicHooksIngestMarketIntelRoute
   ApiPublicHooksIntelligenceEngineRoute: typeof ApiPublicHooksIntelligenceEngineRoute
   ApiPublicHooksMonitorCronRoute: typeof ApiPublicHooksMonitorCronRoute
+  ApiPublicHooksPipelineHorizonRoute: typeof ApiPublicHooksPipelineHorizonRoute
   ApiPublicHooksProcessEmbeddingsRoute: typeof ApiPublicHooksProcessEmbeddingsRoute
   ApiPublicHooksProcessOutcomeRoute: typeof ApiPublicHooksProcessOutcomeRoute
   ApiPublicHooksWeeklyBriefRoute: typeof ApiPublicHooksWeeklyBriefRoute
@@ -832,6 +852,13 @@ declare module '@tanstack/react-router' {
       path: '/section-assignments'
       fullPath: '/section-assignments'
       preLoaderRoute: typeof AuthenticatedSectionAssignmentsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/question-health': {
+      id: '/_authenticated/question-health'
+      path: '/question-health'
+      fullPath: '/question-health'
+      preLoaderRoute: typeof AuthenticatedQuestionHealthRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/pulse': {
@@ -1100,6 +1127,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksProcessEmbeddingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/pipeline-horizon': {
+      id: '/api/public/hooks/pipeline-horizon'
+      path: '/api/public/hooks/pipeline-horizon'
+      fullPath: '/api/public/hooks/pipeline-horizon'
+      preLoaderRoute: typeof ApiPublicHooksPipelineHorizonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/monitor-cron': {
       id: '/api/public/hooks/monitor-cron'
       path: '/api/public/hooks/monitor-cron'
@@ -1214,6 +1248,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedNeedsAttentionRoute: typeof AuthenticatedNeedsAttentionRoute
   AuthenticatedOverviewRoute: typeof AuthenticatedOverviewRoute
   AuthenticatedPulseRoute: typeof AuthenticatedPulseRoute
+  AuthenticatedQuestionHealthRoute: typeof AuthenticatedQuestionHealthRoute
   AuthenticatedSectionAssignmentsRoute: typeof AuthenticatedSectionAssignmentsRoute
   AuthenticatedSelectEngagementRoute: typeof AuthenticatedSelectEngagementRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
@@ -1247,6 +1282,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedNeedsAttentionRoute: AuthenticatedNeedsAttentionRoute,
   AuthenticatedOverviewRoute: AuthenticatedOverviewRoute,
   AuthenticatedPulseRoute: AuthenticatedPulseRoute,
+  AuthenticatedQuestionHealthRoute: AuthenticatedQuestionHealthRoute,
   AuthenticatedSectionAssignmentsRoute: AuthenticatedSectionAssignmentsRoute,
   AuthenticatedSelectEngagementRoute: AuthenticatedSelectEngagementRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
@@ -1278,6 +1314,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksIngestMarketIntelRoute: ApiPublicHooksIngestMarketIntelRoute,
   ApiPublicHooksIntelligenceEngineRoute: ApiPublicHooksIntelligenceEngineRoute,
   ApiPublicHooksMonitorCronRoute: ApiPublicHooksMonitorCronRoute,
+  ApiPublicHooksPipelineHorizonRoute: ApiPublicHooksPipelineHorizonRoute,
   ApiPublicHooksProcessEmbeddingsRoute: ApiPublicHooksProcessEmbeddingsRoute,
   ApiPublicHooksProcessOutcomeRoute: ApiPublicHooksProcessOutcomeRoute,
   ApiPublicHooksWeeklyBriefRoute: ApiPublicHooksWeeklyBriefRoute,

@@ -15,6 +15,7 @@ import {
   Compass,
   BarChart3,
   ClipboardList,
+  Github,
 } from "lucide-react";
 import {
   Sidebar,
@@ -192,6 +193,18 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Open GitHub repository">
+              <a
+                href="https://github.com/JoshAthena7/pixel-perfect-clone-21049"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Github className="h-4 w-4" />
+                <span>GitHub</span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={isActive("/select-engagement")} tooltip="Command Center — Morning Brief">
               <Link to="/select-engagement"><DoorOpen className="h-4 w-4" /><span>Command Center</span></Link>
