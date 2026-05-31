@@ -99,7 +99,8 @@ function daysTo(date: string | null | undefined): number | null {
 }
 
 function CommandV2() {
-  const { engagement } = useEngagement();
+  const { engagement, member } = useEngagement();
+  const { user } = useSession();
   const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
   const [huddles, setHuddles] = useState<Huddle[]>([]);
   const [risks, setRisks] = useState<Risk[]>([]);
@@ -107,6 +108,18 @@ function CommandV2() {
   const [decisions, setDecisions] = useState<Decision[]>([]);
   const [pulse, setPulse] = useState<Pulse | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [modal, setModal] = useState<ModalKey | null>(null);
+  const [roster, setRoster] = useState<{ display_name: string; role: string }[]>([]);
+
+  useEffect(() => {
+    if (!engagement) return;
+    supabase
+      .from("engagement_members")
+      .select("display_name,role")
+      .eq("engagement_id", engagement.id)
+      .order("display_name")
+      .then(({ data }) => setRoster((data as { display_name: string; role: string }[]) ?? []));
+  }, [engagement?.id]);
 
   async function loadAll(eid: string) {
     setErr(null);
