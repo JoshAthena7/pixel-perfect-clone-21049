@@ -176,7 +176,7 @@ export const askAssistant = createServerFn({ method: "POST" })
       ? `\n\nFIRM KNOWLEDGE LIBRARY:\n${firmContent.map((f) => `- [${f.category}] ${f.title}: ${f.body.slice(0,300)}`).join("\n")}`
       : "";
     const engagementBlock = eid
-      ? `\nENGAGEMENT: ${JSON.stringify(eng)}\nHEAT MAP: ${JSON.stringify(heatmap)}\nRECENT HUDDLES: ${JSON.stringify(huddles)}\nRISKS: ${JSON.stringify(risks)}\nDECISIONS: ${JSON.stringify(decisions)}\nCLIENT PULSE: ${JSON.stringify(pulses)}`
+      ? `\nENGAGEMENT: ${JSON.stringify(eng)}\nHEAT MAP: ${JSON.stringify(heatmap)}\nRECENT HUDDLES: ${JSON.stringify(huddles)}\nRISKS: ${JSON.stringify(risks)}\nALIGNMENT SIGNALS: ${JSON.stringify(signals)}\nDECISIONS: ${JSON.stringify(decisions)}\nCLIENT PULSE: ${JSON.stringify(pulses)}`
       : "";
 
     const scopeLabel = scope === "engagement" ? "current engagement" : scope === "all" ? "every engagement the user can access" : "firm-wide knowledge";
