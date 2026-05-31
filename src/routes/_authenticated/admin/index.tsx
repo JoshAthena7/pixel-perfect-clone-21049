@@ -126,11 +126,24 @@ function AdminDashboard() {
 
   return (
     <div className="mx-auto max-w-[1600px] p-6 space-y-6">
+      {/* ACTIVATE MISSION — primary CTA */}
+      <div style={{background:"linear-gradient(135deg,rgba(196,154,42,0.1),rgba(27,59,114,0.15))",border:"1px solid rgba(196,154,42,0.3)",borderRadius:14,padding:"22px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:24,marginBottom:8}}>
+        <div>
+          <div style={{fontSize:10,letterSpacing:"0.18em",textTransform:"uppercase",color:"rgba(196,154,42,0.7)",marginBottom:6}}>New Opportunity</div>
+          <h2 style={{fontSize:20,fontWeight:800,letterSpacing:"-0.02em",margin:"0 0 4px"}}>Activate a Mission</h2>
+          <p style={{fontSize:12,color:"rgba(255,255,255,0.4)",margin:0}}>Upload the RFP, click Activate — IRIS builds the Briefing Book automatically.</p>
+        </div>
+        <a href="/engagement/new" style={{textDecoration:"none",flexShrink:0}}>
+          <button style={{background:"#C49A2A",color:"#0D0F1A",border:"none",borderRadius:10,padding:"12px 24px",fontSize:13,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",gap:8,whiteSpace:"nowrap"}}>
+            ＋ Activate Mission
+          </button>
+        </a>
+      </div>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Admin Command</h1>
-          <p className="text-xs text-muted-foreground">Activate, monitor, and steer every Mission.</p>
+          <h1 className="text-xl font-bold tracking-tight">Admin</h1>
+          <p className="text-xs text-muted-foreground">Missions &amp; governance.</p>
         </div>
         <Button asChild size="sm" className="gap-1.5 bg-[var(--gold)] text-black hover:bg-[var(--gold)]/90">
           <Link to="/engagement/new"><Plus className="h-3.5 w-3.5" /> Activate New Mission</Link>

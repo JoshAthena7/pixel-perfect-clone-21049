@@ -3,7 +3,7 @@
  * Portfolio-level leadership visibility across all missions.
  * "The fleet view." Not a dashboard — a command center.
  */
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
@@ -12,7 +12,7 @@ import { daysUntil, relativeTime } from "@/lib/time";
 import { generateIrisExecutiveBrief } from "@/lib/iris/iris-brief.functions";
 
 export const Route = createFileRoute("/_authenticated/executive-command")({
-  head: () => ({ meta: [{ title: "Executive Command — Athena" }] }),
+  head: () => ({ meta: [{ title: "Command Center — Athena Command" }] }),
   component: ExecutiveCommand,
 });
 
@@ -27,7 +27,7 @@ function ExecutiveCommand() {
   const [statsById, setStatsById] = useState<Record<string, any>>({});
   const [irisBrief, setIrisBrief] = useState<string | null>(null);
   const [irisLoading, setIrisLoading] = useState(false);
-  const navigate = (() => { /* placeholder */ }) as any;
+  const navigate = useNavigate();
 
   const active = useMemo(() => memberships.filter(m => m.engagement.status !== "Archived"), [memberships]);
 
@@ -58,13 +58,11 @@ function ExecutiveCommand() {
 
   useEffect(() => {
     if (!active.length || !user?.id) return;
-    const key = `iris_exec_${user.id}_${new Date().toDateString()}`;
-    try { const c=JSON.parse(localStorage.getItem(key)??"null"); if(c) { setIrisBrief(c); return; } } catch {}
     setIrisLoading(true);
     const raw=user.email?.split("@")?.[0]?.split(".")?.[0]??"";
     const name=raw.charAt(0).toUpperCase()+raw.slice(1);
     generateIrisExecutiveBrief({data:{userName:name}})
-      .then(r=>{ setIrisBrief(r.brief); localStorage.setItem(key,JSON.stringify(r.brief)); })
+      .then(r=>{ setIrisBrief(r.brief); })
       .catch(()=>setIrisBrief(null))
       .finally(()=>setIrisLoading(false));
   }, [active.length, user?.id]);
@@ -72,8 +70,8 @@ function ExecutiveCommand() {
   function enter(id: string) {
     const m = active.find(x => x.engagement.id === id);
     if (!m) return;
-    // Use the existing switchEngagement + navigate pattern
-    window.location.href = "/command";
+    switchEngagement(id);
+    navigate({ to: "/command" });
   }
 
   const atRisk = active.filter(m => { const s=statsById[m.engagement.id]; const d=daysUntil((m.engagement as any).submission_date); return s&&(s.openSos>0||s.highRisks>0||(d!==null&&d<=14)); });
@@ -93,8 +91,8 @@ function ExecutiveCommand() {
     <div style={{maxWidth:1100,margin:"0 auto",padding:"40px 32px",display:"flex",flexDirection:"column",gap:40}}>
       {/* Header */}
       <div>
-        <div style={{fontSize:10,letterSpacing:"0.2em",textTransform:"uppercase",color:"rgba(255,255,255,0.3)",marginBottom:6}}>Portfolio Intelligence</div>
-        <h1 style={{fontSize:30,fontWeight:700,letterSpacing:"-0.02em",margin:0}}>Executive Command</h1>
+        <div style={{fontSize:10,letterSpacing:"0.2em",textTransform:"uppercase",color:"rgba(255,255,255,0.3)",marginBottom:6}}>Fleet Intelligence</div>
+        <h1 style={{fontSize:30,fontWeight:700,letterSpacing:"-0.02em",margin:0}}>Command Center</h1>
         <p style={{fontSize:14,color:"rgba(255,255,255,0.45)",marginTop:6}}>Fleet-wide visibility across {active.length} active mission{active.length!==1?"s":""}.</p>
       </div>
 
@@ -103,7 +101,7 @@ function ExecutiveCommand() {
         {[
           {label:"Active Missions",value:active.length,color:GOLD},
           {label:"Missions At Risk",value:atRisk.length,color:atRisk.length>0?"#f59e0b":"#22c55e"},
-          {label:"Active SOS",value:totalSOS,color:totalSOS>0?"#ef4444":"#22c55e"},
+          {label:"Escalations",value:totalSOS,color:totalSOS>0?"#ef4444":"#22c55e"},
           {label:"Leadership Signals",value:totalLeadership,color:totalLeadership>0?"#f59e0b":"rgba(255,255,255,0.4)"},
         ].map(({label,value,color})=>(
           <div key={label} style={{background:BG2,border:`0.5px solid ${BORDER}`,borderRadius:12,padding:"18px 20px"}}>
@@ -138,7 +136,7 @@ function ExecutiveCommand() {
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:2}}>
                       <span style={{fontSize:14,fontWeight:600}}>{m.engagement.name}</span>
-                      {s?.openSos?<span style={{fontSize:9,fontWeight:800,padding:"1px 6px",borderRadius:3,background:"#ef4444",color:"#fff"}}>SOS</span>:null}
+                      {s?.openSos?<span style={{fontSize:9,fontWeight:800,padding:"1px 6px",borderRadius:3,background:"#ef4444",color:"#fff"}}>ESC</span>:null}
                       {s?.highRisks?<span style={{fontSize:9,fontWeight:700,padding:"1px 6px",borderRadius:3,background:"rgba(245,158,11,0.15)",color:"#f59e0b"}}>{s.highRisks} high risk</span>:null}
                     </div>
                     <div style={{display:"flex",gap:14,fontSize:11,color:"rgba(255,255,255,0.4)"}}>
@@ -194,7 +192,7 @@ function ExecutiveCommand() {
                     <span style={{fontSize:14,fontWeight:600}}>{m.engagement.name}</span>
                   </div>
                   <div style={{display:"flex",flexDirection:"column",gap:3}}>
-                    {s?.openSos>0&&<Row label="Active SOS" value={s.openSos} color="#ef4444"/>}
+                    {s?.openSos>0&&<Row label="Escalations" value={s.openSos} color="#ef4444"/>}
                     {s?.highRisks>0&&<Row label="High Risks" value={s.highRisks} color="#f59e0b"/>}
                     {d!==null&&d<=14&&<Row label="Days to Submission" value={`${d}d`} color={d<=7?"#ef4444":"#f59e0b"}/>}
                     {s?.leadershipSignals>0&&<Row label="Leadership Signals" value={s.leadershipSignals} color="#f59e0b"/>}

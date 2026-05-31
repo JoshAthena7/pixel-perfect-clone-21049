@@ -14,7 +14,7 @@ import { daysUntil } from "@/lib/time";
 import { generateIrisExecutiveBrief } from "@/lib/iris/iris-brief.functions";
 
 export const Route = createFileRoute("/_authenticated/select-engagement")({
-  head: () => ({ meta: [{ title: "Athena Command" }] }),
+  head: () => ({ meta: [{ title: "Athena HQ — Athena Command" }] }),
   component: LobbyPage,
 });
 
@@ -80,16 +80,7 @@ function LobbyPage() {
     [memberships]
   );
 
-  // Auto-route single mission
-  useEffect(() => {
-    if (loading) return;
-    const auto = new URLSearchParams(window.location.search).get("auto");
-    if (auto === "1" && active.length === 1) {
-      const m = active[0];
-      switchEngagement(m.engagement.id);
-      navigate({ to: routeForRole(m.role), replace: true });
-    }
-  }, [loading, active.length]);
+  // Single-mission users always see the Lobby — no auto-route
 
   // Fetch all Lobby data
   useEffect(() => {
@@ -131,14 +122,13 @@ function LobbyPage() {
     if (!active.length || !user?.id) return;
     const key = `iris_lobby_${user.id}_${new Date().toDateString()}`;
     try {
-      const cached = JSON.parse(localStorage.getItem(key) ?? "null");
-      if (cached) { setIrisBrief(cached); return; }
+
     } catch { /* ignore */ }
     setIrisLoading(true);
     const raw = user.email?.split("@")?.[0]?.split(".")?.[0] ?? "";
     const name = raw.charAt(0).toUpperCase() + raw.slice(1);
     generateIrisExecutiveBrief({ data: { userName: name } })
-      .then(r => { setIrisBrief(r.brief); localStorage.setItem(key, JSON.stringify(r.brief)); })
+      .then(r => { setIrisBrief(r.brief); })
       .catch(() => setIrisBrief(null))
       .finally(() => setIrisLoading(false));
   }, [active.length, user?.id]);
@@ -234,7 +224,7 @@ function LobbyPage() {
             {[
               { label: "Active Missions", value: active.length, color: GOLD },
               { label: "Need Attention", value: needsAttention, color: needsAttention > 0 ? "#f59e0b" : "#22c55e" },
-              { label: "Active SOS", value: totalSOS, color: totalSOS > 0 ? "#ef4444" : "#22c55e" },
+              { label: "Escalations", value: totalSOS, color: totalSOS > 0 ? "#ef4444" : "#22c55e" },
               { label: "Market Signals", value: horizonItems.length, color: "#60a5fa" },
             ].map(({ label, value, color }) => (
               <div key={label} style={{ background: SURFACE, border: `0.5px solid ${BORDER_STRONG}`, borderRadius: 12, padding: "20px 22px" }}>
@@ -303,7 +293,7 @@ function LobbyPage() {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
                         <span style={{ fontSize: 15, fontWeight: 700, color: TEXT }}>{m.engagement.name}</span>
-                        {s?.openSos ? <span style={{ fontSize: 9, fontWeight: 800, padding: "2px 7px", borderRadius: 4, background: "#ef4444", color: "#fff", letterSpacing: "0.08em" }}>SOS</span> : null}
+                        {s?.openSos ? <span style={{ fontSize: 9, fontWeight: 800, padding: "2px 7px", borderRadius: 4, background: "#ef4444", color: "#fff", letterSpacing: "0.08em" }}>ESC</span> : null}
                       </div>
                       <div style={{ display: "flex", gap: 14, fontSize: 11, color: MUTED }}>
                         <span>{m.engagement.client}</span>
@@ -385,7 +375,7 @@ function LobbyPage() {
             {[
               { label: "Ask IRIS", icon: "🔮", action: () => document.querySelector<HTMLInputElement>('input[placeholder="Ask IRIS…"]')?.focus(), primary: true },
               { label: "Submit Signal", icon: "📡", action: () => { if (active[0]) enter(active[0]); } },
-              { label: "Raise SOS", icon: "🚨", action: () => { if (active[0]) enter(active[0]); }, danger: true },
+              { label: "Raise Escalation", icon: "🚨", action: () => { if (active[0]) enter(active[0]); }, danger: true },
               { label: "Mission Control", icon: "🎯", action: () => navigate({ to: "/intel" }) },
               { label: "View All Missions", icon: "🗂️", action: () => {} },
             ].map(({ label, icon, action, primary, danger }) => (

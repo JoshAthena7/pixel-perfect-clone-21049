@@ -101,6 +101,12 @@ function LibraryPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
+      <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
+        <span className="font-semibold text-foreground">Looking for your RFP or mission documents?</span>
+        {" "}RFP files, amendments, and competitive intelligence live in the{" "}
+        <a href="/intel" className="text-primary underline underline-offset-2">Intelligence Vault</a>.
+        {" "}This library is for reference material — model contracts, rate sheets, policy docs.
+      </div>
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <div>
