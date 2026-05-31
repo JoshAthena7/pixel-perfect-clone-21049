@@ -66,6 +66,15 @@
 }
 
 
+
+@keyframes fadeInDown { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+@keyframes iris-breathe { 0%,100%{opacity:.5;transform:scale(1)} 50%{opacity:1;transform:scale(1.07)} }
+@keyframes iris-ring { 0%{transform:scale(1);opacity:.55} 100%{transform:scale(2.4);opacity:0} }
+@keyframes iris-ring-slow { 0%{transform:scale(1);opacity:.3} 100%{transform:scale(2.0);opacity:0} }
+.iris-core   { animation: iris-breathe  3.5s ease-in-out infinite; }
+.iris-ring-1 { animation: iris-ring     3.5s ease-out infinite; }
+.iris-ring-2 { animation: iris-ring-slow 3.5s ease-out infinite 1.2s; }
+
 @layer base {
   html, body { background: var(--background); color: var(--foreground); }
   body { font-family: var(--font-sans); overflow-x: hidden; }

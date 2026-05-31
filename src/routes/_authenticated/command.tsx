@@ -22,6 +22,7 @@ import { RisksSignalsPanel } from "@/components/war-room/RisksSignalsPanel";
 import { SosBanner } from "@/components/war-room/SosBanner";
 import { SizingSummaryStrip } from "@/components/sizing/SizingSummaryStrip";
 import { PageGate } from "@/components/war-room/PageGate";
+import { StrategicIntelFeed } from "@/components/iris/StrategicIntelFeed";
 
 
 export const Route = createFileRoute("/_authenticated/command")({
@@ -383,6 +384,8 @@ function CommandCenter() {
 
         {/* ZONE 0 — SOS (only renders when active SOS exists) */}
         <SosBanner />
+        {/* IRIS Strategic Intelligence Feed */}
+        <StrategicIntelFeed engagementId={engagement.id} canRegenerate={canEdit("missionControl")} />
 
         {/* ONBOARDING — shows until mission is set up */}
         <OnboardingChecklist engagementId={engagement.id} />

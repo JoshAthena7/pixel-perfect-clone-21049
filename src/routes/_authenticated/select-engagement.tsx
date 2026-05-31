@@ -45,6 +45,7 @@ type Stats = {
   openSos: number;
   openRisks: number;
   lastSignalAt: string | null;
+  strategicAlerts: number;
   heat: { Green: number; Yellow: number; Orange: number; Red: number };
   mySections?: number;
 };
@@ -92,13 +93,14 @@ function SelectEngagementPage() {
     if (loading || active.length === 0) return;
     const ids = active.map((m) => m.engagement.id);
     (async () => {
-      const [heatRes, memRes, sosRes, secRes, asnRes, riskRes, huddleRes] = await Promise.all([
+      const [heatRes, memRes, sosRes, secRes, asnRes, riskRes, huddleRes, stratRes] = await Promise.all([
         supabase.from("heatmap_sections").select("engagement_id,status").in("engagement_id", ids),
         supabase.from("engagement_members").select("engagement_id").in("engagement_id", ids),
         supabase.from("sos_alerts").select("engagement_id,status").in("engagement_id", ids).neq("status", "Resolved"),
         supabase.from("heatmap_sections").select("engagement_id").in("engagement_id", ids),
         supabase.from("risks").select("engagement_id,status").in("engagement_id", ids).in("status", ["Open","Monitoring"]),
         supabase.from("huddles").select("engagement_id,created_at").in("engagement_id", ids).order("created_at", { ascending: false }).limit(ids.length * 2),
+        supabase.from("mission_strategic_signals").select("engagement_id").in("engagement_id", ids).neq("status","dismissed").in("classification",["escalation","alert","recommendation"]),
         user
           ? supabase.from("section_assignments").select("engagement_id,user_id").in("engagement_id", ids).eq("user_id", user.id)
           : Promise.resolve({ data: [] as { engagement_id: string; user_id: string }[] }),
@@ -106,7 +108,7 @@ function SelectEngagementPage() {
 
       const map: Record<string, Stats> = {};
       for (const id of ids) {
-        map[id] = { sections: 0, members: 0, openSos: 0, openRisks: 0, lastSignalAt: null, heat: { Green: 0, Yellow: 0, Orange: 0, Red: 0 } };
+        map[id] = { sections: 0, members: 0, openSos: 0, openRisks: 0, lastSignalAt: null, strategicAlerts: 0, heat: { Green: 0, Yellow: 0, Orange: 0, Red: 0 } };
       }
       for (const r of (heatRes.data as { engagement_id: string; status: string }[] | null) ?? []) {
         const bucket = map[r.engagement_id]; if (!bucket) continue;
@@ -135,6 +137,9 @@ function SelectEngagementPage() {
           const b = map[r.engagement_id];
           if (b) { b.lastSignalAt = r.created_at; seenHuddle.add(r.engagement_id); }
         }
+      }
+      for (const r of (stratRes.data as { engagement_id: string }[] | null) ?? []) {
+        const b = map[r.engagement_id]; if (b) b.strategicAlerts = (b.strategicAlerts ?? 0) + 1;
       }
       setStatsById(map);
 
@@ -326,7 +331,8 @@ function SelectEngagementPage() {
 
 function irisOneLiner(engagement: any, stats: Stats | undefined): string {
   if (!stats) return "Loading intelligence…";
-  const { openSos, openRisks, lastSignalAt } = stats;
+  const { openSos, openRisks, lastSignalAt, strategicAlerts } = stats;
+  if ((strategicAlerts ?? 0) > 0 && openSos === 0) return `${strategicAlerts} strategic intelligence signal${strategicAlerts > 1 ? "s" : ""} detected — review IRIS feed.`;
   const heat = stats.heat;
   const redSections = heat.Red + heat.Orange;
 

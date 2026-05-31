@@ -337,6 +337,61 @@ async function handler() {
   // -----------------------------------------------
   // Insert
   // -----------------------------------------------
+
+  // -----------------------------------------------
+  // Analysis 8: strategic_intelligence_scan
+  // Check market_intelligence for recent items matching active engagements
+  // and create intelligence_insights if high-relevance matches exist
+  // -----------------------------------------------
+  const since48h = new Date(Date.now() - 48 * 3600 * 1000).toISOString();
+  const { data: recentMarketIntel } = await supabase
+    .from("market_intelligence")
+    .select("id,title,summary,source,relevant_states,relevant_categories,url,published_at,ingested_at")
+    .gte("ingested_at", since48h)
+    .order("ingested_at", { ascending: false })
+    .limit(30);
+
+  for (const eng of activeEngagements) {
+    const engState = (eng as any).state ?? "";
+    if (!engState) continue;
+
+    const matches = (recentMarketIntel ?? []).filter((item: any) =>
+      Array.isArray(item.relevant_states) && item.relevant_states.includes(engState)
+    );
+
+    if (matches.length === 0) continue;
+    if (await recentSimilarExists(eng.id, "strategic_intelligence")) continue;
+
+    const topItem = matches[0] as any;
+    const body = await aiGenerate(
+      "You are IRIS. Write a 2-sentence alert (max 240 chars) explaining why a new public intelligence item matters for a healthcare proposal engagement. Be specific and direct.",
+      `Engagement: ${eng.name} (${eng.client}, ${engState})
+
+New intelligence:
+Title: ${topItem.title}
+Source: ${topItem.source}
+Summary: ${(topItem.summary ?? "").slice(0, 400)}
+${matches.length > 1 ? `
+(${matches.length - 1} additional items also matched this state.)` : ""}`,
+      lovableKey
+    );
+
+    insightsToInsert.push({
+      engagement_id: eng.id,
+      insight_type: "strategic_intelligence",
+      title: `New ${topItem.source} item relevant to ${engState}${matches.length > 1 ? ` (+${matches.length - 1} more)` : ""}`,
+      body: body || `New public intelligence from ${topItem.source} may be relevant to ${eng.name}. Review strategic intelligence feed for details.`,
+      severity: "info",
+      confidence_score: 0.65,
+      supporting_data: {
+        source: topItem.source,
+        url: topItem.url,
+        matched_items: matches.length,
+        state: engState,
+      },
+    });
+  }
+
   if (insightsToInsert.length > 0) {
     const { error: insErr } = await supabase.from("intelligence_insights").insert(insightsToInsert);
     if (insErr) console.error("insight insert error", insErr);
