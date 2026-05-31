@@ -17,3 +17,5 @@ jobs:
       - run: bun run lint -- --max-warnings=0
       - run: bunx prettier --check .
       - run: bun run build
+      - run: bunx playwright install --with-deps
+      - run: bun run test:visual
