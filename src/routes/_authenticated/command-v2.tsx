@@ -279,7 +279,7 @@ function CommandV2() {
             </div>
           </div>
           <div className="panel">
-            <div className="panel-head"><span className="panel-title">Client Signal</span><button className="btn">+ Record</button></div>
+            <div className="panel-head"><span className="panel-title">Client Signal</span><button className="btn" onClick={() => setModal("pulse")}>+ Record</button></div>
             <div className="panel-body">
               {!pulse && <div className="muted">No client signal recorded yet.</div>}
               {pulse && (
