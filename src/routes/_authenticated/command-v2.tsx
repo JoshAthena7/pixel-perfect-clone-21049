@@ -2,6 +2,28 @@ import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
+import { useSession } from "@/hooks/use-session";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  BroadcastForm,
+  HuddleForm,
+  PulseForm,
+  DecisionForm,
+  RiskForm,
+  SosForm,
+  type FormProps,
+} from "@/components/war-room/ActionLauncher";
+import { toast } from "sonner";
+
+type ModalKey = "broadcast" | "signal" | "risk" | "sos" | "decision" | "pulse";
+const MODAL_TITLES: Record<ModalKey, string> = {
+  broadcast: "Send Broadcast",
+  signal: "Submit Team Signal",
+  risk: "Log Risk",
+  sos: "Raise Support Request",
+  decision: "Record Decision",
+  pulse: "Record Client Signal",
+};
 
 export const Route = createFileRoute("/_authenticated/command-v2")({
   head: () => ({ meta: [{ title: "Mission Control — Athena Command" }] }),
