@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { AlertOctagon, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
-import { useMember } from "@/hooks/use-member";
+
 import { relativeTime } from "@/lib/time";
 
 type SosAlert = {
@@ -24,8 +24,7 @@ const BORDER = "rgba(255,255,255,0.08)";
  * Mission Control. Leadership can acknowledge (mark In Progress) inline.
  */
 export function SosBanner() {
-  const { engagement, can } = useEngagement();
-  const { member } = useMember();
+  const { engagement, can, member } = useEngagement();
   const [alerts, setAlerts] = useState<SosAlert[]>([]);
 
   useEffect(() => {
