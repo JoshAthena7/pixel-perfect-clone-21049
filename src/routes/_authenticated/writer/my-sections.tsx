@@ -11,11 +11,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { Flame, Trophy } from "lucide-react";
 import { SectionThread } from "@/components/war-room/comms/SectionThread";
 import { dueState } from "@/lib/due-date";
 import { StuckButton } from "@/components/war-room/writer/StuckButton";
 import { logActivity } from "@/lib/activity-log";
 import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
+import { burstConfetti } from "@/lib/confetti";
+import { getQuestionDay, questionForDay } from "@/lib/trivia-helpers";
+import { seedStateTrivia } from "@/lib/ai/trivia.functions";
 
 export const Route = createFileRoute("/_authenticated/writer/my-sections")({
   head: () => ({ meta: [{ title: "My Brief — Writer Portal" }] }),
