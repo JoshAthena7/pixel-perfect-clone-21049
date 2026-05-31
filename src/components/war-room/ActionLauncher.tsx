@@ -528,15 +528,21 @@ export function BroadcastForm({ engagementId, userId, memberName, onSuccess, onC
   }>({ subject: "", message: "", tone: "Informational", audience: "Full team" });
   const [saving, setSaving] = useState(false);
   const t = useTouched<keyof typeof values>();
+  const server = useServerErrors<typeof values>();
   const { success, errors, data } = validate(broadcastSchema, values);
   const err = (k: keyof typeof values): string | undefined =>
-    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined);
+    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined) ?? server.fieldErrors[k];
+  const setField = <K extends keyof typeof values>(k: K, v: typeof values[K]) => {
+    setValues((p) => ({ ...p, [k]: v }));
+    server.clearField(k);
+  };
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     t.setAttempted(true);
     if (!success || !data) return;
     setSaving(true);
+    server.reset();
     const content = `${data.subject ? `**${data.subject}**\n` : ""}${data.message}\n\n— ${data.tone} · to ${data.audience}`;
     const { error } = await supabase.from("broadcasts").insert({
       engagement_id: engagementId,
@@ -546,22 +552,29 @@ export function BroadcastForm({ engagementId, userId, memberName, onSuccess, onC
       pinned: data.tone === "Urgent",
     });
     setSaving(false);
-    if (error) return toast.error("Couldn't send broadcast", { description: error.message });
+    if (error) {
+      const mapped = mapSupabaseError<typeof values>(error, BROADCAST_COLUMNS);
+      server.apply(mapped);
+      return toast.error("Couldn't send broadcast", {
+        description: summarizeServerErrors(mapped) ?? error.message,
+      });
+    }
     setValues((p) => ({ ...p, subject: "", message: "" }));
     onSuccess("Broadcast sent");
   }
 
   return (
     <form onSubmit={submit} className="space-y-3" noValidate>
+      <FormBanner message={server.formError} />
       <Field label="Subject" error={err("subject")}>
-        <Input value={values.subject} onChange={(e) => setValues((p) => ({ ...p, subject: e.target.value }))} onBlur={() => t.mark("subject")} />
+        <Input value={values.subject} onChange={(e) => setField("subject", e.target.value)} onBlur={() => t.mark("subject")} />
       </Field>
       <Field label="Message" error={err("message")}>
-        <Textarea rows={4} value={values.message} onChange={(e) => setValues((p) => ({ ...p, message: e.target.value }))} onBlur={() => t.mark("message")} />
+        <Textarea rows={4} value={values.message} onChange={(e) => setField("message", e.target.value)} onBlur={() => t.mark("message")} />
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Tone">
-          <Select value={values.tone} onValueChange={(v) => setValues((p) => ({ ...p, tone: v as typeof p.tone }))}>
+          <Select value={values.tone} onValueChange={(v) => setField("tone", v as typeof values.tone)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {["Informational", "Urgent", "Encouraging", "Reminder"].map((t) => (
@@ -571,7 +584,7 @@ export function BroadcastForm({ engagementId, userId, memberName, onSuccess, onC
           </Select>
         </Field>
         <Field label="Send to">
-          <Select value={values.audience} onValueChange={(v) => setValues((p) => ({ ...p, audience: v as typeof p.audience }))}>
+          <Select value={values.audience} onValueChange={(v) => setField("audience", v as typeof values.audience)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {["Full team", "SMEs only", "Writers only", "Leads only"].map((t) => (
