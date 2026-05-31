@@ -215,6 +215,18 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Open published site (use Lovable Publish to redeploy)">
+              <a
+                href="https://pixel-perfect-clone-21049.lovable.app"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Rocket className="h-4 w-4" />
+                <span>Live Site</span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={isActive("/select-engagement")} tooltip="Command Center — Morning Brief">
               <Link to="/select-engagement"><DoorOpen className="h-4 w-4" /><span>Command Center</span></Link>
             </SidebarMenuButton>
