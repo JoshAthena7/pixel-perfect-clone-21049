@@ -90,7 +90,8 @@ export const generateIrisExecutiveBrief = createServerFn({ method: "POST" })
     if (!memberships?.length) return { brief: "", generatedAt: new Date().toISOString() };
 
     const ids = memberships.map((m: any) => m.engagement_id);
-    const [engs, signals, risks, sos, strategic] = await Promise.all([
+    const since48h = new Date(Date.now() - 48 * 3600000).toISOString();
+    const [engs, signals, risks, sos, strategic, horizon] = await Promise.all([
       supabase.from("engagements").select("id,name,client,health,submission_date").in("id",ids).eq("status","Active"),
       supabase.from("huddles").select("engagement_id,health,leadership_needed").in("engagement_id",ids).order("created_at",{ascending:false}).limit(ids.length*2),
       supabase.from("risks").select("engagement_id").in("engagement_id",ids).in("status",["Open","Monitoring"]),
@@ -101,6 +102,12 @@ export const generateIrisExecutiveBrief = createServerFn({ method: "POST" })
         .in("engagement_id",ids).neq("status","dismissed")
         .in("classification",["escalation","alert","recommendation"])
         .order("urgency_score",{ascending:false}).limit(10),
+      // Pipeline Horizon — new market intelligence for executive awareness
+      supabase.from("pipeline_horizon")
+        .select("title,horizon_category,iris_type,iris_headline,iris_action,urgency_score,affected_states")
+        .eq("status","active")
+        .gte("ingested_at", since48h)
+        .order("urgency_score",{ascending:false}).limit(5),
     ]);
 
     const today = new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
@@ -110,6 +117,7 @@ export const generateIrisExecutiveBrief = createServerFn({ method: "POST" })
     const engMap: Record<string, string> = {};
     (engs.data ?? []).forEach((e: any) => { engMap[e.id] = e.name; });
 
+    const horizonItems = (horizon.data ?? []) as any[];
     const ctx = JSON.stringify({
       missions: (engs.data ?? []).map((e: any) => ({
         name: e.name, client: e.client, health: e.health,
@@ -126,11 +134,19 @@ export const generateIrisExecutiveBrief = createServerFn({ method: "POST" })
         action: s.recommended_action,
         source: s.source_name,
       })),
+      pipelineHorizon: horizonItems.map(h => ({
+        category: h.horizon_category,
+        irisType: h.iris_type,
+        headline: h.iris_headline ?? h.title,
+        action: h.iris_action,
+        states: h.affected_states,
+        urgency: h.urgency_score,
+      })),
     });
 
     const brief = await callAI(
       `You are IRIS, executive intelligence officer for Athena Command. Write a morning brief for leadership.
-Rules: open with 'Good morning, ${name}. Today is ${today}.', short paragraphs not bullets, synthesize across all missions, include any notable strategic intelligence developments (CMS guidance, legislation, market signals), end with 'Recommended focus today:' and 2-3 items, tone is trusted chief-of-staff, 160-260 words, never use bullets, never say 'based on the data'.`,
+Rules: open with 'Good morning, ${name}. Today is ${today}.', short paragraphs not bullets, synthesize across all missions, surface the most important Pipeline Horizon developments (CMS guidance, legislation, procurement signals, market signals) that warrant leadership awareness, end with 'Recommended focus today:' and 2-3 items, tone is trusted chief-of-staff, 160-280 words, never use bullets, never say 'based on the data'. Only include Pipeline Horizon items that are genuinely significant — do not include noise.`,
       `Portfolio and strategic intelligence:\n${ctx}`
     );
     return { brief, generatedAt: new Date().toISOString() };

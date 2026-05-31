@@ -7,6 +7,7 @@ import { BrandLockup } from "@/components/ui/BrandLockup";
 
 import { LogOut, Archive, Plus, Siren, Users, FileText, Clock } from "lucide-react";
 import { daysUntil } from "@/lib/time";
+import { PipelineHorizonLobby } from "@/components/war-room/PipelineHorizonLobby";
 
 export const Route = createFileRoute("/_authenticated/select-engagement")({
   head: () => ({ meta: [{ title: "Command Center — Athena" }] }),
@@ -307,6 +308,13 @@ function SelectEngagementPage() {
           </div>
         )}
       </section>
+
+      {/* PIPELINE HORIZON — Market Awareness Layer */}
+      {active.length > 0 && (
+        <section className="px-6 py-6" style={{ borderTop: "0.5px solid rgba(255,255,255,0.06)" }}>
+          <PipelineHorizonLobby limit={5} showHeader={true} />
+        </section>
+      )}
 
       {/* FOOTER */}
       <footer
