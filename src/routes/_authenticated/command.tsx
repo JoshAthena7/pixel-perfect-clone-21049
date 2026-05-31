@@ -148,7 +148,10 @@ function QuickActionBar({ engagementId, memberName }: { engagementId: string; me
   async function submitBroadcast() {
     if (!broadcastText.trim()) return;
     setSaving(true);
-    await supabase.from("broadcasts").insert({ engagement_id: engagementId, content: broadcastText, author_name: memberName || "Leadership" });
+    const { data: userData } = await supabase.auth.getUser();
+    const authorId = userData.user?.id;
+    if (!authorId) { setSaving(false); return; }
+    await supabase.from("broadcasts").insert({ engagement_id: engagementId, content: broadcastText, author_name: memberName || "Leadership", author_id: authorId });
     setSaving(false); setBroadcastText(""); setOpen(null);
   }
 

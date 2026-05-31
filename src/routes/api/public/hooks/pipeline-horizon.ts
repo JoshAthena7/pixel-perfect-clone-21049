@@ -174,9 +174,9 @@ Return ONLY JSON:
       if (stateMatch || programMatch) {
         const score = stateMatch && programMatch ? 0.9 : stateMatch ? 0.75 : 0.6;
         const reason = stateMatch ? `Relevant to ${eng.state} operations` : `Program area match`;
-        await supabase.from("pipeline_horizon_missions").insert({
+        await supabase.from("pipeline_horizon_missions").upsert({
           horizon_id: ph.id, engagement_id: eng.id, match_score: score, match_reason: reason,
-        }).onConflict("horizon_id,engagement_id").merge();
+        }, { onConflict: "horizon_id,engagement_id" });
       }
     }
 

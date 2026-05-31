@@ -71,7 +71,7 @@ export function StrategicIntelFeed({ engagementId, canRegenerate = false, compac
       const r = await getStoredStrategicSignals({
         data: { engagementId, minClassification: "signal" }
       });
-      setSignals(r.signals as Signal[]);
+      setSignals(r.signals as unknown as Signal[]);
     } catch { /* silent */ }
     setLoading(false);
   }
@@ -82,7 +82,7 @@ export function StrategicIntelFeed({ engagementId, canRegenerate = false, compac
       const r = await readStrategicIntelligence({
         data: { engagementId, forceRefresh: false, limit: 20 }
       });
-      setSignals(r.signals as Signal[]);
+      setSignals(r.signals as unknown as Signal[]);
     } catch { /* silent */ }
     setScanning(false);
   }
