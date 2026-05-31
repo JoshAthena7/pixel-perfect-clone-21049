@@ -446,7 +446,7 @@ export type Database = {
       content_library: {
         Row: {
           added_by: string | null
-          body: string
+          body: string | null
           category: string
           created_at: string
           engagement_id: string | null
@@ -455,12 +455,12 @@ export type Database = {
           notes: string | null
           source_engagement_id: string | null
           tags: string[] | null
-          title: string
+          title: string | null
           url: string | null
         }
         Insert: {
           added_by?: string | null
-          body: string
+          body?: string | null
           category?: string
           created_at?: string
           engagement_id?: string | null
@@ -469,12 +469,12 @@ export type Database = {
           notes?: string | null
           source_engagement_id?: string | null
           tags?: string[] | null
-          title: string
+          title?: string | null
           url?: string | null
         }
         Update: {
           added_by?: string | null
-          body?: string
+          body?: string | null
           category?: string
           created_at?: string
           engagement_id?: string | null
@@ -483,7 +483,7 @@ export type Database = {
           notes?: string | null
           source_engagement_id?: string | null
           tags?: string[] | null
-          title?: string
+          title?: string | null
           url?: string | null
         }
         Relationships: [
