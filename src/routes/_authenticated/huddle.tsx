@@ -14,7 +14,7 @@ import { relativeTime } from "@/lib/time";
 import { createIssue } from "@/lib/flag-issue";
 
 export const Route = createFileRoute("/_authenticated/huddle")({
-  head: () => ({ meta: [{ title: "Daily Huddle — Athena" }] }),
+  head: () => ({ meta: [{ title: "Team Signals — Athena" }] }),
   component: HuddlePage,
 });
 
@@ -129,7 +129,7 @@ function HuddlePage() {
   return (
     <div className="mx-auto grid max-w-7xl gap-6 p-4 md:p-8 lg:grid-cols-5">
       <Card className="border-border bg-surface p-6 lg:col-span-3">
-        <h1 className="text-xl font-bold">Daily Huddle</h1>
+        <h1 className="text-xl font-bold">Team Signals</h1>
         <p className="mt-1 text-sm text-muted-foreground">60-second status from the front line.</p>
         <form onSubmit={submit} className="mt-6 space-y-5">
           <div>

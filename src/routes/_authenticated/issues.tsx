@@ -1,322 +1,422 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
 import { useSession } from "@/hooks/use-session";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { StatusPill, type StatusColor } from "@/components/war-room/StatusPill";
-import { ConfirmAction } from "@/components/war-room/ConfirmAction";
-import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
-import { relativeTime } from "@/lib/time";
-import { Siren, ShieldAlert, ShieldCheck } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { logActivity } from "@/lib/activity-log";
 import { PageGate } from "@/components/war-room/PageGate";
+import { relativeTime } from "@/lib/time";
 
 export const Route = createFileRoute("/_authenticated/issues")({
-  head: () => ({ meta: [{ title: "Escalations — Athena" }] }),
-  component: () => <PageGate page="escalations"><IssuesPage /></PageGate>,
+  head: () => ({ meta: [{ title: "Team Signals — Athena" }] }),
+  component: () => <PageGate page="escalations"><TeamSignals /></PageGate>,
 });
 
-type IssueType = "sos" | "risk";
+const CARD = "rounded-lg border border-border/60 bg-card p-4 space-y-1";
+const LABEL_SM = "text-[10px] font-bold uppercase tracking-widest text-muted-foreground";
 
-type UnifiedIssue = {
-  id: string;
-  type: IssueType;
-  title: string;
-  description: string | null;
-  severity: string;
-  status: string;
-  ownerName: string | null;
-  submitterName: string;
-  recommendedAction: string | null;
-  createdAt: string;
-  resolvedAt: string | null;
-};
-
-const SEV_RANK: Record<string, number> = { Critical: 0, High: 1, Medium: 2, Low: 3 };
-function sevColor(s: string): StatusColor {
-  if (s === "Critical") return "Red";
-  if (s === "High") return "Orange";
-  if (s === "Medium") return "Yellow";
-  return "Green";
+function StatusBadge({ value, map }: { value: string; map: Record<string, string> }) {
+  const cls = map[value] ?? "border-border text-muted-foreground bg-muted/30";
+  return <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${cls}`}>{value}</span>;
 }
-const OPEN_STATUSES = new Set(["Open", "Acknowledged", "Mitigating"]);
-const CLOSED_STATUSES = new Set(["Resolved", "Closed"]);
 
-function IssuesPage() {
-  const { engagement, member, isLeadership } = useEngagement();
+const HEALTH_MAP: Record<string, string> = {
+  Green: "border-emerald-500/40 text-emerald-400 bg-emerald-500/8",
+  Yellow: "border-amber-500/40 text-amber-400 bg-amber-500/8",
+  Red: "border-red-500/40 text-red-400 bg-red-500/8",
+};
+const SEV_MAP: Record<string, string> = {
+  Red: "border-red-500/40 text-red-400 bg-red-500/8",
+  Orange: "border-orange-500/40 text-orange-400 bg-orange-500/8",
+  Yellow: "border-amber-500/40 text-amber-400 bg-amber-500/8",
+};
+const QUALITY_MAP: Record<string, string> = {
+  Strong: "border-emerald-500/40 text-emerald-400 bg-emerald-500/8",
+  Good: "border-blue-500/40 text-blue-400 bg-blue-500/8",
+  "Needs Work": "border-amber-500/40 text-amber-400 bg-amber-500/8",
+  "At Risk": "border-red-500/40 text-red-400 bg-red-500/8",
+};
+const CONF_LABELS: Record<number, string> = { 1: "Not Started", 2: "Outline Only", 3: "Draft In Progress", 4: "Nearly Final", 5: "Complete" };
+
+function TeamSignals() {
+  const { engagement, canEdit } = useEngagement();
   const { user } = useSession();
-  const [items, setItems] = useState<UnifiedIssue[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const eid = engagement?.id ?? "";
+  const canWrite = canEdit("escalations");
 
-  const [typeFilter, setTypeFilter] = useState<"All" | IssueType>("All");
-  const [sevFilter, setSevFilter] = useState<"All" | "Critical" | "High" | "Medium" | "Low">("All");
-  const [statusFilter, setStatusFilter] = useState<"Open" | "Closed" | "All">("Open");
+  const [huddles, setHuddles] = useState<any[]>([]);
+  const [sos, setSos] = useState<any[]>([]);
+  const [support, setSupport] = useState<any[]>([]);
+  const [quality, setQuality] = useState<any[]>([]);
+  const [confidence, setConfidence] = useState<any[]>([]);
+  const [resourceHealth, setResourceHealth] = useState<any[]>([]);
 
-  async function load(eid: string) {
-    setLoading(true);
-    setLoadError(null);
-    const [sos, risks] = await Promise.all([
+  async function load() {
+    if (!eid) return;
+    const [h, s, sup, q, c, rh] = await Promise.all([
+      supabase.from("huddles").select("*").eq("engagement_id", eid).order("created_at", { ascending: false }),
       supabase.from("sos_alerts").select("*").eq("engagement_id", eid).order("created_at", { ascending: false }),
-      supabase.from("risks").select("*").eq("engagement_id", eid).order("created_at", { ascending: false }),
+      supabase.from("support_requests").select("*").eq("engagement_id", eid).order("created_at", { ascending: false }),
+      supabase.from("quality_signals").select("*").eq("engagement_id", eid).order("created_at", { ascending: false }),
+      supabase.from("writer_confidence").select("*").eq("engagement_id", eid).order("created_at", { ascending: false }),
+      supabase.from("resource_health").select("*").eq("engagement_id", eid).order("created_at", { ascending: false }),
     ]);
-    setLoading(false);
-    const err = sos.error ?? risks.error;
-    if (err) { setLoadError(err.message); return; }
-
-    const u: UnifiedIssue[] = [
-      ...((sos.data ?? []) as any[]).map((a) => ({
-        id: a.id,
-        type: "sos" as const,
-        title: a.category || "Alert",
-        description: a.description ?? null,
-        severity: a.severity,
-        status: a.status,
-        ownerName: a.owner_name ?? null,
-        submitterName: a.submitter_name,
-        recommendedAction: a.recommended_action ?? null,
-        createdAt: a.created_at,
-        resolvedAt: a.resolved_at ?? null,
-      })),
-      ...((risks.data ?? []) as any[]).map((r) => ({
-        id: r.id,
-        type: "risk" as const,
-        title: r.title,
-        description: r.description ?? null,
-        severity: r.severity,
-        status: r.status,
-        ownerName: r.owner_name ?? null,
-        submitterName: r.owner_name ?? "—",
-        recommendedAction: null,
-        createdAt: r.created_at,
-        resolvedAt: r.status === "Closed" ? r.updated_at : null,
-      })),
-    ];
-    setItems(u);
+    setHuddles(h.data ?? []);
+    setSos(s.data ?? []);
+    setSupport(sup.data ?? []);
+    setQuality(q.data ?? []);
+    setConfidence(c.data ?? []);
+    setResourceHealth(rh.data ?? []);
   }
 
-  useEffect(() => {
-    if (!engagement) return;
-    load(engagement.id);
-    const ch = supabase
-      .channel(`issues:${engagement.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "sos_alerts", filter: `engagement_id=eq.${engagement.id}` }, () => load(engagement.id))
-      .on("postgres_changes", { event: "*", schema: "public", table: "risks", filter: `engagement_id=eq.${engagement.id}` }, () => load(engagement.id))
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, [engagement?.id]);
-
-  const filtered = useMemo(() => {
-    return items
-      .filter((i) => typeFilter === "All" || i.type === typeFilter)
-      .filter((i) => sevFilter === "All" || i.severity === sevFilter)
-      .filter((i) => {
-        if (statusFilter === "All") return true;
-        if (statusFilter === "Open") return OPEN_STATUSES.has(i.status);
-        return CLOSED_STATUSES.has(i.status);
-      })
-      .sort((a, b) => {
-        const ar = SEV_RANK[a.severity] ?? 9;
-        const br = SEV_RANK[b.severity] ?? 9;
-        if (ar !== br) return ar - br;
-        return b.createdAt.localeCompare(a.createdAt);
-      });
-  }, [items, typeFilter, sevFilter, statusFilter]);
-
-  const openCount = items.filter((i) => OPEN_STATUSES.has(i.status)).length;
-  const criticalCount = items.filter((i) => OPEN_STATUSES.has(i.status) && i.severity === "Critical").length;
-
-  async function setSosStatus(i: UnifiedIssue, status: string) {
-    const patch: any = { status };
-    if (status === "Resolved") patch.resolved_at = new Date().toISOString();
-    const { error } = await supabase.from("sos_alerts").update(patch).eq("id", i.id);
-    if (error) return toast.error(error.message);
-    if (engagement && member && user && status === "Resolved") {
-      logActivity({
-        engagementId: engagement.id, userId: user.id, actorName: member.display_name,
-        action: "resolved escalation", targetTable: "sos_alerts", targetId: i.id,
-      });
-    }
-  }
-  async function setRiskStatus(i: UnifiedIssue, status: string) {
-    const { error } = await supabase.from("risks").update({ status, updated_at: new Date().toISOString() }).eq("id", i.id);
-    if (error) return toast.error(error.message);
-    if (engagement && member && user && status === "Closed") {
-      logActivity({
-        engagementId: engagement.id, userId: user.id, actorName: member.display_name,
-        action: `closed risk "${i.title}"`, targetTable: "risks", targetId: i.id,
-      });
-    }
-  }
-  async function assignToMe(i: UnifiedIssue) {
-    if (!member) return;
-    const table = i.type === "sos" ? "sos_alerts" : "risks";
-    const { error } = await supabase.from(table).update({ owner_name: member.display_name }).eq("id", i.id);
-    if (error) return toast.error(error.message);
-    toast.success(`Assigned to ${member.display_name}`);
-  }
+  useEffect(() => { load(); }, [eid]);
+  if (!engagement) return null;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-8">
+    <div className="mx-auto max-w-5xl px-4 py-6 space-y-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Issues</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          One board for everything that needs attention — blockers and risks ahead.
-        </p>
+        <h1 className="text-xl font-bold">Team Signals</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">{engagement.name}</p>
       </div>
+      <Tabs defaultValue="daily" className="w-full">
+        <TabsList className="flex h-auto flex-wrap gap-1 bg-transparent p-0 mb-6">
+          {[
+            ["daily", `Daily Signals (${huddles.length})`],
+            ["sos", `SOS (${sos.filter(s => s.status !== "Resolved").length})`],
+            ["support", `Support Requests (${support.filter(s => s.status !== "Resolved").length})`],
+            ["quality", "Quality Signals"],
+            ["confidence", "Writer Confidence"],
+            ["health", "Mission Health"],
+            ["resource", "Resource Health"],
+          ].map(([v, l]) => (
+            <TabsTrigger key={v} value={v}
+              className="rounded-md border border-border/40 bg-card px-3 py-1.5 text-xs font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-primary/8">
+              {l}
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
-      <ErrorBanner error={loadError} onRetry={() => engagement && load(engagement.id)} label="Couldn't load issues." />
-      {loading && items.length === 0 && <LoadingSkeleton label="Loading issues…" />}
-
-      {criticalCount > 0 && (
-        <div className="rounded-xl border border-[color:var(--red)]/40 bg-[color:color-mix(in_oklab,var(--red)_14%,transparent)] px-5 py-3 glow-red">
-          <div className="flex items-center gap-3">
-            <Siren className="h-5 w-5 text-[color:var(--red)]" />
-            <span className="text-sm font-bold uppercase tracking-wide text-[color:var(--red)]">
-              {criticalCount} critical issue{criticalCount > 1 ? "s" : ""} require attention
-            </span>
-          </div>
-        </div>
-      )}
-
-      <Card className="border-border bg-surface p-4">
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-          <FilterGroup
-            label="Type"
-            value={typeFilter}
-            onChange={(v) => setTypeFilter(v as any)}
-            options={[
-              { v: "All", label: `All (${items.length})` },
-              { v: "sos", label: `Escalations (${items.filter((i) => i.type === "sos").length})` },
-              { v: "risk", label: `Risk (${items.filter((i) => i.type === "risk").length})` },
-            ]}
-          />
-          <FilterGroup
-            label="Severity"
-            value={sevFilter}
-            onChange={(v) => setSevFilter(v as any)}
-            options={[
-              { v: "All", label: "All" },
-              { v: "Critical", label: "Critical" },
-              { v: "High", label: "High" },
-              { v: "Medium", label: "Medium" },
-              { v: "Low", label: "Low" },
-            ]}
-          />
-          <FilterGroup
-            label="Status"
-            value={statusFilter}
-            onChange={(v) => setStatusFilter(v as any)}
-            options={[
-              { v: "Open", label: `Open (${openCount})` },
-              { v: "Closed", label: "Closed" },
-              { v: "All", label: "All" },
-            ]}
-          />
-        </div>
-      </Card>
-
-      <Card className="border-border bg-surface p-6">
-        {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-10 text-center text-sm text-muted-foreground">
-            <ShieldCheck className="mb-3 h-8 w-8 text-emerald-500" />
-            All clear — no issues match these filters.
-          </div>
-        ) : (
-          <ul className="space-y-3">
-            {filtered.map((i) => {
-              const isOpen = OPEN_STATUSES.has(i.status);
-              const noOwner = !i.ownerName || !i.ownerName.trim();
-              return (
-                <li key={`${i.type}:${i.id}`} className="rounded-md border border-border bg-surface-hover/40 p-4">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      {i.type === "sos" ? <Siren className="h-3 w-3 text-[color:var(--red)]" /> : <ShieldAlert className="h-3 w-3 text-[color:var(--orange)]" />}
-                      {i.type === "sos" ? "Escalation" : "Risk"}
-                    </span>
-                    <StatusPill status={sevColor(i.severity)} label={i.severity} />
-                    <span className="text-sm font-bold">{i.title}</span>
-                    <StatusPill status={isOpen ? "Red" : "Green"} label={i.status} />
-                    {isOpen && noOwner && (
-                      <span className="inline-flex items-center rounded-full border border-[color:var(--orange)]/50 bg-[color:var(--orange)]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--orange)]">
-                        No Owner
-                      </span>
-                    )}
-                    <span className="ml-auto text-xs text-muted-foreground">
-                      {i.submitterName} • {relativeTime(i.createdAt)}
-                    </span>
-                  </div>
-                  {i.description && <div className="mt-2 whitespace-pre-wrap text-sm">{i.description}</div>}
-                  {i.ownerName && <div className="mt-1 text-xs"><span className="text-muted-foreground">Owner:</span> {i.ownerName}</div>}
-                  {i.recommendedAction && <div className="mt-1 text-xs"><span className="text-muted-foreground">Action:</span> {i.recommendedAction}</div>}
-
-                  {isLeadership && isOpen && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {noOwner && (
-                        <Button size="sm" variant="outline" onClick={() => assignToMe(i)}>
-                          Assign to me
-                        </Button>
-                      )}
-                      {i.type === "sos" ? (
-                        <>
-                          {i.status === "Open" && <Button size="sm" variant="outline" onClick={() => setSosStatus(i, "Acknowledged")}>Acknowledge</Button>}
-                          <ConfirmAction
-                            trigger={<Button size="sm">Resolve</Button>}
-                            title="Resolve this escalation?"
-                            description="Mark this blocker as resolved. It will stop showing in open issues."
-                            confirmLabel="Resolve"
-                            onConfirm={async () => { await setSosStatus(i, "Resolved"); }}
-                          />
-                        </>
-                      ) : (
-                        <>
-                          {i.status !== "Mitigating" && <Button size="sm" variant="outline" onClick={() => setRiskStatus(i, "Mitigating")}>Mitigating</Button>}
-                          <ConfirmAction
-                            trigger={<Button size="sm">Close</Button>}
-                            title="Close this risk?"
-                            description="Mark this risk as closed."
-                            confirmLabel="Close"
-                            onConfirm={async () => { await setRiskStatus(i, "Closed"); }}
-                          />
-                        </>
-                      )}
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </Card>
+        <TabsContent value="daily"><DailyTab eid={eid} items={huddles} canWrite={canWrite} onSaved={load} user={user} /></TabsContent>
+        <TabsContent value="sos"><SosTab eid={eid} items={sos} canWrite={canWrite} onSaved={load} user={user} /></TabsContent>
+        <TabsContent value="support"><SupportTab eid={eid} items={support} canWrite={true} onSaved={load} user={user} /></TabsContent>
+        <TabsContent value="quality"><QualityTab eid={eid} items={quality} canWrite={true} onSaved={load} user={user} /></TabsContent>
+        <TabsContent value="confidence"><ConfidenceTab eid={eid} items={confidence} canWrite={true} onSaved={load} user={user} /></TabsContent>
+        <TabsContent value="health"><MissionHealthTab huddles={huddles} quality={quality} sos={sos} confidence={confidence} resourceHealth={resourceHealth} /></TabsContent>
+        <TabsContent value="resource"><ResourceTab eid={eid} items={resourceHealth} canWrite={canWrite} onSaved={load} user={user} /></TabsContent>
+      </Tabs>
     </div>
   );
 }
 
-function FilterGroup({ label, value, onChange, options }: {
-  label: string; value: string; onChange: (v: string) => void;
-  options: { v: string; label: string }[];
-}) {
+// ── Daily Signals ─────────────────────────────────────────────────
+function DailyTab({ eid, items, canWrite, onSaved, user }: any) {
+  const [health, setHealth] = useState("Green"); const [priority, setPriority] = useState("");
+  const [risk, setRisk] = useState(""); const [client, setClient] = useState("");
+  const [leadership, setLeadership] = useState(false); const [notes, setNotes] = useState("");
+  const [submitter, setSubmitter] = useState(""); const [saving, setSaving] = useState(false);
+  const [open, setOpen] = useState(false);
+  async function save() {
+    if (!priority.trim()) { toast.error("Priority is required"); return; }
+    setSaving(true);
+    const { error } = await supabase.from("huddles").insert({ engagement_id: eid, health, priority, risk, client_concern: client, leadership_needed: leadership, notes, submitter_name: submitter || "Team", created_by: user?.id });
+    if (error) { toast.error("Failed to save"); setSaving(false); return; }
+    await supabase.from("engagements").update({ health }).eq("id", eid);
+    setSaving(false); toast.success("Signal submitted"); setPriority(""); setRisk(""); setClient(""); setNotes(""); setOpen(false); onSaved();
+  }
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{label}</span>
-      <div className="flex flex-wrap gap-1">
-        {options.map((o) => (
-          <button
-            key={o.v}
-            onClick={() => onChange(o.v)}
-            className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${
-              value === o.v
-                ? "border-primary bg-primary/15 text-primary"
-                : "border-border text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {o.label}
-          </button>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between"><p className="text-sm text-muted-foreground">Daily team check-ins. Submit once per day.</p><Button size="sm" onClick={() => setOpen(v => !v)}>📡 New Signal</Button></div>
+      {open && (
+        <div className="rounded-lg border border-border/60 bg-card p-4 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div><Label className={LABEL_SM}>Submitted By</Label><Input value={submitter} onChange={e => setSubmitter(e.target.value)} placeholder="Your name" /></div>
+            <div><Label className={LABEL_SM}>Overall Health</Label>
+              <div className="flex gap-2 mt-1">{["Green","Yellow","Red"].map(h => (<button key={h} type="button" onClick={() => setHealth(h)} className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${health===h ? (h==="Green"?"border-emerald-500 text-emerald-400 bg-emerald-500/10":h==="Yellow"?"border-amber-500 text-amber-400 bg-amber-500/10":"border-red-500 text-red-400 bg-red-500/10") : "border-border text-muted-foreground"}`}>{h}</button>))}</div>
+            </div>
+          </div>
+          <div><Label className={LABEL_SM}>Priority Today *</Label><Textarea value={priority} onChange={e => setPriority(e.target.value)} placeholder="What must get done today?" rows={2} /></div>
+          <div><Label className={LABEL_SM}>Biggest Risk</Label><Textarea value={risk} onChange={e => setRisk(e.target.value)} placeholder="What could go wrong?" rows={2} /></div>
+          <div><Label className={LABEL_SM}>Client Concern</Label><Input value={client} onChange={e => setClient(e.target.value)} placeholder="Any client-related concerns?" /></div>
+          <div className="flex items-center gap-2"><input type="checkbox" id="leadership" checked={leadership} onChange={e => setLeadership(e.target.checked)} className="rounded" /><label htmlFor="leadership" className="text-sm">Leadership attention needed</label></div>
+          <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving ? "Saving…" : "Submit Signal"}</Button></div>
+        </div>
+      )}
+      {items.length === 0 ? <Empty>No signals yet. Submit the first one above.</Empty> : items.map((h: any) => (
+        <div key={h.id} className={CARD}>
+          <div className="flex items-center gap-2 flex-wrap">
+            <StatusBadge value={h.health} map={HEALTH_MAP} />
+            <span className="text-xs text-muted-foreground">{h.submitter_name} · {relativeTime(h.created_at)}</span>
+            {h.leadership_needed && <span className="text-xs font-semibold text-amber-400">👋 Leadership Needed</span>}
+          </div>
+          {h.priority && <p className="text-sm"><span className="font-medium">Priority: </span>{h.priority}</p>}
+          {h.risk && <p className="text-sm text-muted-foreground"><span className="font-medium text-foreground/70">Risk: </span>{h.risk}</p>}
+          {h.client_concern && <p className="text-sm text-muted-foreground"><span className="font-medium text-foreground/70">Client: </span>{h.client_concern}</p>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── SOS Tab ───────────────────────────────────────────────────────
+function SosTab({ eid, items, canWrite, onSaved, user }: any) {
+  const [cat, setCat] = useState(""); const [sev, setSev] = useState("Orange");
+  const [desc, setDesc] = useState(""); const [action, setAction] = useState("");
+  const [owner, setOwner] = useState(""); const [submitter, setSubmitter] = useState("");
+  const [saving, setSaving] = useState(false); const [open, setOpen] = useState(false);
+  const cats = ["Writer Issue","SME Issue","Client Issue","Scope Issue","Timeline Issue","Compliance Issue","Other"];
+  async function save() {
+    if (!desc.trim()) { toast.error("Description required"); return; }
+    setSaving(true);
+    const { error } = await supabase.from("sos_alerts").insert({ engagement_id: eid, category: cat || "Other", severity: sev, description: desc, recommended_action: action, owner_name: owner, status: "Open", submitted_by: submitter || "Team", created_by: user?.id });
+    setSaving(false);
+    if (error) { toast.error("Failed"); return; }
+    toast.success("SOS submitted"); setDesc(""); setAction(""); setOwner(""); setOpen(false); onSaved();
+  }
+  async function resolve(id: string) {
+    await supabase.from("sos_alerts").update({ status: "Resolved" }).eq("id", id);
+    onSaved();
+  }
+  const open_items = items.filter((i: any) => i.status !== "Resolved");
+  const resolved = items.filter((i: any) => i.status === "Resolved");
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between"><p className="text-sm text-muted-foreground">Urgent escalations requiring immediate leadership attention.</p><Button size="sm" variant="destructive" onClick={() => setOpen(v => !v)}>🚨 Raise SOS</Button></div>
+      {open && (
+        <div className="rounded-lg border border-red-500/30 bg-red-500/5 p-4 space-y-3">
+          <div className="grid grid-cols-2 gap-3"><div><Label className={LABEL_SM}>Submitted By</Label><Input value={submitter} onChange={e => setSubmitter(e.target.value)} /></div><div><Label className={LABEL_SM}>Category</Label><select className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm" value={cat} onChange={e => setCat(e.target.value)}><option value="">Select…</option>{cats.map(c => <option key={c}>{c}</option>)}</select></div></div>
+          <div><Label className={LABEL_SM}>Severity</Label><div className="flex gap-2 mt-1">{["Yellow","Orange","Red"].map(s => (<button key={s} type="button" onClick={() => setSev(s)} className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${sev===s ? SEV_MAP[s] : "border-border text-muted-foreground"}`}>{s}</button>))}</div></div>
+          <div><Label className={LABEL_SM}>Description *</Label><Textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} /></div>
+          <div><Label className={LABEL_SM}>Recommended Action</Label><Textarea value={action} onChange={e => setAction(e.target.value)} rows={2} /></div>
+          <div><Label className={LABEL_SM}>Owner</Label><Input value={owner} onChange={e => setOwner(e.target.value)} /></div>
+          <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" variant="destructive" onClick={save} disabled={saving}>{saving ? "Submitting…" : "Submit SOS"}</Button></div>
+        </div>
+      )}
+      {open_items.length === 0 && <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4 text-center text-sm text-emerald-400">✅ No active SOS alerts</div>}
+      {open_items.map((i: any) => (
+        <div key={i.id} className="rounded-lg border border-red-500/30 bg-red-500/5 p-4 space-y-2">
+          <div className="flex items-center gap-2 flex-wrap"><span className="text-xs font-bold text-red-400 uppercase">SOS</span><StatusBadge value={i.severity} map={SEV_MAP} />{i.category && <span className="text-xs text-muted-foreground">{i.category}</span>}<span className="ml-auto text-xs text-muted-foreground">{relativeTime(i.created_at)}</span></div>
+          <p className="text-sm font-medium">{i.description}</p>
+          {i.recommended_action && <p className="text-xs text-muted-foreground">Recommended: {i.recommended_action}</p>}
+          {i.owner_name && <p className="text-xs text-muted-foreground">Owner: {i.owner_name}</p>}
+          <Button size="sm" variant="ghost" onClick={() => resolve(i.id)}>Mark Resolved</Button>
+        </div>
+      ))}
+      {resolved.length > 0 && <details className="text-sm text-muted-foreground cursor-pointer"><summary>{resolved.length} resolved</summary><div className="mt-2 space-y-2">{resolved.map((i: any) => (<div key={i.id} className={CARD+" opacity-50"}><p className="text-xs">{i.category} · {i.description.slice(0,80)}</p></div>))}</div></details>}
+    </div>
+  );
+}
+
+// ── Support Requests Tab ──────────────────────────────────────────
+function SupportTab({ eid, items, canWrite, onSaved, user }: any) {
+  const [submitter, setSubmitter] = useState(""); const [cat, setCat] = useState("");
+  const [priority, setPriority] = useState("Normal"); const [desc, setDesc] = useState("");
+  const [needed, setNeeded] = useState(""); const [saving, setSaving] = useState(false);
+  const [open, setOpen] = useState(false);
+  async function save() {
+    if (!desc.trim()) { toast.error("Description required"); return; }
+    setSaving(true);
+    const { error } = await supabase.from("support_requests").insert({ engagement_id: eid, submitted_by: submitter || "Team", category: cat || "General", priority, description: desc, what_is_needed: needed, status: "Open", created_by: user?.id });
+    setSaving(false);
+    if (error) { toast.error("Failed"); return; }
+    toast.success("Request submitted"); setDesc(""); setNeeded(""); setOpen(false); onSaved();
+  }
+  async function updateStatus(id: string, status: string) {
+    await supabase.from("support_requests").update({ status }).eq("id", id);
+    onSaved();
+  }
+  const open_items = items.filter((i: any) => i.status !== "Resolved");
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between"><p className="text-sm text-muted-foreground">Non-urgent requests for help, resources, or information.</p><Button size="sm" onClick={() => setOpen(v => !v)}>+ Submit Request</Button></div>
+      {open && (
+        <div className="rounded-lg border border-border/60 bg-card p-4 space-y-3">
+          <div className="grid grid-cols-2 gap-3"><div><Label className={LABEL_SM}>Submitted By</Label><Input value={submitter} onChange={e => setSubmitter(e.target.value)} /></div><div><Label className={LABEL_SM}>Category</Label><Input value={cat} onChange={e => setCat(e.target.value)} placeholder="e.g. SME, Data, Review" /></div></div>
+          <div><Label className={LABEL_SM}>Priority</Label><div className="flex gap-2 mt-1">{["Normal","High"].map(p => (<button key={p} type="button" onClick={() => setPriority(p)} className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${priority===p?"border-primary text-primary bg-primary/8":"border-border text-muted-foreground"}`}>{p}</button>))}</div></div>
+          <div><Label className={LABEL_SM}>Description *</Label><Textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} /></div>
+          <div><Label className={LABEL_SM}>What Is Needed</Label><Textarea value={needed} onChange={e => setNeeded(e.target.value)} rows={2} /></div>
+          <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving ? "Saving…" : "Submit"}</Button></div>
+        </div>
+      )}
+      {open_items.length === 0 ? <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4 text-center text-sm text-emerald-400">✅ No open support requests</div> : open_items.map((i: any) => (
+        <div key={i.id} className={CARD}>
+          <div className="flex items-center gap-2 flex-wrap"><span className="text-xs font-medium text-muted-foreground">{i.category}</span>{i.priority === "High" && <StatusBadge value="High" map={{ High: "border-orange-500/40 text-orange-400 bg-orange-500/8" }} />}<span className="ml-auto text-xs text-muted-foreground">{relativeTime(i.created_at)}</span></div>
+          <p className="text-sm">{i.description}</p>
+          {i.what_is_needed && <p className="text-xs text-muted-foreground">Needs: {i.what_is_needed}</p>}
+          <div className="flex gap-2 pt-1"><Button size="sm" variant="ghost" onClick={() => updateStatus(i.id, "In Progress")}>In Progress</Button><Button size="sm" variant="ghost" onClick={() => updateStatus(i.id, "Resolved")}>Resolve</Button></div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Quality Signals ───────────────────────────────────────────────
+function QualityTab({ eid, items, canWrite, onSaved, user }: any) {
+  const [section, setSection] = useState(""); const [submitter, setSubmitter] = useState("");
+  const [quality, setQuality] = useState("Good"); const [notes, setNotes] = useState("");
+  const [leadership, setLeadership] = useState(false);
+  const [saving, setSaving] = useState(false); const [open, setOpen] = useState(false);
+  async function save() {
+    if (!section.trim()) { toast.error("Section name required"); return; }
+    setSaving(true);
+    const { error } = await supabase.from("quality_signals").insert({ engagement_id: eid, section_name: section, submitted_by: submitter || "Team", quality, notes, leadership_needed: leadership, created_by: user?.id });
+    setSaving(false);
+    if (error) { toast.error("Failed"); return; }
+    toast.success("Quality signal submitted"); setSection(""); setNotes(""); setOpen(false); onSaved();
+  }
+  const sorted = [...items].sort((a, b) => { const o = ["At Risk","Needs Work","Good","Strong"]; return o.indexOf(a.quality) - o.indexOf(b.quality); });
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between"><p className="text-sm text-muted-foreground">Flag content quality issues by section. At Risk items appear on Mission Control.</p><Button size="sm" onClick={() => setOpen(v => !v)}>+ Quality Signal</Button></div>
+      {open && (
+        <div className="rounded-lg border border-border/60 bg-card p-4 space-y-3">
+          <div className="grid grid-cols-2 gap-3"><div><Label className={LABEL_SM}>Section Name *</Label><Input value={section} onChange={e => setSection(e.target.value)} placeholder="e.g. LTSS Narrative" /></div><div><Label className={LABEL_SM}>Submitted By</Label><Input value={submitter} onChange={e => setSubmitter(e.target.value)} /></div></div>
+          <div><Label className={LABEL_SM}>Quality Rating</Label><div className="flex gap-2 mt-1">{["Strong","Good","Needs Work","At Risk"].map(q => (<button key={q} type="button" onClick={() => setQuality(q)} className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${quality===q ? QUALITY_MAP[q] : "border-border text-muted-foreground"}`}>{q}</button>))}</div></div>
+          <div><Label className={LABEL_SM}>Notes</Label><Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} /></div>
+          <div className="flex items-center gap-2"><input type="checkbox" checked={leadership} onChange={e => setLeadership(e.target.checked)} className="rounded" /><label className="text-sm">Leadership attention needed</label></div>
+          <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving ? "Saving…" : "Submit"}</Button></div>
+        </div>
+      )}
+      {sorted.length === 0 ? <Empty>No quality signals yet.</Empty> : sorted.map((i: any) => (
+        <div key={i.id} className={CARD}>
+          <div className="flex items-center gap-2"><span className="font-medium text-sm">{i.section_name}</span><StatusBadge value={i.quality} map={QUALITY_MAP} />{i.leadership_needed && <span className="text-xs text-amber-400">👋 Leadership</span>}<span className="ml-auto text-xs text-muted-foreground">{i.submitted_by} · {relativeTime(i.created_at)}</span></div>
+          {i.notes && <p className="text-xs text-muted-foreground">{i.notes}</p>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Writer Confidence ─────────────────────────────────────────────
+function ConfidenceTab({ eid, items, canWrite, onSaved, user }: any) {
+  const [writer, setWriter] = useState(""); const [section, setSection] = useState("");
+  const [conf, setConf] = useState(3); const [notes, setNotes] = useState("");
+  const [needsHelp, setNeedsHelp] = useState(false);
+  const [saving, setSaving] = useState(false); const [open, setOpen] = useState(false);
+  async function save() {
+    if (!section.trim()) { toast.error("Section name required"); return; }
+    setSaving(true);
+    const { error } = await supabase.from("writer_confidence").insert({ engagement_id: eid, writer: writer || "Team", section_name: section, confidence: conf, notes, needs_help: needsHelp, created_by: user?.id });
+    setSaving(false);
+    if (error) { toast.error("Failed"); return; }
+    toast.success("Confidence logged"); setSection(""); setNotes(""); setOpen(false); onSaved();
+  }
+  // Latest per section
+  const bySection: Record<string, any> = {};
+  items.forEach((i: any) => { if (!bySection[i.section_name] || i.created_at > bySection[i.section_name].created_at) bySection[i.section_name] = i; });
+  const sections = Object.values(bySection).sort((a: any, b: any) => a.confidence - b.confidence);
+  const confColor = (c: number) => c <= 2 ? "border-red-500/40 text-red-400 bg-red-500/8" : c === 3 ? "border-amber-500/40 text-amber-400 bg-amber-500/8" : "border-emerald-500/40 text-emerald-400 bg-emerald-500/8";
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between"><p className="text-sm text-muted-foreground">Writers rate their progress on each section. 1=Not Started → 5=Complete.</p><Button size="sm" onClick={() => setOpen(v => !v)}>+ Log Confidence</Button></div>
+      {open && (
+        <div className="rounded-lg border border-border/60 bg-card p-4 space-y-3">
+          <div className="grid grid-cols-2 gap-3"><div><Label className={LABEL_SM}>Writer</Label><Input value={writer} onChange={e => setWriter(e.target.value)} /></div><div><Label className={LABEL_SM}>Section *</Label><Input value={section} onChange={e => setSection(e.target.value)} placeholder="e.g. LTSS Narrative" /></div></div>
+          <div><Label className={LABEL_SM}>Confidence: {conf} — {CONF_LABELS[conf]}</Label><input type="range" min={1} max={5} value={conf} onChange={e => setConf(+e.target.value)} className="w-full mt-1" /></div>
+          <div><Label className={LABEL_SM}>Notes</Label><Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} /></div>
+          <div className="flex items-center gap-2"><input type="checkbox" checked={needsHelp} onChange={e => setNeedsHelp(e.target.checked)} className="rounded" /><label className="text-sm">I need help with this section</label></div>
+          <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving ? "Saving…" : "Log"}</Button></div>
+        </div>
+      )}
+      {sections.length === 0 ? <Empty>No confidence ratings yet.</Empty> : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {sections.map((s: any) => (
+            <div key={s.section_name} className={`rounded-lg border p-3 ${confColor(s.confidence)}`}>
+              <div className="flex items-center justify-between mb-1"><span className="text-sm font-semibold">{s.section_name}</span><span className="text-lg font-bold">{s.confidence}/5</span></div>
+              <div className="text-xs">{CONF_LABELS[s.confidence]}</div>
+              {s.needs_help && <div className="text-xs mt-1">🙋 Needs help</div>}
+              {s.writer && <div className="text-xs text-muted-foreground mt-1">{s.writer}</div>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Mission Health (read-only aggregate) ──────────────────────────
+function MissionHealthTab({ huddles, quality, sos, confidence, resourceHealth }: any) {
+  const latestHuddle = huddles[0];
+  const atRisk = quality.filter((q: any) => q.quality === "At Risk").length;
+  const needsWork = quality.filter((q: any) => q.quality === "Needs Work").length;
+  const activeSos = sos.filter((s: any) => s.status !== "Resolved").length;
+  const avgConf = confidence.length > 0 ? (confidence.reduce((a: number, c: any) => a + c.confidence, 0) / confidence.length).toFixed(1) : null;
+  const latestRH = resourceHealth[0];
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">Aggregated mission health from all signal types. Submit signals in other tabs to update this view.</p>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        {[
+          { label: "Current Health", value: latestHuddle?.health ?? "—", sub: latestHuddle ? `Last signal: ${relativeTime(latestHuddle.created_at)}` : "No signals yet" },
+          { label: "Active SOS", value: activeSos, sub: activeSos > 0 ? "Requires immediate attention" : "All clear" },
+          { label: "Quality At Risk", value: atRisk, sub: `${needsWork} needs work` },
+          { label: "Writer Confidence Avg", value: avgConf ?? "—", sub: confidence.length > 0 ? `Across ${confidence.length} sections` : "No ratings yet" },
+          { label: "Staffing", value: latestRH?.staffing ?? "—", sub: latestRH ? relativeTime(latestRH.created_at) : "No resource health logged" },
+          { label: "SME Engagement", value: latestRH?.sme_engagement ?? "—", sub: latestRH?.timeline_status ? `Timeline: ${latestRH.timeline_status}` : "" },
+        ].map(({ label, value, sub }) => (
+          <div key={label} className="rounded-lg border border-border/60 bg-card p-4">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">{label}</div>
+            <div className="text-2xl font-bold">{value}</div>
+            <div className="text-xs text-muted-foreground mt-1">{sub}</div>
+          </div>
         ))}
       </div>
     </div>
   );
+}
+
+// ── Resource Health ───────────────────────────────────────────────
+function ResourceTab({ eid, items, canWrite, onSaved, user }: any) {
+  const [submitter, setSubmitter] = useState(""); const [staffing, setStaffing] = useState("Adequate");
+  const [sme, setSme] = useState("Good"); const [timeline, setTimeline] = useState("On Track");
+  const [notes, setNotes] = useState(""); const [saving, setSaving] = useState(false);
+  const [open, setOpen] = useState(false);
+  async function save() {
+    setSaving(true);
+    const { error } = await supabase.from("resource_health").insert({ engagement_id: eid, submitted_by: submitter || "Team", staffing, sme_engagement: sme, timeline_status: timeline, notes, created_by: user?.id });
+    setSaving(false);
+    if (error) { toast.error("Failed"); return; }
+    toast.success("Resource health logged"); setNotes(""); setOpen(false); onSaved();
+  }
+  const STATUS_MAP: Record<string, string> = {
+    Adequate: "border-emerald-500/40 text-emerald-400 bg-emerald-500/8",
+    "On Track": "border-emerald-500/40 text-emerald-400 bg-emerald-500/8",
+    Good: "border-emerald-500/40 text-emerald-400 bg-emerald-500/8",
+    Stretched: "border-amber-500/40 text-amber-400 bg-amber-500/8",
+    Delayed: "border-amber-500/40 text-amber-400 bg-amber-500/8",
+    "At Risk": "border-amber-500/40 text-amber-400 bg-amber-500/8",
+    Critical: "border-red-500/40 text-red-400 bg-red-500/8",
+    Missing: "border-red-500/40 text-red-400 bg-red-500/8",
+    Behind: "border-red-500/40 text-red-400 bg-red-500/8",
+  };
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between"><p className="text-sm text-muted-foreground">Track team staffing, SME engagement, and timeline health.</p>{canWrite && <Button size="sm" onClick={() => setOpen(v => !v)}>+ Log Resource Health</Button>}</div>
+      {open && canWrite && (
+        <div className="rounded-lg border border-border/60 bg-card p-4 space-y-3">
+          <div><Label className={LABEL_SM}>Submitted By</Label><Input value={submitter} onChange={e => setSubmitter(e.target.value)} /></div>
+          <div><Label className={LABEL_SM}>Staffing Level</Label><div className="flex gap-2 mt-1">{["Adequate","Stretched","Critical"].map(s => (<button key={s} type="button" onClick={() => setStaffing(s)} className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${staffing===s ? STATUS_MAP[s] : "border-border text-muted-foreground"}`}>{s}</button>))}</div></div>
+          <div><Label className={LABEL_SM}>SME Engagement</Label><div className="flex gap-2 mt-1">{["Good","Delayed","Missing"].map(s => (<button key={s} type="button" onClick={() => setSme(s)} className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${sme===s ? STATUS_MAP[s] : "border-border text-muted-foreground"}`}>{s}</button>))}</div></div>
+          <div><Label className={LABEL_SM}>Timeline Status</Label><div className="flex gap-2 mt-1">{["On Track","At Risk","Behind"].map(s => (<button key={s} type="button" onClick={() => setTimeline(s)} className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${timeline===s ? STATUS_MAP[s] : "border-border text-muted-foreground"}`}>{s}</button>))}</div></div>
+          <div><Label className={LABEL_SM}>Notes</Label><Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} /></div>
+          <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving ? "Saving…" : "Log"}</Button></div>
+        </div>
+      )}
+      {items.length === 0 ? <Empty>No resource health logged yet.</Empty> : items.map((i: any) => (
+        <div key={i.id} className={CARD}>
+          <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground"><span className="font-medium text-foreground">{i.submitted_by}</span><span>{relativeTime(i.created_at)}</span></div>
+          <div className="flex gap-2 flex-wrap mt-1"><StatusBadge value={i.staffing} map={STATUS_MAP} /><StatusBadge value={i.sme_engagement} map={STATUS_MAP} /><StatusBadge value={i.timeline_status} map={STATUS_MAP} /></div>
+          {i.notes && <p className="text-xs text-muted-foreground">{i.notes}</p>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Empty({ children }: { children: React.ReactNode }) {
+  return <div className="rounded-lg border border-dashed border-border/40 p-10 text-center text-sm text-muted-foreground">{children}</div>;
 }

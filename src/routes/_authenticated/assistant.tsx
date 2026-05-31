@@ -11,7 +11,7 @@ import { Sparkles, User } from "lucide-react";
 import { PageGate } from "@/components/war-room/PageGate";
 
 export const Route = createFileRoute("/_authenticated/assistant")({
-  head: () => ({ meta: [{ title: "Navigator™ — Athena" }] }),
+  head: () => ({ meta: [{ title: "IRIS — Athena" }] }),
   component: () => <PageGate page="alignmentHub"><AssistantPage /></PageGate>,
 });
 
