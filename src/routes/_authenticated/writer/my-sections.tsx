@@ -106,7 +106,7 @@ function WriterSOSButton({ engagementId, memberName }: { engagementId: string; m
 }
 
 function WriterMySections() {
-  const { engagement, member, member } = useEngagement();
+  const { engagement, member } = useEngagement();
   const { user } = useSession();
   const [items, setItems] = useState<Assignment[]>([]);
   const [streak, setStreak] = useState<number | null>(null);
@@ -315,7 +315,7 @@ function WriterMySections() {
 }
 
 function TriviaCard() {
-  const { engagement, member, member } = useEngagement();
+  const { engagement, member } = useEngagement();
   const { user } = useSession();
   const day = getQuestionDay();
   const stateCode = engagement?.state ?? null;
@@ -465,7 +465,7 @@ function TriviaCard() {
 }
 
 function TriviaScoreCard() {
-  const { engagement, member, member } = useEngagement();
+  const { engagement, member } = useEngagement();
   const [score, setScore] = useState<{ correct: number; answered: number } | null>(null);
 
   useEffect(() => {
