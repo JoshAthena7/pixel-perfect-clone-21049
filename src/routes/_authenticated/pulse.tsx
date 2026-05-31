@@ -13,7 +13,7 @@ import { PageGate } from "@/components/war-room/PageGate";
 import { relativeTime } from "@/lib/time";
 
 export const Route = createFileRoute("/_authenticated/pulse")({
-  head: () => ({ meta: [{ title: "Strategy — Mission Control" }] }),
+  head: () => ({ meta: [{ title: "Alignment Hub — Athena Command" }] }),
   component: () => <PageGate page="pulse"><AlignmentHub /></PageGate>,
 });
 
@@ -57,37 +57,18 @@ function AlignmentHub() {
   const canWrite = canEdit("pulse");
   const eid = engagement?.id ?? "";
 
-  // data
   const [winThemes, setWinThemes] = useState<any[]>([]);
-  const [differentiators, setDifferentiators] = useState<any[]>([]);
   const [decisions, setDecisions] = useState<any[]>([]);
-  const [assumptions, setAssumptions] = useState<any[]>([]);
-  const [partnerships, setPartnerships] = useState<any[]>([]);
-  const [terminology, setTerminology] = useState<any[]>([]);
-  const [stakeholders, setStakeholders] = useState<any[]>([]);
-  const [changes, setChanges] = useState<any[]>([]);
   const [search, setSearch] = useState("");
 
   async function load() {
     if (!eid) return;
-    const [wt, diff, dec, ass, part, term, stak, chg] = await Promise.all([
+    const [wt, dec] = await Promise.all([
       supabase.from("win_themes").select("*").eq("engagement_id", eid).order("created_at", { ascending: false }),
-      supabase.from("differentiators").select("*").eq("engagement_id", eid).order("created_at", { ascending: false }),
       supabase.from("decisions").select("*").eq("engagement_id", eid).order("decision_date", { ascending: false }),
-      supabase.from("assumptions").select("*").eq("engagement_id", eid).order("created_at", { ascending: false }),
-      supabase.from("partnerships").select("*").eq("engagement_id", eid).order("created_at", { ascending: false }),
-      supabase.from("terminology").select("*").eq("engagement_id", eid).order("term"),
-      supabase.from("stakeholders").select("*").eq("engagement_id", eid).order("priority"),
-      supabase.from("change_tracker").select("*").eq("engagement_id", eid).order("created_at", { ascending: false }),
     ]);
     setWinThemes(wt.data ?? []);
-    setDifferentiators(diff.data ?? []);
     setDecisions(dec.data ?? []);
-    setAssumptions(ass.data ?? []);
-    setPartnerships(part.data ?? []);
-    setTerminology(term.data ?? []);
-    setStakeholders(stak.data ?? []);
-    setChanges(chg.data ?? []);
   }
 
   useEffect(() => { load(); }, [eid]);
@@ -98,7 +79,7 @@ function AlignmentHub() {
     <div className="mx-auto max-w-5xl px-4 py-6 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">Strategy</h1>
+          <h1 className="text-xl font-bold">Alignment Hub</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Strategic alignment for {engagement.name}</p>
         </div>
       </div>
@@ -106,10 +87,8 @@ function AlignmentHub() {
       <Tabs defaultValue="win-strategy" className="w-full">
         <TabsList className="flex h-auto flex-wrap gap-1 bg-transparent p-0 mb-6">
           {[
-            ["win-strategy", "Win Themes"],
-            ["decisions", "Decisions"],
-            ["assumptions", "Assumptions"],
-            ["stakeholders", "People"],
+            ["win-strategy", `Win Themes (${winThemes.length})`],
+            ["decisions", `Decisions (${decisions.length})`],
           ].map(([v, l]) => (
             <TabsTrigger key={v} value={v}
               className="rounded-md border border-border/40 bg-card px-3 py-1.5 text-xs font-medium data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-primary/8">
@@ -118,32 +97,18 @@ function AlignmentHub() {
           ))}
         </TabsList>
 
-        {/* WIN STRATEGY: Win Themes + Differentiators */}
         <TabsContent value="win-strategy">
-          <WinStrategyTab eid={eid} winThemes={winThemes} differentiators={differentiators} canWrite={canWrite} onSaved={load} user={user} />
+          <WinStrategyTab eid={eid} winThemes={winThemes} canWrite={canWrite} onSaved={load} user={user} search={search} setSearch={setSearch} />
         </TabsContent>
-
-        {/* STRATEGIC DECISIONS */}
         <TabsContent value="decisions">
-          <DecisionsTab eid={eid} items={decisions} canWrite={canWrite} onSaved={load} user={user} />
-        </TabsContent>
-
-        {/* ASSUMPTIONS */}
-        <TabsContent value="assumptions">
-          <AssumptionsTab eid={eid} items={assumptions} canWrite={canWrite} onSaved={load} user={user} />
-        </TabsContent>
-
-        {/* STAKEHOLDERS & PARTNERS */}
-        <TabsContent value="stakeholders">
-          <StakeholdersPartnersTab eid={eid} stakeholders={stakeholders} partnerships={partnerships} canWrite={canWrite} onSaved={load} user={user} />
+          <DecisionsTab eid={eid} decisions={decisions} canWrite={canWrite} onSaved={load} user={user} />
         </TabsContent>
       </Tabs>
     </div>
   );
 }
 
-// ── Win Strategy Tab (Win Themes + Differentiators) ─────────────
-function WinStrategyTab({ eid, winThemes, differentiators, canWrite, onSaved, user }: any) {
+function WinStrategyTab({ eid, winThemes, canWrite, onSaved, user }: any) {
   const [section, setSection] = useState<"themes"|"diff">("themes");
   const [title, setTitle] = useState(""); const [desc, setDesc] = useState("");
   const [extra1, setExtra1] = useState(""); const [extra2, setExtra2] = useState("");
@@ -154,7 +119,6 @@ function WinStrategyTab({ eid, winThemes, differentiators, canWrite, onSaved, us
     if (section === "themes") {
       await supabase.from("win_themes").insert({ engagement_id: eid, title, description: desc, evidence: extra1, owner: extra2, status: "Active", created_by: user?.id });
     } else {
-      await supabase.from("differentiators").insert({ engagement_id: eid, title, description: desc, substantiation: extra1, versus: extra2, created_by: user?.id });
     }
     setSaving(false); toast.success("Saved"); setTitle(""); setDesc(""); setExtra1(""); setExtra2(""); setOpen(false); onSaved();
   }
@@ -179,7 +143,7 @@ function WinStrategyTab({ eid, winThemes, differentiators, canWrite, onSaved, us
           <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving?"Saving…":"Save"}</Button></div>
         </div>
       )}
-      {winThemes.length === 0 && differentiators.length === 0 ? (
+      {winThemes.length === 0 ? (
         <Empty>Win themes are the core story you're telling across every section. Add your first one to anchor the proposal.</Empty>
       ) : (
         <>
@@ -198,17 +162,7 @@ function WinStrategyTab({ eid, winThemes, differentiators, canWrite, onSaved, us
               ))}
             </div>
           )}
-          {differentiators.length > 0 && (
-            <div>
-              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2 mt-4">Differentiators</div>
-              {differentiators.map((d: any) => (
-                <div key={d.id} className={CARD + " mb-2"}>
-                  <p className="font-semibold text-sm">{d.title}</p>
-                  {d.description && <p className="text-sm text-muted-foreground">{d.description}</p>}
-                  {d.substantiation && <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground/70">Proof: </span>{d.substantiation}</p>}
-                  {d.versus && <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground/70">Beats: </span>{d.versus}</p>}
-                </div>
-              ))}
+          
             </div>
           )}
         </>
@@ -218,175 +172,6 @@ function WinStrategyTab({ eid, winThemes, differentiators, canWrite, onSaved, us
 }
 
 // ── Stakeholders & Partners Tab ───────────────────────────────────
-function StakeholdersPartnersTab({ eid, stakeholders, partnerships, canWrite, onSaved, user }: any) {
-  const [section, setSection] = useState<"stak"|"part">("stak");
-  const [f1,setF1]=useState(""); const [f2,setF2]=useState(""); const [f3,setF3]=useState("");
-  const [f4,setF4]=useState("Unknown"); const [f5,setF5]=useState("Medium"); const [f6,setF6]=useState("");
-  const [saving,setSaving]=useState(false); const [open,setOpen]=useState(false);
-  async function save() {
-    if (!f1.trim()) return;
-    setSaving(true);
-    if (section==="stak") {
-      await supabase.from("stakeholders").insert({ engagement_id:eid, name:f1, title:f2, organization:f3, relationship:f4, priority:f5, notes:f6, created_by:user?.id });
-    } else {
-      await supabase.from("partnerships").insert({ engagement_id:eid, partner_name:f1, role:f2, commitment:f3||"Exploring", contact:f4!=="Unknown"?f4:"", notes:f6, created_by:user?.id });
-    }
-    setSaving(false); toast.success("Saved"); setF1(""); setF2(""); setF3(""); setF6(""); setOpen(false); onSaved();
-  }
-  const PRIORITY_MAP: Record<string,string> = { Critical:"border-red-500/40 text-red-400 bg-red-500/8", High:"border-orange-500/40 text-orange-400 bg-orange-500/8", Medium:"border-amber-500/40 text-amber-400 bg-amber-500/8", Low:"border-slate-500/40 text-slate-400 bg-slate-500/8" };
-  const REL_MAP: Record<string,string> = { Champion:"border-emerald-500/40 text-emerald-400 bg-emerald-500/8", Neutral:"border-amber-500/40 text-amber-400 bg-amber-500/8", Risk:"border-red-500/40 text-red-400 bg-red-500/8", Unknown:"border-slate-500/40 text-slate-400 bg-slate-500/8" };
-  const COMM_MAP: Record<string,string> = { Confirmed:"border-emerald-500/40 text-emerald-400 bg-emerald-500/8", Negotiating:"border-amber-500/40 text-amber-400 bg-amber-500/8", Exploring:"border-slate-500/40 text-slate-400 bg-slate-500/8" };
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">Key client stakeholders and teaming partners.</p>
-        {canWrite && <Button size="sm" onClick={() => setOpen(v => !v)}>+ Add</Button>}
-      </div>
-      {open && canWrite && (
-        <div className="rounded-lg border border-border/60 bg-card p-4 space-y-3">
-          <div className="flex gap-2 mb-2">
-            {[["stak","Stakeholder"],["part","Partner"]].map(([v,l]) => (
-              <button key={v} type="button" onClick={() => { setSection(v as any); setF3(""); setF4("Unknown"); setF5("Medium"); }}
-                className={`rounded-full border px-3 py-1 text-xs font-semibold ${section===v?"border-primary text-primary bg-primary/8":"border-border text-muted-foreground"}`}>{l}</button>
-            ))}
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Input value={f1} onChange={e=>setF1(e.target.value)} placeholder={section==="stak"?"Name *":"Partner Name *"} />
-            <Input value={f2} onChange={e=>setF2(e.target.value)} placeholder={section==="stak"?"Title":"Role on Proposal"} />
-          </div>
-          {section==="stak" ? (
-            <div className="grid grid-cols-3 gap-3">
-              <Input value={f3} onChange={e=>setF3(e.target.value)} placeholder="Organization" />
-              <select className="rounded-md border border-border bg-background px-2 py-1.5 text-sm" value={f4} onChange={e=>setF4(e.target.value)}><option>Champion</option><option>Neutral</option><option>Risk</option><option>Unknown</option></select>
-              <select className="rounded-md border border-border bg-background px-2 py-1.5 text-sm" value={f5} onChange={e=>setF5(e.target.value)}><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-3">
-              <select className="rounded-md border border-border bg-background px-2 py-1.5 text-sm" value={f3||"Exploring"} onChange={e=>setF3(e.target.value)}><option>Confirmed</option><option>Negotiating</option><option>Exploring</option></select>
-              <Input value={f4!=="Unknown"?f4:""} onChange={e=>setF4(e.target.value)} placeholder="Contact name" />
-            </div>
-          )}
-          <Textarea value={f6} onChange={e=>setF6(e.target.value)} placeholder="Notes" rows={2} />
-          <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={()=>setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving?"Saving…":"Save"}</Button></div>
-        </div>
-      )}
-      {stakeholders.length === 0 && partnerships.length === 0 ? (
-        <Empty>Map the people who matter — champions, neutral contacts, and risks. IRIS uses this for alignment analysis.</Empty>
-      ) : (
-        <>
-          {stakeholders.length > 0 && (
-            <div>
-              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Stakeholders</div>
-              {[...stakeholders].sort((a:any,b:any)=>["Critical","High","Medium","Low"].indexOf(a.priority)-["Critical","High","Medium","Low"].indexOf(b.priority)).map((s: any) => (
-                <div key={s.id} className={CARD + " mb-2"}>
-                  <div className="flex items-start justify-between gap-2">
-                    <div><p className="font-semibold text-sm">{s.name}</p>{(s.title||s.organization)&&<p className="text-xs text-muted-foreground">{[s.title,s.organization].filter(Boolean).join(" · ")}</p>}</div>
-                    <div className="flex gap-1.5"><StatusBadge value={s.priority} map={PRIORITY_MAP} /><StatusBadge value={s.relationship} map={REL_MAP} /></div>
-                  </div>
-                  {s.notes&&<p className="text-xs text-muted-foreground border-t border-border/40 pt-2 mt-2">{s.notes}</p>}
-                </div>
-              ))}
-            </div>
-          )}
-          {partnerships.length > 0 && (
-            <div>
-              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2 mt-4">Partners</div>
-              {partnerships.map((p: any) => (
-                <div key={p.id} className={CARD + " mb-2"}>
-                  <div className="flex items-start justify-between gap-2">
-                    <div><p className="font-semibold text-sm">{p.partner_name}</p>{p.role&&<p className="text-xs text-muted-foreground">{p.role}</p>}</div>
-                    <StatusBadge value={p.commitment} map={COMM_MAP} />
-                  </div>
-                  {p.contact&&<p className="text-xs text-muted-foreground">Contact: {p.contact}</p>}
-                  {p.notes&&<p className="text-xs text-muted-foreground">{p.notes}</p>}
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-      )}
-    </div>
-  );
-}
-
-// ── Win Themes Tab ────────────────────────────────────────────────
-function WinThemesTab({ eid, items, canWrite, onSaved, user }: any) {
-  const [title, setTitle] = useState(""); const [desc, setDesc] = useState("");
-  const [evidence, setEvidence] = useState(""); const [owner, setOwner] = useState("");
-  const [saving, setSaving] = useState(false); const [open, setOpen] = useState(false);
-  async function save() {
-    if (!title.trim()) return;
-    setSaving(true);
-    const { error } = await supabase.from("win_themes").insert({ engagement_id: eid, title, description: desc, evidence, owner, status: "Active", created_by: user?.id });
-    setSaving(false);
-    if (error) { toast.error("Failed to save"); return; }
-    toast.success("Win theme added"); setTitle(""); setDesc(""); setEvidence(""); setOwner(""); setOpen(false); onSaved();
-  }
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between"><p className="text-sm text-muted-foreground">The core story you're telling across every section of the proposal.</p>{canWrite && <Button size="sm" onClick={() => setOpen(v => !v)}>+ Add Win Theme</Button>}</div>
-      {open && canWrite && (
-        <div className="rounded-lg border border-border/60 bg-card p-4 space-y-3">
-          <div className="grid grid-cols-2 gap-3"><div><Label className={LABEL_SM}>Theme Title *</Label><Input value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Community-First Delivery Model" /></div><div><Label className={LABEL_SM}>Owner</Label><Input value={owner} onChange={e => setOwner(e.target.value)} placeholder="Name" /></div></div>
-          <div><Label className={LABEL_SM}>Description</Label><Textarea value={desc} onChange={e => setDesc(e.target.value)} placeholder="What is this win theme about?" rows={2} /></div>
-          <div><Label className={LABEL_SM}>Evidence / Substantiation</Label><Textarea value={evidence} onChange={e => setEvidence(e.target.value)} placeholder="How do we prove this?" rows={2} /></div>
-          <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save"}</Button></div>
-        </div>
-      )}
-      {items.length === 0 ? <Empty>No win themes yet. Add the first one above.</Empty> : items.map((t: any) => (
-        <div key={t.id} className={CARD}>
-          <div className="flex items-start justify-between gap-2">
-            <div><p className="font-semibold text-sm">{t.title}</p>{t.owner && <p className="text-xs text-muted-foreground">Owner: {t.owner}</p>}</div>
-            <StatusBadge value={t.status ?? "Active"} map={{ Active: "border-emerald-500/40 text-emerald-400 bg-emerald-500/8", Draft: "border-amber-500/40 text-amber-400 bg-amber-500/8", Retired: "border-slate-500/40 text-slate-400 bg-slate-500/8" }} />
-          </div>
-          {t.description && <p className="text-sm text-muted-foreground">{t.description}</p>}
-          {t.evidence && <p className="text-xs text-muted-foreground border-t border-border/40 pt-2 mt-2"><span className="font-medium text-foreground/70">Evidence: </span>{t.evidence}</p>}
-          <p className="text-[10px] text-muted-foreground/60">{relativeTime(t.created_at)}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Differentiators Tab ───────────────────────────────────────────
-function DifferentiatorsTab({ eid, items, canWrite, onSaved, user }: any) {
-  const [title, setTitle] = useState(""); const [desc, setDesc] = useState("");
-  const [sub, setSub] = useState(""); const [versus, setVersus] = useState("");
-  const [saving, setSaving] = useState(false); const [open, setOpen] = useState(false);
-  async function save() {
-    if (!title.trim()) return;
-    setSaving(true);
-    const { error } = await supabase.from("differentiators").insert({ engagement_id: eid, title, description: desc, substantiation: sub, versus, created_by: user?.id });
-    setSaving(false);
-    if (error) { toast.error("Failed to save"); return; }
-    toast.success("Differentiator added"); setTitle(""); setDesc(""); setSub(""); setVersus(""); setOpen(false); onSaved();
-  }
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between"><p className="text-sm text-muted-foreground">What makes Athena's approach distinctly better than the competition.</p>{canWrite && <Button size="sm" onClick={() => setOpen(v => !v)}>+ Add Differentiator</Button>}</div>
-      {open && canWrite && (
-        <div className="rounded-lg border border-border/60 bg-card p-4 space-y-3">
-          <div><Label className={LABEL_SM}>Differentiator *</Label><Input value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Embedded clinical expertise in every workstream" /></div>
-          <div><Label className={LABEL_SM}>Description</Label><Textarea value={desc} onChange={e => setDesc(e.target.value)} placeholder="What does this mean in practice?" rows={2} /></div>
-          <div><Label className={LABEL_SM}>How We Substantiate It</Label><Textarea value={sub} onChange={e => setSub(e.target.value)} placeholder="Evidence, case studies, data" rows={2} /></div>
-          <div><Label className={LABEL_SM}>Which Competitors This Beats</Label><Input value={versus} onChange={e => setVersus(e.target.value)} placeholder="e.g. Generic consultancies without clinical staff" /></div>
-          <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save"}</Button></div>
-        </div>
-      )}
-      {items.length === 0 ? <Empty>Differentiators explain what makes Athena distinctly better. Add one for each advantage you can substantiate.</Empty> : items.map((d: any) => (
-        <div key={d.id} className={CARD}>
-          <p className="font-semibold text-sm">{d.title}</p>
-          {d.description && <p className="text-sm text-muted-foreground">{d.description}</p>}
-          {d.substantiation && <p className="text-xs text-muted-foreground border-t border-border/40 pt-2 mt-2"><span className="font-medium text-foreground/70">Substantiation: </span>{d.substantiation}</p>}
-          {d.versus && <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground/70">Beats: </span>{d.versus}</p>}
-          <p className="text-[10px] text-muted-foreground/60">{relativeTime(d.created_at)}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Decisions Tab ─────────────────────────────────────────────────
 function DecisionsTab({ eid, items, canWrite, onSaved, user }: any) {
   const [title, setTitle] = useState(""); const [rationale, setRationale] = useState("");
   const [impact, setImpact] = useState(""); const [owner, setOwner] = useState("");
@@ -432,214 +217,3 @@ function DecisionsTab({ eid, items, canWrite, onSaved, user }: any) {
 }
 
 // ── Assumptions Tab ───────────────────────────────────────────────
-function AssumptionsTab({ eid, items, canWrite, onSaved, user }: any) {
-  const [text, setText] = useState(""); const [confidence, setConfidence] = useState("Medium");
-  const [risk, setRisk] = useState(""); const [owner, setOwner] = useState("");
-  const [saving, setSaving] = useState(false); const [open, setOpen] = useState(false);
-  async function save() {
-    if (!text.trim()) return;
-    setSaving(true);
-    const { error } = await supabase.from("assumptions").insert({ engagement_id: eid, text, confidence, risk_if_wrong: risk, owner, created_by: user?.id });
-    setSaving(false);
-    if (error) { toast.error("Failed to save"); return; }
-    toast.success("Assumption added"); setText(""); setRisk(""); setOwner(""); setOpen(false); onSaved();
-  }
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between"><p className="text-sm text-muted-foreground">Key assumptions the proposal is built on. Track confidence and risk.</p>{canWrite && <Button size="sm" onClick={() => setOpen(v => !v)}>+ Add Assumption</Button>}</div>
-      {open && canWrite && (
-        <div className="rounded-lg border border-border/60 bg-card p-4 space-y-3">
-          <div><Label className={LABEL_SM}>Assumption *</Label><Textarea value={text} onChange={e => setText(e.target.value)} placeholder="e.g. State will allow a 90-day transition period" rows={2} /></div>
-          <div className="grid grid-cols-2 gap-3">
-            <div><Label className={LABEL_SM}>Confidence</Label><select className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm" value={confidence} onChange={e => setConfidence(e.target.value)}><option>High</option><option>Medium</option><option>Low</option></select></div>
-            <div><Label className={LABEL_SM}>Owner</Label><Input value={owner} onChange={e => setOwner(e.target.value)} /></div>
-          </div>
-          <div><Label className={LABEL_SM}>Risk If Wrong</Label><Textarea value={risk} onChange={e => setRisk(e.target.value)} placeholder="What breaks if this assumption is incorrect?" rows={2} /></div>
-          <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save"}</Button></div>
-        </div>
-      )}
-      {items.length === 0 ? <Empty>What is this proposal assuming? Capture it here so leadership can validate it before it becomes a problem.</Empty> : items.map((a: any) => (
-        <div key={a.id} className={CARD}>
-          <div className="flex items-start justify-between gap-2">
-            <p className="text-sm">{a.text}</p>
-            <StatusBadge value={a.confidence} map={ASSUMPTION_MAP} />
-          </div>
-          {a.owner && <p className="text-xs text-muted-foreground">Owner: {a.owner}</p>}
-          {a.risk_if_wrong && <p className="text-xs text-muted-foreground border-t border-border/40 pt-2 mt-2"><span className="font-medium text-foreground/70">Risk if wrong: </span>{a.risk_if_wrong}</p>}
-          <p className="text-[10px] text-muted-foreground/60">{relativeTime(a.created_at)}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Partnerships Tab ──────────────────────────────────────────────
-function PartnershipsTab({ eid, items, canWrite, onSaved, user }: any) {
-  const [name, setName] = useState(""); const [role, setRole] = useState("");
-  const [commitment, setCommitment] = useState("Exploring");
-  const [contact, setContact] = useState(""); const [notes, setNotes] = useState("");
-  const [saving, setSaving] = useState(false); const [open, setOpen] = useState(false);
-  async function save() {
-    if (!name.trim()) return;
-    setSaving(true);
-    const { error } = await supabase.from("partnerships").insert({ engagement_id: eid, partner_name: name, role, commitment, contact, notes, created_by: user?.id });
-    setSaving(false);
-    if (error) { toast.error("Failed to save"); return; }
-    toast.success("Partner added"); setName(""); setRole(""); setContact(""); setNotes(""); setOpen(false); onSaved();
-  }
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between"><p className="text-sm text-muted-foreground">Teaming partners, subcontractors, and strategic relationships.</p>{canWrite && <Button size="sm" onClick={() => setOpen(v => !v)}>+ Add Partner</Button>}</div>
-      {open && canWrite && (
-        <div className="rounded-lg border border-border/60 bg-card p-4 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div><Label className={LABEL_SM}>Partner Name *</Label><Input value={name} onChange={e => setName(e.target.value)} /></div>
-            <div><Label className={LABEL_SM}>Commitment Status</Label><select className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm" value={commitment} onChange={e => setCommitment(e.target.value)}><option>Confirmed</option><option>Negotiating</option><option>Exploring</option></select></div>
-          </div>
-          <div className="grid grid-cols-2 gap-3"><div><Label className={LABEL_SM}>Role on Proposal</Label><Input value={role} onChange={e => setRole(e.target.value)} /></div><div><Label className={LABEL_SM}>Contact</Label><Input value={contact} onChange={e => setContact(e.target.value)} /></div></div>
-          <div><Label className={LABEL_SM}>Notes</Label><Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} /></div>
-          <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save"}</Button></div>
-        </div>
-      )}
-      {items.length === 0 ? <Empty>Add your teaming partners and track whether commitments are confirmed, negotiating, or still exploring.</Empty> : items.map((p: any) => (
-        <div key={p.id} className={CARD}>
-          <div className="flex items-start justify-between gap-2">
-            <div><p className="font-semibold text-sm">{p.partner_name}</p>{p.role && <p className="text-xs text-muted-foreground">{p.role}</p>}</div>
-            <StatusBadge value={p.commitment} map={CONFIDENCE_MAP} />
-          </div>
-          {p.contact && <p className="text-xs text-muted-foreground">Contact: {p.contact}</p>}
-          {p.notes && <p className="text-xs text-muted-foreground">{p.notes}</p>}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Terminology Tab ───────────────────────────────────────────────
-function TerminologyTab({ eid, items, canWrite, onSaved, user, search, setSearch }: any) {
-  const [term, setTerm] = useState(""); const [def, setDef] = useState("");
-  const [usage, setUsage] = useState(""); const [context, setContext] = useState("");
-  const [saving, setSaving] = useState(false); const [open, setOpen] = useState(false);
-  async function save() {
-    if (!term.trim() || !def.trim()) return;
-    setSaving(true);
-    const { error } = await supabase.from("terminology").insert({ engagement_id: eid, term, definition: def, preferred_usage: usage, context, created_by: user?.id });
-    setSaving(false);
-    if (error) { toast.error("Failed to save"); return; }
-    toast.success("Term added"); setTerm(""); setDef(""); setUsage(""); setContext(""); setOpen(false); onSaved();
-  }
-  const filtered = items.filter((t: any) => !search || t.term.toLowerCase().includes(search.toLowerCase()) || t.definition.toLowerCase().includes(search.toLowerCase()));
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between"><p className="text-sm text-muted-foreground">Approved terms, acronyms, and preferred language for this engagement.</p>{canWrite && <Button size="sm" onClick={() => setOpen(v => !v)}>+ Add Term</Button>}</div>
-      <Input placeholder="Search terminology…" value={search} onChange={e => setSearch(e.target.value)} className="max-w-sm" />
-      {open && canWrite && (
-        <div className="rounded-lg border border-border/60 bg-card p-4 space-y-3">
-          <div className="grid grid-cols-2 gap-3"><div><Label className={LABEL_SM}>Term *</Label><Input value={term} onChange={e => setTerm(e.target.value)} /></div><div><Label className={LABEL_SM}>Preferred Usage</Label><Input value={usage} onChange={e => setUsage(e.target.value)} /></div></div>
-          <div><Label className={LABEL_SM}>Definition *</Label><Textarea value={def} onChange={e => setDef(e.target.value)} rows={2} /></div>
-          <div><Label className={LABEL_SM}>Context / Notes</Label><Input value={context} onChange={e => setContext(e.target.value)} /></div>
-          <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save"}</Button></div>
-        </div>
-      )}
-      {filtered.length === 0 ? <Empty>{search ? "No terms match your search." : "Add terms, acronyms, and preferred language so every writer uses consistent vocabulary."}</Empty> : (
-        <div className="rounded-lg border border-border/60 overflow-hidden">
-          <table className="w-full text-sm"><thead className="bg-muted/30"><tr><th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Term</th><th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Definition</th><th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden md:table-cell">Preferred Usage</th></tr></thead>
-          <tbody>{filtered.map((t: any) => (<tr key={t.id} className="border-t border-border/40 hover:bg-muted/20"><td className="px-3 py-2 font-medium">{t.term}</td><td className="px-3 py-2 text-muted-foreground">{t.definition}</td><td className="px-3 py-2 text-muted-foreground hidden md:table-cell">{t.preferred_usage ?? "—"}</td></tr>))}</tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── Stakeholders Tab ──────────────────────────────────────────────
-function StakeholdersTab({ eid, items, canWrite, onSaved, user }: any) {
-  const [name, setName] = useState(""); const [title, setTitle] = useState("");
-  const [org, setOrg] = useState(""); const [priority, setPriority] = useState("Medium");
-  const [rel, setRel] = useState("Unknown"); const [notes, setNotes] = useState("");
-  const [saving, setSaving] = useState(false); const [open, setOpen] = useState(false);
-  async function save() {
-    if (!name.trim()) return;
-    setSaving(true);
-    const { error } = await supabase.from("stakeholders").insert({ engagement_id: eid, name, title, organization: org, priority, relationship: rel, notes, created_by: user?.id });
-    setSaving(false);
-    if (error) { toast.error("Failed to save"); return; }
-    toast.success("Stakeholder added"); setName(""); setTitle(""); setOrg(""); setNotes(""); setOpen(false); onSaved();
-  }
-  const sorted = [...items].sort((a, b) => { const o = ["Critical","High","Medium","Low"]; return o.indexOf(a.priority) - o.indexOf(b.priority); });
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between"><p className="text-sm text-muted-foreground">Key people in the client organization and their relationship to us.</p>{canWrite && <Button size="sm" onClick={() => setOpen(v => !v)}>+ Add Stakeholder</Button>}</div>
-      {open && canWrite && (
-        <div className="rounded-lg border border-border/60 bg-card p-4 space-y-3">
-          <div className="grid grid-cols-2 gap-3"><div><Label className={LABEL_SM}>Name *</Label><Input value={name} onChange={e => setName(e.target.value)} /></div><div><Label className={LABEL_SM}>Title</Label><Input value={title} onChange={e => setTitle(e.target.value)} /></div></div>
-          <div className="grid grid-cols-3 gap-3">
-            <div><Label className={LABEL_SM}>Organization</Label><Input value={org} onChange={e => setOrg(e.target.value)} /></div>
-            <div><Label className={LABEL_SM}>Priority</Label><select className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm" value={priority} onChange={e => setPriority(e.target.value)}><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div>
-            <div><Label className={LABEL_SM}>Relationship</Label><select className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm" value={rel} onChange={e => setRel(e.target.value)}><option>Champion</option><option>Neutral</option><option>Risk</option><option>Unknown</option></select></div>
-          </div>
-          <div><Label className={LABEL_SM}>Notes / Strategy</Label><Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} /></div>
-          <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save"}</Button></div>
-        </div>
-      )}
-      {sorted.length === 0 ? <Empty>No stakeholders mapped yet.</Empty> : sorted.map((s: any) => (
-        <div key={s.id} className={CARD}>
-          <div className="flex items-start justify-between gap-2">
-            <div><p className="font-semibold text-sm">{s.name}</p>{(s.title || s.organization) && <p className="text-xs text-muted-foreground">{[s.title, s.organization].filter(Boolean).join(" · ")}</p>}</div>
-            <div className="flex gap-1.5 flex-wrap justify-end"><StatusBadge value={s.priority} map={PRIORITY_MAP} /><StatusBadge value={s.relationship} map={RELATIONSHIP_MAP} /></div>
-          </div>
-          {s.notes && <p className="text-xs text-muted-foreground border-t border-border/40 pt-2 mt-2">{s.notes}</p>}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Change Tracker Tab ────────────────────────────────────────────
-function ChangesTab({ eid, items, canWrite, onSaved, user }: any) {
-  const [type, setType] = useState("Win Theme"); const [itemName, setItemName] = useState("");
-  const [desc, setDesc] = useState(""); const [impact, setImpact] = useState("");
-  const [loggedBy, setLoggedBy] = useState("");
-  const [saving, setSaving] = useState(false); const [open, setOpen] = useState(false);
-  async function save() {
-    if (!desc.trim()) return;
-    setSaving(true);
-    const { error } = await supabase.from("change_tracker").insert({ engagement_id: eid, change_type: type, item_name: itemName, description: desc, impact, logged_by: loggedBy, created_by: user?.id });
-    setSaving(false);
-    if (error) { toast.error("Failed to save"); return; }
-    toast.success("Change logged"); setItemName(""); setDesc(""); setImpact(""); setOpen(false); onSaved();
-  }
-  const TYPE_ICONS: Record<string, string> = { "Win Theme": "💡", "Differentiator": "🎯", "Strategic Decision": "📌", "Assumption": "🔍", "Partnership": "🤝", "Other": "📝" };
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between"><p className="text-sm text-muted-foreground">A log of significant strategic changes. Auto-logged when key items are modified, or add manually.</p>{canWrite && <Button size="sm" onClick={() => setOpen(v => !v)}>+ Log Change</Button>}</div>
-      {open && canWrite && (
-        <div className="rounded-lg border border-border/60 bg-card p-4 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div><Label className={LABEL_SM}>Change Type</Label><select className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm" value={type} onChange={e => setType(e.target.value)}><option>Win Theme</option><option>Differentiator</option><option>Strategic Decision</option><option>Assumption</option><option>Partnership</option><option>Other</option></select></div>
-            <div><Label className={LABEL_SM}>Item Name</Label><Input value={itemName} onChange={e => setItemName(e.target.value)} placeholder="Which item changed?" /></div>
-          </div>
-          <div><Label className={LABEL_SM}>What Changed *</Label><Textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} /></div>
-          <div className="grid grid-cols-2 gap-3"><div><Label className={LABEL_SM}>Impact</Label><Input value={impact} onChange={e => setImpact(e.target.value)} /></div><div><Label className={LABEL_SM}>Logged By</Label><Input value={loggedBy} onChange={e => setLoggedBy(e.target.value)} /></div></div>
-          <div className="flex gap-2 justify-end"><Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save"}</Button></div>
-        </div>
-      )}
-      {items.length === 0 ? <Empty>Strategic changes are tracked here automatically when key items are updated.</Empty> : items.map((c: any) => (
-        <div key={c.id} className={CARD}>
-          <div className="flex items-center gap-2 mb-1">
-            <span>{TYPE_ICONS[c.change_type] ?? "📝"}</span>
-            <span className="text-xs font-semibold text-muted-foreground">{c.change_type}{c.item_name ? ` · ${c.item_name}` : ""}</span>
-            <span className="ml-auto text-[10px] text-muted-foreground/60">{relativeTime(c.created_at)}{c.logged_by ? ` · ${c.logged_by}` : ""}</span>
-          </div>
-          <p className="text-sm">{c.description}</p>
-          {c.impact && <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground/70">Impact: </span>{c.impact}</p>}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Empty state ───────────────────────────────────────────────────
-function Empty({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-lg border border-dashed border-border/40 p-10 text-center text-sm text-muted-foreground">{children}</div>;
-}

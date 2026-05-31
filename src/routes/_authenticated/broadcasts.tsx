@@ -16,7 +16,7 @@ import { PageGate } from "@/components/war-room/PageGate";
 
 
 export const Route = createFileRoute("/_authenticated/broadcasts")({
-  head: () => ({ meta: [{ title: "Broadcasts — Athena" }] }),
+  head: () => ({ meta: [{ title: "Broadcasts — Athena Command" }] }),
   component: () => <PageGate page="broadcasts"><BroadcastsPage /></PageGate>,
 });
 

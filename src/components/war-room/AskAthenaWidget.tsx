@@ -101,7 +101,7 @@ function domainOf(url: string): string {
   }
 }
 
-export function AskAthenaWidget() {
+export function NavigatorWidget() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const { engagement, member, isLeadership } = useEngagement();
   const ask = useServerFn(askAssistant);

@@ -1,4 +1,4 @@
-import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { askAssistant } from "@/lib/ai/assistant.functions";
@@ -11,8 +11,8 @@ import { Sparkles, User } from "lucide-react";
 import { PageGate } from "@/components/war-room/PageGate";
 
 export const Route = createFileRoute("/_authenticated/assistant")({
-  head: () => ({ meta: [{ title: "IRIS — Athena" }] }),
-  component: () => <Navigate to="/select-engagement" replace />,
+  head: () => ({ meta: [{ title: "Navigator™ — Athena Command" }] }),
+  component: () => <PageGate page="alignmentHub"><AssistantPage /></PageGate>,
 });
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -57,8 +57,8 @@ function AssistantPage() {
   return (
     <div className="mx-auto flex h-[calc(100vh-4rem)] max-w-4xl flex-col gap-4 p-4 md:p-8">
       <div>
-        <h1 className="flex items-center gap-2 text-xl font-bold"><Sparkles className="h-5 w-5 text-primary" /> Athena Assistant</h1>
-        <p className="text-sm text-muted-foreground">Grounded in your engagement's huddles, heat map, risks, decisions, and pulse.</p>
+        <h1 className="flex items-center gap-2 text-xl font-bold"><Sparkles className="h-5 w-5 text-primary" /> Navigator™</h1>
+        <p className="text-sm text-muted-foreground">Ask anything about this mission — decisions, risks, signals, strategy, and team activity.</p>
       </div>
 
       <Card className="flex flex-1 flex-col border-border bg-surface">

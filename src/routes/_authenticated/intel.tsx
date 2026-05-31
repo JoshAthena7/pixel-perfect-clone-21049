@@ -67,7 +67,7 @@ async function extractTextFromFile(file: File): Promise<string> {
 }
 
 export const Route = createFileRoute("/_authenticated/intel")({
-  head: () => ({ meta: [{ title: "Intelligence — Athena" }] }),
+  head: () => ({ meta: [{ title: "Intelligence Vault — Athena Command" }] }),
   component: () => (
     <PageGate page="briefing">
       <MissionBriefingPage />

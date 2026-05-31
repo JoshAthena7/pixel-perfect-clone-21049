@@ -32,7 +32,7 @@ function useExperience(pathname: string): Experience {
        "/section-assignments","/mission-admin","/team"].some(p => pathname.startsWith(p)))
     return "control";
   if (["/command","/issues","/heatmap","/question-health","/broadcasts",
-       "/pulse"].some(p => pathname.startsWith(p)))
+       "/pulse","/assistant"].some(p => pathname.startsWith(p)))
     return "studio";
   return "none";
 }
@@ -154,7 +154,7 @@ export function AppSidebar() {
         {engagement && top === "mission" && (
           <div className="px-2 pb-2 border-t border-border/30 pt-2">
             <ExpCard href="/command"        label="Mission Studio"  sub="How are we doing?"       icon={Zap}       active={exp === "studio"} />
-            {canControl && <ExpCard href="/mission-control" label="Mission Control" sub="How is it operated?" icon={Building2} active={exp === "control"} gold />}
+            {canControl && <ExpCard href="/mission-control" label="Mission Admin"   sub="Configuration & setup" icon={Building2} active={exp === "control"} gold />}
           </div>
         )}
       </SidebarHeader>
@@ -177,11 +177,12 @@ export function AppSidebar() {
             <SidebarGroupLabel className="text-[9px] tracking-[0.18em] opacity-30">MISSION STUDIO</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                <NavItem href="/command"         label="Overview"        icon={LayoutDashboard} />
+                <NavItem href="/command"         label="Mission Overview" icon={LayoutDashboard} />
                 <NavItem href="/question-health" label="Question Health" icon={ClipboardList} />
-                <NavItem href="/issues"          label="Signals"         icon={AlertTriangle} />
-                <NavItem href="/heatmap"         label="Section Status"  icon={BarChart3} />
+                <NavItem href="/issues"          label="Team Signals"    icon={AlertTriangle} />
+                <NavItem href="/heatmap"         label="Delivery Map"    icon={BarChart3} />
                 <NavItem href="/broadcasts"      label="Broadcasts"      icon={Activity} />
+                <NavItem href="/assistant"       label="Navigator™"      icon={Sparkles} />
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -197,7 +198,7 @@ export function AppSidebar() {
                 <NavItem href="/section-assignments" label="Team & Assignments"  icon={Users} />
                 <NavItem href="/library"             label="Library"             icon={FileText} />
                 <NavItem href="/intel"               label="Mission Brain"        icon={Brain} />
-                <NavItem href="/pulse"               label="Strategy"             icon={Compass} />
+                <NavItem href="/pulse"               label="Alignment Hub"        icon={Compass} />
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

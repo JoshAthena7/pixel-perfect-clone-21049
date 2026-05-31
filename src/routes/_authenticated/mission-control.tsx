@@ -23,7 +23,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/mission-control")({
-  head: () => ({ meta: [{ title: "Mission Control" }] }),
+  head: () => ({ meta: [{ title: "Mission Administration — Athena Command" }] }),
   component: MissionControlGate,
 });
 
@@ -331,7 +331,7 @@ function SectionParameters({ eng, engagementId, onSaved }: any) {
     <div className={SECTION}>
       <SectionHeader num="04" title="Mission Parameters" sub="Configure what runs automatically on this mission. Changes take effect immediately." />
       <Toggle label="Daily Huddle Required" sub="Team members are prompted to submit daily signals" field="daily_huddle_required" />
-      <Toggle label="SOS Enabled" sub="Team members can raise urgent escalations" field="sos_enabled" />
+      <Toggle label="Escalations Enabled" sub="Team members can raise escalations" field="sos_enabled" />
       <Toggle label="IRIS Monitoring" sub="IRIS actively monitors and generates intelligence for this mission" field="iris_monitoring" />
       <Toggle label="Executive Visibility" sub="Mission appears in executive briefings and Command Center" field="executive_visibility" />
       <div className="p-4 rounded-lg border border-border/60 bg-card">

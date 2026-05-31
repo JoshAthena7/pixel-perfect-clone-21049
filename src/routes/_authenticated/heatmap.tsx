@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { PageGate } from "@/components/war-room/PageGate";
 
 export const Route = createFileRoute("/_authenticated/heatmap")({
-  head: () => ({ meta: [{ title: "Section Status — Mission" }] }),
+  head: () => ({ meta: [{ title: "Delivery Map — Athena Command" }] }),
   component: () => <PageGate page="deliveryMap"><HeatmapPage /></PageGate>,
 });
 

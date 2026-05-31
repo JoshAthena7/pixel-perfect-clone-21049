@@ -42,7 +42,7 @@ import { PageGate } from "@/components/war-room/PageGate";
 import { StrategicIntelFeed } from "@/components/iris/StrategicIntelFeed";
 
 export const Route = createFileRoute("/_authenticated/command")({
-  head: () => ({ meta: [{ title: "Overview — Mission" }] }),
+  head: () => ({ meta: [{ title: "Mission Overview — Athena Command" }] }),
   component: CommandCenterGate,
 });
 
