@@ -16,3 +16,4 @@ jobs:
       - run: bunx tsc --noEmit
       - run: bun run lint -- --max-warnings=0
       - run: bunx prettier --check .
+      - run: bun run build
