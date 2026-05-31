@@ -225,7 +225,7 @@ function HeatmapPage() {
                       <div className="mt-3 text-[11px] text-muted-foreground">
                         {s.updated_by_name ? `${s.updated_by_name} • ${relativeTime(s.updated_at)}` : "No updates yet"}
                       </div>
-                      {isLeadership && (
+                      {canWriteMap && (
                         <div className="mt-4 flex gap-2">
                           <Button size="sm" variant="outline" className="flex-1" onClick={() => startEdit(s)}>
                             Update
