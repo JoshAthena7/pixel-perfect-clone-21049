@@ -22,8 +22,8 @@ import {
   LayoutGrid,
   CheckCheck,
   Loader2,
+  AlertTriangle,
 } from "lucide-react";
-import { toast } from "sonner";
 import {
   sosSchema,
   huddleSchema,
@@ -32,12 +32,8 @@ import {
   decisionSchema,
   riskSchema,
   heatmapSchema,
-  validate,
-  mapSupabaseError,
-  summarizeServerErrors,
-  type FieldErrors,
 } from "./action-schemas";
-import { AlertTriangle } from "lucide-react";
+import { useSchemaForm } from "./useSchemaForm";
 
 
 type TileKey =
@@ -278,36 +274,6 @@ function RosterSelect({
   );
 }
 
-// Reusable touched/attempted tracker for inline error reveal
-function useTouched<K extends string>() {
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const [attempted, setAttempted] = useState(false);
-  const mark = (k: K) => setTouched((p) => ({ ...p, [k]: true }));
-  const show = (k: K) => attempted || !!touched[k];
-  return { setAttempted, mark, show };
-}
-
-// Server-side (Supabase) error state, mirrored into the same field-keys
-// the zod schema uses so every modal renders failures consistently.
-function useServerErrors<V extends Record<string, unknown>>() {
-  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof V, string>>>({});
-  const [formError, setFormError] = useState<string | undefined>(undefined);
-  const clearField = (k: keyof V) =>
-    setFieldErrors((p) => (p[k] ? { ...p, [k]: undefined } : p));
-  const reset = () => {
-    setFieldErrors({});
-    setFormError(undefined);
-  };
-  const apply = (next: {
-    fieldErrors: Partial<Record<keyof V, string>>;
-    formError?: string;
-  }) => {
-    setFieldErrors(next.fieldErrors);
-    setFormError(next.formError);
-  };
-  return { fieldErrors, formError, clearField, reset, apply };
-}
-
 function FormBanner({ message }: { message?: string }) {
   if (!message) return null;
   return (
@@ -351,150 +317,111 @@ const HEATMAP_COLUMNS = {
 
 // ---- SOS ----
 export function SosForm({ engagementId, userId, memberName, onSuccess, onCancel }: FormProps) {
-  const [values, setValues] = useState({ blocker: "", impact: "", who: "", by: "" });
-  const [saving, setSaving] = useState(false);
-  const t = useTouched<keyof typeof values>();
-  const server = useServerErrors<typeof values>();
-  const { success, errors, data } = validate(sosSchema, values);
-  const err = (k: keyof typeof values): string | undefined =>
-    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined) ?? server.fieldErrors[k];
-  const set = <K extends keyof typeof values>(k: K, v: string) => {
-    setValues((p) => ({ ...p, [k]: v }));
-    server.clearField(k);
-  };
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    t.setAttempted(true);
-    if (!success || !data) return;
-    setSaving(true);
-    server.reset();
-    const desc = data.impact ? `${data.blocker}\n\nImpact: ${data.impact}` : data.blocker;
-    const action = [data.who && `Owner: ${data.who}`, data.by && `Resolve by: ${data.by}`]
-      .filter(Boolean).join(" · ");
-    const { error } = await supabase.from("sos_alerts").insert({
-      engagement_id: engagementId,
-      submitted_by: userId,
-      submitter_name: memberName,
-      severity: "High",
-      category: "Blocker",
-      description: desc,
-      owner_name: data.who || null,
-      recommended_action: action || null,
-      status: "Open",
-    });
-    setSaving(false);
-    if (error) {
-      const mapped = mapSupabaseError<typeof values>(error, SOS_COLUMNS);
-      server.apply(mapped);
-      return toast.error("Couldn't raise SOS", {
-        description: summarizeServerErrors(mapped) ?? error.message,
+  const f = useSchemaForm({
+    schema: sosSchema,
+    initialValues: { blocker: "", impact: "", who: "", by: "" },
+    columnMap: SOS_COLUMNS,
+    errorToast: "Couldn't raise SOS",
+    successLabel: "SOS raised",
+    onSuccess,
+    resetTo: { blocker: "", impact: "", who: "", by: "" },
+    onSubmit: async (data) => {
+      const desc = data.impact ? `${data.blocker}\n\nImpact: ${data.impact}` : data.blocker;
+      const action = [data.who && `Owner: ${data.who}`, data.by && `Resolve by: ${data.by}`]
+        .filter(Boolean).join(" · ");
+      return supabase.from("sos_alerts").insert({
+        engagement_id: engagementId,
+        submitted_by: userId,
+        submitter_name: memberName,
+        severity: "High",
+        category: "Blocker",
+        description: desc,
+        owner_name: data.who || null,
+        recommended_action: action || null,
+        status: "Open",
       });
-    }
-    setValues({ blocker: "", impact: "", who: "", by: "" });
-    onSuccess("SOS raised");
-  }
+    },
+  });
 
   return (
-    <form onSubmit={submit} className="space-y-3" noValidate>
-      <FormBanner message={server.formError} />
-      <Field label="What is the blocker?" error={err("blocker")}>
-        <Textarea rows={3} value={values.blocker} onChange={(e) => set("blocker", e.target.value)} onBlur={() => t.mark("blocker")} />
+    <form onSubmit={f.handleSubmit} className="space-y-3" noValidate>
+      <FormBanner message={f.formError} />
+      <Field label="What is the blocker?" error={f.err("blocker")}>
+        <Textarea rows={3} value={f.values.blocker} onChange={(e) => f.setField("blocker", e.target.value)} onBlur={() => f.mark("blocker")} />
       </Field>
-      <Field label="Impact if unresolved" error={err("impact")}>
-        <Textarea rows={2} value={values.impact} onChange={(e) => set("impact", e.target.value)} onBlur={() => t.mark("impact")} />
+      <Field label="Impact if unresolved" error={f.err("impact")}>
+        <Textarea rows={2} value={f.values.impact} onChange={(e) => f.setField("impact", e.target.value)} onBlur={() => f.mark("impact")} />
       </Field>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Who needs to act?" error={err("who")}>
-          <Input value={values.who} onChange={(e) => set("who", e.target.value)} onBlur={() => t.mark("who")} />
+        <Field label="Who needs to act?" error={f.err("who")}>
+          <Input value={f.values.who} onChange={(e) => f.setField("who", e.target.value)} onBlur={() => f.mark("who")} />
         </Field>
-        <Field label="Resolve by" error={err("by")}>
-          <Input value={values.by} onChange={(e) => set("by", e.target.value)} onBlur={() => t.mark("by")} placeholder="e.g. EOD Friday" />
+        <Field label="Resolve by" error={f.err("by")}>
+          <Input value={f.values.by} onChange={(e) => f.setField("by", e.target.value)} onBlur={() => f.mark("by")} placeholder="e.g. EOD Friday" />
         </Field>
       </div>
-      <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
+      <FormActions saving={f.saving} disabled={!f.valid} onCancel={onCancel} />
     </form>
   );
 }
 
 // ---- Huddle ----
 export function HuddleForm({ engagementId, userId, memberName, roster, onSuccess, onCancel }: FormProps) {
-  const [values, setValues] = useState<{
+  const f = useSchemaForm<{
     date: string; focus: string; attendees: string[]; flag: string;
   }>({
-    date: new Date().toISOString().slice(0, 10),
-    focus: "",
-    attendees: [],
-    flag: "",
+    schema: huddleSchema,
+    initialValues: {
+      date: new Date().toISOString().slice(0, 10),
+      focus: "",
+      attendees: [],
+      flag: "",
+    },
+    columnMap: HUDDLE_COLUMNS,
+    errorToast: "Couldn't save huddle",
+    successLabel: "Huddle scheduled",
+    onSuccess,
+    resetTo: { focus: "", attendees: [], flag: "" },
+    onSubmit: async (data) => {
+      const notes = [
+        `Date: ${data.date}`,
+        data.attendees.length ? `Attendees: ${data.attendees.join(", ")}` : null,
+        `Focus: ${data.focus}`,
+        data.flag ? `Flag: ${data.flag}` : null,
+      ].filter(Boolean).join("\n");
+      return supabase.from("huddles").insert({
+        engagement_id: engagementId,
+        submitted_by: userId,
+        submitter_name: memberName,
+        health: "Yellow",
+        priority: "Working session scheduled",
+        notes,
+        needs_leadership: false,
+      });
+    },
   });
-  const [saving, setSaving] = useState(false);
-  const t = useTouched<keyof typeof values>();
-  const server = useServerErrors<typeof values>();
-  const { success, errors, data } = validate(huddleSchema, values);
-  const err = (k: keyof typeof values): string | undefined =>
-    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined) ?? server.fieldErrors[k];
-  const setField = <K extends keyof typeof values>(k: K, v: typeof values[K]) => {
-    setValues((p) => ({ ...p, [k]: v }));
-    server.clearField(k);
-  };
 
   function toggleAttendee(name: string) {
-    setValues((p) => ({
-      ...p,
-      attendees: p.attendees.includes(name)
-        ? p.attendees.filter((n) => n !== name)
-        : [...p.attendees, name],
-    }));
-    server.clearField("attendees" as keyof typeof values);
-  }
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    t.setAttempted(true);
-    if (!success || !data) return;
-    setSaving(true);
-    server.reset();
-    const notes = [
-      `Date: ${data.date}`,
-      data.attendees.length ? `Attendees: ${data.attendees.join(", ")}` : null,
-      `Focus: ${data.focus}`,
-      data.flag ? `Flag: ${data.flag}` : null,
-    ].filter(Boolean).join("\n");
-    const { error } = await supabase.from("huddles").insert({
-      engagement_id: engagementId,
-      submitted_by: userId,
-      submitter_name: memberName,
-      health: "Yellow",
-      priority: "Working session scheduled",
-      notes,
-      needs_leadership: false,
-    });
-    setSaving(false);
-    if (error) {
-      const mapped = mapSupabaseError<typeof values>(error, HUDDLE_COLUMNS);
-      server.apply(mapped);
-      return toast.error("Couldn't save huddle", {
-        description: summarizeServerErrors(mapped) ?? error.message,
-      });
-    }
-    setValues((p) => ({ ...p, focus: "", attendees: [], flag: "" }));
-    onSuccess("Huddle scheduled");
+    const next = f.values.attendees.includes(name)
+      ? f.values.attendees.filter((n) => n !== name)
+      : [...f.values.attendees, name];
+    f.setField("attendees", next);
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3" noValidate>
-      <FormBanner message={server.formError} />
-      <Field label="Date" error={err("date")}>
-        <Input type="date" value={values.date} onChange={(e) => setField("date", e.target.value)} onBlur={() => t.mark("date")} />
+    <form onSubmit={f.handleSubmit} className="space-y-3" noValidate>
+      <FormBanner message={f.formError} />
+      <Field label="Date" error={f.err("date")}>
+        <Input type="date" value={f.values.date} onChange={(e) => f.setField("date", e.target.value)} onBlur={() => f.mark("date")} />
       </Field>
-      <Field label="Focus areas" error={err("focus")}>
-        <Textarea rows={3} value={values.focus} onChange={(e) => setField("focus", e.target.value)} onBlur={() => t.mark("focus")} />
+      <Field label="Focus areas" error={f.err("focus")}>
+        <Textarea rows={3} value={f.values.focus} onChange={(e) => f.setField("focus", e.target.value)} onBlur={() => f.mark("focus")} />
       </Field>
       <Field label="Attendees">
         <div className="flex flex-wrap gap-1.5 rounded-md border border-border bg-background p-2">
           {roster.length === 0 && <span className="text-xs text-muted-foreground">No teammates yet</span>}
           {roster.map((m) => {
-            const sel = values.attendees.includes(m.display_name);
+            const sel = f.values.attendees.includes(m.display_name);
             return (
               <button
                 type="button"
@@ -511,70 +438,52 @@ export function HuddleForm({ engagementId, userId, memberName, roster, onSuccess
           })}
         </div>
       </Field>
-      <Field label="Anything to flag? (optional)" error={err("flag")}>
-        <Textarea rows={2} value={values.flag} onChange={(e) => setField("flag", e.target.value)} onBlur={() => t.mark("flag")} />
+      <Field label="Anything to flag? (optional)" error={f.err("flag")}>
+        <Textarea rows={2} value={f.values.flag} onChange={(e) => f.setField("flag", e.target.value)} onBlur={() => f.mark("flag")} />
       </Field>
-      <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
+      <FormActions saving={f.saving} disabled={!f.valid} onCancel={onCancel} />
     </form>
   );
 }
 
 // ---- Broadcast ----
 export function BroadcastForm({ engagementId, userId, memberName, onSuccess, onCancel }: FormProps) {
-  const [values, setValues] = useState<{
+  const f = useSchemaForm<{
     subject: string; message: string;
     tone: "Informational" | "Urgent" | "Encouraging" | "Reminder";
     audience: "Full team" | "SMEs only" | "Writers only" | "Leads only";
-  }>({ subject: "", message: "", tone: "Informational", audience: "Full team" });
-  const [saving, setSaving] = useState(false);
-  const t = useTouched<keyof typeof values>();
-  const server = useServerErrors<typeof values>();
-  const { success, errors, data } = validate(broadcastSchema, values);
-  const err = (k: keyof typeof values): string | undefined =>
-    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined) ?? server.fieldErrors[k];
-  const setField = <K extends keyof typeof values>(k: K, v: typeof values[K]) => {
-    setValues((p) => ({ ...p, [k]: v }));
-    server.clearField(k);
-  };
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    t.setAttempted(true);
-    if (!success || !data) return;
-    setSaving(true);
-    server.reset();
-    const content = `${data.subject ? `**${data.subject}**\n` : ""}${data.message}\n\n— ${data.tone} · to ${data.audience}`;
-    const { error } = await supabase.from("broadcasts").insert({
-      engagement_id: engagementId,
-      author_id: userId,
-      author_name: memberName,
-      content,
-      pinned: data.tone === "Urgent",
-    });
-    setSaving(false);
-    if (error) {
-      const mapped = mapSupabaseError<typeof values>(error, BROADCAST_COLUMNS);
-      server.apply(mapped);
-      return toast.error("Couldn't send broadcast", {
-        description: summarizeServerErrors(mapped) ?? error.message,
+  }>({
+    schema: broadcastSchema,
+    initialValues: { subject: "", message: "", tone: "Informational", audience: "Full team" },
+    columnMap: BROADCAST_COLUMNS,
+    errorToast: "Couldn't send broadcast",
+    successLabel: "Broadcast sent",
+    onSuccess,
+    resetTo: { subject: "", message: "" },
+    onSubmit: async (data) => {
+      const content = `${data.subject ? `**${data.subject}**\n` : ""}${data.message}\n\n— ${data.tone} · to ${data.audience}`;
+      return supabase.from("broadcasts").insert({
+        engagement_id: engagementId,
+        author_id: userId,
+        author_name: memberName,
+        content,
+        pinned: data.tone === "Urgent",
       });
-    }
-    setValues((p) => ({ ...p, subject: "", message: "" }));
-    onSuccess("Broadcast sent");
-  }
+    },
+  });
 
   return (
-    <form onSubmit={submit} className="space-y-3" noValidate>
-      <FormBanner message={server.formError} />
-      <Field label="Subject" error={err("subject")}>
-        <Input value={values.subject} onChange={(e) => setField("subject", e.target.value)} onBlur={() => t.mark("subject")} />
+    <form onSubmit={f.handleSubmit} className="space-y-3" noValidate>
+      <FormBanner message={f.formError} />
+      <Field label="Subject" error={f.err("subject")}>
+        <Input value={f.values.subject} onChange={(e) => f.setField("subject", e.target.value)} onBlur={() => f.mark("subject")} />
       </Field>
-      <Field label="Message" error={err("message")}>
-        <Textarea rows={4} value={values.message} onChange={(e) => setField("message", e.target.value)} onBlur={() => t.mark("message")} />
+      <Field label="Message" error={f.err("message")}>
+        <Textarea rows={4} value={f.values.message} onChange={(e) => f.setField("message", e.target.value)} onBlur={() => f.mark("message")} />
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Tone">
-          <Select value={values.tone} onValueChange={(v) => setField("tone", v as typeof values.tone)}>
+          <Select value={f.values.tone} onValueChange={(v) => f.setField("tone", v as typeof f.values.tone)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {["Informational", "Urgent", "Encouraging", "Reminder"].map((t) => (
@@ -584,7 +493,7 @@ export function BroadcastForm({ engagementId, userId, memberName, onSuccess, onC
           </Select>
         </Field>
         <Field label="Send to">
-          <Select value={values.audience} onValueChange={(v) => setField("audience", v as typeof values.audience)}>
+          <Select value={f.values.audience} onValueChange={(v) => f.setField("audience", v as typeof f.values.audience)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {["Full team", "SMEs only", "Writers only", "Leads only"].map((t) => (
@@ -594,219 +503,165 @@ export function BroadcastForm({ engagementId, userId, memberName, onSuccess, onC
           </Select>
         </Field>
       </div>
-      <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
+      <FormActions saving={f.saving} disabled={!f.valid} onCancel={onCancel} />
     </form>
   );
 }
 
 // ---- Pulse™ ----
 export function PulseForm({ engagementId, userId, memberName, roster, onSuccess, onCancel }: FormProps) {
-  const [values, setValues] = useState({
-    period: "", pullRoster: false, completed: "", inProgress: "", issues: "",
-  });
-  const [saving, setSaving] = useState(false);
-  const t = useTouched<keyof typeof values>();
-  const server = useServerErrors<typeof values>();
-  const { success, errors, data } = validate(pulseSchema, values);
-  const err = (k: keyof typeof values): string | undefined =>
-    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined) ?? server.fieldErrors[k];
-  const setField = <K extends keyof typeof values>(k: K, v: typeof values[K]) => {
-    setValues((p) => ({ ...p, [k]: v }));
-    server.clearField(k);
-  };
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    t.setAttempted(true);
-    if (!success || !data) return;
-    setSaving(true);
-    server.reset();
-    const team = data.pullRoster && roster.length ? `\n\nTeam: ${roster.map((m) => m.display_name).join(", ")}` : "";
-    const summary = `Period: ${data.period || "—"}\n\nCompleted:\n${data.completed}${team}`;
-    const action_items = [
-      data.inProgress && `In progress:\n${data.inProgress}`,
-      data.issues && `Open issues / asks:\n${data.issues}`,
-    ].filter(Boolean).join("\n\n");
-    const { error } = await supabase.from("client_pulses").insert({
-      engagement_id: engagementId,
-      recorded_by: userId,
-      recorder_name: memberName,
-      summary,
-      action_items: action_items || null,
-      sentiment: "Neutral",
-      interaction_date: new Date().toISOString().slice(0, 10),
-    });
-    setSaving(false);
-    if (error) {
-      const mapped = mapSupabaseError<typeof values>(error, PULSE_COLUMNS);
-      server.apply(mapped);
-      return toast.error("Couldn't log client pulse", {
-        description: summarizeServerErrors(mapped) ?? error.message,
+  const f = useSchemaForm<{
+    period: string; pullRoster: boolean; completed: string; inProgress: string; issues: string;
+  }>({
+    schema: pulseSchema,
+    initialValues: { period: "", pullRoster: false, completed: "", inProgress: "", issues: "" },
+    columnMap: PULSE_COLUMNS,
+    errorToast: "Couldn't log client pulse",
+    successLabel: "Client pulse logged",
+    onSuccess,
+    resetTo: { period: "", pullRoster: false, completed: "", inProgress: "", issues: "" },
+    onSubmit: async (data) => {
+      const team = data.pullRoster && roster.length ? `\n\nTeam: ${roster.map((m) => m.display_name).join(", ")}` : "";
+      const summary = `Period: ${data.period || "—"}\n\nCompleted:\n${data.completed}${team}`;
+      const action_items = [
+        data.inProgress && `In progress:\n${data.inProgress}`,
+        data.issues && `Open issues / asks:\n${data.issues}`,
+      ].filter(Boolean).join("\n\n");
+      return supabase.from("client_pulses").insert({
+        engagement_id: engagementId,
+        recorded_by: userId,
+        recorder_name: memberName,
+        summary,
+        action_items: action_items || null,
+        sentiment: "Neutral",
+        interaction_date: new Date().toISOString().slice(0, 10),
       });
-    }
-    setValues({ period: "", pullRoster: false, completed: "", inProgress: "", issues: "" });
-    onSuccess("Client pulse logged");
-  }
+    },
+  });
 
   return (
-    <form onSubmit={submit} className="space-y-3" noValidate>
-      <FormBanner message={server.formError} />
-      <Field label="Reporting period" error={err("period")}>
-        <Input value={values.period} onChange={(e) => setField("period", e.target.value)} onBlur={() => t.mark("period")} placeholder="e.g. Week of Jan 15" />
+    <form onSubmit={f.handleSubmit} className="space-y-3" noValidate>
+      <FormBanner message={f.formError} />
+      <Field label="Reporting period" error={f.err("period")}>
+        <Input value={f.values.period} onChange={(e) => f.setField("period", e.target.value)} onBlur={() => f.mark("period")} placeholder="e.g. Week of Jan 15" />
       </Field>
       <div className="flex items-center justify-between rounded-md border border-border bg-background px-3 py-2">
         <Label htmlFor="pull-roster" className="cursor-pointer text-sm">Pull from roster?</Label>
-        <Switch id="pull-roster" checked={values.pullRoster} onCheckedChange={(v) => setField("pullRoster", v)} />
+        <Switch id="pull-roster" checked={f.values.pullRoster} onCheckedChange={(v) => f.setField("pullRoster", v)} />
       </div>
-      <Field label="Sections completed" error={err("completed")}>
-        <Textarea rows={3} value={values.completed} onChange={(e) => setField("completed", e.target.value)} onBlur={() => t.mark("completed")} />
+      <Field label="Sections completed" error={f.err("completed")}>
+        <Textarea rows={3} value={f.values.completed} onChange={(e) => f.setField("completed", e.target.value)} onBlur={() => f.mark("completed")} />
       </Field>
-      <Field label="In progress" error={err("inProgress")}>
-        <Textarea rows={2} value={values.inProgress} onChange={(e) => setField("inProgress", e.target.value)} onBlur={() => t.mark("inProgress")} />
+      <Field label="In progress" error={f.err("inProgress")}>
+        <Textarea rows={2} value={f.values.inProgress} onChange={(e) => f.setField("inProgress", e.target.value)} onBlur={() => f.mark("inProgress")} />
       </Field>
-      <Field label="Open issues / asks" error={err("issues")}>
-        <Textarea rows={2} value={values.issues} onChange={(e) => setField("issues", e.target.value)} onBlur={() => t.mark("issues")} />
+      <Field label="Open issues / asks" error={f.err("issues")}>
+        <Textarea rows={2} value={f.values.issues} onChange={(e) => f.setField("issues", e.target.value)} onBlur={() => f.mark("issues")} />
       </Field>
-      <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
+      <FormActions saving={f.saving} disabled={!f.valid} onCancel={onCancel} />
     </form>
   );
 }
 
 // ---- Decisions ----
 export function DecisionForm({ engagementId, userId, roster, onSuccess, onCancel }: FormProps) {
-  const [values, setValues] = useState({
-    decision: "", madeBy: "", rationale: "",
-    date: new Date().toISOString().slice(0, 10),
-  });
-  const [saving, setSaving] = useState(false);
-  const t = useTouched<keyof typeof values>();
-  const server = useServerErrors<typeof values>();
-  const { success, errors, data } = validate(decisionSchema, values);
-  const err = (k: keyof typeof values): string | undefined =>
-    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined) ?? server.fieldErrors[k];
-  const setField = <K extends keyof typeof values>(k: K, v: typeof values[K]) => {
-    setValues((p) => ({ ...p, [k]: v }));
-    server.clearField(k);
-  };
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    t.setAttempted(true);
-    if (!success || !data) return;
-    setSaving(true);
-    server.reset();
-    const title = data.decision.split("\n")[0].slice(0, 140);
-    const impacted = data.decision.length > title.length ? data.decision.slice(title.length).trim() : null;
-    const { error } = await supabase.from("decisions").insert({
-      engagement_id: engagementId,
-      created_by: userId,
-      title,
-      impacted_areas: impacted,
-      rationale: data.rationale || null,
-      owner_name: data.madeBy || null,
-      decision_date: data.date,
-      status: "Final",
-    });
-    setSaving(false);
-    if (error) {
-      const mapped = mapSupabaseError<typeof values>(error, DECISION_COLUMNS);
-      server.apply(mapped);
-      return toast.error("Couldn't record decision", {
-        description: summarizeServerErrors(mapped) ?? error.message,
+  const f = useSchemaForm({
+    schema: decisionSchema,
+    initialValues: {
+      decision: "", madeBy: "", rationale: "",
+      date: new Date().toISOString().slice(0, 10),
+    },
+    columnMap: DECISION_COLUMNS,
+    errorToast: "Couldn't record decision",
+    successLabel: "Decision recorded",
+    onSuccess,
+    resetTo: { decision: "", madeBy: "", rationale: "" },
+    onSubmit: async (data) => {
+      const title = data.decision.split("\n")[0].slice(0, 140);
+      const impacted = data.decision.length > title.length ? data.decision.slice(title.length).trim() : null;
+      return supabase.from("decisions").insert({
+        engagement_id: engagementId,
+        created_by: userId,
+        title,
+        impacted_areas: impacted,
+        rationale: data.rationale || null,
+        owner_name: data.madeBy || null,
+        decision_date: data.date,
+        status: "Final",
       });
-    }
-    setValues((p) => ({ ...p, decision: "", madeBy: "", rationale: "" }));
-    onSuccess("Decision recorded");
-  }
+    },
+  });
 
   return (
-    <form onSubmit={submit} className="space-y-3" noValidate>
-      <FormBanner message={server.formError} />
-      <Field label="Decision" error={err("decision")}>
-        <Textarea rows={3} value={values.decision} onChange={(e) => setField("decision", e.target.value)} onBlur={() => t.mark("decision")} />
+    <form onSubmit={f.handleSubmit} className="space-y-3" noValidate>
+      <FormBanner message={f.formError} />
+      <Field label="Decision" error={f.err("decision")}>
+        <Textarea rows={3} value={f.values.decision} onChange={(e) => f.setField("decision", e.target.value)} onBlur={() => f.mark("decision")} />
       </Field>
-      <Field label="Made by" error={err("madeBy")}>
-        <RosterSelect value={values.madeBy} onChange={(v) => setField("madeBy", v)} roster={roster} onBlur={() => t.mark("madeBy")} />
+      <Field label="Made by" error={f.err("madeBy")}>
+        <RosterSelect value={f.values.madeBy} onChange={(v) => f.setField("madeBy", v)} roster={roster} onBlur={() => f.mark("madeBy")} />
       </Field>
-      <Field label="Rationale" error={err("rationale")}>
-        <Textarea rows={3} value={values.rationale} onChange={(e) => setField("rationale", e.target.value)} onBlur={() => t.mark("rationale")} />
+      <Field label="Rationale" error={f.err("rationale")}>
+        <Textarea rows={3} value={f.values.rationale} onChange={(e) => f.setField("rationale", e.target.value)} onBlur={() => f.mark("rationale")} />
       </Field>
-      <Field label="Date" error={err("date")}>
-        <Input type="date" value={values.date} onChange={(e) => setField("date", e.target.value)} onBlur={() => t.mark("date")} />
+      <Field label="Date" error={f.err("date")}>
+        <Input type="date" value={f.values.date} onChange={(e) => f.setField("date", e.target.value)} onBlur={() => f.mark("date")} />
       </Field>
-      <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
+      <FormActions saving={f.saving} disabled={!f.valid} onCancel={onCancel} />
     </form>
   );
 }
 
 // ---- Risks ----
 export function RiskForm({ engagementId, userId, roster, onSuccess, onCancel }: FormProps) {
-  const [values, setValues] = useState<{
+  const f = useSchemaForm<{
     description: string; section: string;
     likelihood: "Low" | "Medium" | "High";
     impact: "Low" | "Medium" | "High" | "Critical";
     mitigation: string; owner: string;
   }>({
-    description: "", section: "", likelihood: "Medium", impact: "Medium",
-    mitigation: "", owner: "",
-  });
-  const [saving, setSaving] = useState(false);
-  const t = useTouched<keyof typeof values>();
-  const server = useServerErrors<typeof values>();
-  const { success, errors, data } = validate(riskSchema, values);
-  const err = (k: keyof typeof values): string | undefined =>
-    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined) ?? server.fieldErrors[k];
-  const setField = <K extends keyof typeof values>(k: K, v: typeof values[K]) => {
-    setValues((p) => ({ ...p, [k]: v }));
-    server.clearField(k);
-  };
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    t.setAttempted(true);
-    if (!success || !data) return;
-    setSaving(true);
-    server.reset();
-    const title = data.description.split("\n")[0].slice(0, 140);
-    const body = [
-      data.section && `Section: ${data.section}`,
-      data.description.length > title.length ? data.description : null,
-      data.mitigation && `Mitigation: ${data.mitigation}`,
-    ].filter(Boolean).join("\n\n");
-    const { error } = await supabase.from("risks").insert({
-      engagement_id: engagementId,
-      created_by: userId,
-      title,
-      description: body || null,
-      likelihood: data.likelihood,
-      severity: data.impact,
-      owner_name: data.owner || null,
-      status: "Open",
-    });
-    setSaving(false);
-    if (error) {
-      const mapped = mapSupabaseError<typeof values>(error, RISK_COLUMNS);
-      server.apply(mapped);
-      return toast.error("Couldn't log risk", {
-        description: summarizeServerErrors(mapped) ?? error.message,
+    schema: riskSchema,
+    initialValues: {
+      description: "", section: "", likelihood: "Medium", impact: "Medium",
+      mitigation: "", owner: "",
+    },
+    columnMap: RISK_COLUMNS,
+    errorToast: "Couldn't log risk",
+    successLabel: "Risk logged",
+    onSuccess,
+    resetTo: { description: "", section: "", mitigation: "", owner: "" },
+    onSubmit: async (data) => {
+      const title = data.description.split("\n")[0].slice(0, 140);
+      const body = [
+        data.section && `Section: ${data.section}`,
+        data.description.length > title.length ? data.description : null,
+        data.mitigation && `Mitigation: ${data.mitigation}`,
+      ].filter(Boolean).join("\n\n");
+      return supabase.from("risks").insert({
+        engagement_id: engagementId,
+        created_by: userId,
+        title,
+        description: body || null,
+        likelihood: data.likelihood,
+        severity: data.impact,
+        owner_name: data.owner || null,
+        status: "Open",
       });
-    }
-    setValues((p) => ({ ...p, description: "", section: "", mitigation: "", owner: "" }));
-    onSuccess("Risk logged");
-  }
+    },
+  });
 
   return (
-    <form onSubmit={submit} className="space-y-3" noValidate>
-      <FormBanner message={server.formError} />
-      <Field label="Description" error={err("description")}>
-        <Textarea rows={3} value={values.description} onChange={(e) => setField("description", e.target.value)} onBlur={() => t.mark("description")} />
+    <form onSubmit={f.handleSubmit} className="space-y-3" noValidate>
+      <FormBanner message={f.formError} />
+      <Field label="Description" error={f.err("description")}>
+        <Textarea rows={3} value={f.values.description} onChange={(e) => f.setField("description", e.target.value)} onBlur={() => f.mark("description")} />
       </Field>
-      <Field label="Section affected" error={err("section")}>
-        <Input value={values.section} onChange={(e) => setField("section", e.target.value)} onBlur={() => t.mark("section")} />
+      <Field label="Section affected" error={f.err("section")}>
+        <Input value={f.values.section} onChange={(e) => f.setField("section", e.target.value)} onBlur={() => f.mark("section")} />
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Likelihood">
-          <Select value={values.likelihood} onValueChange={(v) => setField("likelihood", v as typeof values.likelihood)}>
+          <Select value={f.values.likelihood} onValueChange={(v) => f.setField("likelihood", v as typeof f.values.likelihood)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {["Low", "Medium", "High"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
@@ -814,7 +669,7 @@ export function RiskForm({ engagementId, userId, roster, onSuccess, onCancel }: 
           </Select>
         </Field>
         <Field label="Impact">
-          <Select value={values.impact} onValueChange={(v) => setField("impact", v as typeof values.impact)}>
+          <Select value={f.values.impact} onValueChange={(v) => f.setField("impact", v as typeof f.values.impact)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {["Low", "Medium", "High", "Critical"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
@@ -822,81 +677,62 @@ export function RiskForm({ engagementId, userId, roster, onSuccess, onCancel }: 
           </Select>
         </Field>
       </div>
-      <Field label="Mitigation" error={err("mitigation")}>
-        <Textarea rows={2} value={values.mitigation} onChange={(e) => setField("mitigation", e.target.value)} onBlur={() => t.mark("mitigation")} />
+      <Field label="Mitigation" error={f.err("mitigation")}>
+        <Textarea rows={2} value={f.values.mitigation} onChange={(e) => f.setField("mitigation", e.target.value)} onBlur={() => f.mark("mitigation")} />
       </Field>
-      <Field label="Owner" error={err("owner")}>
-        <RosterSelect value={values.owner} onChange={(v) => setField("owner", v)} roster={roster} onBlur={() => t.mark("owner")} />
+      <Field label="Owner" error={f.err("owner")}>
+        <RosterSelect value={f.values.owner} onChange={(v) => f.setField("owner", v)} roster={roster} onBlur={() => f.mark("owner")} />
       </Field>
-      <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
+      <FormActions saving={f.saving} disabled={!f.valid} onCancel={onCancel} />
     </form>
   );
 }
 
 // ---- Delivery Map ----
 export function HeatmapForm({ engagementId, memberName, roster, onSuccess, onCancel }: FormProps) {
-  const [values, setValues] = useState<{
+  const f = useSchemaForm<{
     writer: string;
     issue: "Completeness" | "Compliance risk" | "Win theme strength" | "Behind schedule";
     section: string; notes: string;
-  }>({ writer: "", issue: "Completeness", section: "", notes: "" });
-  const [saving, setSaving] = useState(false);
-  const t = useTouched<keyof typeof values>();
-  const server = useServerErrors<typeof values>();
-  const { success, errors, data } = validate(heatmapSchema, values);
-  const err = (k: keyof typeof values): string | undefined =>
-    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined) ?? server.fieldErrors[k];
-  const setField = <K extends keyof typeof values>(k: K, v: typeof values[K]) => {
-    setValues((p) => ({ ...p, [k]: v }));
-    server.clearField(k);
-  };
-
-  const statusForIssue: Record<string, string> = {
-    "Completeness": "Yellow",
-    "Compliance risk": "Red",
-    "Win theme strength": "Yellow",
-    "Behind schedule": "Red",
-  };
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    t.setAttempted(true);
-    if (!success || !data) return;
-    setSaving(true);
-    server.reset();
-    const noteBody = [
-      data.writer && `Writer: ${data.writer}`,
-      `Issue: ${data.issue}`,
-      data.notes,
-    ].filter(Boolean).join("\n");
-    const { error } = await supabase.from("heatmap_sections").insert({
-      engagement_id: engagementId,
-      section_name: data.section,
-      status: statusForIssue[data.issue] ?? "Yellow",
-      notes: noteBody,
-      updated_by_name: memberName,
-      sort_order: 999,
-    });
-    setSaving(false);
-    if (error) {
-      const mapped = mapSupabaseError<typeof values>(error, HEATMAP_COLUMNS);
-      server.apply(mapped);
-      return toast.error("Couldn't update delivery map", {
-        description: summarizeServerErrors(mapped) ?? error.message,
+  }>({
+    schema: heatmapSchema,
+    initialValues: { writer: "", issue: "Completeness", section: "", notes: "" },
+    columnMap: HEATMAP_COLUMNS,
+    errorToast: "Couldn't update delivery map",
+    successLabel: "Heat map updated",
+    onSuccess,
+    resetTo: { writer: "", section: "", notes: "" },
+    onSubmit: async (data) => {
+      const statusForIssue: Record<string, string> = {
+        "Completeness": "Yellow",
+        "Compliance risk": "Red",
+        "Win theme strength": "Yellow",
+        "Behind schedule": "Red",
+      };
+      const noteBody = [
+        data.writer && `Writer: ${data.writer}`,
+        `Issue: ${data.issue}`,
+        data.notes,
+      ].filter(Boolean).join("\n");
+      return supabase.from("heatmap_sections").insert({
+        engagement_id: engagementId,
+        section_name: data.section,
+        status: statusForIssue[data.issue] ?? "Yellow",
+        notes: noteBody,
+        updated_by_name: memberName,
+        sort_order: 999,
       });
-    }
-    setValues((p) => ({ ...p, writer: "", section: "", notes: "" }));
-    onSuccess("Heat map updated");
-  }
+    },
+  });
 
   return (
-    <form onSubmit={submit} className="space-y-3" noValidate>
-      <FormBanner message={server.formError} />
+    <form onSubmit={f.handleSubmit} className="space-y-3" noValidate>
+      <FormBanner message={f.formError} />
       <Field label="Writer">
-        <RosterSelect value={values.writer} onChange={(v) => setField("writer", v)} roster={roster} />
+        <RosterSelect value={f.values.writer} onChange={(v) => f.setField("writer", v)} roster={roster} />
       </Field>
       <Field label="Issue">
-        <Select value={values.issue} onValueChange={(v) => setField("issue", v as typeof values.issue)}>
+        <Select value={f.values.issue} onValueChange={(v) => f.setField("issue", v as typeof f.values.issue)}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
             {["Completeness", "Compliance risk", "Win theme strength", "Behind schedule"].map((t) => (
@@ -905,13 +741,13 @@ export function HeatmapForm({ engagementId, memberName, roster, onSuccess, onCan
           </SelectContent>
         </Select>
       </Field>
-      <Field label="Section" error={err("section")}>
-        <Input value={values.section} onChange={(e) => setField("section", e.target.value)} onBlur={() => t.mark("section")} />
+      <Field label="Section" error={f.err("section")}>
+        <Input value={f.values.section} onChange={(e) => f.setField("section", e.target.value)} onBlur={() => f.mark("section")} />
       </Field>
-      <Field label="Notes (optional)" error={err("notes")}>
-        <Textarea rows={2} value={values.notes} onChange={(e) => setField("notes", e.target.value)} onBlur={() => t.mark("notes")} />
+      <Field label="Notes (optional)" error={f.err("notes")}>
+        <Textarea rows={2} value={f.values.notes} onChange={(e) => f.setField("notes", e.target.value)} onBlur={() => f.mark("notes")} />
       </Field>
-      <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
+      <FormActions saving={f.saving} disabled={!f.valid} onCancel={onCancel} />
     </form>
   );
 }
