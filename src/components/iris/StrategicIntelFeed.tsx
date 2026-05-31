@@ -71,7 +71,7 @@ export function StrategicIntelFeed({ engagementId, canRegenerate = false, compac
       const r = await getStoredStrategicSignals({
         data: { engagementId, minClassification: "signal" }
       });
-      setSignals(r.signals as Signal[]);
+      setSignals(r.signals as unknown as Signal[]);
     } catch { /* silent */ }
     setLoading(false);
   }
