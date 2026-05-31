@@ -12,8 +12,7 @@
 
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase as _typedSupabase } from "@/integrations/supabase/client";
-const supabase = _typedSupabase as any;
+import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { useSession } from "@/hooks/use-session";

@@ -1236,6 +1236,7 @@ export type Database = {
       engagements: {
         Row: {
           client: string
+          closed_at: string | null
           contract_value_estimate: number | null
           created_at: string | null
           created_by: string | null
@@ -1244,6 +1245,7 @@ export type Database = {
           id: string
           market: string | null
           name: string
+          phase: string | null
           slack_webhook: string | null
           state: string | null
           status: string
@@ -1251,6 +1253,7 @@ export type Database = {
         }
         Insert: {
           client: string
+          closed_at?: string | null
           contract_value_estimate?: number | null
           created_at?: string | null
           created_by?: string | null
@@ -1259,6 +1262,7 @@ export type Database = {
           id?: string
           market?: string | null
           name: string
+          phase?: string | null
           slack_webhook?: string | null
           state?: string | null
           status?: string
@@ -1266,6 +1270,7 @@ export type Database = {
         }
         Update: {
           client?: string
+          closed_at?: string | null
           contract_value_estimate?: number | null
           created_at?: string | null
           created_by?: string | null
@@ -1274,6 +1279,7 @@ export type Database = {
           id?: string
           market?: string | null
           name?: string
+          phase?: string | null
           slack_webhook?: string | null
           state?: string | null
           status?: string
@@ -1637,6 +1643,56 @@ export type Database = {
           },
         ]
       }
+      issues: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          engagement_id: string
+          id: string
+          issue_type: string
+          resolved_at: string | null
+          severity: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          engagement_id: string
+          id?: string
+          issue_type?: string
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          engagement_id?: string
+          id?: string
+          issue_type?: string
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issues_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       login_events: {
         Row: {
           created_at: string
@@ -1712,6 +1768,62 @@ export type Database = {
         }
         Relationships: []
       }
+      mission_closeout: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          engagement_id: string
+          final_score: number | null
+          id: string
+          improvements: string | null
+          institutional_notes: string | null
+          key_decisions: string | null
+          lessons_learned: string | null
+          outcome: string | null
+          strengths: string | null
+          updated_at: string
+          win_loss: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          engagement_id: string
+          final_score?: number | null
+          id?: string
+          improvements?: string | null
+          institutional_notes?: string | null
+          key_decisions?: string | null
+          lessons_learned?: string | null
+          outcome?: string | null
+          strengths?: string | null
+          updated_at?: string
+          win_loss?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          engagement_id?: string
+          final_score?: number | null
+          id?: string
+          improvements?: string | null
+          institutional_notes?: string | null
+          key_decisions?: string | null
+          lessons_learned?: string | null
+          outcome?: string | null
+          strengths?: string | null
+          updated_at?: string
+          win_loss?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_closeout_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: true
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_strategic_signals: {
         Row: {
           acknowledged_at: string | null
@@ -1783,6 +1895,50 @@ export type Database = {
           urgency_score?: number | null
         }
         Relationships: []
+      }
+      mission_workflow_steps: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          engagement_id: string
+          id: string
+          is_complete: boolean
+          step_name: string
+          step_order: number
+          step_type: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          engagement_id: string
+          id?: string
+          is_complete?: boolean
+          step_name: string
+          step_order?: number
+          step_type?: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          engagement_id?: string
+          id?: string
+          is_complete?: boolean
+          step_name?: string
+          step_order?: number
+          step_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_workflow_steps_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       monitoring_targets: {
         Row: {
@@ -2151,6 +2307,7 @@ export type Database = {
         Row: {
           created_at: string | null
           display_name: string
+          email: string | null
           id: string
           is_platform_admin: boolean
           title: string | null
@@ -2158,6 +2315,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           display_name: string
+          email?: string | null
           id: string
           is_platform_admin?: boolean
           title?: string | null
@@ -2165,6 +2323,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           display_name?: string
+          email?: string | null
           id?: string
           is_platform_admin?: boolean
           title?: string | null
