@@ -319,12 +319,12 @@ const HEATMAP_COLUMNS = {
 export function SosForm({ engagementId, userId, memberName, onSuccess, onCancel }: FormProps) {
   const f = useSchemaForm({
     schema: sosSchema,
-    initialValues: { blocker: "", impact: "", who: "", by: "", requestType: "sos" as const },
+    initialValues: { blocker: "", impact: "", who: "", by: "", requestType: "sos" as "sos" | "support" },
     columnMap: SOS_COLUMNS,
     errorToast: "Couldn't raise request",
     successLabel: "Request raised",
     onSuccess,
-    resetTo: { blocker: "", impact: "", who: "", by: "", requestType: "sos" as const },
+    resetTo: { blocker: "", impact: "", who: "", by: "", requestType: "sos" as "sos" | "support" },
     onSubmit: async (data) => {
       const desc = data.impact ? `${data.blocker}\n\nImpact: ${data.impact}` : data.blocker;
       const action = [data.who && `Owner: ${data.who}`, data.by && `Resolve by: ${data.by}`]
