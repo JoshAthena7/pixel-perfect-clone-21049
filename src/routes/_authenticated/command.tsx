@@ -147,7 +147,7 @@ function QuickActionBar({ engagementId, memberName }: { engagementId: string; me
   async function submitSOS() {
     if (!desc.trim()) return;
     setSaving(true);
-    await supabase.from("sos_alerts").insert({ engagement_id: engagementId, severity: sev, description: desc, status: "Open", submitted_by: memberName || "Team", category: "Other" });
+    await supabase.from("sos_alerts").insert({ engagement_id: engagementId, severity: sev, description: desc, status: "Open", submitted_by: memberName || "Team", submitter_name: memberName || "Team", category: "Other" });
     setSaving(false); setDesc(""); setOpen(null);
   }
 

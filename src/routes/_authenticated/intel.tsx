@@ -346,7 +346,7 @@ function MissionBriefingPage() {
               )}
 
               {/* Win Themes tab: full themes panel, no library */}
-              {t.key === "win-themes" && engagement && (
+              {(t.key as string) === "win-themes" && engagement && (
                 <div className="lg:col-span-5 space-y-4">
                   <Card className="border-border bg-surface p-6">
                     <div className="flex items-start justify-between gap-4">
@@ -365,7 +365,7 @@ function MissionBriefingPage() {
               )}
 
               {/* Library (file/link list) — shown on every tab except Win Themes */}
-              {t.key !== "win-themes" && (
+              {(t.key as string) !== "win-themes" && (
                 <>
                   {canWriteBriefing && (
                     <Card className="border-border bg-surface p-6 lg:col-span-2">
@@ -552,6 +552,7 @@ function MissionBriefingPage() {
                 </>
               )}
             </div>
+          </TabsContent>
         ))}
       </Tabs>
     </div>
