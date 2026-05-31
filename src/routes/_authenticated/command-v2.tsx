@@ -248,7 +248,7 @@ function CommandV2() {
           </div>
           {/* Support Requests */}
           <div className="panel">
-            <div className="panel-head"><span className="panel-title">Support Requests</span><button className="btn">+ Request</button></div>
+            <div className="panel-head"><span className="panel-title">Support Requests</span><button className="btn" onClick={() => setModal("sos")}>+ Request</button></div>
             <div className="panel-body">
               {sos.length === 0 && <div className="muted">No open requests.</div>}
               {sos.map(s => (
