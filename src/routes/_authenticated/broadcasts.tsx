@@ -23,7 +23,8 @@ export const Route = createFileRoute("/_authenticated/broadcasts")({
 type Member = { id: string; display_name: string; role: string };
 
 function BroadcastsPage() {
-  const { engagement, member, isLeadership } = useEngagement();
+  const { engagement, member, canEdit } = useEngagement();
+  const canWriteBroadcasts = canEdit("broadcasts");
   const { user } = useSession();
   const [items, setItems] = useState<any[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
