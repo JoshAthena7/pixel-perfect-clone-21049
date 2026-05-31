@@ -14,4 +14,4 @@ jobs:
           bun-version: latest
       - run: bun install --frozen-lockfile
       - run: bunx tsc --noEmit
-      - run: bun run lint
+      - run: bun run lint -- --max-warnings=0
