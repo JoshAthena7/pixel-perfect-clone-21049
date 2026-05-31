@@ -178,8 +178,8 @@ function CommandV2() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button className="btn">📡 Signal</button>
-            <button className="btn">🆘 Support</button>
+            <button className="btn" onClick={() => setModal("signal")}>📡 Signal</button>
+            <button className="btn" onClick={() => setModal("sos")}>🆘 Support</button>
             <Link to="/command" className="micro" style={{ marginLeft: 12 }}>← v1</Link>
           </div>
         </header>
