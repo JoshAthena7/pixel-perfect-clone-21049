@@ -12,10 +12,11 @@ import { relativeTime } from "@/lib/time";
 import { Siren, ShieldAlert, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/activity-log";
+import { PageGate } from "@/components/war-room/PageGate";
 
 export const Route = createFileRoute("/_authenticated/issues")({
   head: () => ({ meta: [{ title: "Escalations — Athena" }] }),
-  component: IssuesPage,
+  component: () => <PageGate page="escalations"><IssuesPage /></PageGate>,
 });
 
 type IssueType = "sos" | "risk";

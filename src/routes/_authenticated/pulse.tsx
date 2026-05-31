@@ -10,10 +10,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { PageGate } from "@/components/war-room/PageGate";
 
 export const Route = createFileRoute("/_authenticated/pulse")({
   head: () => ({ meta: [{ title: "Pulse™ — Athena" }] }),
-  component: PulsePage,
+  component: () => <PageGate page="pulse"><PulsePage /></PageGate>,
 });
 
 const SENTIMENTS = ["Happy", "Neutral", "Concerned"] as const;

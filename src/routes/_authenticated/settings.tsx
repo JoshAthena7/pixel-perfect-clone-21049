@@ -15,10 +15,11 @@ import { toast } from "sonner";
 import { daysUntil } from "@/lib/time";
 import { logActivity } from "@/lib/activity-log";
 import { MilestonesCard } from "@/components/war-room/MilestonesCard";
+import { PageGate } from "@/components/war-room/PageGate";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings — Athena" }] }),
-  component: SettingsPage,
+  component: () => <PageGate page="settings"><SettingsPage /></PageGate>,
 });
 
 function SettingsPage() {

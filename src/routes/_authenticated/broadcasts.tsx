@@ -12,11 +12,12 @@ import { toast } from "sonner";
 import { relativeTime } from "@/lib/time";
 import { Pin, ChevronDown, ChevronUp, Check, Minus } from "lucide-react";
 import { logActivity } from "@/lib/activity-log";
+import { PageGate } from "@/components/war-room/PageGate";
 
 
 export const Route = createFileRoute("/_authenticated/broadcasts")({
   head: () => ({ meta: [{ title: "Broadcasts — Athena" }] }),
-  component: BroadcastsPage,
+  component: () => <PageGate page="broadcasts"><BroadcastsPage /></PageGate>,
 });
 
 type Member = { id: string; display_name: string; role: string };

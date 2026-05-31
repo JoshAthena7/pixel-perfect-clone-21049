@@ -19,10 +19,11 @@ import { SectionReviewQueue } from "@/components/war-room/SectionReviewQueue";
 import { Watermark } from "@/components/war-room/Watermark";
 import { Sparkles, ShieldAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { PageGate } from "@/components/war-room/PageGate";
 
 export const Route = createFileRoute("/_authenticated/heatmap")({
   head: () => ({ meta: [{ title: "Delivery Map — Athena" }] }),
-  component: HeatmapPage,
+  component: () => <PageGate page="deliveryMap"><HeatmapPage /></PageGate>,
 });
 
 type Section = {
