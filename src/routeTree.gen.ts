@@ -19,13 +19,13 @@ import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/t
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSelectEngagementRouteImport } from './routes/_authenticated/select-engagement'
 import { Route as AuthenticatedSectionAssignmentsRouteImport } from './routes/_authenticated/section-assignments'
-import { Route as AuthenticatedExecutiveCommandRouteImport } from './routes/_authenticated/executive-command'
-import { Route as AuthenticatedMissionControlRouteImport } from './routes/_authenticated/mission-control'
 import { Route as AuthenticatedQuestionHealthRouteImport } from './routes/_authenticated/question-health'
 import { Route as AuthenticatedPulseRouteImport } from './routes/_authenticated/pulse'
 import { Route as AuthenticatedOverviewRouteImport } from './routes/_authenticated/overview'
 import { Route as AuthenticatedNeedsAttentionRouteImport } from './routes/_authenticated/needs-attention'
 import { Route as AuthenticatedNdaRequiredRouteImport } from './routes/_authenticated/nda-required'
+import { Route as AuthenticatedMissionControlRouteImport } from './routes/_authenticated/mission-control'
+import { Route as AuthenticatedMissionAdminRouteImport } from './routes/_authenticated/mission-admin'
 import { Route as AuthenticatedMfaEnrollmentRouteImport } from './routes/_authenticated/mfa-enrollment'
 import { Route as AuthenticatedMarketRouteImport } from './routes/_authenticated/market'
 import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
@@ -35,6 +35,7 @@ import { Route as AuthenticatedInsightsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedHuddleRouteImport } from './routes/_authenticated/huddle'
 import { Route as AuthenticatedHeatmapRouteImport } from './routes/_authenticated/heatmap'
 import { Route as AuthenticatedFaqRouteImport } from './routes/_authenticated/faq'
+import { Route as AuthenticatedExecutiveCommandRouteImport } from './routes/_authenticated/executive-command'
 import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authenticated/decisions'
 import { Route as AuthenticatedCommandV2RouteImport } from './routes/_authenticated/command-v2'
 import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticated/command'
@@ -150,6 +151,18 @@ const AuthenticatedNdaRequiredRoute =
     path: '/nda-required',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedMissionControlRoute =
+  AuthenticatedMissionControlRouteImport.update({
+    id: '/mission-control',
+    path: '/mission-control',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMissionAdminRoute =
+  AuthenticatedMissionAdminRouteImport.update({
+    id: '/mission-admin',
+    path: '/mission-admin',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedMfaEnrollmentRoute =
   AuthenticatedMfaEnrollmentRouteImport.update({
     id: '/mfa-enrollment',
@@ -196,6 +209,12 @@ const AuthenticatedFaqRoute = AuthenticatedFaqRouteImport.update({
   path: '/faq',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedExecutiveCommandRoute =
+  AuthenticatedExecutiveCommandRouteImport.update({
+    id: '/executive-command',
+    path: '/executive-command',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedDecisionsRoute = AuthenticatedDecisionsRouteImport.update({
   id: '/decisions',
   path: '/decisions',
@@ -409,6 +428,7 @@ export interface FileRoutesByFullPath {
   '/command': typeof AuthenticatedCommandRoute
   '/command-v2': typeof AuthenticatedCommandV2Route
   '/decisions': typeof AuthenticatedDecisionsRoute
+  '/executive-command': typeof AuthenticatedExecutiveCommandRoute
   '/faq': typeof AuthenticatedFaqRoute
   '/heatmap': typeof AuthenticatedHeatmapRoute
   '/huddle': typeof AuthenticatedHuddleRoute
@@ -418,6 +438,8 @@ export interface FileRoutesByFullPath {
   '/library': typeof AuthenticatedLibraryRoute
   '/market': typeof AuthenticatedMarketRoute
   '/mfa-enrollment': typeof AuthenticatedMfaEnrollmentRoute
+  '/mission-admin': typeof AuthenticatedMissionAdminRoute
+  '/mission-control': typeof AuthenticatedMissionControlRoute
   '/nda-required': typeof AuthenticatedNdaRequiredRoute
   '/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/overview': typeof AuthenticatedOverviewRoute
@@ -468,6 +490,7 @@ export interface FileRoutesByTo {
   '/command': typeof AuthenticatedCommandRoute
   '/command-v2': typeof AuthenticatedCommandV2Route
   '/decisions': typeof AuthenticatedDecisionsRoute
+  '/executive-command': typeof AuthenticatedExecutiveCommandRoute
   '/faq': typeof AuthenticatedFaqRoute
   '/heatmap': typeof AuthenticatedHeatmapRoute
   '/huddle': typeof AuthenticatedHuddleRoute
@@ -477,6 +500,8 @@ export interface FileRoutesByTo {
   '/library': typeof AuthenticatedLibraryRoute
   '/market': typeof AuthenticatedMarketRoute
   '/mfa-enrollment': typeof AuthenticatedMfaEnrollmentRoute
+  '/mission-admin': typeof AuthenticatedMissionAdminRoute
+  '/mission-control': typeof AuthenticatedMissionControlRoute
   '/nda-required': typeof AuthenticatedNdaRequiredRoute
   '/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/overview': typeof AuthenticatedOverviewRoute
@@ -530,6 +555,7 @@ export interface FileRoutesById {
   '/_authenticated/command': typeof AuthenticatedCommandRoute
   '/_authenticated/command-v2': typeof AuthenticatedCommandV2Route
   '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
+  '/_authenticated/executive-command': typeof AuthenticatedExecutiveCommandRoute
   '/_authenticated/faq': typeof AuthenticatedFaqRoute
   '/_authenticated/heatmap': typeof AuthenticatedHeatmapRoute
   '/_authenticated/huddle': typeof AuthenticatedHuddleRoute
@@ -539,6 +565,8 @@ export interface FileRoutesById {
   '/_authenticated/library': typeof AuthenticatedLibraryRoute
   '/_authenticated/market': typeof AuthenticatedMarketRoute
   '/_authenticated/mfa-enrollment': typeof AuthenticatedMfaEnrollmentRoute
+  '/_authenticated/mission-admin': typeof AuthenticatedMissionAdminRoute
+  '/_authenticated/mission-control': typeof AuthenticatedMissionControlRoute
   '/_authenticated/nda-required': typeof AuthenticatedNdaRequiredRoute
   '/_authenticated/needs-attention': typeof AuthenticatedNeedsAttentionRoute
   '/_authenticated/overview': typeof AuthenticatedOverviewRoute
@@ -592,6 +620,7 @@ export interface FileRouteTypes {
     | '/command'
     | '/command-v2'
     | '/decisions'
+    | '/executive-command'
     | '/faq'
     | '/heatmap'
     | '/huddle'
@@ -601,6 +630,8 @@ export interface FileRouteTypes {
     | '/library'
     | '/market'
     | '/mfa-enrollment'
+    | '/mission-admin'
+    | '/mission-control'
     | '/nda-required'
     | '/needs-attention'
     | '/overview'
@@ -651,6 +682,7 @@ export interface FileRouteTypes {
     | '/command'
     | '/command-v2'
     | '/decisions'
+    | '/executive-command'
     | '/faq'
     | '/heatmap'
     | '/huddle'
@@ -660,6 +692,8 @@ export interface FileRouteTypes {
     | '/library'
     | '/market'
     | '/mfa-enrollment'
+    | '/mission-admin'
+    | '/mission-control'
     | '/nda-required'
     | '/needs-attention'
     | '/overview'
@@ -712,6 +746,7 @@ export interface FileRouteTypes {
     | '/_authenticated/command'
     | '/_authenticated/command-v2'
     | '/_authenticated/decisions'
+    | '/_authenticated/executive-command'
     | '/_authenticated/faq'
     | '/_authenticated/heatmap'
     | '/_authenticated/huddle'
@@ -721,6 +756,8 @@ export interface FileRouteTypes {
     | '/_authenticated/library'
     | '/_authenticated/market'
     | '/_authenticated/mfa-enrollment'
+    | '/_authenticated/mission-admin'
+    | '/_authenticated/mission-control'
     | '/_authenticated/nda-required'
     | '/_authenticated/needs-attention'
     | '/_authenticated/overview'
@@ -891,6 +928,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNdaRequiredRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/mission-control': {
+      id: '/_authenticated/mission-control'
+      path: '/mission-control'
+      fullPath: '/mission-control'
+      preLoaderRoute: typeof AuthenticatedMissionControlRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/mission-admin': {
+      id: '/_authenticated/mission-admin'
+      path: '/mission-admin'
+      fullPath: '/mission-admin'
+      preLoaderRoute: typeof AuthenticatedMissionAdminRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/mfa-enrollment': {
       id: '/_authenticated/mfa-enrollment'
       path: '/mfa-enrollment'
@@ -952,6 +1003,13 @@ declare module '@tanstack/react-router' {
       path: '/faq'
       fullPath: '/faq'
       preLoaderRoute: typeof AuthenticatedFaqRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/executive-command': {
+      id: '/_authenticated/executive-command'
+      path: '/executive-command'
+      fullPath: '/executive-command'
+      preLoaderRoute: typeof AuthenticatedExecutiveCommandRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/decisions': {
@@ -1237,6 +1295,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCommandRoute: typeof AuthenticatedCommandRoute
   AuthenticatedCommandV2Route: typeof AuthenticatedCommandV2Route
   AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRoute
+  AuthenticatedExecutiveCommandRoute: typeof AuthenticatedExecutiveCommandRoute
   AuthenticatedFaqRoute: typeof AuthenticatedFaqRoute
   AuthenticatedHeatmapRoute: typeof AuthenticatedHeatmapRoute
   AuthenticatedHuddleRoute: typeof AuthenticatedHuddleRoute
@@ -1246,6 +1305,8 @@ interface AuthenticatedRouteChildren {
   AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRoute
   AuthenticatedMarketRoute: typeof AuthenticatedMarketRoute
   AuthenticatedMfaEnrollmentRoute: typeof AuthenticatedMfaEnrollmentRoute
+  AuthenticatedMissionAdminRoute: typeof AuthenticatedMissionAdminRoute
+  AuthenticatedMissionControlRoute: typeof AuthenticatedMissionControlRoute
   AuthenticatedNdaRequiredRoute: typeof AuthenticatedNdaRequiredRoute
   AuthenticatedNeedsAttentionRoute: typeof AuthenticatedNeedsAttentionRoute
   AuthenticatedOverviewRoute: typeof AuthenticatedOverviewRoute
@@ -1271,6 +1332,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCommandRoute: AuthenticatedCommandRoute,
   AuthenticatedCommandV2Route: AuthenticatedCommandV2Route,
   AuthenticatedDecisionsRoute: AuthenticatedDecisionsRoute,
+  AuthenticatedExecutiveCommandRoute: AuthenticatedExecutiveCommandRoute,
   AuthenticatedFaqRoute: AuthenticatedFaqRoute,
   AuthenticatedHeatmapRoute: AuthenticatedHeatmapRoute,
   AuthenticatedHuddleRoute: AuthenticatedHuddleRoute,
@@ -1280,6 +1342,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedLibraryRoute: AuthenticatedLibraryRoute,
   AuthenticatedMarketRoute: AuthenticatedMarketRoute,
   AuthenticatedMfaEnrollmentRoute: AuthenticatedMfaEnrollmentRoute,
+  AuthenticatedMissionAdminRoute: AuthenticatedMissionAdminRoute,
+  AuthenticatedMissionControlRoute: AuthenticatedMissionControlRoute,
   AuthenticatedNdaRequiredRoute: AuthenticatedNdaRequiredRoute,
   AuthenticatedNeedsAttentionRoute: AuthenticatedNeedsAttentionRoute,
   AuthenticatedOverviewRoute: AuthenticatedOverviewRoute,

@@ -126,6 +126,17 @@ function AdminDashboard() {
 
   return (
     <div className="mx-auto max-w-[1600px] p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight">Admin Command</h1>
+          <p className="text-xs text-muted-foreground">Activate, monitor, and steer every Mission.</p>
+        </div>
+        <Button asChild size="sm" className="gap-1.5 bg-[var(--gold)] text-black hover:bg-[var(--gold)]/90">
+          <Link to="/engagement/new"><Plus className="h-3.5 w-3.5" /> Activate New Mission</Link>
+        </Button>
+      </div>
+
       {/* KPI strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Kpi icon={Building2} label="Active engagements" value={active.length} accent="#9b8cc7" />
