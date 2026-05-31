@@ -189,14 +189,19 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
       }
     : null;
   const role = member?.role ?? null;
+  const normalized = normalizeRole(role);
+  const roleLabel = normalized ? ROLE_LABELS[normalized] : null;
   const isLeadership = !!role && LEADERSHIP.has(role);
   const isArchived = engagement?.status === "Archived";
   const canWrite = isLeadership && !isArchived;
   const isWriter = !!role && !isLeadership;
-  const isViewer = role === "viewer";
+  const isViewer = role === "viewer" || role === "exec";
   const ndaSatisfied = !member
     ? false
     : isLeadership || !member.nda_required || member.nda_confirmed;
+
+  const can = (page: PageKey) => canFn(role, page);
+  const canEdit = (page: PageKey) => canWriteFn(role, page) && !isArchived;
 
   return (
     <EngagementContext.Provider
@@ -209,12 +214,16 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
         switchEngagement,
         member,
         role,
+        normalizedRole: normalized,
+        roleLabel,
         isLeadership,
         canWrite,
         isWriter,
         isViewer,
         isArchived,
         ndaSatisfied,
+        can,
+        canEdit,
         refresh: async () => {
           if (user) await load(user.id);
         },
