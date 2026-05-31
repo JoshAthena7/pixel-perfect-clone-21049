@@ -194,7 +194,15 @@ function ActiveForm(props: FormProps) {
   }
 }
 
-function FormActions({ saving, onCancel }: { saving: boolean; onCancel: () => void }) {
+function FormActions({
+  saving,
+  disabled,
+  onCancel,
+}: {
+  saving: boolean;
+  disabled?: boolean;
+  onCancel: () => void;
+}) {
   return (
     <>
       {saving && (
@@ -207,7 +215,7 @@ function FormActions({ saving, onCancel }: { saving: boolean; onCancel: () => vo
         <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={saving}>
           Cancel
         </Button>
-        <Button type="submit" size="sm" disabled={saving}>
+        <Button type="submit" size="sm" disabled={saving || disabled}>
           {saving && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
           {saving ? "Saving…" : "Submit"}
         </Button>
@@ -221,15 +229,23 @@ function RosterSelect({
   onChange,
   roster,
   placeholder = "Select a teammate",
+  onBlur,
 }: {
   value: string;
   onChange: (v: string) => void;
   roster: Roster;
   placeholder?: string;
+  onBlur?: () => void;
 }) {
   return (
-    <Select value={value} onValueChange={onChange}>
-      <SelectTrigger>
+    <Select
+      value={value}
+      onValueChange={(v) => {
+        onChange(v);
+        onBlur?.();
+      }}
+    >
+      <SelectTrigger onBlur={onBlur}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
@@ -247,6 +263,35 @@ function RosterSelect({
   );
 }
 
+// ---- validation helpers ----
+type Errors = Record<string, string | undefined>;
+
+function required(v: string, label = "Required"): string | undefined {
+  return v.trim().length === 0 ? label : undefined;
+}
+function maxLen(v: string, max: number): string | undefined {
+  return v.length > max ? `Keep under ${max} characters (${v.length})` : undefined;
+}
+function isoDate(v: string): string | undefined {
+  if (!v) return "Pick a date";
+  return /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v))
+    ? undefined
+    : "Use a valid date";
+}
+function firstError(...errs: (string | undefined)[]): string | undefined {
+  return errs.find(Boolean);
+}
+function isValid(errors: Errors): boolean {
+  return Object.values(errors).every((e) => !e);
+}
+function useTouched<K extends string>() {
+  const [touched, setTouched] = useState<Record<K, boolean>>({} as Record<K, boolean>);
+  const [attempted, setAttempted] = useState(false);
+  const mark = (k: K) => setTouched((p) => ({ ...p, [k]: true }));
+  const show = (k: K) => attempted || touched[k];
+  return { touched, attempted, setAttempted, mark, show };
+}
+
 // ---- SOS ----
 export function SosForm({ engagementId, userId, memberName, onSuccess, onCancel }: FormProps) {
   const [blocker, setBlocker] = useState("");
@@ -254,10 +299,20 @@ export function SosForm({ engagementId, userId, memberName, onSuccess, onCancel 
   const [who, setWho] = useState("");
   const [by, setBy] = useState("");
   const [saving, setSaving] = useState(false);
+  const t = useTouched<"blocker" | "impact" | "who" | "by">();
+
+  const errors: Errors = {
+    blocker: firstError(required(blocker, "Describe the blocker"), maxLen(blocker, 2000)),
+    impact: maxLen(impact, 2000),
+    who: maxLen(who, 120),
+    by: maxLen(by, 120),
+  };
+  const valid = isValid(errors);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!blocker.trim()) return toast.error("Describe the blocker");
+    t.setAttempted(true);
+    if (!valid) return;
     setSaving(true);
     const desc = impact ? `${blocker}\n\nImpact: ${impact}` : blocker;
     const action = [who && `Owner: ${who}`, by && `Resolve by: ${by}`].filter(Boolean).join(" · ");
@@ -279,22 +334,22 @@ export function SosForm({ engagementId, userId, memberName, onSuccess, onCancel 
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3">
-      <Field label="What is the blocker?">
-        <Textarea rows={3} value={blocker} onChange={(e) => setBlocker(e.target.value)} required />
+    <form onSubmit={submit} className="space-y-3" noValidate>
+      <Field label="What is the blocker?" error={t.show("blocker") ? errors.blocker : undefined}>
+        <Textarea rows={3} value={blocker} onChange={(e) => setBlocker(e.target.value)} onBlur={() => t.mark("blocker")} />
       </Field>
-      <Field label="Impact if unresolved">
-        <Textarea rows={2} value={impact} onChange={(e) => setImpact(e.target.value)} />
+      <Field label="Impact if unresolved" error={t.show("impact") ? errors.impact : undefined}>
+        <Textarea rows={2} value={impact} onChange={(e) => setImpact(e.target.value)} onBlur={() => t.mark("impact")} />
       </Field>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Who needs to act?">
-          <Input value={who} onChange={(e) => setWho(e.target.value)} />
+        <Field label="Who needs to act?" error={t.show("who") ? errors.who : undefined}>
+          <Input value={who} onChange={(e) => setWho(e.target.value)} onBlur={() => t.mark("who")} />
         </Field>
-        <Field label="Resolve by">
-          <Input value={by} onChange={(e) => setBy(e.target.value)} placeholder="e.g. EOD Friday" />
+        <Field label="Resolve by" error={t.show("by") ? errors.by : undefined}>
+          <Input value={by} onChange={(e) => setBy(e.target.value)} onBlur={() => t.mark("by")} placeholder="e.g. EOD Friday" />
         </Field>
       </div>
-      <FormActions saving={saving} onCancel={onCancel} />
+      <FormActions saving={saving} disabled={!valid} onCancel={onCancel} />
     </form>
   );
 }
@@ -306,6 +361,14 @@ export function HuddleForm({ engagementId, userId, memberName, roster, onSuccess
   const [attendees, setAttendees] = useState<string[]>([]);
   const [flag, setFlag] = useState("");
   const [saving, setSaving] = useState(false);
+  const t = useTouched<"date" | "focus" | "flag">();
+
+  const errors: Errors = {
+    date: isoDate(date),
+    focus: firstError(required(focus, "Add focus areas"), maxLen(focus, 2000)),
+    flag: maxLen(flag, 2000),
+  };
+  const valid = isValid(errors);
 
   function toggleAttendee(name: string) {
     setAttendees((prev) => (prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]));
@@ -313,7 +376,8 @@ export function HuddleForm({ engagementId, userId, memberName, roster, onSuccess
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!focus.trim()) return toast.error("Add focus areas");
+    t.setAttempted(true);
+    if (!valid) return;
     setSaving(true);
     const notes = [
       `Date: ${date}`,
@@ -337,12 +401,12 @@ export function HuddleForm({ engagementId, userId, memberName, roster, onSuccess
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3">
-      <Field label="Date">
-        <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+    <form onSubmit={submit} className="space-y-3" noValidate>
+      <Field label="Date" error={t.show("date") ? errors.date : undefined}>
+        <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} onBlur={() => t.mark("date")} />
       </Field>
-      <Field label="Focus areas">
-        <Textarea rows={3} value={focus} onChange={(e) => setFocus(e.target.value)} required />
+      <Field label="Focus areas" error={t.show("focus") ? errors.focus : undefined}>
+        <Textarea rows={3} value={focus} onChange={(e) => setFocus(e.target.value)} onBlur={() => t.mark("focus")} />
       </Field>
       <Field label="Attendees">
         <div className="flex flex-wrap gap-1.5 rounded-md border border-border bg-background p-2">
@@ -365,10 +429,10 @@ export function HuddleForm({ engagementId, userId, memberName, roster, onSuccess
           })}
         </div>
       </Field>
-      <Field label="Anything to flag? (optional)">
-        <Textarea rows={2} value={flag} onChange={(e) => setFlag(e.target.value)} />
+      <Field label="Anything to flag? (optional)" error={t.show("flag") ? errors.flag : undefined}>
+        <Textarea rows={2} value={flag} onChange={(e) => setFlag(e.target.value)} onBlur={() => t.mark("flag")} />
       </Field>
-      <FormActions saving={saving} onCancel={onCancel} />
+      <FormActions saving={saving} disabled={!valid} onCancel={onCancel} />
     </form>
   );
 }
@@ -380,10 +444,18 @@ export function BroadcastForm({ engagementId, userId, memberName, onSuccess, onC
   const [tone, setTone] = useState("Informational");
   const [audience, setAudience] = useState("Full team");
   const [saving, setSaving] = useState(false);
+  const t = useTouched<"subject" | "message">();
+
+  const errors: Errors = {
+    subject: maxLen(subject, 140),
+    message: firstError(required(message, "Write a message"), maxLen(message, 4000)),
+  };
+  const valid = isValid(errors);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!message.trim()) return toast.error("Write a message");
+    t.setAttempted(true);
+    if (!valid) return;
     setSaving(true);
     const content = `${subject ? `**${subject}**\n` : ""}${message}\n\n— ${tone} · to ${audience}`;
     const { error } = await supabase.from("broadcasts").insert({
@@ -400,12 +472,12 @@ export function BroadcastForm({ engagementId, userId, memberName, onSuccess, onC
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3">
-      <Field label="Subject">
-        <Input value={subject} onChange={(e) => setSubject(e.target.value)} />
+    <form onSubmit={submit} className="space-y-3" noValidate>
+      <Field label="Subject" error={t.show("subject") ? errors.subject : undefined}>
+        <Input value={subject} onChange={(e) => setSubject(e.target.value)} onBlur={() => t.mark("subject")} />
       </Field>
-      <Field label="Message">
-        <Textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} required />
+      <Field label="Message" error={t.show("message") ? errors.message : undefined}>
+        <Textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} onBlur={() => t.mark("message")} />
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Tone">
@@ -429,7 +501,7 @@ export function BroadcastForm({ engagementId, userId, memberName, onSuccess, onC
           </Select>
         </Field>
       </div>
-      <FormActions saving={saving} onCancel={onCancel} />
+      <FormActions saving={saving} disabled={!valid} onCancel={onCancel} />
     </form>
   );
 }
@@ -442,10 +514,20 @@ export function PulseForm({ engagementId, userId, memberName, roster, onSuccess,
   const [inProgress, setInProgress] = useState("");
   const [issues, setIssues] = useState("");
   const [saving, setSaving] = useState(false);
+  const t = useTouched<"period" | "completed" | "inProgress" | "issues">();
+
+  const errors: Errors = {
+    period: maxLen(period, 140),
+    completed: firstError(required(completed, "Fill in sections completed"), maxLen(completed, 4000)),
+    inProgress: maxLen(inProgress, 4000),
+    issues: maxLen(issues, 4000),
+  };
+  const valid = isValid(errors);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!completed.trim()) return toast.error("Fill in sections completed");
+    t.setAttempted(true);
+    if (!valid) return;
     setSaving(true);
     const team = pullRoster && roster.length ? `\n\nTeam: ${roster.map((m) => m.display_name).join(", ")}` : "";
     const summary = `Period: ${period || "—"}\n\nCompleted:\n${completed}${team}`;
@@ -469,24 +551,24 @@ export function PulseForm({ engagementId, userId, memberName, roster, onSuccess,
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3">
-      <Field label="Reporting period">
-        <Input value={period} onChange={(e) => setPeriod(e.target.value)} placeholder="e.g. Week of Jan 15" />
+    <form onSubmit={submit} className="space-y-3" noValidate>
+      <Field label="Reporting period" error={t.show("period") ? errors.period : undefined}>
+        <Input value={period} onChange={(e) => setPeriod(e.target.value)} onBlur={() => t.mark("period")} placeholder="e.g. Week of Jan 15" />
       </Field>
       <div className="flex items-center justify-between rounded-md border border-border bg-background px-3 py-2">
         <Label htmlFor="pull-roster" className="cursor-pointer text-sm">Pull from roster?</Label>
         <Switch id="pull-roster" checked={pullRoster} onCheckedChange={setPullRoster} />
       </div>
-      <Field label="Sections completed">
-        <Textarea rows={3} value={completed} onChange={(e) => setCompleted(e.target.value)} required />
+      <Field label="Sections completed" error={t.show("completed") ? errors.completed : undefined}>
+        <Textarea rows={3} value={completed} onChange={(e) => setCompleted(e.target.value)} onBlur={() => t.mark("completed")} />
       </Field>
-      <Field label="In progress">
-        <Textarea rows={2} value={inProgress} onChange={(e) => setInProgress(e.target.value)} />
+      <Field label="In progress" error={t.show("inProgress") ? errors.inProgress : undefined}>
+        <Textarea rows={2} value={inProgress} onChange={(e) => setInProgress(e.target.value)} onBlur={() => t.mark("inProgress")} />
       </Field>
-      <Field label="Open issues / asks">
-        <Textarea rows={2} value={issues} onChange={(e) => setIssues(e.target.value)} />
+      <Field label="Open issues / asks" error={t.show("issues") ? errors.issues : undefined}>
+        <Textarea rows={2} value={issues} onChange={(e) => setIssues(e.target.value)} onBlur={() => t.mark("issues")} />
       </Field>
-      <FormActions saving={saving} onCancel={onCancel} />
+      <FormActions saving={saving} disabled={!valid} onCancel={onCancel} />
     </form>
   );
 }
@@ -498,10 +580,20 @@ export function DecisionForm({ engagementId, userId, roster, onSuccess, onCancel
   const [rationale, setRationale] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [saving, setSaving] = useState(false);
+  const t = useTouched<"decision" | "madeBy" | "rationale" | "date">();
+
+  const errors: Errors = {
+    decision: firstError(required(decision, "Describe the decision"), maxLen(decision, 2000)),
+    madeBy: required(madeBy, "Pick who made the call"),
+    rationale: maxLen(rationale, 2000),
+    date: isoDate(date),
+  };
+  const valid = isValid(errors);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!decision.trim()) return toast.error("Describe the decision");
+    t.setAttempted(true);
+    if (!valid) return;
     setSaving(true);
     const title = decision.split("\n")[0].slice(0, 140);
     const impacted = decision.length > title.length ? decision.slice(title.length).trim() : null;
@@ -522,20 +614,20 @@ export function DecisionForm({ engagementId, userId, roster, onSuccess, onCancel
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3">
-      <Field label="Decision">
-        <Textarea rows={3} value={decision} onChange={(e) => setDecision(e.target.value)} required />
+    <form onSubmit={submit} className="space-y-3" noValidate>
+      <Field label="Decision" error={t.show("decision") ? errors.decision : undefined}>
+        <Textarea rows={3} value={decision} onChange={(e) => setDecision(e.target.value)} onBlur={() => t.mark("decision")} />
       </Field>
-      <Field label="Made by">
-        <RosterSelect value={madeBy} onChange={setMadeBy} roster={roster} />
+      <Field label="Made by" error={t.show("madeBy") ? errors.madeBy : undefined}>
+        <RosterSelect value={madeBy} onChange={setMadeBy} roster={roster} onBlur={() => t.mark("madeBy")} />
       </Field>
-      <Field label="Rationale">
-        <Textarea rows={3} value={rationale} onChange={(e) => setRationale(e.target.value)} />
+      <Field label="Rationale" error={t.show("rationale") ? errors.rationale : undefined}>
+        <Textarea rows={3} value={rationale} onChange={(e) => setRationale(e.target.value)} onBlur={() => t.mark("rationale")} />
       </Field>
-      <Field label="Date">
-        <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+      <Field label="Date" error={t.show("date") ? errors.date : undefined}>
+        <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} onBlur={() => t.mark("date")} />
       </Field>
-      <FormActions saving={saving} onCancel={onCancel} />
+      <FormActions saving={saving} disabled={!valid} onCancel={onCancel} />
     </form>
   );
 }
@@ -549,10 +641,20 @@ export function RiskForm({ engagementId, userId, roster, onSuccess, onCancel }: 
   const [mitigation, setMitigation] = useState("");
   const [owner, setOwner] = useState("");
   const [saving, setSaving] = useState(false);
+  const t = useTouched<"description" | "section" | "mitigation" | "owner">();
+
+  const errors: Errors = {
+    description: firstError(required(description, "Describe the risk"), maxLen(description, 2000)),
+    section: maxLen(section, 140),
+    mitigation: maxLen(mitigation, 2000),
+    owner: maxLen(owner, 120),
+  };
+  const valid = isValid(errors);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!description.trim()) return toast.error("Describe the risk");
+    t.setAttempted(true);
+    if (!valid) return;
     setSaving(true);
     const title = description.split("\n")[0].slice(0, 140);
     const body = [
@@ -577,12 +679,12 @@ export function RiskForm({ engagementId, userId, roster, onSuccess, onCancel }: 
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3">
-      <Field label="Description">
-        <Textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} required />
+    <form onSubmit={submit} className="space-y-3" noValidate>
+      <Field label="Description" error={t.show("description") ? errors.description : undefined}>
+        <Textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} onBlur={() => t.mark("description")} />
       </Field>
-      <Field label="Section affected">
-        <Input value={section} onChange={(e) => setSection(e.target.value)} />
+      <Field label="Section affected" error={t.show("section") ? errors.section : undefined}>
+        <Input value={section} onChange={(e) => setSection(e.target.value)} onBlur={() => t.mark("section")} />
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Likelihood">
@@ -602,13 +704,13 @@ export function RiskForm({ engagementId, userId, roster, onSuccess, onCancel }: 
           </Select>
         </Field>
       </div>
-      <Field label="Mitigation">
-        <Textarea rows={2} value={mitigation} onChange={(e) => setMitigation(e.target.value)} />
+      <Field label="Mitigation" error={t.show("mitigation") ? errors.mitigation : undefined}>
+        <Textarea rows={2} value={mitigation} onChange={(e) => setMitigation(e.target.value)} onBlur={() => t.mark("mitigation")} />
       </Field>
-      <Field label="Owner">
-        <RosterSelect value={owner} onChange={setOwner} roster={roster} />
+      <Field label="Owner" error={t.show("owner") ? errors.owner : undefined}>
+        <RosterSelect value={owner} onChange={setOwner} roster={roster} onBlur={() => t.mark("owner")} />
       </Field>
-      <FormActions saving={saving} onCancel={onCancel} />
+      <FormActions saving={saving} disabled={!valid} onCancel={onCancel} />
     </form>
   );
 }
@@ -620,6 +722,7 @@ export function HeatmapForm({ engagementId, memberName, roster, onSuccess, onCan
   const [section, setSection] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const t = useTouched<"section" | "notes">();
 
   const statusForIssue: Record<string, string> = {
     "Completeness": "Yellow",
@@ -628,9 +731,16 @@ export function HeatmapForm({ engagementId, memberName, roster, onSuccess, onCan
     "Behind schedule": "Red",
   };
 
+  const errors: Errors = {
+    section: firstError(required(section, "Add a section"), maxLen(section, 140)),
+    notes: maxLen(notes, 2000),
+  };
+  const valid = isValid(errors);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!section.trim()) return toast.error("Add a section");
+    t.setAttempted(true);
+    if (!valid) return;
     setSaving(true);
     const noteBody = [
       writer && `Writer: ${writer}`,
@@ -652,7 +762,7 @@ export function HeatmapForm({ engagementId, memberName, roster, onSuccess, onCan
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3">
+    <form onSubmit={submit} className="space-y-3" noValidate>
       <Field label="Writer">
         <RosterSelect value={writer} onChange={setWriter} roster={roster} />
       </Field>
@@ -666,22 +776,25 @@ export function HeatmapForm({ engagementId, memberName, roster, onSuccess, onCan
           </SelectContent>
         </Select>
       </Field>
-      <Field label="Section">
-        <Input value={section} onChange={(e) => setSection(e.target.value)} required />
+      <Field label="Section" error={t.show("section") ? errors.section : undefined}>
+        <Input value={section} onChange={(e) => setSection(e.target.value)} onBlur={() => t.mark("section")} />
       </Field>
-      <Field label="Notes (optional)">
-        <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+      <Field label="Notes (optional)" error={t.show("notes") ? errors.notes : undefined}>
+        <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} onBlur={() => t.mark("notes")} />
       </Field>
-      <FormActions saving={saving} onCancel={onCancel} />
+      <FormActions saving={saving} disabled={!valid} onCancel={onCancel} />
     </form>
   );
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
+function Field({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
   return (
     <div className="space-y-1.5">
       <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</Label>
       {children}
+      {error && (
+        <p className="text-[11px] font-medium text-[color:var(--red,#ef4444)]">{error}</p>
+      )}
     </div>
   );
 }
