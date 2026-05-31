@@ -17,10 +17,24 @@ jobs:
           bun-version: latest
       - uses: actions/cache@v4
         with:
-          path: ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lockb', 'bun.lock') }}
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ runner.os }}-bun-deps-${{ hashFiles('bun.lockb', 'bun.lock') }}
           restore-keys: |
-            ${{ runner.os }}-bun-
+            ${{ runner.os }}-bun-deps-
+      - uses: actions/cache@v4
+        with:
+          path: |
+            node_modules/.cache
+            node_modules/.vite
+            .tsbuildinfo
+            dist
+          key: ${{ runner.os }}-build-${{ hashFiles('bun.lockb', 'bun.lock', 'tsconfig.json', 'vite.config.ts') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ hashFiles('bun.lockb', 'bun.lock', 'tsconfig.json', 'vite.config.ts') }}-
+            ${{ runner.os }}-build-
       - run: bun install --frozen-lockfile
       - run: bunx tsc --noEmit
       - run: bun run build
+
