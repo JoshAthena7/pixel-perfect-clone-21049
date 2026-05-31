@@ -2254,6 +2254,51 @@ export type Database = {
         }
         Relationships: []
       }
+      question_reviews: {
+        Row: {
+          created_at: string
+          engagement_id: string
+          id: string
+          max_score: number | null
+          notes: string | null
+          question_id: string
+          recommendations: string | null
+          review_date: string | null
+          review_type: string
+          reviewer_name: string
+          risks: string | null
+          score: number | null
+        }
+        Insert: {
+          created_at?: string
+          engagement_id: string
+          id?: string
+          max_score?: number | null
+          notes?: string | null
+          question_id: string
+          recommendations?: string | null
+          review_date?: string | null
+          review_type: string
+          reviewer_name: string
+          risks?: string | null
+          score?: number | null
+        }
+        Update: {
+          created_at?: string
+          engagement_id?: string
+          id?: string
+          max_score?: number | null
+          notes?: string | null
+          question_id?: string
+          recommendations?: string | null
+          review_date?: string | null
+          review_type?: string
+          reviewer_name?: string
+          risks?: string | null
+          score?: number | null
+        }
+        Relationships: []
+      }
       question_timeline: {
         Row: {
           actor: string | null
