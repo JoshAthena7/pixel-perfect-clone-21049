@@ -1240,12 +1240,17 @@ export type Database = {
           contract_value_estimate: number | null
           created_at: string | null
           created_by: string | null
+          engagement_lead: string | null
           engagement_type: string | null
+          executive_sponsor: string | null
           health: string
           id: string
           market: string | null
+          mission_type: string | null
           name: string
           phase: string | null
+          program: string | null
+          project_manager: string | null
           slack_webhook: string | null
           state: string | null
           status: string
@@ -1257,12 +1262,17 @@ export type Database = {
           contract_value_estimate?: number | null
           created_at?: string | null
           created_by?: string | null
+          engagement_lead?: string | null
           engagement_type?: string | null
+          executive_sponsor?: string | null
           health?: string
           id?: string
           market?: string | null
+          mission_type?: string | null
           name: string
           phase?: string | null
+          program?: string | null
+          project_manager?: string | null
           slack_webhook?: string | null
           state?: string | null
           status?: string
@@ -1274,12 +1284,17 @@ export type Database = {
           contract_value_estimate?: number | null
           created_at?: string | null
           created_by?: string | null
+          engagement_lead?: string | null
           engagement_type?: string | null
+          executive_sponsor?: string | null
           health?: string
           id?: string
           market?: string | null
+          mission_type?: string | null
           name?: string
           phase?: string | null
+          program?: string | null
+          project_manager?: string | null
           slack_webhook?: string | null
           state?: string | null
           status?: string
