@@ -42,19 +42,21 @@ type NavItem = {
   icon: ComponentType<LucideProps>;
   hint: string;
   accent?: "red";
+  /** Permission key from src/lib/roles.ts. Item is hidden when the role lacks any access. */
+  page: import("@/lib/roles").PageKey;
 };
 
 // The 9 canonical Command Center items, in order.
 const NAV: NavItem[] = [
-  { title: "Command",      url: "/command",    icon: LayoutDashboard, hint: "Executive overview of this engagement" },
-  { title: "Delivery Map", url: "/heatmap",    icon: Grid3x3,         hint: "Section-by-section health" },
-  { title: "Briefing Room",url: "/intel",      icon: Telescope,       hint: "Research, intel, and source documents" },
-  { title: "Escalations",  url: "/issues",     icon: AlertTriangle,   hint: "Active blockers and risks", accent: "red" },
-  { title: "Broadcasts",   url: "/broadcasts", icon: Megaphone,       hint: "Team-wide announcements" },
-  { title: "Pulse™",       url: "/pulse",      icon: Activity,        hint: "Track how the client is feeling" },
-  { title: "Vault",        url: "/intel",      icon: VaultIcon,       hint: "Single source of truth for documents" },
-  { title: "Navigator™",   url: "/assistant",  icon: Brain,           hint: "Ask questions grounded in your engagement data" },
-  { title: "Settings",     url: "/settings",   icon: Settings,        hint: "Team, sections, win themes, and configuration" },
+  { title: "Command",      url: "/command",    icon: LayoutDashboard, hint: "Executive overview of this engagement", page: "missionControl" },
+  { title: "Delivery Map", url: "/heatmap",    icon: Grid3x3,         hint: "Section-by-section health", page: "deliveryMap" },
+  { title: "Briefing Room",url: "/intel",      icon: Telescope,       hint: "Research, intel, and source documents", page: "briefing" },
+  { title: "Escalations",  url: "/issues",     icon: AlertTriangle,   hint: "Active blockers and risks", accent: "red", page: "escalations" },
+  { title: "Broadcasts",   url: "/broadcasts", icon: Megaphone,       hint: "Team-wide announcements", page: "broadcasts" },
+  { title: "Pulse™",       url: "/pulse",      icon: Activity,        hint: "Track how the client is feeling", page: "pulse" },
+  { title: "Vault",        url: "/intel",      icon: VaultIcon,       hint: "Single source of truth for documents", page: "library" },
+  { title: "Navigator™",   url: "/assistant",  icon: Brain,           hint: "Ask questions grounded in your engagement data", page: "alignmentHub" },
+  { title: "Settings",     url: "/settings",   icon: Settings,        hint: "Team, sections, win themes, and configuration", page: "settings" },
 ];
 
 export function AppSidebar() {
