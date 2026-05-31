@@ -103,7 +103,7 @@ function LobbyPage() {
         supabase.from("huddles").select("engagement_id,health,created_at").in("engagement_id", ids).order("created_at", { ascending: false }).limit(ids.length * 2),
         supabase.from("decisions").select("engagement_id").in("engagement_id", ids).eq("status", "Pending Confirmation"),
         supabase.from("broadcasts").select("content,author_name,created_at,engagement_id").order("created_at", { ascending: false }).limit(5),
-        supabase.from("recognition").select("from_name,to_name,type,message,created_at").order("created_at", { ascending: false }).limit(4),
+        (supabase as any).from("recognition").select("from_name,to_name,type,message,created_at").order("created_at", { ascending: false }).limit(4),
         supabase.from("pipeline_horizon").select("id,title,iris_headline,iris_type,iris_action,horizon_category,source,urgency_score,affected_states,ingested_at").eq("status","active").order("urgency_score", { ascending: false }).order("ingested_at", { ascending: false }).limit(6),
       ]);
 
