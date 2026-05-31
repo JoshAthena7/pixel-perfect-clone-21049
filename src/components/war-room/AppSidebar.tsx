@@ -12,7 +12,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, AlertTriangle, Activity, Settings,
   LogOut, Shield, Home, ChevronRight, FileText, Users,
-  Brain, BarChart3, ClipboardList, Compass, Zap, Building2, Telescope,
+  Brain, BarChart3, ClipboardList, Compass, Zap, Building2, Telescope, Plus,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
@@ -213,6 +213,14 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Create a new mission">
+              <a href="/engagement/new">
+                <Plus className="h-4 w-4" />
+                <span>New Mission</span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton onClick={signOut} tooltip="Sign out">
               <LogOut className="h-4 w-4" />

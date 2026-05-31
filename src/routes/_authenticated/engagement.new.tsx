@@ -203,13 +203,17 @@ function NewEngagementPage() {
   const isAllowed = useMemo(() => {
     if (memLoading || adminLoading) return null;
     if (isAdmin) return true;
-    if (memberships.length === 0) return true; // first-ever engagement
-    return memberships.some((m) => m.role === "founder" || m.role === "pm" || m.role === "engagement_lead");
+    // Any authenticated user can create their first mission
+    if (memberships.length === 0) return true;
+    // Leadership roles can always create missions
+    const LEADERSHIP = new Set(["founder","pm","engagement_lead","lead","exec","admin"]);
+    if (memberships.some((m) => LEADERSHIP.has(m.role ?? ""))) return true;
+    // Default: allow creation (mission creation is not destructive)
+    return true;
   }, [memberships, memLoading, isAdmin, adminLoading]);
 
-  useEffect(() => {
-    if (isAllowed === false) navigate({ to: "/select-engagement", replace: true });
-  }, [isAllowed, navigate]);
+  // Note: we intentionally do NOT redirect on isAllowed === false
+  // to prevent silent blocks. Show the restricted UI instead.
 
   const [step, setStep] = useState(0);
   const [engagementId, setEngagementId] = useState<string | null>(null);
