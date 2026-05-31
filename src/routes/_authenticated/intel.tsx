@@ -36,6 +36,7 @@ import {
 } from "@/lib/ai/holy-grail.functions";
 import { logActivity } from "@/lib/activity-log";
 import { PageGate } from "@/components/war-room/PageGate";
+import { RfpStructuredPanel } from "@/components/war-room/RfpStructuredPanel";
 
 async function extractTextFromFile(file: File): Promise<string> {
   if (file.type.startsWith("text/") || /\.(txt|md|csv|rtf)$/i.test(file.name)) return file.text();
