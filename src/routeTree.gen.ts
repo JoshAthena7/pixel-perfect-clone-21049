@@ -152,11 +152,10 @@ const AuthenticatedMarketRoute = AuthenticatedMarketRouteImport.update({
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
-  id: '/_authenticated/library',
+  id: '/library',
   path: '/library',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-
 const AuthenticatedIssuesRoute = AuthenticatedIssuesRouteImport.update({
   id: '/issues',
   path: '/issues',
@@ -400,6 +399,7 @@ export interface FileRoutesByFullPath {
   '/insights': typeof AuthenticatedInsightsRoute
   '/intel': typeof AuthenticatedIntelRoute
   '/issues': typeof AuthenticatedIssuesRoute
+  '/library': typeof AuthenticatedLibraryRoute
   '/market': typeof AuthenticatedMarketRoute
   '/mfa-enrollment': typeof AuthenticatedMfaEnrollmentRoute
   '/nda-required': typeof AuthenticatedNdaRequiredRoute
@@ -456,6 +456,7 @@ export interface FileRoutesByTo {
   '/insights': typeof AuthenticatedInsightsRoute
   '/intel': typeof AuthenticatedIntelRoute
   '/issues': typeof AuthenticatedIssuesRoute
+  '/library': typeof AuthenticatedLibraryRoute
   '/market': typeof AuthenticatedMarketRoute
   '/mfa-enrollment': typeof AuthenticatedMfaEnrollmentRoute
   '/nda-required': typeof AuthenticatedNdaRequiredRoute
@@ -515,6 +516,7 @@ export interface FileRoutesById {
   '/_authenticated/insights': typeof AuthenticatedInsightsRoute
   '/_authenticated/intel': typeof AuthenticatedIntelRoute
   '/_authenticated/issues': typeof AuthenticatedIssuesRoute
+  '/_authenticated/library': typeof AuthenticatedLibraryRoute
   '/_authenticated/market': typeof AuthenticatedMarketRoute
   '/_authenticated/mfa-enrollment': typeof AuthenticatedMfaEnrollmentRoute
   '/_authenticated/nda-required': typeof AuthenticatedNdaRequiredRoute
@@ -574,6 +576,7 @@ export interface FileRouteTypes {
     | '/insights'
     | '/intel'
     | '/issues'
+    | '/library'
     | '/market'
     | '/mfa-enrollment'
     | '/nda-required'
@@ -630,6 +633,7 @@ export interface FileRouteTypes {
     | '/insights'
     | '/intel'
     | '/issues'
+    | '/library'
     | '/market'
     | '/mfa-enrollment'
     | '/nda-required'
@@ -688,6 +692,7 @@ export interface FileRouteTypes {
     | '/_authenticated/insights'
     | '/_authenticated/intel'
     | '/_authenticated/issues'
+    | '/_authenticated/library'
     | '/_authenticated/market'
     | '/_authenticated/mfa-enrollment'
     | '/_authenticated/nda-required'
@@ -862,6 +867,13 @@ declare module '@tanstack/react-router' {
       path: '/market'
       fullPath: '/market'
       preLoaderRoute: typeof AuthenticatedMarketRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/library': {
+      id: '/_authenticated/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof AuthenticatedLibraryRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/issues': {
@@ -1188,6 +1200,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedInsightsRoute: typeof AuthenticatedInsightsRoute
   AuthenticatedIntelRoute: typeof AuthenticatedIntelRoute
   AuthenticatedIssuesRoute: typeof AuthenticatedIssuesRoute
+  AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRoute
   AuthenticatedMarketRoute: typeof AuthenticatedMarketRoute
   AuthenticatedMfaEnrollmentRoute: typeof AuthenticatedMfaEnrollmentRoute
   AuthenticatedNdaRequiredRoute: typeof AuthenticatedNdaRequiredRoute
@@ -1219,8 +1232,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHuddleRoute: AuthenticatedHuddleRoute,
   AuthenticatedInsightsRoute: AuthenticatedInsightsRoute,
   AuthenticatedIntelRoute: AuthenticatedIntelRoute,
-  AuthenticatedIssuesRoute: AuthenticatedLibraryRoute,
-      AuthenticatedIssuesRoute,
+  AuthenticatedIssuesRoute: AuthenticatedIssuesRoute,
+  AuthenticatedLibraryRoute: AuthenticatedLibraryRoute,
   AuthenticatedMarketRoute: AuthenticatedMarketRoute,
   AuthenticatedMfaEnrollmentRoute: AuthenticatedMfaEnrollmentRoute,
   AuthenticatedNdaRequiredRoute: AuthenticatedNdaRequiredRoute,
