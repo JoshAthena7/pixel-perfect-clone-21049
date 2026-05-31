@@ -32,6 +32,7 @@ import { Route as AuthenticatedHuddleRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedHeatmapRouteImport } from './routes/_authenticated/heatmap'
 import { Route as AuthenticatedFaqRouteImport } from './routes/_authenticated/faq'
 import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authenticated/decisions'
+import { Route as AuthenticatedCommandV2RouteImport } from './routes/_authenticated/command-v2'
 import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticated/command'
 import { Route as AuthenticatedBroadcastsRouteImport } from './routes/_authenticated/broadcasts'
 import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
@@ -182,6 +183,11 @@ const AuthenticatedFaqRoute = AuthenticatedFaqRouteImport.update({
 const AuthenticatedDecisionsRoute = AuthenticatedDecisionsRouteImport.update({
   id: '/decisions',
   path: '/decisions',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedCommandV2Route = AuthenticatedCommandV2RouteImport.update({
+  id: '/command-v2',
+  path: '/command-v2',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedCommandRoute = AuthenticatedCommandRouteImport.update({
@@ -379,6 +385,7 @@ export interface FileRoutesByFullPath {
   '/assistant': typeof AuthenticatedAssistantRoute
   '/broadcasts': typeof AuthenticatedBroadcastsRoute
   '/command': typeof AuthenticatedCommandRoute
+  '/command-v2': typeof AuthenticatedCommandV2Route
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/faq': typeof AuthenticatedFaqRoute
   '/heatmap': typeof AuthenticatedHeatmapRoute
@@ -434,6 +441,7 @@ export interface FileRoutesByTo {
   '/assistant': typeof AuthenticatedAssistantRoute
   '/broadcasts': typeof AuthenticatedBroadcastsRoute
   '/command': typeof AuthenticatedCommandRoute
+  '/command-v2': typeof AuthenticatedCommandV2Route
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/faq': typeof AuthenticatedFaqRoute
   '/heatmap': typeof AuthenticatedHeatmapRoute
@@ -492,6 +500,7 @@ export interface FileRoutesById {
   '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
   '/_authenticated/broadcasts': typeof AuthenticatedBroadcastsRoute
   '/_authenticated/command': typeof AuthenticatedCommandRoute
+  '/_authenticated/command-v2': typeof AuthenticatedCommandV2Route
   '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
   '/_authenticated/faq': typeof AuthenticatedFaqRoute
   '/_authenticated/heatmap': typeof AuthenticatedHeatmapRoute
@@ -550,6 +559,7 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/broadcasts'
     | '/command'
+    | '/command-v2'
     | '/decisions'
     | '/faq'
     | '/heatmap'
@@ -605,6 +615,7 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/broadcasts'
     | '/command'
+    | '/command-v2'
     | '/decisions'
     | '/faq'
     | '/heatmap'
@@ -662,6 +673,7 @@ export interface FileRouteTypes {
     | '/_authenticated/assistant'
     | '/_authenticated/broadcasts'
     | '/_authenticated/command'
+    | '/_authenticated/command-v2'
     | '/_authenticated/decisions'
     | '/_authenticated/faq'
     | '/_authenticated/heatmap'
@@ -892,6 +904,13 @@ declare module '@tanstack/react-router' {
       path: '/decisions'
       fullPath: '/decisions'
       preLoaderRoute: typeof AuthenticatedDecisionsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/command-v2': {
+      id: '/_authenticated/command-v2'
+      path: '/command-v2'
+      fullPath: '/command-v2'
+      preLoaderRoute: typeof AuthenticatedCommandV2RouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/command': {
@@ -1154,6 +1173,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
   AuthenticatedBroadcastsRoute: typeof AuthenticatedBroadcastsRoute
   AuthenticatedCommandRoute: typeof AuthenticatedCommandRoute
+  AuthenticatedCommandV2Route: typeof AuthenticatedCommandV2Route
   AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRoute
   AuthenticatedFaqRoute: typeof AuthenticatedFaqRoute
   AuthenticatedHeatmapRoute: typeof AuthenticatedHeatmapRoute
@@ -1185,6 +1205,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
   AuthenticatedBroadcastsRoute: AuthenticatedBroadcastsRoute,
   AuthenticatedCommandRoute: AuthenticatedCommandRoute,
+  AuthenticatedCommandV2Route: AuthenticatedCommandV2Route,
   AuthenticatedDecisionsRoute: AuthenticatedDecisionsRoute,
   AuthenticatedFaqRoute: AuthenticatedFaqRoute,
   AuthenticatedHeatmapRoute: AuthenticatedHeatmapRoute,
@@ -1239,13 +1260,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
