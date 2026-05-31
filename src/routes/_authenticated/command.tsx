@@ -18,6 +18,8 @@ import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
 import { SnapshotsPanel } from "@/components/war-room/SnapshotsPanel";
 import { IntelligenceInsightsPanel } from "@/components/war-room/IntelligenceInsightsPanel";
 import { SizingSummaryStrip } from "@/components/sizing/SizingSummaryStrip";
+import { PageGate } from "@/components/war-room/PageGate";
+
 
 export const Route = createFileRoute("/_authenticated/command")({
   head: () => ({ meta: [{ title: "Mission — Athena" }] }),
@@ -25,11 +27,18 @@ export const Route = createFileRoute("/_authenticated/command")({
 });
 
 function CommandCenterGate() {
-  const { loading, isLeadership } = useEngagement();
+  const { loading, can } = useEngagement();
   if (loading) return null;
-  if (!isLeadership) return <Navigate to="/huddle" replace />;
-  return <CommandCenter />;
+  // Anyone with at least read access to Mission Control sees it.
+  // Writers/SMEs without read access land on their /huddle home.
+  if (!can("missionControl")) return <Navigate to="/huddle" replace />;
+  return (
+    <PageGate page="missionControl">
+      <CommandCenter />
+    </PageGate>
+  );
 }
+
 
 type HeatStatus = "Green" | "Yellow" | "Orange" | "Red";
 type Heat = { id: string; section_name: string; status: HeatStatus; sort_order: number };
