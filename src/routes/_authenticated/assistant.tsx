@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { askAssistant } from "@/lib/ai/assistant.functions";
@@ -12,7 +12,7 @@ import { PageGate } from "@/components/war-room/PageGate";
 
 export const Route = createFileRoute("/_authenticated/assistant")({
   head: () => ({ meta: [{ title: "IRIS — Athena" }] }),
-  component: () => <PageGate page="alignmentHub"><AssistantPage /></PageGate>,
+  component: () => <Navigate to="/command" replace />,
 });
 
 type Msg = { role: "user" | "assistant"; content: string };

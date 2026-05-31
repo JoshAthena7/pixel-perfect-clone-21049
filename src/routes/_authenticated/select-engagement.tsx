@@ -43,6 +43,8 @@ type Stats = {
   sections: number;
   members: number;
   openSos: number;
+  openRisks: number;
+  lastSignalAt: string | null;
   heat: { Green: number; Yellow: number; Orange: number; Red: number };
   mySections?: number;
 };
@@ -90,11 +92,13 @@ function SelectEngagementPage() {
     if (loading || active.length === 0) return;
     const ids = active.map((m) => m.engagement.id);
     (async () => {
-      const [heatRes, memRes, sosRes, secRes, asnRes] = await Promise.all([
+      const [heatRes, memRes, sosRes, secRes, asnRes, riskRes, huddleRes] = await Promise.all([
         supabase.from("heatmap_sections").select("engagement_id,status").in("engagement_id", ids),
         supabase.from("engagement_members").select("engagement_id").in("engagement_id", ids),
         supabase.from("sos_alerts").select("engagement_id,status").in("engagement_id", ids).neq("status", "Resolved"),
         supabase.from("heatmap_sections").select("engagement_id").in("engagement_id", ids),
+        supabase.from("risks").select("engagement_id,status").in("engagement_id", ids).in("status", ["Open","Monitoring"]),
+        supabase.from("huddles").select("engagement_id,created_at").in("engagement_id", ids).order("created_at", { ascending: false }).limit(ids.length * 2),
         user
           ? supabase.from("section_assignments").select("engagement_id,user_id").in("engagement_id", ids).eq("user_id", user.id)
           : Promise.resolve({ data: [] as { engagement_id: string; user_id: string }[] }),
@@ -102,7 +106,7 @@ function SelectEngagementPage() {
 
       const map: Record<string, Stats> = {};
       for (const id of ids) {
-        map[id] = { sections: 0, members: 0, openSos: 0, heat: { Green: 0, Yellow: 0, Orange: 0, Red: 0 } };
+        map[id] = { sections: 0, members: 0, openSos: 0, openRisks: 0, lastSignalAt: null, heat: { Green: 0, Yellow: 0, Orange: 0, Red: 0 } };
       }
       for (const r of (heatRes.data as { engagement_id: string; status: string }[] | null) ?? []) {
         const bucket = map[r.engagement_id]; if (!bucket) continue;
@@ -120,6 +124,17 @@ function SelectEngagementPage() {
       }
       for (const r of (asnRes.data as { engagement_id: string }[] | null) ?? []) {
         const b = map[r.engagement_id]; if (b) b.mySections = (b.mySections ?? 0) + 1;
+      }
+      for (const r of (riskRes.data as { engagement_id: string }[] | null) ?? []) {
+        const b = map[r.engagement_id]; if (b) b.openRisks++;
+      }
+      // pick the most-recent huddle per engagement
+      const seenHuddle = new Set<string>();
+      for (const r of (huddleRes.data as { engagement_id: string; created_at: string }[] | null) ?? []) {
+        if (!seenHuddle.has(r.engagement_id)) {
+          const b = map[r.engagement_id];
+          if (b) { b.lastSignalAt = r.created_at; seenHuddle.add(r.engagement_id); }
+        }
       }
       setStatsById(map);
 
@@ -368,20 +383,26 @@ function DoorCard({
       <div className="mb-4 truncate text-xs text-zinc-500">{m.engagement.client}</div>
 
       {/* stat blocks */}
-      <div className="mb-4 grid grid-cols-3 gap-2">
-        <Stat
-          icon={<FileText className="h-3 w-3" />}
-          label={isWriter ? "My sections" : "Sections"}
-          value={isWriter ? stats?.mySections ?? 0 : stats?.sections ?? 0}
-        />
-        <Stat icon={<Users className="h-3 w-3" />} label="Members" value={stats?.members ?? 0} />
+      <div className="mb-4 grid grid-cols-2 gap-2">
         <Stat
           icon={<Clock className="h-3 w-3" />}
-          label={overdue ? "Overdue" : "To submit"}
-          value={dleft === null ? "—" : overdue ? `${Math.abs(dleft)}d` : `${dleft}d`}
+          label={overdue ? "Overdue" : "Days left"}
+          value={dleft === null ? "—" : overdue ? `${Math.abs(dleft)}d ago` : `${dleft}d`}
           tone={overdue ? RED : dleft !== null && dleft <= 7 ? GOLD : undefined}
         />
+        <Stat
+          icon={<Users className="h-3 w-3" />}
+          label="Last signal"
+          value={stats?.lastSignalAt ? relativeSignal(stats.lastSignalAt) : "None yet"}
+          tone={stats?.lastSignalAt ? undefined : "rgba(255,255,255,0.3)"}
+        />
       </div>
+      {(stats?.openRisks ?? 0) > 0 && (
+        <div className="mb-3 flex items-center gap-1.5 text-[10px]" style={{ color: GOLD }}>
+          <span>⚠️</span>
+          <span className="font-semibold">{stats!.openRisks} open risk{stats!.openRisks === 1 ? "" : "s"}</span>
+        </div>
+      )}
 
       {/* 5-segment health bar */}
       <div className="mb-3">
@@ -466,6 +487,16 @@ function FooterLink({ to, label, disabled }: { to: string; label: string; disabl
 
 // Build a 5-cell bar where each segment is colored by the dominant
 // status of that proportional slot.
+function relativeSignal(ts: string): string {
+  const diff = Date.now() - new Date(ts).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 60) return m <= 1 ? "Just now" : `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  return d === 1 ? "Yesterday" : `${d}d ago`;
+}
+
 function buildSegments(heat: Stats["heat"]): (string | null)[] {
   const order: Array<keyof Stats["heat"]> = ["Green", "Yellow", "Orange", "Red"];
   const total = order.reduce((a, k) => a + heat[k], 0);

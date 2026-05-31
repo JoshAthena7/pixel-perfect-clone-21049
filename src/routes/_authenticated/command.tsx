@@ -12,6 +12,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { LivePresence } from "@/components/war-room/LivePresence";
+import { Signal, Siren, Pin } from "lucide-react";
 import { NeedsAttentionPanel } from "@/components/war-room/NeedsAttentionPanel";
 import { relativeTime } from "@/lib/time";
 import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
@@ -88,6 +89,160 @@ function huddleHealthColor(health: string): string {
   return "#22c55e";
 }
 
+// ── Quick Action Bar ─────────────────────────────────────────────
+function QuickActionBar({ engagementId, memberName }: { engagementId: string; memberName: string }) {
+  const [open, setOpen] = useState<"signal"|"sos"|null>(null);
+  const [health, setHealth] = useState("Green");
+  const [priority, setPriority] = useState("");
+  const [desc, setDesc] = useState("");
+  const [sev, setSev] = useState("Orange");
+  const [saving, setSaving] = useState(false);
+
+  async function submitSignal() {
+    if (!priority.trim()) return;
+    setSaving(true);
+    await supabase.from("huddles").insert({ engagement_id: engagementId, health, priority, submitter_name: memberName || "Team", leadership_needed: false });
+    await supabase.from("engagements").update({ health }).eq("id", engagementId);
+    setSaving(false); setPriority(""); setOpen(null);
+  }
+
+  async function submitSOS() {
+    if (!desc.trim()) return;
+    setSaving(true);
+    await supabase.from("sos_alerts").insert({ engagement_id: engagementId, severity: sev, description: desc, status: "Open", submitted_by: memberName || "Team", category: "Other" });
+    setSaving(false); setDesc(""); setOpen(null);
+  }
+
+  const HEALTH_COLOR: Record<string,string> = { Green:"#22c55e", Yellow:"#f59e0b", Red:"#ef4444" };
+
+  return (
+    <div style={{ borderBottom: "0.5px solid rgba(255,255,255,0.08)", background: "#111827" }}>
+      <div className="flex items-center gap-2 px-5 py-2.5">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mr-1">Quick actions</span>
+        <button
+          onClick={() => setOpen(open === "signal" ? null : "signal")}
+          className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${open==="signal" ? "border-primary bg-primary/10 text-primary" : "border-border/60 text-muted-foreground hover:border-primary/40 hover:text-foreground"}`}
+        >
+          📡 Submit Signal
+        </button>
+        <button
+          onClick={() => setOpen(open === "sos" ? null : "sos")}
+          className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${open==="sos" ? "border-red-500 bg-red-500/10 text-red-400" : "border-border/60 text-muted-foreground hover:border-red-500/40 hover:text-red-400"}`}
+        >
+          🚨 Raise SOS
+        </button>
+      </div>
+
+      {open === "signal" && (
+        <div className="px-5 pb-4 space-y-3 border-t border-border/40 pt-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-muted-foreground">Health:</span>
+            {["Green","Yellow","Red"].map(h => (
+              <button key={h} type="button" onClick={() => setHealth(h)}
+                className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors"
+                style={{ borderColor: health===h ? HEALTH_COLOR[h] : "rgba(255,255,255,0.15)", color: health===h ? HEALTH_COLOR[h] : "#8b9ab5", background: health===h ? `${HEALTH_COLOR[h]}18` : "transparent" }}>
+                {h}
+              </button>
+            ))}
+          </div>
+          <input
+            className="w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary"
+            placeholder="What's the priority today? (required)"
+            value={priority}
+            onChange={e => setPriority(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && !saving && submitSignal()}
+          />
+          <div className="flex gap-2">
+            <button onClick={() => setOpen(null)} className="rounded-md border border-border/40 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground">Cancel</button>
+            <button onClick={submitSignal} disabled={saving || !priority.trim()}
+              className="rounded-md bg-primary px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-40">
+              {saving ? "Submitting…" : "Submit Signal"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {open === "sos" && (
+        <div className="px-5 pb-4 space-y-3 border-t border-red-500/20 pt-3" style={{ background: "rgba(239,68,68,0.04)" }}>
+          <p className="text-xs text-red-400/80">SOS alerts notify leadership immediately. Use for urgent issues only.</p>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Severity:</span>
+            {[["Orange","🟠 Orange"],["Red","🔴 Red"]].map(([v,l]) => (
+              <button key={v} type="button" onClick={() => setSev(v)}
+                className={`rounded-full border px-3 py-1 text-xs font-semibold ${sev===v ? (v==="Red"?"border-red-500 text-red-400 bg-red-500/10":"border-orange-500 text-orange-400 bg-orange-500/10") : "border-border/60 text-muted-foreground"}`}>{l}</button>
+            ))}
+          </div>
+          <textarea
+            className="w-full rounded-md border border-red-500/30 bg-background/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-red-500 resize-none"
+            placeholder="Describe the urgent issue (required)"
+            rows={2}
+            value={desc}
+            onChange={e => setDesc(e.target.value)}
+          />
+          <div className="flex gap-2">
+            <button onClick={() => setOpen(null)} className="rounded-md border border-border/40 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground">Cancel</button>
+            <button onClick={submitSOS} disabled={saving || !desc.trim()}
+              className="rounded-md bg-red-600 px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-40">
+              {saving ? "Submitting…" : "Submit SOS"}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Onboarding Checklist ──────────────────────────────────────────
+function OnboardingChecklist({ engagementId }: { engagementId: string }) {
+  const [status, setStatus] = useState({ hasDate: false, hasDoc: false, hasTeam: false, checked: false });
+
+  useEffect(() => {
+    (async () => {
+      const [eng, docs, members] = await Promise.all([
+        supabase.from("engagements").select("submission_date").eq("id", engagementId).single(),
+        supabase.from("intel_documents").select("id").eq("engagement_id", engagementId).limit(1),
+        supabase.from("engagement_members").select("id").eq("engagement_id", engagementId).limit(3),
+      ]);
+      setStatus({
+        hasDate: !!eng.data?.submission_date,
+        hasDoc: (docs.data?.length ?? 0) > 0,
+        hasTeam: (members.data?.length ?? 0) > 1,
+        checked: true,
+      });
+    })();
+  }, [engagementId]);
+
+  if (!status.checked) return null;
+  if (status.hasDate && status.hasDoc && status.hasTeam) return null;
+
+  const steps = [
+    { done: status.hasDate, icon: "📅", label: "Set your submission date", sub: "Track days remaining on Mission Control", action: "Go to Settings →", href: "/settings" },
+    { done: status.hasDoc, icon: "📄", label: "Upload your first RFP document", sub: "IRIS uses this to generate intelligence", action: "Go to Mission Briefing →", href: "/intel" },
+    { done: status.hasTeam, icon: "👥", label: "Invite your first team member", sub: "Writers and PMs see what's relevant to their role", action: "Go to Team →", href: "/section-assignments" },
+  ].filter(s => !s.done);
+
+  return (
+    <div className="mx-5 mt-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-sm font-bold">Get started</span>
+        <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold text-primary">{steps.length} step{steps.length > 1 ? "s" : ""} remaining</span>
+      </div>
+      <div className="space-y-2">
+        {steps.map(s => (
+          <a key={s.label} href={s.href} className="flex items-start gap-3 rounded-md border border-border/40 bg-background/50 p-3 hover:border-primary/30 transition-colors no-underline">
+            <span className="text-lg flex-shrink-0">{s.icon}</span>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold text-foreground">{s.label}</div>
+              <div className="text-xs text-muted-foreground mt-0.5">{s.sub}</div>
+            </div>
+            <span className="text-xs text-primary flex-shrink-0 mt-0.5">{s.action}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function PendingDecisionsCount({ engagementId }: { engagementId: string }) {
   const [count, setCount] = useState<number | null>(null);
   useEffect(() => {
@@ -110,7 +265,7 @@ function PendingDecisionsCount({ engagementId }: { engagementId: string }) {
 }
 
 function CommandCenter() {
-  const { engagement } = useEngagement();
+  const { engagement, member } = useEngagement();
   const [heatmap, setHeatmap] = useState<Heat[]>([]);
   const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
   const [latestHuddle, setLatestHuddle] = useState<Huddle | null>(null);
@@ -181,12 +336,17 @@ function CommandCenter() {
         </div>
       </header>
 
+      <QuickActionBar engagementId={engagement.id} memberName={member?.display_name ?? ""} />
+
       <div className="px-5 pt-4 space-y-4">
         <ErrorBanner error={loadError} onRetry={() => engagement && loadAll(engagement.id)} label="Couldn't load command center data." />
         {isLoading && heatmap.length === 0 && <LoadingSkeleton label="Loading command center…" />}
 
         {/* ZONE 0 — SOS (only renders when active SOS exists) */}
         <SosBanner />
+
+        {/* ONBOARDING — shows until mission is set up */}
+        <OnboardingChecklist engagementId={engagement.id} />
 
         {/* ZONE 1 — Active Signals + Intelligence Insights */}
         <NeedsAttentionPanel />
