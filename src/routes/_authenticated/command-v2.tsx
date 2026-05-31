@@ -306,6 +306,36 @@ function CommandV2() {
           </div>
         </div>
       </div>
+
+      <Dialog open={modal !== null} onOpenChange={(open) => !open && setModal(null)}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{modal ? MODAL_TITLES[modal] : ""}</DialogTitle>
+          </DialogHeader>
+          {modal && user && member && (
+            <ModalForm
+              kind={modal}
+              engagementId={engagement.id}
+              userId={user.id}
+              memberName={member.display_name}
+              roster={roster}
+              onSuccess={(label) => { toast.success(label); setModal(null); }}
+              onCancel={() => setModal(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
+}
+
+function ModalForm({ kind, ...props }: { kind: ModalKey } & Omit<FormProps, "tile">) {
+  switch (kind) {
+    case "broadcast": return <BroadcastForm {...props} />;
+    case "signal": return <HuddleForm {...props} />;
+    case "risk": return <RiskForm {...props} />;
+    case "sos": return <SosForm {...props} />;
+    case "decision": return <DecisionForm {...props} />;
+    case "pulse": return <PulseForm {...props} />;
+  }
 }
