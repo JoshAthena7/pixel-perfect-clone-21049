@@ -2,6 +2,28 @@ import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
+import { useSession } from "@/hooks/use-session";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  BroadcastForm,
+  HuddleForm,
+  PulseForm,
+  DecisionForm,
+  RiskForm,
+  SosForm,
+  type FormProps,
+} from "@/components/war-room/ActionLauncher";
+import { toast } from "sonner";
+
+type ModalKey = "broadcast" | "signal" | "risk" | "sos" | "decision" | "pulse";
+const MODAL_TITLES: Record<ModalKey, string> = {
+  broadcast: "Send Broadcast",
+  signal: "Submit Team Signal",
+  risk: "Log Risk",
+  sos: "Raise Support Request",
+  decision: "Record Decision",
+  pulse: "Record Client Signal",
+};
 
 export const Route = createFileRoute("/_authenticated/command-v2")({
   head: () => ({ meta: [{ title: "Mission Control — Athena Command" }] }),
@@ -77,7 +99,8 @@ function daysTo(date: string | null | undefined): number | null {
 }
 
 function CommandV2() {
-  const { engagement } = useEngagement();
+  const { engagement, member } = useEngagement();
+  const { user } = useSession();
   const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
   const [huddles, setHuddles] = useState<Huddle[]>([]);
   const [risks, setRisks] = useState<Risk[]>([]);
@@ -85,6 +108,18 @@ function CommandV2() {
   const [decisions, setDecisions] = useState<Decision[]>([]);
   const [pulse, setPulse] = useState<Pulse | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [modal, setModal] = useState<ModalKey | null>(null);
+  const [roster, setRoster] = useState<{ display_name: string; role: string }[]>([]);
+
+  useEffect(() => {
+    if (!engagement) return;
+    supabase
+      .from("engagement_members")
+      .select("display_name,role")
+      .eq("engagement_id", engagement.id)
+      .order("display_name")
+      .then(({ data }) => setRoster((data as { display_name: string; role: string }[]) ?? []));
+  }, [engagement?.id]);
 
   async function loadAll(eid: string) {
     setErr(null);
@@ -143,8 +178,8 @@ function CommandV2() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button className="btn">📡 Signal</button>
-            <button className="btn">🆘 Support</button>
+            <button className="btn" onClick={() => setModal("signal")}>📡 Signal</button>
+            <button className="btn" onClick={() => setModal("sos")}>🆘 Support</button>
             <Link to="/command" className="micro" style={{ marginLeft: 12 }}>← v1</Link>
           </div>
         </header>
@@ -168,7 +203,7 @@ function CommandV2() {
         <div className="grid grid-cols-2 gap-3 mb-4">
           {/* Leadership Focus */}
           <div className="panel">
-            <div className="panel-head"><span className="panel-title">Leadership Focus</span><button className="btn">+ Broadcast</button></div>
+            <div className="panel-head"><span className="panel-title">Leadership Focus</span><button className="btn" onClick={() => setModal("broadcast")}>+ Broadcast</button></div>
             <div className="panel-body">
               {broadcasts.length === 0 && <div className="muted">No broadcasts yet.</div>}
               {broadcasts.map(b => (
@@ -197,7 +232,7 @@ function CommandV2() {
           </div>
           {/* Open Risks */}
           <div className="panel">
-            <div className="panel-head"><span className="panel-title">Open Risks</span><button className="btn">+ Add</button></div>
+            <div className="panel-head"><span className="panel-title">Open Risks</span><button className="btn" onClick={() => setModal("risk")}>+ Add</button></div>
             <div className="panel-body">
               {risks.length === 0 && <div className="muted">No open risks. ✅</div>}
               {risks.map(r => (
@@ -213,7 +248,7 @@ function CommandV2() {
           </div>
           {/* Support Requests */}
           <div className="panel">
-            <div className="panel-head"><span className="panel-title">Support Requests</span><button className="btn">+ Request</button></div>
+            <div className="panel-head"><span className="panel-title">Support Requests</span><button className="btn" onClick={() => setModal("sos")}>+ Request</button></div>
             <div className="panel-body">
               {sos.length === 0 && <div className="muted">No open requests.</div>}
               {sos.map(s => (
@@ -232,7 +267,7 @@ function CommandV2() {
         {/* Second row */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="panel">
-            <div className="panel-head"><span className="panel-title">Pending Decisions</span><button className="btn">+ Log</button></div>
+            <div className="panel-head"><span className="panel-title">Pending Decisions</span><button className="btn" onClick={() => setModal("decision")}>+ Log</button></div>
             <div className="panel-body">
               {decisions.length === 0 && <div className="muted">Nothing pending confirmation.</div>}
               {decisions.map(d => (
@@ -244,7 +279,7 @@ function CommandV2() {
             </div>
           </div>
           <div className="panel">
-            <div className="panel-head"><span className="panel-title">Client Signal</span><button className="btn">+ Record</button></div>
+            <div className="panel-head"><span className="panel-title">Client Signal</span><button className="btn" onClick={() => setModal("pulse")}>+ Record</button></div>
             <div className="panel-body">
               {!pulse && <div className="muted">No client signal recorded yet.</div>}
               {pulse && (
@@ -271,6 +306,36 @@ function CommandV2() {
           </div>
         </div>
       </div>
+
+      <Dialog open={modal !== null} onOpenChange={(open) => !open && setModal(null)}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{modal ? MODAL_TITLES[modal] : ""}</DialogTitle>
+          </DialogHeader>
+          {modal && user && member && (
+            <ModalForm
+              kind={modal}
+              engagementId={engagement.id}
+              userId={user.id}
+              memberName={member.display_name}
+              roster={roster}
+              onSuccess={(label) => { toast.success(label); setModal(null); }}
+              onCancel={() => setModal(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
+}
+
+function ModalForm({ kind, ...props }: { kind: ModalKey } & Omit<FormProps, "tile">) {
+  switch (kind) {
+    case "broadcast": return <BroadcastForm {...props} />;
+    case "signal": return <HuddleForm {...props} />;
+    case "risk": return <RiskForm {...props} />;
+    case "sos": return <SosForm {...props} />;
+    case "decision": return <DecisionForm {...props} />;
+    case "pulse": return <PulseForm {...props} />;
+  }
 }
