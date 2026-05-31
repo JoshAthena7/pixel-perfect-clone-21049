@@ -18,6 +18,8 @@ import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
 import { SnapshotsPanel } from "@/components/war-room/SnapshotsPanel";
 import { IntelligenceInsightsPanel } from "@/components/war-room/IntelligenceInsightsPanel";
 import { SizingSummaryStrip } from "@/components/sizing/SizingSummaryStrip";
+import { PageGate } from "@/components/war-room/PageGate";
+
 
 export const Route = createFileRoute("/_authenticated/command")({
   head: () => ({ meta: [{ title: "Mission — Athena" }] }),
