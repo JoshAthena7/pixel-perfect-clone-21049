@@ -424,7 +424,7 @@ export function HuddleForm({ engagementId, userId, memberName, roster, onSuccess
         health: "Yellow",
         priority: "Working session scheduled",
         notes,
-        needs_leadership: false,
+        leadership_needed: false,
       });
     },
   });
