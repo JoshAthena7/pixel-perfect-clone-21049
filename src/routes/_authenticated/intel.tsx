@@ -46,9 +46,11 @@ async function extractTextFromFile(file: File): Promise<string> {
   return "";
 }
 
+import { PageGate } from "@/components/war-room/PageGate";
+
 export const Route = createFileRoute("/_authenticated/intel")({
   head: () => ({ meta: [{ title: "Vault — Athena" }] }),
-  component: IntelPage,
+  component: () => <PageGate page="library"><IntelPage /></PageGate>,
 });
 
 const CATEGORIES = ["RFP", "Amendment", "Q&A", "Client Doc", "Research", "Competitive", "Past Performance", "Other"] as const;
