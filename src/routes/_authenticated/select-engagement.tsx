@@ -324,7 +324,7 @@ function LobbyPage() {
           <div>
             <SectionLabel>IRIS Concierge</SectionLabel>
             <div style={{ background: SURFACE, border: `0.5px solid rgba(196,154,42,0.2)`, borderRadius: 14, padding: "22px", height: "calc(100% - 36px)", display: "flex", flexDirection: "column", gap: 16 }}>
-              <div style={{ display: "flex", items: "center", gap: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <div style={{ width: 8, height: 8, borderRadius: "50%", background: GOLD, boxShadow: `0 0 10px ${GOLD}`, flexShrink: 0, marginTop: 2 }} />
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 700, color: TEXT }}>Ask IRIS anything</div>
