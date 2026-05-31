@@ -33,7 +33,7 @@ export const Route = createFileRoute("/_authenticated/command-v2")({
 
 type Health = "Green" | "Yellow" | "Orange" | "Red";
 type Broadcast = { id: string; content: string; author_name: string; created_at: string; pinned: boolean };
-type Huddle = { id: string; health: string; priority: string; submitter_name: string; created_at: string; needs_leadership: boolean };
+type Huddle = { id: string; health: string; priority: string; submitter_name: string; created_at: string; leadership_needed: boolean };
 type Risk = { id: string; title: string; severity: string; status: string; owner_name: string | null };
 type Sos = { id: string; description: string; severity: string; status: string; category: string; submitter_name: string; created_at: string };
 type Decision = { id: string; title: string; status: string; owner_name: string | null; decision_date: string };
@@ -240,7 +240,7 @@ function CommandV2() {
                   <span className={`pill pill-${healthColor(h.health)}`}>{h.health}</span>
                   <div className="flex-1 min-w-0">
                     <div className="truncate">{h.priority || <span className="muted">(no priority)</span>}</div>
-                    <div className="micro">{h.submitter_name} · {relTime(h.created_at)}{h.needs_leadership && <> · <span style={{ color: "var(--ac-red)" }}>leadership needed</span></>}</div>
+                    <div className="micro">{h.submitter_name} · {relTime(h.created_at)}{h.leadership_needed && <> · <span style={{ color: "var(--ac-red)" }}>leadership needed</span></>}</div>
                   </div>
                 </div>
               ))}

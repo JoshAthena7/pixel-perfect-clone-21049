@@ -59,7 +59,7 @@ function HuddlePage() {
       risk: risk || null,
       client_concern: clientConcern || null,
       writer_concern: writerConcern || null,
-      needs_leadership: needsLeadership,
+      leadership_needed: needsLeadership,
       notes: notes || null,
     });
     if (error) {
@@ -68,7 +68,7 @@ function HuddlePage() {
       return;
     }
 
-    // Edge 8: if needs_leadership and no leadership is currently available,
+    // Edge 8: if leadership_needed and no leadership is currently available,
     // auto-create an SOS so the flag surfaces in NeedsAttentionPanel.
     if (needsLeadership) {
       try {
@@ -200,7 +200,7 @@ function HuddlePage() {
                 <div className="flex items-center gap-2">
                   <StatusPill status={h.health as StatusColor} />
                   <span className="text-sm font-medium">{h.priority}</span>
-                  {h.needs_leadership && <StatusPill status="Orange" label="Needs Leadership" />}
+                  {h.leadership_needed && <StatusPill status="Orange" label="Needs Leadership" />}
                 </div>
                 <div className="mt-2 space-y-1 text-sm">
                   {h.risk && <div><span className="text-muted-foreground">Risk:</span> {h.risk}</div>}
