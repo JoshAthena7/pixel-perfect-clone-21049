@@ -24,6 +24,17 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  sosSchema,
+  huddleSchema,
+  broadcastSchema,
+  pulseSchema,
+  decisionSchema,
+  riskSchema,
+  heatmapSchema,
+  validate,
+  type FieldErrors,
+} from "./action-schemas";
 
 type TileKey =
   | "huddle"
@@ -263,59 +274,34 @@ function RosterSelect({
   );
 }
 
-// ---- validation helpers ----
-type Errors = Record<string, string | undefined>;
-
-function required(v: string, label = "Required"): string | undefined {
-  return v.trim().length === 0 ? label : undefined;
-}
-function maxLen(v: string, max: number): string | undefined {
-  return v.length > max ? `Keep under ${max} characters (${v.length})` : undefined;
-}
-function isoDate(v: string): string | undefined {
-  if (!v) return "Pick a date";
-  return /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v))
-    ? undefined
-    : "Use a valid date";
-}
-function firstError(...errs: (string | undefined)[]): string | undefined {
-  return errs.find(Boolean);
-}
-function isValid(errors: Errors): boolean {
-  return Object.values(errors).every((e) => !e);
-}
+// Reusable touched/attempted tracker for inline error reveal
 function useTouched<K extends string>() {
-  const [touched, setTouched] = useState<Record<K, boolean>>({} as Record<K, boolean>);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [attempted, setAttempted] = useState(false);
   const mark = (k: K) => setTouched((p) => ({ ...p, [k]: true }));
-  const show = (k: K) => attempted || touched[k];
-  return { touched, attempted, setAttempted, mark, show };
+  const show = (k: K) => attempted || !!touched[k];
+  return { setAttempted, mark, show };
 }
 
 // ---- SOS ----
 export function SosForm({ engagementId, userId, memberName, onSuccess, onCancel }: FormProps) {
-  const [blocker, setBlocker] = useState("");
-  const [impact, setImpact] = useState("");
-  const [who, setWho] = useState("");
-  const [by, setBy] = useState("");
+  const [values, setValues] = useState({ blocker: "", impact: "", who: "", by: "" });
   const [saving, setSaving] = useState(false);
-  const t = useTouched<"blocker" | "impact" | "who" | "by">();
-
-  const errors: Errors = {
-    blocker: firstError(required(blocker, "Describe the blocker"), maxLen(blocker, 2000)),
-    impact: maxLen(impact, 2000),
-    who: maxLen(who, 120),
-    by: maxLen(by, 120),
-  };
-  const valid = isValid(errors);
+  const t = useTouched<keyof typeof values>();
+  const { success, errors, data } = validate(sosSchema, values);
+  const err = (k: keyof typeof values): string | undefined =>
+    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined);
+  const set = <K extends keyof typeof values>(k: K, v: string) =>
+    setValues((p) => ({ ...p, [k]: v }));
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     t.setAttempted(true);
-    if (!valid) return;
+    if (!success || !data) return;
     setSaving(true);
-    const desc = impact ? `${blocker}\n\nImpact: ${impact}` : blocker;
-    const action = [who && `Owner: ${who}`, by && `Resolve by: ${by}`].filter(Boolean).join(" · ");
+    const desc = data.impact ? `${data.blocker}\n\nImpact: ${data.impact}` : data.blocker;
+    const action = [data.who && `Owner: ${data.who}`, data.by && `Resolve by: ${data.by}`]
+      .filter(Boolean).join(" · ");
     const { error } = await supabase.from("sos_alerts").insert({
       engagement_id: engagementId,
       submitted_by: userId,
@@ -323,67 +309,72 @@ export function SosForm({ engagementId, userId, memberName, onSuccess, onCancel 
       severity: "High",
       category: "Blocker",
       description: desc,
-      owner_name: who || null,
+      owner_name: data.who || null,
       recommended_action: action || null,
       status: "Open",
     });
     setSaving(false);
     if (error) return toast.error("Couldn't raise SOS", { description: error.message });
-    setBlocker(""); setImpact(""); setWho(""); setBy("");
+    setValues({ blocker: "", impact: "", who: "", by: "" });
     onSuccess("SOS raised");
   }
 
   return (
     <form onSubmit={submit} className="space-y-3" noValidate>
-      <Field label="What is the blocker?" error={t.show("blocker") ? errors.blocker : undefined}>
-        <Textarea rows={3} value={blocker} onChange={(e) => setBlocker(e.target.value)} onBlur={() => t.mark("blocker")} />
+      <Field label="What is the blocker?" error={err("blocker")}>
+        <Textarea rows={3} value={values.blocker} onChange={(e) => set("blocker", e.target.value)} onBlur={() => t.mark("blocker")} />
       </Field>
-      <Field label="Impact if unresolved" error={t.show("impact") ? errors.impact : undefined}>
-        <Textarea rows={2} value={impact} onChange={(e) => setImpact(e.target.value)} onBlur={() => t.mark("impact")} />
+      <Field label="Impact if unresolved" error={err("impact")}>
+        <Textarea rows={2} value={values.impact} onChange={(e) => set("impact", e.target.value)} onBlur={() => t.mark("impact")} />
       </Field>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Who needs to act?" error={t.show("who") ? errors.who : undefined}>
-          <Input value={who} onChange={(e) => setWho(e.target.value)} onBlur={() => t.mark("who")} />
+        <Field label="Who needs to act?" error={err("who")}>
+          <Input value={values.who} onChange={(e) => set("who", e.target.value)} onBlur={() => t.mark("who")} />
         </Field>
-        <Field label="Resolve by" error={t.show("by") ? errors.by : undefined}>
-          <Input value={by} onChange={(e) => setBy(e.target.value)} onBlur={() => t.mark("by")} placeholder="e.g. EOD Friday" />
+        <Field label="Resolve by" error={err("by")}>
+          <Input value={values.by} onChange={(e) => set("by", e.target.value)} onBlur={() => t.mark("by")} placeholder="e.g. EOD Friday" />
         </Field>
       </div>
-      <FormActions saving={saving} disabled={!valid} onCancel={onCancel} />
+      <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
     </form>
   );
 }
 
 // ---- Huddle ----
 export function HuddleForm({ engagementId, userId, memberName, roster, onSuccess, onCancel }: FormProps) {
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-  const [focus, setFocus] = useState("");
-  const [attendees, setAttendees] = useState<string[]>([]);
-  const [flag, setFlag] = useState("");
+  const [values, setValues] = useState<{
+    date: string; focus: string; attendees: string[]; flag: string;
+  }>({
+    date: new Date().toISOString().slice(0, 10),
+    focus: "",
+    attendees: [],
+    flag: "",
+  });
   const [saving, setSaving] = useState(false);
-  const t = useTouched<"date" | "focus" | "flag">();
-
-  const errors: Errors = {
-    date: isoDate(date),
-    focus: firstError(required(focus, "Add focus areas"), maxLen(focus, 2000)),
-    flag: maxLen(flag, 2000),
-  };
-  const valid = isValid(errors);
+  const t = useTouched<keyof typeof values>();
+  const { success, errors, data } = validate(huddleSchema, values);
+  const err = (k: keyof typeof values): string | undefined =>
+    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined);
 
   function toggleAttendee(name: string) {
-    setAttendees((prev) => (prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]));
+    setValues((p) => ({
+      ...p,
+      attendees: p.attendees.includes(name)
+        ? p.attendees.filter((n) => n !== name)
+        : [...p.attendees, name],
+    }));
   }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     t.setAttempted(true);
-    if (!valid) return;
+    if (!success || !data) return;
     setSaving(true);
     const notes = [
-      `Date: ${date}`,
-      attendees.length ? `Attendees: ${attendees.join(", ")}` : null,
-      `Focus: ${focus}`,
-      flag ? `Flag: ${flag}` : null,
+      `Date: ${data.date}`,
+      data.attendees.length ? `Attendees: ${data.attendees.join(", ")}` : null,
+      `Focus: ${data.focus}`,
+      data.flag ? `Flag: ${data.flag}` : null,
     ].filter(Boolean).join("\n");
     const { error } = await supabase.from("huddles").insert({
       engagement_id: engagementId,
@@ -396,23 +387,23 @@ export function HuddleForm({ engagementId, userId, memberName, roster, onSuccess
     });
     setSaving(false);
     if (error) return toast.error("Couldn't save huddle", { description: error.message });
-    setFocus(""); setAttendees([]); setFlag("");
+    setValues((p) => ({ ...p, focus: "", attendees: [], flag: "" }));
     onSuccess("Huddle scheduled");
   }
 
   return (
     <form onSubmit={submit} className="space-y-3" noValidate>
-      <Field label="Date" error={t.show("date") ? errors.date : undefined}>
-        <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} onBlur={() => t.mark("date")} />
+      <Field label="Date" error={err("date")}>
+        <Input type="date" value={values.date} onChange={(e) => setValues((p) => ({ ...p, date: e.target.value }))} onBlur={() => t.mark("date")} />
       </Field>
-      <Field label="Focus areas" error={t.show("focus") ? errors.focus : undefined}>
-        <Textarea rows={3} value={focus} onChange={(e) => setFocus(e.target.value)} onBlur={() => t.mark("focus")} />
+      <Field label="Focus areas" error={err("focus")}>
+        <Textarea rows={3} value={values.focus} onChange={(e) => setValues((p) => ({ ...p, focus: e.target.value }))} onBlur={() => t.mark("focus")} />
       </Field>
       <Field label="Attendees">
         <div className="flex flex-wrap gap-1.5 rounded-md border border-border bg-background p-2">
           {roster.length === 0 && <span className="text-xs text-muted-foreground">No teammates yet</span>}
           {roster.map((m) => {
-            const sel = attendees.includes(m.display_name);
+            const sel = values.attendees.includes(m.display_name);
             return (
               <button
                 type="button"
@@ -429,59 +420,57 @@ export function HuddleForm({ engagementId, userId, memberName, roster, onSuccess
           })}
         </div>
       </Field>
-      <Field label="Anything to flag? (optional)" error={t.show("flag") ? errors.flag : undefined}>
-        <Textarea rows={2} value={flag} onChange={(e) => setFlag(e.target.value)} onBlur={() => t.mark("flag")} />
+      <Field label="Anything to flag? (optional)" error={err("flag")}>
+        <Textarea rows={2} value={values.flag} onChange={(e) => setValues((p) => ({ ...p, flag: e.target.value }))} onBlur={() => t.mark("flag")} />
       </Field>
-      <FormActions saving={saving} disabled={!valid} onCancel={onCancel} />
+      <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
     </form>
   );
 }
 
 // ---- Broadcast ----
 export function BroadcastForm({ engagementId, userId, memberName, onSuccess, onCancel }: FormProps) {
-  const [subject, setSubject] = useState("");
-  const [message, setMessage] = useState("");
-  const [tone, setTone] = useState("Informational");
-  const [audience, setAudience] = useState("Full team");
+  const [values, setValues] = useState<{
+    subject: string; message: string;
+    tone: "Informational" | "Urgent" | "Encouraging" | "Reminder";
+    audience: "Full team" | "SMEs only" | "Writers only" | "Leads only";
+  }>({ subject: "", message: "", tone: "Informational", audience: "Full team" });
   const [saving, setSaving] = useState(false);
-  const t = useTouched<"subject" | "message">();
-
-  const errors: Errors = {
-    subject: maxLen(subject, 140),
-    message: firstError(required(message, "Write a message"), maxLen(message, 4000)),
-  };
-  const valid = isValid(errors);
+  const t = useTouched<keyof typeof values>();
+  const { success, errors, data } = validate(broadcastSchema, values);
+  const err = (k: keyof typeof values): string | undefined =>
+    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     t.setAttempted(true);
-    if (!valid) return;
+    if (!success || !data) return;
     setSaving(true);
-    const content = `${subject ? `**${subject}**\n` : ""}${message}\n\n— ${tone} · to ${audience}`;
+    const content = `${data.subject ? `**${data.subject}**\n` : ""}${data.message}\n\n— ${data.tone} · to ${data.audience}`;
     const { error } = await supabase.from("broadcasts").insert({
       engagement_id: engagementId,
       author_id: userId,
       author_name: memberName,
       content,
-      pinned: tone === "Urgent",
+      pinned: data.tone === "Urgent",
     });
     setSaving(false);
     if (error) return toast.error("Couldn't send broadcast", { description: error.message });
-    setSubject(""); setMessage("");
+    setValues((p) => ({ ...p, subject: "", message: "" }));
     onSuccess("Broadcast sent");
   }
 
   return (
     <form onSubmit={submit} className="space-y-3" noValidate>
-      <Field label="Subject" error={t.show("subject") ? errors.subject : undefined}>
-        <Input value={subject} onChange={(e) => setSubject(e.target.value)} onBlur={() => t.mark("subject")} />
+      <Field label="Subject" error={err("subject")}>
+        <Input value={values.subject} onChange={(e) => setValues((p) => ({ ...p, subject: e.target.value }))} onBlur={() => t.mark("subject")} />
       </Field>
-      <Field label="Message" error={t.show("message") ? errors.message : undefined}>
-        <Textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} onBlur={() => t.mark("message")} />
+      <Field label="Message" error={err("message")}>
+        <Textarea rows={4} value={values.message} onChange={(e) => setValues((p) => ({ ...p, message: e.target.value }))} onBlur={() => t.mark("message")} />
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Tone">
-          <Select value={tone} onValueChange={setTone}>
+          <Select value={values.tone} onValueChange={(v) => setValues((p) => ({ ...p, tone: v as typeof p.tone }))}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {["Informational", "Urgent", "Encouraging", "Reminder"].map((t) => (
@@ -491,7 +480,7 @@ export function BroadcastForm({ engagementId, userId, memberName, onSuccess, onC
           </Select>
         </Field>
         <Field label="Send to">
-          <Select value={audience} onValueChange={setAudience}>
+          <Select value={values.audience} onValueChange={(v) => setValues((p) => ({ ...p, audience: v as typeof p.audience }))}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {["Full team", "SMEs only", "Writers only", "Leads only"].map((t) => (
@@ -501,39 +490,32 @@ export function BroadcastForm({ engagementId, userId, memberName, onSuccess, onC
           </Select>
         </Field>
       </div>
-      <FormActions saving={saving} disabled={!valid} onCancel={onCancel} />
+      <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
     </form>
   );
 }
 
 // ---- Pulse™ ----
 export function PulseForm({ engagementId, userId, memberName, roster, onSuccess, onCancel }: FormProps) {
-  const [period, setPeriod] = useState("");
-  const [pullRoster, setPullRoster] = useState(false);
-  const [completed, setCompleted] = useState("");
-  const [inProgress, setInProgress] = useState("");
-  const [issues, setIssues] = useState("");
+  const [values, setValues] = useState({
+    period: "", pullRoster: false, completed: "", inProgress: "", issues: "",
+  });
   const [saving, setSaving] = useState(false);
-  const t = useTouched<"period" | "completed" | "inProgress" | "issues">();
-
-  const errors: Errors = {
-    period: maxLen(period, 140),
-    completed: firstError(required(completed, "Fill in sections completed"), maxLen(completed, 4000)),
-    inProgress: maxLen(inProgress, 4000),
-    issues: maxLen(issues, 4000),
-  };
-  const valid = isValid(errors);
+  const t = useTouched<keyof typeof values>();
+  const { success, errors, data } = validate(pulseSchema, values);
+  const err = (k: keyof typeof values): string | undefined =>
+    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     t.setAttempted(true);
-    if (!valid) return;
+    if (!success || !data) return;
     setSaving(true);
-    const team = pullRoster && roster.length ? `\n\nTeam: ${roster.map((m) => m.display_name).join(", ")}` : "";
-    const summary = `Period: ${period || "—"}\n\nCompleted:\n${completed}${team}`;
+    const team = data.pullRoster && roster.length ? `\n\nTeam: ${roster.map((m) => m.display_name).join(", ")}` : "";
+    const summary = `Period: ${data.period || "—"}\n\nCompleted:\n${data.completed}${team}`;
     const action_items = [
-      inProgress && `In progress:\n${inProgress}`,
-      issues && `Open issues / asks:\n${issues}`,
+      data.inProgress && `In progress:\n${data.inProgress}`,
+      data.issues && `Open issues / asks:\n${data.issues}`,
     ].filter(Boolean).join("\n\n");
     const { error } = await supabase.from("client_pulses").insert({
       engagement_id: engagementId,
@@ -546,149 +528,142 @@ export function PulseForm({ engagementId, userId, memberName, roster, onSuccess,
     });
     setSaving(false);
     if (error) return toast.error("Couldn't log client pulse", { description: error.message });
-    setPeriod(""); setCompleted(""); setInProgress(""); setIssues(""); setPullRoster(false);
+    setValues({ period: "", pullRoster: false, completed: "", inProgress: "", issues: "" });
     onSuccess("Client pulse logged");
   }
 
   return (
     <form onSubmit={submit} className="space-y-3" noValidate>
-      <Field label="Reporting period" error={t.show("period") ? errors.period : undefined}>
-        <Input value={period} onChange={(e) => setPeriod(e.target.value)} onBlur={() => t.mark("period")} placeholder="e.g. Week of Jan 15" />
+      <Field label="Reporting period" error={err("period")}>
+        <Input value={values.period} onChange={(e) => setValues((p) => ({ ...p, period: e.target.value }))} onBlur={() => t.mark("period")} placeholder="e.g. Week of Jan 15" />
       </Field>
       <div className="flex items-center justify-between rounded-md border border-border bg-background px-3 py-2">
         <Label htmlFor="pull-roster" className="cursor-pointer text-sm">Pull from roster?</Label>
-        <Switch id="pull-roster" checked={pullRoster} onCheckedChange={setPullRoster} />
+        <Switch id="pull-roster" checked={values.pullRoster} onCheckedChange={(v) => setValues((p) => ({ ...p, pullRoster: v }))} />
       </div>
-      <Field label="Sections completed" error={t.show("completed") ? errors.completed : undefined}>
-        <Textarea rows={3} value={completed} onChange={(e) => setCompleted(e.target.value)} onBlur={() => t.mark("completed")} />
+      <Field label="Sections completed" error={err("completed")}>
+        <Textarea rows={3} value={values.completed} onChange={(e) => setValues((p) => ({ ...p, completed: e.target.value }))} onBlur={() => t.mark("completed")} />
       </Field>
-      <Field label="In progress" error={t.show("inProgress") ? errors.inProgress : undefined}>
-        <Textarea rows={2} value={inProgress} onChange={(e) => setInProgress(e.target.value)} onBlur={() => t.mark("inProgress")} />
+      <Field label="In progress" error={err("inProgress")}>
+        <Textarea rows={2} value={values.inProgress} onChange={(e) => setValues((p) => ({ ...p, inProgress: e.target.value }))} onBlur={() => t.mark("inProgress")} />
       </Field>
-      <Field label="Open issues / asks" error={t.show("issues") ? errors.issues : undefined}>
-        <Textarea rows={2} value={issues} onChange={(e) => setIssues(e.target.value)} onBlur={() => t.mark("issues")} />
+      <Field label="Open issues / asks" error={err("issues")}>
+        <Textarea rows={2} value={values.issues} onChange={(e) => setValues((p) => ({ ...p, issues: e.target.value }))} onBlur={() => t.mark("issues")} />
       </Field>
-      <FormActions saving={saving} disabled={!valid} onCancel={onCancel} />
+      <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
     </form>
   );
 }
 
 // ---- Decisions ----
 export function DecisionForm({ engagementId, userId, roster, onSuccess, onCancel }: FormProps) {
-  const [decision, setDecision] = useState("");
-  const [madeBy, setMadeBy] = useState("");
-  const [rationale, setRationale] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [values, setValues] = useState({
+    decision: "", madeBy: "", rationale: "",
+    date: new Date().toISOString().slice(0, 10),
+  });
   const [saving, setSaving] = useState(false);
-  const t = useTouched<"decision" | "madeBy" | "rationale" | "date">();
-
-  const errors: Errors = {
-    decision: firstError(required(decision, "Describe the decision"), maxLen(decision, 2000)),
-    madeBy: required(madeBy, "Pick who made the call"),
-    rationale: maxLen(rationale, 2000),
-    date: isoDate(date),
-  };
-  const valid = isValid(errors);
+  const t = useTouched<keyof typeof values>();
+  const { success, errors, data } = validate(decisionSchema, values);
+  const err = (k: keyof typeof values): string | undefined =>
+    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     t.setAttempted(true);
-    if (!valid) return;
+    if (!success || !data) return;
     setSaving(true);
-    const title = decision.split("\n")[0].slice(0, 140);
-    const impacted = decision.length > title.length ? decision.slice(title.length).trim() : null;
+    const title = data.decision.split("\n")[0].slice(0, 140);
+    const impacted = data.decision.length > title.length ? data.decision.slice(title.length).trim() : null;
     const { error } = await supabase.from("decisions").insert({
       engagement_id: engagementId,
       created_by: userId,
       title,
       impacted_areas: impacted,
-      rationale: rationale || null,
-      owner_name: madeBy || null,
-      decision_date: date,
+      rationale: data.rationale || null,
+      owner_name: data.madeBy || null,
+      decision_date: data.date,
       status: "Final",
     });
     setSaving(false);
     if (error) return toast.error("Couldn't record decision", { description: error.message });
-    setDecision(""); setMadeBy(""); setRationale("");
+    setValues((p) => ({ ...p, decision: "", madeBy: "", rationale: "" }));
     onSuccess("Decision recorded");
   }
 
   return (
     <form onSubmit={submit} className="space-y-3" noValidate>
-      <Field label="Decision" error={t.show("decision") ? errors.decision : undefined}>
-        <Textarea rows={3} value={decision} onChange={(e) => setDecision(e.target.value)} onBlur={() => t.mark("decision")} />
+      <Field label="Decision" error={err("decision")}>
+        <Textarea rows={3} value={values.decision} onChange={(e) => setValues((p) => ({ ...p, decision: e.target.value }))} onBlur={() => t.mark("decision")} />
       </Field>
-      <Field label="Made by" error={t.show("madeBy") ? errors.madeBy : undefined}>
-        <RosterSelect value={madeBy} onChange={setMadeBy} roster={roster} onBlur={() => t.mark("madeBy")} />
+      <Field label="Made by" error={err("madeBy")}>
+        <RosterSelect value={values.madeBy} onChange={(v) => setValues((p) => ({ ...p, madeBy: v }))} roster={roster} onBlur={() => t.mark("madeBy")} />
       </Field>
-      <Field label="Rationale" error={t.show("rationale") ? errors.rationale : undefined}>
-        <Textarea rows={3} value={rationale} onChange={(e) => setRationale(e.target.value)} onBlur={() => t.mark("rationale")} />
+      <Field label="Rationale" error={err("rationale")}>
+        <Textarea rows={3} value={values.rationale} onChange={(e) => setValues((p) => ({ ...p, rationale: e.target.value }))} onBlur={() => t.mark("rationale")} />
       </Field>
-      <Field label="Date" error={t.show("date") ? errors.date : undefined}>
-        <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} onBlur={() => t.mark("date")} />
+      <Field label="Date" error={err("date")}>
+        <Input type="date" value={values.date} onChange={(e) => setValues((p) => ({ ...p, date: e.target.value }))} onBlur={() => t.mark("date")} />
       </Field>
-      <FormActions saving={saving} disabled={!valid} onCancel={onCancel} />
+      <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
     </form>
   );
 }
 
 // ---- Risks ----
 export function RiskForm({ engagementId, userId, roster, onSuccess, onCancel }: FormProps) {
-  const [description, setDescription] = useState("");
-  const [section, setSection] = useState("");
-  const [likelihood, setLikelihood] = useState("Medium");
-  const [impact, setImpact] = useState("Medium");
-  const [mitigation, setMitigation] = useState("");
-  const [owner, setOwner] = useState("");
+  const [values, setValues] = useState<{
+    description: string; section: string;
+    likelihood: "Low" | "Medium" | "High";
+    impact: "Low" | "Medium" | "High" | "Critical";
+    mitigation: string; owner: string;
+  }>({
+    description: "", section: "", likelihood: "Medium", impact: "Medium",
+    mitigation: "", owner: "",
+  });
   const [saving, setSaving] = useState(false);
-  const t = useTouched<"description" | "section" | "mitigation" | "owner">();
-
-  const errors: Errors = {
-    description: firstError(required(description, "Describe the risk"), maxLen(description, 2000)),
-    section: maxLen(section, 140),
-    mitigation: maxLen(mitigation, 2000),
-    owner: maxLen(owner, 120),
-  };
-  const valid = isValid(errors);
+  const t = useTouched<keyof typeof values>();
+  const { success, errors, data } = validate(riskSchema, values);
+  const err = (k: keyof typeof values): string | undefined =>
+    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     t.setAttempted(true);
-    if (!valid) return;
+    if (!success || !data) return;
     setSaving(true);
-    const title = description.split("\n")[0].slice(0, 140);
+    const title = data.description.split("\n")[0].slice(0, 140);
     const body = [
-      section && `Section: ${section}`,
-      description.length > title.length ? description : null,
-      mitigation && `Mitigation: ${mitigation}`,
+      data.section && `Section: ${data.section}`,
+      data.description.length > title.length ? data.description : null,
+      data.mitigation && `Mitigation: ${data.mitigation}`,
     ].filter(Boolean).join("\n\n");
     const { error } = await supabase.from("risks").insert({
       engagement_id: engagementId,
       created_by: userId,
       title,
       description: body || null,
-      likelihood,
-      severity: impact,
-      owner_name: owner || null,
+      likelihood: data.likelihood,
+      severity: data.impact,
+      owner_name: data.owner || null,
       status: "Open",
     });
     setSaving(false);
     if (error) return toast.error("Couldn't log risk", { description: error.message });
-    setDescription(""); setSection(""); setMitigation(""); setOwner("");
+    setValues((p) => ({ ...p, description: "", section: "", mitigation: "", owner: "" }));
     onSuccess("Risk logged");
   }
 
   return (
     <form onSubmit={submit} className="space-y-3" noValidate>
-      <Field label="Description" error={t.show("description") ? errors.description : undefined}>
-        <Textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} onBlur={() => t.mark("description")} />
+      <Field label="Description" error={err("description")}>
+        <Textarea rows={3} value={values.description} onChange={(e) => setValues((p) => ({ ...p, description: e.target.value }))} onBlur={() => t.mark("description")} />
       </Field>
-      <Field label="Section affected" error={t.show("section") ? errors.section : undefined}>
-        <Input value={section} onChange={(e) => setSection(e.target.value)} onBlur={() => t.mark("section")} />
+      <Field label="Section affected" error={err("section")}>
+        <Input value={values.section} onChange={(e) => setValues((p) => ({ ...p, section: e.target.value }))} onBlur={() => t.mark("section")} />
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Likelihood">
-          <Select value={likelihood} onValueChange={setLikelihood}>
+          <Select value={values.likelihood} onValueChange={(v) => setValues((p) => ({ ...p, likelihood: v as typeof p.likelihood }))}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {["Low", "Medium", "High"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
@@ -696,7 +671,7 @@ export function RiskForm({ engagementId, userId, roster, onSuccess, onCancel }: 
           </Select>
         </Field>
         <Field label="Impact">
-          <Select value={impact} onValueChange={setImpact}>
+          <Select value={values.impact} onValueChange={(v) => setValues((p) => ({ ...p, impact: v as typeof p.impact }))}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {["Low", "Medium", "High", "Critical"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
@@ -704,25 +679,29 @@ export function RiskForm({ engagementId, userId, roster, onSuccess, onCancel }: 
           </Select>
         </Field>
       </div>
-      <Field label="Mitigation" error={t.show("mitigation") ? errors.mitigation : undefined}>
-        <Textarea rows={2} value={mitigation} onChange={(e) => setMitigation(e.target.value)} onBlur={() => t.mark("mitigation")} />
+      <Field label="Mitigation" error={err("mitigation")}>
+        <Textarea rows={2} value={values.mitigation} onChange={(e) => setValues((p) => ({ ...p, mitigation: e.target.value }))} onBlur={() => t.mark("mitigation")} />
       </Field>
-      <Field label="Owner" error={t.show("owner") ? errors.owner : undefined}>
-        <RosterSelect value={owner} onChange={setOwner} roster={roster} onBlur={() => t.mark("owner")} />
+      <Field label="Owner" error={err("owner")}>
+        <RosterSelect value={values.owner} onChange={(v) => setValues((p) => ({ ...p, owner: v }))} roster={roster} onBlur={() => t.mark("owner")} />
       </Field>
-      <FormActions saving={saving} disabled={!valid} onCancel={onCancel} />
+      <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
     </form>
   );
 }
 
 // ---- Delivery Map ----
 export function HeatmapForm({ engagementId, memberName, roster, onSuccess, onCancel }: FormProps) {
-  const [writer, setWriter] = useState("");
-  const [issue, setIssue] = useState("Completeness");
-  const [section, setSection] = useState("");
-  const [notes, setNotes] = useState("");
+  const [values, setValues] = useState<{
+    writer: string;
+    issue: "Completeness" | "Compliance risk" | "Win theme strength" | "Behind schedule";
+    section: string; notes: string;
+  }>({ writer: "", issue: "Completeness", section: "", notes: "" });
   const [saving, setSaving] = useState(false);
-  const t = useTouched<"section" | "notes">();
+  const t = useTouched<keyof typeof values>();
+  const { success, errors, data } = validate(heatmapSchema, values);
+  const err = (k: keyof typeof values): string | undefined =>
+    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined);
 
   const statusForIssue: Record<string, string> = {
     "Completeness": "Yellow",
@@ -731,43 +710,37 @@ export function HeatmapForm({ engagementId, memberName, roster, onSuccess, onCan
     "Behind schedule": "Red",
   };
 
-  const errors: Errors = {
-    section: firstError(required(section, "Add a section"), maxLen(section, 140)),
-    notes: maxLen(notes, 2000),
-  };
-  const valid = isValid(errors);
-
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     t.setAttempted(true);
-    if (!valid) return;
+    if (!success || !data) return;
     setSaving(true);
     const noteBody = [
-      writer && `Writer: ${writer}`,
-      `Issue: ${issue}`,
-      notes,
+      data.writer && `Writer: ${data.writer}`,
+      `Issue: ${data.issue}`,
+      data.notes,
     ].filter(Boolean).join("\n");
     const { error } = await supabase.from("heatmap_sections").insert({
       engagement_id: engagementId,
-      section_name: section,
-      status: statusForIssue[issue] ?? "Yellow",
+      section_name: data.section,
+      status: statusForIssue[data.issue] ?? "Yellow",
       notes: noteBody,
       updated_by_name: memberName,
       sort_order: 999,
     });
     setSaving(false);
     if (error) return toast.error("Couldn't update delivery map", { description: error.message });
-    setWriter(""); setSection(""); setNotes("");
+    setValues((p) => ({ ...p, writer: "", section: "", notes: "" }));
     onSuccess("Heat map updated");
   }
 
   return (
     <form onSubmit={submit} className="space-y-3" noValidate>
       <Field label="Writer">
-        <RosterSelect value={writer} onChange={setWriter} roster={roster} />
+        <RosterSelect value={values.writer} onChange={(v) => setValues((p) => ({ ...p, writer: v }))} roster={roster} />
       </Field>
       <Field label="Issue">
-        <Select value={issue} onValueChange={setIssue}>
+        <Select value={values.issue} onValueChange={(v) => setValues((p) => ({ ...p, issue: v as typeof p.issue }))}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
             {["Completeness", "Compliance risk", "Win theme strength", "Behind schedule"].map((t) => (
@@ -776,13 +749,13 @@ export function HeatmapForm({ engagementId, memberName, roster, onSuccess, onCan
           </SelectContent>
         </Select>
       </Field>
-      <Field label="Section" error={t.show("section") ? errors.section : undefined}>
-        <Input value={section} onChange={(e) => setSection(e.target.value)} onBlur={() => t.mark("section")} />
+      <Field label="Section" error={err("section")}>
+        <Input value={values.section} onChange={(e) => setValues((p) => ({ ...p, section: e.target.value }))} onBlur={() => t.mark("section")} />
       </Field>
-      <Field label="Notes (optional)" error={t.show("notes") ? errors.notes : undefined}>
-        <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} onBlur={() => t.mark("notes")} />
+      <Field label="Notes (optional)" error={err("notes")}>
+        <Textarea rows={2} value={values.notes} onChange={(e) => setValues((p) => ({ ...p, notes: e.target.value }))} onBlur={() => t.mark("notes")} />
       </Field>
-      <FormActions saving={saving} disabled={!valid} onCancel={onCancel} />
+      <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
     </form>
   );
 }
