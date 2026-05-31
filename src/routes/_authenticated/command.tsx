@@ -137,7 +137,22 @@ function CommandCenter() {
     <div className="w-full">
       {/* Header */}
       <header className="flex items-center justify-between gap-4 px-5 py-3" style={{ borderBottom: `0.5px solid ${BORDER}` }}>
-        <span className="text-[13px] font-medium truncate">{engagement.name}</span>
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-[13px] font-medium truncate">{engagement.name}</span>
+          {(engagement as { health?: string }).health && (
+            <span
+              className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+              style={{
+                color: huddleHealthColor((engagement as { health?: string }).health || ""),
+                background: `color-mix(in oklab, ${huddleHealthColor((engagement as { health?: string }).health || "")} 14%, transparent)`,
+                border: `0.5px solid color-mix(in oklab, ${huddleHealthColor((engagement as { health?: string }).health || "")} 45%, transparent)`,
+              }}
+              title="Auto-derived from latest huddle"
+            >
+              {(engagement as { health?: string }).health}
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-3">
           <SnapshotsPanel />
           <span className="hidden text-[11px] uppercase tracking-wider text-muted-foreground sm:inline">Online now</span>
