@@ -1029,6 +1029,62 @@ export type Database = {
           },
         ]
       }
+      engagement_rfp_data: {
+        Row: {
+          compliance_notes: string | null
+          contract_term: string | null
+          contract_type: string | null
+          contract_value: string | null
+          created_at: string
+          engagement_id: string
+          evaluation_method: string | null
+          id: string
+          incumbent: string | null
+          issuing_agency: string | null
+          updated_at: string
+          updated_by: string | null
+          updated_by_name: string | null
+        }
+        Insert: {
+          compliance_notes?: string | null
+          contract_term?: string | null
+          contract_type?: string | null
+          contract_value?: string | null
+          created_at?: string
+          engagement_id: string
+          evaluation_method?: string | null
+          id?: string
+          incumbent?: string | null
+          issuing_agency?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          updated_by_name?: string | null
+        }
+        Update: {
+          compliance_notes?: string | null
+          contract_term?: string | null
+          contract_type?: string | null
+          contract_value?: string | null
+          created_at?: string
+          engagement_id?: string
+          evaluation_method?: string | null
+          id?: string
+          incumbent?: string | null
+          issuing_agency?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          updated_by_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engagement_rfp_data_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: true
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       engagements: {
         Row: {
           client: string
@@ -1767,6 +1823,50 @@ export type Database = {
           sender_name?: string
         }
         Relationships: []
+      }
+      rfp_evaluation_criteria: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          criterion: string
+          engagement_id: string
+          id: string
+          notes: string | null
+          sort_order: number
+          updated_at: string
+          weight: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          criterion: string
+          engagement_id: string
+          id?: string
+          notes?: string | null
+          sort_order?: number
+          updated_at?: string
+          weight?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          criterion?: string
+          engagement_id?: string
+          id?: string
+          notes?: string | null
+          sort_order?: number
+          updated_at?: string
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rfp_evaluation_criteria_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rfp_questions: {
         Row: {
