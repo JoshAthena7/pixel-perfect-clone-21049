@@ -343,9 +343,10 @@ function MissionBriefingPage() {
             <p className="mb-4 text-sm text-muted-foreground">{t.blurb}</p>
 
             <div className="grid gap-6 lg:grid-cols-5">
-              {/* RFP tab: full Holy Grail panel on left */}
+              {/* RFP tab: structured RFP data + full Holy Grail panel */}
               {t.key === "rfp" && engagement && (
-                <div className="lg:col-span-5">
+                <div className="lg:col-span-5 space-y-4">
+                  <RfpStructuredPanel engagementId={engagement.id} canEdit={canWriteBriefing} />
                   <HolyGrailPanel
                     engagementId={engagement.id}
                     refreshKey={hgRefresh}
