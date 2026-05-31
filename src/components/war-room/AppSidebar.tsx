@@ -16,6 +16,7 @@ import {
   BarChart3,
   ClipboardList,
   Github,
+  Rocket,
 } from "lucide-react";
 import {
   Sidebar,
