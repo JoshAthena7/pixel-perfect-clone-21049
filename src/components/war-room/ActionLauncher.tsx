@@ -33,8 +33,12 @@ import {
   riskSchema,
   heatmapSchema,
   validate,
+  mapSupabaseError,
+  summarizeServerErrors,
   type FieldErrors,
 } from "./action-schemas";
+import { AlertTriangle } from "lucide-react";
+
 
 type TileKey =
   | "huddle"
@@ -283,22 +287,88 @@ function useTouched<K extends string>() {
   return { setAttempted, mark, show };
 }
 
+// Server-side (Supabase) error state, mirrored into the same field-keys
+// the zod schema uses so every modal renders failures consistently.
+function useServerErrors<V extends Record<string, unknown>>() {
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof V, string>>>({});
+  const [formError, setFormError] = useState<string | undefined>(undefined);
+  const clearField = (k: keyof V) =>
+    setFieldErrors((p) => (p[k] ? { ...p, [k]: undefined } : p));
+  const reset = () => {
+    setFieldErrors({});
+    setFormError(undefined);
+  };
+  const apply = (next: {
+    fieldErrors: Partial<Record<keyof V, string>>;
+    formError?: string;
+  }) => {
+    setFieldErrors(next.fieldErrors);
+    setFormError(next.formError);
+  };
+  return { fieldErrors, formError, clearField, reset, apply };
+}
+
+function FormBanner({ message }: { message?: string }) {
+  if (!message) return null;
+  return (
+    <div
+      role="alert"
+      className="flex items-start gap-2 rounded-md border border-[color:var(--red,#ef4444)]/40 bg-[color:color-mix(in_oklab,var(--red,#ef4444)_10%,transparent)] px-3 py-2 text-xs text-[color:var(--red,#ef4444)]"
+    >
+      <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+      <span className="font-medium">{message}</span>
+    </div>
+  );
+}
+
+// Column maps: DB column name -> form field key. Used by mapSupabaseError
+// so a Postgres error mentioning "description" surfaces under the user's
+// "blocker" field, etc.
+const SOS_COLUMNS = {
+  description: "blocker", owner_name: "who", recommended_action: "by",
+} as const;
+const HUDDLE_COLUMNS = {
+  notes: "focus",
+} as const;
+const BROADCAST_COLUMNS = {
+  content: "message",
+} as const;
+const PULSE_COLUMNS = {
+  summary: "completed", action_items: "inProgress", interaction_date: "period",
+} as const;
+const DECISION_COLUMNS = {
+  title: "decision", impacted_areas: "decision",
+  owner_name: "madeBy", rationale: "rationale", decision_date: "date",
+} as const;
+const RISK_COLUMNS = {
+  title: "description", description: "description",
+  likelihood: "likelihood", severity: "impact", owner_name: "owner",
+} as const;
+const HEATMAP_COLUMNS = {
+  section_name: "section", notes: "notes", status: "issue",
+} as const;
+
+
 // ---- SOS ----
 export function SosForm({ engagementId, userId, memberName, onSuccess, onCancel }: FormProps) {
   const [values, setValues] = useState({ blocker: "", impact: "", who: "", by: "" });
   const [saving, setSaving] = useState(false);
   const t = useTouched<keyof typeof values>();
+  const server = useServerErrors<typeof values>();
   const { success, errors, data } = validate(sosSchema, values);
   const err = (k: keyof typeof values): string | undefined =>
-    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined);
-  const set = <K extends keyof typeof values>(k: K, v: string) =>
+    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined) ?? server.fieldErrors[k];
+  const set = <K extends keyof typeof values>(k: K, v: string) => {
     setValues((p) => ({ ...p, [k]: v }));
+    server.clearField(k);
+  };
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     t.setAttempted(true);
     if (!success || !data) return;
     setSaving(true);
+    server.reset();
     const desc = data.impact ? `${data.blocker}\n\nImpact: ${data.impact}` : data.blocker;
     const action = [data.who && `Owner: ${data.who}`, data.by && `Resolve by: ${data.by}`]
       .filter(Boolean).join(" · ");
@@ -314,13 +384,20 @@ export function SosForm({ engagementId, userId, memberName, onSuccess, onCancel 
       status: "Open",
     });
     setSaving(false);
-    if (error) return toast.error("Couldn't raise SOS", { description: error.message });
+    if (error) {
+      const mapped = mapSupabaseError<typeof values>(error, SOS_COLUMNS);
+      server.apply(mapped);
+      return toast.error("Couldn't raise SOS", {
+        description: summarizeServerErrors(mapped) ?? error.message,
+      });
+    }
     setValues({ blocker: "", impact: "", who: "", by: "" });
     onSuccess("SOS raised");
   }
 
   return (
     <form onSubmit={submit} className="space-y-3" noValidate>
+      <FormBanner message={server.formError} />
       <Field label="What is the blocker?" error={err("blocker")}>
         <Textarea rows={3} value={values.blocker} onChange={(e) => set("blocker", e.target.value)} onBlur={() => t.mark("blocker")} />
       </Field>
@@ -352,9 +429,14 @@ export function HuddleForm({ engagementId, userId, memberName, roster, onSuccess
   });
   const [saving, setSaving] = useState(false);
   const t = useTouched<keyof typeof values>();
+  const server = useServerErrors<typeof values>();
   const { success, errors, data } = validate(huddleSchema, values);
   const err = (k: keyof typeof values): string | undefined =>
-    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined);
+    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined) ?? server.fieldErrors[k];
+  const setField = <K extends keyof typeof values>(k: K, v: typeof values[K]) => {
+    setValues((p) => ({ ...p, [k]: v }));
+    server.clearField(k);
+  };
 
   function toggleAttendee(name: string) {
     setValues((p) => ({
@@ -363,6 +445,7 @@ export function HuddleForm({ engagementId, userId, memberName, roster, onSuccess
         ? p.attendees.filter((n) => n !== name)
         : [...p.attendees, name],
     }));
+    server.clearField("attendees" as keyof typeof values);
   }
 
   async function submit(e: React.FormEvent) {
@@ -370,6 +453,7 @@ export function HuddleForm({ engagementId, userId, memberName, roster, onSuccess
     t.setAttempted(true);
     if (!success || !data) return;
     setSaving(true);
+    server.reset();
     const notes = [
       `Date: ${data.date}`,
       data.attendees.length ? `Attendees: ${data.attendees.join(", ")}` : null,
@@ -386,18 +470,25 @@ export function HuddleForm({ engagementId, userId, memberName, roster, onSuccess
       needs_leadership: false,
     });
     setSaving(false);
-    if (error) return toast.error("Couldn't save huddle", { description: error.message });
+    if (error) {
+      const mapped = mapSupabaseError<typeof values>(error, HUDDLE_COLUMNS);
+      server.apply(mapped);
+      return toast.error("Couldn't save huddle", {
+        description: summarizeServerErrors(mapped) ?? error.message,
+      });
+    }
     setValues((p) => ({ ...p, focus: "", attendees: [], flag: "" }));
     onSuccess("Huddle scheduled");
   }
 
   return (
     <form onSubmit={submit} className="space-y-3" noValidate>
+      <FormBanner message={server.formError} />
       <Field label="Date" error={err("date")}>
-        <Input type="date" value={values.date} onChange={(e) => setValues((p) => ({ ...p, date: e.target.value }))} onBlur={() => t.mark("date")} />
+        <Input type="date" value={values.date} onChange={(e) => setField("date", e.target.value)} onBlur={() => t.mark("date")} />
       </Field>
       <Field label="Focus areas" error={err("focus")}>
-        <Textarea rows={3} value={values.focus} onChange={(e) => setValues((p) => ({ ...p, focus: e.target.value }))} onBlur={() => t.mark("focus")} />
+        <Textarea rows={3} value={values.focus} onChange={(e) => setField("focus", e.target.value)} onBlur={() => t.mark("focus")} />
       </Field>
       <Field label="Attendees">
         <div className="flex flex-wrap gap-1.5 rounded-md border border-border bg-background p-2">
@@ -421,7 +512,7 @@ export function HuddleForm({ engagementId, userId, memberName, roster, onSuccess
         </div>
       </Field>
       <Field label="Anything to flag? (optional)" error={err("flag")}>
-        <Textarea rows={2} value={values.flag} onChange={(e) => setValues((p) => ({ ...p, flag: e.target.value }))} onBlur={() => t.mark("flag")} />
+        <Textarea rows={2} value={values.flag} onChange={(e) => setField("flag", e.target.value)} onBlur={() => t.mark("flag")} />
       </Field>
       <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
     </form>
@@ -437,15 +528,21 @@ export function BroadcastForm({ engagementId, userId, memberName, onSuccess, onC
   }>({ subject: "", message: "", tone: "Informational", audience: "Full team" });
   const [saving, setSaving] = useState(false);
   const t = useTouched<keyof typeof values>();
+  const server = useServerErrors<typeof values>();
   const { success, errors, data } = validate(broadcastSchema, values);
   const err = (k: keyof typeof values): string | undefined =>
-    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined);
+    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined) ?? server.fieldErrors[k];
+  const setField = <K extends keyof typeof values>(k: K, v: typeof values[K]) => {
+    setValues((p) => ({ ...p, [k]: v }));
+    server.clearField(k);
+  };
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     t.setAttempted(true);
     if (!success || !data) return;
     setSaving(true);
+    server.reset();
     const content = `${data.subject ? `**${data.subject}**\n` : ""}${data.message}\n\n— ${data.tone} · to ${data.audience}`;
     const { error } = await supabase.from("broadcasts").insert({
       engagement_id: engagementId,
@@ -455,22 +552,29 @@ export function BroadcastForm({ engagementId, userId, memberName, onSuccess, onC
       pinned: data.tone === "Urgent",
     });
     setSaving(false);
-    if (error) return toast.error("Couldn't send broadcast", { description: error.message });
+    if (error) {
+      const mapped = mapSupabaseError<typeof values>(error, BROADCAST_COLUMNS);
+      server.apply(mapped);
+      return toast.error("Couldn't send broadcast", {
+        description: summarizeServerErrors(mapped) ?? error.message,
+      });
+    }
     setValues((p) => ({ ...p, subject: "", message: "" }));
     onSuccess("Broadcast sent");
   }
 
   return (
     <form onSubmit={submit} className="space-y-3" noValidate>
+      <FormBanner message={server.formError} />
       <Field label="Subject" error={err("subject")}>
-        <Input value={values.subject} onChange={(e) => setValues((p) => ({ ...p, subject: e.target.value }))} onBlur={() => t.mark("subject")} />
+        <Input value={values.subject} onChange={(e) => setField("subject", e.target.value)} onBlur={() => t.mark("subject")} />
       </Field>
       <Field label="Message" error={err("message")}>
-        <Textarea rows={4} value={values.message} onChange={(e) => setValues((p) => ({ ...p, message: e.target.value }))} onBlur={() => t.mark("message")} />
+        <Textarea rows={4} value={values.message} onChange={(e) => setField("message", e.target.value)} onBlur={() => t.mark("message")} />
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Tone">
-          <Select value={values.tone} onValueChange={(v) => setValues((p) => ({ ...p, tone: v as typeof p.tone }))}>
+          <Select value={values.tone} onValueChange={(v) => setField("tone", v as typeof values.tone)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {["Informational", "Urgent", "Encouraging", "Reminder"].map((t) => (
@@ -480,7 +584,7 @@ export function BroadcastForm({ engagementId, userId, memberName, onSuccess, onC
           </Select>
         </Field>
         <Field label="Send to">
-          <Select value={values.audience} onValueChange={(v) => setValues((p) => ({ ...p, audience: v as typeof p.audience }))}>
+          <Select value={values.audience} onValueChange={(v) => setField("audience", v as typeof values.audience)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {["Full team", "SMEs only", "Writers only", "Leads only"].map((t) => (
@@ -502,15 +606,21 @@ export function PulseForm({ engagementId, userId, memberName, roster, onSuccess,
   });
   const [saving, setSaving] = useState(false);
   const t = useTouched<keyof typeof values>();
+  const server = useServerErrors<typeof values>();
   const { success, errors, data } = validate(pulseSchema, values);
   const err = (k: keyof typeof values): string | undefined =>
-    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined);
+    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined) ?? server.fieldErrors[k];
+  const setField = <K extends keyof typeof values>(k: K, v: typeof values[K]) => {
+    setValues((p) => ({ ...p, [k]: v }));
+    server.clearField(k);
+  };
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     t.setAttempted(true);
     if (!success || !data) return;
     setSaving(true);
+    server.reset();
     const team = data.pullRoster && roster.length ? `\n\nTeam: ${roster.map((m) => m.display_name).join(", ")}` : "";
     const summary = `Period: ${data.period || "—"}\n\nCompleted:\n${data.completed}${team}`;
     const action_items = [
@@ -527,28 +637,35 @@ export function PulseForm({ engagementId, userId, memberName, roster, onSuccess,
       interaction_date: new Date().toISOString().slice(0, 10),
     });
     setSaving(false);
-    if (error) return toast.error("Couldn't log client pulse", { description: error.message });
+    if (error) {
+      const mapped = mapSupabaseError<typeof values>(error, PULSE_COLUMNS);
+      server.apply(mapped);
+      return toast.error("Couldn't log client pulse", {
+        description: summarizeServerErrors(mapped) ?? error.message,
+      });
+    }
     setValues({ period: "", pullRoster: false, completed: "", inProgress: "", issues: "" });
     onSuccess("Client pulse logged");
   }
 
   return (
     <form onSubmit={submit} className="space-y-3" noValidate>
+      <FormBanner message={server.formError} />
       <Field label="Reporting period" error={err("period")}>
-        <Input value={values.period} onChange={(e) => setValues((p) => ({ ...p, period: e.target.value }))} onBlur={() => t.mark("period")} placeholder="e.g. Week of Jan 15" />
+        <Input value={values.period} onChange={(e) => setField("period", e.target.value)} onBlur={() => t.mark("period")} placeholder="e.g. Week of Jan 15" />
       </Field>
       <div className="flex items-center justify-between rounded-md border border-border bg-background px-3 py-2">
         <Label htmlFor="pull-roster" className="cursor-pointer text-sm">Pull from roster?</Label>
-        <Switch id="pull-roster" checked={values.pullRoster} onCheckedChange={(v) => setValues((p) => ({ ...p, pullRoster: v }))} />
+        <Switch id="pull-roster" checked={values.pullRoster} onCheckedChange={(v) => setField("pullRoster", v)} />
       </div>
       <Field label="Sections completed" error={err("completed")}>
-        <Textarea rows={3} value={values.completed} onChange={(e) => setValues((p) => ({ ...p, completed: e.target.value }))} onBlur={() => t.mark("completed")} />
+        <Textarea rows={3} value={values.completed} onChange={(e) => setField("completed", e.target.value)} onBlur={() => t.mark("completed")} />
       </Field>
       <Field label="In progress" error={err("inProgress")}>
-        <Textarea rows={2} value={values.inProgress} onChange={(e) => setValues((p) => ({ ...p, inProgress: e.target.value }))} onBlur={() => t.mark("inProgress")} />
+        <Textarea rows={2} value={values.inProgress} onChange={(e) => setField("inProgress", e.target.value)} onBlur={() => t.mark("inProgress")} />
       </Field>
       <Field label="Open issues / asks" error={err("issues")}>
-        <Textarea rows={2} value={values.issues} onChange={(e) => setValues((p) => ({ ...p, issues: e.target.value }))} onBlur={() => t.mark("issues")} />
+        <Textarea rows={2} value={values.issues} onChange={(e) => setField("issues", e.target.value)} onBlur={() => t.mark("issues")} />
       </Field>
       <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
     </form>
@@ -563,15 +680,21 @@ export function DecisionForm({ engagementId, userId, roster, onSuccess, onCancel
   });
   const [saving, setSaving] = useState(false);
   const t = useTouched<keyof typeof values>();
+  const server = useServerErrors<typeof values>();
   const { success, errors, data } = validate(decisionSchema, values);
   const err = (k: keyof typeof values): string | undefined =>
-    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined);
+    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined) ?? server.fieldErrors[k];
+  const setField = <K extends keyof typeof values>(k: K, v: typeof values[K]) => {
+    setValues((p) => ({ ...p, [k]: v }));
+    server.clearField(k);
+  };
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     t.setAttempted(true);
     if (!success || !data) return;
     setSaving(true);
+    server.reset();
     const title = data.decision.split("\n")[0].slice(0, 140);
     const impacted = data.decision.length > title.length ? data.decision.slice(title.length).trim() : null;
     const { error } = await supabase.from("decisions").insert({
@@ -585,24 +708,31 @@ export function DecisionForm({ engagementId, userId, roster, onSuccess, onCancel
       status: "Final",
     });
     setSaving(false);
-    if (error) return toast.error("Couldn't record decision", { description: error.message });
+    if (error) {
+      const mapped = mapSupabaseError<typeof values>(error, DECISION_COLUMNS);
+      server.apply(mapped);
+      return toast.error("Couldn't record decision", {
+        description: summarizeServerErrors(mapped) ?? error.message,
+      });
+    }
     setValues((p) => ({ ...p, decision: "", madeBy: "", rationale: "" }));
     onSuccess("Decision recorded");
   }
 
   return (
     <form onSubmit={submit} className="space-y-3" noValidate>
+      <FormBanner message={server.formError} />
       <Field label="Decision" error={err("decision")}>
-        <Textarea rows={3} value={values.decision} onChange={(e) => setValues((p) => ({ ...p, decision: e.target.value }))} onBlur={() => t.mark("decision")} />
+        <Textarea rows={3} value={values.decision} onChange={(e) => setField("decision", e.target.value)} onBlur={() => t.mark("decision")} />
       </Field>
       <Field label="Made by" error={err("madeBy")}>
-        <RosterSelect value={values.madeBy} onChange={(v) => setValues((p) => ({ ...p, madeBy: v }))} roster={roster} onBlur={() => t.mark("madeBy")} />
+        <RosterSelect value={values.madeBy} onChange={(v) => setField("madeBy", v)} roster={roster} onBlur={() => t.mark("madeBy")} />
       </Field>
       <Field label="Rationale" error={err("rationale")}>
-        <Textarea rows={3} value={values.rationale} onChange={(e) => setValues((p) => ({ ...p, rationale: e.target.value }))} onBlur={() => t.mark("rationale")} />
+        <Textarea rows={3} value={values.rationale} onChange={(e) => setField("rationale", e.target.value)} onBlur={() => t.mark("rationale")} />
       </Field>
       <Field label="Date" error={err("date")}>
-        <Input type="date" value={values.date} onChange={(e) => setValues((p) => ({ ...p, date: e.target.value }))} onBlur={() => t.mark("date")} />
+        <Input type="date" value={values.date} onChange={(e) => setField("date", e.target.value)} onBlur={() => t.mark("date")} />
       </Field>
       <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
     </form>
@@ -622,15 +752,21 @@ export function RiskForm({ engagementId, userId, roster, onSuccess, onCancel }: 
   });
   const [saving, setSaving] = useState(false);
   const t = useTouched<keyof typeof values>();
+  const server = useServerErrors<typeof values>();
   const { success, errors, data } = validate(riskSchema, values);
   const err = (k: keyof typeof values): string | undefined =>
-    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined);
+    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined) ?? server.fieldErrors[k];
+  const setField = <K extends keyof typeof values>(k: K, v: typeof values[K]) => {
+    setValues((p) => ({ ...p, [k]: v }));
+    server.clearField(k);
+  };
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     t.setAttempted(true);
     if (!success || !data) return;
     setSaving(true);
+    server.reset();
     const title = data.description.split("\n")[0].slice(0, 140);
     const body = [
       data.section && `Section: ${data.section}`,
@@ -648,22 +784,29 @@ export function RiskForm({ engagementId, userId, roster, onSuccess, onCancel }: 
       status: "Open",
     });
     setSaving(false);
-    if (error) return toast.error("Couldn't log risk", { description: error.message });
+    if (error) {
+      const mapped = mapSupabaseError<typeof values>(error, RISK_COLUMNS);
+      server.apply(mapped);
+      return toast.error("Couldn't log risk", {
+        description: summarizeServerErrors(mapped) ?? error.message,
+      });
+    }
     setValues((p) => ({ ...p, description: "", section: "", mitigation: "", owner: "" }));
     onSuccess("Risk logged");
   }
 
   return (
     <form onSubmit={submit} className="space-y-3" noValidate>
+      <FormBanner message={server.formError} />
       <Field label="Description" error={err("description")}>
-        <Textarea rows={3} value={values.description} onChange={(e) => setValues((p) => ({ ...p, description: e.target.value }))} onBlur={() => t.mark("description")} />
+        <Textarea rows={3} value={values.description} onChange={(e) => setField("description", e.target.value)} onBlur={() => t.mark("description")} />
       </Field>
       <Field label="Section affected" error={err("section")}>
-        <Input value={values.section} onChange={(e) => setValues((p) => ({ ...p, section: e.target.value }))} onBlur={() => t.mark("section")} />
+        <Input value={values.section} onChange={(e) => setField("section", e.target.value)} onBlur={() => t.mark("section")} />
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Likelihood">
-          <Select value={values.likelihood} onValueChange={(v) => setValues((p) => ({ ...p, likelihood: v as typeof p.likelihood }))}>
+          <Select value={values.likelihood} onValueChange={(v) => setField("likelihood", v as typeof values.likelihood)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {["Low", "Medium", "High"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
@@ -671,7 +814,7 @@ export function RiskForm({ engagementId, userId, roster, onSuccess, onCancel }: 
           </Select>
         </Field>
         <Field label="Impact">
-          <Select value={values.impact} onValueChange={(v) => setValues((p) => ({ ...p, impact: v as typeof p.impact }))}>
+          <Select value={values.impact} onValueChange={(v) => setField("impact", v as typeof values.impact)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {["Low", "Medium", "High", "Critical"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
@@ -680,10 +823,10 @@ export function RiskForm({ engagementId, userId, roster, onSuccess, onCancel }: 
         </Field>
       </div>
       <Field label="Mitigation" error={err("mitigation")}>
-        <Textarea rows={2} value={values.mitigation} onChange={(e) => setValues((p) => ({ ...p, mitigation: e.target.value }))} onBlur={() => t.mark("mitigation")} />
+        <Textarea rows={2} value={values.mitigation} onChange={(e) => setField("mitigation", e.target.value)} onBlur={() => t.mark("mitigation")} />
       </Field>
       <Field label="Owner" error={err("owner")}>
-        <RosterSelect value={values.owner} onChange={(v) => setValues((p) => ({ ...p, owner: v }))} roster={roster} onBlur={() => t.mark("owner")} />
+        <RosterSelect value={values.owner} onChange={(v) => setField("owner", v)} roster={roster} onBlur={() => t.mark("owner")} />
       </Field>
       <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
     </form>
@@ -699,9 +842,14 @@ export function HeatmapForm({ engagementId, memberName, roster, onSuccess, onCan
   }>({ writer: "", issue: "Completeness", section: "", notes: "" });
   const [saving, setSaving] = useState(false);
   const t = useTouched<keyof typeof values>();
+  const server = useServerErrors<typeof values>();
   const { success, errors, data } = validate(heatmapSchema, values);
   const err = (k: keyof typeof values): string | undefined =>
-    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined);
+    (t.show(k) ? (errors as FieldErrors<typeof values>)[k] : undefined) ?? server.fieldErrors[k];
+  const setField = <K extends keyof typeof values>(k: K, v: typeof values[K]) => {
+    setValues((p) => ({ ...p, [k]: v }));
+    server.clearField(k);
+  };
 
   const statusForIssue: Record<string, string> = {
     "Completeness": "Yellow",
@@ -715,6 +863,7 @@ export function HeatmapForm({ engagementId, memberName, roster, onSuccess, onCan
     t.setAttempted(true);
     if (!success || !data) return;
     setSaving(true);
+    server.reset();
     const noteBody = [
       data.writer && `Writer: ${data.writer}`,
       `Issue: ${data.issue}`,
@@ -729,18 +878,25 @@ export function HeatmapForm({ engagementId, memberName, roster, onSuccess, onCan
       sort_order: 999,
     });
     setSaving(false);
-    if (error) return toast.error("Couldn't update delivery map", { description: error.message });
+    if (error) {
+      const mapped = mapSupabaseError<typeof values>(error, HEATMAP_COLUMNS);
+      server.apply(mapped);
+      return toast.error("Couldn't update delivery map", {
+        description: summarizeServerErrors(mapped) ?? error.message,
+      });
+    }
     setValues((p) => ({ ...p, writer: "", section: "", notes: "" }));
     onSuccess("Heat map updated");
   }
 
   return (
     <form onSubmit={submit} className="space-y-3" noValidate>
+      <FormBanner message={server.formError} />
       <Field label="Writer">
-        <RosterSelect value={values.writer} onChange={(v) => setValues((p) => ({ ...p, writer: v }))} roster={roster} />
+        <RosterSelect value={values.writer} onChange={(v) => setField("writer", v)} roster={roster} />
       </Field>
       <Field label="Issue">
-        <Select value={values.issue} onValueChange={(v) => setValues((p) => ({ ...p, issue: v as typeof p.issue }))}>
+        <Select value={values.issue} onValueChange={(v) => setField("issue", v as typeof values.issue)}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
             {["Completeness", "Compliance risk", "Win theme strength", "Behind schedule"].map((t) => (
@@ -750,10 +906,10 @@ export function HeatmapForm({ engagementId, memberName, roster, onSuccess, onCan
         </Select>
       </Field>
       <Field label="Section" error={err("section")}>
-        <Input value={values.section} onChange={(e) => setValues((p) => ({ ...p, section: e.target.value }))} onBlur={() => t.mark("section")} />
+        <Input value={values.section} onChange={(e) => setField("section", e.target.value)} onBlur={() => t.mark("section")} />
       </Field>
       <Field label="Notes (optional)" error={err("notes")}>
-        <Textarea rows={2} value={values.notes} onChange={(e) => setValues((p) => ({ ...p, notes: e.target.value }))} onBlur={() => t.mark("notes")} />
+        <Textarea rows={2} value={values.notes} onChange={(e) => setField("notes", e.target.value)} onBlur={() => t.mark("notes")} />
       </Field>
       <FormActions saving={saving} disabled={!success} onCancel={onCancel} />
     </form>

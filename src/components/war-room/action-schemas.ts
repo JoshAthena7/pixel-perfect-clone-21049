@@ -99,3 +99,113 @@ export function validate<T extends z.ZodTypeAny>(
   }
   return { success: false, errors: errors as FieldErrors<z.infer<T>> };
 }
+
+// ---------------------------------------------------------------------------
+// Server-side (Supabase / Postgres) error mapping
+//
+// Goal: take a PostgrestError-shaped object and produce the same
+// { fieldErrors, formError } shape we use for client validation, so each
+// modal renders server failures with the same inline UI as zod errors.
+// ---------------------------------------------------------------------------
+
+export type SupabaseLikeError = {
+  code?: string | null;
+  message?: string | null;
+  details?: string | null;
+  hint?: string | null;
+};
+
+export type ServerErrors<T> = {
+  fieldErrors: Partial<Record<keyof T, string>>;
+  formError?: string;
+};
+
+/**
+ * Extract the offending column name from a Postgres error, looking at
+ * `message` first and then `details` (where unique-violation key info lives).
+ */
+function extractColumn(error: SupabaseLikeError): string | undefined {
+  const sources = [error.message ?? "", error.details ?? ""];
+  for (const s of sources) {
+    const m =
+      s.match(/column "([^"]+)"/i) ??
+      s.match(/Key \(([^)]+)\)=/i) ??
+      s.match(/violates not-null constraint .* column "([^"]+)"/i);
+    if (m?.[1]) {
+      // Key (col1, col2) -> take first column
+      return m[1].split(",")[0].trim();
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Map a PostgrestError-like object to schema-aligned field errors.
+ *
+ * `columnToField` maps DB column names to form-field keys. Pass it when the
+ * form value names differ from the underlying column (e.g. `blocker` ->
+ * `description`).
+ */
+export function mapSupabaseError<TValues extends Record<string, unknown>>(
+  error: SupabaseLikeError | null | undefined,
+  columnToField: Partial<Record<string, keyof TValues>> = {},
+): ServerErrors<TValues> {
+  if (!error) return { fieldErrors: {}, formError: undefined };
+
+  const code = (error.code ?? "").toString();
+  const rawMessage = (error.message ?? "Something went wrong saving this.").trim();
+  const column = extractColumn(error);
+  const field = column ? columnToField[column] : undefined;
+
+  const put = (msg: string): ServerErrors<TValues> =>
+    field
+      ? { fieldErrors: { [field]: msg } as Partial<Record<keyof TValues, string>> }
+      : { fieldErrors: {}, formError: column ? `${msg} (${column})` : msg };
+
+  switch (code) {
+    case "23502": // not_null_violation
+      return put("This field is required.");
+    case "23505": // unique_violation
+      return put("This value is already taken.");
+    case "23514": // check_violation
+      return put("This value doesn't meet the validation rules.");
+    case "22001": // string_data_right_truncation
+      return put("This value is too long.");
+    case "22007": // invalid_datetime_format
+    case "22008":
+      return put("Use a valid date.");
+    case "23503": // foreign_key_violation
+      return {
+        fieldErrors: {},
+        formError: "A referenced record no longer exists. Reload and try again.",
+      };
+    case "42501": // insufficient_privilege
+    case "PGRST301":
+    case "PGRST302":
+      return {
+        fieldErrors: {},
+        formError: "You don't have permission to perform this action.",
+      };
+    case "PGRST204": // unknown column
+      return {
+        fieldErrors: {},
+        formError: "The form is out of sync with the server. Refresh and retry.",
+      };
+    case "23P01": // exclusion_violation
+      return put("This conflicts with another record.");
+    default:
+      // Fall back: surface the raw message but keep it short.
+      return {
+        fieldErrors: {},
+        formError: rawMessage.length > 220 ? `${rawMessage.slice(0, 220)}…` : rawMessage,
+      };
+  }
+}
+
+/** Convenience: best single-line summary for a toast description. */
+export function summarizeServerErrors<T>(result: ServerErrors<T>): string | undefined {
+  if (result.formError) return result.formError;
+  const first = Object.values(result.fieldErrors).find(Boolean) as string | undefined;
+  return first;
+}
+
