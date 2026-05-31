@@ -11,11 +11,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { Flame, Trophy } from "lucide-react";
 import { SectionThread } from "@/components/war-room/comms/SectionThread";
 import { dueState } from "@/lib/due-date";
 import { StuckButton } from "@/components/war-room/writer/StuckButton";
 import { logActivity } from "@/lib/activity-log";
 import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
+import { burstConfetti } from "@/lib/confetti";
+import { getQuestionDay, questionForDay } from "@/lib/trivia-helpers";
+import { seedStateTrivia } from "@/lib/ai/trivia.functions";
 
 export const Route = createFileRoute("/_authenticated/writer/my-sections")({
   head: () => ({ meta: [{ title: "My Brief — Writer Portal" }] }),
@@ -102,7 +106,7 @@ function WriterSOSButton({ engagementId, memberName }: { engagementId: string; m
 }
 
 function WriterMySections() {
-  const { engagement, member, member } = useEngagement();
+  const { engagement, member } = useEngagement();
   const { user } = useSession();
   const [items, setItems] = useState<Assignment[]>([]);
   const [streak, setStreak] = useState<number | null>(null);
@@ -311,7 +315,7 @@ function WriterMySections() {
 }
 
 function TriviaCard() {
-  const { engagement, member, member } = useEngagement();
+  const { engagement, member } = useEngagement();
   const { user } = useSession();
   const day = getQuestionDay();
   const stateCode = engagement?.state ?? null;
@@ -461,7 +465,7 @@ function TriviaCard() {
 }
 
 function TriviaScoreCard() {
-  const { engagement, member, member } = useEngagement();
+  const { engagement, member } = useEngagement();
   const [score, setScore] = useState<{ correct: number; answered: number } | null>(null);
 
   useEffect(() => {

@@ -119,7 +119,7 @@ export const askAssistant = createServerFn({ method: "POST" })
     if (eid) {
       const [r1, r2, r3, r4, r5, r6, r7] = await Promise.all([
         supabase.from("engagements").select("name, client, status, submission_date, state").eq("id", eid).maybeSingle(),
-        supabase.from("huddles").select("health, priority, risk, client_concern, writer_concern, needs_leadership, notes, submitter_name, created_at").eq("engagement_id", eid).order("created_at", { ascending: false }).limit(10),
+        supabase.from("huddles").select("health, priority, risk, client_concern, writer_concern, leadership_needed, notes, submitter_name, created_at").eq("engagement_id", eid).order("created_at", { ascending: false }).limit(10),
         supabase.from("heatmap_sections").select("section_name, status, notes").eq("engagement_id", eid),
         supabase.from("risks").select("title, severity, status, owner_name, mitigation").eq("engagement_id", eid).limit(20),
         supabase.from("decisions").select("title, status, decision_date, rationale, owner_name").eq("engagement_id", eid).order("decision_date", { ascending: false }).limit(15),

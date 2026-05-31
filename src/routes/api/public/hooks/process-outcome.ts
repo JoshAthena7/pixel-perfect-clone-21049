@@ -29,7 +29,7 @@ async function handler({ request }: { request: Request }) {
   // Gather engagement snapshot
   const [{ data: eng }, { data: huddles }, { data: risks }, { data: insights }, { data: heatmap }] = await Promise.all([
     supabase.from("engagements").select("name,client,state,submission_date,engagement_type,contract_value_estimate").eq("id", engagement_id).maybeSingle(),
-    supabase.from("huddles").select("priority,risk,notes,needs_leadership,created_at").eq("engagement_id", engagement_id).order("created_at", { ascending: false }).limit(30),
+    supabase.from("huddles").select("priority,risk,notes,leadership_needed,created_at").eq("engagement_id", engagement_id).order("created_at", { ascending: false }).limit(30),
     supabase.from("risks").select("title,severity,status,mitigation").eq("engagement_id", engagement_id),
     supabase.from("intelligence_insights").select("insight_type,title,actioned,confirmed_predictive,severity").eq("engagement_id", engagement_id),
     supabase.from("heatmap_sections").select("section_name,status,notes").eq("engagement_id", engagement_id),

@@ -100,6 +100,47 @@ export type Database = {
           },
         ]
       }
+      assumptions: {
+        Row: {
+          confidence: string | null
+          created_at: string
+          created_by: string | null
+          engagement_id: string
+          id: string
+          owner: string | null
+          risk_if_wrong: string | null
+          text: string
+        }
+        Insert: {
+          confidence?: string | null
+          created_at?: string
+          created_by?: string | null
+          engagement_id: string
+          id?: string
+          owner?: string | null
+          risk_if_wrong?: string | null
+          text: string
+        }
+        Update: {
+          confidence?: string | null
+          created_at?: string
+          created_by?: string | null
+          engagement_id?: string
+          id?: string
+          owner?: string | null
+          risk_if_wrong?: string | null
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assumptions_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attention_acks: {
         Row: {
           acknowledged_at: string
@@ -188,6 +229,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "broadcasts_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      change_tracker: {
+        Row: {
+          change_type: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          engagement_id: string
+          id: string
+          impact: string | null
+          item_name: string | null
+          logged_by: string | null
+        }
+        Insert: {
+          change_type: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          engagement_id: string
+          id?: string
+          impact?: string | null
+          item_name?: string | null
+          logged_by?: string | null
+        }
+        Update: {
+          change_type?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          engagement_id?: string
+          id?: string
+          impact?: string | null
+          item_name?: string | null
+          logged_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "change_tracker_engagement_id_fkey"
             columns: ["engagement_id"]
             isOneToOne: false
             referencedRelation: "engagements"
@@ -360,33 +445,55 @@ export type Database = {
       }
       content_library: {
         Row: {
-          body: string
+          added_by: string | null
+          body: string | null
           category: string
           created_at: string
+          engagement_id: string | null
           id: string
+          name: string | null
+          notes: string | null
           source_engagement_id: string | null
           tags: string[] | null
-          title: string
+          title: string | null
+          url: string | null
         }
         Insert: {
-          body: string
+          added_by?: string | null
+          body?: string | null
           category?: string
           created_at?: string
+          engagement_id?: string | null
           id?: string
+          name?: string | null
+          notes?: string | null
           source_engagement_id?: string | null
           tags?: string[] | null
-          title: string
+          title?: string | null
+          url?: string | null
         }
         Update: {
-          body?: string
+          added_by?: string | null
+          body?: string | null
           category?: string
           created_at?: string
+          engagement_id?: string | null
           id?: string
+          name?: string | null
+          notes?: string | null
           source_engagement_id?: string | null
           tags?: string[] | null
-          title?: string
+          title?: string | null
+          url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "content_library_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "content_library_source_engagement_id_fkey"
             columns: ["source_engagement_id"]
@@ -463,6 +570,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "decisions_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      differentiators: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          engagement_id: string
+          id: string
+          substantiation: string | null
+          title: string
+          versus: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          engagement_id: string
+          id?: string
+          substantiation?: string | null
+          title: string
+          versus?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          engagement_id?: string
+          id?: string
+          substantiation?: string | null
+          title?: string
+          versus?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "differentiators_engagement_id_fkey"
             columns: ["engagement_id"]
             isOneToOne: false
             referencedRelation: "engagements"
@@ -1315,7 +1463,7 @@ export type Database = {
           notes: string | null
           priority: string
           risk: string | null
-          submitted_by: string
+          submitted_by: string | null
           submitter_name: string
           writer_concern: string | null
         }
@@ -1330,7 +1478,7 @@ export type Database = {
           notes?: string | null
           priority: string
           risk?: string | null
-          submitted_by: string
+          submitted_by?: string | null
           submitter_name: string
           writer_concern?: string | null
         }
@@ -1345,7 +1493,7 @@ export type Database = {
           notes?: string | null
           priority?: string
           risk?: string | null
-          submitted_by?: string
+          submitted_by?: string | null
           submitter_name?: string
           writer_concern?: string | null
         }
@@ -1620,6 +1768,50 @@ export type Database = {
           sender_name?: string
         }
         Relationships: []
+      }
+      partnerships: {
+        Row: {
+          commitment: string | null
+          contact: string | null
+          created_at: string
+          created_by: string | null
+          engagement_id: string
+          id: string
+          notes: string | null
+          partner_name: string
+          role: string | null
+        }
+        Insert: {
+          commitment?: string | null
+          contact?: string | null
+          created_at?: string
+          created_by?: string | null
+          engagement_id: string
+          id?: string
+          notes?: string | null
+          partner_name: string
+          role?: string | null
+        }
+        Update: {
+          commitment?: string | null
+          contact?: string | null
+          created_at?: string
+          created_by?: string | null
+          engagement_id?: string
+          id?: string
+          notes?: string | null
+          partner_name?: string
+          role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partnerships_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       policy_intelligence: {
         Row: {
@@ -2315,7 +2507,7 @@ export type Database = {
           resolved_at: string | null
           severity: string
           status: string
-          submitted_by: string
+          submitted_by: string | null
           submitter_name: string | null
           updated_at: string | null
         }
@@ -2332,7 +2524,7 @@ export type Database = {
           resolved_at?: string | null
           severity: string
           status?: string
-          submitted_by: string
+          submitted_by?: string | null
           submitter_name?: string | null
           updated_at?: string | null
         }
@@ -2349,13 +2541,60 @@ export type Database = {
           resolved_at?: string | null
           severity?: string
           status?: string
-          submitted_by?: string
+          submitted_by?: string | null
           submitter_name?: string | null
           updated_at?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "sos_alerts_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stakeholders: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          engagement_id: string
+          id: string
+          name: string
+          notes: string | null
+          organization: string | null
+          priority: string | null
+          relationship: string | null
+          title: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          engagement_id: string
+          id?: string
+          name: string
+          notes?: string | null
+          organization?: string | null
+          priority?: string | null
+          relationship?: string | null
+          title?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          engagement_id?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          organization?: string | null
+          priority?: string | null
+          relationship?: string | null
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stakeholders_engagement_id_fkey"
             columns: ["engagement_id"]
             isOneToOne: false
             referencedRelation: "engagements"
@@ -2571,6 +2810,47 @@ export type Database = {
         }
         Relationships: []
       }
+      terminology: {
+        Row: {
+          context: string | null
+          created_at: string
+          created_by: string | null
+          definition: string | null
+          engagement_id: string
+          id: string
+          preferred_usage: string | null
+          term: string
+        }
+        Insert: {
+          context?: string | null
+          created_at?: string
+          created_by?: string | null
+          definition?: string | null
+          engagement_id: string
+          id?: string
+          preferred_usage?: string | null
+          term: string
+        }
+        Update: {
+          context?: string | null
+          created_at?: string
+          created_by?: string | null
+          definition?: string | null
+          engagement_id?: string
+          id?: string
+          preferred_usage?: string | null
+          term?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "terminology_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trivia_answers: {
         Row: {
           answered_at: string
@@ -2777,25 +3057,37 @@ export type Database = {
       win_themes: {
         Row: {
           created_at: string
+          created_by: string | null
           description: string | null
           engagement_id: string
+          evidence: string | null
           id: string
+          owner: string | null
+          status: string | null
           title: string
           updated_at: string
         }
         Insert: {
           created_at?: string
+          created_by?: string | null
           description?: string | null
           engagement_id: string
+          evidence?: string | null
           id?: string
+          owner?: string | null
+          status?: string | null
           title: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           description?: string | null
           engagement_id?: string
+          evidence?: string | null
           id?: string
+          owner?: string | null
+          status?: string | null
           title?: string
           updated_at?: string
         }

@@ -87,7 +87,7 @@ export const Route = createFileRoute('/api/public/hooks/daily-digest')({
             { data: sos },
             { data: members },
           ] = await Promise.all([
-            supabase.from('huddles').select('health, priority, risk, notes, submitter_name, needs_leadership, created_at').eq('engagement_id', eng.id).gte('created_at', since),
+            supabase.from('huddles').select('health, priority, risk, notes, submitter_name, leadership_needed, created_at').eq('engagement_id', eng.id).gte('created_at', since),
             supabase.from('heatmap_sections').select('section_name, status, notes').eq('engagement_id', eng.id),
             supabase.from('risks').select('title, severity, owner_name, created_at').eq('engagement_id', eng.id).gte('created_at', since),
             supabase.from('sos_alerts').select('category, severity, description').eq('engagement_id', eng.id).eq('status', 'Open'),
