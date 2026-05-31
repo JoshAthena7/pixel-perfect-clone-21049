@@ -1307,10 +1307,11 @@ export type Database = {
         Row: {
           client_concern: string | null
           created_at: string | null
+          created_by: string | null
           engagement_id: string
           health: string
           id: string
-          needs_leadership: boolean | null
+          leadership_needed: boolean | null
           notes: string | null
           priority: string
           risk: string | null
@@ -1321,10 +1322,11 @@ export type Database = {
         Insert: {
           client_concern?: string | null
           created_at?: string | null
+          created_by?: string | null
           engagement_id: string
           health: string
           id?: string
-          needs_leadership?: boolean | null
+          leadership_needed?: boolean | null
           notes?: string | null
           priority: string
           risk?: string | null
@@ -1335,10 +1337,11 @@ export type Database = {
         Update: {
           client_concern?: string | null
           created_at?: string | null
+          created_by?: string | null
           engagement_id?: string
           health?: string
           id?: string
-          needs_leadership?: boolean | null
+          leadership_needed?: boolean | null
           notes?: string | null
           priority?: string
           risk?: string | null
@@ -1791,6 +1794,50 @@ export type Database = {
         }
         Relationships: []
       }
+      quality_signals: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          engagement_id: string
+          id: string
+          leadership_needed: boolean
+          notes: string | null
+          quality: string
+          section_name: string
+          submitted_by: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          engagement_id: string
+          id?: string
+          leadership_needed?: boolean
+          notes?: string | null
+          quality?: string
+          section_name: string
+          submitted_by?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          engagement_id?: string
+          id?: string
+          leadership_needed?: boolean
+          notes?: string | null
+          quality?: string
+          section_name?: string
+          submitted_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_signals_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quick_chats: {
         Row: {
           created_at: string
@@ -1826,6 +1873,50 @@ export type Database = {
           sender_name?: string
         }
         Relationships: []
+      }
+      resource_health: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          engagement_id: string
+          id: string
+          notes: string | null
+          sme_engagement: string
+          staffing: string
+          submitted_by: string
+          timeline_status: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          engagement_id: string
+          id?: string
+          notes?: string | null
+          sme_engagement?: string
+          staffing?: string
+          submitted_by?: string
+          timeline_status?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          engagement_id?: string
+          id?: string
+          notes?: string | null
+          sme_engagement?: string
+          staffing?: string
+          submitted_by?: string
+          timeline_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resource_health_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rfp_evaluation_criteria: {
         Row: {
@@ -2214,6 +2305,7 @@ export type Database = {
         Row: {
           category: string
           created_at: string | null
+          created_by: string | null
           description: string
           engagement_id: string
           id: string
@@ -2224,12 +2316,13 @@ export type Database = {
           severity: string
           status: string
           submitted_by: string
-          submitter_name: string
+          submitter_name: string | null
           updated_at: string | null
         }
         Insert: {
           category: string
           created_at?: string | null
+          created_by?: string | null
           description: string
           engagement_id: string
           id?: string
@@ -2240,12 +2333,13 @@ export type Database = {
           severity: string
           status?: string
           submitted_by: string
-          submitter_name: string
+          submitter_name?: string | null
           updated_at?: string | null
         }
         Update: {
           category?: string
           created_at?: string | null
+          created_by?: string | null
           description?: string
           engagement_id?: string
           id?: string
@@ -2256,7 +2350,7 @@ export type Database = {
           severity?: string
           status?: string
           submitted_by?: string
-          submitter_name?: string
+          submitter_name?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -2399,6 +2493,56 @@ export type Database = {
             columns: ["section_id"]
             isOneToOne: false
             referencedRelation: "heatmap_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_requests: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string
+          engagement_id: string
+          id: string
+          priority: string
+          status: string
+          submitted_by: string
+          updated_at: string
+          what_is_needed: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description: string
+          engagement_id: string
+          id?: string
+          priority?: string
+          status?: string
+          submitted_by?: string
+          updated_at?: string
+          what_is_needed?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          engagement_id?: string
+          id?: string
+          priority?: string
+          status?: string
+          submitted_by?: string
+          updated_at?: string
+          what_is_needed?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_requests_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
             referencedColumns: ["id"]
           },
         ]
@@ -2686,6 +2830,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      writer_confidence: {
+        Row: {
+          confidence: number
+          created_at: string
+          created_by: string | null
+          engagement_id: string
+          id: string
+          needs_help: boolean
+          notes: string | null
+          section_name: string
+          writer: string
+        }
+        Insert: {
+          confidence?: number
+          created_at?: string
+          created_by?: string | null
+          engagement_id: string
+          id?: string
+          needs_help?: boolean
+          notes?: string | null
+          section_name: string
+          writer?: string
+        }
+        Update: {
+          confidence?: number
+          created_at?: string
+          created_by?: string | null
+          engagement_id?: string
+          id?: string
+          needs_help?: boolean
+          notes?: string | null
+          section_name?: string
+          writer?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "writer_confidence_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       writer_last_seen: {
         Row: {

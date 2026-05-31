@@ -180,10 +180,12 @@ function WriterMySections() {
           <p className="mt-1 text-sm text-muted-foreground">Your personal mission briefing — sections, deadlines, and what's next.</p>
         </div>
         {streak !== null && (
-          <WriterSOSButton engagementId={engagement?.id ?? ""} memberName={member?.display_name ?? ""} />
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold)]/40 bg-[var(--gold)]/10 px-3 py-1 text-xs font-semibold text-[var(--gold)]">
-            <Flame className="h-3.5 w-3.5" /> Day {streak} 🔥
-          </div>
+          <>
+            <WriterSOSButton engagementId={engagement?.id ?? ""} memberName={member?.display_name ?? ""} />
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-[var(--gold)]/40 bg-[var(--gold)]/10 px-3 py-1 text-xs font-semibold text-[var(--gold)]">
+              <Flame className="h-3.5 w-3.5" /> Day {streak} 🔥
+            </div>
+          </>
         )}
       </div>
 
