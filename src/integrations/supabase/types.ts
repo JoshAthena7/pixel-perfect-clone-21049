@@ -1712,6 +1712,78 @@ export type Database = {
         }
         Relationships: []
       }
+      mission_strategic_signals: {
+        Row: {
+          acknowledged_at: string | null
+          affected_programs: string[] | null
+          affected_states: string[] | null
+          classification: string
+          confidence_score: number | null
+          created_at: string
+          engagement_id: string
+          id: string
+          last_updated_at: string
+          published_at: string | null
+          recommended_action: string | null
+          resolved_at: string | null
+          source_id: string
+          source_name: string | null
+          source_table: string
+          source_url: string | null
+          status: string
+          strategic_relevance: number | null
+          summary: string | null
+          title: string
+          urgency_score: number | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          affected_programs?: string[] | null
+          affected_states?: string[] | null
+          classification?: string
+          confidence_score?: number | null
+          created_at?: string
+          engagement_id: string
+          id?: string
+          last_updated_at?: string
+          published_at?: string | null
+          recommended_action?: string | null
+          resolved_at?: string | null
+          source_id: string
+          source_name?: string | null
+          source_table: string
+          source_url?: string | null
+          status?: string
+          strategic_relevance?: number | null
+          summary?: string | null
+          title: string
+          urgency_score?: number | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          affected_programs?: string[] | null
+          affected_states?: string[] | null
+          classification?: string
+          confidence_score?: number | null
+          created_at?: string
+          engagement_id?: string
+          id?: string
+          last_updated_at?: string
+          published_at?: string | null
+          recommended_action?: string | null
+          resolved_at?: string | null
+          source_id?: string
+          source_name?: string | null
+          source_table?: string
+          source_url?: string | null
+          status?: string
+          strategic_relevance?: number | null
+          summary?: string | null
+          title?: string
+          urgency_score?: number | null
+        }
+        Relationships: []
+      }
       monitoring_targets: {
         Row: {
           created_at: string
@@ -1809,6 +1881,119 @@ export type Database = {
             columns: ["engagement_id"]
             isOneToOne: false
             referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pipeline_horizon: {
+        Row: {
+          affected_competitors: string[] | null
+          affected_programs: string[] | null
+          affected_states: string[] | null
+          confidence_score: number | null
+          horizon_category: string | null
+          id: string
+          ingested_at: string
+          iris_action: string | null
+          iris_detail: string | null
+          iris_headline: string | null
+          iris_processed_at: string | null
+          iris_type: string | null
+          is_mission_specific: boolean
+          market_intelligence_id: string | null
+          published_at: string | null
+          source: string | null
+          source_type: string | null
+          source_url: string | null
+          status: string
+          strategic_relevance: number | null
+          summary: string | null
+          title: string
+          urgency_score: number | null
+        }
+        Insert: {
+          affected_competitors?: string[] | null
+          affected_programs?: string[] | null
+          affected_states?: string[] | null
+          confidence_score?: number | null
+          horizon_category?: string | null
+          id?: string
+          ingested_at?: string
+          iris_action?: string | null
+          iris_detail?: string | null
+          iris_headline?: string | null
+          iris_processed_at?: string | null
+          iris_type?: string | null
+          is_mission_specific?: boolean
+          market_intelligence_id?: string | null
+          published_at?: string | null
+          source?: string | null
+          source_type?: string | null
+          source_url?: string | null
+          status?: string
+          strategic_relevance?: number | null
+          summary?: string | null
+          title: string
+          urgency_score?: number | null
+        }
+        Update: {
+          affected_competitors?: string[] | null
+          affected_programs?: string[] | null
+          affected_states?: string[] | null
+          confidence_score?: number | null
+          horizon_category?: string | null
+          id?: string
+          ingested_at?: string
+          iris_action?: string | null
+          iris_detail?: string | null
+          iris_headline?: string | null
+          iris_processed_at?: string | null
+          iris_type?: string | null
+          is_mission_specific?: boolean
+          market_intelligence_id?: string | null
+          published_at?: string | null
+          source?: string | null
+          source_type?: string | null
+          source_url?: string | null
+          status?: string
+          strategic_relevance?: number | null
+          summary?: string | null
+          title?: string
+          urgency_score?: number | null
+        }
+        Relationships: []
+      }
+      pipeline_horizon_missions: {
+        Row: {
+          created_at: string
+          engagement_id: string
+          horizon_id: string
+          id: string
+          match_reason: string | null
+          match_score: number | null
+        }
+        Insert: {
+          created_at?: string
+          engagement_id: string
+          horizon_id: string
+          id?: string
+          match_reason?: string | null
+          match_score?: number | null
+        }
+        Update: {
+          created_at?: string
+          engagement_id?: string
+          horizon_id?: string
+          id?: string
+          match_reason?: string | null
+          match_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pipeline_horizon_missions_horizon_id_fkey"
+            columns: ["horizon_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_horizon"
             referencedColumns: ["id"]
           },
         ]
@@ -2030,6 +2215,78 @@ export type Database = {
           },
         ]
       }
+      question_confidence_checks: {
+        Row: {
+          concerns: string | null
+          confidence_score: number
+          created_at: string
+          engagement_id: string
+          health_status: string
+          id: string
+          observations: string | null
+          question_id: string
+          recommendations: string | null
+          reviewer: string
+        }
+        Insert: {
+          concerns?: string | null
+          confidence_score: number
+          created_at?: string
+          engagement_id: string
+          health_status: string
+          id?: string
+          observations?: string | null
+          question_id: string
+          recommendations?: string | null
+          reviewer: string
+        }
+        Update: {
+          concerns?: string | null
+          confidence_score?: number
+          created_at?: string
+          engagement_id?: string
+          health_status?: string
+          id?: string
+          observations?: string | null
+          question_id?: string
+          recommendations?: string | null
+          reviewer?: string
+        }
+        Relationships: []
+      }
+      question_timeline: {
+        Row: {
+          actor: string | null
+          created_at: string
+          description: string | null
+          engagement_id: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          question_id: string
+        }
+        Insert: {
+          actor?: string | null
+          created_at?: string
+          description?: string | null
+          engagement_id: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          question_id: string
+        }
+        Update: {
+          actor?: string | null
+          created_at?: string
+          description?: string | null
+          engagement_id?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          question_id?: string
+        }
+        Relationships: []
+      }
       quick_chats: {
         Row: {
           created_at: string
@@ -2156,52 +2413,85 @@ export type Database = {
       }
       rfp_questions: {
         Row: {
+          assigned_sme: string | null
           assigned_to: string | null
+          assigned_writer: string | null
           body: string
           created_at: string
+          due_date: string | null
           engagement_id: string
           evaluation_weight_pct: number | null
+          health: string | null
+          health_score: number | null
           id: string
+          latest_review_score: number | null
+          open_issues: number | null
+          owner: string | null
           page_limit: number | null
           policy_flagged: boolean
           question_number: string | null
           section_id: string | null
+          sme_confirmed: boolean | null
           sort_order: number
           source_url: string | null
+          status: string | null
           title: string | null
           updated_at: string
+          writer_confidence: number | null
         }
         Insert: {
+          assigned_sme?: string | null
           assigned_to?: string | null
+          assigned_writer?: string | null
           body: string
           created_at?: string
+          due_date?: string | null
           engagement_id: string
           evaluation_weight_pct?: number | null
+          health?: string | null
+          health_score?: number | null
           id?: string
+          latest_review_score?: number | null
+          open_issues?: number | null
+          owner?: string | null
           page_limit?: number | null
           policy_flagged?: boolean
           question_number?: string | null
           section_id?: string | null
+          sme_confirmed?: boolean | null
           sort_order?: number
           source_url?: string | null
+          status?: string | null
           title?: string | null
           updated_at?: string
+          writer_confidence?: number | null
         }
         Update: {
+          assigned_sme?: string | null
           assigned_to?: string | null
+          assigned_writer?: string | null
           body?: string
           created_at?: string
+          due_date?: string | null
           engagement_id?: string
           evaluation_weight_pct?: number | null
+          health?: string | null
+          health_score?: number | null
           id?: string
+          latest_review_score?: number | null
+          open_issues?: number | null
+          owner?: string | null
           page_limit?: number | null
           policy_flagged?: boolean
           question_number?: string | null
           section_id?: string | null
+          sme_confirmed?: boolean | null
           sort_order?: number
           source_url?: string | null
+          status?: string | null
           title?: string | null
           updated_at?: string
+          writer_confidence?: number | null
         }
         Relationships: [
           {
