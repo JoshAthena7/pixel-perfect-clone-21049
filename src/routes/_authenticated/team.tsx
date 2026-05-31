@@ -524,6 +524,28 @@ function TeamPage() {
                       <Label className="text-xs">Title</Label>
                       <Input value={draft.title ?? ""} onChange={(e) => setDraft({ ...draft, title: e.target.value })} placeholder="e.g. Capture Manager" />
                     </div>
+                    <div className="md:col-span-2">
+                      <Label className="text-xs">Role &amp; permissions</Label>
+                      <select
+                        className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm"
+                        value={draft.role ?? ""}
+                        onChange={(e) => setDraft({ ...draft, role: e.target.value })}
+                      >
+                        {!ROLE_OPTIONS.some((o) => o.value === draft.role) && draft.role && (
+                          <option value={draft.role}>
+                            {ROLE_LABEL[draft.role] ?? draft.role} (legacy)
+                          </option>
+                        )}
+                        {ROLE_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label} — {o.hint}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="mt-1 text-[11px] text-muted-foreground">
+                        Controls which pages and write actions this member can access on this mission.
+                      </p>
+                    </div>
                     <div>
                       <Label className="text-xs">Phone</Label>
                       <Input value={draft.phone ?? ""} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} placeholder="+1 555 123 4567" />
