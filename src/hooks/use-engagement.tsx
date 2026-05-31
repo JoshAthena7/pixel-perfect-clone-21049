@@ -1,6 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "./use-session";
+import {
+  can as canFn,
+  canWrite as canWriteFn,
+  normalizeRole,
+  ROLE_LABELS,
+  type NormalizedRole,
+  type PageKey,
+} from "@/lib/roles";
 
 export type Engagement = {
   id: string;
@@ -39,18 +47,24 @@ type Ctx = {
   switchEngagement: (id: string) => void;
   member: Member | null;
   role: string | null;
+  normalizedRole: NormalizedRole | null;
+  roleLabel: string | null;
   isLeadership: boolean;
   canWrite: boolean;
   isWriter: boolean;
   isViewer: boolean;
   isArchived: boolean;
   ndaSatisfied: boolean;
+  /** True if the current role has any access (read or write) to `page`. */
+  can: (page: PageKey) => boolean;
+  /** True if the current role has write access to `page` and the engagement is not archived. */
+  canEdit: (page: PageKey) => boolean;
   refresh: () => Promise<void>;
 };
 
 const EngagementContext = createContext<Ctx | null>(null);
 
-const LEADERSHIP = new Set(["founder", "pm", "engagement_lead"]);
+const LEADERSHIP = new Set(["founder", "pm", "engagement_lead", "lead"]);
 const LS_KEY = "athena.currentEngagementId";
 
 export function EngagementProvider({ children }: { children: ReactNode }) {
@@ -175,14 +189,19 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
       }
     : null;
   const role = member?.role ?? null;
+  const normalized = normalizeRole(role);
+  const roleLabel = normalized ? ROLE_LABELS[normalized] : null;
   const isLeadership = !!role && LEADERSHIP.has(role);
   const isArchived = engagement?.status === "Archived";
   const canWrite = isLeadership && !isArchived;
   const isWriter = !!role && !isLeadership;
-  const isViewer = role === "viewer";
+  const isViewer = role === "viewer" || role === "exec";
   const ndaSatisfied = !member
     ? false
     : isLeadership || !member.nda_required || member.nda_confirmed;
+
+  const can = (page: PageKey) => canFn(role, page);
+  const canEdit = (page: PageKey) => canWriteFn(role, page) && !isArchived;
 
   return (
     <EngagementContext.Provider
@@ -195,12 +214,16 @@ export function EngagementProvider({ children }: { children: ReactNode }) {
         switchEngagement,
         member,
         role,
+        normalizedRole: normalized,
+        roleLabel,
         isLeadership,
         canWrite,
         isWriter,
         isViewer,
         isArchived,
         ndaSatisfied,
+        can,
+        canEdit,
         refresh: async () => {
           if (user) await load(user.id);
         },

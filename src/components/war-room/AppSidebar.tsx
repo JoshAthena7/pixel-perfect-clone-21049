@@ -42,26 +42,29 @@ type NavItem = {
   icon: ComponentType<LucideProps>;
   hint: string;
   accent?: "red";
+  /** Permission key from src/lib/roles.ts. Item is hidden when the role lacks any access. */
+  page: import("@/lib/roles").PageKey;
 };
 
 // The 9 canonical Command Center items, in order.
 const NAV: NavItem[] = [
-  { title: "Command",      url: "/command",    icon: LayoutDashboard, hint: "Executive overview of this engagement" },
-  { title: "Delivery Map", url: "/heatmap",    icon: Grid3x3,         hint: "Section-by-section health" },
-  { title: "Briefing Room",url: "/intel",      icon: Telescope,       hint: "Research, intel, and source documents" },
-  { title: "Escalations",  url: "/issues",     icon: AlertTriangle,   hint: "Active blockers and risks", accent: "red" },
-  { title: "Broadcasts",   url: "/broadcasts", icon: Megaphone,       hint: "Team-wide announcements" },
-  { title: "Pulse™",       url: "/pulse",      icon: Activity,        hint: "Track how the client is feeling" },
-  { title: "Vault",        url: "/intel",      icon: VaultIcon,       hint: "Single source of truth for documents" },
-  { title: "Navigator™",   url: "/assistant",  icon: Brain,           hint: "Ask questions grounded in your engagement data" },
-  { title: "Settings",     url: "/settings",   icon: Settings,        hint: "Team, sections, win themes, and configuration" },
+  { title: "Command",      url: "/command",    icon: LayoutDashboard, hint: "Executive overview of this engagement", page: "missionControl" },
+  { title: "Delivery Map", url: "/heatmap",    icon: Grid3x3,         hint: "Section-by-section health", page: "deliveryMap" },
+  { title: "Briefing Room",url: "/intel",      icon: Telescope,       hint: "Research, intel, and source documents", page: "briefing" },
+  { title: "Escalations",  url: "/issues",     icon: AlertTriangle,   hint: "Active blockers and risks", accent: "red", page: "escalations" },
+  { title: "Broadcasts",   url: "/broadcasts", icon: Megaphone,       hint: "Team-wide announcements", page: "broadcasts" },
+  { title: "Pulse™",       url: "/pulse",      icon: Activity,        hint: "Track how the client is feeling", page: "pulse" },
+  { title: "Vault",        url: "/intel",      icon: VaultIcon,       hint: "Single source of truth for documents", page: "library" },
+  { title: "Navigator™",   url: "/assistant",  icon: Brain,           hint: "Ask questions grounded in your engagement data", page: "alignmentHub" },
+  { title: "Settings",     url: "/settings",   icon: Settings,        hint: "Team, sections, win themes, and configuration", page: "settings" },
 ];
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
-  const { engagement, member, isArchived, isLeadership } = useEngagement();
+  const { engagement, member, isArchived, isLeadership, can, roleLabel } = useEngagement();
   const { isAdmin } = useIsAdmin();
   const isActive = (p: string) => pathname === p;
+  const visibleNav = NAV.filter((i) => can(i.page));
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -91,6 +94,11 @@ export function AppSidebar() {
           <BrandLockup size="md" />
         </div>
         {engagement && <EngagementSwitcher />}
+        {engagement && roleLabel && (
+          <div className="mx-2 mt-2 rounded border border-border/40 bg-muted/40 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Role · {roleLabel}
+          </div>
+        )}
         {isArchived && (
           <div className="mx-2 mt-2 rounded border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-amber-300">
             Archived — read only
@@ -102,8 +110,8 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {NAV.map(renderItem)}
-              {isLeadership && engagement && (
+              {visibleNav.map(renderItem)}
+              {isLeadership && engagement && can("settings") && (
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
@@ -117,7 +125,7 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
-              {engagement && (
+              {engagement && can("compliance") && (
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
