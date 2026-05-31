@@ -18,6 +18,7 @@ import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
 import { SnapshotsPanel } from "@/components/war-room/SnapshotsPanel";
 import { IntelligenceInsightsPanel } from "@/components/war-room/IntelligenceInsightsPanel";
 import { RisksSignalsPanel } from "@/components/war-room/RisksSignalsPanel";
+import { SosBanner } from "@/components/war-room/SosBanner";
 import { SizingSummaryStrip } from "@/components/sizing/SizingSummaryStrip";
 import { PageGate } from "@/components/war-room/PageGate";
 
@@ -147,6 +148,9 @@ function CommandCenter() {
       <div className="px-5 pt-4 space-y-4">
         <ErrorBanner error={loadError} onRetry={() => engagement && loadAll(engagement.id)} label="Couldn't load command center data." />
         {isLoading && heatmap.length === 0 && <LoadingSkeleton label="Loading command center…" />}
+
+        {/* ZONE 0 — SOS (only renders when active SOS exists) */}
+        <SosBanner />
 
         {/* ZONE 1 — Active Signals + Intelligence Insights */}
         <NeedsAttentionPanel />

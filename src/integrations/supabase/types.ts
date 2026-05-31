@@ -2216,6 +2216,7 @@ export type Database = {
           id: string
           owner_name: string | null
           recommended_action: string | null
+          request_type: string
           resolved_at: string | null
           severity: string
           status: string
@@ -2231,6 +2232,7 @@ export type Database = {
           id?: string
           owner_name?: string | null
           recommended_action?: string | null
+          request_type?: string
           resolved_at?: string | null
           severity: string
           status?: string
@@ -2246,6 +2248,7 @@ export type Database = {
           id?: string
           owner_name?: string | null
           recommended_action?: string | null
+          request_type?: string
           resolved_at?: string | null
           severity?: string
           status?: string

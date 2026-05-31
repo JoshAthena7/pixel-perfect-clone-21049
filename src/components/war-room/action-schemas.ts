@@ -27,6 +27,7 @@ export const sosSchema = z.object({
   impact: longText(2000),
   who: shortText(120),
   by: shortText(120),
+  requestType: z.enum(["sos", "support"]).default("sos"),
 });
 export type SosValues = z.infer<typeof sosSchema>;
 
