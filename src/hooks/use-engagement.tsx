@@ -1,6 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "./use-session";
+import {
+  can as canFn,
+  canWrite as canWriteFn,
+  normalizeRole,
+  ROLE_LABELS,
+  type NormalizedRole,
+  type PageKey,
+} from "@/lib/roles";
 
 export type Engagement = {
   id: string;
