@@ -19,7 +19,6 @@ import { ChatNavButton } from "@/components/war-room/comms/ChatNavButton";
 import { WriterActionLauncher } from "@/components/war-room/writer/WriterActionLauncher";
 import { DailyCheckin } from "@/components/war-room/writer/DailyCheckin";
 import { FlagIssueButton } from "@/components/war-room/FlagIssueButton";
-import { AskAthenaWidget } from "@/components/war-room/AskAthenaWidget";
 import { supabase } from "@/integrations/supabase/client";
 import { trackLogin, resetLoginTracker } from "@/lib/login-tracking";
 import { useSessionTimeout } from "@/hooks/use-session-timeout";
@@ -160,7 +159,6 @@ function RoleGuardedShell() {
     return (
       <>
         <div className="pb-14"><Outlet /></div>
-        <AskAthenaWidget />
         <Toaster theme="dark" position="top-right" />
       </>
     );
@@ -209,7 +207,6 @@ function RoleGuardedShell() {
       <QuickChatPanel />
       {isWriter && <DailyCheckin />}
       <FlagIssueButton />
-      <AskAthenaWidget />
       <Toaster theme="dark" position="top-right" />
     </SidebarProvider>
   );

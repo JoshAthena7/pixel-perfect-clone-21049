@@ -1,21 +1,15 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
-  Grid3x3,
   Telescope,
   AlertTriangle,
-  Megaphone,
   Activity,
   Vault as VaultIcon,
-  Brain,
   Settings,
   LogOut,
-  MessageSquare,
-  Briefcase,
-  ExternalLink,
   DoorOpen,
   Shield,
-  UserCheck,
+  Users,
 } from "lucide-react";
 import {
   Sidebar,
@@ -42,21 +36,16 @@ type NavItem = {
   icon: ComponentType<LucideProps>;
   hint: string;
   accent?: "red";
-  /** Permission key from src/lib/roles.ts. Item is hidden when the role lacks any access. */
   page: import("@/lib/roles").PageKey;
 };
 
-// The 9 canonical Command Center items, in order.
 const NAV: NavItem[] = [
-  { title: "Command",      url: "/command",    icon: LayoutDashboard, hint: "Executive overview of this engagement", page: "missionControl" },
-  { title: "Delivery Map", url: "/heatmap",    icon: Grid3x3,         hint: "Section-by-section health", page: "deliveryMap" },
-  { title: "Briefing Room",url: "/intel",      icon: Telescope,       hint: "Research, intel, and source documents", page: "briefing" },
-  { title: "Escalations",  url: "/issues",     icon: AlertTriangle,   hint: "Active blockers and risks", accent: "red", page: "escalations" },
-  { title: "Broadcasts",   url: "/broadcasts", icon: Megaphone,       hint: "Team-wide announcements", page: "broadcasts" },
-  { title: "Pulse™",       url: "/pulse",      icon: Activity,        hint: "Track how the client is feeling", page: "pulse" },
-  { title: "Vault",        url: "/intel",      icon: VaultIcon,       hint: "Single source of truth for documents", page: "library" },
-  { title: "Navigator™",   url: "/assistant",  icon: Brain,           hint: "Ask questions grounded in your engagement data", page: "alignmentHub" },
-  { title: "Settings",     url: "/settings",   icon: Settings,        hint: "Team, sections, win themes, and configuration", page: "settings" },
+  { title: "Mission Control",  url: "/command",  icon: LayoutDashboard, hint: "Mission dashboard and situational awareness",                          page: "missionControl" },
+  { title: "Mission Briefing", url: "/intel",    icon: Telescope,       hint: "Intelligence environment — RFP, state, program, competitor intel",     page: "briefing"       },
+  { title: "Alignment Hub",    url: "/pulse",    icon: Activity,        hint: "Win themes, differentiators, stakeholders, and alignment signals",      page: "pulse"          },
+  { title: "Team Signals",     url: "/issues",   icon: AlertTriangle,   hint: "Daily signals, SOS, quality, and resource health", accent: "red",      page: "escalations"    },
+  { title: "Mission Library",  url: "/intel",    icon: VaultIcon,       hint: "Research, reference, and intelligence documents",                       page: "library"        },
+  { title: "Settings",         url: "/settings", icon: Settings,        hint: "Mission settings and configuration",                                    page: "settings"       },
 ];
 
 export function AppSidebar() {
@@ -116,54 +105,15 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     asChild
                     isActive={isActive("/section-assignments")}
-                    tooltip="Section Assignments — Assign writers and reviewers to each Delivery Map section"
+                    tooltip="Team — Manage mission members and assignments"
                   >
                     <Link to="/section-assignments">
-                      <UserCheck className="h-4 w-4" />
-                      <span>Assignments</span>
+                      <Users className="h-4 w-4" />
+                      <span>Team</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
-              {engagement && can("compliance") && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname.includes("/compliance")}
-                    tooltip="Compliance — Track SHALL/MUST requirements and gaps"
-                  >
-                    <Link to="/engagement/$id/compliance" params={{ id: engagement.id }}>
-                      <Shield className="h-4 w-4" />
-                      <span>Compliance</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Slack — Open Athena workspace in a new tab">
-                  <a href="https://slack.com/app_redirect?app=A" target="_blank" rel="noopener noreferrer">
-                    <MessageSquare className="h-4 w-4" />
-                    <span className="flex-1">Slack</span>
-                    <ExternalLink className="h-3 w-3 opacity-60" />
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Talent Desk — Open the talent platform in a new tab">
-                  <a href="https://app.talentdesk.io/" target="_blank" rel="noopener noreferrer">
-                    <Briefcase className="h-4 w-4" />
-                    <span className="flex-1">Talent Desk</span>
-                    <ExternalLink className="h-3 w-3 opacity-60" />
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -173,24 +123,32 @@ export function AppSidebar() {
         <SidebarMenu>
           {isAdmin && (
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname.startsWith("/admin")} tooltip="Command Operations — Platform-wide control across every Mission">
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith("/admin")}
+                tooltip="Admin — Platform-wide control"
+              >
                 <Link to="/admin">
                   <Shield className="h-4 w-4" />
-                  <span>Command Ops</span>
+                  <span>Admin</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/select-engagement")} tooltip="Command Center — Switch Missions or open a new one">
+            <SidebarMenuButton
+              asChild
+              isActive={isActive("/select-engagement")}
+              tooltip="All Missions — Switch or open a mission"
+            >
               <Link to="/select-engagement">
                 <DoorOpen className="h-4 w-4" />
-                <span>Command Center</span>
+                <span>All Missions</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={signOut} tooltip="Sign out of your account">
+            <SidebarMenuButton onClick={signOut} tooltip="Sign out">
               <LogOut className="h-4 w-4" />
               <span>{member?.display_name ? `Sign out (${member.display_name})` : "Sign out"}</span>
             </SidebarMenuButton>

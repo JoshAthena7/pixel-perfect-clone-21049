@@ -6,7 +6,7 @@ import {
   Megaphone,
   Users,
   Grid3x3,
-  Thermometer as ThermometerIcon,
+  ClipboardList,
   Heart,
   ChevronDown,
   ChevronUp,
@@ -86,6 +86,27 @@ function huddleHealthColor(health: string): string {
   if (h.includes("block") || h === "red") return "#ef4444";
   if (h.includes("risk") || h === "yellow" || h === "orange" || h.includes("warn")) return "#f97316";
   return "#22c55e";
+}
+
+function PendingDecisionsCount({ engagementId }: { engagementId: string }) {
+  const [count, setCount] = useState<number | null>(null);
+  useEffect(() => {
+    supabase
+      .from("decisions")
+      .select("id", { count: "exact", head: true })
+      .eq("engagement_id", engagementId)
+      .eq("status", "Pending Confirmation")
+      .then(({ count: c }) => setCount(c ?? 0));
+  }, [engagementId]);
+  if (count === null) return <div className="text-3xl font-bold leading-none text-muted-foreground">—</div>;
+  return (
+    <>
+      <div className="text-3xl font-bold leading-none" style={{ color: count > 0 ? "#f59e0b" : "#22c55e" }}>{count}</div>
+      <div className="mt-1.5 text-[11px] font-semibold uppercase tracking-wider" style={{ color: count > 0 ? "#f59e0b" : "#22c55e" }}>
+        {count > 0 ? "Needs Decision" : "All Clear"}
+      </div>
+    </>
+  );
 }
 
 function CommandCenter() {
@@ -205,21 +226,12 @@ function CommandCenter() {
             )}
           </div>
 
-          {/* Temperature */}
+          {/* Pending Decisions */}
           <div className="p-5" style={{ borderLeft: `0.5px solid ${BORDER}` }}>
             <div className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-              <ThermometerIcon className="h-3.5 w-3.5" /> Temperature
+              <ClipboardList className="h-3.5 w-3.5" /> Pending Decisions
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold leading-none" style={{ color: tier.color }}>{temperature}</span>
-              <span className="text-[11px] text-muted-foreground">/ 100</span>
-            </div>
-            <div className="mt-1.5 text-[11px] font-semibold uppercase tracking-wider" style={{ color: tier.color }}>
-              {tier.label}
-            </div>
-            {!latestSnapshot && (
-              <div className="mt-2 text-[11px] text-muted-foreground">No snapshot yet</div>
-            )}
+            <PendingDecisionsCount engagementId={engagement.id} />
           </div>
 
           {/* Client sentiment */}
@@ -281,7 +293,7 @@ function CommandCenter() {
               className="flex w-full items-center justify-between px-4 py-3"
             >
               <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                <Users className="h-3.5 w-3.5" /> Latest Huddle
+                <Users className="h-3.5 w-3.5" /> Latest Signal
                 {latestHuddle && (
                   <span className="ml-2 text-[11px] text-muted-foreground normal-case tracking-normal">
                     {latestHuddle.submitter_name} · {relativeTime(latestHuddle.created_at)}
