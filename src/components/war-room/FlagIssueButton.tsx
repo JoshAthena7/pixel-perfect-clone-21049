@@ -41,7 +41,7 @@ const FLAG_COLUMNS = {
 } as const;
 
 export function FlagIssueButton() {
-  const { engagement, member, canWrite } = useEngagement();
+  const { engagement, member, canWrite, can, isArchived } = useEngagement();
   const { user } = useSession();
   const [open, setOpen] = useState(false);
 
@@ -52,8 +52,10 @@ export function FlagIssueButton() {
   }, []);
 
   if (!engagement || !member || !user) return null;
-  // Archived engagements: keep button hidden so users don't try to write
-  if (!canWrite && member.role !== "writer") return null;
+  // Hide on archived engagements; otherwise show for any role with at least
+  // read access to escalations (writer/sme/pm/lead). exec & partner are out.
+  if (isArchived) return null;
+  if (!canWrite && !can("escalations")) return null;
 
   return (
     <>
