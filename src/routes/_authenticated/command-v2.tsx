@@ -14,6 +14,7 @@ import {
   type FormProps,
 } from "@/components/war-room/ActionLauncher";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 type ModalKey = "broadcast" | "signal" | "risk" | "sos" | "decision" | "pulse";
 const MODAL_TITLES: Record<ModalKey, string> = {
@@ -110,6 +111,7 @@ function CommandV2() {
   const [err, setErr] = useState<string | null>(null);
   const [modal, setModal] = useState<ModalKey | null>(null);
   const [roster, setRoster] = useState<{ display_name: string; role: string }[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
 
   useEffect(() => {
     if (!engagement) return;
@@ -121,7 +123,8 @@ function CommandV2() {
       .then(({ data }) => setRoster((data as { display_name: string; role: string }[]) ?? []));
   }, [engagement?.id]);
 
-  async function loadAll(eid: string) {
+  async function loadAll(eid: string, opts: { initial?: boolean } = {}) {
+    if (opts.initial) setLoadingData(true);
     setErr(null);
     const [bc, hu, rk, ss, dc, pl] = await Promise.all([
       supabase.from("broadcasts").select("id,content,author_name,created_at,pinned").eq("engagement_id", eid).order("created_at", { ascending: false }).limit(2),
@@ -132,18 +135,24 @@ function CommandV2() {
       supabase.from("client_pulses").select("id,sentiment,summary,recorder_name,interaction_date").eq("engagement_id", eid).order("interaction_date", { ascending: false }).limit(1).maybeSingle(),
     ]);
     const e = bc.error ?? hu.error ?? rk.error ?? ss.error ?? dc.error ?? pl.error;
-    if (e) { setErr(e.message); return; }
+    if (e) {
+      setErr(e.message);
+      toast.error("Couldn't load Mission Control data", { description: e.message });
+      setLoadingData(false);
+      return;
+    }
     setBroadcasts((bc.data as Broadcast[]) ?? []);
     setHuddles((hu.data as Huddle[]) ?? []);
     setRisks((rk.data as Risk[]) ?? []);
     setSos((ss.data as Sos[]) ?? []);
     setDecisions((dc.data as Decision[]) ?? []);
     setPulse((pl.data as Pulse | null) ?? null);
+    setLoadingData(false);
   }
 
   useEffect(() => {
     if (!engagement) return;
-    loadAll(engagement.id);
+    loadAll(engagement.id, { initial: true });
     const ch = supabase
       .channel(`cmdv2:${engagement.id}`)
       .on("postgres_changes", { event: "*", schema: "public", filter: `engagement_id=eq.${engagement.id}` }, () => loadAll(engagement.id))
@@ -186,6 +195,13 @@ function CommandV2() {
 
         {err && (
           <div className="rounded-md mb-4 px-3 py-2 text-[12px]" style={{ background: "rgba(239,68,68,.12)", color: "#ef4444", border: "1px solid rgba(239,68,68,.3)" }}>{err}</div>
+        )}
+
+        {loadingData && (
+          <div className="flex items-center gap-2 mb-4 muted">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Loading live mission data…</span>
+          </div>
         )}
 
         {/* Metrics row */}
