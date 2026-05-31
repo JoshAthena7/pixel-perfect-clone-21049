@@ -13,7 +13,7 @@ import { PageGate } from "@/components/war-room/PageGate";
 import { relativeTime } from "@/lib/time";
 
 export const Route = createFileRoute("/_authenticated/issues")({
-  head: () => ({ meta: [{ title: "Signals — Athena" }] }),
+  head: () => ({ meta: [{ title: "Signals — Mission" }] }),
   component: () => <PageGate page="escalations"><TeamSignals /></PageGate>,
 });
 
@@ -81,7 +81,7 @@ function TeamSignals() {
     <div className="mx-auto max-w-5xl px-4 py-6 space-y-4">
       <div>
         <h1 className="text-xl font-bold">Signals</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">How the team is doing on {engagement.name}</p>
+        <p className="text-sm text-muted-foreground mt-0.5">Operational signals for {engagement.name}</p>
       </div>
       <Tabs defaultValue="daily" className="w-full">
         <TabsList className="flex h-auto flex-wrap gap-1 bg-transparent p-0 mb-6">

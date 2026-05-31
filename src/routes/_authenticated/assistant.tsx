@@ -12,7 +12,7 @@ import { PageGate } from "@/components/war-room/PageGate";
 
 export const Route = createFileRoute("/_authenticated/assistant")({
   head: () => ({ meta: [{ title: "IRIS — Athena" }] }),
-  component: () => <Navigate to="/command" replace />,
+  component: () => <Navigate to="/select-engagement" replace />,
 });
 
 type Msg = { role: "user" | "assistant"; content: string };

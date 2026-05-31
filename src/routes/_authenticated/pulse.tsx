@@ -13,7 +13,7 @@ import { PageGate } from "@/components/war-room/PageGate";
 import { relativeTime } from "@/lib/time";
 
 export const Route = createFileRoute("/_authenticated/pulse")({
-  head: () => ({ meta: [{ title: "Strategy — Athena" }] }),
+  head: () => ({ meta: [{ title: "Strategy — Mission Control" }] }),
   component: () => <PageGate page="pulse"><AlignmentHub /></PageGate>,
 });
 

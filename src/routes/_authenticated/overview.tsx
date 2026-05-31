@@ -21,7 +21,7 @@ import { HookFailuresPanel } from "@/components/HookFailuresPanel";
 
 export const Route = createFileRoute("/_authenticated/overview")({
   head: () => ({ meta: [{ title: "Command Dashboard — Athena" }] }),
-  component: OverviewPage,
+  component: () => <Navigate to="/select-engagement" replace />,
 });
 
 type SectionRow = { engagement_id: string; status: string | null };

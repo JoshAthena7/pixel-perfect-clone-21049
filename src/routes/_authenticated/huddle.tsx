@@ -16,7 +16,7 @@ import { createIssue } from "@/lib/flag-issue";
 
 export const Route = createFileRoute("/_authenticated/huddle")({
   head: () => ({ meta: [{ title: "Team Signals — Athena" }] }),
-  component: HuddlePage,
+  component: () => <Navigate to="/issues" replace />,
 });
 
 const HEALTH: StatusColor[] = ["Green", "Yellow", "Red"];

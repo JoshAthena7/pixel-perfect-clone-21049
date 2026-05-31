@@ -28,7 +28,7 @@ const MODAL_TITLES: Record<ModalKey, string> = {
 
 export const Route = createFileRoute("/_authenticated/command-v2")({
   head: () => ({ meta: [{ title: "Mission Control — Athena Command" }] }),
-  component: CommandV2Gate,
+  component: () => <Navigate to="/select-engagement" replace />,
 });
 
 type Health = "Green" | "Yellow" | "Orange" | "Red";

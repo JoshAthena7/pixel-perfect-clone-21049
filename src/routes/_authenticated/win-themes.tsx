@@ -21,7 +21,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/win-themes")({
   head: () => ({ meta: [{ title: "Win Themes — Athena" }] }),
-  component: LeadWinThemes,
+  component: () => <Navigate to="/pulse" replace />,
 });
 
 type Section = { id: string; section_name: string };

@@ -20,13 +20,14 @@ import { SnapshotsPanel } from "@/components/war-room/SnapshotsPanel";
 import { IntelligenceInsightsPanel } from "@/components/war-room/IntelligenceInsightsPanel";
 import { RisksSignalsPanel } from "@/components/war-room/RisksSignalsPanel";
 import { SosBanner } from "@/components/war-room/SosBanner";
+import { EnvironmentBanner } from "@/components/war-room/EnvironmentBanner";
 import { SizingSummaryStrip } from "@/components/sizing/SizingSummaryStrip";
 import { PageGate } from "@/components/war-room/PageGate";
 import { StrategicIntelFeed } from "@/components/iris/StrategicIntelFeed";
 
 
 export const Route = createFileRoute("/_authenticated/command")({
-  head: () => ({ meta: [{ title: "Mission — Athena" }] }),
+  head: () => ({ meta: [{ title: "Overview — Mission" }] }),
   component: CommandCenterGate,
 });
 
@@ -382,6 +383,7 @@ function CommandCenter() {
         <ErrorBanner error={loadError} onRetry={() => engagement && loadAll(engagement.id)} label="Couldn't load command center data." />
         {isLoading && heatmap.length === 0 && <LoadingSkeleton label="Loading command center…" />}
 
+        <EnvironmentBanner env="mission" />
         {/* ZONE 0 — SOS (only renders when active SOS exists) */}
         <SosBanner />
         {/* IRIS Strategic Intelligence Feed */}

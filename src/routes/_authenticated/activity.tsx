@@ -9,7 +9,7 @@ import { ScrollText } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/activity")({
   head: () => ({ meta: [{ title: "Activity Log — Athena" }] }),
-  component: ActivityGate,
+  component: () => <Navigate to="/select-engagement" replace />,
 });
 
 type Entry = {

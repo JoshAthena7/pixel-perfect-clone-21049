@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEngagement } from "@/hooks/use-engagement";
@@ -12,7 +12,7 @@ import { Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/faq")({
   head: () => ({ meta: [{ title: "FAQ — Athena" }] }),
-  component: LeadFaq,
+  component: () => <Navigate to="/intel" replace />,
 });
 
 function LeadFaq() {

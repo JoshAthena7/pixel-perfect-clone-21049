@@ -34,6 +34,7 @@ import {
 } from "@/lib/ai/holy-grail.functions";
 import { logActivity } from "@/lib/activity-log";
 import { PageGate } from "@/components/war-room/PageGate";
+import { EnvironmentBanner } from "@/components/war-room/EnvironmentBanner";
 import { RfpStructuredPanel } from "@/components/war-room/RfpStructuredPanel";
 
 async function extractTextFromFile(file: File): Promise<string> {
@@ -308,7 +309,7 @@ function MissionBriefingPage() {
     <div className="mx-auto max-w-7xl p-4 md:p-8">
 
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">Mission Briefing</h1>
+        <h1 className="text-2xl font-bold">Mission Brain</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           The shared environment around this opportunity — everything the team needs to write with confidence.
         </p>

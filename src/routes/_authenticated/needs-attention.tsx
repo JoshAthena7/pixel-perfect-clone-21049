@@ -12,7 +12,7 @@ import type { LucideProps } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/needs-attention")({
   head: () => ({ meta: [{ title: "Active Signals — Athena" }] }),
-  component: Gate,
+  component: () => <Navigate to="/select-engagement" replace />,
 });
 
 function Gate() {

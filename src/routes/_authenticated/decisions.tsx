@@ -14,7 +14,7 @@ import { LoadingSkeleton, ErrorBanner } from "@/components/war-room/LoadState";
 
 export const Route = createFileRoute("/_authenticated/decisions")({
   head: () => ({ meta: [{ title: "Decisions Log — Athena" }] }),
-  component: DecisionsPage,
+  component: () => <Navigate to="/pulse" replace />,
 });
 
 const STATUSES = ["Final", "Pending Confirmation", "Revisited"] as const;

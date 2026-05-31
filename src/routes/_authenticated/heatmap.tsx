@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { PageGate } from "@/components/war-room/PageGate";
 
 export const Route = createFileRoute("/_authenticated/heatmap")({
-  head: () => ({ meta: [{ title: "Mission Briefing — Athena" }] }),
+  head: () => ({ meta: [{ title: "Section Status — Mission" }] }),
   component: () => <PageGate page="deliveryMap"><HeatmapPage /></PageGate>,
 });
 
@@ -156,7 +156,7 @@ function HeatmapPage() {
       <Watermark />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Section Health Map</h1>
+          <h1 className="text-2xl font-bold">Section Status</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Section-by-section health across the engagement.
             {!canWriteMap && " View-only — leads and PMs can update statuses."}
@@ -180,7 +180,7 @@ function HeatmapPage() {
 
       <Tabs defaultValue="map" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="map">Section Health Map</TabsTrigger>
+          <TabsTrigger value="map">Section Status</TabsTrigger>
           <TabsTrigger value="health">Section Health</TabsTrigger>
           {isLeadership && <TabsTrigger value="review">Review Queue</TabsTrigger>}
         </TabsList>

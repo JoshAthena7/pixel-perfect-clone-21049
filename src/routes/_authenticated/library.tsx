@@ -13,7 +13,7 @@ import { relativeTime } from "@/lib/time";
 import { FileText, ExternalLink, Plus } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/library")({
-  head: () => ({ meta: [{ title: "Mission Library — Athena" }] }),
+  head: () => ({ meta: [{ title: "Documents — Mission Control" }] }),
   component: () => <PageGate page="library"><LibraryPage /></PageGate>,
 });
 
@@ -104,7 +104,7 @@ function LibraryPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <div>
-          <h1 className="text-xl font-bold">Mission Library</h1>
+          <h1 className="text-xl font-bold">Documents</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             Research, reference, and intelligence documents for {engagement.name}.
           </p>
@@ -118,7 +118,7 @@ function LibraryPage() {
 
       {/* No proposal content notice */}
       <div className="mb-5 rounded-lg border border-border/40 bg-muted/20 px-4 py-2.5 text-xs text-muted-foreground">
-        📚 The Mission Library stores research and reference documents only. Proposal drafts and content are not stored here.
+        📚 Upload all mission documents here. RFPs, Q&A files, amendments, research, and reference materials. IRIS processes every upload automatically. Proposal drafts and content are not stored here.
       </div>
 
       {/* Add form */}

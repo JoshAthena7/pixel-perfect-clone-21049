@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -11,7 +11,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/market")({
   head: () => ({ meta: [{ title: "Market Intelligence — Athena" }] }),
-  component: MarketPage,
+  component: () => <Navigate to="/intel" replace />,
 });
 
 type Item = { id: string; source: string; title: string; summary: string | null; url: string | null; relevant_states: string[]; relevant_categories: string[]; published_at: string | null; ingested_at: string };
