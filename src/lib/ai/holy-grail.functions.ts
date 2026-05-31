@@ -91,6 +91,19 @@ function snippetsToPrompt(snippets: Snippet[]): string {
     .join("\n\n---\n\n");
 }
 
+function formatList(value: unknown, fallback = "unknown"): string {
+  if (Array.isArray(value)) return value.filter(Boolean).join(", ") || fallback;
+  if (typeof value === "string") return value.trim() || fallback;
+  if (value == null) return fallback;
+  return String(value) || fallback;
+}
+
+function listValues(value: unknown): string[] {
+  if (Array.isArray(value)) return value.filter(Boolean).map(String);
+  if (typeof value === "string" && value.trim()) return [value.trim()];
+  return [];
+}
+
 // ---------- Cache (server-side via supabase context) ----------
 
 async function getCached(
@@ -175,8 +188,8 @@ function ctxLine(ctx: any): string {
   return [
     `Engagement: ${e.name ?? "?"} (client: ${e.client ?? "?"})`,
     `State: ${e.state ?? c.state ?? "?"} | Market: ${e.market ?? c.market ?? "?"}`,
-    `Incumbent: ${c.incumbent ?? (Array.isArray(o.incumbents) ? o.incumbents.join(", ") : o.incumbents) ?? "unknown"}`,
-    `Likely competitors: ${(c.competitors ?? []).join(", ") || "unknown"}`,
+    `Incumbent: ${formatList(c.incumbent ?? o.incumbents)}`,
+    `Likely competitors: ${formatList(c.competitors)}`,
     `Program: ${o.program_name ?? "?"} | Agency: ${o.agency ?? "?"}`,
     `Contract term: ${o.contract_term ?? "?"} | Budget: ${o.budget ?? "?"}`,
   ].join("\n");
@@ -451,7 +464,7 @@ Confidence: 0.0 to 1.0 based on how well sources support claims. Omit keys with 
     searchLimit: 8,
     buildQuery: (ctx) => {
       const state = ctx.eng.state ?? ctx.cfg.state ?? "";
-      const competitors = [ctx.cfg.incumbent, ...(ctx.cfg.competitors ?? [])].filter(Boolean).slice(0, 4).join(" OR ");
+      const competitors = [ctx.cfg.incumbent, ...listValues(ctx.cfg.competitors)].filter(Boolean).slice(0, 4).join(" OR ");
       return competitors
         ? `${competitors} ${state} Medicaid contract performance ${new Date().getFullYear()}`
         : `${state} Medicaid MCO contract awards performance issues ${new Date().getFullYear()}`;
