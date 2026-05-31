@@ -41,7 +41,8 @@ type Section = {
 const STATUSES: StatusColor[] = ["Green", "Yellow", "Orange", "Red", "N/A"];
 
 function HeatmapPage() {
-  const { engagement, member, isLeadership } = useEngagement();
+  const { engagement, member, isLeadership, canEdit } = useEngagement();
+  const canWriteMap = canEdit("deliveryMap");
   const { user } = useSession();
   const [sections, setSections] = useState<Section[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
