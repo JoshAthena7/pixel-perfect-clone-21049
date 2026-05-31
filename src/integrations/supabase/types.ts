@@ -100,6 +100,47 @@ export type Database = {
           },
         ]
       }
+      assumptions: {
+        Row: {
+          confidence: string | null
+          created_at: string
+          created_by: string | null
+          engagement_id: string
+          id: string
+          owner: string | null
+          risk_if_wrong: string | null
+          text: string
+        }
+        Insert: {
+          confidence?: string | null
+          created_at?: string
+          created_by?: string | null
+          engagement_id: string
+          id?: string
+          owner?: string | null
+          risk_if_wrong?: string | null
+          text: string
+        }
+        Update: {
+          confidence?: string | null
+          created_at?: string
+          created_by?: string | null
+          engagement_id?: string
+          id?: string
+          owner?: string | null
+          risk_if_wrong?: string | null
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assumptions_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attention_acks: {
         Row: {
           acknowledged_at: string
@@ -188,6 +229,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "broadcasts_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      change_tracker: {
+        Row: {
+          change_type: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          engagement_id: string
+          id: string
+          impact: string | null
+          item_name: string | null
+          logged_by: string | null
+        }
+        Insert: {
+          change_type: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          engagement_id: string
+          id?: string
+          impact?: string | null
+          item_name?: string | null
+          logged_by?: string | null
+        }
+        Update: {
+          change_type?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          engagement_id?: string
+          id?: string
+          impact?: string | null
+          item_name?: string | null
+          logged_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "change_tracker_engagement_id_fkey"
             columns: ["engagement_id"]
             isOneToOne: false
             referencedRelation: "engagements"
@@ -463,6 +548,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "decisions_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      differentiators: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          engagement_id: string
+          id: string
+          substantiation: string | null
+          title: string
+          versus: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          engagement_id: string
+          id?: string
+          substantiation?: string | null
+          title: string
+          versus?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          engagement_id?: string
+          id?: string
+          substantiation?: string | null
+          title?: string
+          versus?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "differentiators_engagement_id_fkey"
             columns: ["engagement_id"]
             isOneToOne: false
             referencedRelation: "engagements"
@@ -1621,6 +1747,50 @@ export type Database = {
         }
         Relationships: []
       }
+      partnerships: {
+        Row: {
+          commitment: string | null
+          contact: string | null
+          created_at: string
+          created_by: string | null
+          engagement_id: string
+          id: string
+          notes: string | null
+          partner_name: string
+          role: string | null
+        }
+        Insert: {
+          commitment?: string | null
+          contact?: string | null
+          created_at?: string
+          created_by?: string | null
+          engagement_id: string
+          id?: string
+          notes?: string | null
+          partner_name: string
+          role?: string | null
+        }
+        Update: {
+          commitment?: string | null
+          contact?: string | null
+          created_at?: string
+          created_by?: string | null
+          engagement_id?: string
+          id?: string
+          notes?: string | null
+          partner_name?: string
+          role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partnerships_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       policy_intelligence: {
         Row: {
           cfr_reference: string | null
@@ -2363,6 +2533,53 @@ export type Database = {
           },
         ]
       }
+      stakeholders: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          engagement_id: string
+          id: string
+          name: string
+          notes: string | null
+          organization: string | null
+          priority: string | null
+          relationship: string | null
+          title: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          engagement_id: string
+          id?: string
+          name: string
+          notes?: string | null
+          organization?: string | null
+          priority?: string | null
+          relationship?: string | null
+          title?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          engagement_id?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          organization?: string | null
+          priority?: string | null
+          relationship?: string | null
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stakeholders_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       state_market_data: {
         Row: {
           data_year: string | null
@@ -2570,6 +2787,47 @@ export type Database = {
           reason?: string
         }
         Relationships: []
+      }
+      terminology: {
+        Row: {
+          context: string | null
+          created_at: string
+          created_by: string | null
+          definition: string | null
+          engagement_id: string
+          id: string
+          preferred_usage: string | null
+          term: string
+        }
+        Insert: {
+          context?: string | null
+          created_at?: string
+          created_by?: string | null
+          definition?: string | null
+          engagement_id: string
+          id?: string
+          preferred_usage?: string | null
+          term: string
+        }
+        Update: {
+          context?: string | null
+          created_at?: string
+          created_by?: string | null
+          definition?: string | null
+          engagement_id?: string
+          id?: string
+          preferred_usage?: string | null
+          term?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "terminology_engagement_id_fkey"
+            columns: ["engagement_id"]
+            isOneToOne: false
+            referencedRelation: "engagements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trivia_answers: {
         Row: {
