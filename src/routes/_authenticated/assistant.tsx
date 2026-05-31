@@ -25,7 +25,8 @@ const SUGGESTIONS = [
 ];
 
 function AssistantPage() {
-  const { engagement } = useEngagement();
+  const { engagement, canEdit } = useEngagement();
+  const canAsk = canEdit("alignmentHub");
   const ask = useServerFn(askAssistant);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -37,7 +38,7 @@ function AssistantPage() {
   }, [messages, loading]);
 
   async function send(text: string) {
-    if (!engagement || !text.trim() || loading) return;
+    if (!engagement || !text.trim() || loading || !canAsk) return;
     const next: Msg[] = [...messages, { role: "user", content: text.trim() }];
     setMessages(next);
     setInput("");
