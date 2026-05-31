@@ -128,7 +128,7 @@ function CommandV2() {
     setErr(null);
     const [bc, hu, rk, ss, dc, pl] = await Promise.all([
       supabase.from("broadcasts").select("id,content,author_name,created_at,pinned").eq("engagement_id", eid).order("created_at", { ascending: false }).limit(2),
-      supabase.from("huddles").select("id,health,priority,submitter_name,created_at,needs_leadership").eq("engagement_id", eid).order("created_at", { ascending: false }).limit(3),
+      supabase.from("huddles").select("id,health,priority,submitter_name,created_at,leadership_needed").eq("engagement_id", eid).order("created_at", { ascending: false }).limit(3),
       supabase.from("risks").select("id,title,severity,status,owner_name").eq("engagement_id", eid).in("status", ["Open", "Monitoring"]).order("created_at", { ascending: false }).limit(3),
       supabase.from("sos_alerts").select("id,description,severity,status,category,submitter_name,created_at").eq("engagement_id", eid).neq("status", "Resolved").order("created_at", { ascending: false }).limit(3),
       supabase.from("decisions").select("id,title,status,owner_name,decision_date").eq("engagement_id", eid).eq("status", "Pending Confirmation").order("decision_date", { ascending: false }).limit(3),
