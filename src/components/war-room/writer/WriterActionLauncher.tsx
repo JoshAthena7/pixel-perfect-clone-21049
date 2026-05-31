@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useSchemaForm } from "../useSchemaForm";
+import { threadSchema, quickChatSchema } from "../action-schemas";
 
 type TileKey = "thread" | "chat";
 
