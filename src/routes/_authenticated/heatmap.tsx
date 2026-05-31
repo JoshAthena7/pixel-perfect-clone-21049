@@ -159,7 +159,7 @@ function HeatmapPage() {
           <h1 className="text-2xl font-bold">Delivery Map</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Section-by-section health across the engagement.
-            {!isLeadership && " View-only — leadership can update statuses."}
+            {!canWriteMap && " View-only — leads and PMs can update statuses."}
           </p>
         </div>
         {isLeadership && reviewCount > 0 && (
