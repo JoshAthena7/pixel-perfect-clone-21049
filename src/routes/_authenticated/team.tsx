@@ -106,11 +106,28 @@ const ROLE_LABEL: Record<string, string> = {
   writer: "Writer",
   reviewer: "Reviewer",
   viewer: "Viewer",
+  exec: "Executive",
+  sme: "SME",
+  partner: "External Partner",
 };
 
+// Canonical roles writeable from the UI. Legacy values (founder, reviewer,
+// viewer) are still readable but not offered as new assignments.
+const ROLE_OPTIONS: { value: string; label: string; hint: string }[] = [
+  { value: "engagement_lead", label: "Engagement Lead", hint: "Full access" },
+  { value: "pm", label: "Project Manager", hint: "Ops + signals + library" },
+  { value: "writer", label: "Writer", hint: "Pulse + read briefing" },
+  { value: "sme", label: "SME", hint: "Briefing notes + alignment read" },
+  { value: "exec", label: "Executive", hint: "Lobby + read-only command" },
+  { value: "partner", label: "External Partner", hint: "RFP + policy docs only" },
+];
+
 function roleAccent(role: string) {
-  if (role === "founder") return "border-[var(--gold)]/50 bg-[var(--gold)]/10 text-[var(--gold)]";
-  if (role === "pm" || role === "engagement_lead") return "border-primary/40 bg-primary/15 text-primary";
+  if (role === "founder" || role === "engagement_lead") return "border-[var(--gold)]/50 bg-[var(--gold)]/10 text-[var(--gold)]";
+  if (role === "pm") return "border-primary/40 bg-primary/15 text-primary";
+  if (role === "exec") return "border-purple-500/40 bg-purple-500/15 text-purple-300";
+  if (role === "sme") return "border-cyan-500/40 bg-cyan-500/15 text-cyan-300";
+  if (role === "partner") return "border-amber-500/40 bg-amber-500/15 text-amber-300";
   return "border-border bg-surface-hover text-muted-foreground";
 }
 
@@ -185,6 +202,7 @@ function TeamPage() {
         slack_handle: draft.slack_handle?.trim() || null,
         timezone: draft.timezone?.trim() || null,
         on_call: !!draft.on_call,
+        ...(draft.role ? { role: draft.role } : {}),
       })
       .eq("id", editingId)
       .eq("engagement_id", engagement?.id ?? "");
@@ -505,6 +523,28 @@ function TeamPage() {
                     <div>
                       <Label className="text-xs">Title</Label>
                       <Input value={draft.title ?? ""} onChange={(e) => setDraft({ ...draft, title: e.target.value })} placeholder="e.g. Capture Manager" />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label className="text-xs">Role &amp; permissions</Label>
+                      <select
+                        className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm"
+                        value={draft.role ?? ""}
+                        onChange={(e) => setDraft({ ...draft, role: e.target.value })}
+                      >
+                        {!ROLE_OPTIONS.some((o) => o.value === draft.role) && draft.role && (
+                          <option value={draft.role}>
+                            {ROLE_LABEL[draft.role] ?? draft.role} (legacy)
+                          </option>
+                        )}
+                        {ROLE_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label} — {o.hint}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="mt-1 text-[11px] text-muted-foreground">
+                        Controls which pages and write actions this member can access on this mission.
+                      </p>
                     </div>
                     <div>
                       <Label className="text-xs">Phone</Label>
