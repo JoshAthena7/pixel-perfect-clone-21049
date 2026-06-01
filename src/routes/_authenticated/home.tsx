@@ -246,7 +246,7 @@ function AthenaHQ() {
               <QuestionListSkeleton count={5} />
             ) : myAssignments.length === 0 ? (
               <EmptyState
-                icon={<ListChecks className="h-10 w-10" />}
+                icon={<ClipboardList className="h-10 w-10" />}
                 title="Your questions will appear here once your lead assigns them in Olympus."
                 subtitle="Check back soon — you'll be notified when work is ready."
               />

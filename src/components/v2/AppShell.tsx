@@ -263,11 +263,11 @@ function MissionNav({ missionId }: { missionId: string }) {
         )}
       </div>
       <nav className="flex-1 px-3 py-4 space-y-1">
-        <NavItem to="/missions/$missionId/overview" params={{ missionId }} active={path === `/missions/${missionId}` || path.endsWith("/overview")} icon={<Home className="h-4 w-4" />}>Mission Home</NavItem>
-        <NavItem to="/missions/$missionId/questions" params={{ missionId }} active={path.startsWith(`/missions/${missionId}/questions`)} icon={<PenLine className="h-4 w-4" />}>The Studio</NavItem>
-        <NavItem to="/missions/$missionId/library" params={{ missionId }} active={path.endsWith("/library")} icon={<FolderOpen className="h-4 w-4" />}>The Vault</NavItem>
-        <NavItem to="/missions/$missionId/briefing" params={{ missionId }} active={path.endsWith("/briefing")} icon={<BookOpen className="h-4 w-4" />}>The Oracle</NavItem>
-        <NavItem to="/missions/$missionId/settings" params={{ missionId }} active={path.endsWith("/settings")} icon={<Settings className="h-4 w-4" />}>Settings</NavItem>
+        <NavItem to="/missions/$missionId/overview" params={{ missionId }} active={path === `/missions/${missionId}` || path.endsWith("/overview")} icon={<LayoutDashboard size={16} strokeWidth={1.5} />}>Mission Home</NavItem>
+        <NavItem to="/missions/$missionId/questions" params={{ missionId }} active={path.startsWith(`/missions/${missionId}/questions`)} icon={<PenTool size={16} strokeWidth={1.5} />}>The Studio</NavItem>
+        <NavItem to="/missions/$missionId/library" params={{ missionId }} active={path.endsWith("/library")} icon={<Archive size={16} strokeWidth={1.5} />}>The Vault</NavItem>
+        <NavItem to="/missions/$missionId/briefing" params={{ missionId }} active={path.endsWith("/briefing")} icon={<Sparkles size={16} strokeWidth={1.5} />}>The Oracle</NavItem>
+        <NavItem to="/missions/$missionId/settings" params={{ missionId }} active={path.endsWith("/settings")} icon={<Settings2 size={16} strokeWidth={1.5} />}>Settings</NavItem>
       </nav>
 
       <SignOut />
