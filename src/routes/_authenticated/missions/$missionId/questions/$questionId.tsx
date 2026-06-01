@@ -9,9 +9,11 @@ import { toast } from "sonner";
 import {
   ArrowLeft, Sparkles, MessageSquare, AlertTriangle, FileText, Activity,
   Target, Calendar, User as UserIcon, Send, CheckCircle2, Shield, Trophy, Link2, Copy,
+  Maximize2, Minimize2,
 } from "lucide-react";
 import { ScoreTrend } from "@/components/v2/ScoreTrend";
 import { ShortcutsHint } from "@/components/v2/KeyboardShortcuts";
+import { pensDownInfo, pensDownPillClass, getWriteMode, applyWriteMode, markQuestionVisited } from "@/lib/writer-utils";
 
 
 export const Route = createFileRoute(
