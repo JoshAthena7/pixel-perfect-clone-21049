@@ -88,6 +88,27 @@ function AthenaHQ() {
     },
   });
 
+  // ARCH-1: Writer/SME assignments across all missions
+  const { data: myAssignments = [] } = useQuery({
+    queryKey: ["hq-my-assignments", myRole],
+    enabled: myRole !== null && !isLeader,
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+      const { data } = await supabase
+        .from("question_records")
+        .select("id,mission_id,question_number,title,status,health,current_score,pens_down_date,assigned_writer_id,assigned_sme_id")
+        .or(`assigned_writer_id.eq.${user.id},assigned_sme_id.eq.${user.id}`)
+        .order("pens_down_date", { ascending: true, nullsFirst: false })
+        .limit(50);
+      return (data ?? []) as Array<{
+        id: string; mission_id: string; question_number: string; title: string;
+        status: string | null; health: string | null; current_score: number | null;
+        pens_down_date: string | null; assigned_writer_id: string | null; assigned_sme_id: string | null;
+      }>;
+    },
+  });
+
   const attentionFn = useServerFn(irisLeadershipAttention);
   const { data: attention } = useQuery({
     queryKey: ["leadership-attention"],
