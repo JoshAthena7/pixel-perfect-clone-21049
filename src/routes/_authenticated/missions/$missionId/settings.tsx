@@ -448,7 +448,7 @@ function TeamTab({ missionId }: { missionId: string }) {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button onClick={() => removeMember.mutate(m.id)} className="text-muted-foreground hover:text-destructive">
+                    <button onClick={() => removeMember.mutate(m)} className="text-muted-foreground hover:text-destructive">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </td>
