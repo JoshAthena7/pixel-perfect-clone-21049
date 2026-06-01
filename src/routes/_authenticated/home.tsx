@@ -9,6 +9,7 @@ import { relativeTime } from "@/lib/signals";
 import { MissionGridSkeleton, QuestionListSkeleton } from "@/components/v2/Skeletons";
 import { ArrowRight, Megaphone, CalendarClock, DoorOpen, ListChecks, Search, Globe } from "lucide-react";
 import { HORIZON_FILTERS, inferCategory, matchesHorizonFilter, type IntelItem } from "@/lib/intelligence-feed";
+import { LiveBadge, ScanningBeam } from "@/components/v2/effects";
 import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/_authenticated/home")({
