@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Gauge } from "lucide-react";
 import { irisLeadershipAttention } from "@/lib/iris.functions";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { CountUp } from "@/components/v2/effects";
 
 type Props = {
   missionId?: string | "all";
