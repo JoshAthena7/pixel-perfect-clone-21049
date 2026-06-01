@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Shield, Activity, Settings as SettingsIcon, AlertCircle, Plus, ArrowRight, X, Zap } from "lucide-react";
@@ -294,9 +294,41 @@ function MissionsTab() {
         </button>
       </div>
 
-      {activateOpen && <ActivateMissionModal onClose={() => setActivateOpen(false)} />}
+      {activateOpen && (
+        <ModalErrorBoundary onClose={() => setActivateOpen(false)}>
+          <ActivateMissionModal onClose={() => setActivateOpen(false)} />
+        </ModalErrorBoundary>
+      )}
     </div>
   );
+}
+
+/* ─── Error boundary so a modal crash never blanks the page ─── */
+
+class ModalErrorBoundary extends React.Component<
+  { children: React.ReactNode; onClose: () => void },
+  { error: Error | null }
+> {
+  state = { error: null as Error | null };
+  static getDerivedStateFromError(error: Error) { return { error }; }
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error("ActivateMissionModal crashed:", error, info);
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="modal-backdrop" onClick={this.props.onClose} />
+          <div className="modal-surface relative w-full max-w-md p-6">
+            <h2 className="text-base font-semibold text-red-300">Modal failed to load</h2>
+            <p className="mt-2 text-sm text-muted-foreground">{this.state.error.message}</p>
+            <button onClick={this.props.onClose} className="btn-secondary mt-4">Close</button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }
 
 /* ─── Activate Mission Modal ────────────────── */
