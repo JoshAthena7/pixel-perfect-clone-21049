@@ -8,8 +8,11 @@ import { irisQuestionSignals } from "@/lib/iris.functions";
 import { toast } from "sonner";
 import {
   ArrowLeft, Sparkles, MessageSquare, AlertTriangle, FileText, Activity,
-  Target, Calendar, User as UserIcon, Send, CheckCircle2, Shield, Trophy, Link2,
+  Target, Calendar, User as UserIcon, Send, CheckCircle2, Shield, Trophy, Link2, Copy,
 } from "lucide-react";
+import { ScoreTrend } from "@/components/v2/ScoreTrend";
+import { ShortcutsHint } from "@/components/v2/KeyboardShortcuts";
+
 
 export const Route = createFileRoute(
   "/_authenticated/missions/$missionId/questions/$questionId",
