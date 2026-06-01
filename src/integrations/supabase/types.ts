@@ -88,6 +88,50 @@ export type Database = {
           },
         ]
       }
+      briefing_book_section_history: {
+        Row: {
+          content: string | null
+          generated_at: string
+          generated_by: string
+          id: string
+          mission_id: string
+          section_id: string | null
+          section_key: string
+          sources: Json
+          version_number: number
+        }
+        Insert: {
+          content?: string | null
+          generated_at?: string
+          generated_by?: string
+          id?: string
+          mission_id: string
+          section_id?: string | null
+          section_key: string
+          sources?: Json
+          version_number: number
+        }
+        Update: {
+          content?: string | null
+          generated_at?: string
+          generated_by?: string
+          id?: string
+          mission_id?: string
+          section_id?: string | null
+          section_key?: string
+          sources?: Json
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "briefing_book_section_history_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "briefing_book_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       briefing_book_sections: {
         Row: {
           content: string | null
@@ -96,8 +140,10 @@ export type Database = {
           id: string
           mission_id: string
           section_key: string
+          sources: Json
           status: string
           updated_at: string
+          version_number: number
         }
         Insert: {
           content?: string | null
@@ -106,8 +152,10 @@ export type Database = {
           id?: string
           mission_id: string
           section_key: string
+          sources?: Json
           status?: string
           updated_at?: string
+          version_number?: number
         }
         Update: {
           content?: string | null
@@ -116,8 +164,10 @@ export type Database = {
           id?: string
           mission_id?: string
           section_key?: string
+          sources?: Json
           status?: string
           updated_at?: string
+          version_number?: number
         }
         Relationships: []
       }
@@ -127,6 +177,9 @@ export type Database = {
           from_name: string
           id: string
           mission_id: string | null
+          slack_delivered_at: string | null
+          slack_delivery_status: string
+          slack_error: string | null
           text: string
           user_id: string | null
         }
@@ -135,6 +188,9 @@ export type Database = {
           from_name: string
           id?: string
           mission_id?: string | null
+          slack_delivered_at?: string | null
+          slack_delivery_status?: string
+          slack_error?: string | null
           text: string
           user_id?: string | null
         }
@@ -143,6 +199,9 @@ export type Database = {
           from_name?: string
           id?: string
           mission_id?: string | null
+          slack_delivered_at?: string | null
+          slack_delivery_status?: string
+          slack_error?: string | null
           text?: string
           user_id?: string | null
         }
@@ -570,7 +629,9 @@ export type Database = {
           added_by_id: string | null
           category: string
           created_at: string | null
+          file_hash: string | null
           file_path: string | null
+          file_size: number | null
           id: string
           is_rfp: boolean | null
           mission_id: string
@@ -583,7 +644,9 @@ export type Database = {
           added_by_id?: string | null
           category: string
           created_at?: string | null
+          file_hash?: string | null
           file_path?: string | null
+          file_size?: number | null
           id?: string
           is_rfp?: boolean | null
           mission_id: string
@@ -596,7 +659,9 @@ export type Database = {
           added_by_id?: string | null
           category?: string
           created_at?: string | null
+          file_hash?: string | null
           file_path?: string | null
+          file_size?: number | null
           id?: string
           is_rfp?: boolean | null
           mission_id?: string
@@ -793,9 +858,49 @@ export type Database = {
         }
         Relationships: []
       }
+      olympus_audit_log: {
+        Row: {
+          action_summary: string
+          action_type: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          mission_id: string | null
+          target_id: string | null
+          target_table: string | null
+          user_id: string | null
+          user_name: string | null
+        }
+        Insert: {
+          action_summary: string
+          action_type: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          mission_id?: string | null
+          target_id?: string | null
+          target_table?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Update: {
+          action_summary?: string
+          action_type?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          mission_id?: string | null
+          target_id?: string | null
+          target_table?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_color: string | null
+          avatar_url: string | null
           created_at: string | null
           display_name: string
           email: string | null
@@ -804,6 +909,7 @@ export type Database = {
         }
         Insert: {
           avatar_color?: string | null
+          avatar_url?: string | null
           created_at?: string | null
           display_name: string
           email?: string | null
@@ -812,6 +918,7 @@ export type Database = {
         }
         Update: {
           avatar_color?: string | null
+          avatar_url?: string | null
           created_at?: string | null
           display_name?: string
           email?: string | null
@@ -1403,6 +1510,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      archive_old_signals: { Args: never; Returns: number }
+      calculate_question_health: {
+        Args: { p_question_id: string }
+        Returns: string
+      }
       call_hook: { Args: { path: string }; Returns: undefined }
       cleanup_quick_chats: { Args: never; Returns: undefined }
       current_user_is_admin_or_founder: { Args: never; Returns: boolean }
