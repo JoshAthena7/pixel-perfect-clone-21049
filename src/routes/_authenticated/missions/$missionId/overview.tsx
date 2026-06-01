@@ -176,8 +176,30 @@ function OverviewPage() {
           </ul>
         </div>
 
-        {/* Win themes + team */}
+        {/* Right column */}
         <div className="space-y-6">
+          {/* Leadership Notes */}
+          <div className="rounded-[12px] border border-border bg-surface">
+            <div className="border-b border-border px-5 py-4 flex items-center gap-2">
+              <Megaphone className="h-3.5 w-3.5 text-primary" />
+              <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Leadership Notes</h2>
+            </div>
+            <ul className="px-5 py-3 space-y-2">
+              {leadershipNotes.length === 0 && (
+                <li className="text-sm text-muted-foreground py-3">No leadership notes for this mission yet.</li>
+              )}
+              {leadershipNotes.map((n: any) => (
+                <li key={n.id} className="rounded-[8px] border border-border bg-background p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-medium text-foreground/90">{n.from_name}</span>
+                    <span className="text-[10px] text-muted-foreground">{relativeTime(n.created_at)}</span>
+                  </div>
+                  <p className="mt-1 text-sm text-foreground/90 leading-relaxed">{n.text}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+
           <div className="rounded-[12px] border border-border bg-surface">
             <div className="border-b border-border px-5 py-4">
               <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Win Themes</h2>
