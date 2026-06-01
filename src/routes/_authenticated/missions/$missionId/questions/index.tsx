@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { irisMissionPulse } from "@/lib/iris.functions";
 import { AlertTriangle, Activity, GitMerge } from "lucide-react";
@@ -9,6 +9,7 @@ import { AlertTriangle, Activity, GitMerge } from "lucide-react";
 export const Route = createFileRoute("/_authenticated/missions/$missionId/questions/")({
   component: QuestionCommand,
 });
+
 
 type Q = {
   id: string;
@@ -54,10 +55,12 @@ function QuestionCommand() {
 
   const isLeader = myRole === "admin" || myRole === "lead";
 
-  // Default scope based on role once known
-  if (scope === null && myRole !== undefined && me !== undefined) {
-    setScope(isLeader ? "all" : "mine");
-  }
+  useEffect(() => {
+    if (scope === null && me !== undefined && myRole !== undefined) {
+      setScope(isLeader ? "all" : "mine");
+    }
+  }, [scope, me, myRole, isLeader]);
+
 
   const { data: questions = [], isLoading } = useQuery({
     queryKey: ["mission-questions", missionId],
