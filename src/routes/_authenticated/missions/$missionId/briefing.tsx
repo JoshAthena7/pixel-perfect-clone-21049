@@ -8,10 +8,11 @@ import {
   BRIEFING_SECTION_KEYS,
   BRIEFING_SECTION_TITLES,
 } from "@/lib/iris.functions";
-import { Printer, BookOpen, Sparkles, ChevronDown, ChevronRight, RefreshCw, Loader2, History, FileText, Globe, X } from "lucide-react";
+import { Printer, BookOpen, Sparkles, ChevronDown, ChevronRight, RefreshCw, Loader2, History, FileText, Globe, X, Radio } from "lucide-react";
 import { relativeTime } from "@/lib/signals";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { MissionIntelligenceFeed } from "@/components/v2/MissionIntelligenceFeed";
 
 type SourceRef =
   | { type: "vault_document"; name: string; document_id: string }
