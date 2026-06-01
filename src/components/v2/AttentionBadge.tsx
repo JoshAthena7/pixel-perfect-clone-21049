@@ -55,7 +55,7 @@ export function AttentionBadge({ missionId = "all", variant = "header", classNam
     };
   })();
 
-  const tone =
+  const toneCls =
     score >= 50
       ? "border-destructive/40 bg-destructive/10 text-destructive"
       : score >= 20
