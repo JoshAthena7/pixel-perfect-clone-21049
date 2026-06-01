@@ -1,88 +1,72 @@
-## Athena Command V1.5 — Rebuild Plan
+# Athena Command V2 — Foundation (Steps 1–6)
 
-The uploaded spec is essentially a new, opinionated v1 of an app that already exists here in a more elaborate form. Before I build, I need decisions on three forks. Then I'll execute in phases.
+Full replacement of the existing app. Existing routes/components/server-fns under `_authenticated/`, `war-room/`, `iris/`, `holy-grail`, etc. will be removed. New V2 system built from scratch on the same Supabase project with a new schema.
 
----
+## Step 1 — Database (single migration)
 
-### Reality check: what already exists vs. what the spec asks for
+Drop existing app tables that conflict (engagements, huddles, decisions, risks, sos_alerts, heatmap_sections, win_themes, intel_documents, mission_strategic_signals, pipeline_horizon, market_intelligence, engagement_research, engagement_members, etc.). Keep `profiles`, `embeddings` (recreated to V2 shape), pgvector.
 
-| Spec concept | Already in this project | Gap |
-|---|---|---|
-| `missions` table | `engagements` (richer: roles, NDA, MFA, members, config) | Naming + simpler shape |
-| `mission_members` + roles | `engagement_members` + `user_roles` | None |
-| `team_signals` | `pulse_*` tables (daily check-ins) | Different shape |
-| `support_requests` | `needs_attention` / `flag_issue` | Different shape |
-| `risks` | ❌ | Build new |
-| `decisions` | `decisions` route exists, table likely | Verify |
-| `alignment_signals` | ❌ (closest: intelligence insights) | Build new |
-| `mission_library` | mission_library tables for RFP/intel | Different shape |
-| `mission_health_map` | `heatmap_sections` (richer) | Naming only |
-| `broadcasts` | `broadcasts` | ✅ |
-| `recognition` | `recognition` | ✅ |
-| `IRIS` brief | Ask Iris widget (chat) | Spec wants streaming briefs, not chat |
-| Slack webhook | ❌ | Build new |
-| Magic-link auth | Password + Google + MFA | Conflict |
-| OpenAI GPT-4o for IRIS | Lovable AI Gateway (Gemini) | Conflict |
+Create V2 tables exactly as specified:
+- `missions`, `mission_members`, `profiles` (recreate cleanly)
+- `mission_review_gates`
+- `question_records`, `question_gate_status`, `question_scores`, `question_collaboration`, `question_intelligence`, `question_relationships`
+- `alignment_conflicts`, `win_themes`
+- `mission_library`, `mission_risks`, `mission_decisions`
+- `escalations`, `broadcasts`, `iris_brief_cache`
+- `embeddings` (1536 dims, ivfflat)
 
----
+RLS on every table, scoped via `mission_members`. `handle_new_user` trigger creates profile. GRANTs to authenticated + service_role. Realtime publication for `question_records`, `question_collaboration`, `alignment_conflicts`, `escalations`, `broadcasts`.
 
-### Fork 1 — Reuse existing schema, or build "missions" fresh alongside?
+## Step 2 — Magic-link auth
 
-**Option A (recommended): Rename/adapt — treat `engagements` as `missions`.**
-Keep all current data, add a `missions` *view* (or just use `engagements` directly in the new UI), build only the genuinely new tables (`risks`, `alignment_signals`, `support_requests` if we keep it separate from `needs_attention`). Avoids dual data models.
+- Strip Google OAuth + password flows.
+- New `/login` route: email input → `supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } })`. Show "Check your email" state.
+- `_authenticated` layout gates everything (re-validates with `getUser()`).
+- Sign-out in sidebar.
 
-**Option B: Build `missions.*` fresh in parallel.**
-Cleaner mapping to the spec, but you end up with two parallel systems (engagements + missions) and have to migrate later. I do not recommend this.
+## Step 3 — Shell, theme, navigation
 
-### Fork 2 — Auth model
+- Replace `src/styles.css` tokens with the V2 dark palette (oklch equivalents of the hex values).
+- New `__root.tsx` with single `onAuthStateChange` invalidator.
+- New left sidebar (`AppSidebar`) with three contexts:
+  - HOME → `My Brief`
+  - MISSIONS list (live, with health dot) + `New Mission` modal
+  - COMMAND CENTER section (Question Health, Alignment Conflicts, Score Dashboard, Pens Down Watch, Broadcasts)
+- Sidebar switches to Mission-context nav when inside `/missions/$missionId/*`.
+- Delete all `src/routes/_authenticated/*` (old), `src/components/war-room/*`, `src/components/iris/*`, `src/lib/ai/*` (old), `src/lib/iris/*`, old AppSidebar.
 
-Spec says **magic-link only**. Current app has **email/password + Google + MFA + NDA enforcement**. Switching to magic-link-only would tear out working infrastructure that the existing routes depend on.
+## Step 4 — Home / My Brief (`/`)
 
-Options: (a) keep current auth, ignore that part of the spec; (b) add magic-link as a *third* option; (c) rip out password+Google and replace with magic link. I recommend **(a)**.
+- Server fn `getMyBriefData` returns role-aware payload: writer = assigned non-green questions, leader = portfolio Red+Yellow.
+- Server fn `generateMorningBrief` (stubbed text for now — actual streaming IRIS comes in Step 11). Uses `iris_brief_cache` (30 min TTL).
+- Renders greeting, today's questions table (clickable rows → workspace), brief text, regenerate button.
 
-### Fork 3 — IRIS provider
+## Step 5 — Mission / Question Command (`/missions/$missionId`)
 
-Spec says OpenAI GPT-4o streaming via Edge Function. Current IRIS uses Lovable AI Gateway (Gemini), no API key needed. Spec model is fine but adds cost + secret management. Options: (a) keep Gemini through Lovable AI Gateway (free, already works, can stream); (b) switch to OpenAI (need `OPENAI_API_KEY`). I recommend **(a)** unless you specifically want GPT-4o.
+- Mission header (name, client, days to pens-down, health pill, [+ Add Question], [Upload RFP]).
+- Filters: All / Red / Yellow / Green / No Writer / Awaiting SME / Below Standard / Approaching Deadline.
+- Sortable question list with all spec fields. Empty state copy from spec.
+- Add Question modal. Upload RFP stub (real parser is Step 8).
+- Bulk-assign actions: writer, SME, pens-down date.
 
-Also note: this stack uses TanStack `createServerFn`, not Supabase Edge Functions, for app logic. Slack webhook posting and IRIS briefs will be server functions, not edge functions.
+## Step 6 — Mission / Question Workspace (`/missions/$missionId/questions/$questionId`)
 
----
+- Two-column layout (60/40 desktop, stacked mobile).
+- Left: question detail, requirements, mandatory language, scoring criteria, collaboration panel (typed cards with colors per entry_type), Question Health panel (gate progress, score history, [+ Log Score]).
+- Right: Athena Intelligence panel (reads `question_intelligence` cache; "Generate" button stubs IRIS until Step 9), Strategy Alignment panel (related questions, conflicts, link to alignment map modal).
+- Alignment map modal: all mission questions grouped by section with relationship lines (SVG), filterable.
+- Esc → back to Question Command.
+- Modals: Add Note, Log Score, Assign Writer/SME.
 
-### Proposed execution phases (after decisions)
+## Out of scope this turn (Steps 7–18)
 
-**Phase 1 — Foundation (~1 turn)**
-- Migrations: add `risks`, `alignment_signals` tables (+ RLS + GRANTs). Optionally add `iris_briefs` cache table. Skip tables we already have.
-- Seed `heatmap_sections` defaults per spec on engagement creation.
+Library page polish, IRIS edge functions (rfp-parser, question-brief, alignment-scan, morning-brief), Command Center pages, Mission Settings, Mission Brief, Broadcasts, batch scoring. Stub buttons will be visible but say "Coming in next phase" where they depend on IRIS or later steps.
 
-**Phase 2 — New Command shell at `/command-v2`**
-- Sidebar with three contexts: Lobby / Mission / Executive (matches spec IA, but maps "mission" → existing `engagements`).
-- Apply spec design tokens (`#0a0e1a` bg, etc.) as scoped CSS variables for v2 routes only, so v1 stays intact.
-- Mission Control page: header strip, 4-metric row, 2×2 panel grid, IRIS Mission Brief panel.
+## Technical notes
 
-**Phase 3 — Lobby pages**
-- My Missions grid · Mission Health list · Leadership Broadcasts feed · Recognition feed · IRIS Daily Brief.
+- Stack stays TanStack Start + Supabase (no Edge Functions for app logic; server fns via `createServerFn`). IRIS edge functions in spec will be implemented as TanStack server routes/server fns in later steps.
+- Files structured as: `src/lib/missions/*.functions.ts`, `src/lib/questions/*.functions.ts`, `src/lib/iris/*.functions.ts`, `src/components/v2/*`, `src/routes/_authenticated/...`.
+- One big SQL migration (will require your approval). Code lands after migration runs.
+- Existing data in old tables will be lost — confirming this is acceptable since you chose "Replace entirely".
 
-**Phase 4 — Mission sub-pages**
-- Mission Briefing · Alignment Hub · Team Signals · Mission Library (reuse existing where possible).
-
-**Phase 5 — Executive views**
-- All Active Missions table · Mission Health Grid · Leadership Action Queue · Open Risks · Client Signals · Alignment Signals · IRIS Executive Brief.
-
-**Phase 6 — Modals + realtime + Slack**
-- All 10 modals.
-- Realtime subscriptions on `team_signals`/`support_requests`/`broadcasts`/`risks`.
-- Slack server function that fires on broadcast insert (needs Slack webhook URL secret).
-
-**Phase 7 — Cutover**
-- Swap `/command` → new layout (or keep both during transition).
-
----
-
-### Decisions I need from you
-
-1. **Schema**: A (reuse engagements, add gaps) or B (fresh `missions.*` parallel)?
-2. **Auth**: keep current (password + Google + MFA) and skip magic-link, or add/replace?
-3. **IRIS provider**: keep Lovable AI Gateway (Gemini) or switch to OpenAI GPT-4o?
-4. **Cutover style**: build at `/command-v2` first (safe, parallel), or rip out v1 routes as we go?
-
-Tell me your picks (or just "go with your recommendations") and I'll start Phase 1.
+Approve to proceed, or tell me what to change.
