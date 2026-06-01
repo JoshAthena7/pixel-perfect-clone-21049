@@ -312,16 +312,16 @@ function FeedItem({ scored, missionId, idx = 0 }: { scored: ScoredItem; missionI
 
           {/* Action buttons */}
           <div className="mt-3 flex flex-wrap gap-1.5">
-            <ActionBtn icon={<BookmarkPlus className="h-3 w-3" />} onClick={() => saveToVault.mutate()} disabled={saveToVault.isPending}>
+            <ActionBtn icon={<BookmarkPlus className="h-3 w-3" />} onClick={() => { saveToVault.mutate(); fireFlash("VAULTED ✓", "teal"); }} disabled={saveToVault.isPending}>
               Save to Vault
             </ActionBtn>
             <ActionBtn icon={<Link2 className="h-3 w-3" />} onClick={() => setAttachOpen(true)}>
               Attach to Question
             </ActionBtn>
-            <ActionBtn icon={<Users className="h-3 w-3" />} onClick={() => shareWithTeam.mutate()} disabled={shareWithTeam.isPending}>
+            <ActionBtn icon={<Users className="h-3 w-3" />} onClick={() => { shareWithTeam.mutate(); fireFlash("TRANSMITTED ✓", "teal"); }} disabled={shareWithTeam.isPending}>
               Share with Team
             </ActionBtn>
-            <ActionBtn icon={<Flag className="h-3 w-3" />} onClick={() => flagForLeadership.mutate()} disabled={flagForLeadership.isPending}>
+            <ActionBtn icon={<Flag className="h-3 w-3" />} onClick={() => { flagForLeadership.mutate(); fireFlash("FLAGGED ✓", "red"); }} disabled={flagForLeadership.isPending}>
               Flag for Leadership
             </ActionBtn>
             <ActionBtn icon={<MessageSquarePlus className="h-3 w-3" />} onClick={() => setDiscussOpen(true)}>
