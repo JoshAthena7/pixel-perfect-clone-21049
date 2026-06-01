@@ -141,6 +141,7 @@ function AthenaHQ() {
       const { data } = await supabase
         .from("signals")
         .select("id,mission_id,signal_type,signal_title,severity,created_at")
+        .neq("status", "archived")
         .order("created_at", { ascending: false })
         .limit(10);
       return data ?? [];
