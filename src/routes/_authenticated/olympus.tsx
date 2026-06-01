@@ -23,7 +23,7 @@ type AuditRow = {
 };
 
 function OlympusPage() {
-  const [tab, setTab] = useState<Tab>("status");
+  const [tab, setTab] = useState<Tab>("missions");
 
   const { data: me } = useQuery({
     queryKey: ["olympus-me-role"],
