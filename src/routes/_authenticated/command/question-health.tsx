@@ -1,10 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { irisLeadershipAttention } from "@/lib/iris.functions";
-import { AlertTriangle, ListChecks, MessageCircleQuestion, GitMerge, ArrowRight, Activity, Gauge } from "lucide-react";
+import { AttentionBadge } from "@/components/v2/AttentionBadge";
+import { AlertTriangle, ListChecks, MessageCircleQuestion, GitMerge, ArrowRight, Activity } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/command/question-health")({
   component: QuestionHealthPage,
