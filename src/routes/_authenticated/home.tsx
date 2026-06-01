@@ -54,10 +54,27 @@ function AthenaHQ() {
     queryKey: ["my-profile"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      const { data } = await supabase.from("profiles").select("display_name").eq("id", user!.id).maybeSingle();
-      return { name: data?.display_name ?? "operator" };
+      const { data } = await supabase.from("profiles").select("display_name,email").eq("id", user!.id).maybeSingle();
+      const raw = data?.display_name?.trim() || data?.email?.split("@")[0] || user?.email?.split("@")[0] || "operator";
+      const firstName = raw.split(/\s+/)[0];
+      return { name: firstName };
     },
   });
+
+  const { data: myRole } = useQuery({
+    queryKey: ["my-mission-roles"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data } = await supabase.from("mission_members").select("role").eq("user_id", user!.id);
+      const roles = (data ?? []).map((r: any) => r.role);
+      if (roles.includes("admin")) return "admin";
+      if (roles.includes("lead")) return "lead";
+      if (roles.length > 0) return roles[0];
+      return null;
+    },
+  });
+  const isLeader = myRole === "admin" || myRole === "lead";
+
 
   const { data: missions = [] } = useQuery({
     queryKey: ["hq-missions"],
@@ -205,7 +222,11 @@ function AthenaHQ() {
 
           {missions.length === 0 ? (
             <div className="rounded-[12px] border border-dashed border-border bg-surface/50 px-8 py-16 text-center">
-              <p className="text-sm text-muted-foreground">No active missions. Missions are created in Olympus.</p>
+              <p className="text-sm text-muted-foreground">
+                {isLeader
+                  ? "No missions activated yet. Enter Olympus to create and activate your first mission."
+                  : "You haven't been assigned to a mission yet. Your administrator will assign you when a mission is activated."}
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -231,7 +252,9 @@ function AthenaHQ() {
             <div className="px-5 py-4 space-y-3">
               {topSignals.length === 0 && openConflicts.length === 0 ? (
                 <p className="py-6 text-center text-sm text-muted-foreground">
-                  IRIS is quiet across all missions.
+                  {missions.length === 0
+                    ? "IRIS activates when missions are created in Olympus."
+                    : "IRIS is monitoring. Upload documents to The Vault to generate intelligence."}
                 </p>
               ) : (
                 <>

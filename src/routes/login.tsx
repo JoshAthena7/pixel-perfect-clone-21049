@@ -17,15 +17,32 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
+  async function routeAfterAuth(userId: string) {
+    const { data: memberships = [] } = await supabase
+      .from("mission_members")
+      .select("role,mission_id,missions:mission_id(id,status)")
+      .eq("user_id", userId);
+    const active = (memberships ?? []).filter((m: any) => m.missions?.status === "Active");
+    const roles = active.map((m: any) => m.role);
+    const isLeader = roles.includes("admin") || roles.includes("lead");
+    if (!isLeader && active.length === 1) {
+      navigate({ to: "/missions/$missionId/questions", params: { missionId: active[0].mission_id }, replace: true });
+      return;
+    }
+    navigate({ to: "/home", replace: true });
+  }
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
-      if (s?.user) navigate({ to: "/home", replace: true });
+      if (s?.user) routeAfterAuth(s.user.id);
     });
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) navigate({ to: "/home", replace: true });
+      if (data.user) routeAfterAuth(data.user.id);
     });
     return () => subscription.unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
+
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();

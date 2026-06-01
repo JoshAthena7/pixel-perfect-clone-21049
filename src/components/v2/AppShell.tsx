@@ -2,7 +2,7 @@ import { type ReactNode } from "react";
 import { Link, useRouterState, useParams } from "@tanstack/react-router";
 import {
   Home, ListChecks, AlertTriangle, BarChart3, Clock, Megaphone, LogOut,
-  ChevronLeft, LayoutDashboard, FolderOpen, BookOpen, Sparkles, Settings,
+  ChevronLeft, LayoutDashboard, FolderOpen, BookOpen, Settings,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -13,20 +13,26 @@ import { toast } from "sonner";
 
 type Mission = { id: string; name: string; client: string; health: "Green" | "Yellow" | "Red"; submission_date: string | null };
 
+import { Breadcrumbs } from "@/components/v2/Breadcrumbs";
+
 export function AppShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const params = useParams({ strict: false }) as { missionId?: string };
-  const inMission = path.startsWith("/missions/") && params.missionId;
+  const inMission = path.startsWith("/missions/") && !!params.missionId;
 
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground">
       <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-border bg-surface">
         {inMission ? <MissionNav missionId={params.missionId!} /> : <GlobalNav currentPath={path} />}
       </aside>
-      <main className="flex-1 min-w-0">{children}</main>
+      <main className="flex-1 min-w-0">
+        {inMission && <Breadcrumbs />}
+        {children}
+      </main>
     </div>
   );
 }
+
 
 function GlobalNav({ currentPath }: { currentPath: string }) {
   const { data: missions = [] } = useQuery({
@@ -68,20 +74,29 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
         </Section>
 
         <Section label="Missions">
+          {missions.length === 0 && (
+            <div className="px-3 py-2 text-xs text-muted-foreground">No missions assigned.</div>
+          )}
           {missions.map((m) => {
             const score = scoreMap.get(m.id) ?? 0;
+            const days = m.submission_date
+              ? Math.ceil((new Date(m.submission_date).getTime() - Date.now()) / 86400000)
+              : null;
             return (
               <NavItem
                 key={m.id}
-                to="/missions/$missionId/overview"
+                to="/missions/$missionId/questions"
                 params={{ missionId: m.id }}
                 active={currentPath.startsWith(`/missions/${m.id}`)}
               >
                 <span className={`dot dot-${m.health.toLowerCase()} mr-2`} />
                 <span className="truncate flex-1">{m.name}</span>
+                {days !== null && (
+                  <span className="ml-2 text-[10px] text-muted-foreground tabular-nums">{days}d</span>
+                )}
                 {score > 0 && (
                   <span
-                    className={`ml-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-semibold ${
+                    className={`ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-semibold ${
                       score >= 50 ? "bg-destructive/20 text-destructive" :
                       score >= 20 ? "bg-amber-500/20 text-amber-400" :
                       "bg-primary/15 text-primary"
@@ -94,8 +109,8 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
               </NavItem>
             );
           })}
-          
         </Section>
+
 
         <Section label="The Bridge">
           <NavItem to="/command/question-health" icon={<ListChecks className="h-4 w-4" />} active={currentPath === "/command/question-health"}>Question Health</NavItem>
@@ -149,12 +164,12 @@ function MissionNav({ missionId }: { missionId: string }) {
       </div>
       <nav className="flex-1 px-3 py-4 space-y-1">
         <NavItem to="/missions/$missionId/overview" params={{ missionId }} active={path.endsWith("/overview")} icon={<LayoutDashboard className="h-4 w-4" />}>The Brief</NavItem>
-        <NavItem to="/missions/$missionId" params={{ missionId }} active={path === `/missions/${missionId}` || path.startsWith(`/missions/${missionId}/questions`)} icon={<ListChecks className="h-4 w-4" />}>Questions</NavItem>
+        <NavItem to="/missions/$missionId/questions" params={{ missionId }} active={path === `/missions/${missionId}` || path.startsWith(`/missions/${missionId}/questions`)} icon={<ListChecks className="h-4 w-4" />}>Questions</NavItem>
         <NavItem to="/missions/$missionId/library" params={{ missionId }} active={path.endsWith("/library")} icon={<FolderOpen className="h-4 w-4" />}>The Vault</NavItem>
         <NavItem to="/missions/$missionId/briefing" params={{ missionId }} active={path.endsWith("/briefing")} icon={<BookOpen className="h-4 w-4" />}>The Oracle</NavItem>
-        <NavItem to="/missions/$missionId/brief" params={{ missionId }} active={path.endsWith("/brief")} icon={<Sparkles className="h-4 w-4" />}>IRIS Mission Brief</NavItem>
         <NavItem to="/missions/$missionId/settings" params={{ missionId }} active={path.endsWith("/settings")} icon={<Settings className="h-4 w-4" />}>Settings</NavItem>
       </nav>
+
       <SignOut />
     </div>
   );

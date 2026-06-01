@@ -192,7 +192,9 @@ function Section({
           ) : has ? (
             <Markdownish text={row!.content!} />
           ) : (
-            <p className="text-sm text-muted-foreground italic">IRIS is analyzing… click Generate Now to compile this section.</p>
+            <p className="text-sm text-muted-foreground italic">
+              IRIS will generate {title} intelligence once documents are uploaded to The Vault. Click <span className="text-primary">Generate Now</span> above, or add documents in Olympus.
+            </p>
           )}
         </div>
       )}

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { irisMissionPulse } from "@/lib/iris.functions";
 import { AlertTriangle, Activity, GitMerge } from "lucide-react";
@@ -9,6 +9,7 @@ import { AlertTriangle, Activity, GitMerge } from "lucide-react";
 export const Route = createFileRoute("/_authenticated/missions/$missionId/questions/")({
   component: QuestionCommand,
 });
+
 
 type Q = {
   id: string;
@@ -31,18 +32,51 @@ function QuestionCommand() {
   const { missionId } = Route.useParams();
   const [statusFilter, setStatusFilter] = useState<(typeof STATUSES)[number]>("all");
   const [healthFilter, setHealthFilter] = useState<(typeof HEALTHS)[number]>("all");
+  const [scope, setScope] = useState<"mine" | "all" | null>(null);
+
+  const { data: me } = useQuery({
+    queryKey: ["me-id"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user?.id ?? null;
+    },
+  });
+
+  const { data: myRole } = useQuery({
+    queryKey: ["my-mission-role", missionId],
+    queryFn: async () => {
+      if (!me) return null;
+      const { data } = await supabase
+        .from("mission_members").select("role").eq("mission_id", missionId).eq("user_id", me).maybeSingle();
+      return (data?.role as string | null) ?? null;
+    },
+    enabled: !!me,
+  });
+
+  const isLeader = myRole === "admin" || myRole === "lead";
+
+  useEffect(() => {
+    if (scope === null && me !== undefined && myRole !== undefined) {
+      setScope(isLeader ? "all" : "mine");
+    }
+  }, [scope, me, myRole, isLeader]);
+
 
   const { data: questions = [], isLoading } = useQuery({
     queryKey: ["mission-questions", missionId],
     queryFn: async () => {
       const { data } = await supabase
         .from("question_records")
-        .select("id,question_number,section_number,title,health,status,pens_down_date,current_score,target_score,page_limit,evaluation_weight")
+        .select("id,question_number,section_number,title,health,status,pens_down_date,current_score,target_score,page_limit,evaluation_weight,assigned_writer_id,assigned_sme_id")
         .eq("mission_id", missionId)
         .order("sort_order", { ascending: true });
-      return (data ?? []) as Q[];
+      return (data ?? []) as (Q & { assigned_writer_id: string | null; assigned_sme_id: string | null })[];
     },
   });
+
+  const myQuestions = me ? questions.filter((q) => q.assigned_writer_id === me || q.assigned_sme_id === me) : [];
+  const activeScope = scope ?? "all";
+  const scoped = activeScope === "mine" ? myQuestions : questions;
 
   const pulseFn = useServerFn(irisMissionPulse);
   const { data: pulse } = useQuery({
@@ -63,20 +97,23 @@ function QuestionCommand() {
   });
 
   const counts = useMemo(() => {
-    const byStatus: Record<string, number> = { all: questions.length };
-    const byHealth: Record<string, number> = { all: questions.length };
-    for (const q of questions) {
+    const byStatus: Record<string, number> = { all: scoped.length };
+    const byHealth: Record<string, number> = { all: scoped.length };
+    for (const q of scoped) {
       byStatus[q.status] = (byStatus[q.status] ?? 0) + 1;
       byHealth[q.health] = (byHealth[q.health] ?? 0) + 1;
     }
     return { byStatus, byHealth };
-  }, [questions]);
+  }, [scoped]);
 
-  const filtered = questions.filter(
+  const filtered = scoped.filter(
     (q) =>
       (statusFilter === "all" || q.status === statusFilter) &&
       (healthFilter === "all" || q.health === healthFilter),
   );
+
+
+
 
   return (
     <div className="px-8 py-8 max-w-[1400px] mx-auto">
@@ -88,12 +125,29 @@ function QuestionCommand() {
           </p>
         </div>
         <Link
-          to="/missions/$missionId"
+          to="/missions/$missionId/overview"
           params={{ missionId }}
           className="text-xs text-muted-foreground hover:text-foreground"
         >
-          ← Mission Home
+          ← The Brief
         </Link>
+      </div>
+
+
+      {/* Scope toggle */}
+      <div className="mb-4 inline-flex rounded-[10px] border border-border bg-surface p-0.5">
+        <button
+          onClick={() => setScope("mine")}
+          className={`px-3 py-1.5 text-xs rounded-[8px] transition ${activeScope === "mine" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+        >
+          My Questions <span className="opacity-60">({myQuestions.length})</span>
+        </button>
+        <button
+          onClick={() => setScope("all")}
+          className={`px-3 py-1.5 text-xs rounded-[8px] transition ${activeScope === "all" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+        >
+          All Questions <span className="opacity-60">({questions.length})</span>
+        </button>
       </div>
 
       {/* Filter pills */}
@@ -125,6 +179,7 @@ function QuestionCommand() {
           ))}
         </FilterRow>
       </div>
+
 
       {/* IRIS signal banner */}
       {(pulse || openConflicts > 0) && (
@@ -163,13 +218,19 @@ function QuestionCommand() {
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center">
             <p className="text-sm text-foreground/90">
-              {questions.length === 0 ? "No questions yet." : "No questions match these filters."}
+              {questions.length === 0
+                ? "No questions have been created for this mission yet."
+                : activeScope === "mine" && myQuestions.length === 0
+                ? "You haven't been assigned any questions on this mission."
+                : "No questions match these filters."}
             </p>
-            {questions.length === 0 && (
-              <p className="mt-1 text-xs text-muted-foreground">
-                Upload the RFP to auto-create question records, or add questions manually.
-              </p>
-            )}
+            <p className="mt-1 text-xs text-muted-foreground">
+              {questions.length === 0
+                ? "An administrator can create questions in Olympus."
+                : activeScope === "mine" && myQuestions.length === 0
+                ? "Contact your mission administrator."
+                : null}
+            </p>
           </div>
         ) : (
           <table className="w-full text-sm">
