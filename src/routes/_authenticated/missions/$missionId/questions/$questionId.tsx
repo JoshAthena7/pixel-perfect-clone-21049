@@ -276,14 +276,16 @@ function QuestionWorkspace() {
               <option value="complete">Complete</option>
             </select>
             {q.current_score != null && (
-              <div className="rounded-md border border-border bg-surface px-3 py-1.5 text-xs">
-                Score <span className="font-semibold text-primary">{q.current_score}</span>
-                <span className="text-muted-foreground"> / {q.target_score ?? 5}</span>
+              <div className="rounded-md border border-border bg-surface px-3 py-1.5 text-xs inline-flex items-center gap-2">
+                <span>Score <span className="font-semibold text-primary">{q.current_score}</span>
+                <span className="text-muted-foreground"> / {q.target_score ?? 5}</span></span>
+                <ScoreTrend questionId={questionId} />
               </div>
             )}
           </div>
         </div>
       </header>
+
 
       {/* Two-column body */}
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] overflow-hidden">
