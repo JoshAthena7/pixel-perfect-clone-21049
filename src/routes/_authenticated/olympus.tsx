@@ -1,9 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, Activity, Settings as SettingsIcon, AlertCircle } from "lucide-react";
+import { Shield, Activity, Settings as SettingsIcon, AlertCircle, Plus, ArrowRight, X, Zap } from "lucide-react";
 import { relativeTime } from "@/lib/signals";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/olympus")({
   component: OlympusPage,
