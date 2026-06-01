@@ -234,14 +234,27 @@ function QuestionWorkspace() {
     );
   }
 
-  const days = q.pens_down_date
-    ? Math.ceil((new Date(q.pens_down_date).getTime() - Date.now()) / 86400000)
-    : null;
+  const pens = pensDownInfo(q.pens_down_date);
   const writer = q.assigned_writer_id ? peopleById[q.assigned_writer_id] : null;
   const sme = q.assigned_sme_id ? peopleById[q.assigned_sme_id] : null;
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen relative">
+      {writeMode && (
+        <div className="absolute top-2 left-3 z-30 text-[10px] uppercase tracking-[0.18em] text-primary/80">
+          Write Mode
+        </div>
+      )}
+      {writeMode && (
+        <button
+          onClick={() => setWriteMode(false)}
+          className="absolute top-2 right-3 z-30 inline-flex items-center gap-1 rounded-md border border-border bg-surface/80 px-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground"
+          title="Exit Write Mode (W)"
+        >
+          <Minimize2 className="h-3 w-3" /> Exit Write Mode
+        </button>
+      )}
+
       {/* Header */}
       <header className="shrink-0 border-b border-border bg-surface/60 backdrop-blur px-8 py-4">
         <div className="flex items-center justify-between gap-4">
@@ -260,13 +273,6 @@ function QuestionWorkspace() {
                 <span className="font-mono">{q.question_number}</span>
                 {q.section_number && <><span>·</span><span>§ {q.section_number}</span></>}
                 {q.page_limit && <><span>·</span><span>{q.page_limit}p</span></>}
-                {q.pens_down_date && (
-                  <><span>·</span>
-                    <span className={days !== null && days <= 3 ? "text-red" : days !== null && days <= 7 ? "text-yellow" : ""}>
-                      Pens down {new Date(q.pens_down_date).toLocaleDateString()} {days !== null && `(${days}d)`}
-                    </span>
-                  </>
-                )}
               </div>
               <h1 className="mt-0.5 text-base font-semibold truncate">{q.title}</h1>
               {(writer || sme) && (
@@ -278,6 +284,15 @@ function QuestionWorkspace() {
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            {pens && (
+              <div
+                className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium ${pensDownPillClass(pens.tone)} ${pens.urgent ? "pens-urgent" : ""}`}
+                title={`Pens Down ${pens.date.toLocaleDateString()}`}
+              >
+                <Calendar className="h-3.5 w-3.5" />
+                Pens Down: {pens.long}
+              </div>
+            )}
             <select
               value={q.status}
               onChange={(e) => updateStatus.mutate(e.target.value)}
@@ -295,15 +310,23 @@ function QuestionWorkspace() {
                 <ScoreTrend questionId={questionId} />
               </div>
             )}
+            <button
+              onClick={() => setWriteMode((v) => !v)}
+              title={writeMode ? "Exit Write Mode (W)" : "Enter Write Mode (W)"}
+              className="rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs inline-flex items-center gap-1.5 hover:border-primary/40 hover:text-primary"
+            >
+              {writeMode ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+              <span className="hidden md:inline">{writeMode ? "Exit" : "Write Mode"}</span>
+            </button>
           </div>
         </div>
       </header>
 
 
       {/* Two-column body */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] overflow-hidden">
+      <div className="studio-body flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] overflow-hidden">
         {/* LEFT */}
-        <div className="overflow-y-auto border-r border-border">
+        <div className="studio-left overflow-y-auto border-r border-border">
           <div className="px-8 py-6 space-y-6">
             <Card title="Question Details" icon={<FileText className="h-4 w-4" />} action={
               <button
