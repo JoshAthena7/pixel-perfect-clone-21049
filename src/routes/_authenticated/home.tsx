@@ -442,6 +442,39 @@ function MissionPill({ name }: { name: string }) {
   );
 }
 
+// ─── ASK IRIS BAR ──────────────────────────────────────────────────────────
+
+function AskIrisBar() {
+  const [value, setValue] = useState("");
+  const [focused, setFocused] = useState(false);
+  const active = focused || value.length > 0;
+  return (
+    <section
+      className={`iris-panel rounded-[12px] border bg-surface px-4 py-3 flex items-center gap-3 transition-colors ${
+        active ? "border-primary/50" : "border-border"
+      }`}
+    >
+      <Sparkles className={`h-4 w-4 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
+      <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground hidden sm:inline">
+        Ask IRIS
+      </span>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        placeholder="Ask IRIS about any mission, signal, or policy…"
+        className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+      />
+      {active && <IrisWaveform />}
+      <kbd className="hidden md:inline-flex items-center rounded border border-border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground mono">
+        /
+      </kbd>
+    </section>
+  );
+}
+
 // ─── HORIZON FEED ──────────────────────────────────────────────────────────
 
 function HorizonFeed({ items, missionCount }: { items: IntelItem[]; missionCount: number }) {
