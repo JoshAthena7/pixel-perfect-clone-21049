@@ -41,12 +41,25 @@ function OverviewPage() {
   });
 
   const { data: signals = [] } = useQuery({
-    queryKey: ["overview-signals", missionId],
+    queryKey: ["overview-iris-alerts", missionId],
     queryFn: async () => {
       const { data } = await supabase
         .from("signals")
         .select("id,signal_type,signal_title,severity,created_at,related_question_id")
-        .eq("mission_id", missionId).eq("status", "open")
+        .eq("mission_id", missionId)
+        .in("severity", ["warning", "critical"])
+        .order("created_at", { ascending: false }).limit(5);
+      return data ?? [];
+    },
+  });
+
+  const { data: leadershipNotes = [] } = useQuery({
+    queryKey: ["overview-leadership-notes", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("broadcasts")
+        .select("id,text,from_name,created_at")
+        .eq("mission_id", missionId)
         .order("created_at", { ascending: false }).limit(6);
       return data ?? [];
     },
@@ -130,14 +143,28 @@ function OverviewPage() {
       </section>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Recent signals */}
+      {/* Primary CTAs */}
+      <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
+        <PrimaryCta to="/missions/$missionId" params={{ missionId }} label="Enter Mission Studio" sub="Where writers work" icon={<ListChecks className="h-5 w-5" />} tone="primary" />
+        <PrimaryCta to="/missions/$missionId/library" params={{ missionId }} label="Open Library" sub="Source documents" icon={<FolderOpen className="h-5 w-5" />} />
+        <PrimaryCta to="/missions/$missionId/briefing" params={{ missionId }} label="Open Briefing Book" sub="IRIS intelligence" icon={<BookOpen className="h-5 w-5" />} />
+      </section>
+
+      {/* Secondary nav */}
+      <section className="grid grid-cols-2 gap-3 md:grid-cols-2">
+        <QuickLink to="/missions/$missionId/brief" params={{ missionId }} label="IRIS Brief" icon={<Sparkles className="h-4 w-4" />} />
+        <QuickLink to="/missions/$missionId/settings" params={{ missionId }} label="Settings" icon={<Settings className="h-4 w-4" />} />
+      </section>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Latest IRIS Alerts */}
         <div className="lg:col-span-2 rounded-[12px] border border-border bg-surface">
           <div className="border-b border-border px-5 py-4">
-            <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Recent Signals</h2>
+            <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Latest IRIS Alerts</h2>
           </div>
           <ul className="divide-y divide-border">
             {signals.length === 0 && (
-              <li className="px-5 py-8 text-center text-sm text-muted-foreground">No open signals.</li>
+              <li className="px-5 py-8 text-center text-sm text-muted-foreground">IRIS has no alerts for this mission.</li>
             )}
             {signals.map((s: any) => (
               <li key={s.id} className="px-5 py-3 flex items-start gap-3">
