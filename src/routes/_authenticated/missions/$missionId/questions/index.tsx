@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { irisMissionPulse } from "@/lib/iris.functions";
+import { AlertTriangle, Activity, GitMerge } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/questions/")({
   component: QuestionCommand,
@@ -38,6 +41,24 @@ function QuestionCommand() {
         .eq("mission_id", missionId)
         .order("sort_order", { ascending: true });
       return (data ?? []) as Q[];
+    },
+  });
+
+  const pulseFn = useServerFn(irisMissionPulse);
+  const { data: pulse } = useQuery({
+    queryKey: ["mission-pulse", missionId],
+    queryFn: () => pulseFn({ data: { missionId } }),
+    refetchInterval: 60_000,
+  });
+  const { data: openConflicts = 0 } = useQuery({
+    queryKey: ["mission-conflicts-count", missionId],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("alignment_conflicts")
+        .select("id", { count: "exact", head: true })
+        .eq("mission_id", missionId)
+        .is("resolved_at", null);
+      return count ?? 0;
     },
   });
 
@@ -104,6 +125,37 @@ function QuestionCommand() {
           ))}
         </FilterRow>
       </div>
+
+      {/* IRIS signal banner */}
+      {(pulse || openConflicts > 0) && (
+        <div className="mb-4 grid grid-cols-2 md:grid-cols-4 gap-2">
+          <SignalStat
+            icon={<AlertTriangle className="h-3.5 w-3.5" />}
+            label="Critical"
+            value={pulse?.counts.critical ?? 0}
+            tone={pulse?.counts.critical ? "red" : "muted"}
+          />
+          <SignalStat
+            icon={<Activity className="h-3.5 w-3.5" />}
+            label="Warnings"
+            value={pulse?.counts.warning ?? 0}
+            tone={pulse?.counts.warning ? "yellow" : "muted"}
+          />
+          <SignalStat
+            icon={<Activity className="h-3.5 w-3.5" />}
+            label="Open Signals"
+            value={pulse?.counts.total ?? 0}
+            tone="primary"
+          />
+          <SignalStat
+            icon={<GitMerge className="h-3.5 w-3.5" />}
+            label="Open Conflicts"
+            value={openConflicts}
+            tone={openConflicts > 0 ? "yellow" : "muted"}
+          />
+        </div>
+      )}
+
 
       <div className="rounded-[10px] border border-border bg-surface overflow-hidden">
         {isLoading ? (
