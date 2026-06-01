@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   ArrowLeft, Sparkles, MessageSquare, AlertTriangle, FileText,
-  Target, Calendar, User as UserIcon, Send, CheckCircle2,
+  Target, Calendar, User as UserIcon, Send, CheckCircle2, Shield, Trophy, Link2,
 } from "lucide-react";
 
 export const Route = createFileRoute(
@@ -22,10 +22,12 @@ type Question = {
   title: string;
   question_text: string;
   requirements: string[] | null;
+  mandatory_language: string[] | null;
   scoring_criteria: string | null;
   evaluation_weight: number | null;
   page_limit: number | null;
   word_limit: number | null;
+  formatting_rules: string | null;
   pens_down_date: string | null;
   status: string;
   health: "green" | "yellow" | "red";
@@ -68,16 +70,20 @@ type Conflict = {
   question_b: { question_number: string; title: string } | null;
 };
 
+type Profile = { id: string; display_name: string | null; email: string | null };
+type Gate = { id: string; gate_name: string; gate_order: number; target_date: string | null };
+type GateStatus = { gate_id: string; status: string; completed_at: string | null };
+type WinTheme = { id: string; title: string; description: string | null; key_message: string | null; question_ids: string[] | null };
+
 function QuestionWorkspace() {
   const { missionId, questionId } = Route.useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
 
-  // Esc → back to Command
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !(e.target as HTMLElement)?.closest("textarea,input")) {
-        navigate({ to: "/missions/$missionId", params: { missionId } });
+      if (e.key === "Escape" && !(e.target as HTMLElement)?.closest("textarea,input,select")) {
+        navigate({ to: "/missions/$missionId/questions", params: { missionId } });
       }
     };
     window.addEventListener("keydown", onKey);
@@ -88,23 +94,29 @@ function QuestionWorkspace() {
     queryKey: ["question", questionId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("question_records")
-        .select("*")
-        .eq("id", questionId)
-        .maybeSingle();
+        .from("question_records").select("*").eq("id", questionId).maybeSingle();
       if (error) throw error;
       return data as Question | null;
     },
   });
 
+  const assignedIds = [q?.assigned_writer_id, q?.assigned_sme_id].filter(Boolean) as string[];
+  const { data: people = [] } = useQuery({
+    queryKey: ["question-people", questionId, assignedIds.join(",")],
+    enabled: assignedIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("id,display_name,email").in("id", assignedIds);
+      return (data ?? []) as Profile[];
+    },
+  });
+  const peopleById = Object.fromEntries(people.map((p) => [p.id, p]));
+
   const { data: collab = [] } = useQuery({
     queryKey: ["question-collab", questionId],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("question_collaboration")
+      const { data } = await supabase.from("question_collaboration")
         .select("id,entry_type,body,author_id,author_name,resolved,created_at")
-        .eq("question_id", questionId)
-        .order("created_at", { ascending: false });
+        .eq("question_id", questionId).order("created_at", { ascending: false });
       return (data ?? []) as Collab[];
     },
   });
@@ -112,11 +124,8 @@ function QuestionWorkspace() {
   const { data: intel = null } = useQuery({
     queryKey: ["question-intel", questionId],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("question_intelligence")
-        .select("*")
-        .eq("question_id", questionId)
-        .maybeSingle();
+      const { data } = await supabase.from("question_intelligence")
+        .select("*").eq("question_id", questionId).maybeSingle();
       return (data as Intel | null) ?? null;
     },
   });
@@ -126,17 +135,44 @@ function QuestionWorkspace() {
     queryFn: async () => {
       const { data } = await supabase
         .from("alignment_conflicts")
-        .select(`
-          id,conflict_type,description,resolved,question_a_id,question_b_id,
+        .select(`id,conflict_type,description,resolved,question_a_id,question_b_id,
           question_a:question_records!alignment_conflicts_question_a_id_fkey(question_number,title),
-          question_b:question_records!alignment_conflicts_question_b_id_fkey(question_number,title)
-        `)
+          question_b:question_records!alignment_conflicts_question_b_id_fkey(question_number,title)`)
         .or(`question_a_id.eq.${questionId},question_b_id.eq.${questionId}`);
       return (data ?? []) as unknown as Conflict[];
     },
   });
 
-  // Realtime: collab updates
+  const { data: gates = [] } = useQuery({
+    queryKey: ["mission-gates", missionId],
+    queryFn: async () => {
+      const { data } = await supabase.from("mission_review_gates")
+        .select("id,gate_name,gate_order,target_date")
+        .eq("mission_id", missionId).order("gate_order");
+      return (data ?? []) as Gate[];
+    },
+  });
+
+  const { data: gateStatuses = [] } = useQuery({
+    queryKey: ["question-gates", questionId],
+    queryFn: async () => {
+      const { data } = await supabase.from("question_gate_status")
+        .select("gate_id,status,completed_at").eq("question_id", questionId);
+      return (data ?? []) as GateStatus[];
+    },
+  });
+  const gateStatusMap = Object.fromEntries(gateStatuses.map((g) => [g.gate_id, g]));
+
+  const { data: winThemes = [] } = useQuery({
+    queryKey: ["mission-winthemes", missionId],
+    queryFn: async () => {
+      const { data } = await supabase.from("win_themes")
+        .select("id,title,description,key_message,question_ids").eq("mission_id", missionId);
+      return (data ?? []) as WinTheme[];
+    },
+  });
+  const connectedThemes = winThemes.filter((w) => (w.question_ids ?? []).includes(questionId));
+
   useEffect(() => {
     const ch = supabase
       .channel(`collab-${questionId}`)
@@ -158,14 +194,12 @@ function QuestionWorkspace() {
     },
   });
 
-  if (isLoading) {
-    return <div className="px-8 py-12 text-sm text-muted-foreground">Loading question…</div>;
-  }
+  if (isLoading) return <div className="px-8 py-12 text-sm text-muted-foreground">Loading question…</div>;
   if (!q) {
     return (
       <div className="px-8 py-12 text-sm">
         Question not found.{" "}
-        <Link to="/missions/$missionId" params={{ missionId }} className="text-primary hover:underline">Back</Link>
+        <Link to="/missions/$missionId/questions" params={{ missionId }} className="text-primary hover:underline">Back</Link>
       </div>
     );
   }
@@ -173,6 +207,8 @@ function QuestionWorkspace() {
   const days = q.pens_down_date
     ? Math.ceil((new Date(q.pens_down_date).getTime() - Date.now()) / 86400000)
     : null;
+  const writer = q.assigned_writer_id ? peopleById[q.assigned_writer_id] : null;
+  const sme = q.assigned_sme_id ? peopleById[q.assigned_sme_id] : null;
 
   return (
     <div className="flex flex-col h-screen">
@@ -181,11 +217,10 @@ function QuestionWorkspace() {
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 min-w-0">
             <Link
-              to="/missions/$missionId"
-              params={{ missionId }}
+              to="/missions/$missionId/questions" params={{ missionId }}
               className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
             >
-              <ArrowLeft className="h-3.5 w-3.5" /> Command
+              <ArrowLeft className="h-3.5 w-3.5" /> Questions
               <span className="ml-2 hidden md:inline text-[10px] uppercase tracking-wider opacity-60">Esc</span>
             </Link>
             <div className="h-5 w-px bg-border" />
@@ -194,8 +229,22 @@ function QuestionWorkspace() {
                 <span className={`dot dot-${q.health}`} />
                 <span className="font-mono">{q.question_number}</span>
                 {q.section_number && <><span>·</span><span>§ {q.section_number}</span></>}
+                {q.page_limit && <><span>·</span><span>{q.page_limit}p</span></>}
+                {q.pens_down_date && (
+                  <><span>·</span>
+                    <span className={days !== null && days <= 3 ? "text-red" : days !== null && days <= 7 ? "text-yellow" : ""}>
+                      Pens down {new Date(q.pens_down_date).toLocaleDateString()} {days !== null && `(${days}d)`}
+                    </span>
+                  </>
+                )}
               </div>
               <h1 className="mt-0.5 text-base font-semibold truncate">{q.title}</h1>
+              {(writer || sme) && (
+                <div className="mt-1 flex items-center gap-3 text-[11px] text-muted-foreground">
+                  {writer && <span><UserIcon className="inline h-3 w-3 mr-1" />Writer: <span className="text-foreground/80">{writer.display_name || writer.email}</span></span>}
+                  {sme && <span><Shield className="inline h-3 w-3 mr-1" />SME: <span className="text-foreground/80">{sme.display_name || sme.email}</span></span>}
+                </div>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -221,48 +270,71 @@ function QuestionWorkspace() {
 
       {/* Two-column body */}
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] overflow-hidden">
-        {/* LEFT — question details + health + collaboration */}
+        {/* LEFT */}
         <div className="overflow-y-auto border-r border-border">
           <div className="px-8 py-6 space-y-6">
             <Card title="Question Details" icon={<FileText className="h-4 w-4" />}>
               <div className="space-y-4 text-sm">
                 <p className="whitespace-pre-wrap leading-relaxed">{q.question_text}</p>
                 <div className="grid grid-cols-2 gap-3 text-xs">
-                  <Meta label="Pens Down" value={q.pens_down_date ? `${new Date(q.pens_down_date).toLocaleDateString()} ${days !== null ? `(${days}d)` : ""}` : "—"} icon={<Calendar className="h-3 w-3" />} />
-                  <Meta label="Page Limit" value={q.page_limit ? `${q.page_limit} pages` : "—"} icon={<FileText className="h-3 w-3" />} />
                   <Meta label="Weight" value={q.evaluation_weight ? `${q.evaluation_weight}%` : "—"} icon={<Target className="h-3 w-3" />} />
-                  <Meta label="Word Limit" value={q.word_limit ? `${q.word_limit.toLocaleString()}` : "—"} icon={<FileText className="h-3 w-3" />} />
+                  <Meta label="Word Limit" value={q.word_limit ? q.word_limit.toLocaleString() : "—"} icon={<FileText className="h-3 w-3" />} />
+                  <Meta label="Page Limit" value={q.page_limit ? `${q.page_limit} pages` : "—"} icon={<FileText className="h-3 w-3" />} />
+                  <Meta label="Pens Down" value={q.pens_down_date ? new Date(q.pens_down_date).toLocaleDateString() : "—"} icon={<Calendar className="h-3 w-3" />} />
                 </div>
+
                 {q.requirements && q.requirements.length > 0 && (
-                  <div>
-                    <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-2">Requirements</div>
+                  <Block label="Requirements">
                     <ul className="space-y-1.5">
                       {q.requirements.map((r, i) => (
                         <li key={i} className="flex gap-2 text-xs"><span className="text-primary mt-0.5">›</span><span className="text-foreground/80">{r}</span></li>
                       ))}
                     </ul>
-                  </div>
+                  </Block>
                 )}
+
+                {q.mandatory_language && q.mandatory_language.length > 0 && (
+                  <Block label="Mandatory Language">
+                    <ul className="space-y-1.5">
+                      {q.mandatory_language.map((m, i) => (
+                        <li key={i} className="rounded-md border border-red/30 bg-red/5 px-3 py-2 text-xs text-foreground/90">
+                          <span className="text-red mr-1.5">⚠</span>{m}
+                        </li>
+                      ))}
+                    </ul>
+                  </Block>
+                )}
+
                 {q.scoring_criteria && (
-                  <div>
-                    <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-1.5">Scoring Criteria</div>
+                  <Block label="Scoring Criteria">
                     <p className="text-xs text-foreground/80 whitespace-pre-wrap">{q.scoring_criteria}</p>
-                  </div>
+                  </Block>
+                )}
+
+                {q.formatting_rules && (
+                  <Block label="Formatting Rules">
+                    <p className="text-xs text-foreground/80 whitespace-pre-wrap">{q.formatting_rules}</p>
+                  </Block>
                 )}
               </div>
             </Card>
 
-            <HealthPanel question={q} />
-
             <CollabPanel collab={collab} questionId={questionId} missionId={missionId} />
+
+            <HealthPanel question={q} gates={gates} gateStatusMap={gateStatusMap} />
           </div>
         </div>
 
-        {/* RIGHT — IRIS intelligence + alignment */}
+        {/* RIGHT */}
         <div className="overflow-y-auto bg-background/40">
           <div className="px-8 py-6 space-y-6">
             <IntelPanel intel={intel} questionId={questionId} missionId={missionId} />
-            <AlignmentPanel conflicts={conflicts} missionId={missionId} currentId={questionId} />
+            <AlignmentPanel
+              conflicts={conflicts}
+              missionId={missionId}
+              currentId={questionId}
+              winThemes={connectedThemes}
+            />
           </div>
         </div>
       </div>
@@ -284,6 +356,15 @@ function Card({ title, icon, action, children }: { title: string; icon?: React.R
   );
 }
 
+function Block({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-1.5">{label}</div>
+      {children}
+    </div>
+  );
+}
+
 function Meta({ label, value, icon }: { label: string; value: string; icon?: React.ReactNode }) {
   return (
     <div className="rounded-md border border-border/60 bg-background/40 px-3 py-2">
@@ -293,13 +374,16 @@ function Meta({ label, value, icon }: { label: string; value: string; icon?: Rea
   );
 }
 
-function HealthPanel({ question }: { question: Question }) {
+function HealthPanel({
+  question, gates, gateStatusMap,
+}: { question: Question; gates: Gate[]; gateStatusMap: Record<string, GateStatus> }) {
   const drivers = (question.health_drivers ?? {}) as Record<string, string>;
   const entries = Object.entries(drivers);
+  const completed = gates.filter((g) => gateStatusMap[g.id]?.status === "passed").length;
   return (
     <Card title="Question Health" icon={<span className={`dot dot-${question.health}`} />}>
       <div className="flex items-center gap-4">
-        <div className={`flex h-14 w-14 items-center justify-center rounded-full text-sm font-semibold uppercase text-white`} style={{ background: `var(--${question.health})` }}>
+        <div className="flex h-14 w-14 items-center justify-center rounded-full text-sm font-semibold uppercase text-white" style={{ background: `var(--${question.health})` }}>
           {question.health[0]}
         </div>
         <div className="text-xs text-muted-foreground">
@@ -308,6 +392,7 @@ function HealthPanel({ question }: { question: Question }) {
           {question.health === "red" && "Critical — blocking issues need resolution."}
         </div>
       </div>
+
       {entries.length > 0 && (
         <ul className="mt-4 space-y-1.5 border-t border-border pt-3 text-xs">
           {entries.map(([k, v]) => (
@@ -317,6 +402,27 @@ function HealthPanel({ question }: { question: Question }) {
             </li>
           ))}
         </ul>
+      )}
+
+      {gates.length > 0 && (
+        <div className="mt-4 border-t border-border pt-3">
+          <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-2">
+            <span>Review Gates</span>
+            <span>{completed} / {gates.length} passed</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            {gates.map((g) => {
+              const st = gateStatusMap[g.id]?.status ?? "pending";
+              const color = st === "passed" ? "var(--green)" : st === "failed" ? "var(--red)" : st === "in_review" ? "var(--yellow)" : "var(--border)";
+              return (
+                <div key={g.id} className="flex-1 group relative">
+                  <div className="h-1.5 rounded-full" style={{ background: color }} />
+                  <div className="mt-1 text-[10px] text-muted-foreground truncate">{g.gate_name}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       )}
     </Card>
   );
@@ -428,11 +534,10 @@ function IntelPanel({ intel, questionId, missionId }: { intel: Intel | null; que
   const qc = useQueryClient();
   const generate = useMutation({
     mutationFn: async () => {
-      // Step 9 ships the real IRIS function. Until then, write a stub cache row.
       const stub = {
         question_id: questionId,
         mission_id: missionId,
-        iris_brief: "IRIS intelligence generation will activate in the next phase (Step 9: iris-question-brief). When live, this panel will surface a synthesized brief tying state priorities, procurement signals, and recent research to this specific question.",
+        iris_brief: "IRIS intelligence generation will activate in Step 9 (iris-question-brief). When live, this panel will surface a synthesized brief tying state priorities, procurement signals, and recent research to this specific question.",
         state_priorities: null,
         procurement_priorities: null,
         competitor_signals: null,
@@ -500,40 +605,76 @@ function IntelBlock({ label, body }: { label: string; body: string }) {
   );
 }
 
-function AlignmentPanel({ conflicts, missionId, currentId }: { conflicts: Conflict[]; missionId: string; currentId: string }) {
+function AlignmentPanel({
+  conflicts, missionId, currentId, winThemes,
+}: { conflicts: Conflict[]; missionId: string; currentId: string; winThemes: WinTheme[] }) {
   const open = conflicts.filter((c) => !c.resolved);
   return (
-    <Card title="Strategy Alignment" icon={<AlertTriangle className="h-4 w-4" />}>
-      {open.length === 0 ? (
-        <div className="flex items-center gap-2 py-3 text-xs text-muted-foreground">
-          <CheckCircle2 className="h-4 w-4 text-green" />
-          No alignment conflicts detected for this question.
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {open.map((c) => {
-            const other = c.question_a_id === currentId ? c.question_b : c.question_a;
-            const otherId = c.question_a_id === currentId ? c.question_b_id : c.question_a_id;
-            return (
-              <div key={c.id} className="rounded-md border border-yellow/30 bg-yellow/5 px-3 py-2">
-                <div className="flex items-center justify-between text-[10px] uppercase tracking-wider">
-                  <span className="text-yellow font-semibold">{c.conflict_type.replace(/_/g, " ")}</span>
+    <Card
+      title="Strategy Alignment"
+      icon={<AlertTriangle className="h-4 w-4" />}
+      action={
+        <Link
+          to="/command/alignment"
+          className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1 text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground hover:border-primary/40"
+        >
+          <Link2 className="h-3 w-3" /> Alignment Map
+        </Link>
+      }
+    >
+      <div className="space-y-4">
+        <div>
+          <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-2 flex items-center gap-1.5">
+            <Trophy className="h-3 w-3" /> Connected Win Themes
+          </div>
+          {winThemes.length === 0 ? (
+            <p className="text-xs text-muted-foreground py-1">No win themes connected to this question yet.</p>
+          ) : (
+            <div className="space-y-1.5">
+              {winThemes.map((w) => (
+                <div key={w.id} className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2">
+                  <div className="text-xs font-semibold text-foreground">{w.title}</div>
+                  {w.key_message && <p className="mt-0.5 text-[11px] text-foreground/70 italic">"{w.key_message}"</p>}
                 </div>
-                {c.description && <p className="mt-1 text-xs text-foreground/90">{c.description}</p>}
-                {other && (
-                  <Link
-                    to="/missions/$missionId/questions/$questionId"
-                    params={{ missionId, questionId: otherId }}
-                    className="mt-2 inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-primary hover:underline"
-                  >
-                    ↔ {other.question_number} · {other.title}
-                  </Link>
-                )}
-              </div>
-            );
-          })}
+              ))}
+            </div>
+          )}
         </div>
-      )}
+
+        <div className="border-t border-border pt-3">
+          <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-2">Related Questions / Conflicts</div>
+          {open.length === 0 ? (
+            <div className="flex items-center gap-2 py-1 text-xs text-muted-foreground">
+              <CheckCircle2 className="h-4 w-4 text-green" />
+              No alignment conflicts detected.
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {open.map((c) => {
+                const other = c.question_a_id === currentId ? c.question_b : c.question_a;
+                const otherId = c.question_a_id === currentId ? c.question_b_id : c.question_a_id;
+                return (
+                  <div key={c.id} className="rounded-md border border-yellow/30 bg-yellow/5 px-3 py-2">
+                    <div className="flex items-center justify-between text-[10px] uppercase tracking-wider">
+                      <span className="text-yellow font-semibold">{c.conflict_type.replace(/_/g, " ")}</span>
+                    </div>
+                    {c.description && <p className="mt-1 text-xs text-foreground/90">{c.description}</p>}
+                    {other && (
+                      <Link
+                        to="/missions/$missionId/questions/$questionId"
+                        params={{ missionId, questionId: otherId }}
+                        className="mt-2 inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-primary hover:underline"
+                      >
+                        ↔ {other.question_number} · {other.title}
+                      </Link>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
     </Card>
   );
 }
