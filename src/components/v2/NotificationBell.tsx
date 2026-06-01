@@ -108,11 +108,12 @@ export function NotificationBell() {
           <div className="modal-backdrop" />
           <aside
             onClick={(e) => e.stopPropagation()}
-            className="absolute right-0 top-0 h-full w-[380px] max-w-[90vw] border-l border-border bg-surface shadow-2xl flex flex-col animate-in slide-in-from-right duration-200"
+            className="iris-panel absolute right-0 top-0 h-full w-[380px] max-w-[90vw] border-l border-border bg-surface shadow-2xl flex flex-col animate-in slide-in-from-right duration-200"
           >
             <header className="flex items-center justify-between border-b border-border px-5 py-4">
               <div className="flex items-center gap-2">
-                <h2 className="h2-label">IRIS Alerts</h2>
+                <span className="iris-dot" />
+                <h2 className="iris-label">IRIS Alerts</h2>
                 {unreadCount > 0 && (
                   <span className="inline-flex h-4 min-w-[18px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-destructive-foreground">
                     {unreadCount}

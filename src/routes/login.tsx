@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Sign in — Athena Command V2" }] }),
+  head: () => ({ meta: [{ title: "Sign in — Athena Command" }] }),
   component: LoginPage,
 });
 

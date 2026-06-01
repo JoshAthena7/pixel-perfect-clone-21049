@@ -148,8 +148,7 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/15 text-sm font-bold text-primary">Ā</div>
           <div className="flex-1 min-w-0">
-            <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Athena</div>
-            <div className="text-sm font-semibold tracking-wide">Command V2</div>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/90">Athena Command</div>
           </div>
           <AttentionBadge variant="compact" />
         </div>
@@ -162,7 +161,7 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
 
         <Section label="Missions">
           {missions.length === 0 && (
-            <div className="px-3 py-2 text-xs text-muted-foreground">No missions assigned.</div>
+            <div className="px-3 py-2 text-xs text-muted-foreground">You'll be assigned to a mission when work begins. Check back soon.</div>
           )}
           {missions.map((m) => {
             const score = scoreMap.get(m.id) ?? 0;

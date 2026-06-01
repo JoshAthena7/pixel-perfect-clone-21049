@@ -6,7 +6,7 @@ import { irisLeadershipAttention } from "@/lib/iris.functions";
 import { AttentionBadge } from "@/components/v2/AttentionBadge";
 import { signalTypeLabel, relativeTime } from "@/lib/signals";
 import { MissionGridSkeleton, QuestionListSkeleton } from "@/components/v2/Skeletons";
-import { Activity, AlertTriangle, AlertCircle, ArrowRight, GitBranch, Radio, Megaphone, Newspaper, CalendarClock, DoorOpen, ListChecks } from "lucide-react";
+import { Activity, AlertTriangle, AlertCircle, ArrowRight, GitBranch, Megaphone, Newspaper, CalendarClock, DoorOpen, ListChecks } from "lucide-react";
 import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/_authenticated/home")({
@@ -54,9 +54,9 @@ const HEALTH_BORDER: Record<string, string> = {
   Red: "border-l-destructive",
 };
 const HEALTH_GLOW: Record<string, string> = {
-  Green: "hover:shadow-[0_0_0_1px_rgb(16_185_129/0.35),0_18px_60px_-30px_rgb(16_185_129/0.55)]",
-  Yellow: "hover:shadow-[0_0_0_1px_rgb(251_191_36/0.35),0_18px_60px_-30px_rgb(251_191_36/0.55)]",
-  Red: "hover:shadow-[0_0_0_1px_rgb(239_68_68/0.4),0_18px_60px_-30px_rgb(239_68_68/0.6)]",
+  Green: "hover:shadow-[0_8px_24px_rgba(34,197,94,0.15)]",
+  Yellow: "hover:shadow-[0_8px_24px_rgba(245,158,11,0.15)]",
+  Red: "hover:shadow-[0_8px_24px_rgba(239,68,68,0.15)]",
 };
 const HEALTH_PILL: Record<string, string> = {
   Green: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
@@ -292,8 +292,8 @@ function AthenaHQ() {
             ) : myAssignments.length === 0 ? (
               <EmptyState
                 icon={<ListChecks className="h-10 w-10" />}
-                title="No questions assigned yet."
-                subtitle="Your mission lead will assign you when work is ready."
+                title="Your questions will appear here once your lead assigns them in Olympus."
+                subtitle="Check back soon — you'll be notified when work is ready."
               />
             ) : (
               <ul className="divide-y divide-border rounded-[12px] border border-border bg-surface">
@@ -339,11 +339,11 @@ function AthenaHQ() {
         {/* INTEL FEED + ACTIVITY */}
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
           {/* IRIS HQ Brief */}
-          <div className="lg:col-span-3 rounded-[12px] border border-border bg-surface">
+          <div className="lg:col-span-3 iris-panel rounded-[12px] border border-border bg-surface">
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
               <div className="flex items-center gap-2">
-                <Radio className="h-3.5 w-3.5 text-primary" />
-                <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">IRIS — Across All Missions</h3>
+                <span className="iris-dot" />
+                <h3 className="iris-label">IRIS — Across All Missions</h3>
               </div>
               <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Live</span>
             </div>
@@ -352,7 +352,7 @@ function AthenaHQ() {
               {topSignals.length === 0 && openConflicts.length === 0 ? (
                 <p className="py-6 text-center text-sm text-muted-foreground">
                   {missions.length === 0
-                    ? "IRIS activates when missions are created in Olympus."
+                    ? "IRIS is ready. Activate a mission in Olympus and IRIS will begin monitoring immediately."
                     : "IRIS is monitoring. Upload documents to The Vault to generate intelligence."}
                 </p>
               ) : (
@@ -398,7 +398,7 @@ function AthenaHQ() {
             </div>
             <ul className="divide-y divide-border">
               {firmActivity.length === 0 && (
-                <li className="px-5 py-8 text-center text-sm text-muted-foreground">No activity yet.</li>
+                <li className="px-5 py-8 text-center text-sm text-muted-foreground">Activity will flow here as your team begins working.</li>
               )}
               {firmActivity.map((s: any) => (
                 <li key={s.id} className="px-5 py-3">
@@ -428,7 +428,7 @@ function AthenaHQ() {
           </div>
           <ul className="divide-y divide-border">
             {leadershipMessages.length === 0 && (
-              <li className="px-5 py-8 text-center text-sm text-muted-foreground">No messages from leadership today.</li>
+              <li className="px-5 py-8 text-center text-sm text-muted-foreground">No broadcasts yet. Leadership messages will appear here.</li>
             )}
             {leadershipMessages.map((m: any) => (
               <li key={m.id} className="px-5 py-4">
@@ -454,7 +454,7 @@ function AthenaHQ() {
             </div>
             <ul className="divide-y divide-border">
               {marketNews.length === 0 && (
-                <li className="px-5 py-8 text-center text-sm text-muted-foreground">No intelligence items yet.</li>
+                <li className="px-5 py-8 text-center text-sm text-muted-foreground">IRIS is scanning for Medicaid and Medicare intelligence. Items will appear shortly.</li>
               )}
               {marketNews.map((n: any) => (
                 <li key={n.id} className="px-5 py-3">
@@ -538,12 +538,12 @@ function MissionCard({ mission, attention }: { mission: Mission; attention: numb
     <Link
       to="/missions/$missionId/overview"
       params={{ missionId: mission.id }}
-      className={`group relative block rounded-[12px] border border-border border-l-4 bg-surface p-5 transition-all duration-200 hover:-translate-y-0.5 ${HEALTH_BORDER[mission.health] ?? "border-l-border"} ${HEALTH_GLOW[mission.health] ?? ""}`}
-      style={{ minHeight: 160 }}
+      className={`group relative block rounded-[12px] border border-border border-l-4 bg-surface p-5 transition-all duration-200 ease-out hover:-translate-y-0.5 ${HEALTH_BORDER[mission.health] ?? "border-l-border"} ${HEALTH_GLOW[mission.health] ?? ""}`}
+      style={{ minHeight: 140 }}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="h3-card text-[1.05rem] font-bold truncate">{mission.name}</h3>
+          <h3 className="truncate text-[1.1rem] font-bold text-foreground">{mission.name}</h3>
           <p className="mt-0.5 text-xs text-muted-foreground truncate">{mission.client}{mission.state ? ` · ${mission.state}` : ""}</p>
         </div>
         {attention > 0 && (
