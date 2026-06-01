@@ -394,7 +394,7 @@ function QuestionWorkspace() {
         </div>
 
         {/* RIGHT */}
-        <div className="overflow-y-auto bg-background/40">
+        <div className="studio-right overflow-y-auto bg-background/40">
           <div className="px-8 py-6 space-y-6">
             <IntelPanel intel={intel} questionId={questionId} missionId={missionId} />
             <RecentSignalsPanel questionId={questionId} />
