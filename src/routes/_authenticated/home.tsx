@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { irisLeadershipAttention } from "@/lib/iris.functions";
 import { AttentionBadge } from "@/components/v2/AttentionBadge";
 import { signalTypeLabel, relativeTime } from "@/lib/signals";
-import { Activity, AlertTriangle, AlertCircle, ArrowRight, Plus, GitBranch, Radio, Megaphone, Newspaper, CalendarClock } from "lucide-react";
+import { Activity, AlertTriangle, AlertCircle, ArrowRight, GitBranch, Radio, Megaphone, Newspaper, CalendarClock } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/home")({
   component: AthenaHQ,
