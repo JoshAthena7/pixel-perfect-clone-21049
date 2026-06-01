@@ -288,7 +288,7 @@ function MissionsTab() {
         </p>
         <button
           onClick={() => setActivateOpen(true)}
-          className="btn-primary mt-3 px-6 py-3 text-base"
+          className="mt-3 inline-flex items-center gap-2 rounded-lg bg-[#C49A22] px-6 py-3 text-base font-semibold text-black hover:bg-[#D4AA32] transition"
         >
           <Plus className="h-4 w-4" /> Activate New Mission
         </button>
