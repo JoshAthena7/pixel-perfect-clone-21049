@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Bell, X, ArrowRight } from "lucide-react";
+import { Bell, X, ArrowRight, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { relativeTime } from "@/lib/signals";
 
@@ -105,34 +105,61 @@ export function NotificationBell() {
 
       {open && (
         <div className="fixed inset-0 z-50" onClick={() => setOpen(false)}>
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className="modal-backdrop" />
           <aside
             onClick={(e) => e.stopPropagation()}
-            className="absolute right-0 top-0 h-full w-[420px] max-w-[90vw] border-l border-border bg-surface shadow-2xl flex flex-col animate-in slide-in-from-right"
+            className="absolute right-0 top-0 h-full w-[380px] max-w-[90vw] border-l border-border bg-surface shadow-2xl flex flex-col animate-in slide-in-from-right duration-200"
           >
             <header className="flex items-center justify-between border-b border-border px-5 py-4">
-              <div>
-                <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">IRIS</div>
-                <h2 className="text-sm font-semibold">Notifications</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="h2-label">IRIS Alerts</h2>
+                {unreadCount > 0 && (
+                  <span className="inline-flex h-4 min-w-[18px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-destructive-foreground">
+                    {unreadCount}
+                  </span>
+                )}
               </div>
-              <button onClick={() => setOpen(false)} className="rounded-md p-1 text-muted-foreground hover:bg-surface-hover hover:text-foreground">
-                <X className="h-4 w-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={async () => {
+                    if (me) {
+                      await supabase.from("profiles").update({ last_seen_signals_at: new Date().toISOString() }).eq("id", me);
+                      qc.invalidateQueries({ queryKey: ["me-profile-lastseen", me] });
+                    }
+                  }}
+                  className="text-[11px] text-primary hover:underline"
+                >
+                  Mark all read
+                </button>
+                <button onClick={() => setOpen(false)} className="btn-ghost p-1">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             </header>
             <div className="flex-1 overflow-y-auto p-3 space-y-2">
               {signals.length === 0 ? (
-                <p className="px-3 py-10 text-center text-xs text-muted-foreground">All clear — no critical or warning signals.</p>
+                <div className="flex flex-col items-center gap-3 px-3 py-16 text-center">
+                  <ShieldCheck className="h-10 w-10 text-[color:var(--green)]" strokeWidth={1.5} />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">All clear.</p>
+                    <p className="mt-1 text-xs text-muted-foreground">IRIS is monitoring.</p>
+                  </div>
+                </div>
               ) : (
                 signals.map((s) => {
-                  const dot = s.severity === "critical" ? "bg-destructive" : "bg-yellow";
+                  const dotClass = s.severity === "critical" ? "dot dot-red" : "dot dot-yellow";
                   return (
-                    <div key={s.id} className="rounded-md border border-border bg-background/50 px-3 py-2.5">
+                    <Link
+                      key={s.id}
+                      to={s.related_question_id ? "/missions/$missionId/questions/$questionId" : "/missions/$missionId/questions"}
+                      params={s.related_question_id ? { missionId: s.mission_id, questionId: s.related_question_id } : { missionId: s.mission_id }}
+                      onClick={() => setOpen(false)}
+                      className="block rounded-md border border-border bg-background/50 px-3 py-2.5 transition-colors hover:bg-surface-hover"
+                    >
                       <div className="flex items-start gap-2">
-                        <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${dot}`} />
+                        <span className={`${dotClass} mt-1.5`} />
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2">
-                            <p className="text-sm font-medium text-foreground/90 truncate">{s.signal_title}</p>
-                          </div>
+                          <p className="text-sm font-medium text-foreground/90 truncate">{s.signal_title}</p>
                           <div className="mt-0.5 flex items-center gap-2 text-[10px] text-muted-foreground">
                             <span className="rounded-full bg-surface-hover px-1.5 py-0.5 truncate max-w-[150px]">{missionMap[s.mission_id] ?? "Mission"}</span>
                             <span>{relativeTime(s.created_at)}</span>
@@ -140,17 +167,10 @@ export function NotificationBell() {
                           {s.signal_summary && (
                             <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{s.signal_summary}</p>
                           )}
-                          <Link
-                            to={s.related_question_id ? "/missions/$missionId/questions/$questionId" : "/missions/$missionId/questions"}
-                            params={s.related_question_id ? { missionId: s.mission_id, questionId: s.related_question_id } : { missionId: s.mission_id }}
-                            onClick={() => setOpen(false)}
-                            className="mt-1.5 inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
-                          >
-                            Go <ArrowRight className="h-3 w-3" />
-                          </Link>
                         </div>
+                        <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                       </div>
-                    </div>
+                    </Link>
                   );
                 })
               )}
