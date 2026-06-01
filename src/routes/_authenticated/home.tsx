@@ -7,9 +7,9 @@ import { irisLeadershipAttention } from "@/lib/iris.functions";
 import { AttentionBadge } from "@/components/v2/AttentionBadge";
 import { relativeTime } from "@/lib/signals";
 import { MissionGridSkeleton, QuestionListSkeleton } from "@/components/v2/Skeletons";
-import { ArrowRight, Megaphone, CalendarClock, DoorOpen, ListChecks, Search, Globe } from "lucide-react";
+import { ArrowRight, Megaphone, CalendarClock, DoorOpen, ListChecks, Search, Globe, Sparkles } from "lucide-react";
 import { HORIZON_FILTERS, inferCategory, matchesHorizonFilter, type IntelItem } from "@/lib/intelligence-feed";
-import { LiveBadge, ScanningBeam } from "@/components/v2/effects";
+import { LiveBadge, ScanningBeam, IrisWaveform } from "@/components/v2/effects";
 import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/_authenticated/home")({
@@ -196,6 +196,9 @@ function AthenaHQ() {
 
 
       <div className="mx-auto max-w-[1400px] px-8 py-10 space-y-12">
+        {/* ASK IRIS — global query bar with waveform */}
+        <AskIrisBar />
+
         {/* ROLE-DIFFERENTIATED: Active Missions (leaders) or Your Assignments (writers/SMEs) */}
         {isLeader ? (
           <section>
