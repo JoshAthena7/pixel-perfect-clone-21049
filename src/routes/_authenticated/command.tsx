@@ -127,7 +127,7 @@ function MissionShell() {
       </div>
 
       {/* ── Tab content ── */}
-      <SosBanner engagementId={engagement.id} />
+      <SosBanner />
       <div style={{ flex: 1, overflow: "auto" }}>
         {tab === "overview"     && <OverviewTab />}
         {tab === "library"      && <LibraryTab />}
