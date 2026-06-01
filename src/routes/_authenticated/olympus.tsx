@@ -288,7 +288,7 @@ function MissionsTab() {
         </p>
         <button
           onClick={() => setActivateOpen(true)}
-          className="btn-primary mt-3 px-6 py-3 text-base"
+          className="mt-3 inline-flex items-center gap-2 rounded-lg bg-[#C49A22] px-6 py-3 text-base font-semibold text-black hover:bg-[#D4AA32] transition"
         >
           <Plus className="h-4 w-4" /> Activate New Mission
         </button>
@@ -318,11 +318,11 @@ class ModalErrorBoundary extends Component<
     if (this.state.error) {
       return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="modal-backdrop" onClick={this.props.onClose} />
-          <div className="modal-surface relative w-full max-w-md p-6">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={this.props.onClose} />
+          <div className="relative z-10 w-full max-w-md rounded-xl border border-red-500/40 bg-[#111827] p-6 shadow-2xl">
             <h2 className="text-base font-semibold text-red-300">Modal failed to load</h2>
             <p className="mt-2 text-sm text-muted-foreground">{this.state.error.message}</p>
-            <button onClick={this.props.onClose} className="btn-secondary mt-4">Close</button>
+            <button onClick={this.props.onClose} className="rounded-lg border border-[#2a3a55] px-4 py-2 text-sm text-[#e8edf5] hover:bg-[#1a2235] transition mt-4">Close</button>
           </div>
         </div>
       );
@@ -415,11 +415,11 @@ function ActivateMissionModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="modal-backdrop" />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <form
         onSubmit={handleSubmit}
         onClick={(e) => e.stopPropagation()}
-        className="modal-surface relative w-full max-w-lg p-6"
+        className="relative z-10 w-full max-w-lg rounded-xl border border-[#2a3a55] bg-[#111827] p-6 shadow-2xl"
       >
         <header className="mb-5 flex items-start justify-between">
           <div>
@@ -465,8 +465,8 @@ function ActivateMissionModal({ onClose }: { onClose: () => void }) {
         )}
 
         <footer className="mt-6 flex items-center justify-end gap-2">
-          <button type="button" onClick={onClose} className="btn-secondary" disabled={busy}>Cancel</button>
-          <button type="submit" className="btn-primary inline-flex items-center gap-2" disabled={busy || !!successMsg}>
+          <button type="button" onClick={onClose} className="rounded-lg border border-[#2a3a55] px-4 py-2 text-sm text-[#e8edf5] hover:bg-[#1a2235] transition" disabled={busy}>Cancel</button>
+          <button type="submit" className="inline-flex items-center gap-2 rounded-lg bg-[#C49A22] px-4 py-2 text-sm font-semibold text-black hover:bg-[#D4AA32] transition disabled:opacity-50" disabled={busy || !!successMsg}>
             {busy && <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />}
             {successMsg ? "Activated" : busy ? "Activating…" : "Activate Mission"}
           </button>
