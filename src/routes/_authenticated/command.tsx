@@ -38,7 +38,7 @@ import {
 export const Route = createFileRoute("/_authenticated/command")({
   head: () => ({ meta: [{ title: "Mission — Athena Command" }] }),
   component: MissionGate,
-  validateSearch: (s: Record<string, unknown>) => ({ tab: (s.tab as string) || "overview" }),
+  validateSearch: (s: Record<string, unknown>): { tab?: string } => (s.tab ? { tab: s.tab as string } : {}),
 });
 
 function MissionGate() {
