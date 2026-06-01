@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AttentionBadge } from "@/components/v2/AttentionBadge";
 import { relativeTime, signalTypeLabel } from "@/lib/signals";
-import { ListChecks, FolderOpen, BookOpen, Sparkles, Settings, Activity, AlertTriangle, AlertCircle } from "lucide-react";
+import { ListChecks, FolderOpen, BookOpen, Settings, Activity, AlertTriangle, AlertCircle, ArrowRight, Megaphone, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/overview")({
   component: OverviewPage,
@@ -41,12 +41,25 @@ function OverviewPage() {
   });
 
   const { data: signals = [] } = useQuery({
-    queryKey: ["overview-signals", missionId],
+    queryKey: ["overview-iris-alerts", missionId],
     queryFn: async () => {
       const { data } = await supabase
         .from("signals")
         .select("id,signal_type,signal_title,severity,created_at,related_question_id")
-        .eq("mission_id", missionId).eq("status", "open")
+        .eq("mission_id", missionId)
+        .in("severity", ["warning", "critical"])
+        .order("created_at", { ascending: false }).limit(5);
+      return data ?? [];
+    },
+  });
+
+  const { data: leadershipNotes = [] } = useQuery({
+    queryKey: ["overview-leadership-notes", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("broadcasts")
+        .select("id,text,from_name,created_at")
+        .eq("mission_id", missionId)
         .order("created_at", { ascending: false }).limit(6);
       return data ?? [];
     },
@@ -120,24 +133,31 @@ function OverviewPage() {
         <Stat label="Avg Score" value={avgScore} />
       </section>
 
-      {/* Quick nav */}
-      <section className="grid grid-cols-2 gap-3 md:grid-cols-5">
-        <QuickLink to="/missions/$missionId" params={{ missionId }} label="Question Command" icon={<ListChecks className="h-4 w-4" />} />
-        <QuickLink to="/missions/$missionId/library" params={{ missionId }} label="Library" icon={<FolderOpen className="h-4 w-4" />} />
-        <QuickLink to="/missions/$missionId/briefing" params={{ missionId }} label="Briefing Book" icon={<BookOpen className="h-4 w-4" />} />
+      {/* (removed legacy quick-nav; replaced by Primary CTAs below) */}
+
+
+      {/* Primary CTAs */}
+      <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
+        <PrimaryCta to="/missions/$missionId" params={{ missionId }} label="Enter Mission Studio" sub="Where writers work" icon={<ListChecks className="h-5 w-5" />} tone="primary" />
+        <PrimaryCta to="/missions/$missionId/library" params={{ missionId }} label="Open Library" sub="Source documents" icon={<FolderOpen className="h-5 w-5" />} />
+        <PrimaryCta to="/missions/$missionId/briefing" params={{ missionId }} label="Open Briefing Book" sub="IRIS intelligence" icon={<BookOpen className="h-5 w-5" />} />
+      </section>
+
+      {/* Secondary nav */}
+      <section className="grid grid-cols-2 gap-3 md:grid-cols-2">
         <QuickLink to="/missions/$missionId/brief" params={{ missionId }} label="IRIS Brief" icon={<Sparkles className="h-4 w-4" />} />
         <QuickLink to="/missions/$missionId/settings" params={{ missionId }} label="Settings" icon={<Settings className="h-4 w-4" />} />
       </section>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Recent signals */}
+        {/* Latest IRIS Alerts */}
         <div className="lg:col-span-2 rounded-[12px] border border-border bg-surface">
           <div className="border-b border-border px-5 py-4">
-            <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Recent Signals</h2>
+            <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Latest IRIS Alerts</h2>
           </div>
           <ul className="divide-y divide-border">
             {signals.length === 0 && (
-              <li className="px-5 py-8 text-center text-sm text-muted-foreground">No open signals.</li>
+              <li className="px-5 py-8 text-center text-sm text-muted-foreground">IRIS has no alerts for this mission.</li>
             )}
             {signals.map((s: any) => (
               <li key={s.id} className="px-5 py-3 flex items-start gap-3">
@@ -156,8 +176,30 @@ function OverviewPage() {
           </ul>
         </div>
 
-        {/* Win themes + team */}
+        {/* Right column */}
         <div className="space-y-6">
+          {/* Leadership Notes */}
+          <div className="rounded-[12px] border border-border bg-surface">
+            <div className="border-b border-border px-5 py-4 flex items-center gap-2">
+              <Megaphone className="h-3.5 w-3.5 text-primary" />
+              <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Leadership Notes</h2>
+            </div>
+            <ul className="px-5 py-3 space-y-2">
+              {leadershipNotes.length === 0 && (
+                <li className="text-sm text-muted-foreground py-3">No leadership notes for this mission yet.</li>
+              )}
+              {leadershipNotes.map((n: any) => (
+                <li key={n.id} className="rounded-[8px] border border-border bg-background p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-medium text-foreground/90">{n.from_name}</span>
+                    <span className="text-[10px] text-muted-foreground">{relativeTime(n.created_at)}</span>
+                  </div>
+                  <p className="mt-1 text-sm text-foreground/90 leading-relaxed">{n.text}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+
           <div className="rounded-[12px] border border-border bg-surface">
             <div className="border-b border-border px-5 py-4">
               <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Win Themes</h2>
@@ -214,6 +256,24 @@ function QuickLink({ to, params, label, icon }: { to: string; params: any; label
       className="flex items-center gap-2 rounded-[10px] border border-border bg-surface px-4 py-3 text-sm transition hover:border-primary/50 hover:bg-surface-hover"
     >
       {icon} <span>{label}</span>
+    </Link>
+  );
+}
+
+function PrimaryCta({ to, params, label, sub, icon, tone }: { to: string; params: any; label: string; sub: string; icon: React.ReactNode; tone?: "primary" }) {
+  const base = tone === "primary"
+    ? "border-primary/40 bg-primary/10 hover:bg-primary/15 text-primary"
+    : "border-border bg-surface hover:bg-surface-hover text-foreground";
+  return (
+    <Link to={to as any} params={params} className={`group flex items-center justify-between gap-4 rounded-[12px] border px-5 py-4 transition ${base}`}>
+      <div className="flex items-center gap-3">
+        <span className="rounded-md bg-background/40 p-2">{icon}</span>
+        <div>
+          <div className="text-sm font-semibold">{label}</div>
+          <div className="text-[11px] text-muted-foreground">{sub}</div>
+        </div>
+      </div>
+      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
     </Link>
   );
 }

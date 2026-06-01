@@ -1,91 +1,77 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Printer, BookOpen } from "lucide-react";
+import {
+  irisGenerateBriefingSection,
+  BRIEFING_SECTION_KEYS,
+  BRIEFING_SECTION_TITLES,
+} from "@/lib/iris.functions";
+import { Printer, BookOpen, Sparkles, ChevronDown, ChevronRight, RefreshCw, Loader2 } from "lucide-react";
+import { relativeTime } from "@/lib/signals";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/briefing")({
   component: BriefingBookPage,
 });
 
+type SectionRow = {
+  id: string;
+  section_key: string;
+  content: string | null;
+  status: string;
+  generated_at: string | null;
+};
+
 function BriefingBookPage() {
   const { missionId } = Route.useParams();
+  const qc = useQueryClient();
+  const generateFn = useServerFn(irisGenerateBriefingSection);
 
   const { data: mission } = useQuery({
     queryKey: ["bb-mission", missionId],
     queryFn: async () => {
       const { data } = await supabase
         .from("missions")
-        .select("id,name,client,state,health,status,submission_date,description,question_count,created_at")
+        .select("id,name,client,state,submission_date")
         .eq("id", missionId).maybeSingle();
       return data;
     },
   });
 
-  const { data: members = [] } = useQuery({
-    queryKey: ["bb-members", missionId],
-    queryFn: async () => (await supabase.from("mission_members").select("*").eq("mission_id", missionId)).data ?? [],
+  const { data: sections = [] } = useQuery({
+    queryKey: ["bb-sections", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("briefing_book_sections")
+        .select("id,section_key,content,status,generated_at")
+        .eq("mission_id", missionId);
+      return (data ?? []) as SectionRow[];
+    },
   });
 
-  const { data: winThemes = [] } = useQuery({
-    queryKey: ["bb-themes", missionId],
-    queryFn: async () => (await supabase.from("win_themes").select("*").eq("mission_id", missionId).eq("status", "active")).data ?? [],
+  const sectionMap = new Map(sections.map((s) => [s.section_key, s]));
+
+  const generate = useMutation({
+    mutationFn: async (sectionKey: string) =>
+      generateFn({ data: { missionId, sectionKey } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["bb-sections", missionId] }),
   });
 
-  const { data: questions = [] } = useQuery({
-    queryKey: ["bb-questions", missionId],
-    queryFn: async () => (await supabase
-      .from("question_records")
-      .select("id,question_number,title,health,status,current_score,target_score,pens_down_date,assigned_writer_id,assigned_sme_id")
-      .eq("mission_id", missionId)
-      .order("sort_order", { ascending: true })).data ?? [],
+  const generateAll = useMutation({
+    mutationFn: async () => {
+      for (const key of BRIEFING_SECTION_KEYS) {
+        await generateFn({ data: { missionId, sectionKey: key } });
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["bb-sections", missionId] }),
   });
 
-  const { data: risks = [] } = useQuery({
-    queryKey: ["bb-risks", missionId],
-    queryFn: async () => (await supabase
-      .from("mission_risks").select("*").eq("mission_id", missionId)
-      .neq("status", "Closed").order("severity", { ascending: false })).data ?? [],
-  });
-
-  const { data: decisions = [] } = useQuery({
-    queryKey: ["bb-decisions", missionId],
-    queryFn: async () => (await supabase
-      .from("mission_decisions").select("*").eq("mission_id", missionId)
-      .order("created_at", { ascending: false })).data ?? [],
-  });
-
-  const { data: assumptions = [] } = useQuery({
-    queryKey: ["bb-assumptions", missionId],
-    queryFn: async () => (await supabase
-      .from("mission_assumptions").select("*").eq("mission_id", missionId)
-      .order("status", { ascending: true })).data ?? [],
-  });
-
-  const { data: conflicts = [] } = useQuery({
-    queryKey: ["bb-conflicts", missionId],
-    queryFn: async () => (await supabase
-      .from("alignment_conflicts").select("*").eq("mission_id", missionId)
-      .is("resolved_at", null)).data ?? [],
-  });
-
-  const { data: signals = [] } = useQuery({
-    queryKey: ["bb-signals", missionId],
-    queryFn: async () => (await supabase
-      .from("signals").select("id,signal_type,signal_title,signal_summary,severity,created_at")
-      .eq("mission_id", missionId).eq("status", "open")
-      .order("created_at", { ascending: false }).limit(20)).data ?? [],
-  });
-
-  const days = mission?.submission_date
-    ? Math.ceil((new Date(mission.submission_date).getTime() - Date.now()) / 86400000)
-    : null;
-  const greenCount = questions.filter((q: any) => q.health === "green").length;
-  const yellowCount = questions.filter((q: any) => q.health === "yellow").length;
-  const redCount = questions.filter((q: any) => q.health === "red").length;
-  const scored = questions.filter((q: any) => q.current_score != null);
-  const avgScore = scored.length
-    ? (scored.reduce((s: number, q: any) => s + Number(q.current_score), 0) / scored.length).toFixed(2)
-    : "—";
+  const lastUpdated = sections
+    .map((s) => s.generated_at)
+    .filter(Boolean)
+    .sort()
+    .pop() as string | undefined;
 
   return (
     <div className="bg-background min-h-screen">
@@ -93,243 +79,155 @@ function BriefingBookPage() {
         .no-print { display: none !important; }
         .briefing-book { background: white !important; color: black !important; }
         .briefing-book * { color: black !important; border-color: #ccc !important; background: white !important; }
-        .briefing-book h1, .briefing-book h2, .briefing-book h3 { page-break-after: avoid; }
         .briefing-book section { page-break-inside: avoid; }
       }`}</style>
 
       {/* Toolbar */}
       <div className="no-print sticky top-0 z-10 border-b border-border bg-surface/80 backdrop-blur px-8 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <BookOpen className="h-4 w-4" /> Briefing Book — compiled mission intelligence
+          <BookOpen className="h-4 w-4" /> Intelligence Briefing — IRIS-generated external context
         </div>
-        <button
-          onClick={() => window.print()}
-          className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-sm hover:bg-surface-hover"
-        >
-          <Printer className="h-4 w-4" /> Print / Export PDF
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => generateAll.mutate()}
+            disabled={generateAll.isPending}
+            className="inline-flex items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm text-primary hover:bg-primary/15 disabled:opacity-50"
+          >
+            {generateAll.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            Regenerate All
+          </button>
+          <button
+            onClick={() => window.print()}
+            className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-sm hover:bg-surface-hover"
+          >
+            <Printer className="h-4 w-4" /> Print / Export PDF
+          </button>
+        </div>
       </div>
 
-      <article className="briefing-book mx-auto max-w-[860px] px-10 py-12 space-y-10 text-foreground">
+      <article className="briefing-book mx-auto max-w-[920px] px-10 py-12 space-y-6 text-foreground">
         {/* Cover */}
-        <section className="border-b border-border pb-8">
+        <header className="border-b border-border pb-6">
           <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">Briefing Book</div>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight">{mission?.name ?? "—"}</h1>
           <p className="mt-2 text-base text-muted-foreground">
-            {mission?.client}{mission?.state ? ` · ${mission.state}` : ""}
+            Intelligence Briefing
+            {mission?.state ? ` · ${mission.state}` : ""}
           </p>
-          <dl className="mt-6 grid grid-cols-2 gap-x-8 gap-y-3 text-sm md:grid-cols-4">
-            <Meta label="Health" value={mission?.health ?? "—"} />
-            <Meta label="Status" value={mission?.status ?? "—"} />
-            <Meta label="Submission" value={mission?.submission_date ? new Date(mission.submission_date).toLocaleDateString() : "—"} />
-            <Meta label="Countdown" value={days === null ? "—" : days < 0 ? `${Math.abs(days)}d overdue` : `${days}d`} />
-          </dl>
-          <p className="mt-6 text-[11px] text-muted-foreground">
-            Generated {new Date().toLocaleString()}
+          <p className="mt-3 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+            {lastUpdated ? `Last updated ${relativeTime(lastUpdated)}` : "Not yet generated"}
           </p>
-        </section>
+        </header>
 
-        {/* 1. Mission Overview */}
-        <Sec title="1 · Mission Overview">
-          {mission?.description ? (
-            <p className="text-sm leading-relaxed">{mission.description}</p>
-          ) : (
-            <p className="text-sm text-muted-foreground">No mission description provided.</p>
-          )}
-          <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-5">
-            <KPI label="Questions" value={questions.length} />
-            <KPI label="Green" value={greenCount} />
-            <KPI label="Yellow" value={yellowCount} />
-            <KPI label="Red" value={redCount} />
-            <KPI label="Avg Score" value={avgScore} />
-          </div>
-        </Sec>
-
-        {/* 2. Team */}
-        <Sec title="2 · Mission Team">
-          {members.length === 0 ? <Empty>No team members.</Empty> : (
-            <table className="w-full text-sm">
-              <thead><tr className="text-left text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                <th className="py-1.5 pr-4">Name</th><th className="py-1.5">Role</th>
-              </tr></thead>
-              <tbody>
-                {members.map((m: any) => (
-                  <tr key={m.id} className="border-t border-border">
-                    <td className="py-2 pr-4">{m.display_name ?? "—"}</td>
-                    <td className="py-2 capitalize">{m.role}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </Sec>
-
-        {/* 3. Win Themes */}
-        <Sec title="3 · Win Themes">
-          {winThemes.length === 0 ? <Empty>None defined.</Empty> : (
-            <ul className="space-y-4">
-              {winThemes.map((w: any) => (
-                <li key={w.id} className="rounded-[8px] border border-border p-4">
-                  <div className="text-base font-semibold">{w.title}</div>
-                  {w.key_message && <p className="mt-1 text-sm italic text-foreground/90">"{w.key_message}"</p>}
-                  {w.description && <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{w.description}</p>}
-                </li>
-              ))}
-            </ul>
-          )}
-        </Sec>
-
-        {/* 4. Question Registry */}
-        <Sec title="4 · Question Registry">
-          {questions.length === 0 ? <Empty>No questions.</Empty> : (
-            <table className="w-full text-xs">
-              <thead><tr className="text-left text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                <th className="py-1.5 pr-3">#</th>
-                <th className="py-1.5 pr-3">Title</th>
-                <th className="py-1.5 pr-3">Health</th>
-                <th className="py-1.5 pr-3">Status</th>
-                <th className="py-1.5 pr-3 text-right">Score</th>
-                <th className="py-1.5 text-right">Pens Down</th>
-              </tr></thead>
-              <tbody>
-                {questions.map((q: any) => (
-                  <tr key={q.id} className="border-t border-border">
-                    <td className="py-1.5 pr-3 font-mono text-muted-foreground">{q.question_number}</td>
-                    <td className="py-1.5 pr-3">{q.title}</td>
-                    <td className="py-1.5 pr-3 capitalize">{q.health}</td>
-                    <td className="py-1.5 pr-3 text-muted-foreground">{q.status?.replace("_", " ")}</td>
-                    <td className="py-1.5 pr-3 text-right">{q.current_score ?? "—"}</td>
-                    <td className="py-1.5 text-right text-muted-foreground">{q.pens_down_date ? new Date(q.pens_down_date).toLocaleDateString() : "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </Sec>
-
-        {/* 5. Risks */}
-        <Sec title="5 · Risks">
-          {risks.length === 0 ? <Empty>No open risks.</Empty> : (
-            <ul className="space-y-3">
-              {risks.map((r: any) => (
-                <li key={r.id} className="rounded-[8px] border border-border p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="text-sm font-medium">{r.title}</div>
-                    <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{r.severity} · {r.status}</span>
-                  </div>
-                  {r.description && <p className="mt-1 text-xs text-muted-foreground">{r.description}</p>}
-                </li>
-              ))}
-            </ul>
-          )}
-        </Sec>
-
-        {/* 6. Decisions */}
-        <Sec title="6 · Decisions">
-          {decisions.length === 0 ? <Empty>No decisions logged.</Empty> : (
-            <ul className="space-y-3">
-              {decisions.map((d: any) => (
-                <li key={d.id} className="rounded-[8px] border border-border p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="text-sm font-medium">{d.title}</div>
-                    <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{d.status}</span>
-                  </div>
-                  {d.rationale && <p className="mt-1 text-xs text-muted-foreground">{d.rationale}</p>}
-                </li>
-              ))}
-            </ul>
-          )}
-        </Sec>
-
-        {/* 7. Assumptions */}
-        <Sec title="7 · Assumptions">
-          {assumptions.length === 0 ? <Empty>None recorded.</Empty> : (
-            <ul className="space-y-3">
-              {assumptions.map((a: any) => (
-                <li key={a.id} className="rounded-[8px] border border-border p-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="text-sm">{a.assumption}</div>
-                    <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{a.status}</span>
-                  </div>
-                  {a.risk_if_wrong && <p className="mt-1 text-xs text-muted-foreground">If wrong: {a.risk_if_wrong}</p>}
-                </li>
-              ))}
-            </ul>
-          )}
-        </Sec>
-
-        {/* 8. Alignment Conflicts */}
-        <Sec title="8 · Open Alignment Conflicts">
-          {conflicts.length === 0 ? <Empty>None open.</Empty> : (
-            <ul className="space-y-3">
-              {conflicts.map((c: any) => (
-                <li key={c.id} className="rounded-[8px] border border-border p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="text-sm font-medium">{c.conflict_type}</div>
-                    <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{c.severity}</span>
-                  </div>
-                  <p className="mt-1 text-xs">{c.description}</p>
-                  {c.iris_recommendation && (
-                    <p className="mt-2 text-xs text-muted-foreground"><span className="font-semibold">IRIS:</span> {c.iris_recommendation}</p>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </Sec>
-
-        {/* 9. Recent Signals */}
-        <Sec title="9 · Recent Signals">
-          {signals.length === 0 ? <Empty>No open signals.</Empty> : (
-            <ul className="space-y-2">
-              {signals.map((s: any) => (
-                <li key={s.id} className="flex items-start gap-2 border-b border-border pb-2 text-sm">
-                  <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${
-                    s.severity === "critical" ? "bg-destructive" : s.severity === "warning" ? "bg-amber-400" : "bg-primary/60"
-                  }`} />
-                  <div className="flex-1">
-                    <div>{s.signal_title}</div>
-                    {s.signal_summary && <div className="text-xs text-muted-foreground">{s.signal_summary}</div>}
-                  </div>
-                  <span className="text-[10px] text-muted-foreground">{new Date(s.created_at).toLocaleDateString()}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Sec>
+        {BRIEFING_SECTION_KEYS.map((key, idx) => (
+          <Section
+            key={key}
+            index={idx + 1}
+            sectionKey={key}
+            title={BRIEFING_SECTION_TITLES[key]}
+            row={sectionMap.get(key)}
+            isPending={generate.isPending && generate.variables === key}
+            onRegenerate={() => generate.mutate(key)}
+          />
+        ))}
 
         <footer className="border-t border-border pt-6 text-center text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-          End of Briefing Book · {mission?.name}
+          IRIS Intelligence · {mission?.name}
         </footer>
       </article>
     </div>
   );
 }
 
-function Sec({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  index,
+  sectionKey,
+  title,
+  row,
+  isPending,
+  onRegenerate,
+}: {
+  index: number;
+  sectionKey: string;
+  title: string;
+  row?: SectionRow;
+  isPending: boolean;
+  onRegenerate: () => void;
+}) {
+  const [open, setOpen] = useState(true);
+  const has = !!row?.content;
+
   return (
-    <section>
-      <h2 className="mb-4 text-lg font-semibold tracking-tight border-b border-border pb-2">{title}</h2>
-      {children}
+    <section className="rounded-[10px] border border-border bg-surface/50">
+      <header className="flex items-center justify-between gap-4 px-5 py-3 border-b border-border">
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="flex items-center gap-2 text-left flex-1 min-w-0"
+        >
+          {open ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+          <span className="text-[10px] tabular-nums text-muted-foreground">{String(index).padStart(2, "0")}</span>
+          <h2 className="text-base font-semibold tracking-tight truncate">{title}</h2>
+        </button>
+        <div className="flex items-center gap-3 shrink-0">
+          {row?.generated_at && (
+            <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+              <Sparkles className="inline h-3 w-3 mr-1 text-primary" />
+              Generated by IRIS · {relativeTime(row.generated_at)}
+            </span>
+          )}
+          <button
+            onClick={onRegenerate}
+            disabled={isPending}
+            className="no-print inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] hover:bg-surface-hover disabled:opacity-50"
+          >
+            {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+            {has ? "Regenerate" : "Generate Now"}
+          </button>
+        </div>
+      </header>
+      {open && (
+        <div className="px-5 py-4">
+          {isPending ? (
+            <p className="text-sm text-muted-foreground italic">IRIS is analyzing…</p>
+          ) : has ? (
+            <Markdownish text={row!.content!} />
+          ) : (
+            <p className="text-sm text-muted-foreground italic">IRIS is analyzing… click Generate Now to compile this section.</p>
+          )}
+        </div>
+      )}
     </section>
   );
 }
-function Meta({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <dt className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5 font-medium">{value}</dd>
-    </div>
-  );
+
+function Markdownish({ text }: { text: string }) {
+  // Lightweight rendering: split into paragraphs + bullets.
+  const lines = text.split("\n");
+  const nodes: React.ReactNode[] = [];
+  let bullets: string[] = [];
+  const flush = () => {
+    if (bullets.length) {
+      nodes.push(
+        <ul key={nodes.length} className="ml-5 list-disc space-y-1 text-sm leading-relaxed">
+          {bullets.map((b, i) => <li key={i}>{stripPrefix(b)}</li>)}
+        </ul>,
+      );
+      bullets = [];
+    }
+  };
+  for (const raw of lines) {
+    const l = raw.trim();
+    if (!l) { flush(); continue; }
+    if (/^[-*•]\s+/.test(l) || /^\d+\.\s+/.test(l)) {
+      bullets.push(l);
+    } else {
+      flush();
+      nodes.push(<p key={nodes.length} className="text-sm leading-relaxed">{l}</p>);
+    }
+  }
+  flush();
+  return <div className="space-y-3">{nodes}</div>;
 }
-function KPI({ label, value }: { label: string; value: number | string }) {
-  return (
-    <div className="rounded-[8px] border border-border px-3 py-2">
-      <div className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{label}</div>
-      <div className="mt-0.5 text-xl font-semibold tabular-nums">{value}</div>
-    </div>
-  );
-}
-function Empty({ children }: { children: React.ReactNode }) {
-  return <p className="text-sm text-muted-foreground italic">{children}</p>;
+function stripPrefix(l: string) {
+  return l.replace(/^[-*•]\s+/, "").replace(/^\d+\.\s+/, "");
 }

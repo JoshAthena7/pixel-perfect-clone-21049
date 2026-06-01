@@ -88,6 +88,39 @@ export type Database = {
           },
         ]
       }
+      briefing_book_sections: {
+        Row: {
+          content: string | null
+          created_at: string
+          generated_at: string | null
+          id: string
+          mission_id: string
+          section_key: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          generated_at?: string | null
+          id?: string
+          mission_id: string
+          section_key: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          generated_at?: string | null
+          id?: string
+          mission_id?: string
+          section_key?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       broadcasts: {
         Row: {
           created_at: string | null
@@ -401,6 +434,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      market_intelligence: {
+        Row: {
+          created_at: string
+          id: string
+          published_at: string | null
+          source: string
+          summary: string | null
+          title: string
+          type: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          published_at?: string | null
+          source: string
+          summary?: string | null
+          title: string
+          type?: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          published_at?: string | null
+          source?: string
+          summary?: string | null
+          title?: string
+          type?: string
+          url?: string | null
+        }
+        Relationships: []
       }
       mission_assumptions: {
         Row: {

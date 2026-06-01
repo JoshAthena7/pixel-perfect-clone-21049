@@ -82,7 +82,7 @@ function QuestionCommand() {
     <div className="px-8 py-8 max-w-[1400px] mx-auto">
       <div className="mb-6 flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold">Question Command</h1>
+          <h1 className="text-xl font-semibold">Mission Studio</h1>
           <p className="mt-1 text-xs text-muted-foreground">
             Every procurement is a collection of questions. Answer them better than anyone else.
           </p>
