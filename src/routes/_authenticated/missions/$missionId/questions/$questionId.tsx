@@ -292,7 +292,13 @@ function QuestionWorkspace() {
         {/* LEFT */}
         <div className="overflow-y-auto border-r border-border">
           <div className="px-8 py-6 space-y-6">
-            <Card title="Question Details" icon={<FileText className="h-4 w-4" />}>
+            <Card title="Question Details" icon={<FileText className="h-4 w-4" />} action={
+              <button
+                onClick={() => { navigator.clipboard.writeText(q.question_text); toast.success("Question text copied"); }}
+                className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground"
+                title="Copy question text"
+              ><Copy className="h-3 w-3" /> Copy</button>
+            }>
               <div className="space-y-4 text-sm">
                 <p className="whitespace-pre-wrap leading-relaxed">{q.question_text}</p>
                 <div className="grid grid-cols-2 gap-3 text-xs">
@@ -306,11 +312,18 @@ function QuestionWorkspace() {
                   <Block label="Requirements">
                     <ul className="space-y-1.5">
                       {q.requirements.map((r, i) => (
-                        <li key={i} className="flex gap-2 text-xs"><span className="text-primary mt-0.5">›</span><span className="text-foreground/80">{r}</span></li>
+                        <li key={i} className="group flex gap-2 text-xs"><span className="text-primary mt-0.5">›</span><span className="flex-1 text-foreground/80">{r}</span>
+                          <button
+                            onClick={() => { navigator.clipboard.writeText(r); toast.success("Requirement copied"); }}
+                            className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground"
+                            title="Copy requirement"
+                          ><Copy className="h-3 w-3" /></button>
+                        </li>
                       ))}
                     </ul>
                   </Block>
                 )}
+
 
                 {q.mandatory_language && q.mandatory_language.length > 0 && (
                   <Block label="Mandatory Language">
