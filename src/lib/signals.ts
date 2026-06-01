@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { QueryClient } from "@tanstack/react-query";
 
 export type SignalSeverity = "info" | "warning" | "critical";
 
@@ -29,7 +30,7 @@ export type SignalInput = {
  * Guardrail: mission_id is required. Failures are logged but never throw —
  * signal emission must never break the originating user action.
  */
-export async function createSignal(input: SignalInput): Promise<void> {
+export async function createSignal(input: SignalInput, queryClient?: QueryClient): Promise<void> {
   if (!input.mission_id) {
     console.warn("[signals] missing mission_id, signal not emitted", input);
     return;
@@ -58,6 +59,20 @@ export async function createSignal(input: SignalInput): Promise<void> {
       created_by_system: input.created_by_system ?? false,
     });
     if (error) console.warn("[signals] insert failed", error.message);
+    // ARCH-12: invalidate signal-driven react-query caches so UI updates immediately
+    if (queryClient) {
+      const keys = [
+        ["bell-signals"],
+        ["hq-top-signals"],
+        ["hq-activity"],
+        ["leadership-attention"],
+        ["mission-signals", input.mission_id],
+        ["question-signals", input.related_question_id],
+      ];
+      for (const key of keys) {
+        try { queryClient.invalidateQueries({ queryKey: key as unknown as readonly unknown[] }); } catch { /* noop */ }
+      }
+    }
   } catch (err) {
     console.warn("[signals] unexpected error", err);
   }

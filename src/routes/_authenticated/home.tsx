@@ -88,6 +88,27 @@ function AthenaHQ() {
     },
   });
 
+  // ARCH-1: Writer/SME assignments across all missions
+  const { data: myAssignments = [] } = useQuery({
+    queryKey: ["hq-my-assignments", myRole],
+    enabled: myRole !== null && !isLeader,
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+      const { data } = await supabase
+        .from("question_records")
+        .select("id,mission_id,question_number,title,status,health,current_score,pens_down_date,assigned_writer_id,assigned_sme_id")
+        .or(`assigned_writer_id.eq.${user.id},assigned_sme_id.eq.${user.id}`)
+        .order("pens_down_date", { ascending: true, nullsFirst: false })
+        .limit(50);
+      return (data ?? []) as Array<{
+        id: string; mission_id: string; question_number: string; title: string;
+        status: string | null; health: string | null; current_score: number | null;
+        pens_down_date: string | null; assigned_writer_id: string | null; assigned_sme_id: string | null;
+      }>;
+    },
+  });
+
   const attentionFn = useServerFn(irisLeadershipAttention);
   const { data: attention } = useQuery({
     queryKey: ["leadership-attention"],
@@ -141,6 +162,7 @@ function AthenaHQ() {
       const { data } = await supabase
         .from("signals")
         .select("id,mission_id,signal_type,signal_title,severity,created_at")
+        .neq("status", "archived")
         .order("created_at", { ascending: false })
         .limit(10);
       return data ?? [];
@@ -211,31 +233,86 @@ function AthenaHQ() {
       </header>
 
       <div className="mx-auto max-w-[1400px] px-8 py-10 space-y-12">
-        {/* ACTIVE MISSIONS */}
-        <section>
-          <div className="mb-5 flex items-end justify-between">
-            <div>
-              <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Active Missions</h2>
-              <p className="mt-1 text-2xl font-semibold tracking-tight">{missions.length} in flight</p>
+        {/* ROLE-DIFFERENTIATED: Active Missions (leaders) or Your Assignments (writers/SMEs) */}
+        {isLeader ? (
+          <section>
+            <div className="mb-5 flex items-end justify-between">
+              <div>
+                <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Active Missions</h2>
+                <p className="mt-1 text-2xl font-semibold tracking-tight">{missions.length} in flight</p>
+              </div>
             </div>
-          </div>
 
-          {missions.length === 0 ? (
-            <div className="rounded-[12px] border border-dashed border-border bg-surface/50 px-8 py-16 text-center">
-              <p className="text-sm text-muted-foreground">
-                {isLeader
-                  ? "No missions activated yet. Enter Olympus to create and activate your first mission."
-                  : "You haven't been assigned to a mission yet. Your administrator will assign you when a mission is activated."}
-              </p>
+            {missions.length === 0 ? (
+              <div className="rounded-[12px] border border-dashed border-border bg-surface/50 px-8 py-16 text-center">
+                <p className="text-sm text-muted-foreground">
+                  No missions activated yet. Enter Olympus to create and activate your first mission.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {missions.map((m) => (
+                  <MissionCard key={m.id} mission={m} attention={attMap.get(m.id) ?? 0} />
+                ))}
+              </div>
+            )}
+          </section>
+        ) : (
+          <section>
+            <div className="mb-5 flex items-end justify-between">
+              <div>
+                <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Your Assignments</h2>
+                <p className="mt-1 text-2xl font-semibold tracking-tight">
+                  {myAssignments.length} {myAssignments.length === 1 ? "question" : "questions"} assigned to you
+                </p>
+              </div>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {missions.map((m) => (
-                <MissionCard key={m.id} mission={m} attention={attMap.get(m.id) ?? 0} />
-              ))}
-            </div>
-          )}
-        </section>
+
+            {myAssignments.length === 0 ? (
+              <div className="rounded-[12px] border border-dashed border-border bg-surface/50 px-8 py-16 text-center">
+                <p className="text-sm text-muted-foreground">
+                  No questions assigned to you yet. Your mission lead will assign you when work is ready.
+                </p>
+              </div>
+            ) : (
+              <ul className="divide-y divide-border rounded-[12px] border border-border bg-surface">
+                {myAssignments.map((q) => {
+                  const days = q.pens_down_date
+                    ? Math.ceil((new Date(q.pens_down_date).getTime() - Date.now()) / 86400000)
+                    : null;
+                  const tone = days === null ? "text-muted-foreground"
+                    : days < 0 ? "text-destructive"
+                    : days <= 3 ? "text-destructive"
+                    : days <= 7 ? "text-amber-400"
+                    : "text-foreground";
+                  const dot = q.health === "green" ? "bg-emerald-500"
+                    : q.health === "red" ? "bg-destructive"
+                    : "bg-amber-400";
+                  return (
+                    <li key={q.id} className="px-5 py-3">
+                      <Link
+                        to="/missions/$missionId/questions/$questionId"
+                        params={{ missionId: q.mission_id, questionId: q.id }}
+                        className="flex items-center gap-3 hover:text-primary"
+                      >
+                        <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} />
+                        <MissionPill name={missionMap.get(q.mission_id) ?? "—"} />
+                        <span className="text-[11px] font-semibold tabular-nums text-muted-foreground shrink-0">{q.question_number}</span>
+                        <span className="flex-1 min-w-0 truncate text-sm text-foreground">{q.title}</span>
+                        {q.current_score !== null && (
+                          <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">{Number(q.current_score).toFixed(1)}</span>
+                        )}
+                        <span className={`shrink-0 text-xs font-semibold tabular-nums ${tone}`}>
+                          {days === null ? "—" : days < 0 ? `${Math.abs(days)}d overdue` : `${days}d`}
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
+        )}
 
         {/* INTEL FEED + ACTIVITY */}
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
