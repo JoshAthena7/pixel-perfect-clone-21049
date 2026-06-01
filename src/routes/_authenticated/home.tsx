@@ -485,17 +485,34 @@ function AthenaHQ() {
                   ? Math.ceil((new Date(m.submission_date).getTime() - Date.now()) / 86400000)
                   : null;
                 const tone = d === null ? "text-muted-foreground" : d <= 7 ? "text-destructive" : d <= 21 ? "text-amber-400" : "text-foreground";
+                const dotCls = m.health === "Green" ? "dot dot-green" : m.health === "Red" ? "dot dot-red" : "dot dot-yellow";
+                const risk = d === null ? null : d <= 7 ? "High" : d <= 21 ? "Medium" : "Low";
+                const riskPill = risk === "High" ? "pill-red" : risk === "Medium" ? "pill-yellow" : "pill-green";
                 return (
-                  <li key={m.id} className="px-5 py-3">
-                    <Link to="/missions/$missionId/overview" params={{ missionId: m.id }} className="flex items-center gap-3 hover:text-primary">
-                      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${m.health === "Green" ? "bg-emerald-500" : m.health === "Red" ? "bg-destructive" : "bg-amber-400"}`} />
+                  <li key={m.id} className="px-3 py-2">
+                    <Link
+                      to="/missions/$missionId/overview"
+                      params={{ missionId: m.id }}
+                      className="flex items-center gap-4 rounded-[8px] border border-transparent bg-transparent px-3 py-3 transition-colors hover:bg-surface-hover"
+                    >
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-medium">{m.name}</div>
-                        <div className="truncate text-[11px] text-muted-foreground">{m.client}{m.state ? ` · ${m.state}` : ""}</div>
+                        <div className="flex items-center gap-2">
+                          <span className={dotCls} />
+                          <div className="truncate text-sm font-semibold">{m.name}</div>
+                        </div>
+                        <div className="mt-0.5 truncate pl-4 text-[11px] text-muted-foreground">{m.client}{m.state ? ` · ${m.state}` : ""}</div>
                       </div>
-                      <span className={`text-xs font-semibold tabular-nums ${tone}`}>
-                        {d === null ? "—" : d < 0 ? `${Math.abs(d)}d overdue` : `${d}d`}
-                      </span>
+                      <div className="text-right">
+                        <div className={`text-lg font-semibold tabular-nums leading-none ${tone}`}>
+                          {d === null ? "—" : d < 0 ? `${Math.abs(d)}` : `${d}`}
+                        </div>
+                        <div className="mt-0.5 text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+                          {d === null ? "" : d < 0 ? "d overdue" : "days"}
+                        </div>
+                      </div>
+                      {risk && (
+                        <span className={`pill ${riskPill}`}>{risk} Risk</span>
+                      )}
                     </Link>
                   </li>
                 );
@@ -521,11 +538,12 @@ function MissionCard({ mission, attention }: { mission: Mission; attention: numb
     <Link
       to="/missions/$missionId/overview"
       params={{ missionId: mission.id }}
-      className={`group block rounded-[12px] border border-border border-l-4 bg-surface p-5 transition-all duration-200 ${HEALTH_BORDER[mission.health] ?? "border-l-border"} ${HEALTH_GLOW[mission.health] ?? ""}`}
+      className={`group relative block rounded-[12px] border border-border border-l-4 bg-surface p-5 transition-all duration-200 hover:-translate-y-0.5 ${HEALTH_BORDER[mission.health] ?? "border-l-border"} ${HEALTH_GLOW[mission.health] ?? ""}`}
+      style={{ minHeight: 160 }}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="text-lg font-semibold tracking-tight text-foreground truncate">{mission.name}</h3>
+          <h3 className="h3-card text-[1.05rem] font-bold truncate">{mission.name}</h3>
           <p className="mt-0.5 text-xs text-muted-foreground truncate">{mission.client}{mission.state ? ` · ${mission.state}` : ""}</p>
         </div>
         {attention > 0 && (
@@ -539,23 +557,24 @@ function MissionCard({ mission, attention }: { mission: Mission; attention: numb
         )}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${HEALTH_PILL[mission.health] ?? ""}`}>
-          {mission.health}
-        </span>
-        <span className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] text-muted-foreground">
-          {mission.question_count ?? 0} Q
-        </span>
+      <div className="mt-4 flex items-center gap-3">
+        <span className={`dot dot-${mission.health.toLowerCase()}`} />
+        <span className="text-xs font-medium text-foreground/90">{mission.health}</span>
         {days !== null && (
-          <span className={`ml-auto text-xs font-semibold tabular-nums ${countdownTone}`}>
-            {days < 0 ? `${Math.abs(days)}d overdue` : `${days}d`}
+          <span className={`ml-auto text-xl font-semibold tabular-nums leading-none ${countdownTone}`}>
+            {days < 0 ? `${Math.abs(days)}d` : `${days}d`}
           </span>
         )}
       </div>
 
-      <div className="mt-4 flex items-center justify-between border-t border-border pt-3 text-[11px] text-muted-foreground">
-        <span>Enter war room</span>
-        <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+      <div className="mt-4 flex items-center gap-2 border-t border-border pt-3">
+        <span className="rounded-full bg-surface-hover px-2 py-0.5 text-[10px] text-muted-foreground tabular-nums">
+          {mission.question_count ?? 0} questions
+        </span>
+        <span className="ml-auto inline-flex items-center gap-1 text-[11px] text-muted-foreground transition-colors group-hover:text-primary">
+          Enter war room
+          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+        </span>
       </div>
     </Link>
   );
