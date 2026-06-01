@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { irisLeadershipAttention } from "@/lib/iris.functions";
 import { AttentionBadge } from "@/components/v2/AttentionBadge";
-import { signalTypeLabel, relativeTime } from "@/lib/signals";
+import { relativeTime } from "@/lib/signals";
 import { MissionGridSkeleton, QuestionListSkeleton } from "@/components/v2/Skeletons";
-import { Activity, AlertTriangle, AlertCircle, ArrowRight, GitBranch, Megaphone, Newspaper, CalendarClock, DoorOpen, ListChecks } from "lucide-react";
+import { ArrowRight, Megaphone, CalendarClock, DoorOpen, ListChecks, Search, Globe } from "lucide-react";
+import { HORIZON_FILTERS, inferCategory, matchesHorizonFilter, type IntelItem } from "@/lib/intelligence-feed";
 import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/_authenticated/home")({
@@ -37,16 +39,6 @@ type Mission = {
   question_count: number | null;
 };
 
-type Signal = {
-  id: string;
-  mission_id: string;
-  signal_type: string;
-  signal_title: string;
-  signal_summary: string | null;
-  severity: "info" | "warning" | "critical";
-  created_at: string;
-  related_question_id: string | null;
-};
 
 const HEALTH_BORDER: Record<string, string> = {
   Green: "border-l-emerald-500",
@@ -136,53 +128,18 @@ function AthenaHQ() {
   // mission-id → display name (for pills)
   const missionMap = new Map(missions.map((m) => [m.id, m.name]));
 
-  const { data: topSignals = [] } = useQuery({
-    queryKey: ["hq-top-signals"],
-    queryFn: async () => {
-      const { data: crit = [] } = await supabase
-        .from("signals")
-        .select("id,mission_id,signal_type,signal_title,signal_summary,severity,created_at,related_question_id")
-        .eq("status", "open").eq("severity", "critical")
-        .order("created_at", { ascending: false }).limit(5);
-      let combined = (crit ?? []) as Signal[];
-      if (combined.length < 5) {
-        const { data: warn = [] } = await supabase
-          .from("signals")
-          .select("id,mission_id,signal_type,signal_title,signal_summary,severity,created_at,related_question_id")
-          .eq("status", "open").eq("severity", "warning")
-          .order("created_at", { ascending: false }).limit(5 - combined.length);
-        combined = [...combined, ...((warn ?? []) as Signal[])];
-      }
-      return combined;
-    },
-    refetchInterval: 30_000,
-  });
-
-  const { data: openConflicts = [] } = useQuery({
-    queryKey: ["hq-conflicts"],
+  // HORIZON FEED — firm-wide industry intelligence
+  const { data: horizonItems = [] } = useQuery({
+    queryKey: ["horizon-feed"],
     queryFn: async () => {
       const { data } = await supabase
-        .from("alignment_conflicts")
-        .select("id,mission_id,description,severity,detected_at")
-        .is("resolved_at", null)
-        .order("detected_at", { ascending: false })
-        .limit(5);
-      return data ?? [];
-    },
-  });
-
-  const { data: firmActivity = [] } = useQuery({
-    queryKey: ["hq-activity"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("signals")
-        .select("id,mission_id,signal_type,signal_title,severity,created_at")
-        .neq("status", "archived")
+        .from("market_intelligence")
+        .select("id,source,type,category,title,summary,url,published_at,created_at")
         .order("created_at", { ascending: false })
-        .limit(10);
-      return data ?? [];
+        .limit(100);
+      return (data ?? []) as IntelItem[];
     },
-    refetchInterval: 30_000,
+    refetchInterval: 60_000,
   });
 
   const { data: leadershipMessages = [] } = useQuery({
@@ -194,18 +151,6 @@ function AthenaHQ() {
         .is("mission_id", null)
         .order("created_at", { ascending: false })
         .limit(5);
-      return data ?? [];
-    },
-  });
-
-  const { data: marketNews = [] } = useQuery({
-    queryKey: ["hq-market-news"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("market_intelligence")
-        .select("id,source,type,title,url,published_at,created_at")
-        .order("created_at", { ascending: false })
-        .limit(8);
       return data ?? [];
     },
   });
@@ -342,86 +287,8 @@ function AthenaHQ() {
         )}
 
 
-        {/* INTEL FEED + ACTIVITY */}
-        <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-          {/* IRIS HQ Brief */}
-          <div className="lg:col-span-3 iris-panel rounded-[12px] border border-border bg-surface">
-            <div className="flex items-center justify-between border-b border-border px-5 py-4">
-              <div className="flex items-center gap-2">
-                <span className="iris-dot" />
-                <h3 className="iris-label">IRIS — Across All Missions</h3>
-              </div>
-              <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Live</span>
-            </div>
-
-            <div className="px-5 py-4 space-y-3">
-              {topSignals.length === 0 && openConflicts.length === 0 ? (
-                <p className="py-6 text-center text-sm text-muted-foreground">
-                  {missions.length === 0
-                    ? "IRIS is ready. Activate a mission in Olympus and IRIS will begin monitoring immediately."
-                    : "IRIS is monitoring. Upload documents to The Vault to generate intelligence."}
-                </p>
-              ) : (
-                <>
-                  {topSignals.map((s) => (
-                    <SignalRow key={s.id} signal={s} missionName={missionMap.get(s.mission_id)} />
-                  ))}
-
-                  {openConflicts.length > 0 && (
-                    <div className="pt-2">
-                      <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                        <GitBranch className="h-3 w-3" /> Open Alignment Conflicts
-                      </div>
-                      <ul className="space-y-2">
-                        {openConflicts.map((c: any) => (
-                          <li key={c.id} className="flex items-start gap-3 rounded-[8px] border border-border bg-background p-3">
-                            <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${c.severity === "critical" ? "bg-destructive" : "bg-amber-400"}`} />
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2">
-                                <MissionPill name={missionMap.get(c.mission_id) ?? "—"} />
-                                <span className="text-[10px] text-muted-foreground">{relativeTime(c.detected_at)}</span>
-                              </div>
-                              <p className="mt-1 text-sm text-foreground line-clamp-2">{c.description}</p>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Firm Activity */}
-          <div className="lg:col-span-2 rounded-[12px] border border-border bg-surface">
-            <div className="flex items-center justify-between border-b border-border px-5 py-4">
-              <div className="flex items-center gap-2">
-                <Activity className="h-3.5 w-3.5 text-primary" />
-                <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Firm Activity</h3>
-              </div>
-              <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Last 10</span>
-            </div>
-            <ul className="divide-y divide-border">
-              {firmActivity.length === 0 && (
-                <li className="px-5 py-8 text-center text-sm text-muted-foreground">Activity will flow here as your team begins working.</li>
-              )}
-              {firmActivity.map((s: any) => (
-                <li key={s.id} className="px-5 py-3">
-                  <div className="flex items-center gap-2">
-                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-                      s.severity === "critical" ? "bg-destructive" :
-                      s.severity === "warning" ? "bg-amber-400" : "bg-primary/60"
-                    }`} />
-                    <MissionPill name={missionMap.get(s.mission_id) ?? "—"} />
-                    <span className="ml-auto text-[10px] text-muted-foreground">{relativeTime(s.created_at)}</span>
-                  </div>
-                  <p className="mt-1 text-sm text-foreground line-clamp-2">{s.signal_title}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
+        {/* HORIZON FEED — firm-wide industry intelligence */}
+        <HorizonFeed items={horizonItems} missionCount={missions.length} />
 
         {/* LEADERSHIP MESSAGES */}
         <section className="rounded-[12px] border border-border bg-surface">
@@ -448,33 +315,9 @@ function AthenaHQ() {
           </ul>
         </section>
 
-        {/* MEDICAID & MEDICARE INTELLIGENCE + PIPELINE HORIZON */}
+        {/* PIPELINE HORIZON */}
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-          <div className="lg:col-span-3 rounded-[12px] border border-border bg-surface">
-            <div className="flex items-center justify-between border-b border-border px-5 py-4">
-              <div className="flex items-center gap-2">
-                <Newspaper className="h-3.5 w-3.5 text-primary" />
-                <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Medicaid & Medicare Intelligence</h3>
-              </div>
-              <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Last 8</span>
-            </div>
-            <ul className="divide-y divide-border">
-              {marketNews.length === 0 && (
-                <li className="px-5 py-8 text-center text-sm text-muted-foreground">IRIS is scanning for Medicaid and Medicare intelligence. Items will appear shortly.</li>
-              )}
-              {marketNews.map((n: any) => (
-                <li key={n.id} className="px-5 py-3">
-                  <a href={n.url ?? "#"} target={n.url ? "_blank" : undefined} rel="noreferrer" className="flex items-start gap-3 hover:text-primary">
-                    <span className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] uppercase tracking-[0.1em] text-muted-foreground shrink-0">{n.source}</span>
-                    <span className="flex-1 text-sm">{n.title}</span>
-                    <span className="text-[10px] text-muted-foreground shrink-0">{relativeTime(n.published_at ?? n.created_at)}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="lg:col-span-2 rounded-[12px] border border-border bg-surface">
+          <div className="lg:col-span-5 rounded-[12px] border border-border bg-surface">
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
               <div className="flex items-center gap-2">
                 <CalendarClock className="h-3.5 w-3.5 text-primary" />
@@ -586,33 +429,6 @@ function MissionCard({ mission, attention }: { mission: Mission; attention: numb
   );
 }
 
-function SignalRow({ signal, missionName }: { signal: Signal; missionName?: string }) {
-  return (
-    <Link
-      to={signal.related_question_id ? "/missions/$missionId/questions/$questionId" : "/missions/$missionId/overview"}
-      params={signal.related_question_id
-        ? { missionId: signal.mission_id, questionId: signal.related_question_id }
-        : { missionId: signal.mission_id }}
-      className="flex items-start gap-3 rounded-[8px] border border-border bg-background p-3 transition hover:border-primary/50"
-    >
-      <SeverityIcon severity={signal.severity} />
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <MissionPill name={missionName ?? "—"} />
-          <span className={`rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.1em] ${
-            signal.severity === "critical" ? "bg-destructive/15 text-destructive" : "bg-amber-500/15 text-amber-400"
-          }`}>{signalTypeLabel(signal.signal_type)}</span>
-          <span className="ml-auto text-[10px] text-muted-foreground">{relativeTime(signal.created_at)}</span>
-        </div>
-        <p className="mt-1 text-sm text-foreground">{signal.signal_title}</p>
-        {signal.signal_summary && (
-          <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{signal.signal_summary}</p>
-        )}
-      </div>
-    </Link>
-  );
-}
-
 function MissionPill({ name }: { name: string }) {
   return (
     <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-[10px] font-medium text-foreground/80 truncate max-w-[160px]">
@@ -621,8 +437,107 @@ function MissionPill({ name }: { name: string }) {
   );
 }
 
-function SeverityIcon({ severity }: { severity: string }) {
-  if (severity === "critical") return <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />;
-  if (severity === "warning") return <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400" />;
-  return <Activity className="h-4 w-4 shrink-0 text-muted-foreground" />;
+// ─── HORIZON FEED ──────────────────────────────────────────────────────────
+
+function HorizonFeed({ items, missionCount }: { items: IntelItem[]; missionCount: number }) {
+  const [filter, setFilter] = useState<string>("All");
+  const [search, setSearch] = useState("");
+
+  const enriched = useMemo(
+    () => items.map((it) => ({ ...it, _cat: inferCategory(it) })),
+    [items],
+  );
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return enriched.filter((it) => {
+      if (!matchesHorizonFilter(it._cat, filter)) return false;
+      if (!q) return true;
+      const hay = `${it.title ?? ""} ${it.summary ?? ""}`.toLowerCase();
+      return hay.includes(q);
+    });
+  }, [enriched, filter, search]);
+
+  return (
+    <section className="iris-panel rounded-[12px] border border-border bg-surface">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
+        <div className="flex items-center gap-2">
+          <Globe className="h-3.5 w-3.5 text-primary" />
+          <h3 className="iris-label">Horizon Feed</h3>
+          <span className="ml-2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+            What is happening in our industry
+          </span>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search intelligence…"
+            className="w-64 rounded-[8px] border border-border bg-background pl-8 pr-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-1.5 border-b border-border bg-background/30 px-5 py-2.5">
+        {HORIZON_FILTERS.map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`rounded-full border px-2.5 py-1 text-[11px] transition ${
+              filter === f
+                ? "border-primary/40 bg-primary/10 text-primary"
+                : "border-border bg-background text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
+      <ul className="divide-y divide-border max-h-[640px] overflow-y-auto">
+        {filtered.length === 0 ? (
+          <li className="px-5 py-12 text-center text-sm text-muted-foreground">
+            {items.length === 0
+              ? "IRIS is scanning the industry. Items will appear shortly."
+              : "No items match this filter."}
+          </li>
+        ) : (
+          filtered.map((it) => (
+            <li key={it.id} className="px-5 py-4">
+              <a
+                href={it.url ?? "#"}
+                target={it.url ? "_blank" : undefined}
+                rel="noreferrer"
+                className="block group"
+              >
+                <div className="flex items-center gap-2 flex-wrap">
+                  {it._cat && (
+                    <span className="rounded-full border border-primary/30 bg-primary/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">
+                      {it._cat}
+                    </span>
+                  )}
+                  <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{it.source}</span>
+                  <span className="ml-auto text-[10px] text-muted-foreground">
+                    {relativeTime(it.published_at ?? it.created_at)}
+                  </span>
+                </div>
+                <p className="mt-1.5 text-sm font-semibold text-foreground group-hover:text-primary">{it.title}</p>
+                {it.summary && (
+                  <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{it.summary}</p>
+                )}
+                {missionCount > 0 && (
+                  <p className="mt-1.5 text-[10px] uppercase tracking-[0.1em] text-muted-foreground/70">
+                    Relevant to {missionCount} active {missionCount === 1 ? "mission" : "missions"}
+                  </p>
+                )}
+              </a>
+            </li>
+          ))
+        )}
+      </ul>
+    </section>
+  );
 }
+

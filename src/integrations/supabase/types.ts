@@ -496,6 +496,7 @@ export type Database = {
       }
       market_intelligence: {
         Row: {
+          category: string | null
           created_at: string
           id: string
           published_at: string | null
@@ -506,6 +507,7 @@ export type Database = {
           url: string | null
         }
         Insert: {
+          category?: string | null
           created_at?: string
           id?: string
           published_at?: string | null
@@ -516,6 +518,7 @@ export type Database = {
           url?: string | null
         }
         Update: {
+          category?: string | null
           created_at?: string
           id?: string
           published_at?: string | null
@@ -622,6 +625,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      mission_intelligence_scores: {
+        Row: {
+          created_at: string
+          id: string
+          intelligence_id: string
+          iris_insight: string | null
+          matched_questions: string[] | null
+          matched_themes: string[] | null
+          mission_id: string
+          score: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          intelligence_id: string
+          iris_insight?: string | null
+          matched_questions?: string[] | null
+          matched_themes?: string[] | null
+          mission_id: string
+          score?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          intelligence_id?: string
+          iris_insight?: string | null
+          matched_questions?: string[] | null
+          matched_themes?: string[] | null
+          mission_id?: string
+          score?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       mission_library: {
         Row: {
@@ -813,48 +852,60 @@ export type Database = {
       missions: {
         Row: {
           client: string
+          competitors: string[] | null
           created_at: string | null
           created_by: string | null
           description: string | null
           health: string | null
           id: string
           name: string
+          priority_topics: string[] | null
+          program_type: string | null
           question_count: number | null
           rfp_parsed: boolean | null
           slack_webhook: string | null
           state: string | null
           status: string | null
           submission_date: string | null
+          win_themes: string[] | null
         }
         Insert: {
           client: string
+          competitors?: string[] | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           health?: string | null
           id?: string
           name: string
+          priority_topics?: string[] | null
+          program_type?: string | null
           question_count?: number | null
           rfp_parsed?: boolean | null
           slack_webhook?: string | null
           state?: string | null
           status?: string | null
           submission_date?: string | null
+          win_themes?: string[] | null
         }
         Update: {
           client?: string
+          competitors?: string[] | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           health?: string | null
           id?: string
           name?: string
+          priority_topics?: string[] | null
+          program_type?: string | null
           question_count?: number | null
           rfp_parsed?: boolean | null
           slack_webhook?: string | null
           state?: string | null
           status?: string | null
           submission_date?: string | null
+          win_themes?: string[] | null
         }
         Relationships: []
       }

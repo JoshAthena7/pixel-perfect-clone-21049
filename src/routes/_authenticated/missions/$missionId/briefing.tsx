@@ -36,6 +36,7 @@ function BriefingBookPage() {
   const { missionId } = Route.useParams();
   const qc = useQueryClient();
   const generateFn = useServerFn(irisGenerateBriefingSection);
+  const [tab, setTab] = useState<"feed" | "analysis">("feed");
 
   const { data: mission } = useQuery({
     queryKey: ["bb-mission", missionId],
