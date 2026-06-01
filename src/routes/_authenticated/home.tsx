@@ -77,7 +77,7 @@ function AthenaHQ() {
   const isLeader = myRole === "admin" || myRole === "lead";
 
 
-  const { data: missions = [] } = useQuery({
+  const { data: missions = [], isLoading: missionsLoading } = useQuery({
     queryKey: ["hq-missions"],
     queryFn: async () => {
       const { data } = await supabase
@@ -90,7 +90,7 @@ function AthenaHQ() {
   });
 
   // ARCH-1: Writer/SME assignments across all missions
-  const { data: myAssignments = [] } = useQuery({
+  const { data: myAssignments = [], isLoading: assignmentsLoading } = useQuery({
     queryKey: ["hq-my-assignments", myRole],
     enabled: myRole !== null && !isLeader,
     queryFn: async () => {
@@ -211,20 +211,21 @@ function AthenaHQ() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* HQ HEADER */}
+      {/* DESIGN-14: Atrium executive header */}
       <header className="border-b border-border bg-gradient-to-b from-surface to-background">
-        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-6 px-8 py-7">
+        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-6 px-8 py-8">
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">The Atrium</div>
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-foreground">
+            <h1 className="h1-display mt-2">
               {greeting}, {profile?.name ?? "…"}.
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">{today}</p>
+            <p className="mt-1.5 text-sm text-muted-foreground">{today}</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <div className="text-right">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Firm status</div>
-              <div className={`mt-1 text-sm font-medium ${totalAttention === 0 ? "text-emerald-400" : totalAttention >= 50 ? "text-destructive" : "text-amber-400"}`}>
+              <div className="h2-label">Firm Status</div>
+              <div className={`mt-1.5 flex items-center justify-end gap-2 text-sm font-medium ${totalAttention === 0 ? "text-[color:var(--green)]" : totalAttention >= 50 ? "text-destructive" : "text-amber-400"}`}>
+                {totalAttention === 0 && <span className="pulse-dot" />}
                 {statusLabel}
               </div>
             </div>
@@ -232,6 +233,7 @@ function AthenaHQ() {
           </div>
         </div>
       </header>
+
 
       <div className="mx-auto max-w-[1400px] px-8 py-10 space-y-12">
         {/* ROLE-DIFFERENTIATED: Active Missions (leaders) or Your Assignments (writers/SMEs) */}
