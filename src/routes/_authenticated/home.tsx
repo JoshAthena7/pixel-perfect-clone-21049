@@ -454,7 +454,7 @@ function AthenaHQ() {
             </div>
             <ul className="divide-y divide-border">
               {marketNews.length === 0 && (
-                <li className="px-5 py-8 text-center text-sm text-muted-foreground">No intelligence items yet.</li>
+                <li className="px-5 py-8 text-center text-sm text-muted-foreground">IRIS is scanning for Medicaid and Medicare intelligence. Items will appear shortly.</li>
               )}
               {marketNews.map((n: any) => (
                 <li key={n.id} className="px-5 py-3">
