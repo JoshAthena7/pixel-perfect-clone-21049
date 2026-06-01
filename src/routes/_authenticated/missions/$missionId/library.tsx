@@ -76,10 +76,24 @@ function LibraryPage() {
     return map;
   }, [docs]);
 
-  const visible = activeCategory === "All" ? docs : docs.filter((d) => d.category === activeCategory);
+  // ARCH-7: filter by category AND by free-text search across name + notes
+  const visible = useMemo(() => {
+    let list = activeCategory === "All" ? docs : docs.filter((d) => d.category === activeCategory);
+    const q = search.trim().toLowerCase();
+    if (q) {
+      list = list.filter((d) =>
+        d.name.toLowerCase().includes(q) ||
+        (d.notes ?? "").toLowerCase().includes(q) ||
+        d.category.toLowerCase().includes(q),
+      );
+    }
+    return list;
+  }, [docs, activeCategory, search]);
 
   const deleteDoc = useMutation({
     mutationFn: async (doc: Doc) => {
+      // ARCH-11: removing the row triggers the cascade trigger that clears the
+      // matching embeddings; the file in storage is removed here.
       if (doc.file_path) {
         await supabase.storage.from("mission-library").remove([doc.file_path]);
       }
@@ -91,6 +105,24 @@ function LibraryPage() {
   async function handleRfpUpload(file: File) {
     setUploading(true);
     try {
+      // ARCH-8: dedup guard — compute SHA-256, look for an existing identical file in this mission
+      const hash = await sha256(file);
+      const { data: dup } = await supabase
+        .from("mission_library")
+        .select("id,name")
+        .eq("mission_id", missionId)
+        .eq("file_hash", hash)
+        .maybeSingle();
+      if (dup) {
+        const proceed = window.confirm(
+          `An identical file is already in The Vault as "${dup.name}". Upload anyway?`,
+        );
+        if (!proceed) {
+          toast.info("Upload cancelled — duplicate detected.");
+          return;
+        }
+      }
+
       const { data: u } = await supabase.auth.getUser();
       const path = `${missionId}/${Date.now()}-${file.name}`;
       const { error: upErr } = await supabase.storage.from("mission-library").upload(path, file);
@@ -106,6 +138,8 @@ function LibraryPage() {
         category: "RFP",
         is_rfp: true,
         file_path: path,
+        file_hash: hash,
+        file_size: file.size,
         added_by_id: u.user!.id,
         added_by: profile?.display_name ?? u.user!.email,
         notes: "Upload RFP → Auto-create Question Records (parsing pending).",
@@ -117,8 +151,9 @@ function LibraryPage() {
         signal_title: `RFP uploaded: ${file.name}`,
         severity: "info",
         related_document_id: ins?.id ?? null,
-      });
+      }, qc);
       qc.invalidateQueries({ queryKey: ["mission-library", missionId] });
+      toast.success(`Uploaded "${file.name}" to The Vault.`);
     } finally {
       setUploading(false);
     }
