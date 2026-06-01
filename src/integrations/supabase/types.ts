@@ -800,6 +800,7 @@ export type Database = {
           display_name: string
           email: string | null
           id: string
+          last_seen_signals_at: string | null
         }
         Insert: {
           avatar_color?: string | null
@@ -807,6 +808,7 @@ export type Database = {
           display_name: string
           email?: string | null
           id: string
+          last_seen_signals_at?: string | null
         }
         Update: {
           avatar_color?: string | null
@@ -814,6 +816,7 @@ export type Database = {
           display_name?: string
           email?: string | null
           id?: string
+          last_seen_signals_at?: string | null
         }
         Relationships: []
       }
