@@ -23,6 +23,7 @@ import { Route as AuthenticatedMissionsMissionIdIndexRouteImport } from './route
 import { Route as AuthenticatedMissionsMissionIdSettingsRouteImport } from './routes/_authenticated/missions/$missionId/settings'
 import { Route as AuthenticatedMissionsMissionIdLibraryRouteImport } from './routes/_authenticated/missions/$missionId/library'
 import { Route as AuthenticatedMissionsMissionIdBriefRouteImport } from './routes/_authenticated/missions/$missionId/brief'
+import { Route as AuthenticatedMissionsMissionIdQuestionsIndexRouteImport } from './routes/_authenticated/missions/$missionId/questions/index'
 import { Route as AuthenticatedMissionsMissionIdQuestionsQuestionIdRouteImport } from './routes/_authenticated/missions/$missionId/questions/$questionId'
 
 const LoginRoute = LoginRouteImport.update({
@@ -104,6 +105,12 @@ const AuthenticatedMissionsMissionIdBriefRoute =
     path: '/missions/$missionId/brief',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedMissionsMissionIdQuestionsIndexRoute =
+  AuthenticatedMissionsMissionIdQuestionsIndexRouteImport.update({
+    id: '/missions/$missionId/questions/',
+    path: '/missions/$missionId/questions/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute =
   AuthenticatedMissionsMissionIdQuestionsQuestionIdRouteImport.update({
     id: '/missions/$missionId/questions/$questionId',
@@ -126,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
+  '/missions/$missionId/questions/': typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -142,6 +150,7 @@ export interface FileRoutesByTo {
   '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
+  '/missions/$missionId/questions': typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -160,6 +169,7 @@ export interface FileRoutesById {
   '/_authenticated/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/_authenticated/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/_authenticated/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
+  '/_authenticated/missions/$missionId/questions/': typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/settings'
     | '/missions/$missionId/'
     | '/missions/$missionId/questions/$questionId'
+    | '/missions/$missionId/questions/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/settings'
     | '/missions/$missionId'
     | '/missions/$missionId/questions/$questionId'
+    | '/missions/$missionId/questions'
   id:
     | '__root__'
     | '/'
@@ -211,6 +223,7 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/$missionId/settings'
     | '/_authenticated/missions/$missionId/'
     | '/_authenticated/missions/$missionId/questions/$questionId'
+    | '/_authenticated/missions/$missionId/questions/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -319,6 +332,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdBriefRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/missions/$missionId/questions/': {
+      id: '/_authenticated/missions/$missionId/questions/'
+      path: '/missions/$missionId/questions'
+      fullPath: '/missions/$missionId/questions/'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdQuestionsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/missions/$missionId/questions/$questionId': {
       id: '/_authenticated/missions/$missionId/questions/$questionId'
       path: '/missions/$missionId/questions/$questionId'
@@ -342,6 +362,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMissionsMissionIdSettingsRoute: typeof AuthenticatedMissionsMissionIdSettingsRoute
   AuthenticatedMissionsMissionIdIndexRoute: typeof AuthenticatedMissionsMissionIdIndexRoute
   AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute: typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
+  AuthenticatedMissionsMissionIdQuestionsIndexRoute: typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -363,6 +384,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
     AuthenticatedMissionsMissionIdIndexRoute,
   AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute:
     AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute,
+  AuthenticatedMissionsMissionIdQuestionsIndexRoute:
+    AuthenticatedMissionsMissionIdQuestionsIndexRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
