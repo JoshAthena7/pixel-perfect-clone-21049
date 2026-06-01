@@ -109,7 +109,7 @@ function QuestionWorkspace() {
     },
   });
 
-  const { data: intel } = useQuery({
+  const { data: intel = null } = useQuery({
     queryKey: ["question-intel", questionId],
     queryFn: async () => {
       const { data } = await supabase
@@ -117,7 +117,7 @@ function QuestionWorkspace() {
         .select("*")
         .eq("question_id", questionId)
         .maybeSingle();
-      return data as Intel | null;
+      return (data as Intel | null) ?? null;
     },
   });
 
