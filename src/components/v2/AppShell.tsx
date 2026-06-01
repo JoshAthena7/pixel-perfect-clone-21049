@@ -148,8 +148,7 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/15 text-sm font-bold text-primary">Ā</div>
           <div className="flex-1 min-w-0">
-            <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Athena</div>
-            <div className="text-sm font-semibold tracking-wide">Command V2</div>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/90">Athena Command</div>
           </div>
           <AttentionBadge variant="compact" />
         </div>
