@@ -94,7 +94,7 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
               </NavItem>
             );
           })}
-          <NavItem to="/missions/new" icon={<Plus className="h-4 w-4" />} active={currentPath === "/missions/new"}>New Mission</NavItem>
+          
         </Section>
 
         <Section label="Command Center">
