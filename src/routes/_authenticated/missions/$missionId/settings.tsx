@@ -178,6 +178,172 @@ function DetailsTab({ missionId }: { missionId: string }) {
   );
 }
 
+/* ─── Tab: Intelligence Profile ─────────────────── */
+
+const PROGRAM_TYPES = ["Medicaid MCO", "Medicare Advantage", "LTSS", "HCBS", "Behavioral Health", "Child Welfare", "Foster Care", "IDD", "Dual Eligible", "Other"] as const;
+
+function IntelligenceProfileTab({ missionId }: { missionId: string }) {
+  const qc = useQueryClient();
+  const { data: mission, isLoading } = useQuery({
+    queryKey: ["mission-intel-profile", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("missions")
+        .select("id,program_type,win_themes,priority_topics,competitors,state,client")
+        .eq("id", missionId)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  const [form, setForm] = useState({
+    program_type: "",
+    win_themes: [] as string[],
+    priority_topics: [] as string[],
+    competitors: [] as string[],
+  });
+
+  useEffect(() => {
+    if (mission) {
+      setForm({
+        program_type: mission.program_type ?? "",
+        win_themes: mission.win_themes ?? [],
+        priority_topics: mission.priority_topics ?? [],
+        competitors: mission.competitors ?? [],
+      });
+    }
+  }, [mission]);
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("missions").update({
+        program_type: form.program_type || null,
+        win_themes: form.win_themes,
+        priority_topics: form.priority_topics,
+        competitors: form.competitors,
+      }).eq("id", missionId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Intelligence Profile saved");
+      qc.invalidateQueries({ queryKey: ["mission-intel-profile", missionId] });
+      qc.invalidateQueries({ queryKey: ["mip-mission", missionId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (isLoading) return <div className="py-12 text-sm text-muted-foreground">Loading profile…</div>;
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-[10px] border border-primary/20 bg-primary/5 px-4 py-3 text-xs text-muted-foreground">
+        <Sparkles className="inline h-3.5 w-3.5 text-primary mr-1.5" />
+        IRIS uses this profile to score every piece of intelligence in The Oracle's Mission Feed.
+        State and Client come from the Details tab — set them there.
+      </div>
+
+      <div className="rounded-[10px] border border-border bg-surface p-6">
+        <h2 className="mb-4 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Profile</h2>
+        <div className="grid gap-5">
+          <Field label="Program Type">
+            <select className={inputCls} value={form.program_type} onChange={(e) => setForm({ ...form, program_type: e.target.value })}>
+              <option value="">Select…</option>
+              {PROGRAM_TYPES.map((p) => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </Field>
+          <TagEditor
+            label="Win Themes"
+            placeholder="e.g. Health Equity, Member-Centric Care"
+            tags={form.win_themes}
+            onChange={(win_themes) => setForm({ ...form, win_themes })}
+            tone="primary"
+          />
+          <TagEditor
+            label="Priority Topics"
+            placeholder="e.g. SDOH, value-based care, telehealth"
+            tags={form.priority_topics}
+            onChange={(priority_topics) => setForm({ ...form, priority_topics })}
+          />
+          <TagEditor
+            label="Competitors"
+            placeholder="e.g. Centene, Molina, UnitedHealthcare"
+            tags={form.competitors}
+            onChange={(competitors) => setForm({ ...form, competitors })}
+            tone="warn"
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center justify-end">
+        <button
+          onClick={() => save.mutate()}
+          disabled={save.isPending}
+          className="inline-flex items-center gap-2 rounded-[8px] bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+        >
+          <Save className="h-4 w-4" />
+          {save.isPending ? "Saving…" : "Save Intelligence Profile"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function TagEditor({ label, placeholder, tags, onChange, tone }: {
+  label: string;
+  placeholder?: string;
+  tags: string[];
+  onChange: (tags: string[]) => void;
+  tone?: "primary" | "warn";
+}) {
+  const [input, setInput] = useState("");
+  const cls =
+    tone === "primary" ? "border-primary/30 bg-primary/10 text-primary" :
+    tone === "warn" ? "border-amber-500/30 bg-amber-500/10 text-amber-400" :
+    "border-border bg-background text-foreground/90";
+
+  const add = (raw: string) => {
+    const v = raw.trim();
+    if (!v) return;
+    if (tags.includes(v)) return;
+    onChange([...tags, v]);
+    setInput("");
+  };
+
+  return (
+    <Field label={label}>
+      <div className="flex flex-wrap gap-1.5 rounded-[8px] border border-border bg-background px-2 py-2 min-h-[42px] focus-within:ring-1 focus-within:ring-primary">
+        {tags.map((t) => (
+          <span key={t} className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] ${cls}`}>
+            {t}
+            <button
+              type="button"
+              onClick={() => onChange(tags.filter((x) => x !== t))}
+              className="opacity-60 hover:opacity-100"
+              aria-label={`Remove ${t}`}
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </span>
+        ))}
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === ",") {
+              e.preventDefault();
+              add(input);
+            } else if (e.key === "Backspace" && !input && tags.length) {
+              onChange(tags.slice(0, -1));
+            }
+          }}
+          onBlur={() => add(input)}
+          placeholder={tags.length === 0 ? placeholder : ""}
+          className="flex-1 min-w-[120px] bg-transparent outline-none text-sm placeholder:text-muted-foreground"
+        />
+      </div>
+    </Field>
+  );
+
 /* ─── Tab 2: Review Gates ────────────────────────── */
 
 type Gate = { id: string; gate_name: string; gate_order: number; target_date: string | null; description: string | null };
