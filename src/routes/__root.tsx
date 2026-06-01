@@ -52,7 +52,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Athena Command V2" },
+      { title: "Athena Command" },
       { name: "description", content: "Proposal Intelligence and Alignment System — Athena Strategy Group." },
       { name: "theme-color", content: "#0a0e1a" },
     ],
