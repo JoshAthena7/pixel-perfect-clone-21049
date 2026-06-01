@@ -94,60 +94,92 @@ function BriefingBookPage() {
         .briefing-book section { page-break-inside: avoid; }
       }`}</style>
 
-      {/* Toolbar */}
-      <div className="no-print sticky top-0 z-10 border-b border-border bg-surface/80 backdrop-blur px-8 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <BookOpen className="h-4 w-4" /> Intelligence Briefing — IRIS-generated external context
-        </div>
-        <div className="flex items-center gap-2">
+      {/* Toolbar with tabs */}
+      <div className="no-print sticky top-0 z-10 border-b border-border bg-surface/80 backdrop-blur px-8 py-3 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-1">
           <button
-            onClick={() => generateAll.mutate()}
-            disabled={generateAll.isPending}
-            className="inline-flex items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm text-primary hover:bg-primary/15 disabled:opacity-50"
+            onClick={() => setTab("feed")}
+            className={`relative inline-flex items-center gap-2 px-3 py-1.5 text-sm transition ${
+              tab === "feed" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+            }`}
           >
-            {generateAll.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            Regenerate All
+            <Radio className="h-4 w-4" /> Intelligence Feed
+            {tab === "feed" && <span className="absolute inset-x-2 -bottom-[13px] h-0.5 bg-primary" />}
           </button>
           <button
-            onClick={() => window.print()}
-            className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-sm hover:bg-surface-hover"
+            onClick={() => setTab("analysis")}
+            className={`relative inline-flex items-center gap-2 px-3 py-1.5 text-sm transition ${
+              tab === "analysis" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+            }`}
           >
-            <Printer className="h-4 w-4" /> Print / Export PDF
+            <BookOpen className="h-4 w-4" /> IRIS Analysis
+            {tab === "analysis" && <span className="absolute inset-x-2 -bottom-[13px] h-0.5 bg-primary" />}
           </button>
         </div>
+        {tab === "analysis" && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => generateAll.mutate()}
+              disabled={generateAll.isPending}
+              className="inline-flex items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm text-primary hover:bg-primary/15 disabled:opacity-50"
+            >
+              {generateAll.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+              Regenerate All
+            </button>
+            <button
+              onClick={() => window.print()}
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-sm hover:bg-surface-hover"
+            >
+              <Printer className="h-4 w-4" /> Print / Export PDF
+            </button>
+          </div>
+        )}
       </div>
 
-      <article className="briefing-book mx-auto max-w-[920px] px-10 py-12 space-y-6 text-foreground">
-        {/* Cover */}
-        <header className="border-b border-border pb-6">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">The Oracle</div>
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight">{mission?.name ?? "—"}</h1>
-          <p className="mt-2 text-base text-muted-foreground">
-            Intelligence Briefing
-            {mission?.state ? ` · ${mission.state}` : ""}
-          </p>
-          <p className="mt-3 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-            {lastUpdated ? `Last updated ${relativeTime(lastUpdated)}` : "Not yet generated"}
-          </p>
-        </header>
+      {tab === "feed" ? (
+        <div className="mx-auto max-w-[920px] px-8 py-8">
+          <header className="mb-6">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">The Oracle</div>
+            <h1 className="mt-2 text-2xl font-semibold tracking-tight">{mission?.name ?? "—"}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Mission Intelligence Feed — scored for relevance to your win themes, topics, and competitors.
+            </p>
+          </header>
+          <MissionIntelligenceFeed missionId={missionId} />
+        </div>
+      ) : (
+        <article className="briefing-book mx-auto max-w-[920px] px-10 py-12 space-y-6 text-foreground">
+          {/* Cover */}
+          <header className="border-b border-border pb-6">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">The Oracle</div>
+            <h1 className="mt-3 text-4xl font-semibold tracking-tight">{mission?.name ?? "—"}</h1>
+            <p className="mt-2 text-base text-muted-foreground">
+              IRIS Analysis — Static Briefing Sections
+              {mission?.state ? ` · ${mission.state}` : ""}
+            </p>
+            <p className="mt-3 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+              {lastUpdated ? `Last updated ${relativeTime(lastUpdated)}` : "Not yet generated"}
+            </p>
+          </header>
 
-        {BRIEFING_SECTION_KEYS.map((key, idx) => (
-          <Section
-            key={key}
-            index={idx + 1}
-            missionId={missionId}
-            sectionKey={key}
-            title={BRIEFING_SECTION_TITLES[key]}
-            row={sectionMap.get(key)}
-            isPending={generate.isPending && generate.variables === key}
-            onRegenerate={() => generate.mutate(key)}
-          />
-        ))}
+          {BRIEFING_SECTION_KEYS.map((key, idx) => (
+            <Section
+              key={key}
+              index={idx + 1}
+              missionId={missionId}
+              sectionKey={key}
+              title={BRIEFING_SECTION_TITLES[key]}
+              row={sectionMap.get(key)}
+              isPending={generate.isPending && generate.variables === key}
+              onRegenerate={() => generate.mutate(key)}
+            />
+          ))}
 
-        <footer className="border-t border-border pt-6 text-center text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-          IRIS Intelligence · {mission?.name}
-        </footer>
-      </article>
+          <footer className="border-t border-border pt-6 text-center text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            IRIS Intelligence · {mission?.name}
+          </footer>
+        </article>
+      )}
     </div>
   );
 }
