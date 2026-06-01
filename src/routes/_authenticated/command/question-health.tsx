@@ -260,7 +260,36 @@ function QuestionHealthPage() {
           </ul>
         )}
       </Section>
+
+      <Section icon={<Activity className="h-4 w-4 text-primary" />} title="Recent Signals" count={signals.length}>
+        {signals.length === 0 ? (
+          <Empty>No critical or warning signals.</Empty>
+        ) : (
+          <ul className="divide-y divide-border rounded-md border border-border bg-surface">
+            {signals.map((s) => {
+              const q = s.related_question_id ? qById[s.related_question_id] : null;
+              return (
+                <li key={s.id} className="flex items-start gap-4 p-4">
+                  <SeverityBadge severity={s.severity} />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium">{s.signal_title}</div>
+                    {s.signal_summary && <div className="text-xs text-muted-foreground mt-0.5">{s.signal_summary}</div>}
+                    <div className="text-[11px] text-muted-foreground/70 mt-1">
+                      {s.signal_type.replace(/_/g, " ")} · {new Date(s.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      {q && <> · {q.question_number} {q.title}</>}
+                    </div>
+                  </div>
+                  {s.related_question_id && q && (
+                    <OpenLink missionId={s.mission_id} questionId={s.related_question_id} />
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Section>
     </div>
+
   );
 }
 
