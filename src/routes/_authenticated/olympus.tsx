@@ -415,11 +415,11 @@ function ActivateMissionModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="modal-backdrop" />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <form
         onSubmit={handleSubmit}
         onClick={(e) => e.stopPropagation()}
-        className="modal-surface relative w-full max-w-lg p-6"
+        className="relative z-10 w-full max-w-lg rounded-xl border border-[#2a3a55] bg-[#111827] p-6 shadow-2xl"
       >
         <header className="mb-5 flex items-start justify-between">
           <div>
