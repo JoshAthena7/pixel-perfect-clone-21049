@@ -93,21 +93,25 @@ export function AttentionBadge({ missionId = "all", variant = "header", classNam
     </div>
   );
 
+  const tone: "alert" | "calm" = score > 0 ? "alert" : "calm";
+
   const trigger =
     variant === "compact" ? (
       <span
-        className={`inline-flex cursor-help items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold tabular-nums ${tone} ${className}`}
+        className={`inline-flex cursor-help items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold tabular-nums ${toneCls} ${className}`}
       >
-        <Gauge className="h-3 w-3" /> {score}
+        <Gauge className="h-3 w-3" /> <CountUp value={score} tone={tone} />
       </span>
     ) : (
       <div
-        className={`flex cursor-help items-center gap-3 rounded-[10px] border px-4 py-3 ${tone} ${className}`}
+        className={`flex cursor-help items-center gap-3 rounded-[10px] border px-4 py-3 ${toneCls} ${className}`}
       >
         <Gauge className="h-5 w-5" />
         <div>
           <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Leadership Attention</div>
-          <div className="text-2xl font-semibold tabular-nums text-foreground">{score}</div>
+          <div className="text-2xl font-semibold tabular-nums text-foreground">
+            <CountUp value={score} tone={tone} />
+          </div>
         </div>
       </div>
     );
