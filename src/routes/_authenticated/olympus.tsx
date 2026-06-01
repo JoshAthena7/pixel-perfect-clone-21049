@@ -53,8 +53,8 @@ function OlympusPage() {
   return (
     <div className="mx-auto max-w-6xl px-8 py-8">
       <header className="mb-6">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">Admin Board</div>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Olympus</h1>
+        <div className="h2-label" style={{ letterSpacing: "0.32em" }}>Olympus</div>
+        <h1 className="h1-display mt-1">Administration</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Mission lifecycle, audit trail, and firm-level configuration.
         </p>
