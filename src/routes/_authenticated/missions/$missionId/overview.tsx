@@ -144,10 +144,10 @@ function OverviewPage() {
       </section>
 
       {/* Secondary nav */}
-      <section className="grid grid-cols-2 gap-3 md:grid-cols-2">
-        <QuickLink to="/missions/$missionId/brief" params={{ missionId }} label="IRIS Brief" icon={<Sparkles className="h-4 w-4" />} />
+      <section className="grid grid-cols-1 gap-3 md:grid-cols-1">
         <QuickLink to="/missions/$missionId/settings" params={{ missionId }} label="Settings" icon={<Settings className="h-4 w-4" />} />
       </section>
+
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Latest IRIS Alerts */}
