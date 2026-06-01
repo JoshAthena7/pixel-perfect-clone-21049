@@ -303,6 +303,93 @@ function AthenaHQ() {
             </ul>
           </div>
         </section>
+
+        {/* LEADERSHIP MESSAGES */}
+        <section className="rounded-[12px] border border-border bg-surface">
+          <div className="flex items-center justify-between border-b border-border px-5 py-4">
+            <div className="flex items-center gap-2">
+              <Megaphone className="h-3.5 w-3.5 text-primary" />
+              <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Leadership Messages</h3>
+            </div>
+            <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Firm-wide</span>
+          </div>
+          <ul className="divide-y divide-border">
+            {leadershipMessages.length === 0 && (
+              <li className="px-5 py-8 text-center text-sm text-muted-foreground">No messages from leadership today.</li>
+            )}
+            {leadershipMessages.map((m: any) => (
+              <li key={m.id} className="px-5 py-4">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-semibold text-foreground">{m.from_name}</span>
+                  <span className="text-[10px] text-muted-foreground">{relativeTime(m.created_at)}</span>
+                </div>
+                <p className="mt-1 text-sm text-foreground/90 leading-relaxed">{m.text}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* MEDICAID & MEDICARE INTELLIGENCE + PIPELINE HORIZON */}
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+          <div className="lg:col-span-3 rounded-[12px] border border-border bg-surface">
+            <div className="flex items-center justify-between border-b border-border px-5 py-4">
+              <div className="flex items-center gap-2">
+                <Newspaper className="h-3.5 w-3.5 text-primary" />
+                <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Medicaid & Medicare Intelligence</h3>
+              </div>
+              <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Last 8</span>
+            </div>
+            <ul className="divide-y divide-border">
+              {marketNews.length === 0 && (
+                <li className="px-5 py-8 text-center text-sm text-muted-foreground">No intelligence items yet.</li>
+              )}
+              {marketNews.map((n: any) => (
+                <li key={n.id} className="px-5 py-3">
+                  <a href={n.url ?? "#"} target={n.url ? "_blank" : undefined} rel="noreferrer" className="flex items-start gap-3 hover:text-primary">
+                    <span className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] uppercase tracking-[0.1em] text-muted-foreground shrink-0">{n.source}</span>
+                    <span className="flex-1 text-sm">{n.title}</span>
+                    <span className="text-[10px] text-muted-foreground shrink-0">{relativeTime(n.published_at ?? n.created_at)}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="lg:col-span-2 rounded-[12px] border border-border bg-surface">
+            <div className="flex items-center justify-between border-b border-border px-5 py-4">
+              <div className="flex items-center gap-2">
+                <CalendarClock className="h-3.5 w-3.5 text-primary" />
+                <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Pipeline Horizon</h3>
+              </div>
+              <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{pipeline.length}</span>
+            </div>
+            <ul className="divide-y divide-border">
+              {pipeline.length === 0 && (
+                <li className="px-5 py-8 text-center text-sm text-muted-foreground">No active missions in pipeline.</li>
+              )}
+              {pipeline.map((m) => {
+                const d = m.submission_date
+                  ? Math.ceil((new Date(m.submission_date).getTime() - Date.now()) / 86400000)
+                  : null;
+                const tone = d === null ? "text-muted-foreground" : d <= 7 ? "text-destructive" : d <= 21 ? "text-amber-400" : "text-foreground";
+                return (
+                  <li key={m.id} className="px-5 py-3">
+                    <Link to="/missions/$missionId/overview" params={{ missionId: m.id }} className="flex items-center gap-3 hover:text-primary">
+                      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${m.health === "Green" ? "bg-emerald-500" : m.health === "Red" ? "bg-destructive" : "bg-amber-400"}`} />
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-medium">{m.name}</div>
+                        <div className="truncate text-[11px] text-muted-foreground">{m.client}{m.state ? ` · ${m.state}` : ""}</div>
+                      </div>
+                      <span className={`text-xs font-semibold tabular-nums ${tone}`}>
+                        {d === null ? "—" : d < 0 ? `${Math.abs(d)}d overdue` : `${d}d`}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </section>
       </div>
     </div>
   );
