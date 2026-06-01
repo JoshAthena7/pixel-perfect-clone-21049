@@ -6,6 +6,7 @@ import { Sparkles, BookmarkPlus, Link2, Users, Flag, MessageSquarePlus, Target, 
 import { relativeTime } from "@/lib/signals";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { LiveBadge, SignalStrengthBars, TypewriterText, TransmittedFlash } from "@/components/v2/effects";
 
 type MissionRow = {
   id: string;
@@ -16,12 +17,6 @@ type MissionRow = {
   win_themes: string[] | null;
   priority_topics: string[] | null;
   competitors: string[] | null;
-};
-
-const LEVEL_BADGE: Record<ScoredItem["level"], string> = {
-  HIGH: "border-destructive/40 bg-destructive/10 text-destructive",
-  MEDIUM: "border-amber-500/40 bg-amber-500/10 text-amber-400",
-  LOW: "border-border bg-background text-muted-foreground",
 };
 
 export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
