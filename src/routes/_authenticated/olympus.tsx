@@ -465,8 +465,8 @@ function ActivateMissionModal({ onClose }: { onClose: () => void }) {
         )}
 
         <footer className="mt-6 flex items-center justify-end gap-2">
-          <button type="button" onClick={onClose} className="btn-secondary" disabled={busy}>Cancel</button>
-          <button type="submit" className="btn-primary inline-flex items-center gap-2" disabled={busy || !!successMsg}>
+          <button type="button" onClick={onClose} className="rounded-lg border border-[#2a3a55] px-4 py-2 text-sm text-[#e8edf5] hover:bg-[#1a2235] transition" disabled={busy}>Cancel</button>
+          <button type="submit" className="inline-flex items-center gap-2 rounded-lg bg-[#C49A22] px-4 py-2 text-sm font-semibold text-black hover:bg-[#D4AA32] transition disabled:opacity-50" disabled={busy || !!successMsg}>
             {busy && <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />}
             {successMsg ? "Activated" : busy ? "Activating…" : "Activate Mission"}
           </button>
