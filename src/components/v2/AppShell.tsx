@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useParams } from "@tanstack/react-router";
 import {
-  Building2, Target, Crown, Eye, Activity, GitMerge, BarChart2, Clock, Radio,
+  Building2, Target, Mountain, Eye, Activity, GitMerge, BarChart2, Clock, Radio,
   LayoutDashboard, PenTool, Archive, Sparkles, Settings2,
   ChevronLeft, LogOut, User,
 } from "lucide-react";
@@ -216,7 +216,7 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
 
         {isPrivileged && (
           <Section label="Admin">
-            <NavItem to="/olympus" icon={<Crown size={16} strokeWidth={1.5} className="text-[color:var(--athena-gold)]" />} active={currentPath.startsWith("/olympus")}>Olympus</NavItem>
+            <NavItem to="/olympus" icon={<Mountain size={16} strokeWidth={1.5} className="text-[color:var(--athena-gold)]" />} active={currentPath.startsWith("/olympus")}>Olympus</NavItem>
           </Section>
         )}
       </nav>
