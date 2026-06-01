@@ -161,7 +161,7 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
 
         <Section label="Missions">
           {missions.length === 0 && (
-            <div className="px-3 py-2 text-xs text-muted-foreground">No missions assigned.</div>
+            <div className="px-3 py-2 text-xs text-muted-foreground">You'll be assigned to a mission when work begins. Check back soon.</div>
           )}
           {missions.map((m) => {
             const score = scoreMap.get(m.id) ?? 0;
