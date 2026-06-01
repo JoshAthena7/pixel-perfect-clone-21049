@@ -100,7 +100,7 @@ function OverviewPage() {
       {/* Header */}
       <header className="flex flex-wrap items-start justify-between gap-6">
         <div className="min-w-0">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Mission Overview</div>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">The Brief</div>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">{mission?.name ?? "…"}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {mission?.client}{mission?.state ? ` · ${mission.state}` : ""}
