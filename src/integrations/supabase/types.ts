@@ -402,6 +402,51 @@ export type Database = {
           },
         ]
       }
+      mission_assumptions: {
+        Row: {
+          assumption: string
+          confidence_score: number | null
+          created_at: string
+          id: string
+          last_validated_date: string | null
+          mission_id: string
+          next_validation_step: string | null
+          owner_id: string | null
+          risk_if_wrong: string | null
+          status: string
+          supporting_evidence: string | null
+          updated_at: string
+        }
+        Insert: {
+          assumption: string
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          last_validated_date?: string | null
+          mission_id: string
+          next_validation_step?: string | null
+          owner_id?: string | null
+          risk_if_wrong?: string | null
+          status?: string
+          supporting_evidence?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assumption?: string
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          last_validated_date?: string | null
+          mission_id?: string
+          next_validation_step?: string | null
+          owner_id?: string | null
+          risk_if_wrong?: string | null
+          status?: string
+          supporting_evidence?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       mission_decisions: {
         Row: {
           created_at: string | null
@@ -1103,6 +1148,78 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      signals: {
+        Row: {
+          confidence: number | null
+          created_at: string
+          created_by_system: boolean | null
+          id: string
+          mission_id: string
+          owner_id: string | null
+          recommended_action: string | null
+          related_conflict_id: string | null
+          related_decision_id: string | null
+          related_document_id: string | null
+          related_question_id: string | null
+          related_risk_id: string | null
+          severity: string
+          signal_summary: string | null
+          signal_title: string
+          signal_type: string
+          source_module: string
+          status: string
+          tags: string[] | null
+          user_id: string | null
+          user_role: string | null
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string
+          created_by_system?: boolean | null
+          id?: string
+          mission_id: string
+          owner_id?: string | null
+          recommended_action?: string | null
+          related_conflict_id?: string | null
+          related_decision_id?: string | null
+          related_document_id?: string | null
+          related_question_id?: string | null
+          related_risk_id?: string | null
+          severity?: string
+          signal_summary?: string | null
+          signal_title: string
+          signal_type: string
+          source_module: string
+          status?: string
+          tags?: string[] | null
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string
+          created_by_system?: boolean | null
+          id?: string
+          mission_id?: string
+          owner_id?: string | null
+          recommended_action?: string | null
+          related_conflict_id?: string | null
+          related_decision_id?: string | null
+          related_document_id?: string | null
+          related_question_id?: string | null
+          related_risk_id?: string | null
+          severity?: string
+          signal_summary?: string | null
+          signal_title?: string
+          signal_type?: string
+          source_module?: string
+          status?: string
+          tags?: string[] | null
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Relationships: []
       }
       suppressed_emails: {
         Row: {
