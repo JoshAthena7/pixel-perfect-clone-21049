@@ -33,6 +33,7 @@ function SettingsPage() {
           ["details", "Details"],
           ["gates", "Review Gates"],
           ["team", "Team"],
+          ["themes", "Win Themes"],
         ] as const).map(([k, label]) => (
           <button
             key={k}
@@ -50,6 +51,7 @@ function SettingsPage() {
       {tab === "details" && <DetailsTab missionId={missionId} />}
       {tab === "gates" && <GatesTab missionId={missionId} />}
       {tab === "team" && <TeamTab missionId={missionId} />}
+      {tab === "themes" && <ThemesTab missionId={missionId} />}
     </div>
   );
 }
