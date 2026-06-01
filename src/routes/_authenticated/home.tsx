@@ -297,86 +297,8 @@ function AthenaHQ() {
         )}
 
 
-        {/* INTEL FEED + ACTIVITY */}
-        <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-          {/* IRIS HQ Brief */}
-          <div className="lg:col-span-3 iris-panel rounded-[12px] border border-border bg-surface">
-            <div className="flex items-center justify-between border-b border-border px-5 py-4">
-              <div className="flex items-center gap-2">
-                <span className="iris-dot" />
-                <h3 className="iris-label">IRIS — Across All Missions</h3>
-              </div>
-              <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Live</span>
-            </div>
-
-            <div className="px-5 py-4 space-y-3">
-              {topSignals.length === 0 && openConflicts.length === 0 ? (
-                <p className="py-6 text-center text-sm text-muted-foreground">
-                  {missions.length === 0
-                    ? "IRIS is ready. Activate a mission in Olympus and IRIS will begin monitoring immediately."
-                    : "IRIS is monitoring. Upload documents to The Vault to generate intelligence."}
-                </p>
-              ) : (
-                <>
-                  {topSignals.map((s) => (
-                    <SignalRow key={s.id} signal={s} missionName={missionMap.get(s.mission_id)} />
-                  ))}
-
-                  {openConflicts.length > 0 && (
-                    <div className="pt-2">
-                      <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                        <GitBranch className="h-3 w-3" /> Open Alignment Conflicts
-                      </div>
-                      <ul className="space-y-2">
-                        {openConflicts.map((c: any) => (
-                          <li key={c.id} className="flex items-start gap-3 rounded-[8px] border border-border bg-background p-3">
-                            <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${c.severity === "critical" ? "bg-destructive" : "bg-amber-400"}`} />
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2">
-                                <MissionPill name={missionMap.get(c.mission_id) ?? "—"} />
-                                <span className="text-[10px] text-muted-foreground">{relativeTime(c.detected_at)}</span>
-                              </div>
-                              <p className="mt-1 text-sm text-foreground line-clamp-2">{c.description}</p>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Firm Activity */}
-          <div className="lg:col-span-2 rounded-[12px] border border-border bg-surface">
-            <div className="flex items-center justify-between border-b border-border px-5 py-4">
-              <div className="flex items-center gap-2">
-                <Activity className="h-3.5 w-3.5 text-primary" />
-                <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Firm Activity</h3>
-              </div>
-              <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Last 10</span>
-            </div>
-            <ul className="divide-y divide-border">
-              {firmActivity.length === 0 && (
-                <li className="px-5 py-8 text-center text-sm text-muted-foreground">Activity will flow here as your team begins working.</li>
-              )}
-              {firmActivity.map((s: any) => (
-                <li key={s.id} className="px-5 py-3">
-                  <div className="flex items-center gap-2">
-                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-                      s.severity === "critical" ? "bg-destructive" :
-                      s.severity === "warning" ? "bg-amber-400" : "bg-primary/60"
-                    }`} />
-                    <MissionPill name={missionMap.get(s.mission_id) ?? "—"} />
-                    <span className="ml-auto text-[10px] text-muted-foreground">{relativeTime(s.created_at)}</span>
-                  </div>
-                  <p className="mt-1 text-sm text-foreground line-clamp-2">{s.signal_title}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
+        {/* HORIZON FEED — firm-wide industry intelligence */}
+        <HorizonFeed items={horizonItems} missionCount={missions.length} />
 
         {/* LEADERSHIP MESSAGES */}
         <section className="rounded-[12px] border border-border bg-surface">
@@ -403,33 +325,9 @@ function AthenaHQ() {
           </ul>
         </section>
 
-        {/* MEDICAID & MEDICARE INTELLIGENCE + PIPELINE HORIZON */}
+        {/* PIPELINE HORIZON */}
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-          <div className="lg:col-span-3 rounded-[12px] border border-border bg-surface">
-            <div className="flex items-center justify-between border-b border-border px-5 py-4">
-              <div className="flex items-center gap-2">
-                <Newspaper className="h-3.5 w-3.5 text-primary" />
-                <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Medicaid & Medicare Intelligence</h3>
-              </div>
-              <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Last 8</span>
-            </div>
-            <ul className="divide-y divide-border">
-              {marketNews.length === 0 && (
-                <li className="px-5 py-8 text-center text-sm text-muted-foreground">IRIS is scanning for Medicaid and Medicare intelligence. Items will appear shortly.</li>
-              )}
-              {marketNews.map((n: any) => (
-                <li key={n.id} className="px-5 py-3">
-                  <a href={n.url ?? "#"} target={n.url ? "_blank" : undefined} rel="noreferrer" className="flex items-start gap-3 hover:text-primary">
-                    <span className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] uppercase tracking-[0.1em] text-muted-foreground shrink-0">{n.source}</span>
-                    <span className="flex-1 text-sm">{n.title}</span>
-                    <span className="text-[10px] text-muted-foreground shrink-0">{relativeTime(n.published_at ?? n.created_at)}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="lg:col-span-2 rounded-[12px] border border-border bg-surface">
+          <div className="lg:col-span-5 rounded-[12px] border border-border bg-surface">
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
               <div className="flex items-center gap-2">
                 <CalendarClock className="h-3.5 w-3.5 text-primary" />
