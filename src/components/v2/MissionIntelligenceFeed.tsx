@@ -199,11 +199,16 @@ function ProfileTags({ label, tags, tone }: { label: string; tags: string[]; ton
   );
 }
 
-function FeedItem({ scored, missionId }: { scored: ScoredItem; missionId: string }) {
+function FeedItem({ scored, missionId, idx = 0 }: { scored: ScoredItem; missionId: string; idx?: number }) {
   const qc = useQueryClient();
   const [attachOpen, setAttachOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
   const [discussOpen, setDiscussOpen] = useState(false);
+  const [flash, setFlash] = useState<{ label: string; tone: "teal" | "red" } | null>(null);
+  const fireFlash = (label: string, tone: "teal" | "red" = "teal") => {
+    setFlash({ label, tone });
+    window.setTimeout(() => setFlash(null), 1600);
+  };
 
   const { item, level, insight, matchedThemes } = scored;
 
