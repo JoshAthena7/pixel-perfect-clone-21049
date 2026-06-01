@@ -25,9 +25,9 @@ const MISSION_TABS = [
 
 export function WriterSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
-  const search = useRouterState({ select: (r) => r.location.search as any });
+  const search = useRouterState({ select: (r) => r.location.search }) as any;
   const { engagement } = useEngagement();
-  const currentTab = search?.tab ?? "overview";
+  const currentTab = (search?.tab as string | undefined) ?? "overview";
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -39,7 +39,7 @@ export function WriterSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader style={{ padding: "16px 16px 12px" }}>
-        <BrandLockup variant="lockup" tone="white" size="sm" />
+        <BrandLockup size="sm" />
       </SidebarHeader>
 
       <SidebarContent style={{ padding: "0 8px" }}>
