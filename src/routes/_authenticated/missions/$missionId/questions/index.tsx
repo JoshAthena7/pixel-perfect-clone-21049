@@ -249,3 +249,22 @@ function Pill({
     </button>
   );
 }
+
+function SignalStat({
+  icon, label, value, tone,
+}: { icon: React.ReactNode; label: string; value: number; tone: "red" | "yellow" | "primary" | "muted" }) {
+  const cls =
+    tone === "red" ? "border-red/40 bg-red/5 text-red"
+    : tone === "yellow" ? "border-yellow/40 bg-yellow/5 text-yellow"
+    : tone === "primary" ? "border-primary/40 bg-primary/5 text-primary"
+    : "border-border bg-surface text-muted-foreground";
+  return (
+    <div className={`flex items-center gap-2 rounded-[10px] border px-3 py-2 ${cls}`}>
+      {icon}
+      <div className="flex-1 min-w-0">
+        <div className="text-[10px] uppercase tracking-[0.14em] opacity-80">{label}</div>
+        <div className="text-base font-semibold tabular-nums text-foreground">{value}</div>
+      </div>
+    </div>
+  );
+}
