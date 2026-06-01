@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { createSignal } from "@/lib/signals";
 import { Trophy, Plus, X, ArrowUpDown } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/command/scores")({
@@ -350,11 +351,30 @@ function BatchScoresModal({
       if (rows.length === 0) return;
       await supabase.from("question_scores").insert(rows);
 
+      const ids = rows.map((r) => r.question_id);
+      const { data: qrows } = await supabase
+        .from("question_records")
+        .select("id,mission_id,question_number,title")
+        .in("id", ids);
+      const qmap = new Map((qrows ?? []).map((q) => [q.id, q]));
+
       for (const row of rows) {
         await supabase
           .from("question_records")
           .update({ current_score: row.score })
           .eq("id", row.question_id);
+        const q = qmap.get(row.question_id);
+        if (q?.mission_id) {
+          await createSignal({
+            mission_id: q.mission_id,
+            source_module: "scores",
+            signal_type: "score_logged",
+            signal_title: `${gate} score ${row.score.toFixed(1)} — Q${q.question_number}`,
+            signal_summary: q.title,
+            severity: row.score < 3.0 ? "warning" : "info",
+            related_question_id: row.question_id,
+          });
+        }
       }
     },
     onSuccess: onSaved,

@@ -2,7 +2,9 @@ import { type ReactNode } from "react";
 import { Link, useRouterState, useParams } from "@tanstack/react-router";
 import { Home, ListChecks, AlertTriangle, BarChart3, Clock, Megaphone, Plus, LogOut, ChevronLeft } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { irisLeadershipAttention } from "@/lib/iris.functions";
 import { toast } from "sonner";
 
 type Mission = { id: string; name: string; client: string; health: "Green" | "Yellow" | "Red"; submission_date: string | null };
@@ -35,6 +37,14 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
     },
   });
 
+  const attentionFn = useServerFn(irisLeadershipAttention);
+  const { data: attention } = useQuery({
+    queryKey: ["leadership-attention"],
+    queryFn: () => attentionFn(),
+    refetchInterval: 60_000,
+  });
+  const scoreMap = new Map((attention?.missions ?? []).map((m) => [m.mission_id, m.attention_score]));
+
   return (
     <div className="flex h-full flex-col">
       <div className="border-b border-border px-5 py-4">
@@ -53,12 +63,27 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
         </Section>
 
         <Section label="Missions">
-          {missions.map((m) => (
-            <NavItem key={m.id} to="/missions/$missionId" params={{ missionId: m.id }} active={currentPath.startsWith(`/missions/${m.id}`)}>
-              <span className={`dot dot-${m.health.toLowerCase()} mr-2`} />
-              <span className="truncate">{m.name}</span>
-            </NavItem>
-          ))}
+          {missions.map((m) => {
+            const score = scoreMap.get(m.id) ?? 0;
+            return (
+              <NavItem key={m.id} to="/missions/$missionId" params={{ missionId: m.id }} active={currentPath.startsWith(`/missions/${m.id}`)}>
+                <span className={`dot dot-${m.health.toLowerCase()} mr-2`} />
+                <span className="truncate flex-1">{m.name}</span>
+                {score > 0 && (
+                  <span
+                    className={`ml-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-semibold ${
+                      score >= 50 ? "bg-destructive/20 text-destructive" :
+                      score >= 20 ? "bg-amber-500/20 text-amber-400" :
+                      "bg-primary/15 text-primary"
+                    }`}
+                    title={`Leadership Attention Score: ${score}`}
+                  >
+                    {score}
+                  </span>
+                )}
+              </NavItem>
+            );
+          })}
           <NavItem to="/missions/new" icon={<Plus className="h-4 w-4" />} active={currentPath === "/missions/new"}>New Mission</NavItem>
         </Section>
 
