@@ -811,7 +811,7 @@ function SosTab() {
     e.preventDefault();
     if (!engagement || !user || !member || !desc.trim()) return;
     setSubmitting(true);
-    const { error } = await supabase.from("sos_alerts").insert({ engagement_id: engagement.id, description: desc.trim(), what_is_needed: needed || null, severity: sev, status: "Open", submitter_id: user.id, submitter_name: member.display_name });
+    const { error } = await supabase.from("sos_alerts").insert({ engagement_id: engagement.id, category: "general", description: desc.trim(), recommended_action: needed || null, severity: sev, status: "Open", submitted_by: user.id, submitter_name: member.display_name });
     setSubmitting(false);
     if (error) return toast.error(error.message);
     toast.success("Escalation raised — leadership has been notified"); setDesc(""); setNeeded("");
