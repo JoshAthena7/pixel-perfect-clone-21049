@@ -5,12 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { AttentionBadge } from "@/components/v2/AttentionBadge";
 import { relativeTime, signalTypeLabel } from "@/lib/signals";
 import {
-  ChevronDown, ChevronRight, FolderOpen, BookOpen, PenLine, Bridge as BridgeIcon,
+  ChevronDown, ChevronRight, FolderOpen, BookOpen, PenLine, GitBranch,
   AlertCircle, AlertTriangle, Activity, Sparkles, RefreshCw, ArrowRight, Megaphone, Clock,
 } from "lucide-react";
-
-// lucide doesn't export Bridge — alias
-import { GitBranch } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/overview")({
   component: MissionHomePage,
