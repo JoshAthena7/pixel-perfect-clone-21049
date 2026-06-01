@@ -59,6 +59,20 @@ export async function createSignal(input: SignalInput, queryClient?: QueryClient
       created_by_system: input.created_by_system ?? false,
     });
     if (error) console.warn("[signals] insert failed", error.message);
+    // ARCH-12: invalidate signal-driven react-query caches so UI updates immediately
+    if (queryClient) {
+      const keys = [
+        ["bell-signals"],
+        ["hq-top-signals"],
+        ["hq-activity"],
+        ["leadership-attention"],
+        ["mission-signals", input.mission_id],
+        ["question-signals", input.related_question_id],
+      ];
+      for (const key of keys) {
+        try { queryClient.invalidateQueries({ queryKey: key as unknown as readonly unknown[] }); } catch { /* noop */ }
+      }
+    }
   } catch (err) {
     console.warn("[signals] unexpected error", err);
   }
