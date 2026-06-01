@@ -32,9 +32,20 @@ const HEALTHS = ["all", "green", "yellow", "red"] as const;
 
 function QuestionCommand() {
   const { missionId } = Route.useParams();
+  const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<(typeof STATUSES)[number]>("all");
   const [healthFilter, setHealthFilter] = useState<(typeof HEALTHS)[number]>("all");
-  const [scope, setScope] = useState<"mine" | "all" | null>(null);
+  const lsKey = `questions-scope:${missionId}`;
+  const [scope, setScopeState] = useState<"mine" | "all" | null>(() => {
+    if (typeof window === "undefined") return null;
+    const v = window.localStorage.getItem(lsKey);
+    return v === "mine" || v === "all" ? v : null;
+  });
+  const setScope = (s: "mine" | "all") => {
+    setScopeState(s);
+    try { window.localStorage.setItem(lsKey, s); } catch { /* ignore */ }
+  };
+  const [selectedIdx, setSelectedIdx] = useState(0);
 
   const { data: me } = useQuery({
     queryKey: ["me-id"],
@@ -61,7 +72,9 @@ function QuestionCommand() {
     if (scope === null && me !== undefined && myRole !== undefined) {
       setScope(isLeader ? "all" : "mine");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scope, me, myRole, isLeader]);
+
 
 
   const { data: questions = [], isLoading } = useQuery({
