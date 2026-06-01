@@ -88,7 +88,7 @@ function LibraryPage() {
         .select("display_name")
         .eq("id", u.user!.id)
         .maybeSingle();
-      await supabase.from("mission_library").insert({
+      const { data: ins } = await supabase.from("mission_library").insert({
         mission_id: missionId,
         name: file.name,
         category: "RFP",
@@ -97,6 +97,14 @@ function LibraryPage() {
         added_by_id: u.user!.id,
         added_by: profile?.display_name ?? u.user!.email,
         notes: "Upload RFP → Auto-create Question Records (parsing pending).",
+      }).select("id").maybeSingle();
+      await createSignal({
+        mission_id: missionId,
+        source_module: "library",
+        signal_type: "document_uploaded",
+        signal_title: `RFP uploaded: ${file.name}`,
+        severity: "info",
+        related_document_id: ins?.id ?? null,
       });
       qc.invalidateQueries({ queryKey: ["mission-library", missionId] });
     } finally {
