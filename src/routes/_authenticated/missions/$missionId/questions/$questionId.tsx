@@ -87,16 +87,27 @@ function QuestionWorkspace() {
   const { missionId, questionId } = Route.useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [writeMode, setWriteMode] = useState<boolean>(() => getWriteMode());
+
+  useEffect(() => { applyWriteMode(writeMode); }, [writeMode]);
+  useEffect(() => () => { applyWriteMode(false); }, []); // cleanup on unmount
+
+  // WRITER-5: mark this question as visited so new-signals badges clear
+  useEffect(() => { markQuestionVisited(questionId); }, [questionId]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !(e.target as HTMLElement)?.closest("textarea,input,select")) {
+      const inField = !!(e.target as HTMLElement)?.closest("textarea,input,select,[contenteditable='true']");
+      if (e.key === "Escape" && !inField) {
         navigate({ to: "/missions/$missionId/questions", params: { missionId } });
+      } else if ((e.key === "w" || e.key === "W") && !inField && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        setWriteMode((v) => !v);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [navigate, missionId]);
+  }, [navigate, missionId, questionId]);
 
   const { data: q, isLoading } = useQuery({
     queryKey: ["question", questionId],
