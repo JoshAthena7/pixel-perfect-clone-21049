@@ -45,6 +45,8 @@ type Doc = {
   is_rfp: boolean | null;
   added_by: string | null;
   created_at: string;
+  file_hash: string | null;
+  file_size: number | null;
 };
 
 function LibraryPage() {
@@ -53,6 +55,7 @@ function LibraryPage() {
   const [activeCategory, setActiveCategory] = useState<Category | "All">("All");
   const [showAddModal, setShowAddModal] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [search, setSearch] = useState("");
 
   const { data: docs = [], isLoading } = useQuery({
     queryKey: ["mission-library", missionId],
