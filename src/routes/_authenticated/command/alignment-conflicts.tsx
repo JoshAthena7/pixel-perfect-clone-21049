@@ -230,8 +230,8 @@ function AlignmentConflictsPage() {
                       <td colSpan={8} className="px-6 py-4">
                         <div className="mb-3 text-sm text-foreground">{c.description}</div>
                         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                          <ExpandedQuestion ref={a} />
-                          <ExpandedQuestion ref={b} />
+                          <ExpandedQuestion q={a} />
+                          <ExpandedQuestion q={b} />
                         </div>
                         {c.iris_recommendation && (
                           <div className="mt-3 rounded border-l-2 border-primary/60 bg-primary/5 px-3 py-2 text-xs text-foreground">
@@ -296,7 +296,7 @@ function AlignmentConflictsPage() {
   );
 }
 
-function ExpandedQuestion({ ref }: { ref: QRef | undefined }) {
+function ExpandedQuestion({ q: ref }: { q: QRef | undefined }) {
   if (!ref) return null;
   return (
     <div className="rounded border border-border bg-background p-3">
