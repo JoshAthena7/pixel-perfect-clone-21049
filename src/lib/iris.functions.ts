@@ -176,3 +176,130 @@ export const irisQuestionSignals = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { signals: sigs ?? [] };
   });
+
+/* ──────────────── iris-generate-briefing-section ────────────────
+   Generates external intelligence text for one Briefing Book section
+   using Lovable AI Gateway. Upserts into briefing_book_sections. */
+const SECTION_PROMPTS: Record<string, { title: string; prompt: string }> = {
+  political_landscape: {
+    title: "Political Landscape",
+    prompt: "Summarize the current political landscape for Medicaid policy in this state: governor stance, legislature priorities, recent reform efforts. Be concrete and concise (4-6 bullets).",
+  },
+  state_priorities: {
+    title: "State Priorities",
+    prompt: "List what the state has publicly prioritized for this Medicaid procurement (member outcomes, equity, cost containment, innovation, etc.). 4-6 bullets.",
+  },
+  procurement_landscape: {
+    title: "Procurement Landscape",
+    prompt: "Summarize the state's procurement history for Medicaid managed care: prior awards, evaluation patterns, scoring tendencies, common red flags. 4-6 bullets.",
+  },
+  incumbent_analysis: {
+    title: "Incumbent Analysis",
+    prompt: "Identify the likely incumbent MCO(s) for this contract and analyze their strengths, weaknesses, and known performance issues. 4-6 bullets.",
+  },
+  provider_landscape: {
+    title: "Provider Landscape",
+    prompt: "Describe the provider and MCO market dynamics in this state: network adequacy, provider consolidation, access gaps. 4-6 bullets.",
+  },
+  advocacy_landscape: {
+    title: "Advocacy Landscape",
+    prompt: "Identify the most influential advocacy groups, community organizations, and vocal stakeholders shaping Medicaid policy in this state. 4-6 bullets.",
+  },
+  policy_regulatory: {
+    title: "Policy & Regulatory Climate",
+    prompt: "Summarize recent CMS guidance, federal rule changes, and state regulatory developments affecting this procurement. 4-6 bullets.",
+  },
+  hot_issues: {
+    title: "Hot Issues",
+    prompt: "List emerging issues, recent news, and topics evaluators are likely to scrutinize right now (e.g. redetermination, mental health parity, SDOH). 4-6 bullets.",
+  },
+  stakeholder_concerns: {
+    title: "Stakeholder Concerns",
+    prompt: "Identify known pain points and agency leadership priorities the response must address. 4-6 bullets.",
+  },
+  innovation_opportunities: {
+    title: "Innovation Opportunities",
+    prompt: "Identify what would differentiate a winning response: novel programs, technology, partnership models, outcomes commitments. 4-6 bullets.",
+  },
+  recommended_positioning: {
+    title: "Recommended Positioning",
+    prompt: "Recommend the overall positioning and 2-3 win themes for this proposal. Be specific and persuasive.",
+  },
+  risks_opportunities: {
+    title: "Risks & Opportunities",
+    prompt: "List the top competitive risks and strategic opportunities for this bid. 4-6 bullets, paired.",
+  },
+};
+
+export const BRIEFING_SECTION_KEYS = Object.keys(SECTION_PROMPTS);
+export const BRIEFING_SECTION_TITLES = Object.fromEntries(
+  Object.entries(SECTION_PROMPTS).map(([k, v]) => [k, v.title]),
+) as Record<string, string>;
+
+export const irisGenerateBriefingSection = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({
+      missionId: z.string().uuid(),
+      sectionKey: z.string().min(1).max(64),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const cfg = SECTION_PROMPTS[data.sectionKey];
+    if (!cfg) throw new Error("Unknown section key");
+
+    const { data: m } = await supabase
+      .from("missions")
+      .select("name,client,state,description,submission_date")
+      .eq("id", data.missionId)
+      .maybeSingle();
+    if (!m) throw new Error("Mission not found");
+
+    const apiKey = process.env.LOVABLE_API_KEY;
+    let content = "";
+    if (apiKey) {
+      const sys = `You are IRIS, an intelligence analyst for Medicaid procurement consultants. Generate concise, specific, defensible external intelligence for one briefing book section. Use markdown bullets. Do not hedge. Do not preface with "Here is" — output the content directly.`;
+      const user = `Mission: ${m.name}\nClient: ${m.client}\nState: ${m.state ?? "Unknown"}\nSubmission: ${m.submission_date ?? "TBD"}\n${m.description ? `Context: ${m.description}\n` : ""}\nSection: ${cfg.title}\n\nTask: ${cfg.prompt}`;
+      try {
+        const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash",
+            messages: [
+              { role: "system", content: sys },
+              { role: "user", content: user },
+            ],
+          }),
+        });
+        if (res.ok) {
+          const json: any = await res.json();
+          content = json?.choices?.[0]?.message?.content ?? "";
+        } else {
+          content = `_IRIS gateway returned ${res.status}. Section content unavailable._`;
+        }
+      } catch (e: any) {
+        content = `_IRIS error: ${e?.message ?? "unknown"}._`;
+      }
+    } else {
+      content = `_IRIS is not yet configured (missing LOVABLE_API_KEY). Once enabled, this section will be auto-generated._`;
+    }
+
+    const now = new Date().toISOString();
+    const { error } = await supabase
+      .from("briefing_book_sections")
+      .upsert(
+        {
+          mission_id: data.missionId,
+          section_key: data.sectionKey,
+          content,
+          status: "ready",
+          generated_at: now,
+          updated_at: now,
+        },
+        { onConflict: "mission_id,section_key" },
+      );
+    if (error) throw new Error(error.message);
+    return { ok: true, content, generated_at: now };
+  });
