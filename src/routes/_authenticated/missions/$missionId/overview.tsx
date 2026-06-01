@@ -138,9 +138,9 @@ function OverviewPage() {
 
       {/* Primary CTAs */}
       <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
-        <PrimaryCta to="/missions/$missionId" params={{ missionId }} label="Enter Mission Studio" sub="Where writers work" icon={<ListChecks className="h-5 w-5" />} tone="primary" />
-        <PrimaryCta to="/missions/$missionId/library" params={{ missionId }} label="Open Library" sub="Source documents" icon={<FolderOpen className="h-5 w-5" />} />
-        <PrimaryCta to="/missions/$missionId/briefing" params={{ missionId }} label="Open Briefing Book" sub="IRIS intelligence" icon={<BookOpen className="h-5 w-5" />} />
+        <PrimaryCta to="/missions/$missionId" params={{ missionId }} label="Enter Questions" sub="Where writers work" icon={<ListChecks className="h-5 w-5" />} tone="primary" />
+        <PrimaryCta to="/missions/$missionId/library" params={{ missionId }} label="Open The Vault" sub="Source documents" icon={<FolderOpen className="h-5 w-5" />} />
+        <PrimaryCta to="/missions/$missionId/briefing" params={{ missionId }} label="Open The Oracle" sub="IRIS intelligence" icon={<BookOpen className="h-5 w-5" />} />
       </section>
 
       {/* Secondary nav */}
