@@ -39,16 +39,6 @@ type Mission = {
   question_count: number | null;
 };
 
-type Signal = {
-  id: string;
-  mission_id: string;
-  signal_type: string;
-  signal_title: string;
-  signal_summary: string | null;
-  severity: "info" | "warning" | "critical";
-  created_at: string;
-  related_question_id: string | null;
-};
 
 const HEALTH_BORDER: Record<string, string> = {
   Green: "border-l-emerald-500",
