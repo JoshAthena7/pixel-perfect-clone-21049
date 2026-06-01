@@ -29,17 +29,21 @@ function OlympusPage() {
     queryKey: ["olympus-me-role"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return { isAdmin: false };
+      if (!user) return { isAdmin: false, hasNoMissions: true };
       const { data } = await supabase
         .from("mission_members")
         .select("role")
         .eq("user_id", user.id);
       const roles = (data ?? []).map((r) => r.role);
-      return { isAdmin: roles.includes("admin") || roles.includes("lead") };
+      return {
+        isAdmin: roles.includes("admin") || roles.includes("lead"),
+        hasNoMissions: roles.length === 0,
+      };
     },
   });
 
-  if (me && !me.isAdmin) {
+  // Allow first-time users (no missions yet) — they need Olympus to create the first mission.
+  if (me && !me.isAdmin && !me.hasNoMissions) {
     return (
       <div className="mx-auto max-w-2xl px-8 py-16 text-center">
         <Shield className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
