@@ -207,7 +207,7 @@ function QuestionCommand() {
           params={{ missionId }}
           className="text-xs text-muted-foreground hover:text-foreground"
         >
-          ← The Brief
+          ← Mission Home
         </Link>
       </div>
 
