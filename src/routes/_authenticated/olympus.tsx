@@ -171,6 +171,8 @@ type MissionRow = {
 };
 
 function MissionsTab() {
+  const [activateOpen, setActivateOpen] = useState(false);
+
   const { data: missions = [], isLoading } = useQuery({
     queryKey: ["olympus-missions"],
     queryFn: async () => {
@@ -182,52 +184,246 @@ function MissionsTab() {
     },
   });
 
+  const missionIds = missions.map((m) => m.id);
+  const { data: writerCounts = {} } = useQuery({
+    queryKey: ["olympus-writer-counts", missionIds.join(",")],
+    enabled: missionIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_members")
+        .select("mission_id,role")
+        .in("mission_id", missionIds)
+        .eq("role", "writer");
+      const counts: Record<string, number> = {};
+      (data ?? []).forEach((r: any) => { counts[r.mission_id] = (counts[r.mission_id] ?? 0) + 1; });
+      return counts;
+    },
+  });
+
+  function daysTo(date: string | null): number | null {
+    if (!date) return null;
+    return Math.ceil((new Date(date).getTime() - Date.now()) / 86400000);
+  }
+
   return (
-    <div className="rounded-[10px] border border-border bg-surface overflow-hidden">
-      <div className="flex items-center justify-between border-b border-border px-5 py-4">
-        <h2 className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">All Missions</h2>
-        <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{missions.length} total</span>
-      </div>
-      {isLoading ? (
-        <div className="p-8 text-center text-sm text-muted-foreground">Loading…</div>
-      ) : (
-        <table className="w-full text-sm">
-          <thead className="border-b border-border bg-surface-hover text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-            <tr>
-              <th className="px-4 py-3 text-left">Mission</th>
-              <th className="px-4 py-3 text-left">Client</th>
-              <th className="px-4 py-3 text-left w-28">Status</th>
-              <th className="px-4 py-3 text-left w-24">Health</th>
-              <th className="px-4 py-3 text-left w-24">Questions</th>
-              <th className="px-4 py-3 text-left w-32">Pens-down</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {missions.map((m) => (
-              <tr key={m.id} className="hover:bg-surface-hover">
-                <td className="px-4 py-3">
-                  <Link to="/missions/$missionId/settings" params={{ missionId: m.id }} className="font-medium hover:text-primary">
-                    {m.name}
-                  </Link>
-                </td>
-                <td className="px-4 py-3 text-muted-foreground">{m.client}</td>
-                <td className="px-4 py-3">
-                  <span className={`rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] ${
-                    m.status === "Active" ? "bg-primary/15 text-primary"
-                    : m.status === "Archived" ? "bg-muted text-muted-foreground"
-                    : "bg-amber-500/15 text-amber-400"
-                  }`}>{m.status ?? "—"}</span>
-                </td>
-                <td className="px-4 py-3 text-muted-foreground capitalize">{m.health ?? "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground tabular-nums">{m.question_count ?? 0}</td>
-                <td className="px-4 py-3 text-muted-foreground">
-                  {m.submission_date ? new Date(m.submission_date).toLocaleDateString() : "—"}
-                </td>
-              </tr>
+    <div className="space-y-6">
+      <div className="rounded-[10px] border border-border bg-surface overflow-hidden">
+        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+          <div className="flex items-center gap-2">
+            <Zap className="h-3.5 w-3.5 text-primary" />
+            <h2 className="h2-label">Mission Command</h2>
+          </div>
+          <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{missions.length} total</span>
+        </div>
+        {isLoading ? (
+          <div className="p-3 space-y-2">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="skeleton h-10 w-full" />
             ))}
-          </tbody>
-        </table>
-      )}
+          </div>
+        ) : missions.length === 0 ? (
+          <div className="p-12 text-center">
+            <Shield className="mx-auto mb-3 h-8 w-8 text-muted-foreground opacity-60" />
+            <p className="text-sm text-foreground/90">No missions yet.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Activate your first mission below to begin.</p>
+          </div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="border-b border-border bg-surface-hover text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+              <tr>
+                <th className="px-4 py-3 text-left">Mission</th>
+                <th className="px-4 py-3 text-left w-28">Status</th>
+                <th className="px-4 py-3 text-left w-32">Submission</th>
+                <th className="px-4 py-3 text-left w-24">Questions</th>
+                <th className="px-4 py-3 text-left w-24">Writers</th>
+                <th className="px-4 py-3 text-left w-20">Health</th>
+                <th className="px-4 py-3 text-right w-48">&nbsp;</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {missions.map((m) => {
+                const days = daysTo(m.submission_date);
+                const healthCls = m.health?.toLowerCase() === "green" ? "dot-green"
+                  : m.health?.toLowerCase() === "red" ? "dot-red" : "dot-yellow";
+                return (
+                  <tr key={m.id} className="hover:bg-surface-hover">
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-foreground">{m.name}</div>
+                      <div className="text-[11px] text-muted-foreground">{m.client}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] ${
+                        m.status === "Active" ? "bg-primary/15 text-primary"
+                        : m.status === "Archived" ? "bg-muted text-muted-foreground"
+                        : "bg-amber-500/15 text-amber-400"
+                      }`}>{m.status ?? "—"}</span>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground tabular-nums">
+                      {days === null ? "—" : days < 0 ? `${Math.abs(days)}d overdue` : `${days}d`}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground tabular-nums">{m.question_count ?? 0}</td>
+                    <td className="px-4 py-3 text-muted-foreground tabular-nums">{writerCounts[m.id] ?? 0}</td>
+                    <td className="px-4 py-3"><span className={`dot ${healthCls}`} /></td>
+                    <td className="px-4 py-3 text-right">
+                      <Link
+                        to="/missions/$missionId/settings"
+                        params={{ missionId: m.id }}
+                        className="inline-flex items-center gap-1 text-[12px] font-medium text-primary hover:underline"
+                      >
+                        Enter Mission Olympus <ArrowRight className="h-3 w-3" />
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      <div className="flex flex-col items-center gap-2 rounded-[12px] border border-dashed border-border bg-surface/40 px-6 py-10">
+        <h3 className="h2-label">Activate New Mission</h3>
+        <p className="max-w-md text-center text-sm text-muted-foreground">
+          Stand up a new RFP response. You'll add the team, upload the RFP, and configure scoring after activation.
+        </p>
+        <button
+          onClick={() => setActivateOpen(true)}
+          className="btn-primary mt-3 px-6 py-3 text-base"
+        >
+          <Plus className="h-4 w-4" /> Activate New Mission
+        </button>
+      </div>
+
+      {activateOpen && <ActivateMissionModal onClose={() => setActivateOpen(false)} />}
+    </div>
+  );
+}
+
+/* ─── Activate Mission Modal ────────────────── */
+
+function ActivateMissionModal({ onClose }: { onClose: () => void }) {
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false);
+  const [form, setForm] = useState({
+    name: "",
+    client: "",
+    state: "",
+    program_type: "",
+    submission_date: "",
+    description: "",
+  });
+
+  function update<K extends keyof typeof form>(k: K, v: string) {
+    setForm((f) => ({ ...f, [k]: v }));
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.name.trim() || !form.client.trim()) {
+      toast.error("Mission name and client are required.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const desc = form.program_type
+        ? `${form.program_type}${form.description ? "\n\n" + form.description : ""}`
+        : form.description || null;
+
+      const { data, error } = await supabase
+        .from("missions")
+        .insert({
+          name: form.name.trim(),
+          client: form.client.trim(),
+          state: form.state.trim() || null,
+          submission_date: form.submission_date || null,
+          description: desc,
+          status: "Active",
+          health: "Yellow",
+          created_by: user.id,
+        })
+        .select("id")
+        .single();
+
+      if (error) throw error;
+      toast.success("Mission activated.");
+      qc.invalidateQueries({ queryKey: ["olympus-missions"] });
+      qc.invalidateQueries({ queryKey: ["sidebar-missions"] });
+      qc.invalidateQueries({ queryKey: ["hq-missions"] });
+      navigate({ to: "/missions/$missionId/settings", params: { missionId: data.id } });
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to activate mission.");
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="modal-backdrop" />
+      <form
+        onSubmit={handleSubmit}
+        onClick={(e) => e.stopPropagation()}
+        className="modal-surface relative w-full max-w-lg p-6"
+      >
+        <header className="mb-5 flex items-start justify-between">
+          <div>
+            <div className="h2-label">Activation</div>
+            <h2 className="mt-1 text-lg font-semibold">Activate New Mission</h2>
+          </div>
+          <button type="button" onClick={onClose} className="btn-ghost p-1">
+            <X className="h-4 w-4" />
+          </button>
+        </header>
+
+        <div className="space-y-4">
+          <Field label="Mission name *" value={form.name} onChange={(v) => update("name", v)} placeholder="Indiana Medicaid RFP" />
+          <Field label="Client *" value={form.client} onChange={(v) => update("client", v)} placeholder="Indiana FSSA" />
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="State" value={form.state} onChange={(v) => update("state", v)} placeholder="IN" />
+            <Field label="Program type" value={form.program_type} onChange={(v) => update("program_type", v)} placeholder="Medicaid MCO" />
+          </div>
+          <Field label="Submission date" type="date" value={form.submission_date} onChange={(v) => update("submission_date", v)} />
+          <div>
+            <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+              Description
+            </label>
+            <textarea
+              value={form.description}
+              onChange={(e) => update("description", e.target.value)}
+              rows={3}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+              placeholder="Optional context for the team."
+            />
+          </div>
+        </div>
+
+        <footer className="mt-6 flex items-center justify-end gap-2">
+          <button type="button" onClick={onClose} className="btn-secondary" disabled={busy}>Cancel</button>
+          <button type="submit" className="btn-primary" disabled={busy}>
+            {busy ? "Activating…" : "Activate Mission"}
+          </button>
+        </footer>
+      </form>
+    </div>
+  );
+}
+
+function Field({
+  label, value, onChange, placeholder, type = "text",
+}: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string }) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+      />
     </div>
   );
 }
