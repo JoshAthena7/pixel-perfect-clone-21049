@@ -2,7 +2,9 @@ import { type ReactNode } from "react";
 import { Link, useRouterState, useParams } from "@tanstack/react-router";
 import { Home, ListChecks, AlertTriangle, BarChart3, Clock, Megaphone, Plus, LogOut, ChevronLeft } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { irisLeadershipAttention } from "@/lib/iris.functions";
 import { toast } from "sonner";
 
 type Mission = { id: string; name: string; client: string; health: "Green" | "Yellow" | "Red"; submission_date: string | null };
