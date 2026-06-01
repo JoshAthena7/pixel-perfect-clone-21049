@@ -115,7 +115,11 @@ export function AttentionBadge({ missionId = "all", variant = "header", classNam
     <TooltipProvider delayDuration={150}>
       <Tooltip>
         <TooltipTrigger asChild>{trigger}</TooltipTrigger>
-        <TooltipContent side="bottom" align="end" className="p-3">
+        <TooltipContent
+          side="bottom"
+          align="end"
+          className="border border-border bg-popover p-3 text-popover-foreground shadow-xl"
+        >
           {tip}
         </TooltipContent>
       </Tooltip>
