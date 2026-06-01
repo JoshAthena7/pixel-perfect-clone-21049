@@ -21,6 +21,9 @@ type Broadcast = {
   from_name: string;
   mission_id: string | null;
   created_at: string;
+  slack_delivery_status: string | null;
+  slack_delivered_at: string | null;
+  slack_error: string | null;
 };
 
 type Mission = { id: string; name: string };
@@ -36,6 +39,36 @@ function relTime(iso: string) {
   return `${d}d ago`;
 }
 
+function SlackStatusBadge({ b }: { b: Broadcast }) {
+  const s = b.slack_delivery_status ?? "not_sent";
+  if (s === "delivered") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 text-emerald-400 px-2 py-0.5 text-[10px] font-medium" title={b.slack_delivered_at ? `Slack · ${relTime(b.slack_delivered_at)}` : "Delivered to Slack"}>
+        <CheckCircle2 className="h-3 w-3" /> Slack delivered
+      </span>
+    );
+  }
+  if (s === "failed") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 text-rose-400 px-2 py-0.5 text-[10px] font-medium" title={b.slack_error ?? "Slack delivery failed"}>
+        <AlertCircle className="h-3 w-3" /> Slack failed
+      </span>
+    );
+  }
+  if (s === "pending") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 text-amber-400 px-2 py-0.5 text-[10px] font-medium">
+        <Clock className="h-3 w-3" /> Slack pending
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-surface-hover text-muted-foreground px-2 py-0.5 text-[10px] font-medium" title="Slack webhook not configured for this scope">
+      <MinusCircle className="h-3 w-3" /> No Slack
+    </span>
+  );
+}
+
 function BroadcastsPage() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -45,7 +78,7 @@ function BroadcastsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("broadcasts")
-        .select("id,text,from_name,mission_id,created_at")
+        .select("id,text,from_name,mission_id,created_at,slack_delivery_status,slack_delivered_at,slack_error")
         .order("created_at", { ascending: false })
         .limit(200);
       if (error) throw error;
