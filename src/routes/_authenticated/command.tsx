@@ -38,7 +38,7 @@ import {
 export const Route = createFileRoute("/_authenticated/command")({
   head: () => ({ meta: [{ title: "Mission — Athena Command" }] }),
   component: MissionGate,
-  validateSearch: (s: Record<string, unknown>) => ({ tab: (s.tab as string) || "overview" }),
+  validateSearch: (s: Record<string, unknown>): { tab?: string } => (s.tab ? { tab: s.tab as string } : {}),
 });
 
 function MissionGate() {
@@ -127,7 +127,7 @@ function MissionShell() {
       </div>
 
       {/* ── Tab content ── */}
-      <SosBanner engagementId={engagement.id} />
+      <SosBanner />
       <div style={{ flex: 1, overflow: "auto" }}>
         {tab === "overview"     && <OverviewTab />}
         {tab === "library"      && <LibraryTab />}
@@ -733,7 +733,7 @@ function SignalsTab() {
     e.preventDefault();
     if (!engagement || !user || !member || !title.trim()) return;
     setSubmitting(true);
-    const { error } = await supabase.from("risks").insert({ engagement_id: engagement.id, title: title.trim(), description: desc || null, severity: sev, status: "Open", owner_name: member.display_name, created_by: user.id });
+    const { error } = await supabase.from("risks").insert({ engagement_id: engagement.id, title: title.trim(), description: desc || null, severity: sev, likelihood: "Medium", status: "Open", owner_name: member.display_name, created_by: user.id });
     setSubmitting(false);
     if (error) return toast.error(error.message);
     toast.success("Signal logged"); setTitle(""); setDesc("");
@@ -811,7 +811,7 @@ function SosTab() {
     e.preventDefault();
     if (!engagement || !user || !member || !desc.trim()) return;
     setSubmitting(true);
-    const { error } = await supabase.from("sos_alerts").insert({ engagement_id: engagement.id, description: desc.trim(), what_is_needed: needed || null, severity: sev, status: "Open", submitter_id: user.id, submitter_name: member.display_name });
+    const { error } = await supabase.from("sos_alerts").insert({ engagement_id: engagement.id, category: "general", description: desc.trim(), recommended_action: needed || null, severity: sev, status: "Open", submitted_by: user.id, submitter_name: member.display_name });
     setSubmitting(false);
     if (error) return toast.error(error.message);
     toast.success("Escalation raised — leadership has been notified"); setDesc(""); setNeeded("");
