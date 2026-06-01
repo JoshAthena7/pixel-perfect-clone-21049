@@ -57,6 +57,17 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
     },
   });
 
+  const { data: isPrivileged = false } = useQuery({
+    queryKey: ["sidebar-is-privileged"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+      const { data } = await supabase.from("mission_members").select("role").eq("user_id", user.id);
+      const roles = (data ?? []).map((r: any) => r.role);
+      return roles.includes("admin") || roles.includes("lead");
+    },
+  });
+
   const attentionFn = useServerFn(irisLeadershipAttention);
   const { data: attention } = useQuery({
     queryKey: ["leadership-attention"],
