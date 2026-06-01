@@ -327,32 +327,17 @@ function QuestionCommand() {
             </thead>
             <tbody className="divide-y divide-border">
               {filtered.map((q, idx) => (
-                <tr key={q.id} className={`hover:bg-surface-hover ${idx === selectedIdx ? "bg-primary/5 ring-1 ring-inset ring-primary/30" : ""}`}>
-                  <td className="px-4 py-3"><span className={`dot dot-${q.health}`} /></td>
-                  <td className="px-4 py-3 font-mono text-muted-foreground">
-                    <Link to="/missions/$missionId/questions/$questionId" params={{ missionId, questionId: q.id }} className="hover:text-primary">
-                      {q.question_number}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{q.section_number ?? "—"}</td>
-                  <td className="px-4 py-3">
-                    <Link to="/missions/$missionId/questions/$questionId" params={{ missionId, questionId: q.id }} className="hover:text-primary">
-                      {q.title}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground text-xs capitalize">{q.status.replace(/_/g, " ")}</td>
-                  <td className="px-4 py-3 text-right text-xs text-muted-foreground">{q.evaluation_weight ? `${q.evaluation_weight}%` : "—"}</td>
-                  <td className="px-4 py-3 text-right text-xs text-muted-foreground">{q.page_limit ?? "—"}</td>
-                  <td className="px-4 py-3 text-right">
-                    {q.current_score != null
-                      ? <span className="inline-flex items-center gap-1.5"><span className="text-primary font-semibold">{q.current_score}<span className="text-muted-foreground font-normal"> / {q.target_score ?? 5}</span></span><ScoreTrend questionId={q.id} /></span>
-                      : <span className="text-muted-foreground">—</span>}
-
-                  </td>
-                  <td className="px-4 py-3 text-right text-muted-foreground text-xs">
-                    {q.pens_down_date ? new Date(q.pens_down_date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—"}
-                  </td>
-                </tr>
+                <QuestionRow
+                  key={q.id}
+                  q={q}
+                  selected={idx === selectedIdx}
+                  missionId={missionId}
+                  isLeader={isLeader}
+                  signalCount={signalCounts[q.id]?.count ?? 0}
+                  signalLatest={signalCounts[q.id]?.latest}
+                  onStatusChange={(status) => updateStatus.mutate({ id: q.id, status })}
+                  onNavigate={() => navigate({ to: "/missions/$missionId/questions/$questionId", params: { missionId, questionId: q.id } })}
+                />
               ))}
             </tbody>
           </table>
