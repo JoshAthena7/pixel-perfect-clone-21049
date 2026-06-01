@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { irisLeadershipAttention } from "@/lib/iris.functions";
 import { AttentionBadge } from "@/components/v2/AttentionBadge";
 import { signalTypeLabel, relativeTime } from "@/lib/signals";
-import { Activity, AlertTriangle, AlertCircle, ArrowRight, Plus, GitBranch, Radio } from "lucide-react";
+import { Activity, AlertTriangle, AlertCircle, ArrowRight, Plus, GitBranch, Radio, Megaphone, Newspaper, CalendarClock } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/home")({
   component: AthenaHQ,
@@ -129,6 +129,37 @@ function AthenaHQ() {
       return data ?? [];
     },
     refetchInterval: 30_000,
+  });
+
+  const { data: leadershipMessages = [] } = useQuery({
+    queryKey: ["hq-leadership-messages"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("broadcasts")
+        .select("id,text,from_name,created_at")
+        .is("mission_id", null)
+        .order("created_at", { ascending: false })
+        .limit(5);
+      return data ?? [];
+    },
+  });
+
+  const { data: marketNews = [] } = useQuery({
+    queryKey: ["hq-market-news"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("market_intelligence")
+        .select("id,source,type,title,url,published_at,created_at")
+        .order("created_at", { ascending: false })
+        .limit(8);
+      return data ?? [];
+    },
+  });
+
+  const pipeline = missions.slice().sort((a, b) => {
+    const da = a.submission_date ? new Date(a.submission_date).getTime() : Infinity;
+    const db = b.submission_date ? new Date(b.submission_date).getTime() : Infinity;
+    return da - db;
   });
 
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
