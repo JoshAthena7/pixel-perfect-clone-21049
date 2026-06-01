@@ -9,7 +9,7 @@ import { relativeTime } from "@/lib/signals";
 import { MissionGridSkeleton, QuestionListSkeleton } from "@/components/v2/Skeletons";
 import { ArrowRight, Megaphone, CalendarClock, DoorOpen, ListChecks, Search, Globe, Sparkles } from "lucide-react";
 import { HORIZON_FILTERS, inferCategory, matchesHorizonFilter, type IntelItem } from "@/lib/intelligence-feed";
-import { LiveBadge, ScanningBeam, IrisWaveform } from "@/components/v2/effects";
+import { LiveBadge, ScanningBeam, IrisWaveform, TypewriterText } from "@/components/v2/effects";
 import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/_authenticated/home")({
@@ -564,7 +564,9 @@ function HorizonFeed({ items, missionCount }: { items: IntelItem[]; missionCount
                     {relativeTime(it.published_at ?? it.created_at)}
                   </span>
                 </div>
-                <p className="mt-1.5 text-sm font-semibold text-foreground group-hover:text-primary">{it.title}</p>
+                <p className="mt-1.5 text-sm font-semibold text-foreground group-hover:text-primary">
+                  <TypewriterText text={it.title ?? ""} speed={15} />
+                </p>
                 {it.summary && (
                   <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{it.summary}</p>
                 )}
