@@ -421,10 +421,22 @@ function ActivateMissionModal({ onClose }: { onClose: () => void }) {
           </div>
         </div>
 
+        {errorMsg && (
+          <div className="mt-4 rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+            {errorMsg}
+          </div>
+        )}
+        {successMsg && (
+          <div className="mt-4 rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
+            {successMsg}
+          </div>
+        )}
+
         <footer className="mt-6 flex items-center justify-end gap-2">
           <button type="button" onClick={onClose} className="btn-secondary" disabled={busy}>Cancel</button>
-          <button type="submit" className="btn-primary" disabled={busy}>
-            {busy ? "Activating…" : "Activate Mission"}
+          <button type="submit" className="btn-primary inline-flex items-center gap-2" disabled={busy || !!successMsg}>
+            {busy && <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />}
+            {successMsg ? "Activated" : busy ? "Activating…" : "Activate Mission"}
           </button>
         </footer>
       </form>
