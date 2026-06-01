@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { createSignal } from "@/lib/signals";
 import { Upload, Plus, FileText, ExternalLink, Trash2, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/library")({
