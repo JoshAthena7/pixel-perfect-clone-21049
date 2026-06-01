@@ -6,11 +6,25 @@ import { irisLeadershipAttention } from "@/lib/iris.functions";
 import { AttentionBadge } from "@/components/v2/AttentionBadge";
 import { signalTypeLabel, relativeTime } from "@/lib/signals";
 import { MissionGridSkeleton, QuestionListSkeleton } from "@/components/v2/Skeletons";
-import { Activity, AlertTriangle, AlertCircle, ArrowRight, GitBranch, Radio, Megaphone, Newspaper, CalendarClock, DoorOpen } from "lucide-react";
+import { Activity, AlertTriangle, AlertCircle, ArrowRight, GitBranch, Radio, Megaphone, Newspaper, CalendarClock, DoorOpen, ListChecks } from "lucide-react";
+import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/_authenticated/home")({
   component: AthenaHQ,
 });
+
+function EmptyState({ icon, title, subtitle, cta }: { icon: ReactNode; title: string; subtitle?: string; cta?: ReactNode }) {
+  return (
+    <div className="rounded-[12px] border border-dashed border-border bg-surface/40 px-8 py-14 text-center">
+      <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center text-muted-foreground opacity-50">
+        {icon}
+      </div>
+      <p className="text-sm font-medium text-foreground">{title}</p>
+      {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
+      {cta && <div className="mt-4">{cta}</div>}
+    </div>
+  );
+}
 
 type Mission = {
   id: string;
