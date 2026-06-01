@@ -130,11 +130,35 @@ function QuestionCommand() {
 
 
 
+  useEffect(() => {
+    function isTyping(t: EventTarget | null) {
+      const el = t as HTMLElement | null;
+      if (!el) return false;
+      return ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName) || el.isContentEditable;
+    }
+    function onKey(e: KeyboardEvent) {
+      if (isTyping(e.target) || filtered.length === 0) return;
+      if (e.key === "j" || e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIdx((i) => Math.min(filtered.length - 1, i + 1));
+      } else if (e.key === "k" || e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIdx((i) => Math.max(0, i - 1));
+      } else if (e.key === "Enter") {
+        const q = filtered[selectedIdx];
+        if (q) navigate({ to: "/missions/$missionId/questions/$questionId", params: { missionId, questionId: q.id } });
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [filtered, selectedIdx, navigate, missionId]);
+
   return (
     <div className="px-8 py-8 max-w-[1400px] mx-auto">
       <div className="mb-6 flex items-end justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold">Questions</h1>
+
           <p className="mt-1 text-xs text-muted-foreground">
             Every procurement is a collection of questions. Answer them better than anyone else.
           </p>
