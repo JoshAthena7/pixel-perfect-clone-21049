@@ -75,6 +75,42 @@ function QuestionCommand() {
   const activeScope = scope ?? "all";
   const scoped = activeScope === "mine" ? myQuestions : questions;
 
+  const pulseFn = useServerFn(irisMissionPulse);
+  const { data: pulse } = useQuery({
+    queryKey: ["mission-pulse", missionId],
+    queryFn: () => pulseFn({ data: { missionId } }),
+    refetchInterval: 60_000,
+  });
+  const { data: openConflicts = 0 } = useQuery({
+    queryKey: ["mission-conflicts-count", missionId],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("alignment_conflicts")
+        .select("id", { count: "exact", head: true })
+        .eq("mission_id", missionId)
+        .is("resolved_at", null);
+      return count ?? 0;
+    },
+  });
+
+  const counts = useMemo(() => {
+    const byStatus: Record<string, number> = { all: scoped.length };
+    const byHealth: Record<string, number> = { all: scoped.length };
+    for (const q of scoped) {
+      byStatus[q.status] = (byStatus[q.status] ?? 0) + 1;
+      byHealth[q.health] = (byHealth[q.health] ?? 0) + 1;
+    }
+    return { byStatus, byHealth };
+  }, [scoped]);
+
+  const filtered = scoped.filter(
+    (q) =>
+      (statusFilter === "all" || q.status === statusFilter) &&
+      (healthFilter === "all" || q.health === healthFilter),
+  );
+
+
+
 
   return (
     <div className="px-8 py-8 max-w-[1400px] mx-auto">
