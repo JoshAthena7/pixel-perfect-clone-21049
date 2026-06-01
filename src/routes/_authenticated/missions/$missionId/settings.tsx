@@ -120,8 +120,17 @@ function DetailsTab({ missionId }: { missionId: string }) {
   if (isLoading) return <div className="py-12 text-sm text-muted-foreground">Loading mission…</div>;
   if (!mission) return <div className="py-12 text-sm text-muted-foreground">Mission not found.</div>;
 
+  const isClosed = ["Won", "Lost", "Withdrawn", "Archived"].includes(form.status);
+
   return (
     <div>
+      {/* ARCH-6: lifecycle banner */}
+      {isClosed && (
+        <div className="mb-4 rounded-[10px] border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-xs text-amber-300">
+          This mission is marked <span className="font-semibold">{form.status}</span>. It will stay
+          visible in the Olympus archive but is no longer counted as Active in The Atrium or sidebar.
+        </div>
+      )}
       <div className="rounded-[10px] border border-border bg-surface p-6">
         <h2 className="mb-4 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Core</h2>
         <div className="grid grid-cols-2 gap-4">
