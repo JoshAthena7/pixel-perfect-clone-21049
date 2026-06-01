@@ -305,6 +305,8 @@ function ActivateMissionModal({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     client: "",
@@ -320,14 +322,21 @@ function ActivateMissionModal({ onClose }: { onClose: () => void }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setErrorMsg(null);
     if (!form.name.trim() || !form.client.trim()) {
-      toast.error("Mission name and client are required.");
+      setErrorMsg("Mission name and client are required.");
       return;
     }
     setBusy(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const { data: { user }, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !user) throw new Error(userErr?.message ?? "Not authenticated");
+
+      // Safety net: ensure a profile row exists for this user
+      await supabase.from("profiles").upsert(
+        { id: user.id, display_name: user.email?.split("@")[0] ?? "User", email: user.email ?? null },
+        { onConflict: "id" },
+      );
 
       const desc = form.program_type
         ? `${form.program_type}${form.description ? "\n\n" + form.description : ""}`
@@ -348,14 +357,26 @@ function ActivateMissionModal({ onClose }: { onClose: () => void }) {
         .select("id")
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Mission insert failed:", error);
+        throw new Error(error.message);
+      }
+      if (!data?.id) throw new Error("Mission was created but no id was returned.");
+
+      setSuccessMsg("Mission created! Setting up your workspace…");
       toast.success("Mission activated.");
       qc.invalidateQueries({ queryKey: ["olympus-missions"] });
       qc.invalidateQueries({ queryKey: ["sidebar-missions"] });
       qc.invalidateQueries({ queryKey: ["hq-missions"] });
-      navigate({ to: "/missions/$missionId/settings", params: { missionId: data.id } });
+      qc.invalidateQueries({ queryKey: ["olympus-me-role"] });
+      setTimeout(() => {
+        navigate({ to: "/missions/$missionId/settings", params: { missionId: data.id } });
+      }, 600);
     } catch (err: any) {
-      toast.error(err?.message ?? "Failed to activate mission.");
+      console.error("Mission activation error:", err);
+      const msg = err?.message ?? "Failed to activate mission.";
+      setErrorMsg(msg);
+      toast.error(msg);
       setBusy(false);
     }
   }
