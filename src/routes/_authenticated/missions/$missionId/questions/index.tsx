@@ -122,13 +122,14 @@ function QuestionCommand() {
           </p>
         </div>
         <Link
-          to="/missions/$missionId"
+          to="/missions/$missionId/overview"
           params={{ missionId }}
           className="text-xs text-muted-foreground hover:text-foreground"
         >
-          ← Mission Home
+          ← The Brief
         </Link>
       </div>
+
 
       {/* Scope toggle */}
       <div className="mb-4 inline-flex rounded-[10px] border border-border bg-surface p-0.5">
