@@ -3,11 +3,19 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { createSignal } from "@/lib/signals";
-import { Upload, Plus, FileText, ExternalLink, Trash2, X } from "lucide-react";
+import { Upload, Plus, FileText, ExternalLink, Trash2, X, Search } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/library")({
   component: LibraryPage,
 });
+
+/** ARCH-8: hash a File for dedup detection. */
+async function sha256(file: File): Promise<string> {
+  const buf = await file.arrayBuffer();
+  const hash = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
 
 const CATEGORIES = [
   "RFP",
