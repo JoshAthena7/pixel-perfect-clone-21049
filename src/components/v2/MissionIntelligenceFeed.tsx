@@ -6,6 +6,7 @@ import { Sparkles, BookmarkPlus, Link2, Users, Flag, MessageSquarePlus, Target, 
 import { relativeTime } from "@/lib/signals";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { LiveBadge, SignalStrengthBars, TypewriterText, TransmittedFlash } from "@/components/v2/effects";
 
 type MissionRow = {
   id: string;
@@ -16,12 +17,6 @@ type MissionRow = {
   win_themes: string[] | null;
   priority_topics: string[] | null;
   competitors: string[] | null;
-};
-
-const LEVEL_BADGE: Record<ScoredItem["level"], string> = {
-  HIGH: "border-destructive/40 bg-destructive/10 text-destructive",
-  MEDIUM: "border-amber-500/40 bg-amber-500/10 text-amber-400",
-  LOW: "border-border bg-background text-muted-foreground",
 };
 
 export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
@@ -134,7 +129,8 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
           <div className="flex items-center gap-2">
             <Sparkles className="h-3.5 w-3.5 text-primary" />
             <h3 className="iris-label">Mission Intelligence Feed</h3>
-            <span className="ml-2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+            <LiveBadge />
+            <span className="ml-2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground mono">
               {visible.length} scored items
             </span>
           </div>
@@ -155,8 +151,8 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
                 : "No relevant intelligence yet. IRIS will surface items as they arrive."}
             </li>
           ) : (
-            visible.map((s) => (
-              <FeedItem key={s.item.id} scored={s} missionId={missionId} />
+            visible.map((s, idx) => (
+              <FeedItem key={s.item.id} scored={s} missionId={missionId} idx={idx} />
             ))
           )}
         </ul>
@@ -203,11 +199,16 @@ function ProfileTags({ label, tags, tone }: { label: string; tags: string[]; ton
   );
 }
 
-function FeedItem({ scored, missionId }: { scored: ScoredItem; missionId: string }) {
+function FeedItem({ scored, missionId, idx = 0 }: { scored: ScoredItem; missionId: string; idx?: number }) {
   const qc = useQueryClient();
   const [attachOpen, setAttachOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
   const [discussOpen, setDiscussOpen] = useState(false);
+  const [flash, setFlash] = useState<{ label: string; tone: "teal" | "red" } | null>(null);
+  const fireFlash = (label: string, tone: "teal" | "red" = "teal") => {
+    setFlash({ label, tone });
+    window.setTimeout(() => setFlash(null), 1600);
+  };
 
   const { item, level, insight, matchedThemes } = scored;
 
@@ -265,11 +266,10 @@ function FeedItem({ scored, missionId }: { scored: ScoredItem; missionId: string
   });
 
   return (
-    <li className="px-5 py-4">
+    <li className="relative px-5 py-4 feed-item" style={{ animationDelay: `${Math.min(idx, 12) * 80}ms` }}>
+      <TransmittedFlash show={!!flash} label={flash?.label ?? ""} tone={flash?.tone ?? "teal"} />
       <div className="flex items-start gap-3">
-        <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] ${LEVEL_BADGE[level]}`}>
-          {level}
-        </span>
+        <SignalStrengthBars level={level} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             {item.category && (
@@ -278,7 +278,7 @@ function FeedItem({ scored, missionId }: { scored: ScoredItem; missionId: string
               </span>
             )}
             <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{item.source}</span>
-            <span className="ml-auto text-[10px] text-muted-foreground">
+            <span className="ml-auto text-[10px] text-muted-foreground mono">
               {relativeTime(item.published_at ?? item.created_at)}
             </span>
           </div>
@@ -292,10 +292,12 @@ function FeedItem({ scored, missionId }: { scored: ScoredItem; missionId: string
             {item.title}
           </a>
 
-          {/* IRIS INSIGHT */}
+          {/* IRIS INSIGHT — typewriter */}
           <div className="mt-2 border-l-2 border-primary bg-primary/5 px-3 py-2">
             <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-primary mb-0.5">IRIS Insight</div>
-            <p className="text-xs text-foreground/90 leading-relaxed">{insight}</p>
+            <p className="text-xs text-foreground/90 leading-relaxed">
+              <TypewriterText text={insight} />
+            </p>
           </div>
 
           {matchedThemes.length > 0 && (
@@ -310,16 +312,16 @@ function FeedItem({ scored, missionId }: { scored: ScoredItem; missionId: string
 
           {/* Action buttons */}
           <div className="mt-3 flex flex-wrap gap-1.5">
-            <ActionBtn icon={<BookmarkPlus className="h-3 w-3" />} onClick={() => saveToVault.mutate()} disabled={saveToVault.isPending}>
+            <ActionBtn icon={<BookmarkPlus className="h-3 w-3" />} onClick={() => { saveToVault.mutate(); fireFlash("VAULTED ✓", "teal"); }} disabled={saveToVault.isPending}>
               Save to Vault
             </ActionBtn>
             <ActionBtn icon={<Link2 className="h-3 w-3" />} onClick={() => setAttachOpen(true)}>
               Attach to Question
             </ActionBtn>
-            <ActionBtn icon={<Users className="h-3 w-3" />} onClick={() => shareWithTeam.mutate()} disabled={shareWithTeam.isPending}>
+            <ActionBtn icon={<Users className="h-3 w-3" />} onClick={() => { shareWithTeam.mutate(); fireFlash("TRANSMITTED ✓", "teal"); }} disabled={shareWithTeam.isPending}>
               Share with Team
             </ActionBtn>
-            <ActionBtn icon={<Flag className="h-3 w-3" />} onClick={() => flagForLeadership.mutate()} disabled={flagForLeadership.isPending}>
+            <ActionBtn icon={<Flag className="h-3 w-3" />} onClick={() => { flagForLeadership.mutate(); fireFlash("FLAGGED ✓", "red"); }} disabled={flagForLeadership.isPending}>
               Flag for Leadership
             </ActionBtn>
             <ActionBtn icon={<MessageSquarePlus className="h-3 w-3" />} onClick={() => setDiscussOpen(true)}>

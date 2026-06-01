@@ -9,6 +9,7 @@ import { relativeTime } from "@/lib/signals";
 import { MissionGridSkeleton, QuestionListSkeleton } from "@/components/v2/Skeletons";
 import { ArrowRight, Megaphone, CalendarClock, DoorOpen, ListChecks, Search, Globe } from "lucide-react";
 import { HORIZON_FILTERS, inferCategory, matchesHorizonFilter, type IntelItem } from "@/lib/intelligence-feed";
+import { LiveBadge, ScanningBeam } from "@/components/v2/effects";
 import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/_authenticated/home")({
@@ -269,12 +270,12 @@ function AthenaHQ() {
                       >
                         <span className={dotCls} />
                         <MissionPill name={missionMap.get(q.mission_id) ?? "—"} />
-                        <span className="text-[11px] font-semibold tabular-nums text-muted-foreground shrink-0">{q.question_number}</span>
+                        <span className="mono-q text-[11px] font-semibold shrink-0">{q.question_number}</span>
                         <span className="flex-1 min-w-0 truncate text-sm text-foreground">{q.title}</span>
                         {q.current_score !== null && (
-                          <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">{Number(q.current_score).toFixed(1)}</span>
+                          <span className="shrink-0 text-[11px] mono-score text-muted-foreground">{Number(q.current_score).toFixed(1)}</span>
                         )}
-                        <span className={`shrink-0 text-xs font-semibold tabular-nums ${tone}`}>
+                        <span className={`shrink-0 text-xs font-semibold mono-days ${tone}`}>
                           {days === null ? "—" : days < 0 ? `${Math.abs(days)}d overdue` : `${days}d`}
                         </span>
                       </Link>
@@ -387,7 +388,8 @@ function MissionCard({ mission, attention }: { mission: Mission; attention: numb
     <Link
       to="/missions/$missionId/overview"
       params={{ missionId: mission.id }}
-      className={`group relative block rounded-[12px] border border-border border-l-4 bg-surface p-5 transition-all duration-200 ease-out hover:-translate-y-0.5 ${HEALTH_BORDER[mission.health] ?? "border-l-border"} ${HEALTH_GLOW[mission.health] ?? ""}`}
+      data-health={mission.health}
+      className={`mission-card group relative block rounded-[12px] border border-border border-l-4 bg-surface p-5 transition-all duration-200 ease-out hover:-translate-y-0.5 ${HEALTH_GLOW[mission.health] ?? ""}`}
       style={{ minHeight: 140 }}
     >
       <div className="flex items-start justify-between gap-3">
@@ -396,7 +398,7 @@ function MissionCard({ mission, attention }: { mission: Mission; attention: numb
           <p className="mt-0.5 text-xs text-muted-foreground truncate">{mission.client}{mission.state ? ` · ${mission.state}` : ""}</p>
         </div>
         {attention > 0 && (
-          <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold tabular-nums ${
+          <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold mono ${
             attention >= 50 ? "border-destructive/40 bg-destructive/10 text-destructive" :
             attention >= 20 ? "border-amber-500/40 bg-amber-500/10 text-amber-400" :
             "border-primary/30 bg-primary/5 text-primary"
@@ -410,14 +412,14 @@ function MissionCard({ mission, attention }: { mission: Mission; attention: numb
         <span className={`dot dot-${mission.health.toLowerCase()}`} />
         <span className="text-xs font-medium text-foreground/90">{mission.health}</span>
         {days !== null && (
-          <span className={`ml-auto text-xl font-semibold tabular-nums leading-none ${countdownTone}`}>
+          <span className={`ml-auto text-xl font-semibold mono-days leading-none ${countdownTone}`}>
             {days < 0 ? `${Math.abs(days)}d` : `${days}d`}
           </span>
         )}
       </div>
 
       <div className="mt-4 flex items-center gap-2 border-t border-border pt-3">
-        <span className="rounded-full bg-surface-hover px-2 py-0.5 text-[10px] text-muted-foreground tabular-nums">
+        <span className="rounded-full bg-surface-hover px-2 py-0.5 text-[10px] text-muted-foreground mono">
           {mission.question_count ?? 0} questions
         </span>
         <span className="ml-auto inline-flex items-center gap-1 text-[11px] text-muted-foreground transition-colors group-hover:text-primary">
@@ -464,6 +466,7 @@ function HorizonFeed({ items, missionCount }: { items: IntelItem[]; missionCount
         <div className="flex items-center gap-2">
           <Globe className="h-3.5 w-3.5 text-primary" />
           <h3 className="iris-label">Horizon Feed</h3>
+          <LiveBadge />
           <span className="ml-2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
             What is happening in our industry
           </span>
@@ -485,11 +488,7 @@ function HorizonFeed({ items, missionCount }: { items: IntelItem[]; missionCount
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`rounded-full border px-2.5 py-1 text-[11px] transition ${
-              filter === f
-                ? "border-primary/40 bg-primary/10 text-primary"
-                : "border-border bg-background text-muted-foreground hover:text-foreground"
-            }`}
+            className={`pill-classified ${filter === f ? "is-active" : ""}`}
           >
             {f}
           </button>
@@ -498,14 +497,20 @@ function HorizonFeed({ items, missionCount }: { items: IntelItem[]; missionCount
 
       <ul className="divide-y divide-border max-h-[640px] overflow-y-auto">
         {filtered.length === 0 ? (
-          <li className="px-5 py-12 text-center text-sm text-muted-foreground">
-            {items.length === 0
-              ? "IRIS is scanning the industry. Items will appear shortly."
-              : "No items match this filter."}
-          </li>
+          items.length === 0 ? (
+            <li><ScanningBeam /></li>
+          ) : (
+            <li className="px-5 py-12 text-center text-sm text-muted-foreground">
+              No items match this filter.
+            </li>
+          )
         ) : (
-          filtered.map((it) => (
-            <li key={it.id} className="px-5 py-4">
+          filtered.map((it, idx) => (
+            <li
+              key={it.id}
+              className="px-5 py-4 feed-item"
+              style={{ animationDelay: `${Math.min(idx, 12) * 80}ms` }}
+            >
               <a
                 href={it.url ?? "#"}
                 target={it.url ? "_blank" : undefined}
@@ -519,7 +524,7 @@ function HorizonFeed({ items, missionCount }: { items: IntelItem[]; missionCount
                     </span>
                   )}
                   <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{it.source}</span>
-                  <span className="ml-auto text-[10px] text-muted-foreground">
+                  <span className="ml-auto text-[10px] text-muted-foreground mono">
                     {relativeTime(it.published_at ?? it.created_at)}
                   </span>
                 </div>
