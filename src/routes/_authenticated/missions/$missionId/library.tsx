@@ -306,7 +306,7 @@ function AddDocumentModal({
         .select("display_name")
         .eq("id", u.user!.id)
         .maybeSingle();
-      await supabase.from("mission_library").insert({
+      const { data: ins } = await supabase.from("mission_library").insert({
         mission_id: missionId,
         name: name.trim().slice(0, 200),
         category,
@@ -314,6 +314,15 @@ function AddDocumentModal({
         url: url.trim().slice(0, 1000) || null,
         added_by_id: u.user!.id,
         added_by: profile?.display_name ?? u.user!.email,
+      }).select("id").maybeSingle();
+      await createSignal({
+        mission_id: missionId,
+        source_module: "library",
+        signal_type: "document_uploaded",
+        signal_title: `${category}: ${name.trim().slice(0, 80)}`,
+        signal_summary: notes.trim().slice(0, 200) || null,
+        severity: "info",
+        related_document_id: ins?.id ?? null,
       });
       onSaved();
     } finally {
