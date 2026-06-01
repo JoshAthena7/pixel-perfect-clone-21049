@@ -177,9 +177,8 @@ function AlignmentConflictsPage() {
               const sev = (c.severity ?? "warning").toLowerCase();
               const isOpen = expanded.has(c.id);
               return (
-                <>
+                <Fragment key={c.id}>
                   <tr
-                    key={c.id}
                     className="border-t border-border hover:bg-muted/30 transition-colors cursor-pointer"
                     onClick={() => toggle(c.id)}
                   >
