@@ -187,6 +187,17 @@ function QuestionWorkspace() {
     mutationFn: async (status: string) => {
       const { error } = await supabase.from("question_records").update({ status }).eq("id", questionId);
       if (error) throw error;
+      if (status === "complete" && q) {
+        await createSignal({
+          mission_id: missionId,
+          source_module: "question_workspace",
+          signal_type: "question_completed",
+          signal_title: `Question ${q.question_number} completed`,
+          signal_summary: q.title,
+          severity: "info",
+          related_question_id: questionId,
+        });
+      }
     },
     onSuccess: () => {
       toast.success("Status updated");
