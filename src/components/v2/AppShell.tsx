@@ -63,7 +63,7 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
-        <Section label="HQ">
+        <Section label="The Atrium">
           <NavItem to="/home" icon={<Home className="h-4 w-4" />} active={currentPath === "/home"}>The Atrium</NavItem>
         </Section>
 
