@@ -213,6 +213,17 @@ function LibraryPage() {
         </div>
       </label>
 
+      {/* ARCH-7: search across name, notes, category */}
+      <div className="mb-4 relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search The Vault by name, notes, or category…"
+          className="w-full rounded-md border border-border bg-background pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+        />
+      </div>
+
       <div className="grid grid-cols-1 gap-6 md:grid-cols-[240px_1fr]">
         {/* Category filter list */}
         <aside className="rounded-lg border border-border p-2">
