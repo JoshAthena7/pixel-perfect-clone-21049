@@ -31,52 +31,50 @@ function QuestionCommand() {
   const { missionId } = Route.useParams();
   const [statusFilter, setStatusFilter] = useState<(typeof STATUSES)[number]>("all");
   const [healthFilter, setHealthFilter] = useState<(typeof HEALTHS)[number]>("all");
+  const [scope, setScope] = useState<"mine" | "all" | null>(null);
+
+  const { data: me } = useQuery({
+    queryKey: ["me-id"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user?.id ?? null;
+    },
+  });
+
+  const { data: myRole } = useQuery({
+    queryKey: ["my-mission-role", missionId],
+    queryFn: async () => {
+      if (!me) return null;
+      const { data } = await supabase
+        .from("mission_members").select("role").eq("mission_id", missionId).eq("user_id", me).maybeSingle();
+      return (data?.role as string | null) ?? null;
+    },
+    enabled: !!me,
+  });
+
+  const isLeader = myRole === "admin" || myRole === "lead";
+
+  // Default scope based on role once known
+  if (scope === null && myRole !== undefined && me !== undefined) {
+    setScope(isLeader ? "all" : "mine");
+  }
 
   const { data: questions = [], isLoading } = useQuery({
     queryKey: ["mission-questions", missionId],
     queryFn: async () => {
       const { data } = await supabase
         .from("question_records")
-        .select("id,question_number,section_number,title,health,status,pens_down_date,current_score,target_score,page_limit,evaluation_weight")
+        .select("id,question_number,section_number,title,health,status,pens_down_date,current_score,target_score,page_limit,evaluation_weight,assigned_writer_id,assigned_sme_id")
         .eq("mission_id", missionId)
         .order("sort_order", { ascending: true });
-      return (data ?? []) as Q[];
+      return (data ?? []) as (Q & { assigned_writer_id: string | null; assigned_sme_id: string | null })[];
     },
   });
 
-  const pulseFn = useServerFn(irisMissionPulse);
-  const { data: pulse } = useQuery({
-    queryKey: ["mission-pulse", missionId],
-    queryFn: () => pulseFn({ data: { missionId } }),
-    refetchInterval: 60_000,
-  });
-  const { data: openConflicts = 0 } = useQuery({
-    queryKey: ["mission-conflicts-count", missionId],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("alignment_conflicts")
-        .select("id", { count: "exact", head: true })
-        .eq("mission_id", missionId)
-        .is("resolved_at", null);
-      return count ?? 0;
-    },
-  });
+  const myQuestions = me ? questions.filter((q) => q.assigned_writer_id === me || q.assigned_sme_id === me) : [];
+  const activeScope = scope ?? "all";
+  const scoped = activeScope === "mine" ? myQuestions : questions;
 
-  const counts = useMemo(() => {
-    const byStatus: Record<string, number> = { all: questions.length };
-    const byHealth: Record<string, number> = { all: questions.length };
-    for (const q of questions) {
-      byStatus[q.status] = (byStatus[q.status] ?? 0) + 1;
-      byHealth[q.health] = (byHealth[q.health] ?? 0) + 1;
-    }
-    return { byStatus, byHealth };
-  }, [questions]);
-
-  const filtered = questions.filter(
-    (q) =>
-      (statusFilter === "all" || q.status === statusFilter) &&
-      (healthFilter === "all" || q.health === healthFilter),
-  );
 
   return (
     <div className="px-8 py-8 max-w-[1400px] mx-auto">
