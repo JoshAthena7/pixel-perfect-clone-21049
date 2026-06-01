@@ -133,6 +133,7 @@ function BriefingBookPage() {
           <Section
             key={key}
             index={idx + 1}
+            missionId={missionId}
             sectionKey={key}
             title={BRIEFING_SECTION_TITLES[key]}
             row={sectionMap.get(key)}
