@@ -8,8 +8,11 @@ import { irisQuestionSignals } from "@/lib/iris.functions";
 import { toast } from "sonner";
 import {
   ArrowLeft, Sparkles, MessageSquare, AlertTriangle, FileText, Activity,
-  Target, Calendar, User as UserIcon, Send, CheckCircle2, Shield, Trophy, Link2,
+  Target, Calendar, User as UserIcon, Send, CheckCircle2, Shield, Trophy, Link2, Copy,
 } from "lucide-react";
+import { ScoreTrend } from "@/components/v2/ScoreTrend";
+import { ShortcutsHint } from "@/components/v2/KeyboardShortcuts";
+
 
 export const Route = createFileRoute(
   "/_authenticated/missions/$missionId/questions/$questionId",
@@ -273,21 +276,29 @@ function QuestionWorkspace() {
               <option value="complete">Complete</option>
             </select>
             {q.current_score != null && (
-              <div className="rounded-md border border-border bg-surface px-3 py-1.5 text-xs">
-                Score <span className="font-semibold text-primary">{q.current_score}</span>
-                <span className="text-muted-foreground"> / {q.target_score ?? 5}</span>
+              <div className="rounded-md border border-border bg-surface px-3 py-1.5 text-xs inline-flex items-center gap-2">
+                <span>Score <span className="font-semibold text-primary">{q.current_score}</span>
+                <span className="text-muted-foreground"> / {q.target_score ?? 5}</span></span>
+                <ScoreTrend questionId={questionId} />
               </div>
             )}
           </div>
         </div>
       </header>
 
+
       {/* Two-column body */}
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] overflow-hidden">
         {/* LEFT */}
         <div className="overflow-y-auto border-r border-border">
           <div className="px-8 py-6 space-y-6">
-            <Card title="Question Details" icon={<FileText className="h-4 w-4" />}>
+            <Card title="Question Details" icon={<FileText className="h-4 w-4" />} action={
+              <button
+                onClick={() => { navigator.clipboard.writeText(q.question_text); toast.success("Question text copied"); }}
+                className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground"
+                title="Copy question text"
+              ><Copy className="h-3 w-3" /> Copy</button>
+            }>
               <div className="space-y-4 text-sm">
                 <p className="whitespace-pre-wrap leading-relaxed">{q.question_text}</p>
                 <div className="grid grid-cols-2 gap-3 text-xs">
@@ -301,11 +312,18 @@ function QuestionWorkspace() {
                   <Block label="Requirements">
                     <ul className="space-y-1.5">
                       {q.requirements.map((r, i) => (
-                        <li key={i} className="flex gap-2 text-xs"><span className="text-primary mt-0.5">›</span><span className="text-foreground/80">{r}</span></li>
+                        <li key={i} className="group flex gap-2 text-xs"><span className="text-primary mt-0.5">›</span><span className="flex-1 text-foreground/80">{r}</span>
+                          <button
+                            onClick={() => { navigator.clipboard.writeText(r); toast.success("Requirement copied"); }}
+                            className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground"
+                            title="Copy requirement"
+                          ><Copy className="h-3 w-3" /></button>
+                        </li>
                       ))}
                     </ul>
                   </Block>
                 )}
+
 
                 {q.mandatory_language && q.mandatory_language.length > 0 && (
                   <Block label="Mandatory Language">
@@ -353,9 +371,11 @@ function QuestionWorkspace() {
           </div>
         </div>
       </div>
+      <ShortcutsHint />
     </div>
   );
 }
+
 
 function Card({ title, icon, action, children }: { title: string; icon?: React.ReactNode; action?: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -488,9 +508,14 @@ function CollabPanel({ collab, questionId, missionId }: { collab: Collab[]; ques
         related_question_id: questionId,
       });
     },
-    onSuccess: () => { setBody(""); qc.invalidateQueries({ queryKey: ["question-collab", questionId] }); },
+    onSuccess: () => {
+      setBody(""); 
+      qc.invalidateQueries({ queryKey: ["question-collab", questionId] });
+      toast.success(type === "sme_request" ? "SME request sent · IRIS notified" : type === "decision_needed" ? "Decision flagged · IRIS notified" : "Note added");
+    },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   const resolve = useMutation({
     mutationFn: async (id: string) => {
@@ -528,12 +553,14 @@ function CollabPanel({ collab, questionId, missionId }: { collab: Collab[]; ques
 
         <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
           {collab.length === 0 && <p className="text-xs text-muted-foreground py-4 text-center">No collaboration yet.</p>}
-          {collab.map((c) => (
-            <div key={c.id} className={`rounded-md border px-3 py-2 ${c.resolved ? "border-border/40 bg-background/30 opacity-60" : "border-border bg-background/60"}`}>
+          {collab.map((c) => {
+            const st = entryStyle(c.entry_type);
+            return (
+            <div key={c.id} className={`rounded-md border border-l-4 px-3 py-2 ${st.border} ${c.resolved ? "border-border/40 bg-background/30 opacity-60" : `border-border ${st.bg}`}`}>
               <div className="flex items-center justify-between gap-2 text-[10px] uppercase tracking-wider">
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground"><UserIcon className="inline h-3 w-3 mr-1" />{c.author_name}</span>
-                  <span className={`rounded px-1.5 py-0.5 ${entryColor(c.entry_type)}`}>{c.entry_type.replace(/_/g, " ")}</span>
+                  <span className={`rounded px-1.5 py-0.5 ${st.badge}`}>{c.entry_type.replace(/_/g, " ")}</span>
                 </div>
                 <span className="text-muted-foreground/70">{new Date(c.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
               </div>
@@ -544,23 +571,25 @@ function CollabPanel({ collab, questionId, missionId }: { collab: Collab[]; ques
                 </button>
               )}
             </div>
-          ))}
+          );})}
+
         </div>
       </div>
     </Card>
   );
 }
 
-function entryColor(t: string) {
+function entryStyle(t: string): { border: string; bg: string; badge: string } {
   switch (t) {
-    case "decision_needed": return "bg-red/15 text-red";
-    case "sme_request": return "bg-yellow/15 text-yellow";
-    case "leadership_guidance": return "bg-primary/15 text-primary";
-    case "iris_alert": return "bg-primary/15 text-primary";
-    case "open_question": return "bg-yellow/15 text-yellow";
-    default: return "bg-surface-hover text-muted-foreground";
+    case "iris_alert":          return { border: "border-l-[#0891b2]",  bg: "bg-[rgba(8,145,178,0.08)]",  badge: "bg-[#0891b2]/15 text-[#22d3ee]" };
+    case "decision_needed":     return { border: "border-l-[#7c3aed]",  bg: "bg-[rgba(124,58,237,0.08)]", badge: "bg-[#7c3aed]/15 text-[#a78bfa]" };
+    case "sme_request":         return { border: "border-l-[#ea580c]",  bg: "bg-[rgba(234,88,12,0.08)]",  badge: "bg-[#ea580c]/15 text-[#fb923c]" };
+    case "open_question":       return { border: "border-l-[#d97706]",  bg: "bg-[rgba(217,119,6,0.08)]",  badge: "bg-[#d97706]/15 text-[#fbbf24]" };
+    case "leadership_guidance": return { border: "border-l-[#2563eb]",  bg: "bg-[rgba(37,99,235,0.08)]",  badge: "bg-[#2563eb]/15 text-[#60a5fa]" };
+    default:                    return { border: "border-l-border",     bg: "bg-background/60",           badge: "bg-surface-hover text-muted-foreground" };
   }
 }
+
 
 function IntelPanel({ intel, questionId, missionId }: { intel: Intel | null; questionId: string; missionId: string }) {
   const qc = useQueryClient();
@@ -599,10 +628,17 @@ function IntelPanel({ intel, questionId, missionId }: { intel: Intel | null; que
       }
     >
       {!intel ? (
-        <div className="py-6 text-center text-xs text-muted-foreground">
-          No IRIS brief yet. <span className="block mt-1 opacity-70">Generate to synthesize state, procurement, and competitor intel.</span>
+        <div className="space-y-2.5 py-1">
+          {[88, 72, 90, 65, 80].map((w, i) => (
+            <div key={i} className="h-2.5 rounded bg-surface-hover animate-pulse" style={{ width: `${w}%` }} />
+          ))}
+          <p className="pt-2 text-xs text-muted-foreground flex items-center gap-2">
+            <span className="inline-block h-2 w-2 rounded-full bg-primary animate-pulse" />
+            IRIS is preparing intelligence for this question…
+          </p>
         </div>
       ) : (
+
         <div className="space-y-3 text-sm">
           {expired && <div className="rounded-md border border-yellow/40 bg-yellow/10 px-3 py-1.5 text-[10px] uppercase tracking-wider text-yellow">Cached brief expired — refresh recommended</div>}
           {intel.iris_brief && <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap">{intel.iris_brief}</p>}

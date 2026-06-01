@@ -1,10 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { irisMissionPulse } from "@/lib/iris.functions";
 import { AlertTriangle, Activity, GitMerge } from "lucide-react";
+import { ScoreTrend } from "@/components/v2/ScoreTrend";
+
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/questions/")({
   component: QuestionCommand,
@@ -30,9 +32,20 @@ const HEALTHS = ["all", "green", "yellow", "red"] as const;
 
 function QuestionCommand() {
   const { missionId } = Route.useParams();
+  const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<(typeof STATUSES)[number]>("all");
   const [healthFilter, setHealthFilter] = useState<(typeof HEALTHS)[number]>("all");
-  const [scope, setScope] = useState<"mine" | "all" | null>(null);
+  const lsKey = `questions-scope:${missionId}`;
+  const [scope, setScopeState] = useState<"mine" | "all" | null>(() => {
+    if (typeof window === "undefined") return null;
+    const v = window.localStorage.getItem(lsKey);
+    return v === "mine" || v === "all" ? v : null;
+  });
+  const setScope = (s: "mine" | "all") => {
+    setScopeState(s);
+    try { window.localStorage.setItem(lsKey, s); } catch { /* ignore */ }
+  };
+  const [selectedIdx, setSelectedIdx] = useState(0);
 
   const { data: me } = useQuery({
     queryKey: ["me-id"],
@@ -59,7 +72,9 @@ function QuestionCommand() {
     if (scope === null && me !== undefined && myRole !== undefined) {
       setScope(isLeader ? "all" : "mine");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scope, me, myRole, isLeader]);
+
 
 
   const { data: questions = [], isLoading } = useQuery({
@@ -115,11 +130,35 @@ function QuestionCommand() {
 
 
 
+  useEffect(() => {
+    function isTyping(t: EventTarget | null) {
+      const el = t as HTMLElement | null;
+      if (!el) return false;
+      return ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName) || el.isContentEditable;
+    }
+    function onKey(e: KeyboardEvent) {
+      if (isTyping(e.target) || filtered.length === 0) return;
+      if (e.key === "j" || e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIdx((i) => Math.min(filtered.length - 1, i + 1));
+      } else if (e.key === "k" || e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIdx((i) => Math.max(0, i - 1));
+      } else if (e.key === "Enter") {
+        const q = filtered[selectedIdx];
+        if (q) navigate({ to: "/missions/$missionId/questions/$questionId", params: { missionId, questionId: q.id } });
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [filtered, selectedIdx, navigate, missionId]);
+
   return (
     <div className="px-8 py-8 max-w-[1400px] mx-auto">
       <div className="mb-6 flex items-end justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold">Questions</h1>
+
           <p className="mt-1 text-xs text-muted-foreground">
             Every procurement is a collection of questions. Answer them better than anyone else.
           </p>
@@ -248,8 +287,8 @@ function QuestionCommand() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filtered.map((q) => (
-                <tr key={q.id} className="hover:bg-surface-hover">
+              {filtered.map((q, idx) => (
+                <tr key={q.id} className={`hover:bg-surface-hover ${idx === selectedIdx ? "bg-primary/5 ring-1 ring-inset ring-primary/30" : ""}`}>
                   <td className="px-4 py-3"><span className={`dot dot-${q.health}`} /></td>
                   <td className="px-4 py-3 font-mono text-muted-foreground">
                     <Link to="/missions/$missionId/questions/$questionId" params={{ missionId, questionId: q.id }} className="hover:text-primary">
@@ -267,8 +306,9 @@ function QuestionCommand() {
                   <td className="px-4 py-3 text-right text-xs text-muted-foreground">{q.page_limit ?? "—"}</td>
                   <td className="px-4 py-3 text-right">
                     {q.current_score != null
-                      ? <span className="text-primary font-semibold">{q.current_score}<span className="text-muted-foreground font-normal"> / {q.target_score ?? 5}</span></span>
+                      ? <span className="inline-flex items-center gap-1.5"><span className="text-primary font-semibold">{q.current_score}<span className="text-muted-foreground font-normal"> / {q.target_score ?? 5}</span></span><ScoreTrend questionId={q.id} /></span>
                       : <span className="text-muted-foreground">—</span>}
+
                   </td>
                   <td className="px-4 py-3 text-right text-muted-foreground text-xs">
                     {q.pens_down_date ? new Date(q.pens_down_date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—"}
