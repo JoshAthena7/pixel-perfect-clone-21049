@@ -8,6 +8,7 @@ import {
   ChevronDown, ChevronRight, FolderOpen, BookOpen, PenLine, GitBranch,
   AlertCircle, AlertTriangle, Activity, Sparkles, RefreshCw, ArrowRight, Megaphone, Clock,
 } from "lucide-react";
+import { TypewriterText } from "@/components/v2/effects";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/overview")({
   component: MissionHomePage,
@@ -180,7 +181,7 @@ function MissionHomePage() {
   const total = greenC + yellowC + redC;
 
   return (
-    <div className="mx-auto max-w-[1280px] px-8 py-10 space-y-8">
+    <div className="mx-auto max-w-[1280px] px-8 py-10 space-y-8 page-enter">
       {/* HEADER */}
       <header className="flex flex-wrap items-start justify-between gap-6">
         <div className="min-w-0">
@@ -310,7 +311,9 @@ function MissionHomePage() {
                       </span>
                       <span className="ml-auto text-[10px] text-muted-foreground">{relativeTime(s.created_at)}</span>
                     </div>
-                    <p className="mt-0.5 text-sm truncate">{s.signal_title}</p>
+                    <p className="mt-0.5 text-sm truncate">
+                      {isIris ? <TypewriterText text={s.signal_title} speed={20} /> : s.signal_title}
+                    </p>
                   </div>
                 </li>
               );

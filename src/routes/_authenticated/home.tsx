@@ -7,9 +7,9 @@ import { irisLeadershipAttention } from "@/lib/iris.functions";
 import { AttentionBadge } from "@/components/v2/AttentionBadge";
 import { relativeTime } from "@/lib/signals";
 import { MissionGridSkeleton, QuestionListSkeleton } from "@/components/v2/Skeletons";
-import { ArrowRight, Megaphone, CalendarClock, DoorOpen, ListChecks, Search, Globe } from "lucide-react";
+import { ArrowRight, Megaphone, CalendarClock, DoorOpen, ListChecks, Search, Globe, Sparkles } from "lucide-react";
 import { HORIZON_FILTERS, inferCategory, matchesHorizonFilter, type IntelItem } from "@/lib/intelligence-feed";
-import { LiveBadge, ScanningBeam } from "@/components/v2/effects";
+import { LiveBadge, ScanningBeam, IrisWaveform } from "@/components/v2/effects";
 import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/_authenticated/home")({
@@ -196,6 +196,9 @@ function AthenaHQ() {
 
 
       <div className="mx-auto max-w-[1400px] px-8 py-10 space-y-12">
+        {/* ASK IRIS — global query bar with waveform */}
+        <AskIrisBar />
+
         {/* ROLE-DIFFERENTIATED: Active Missions (leaders) or Your Assignments (writers/SMEs) */}
         {isLeader ? (
           <section>
@@ -436,6 +439,39 @@ function MissionPill({ name }: { name: string }) {
     <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-[10px] font-medium text-foreground/80 truncate max-w-[160px]">
       {name}
     </span>
+  );
+}
+
+// ─── ASK IRIS BAR ──────────────────────────────────────────────────────────
+
+function AskIrisBar() {
+  const [value, setValue] = useState("");
+  const [focused, setFocused] = useState(false);
+  const active = focused || value.length > 0;
+  return (
+    <section
+      className={`iris-panel rounded-[12px] border bg-surface px-4 py-3 flex items-center gap-3 transition-colors ${
+        active ? "border-primary/50" : "border-border"
+      }`}
+    >
+      <Sparkles className={`h-4 w-4 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
+      <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground hidden sm:inline">
+        Ask IRIS
+      </span>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        placeholder="Ask IRIS about any mission, signal, or policy…"
+        className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+      />
+      {active && <IrisWaveform />}
+      <kbd className="hidden md:inline-flex items-center rounded border border-border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground mono">
+        /
+      </kbd>
+    </section>
   );
 }
 
