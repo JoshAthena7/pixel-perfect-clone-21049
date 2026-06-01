@@ -133,16 +133,9 @@ function OverviewPage() {
         <Stat label="Avg Score" value={avgScore} />
       </section>
 
-      {/* Quick nav */}
-      <section className="grid grid-cols-2 gap-3 md:grid-cols-5">
-        <QuickLink to="/missions/$missionId" params={{ missionId }} label="Question Command" icon={<ListChecks className="h-4 w-4" />} />
-        <QuickLink to="/missions/$missionId/library" params={{ missionId }} label="Library" icon={<FolderOpen className="h-4 w-4" />} />
-        <QuickLink to="/missions/$missionId/briefing" params={{ missionId }} label="Briefing Book" icon={<BookOpen className="h-4 w-4" />} />
-        <QuickLink to="/missions/$missionId/brief" params={{ missionId }} label="IRIS Brief" icon={<Sparkles className="h-4 w-4" />} />
-        <QuickLink to="/missions/$missionId/settings" params={{ missionId }} label="Settings" icon={<Settings className="h-4 w-4" />} />
-      </section>
+      {/* (removed legacy quick-nav; replaced by Primary CTAs below) */}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
       {/* Primary CTAs */}
       <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <PrimaryCta to="/missions/$missionId" params={{ missionId }} label="Enter Mission Studio" sub="Where writers work" icon={<ListChecks className="h-5 w-5" />} tone="primary" />
