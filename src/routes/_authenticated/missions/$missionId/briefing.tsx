@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -8,8 +8,15 @@ import {
   BRIEFING_SECTION_KEYS,
   BRIEFING_SECTION_TITLES,
 } from "@/lib/iris.functions";
-import { Printer, BookOpen, Sparkles, ChevronDown, ChevronRight, RefreshCw, Loader2 } from "lucide-react";
+import { Printer, BookOpen, Sparkles, ChevronDown, ChevronRight, RefreshCw, Loader2, History, FileText, Globe, X } from "lucide-react";
 import { relativeTime } from "@/lib/signals";
+import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
+type SourceRef =
+  | { type: "vault_document"; name: string; document_id: string }
+  | { type: "market_intelligence"; source: string; date?: string; url?: string }
+  | { type: string; [k: string]: any };
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/briefing")({
   component: BriefingBookPage,
