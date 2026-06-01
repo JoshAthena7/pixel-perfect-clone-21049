@@ -15,7 +15,7 @@ const HEALTHS = ["green", "yellow", "red"] as const;
 const ROLES = ["admin", "lead", "writer", "sme", "viewer"] as const;
 type Role = (typeof ROLES)[number];
 
-type Tab = "details" | "gates" | "team";
+type Tab = "details" | "gates" | "team" | "themes";
 
 function SettingsPage() {
   const { missionId } = Route.useParams();
