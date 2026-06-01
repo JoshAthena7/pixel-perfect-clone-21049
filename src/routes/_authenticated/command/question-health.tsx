@@ -1,10 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { irisLeadershipAttention } from "@/lib/iris.functions";
-import { AlertTriangle, ListChecks, MessageCircleQuestion, GitMerge, ArrowRight, Activity, Gauge } from "lucide-react";
+import { AttentionBadge } from "@/components/v2/AttentionBadge";
+import { AlertTriangle, ListChecks, MessageCircleQuestion, GitMerge, ArrowRight, Activity } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/command/question-health")({
   component: QuestionHealthPage,
@@ -112,17 +111,6 @@ function QuestionHealthPage() {
     },
   });
 
-  const attentionFn = useServerFn(irisLeadershipAttention);
-  const { data: attention } = useQuery({
-    queryKey: ["qh-attention"],
-    queryFn: () => attentionFn(),
-    refetchInterval: 60_000,
-  });
-  const totalAttention = useMemo(() => {
-    if (!attention) return 0;
-    if (missionId === "all") return attention.missions.reduce((sum, m) => sum + m.attention_score, 0);
-    return attention.missions.find((m) => m.mission_id === missionId)?.attention_score ?? 0;
-  }, [attention, missionId]);
 
   const counts = useMemo(() => {
     const c = { green: 0, yellow: 0, red: 0 };
@@ -151,21 +139,7 @@ function QuestionHealthPage() {
           </h1>
           <p className="text-sm text-muted-foreground mt-1">Where leadership attention is needed right now.</p>
         </div>
-        <div className={`flex items-center gap-3 rounded-[10px] border px-4 py-3 ${
-          totalAttention >= 50 ? "border-destructive/40 bg-destructive/10"
-          : totalAttention >= 20 ? "border-amber-500/40 bg-amber-500/10"
-          : "border-primary/30 bg-primary/5"
-        }`}>
-          <Gauge className={`h-5 w-5 ${
-            totalAttention >= 50 ? "text-destructive"
-            : totalAttention >= 20 ? "text-amber-400"
-            : "text-primary"
-          }`} />
-          <div>
-            <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Leadership Attention</div>
-            <div className="text-2xl font-semibold tabular-nums">{totalAttention}</div>
-          </div>
-        </div>
+        <AttentionBadge missionId={missionId} />
       </div>
 
 

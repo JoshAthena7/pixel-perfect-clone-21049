@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { irisLeadershipAttention } from "@/lib/iris.functions";
+import { AttentionBadge } from "@/components/v2/AttentionBadge";
 import { toast } from "sonner";
 
 type Mission = { id: string; name: string; client: string; health: "Green" | "Yellow" | "Red"; submission_date: string | null };
@@ -50,10 +51,11 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
       <div className="border-b border-border px-5 py-4">
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/15 text-sm font-bold text-primary">Ā</div>
-          <div>
+          <div className="flex-1 min-w-0">
             <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Athena</div>
             <div className="text-sm font-semibold tracking-wide">Command V2</div>
           </div>
+          <AttentionBadge variant="compact" />
         </div>
       </div>
 

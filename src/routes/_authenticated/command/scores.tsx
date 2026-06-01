@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { createSignal } from "@/lib/signals";
 import { Trophy, Plus, X, ArrowUpDown } from "lucide-react";
+import { AttentionBadge } from "@/components/v2/AttentionBadge";
 
 export const Route = createFileRoute("/_authenticated/command/scores")({
   component: ScoresPage,
@@ -106,12 +107,15 @@ function ScoresPage() {
             </p>
           </div>
         </div>
-        <button
-          onClick={() => setShowBatch(true)}
-          className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground hover:opacity-90"
-        >
-          <Plus className="h-4 w-4" /> Log Batch Scores
-        </button>
+        <div className="flex items-center gap-3">
+          <AttentionBadge missionId={missionId} variant="compact" />
+          <button
+            onClick={() => setShowBatch(true)}
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground hover:opacity-90"
+          >
+            <Plus className="h-4 w-4" /> Log Batch Scores
+          </button>
+        </div>
       </div>
 
       {/* Mission tabs */}

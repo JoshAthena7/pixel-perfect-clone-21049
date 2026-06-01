@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Clock } from "lucide-react";
+import { AttentionBadge } from "@/components/v2/AttentionBadge";
 
 export const Route = createFileRoute("/_authenticated/command/pens-down")({
   component: PensDownPage,
@@ -74,12 +75,15 @@ function PensDownPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8">
-      <div className="mb-6 flex items-center gap-3">
-        <Clock className="h-6 w-6 text-primary" />
-        <div>
-          <h1 className="text-2xl font-semibold">Pens Down Watch</h1>
-          <p className="text-sm text-muted-foreground">Questions sorted by upcoming pens-down deadline.</p>
+      <div className="mb-6 flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Clock className="h-6 w-6 text-primary" />
+          <div>
+            <h1 className="text-2xl font-semibold">Pens Down Watch</h1>
+            <p className="text-sm text-muted-foreground">Questions sorted by upcoming pens-down deadline.</p>
+          </div>
         </div>
+        <AttentionBadge variant="compact" />
       </div>
 
       <div className="overflow-hidden rounded-lg border border-border">
