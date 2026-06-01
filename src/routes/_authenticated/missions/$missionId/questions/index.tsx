@@ -113,6 +113,43 @@ function QuestionCommand() {
     },
   });
 
+  // WRITER-5: count open signals per question
+  const { data: signalCounts = {} } = useQuery<Record<string, { count: number; latest: string }>>({
+    queryKey: ["mission-question-signal-counts", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("signals")
+        .select("related_question_id,created_at")
+        .eq("mission_id", missionId)
+        .neq("status", "archived")
+        .not("related_question_id", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(500);
+      const map: Record<string, { count: number; latest: string }> = {};
+      for (const s of data ?? []) {
+        const id = (s as any).related_question_id as string;
+        if (!map[id]) map[id] = { count: 0, latest: (s as any).created_at };
+        map[id].count += 1;
+      }
+      return map;
+    },
+    refetchInterval: 60_000,
+  });
+
+  // WRITER-3: inline status quick-update
+  const updateStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const { error } = await supabase.from("question_records").update({ status }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, v) => {
+      toast.success(`Status updated to ${STATUS_LABELS[v.status]}`);
+      qc.invalidateQueries({ queryKey: ["mission-questions", missionId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const qc = useQueryClient();
+
   const counts = useMemo(() => {
     const byStatus: Record<string, number> = { all: scoped.length };
     const byHealth: Record<string, number> = { all: scoped.length };
