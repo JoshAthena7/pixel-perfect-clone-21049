@@ -56,6 +56,10 @@
   --green: oklch(0.72 0.18 145);               /* #22c55e */
   --yellow: oklch(0.78 0.16 75);               /* #f59e0b */
   --red: oklch(0.66 0.22 25);                  /* #ef4444 */
+
+  /* DESIGN-1 (BRAND): IRIS visual identity */
+  --iris: #0891b2;
+  --iris-rgb: 8, 145, 178;
 }
 
 @layer base {
