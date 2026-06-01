@@ -130,7 +130,9 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
       if (!user) return false;
       const { data } = await supabase.from("mission_members").select("role").eq("user_id", user.id);
       const roles = (data ?? []).map((r: any) => r.role);
-      return roles.includes("admin") || roles.includes("lead");
+      // Show Olympus to admins/leads OR to any signed-in user with zero mission memberships
+      // (first-time admin needs the door in to create the first mission).
+      return roles.includes("admin") || roles.includes("lead") || roles.length === 0;
     },
   });
 
