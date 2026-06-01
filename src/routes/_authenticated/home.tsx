@@ -339,11 +339,11 @@ function AthenaHQ() {
         {/* INTEL FEED + ACTIVITY */}
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
           {/* IRIS HQ Brief */}
-          <div className="lg:col-span-3 rounded-[12px] border border-border bg-surface">
+          <div className="lg:col-span-3 iris-panel rounded-[12px] border border-border bg-surface">
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
               <div className="flex items-center gap-2">
-                <Radio className="h-3.5 w-3.5 text-primary" />
-                <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">IRIS — Across All Missions</h3>
+                <span className="iris-dot" />
+                <h3 className="iris-label">IRIS — Across All Missions</h3>
               </div>
               <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Live</span>
             </div>
@@ -352,7 +352,7 @@ function AthenaHQ() {
               {topSignals.length === 0 && openConflicts.length === 0 ? (
                 <p className="py-6 text-center text-sm text-muted-foreground">
                   {missions.length === 0
-                    ? "IRIS activates when missions are created in Olympus."
+                    ? "IRIS is ready. Activate a mission in Olympus and IRIS will begin monitoring immediately."
                     : "IRIS is monitoring. Upload documents to The Vault to generate intelligence."}
                 </p>
               ) : (
