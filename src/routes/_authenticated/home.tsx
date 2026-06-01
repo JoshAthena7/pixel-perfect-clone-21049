@@ -270,12 +270,12 @@ function AthenaHQ() {
                       >
                         <span className={dotCls} />
                         <MissionPill name={missionMap.get(q.mission_id) ?? "—"} />
-                        <span className="text-[11px] font-semibold tabular-nums text-muted-foreground shrink-0">{q.question_number}</span>
+                        <span className="mono-q text-[11px] font-semibold shrink-0">{q.question_number}</span>
                         <span className="flex-1 min-w-0 truncate text-sm text-foreground">{q.title}</span>
                         {q.current_score !== null && (
-                          <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">{Number(q.current_score).toFixed(1)}</span>
+                          <span className="shrink-0 text-[11px] mono-score text-muted-foreground">{Number(q.current_score).toFixed(1)}</span>
                         )}
-                        <span className={`shrink-0 text-xs font-semibold tabular-nums ${tone}`}>
+                        <span className={`shrink-0 text-xs font-semibold mono-days ${tone}`}>
                           {days === null ? "—" : days < 0 ? `${Math.abs(days)}d overdue` : `${days}d`}
                         </span>
                       </Link>
