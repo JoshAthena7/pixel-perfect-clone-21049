@@ -266,11 +266,10 @@ function FeedItem({ scored, missionId, idx = 0 }: { scored: ScoredItem; missionI
   });
 
   return (
-    <li className="px-5 py-4">
+    <li className="relative px-5 py-4 feed-item" style={{ animationDelay: `${Math.min(idx, 12) * 80}ms` }}>
+      <TransmittedFlash show={!!flash} label={flash?.label ?? ""} tone={flash?.tone ?? "teal"} />
       <div className="flex items-start gap-3">
-        <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] ${LEVEL_BADGE[level]}`}>
-          {level}
-        </span>
+        <SignalStrengthBars level={level} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             {item.category && (
@@ -279,7 +278,7 @@ function FeedItem({ scored, missionId, idx = 0 }: { scored: ScoredItem; missionI
               </span>
             )}
             <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{item.source}</span>
-            <span className="ml-auto text-[10px] text-muted-foreground">
+            <span className="ml-auto text-[10px] text-muted-foreground mono">
               {relativeTime(item.published_at ?? item.created_at)}
             </span>
           </div>
@@ -293,10 +292,12 @@ function FeedItem({ scored, missionId, idx = 0 }: { scored: ScoredItem; missionI
             {item.title}
           </a>
 
-          {/* IRIS INSIGHT */}
+          {/* IRIS INSIGHT — typewriter */}
           <div className="mt-2 border-l-2 border-primary bg-primary/5 px-3 py-2">
             <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-primary mb-0.5">IRIS Insight</div>
-            <p className="text-xs text-foreground/90 leading-relaxed">{insight}</p>
+            <p className="text-xs text-foreground/90 leading-relaxed">
+              <TypewriterText text={insight} />
+            </p>
           </div>
 
           {matchedThemes.length > 0 && (
