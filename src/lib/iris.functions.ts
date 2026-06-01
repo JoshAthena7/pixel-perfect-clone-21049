@@ -249,6 +249,21 @@ export const irisGenerateBriefingSection = createServerFn({ method: "POST" })
     const cfg = SECTION_PROMPTS[data.sectionKey];
     if (!cfg) throw new Error("Unknown section key");
 
+    // ARCH-13: rate limit — 1 regeneration per section per 60s
+    const { data: existing } = await supabase
+      .from("briefing_book_sections")
+      .select("id,content,sources,version_number,generated_at,mission_id,section_key")
+      .eq("mission_id", data.missionId)
+      .eq("section_key", data.sectionKey)
+      .maybeSingle();
+    if (existing?.generated_at) {
+      const age = Date.now() - new Date(existing.generated_at).getTime();
+      if (age < 60_000) {
+        const wait = Math.ceil((60_000 - age) / 1000);
+        throw new Error(`Please wait ${wait}s before regenerating this section.`);
+      }
+    }
+
     const { data: m } = await supabase
       .from("missions")
       .select("name,client,state,description,submission_date")
@@ -287,6 +302,35 @@ export const irisGenerateBriefingSection = createServerFn({ method: "POST" })
     }
 
     const now = new Date().toISOString();
+    const nextVersion = (existing?.version_number ?? 0) + 1;
+
+    // ARCH-2: snapshot prior content to history, prune to last 5
+    if (existing?.id && existing.content) {
+      await supabase.from("briefing_book_section_history").insert({
+        section_id: existing.id,
+        mission_id: existing.mission_id,
+        section_key: existing.section_key,
+        content: existing.content,
+        sources: (existing.sources as any) ?? [],
+        version_number: existing.version_number ?? 1,
+        generated_by: "IRIS",
+      });
+      const { data: keep } = await supabase
+        .from("briefing_book_section_history")
+        .select("id")
+        .eq("section_id", existing.id)
+        .order("version_number", { ascending: false })
+        .limit(5);
+      const keepIds = (keep ?? []).map((r) => r.id);
+      if (keepIds.length) {
+        await supabase
+          .from("briefing_book_section_history")
+          .delete()
+          .eq("section_id", existing.id)
+          .not("id", "in", `(${keepIds.join(",")})`);
+      }
+    }
+
     const { error } = await supabase
       .from("briefing_book_sections")
       .upsert(
@@ -297,9 +341,10 @@ export const irisGenerateBriefingSection = createServerFn({ method: "POST" })
           status: "ready",
           generated_at: now,
           updated_at: now,
+          version_number: nextVersion,
         },
         { onConflict: "mission_id,section_key" },
       );
     if (error) throw new Error(error.message);
-    return { ok: true, content, generated_at: now };
+    return { ok: true, content, generated_at: now, version_number: nextVersion };
   });
