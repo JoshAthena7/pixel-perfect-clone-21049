@@ -241,17 +241,19 @@ function AthenaHQ() {
           <section>
             <div className="mb-5 flex items-end justify-between">
               <div>
-                <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Active Missions</h2>
-                <p className="mt-1 text-2xl font-semibold tracking-tight">{missions.length} in flight</p>
+                <h2 className="h2-label">Active Missions</h2>
+                <p className="mt-1.5 text-2xl font-semibold tracking-tight">{missions.length} in flight</p>
               </div>
             </div>
 
-            {missions.length === 0 ? (
-              <div className="rounded-[12px] border border-dashed border-border bg-surface/50 px-8 py-16 text-center">
-                <p className="text-sm text-muted-foreground">
-                  No missions activated yet. Enter Olympus to create and activate your first mission.
-                </p>
-              </div>
+            {missionsLoading ? (
+              <MissionGridSkeleton count={3} />
+            ) : missions.length === 0 ? (
+              <EmptyState
+                icon={<DoorOpen className="h-10 w-10" />}
+                title="No missions yet."
+                subtitle="Enter Olympus to create and activate your first mission."
+              />
             ) : (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {missions.map((m) => (
@@ -264,19 +266,21 @@ function AthenaHQ() {
           <section>
             <div className="mb-5 flex items-end justify-between">
               <div>
-                <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Your Assignments</h2>
-                <p className="mt-1 text-2xl font-semibold tracking-tight">
+                <h2 className="h2-label">Your Assignments</h2>
+                <p className="mt-1.5 text-2xl font-semibold tracking-tight">
                   {myAssignments.length} {myAssignments.length === 1 ? "question" : "questions"} assigned to you
                 </p>
               </div>
             </div>
 
-            {myAssignments.length === 0 ? (
-              <div className="rounded-[12px] border border-dashed border-border bg-surface/50 px-8 py-16 text-center">
-                <p className="text-sm text-muted-foreground">
-                  No questions assigned to you yet. Your mission lead will assign you when work is ready.
-                </p>
-              </div>
+            {assignmentsLoading ? (
+              <QuestionListSkeleton count={5} />
+            ) : myAssignments.length === 0 ? (
+              <EmptyState
+                icon={<ListChecks className="h-10 w-10" />}
+                title="No questions assigned yet."
+                subtitle="Your mission lead will assign you when work is ready."
+              />
             ) : (
               <ul className="divide-y divide-border rounded-[12px] border border-border bg-surface">
                 {myAssignments.map((q) => {
@@ -288,9 +292,9 @@ function AthenaHQ() {
                     : days <= 3 ? "text-destructive"
                     : days <= 7 ? "text-amber-400"
                     : "text-foreground";
-                  const dot = q.health === "green" ? "bg-emerald-500"
-                    : q.health === "red" ? "bg-destructive"
-                    : "bg-amber-400";
+                  const dotCls = q.health === "green" ? "dot dot-green"
+                    : q.health === "red" ? "dot dot-red"
+                    : "dot dot-yellow";
                   return (
                     <li key={q.id} className="px-5 py-3">
                       <Link
@@ -298,7 +302,7 @@ function AthenaHQ() {
                         params={{ missionId: q.mission_id, questionId: q.id }}
                         className="flex items-center gap-3 hover:text-primary"
                       >
-                        <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} />
+                        <span className={dotCls} />
                         <MissionPill name={missionMap.get(q.mission_id) ?? "—"} />
                         <span className="text-[11px] font-semibold tabular-nums text-muted-foreground shrink-0">{q.question_number}</span>
                         <span className="flex-1 min-w-0 truncate text-sm text-foreground">{q.title}</span>
@@ -316,6 +320,7 @@ function AthenaHQ() {
             )}
           </section>
         )}
+
 
         {/* INTEL FEED + ACTIVITY */}
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
