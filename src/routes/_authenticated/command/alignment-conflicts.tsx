@@ -241,7 +241,7 @@ function AlignmentConflictsPage() {
                       </td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               );
             })}
           </tbody>
