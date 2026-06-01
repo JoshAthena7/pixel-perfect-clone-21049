@@ -392,6 +392,70 @@ ${matches.length > 1 ? `
     });
   }
 
+  // -----------------------------------------------
+  // IRIS Enhancement: Assignment Staleness Monitor
+  // Flags sections with no team update in 48+ hours
+  // -----------------------------------------------
+  const stale48h = new Date(Date.now() - 48 * 3600 * 1000).toISOString();
+  for (const eng of activeEngagements) {
+    try {
+      const { data: staleSections } = await supabase
+        .from("heatmap_sections")
+        .select("id, section_name, status, updated_at")
+        .eq("engagement_id", eng.id)
+        .in("status", ["Yellow", "Orange", "Red"])
+        .lt("updated_at", stale48h)
+        .limit(3);
+
+      if (staleSections && staleSections.length > 0) {
+        if (await recentSimilarExists(eng.id, "stale_section_risk")) continue;
+        const names = staleSections.map((s: any) => s.section_name).join(", ");
+        insightsToInsert.push({
+          engagement_id: eng.id,
+          insight_type: "stale_section_risk",
+          title: `${staleSections.length} at-risk section${staleSections.length > 1 ? "s" : ""} with no activity in 48h`,
+          body: `The following sections are Yellow or Red with no recent update: ${names}. Consider a team check-in or reassignment.`,
+          severity: staleSections.length >= 3 ? "critical" : "warning",
+          confidence_score: 0.85,
+          supporting_data: { section_count: staleSections.length, sections: names },
+        });
+        counts.section_risk++;
+      }
+    } catch (e) { console.warn("staleness check failed", e); }
+  }
+
+  // -----------------------------------------------
+  // IRIS Enhancement: Unanswered Question Alert
+  // Flag questions with no status update and deadline within 14 days
+  // -----------------------------------------------
+  for (const eng of activeEngagements) {
+    try {
+      const subDate = (eng as any).submission_date;
+      if (!subDate) continue;
+      const daysLeft = Math.ceil((new Date(subDate).getTime() - Date.now()) / 86400000);
+      if (daysLeft > 14 || daysLeft < 0) continue;
+
+      const { count: unanswered } = await supabase
+        .from("rfp_questions")
+        .select("id", { count: "exact", head: true })
+        .eq("engagement_id", eng.id)
+        .not("health", "eq", "Approved");
+
+      if ((unanswered ?? 0) > 0) {
+        if (await recentSimilarExists(eng.id, "deadline_question_risk")) continue;
+        insightsToInsert.push({
+          engagement_id: eng.id,
+          insight_type: "deadline_question_risk",
+          title: `${unanswered} unanswered questions with ${daysLeft} days to submission`,
+          body: `${unanswered} questions are not yet approved with only ${daysLeft} days remaining before the submission deadline. Immediate prioritization recommended.`,
+          severity: daysLeft <= 7 ? "critical" : "warning",
+          confidence_score: 0.92,
+          supporting_data: { unanswered, days_left: daysLeft },
+        });
+      }
+    } catch (e) { console.warn("question deadline check failed", e); }
+  }
+
   if (insightsToInsert.length > 0) {
     const { error: insErr } = await supabase.from("intelligence_insights").insert(insightsToInsert);
     if (insErr) console.error("insight insert error", insErr);

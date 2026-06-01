@@ -124,6 +124,22 @@ function LobbyPage() {
     try {
 
     } catch { /* ignore */ }
+    // Fetch recent IRIS insights across all active missions
+    if (ids.length) {
+      supabase
+        .from("intelligence_insights")
+        .select("id, engagement_id, title, body, severity, insight_type, created_at")
+        .in("engagement_id", ids)
+        .eq("actioned", false)
+        .order("created_at", { ascending: false })
+        .limit(5)
+        .then(({ data }) => {
+          if (data?.length) {
+            // store in a ref or state — for now just log
+            console.info("IRIS insights available:", data.length);
+          }
+        });
+    }
     setIrisLoading(true);
     const raw = user.email?.split("@")?.[0]?.split(".")?.[0] ?? "";
     const name = raw.charAt(0).toUpperCase() + raw.slice(1);

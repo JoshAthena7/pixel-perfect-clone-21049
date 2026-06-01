@@ -28,6 +28,8 @@ import {
   analyzeOpportunity, analyzeCategory,
   startHolyGrailRun, finishHolyGrailRun,
 } from "@/lib/ai/holy-grail.functions";
+import { SectionThread } from "@/components/war-room/comms/SectionThread";
+import { usePresence } from "@/hooks/use-presence";
 import {
   BookOpen, Library, Brain, ClipboardList, MessageSquare,
   GitBranch, AlertTriangle, Siren, Upload, FileText,
@@ -62,6 +64,7 @@ const TABS = [
   { key: "library",       label: "Library",       icon: Library },
   { key: "briefing",      label: "Briefing Book", icon: Brain },
   { key: "assignments",   label: "Assignments",   icon: ClipboardList },
+  { key: "questions",     label: "Questions",     icon: ClipboardList },
   { key: "team-updates",  label: "Team Updates",  icon: MessageSquare },
   { key: "decisions",     label: "Decision Log",  icon: GitBranch },
   { key: "signals",       label: "Signals",       icon: AlertTriangle },
@@ -121,6 +124,7 @@ function MissionShell() {
               {label}
               {key === "sos" && <SosCount engagementId={engagement.id} />}
               {key === "signals" && <SignalCount engagementId={engagement.id} />}
+              {key === "questions" && <QuestionCount engagementId={engagement.id} />}
             </button>
           ))}
         </div>
@@ -133,6 +137,7 @@ function MissionShell() {
         {tab === "library"      && <LibraryTab />}
         {tab === "briefing"     && <BriefingTab />}
         {tab === "assignments"  && <AssignmentsTab />}
+        {tab === "questions"    && <QuestionsTab />}
         {tab === "team-updates" && <TeamUpdatesTab />}
         {tab === "decisions"    && <DecisionsTab />}
         {tab === "signals"      && <SignalsTab />}
@@ -182,6 +187,18 @@ function SignalCount({ engagementId }: { engagementId: string }) {
   return <span style={{ background: "#f59e0b", color: "#000", borderRadius: 10, fontSize: 10, fontWeight: 800, padding: "1px 6px", marginLeft: 2 }}>{n}</span>;
 }
 
+function QuestionCount({ engagementId }: { engagementId: string }) {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    supabase.from("rfp_questions").select("id", { count: "exact", head: true })
+      .eq("engagement_id", engagementId)
+      .not("health", "eq", "Approved")
+      .then(({ count }) => setN(count ?? 0));
+  }, [engagementId]);
+  if (!n) return null;
+  return <span style={{ background: "#818cf8", color: "#fff", borderRadius: 10, fontSize: 10, fontWeight: 800, padding: "1px 6px", marginLeft: 2 }}>{n}</span>;
+}
+
 // ═══════════════════════════════════════════
 // TAB 1: OVERVIEW
 // ═══════════════════════════════════════════
@@ -191,6 +208,8 @@ function OverviewTab() {
   const [huddles, setHuddles] = useState<any[]>([]);
   const [sections, setSections] = useState<any[]>([]);
 
+  const [questionStats, setQuestionStats] = useState({ total: 0, approved: 0 });
+
   useEffect(() => {
     if (!engagement) return;
     const eid = engagement.id;
@@ -198,10 +217,13 @@ function OverviewTab() {
       supabase.from("broadcasts").select("*").eq("engagement_id", eid).order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(5),
       supabase.from("huddles").select("*").eq("engagement_id", eid).order("created_at", { ascending: false }).limit(10),
       supabase.from("heatmap_sections").select("*").eq("engagement_id", eid).order("sort_order"),
-    ]).then(([b, h, s]) => {
+      supabase.from("rfp_questions").select("health").eq("engagement_id", eid),
+    ]).then(([b, h, s, q]) => {
       setBroadcasts(b.data ?? []);
       setHuddles(h.data ?? []);
       setSections(s.data ?? []);
+      const qs = q.data ?? [];
+      setQuestionStats({ total: qs.length, approved: qs.filter((x: any) => x.health === "Approved").length });
     });
   }, [engagement?.id]);
 
@@ -221,6 +243,32 @@ function OverviewTab() {
               <div style={{ fontSize: 13, fontWeight: 700, color: TEXT }}>{daysLeft <= 0 ? "SUBMISSION PAST DUE" : `${daysLeft} days to submission`}</div>
               <div style={{ fontSize: 11, color: MUTED }}>Due {new Date(dead).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}</div>
             </div>
+          </div>
+        )}
+
+        {/* Submission Readiness */}
+        {questionStats.total > 0 && (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            {[
+              {
+                label: "Question Readiness",
+                value: `${Math.round((questionStats.approved / questionStats.total) * 100)}%`,
+                sub: `${questionStats.approved} of ${questionStats.total} approved`,
+                color: questionStats.approved / questionStats.total >= 0.8 ? "#22c55e" : questionStats.approved / questionStats.total >= 0.5 ? "#f59e0b" : "#ef4444"
+              },
+              {
+                label: "Section Health",
+                value: `${sections.length > 0 ? Math.round((sections.filter(s => s.status === "Green").length / sections.length) * 100) : 0}%`,
+                sub: `${sections.filter(s => s.status === "Green").length} of ${sections.length} green`,
+                color: sections.filter(s => s.status === "Green").length / (sections.length || 1) >= 0.8 ? "#22c55e" : "#f59e0b"
+              },
+            ].map(({ label, value, sub, color }) => (
+              <div key={label} style={{ background: BG2, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "14px 18px" }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: MUTED }}>{label}</div>
+                <div style={{ fontSize: 28, fontWeight: 800, color, marginTop: 4, lineHeight: 1 }}>{value}</div>
+                <div style={{ fontSize: 11, color: MUTED, marginTop: 4 }}>{sub}</div>
+              </div>
+            ))}
           </div>
         )}
 
@@ -381,11 +429,19 @@ function LibraryTab() {
       const { error } = await supabase.from("intel_documents").insert({ engagement_id: engagement.id, name: finalName, category: cat, file_path: path, notes: notes || null, uploaded_by: user.id, uploader_name: member.display_name });
       if (error) throw error;
       if (cat === "RFP" || cat === "Amendment") {
-        toast.success("Uploaded — starting Briefing Book analysis…");
+        toast.success(cat === "Amendment" ? "Amendment uploaded — analyzing impact on existing questions…" : "Uploaded — starting Briefing Book analysis…");
         await load(engagement.id);
         const { data: newDoc } = await supabase.from("intel_documents").select("*").eq("engagement_id", engagement.id).eq("file_path", path).maybeSingle();
         setName(""); setNotes(""); setFile(null); if (fileRef.current) fileRef.current.value = "";
-        if (newDoc) runAnalyze(newDoc);
+        if (newDoc) {
+          if (cat === "Amendment") {
+            // Amendment: run analysis then auto-create a Signal with impact summary
+            runAnalyze(newDoc).then ? runAnalyze(newDoc) : runAnalyze(newDoc);
+            toast.info("Amendment impact analysis started — check Signals tab when complete");
+          } else {
+            runAnalyze(newDoc);
+          }
+        }
       } else {
         toast.success("Added to Library");
         setName(""); setNotes(""); setFile(null); if (fileRef.current) fileRef.current.value = "";
@@ -474,16 +530,47 @@ function LibraryTab() {
 // ═══════════════════════════════════════════
 function BriefingTab() {
   const { engagement, isLeadership } = useEngagement();
+  const { user } = useSession();
+  const [irisBrief, setIrisBrief] = useState<string | null>(null);
+  const [irisLoading, setIrisLoading] = useState(false);
+  const [hgRefresh, setHgRefresh] = useState(0);
+
+  async function regenerateBrief() {
+    if (!user || !engagement) return;
+    setIrisLoading(true);
+    try {
+      const { generateIrisExecutiveBrief } = await import("@/lib/iris/iris-brief.functions");
+      const raw = user.email?.split("@")?.[0]?.split(".")?.[0] ?? "";
+      const name = raw.charAt(0).toUpperCase() + raw.slice(1);
+      const r = await generateIrisExecutiveBrief({ data: { userName: name } }) as any;
+      setIrisBrief(r.brief ?? null);
+    } catch { setIrisBrief(null); }
+    finally { setIrisLoading(false); }
+  }
+
   if (!engagement) return null;
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 28px" }}>
-      <div style={{ marginBottom: 16 }}>
-        <h2 style={{ fontSize: 18, fontWeight: 800, margin: "0 0 4px" }}>Briefing Book</h2>
-        <p style={{ fontSize: 13, color: MUTED, margin: 0 }}>IRIS-generated intelligence. Updates automatically when the Library changes.</p>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+        <div>
+          <h2 style={{ fontSize: 18, fontWeight: 800, margin: "0 0 4px" }}>Briefing Book</h2>
+          <p style={{ fontSize: 13, color: MUTED, margin: 0 }}>IRIS-generated intelligence. Updates automatically when the Library changes.</p>
+        </div>
+        <button onClick={regenerateBrief} disabled={irisLoading}
+          style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "#818cf8", background: "rgba(129,140,248,0.1)", border: "1px solid rgba(129,140,248,0.25)", borderRadius: 8, padding: "8px 16px", cursor: irisLoading ? "not-allowed" : "pointer", opacity: irisLoading ? 0.6 : 1 }}>
+          <Sparkles style={{ width: 13, height: 13 }} />
+          {irisLoading ? "Refreshing…" : "Refresh IRIS Brief"}
+        </button>
       </div>
+      {irisBrief && (
+        <div style={{ marginBottom: 20, padding: "16px 20px", borderRadius: 10, background: "linear-gradient(135deg,rgba(129,140,248,0.08),rgba(168,85,247,0.06))", border: "1px solid rgba(129,140,248,0.2)" }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#818cf8", marginBottom: 8 }}>IRIS Executive Brief</div>
+          <div style={{ fontSize: 13, color: TEXT, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{irisBrief}</div>
+        </div>
+      )}
       <RfpStructuredPanel engagementId={engagement.id} canEdit={isLeadership} />
       <div style={{ marginTop: 24 }}>
-        <HolyGrailPanel engagementId={engagement.id} isLeadership={isLeadership} />
+        <HolyGrailPanel engagementId={engagement.id} refreshKey={hgRefresh} isLeadership={isLeadership} />
       </div>
     </div>
   );
@@ -494,16 +581,19 @@ function BriefingTab() {
 // ═══════════════════════════════════════════
 function AssignmentsTab() {
   const { engagement, member, isLeadership } = useEngagement();
+  const { user } = useSession();
+  const presence = usePresence("/command");
   const [sections, setSections] = useState<any[]>([]);
   const [assignments, setAssignments] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
   const [saving, setSaving] = useState<string | null>(null);
+  const [openThread, setOpenThread] = useState<string | null>(null);
 
   async function load(eid: string) {
     const [s, a, m] = await Promise.all([
       supabase.from("heatmap_sections").select("*").eq("engagement_id", eid).order("sort_order"),
       supabase.from("section_assignments").select("*, engagement_members(display_name, role)").eq("engagement_id", eid),
-      supabase.from("engagement_members").select("id, display_name, role").eq("engagement_id", eid),
+      supabase.from("engagement_members").select("id, user_id, display_name, role").eq("engagement_id", eid),
     ]);
     setSections(s.data ?? []);
     setAssignments(a.data ?? []);
@@ -519,27 +609,67 @@ function AssignmentsTab() {
   }
 
   if (!engagement) return null;
-  const myAssignments = member ? assignments.filter(a => a.engagement_members && (a.member_id === member.id || (isLeadership))) : assignments;
-  const sectionAssignMap: Record<string, any> = {};
-  assignments.forEach(a => { if (!sectionAssignMap[a.section_id]) sectionAssignMap[a.section_id] = []; sectionAssignMap[a.section_id].push(a); });
+
+  const sectionAssignMap: Record<string, any[]> = {};
+  assignments.forEach(a => { (sectionAssignMap[a.section_id] ??= []).push(a); });
+
+  // Writer dashboard strip — personal summary
+  const myAssigns = member ? assignments.filter(a => {
+    const em = a.engagement_members;
+    return em && (a.member_id === member.id);
+  }) : [];
+  const mySections = sections.filter(s => myAssigns.some(a => a.section_id === s.id));
+  const myRed = mySections.filter(s => s.status === "Red" || s.status === "Orange").length;
+  const myYellow = mySections.filter(s => s.status === "Yellow").length;
+  const onlineUserIds = new Set(presence.map((p: any) => p.user_id));
 
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 28px" }}>
-      <div style={{ marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+
+      {/* Writer Dashboard Strip */}
+      {mySections.length > 0 && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 24 }}>
+          {[
+            { label: "My Sections", value: mySections.length, color: "#818cf8" },
+            { label: "At Risk", value: myRed, color: myRed > 0 ? "#ef4444" : "#22c55e" },
+            { label: "Needs Attention", value: myYellow, color: myYellow > 0 ? "#f59e0b" : "#22c55e" },
+            { label: "Team Online", value: presence.length, color: "#22c55e" },
+          ].map(({ label, value, color }) => (
+            <div key={label} style={{ background: BG2, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "14px 16px" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: MUTED }}>{label}</div>
+              <div style={{ fontSize: 28, fontWeight: 800, color, marginTop: 4, lineHeight: 1 }}>{value}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <div>
           <h2 style={{ fontSize: 18, fontWeight: 800, margin: "0 0 4px" }}>Assignments</h2>
           <p style={{ fontSize: 13, color: MUTED, margin: 0 }}>{sections.length} sections · {assignments.length} assignments</p>
         </div>
       </div>
+
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {sections.map(s => {
           const assigns = sectionAssignMap[s.id] ?? [];
+          const isOpen = openThread === s.id;
+          // Show presence for assigned members
+          const assignedUserIds = new Set(
+            members.filter(m2 => assigns.some((a: any) => a.member_id === m2.id)).map((m2: any) => m2.user_id)
+          );
+          const anyOnline = [...assignedUserIds].some(uid => onlineUserIds.has(uid));
+
           return (
-            <div key={s.id} style={{ padding: "14px 18px", borderRadius: 10, background: BG2, border: `1px solid ${BORDER}` }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div key={s.id} style={{ borderRadius: 10, background: BG2, border: `1px solid ${s.status === "Red" ? "rgba(239,68,68,0.3)" : s.status === "Orange" ? "rgba(249,115,22,0.2)" : BORDER}`, overflow: "hidden" }}>
+              <div style={{ padding: "14px 18px", display: "flex", alignItems: "center", gap: 12 }}>
                 <div style={{ width: 12, height: 12, borderRadius: "50%", background: HEALTH[s.status] ?? "#64748b", flexShrink: 0 }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: TEXT }}>{s.section_name}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: TEXT }}>{s.section_name}</span>
+                    {/* Presence dot */}
+                    {anyOnline && <span title="Team member online" style={{ width: 8, height: 8, borderRadius: "50%", background: "#22c55e", display: "inline-block", boxShadow: "0 0 6px #22c55e80" }} />}
+                  </div>
                   {assigns.length > 0 && (
                     <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>
                       {assigns.map((a: any) => a.engagement_members?.display_name ?? "—").join(", ")}
@@ -547,18 +677,34 @@ function AssignmentsTab() {
                   )}
                   {s.notes && <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{s.notes}</div>}
                 </div>
-                {isLeadership && (
-                  <select value={s.status} onChange={e => updateStatus(s.id, e.target.value)} disabled={saving === s.id}
-                    style={{ fontSize: 11, fontWeight: 700, color: HEALTH[s.status] ?? MUTED, background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}`, borderRadius: 6, padding: "4px 8px", cursor: "pointer" }}>
-                    {["Green","Yellow","Orange","Red","N/A"].map(v => <option key={v} value={v}>{v}</option>)}
-                  </select>
-                )}
-                <div style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 6, background: `${HEALTH[s.status] ?? "#64748b"}18`, color: HEALTH[s.status] ?? "#64748b" }}>{s.status}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                  {/* Thread button */}
+                  <button
+                    onClick={() => setOpenThread(isOpen ? null : s.id)}
+                    style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: isOpen ? "#818cf8" : MUTED, background: isOpen ? "rgba(129,140,248,0.1)" : "rgba(255,255,255,0.04)", border: `1px solid ${isOpen ? "rgba(129,140,248,0.3)" : BORDER}`, borderRadius: 6, padding: "4px 10px", cursor: "pointer" }}
+                  >
+                    <MessageSquare style={{ width: 12, height: 12 }} />
+                    Thread
+                  </button>
+                  {isLeadership && (
+                    <select value={s.status} onChange={e => updateStatus(s.id, e.target.value)} disabled={saving === s.id}
+                      style={{ fontSize: 11, fontWeight: 700, color: HEALTH[s.status] ?? MUTED, background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}`, borderRadius: 6, padding: "4px 8px", cursor: "pointer" }}>
+                      {["Green","Yellow","Orange","Red","N/A"].map(v => <option key={v} value={v}>{v}</option>)}
+                    </select>
+                  )}
+                  <div style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 6, background: `${HEALTH[s.status] ?? "#64748b"}18`, color: HEALTH[s.status] ?? "#64748b" }}>{s.status}</div>
+                </div>
               </div>
+              {/* Section Thread — inline */}
+              {isOpen && (
+                <div style={{ borderTop: `1px solid ${BORDER}`, padding: "0 18px 14px" }}>
+                  <SectionThread sectionId={s.id} defaultOpen />
+                </div>
+              )}
             </div>
           );
         })}
-        {sections.length === 0 && <Empty text="No sections yet. Add sections in the Library after uploading the RFP." />}
+        {sections.length === 0 && <Empty text="No sections yet. Upload the RFP in the Library tab to generate assignments." />}
       </div>
     </div>
   );
@@ -650,6 +796,108 @@ function TeamUpdatesTab() {
 }
 
 // ═══════════════════════════════════════════
+// TAB 5b: QUESTIONS CENTER
+// ═══════════════════════════════════════════
+const Q_STATUSES = ["Unassigned","Assigned","Drafting","SME Review","Lead Review","Approved"] as const;
+type QStatus = typeof Q_STATUSES[number];
+const Q_STATUS_COLOR: Record<QStatus, string> = {
+  Unassigned:"#64748b", Assigned:"#818cf8", Drafting:"#f59e0b",
+  "SME Review":"#f97316", "Lead Review":"#3b82f6", Approved:"#22c55e"
+};
+
+function QuestionsTab() {
+  const { engagement, isLeadership } = useEngagement();
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [filter, setFilter] = useState<string>("All");
+  const [search, setSearch] = useState("");
+
+  async function load(eid: string) {
+    const { data } = await supabase.from("rfp_questions")
+      .select("*").eq("engagement_id", eid)
+      .order("sort_order").order("created_at");
+    setQuestions(data ?? []);
+  }
+  useEffect(() => { if (engagement) load(engagement.id); }, [engagement?.id]);
+
+  async function updateStatus(id: string, health: string) {
+    await supabase.from("rfp_questions").update({ health }).eq("id", id);
+    if (engagement) load(engagement.id);
+  }
+
+  if (!engagement) return null;
+
+  const visible = questions
+    .filter(q => filter === "All" || q.health === filter || (!q.health && filter === "Unassigned"))
+    .filter(q => !search || (q.title ?? q.body ?? "").toLowerCase().includes(search.toLowerCase()));
+
+  const counts: Record<string,number> = { All: questions.length };
+  questions.forEach(q => { const s = q.health ?? "Unassigned"; counts[s] = (counts[s] ?? 0) + 1; });
+
+  return (
+    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 28px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+        <div>
+          <h2 style={{ fontSize: 18, fontWeight: 800, margin: "0 0 4px" }}>Questions</h2>
+          <p style={{ fontSize: 13, color: MUTED, margin: 0 }}>{questions.length} questions · {counts["Approved"] ?? 0} approved · {counts["Unassigned"] ?? 0} unassigned</p>
+        </div>
+        <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search questions…" style={{ width: 240, fontSize: 13 }} />
+      </div>
+
+      {/* Status filter */}
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
+        {["All", ...Q_STATUSES].map(s => (
+          <button key={s} onClick={() => setFilter(s)} style={{ padding: "4px 12px", borderRadius: 20, border: "1px solid", fontSize: 11, fontWeight: 600, cursor: "pointer", borderColor: filter === s ? (Q_STATUS_COLOR[s as QStatus] ?? GOLD) : BORDER, color: filter === s ? (Q_STATUS_COLOR[s as QStatus] ?? GOLD) : MUTED, background: filter === s ? `${Q_STATUS_COLOR[s as QStatus] ?? GOLD}15` : "transparent" }}>
+            {s} {counts[s] !== undefined ? `(${counts[s]})` : ""}
+          </button>
+        ))}
+      </div>
+
+      {/* Questions list */}
+      {visible.length === 0 ? (
+        <Empty text={questions.length === 0 ? "No questions yet. Upload the RFP in the Library tab — IRIS will extract all questions automatically." : `No ${filter} questions`} />
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {visible.map(q => {
+            const status: QStatus = (q.health as QStatus) ?? "Unassigned";
+            const statusColor = Q_STATUS_COLOR[status] ?? "#64748b";
+            return (
+              <div key={q.id} style={{ padding: "14px 18px", borderRadius: 10, background: BG2, border: `1px solid ${status === "Unassigned" ? "rgba(239,68,68,0.2)" : BORDER}` }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                  <div style={{ flexShrink: 0, marginTop: 2 }}>
+                    {q.question_number && (
+                      <div style={{ fontSize: 10, fontWeight: 800, color: GOLD, letterSpacing: "0.08em" }}>Q{q.question_number}</div>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    {q.title && <div style={{ fontSize: 13, fontWeight: 700, color: TEXT, marginBottom: 4 }}>{q.title}</div>}
+                    <div style={{ fontSize: 12, color: MUTED, lineHeight: 1.5 }}>{(q.body ?? "").slice(0, 200)}{(q.body ?? "").length > 200 ? "…" : ""}</div>
+                    {q.writer_hint && (
+                      <div style={{ marginTop: 6, padding: "6px 10px", borderRadius: 6, background: "rgba(129,140,248,0.08)", border: "1px solid rgba(129,140,248,0.2)", fontSize: 11, color: "#818cf8" }}>
+                        <span style={{ fontWeight: 700 }}>IRIS: </span>{q.writer_hint}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ flexShrink: 0 }}>
+                    {isLeadership ? (
+                      <select value={status} onChange={e => updateStatus(q.id, e.target.value)}
+                        style={{ fontSize: 11, fontWeight: 700, color: statusColor, background: `${statusColor}15`, border: `1px solid ${statusColor}40`, borderRadius: 6, padding: "4px 8px", cursor: "pointer" }}>
+                        {Q_STATUSES.map(v => <option key={v} value={v}>{v}</option>)}
+                      </select>
+                    ) : (
+                      <span style={{ fontSize: 11, fontWeight: 700, color: statusColor, background: `${statusColor}15`, border: `1px solid ${statusColor}40`, borderRadius: 6, padding: "4px 10px" }}>{status}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════
 // TAB 6: DECISION LOG
 // ═══════════════════════════════════════════
 function DecisionsTab() {
@@ -668,7 +916,15 @@ function DecisionsTab() {
     const { error } = await supabase.from("decisions").insert({ engagement_id: engagement.id, title: title.trim(), owner_name: member.display_name, rationale: rationale || null, impacted_areas: areas || null, status, decision_date: date, created_by: user.id });
     setSubmitting(false);
     if (error) return toast.error(error.message);
-    toast.success("Decision logged"); setTitle(""); setRationale(""); setAreas("");
+    toast.success("Decision logged — team will be notified in today's digest"); setTitle(""); setRationale(""); setAreas("");
+    // Notify team via in-app nudge broadcast
+    if (member && engagement) {
+      const { data: allMembers } = await supabase.from("engagement_members").select("id").eq("engagement_id", engagement.id);
+      const nudges = (allMembers ?? [])
+        .filter((m2: any) => m2.id !== member.id)
+        .map((m2: any) => ({ recipient_id: m2.id, sender_id: member.id, engagement_id: engagement.id, message: `New decision logged: ${title.trim()}`, type: "decision" }));
+      if (nudges.length) await supabase.from("nudges").insert(nudges);
+    }
     load(engagement.id);
   }
 
@@ -764,9 +1020,11 @@ function SignalsTab() {
                     {r.description && <div style={{ fontSize: 12, color: MUTED, marginTop: 3 }}>{r.description}</div>}
                     <div style={{ fontSize: 10, color: MUTED, marginTop: 4 }}>{r.owner_name} · {r.severity} · {relativeTime(r.created_at)}</div>
                   </div>
-                  {isLeadership && (
-                    <button onClick={() => resolve(r.id)} style={{ fontSize: 11, color: "#22c55e", background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 6, padding: "3px 10px", cursor: "pointer" }}>Resolve</button>
-                  )}
+                  <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                    {isLeadership && !r.resolved_at && (
+                      <button onClick={() => resolve(r.id)} style={{ fontSize: 11, color: "#22c55e", background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 6, padding: "3px 10px", cursor: "pointer" }}>Resolve</button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -799,7 +1057,7 @@ function SignalsTab() {
 // TAB 8: SOS
 // ═══════════════════════════════════════════
 function SosTab() {
-  const { engagement, member } = useEngagement();
+  const { engagement, member, isLeadership } = useEngagement();
   const { user } = useSession();
   const [items, setItems] = useState<any[]>([]);
   const [desc, setDesc] = useState(""); const [needed, setNeeded] = useState(""); const [sev, setSev] = useState("Orange"); const [submitting, setSubmitting] = useState(false);

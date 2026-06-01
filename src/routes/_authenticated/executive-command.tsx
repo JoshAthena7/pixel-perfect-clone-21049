@@ -21,6 +21,51 @@ const HEALTH_COLOR: Record<string, string> = { Green:"#22c55e", Yellow:"#f59e0b"
 
 function healthColor(h: string) { return HEALTH_COLOR[h] ?? HEALTH_COLOR.Green; }
 
+function ActionQueue({ statsById, active }: { statsById: Record<string,any>; active: any[] }) {
+  const urgent = active.filter(m => {
+    const s = statsById[m.engagement.id];
+    return s && (s.openSos > 0 || s.highRisks > 0);
+  });
+  const pendingDec = active.reduce((a,m) => a + (statsById[m.engagement.id]?.pendingDecisions ?? 0), 0);
+  const totalSos = active.reduce((a,m) => a + (statsById[m.engagement.id]?.openSos ?? 0), 0);
+
+  if (!urgent.length && !pendingDec) return null;
+
+  const BG2 = "#1a2235"; const BORDER = "rgba(255,255,255,0.08)"; const MUTED = "rgba(255,255,255,0.4)"; const TEXT = "#e8edf5";
+  return (
+    <div style={{background:BG2,border:"1px solid rgba(196,154,42,0.3)",borderRadius:12,padding:"18px 20px"}}>
+      <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",color:"#C49A2A",marginBottom:12}}>Leadership Actions Required</div>
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {totalSos > 0 && (
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",borderRadius:8,background:"rgba(239,68,68,0.06)",border:"1px solid rgba(239,68,68,0.2)"}}>
+            <div style={{fontSize:13,color:TEXT}}>Open SOS escalations requiring response</div>
+            <span style={{fontSize:13,fontWeight:800,color:"#ef4444"}}>{totalSos}</span>
+          </div>
+        )}
+        {pendingDec > 0 && (
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",borderRadius:8,background:"rgba(245,158,11,0.06)",border:"1px solid rgba(245,158,11,0.2)"}}>
+            <div style={{fontSize:13,color:TEXT}}>Decisions pending confirmation</div>
+            <span style={{fontSize:13,fontWeight:800,color:"#f59e0b"}}>{pendingDec}</span>
+          </div>
+        )}
+        {urgent.map(m => {
+          const s = statsById[m.engagement.id];
+          return (
+            <div key={m.engagement.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",borderRadius:8,background:"rgba(255,255,255,0.03)",border:`1px solid ${BORDER}`}}>
+              <div>
+                <div style={{fontSize:12,fontWeight:700,color:TEXT}}>{m.engagement.name}</div>
+                <div style={{fontSize:11,color:MUTED}}>{s?.openSos > 0 ? `${s.openSos} SOS` : ""}{s?.highRisks > 0 ? `${s?.openSos > 0 ? " · " : ""}${s.highRisks} high risks` : ""}</div>
+              </div>
+              <a href="/command" style={{fontSize:11,fontWeight:700,color:"#818cf8",textDecoration:"none",background:"rgba(129,140,248,0.1)",border:"1px solid rgba(129,140,248,0.25)",borderRadius:6,padding:"4px 10px"}}>Enter Mission</a>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+
 function ExecutiveCommand() {
   const { memberships, loading, switchEngagement } = useEngagement();
   const { user } = useSession();
@@ -110,6 +155,9 @@ function ExecutiveCommand() {
           </div>
         ))}
       </div>
+
+      {/* Leadership Action Queue */}
+      <ActionQueue statsById={statsById} active={active} />
 
       {/* Two columns: Mission Grid + IRIS */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 380px",gap:24}}>
