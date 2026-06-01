@@ -1,10 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { irisMissionPulse } from "@/lib/iris.functions";
 import { AlertTriangle, Activity, GitMerge } from "lucide-react";
+import { ScoreTrend } from "@/components/v2/ScoreTrend";
+
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/questions/")({
   component: QuestionCommand,
