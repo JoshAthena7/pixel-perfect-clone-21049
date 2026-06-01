@@ -51,8 +51,8 @@
   --border: oklch(0.34 0.038 260);             /* #2a3a55 */
   --foreground: oklch(0.94 0.01 250);          /* #e8edf5 */
   --muted-foreground: oklch(0.65 0.025 255);   /* #8b9ab5 */
-  --primary: oklch(0.66 0.18 258);             /* #3b7fff accent blue */
-  --primary-foreground: oklch(0.98 0.005 250);
+  --primary: oklch(0.72 0.13 82);              /* Athena Gold #C49A22 */
+  --primary-foreground: oklch(0.16 0.02 260);  /* deep navy ink on gold */
   --green: oklch(0.72 0.18 145);               /* #22c55e */
   --yellow: oklch(0.78 0.16 75);               /* #f59e0b */
   --red: oklch(0.66 0.22 25);                  /* #ef4444 */
@@ -60,6 +60,14 @@
   /* DESIGN-1 (BRAND): IRIS visual identity */
   --iris: #0891b2;
   --iris-rgb: 8, 145, 178;
+
+  /* ATHENA BRAND tokens */
+  --athena-navy: #1E3A6B;
+  --athena-navy-light: #2A4F8F;
+  --athena-gold: #C49A22;
+  --athena-gold-light: #D4AA32;
+  --athena-gold-subtle: rgba(196, 154, 34, 0.12);
+  --athena-gold-glow: rgba(196, 154, 34, 0.35);
 }
 
 @layer base {

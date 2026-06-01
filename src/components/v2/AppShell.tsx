@@ -151,9 +151,10 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
     <div className="flex h-full flex-col">
       <div className="border-b border-border px-5 py-4">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/15 text-sm font-bold text-primary">Ā</div>
+          <img src="/athena-mark-white.png" alt="Athena" className="h-8 w-8 object-contain shrink-0" />
           <div className="flex-1 min-w-0">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/90">Athena Command</div>
+            <div className="text-[12px] font-extrabold uppercase tracking-[0.14em] text-foreground/95">Athena</div>
+            <div className="text-[9px] font-semibold uppercase tracking-[0.28em] text-[color:var(--athena-gold)]">Command</div>
           </div>
           <AttentionBadge variant="compact" />
         </div>
