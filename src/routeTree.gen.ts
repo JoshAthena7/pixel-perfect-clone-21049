@@ -10,76 +10,24 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
-import { Route as AuthenticatedWinThemesRouteImport } from './routes/_authenticated/win-themes'
-import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
-import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
-import { Route as AuthenticatedSelectEngagementRouteImport } from './routes/_authenticated/select-engagement'
-import { Route as AuthenticatedSectionAssignmentsRouteImport } from './routes/_authenticated/section-assignments'
-import { Route as AuthenticatedQuestionHealthRouteImport } from './routes/_authenticated/question-health'
-import { Route as AuthenticatedPulseRouteImport } from './routes/_authenticated/pulse'
-import { Route as AuthenticatedOverviewRouteImport } from './routes/_authenticated/overview'
-import { Route as AuthenticatedNeedsAttentionRouteImport } from './routes/_authenticated/needs-attention'
-import { Route as AuthenticatedNdaRequiredRouteImport } from './routes/_authenticated/nda-required'
-import { Route as AuthenticatedMissionControlRouteImport } from './routes/_authenticated/mission-control'
-import { Route as AuthenticatedMissionAdminRouteImport } from './routes/_authenticated/mission-admin'
-import { Route as AuthenticatedMfaEnrollmentRouteImport } from './routes/_authenticated/mfa-enrollment'
-import { Route as AuthenticatedMarketRouteImport } from './routes/_authenticated/market'
-import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
-import { Route as AuthenticatedIssuesRouteImport } from './routes/_authenticated/issues'
-import { Route as AuthenticatedIntelRouteImport } from './routes/_authenticated/intel'
-import { Route as AuthenticatedInsightsRouteImport } from './routes/_authenticated/insights'
-import { Route as AuthenticatedHuddleRouteImport } from './routes/_authenticated/huddle'
-import { Route as AuthenticatedHeatmapRouteImport } from './routes/_authenticated/heatmap'
-import { Route as AuthenticatedFaqRouteImport } from './routes/_authenticated/faq'
-import { Route as AuthenticatedExecutiveCommandRouteImport } from './routes/_authenticated/executive-command'
-import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authenticated/decisions'
-import { Route as AuthenticatedCommandV2RouteImport } from './routes/_authenticated/command-v2'
-import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticated/command'
-import { Route as AuthenticatedBroadcastsRouteImport } from './routes/_authenticated/broadcasts'
-import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
-import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
-import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated/activity'
-import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
-import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
-import { Route as AuthenticatedWriterMySectionsRouteImport } from './routes/_authenticated/writer/my-sections'
-import { Route as AuthenticatedEngagementNewRouteImport } from './routes/_authenticated/engagement.new'
-import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin/settings'
-import { Route as AuthenticatedAdminPipelineRouteImport } from './routes/_authenticated/admin/pipeline'
-import { Route as AuthenticatedAdminMessagingRouteImport } from './routes/_authenticated/admin/messaging'
-import { Route as AuthenticatedAdminIntelligenceRouteImport } from './routes/_authenticated/admin/intelligence'
-import { Route as AuthenticatedAdminEngagementsRouteImport } from './routes/_authenticated/admin/engagements'
-import { Route as AuthenticatedAdminCollectiveRouteImport } from './routes/_authenticated/admin/collective'
-import { Route as AuthenticatedAdminAlertsRouteImport } from './routes/_authenticated/admin/alerts'
-import { Route as AuthenticatedAdminActivityRouteImport } from './routes/_authenticated/admin/activity'
-import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
-import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
-import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
-import { Route as ApiPublicHooksWeeklyBriefRouteImport } from './routes/api/public/hooks/weekly-brief'
-import { Route as ApiPublicHooksProcessOutcomeRouteImport } from './routes/api/public/hooks/process-outcome'
-import { Route as ApiPublicHooksProcessEmbeddingsRouteImport } from './routes/api/public/hooks/process-embeddings'
-import { Route as ApiPublicHooksPipelineHorizonRouteImport } from './routes/api/public/hooks/pipeline-horizon'
-import { Route as ApiPublicHooksMonitorCronRouteImport } from './routes/api/public/hooks/monitor-cron'
-import { Route as ApiPublicHooksIntelligenceEngineRouteImport } from './routes/api/public/hooks/intelligence-engine'
-import { Route as ApiPublicHooksIngestMarketIntelRouteImport } from './routes/api/public/hooks/ingest-market-intel'
-import { Route as ApiPublicHooksDailyDigestRouteImport } from './routes/api/public/hooks/daily-digest'
-import { Route as ApiPublicHooksBackfillEmbeddingsRouteImport } from './routes/api/public/hooks/backfill-embeddings'
-import { Route as ApiPublicHooksAiConnectivityTestRouteImport } from './routes/api/public/hooks/ai-connectivity-test'
-import { Route as AuthenticatedEngagementIdSizingRouteImport } from './routes/_authenticated/engagement.$id.sizing'
-import { Route as AuthenticatedEngagementIdComplianceRouteImport } from './routes/_authenticated/engagement.$id.compliance'
-import { Route as AuthenticatedEngagementIdSectionSectionIdEditRouteImport } from './routes/_authenticated/engagement.$id.section.$sectionId.edit'
+import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
+import { Route as AuthenticatedMissionsNewRouteImport } from './routes/_authenticated/missions/new'
+import { Route as AuthenticatedCommandScoresRouteImport } from './routes/_authenticated/command/scores'
+import { Route as AuthenticatedCommandQuestionHealthRouteImport } from './routes/_authenticated/command/question-health'
+import { Route as AuthenticatedCommandPensDownRouteImport } from './routes/_authenticated/command/pens-down'
+import { Route as AuthenticatedCommandBroadcastsRouteImport } from './routes/_authenticated/command/broadcasts'
+import { Route as AuthenticatedCommandAlignmentRouteImport } from './routes/_authenticated/command/alignment'
+import { Route as AuthenticatedMissionsMissionIdIndexRouteImport } from './routes/_authenticated/missions/$missionId/index'
+import { Route as AuthenticatedMissionsMissionIdSettingsRouteImport } from './routes/_authenticated/missions/$missionId/settings'
+import { Route as AuthenticatedMissionsMissionIdLibraryRouteImport } from './routes/_authenticated/missions/$missionId/library'
+import { Route as AuthenticatedMissionsMissionIdBriefRouteImport } from './routes/_authenticated/missions/$missionId/brief'
+import { Route as AuthenticatedMissionsMissionIdQuestionsQuestionIdRouteImport } from './routes/_authenticated/missions/$missionId/questions/$questionId'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AcceptInviteRoute = AcceptInviteRouteImport.update({
-  id: '/accept-invite',
-  path: '/accept-invite',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -91,734 +39,184 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
-  id: '/email/unsubscribe',
-  path: '/email/unsubscribe',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedWinThemesRoute = AuthenticatedWinThemesRouteImport.update({
-  id: '/win-themes',
-  path: '/win-themes',
+const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
+  id: '/home',
+  path: '/home',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
-  id: '/team',
-  path: '/team',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedSelectEngagementRoute =
-  AuthenticatedSelectEngagementRouteImport.update({
-    id: '/select-engagement',
-    path: '/select-engagement',
+const AuthenticatedMissionsNewRoute =
+  AuthenticatedMissionsNewRouteImport.update({
+    id: '/missions/new',
+    path: '/missions/new',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedSectionAssignmentsRoute =
-  AuthenticatedSectionAssignmentsRouteImport.update({
-    id: '/section-assignments',
-    path: '/section-assignments',
+const AuthenticatedCommandScoresRoute =
+  AuthenticatedCommandScoresRouteImport.update({
+    id: '/command/scores',
+    path: '/command/scores',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedQuestionHealthRoute =
-  AuthenticatedQuestionHealthRouteImport.update({
-    id: '/question-health',
-    path: '/question-health',
+const AuthenticatedCommandQuestionHealthRoute =
+  AuthenticatedCommandQuestionHealthRouteImport.update({
+    id: '/command/question-health',
+    path: '/command/question-health',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedPulseRoute = AuthenticatedPulseRouteImport.update({
-  id: '/pulse',
-  path: '/pulse',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedOverviewRoute = AuthenticatedOverviewRouteImport.update({
-  id: '/overview',
-  path: '/overview',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedNeedsAttentionRoute =
-  AuthenticatedNeedsAttentionRouteImport.update({
-    id: '/needs-attention',
-    path: '/needs-attention',
+const AuthenticatedCommandPensDownRoute =
+  AuthenticatedCommandPensDownRouteImport.update({
+    id: '/command/pens-down',
+    path: '/command/pens-down',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedNdaRequiredRoute =
-  AuthenticatedNdaRequiredRouteImport.update({
-    id: '/nda-required',
-    path: '/nda-required',
+const AuthenticatedCommandBroadcastsRoute =
+  AuthenticatedCommandBroadcastsRouteImport.update({
+    id: '/command/broadcasts',
+    path: '/command/broadcasts',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedMissionControlRoute =
-  AuthenticatedMissionControlRouteImport.update({
-    id: '/mission-control',
-    path: '/mission-control',
+const AuthenticatedCommandAlignmentRoute =
+  AuthenticatedCommandAlignmentRouteImport.update({
+    id: '/command/alignment',
+    path: '/command/alignment',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedMissionAdminRoute =
-  AuthenticatedMissionAdminRouteImport.update({
-    id: '/mission-admin',
-    path: '/mission-admin',
+const AuthenticatedMissionsMissionIdIndexRoute =
+  AuthenticatedMissionsMissionIdIndexRouteImport.update({
+    id: '/missions/$missionId/',
+    path: '/missions/$missionId/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedMfaEnrollmentRoute =
-  AuthenticatedMfaEnrollmentRouteImport.update({
-    id: '/mfa-enrollment',
-    path: '/mfa-enrollment',
+const AuthenticatedMissionsMissionIdSettingsRoute =
+  AuthenticatedMissionsMissionIdSettingsRouteImport.update({
+    id: '/missions/$missionId/settings',
+    path: '/missions/$missionId/settings',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedMarketRoute = AuthenticatedMarketRouteImport.update({
-  id: '/market',
-  path: '/market',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
-  id: '/library',
-  path: '/library',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedIssuesRoute = AuthenticatedIssuesRouteImport.update({
-  id: '/issues',
-  path: '/issues',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedIntelRoute = AuthenticatedIntelRouteImport.update({
-  id: '/intel',
-  path: '/intel',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedInsightsRoute = AuthenticatedInsightsRouteImport.update({
-  id: '/insights',
-  path: '/insights',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedHuddleRoute = AuthenticatedHuddleRouteImport.update({
-  id: '/huddle',
-  path: '/huddle',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedHeatmapRoute = AuthenticatedHeatmapRouteImport.update({
-  id: '/heatmap',
-  path: '/heatmap',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedFaqRoute = AuthenticatedFaqRouteImport.update({
-  id: '/faq',
-  path: '/faq',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedExecutiveCommandRoute =
-  AuthenticatedExecutiveCommandRouteImport.update({
-    id: '/executive-command',
-    path: '/executive-command',
+const AuthenticatedMissionsMissionIdLibraryRoute =
+  AuthenticatedMissionsMissionIdLibraryRouteImport.update({
+    id: '/missions/$missionId/library',
+    path: '/missions/$missionId/library',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedDecisionsRoute = AuthenticatedDecisionsRouteImport.update({
-  id: '/decisions',
-  path: '/decisions',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedCommandV2Route = AuthenticatedCommandV2RouteImport.update({
-  id: '/command-v2',
-  path: '/command-v2',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedCommandRoute = AuthenticatedCommandRouteImport.update({
-  id: '/command',
-  path: '/command',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedBroadcastsRoute = AuthenticatedBroadcastsRouteImport.update({
-  id: '/broadcasts',
-  path: '/broadcasts',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedAssistantRoute = AuthenticatedAssistantRouteImport.update({
-  id: '/assistant',
-  path: '/assistant',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedActivityRoute = AuthenticatedActivityRouteImport.update({
-  id: '/activity',
-  path: '/activity',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthenticatedAdminRoute,
-} as any)
-const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
-  id: '/lovable/email/suppression',
-  path: '/lovable/email/suppression',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedWriterMySectionsRoute =
-  AuthenticatedWriterMySectionsRouteImport.update({
-    id: '/writer/my-sections',
-    path: '/writer/my-sections',
+const AuthenticatedMissionsMissionIdBriefRoute =
+  AuthenticatedMissionsMissionIdBriefRouteImport.update({
+    id: '/missions/$missionId/brief',
+    path: '/missions/$missionId/brief',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedEngagementNewRoute =
-  AuthenticatedEngagementNewRouteImport.update({
-    id: '/engagement/new',
-    path: '/engagement/new',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedAdminSettingsRoute =
-  AuthenticatedAdminSettingsRouteImport.update({
-    id: '/settings',
-    path: '/settings',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminPipelineRoute =
-  AuthenticatedAdminPipelineRouteImport.update({
-    id: '/pipeline',
-    path: '/pipeline',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminMessagingRoute =
-  AuthenticatedAdminMessagingRouteImport.update({
-    id: '/messaging',
-    path: '/messaging',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminIntelligenceRoute =
-  AuthenticatedAdminIntelligenceRouteImport.update({
-    id: '/intelligence',
-    path: '/intelligence',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminEngagementsRoute =
-  AuthenticatedAdminEngagementsRouteImport.update({
-    id: '/engagements',
-    path: '/engagements',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminCollectiveRoute =
-  AuthenticatedAdminCollectiveRouteImport.update({
-    id: '/collective',
-    path: '/collective',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminAlertsRoute =
-  AuthenticatedAdminAlertsRouteImport.update({
-    id: '/alerts',
-    path: '/alerts',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminActivityRoute =
-  AuthenticatedAdminActivityRouteImport.update({
-    id: '/activity',
-    path: '/activity',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const LovableEmailTransactionalSendRoute =
-  LovableEmailTransactionalSendRouteImport.update({
-    id: '/lovable/email/transactional/send',
-    path: '/lovable/email/transactional/send',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const LovableEmailTransactionalPreviewRoute =
-  LovableEmailTransactionalPreviewRouteImport.update({
-    id: '/lovable/email/transactional/preview',
-    path: '/lovable/email/transactional/preview',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const LovableEmailQueueProcessRoute =
-  LovableEmailQueueProcessRouteImport.update({
-    id: '/lovable/email/queue/process',
-    path: '/lovable/email/queue/process',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksWeeklyBriefRoute =
-  ApiPublicHooksWeeklyBriefRouteImport.update({
-    id: '/api/public/hooks/weekly-brief',
-    path: '/api/public/hooks/weekly-brief',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksProcessOutcomeRoute =
-  ApiPublicHooksProcessOutcomeRouteImport.update({
-    id: '/api/public/hooks/process-outcome',
-    path: '/api/public/hooks/process-outcome',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksProcessEmbeddingsRoute =
-  ApiPublicHooksProcessEmbeddingsRouteImport.update({
-    id: '/api/public/hooks/process-embeddings',
-    path: '/api/public/hooks/process-embeddings',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksPipelineHorizonRoute =
-  ApiPublicHooksPipelineHorizonRouteImport.update({
-    id: '/api/public/hooks/pipeline-horizon',
-    path: '/api/public/hooks/pipeline-horizon',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksMonitorCronRoute =
-  ApiPublicHooksMonitorCronRouteImport.update({
-    id: '/api/public/hooks/monitor-cron',
-    path: '/api/public/hooks/monitor-cron',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksIntelligenceEngineRoute =
-  ApiPublicHooksIntelligenceEngineRouteImport.update({
-    id: '/api/public/hooks/intelligence-engine',
-    path: '/api/public/hooks/intelligence-engine',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksIngestMarketIntelRoute =
-  ApiPublicHooksIngestMarketIntelRouteImport.update({
-    id: '/api/public/hooks/ingest-market-intel',
-    path: '/api/public/hooks/ingest-market-intel',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksDailyDigestRoute =
-  ApiPublicHooksDailyDigestRouteImport.update({
-    id: '/api/public/hooks/daily-digest',
-    path: '/api/public/hooks/daily-digest',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksBackfillEmbeddingsRoute =
-  ApiPublicHooksBackfillEmbeddingsRouteImport.update({
-    id: '/api/public/hooks/backfill-embeddings',
-    path: '/api/public/hooks/backfill-embeddings',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksAiConnectivityTestRoute =
-  ApiPublicHooksAiConnectivityTestRouteImport.update({
-    id: '/api/public/hooks/ai-connectivity-test',
-    path: '/api/public/hooks/ai-connectivity-test',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const AuthenticatedEngagementIdSizingRoute =
-  AuthenticatedEngagementIdSizingRouteImport.update({
-    id: '/engagement/$id/sizing',
-    path: '/engagement/$id/sizing',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedEngagementIdComplianceRoute =
-  AuthenticatedEngagementIdComplianceRouteImport.update({
-    id: '/engagement/$id/compliance',
-    path: '/engagement/$id/compliance',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedEngagementIdSectionSectionIdEditRoute =
-  AuthenticatedEngagementIdSectionSectionIdEditRouteImport.update({
-    id: '/engagement/$id/section/$sectionId/edit',
-    path: '/engagement/$id/section/$sectionId/edit',
+const AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute =
+  AuthenticatedMissionsMissionIdQuestionsQuestionIdRouteImport.update({
+    id: '/missions/$missionId/questions/$questionId',
+    path: '/missions/$missionId/questions/$questionId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/accept-invite': typeof AcceptInviteRoute
   '/login': typeof LoginRoute
-  '/activity': typeof AuthenticatedActivityRoute
-  '/admin': typeof AuthenticatedAdminRouteWithChildren
-  '/assistant': typeof AuthenticatedAssistantRoute
-  '/broadcasts': typeof AuthenticatedBroadcastsRoute
-  '/command': typeof AuthenticatedCommandRoute
-  '/command-v2': typeof AuthenticatedCommandV2Route
-  '/decisions': typeof AuthenticatedDecisionsRoute
-  '/executive-command': typeof AuthenticatedExecutiveCommandRoute
-  '/faq': typeof AuthenticatedFaqRoute
-  '/heatmap': typeof AuthenticatedHeatmapRoute
-  '/huddle': typeof AuthenticatedHuddleRoute
-  '/insights': typeof AuthenticatedInsightsRoute
-  '/intel': typeof AuthenticatedIntelRoute
-  '/issues': typeof AuthenticatedIssuesRoute
-  '/library': typeof AuthenticatedLibraryRoute
-  '/market': typeof AuthenticatedMarketRoute
-  '/mfa-enrollment': typeof AuthenticatedMfaEnrollmentRoute
-  '/mission-admin': typeof AuthenticatedMissionAdminRoute
-  '/mission-control': typeof AuthenticatedMissionControlRoute
-  '/nda-required': typeof AuthenticatedNdaRequiredRoute
-  '/needs-attention': typeof AuthenticatedNeedsAttentionRoute
-  '/overview': typeof AuthenticatedOverviewRoute
-  '/pulse': typeof AuthenticatedPulseRoute
-  '/question-health': typeof AuthenticatedQuestionHealthRoute
-  '/section-assignments': typeof AuthenticatedSectionAssignmentsRoute
-  '/select-engagement': typeof AuthenticatedSelectEngagementRoute
-  '/settings': typeof AuthenticatedSettingsRoute
-  '/team': typeof AuthenticatedTeamRoute
-  '/win-themes': typeof AuthenticatedWinThemesRoute
-  '/email/unsubscribe': typeof EmailUnsubscribeRoute
-  '/admin/activity': typeof AuthenticatedAdminActivityRoute
-  '/admin/alerts': typeof AuthenticatedAdminAlertsRoute
-  '/admin/collective': typeof AuthenticatedAdminCollectiveRoute
-  '/admin/engagements': typeof AuthenticatedAdminEngagementsRoute
-  '/admin/intelligence': typeof AuthenticatedAdminIntelligenceRoute
-  '/admin/messaging': typeof AuthenticatedAdminMessagingRoute
-  '/admin/pipeline': typeof AuthenticatedAdminPipelineRoute
-  '/admin/settings': typeof AuthenticatedAdminSettingsRoute
-  '/engagement/new': typeof AuthenticatedEngagementNewRoute
-  '/writer/my-sections': typeof AuthenticatedWriterMySectionsRoute
-  '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
-  '/admin/': typeof AuthenticatedAdminIndexRoute
-  '/engagement/$id/compliance': typeof AuthenticatedEngagementIdComplianceRoute
-  '/engagement/$id/sizing': typeof AuthenticatedEngagementIdSizingRoute
-  '/api/public/hooks/ai-connectivity-test': typeof ApiPublicHooksAiConnectivityTestRoute
-  '/api/public/hooks/backfill-embeddings': typeof ApiPublicHooksBackfillEmbeddingsRoute
-  '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
-  '/api/public/hooks/ingest-market-intel': typeof ApiPublicHooksIngestMarketIntelRoute
-  '/api/public/hooks/intelligence-engine': typeof ApiPublicHooksIntelligenceEngineRoute
-  '/api/public/hooks/monitor-cron': typeof ApiPublicHooksMonitorCronRoute
-  '/api/public/hooks/pipeline-horizon': typeof ApiPublicHooksPipelineHorizonRoute
-  '/api/public/hooks/process-embeddings': typeof ApiPublicHooksProcessEmbeddingsRoute
-  '/api/public/hooks/process-outcome': typeof ApiPublicHooksProcessOutcomeRoute
-  '/api/public/hooks/weekly-brief': typeof ApiPublicHooksWeeklyBriefRoute
-  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
-  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
-  '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
-  '/engagement/$id/section/$sectionId/edit': typeof AuthenticatedEngagementIdSectionSectionIdEditRoute
+  '/home': typeof AuthenticatedHomeRoute
+  '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
+  '/command/broadcasts': typeof AuthenticatedCommandBroadcastsRoute
+  '/command/pens-down': typeof AuthenticatedCommandPensDownRoute
+  '/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
+  '/command/scores': typeof AuthenticatedCommandScoresRoute
+  '/missions/new': typeof AuthenticatedMissionsNewRoute
+  '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
+  '/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
+  '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
+  '/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
+  '/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/accept-invite': typeof AcceptInviteRoute
   '/login': typeof LoginRoute
-  '/activity': typeof AuthenticatedActivityRoute
-  '/assistant': typeof AuthenticatedAssistantRoute
-  '/broadcasts': typeof AuthenticatedBroadcastsRoute
-  '/command': typeof AuthenticatedCommandRoute
-  '/command-v2': typeof AuthenticatedCommandV2Route
-  '/decisions': typeof AuthenticatedDecisionsRoute
-  '/executive-command': typeof AuthenticatedExecutiveCommandRoute
-  '/faq': typeof AuthenticatedFaqRoute
-  '/heatmap': typeof AuthenticatedHeatmapRoute
-  '/huddle': typeof AuthenticatedHuddleRoute
-  '/insights': typeof AuthenticatedInsightsRoute
-  '/intel': typeof AuthenticatedIntelRoute
-  '/issues': typeof AuthenticatedIssuesRoute
-  '/library': typeof AuthenticatedLibraryRoute
-  '/market': typeof AuthenticatedMarketRoute
-  '/mfa-enrollment': typeof AuthenticatedMfaEnrollmentRoute
-  '/mission-admin': typeof AuthenticatedMissionAdminRoute
-  '/mission-control': typeof AuthenticatedMissionControlRoute
-  '/nda-required': typeof AuthenticatedNdaRequiredRoute
-  '/needs-attention': typeof AuthenticatedNeedsAttentionRoute
-  '/overview': typeof AuthenticatedOverviewRoute
-  '/pulse': typeof AuthenticatedPulseRoute
-  '/question-health': typeof AuthenticatedQuestionHealthRoute
-  '/section-assignments': typeof AuthenticatedSectionAssignmentsRoute
-  '/select-engagement': typeof AuthenticatedSelectEngagementRoute
-  '/settings': typeof AuthenticatedSettingsRoute
-  '/team': typeof AuthenticatedTeamRoute
-  '/win-themes': typeof AuthenticatedWinThemesRoute
-  '/email/unsubscribe': typeof EmailUnsubscribeRoute
-  '/admin/activity': typeof AuthenticatedAdminActivityRoute
-  '/admin/alerts': typeof AuthenticatedAdminAlertsRoute
-  '/admin/collective': typeof AuthenticatedAdminCollectiveRoute
-  '/admin/engagements': typeof AuthenticatedAdminEngagementsRoute
-  '/admin/intelligence': typeof AuthenticatedAdminIntelligenceRoute
-  '/admin/messaging': typeof AuthenticatedAdminMessagingRoute
-  '/admin/pipeline': typeof AuthenticatedAdminPipelineRoute
-  '/admin/settings': typeof AuthenticatedAdminSettingsRoute
-  '/engagement/new': typeof AuthenticatedEngagementNewRoute
-  '/writer/my-sections': typeof AuthenticatedWriterMySectionsRoute
-  '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
-  '/admin': typeof AuthenticatedAdminIndexRoute
-  '/engagement/$id/compliance': typeof AuthenticatedEngagementIdComplianceRoute
-  '/engagement/$id/sizing': typeof AuthenticatedEngagementIdSizingRoute
-  '/api/public/hooks/ai-connectivity-test': typeof ApiPublicHooksAiConnectivityTestRoute
-  '/api/public/hooks/backfill-embeddings': typeof ApiPublicHooksBackfillEmbeddingsRoute
-  '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
-  '/api/public/hooks/ingest-market-intel': typeof ApiPublicHooksIngestMarketIntelRoute
-  '/api/public/hooks/intelligence-engine': typeof ApiPublicHooksIntelligenceEngineRoute
-  '/api/public/hooks/monitor-cron': typeof ApiPublicHooksMonitorCronRoute
-  '/api/public/hooks/pipeline-horizon': typeof ApiPublicHooksPipelineHorizonRoute
-  '/api/public/hooks/process-embeddings': typeof ApiPublicHooksProcessEmbeddingsRoute
-  '/api/public/hooks/process-outcome': typeof ApiPublicHooksProcessOutcomeRoute
-  '/api/public/hooks/weekly-brief': typeof ApiPublicHooksWeeklyBriefRoute
-  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
-  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
-  '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
-  '/engagement/$id/section/$sectionId/edit': typeof AuthenticatedEngagementIdSectionSectionIdEditRoute
+  '/home': typeof AuthenticatedHomeRoute
+  '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
+  '/command/broadcasts': typeof AuthenticatedCommandBroadcastsRoute
+  '/command/pens-down': typeof AuthenticatedCommandPensDownRoute
+  '/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
+  '/command/scores': typeof AuthenticatedCommandScoresRoute
+  '/missions/new': typeof AuthenticatedMissionsNewRoute
+  '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
+  '/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
+  '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
+  '/missions/$missionId': typeof AuthenticatedMissionsMissionIdIndexRoute
+  '/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
-  '/accept-invite': typeof AcceptInviteRoute
   '/login': typeof LoginRoute
-  '/_authenticated/activity': typeof AuthenticatedActivityRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
-  '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
-  '/_authenticated/broadcasts': typeof AuthenticatedBroadcastsRoute
-  '/_authenticated/command': typeof AuthenticatedCommandRoute
-  '/_authenticated/command-v2': typeof AuthenticatedCommandV2Route
-  '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
-  '/_authenticated/executive-command': typeof AuthenticatedExecutiveCommandRoute
-  '/_authenticated/faq': typeof AuthenticatedFaqRoute
-  '/_authenticated/heatmap': typeof AuthenticatedHeatmapRoute
-  '/_authenticated/huddle': typeof AuthenticatedHuddleRoute
-  '/_authenticated/insights': typeof AuthenticatedInsightsRoute
-  '/_authenticated/intel': typeof AuthenticatedIntelRoute
-  '/_authenticated/issues': typeof AuthenticatedIssuesRoute
-  '/_authenticated/library': typeof AuthenticatedLibraryRoute
-  '/_authenticated/market': typeof AuthenticatedMarketRoute
-  '/_authenticated/mfa-enrollment': typeof AuthenticatedMfaEnrollmentRoute
-  '/_authenticated/mission-admin': typeof AuthenticatedMissionAdminRoute
-  '/_authenticated/mission-control': typeof AuthenticatedMissionControlRoute
-  '/_authenticated/nda-required': typeof AuthenticatedNdaRequiredRoute
-  '/_authenticated/needs-attention': typeof AuthenticatedNeedsAttentionRoute
-  '/_authenticated/overview': typeof AuthenticatedOverviewRoute
-  '/_authenticated/pulse': typeof AuthenticatedPulseRoute
-  '/_authenticated/question-health': typeof AuthenticatedQuestionHealthRoute
-  '/_authenticated/section-assignments': typeof AuthenticatedSectionAssignmentsRoute
-  '/_authenticated/select-engagement': typeof AuthenticatedSelectEngagementRoute
-  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
-  '/_authenticated/team': typeof AuthenticatedTeamRoute
-  '/_authenticated/win-themes': typeof AuthenticatedWinThemesRoute
-  '/email/unsubscribe': typeof EmailUnsubscribeRoute
-  '/_authenticated/admin/activity': typeof AuthenticatedAdminActivityRoute
-  '/_authenticated/admin/alerts': typeof AuthenticatedAdminAlertsRoute
-  '/_authenticated/admin/collective': typeof AuthenticatedAdminCollectiveRoute
-  '/_authenticated/admin/engagements': typeof AuthenticatedAdminEngagementsRoute
-  '/_authenticated/admin/intelligence': typeof AuthenticatedAdminIntelligenceRoute
-  '/_authenticated/admin/messaging': typeof AuthenticatedAdminMessagingRoute
-  '/_authenticated/admin/pipeline': typeof AuthenticatedAdminPipelineRoute
-  '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
-  '/_authenticated/engagement/new': typeof AuthenticatedEngagementNewRoute
-  '/_authenticated/writer/my-sections': typeof AuthenticatedWriterMySectionsRoute
-  '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
-  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
-  '/_authenticated/engagement/$id/compliance': typeof AuthenticatedEngagementIdComplianceRoute
-  '/_authenticated/engagement/$id/sizing': typeof AuthenticatedEngagementIdSizingRoute
-  '/api/public/hooks/ai-connectivity-test': typeof ApiPublicHooksAiConnectivityTestRoute
-  '/api/public/hooks/backfill-embeddings': typeof ApiPublicHooksBackfillEmbeddingsRoute
-  '/api/public/hooks/daily-digest': typeof ApiPublicHooksDailyDigestRoute
-  '/api/public/hooks/ingest-market-intel': typeof ApiPublicHooksIngestMarketIntelRoute
-  '/api/public/hooks/intelligence-engine': typeof ApiPublicHooksIntelligenceEngineRoute
-  '/api/public/hooks/monitor-cron': typeof ApiPublicHooksMonitorCronRoute
-  '/api/public/hooks/pipeline-horizon': typeof ApiPublicHooksPipelineHorizonRoute
-  '/api/public/hooks/process-embeddings': typeof ApiPublicHooksProcessEmbeddingsRoute
-  '/api/public/hooks/process-outcome': typeof ApiPublicHooksProcessOutcomeRoute
-  '/api/public/hooks/weekly-brief': typeof ApiPublicHooksWeeklyBriefRoute
-  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
-  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
-  '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
-  '/_authenticated/engagement/$id/section/$sectionId/edit': typeof AuthenticatedEngagementIdSectionSectionIdEditRoute
+  '/_authenticated/home': typeof AuthenticatedHomeRoute
+  '/_authenticated/command/alignment': typeof AuthenticatedCommandAlignmentRoute
+  '/_authenticated/command/broadcasts': typeof AuthenticatedCommandBroadcastsRoute
+  '/_authenticated/command/pens-down': typeof AuthenticatedCommandPensDownRoute
+  '/_authenticated/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
+  '/_authenticated/command/scores': typeof AuthenticatedCommandScoresRoute
+  '/_authenticated/missions/new': typeof AuthenticatedMissionsNewRoute
+  '/_authenticated/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
+  '/_authenticated/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
+  '/_authenticated/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
+  '/_authenticated/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
+  '/_authenticated/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/accept-invite'
     | '/login'
-    | '/activity'
-    | '/admin'
-    | '/assistant'
-    | '/broadcasts'
-    | '/command'
-    | '/command-v2'
-    | '/decisions'
-    | '/executive-command'
-    | '/faq'
-    | '/heatmap'
-    | '/huddle'
-    | '/insights'
-    | '/intel'
-    | '/issues'
-    | '/library'
-    | '/market'
-    | '/mfa-enrollment'
-    | '/mission-admin'
-    | '/mission-control'
-    | '/nda-required'
-    | '/needs-attention'
-    | '/overview'
-    | '/pulse'
-    | '/question-health'
-    | '/section-assignments'
-    | '/select-engagement'
-    | '/settings'
-    | '/team'
-    | '/win-themes'
-    | '/email/unsubscribe'
-    | '/admin/activity'
-    | '/admin/alerts'
-    | '/admin/collective'
-    | '/admin/engagements'
-    | '/admin/intelligence'
-    | '/admin/messaging'
-    | '/admin/pipeline'
-    | '/admin/settings'
-    | '/engagement/new'
-    | '/writer/my-sections'
-    | '/lovable/email/suppression'
-    | '/admin/'
-    | '/engagement/$id/compliance'
-    | '/engagement/$id/sizing'
-    | '/api/public/hooks/ai-connectivity-test'
-    | '/api/public/hooks/backfill-embeddings'
-    | '/api/public/hooks/daily-digest'
-    | '/api/public/hooks/ingest-market-intel'
-    | '/api/public/hooks/intelligence-engine'
-    | '/api/public/hooks/monitor-cron'
-    | '/api/public/hooks/pipeline-horizon'
-    | '/api/public/hooks/process-embeddings'
-    | '/api/public/hooks/process-outcome'
-    | '/api/public/hooks/weekly-brief'
-    | '/lovable/email/queue/process'
-    | '/lovable/email/transactional/preview'
-    | '/lovable/email/transactional/send'
-    | '/engagement/$id/section/$sectionId/edit'
+    | '/home'
+    | '/command/alignment'
+    | '/command/broadcasts'
+    | '/command/pens-down'
+    | '/command/question-health'
+    | '/command/scores'
+    | '/missions/new'
+    | '/missions/$missionId/brief'
+    | '/missions/$missionId/library'
+    | '/missions/$missionId/settings'
+    | '/missions/$missionId/'
+    | '/missions/$missionId/questions/$questionId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/accept-invite'
     | '/login'
-    | '/activity'
-    | '/assistant'
-    | '/broadcasts'
-    | '/command'
-    | '/command-v2'
-    | '/decisions'
-    | '/executive-command'
-    | '/faq'
-    | '/heatmap'
-    | '/huddle'
-    | '/insights'
-    | '/intel'
-    | '/issues'
-    | '/library'
-    | '/market'
-    | '/mfa-enrollment'
-    | '/mission-admin'
-    | '/mission-control'
-    | '/nda-required'
-    | '/needs-attention'
-    | '/overview'
-    | '/pulse'
-    | '/question-health'
-    | '/section-assignments'
-    | '/select-engagement'
-    | '/settings'
-    | '/team'
-    | '/win-themes'
-    | '/email/unsubscribe'
-    | '/admin/activity'
-    | '/admin/alerts'
-    | '/admin/collective'
-    | '/admin/engagements'
-    | '/admin/intelligence'
-    | '/admin/messaging'
-    | '/admin/pipeline'
-    | '/admin/settings'
-    | '/engagement/new'
-    | '/writer/my-sections'
-    | '/lovable/email/suppression'
-    | '/admin'
-    | '/engagement/$id/compliance'
-    | '/engagement/$id/sizing'
-    | '/api/public/hooks/ai-connectivity-test'
-    | '/api/public/hooks/backfill-embeddings'
-    | '/api/public/hooks/daily-digest'
-    | '/api/public/hooks/ingest-market-intel'
-    | '/api/public/hooks/intelligence-engine'
-    | '/api/public/hooks/monitor-cron'
-    | '/api/public/hooks/pipeline-horizon'
-    | '/api/public/hooks/process-embeddings'
-    | '/api/public/hooks/process-outcome'
-    | '/api/public/hooks/weekly-brief'
-    | '/lovable/email/queue/process'
-    | '/lovable/email/transactional/preview'
-    | '/lovable/email/transactional/send'
-    | '/engagement/$id/section/$sectionId/edit'
+    | '/home'
+    | '/command/alignment'
+    | '/command/broadcasts'
+    | '/command/pens-down'
+    | '/command/question-health'
+    | '/command/scores'
+    | '/missions/new'
+    | '/missions/$missionId/brief'
+    | '/missions/$missionId/library'
+    | '/missions/$missionId/settings'
+    | '/missions/$missionId'
+    | '/missions/$missionId/questions/$questionId'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
-    | '/accept-invite'
     | '/login'
-    | '/_authenticated/activity'
-    | '/_authenticated/admin'
-    | '/_authenticated/assistant'
-    | '/_authenticated/broadcasts'
-    | '/_authenticated/command'
-    | '/_authenticated/command-v2'
-    | '/_authenticated/decisions'
-    | '/_authenticated/executive-command'
-    | '/_authenticated/faq'
-    | '/_authenticated/heatmap'
-    | '/_authenticated/huddle'
-    | '/_authenticated/insights'
-    | '/_authenticated/intel'
-    | '/_authenticated/issues'
-    | '/_authenticated/library'
-    | '/_authenticated/market'
-    | '/_authenticated/mfa-enrollment'
-    | '/_authenticated/mission-admin'
-    | '/_authenticated/mission-control'
-    | '/_authenticated/nda-required'
-    | '/_authenticated/needs-attention'
-    | '/_authenticated/overview'
-    | '/_authenticated/pulse'
-    | '/_authenticated/question-health'
-    | '/_authenticated/section-assignments'
-    | '/_authenticated/select-engagement'
-    | '/_authenticated/settings'
-    | '/_authenticated/team'
-    | '/_authenticated/win-themes'
-    | '/email/unsubscribe'
-    | '/_authenticated/admin/activity'
-    | '/_authenticated/admin/alerts'
-    | '/_authenticated/admin/collective'
-    | '/_authenticated/admin/engagements'
-    | '/_authenticated/admin/intelligence'
-    | '/_authenticated/admin/messaging'
-    | '/_authenticated/admin/pipeline'
-    | '/_authenticated/admin/settings'
-    | '/_authenticated/engagement/new'
-    | '/_authenticated/writer/my-sections'
-    | '/lovable/email/suppression'
-    | '/_authenticated/admin/'
-    | '/_authenticated/engagement/$id/compliance'
-    | '/_authenticated/engagement/$id/sizing'
-    | '/api/public/hooks/ai-connectivity-test'
-    | '/api/public/hooks/backfill-embeddings'
-    | '/api/public/hooks/daily-digest'
-    | '/api/public/hooks/ingest-market-intel'
-    | '/api/public/hooks/intelligence-engine'
-    | '/api/public/hooks/monitor-cron'
-    | '/api/public/hooks/pipeline-horizon'
-    | '/api/public/hooks/process-embeddings'
-    | '/api/public/hooks/process-outcome'
-    | '/api/public/hooks/weekly-brief'
-    | '/lovable/email/queue/process'
-    | '/lovable/email/transactional/preview'
-    | '/lovable/email/transactional/send'
-    | '/_authenticated/engagement/$id/section/$sectionId/edit'
+    | '/_authenticated/home'
+    | '/_authenticated/command/alignment'
+    | '/_authenticated/command/broadcasts'
+    | '/_authenticated/command/pens-down'
+    | '/_authenticated/command/question-health'
+    | '/_authenticated/command/scores'
+    | '/_authenticated/missions/new'
+    | '/_authenticated/missions/$missionId/brief'
+    | '/_authenticated/missions/$missionId/library'
+    | '/_authenticated/missions/$missionId/settings'
+    | '/_authenticated/missions/$missionId/'
+    | '/_authenticated/missions/$missionId/questions/$questionId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
-  AcceptInviteRoute: typeof AcceptInviteRoute
   LoginRoute: typeof LoginRoute
-  EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
-  LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
-  ApiPublicHooksAiConnectivityTestRoute: typeof ApiPublicHooksAiConnectivityTestRoute
-  ApiPublicHooksBackfillEmbeddingsRoute: typeof ApiPublicHooksBackfillEmbeddingsRoute
-  ApiPublicHooksDailyDigestRoute: typeof ApiPublicHooksDailyDigestRoute
-  ApiPublicHooksIngestMarketIntelRoute: typeof ApiPublicHooksIngestMarketIntelRoute
-  ApiPublicHooksIntelligenceEngineRoute: typeof ApiPublicHooksIntelligenceEngineRoute
-  ApiPublicHooksMonitorCronRoute: typeof ApiPublicHooksMonitorCronRoute
-  ApiPublicHooksPipelineHorizonRoute: typeof ApiPublicHooksPipelineHorizonRoute
-  ApiPublicHooksProcessEmbeddingsRoute: typeof ApiPublicHooksProcessEmbeddingsRoute
-  ApiPublicHooksProcessOutcomeRoute: typeof ApiPublicHooksProcessOutcomeRoute
-  ApiPublicHooksWeeklyBriefRoute: typeof ApiPublicHooksWeeklyBriefRoute
-  LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
-  LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
-  LovableEmailTransactionalSendRoute: typeof LovableEmailTransactionalSendRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -828,13 +226,6 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/accept-invite': {
-      id: '/accept-invite'
-      path: '/accept-invite'
-      fullPath: '/accept-invite'
-      preLoaderRoute: typeof AcceptInviteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -851,516 +242,127 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/email/unsubscribe': {
-      id: '/email/unsubscribe'
-      path: '/email/unsubscribe'
-      fullPath: '/email/unsubscribe'
-      preLoaderRoute: typeof EmailUnsubscribeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/win-themes': {
-      id: '/_authenticated/win-themes'
-      path: '/win-themes'
-      fullPath: '/win-themes'
-      preLoaderRoute: typeof AuthenticatedWinThemesRouteImport
+    '/_authenticated/home': {
+      id: '/_authenticated/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof AuthenticatedHomeRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/team': {
-      id: '/_authenticated/team'
-      path: '/team'
-      fullPath: '/team'
-      preLoaderRoute: typeof AuthenticatedTeamRouteImport
+    '/_authenticated/missions/new': {
+      id: '/_authenticated/missions/new'
+      path: '/missions/new'
+      fullPath: '/missions/new'
+      preLoaderRoute: typeof AuthenticatedMissionsNewRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/settings': {
-      id: '/_authenticated/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+    '/_authenticated/command/scores': {
+      id: '/_authenticated/command/scores'
+      path: '/command/scores'
+      fullPath: '/command/scores'
+      preLoaderRoute: typeof AuthenticatedCommandScoresRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/select-engagement': {
-      id: '/_authenticated/select-engagement'
-      path: '/select-engagement'
-      fullPath: '/select-engagement'
-      preLoaderRoute: typeof AuthenticatedSelectEngagementRouteImport
+    '/_authenticated/command/question-health': {
+      id: '/_authenticated/command/question-health'
+      path: '/command/question-health'
+      fullPath: '/command/question-health'
+      preLoaderRoute: typeof AuthenticatedCommandQuestionHealthRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/section-assignments': {
-      id: '/_authenticated/section-assignments'
-      path: '/section-assignments'
-      fullPath: '/section-assignments'
-      preLoaderRoute: typeof AuthenticatedSectionAssignmentsRouteImport
+    '/_authenticated/command/pens-down': {
+      id: '/_authenticated/command/pens-down'
+      path: '/command/pens-down'
+      fullPath: '/command/pens-down'
+      preLoaderRoute: typeof AuthenticatedCommandPensDownRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/question-health': {
-      id: '/_authenticated/question-health'
-      path: '/question-health'
-      fullPath: '/question-health'
-      preLoaderRoute: typeof AuthenticatedQuestionHealthRouteImport
+    '/_authenticated/command/broadcasts': {
+      id: '/_authenticated/command/broadcasts'
+      path: '/command/broadcasts'
+      fullPath: '/command/broadcasts'
+      preLoaderRoute: typeof AuthenticatedCommandBroadcastsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/pulse': {
-      id: '/_authenticated/pulse'
-      path: '/pulse'
-      fullPath: '/pulse'
-      preLoaderRoute: typeof AuthenticatedPulseRouteImport
+    '/_authenticated/command/alignment': {
+      id: '/_authenticated/command/alignment'
+      path: '/command/alignment'
+      fullPath: '/command/alignment'
+      preLoaderRoute: typeof AuthenticatedCommandAlignmentRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/overview': {
-      id: '/_authenticated/overview'
-      path: '/overview'
-      fullPath: '/overview'
-      preLoaderRoute: typeof AuthenticatedOverviewRouteImport
+    '/_authenticated/missions/$missionId/': {
+      id: '/_authenticated/missions/$missionId/'
+      path: '/missions/$missionId'
+      fullPath: '/missions/$missionId/'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/needs-attention': {
-      id: '/_authenticated/needs-attention'
-      path: '/needs-attention'
-      fullPath: '/needs-attention'
-      preLoaderRoute: typeof AuthenticatedNeedsAttentionRouteImport
+    '/_authenticated/missions/$missionId/settings': {
+      id: '/_authenticated/missions/$missionId/settings'
+      path: '/missions/$missionId/settings'
+      fullPath: '/missions/$missionId/settings'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdSettingsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/nda-required': {
-      id: '/_authenticated/nda-required'
-      path: '/nda-required'
-      fullPath: '/nda-required'
-      preLoaderRoute: typeof AuthenticatedNdaRequiredRouteImport
+    '/_authenticated/missions/$missionId/library': {
+      id: '/_authenticated/missions/$missionId/library'
+      path: '/missions/$missionId/library'
+      fullPath: '/missions/$missionId/library'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdLibraryRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/mission-control': {
-      id: '/_authenticated/mission-control'
-      path: '/mission-control'
-      fullPath: '/mission-control'
-      preLoaderRoute: typeof AuthenticatedMissionControlRouteImport
+    '/_authenticated/missions/$missionId/brief': {
+      id: '/_authenticated/missions/$missionId/brief'
+      path: '/missions/$missionId/brief'
+      fullPath: '/missions/$missionId/brief'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdBriefRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/mission-admin': {
-      id: '/_authenticated/mission-admin'
-      path: '/mission-admin'
-      fullPath: '/mission-admin'
-      preLoaderRoute: typeof AuthenticatedMissionAdminRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/mfa-enrollment': {
-      id: '/_authenticated/mfa-enrollment'
-      path: '/mfa-enrollment'
-      fullPath: '/mfa-enrollment'
-      preLoaderRoute: typeof AuthenticatedMfaEnrollmentRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/market': {
-      id: '/_authenticated/market'
-      path: '/market'
-      fullPath: '/market'
-      preLoaderRoute: typeof AuthenticatedMarketRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/library': {
-      id: '/_authenticated/library'
-      path: '/library'
-      fullPath: '/library'
-      preLoaderRoute: typeof AuthenticatedLibraryRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/issues': {
-      id: '/_authenticated/issues'
-      path: '/issues'
-      fullPath: '/issues'
-      preLoaderRoute: typeof AuthenticatedIssuesRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/intel': {
-      id: '/_authenticated/intel'
-      path: '/intel'
-      fullPath: '/intel'
-      preLoaderRoute: typeof AuthenticatedIntelRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/insights': {
-      id: '/_authenticated/insights'
-      path: '/insights'
-      fullPath: '/insights'
-      preLoaderRoute: typeof AuthenticatedInsightsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/huddle': {
-      id: '/_authenticated/huddle'
-      path: '/huddle'
-      fullPath: '/huddle'
-      preLoaderRoute: typeof AuthenticatedHuddleRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/heatmap': {
-      id: '/_authenticated/heatmap'
-      path: '/heatmap'
-      fullPath: '/heatmap'
-      preLoaderRoute: typeof AuthenticatedHeatmapRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/faq': {
-      id: '/_authenticated/faq'
-      path: '/faq'
-      fullPath: '/faq'
-      preLoaderRoute: typeof AuthenticatedFaqRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/executive-command': {
-      id: '/_authenticated/executive-command'
-      path: '/executive-command'
-      fullPath: '/executive-command'
-      preLoaderRoute: typeof AuthenticatedExecutiveCommandRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/decisions': {
-      id: '/_authenticated/decisions'
-      path: '/decisions'
-      fullPath: '/decisions'
-      preLoaderRoute: typeof AuthenticatedDecisionsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/command-v2': {
-      id: '/_authenticated/command-v2'
-      path: '/command-v2'
-      fullPath: '/command-v2'
-      preLoaderRoute: typeof AuthenticatedCommandV2RouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/command': {
-      id: '/_authenticated/command'
-      path: '/command'
-      fullPath: '/command'
-      preLoaderRoute: typeof AuthenticatedCommandRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/broadcasts': {
-      id: '/_authenticated/broadcasts'
-      path: '/broadcasts'
-      fullPath: '/broadcasts'
-      preLoaderRoute: typeof AuthenticatedBroadcastsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/assistant': {
-      id: '/_authenticated/assistant'
-      path: '/assistant'
-      fullPath: '/assistant'
-      preLoaderRoute: typeof AuthenticatedAssistantRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/admin': {
-      id: '/_authenticated/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/activity': {
-      id: '/_authenticated/activity'
-      path: '/activity'
-      fullPath: '/activity'
-      preLoaderRoute: typeof AuthenticatedActivityRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/admin/': {
-      id: '/_authenticated/admin/'
-      path: '/'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/lovable/email/suppression': {
-      id: '/lovable/email/suppression'
-      path: '/lovable/email/suppression'
-      fullPath: '/lovable/email/suppression'
-      preLoaderRoute: typeof LovableEmailSuppressionRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/writer/my-sections': {
-      id: '/_authenticated/writer/my-sections'
-      path: '/writer/my-sections'
-      fullPath: '/writer/my-sections'
-      preLoaderRoute: typeof AuthenticatedWriterMySectionsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/engagement/new': {
-      id: '/_authenticated/engagement/new'
-      path: '/engagement/new'
-      fullPath: '/engagement/new'
-      preLoaderRoute: typeof AuthenticatedEngagementNewRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/admin/settings': {
-      id: '/_authenticated/admin/settings'
-      path: '/settings'
-      fullPath: '/admin/settings'
-      preLoaderRoute: typeof AuthenticatedAdminSettingsRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/pipeline': {
-      id: '/_authenticated/admin/pipeline'
-      path: '/pipeline'
-      fullPath: '/admin/pipeline'
-      preLoaderRoute: typeof AuthenticatedAdminPipelineRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/messaging': {
-      id: '/_authenticated/admin/messaging'
-      path: '/messaging'
-      fullPath: '/admin/messaging'
-      preLoaderRoute: typeof AuthenticatedAdminMessagingRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/intelligence': {
-      id: '/_authenticated/admin/intelligence'
-      path: '/intelligence'
-      fullPath: '/admin/intelligence'
-      preLoaderRoute: typeof AuthenticatedAdminIntelligenceRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/engagements': {
-      id: '/_authenticated/admin/engagements'
-      path: '/engagements'
-      fullPath: '/admin/engagements'
-      preLoaderRoute: typeof AuthenticatedAdminEngagementsRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/collective': {
-      id: '/_authenticated/admin/collective'
-      path: '/collective'
-      fullPath: '/admin/collective'
-      preLoaderRoute: typeof AuthenticatedAdminCollectiveRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/alerts': {
-      id: '/_authenticated/admin/alerts'
-      path: '/alerts'
-      fullPath: '/admin/alerts'
-      preLoaderRoute: typeof AuthenticatedAdminAlertsRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/activity': {
-      id: '/_authenticated/admin/activity'
-      path: '/activity'
-      fullPath: '/admin/activity'
-      preLoaderRoute: typeof AuthenticatedAdminActivityRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/lovable/email/transactional/send': {
-      id: '/lovable/email/transactional/send'
-      path: '/lovable/email/transactional/send'
-      fullPath: '/lovable/email/transactional/send'
-      preLoaderRoute: typeof LovableEmailTransactionalSendRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lovable/email/transactional/preview': {
-      id: '/lovable/email/transactional/preview'
-      path: '/lovable/email/transactional/preview'
-      fullPath: '/lovable/email/transactional/preview'
-      preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lovable/email/queue/process': {
-      id: '/lovable/email/queue/process'
-      path: '/lovable/email/queue/process'
-      fullPath: '/lovable/email/queue/process'
-      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/weekly-brief': {
-      id: '/api/public/hooks/weekly-brief'
-      path: '/api/public/hooks/weekly-brief'
-      fullPath: '/api/public/hooks/weekly-brief'
-      preLoaderRoute: typeof ApiPublicHooksWeeklyBriefRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/process-outcome': {
-      id: '/api/public/hooks/process-outcome'
-      path: '/api/public/hooks/process-outcome'
-      fullPath: '/api/public/hooks/process-outcome'
-      preLoaderRoute: typeof ApiPublicHooksProcessOutcomeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/process-embeddings': {
-      id: '/api/public/hooks/process-embeddings'
-      path: '/api/public/hooks/process-embeddings'
-      fullPath: '/api/public/hooks/process-embeddings'
-      preLoaderRoute: typeof ApiPublicHooksProcessEmbeddingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/pipeline-horizon': {
-      id: '/api/public/hooks/pipeline-horizon'
-      path: '/api/public/hooks/pipeline-horizon'
-      fullPath: '/api/public/hooks/pipeline-horizon'
-      preLoaderRoute: typeof ApiPublicHooksPipelineHorizonRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/monitor-cron': {
-      id: '/api/public/hooks/monitor-cron'
-      path: '/api/public/hooks/monitor-cron'
-      fullPath: '/api/public/hooks/monitor-cron'
-      preLoaderRoute: typeof ApiPublicHooksMonitorCronRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/intelligence-engine': {
-      id: '/api/public/hooks/intelligence-engine'
-      path: '/api/public/hooks/intelligence-engine'
-      fullPath: '/api/public/hooks/intelligence-engine'
-      preLoaderRoute: typeof ApiPublicHooksIntelligenceEngineRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/ingest-market-intel': {
-      id: '/api/public/hooks/ingest-market-intel'
-      path: '/api/public/hooks/ingest-market-intel'
-      fullPath: '/api/public/hooks/ingest-market-intel'
-      preLoaderRoute: typeof ApiPublicHooksIngestMarketIntelRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/daily-digest': {
-      id: '/api/public/hooks/daily-digest'
-      path: '/api/public/hooks/daily-digest'
-      fullPath: '/api/public/hooks/daily-digest'
-      preLoaderRoute: typeof ApiPublicHooksDailyDigestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/backfill-embeddings': {
-      id: '/api/public/hooks/backfill-embeddings'
-      path: '/api/public/hooks/backfill-embeddings'
-      fullPath: '/api/public/hooks/backfill-embeddings'
-      preLoaderRoute: typeof ApiPublicHooksBackfillEmbeddingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/ai-connectivity-test': {
-      id: '/api/public/hooks/ai-connectivity-test'
-      path: '/api/public/hooks/ai-connectivity-test'
-      fullPath: '/api/public/hooks/ai-connectivity-test'
-      preLoaderRoute: typeof ApiPublicHooksAiConnectivityTestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/engagement/$id/sizing': {
-      id: '/_authenticated/engagement/$id/sizing'
-      path: '/engagement/$id/sizing'
-      fullPath: '/engagement/$id/sizing'
-      preLoaderRoute: typeof AuthenticatedEngagementIdSizingRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/engagement/$id/compliance': {
-      id: '/_authenticated/engagement/$id/compliance'
-      path: '/engagement/$id/compliance'
-      fullPath: '/engagement/$id/compliance'
-      preLoaderRoute: typeof AuthenticatedEngagementIdComplianceRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/engagement/$id/section/$sectionId/edit': {
-      id: '/_authenticated/engagement/$id/section/$sectionId/edit'
-      path: '/engagement/$id/section/$sectionId/edit'
-      fullPath: '/engagement/$id/section/$sectionId/edit'
-      preLoaderRoute: typeof AuthenticatedEngagementIdSectionSectionIdEditRouteImport
+    '/_authenticated/missions/$missionId/questions/$questionId': {
+      id: '/_authenticated/missions/$missionId/questions/$questionId'
+      path: '/missions/$missionId/questions/$questionId'
+      fullPath: '/missions/$missionId/questions/$questionId'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
   }
 }
 
-interface AuthenticatedAdminRouteChildren {
-  AuthenticatedAdminActivityRoute: typeof AuthenticatedAdminActivityRoute
-  AuthenticatedAdminAlertsRoute: typeof AuthenticatedAdminAlertsRoute
-  AuthenticatedAdminCollectiveRoute: typeof AuthenticatedAdminCollectiveRoute
-  AuthenticatedAdminEngagementsRoute: typeof AuthenticatedAdminEngagementsRoute
-  AuthenticatedAdminIntelligenceRoute: typeof AuthenticatedAdminIntelligenceRoute
-  AuthenticatedAdminMessagingRoute: typeof AuthenticatedAdminMessagingRoute
-  AuthenticatedAdminPipelineRoute: typeof AuthenticatedAdminPipelineRoute
-  AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
-  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
-}
-
-const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
-  AuthenticatedAdminActivityRoute: AuthenticatedAdminActivityRoute,
-  AuthenticatedAdminAlertsRoute: AuthenticatedAdminAlertsRoute,
-  AuthenticatedAdminCollectiveRoute: AuthenticatedAdminCollectiveRoute,
-  AuthenticatedAdminEngagementsRoute: AuthenticatedAdminEngagementsRoute,
-  AuthenticatedAdminIntelligenceRoute: AuthenticatedAdminIntelligenceRoute,
-  AuthenticatedAdminMessagingRoute: AuthenticatedAdminMessagingRoute,
-  AuthenticatedAdminPipelineRoute: AuthenticatedAdminPipelineRoute,
-  AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
-  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
-}
-
-const AuthenticatedAdminRouteWithChildren =
-  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
-
 interface AuthenticatedRouteChildren {
-  AuthenticatedActivityRoute: typeof AuthenticatedActivityRoute
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
-  AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
-  AuthenticatedBroadcastsRoute: typeof AuthenticatedBroadcastsRoute
-  AuthenticatedCommandRoute: typeof AuthenticatedCommandRoute
-  AuthenticatedCommandV2Route: typeof AuthenticatedCommandV2Route
-  AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRoute
-  AuthenticatedExecutiveCommandRoute: typeof AuthenticatedExecutiveCommandRoute
-  AuthenticatedFaqRoute: typeof AuthenticatedFaqRoute
-  AuthenticatedHeatmapRoute: typeof AuthenticatedHeatmapRoute
-  AuthenticatedHuddleRoute: typeof AuthenticatedHuddleRoute
-  AuthenticatedInsightsRoute: typeof AuthenticatedInsightsRoute
-  AuthenticatedIntelRoute: typeof AuthenticatedIntelRoute
-  AuthenticatedIssuesRoute: typeof AuthenticatedIssuesRoute
-  AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRoute
-  AuthenticatedMarketRoute: typeof AuthenticatedMarketRoute
-  AuthenticatedMfaEnrollmentRoute: typeof AuthenticatedMfaEnrollmentRoute
-  AuthenticatedMissionAdminRoute: typeof AuthenticatedMissionAdminRoute
-  AuthenticatedMissionControlRoute: typeof AuthenticatedMissionControlRoute
-  AuthenticatedNdaRequiredRoute: typeof AuthenticatedNdaRequiredRoute
-  AuthenticatedNeedsAttentionRoute: typeof AuthenticatedNeedsAttentionRoute
-  AuthenticatedOverviewRoute: typeof AuthenticatedOverviewRoute
-  AuthenticatedPulseRoute: typeof AuthenticatedPulseRoute
-  AuthenticatedQuestionHealthRoute: typeof AuthenticatedQuestionHealthRoute
-  AuthenticatedSectionAssignmentsRoute: typeof AuthenticatedSectionAssignmentsRoute
-  AuthenticatedSelectEngagementRoute: typeof AuthenticatedSelectEngagementRoute
-  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
-  AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
-  AuthenticatedWinThemesRoute: typeof AuthenticatedWinThemesRoute
-  AuthenticatedEngagementNewRoute: typeof AuthenticatedEngagementNewRoute
-  AuthenticatedWriterMySectionsRoute: typeof AuthenticatedWriterMySectionsRoute
-  AuthenticatedEngagementIdComplianceRoute: typeof AuthenticatedEngagementIdComplianceRoute
-  AuthenticatedEngagementIdSizingRoute: typeof AuthenticatedEngagementIdSizingRoute
-  AuthenticatedEngagementIdSectionSectionIdEditRoute: typeof AuthenticatedEngagementIdSectionSectionIdEditRoute
+  AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
+  AuthenticatedCommandAlignmentRoute: typeof AuthenticatedCommandAlignmentRoute
+  AuthenticatedCommandBroadcastsRoute: typeof AuthenticatedCommandBroadcastsRoute
+  AuthenticatedCommandPensDownRoute: typeof AuthenticatedCommandPensDownRoute
+  AuthenticatedCommandQuestionHealthRoute: typeof AuthenticatedCommandQuestionHealthRoute
+  AuthenticatedCommandScoresRoute: typeof AuthenticatedCommandScoresRoute
+  AuthenticatedMissionsNewRoute: typeof AuthenticatedMissionsNewRoute
+  AuthenticatedMissionsMissionIdBriefRoute: typeof AuthenticatedMissionsMissionIdBriefRoute
+  AuthenticatedMissionsMissionIdLibraryRoute: typeof AuthenticatedMissionsMissionIdLibraryRoute
+  AuthenticatedMissionsMissionIdSettingsRoute: typeof AuthenticatedMissionsMissionIdSettingsRoute
+  AuthenticatedMissionsMissionIdIndexRoute: typeof AuthenticatedMissionsMissionIdIndexRoute
+  AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute: typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedActivityRoute: AuthenticatedActivityRoute,
-  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
-  AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
-  AuthenticatedBroadcastsRoute: AuthenticatedBroadcastsRoute,
-  AuthenticatedCommandRoute: AuthenticatedCommandRoute,
-  AuthenticatedCommandV2Route: AuthenticatedCommandV2Route,
-  AuthenticatedDecisionsRoute: AuthenticatedDecisionsRoute,
-  AuthenticatedExecutiveCommandRoute: AuthenticatedExecutiveCommandRoute,
-  AuthenticatedFaqRoute: AuthenticatedFaqRoute,
-  AuthenticatedHeatmapRoute: AuthenticatedHeatmapRoute,
-  AuthenticatedHuddleRoute: AuthenticatedHuddleRoute,
-  AuthenticatedInsightsRoute: AuthenticatedInsightsRoute,
-  AuthenticatedIntelRoute: AuthenticatedIntelRoute,
-  AuthenticatedIssuesRoute: AuthenticatedIssuesRoute,
-  AuthenticatedLibraryRoute: AuthenticatedLibraryRoute,
-  AuthenticatedMarketRoute: AuthenticatedMarketRoute,
-  AuthenticatedMfaEnrollmentRoute: AuthenticatedMfaEnrollmentRoute,
-  AuthenticatedMissionAdminRoute: AuthenticatedMissionAdminRoute,
-  AuthenticatedMissionControlRoute: AuthenticatedMissionControlRoute,
-  AuthenticatedNdaRequiredRoute: AuthenticatedNdaRequiredRoute,
-  AuthenticatedNeedsAttentionRoute: AuthenticatedNeedsAttentionRoute,
-  AuthenticatedOverviewRoute: AuthenticatedOverviewRoute,
-  AuthenticatedPulseRoute: AuthenticatedPulseRoute,
-  AuthenticatedQuestionHealthRoute: AuthenticatedQuestionHealthRoute,
-  AuthenticatedSectionAssignmentsRoute: AuthenticatedSectionAssignmentsRoute,
-  AuthenticatedSelectEngagementRoute: AuthenticatedSelectEngagementRoute,
-  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
-  AuthenticatedTeamRoute: AuthenticatedTeamRoute,
-  AuthenticatedWinThemesRoute: AuthenticatedWinThemesRoute,
-  AuthenticatedEngagementNewRoute: AuthenticatedEngagementNewRoute,
-  AuthenticatedWriterMySectionsRoute: AuthenticatedWriterMySectionsRoute,
-  AuthenticatedEngagementIdComplianceRoute:
-    AuthenticatedEngagementIdComplianceRoute,
-  AuthenticatedEngagementIdSizingRoute: AuthenticatedEngagementIdSizingRoute,
-  AuthenticatedEngagementIdSectionSectionIdEditRoute:
-    AuthenticatedEngagementIdSectionSectionIdEditRoute,
+  AuthenticatedHomeRoute: AuthenticatedHomeRoute,
+  AuthenticatedCommandAlignmentRoute: AuthenticatedCommandAlignmentRoute,
+  AuthenticatedCommandBroadcastsRoute: AuthenticatedCommandBroadcastsRoute,
+  AuthenticatedCommandPensDownRoute: AuthenticatedCommandPensDownRoute,
+  AuthenticatedCommandQuestionHealthRoute:
+    AuthenticatedCommandQuestionHealthRoute,
+  AuthenticatedCommandScoresRoute: AuthenticatedCommandScoresRoute,
+  AuthenticatedMissionsNewRoute: AuthenticatedMissionsNewRoute,
+  AuthenticatedMissionsMissionIdBriefRoute:
+    AuthenticatedMissionsMissionIdBriefRoute,
+  AuthenticatedMissionsMissionIdLibraryRoute:
+    AuthenticatedMissionsMissionIdLibraryRoute,
+  AuthenticatedMissionsMissionIdSettingsRoute:
+    AuthenticatedMissionsMissionIdSettingsRoute,
+  AuthenticatedMissionsMissionIdIndexRoute:
+    AuthenticatedMissionsMissionIdIndexRoute,
+  AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute:
+    AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -1370,34 +372,8 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
-  AcceptInviteRoute: AcceptInviteRoute,
   LoginRoute: LoginRoute,
-  EmailUnsubscribeRoute: EmailUnsubscribeRoute,
-  LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
-  ApiPublicHooksAiConnectivityTestRoute: ApiPublicHooksAiConnectivityTestRoute,
-  ApiPublicHooksBackfillEmbeddingsRoute: ApiPublicHooksBackfillEmbeddingsRoute,
-  ApiPublicHooksDailyDigestRoute: ApiPublicHooksDailyDigestRoute,
-  ApiPublicHooksIngestMarketIntelRoute: ApiPublicHooksIngestMarketIntelRoute,
-  ApiPublicHooksIntelligenceEngineRoute: ApiPublicHooksIntelligenceEngineRoute,
-  ApiPublicHooksMonitorCronRoute: ApiPublicHooksMonitorCronRoute,
-  ApiPublicHooksPipelineHorizonRoute: ApiPublicHooksPipelineHorizonRoute,
-  ApiPublicHooksProcessEmbeddingsRoute: ApiPublicHooksProcessEmbeddingsRoute,
-  ApiPublicHooksProcessOutcomeRoute: ApiPublicHooksProcessOutcomeRoute,
-  ApiPublicHooksWeeklyBriefRoute: ApiPublicHooksWeeklyBriefRoute,
-  LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
-  LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
-  LovableEmailTransactionalSendRoute: LovableEmailTransactionalSendRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

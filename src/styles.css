@@ -16,6 +16,7 @@
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
   --color-surface-hover: var(--surface-hover);
+  --color-surface-deep: var(--surface-deep);
   --color-card: var(--surface);
   --color-card-foreground: var(--foreground);
   --color-popover: var(--surface);
@@ -37,43 +38,25 @@
 
   --color-green: var(--green);
   --color-yellow: var(--yellow);
-  --color-orange: var(--orange);
   --color-red: var(--red);
-  --color-gold: var(--gold);
-  --color-gold-light: var(--gold-light);
-  --color-navy: var(--navy);
-
 }
 
 :root,
 .dark {
-  /* Athena Strategy Group — official brand (navy #1B3B72 + gold #C49A2A) */
-  --background: oklch(0.155 0.025 265);        /* #0D0F1A — navy-tinted near-black */
-  --surface: oklch(0.215 0.035 265);           /* #141628 — card surface */
-  --surface-hover: oklch(0.27 0.04 265);
-  --border: oklch(0.28 0.045 265);             /* #1E2240 */
-  --foreground: oklch(0.96 0.005 250);
-  --muted-foreground: oklch(0.70 0.025 260);
-  --navy: oklch(0.34 0.10 263);                /* #1B3B72 Athena brand navy */
-  --gold: oklch(0.71 0.135 78);                /* #C49A2A Athena brand gold */
-  --gold-light: oklch(0.78 0.13 80);           /* #D4AE4A — on dark surfaces */
-  --primary: oklch(0.71 0.135 78);             /* gold as primary accent */
-  --primary-foreground: oklch(0.15 0.03 265);  /* deep navy text on gold */
-  --green: oklch(0.72 0.18 145);
-  --yellow: oklch(0.78 0.16 80);
-  --orange: oklch(0.72 0.19 50);
-  --red: oklch(0.65 0.23 25);
+  /* Athena Command V2 dark executive theme */
+  --background: oklch(0.165 0.025 260);        /* #0a0e1a */
+  --surface: oklch(0.215 0.025 260);           /* #111827 */
+  --surface-hover: oklch(0.255 0.030 260);     /* #1a2235 */
+  --surface-deep: oklch(0.29 0.035 260);       /* #222d42 */
+  --border: oklch(0.34 0.038 260);             /* #2a3a55 */
+  --foreground: oklch(0.94 0.01 250);          /* #e8edf5 */
+  --muted-foreground: oklch(0.65 0.025 255);   /* #8b9ab5 */
+  --primary: oklch(0.66 0.18 258);             /* #3b7fff accent blue */
+  --primary-foreground: oklch(0.98 0.005 250);
+  --green: oklch(0.72 0.18 145);               /* #22c55e */
+  --yellow: oklch(0.78 0.16 75);               /* #f59e0b */
+  --red: oklch(0.66 0.22 25);                  /* #ef4444 */
 }
-
-
-
-@keyframes fadeInDown { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
-@keyframes iris-breathe { 0%,100%{opacity:.5;transform:scale(1)} 50%{opacity:1;transform:scale(1.07)} }
-@keyframes iris-ring { 0%{transform:scale(1);opacity:.55} 100%{transform:scale(2.4);opacity:0} }
-@keyframes iris-ring-slow { 0%{transform:scale(1);opacity:.3} 100%{transform:scale(2.0);opacity:0} }
-.iris-core   { animation: iris-breathe  3.5s ease-in-out infinite; }
-.iris-ring-1 { animation: iris-ring     3.5s ease-out infinite; }
-.iris-ring-2 { animation: iris-ring-slow 3.5s ease-out infinite 1.2s; }
 
 @layer base {
   html, body { background: var(--background); color: var(--foreground); }
@@ -81,36 +64,25 @@
   * { border-color: var(--color-border); }
   ::selection { background: color-mix(in oklab, var(--primary) 35%, transparent); }
 
-  /* Mobile: prevent iOS auto-zoom on inputs (font must be >= 16px) */
   @media (max-width: 640px) {
-    input, textarea, select {
-      font-size: 16px !important;
-    }
-    /* Bigger touch targets for primary actions on small screens */
-    button:not([data-sidebar="trigger"]):not([role="tab"]),
-    [role="button"]:not([data-sidebar="trigger"]) {
-      min-height: 44px;
-    }
+    input, textarea, select { font-size: 16px !important; }
   }
 }
 
 @layer utilities {
-  .glow-green   { box-shadow: 0 0 32px -4px color-mix(in oklab, var(--green) 60%, transparent); }
-  .glow-yellow  { box-shadow: 0 0 32px -4px color-mix(in oklab, var(--yellow) 60%, transparent); }
-  .glow-orange  { box-shadow: 0 0 32px -4px color-mix(in oklab, var(--orange) 60%, transparent); }
-  .glow-red     { box-shadow: 0 0 32px -4px color-mix(in oklab, var(--red) 60%, transparent); }
-  .live-dot::before {
-    content: "";
-    display: inline-block;
-    width: 8px; height: 8px;
-    border-radius: 9999px;
-    background: var(--green);
-    margin-right: 8px;
-    box-shadow: 0 0 8px var(--green);
-    animation: pulse 1.8s ease-in-out infinite;
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px; border-radius: 9999px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+    text-transform: uppercase;
   }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.45; }
-  }
+  .pill-green  { background: color-mix(in oklab, var(--green) 14%, transparent); color: var(--green); }
+  .pill-yellow { background: color-mix(in oklab, var(--yellow) 14%, transparent); color: var(--yellow); }
+  .pill-red    { background: color-mix(in oklab, var(--red) 14%, transparent); color: var(--red); }
+  .pill-muted  { background: var(--surface-hover); color: var(--muted-foreground); }
+
+  .dot { display:inline-block; width:8px; height:8px; border-radius:9999px; }
+  .dot-green  { background: var(--green); box-shadow: 0 0 8px color-mix(in oklab, var(--green) 60%, transparent); }
+  .dot-yellow { background: var(--yellow); box-shadow: 0 0 8px color-mix(in oklab, var(--yellow) 60%, transparent); }
+  .dot-red    { background: var(--red); box-shadow: 0 0 8px color-mix(in oklab, var(--red) 60%, transparent); }
 }
