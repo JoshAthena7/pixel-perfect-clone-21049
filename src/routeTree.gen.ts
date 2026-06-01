@@ -18,6 +18,7 @@ import { Route as AuthenticatedCommandScoresRouteImport } from './routes/_authen
 import { Route as AuthenticatedCommandQuestionHealthRouteImport } from './routes/_authenticated/command/question-health'
 import { Route as AuthenticatedCommandPensDownRouteImport } from './routes/_authenticated/command/pens-down'
 import { Route as AuthenticatedCommandBroadcastsRouteImport } from './routes/_authenticated/command/broadcasts'
+import { Route as AuthenticatedCommandAlignmentConflictsRouteImport } from './routes/_authenticated/command/alignment-conflicts'
 import { Route as AuthenticatedCommandAlignmentRouteImport } from './routes/_authenticated/command/alignment'
 import { Route as AuthenticatedMissionsMissionIdIndexRouteImport } from './routes/_authenticated/missions/$missionId/index'
 import { Route as AuthenticatedMissionsMissionIdSettingsRouteImport } from './routes/_authenticated/missions/$missionId/settings'
@@ -75,6 +76,12 @@ const AuthenticatedCommandBroadcastsRoute =
     path: '/command/broadcasts',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedCommandAlignmentConflictsRoute =
+  AuthenticatedCommandAlignmentConflictsRouteImport.update({
+    id: '/command/alignment-conflicts',
+    path: '/command/alignment-conflicts',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedCommandAlignmentRoute =
   AuthenticatedCommandAlignmentRouteImport.update({
     id: '/command/alignment',
@@ -123,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/home': typeof AuthenticatedHomeRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
+  '/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/command/broadcasts': typeof AuthenticatedCommandBroadcastsRoute
   '/command/pens-down': typeof AuthenticatedCommandPensDownRoute
   '/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
@@ -140,6 +148,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/home': typeof AuthenticatedHomeRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
+  '/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/command/broadcasts': typeof AuthenticatedCommandBroadcastsRoute
   '/command/pens-down': typeof AuthenticatedCommandPensDownRoute
   '/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
@@ -159,6 +168,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/command/alignment': typeof AuthenticatedCommandAlignmentRoute
+  '/_authenticated/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/_authenticated/command/broadcasts': typeof AuthenticatedCommandBroadcastsRoute
   '/_authenticated/command/pens-down': typeof AuthenticatedCommandPensDownRoute
   '/_authenticated/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/home'
     | '/command/alignment'
+    | '/command/alignment-conflicts'
     | '/command/broadcasts'
     | '/command/pens-down'
     | '/command/question-health'
@@ -195,6 +206,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/home'
     | '/command/alignment'
+    | '/command/alignment-conflicts'
     | '/command/broadcasts'
     | '/command/pens-down'
     | '/command/question-health'
@@ -213,6 +225,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authenticated/home'
     | '/_authenticated/command/alignment'
+    | '/_authenticated/command/alignment-conflicts'
     | '/_authenticated/command/broadcasts'
     | '/_authenticated/command/pens-down'
     | '/_authenticated/command/question-health'
@@ -297,6 +310,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCommandBroadcastsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/command/alignment-conflicts': {
+      id: '/_authenticated/command/alignment-conflicts'
+      path: '/command/alignment-conflicts'
+      fullPath: '/command/alignment-conflicts'
+      preLoaderRoute: typeof AuthenticatedCommandAlignmentConflictsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/command/alignment': {
       id: '/_authenticated/command/alignment'
       path: '/command/alignment'
@@ -352,6 +372,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteChildren {
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedCommandAlignmentRoute: typeof AuthenticatedCommandAlignmentRoute
+  AuthenticatedCommandAlignmentConflictsRoute: typeof AuthenticatedCommandAlignmentConflictsRoute
   AuthenticatedCommandBroadcastsRoute: typeof AuthenticatedCommandBroadcastsRoute
   AuthenticatedCommandPensDownRoute: typeof AuthenticatedCommandPensDownRoute
   AuthenticatedCommandQuestionHealthRoute: typeof AuthenticatedCommandQuestionHealthRoute
@@ -368,6 +389,8 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedCommandAlignmentRoute: AuthenticatedCommandAlignmentRoute,
+  AuthenticatedCommandAlignmentConflictsRoute:
+    AuthenticatedCommandAlignmentConflictsRoute,
   AuthenticatedCommandBroadcastsRoute: AuthenticatedCommandBroadcastsRoute,
   AuthenticatedCommandPensDownRoute: AuthenticatedCommandPensDownRoute,
   AuthenticatedCommandQuestionHealthRoute:
