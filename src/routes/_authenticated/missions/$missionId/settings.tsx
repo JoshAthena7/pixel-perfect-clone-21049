@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { inviteMissionMember } from "@/lib/mission-members.functions";
-import { Save, Plus, Trash2, X, UserPlus } from "lucide-react";
+import { Save, Plus, Trash2, X, UserPlus, Pencil, Archive, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/settings")({
   component: SettingsPage,
@@ -15,7 +15,7 @@ const HEALTHS = ["green", "yellow", "red"] as const;
 const ROLES = ["admin", "lead", "writer", "sme", "viewer"] as const;
 type Role = (typeof ROLES)[number];
 
-type Tab = "details" | "gates" | "team";
+type Tab = "details" | "gates" | "team" | "themes";
 
 function SettingsPage() {
   const { missionId } = Route.useParams();
@@ -33,6 +33,7 @@ function SettingsPage() {
           ["details", "Details"],
           ["gates", "Review Gates"],
           ["team", "Team"],
+          ["themes", "Win Themes"],
         ] as const).map(([k, label]) => (
           <button
             key={k}
@@ -50,6 +51,7 @@ function SettingsPage() {
       {tab === "details" && <DetailsTab missionId={missionId} />}
       {tab === "gates" && <GatesTab missionId={missionId} />}
       {tab === "team" && <TeamTab missionId={missionId} />}
+      {tab === "themes" && <ThemesTab missionId={missionId} />}
     </div>
   );
 }
@@ -485,6 +487,182 @@ function InviteModal({ missionId, onClose }: { missionId: string; onClose: () =>
           className="rounded-[8px] bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
         >
           {submit.isPending ? "Sending…" : "Send invite"}
+        </button>
+      </div>
+    </ModalShell>
+  );
+}
+
+/* ─── Tab 4: Win Themes ────────────────────────── */
+
+type WinTheme = {
+  id: string;
+  title: string;
+  description: string | null;
+  key_message: string | null;
+  question_ids: string[] | null;
+  status: string | null;
+};
+
+function ThemesTab({ missionId }: { missionId: string }) {
+  const qc = useQueryClient();
+  const [showModal, setShowModal] = useState(false);
+  const [editing, setEditing] = useState<WinTheme | null>(null);
+
+  const { data: themes = [], isLoading } = useQuery({
+    queryKey: ["win-themes", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("win_themes")
+        .select("id,title,description,key_message,question_ids,status")
+        .eq("mission_id", missionId)
+        .eq("status", "active")
+        .order("created_at", { ascending: true });
+      return (data ?? []) as WinTheme[];
+    },
+  });
+
+  const archive = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("win_themes").update({ status: "archived" }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["win-themes", missionId] }),
+  });
+
+  return (
+    <div>
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Active Win Themes</h2>
+        <button
+          onClick={() => { setEditing(null); setShowModal(true); }}
+          className="inline-flex items-center gap-1.5 rounded-[6px] border border-border bg-background px-2.5 py-1.5 text-xs text-foreground hover:bg-surface-hover"
+        >
+          <Plus className="h-3.5 w-3.5" /> Add Win Theme
+        </button>
+      </div>
+
+      {isLoading ? (
+        <div className="rounded-[10px] border border-border bg-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>
+      ) : themes.length === 0 ? (
+        <div className="rounded-[10px] border border-border bg-surface p-12 text-center">
+          <Sparkles className="mx-auto mb-3 h-6 w-6 text-muted-foreground" />
+          <p className="text-sm text-foreground/90">No win themes yet.</p>
+          <p className="mt-1 text-xs text-muted-foreground">Define the strategic messages that should thread through every response.</p>
+        </div>
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2">
+          {themes.map((t) => {
+            const count = t.question_ids?.length ?? 0;
+            return (
+              <div key={t.id} className="rounded-[10px] border border-border bg-surface p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="text-sm font-semibold text-foreground">{t.title}</h3>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => { setEditing(t); setShowModal(true); }}
+                      className="rounded-[6px] p-1.5 text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+                      title="Edit"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => archive.mutate(t.id)}
+                      className="rounded-[6px] p-1.5 text-muted-foreground hover:bg-surface-hover hover:text-destructive"
+                      title="Archive"
+                    >
+                      <Archive className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+                {t.key_message && (
+                  <p className="mt-2 rounded-[6px] border border-primary/20 bg-primary/5 px-2.5 py-1.5 text-xs italic text-primary">
+                    "{t.key_message}"
+                  </p>
+                )}
+                {t.description && (
+                  <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{t.description}</p>
+                )}
+                <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
+                  <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Connected Questions</span>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-foreground">{count}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {showModal && (
+        <WinThemeModal
+          missionId={missionId}
+          theme={editing}
+          onClose={() => { setShowModal(false); setEditing(null); }}
+        />
+      )}
+    </div>
+  );
+}
+
+function WinThemeModal({ missionId, theme, onClose }: { missionId: string; theme: WinTheme | null; onClose: () => void }) {
+  const qc = useQueryClient();
+  const [form, setForm] = useState({
+    title: theme?.title ?? "",
+    description: theme?.description ?? "",
+    key_message: theme?.key_message ?? "",
+  });
+
+  const save = useMutation({
+    mutationFn: async () => {
+      if (theme) {
+        const { error } = await supabase
+          .from("win_themes")
+          .update({
+            title: form.title,
+            description: form.description || null,
+            key_message: form.key_message || null,
+          })
+          .eq("id", theme.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("win_themes").insert({
+          mission_id: missionId,
+          title: form.title,
+          description: form.description || null,
+          key_message: form.key_message || null,
+          status: "active",
+        });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["win-themes", missionId] });
+      onClose();
+    },
+  });
+
+  return (
+    <ModalShell title={theme ? "Edit Win Theme" : "Add Win Theme"} onClose={onClose}>
+      <div className="grid gap-4">
+        <Field label="Title">
+          <input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Proven delivery at scale" />
+        </Field>
+        <Field label="Key Message">
+          <input className={inputCls} value={form.key_message} onChange={(e) => setForm({ ...form, key_message: e.target.value })} placeholder="One-line message that surfaces in every response" />
+        </Field>
+        <Field label="Description">
+          <textarea rows={4} className={inputCls} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Why this theme matters and how to substantiate it." />
+        </Field>
+      </div>
+      {save.isError && <p className="mt-3 text-xs text-destructive">{(save.error as Error).message}</p>}
+      <div className="mt-5 flex justify-end gap-2">
+        <button onClick={onClose} className="rounded-[8px] border border-border px-3 py-2 text-sm hover:bg-surface-hover">Cancel</button>
+        <button
+          disabled={!form.title || save.isPending}
+          onClick={() => save.mutate()}
+          className="rounded-[8px] bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+        >
+          {save.isPending ? "Saving…" : theme ? "Save changes" : "Add theme"}
         </button>
       </div>
     </ModalShell>
