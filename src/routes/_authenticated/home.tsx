@@ -538,12 +538,12 @@ function MissionCard({ mission, attention }: { mission: Mission; attention: numb
     <Link
       to="/missions/$missionId/overview"
       params={{ missionId: mission.id }}
-      className={`group relative block rounded-[12px] border border-border border-l-4 bg-surface p-5 transition-all duration-200 hover:-translate-y-0.5 ${HEALTH_BORDER[mission.health] ?? "border-l-border"} ${HEALTH_GLOW[mission.health] ?? ""}`}
-      style={{ minHeight: 160 }}
+      className={`group relative block rounded-[12px] border border-border border-l-4 bg-surface p-5 transition-all duration-200 ease-out hover:-translate-y-0.5 ${HEALTH_BORDER[mission.health] ?? "border-l-border"} ${HEALTH_GLOW[mission.health] ?? ""}`}
+      style={{ minHeight: 140 }}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="h3-card text-[1.05rem] font-bold truncate">{mission.name}</h3>
+          <h3 className="truncate text-[1.1rem] font-bold text-foreground">{mission.name}</h3>
           <p className="mt-0.5 text-xs text-muted-foreground truncate">{mission.client}{mission.state ? ` · ${mission.state}` : ""}</p>
         </div>
         {attention > 0 && (
