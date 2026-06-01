@@ -428,7 +428,7 @@ function AthenaHQ() {
           </div>
           <ul className="divide-y divide-border">
             {leadershipMessages.length === 0 && (
-              <li className="px-5 py-8 text-center text-sm text-muted-foreground">No messages from leadership today.</li>
+              <li className="px-5 py-8 text-center text-sm text-muted-foreground">No broadcasts yet. Leadership messages will appear here.</li>
             )}
             {leadershipMessages.map((m: any) => (
               <li key={m.id} className="px-5 py-4">
