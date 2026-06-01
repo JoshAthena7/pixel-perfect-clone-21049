@@ -138,53 +138,18 @@ function AthenaHQ() {
   // mission-id → display name (for pills)
   const missionMap = new Map(missions.map((m) => [m.id, m.name]));
 
-  const { data: topSignals = [] } = useQuery({
-    queryKey: ["hq-top-signals"],
-    queryFn: async () => {
-      const { data: crit = [] } = await supabase
-        .from("signals")
-        .select("id,mission_id,signal_type,signal_title,signal_summary,severity,created_at,related_question_id")
-        .eq("status", "open").eq("severity", "critical")
-        .order("created_at", { ascending: false }).limit(5);
-      let combined = (crit ?? []) as Signal[];
-      if (combined.length < 5) {
-        const { data: warn = [] } = await supabase
-          .from("signals")
-          .select("id,mission_id,signal_type,signal_title,signal_summary,severity,created_at,related_question_id")
-          .eq("status", "open").eq("severity", "warning")
-          .order("created_at", { ascending: false }).limit(5 - combined.length);
-        combined = [...combined, ...((warn ?? []) as Signal[])];
-      }
-      return combined;
-    },
-    refetchInterval: 30_000,
-  });
-
-  const { data: openConflicts = [] } = useQuery({
-    queryKey: ["hq-conflicts"],
+  // HORIZON FEED — firm-wide industry intelligence
+  const { data: horizonItems = [] } = useQuery({
+    queryKey: ["horizon-feed"],
     queryFn: async () => {
       const { data } = await supabase
-        .from("alignment_conflicts")
-        .select("id,mission_id,description,severity,detected_at")
-        .is("resolved_at", null)
-        .order("detected_at", { ascending: false })
-        .limit(5);
-      return data ?? [];
-    },
-  });
-
-  const { data: firmActivity = [] } = useQuery({
-    queryKey: ["hq-activity"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("signals")
-        .select("id,mission_id,signal_type,signal_title,severity,created_at")
-        .neq("status", "archived")
+        .from("market_intelligence")
+        .select("id,source,type,category,title,summary,url,published_at,created_at")
         .order("created_at", { ascending: false })
-        .limit(10);
-      return data ?? [];
+        .limit(100);
+      return (data ?? []) as IntelItem[];
     },
-    refetchInterval: 30_000,
+    refetchInterval: 60_000,
   });
 
   const { data: leadershipMessages = [] } = useQuery({
@@ -196,18 +161,6 @@ function AthenaHQ() {
         .is("mission_id", null)
         .order("created_at", { ascending: false })
         .limit(5);
-      return data ?? [];
-    },
-  });
-
-  const { data: marketNews = [] } = useQuery({
-    queryKey: ["hq-market-news"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("market_intelligence")
-        .select("id,source,type,title,url,published_at,created_at")
-        .order("created_at", { ascending: false })
-        .limit(8);
       return data ?? [];
     },
   });
