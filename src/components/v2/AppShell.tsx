@@ -2,7 +2,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useParams } from "@tanstack/react-router";
 import {
   Home, ListChecks, AlertTriangle, BarChart3, Clock, Megaphone, LogOut,
-  ChevronLeft, LayoutDashboard, FolderOpen, BookOpen, Settings, Shield, User,
+  ChevronLeft, FolderOpen, BookOpen, Settings, Shield, User, PenLine,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -173,7 +173,7 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
             return (
               <NavItem
                 key={m.id}
-                to="/missions/$missionId/questions"
+                to="/missions/$missionId/overview"
                 params={{ missionId: m.id }}
                 active={currentPath.startsWith(`/missions/${m.id}`)}
               >
@@ -257,8 +257,8 @@ function MissionNav({ missionId }: { missionId: string }) {
         )}
       </div>
       <nav className="flex-1 px-3 py-4 space-y-1">
-        <NavItem to="/missions/$missionId/overview" params={{ missionId }} active={path.endsWith("/overview")} icon={<LayoutDashboard className="h-4 w-4" />}>The Brief</NavItem>
-        <NavItem to="/missions/$missionId/questions" params={{ missionId }} active={path === `/missions/${missionId}` || path.startsWith(`/missions/${missionId}/questions`)} icon={<ListChecks className="h-4 w-4" />}>Questions</NavItem>
+        <NavItem to="/missions/$missionId/overview" params={{ missionId }} active={path === `/missions/${missionId}` || path.endsWith("/overview")} icon={<Home className="h-4 w-4" />}>Mission Home</NavItem>
+        <NavItem to="/missions/$missionId/questions" params={{ missionId }} active={path.startsWith(`/missions/${missionId}/questions`)} icon={<PenLine className="h-4 w-4" />}>The Studio</NavItem>
         <NavItem to="/missions/$missionId/library" params={{ missionId }} active={path.endsWith("/library")} icon={<FolderOpen className="h-4 w-4" />}>The Vault</NavItem>
         <NavItem to="/missions/$missionId/briefing" params={{ missionId }} active={path.endsWith("/briefing")} icon={<BookOpen className="h-4 w-4" />}>The Oracle</NavItem>
         <NavItem to="/missions/$missionId/settings" params={{ missionId }} active={path.endsWith("/settings")} icon={<Settings className="h-4 w-4" />}>Settings</NavItem>
