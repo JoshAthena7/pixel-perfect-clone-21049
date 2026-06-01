@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { QueryClient } from "@tanstack/react-query";
 
 export type SignalSeverity = "info" | "warning" | "critical";
 
@@ -29,7 +30,7 @@ export type SignalInput = {
  * Guardrail: mission_id is required. Failures are logged but never throw —
  * signal emission must never break the originating user action.
  */
-export async function createSignal(input: SignalInput): Promise<void> {
+export async function createSignal(input: SignalInput, queryClient?: QueryClient): Promise<void> {
   if (!input.mission_id) {
     console.warn("[signals] missing mission_id, signal not emitted", input);
     return;
