@@ -441,7 +441,7 @@ function TeamTab({ missionId }: { missionId: string }) {
                       <select
                         className="rounded-[6px] border border-border bg-background px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                         value={m.role}
-                        onChange={(e) => updateRole.mutate({ id: m.id, role: e.target.value as Role })}
+                        onChange={(e) => updateRole.mutate({ id: m.id, role: e.target.value as Role, member: m })}
                       >
                         {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
                       </select>
