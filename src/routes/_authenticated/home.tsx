@@ -6,7 +6,7 @@ import { irisLeadershipAttention } from "@/lib/iris.functions";
 import { AttentionBadge } from "@/components/v2/AttentionBadge";
 import { signalTypeLabel, relativeTime } from "@/lib/signals";
 import { MissionGridSkeleton, QuestionListSkeleton } from "@/components/v2/Skeletons";
-import { Activity, AlertTriangle, AlertCircle, ArrowRight, GitBranch, Radio, Megaphone, Newspaper, CalendarClock, DoorOpen, ListChecks } from "lucide-react";
+import { Activity, AlertTriangle, AlertCircle, ArrowRight, GitBranch, Megaphone, Newspaper, CalendarClock, DoorOpen, ListChecks } from "lucide-react";
 import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/_authenticated/home")({
