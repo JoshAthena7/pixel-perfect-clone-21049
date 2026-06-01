@@ -43,7 +43,7 @@
 
 :root,
 .dark {
-  /* Athena Command V2 dark executive theme */
+  /* Athena Command dark executive theme */
   --background: oklch(0.165 0.025 260);        /* #0a0e1a */
   --surface: oklch(0.215 0.025 260);           /* #111827 */
   --surface-hover: oklch(0.255 0.030 260);     /* #1a2235 */
