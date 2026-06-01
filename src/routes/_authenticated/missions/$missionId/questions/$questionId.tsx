@@ -9,9 +9,11 @@ import { toast } from "sonner";
 import {
   ArrowLeft, Sparkles, MessageSquare, AlertTriangle, FileText, Activity,
   Target, Calendar, User as UserIcon, Send, CheckCircle2, Shield, Trophy, Link2, Copy,
+  Maximize2, Minimize2,
 } from "lucide-react";
 import { ScoreTrend } from "@/components/v2/ScoreTrend";
 import { ShortcutsHint } from "@/components/v2/KeyboardShortcuts";
+import { pensDownInfo, pensDownPillClass, getWriteMode, applyWriteMode, markQuestionVisited } from "@/lib/writer-utils";
 
 
 export const Route = createFileRoute(
@@ -85,16 +87,27 @@ function QuestionWorkspace() {
   const { missionId, questionId } = Route.useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [writeMode, setWriteMode] = useState<boolean>(() => getWriteMode());
+
+  useEffect(() => { applyWriteMode(writeMode); }, [writeMode]);
+  useEffect(() => () => { applyWriteMode(false); }, []); // cleanup on unmount
+
+  // WRITER-5: mark this question as visited so new-signals badges clear
+  useEffect(() => { markQuestionVisited(questionId); }, [questionId]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !(e.target as HTMLElement)?.closest("textarea,input,select")) {
+      const inField = !!(e.target as HTMLElement)?.closest("textarea,input,select,[contenteditable='true']");
+      if (e.key === "Escape" && !inField) {
         navigate({ to: "/missions/$missionId/questions", params: { missionId } });
+      } else if ((e.key === "w" || e.key === "W") && !inField && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        setWriteMode((v) => !v);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [navigate, missionId]);
+  }, [navigate, missionId, questionId]);
 
   const { data: q, isLoading } = useQuery({
     queryKey: ["question", questionId],
@@ -221,14 +234,27 @@ function QuestionWorkspace() {
     );
   }
 
-  const days = q.pens_down_date
-    ? Math.ceil((new Date(q.pens_down_date).getTime() - Date.now()) / 86400000)
-    : null;
+  const pens = pensDownInfo(q.pens_down_date);
   const writer = q.assigned_writer_id ? peopleById[q.assigned_writer_id] : null;
   const sme = q.assigned_sme_id ? peopleById[q.assigned_sme_id] : null;
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen relative">
+      {writeMode && (
+        <div className="absolute top-2 left-3 z-30 text-[10px] uppercase tracking-[0.18em] text-primary/80">
+          Write Mode
+        </div>
+      )}
+      {writeMode && (
+        <button
+          onClick={() => setWriteMode(false)}
+          className="absolute top-2 right-3 z-30 inline-flex items-center gap-1 rounded-md border border-border bg-surface/80 px-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground"
+          title="Exit Write Mode (W)"
+        >
+          <Minimize2 className="h-3 w-3" /> Exit Write Mode
+        </button>
+      )}
+
       {/* Header */}
       <header className="shrink-0 border-b border-border bg-surface/60 backdrop-blur px-8 py-4">
         <div className="flex items-center justify-between gap-4">
@@ -247,13 +273,6 @@ function QuestionWorkspace() {
                 <span className="font-mono">{q.question_number}</span>
                 {q.section_number && <><span>·</span><span>§ {q.section_number}</span></>}
                 {q.page_limit && <><span>·</span><span>{q.page_limit}p</span></>}
-                {q.pens_down_date && (
-                  <><span>·</span>
-                    <span className={days !== null && days <= 3 ? "text-red" : days !== null && days <= 7 ? "text-yellow" : ""}>
-                      Pens down {new Date(q.pens_down_date).toLocaleDateString()} {days !== null && `(${days}d)`}
-                    </span>
-                  </>
-                )}
               </div>
               <h1 className="mt-0.5 text-base font-semibold truncate">{q.title}</h1>
               {(writer || sme) && (
@@ -265,6 +284,15 @@ function QuestionWorkspace() {
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            {pens && (
+              <div
+                className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium ${pensDownPillClass(pens.tone)} ${pens.urgent ? "pens-urgent" : ""}`}
+                title={`Pens Down ${pens.date.toLocaleDateString()}`}
+              >
+                <Calendar className="h-3.5 w-3.5" />
+                Pens Down: {pens.long}
+              </div>
+            )}
             <select
               value={q.status}
               onChange={(e) => updateStatus.mutate(e.target.value)}
@@ -282,15 +310,23 @@ function QuestionWorkspace() {
                 <ScoreTrend questionId={questionId} />
               </div>
             )}
+            <button
+              onClick={() => setWriteMode((v) => !v)}
+              title={writeMode ? "Exit Write Mode (W)" : "Enter Write Mode (W)"}
+              className="rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs inline-flex items-center gap-1.5 hover:border-primary/40 hover:text-primary"
+            >
+              {writeMode ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+              <span className="hidden md:inline">{writeMode ? "Exit" : "Write Mode"}</span>
+            </button>
           </div>
         </div>
       </header>
 
 
       {/* Two-column body */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] overflow-hidden">
+      <div className="studio-body flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] overflow-hidden">
         {/* LEFT */}
-        <div className="overflow-y-auto border-r border-border">
+        <div className="studio-left overflow-y-auto border-r border-border">
           <div className="px-8 py-6 space-y-6">
             <Card title="Question Details" icon={<FileText className="h-4 w-4" />} action={
               <button
@@ -358,7 +394,7 @@ function QuestionWorkspace() {
         </div>
 
         {/* RIGHT */}
-        <div className="overflow-y-auto bg-background/40">
+        <div className="studio-right overflow-y-auto bg-background/40">
           <div className="px-8 py-6 space-y-6">
             <IntelPanel intel={intel} questionId={questionId} missionId={missionId} />
             <RecentSignalsPanel questionId={questionId} />

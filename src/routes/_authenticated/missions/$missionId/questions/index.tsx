@@ -1,11 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { irisMissionPulse } from "@/lib/iris.functions";
-import { AlertTriangle, Activity, GitMerge } from "lucide-react";
+import { AlertTriangle, Activity, GitMerge, ChevronDown, Sparkles } from "lucide-react";
 import { ScoreTrend } from "@/components/v2/ScoreTrend";
+import { pensDownInfo, pensDownPillClass, STATUS_ORDER, STATUS_LABELS, statusBadgeClass, getLastQuestionVisit } from "@/lib/writer-utils";
+import { toast } from "sonner";
 
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/questions/")({
@@ -110,6 +112,43 @@ function QuestionCommand() {
       return count ?? 0;
     },
   });
+
+  // WRITER-5: count open signals per question
+  const { data: signalCounts = {} } = useQuery<Record<string, { count: number; latest: string }>>({
+    queryKey: ["mission-question-signal-counts", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("signals")
+        .select("related_question_id,created_at")
+        .eq("mission_id", missionId)
+        .neq("status", "archived")
+        .not("related_question_id", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(500);
+      const map: Record<string, { count: number; latest: string }> = {};
+      for (const s of data ?? []) {
+        const id = (s as any).related_question_id as string;
+        if (!map[id]) map[id] = { count: 0, latest: (s as any).created_at };
+        map[id].count += 1;
+      }
+      return map;
+    },
+    refetchInterval: 60_000,
+  });
+
+  // WRITER-3: inline status quick-update
+  const updateStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const { error } = await supabase.from("question_records").update({ status }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, v) => {
+      toast.success(`Status updated to ${STATUS_LABELS[v.status]}`);
+      qc.invalidateQueries({ queryKey: ["mission-questions", missionId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const qc = useQueryClient();
 
   const counts = useMemo(() => {
     const byStatus: Record<string, number> = { all: scoped.length };
@@ -288,32 +327,17 @@ function QuestionCommand() {
             </thead>
             <tbody className="divide-y divide-border">
               {filtered.map((q, idx) => (
-                <tr key={q.id} className={`hover:bg-surface-hover ${idx === selectedIdx ? "bg-primary/5 ring-1 ring-inset ring-primary/30" : ""}`}>
-                  <td className="px-4 py-3"><span className={`dot dot-${q.health}`} /></td>
-                  <td className="px-4 py-3 font-mono text-muted-foreground">
-                    <Link to="/missions/$missionId/questions/$questionId" params={{ missionId, questionId: q.id }} className="hover:text-primary">
-                      {q.question_number}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{q.section_number ?? "—"}</td>
-                  <td className="px-4 py-3">
-                    <Link to="/missions/$missionId/questions/$questionId" params={{ missionId, questionId: q.id }} className="hover:text-primary">
-                      {q.title}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground text-xs capitalize">{q.status.replace(/_/g, " ")}</td>
-                  <td className="px-4 py-3 text-right text-xs text-muted-foreground">{q.evaluation_weight ? `${q.evaluation_weight}%` : "—"}</td>
-                  <td className="px-4 py-3 text-right text-xs text-muted-foreground">{q.page_limit ?? "—"}</td>
-                  <td className="px-4 py-3 text-right">
-                    {q.current_score != null
-                      ? <span className="inline-flex items-center gap-1.5"><span className="text-primary font-semibold">{q.current_score}<span className="text-muted-foreground font-normal"> / {q.target_score ?? 5}</span></span><ScoreTrend questionId={q.id} /></span>
-                      : <span className="text-muted-foreground">—</span>}
-
-                  </td>
-                  <td className="px-4 py-3 text-right text-muted-foreground text-xs">
-                    {q.pens_down_date ? new Date(q.pens_down_date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—"}
-                  </td>
-                </tr>
+                <QuestionRow
+                  key={q.id}
+                  q={q}
+                  selected={idx === selectedIdx}
+                  missionId={missionId}
+                  isLeader={isLeader}
+                  signalCount={signalCounts[q.id]?.count ?? 0}
+                  signalLatest={signalCounts[q.id]?.latest}
+                  onStatusChange={(status) => updateStatus.mutate({ id: q.id, status })}
+                  onNavigate={() => navigate({ to: "/missions/$missionId/questions/$questionId", params: { missionId, questionId: q.id } })}
+                />
               ))}
             </tbody>
           </table>
@@ -367,5 +391,188 @@ function SignalStat({
         <div className="text-base font-semibold tabular-nums text-foreground">{value}</div>
       </div>
     </div>
+  );
+}
+
+// ---------- Row + inline status menu + context menu ----------
+
+type RowQ = Q & { assigned_writer_id: string | null; assigned_sme_id: string | null };
+
+function QuestionRow({
+  q, selected, missionId, isLeader, signalCount, signalLatest, onStatusChange, onNavigate,
+}: {
+  q: RowQ;
+  selected: boolean;
+  missionId: string;
+  isLeader: boolean;
+  signalCount: number;
+  signalLatest?: string;
+  onStatusChange: (status: string) => void;
+  onNavigate: () => void;
+}) {
+  const [statusOpen, setStatusOpen] = useState(false);
+  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
+  const rowRef = useRef<HTMLTableRowElement>(null);
+
+  // WRITER-5: "new since last visit"
+  const lastVisit = getLastQuestionVisit(q.id);
+  const hasNew = signalCount > 0 && signalLatest && new Date(signalLatest).getTime() > lastVisit;
+
+  const pens = pensDownInfo(q.pens_down_date);
+
+  return (
+    <tr
+      ref={rowRef}
+      onContextMenu={(e) => { e.preventDefault(); setMenu({ x: e.clientX, y: e.clientY }); }}
+      className={`hover:bg-surface-hover ${selected ? "bg-primary/5 ring-1 ring-inset ring-primary/30" : ""}`}
+    >
+      <td className="px-4 py-3"><span className={`dot dot-${q.health}`} /></td>
+      <td className="px-4 py-3 font-mono text-muted-foreground">
+        <Link to="/missions/$missionId/questions/$questionId" params={{ missionId, questionId: q.id }} className="hover:text-primary">
+          {q.question_number}
+        </Link>
+        {hasNew && (
+          <span title={`${signalCount} new IRIS signal${signalCount === 1 ? "" : "s"} since your last visit`} className="ml-1.5 inline-flex items-center gap-1 align-middle">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#22d3ee] shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
+          </span>
+        )}
+      </td>
+      <td className="px-4 py-3 text-xs text-muted-foreground">{q.section_number ?? "—"}</td>
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <Link to="/missions/$missionId/questions/$questionId" params={{ missionId, questionId: q.id }} className="hover:text-primary truncate">
+            {q.title}
+          </Link>
+          {pens && (
+            <span className={`shrink-0 inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${pensDownPillClass(pens.tone)}`} title={`Pens down ${pens.date.toLocaleDateString()}`}>
+              {pens.short}
+            </span>
+          )}
+          {hasNew && (
+            <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-[#0891b2]/15 text-[#22d3ee] px-1.5 py-0.5 text-[10px] font-medium">
+              <Sparkles className="h-2.5 w-2.5" /> {signalCount} new
+            </span>
+          )}
+        </div>
+      </td>
+      <td className="px-4 py-3 relative">
+        <button
+          onClick={() => setStatusOpen((v) => !v)}
+          className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${statusBadgeClass(q.status)}`}
+        >
+          {STATUS_LABELS[q.status] ?? q.status}
+          <ChevronDown className="h-3 w-3 opacity-70" />
+        </button>
+        {statusOpen && (
+          <>
+            <div className="fixed inset-0 z-30" onClick={() => setStatusOpen(false)} />
+            <div className="absolute left-4 top-full mt-1 z-40 w-40 rounded-md border border-border bg-surface shadow-lg py-1">
+              {STATUS_ORDER.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => { setStatusOpen(false); if (s !== q.status) onStatusChange(s); }}
+                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-surface-hover ${s === q.status ? "text-primary" : ""}`}
+                >
+                  {STATUS_LABELS[s]}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </td>
+      <td className="px-4 py-3 text-right text-xs text-muted-foreground">{q.evaluation_weight ? `${q.evaluation_weight}%` : "—"}</td>
+      <td className="px-4 py-3 text-right text-xs text-muted-foreground">{q.page_limit ?? "—"}</td>
+      <td className="px-4 py-3 text-right">
+        {q.current_score != null
+          ? <span className="inline-flex items-center gap-1.5"><span className="text-primary font-semibold">{q.current_score}<span className="text-muted-foreground font-normal"> / {q.target_score ?? 5}</span></span><ScoreTrend questionId={q.id} /></span>
+          : <span className="text-muted-foreground">—</span>}
+      </td>
+      <td className="px-4 py-3 text-right text-xs">
+        {pens ? (
+          <span className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${pensDownPillClass(pens.tone)}`}>
+            {pens.short}
+          </span>
+        ) : <span className="text-muted-foreground">—</span>}
+      </td>
+
+      {menu && (
+        <ContextMenu
+          x={menu.x}
+          y={menu.y}
+          onClose={() => setMenu(null)}
+          questionNumber={q.question_number}
+          questionText={q.title}
+          currentStatus={q.status}
+          isLeader={isLeader}
+          onStatusChange={onStatusChange}
+          onView={onNavigate}
+        />
+      )}
+    </tr>
+  );
+}
+
+function ContextMenu({
+  x, y, onClose, questionNumber, questionText, currentStatus, isLeader, onStatusChange, onView,
+}: {
+  x: number; y: number; onClose: () => void;
+  questionNumber: string; questionText: string; currentStatus: string; isLeader: boolean;
+  onStatusChange: (status: string) => void; onView: () => void;
+}) {
+  const [statusSub, setStatusSub] = useState(false);
+  return (
+    <>
+      <div className="fixed inset-0 z-40" onClick={onClose} onContextMenu={(e) => { e.preventDefault(); onClose(); }} />
+      <div
+        className="fixed z-50 w-56 rounded-md border border-border bg-surface shadow-xl py-1 text-sm"
+        style={{ left: x, top: y }}
+      >
+        <div
+          className="relative px-3 py-1.5 hover:bg-surface-hover cursor-default flex items-center justify-between"
+          onMouseEnter={() => setStatusSub(true)}
+          onMouseLeave={() => setStatusSub(false)}
+        >
+          <span>Update Status</span>
+          <span className="text-muted-foreground">▸</span>
+          {statusSub && (
+            <div className="absolute left-full top-0 w-40 rounded-md border border-border bg-surface shadow-xl py-1">
+              {STATUS_ORDER.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => { onClose(); if (s !== currentStatus) onStatusChange(s); }}
+                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-surface-hover ${s === currentStatus ? "text-primary" : ""}`}
+                >
+                  {STATUS_LABELS[s]}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        {isLeader && (
+          <button
+            onClick={() => { onClose(); toast.info("Open the question to assign an SME."); }}
+            className="w-full text-left px-3 py-1.5 hover:bg-surface-hover"
+          >
+            Assign SME…
+          </button>
+        )}
+        <button
+          onClick={() => {
+            onClose();
+            navigator.clipboard.writeText(`${questionNumber} — ${questionText}`);
+            toast.success("Question copied to clipboard");
+          }}
+          className="w-full text-left px-3 py-1.5 hover:bg-surface-hover"
+        >
+          Copy Question Text
+        </button>
+        <button
+          onClick={() => { onClose(); onView(); }}
+          className="w-full text-left px-3 py-1.5 hover:bg-surface-hover"
+        >
+          View in The Studio
+        </button>
+      </div>
+    </>
   );
 }

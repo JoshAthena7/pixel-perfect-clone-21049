@@ -86,3 +86,16 @@
   .dot-yellow { background: var(--yellow); box-shadow: 0 0 8px color-mix(in oklab, var(--yellow) 60%, transparent); }
   .dot-red    { background: var(--red); box-shadow: 0 0 8px color-mix(in oklab, var(--red) 60%, transparent); }
 }
+
+/* WRITER-1: Write Mode — hide app shell sidebar + studio right column */
+html[data-write-mode="on"] aside { display: none !important; }
+html[data-write-mode="on"] .studio-right { display: none !important; }
+html[data-write-mode="on"] .studio-body { grid-template-columns: 1fr !important; }
+html[data-write-mode="on"] .studio-body > .studio-left { border-right: none !important; }
+
+/* WRITER-4: subtle pulse for urgent deadlines */
+@keyframes pens-pulse {
+  0%,100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--red) 60%, transparent); }
+  50%     { box-shadow: 0 0 0 6px color-mix(in oklab, var(--red) 0%, transparent); }
+}
+.pens-urgent { animation: pens-pulse 2.2s ease-out infinite; }
