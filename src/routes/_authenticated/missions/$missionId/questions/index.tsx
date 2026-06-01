@@ -130,6 +130,22 @@ function QuestionCommand() {
         </Link>
       </div>
 
+      {/* Scope toggle */}
+      <div className="mb-4 inline-flex rounded-[10px] border border-border bg-surface p-0.5">
+        <button
+          onClick={() => setScope("mine")}
+          className={`px-3 py-1.5 text-xs rounded-[8px] transition ${activeScope === "mine" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+        >
+          My Questions <span className="opacity-60">({myQuestions.length})</span>
+        </button>
+        <button
+          onClick={() => setScope("all")}
+          className={`px-3 py-1.5 text-xs rounded-[8px] transition ${activeScope === "all" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+        >
+          All Questions <span className="opacity-60">({questions.length})</span>
+        </button>
+      </div>
+
       {/* Filter pills */}
       <div className="mb-4 flex flex-wrap items-center gap-4">
         <FilterRow label="Health">
@@ -159,6 +175,7 @@ function QuestionCommand() {
           ))}
         </FilterRow>
       </div>
+
 
       {/* IRIS signal banner */}
       {(pulse || openConflicts > 0) && (
@@ -197,13 +214,19 @@ function QuestionCommand() {
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center">
             <p className="text-sm text-foreground/90">
-              {questions.length === 0 ? "No questions yet." : "No questions match these filters."}
+              {questions.length === 0
+                ? "No questions have been created for this mission yet."
+                : activeScope === "mine" && myQuestions.length === 0
+                ? "You haven't been assigned any questions on this mission."
+                : "No questions match these filters."}
             </p>
-            {questions.length === 0 && (
-              <p className="mt-1 text-xs text-muted-foreground">
-                Upload the RFP to auto-create question records, or add questions manually.
-              </p>
-            )}
+            <p className="mt-1 text-xs text-muted-foreground">
+              {questions.length === 0
+                ? "An administrator can create questions in Olympus."
+                : activeScope === "mine" && myQuestions.length === 0
+                ? "Contact your mission administrator."
+                : null}
+            </p>
           </div>
         ) : (
           <table className="w-full text-sm">
