@@ -320,7 +320,7 @@ function AddDocumentModal({
         source_module: "library",
         signal_type: "document_uploaded",
         signal_title: `${category}: ${name.trim().slice(0, 80)}`,
-        signal_summary: notes.trim().slice(0, 200) || null,
+        signal_summary: notes.trim().slice(0, 200) || undefined,
         severity: "info",
         related_document_id: ins?.id ?? null,
       });
