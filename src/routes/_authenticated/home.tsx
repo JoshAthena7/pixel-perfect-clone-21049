@@ -7,7 +7,7 @@ import { irisLeadershipAttention } from "@/lib/iris.functions";
 import { AttentionBadge } from "@/components/v2/AttentionBadge";
 import { relativeTime } from "@/lib/signals";
 import { MissionGridSkeleton, QuestionListSkeleton } from "@/components/v2/Skeletons";
-import { ArrowRight, Megaphone, CalendarClock, DoorOpen, ListChecks, Search, Globe, Sparkles } from "lucide-react";
+import { ArrowRight, Megaphone, CalendarClock, DoorOpen, ClipboardList, Search, Globe, Sparkles, Crown } from "lucide-react";
 import { HORIZON_FILTERS, inferCategory, matchesHorizonFilter, type IntelItem } from "@/lib/intelligence-feed";
 import { LiveBadge, ScanningBeam, IrisWaveform, TypewriterText } from "@/components/v2/effects";
 import type { ReactNode } from "react";
@@ -218,8 +218,8 @@ function AthenaHQ() {
                 subtitle="Olympus is where missions are activated and configured."
                 cta={
                   <Link to="/olympus" className="btn-primary inline-flex items-center gap-2">
-                    <span aria-hidden>⚡</span> Enter Olympus to activate your first mission
-                    <ArrowRight className="h-4 w-4" />
+                    <Crown size={16} strokeWidth={1.5} /> Enter Olympus to activate your first mission
+                    <ArrowRight size={16} strokeWidth={1.5} />
                   </Link>
                 }
               />
