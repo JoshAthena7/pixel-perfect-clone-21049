@@ -140,6 +140,12 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
           <NavItem to="/command/pens-down" icon={<Clock className="h-4 w-4" />} active={currentPath === "/command/pens-down"}>Pens Down Watch</NavItem>
           <NavItem to="/command/broadcasts" icon={<Megaphone className="h-4 w-4" />} active={currentPath === "/command/broadcasts"}>Broadcasts</NavItem>
         </Section>
+
+        {isPrivileged && (
+          <Section label="Admin">
+            <NavItem to="/olympus" icon={<Shield className="h-4 w-4" />} active={currentPath.startsWith("/olympus")}>Olympus</NavItem>
+          </Section>
+        )}
       </nav>
 
       <SignOut />
