@@ -1,8 +1,9 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useParams } from "@tanstack/react-router";
 import {
-  Home, ListChecks, AlertTriangle, BarChart3, Clock, Megaphone, LogOut,
-  ChevronLeft, FolderOpen, BookOpen, Settings, Shield, User, PenLine,
+  Building2, Target, Crown, Eye, Activity, GitMerge, BarChart2, Clock, Radio,
+  LayoutDashboard, PenTool, Archive, Sparkles, Settings2,
+  ChevronLeft, LogOut, User,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -162,7 +163,7 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
 
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
         <Section label="The Atrium">
-          <NavItem to="/home" icon={<Home className="h-4 w-4" />} active={currentPath === "/home"}>The Atrium</NavItem>
+          <NavItem to="/home" icon={<Building2 size={16} strokeWidth={1.5} />} active={currentPath === "/home"}>The Atrium</NavItem>
         </Section>
 
         <Section label="Missions">
@@ -181,6 +182,7 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
                 params={{ missionId: m.id }}
                 active={currentPath.startsWith(`/missions/${m.id}`)}
               >
+                <Target size={14} strokeWidth={1.5} className="mr-1.5 text-muted-foreground shrink-0" />
                 <span className={`dot dot-${m.health.toLowerCase()} mr-2`} />
                 <span className="truncate flex-1">{m.name}</span>
                 {days !== null && (
@@ -205,16 +207,16 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
 
 
         <Section label="The Bridge">
-          <NavItem to="/command/question-health" icon={<ListChecks className="h-4 w-4" />} active={currentPath === "/command/question-health"}>Question Health</NavItem>
-          <NavItem to="/command/alignment" icon={<AlertTriangle className="h-4 w-4" />} active={currentPath === "/command/alignment"}>Alignment Conflicts</NavItem>
-          <NavItem to="/command/scores" icon={<BarChart3 className="h-4 w-4" />} active={currentPath === "/command/scores"}>Score Dashboard</NavItem>
-          <NavItem to="/command/pens-down" icon={<Clock className="h-4 w-4" />} active={currentPath === "/command/pens-down"}>Pens Down Watch</NavItem>
-          <NavItem to="/command/broadcasts" icon={<Megaphone className="h-4 w-4" />} active={currentPath === "/command/broadcasts"}>Broadcasts</NavItem>
+          <NavItem to="/command/question-health" icon={<Activity size={14} strokeWidth={1.5} />} active={currentPath === "/command/question-health"}>Question Health</NavItem>
+          <NavItem to="/command/alignment" icon={<GitMerge size={14} strokeWidth={1.5} />} active={currentPath === "/command/alignment"}>Alignment Conflicts</NavItem>
+          <NavItem to="/command/scores" icon={<BarChart2 size={14} strokeWidth={1.5} />} active={currentPath === "/command/scores"}>Score Dashboard</NavItem>
+          <NavItem to="/command/pens-down" icon={<Clock size={14} strokeWidth={1.5} />} active={currentPath === "/command/pens-down"}>Pens Down Watch</NavItem>
+          <NavItem to="/command/broadcasts" icon={<Radio size={14} strokeWidth={1.5} />} active={currentPath === "/command/broadcasts"}>Broadcasts</NavItem>
         </Section>
 
         {isPrivileged && (
           <Section label="Admin">
-            <NavItem to="/olympus" icon={<Shield className="h-4 w-4" />} active={currentPath.startsWith("/olympus")}>Olympus</NavItem>
+            <NavItem to="/olympus" icon={<Crown size={16} strokeWidth={1.5} className="text-[color:var(--athena-gold)]" />} active={currentPath.startsWith("/olympus")}>Olympus</NavItem>
           </Section>
         )}
       </nav>
@@ -261,11 +263,11 @@ function MissionNav({ missionId }: { missionId: string }) {
         )}
       </div>
       <nav className="flex-1 px-3 py-4 space-y-1">
-        <NavItem to="/missions/$missionId/overview" params={{ missionId }} active={path === `/missions/${missionId}` || path.endsWith("/overview")} icon={<Home className="h-4 w-4" />}>Mission Home</NavItem>
-        <NavItem to="/missions/$missionId/questions" params={{ missionId }} active={path.startsWith(`/missions/${missionId}/questions`)} icon={<PenLine className="h-4 w-4" />}>The Studio</NavItem>
-        <NavItem to="/missions/$missionId/library" params={{ missionId }} active={path.endsWith("/library")} icon={<FolderOpen className="h-4 w-4" />}>The Vault</NavItem>
-        <NavItem to="/missions/$missionId/briefing" params={{ missionId }} active={path.endsWith("/briefing")} icon={<BookOpen className="h-4 w-4" />}>The Oracle</NavItem>
-        <NavItem to="/missions/$missionId/settings" params={{ missionId }} active={path.endsWith("/settings")} icon={<Settings className="h-4 w-4" />}>Settings</NavItem>
+        <NavItem to="/missions/$missionId/overview" params={{ missionId }} active={path === `/missions/${missionId}` || path.endsWith("/overview")} icon={<LayoutDashboard size={16} strokeWidth={1.5} />}>Mission Home</NavItem>
+        <NavItem to="/missions/$missionId/questions" params={{ missionId }} active={path.startsWith(`/missions/${missionId}/questions`)} icon={<PenTool size={16} strokeWidth={1.5} />}>The Studio</NavItem>
+        <NavItem to="/missions/$missionId/library" params={{ missionId }} active={path.endsWith("/library")} icon={<Archive size={16} strokeWidth={1.5} />}>The Vault</NavItem>
+        <NavItem to="/missions/$missionId/briefing" params={{ missionId }} active={path.endsWith("/briefing")} icon={<Sparkles size={16} strokeWidth={1.5} />}>The Oracle</NavItem>
+        <NavItem to="/missions/$missionId/settings" params={{ missionId }} active={path.endsWith("/settings")} icon={<Settings2 size={16} strokeWidth={1.5} />}>Settings</NavItem>
       </nav>
 
       <SignOut />
