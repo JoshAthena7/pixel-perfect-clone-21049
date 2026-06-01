@@ -292,8 +292,8 @@ function AthenaHQ() {
             ) : myAssignments.length === 0 ? (
               <EmptyState
                 icon={<ListChecks className="h-10 w-10" />}
-                title="No questions assigned yet."
-                subtitle="Your mission lead will assign you when work is ready."
+                title="Your questions will appear here once your lead assigns them in Olympus."
+                subtitle="Check back soon — you'll be notified when work is ready."
               />
             ) : (
               <ul className="divide-y divide-border rounded-[12px] border border-border bg-surface">
