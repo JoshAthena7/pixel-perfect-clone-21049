@@ -340,6 +340,15 @@ function TeamTab({ missionId }: { missionId: string }) {
   const qc = useQueryClient();
   const [showInvite, setShowInvite] = useState(false);
 
+  // ARCH-10: identify current user so we can guard self-revocation
+  const { data: currentUserId } = useQuery({
+    queryKey: ["current-user-id"],
+    queryFn: async () => {
+      const { data } = await supabase.auth.getUser();
+      return data.user?.id ?? null;
+    },
+  });
+
   const { data: members = [], isLoading } = useQuery({
     queryKey: ["mission-members", missionId],
     queryFn: async () => {
@@ -351,6 +360,8 @@ function TeamTab({ missionId }: { missionId: string }) {
       return (data ?? []) as Member[];
     },
   });
+
+  const adminCount = members.filter((m) => m.role === "admin").length;
 
   const ids = members.map((m) => m.user_id);
   const { data: profiles = [] } = useQuery({
@@ -366,19 +377,29 @@ function TeamTab({ missionId }: { missionId: string }) {
   const profileMap = new Map(profiles.map((p) => [p.id, p]));
 
   const updateRole = useMutation({
-    mutationFn: async ({ id, role }: { id: string; role: Role }) => {
+    mutationFn: async ({ id, role, member }: { id: string; role: Role; member: Member }) => {
+      // ARCH-10: block demoting the last admin (especially yourself)
+      if (member.role === "admin" && role !== "admin" && adminCount <= 1) {
+        throw new Error("You can't demote the only admin on this mission. Promote another member first.");
+      }
       const { error } = await supabase.from("mission_members").update({ role }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["mission-members", missionId] }),
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const removeMember = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("mission_members").delete().eq("id", id);
+    mutationFn: async (member: Member) => {
+      // ARCH-10: block removing yourself if you are the only admin
+      if (member.user_id === currentUserId && member.role === "admin" && adminCount <= 1) {
+        throw new Error("You can't remove yourself as the only admin. Promote another member first.");
+      }
+      const { error } = await supabase.from("mission_members").delete().eq("id", member.id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["mission-members", missionId] }),
+    onError: (e: Error) => toast.error(e.message),
   });
 
   return (
