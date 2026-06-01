@@ -1,11 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { createSignal } from "@/lib/signals";
+import { irisQuestionSignals } from "@/lib/iris.functions";
 import { toast } from "sonner";
 import {
-  ArrowLeft, Sparkles, MessageSquare, AlertTriangle, FileText,
+  ArrowLeft, Sparkles, MessageSquare, AlertTriangle, FileText, Activity,
   Target, Calendar, User as UserIcon, Send, CheckCircle2, Shield, Trophy, Link2,
 } from "lucide-react";
 
@@ -341,6 +343,7 @@ function QuestionWorkspace() {
         <div className="overflow-y-auto bg-background/40">
           <div className="px-8 py-6 space-y-6">
             <IntelPanel intel={intel} questionId={questionId} missionId={missionId} />
+            <RecentSignalsPanel questionId={questionId} />
             <AlignmentPanel
               conflicts={conflicts}
               missionId={missionId}
