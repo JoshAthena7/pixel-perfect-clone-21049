@@ -388,7 +388,8 @@ function MissionCard({ mission, attention }: { mission: Mission; attention: numb
     <Link
       to="/missions/$missionId/overview"
       params={{ missionId: mission.id }}
-      className={`group relative block rounded-[12px] border border-border border-l-4 bg-surface p-5 transition-all duration-200 ease-out hover:-translate-y-0.5 ${HEALTH_BORDER[mission.health] ?? "border-l-border"} ${HEALTH_GLOW[mission.health] ?? ""}`}
+      data-health={mission.health}
+      className={`mission-card group relative block rounded-[12px] border border-border border-l-4 bg-surface p-5 transition-all duration-200 ease-out hover:-translate-y-0.5 ${HEALTH_GLOW[mission.health] ?? ""}`}
       style={{ minHeight: 140 }}
     >
       <div className="flex items-start justify-between gap-3">
@@ -397,7 +398,7 @@ function MissionCard({ mission, attention }: { mission: Mission; attention: numb
           <p className="mt-0.5 text-xs text-muted-foreground truncate">{mission.client}{mission.state ? ` · ${mission.state}` : ""}</p>
         </div>
         {attention > 0 && (
-          <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold tabular-nums ${
+          <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold mono ${
             attention >= 50 ? "border-destructive/40 bg-destructive/10 text-destructive" :
             attention >= 20 ? "border-amber-500/40 bg-amber-500/10 text-amber-400" :
             "border-primary/30 bg-primary/5 text-primary"
@@ -411,14 +412,14 @@ function MissionCard({ mission, attention }: { mission: Mission; attention: numb
         <span className={`dot dot-${mission.health.toLowerCase()}`} />
         <span className="text-xs font-medium text-foreground/90">{mission.health}</span>
         {days !== null && (
-          <span className={`ml-auto text-xl font-semibold tabular-nums leading-none ${countdownTone}`}>
+          <span className={`ml-auto text-xl font-semibold mono-days leading-none ${countdownTone}`}>
             {days < 0 ? `${Math.abs(days)}d` : `${days}d`}
           </span>
         )}
       </div>
 
       <div className="mt-4 flex items-center gap-2 border-t border-border pt-3">
-        <span className="rounded-full bg-surface-hover px-2 py-0.5 text-[10px] text-muted-foreground tabular-nums">
+        <span className="rounded-full bg-surface-hover px-2 py-0.5 text-[10px] text-muted-foreground mono">
           {mission.question_count ?? 0} questions
         </span>
         <span className="ml-auto inline-flex items-center gap-1 text-[11px] text-muted-foreground transition-colors group-hover:text-primary">
