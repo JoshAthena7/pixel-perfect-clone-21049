@@ -32,6 +32,7 @@ function SettingsPage() {
       <div className="mb-6 flex items-center gap-1 border-b border-border">
         {([
           ["details", "Details"],
+          ["intelligence", "Intelligence Profile"],
           ["gates", "Review Gates"],
           ["team", "Team"],
           ["themes", "Win Themes"],
@@ -50,6 +51,7 @@ function SettingsPage() {
       </div>
 
       {tab === "details" && <DetailsTab missionId={missionId} />}
+      {tab === "intelligence" && <IntelligenceProfileTab missionId={missionId} />}
       {tab === "gates" && <GatesTab missionId={missionId} />}
       {tab === "team" && <TeamTab missionId={missionId} />}
       {tab === "themes" && <ThemesTab missionId={missionId} />}
