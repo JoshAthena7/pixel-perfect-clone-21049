@@ -149,7 +149,7 @@ function MissionNav({ missionId }: { missionId: string }) {
       </div>
       <nav className="flex-1 px-3 py-4 space-y-1">
         <NavItem to="/missions/$missionId/overview" params={{ missionId }} active={path.endsWith("/overview")} icon={<LayoutDashboard className="h-4 w-4" />}>Overview</NavItem>
-        <NavItem to="/missions/$missionId" params={{ missionId }} active={path === `/missions/${missionId}` || path.startsWith(`/missions/${missionId}/questions`)} icon={<ListChecks className="h-4 w-4" />}>Question Command</NavItem>
+        <NavItem to="/missions/$missionId" params={{ missionId }} active={path === `/missions/${missionId}` || path.startsWith(`/missions/${missionId}/questions`)} icon={<ListChecks className="h-4 w-4" />}>Mission Studio</NavItem>
         <NavItem to="/missions/$missionId/library" params={{ missionId }} active={path.endsWith("/library")} icon={<FolderOpen className="h-4 w-4" />}>Library</NavItem>
         <NavItem to="/missions/$missionId/briefing" params={{ missionId }} active={path.endsWith("/briefing")} icon={<BookOpen className="h-4 w-4" />}>Briefing Book</NavItem>
         <NavItem to="/missions/$missionId/brief" params={{ missionId }} active={path.endsWith("/brief")} icon={<Sparkles className="h-4 w-4" />}>IRIS Mission Brief</NavItem>

@@ -11,15 +11,16 @@ export const Route = createFileRoute("/_authenticated/missions/$missionId/librar
 
 const CATEGORIES = [
   "RFP",
-  "Amendment",
-  "Q&A Document",
-  "State Intelligence",
-  "Competitive Intel",
+  "Amendments",
+  "Q&A Documents",
+  "Client Materials",
+  "Contract Template",
+  "Win Themes",
+  "Contacts",
+  "Past Submissions",
+  "Source Documents",
   "Meeting Notes",
-  "Client Direction",
   "Research",
-  "Compliance",
-  "Leadership Guidance",
   "Other",
 ] as const;
 
