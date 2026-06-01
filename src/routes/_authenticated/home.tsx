@@ -54,9 +54,9 @@ const HEALTH_BORDER: Record<string, string> = {
   Red: "border-l-destructive",
 };
 const HEALTH_GLOW: Record<string, string> = {
-  Green: "hover:shadow-[0_0_0_1px_rgb(16_185_129/0.35),0_18px_60px_-30px_rgb(16_185_129/0.55)]",
-  Yellow: "hover:shadow-[0_0_0_1px_rgb(251_191_36/0.35),0_18px_60px_-30px_rgb(251_191_36/0.55)]",
-  Red: "hover:shadow-[0_0_0_1px_rgb(239_68_68/0.4),0_18px_60px_-30px_rgb(239_68_68/0.6)]",
+  Green: "hover:shadow-[0_8px_24px_rgba(34,197,94,0.15)]",
+  Yellow: "hover:shadow-[0_8px_24px_rgba(245,158,11,0.15)]",
+  Red: "hover:shadow-[0_8px_24px_rgba(239,68,68,0.15)]",
 };
 const HEALTH_PILL: Record<string, string> = {
   Green: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
