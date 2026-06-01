@@ -74,7 +74,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader style={{ padding: "16px 16px 12px" }}>
-        <BrandLockup variant="lockup" tone="white" size="sm" />
+        <BrandLockup size="sm" />
       </SidebarHeader>
 
       <SidebarContent style={{ padding: "0 8px" }}>
