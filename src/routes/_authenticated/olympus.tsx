@@ -305,6 +305,8 @@ function ActivateMissionModal({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     client: "",
@@ -320,14 +322,21 @@ function ActivateMissionModal({ onClose }: { onClose: () => void }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setErrorMsg(null);
     if (!form.name.trim() || !form.client.trim()) {
-      toast.error("Mission name and client are required.");
+      setErrorMsg("Mission name and client are required.");
       return;
     }
     setBusy(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const { data: { user }, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !user) throw new Error(userErr?.message ?? "Not authenticated");
+
+      // Safety net: ensure a profile row exists for this user
+      await supabase.from("profiles").upsert(
+        { id: user.id, display_name: user.email?.split("@")[0] ?? "User", email: user.email ?? null },
+        { onConflict: "id" },
+      );
 
       const desc = form.program_type
         ? `${form.program_type}${form.description ? "\n\n" + form.description : ""}`
@@ -348,14 +357,26 @@ function ActivateMissionModal({ onClose }: { onClose: () => void }) {
         .select("id")
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Mission insert failed:", error);
+        throw new Error(error.message);
+      }
+      if (!data?.id) throw new Error("Mission was created but no id was returned.");
+
+      setSuccessMsg("Mission created! Setting up your workspace…");
       toast.success("Mission activated.");
       qc.invalidateQueries({ queryKey: ["olympus-missions"] });
       qc.invalidateQueries({ queryKey: ["sidebar-missions"] });
       qc.invalidateQueries({ queryKey: ["hq-missions"] });
-      navigate({ to: "/missions/$missionId/settings", params: { missionId: data.id } });
+      qc.invalidateQueries({ queryKey: ["olympus-me-role"] });
+      setTimeout(() => {
+        navigate({ to: "/missions/$missionId/settings", params: { missionId: data.id } });
+      }, 600);
     } catch (err: any) {
-      toast.error(err?.message ?? "Failed to activate mission.");
+      console.error("Mission activation error:", err);
+      const msg = err?.message ?? "Failed to activate mission.";
+      setErrorMsg(msg);
+      toast.error(msg);
       setBusy(false);
     }
   }
@@ -400,10 +421,22 @@ function ActivateMissionModal({ onClose }: { onClose: () => void }) {
           </div>
         </div>
 
+        {errorMsg && (
+          <div className="mt-4 rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+            {errorMsg}
+          </div>
+        )}
+        {successMsg && (
+          <div className="mt-4 rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
+            {successMsg}
+          </div>
+        )}
+
         <footer className="mt-6 flex items-center justify-end gap-2">
           <button type="button" onClick={onClose} className="btn-secondary" disabled={busy}>Cancel</button>
-          <button type="submit" className="btn-primary" disabled={busy}>
-            {busy ? "Activating…" : "Activate Mission"}
+          <button type="submit" className="btn-primary inline-flex items-center gap-2" disabled={busy || !!successMsg}>
+            {busy && <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />}
+            {successMsg ? "Activated" : busy ? "Activating…" : "Activate Mission"}
           </button>
         </footer>
       </form>
