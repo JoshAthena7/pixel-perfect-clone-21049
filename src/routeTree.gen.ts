@@ -13,7 +13,6 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
-import { Route as AuthenticatedMissionsNewRouteImport } from './routes/_authenticated/missions/new'
 import { Route as AuthenticatedCommandScoresRouteImport } from './routes/_authenticated/command/scores'
 import { Route as AuthenticatedCommandQuestionHealthRouteImport } from './routes/_authenticated/command/question-health'
 import { Route as AuthenticatedCommandPensDownRouteImport } from './routes/_authenticated/command/pens-down'
@@ -48,12 +47,6 @@ const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   path: '/home',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedMissionsNewRoute =
-  AuthenticatedMissionsNewRouteImport.update({
-    id: '/missions/new',
-    path: '/missions/new',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedCommandScoresRoute =
   AuthenticatedCommandScoresRouteImport.update({
     id: '/command/scores',
@@ -149,7 +142,6 @@ export interface FileRoutesByFullPath {
   '/command/pens-down': typeof AuthenticatedCommandPensDownRoute
   '/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
   '/command/scores': typeof AuthenticatedCommandScoresRoute
-  '/missions/new': typeof AuthenticatedMissionsNewRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
@@ -169,7 +161,6 @@ export interface FileRoutesByTo {
   '/command/pens-down': typeof AuthenticatedCommandPensDownRoute
   '/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
   '/command/scores': typeof AuthenticatedCommandScoresRoute
-  '/missions/new': typeof AuthenticatedMissionsNewRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
@@ -191,7 +182,6 @@ export interface FileRoutesById {
   '/_authenticated/command/pens-down': typeof AuthenticatedCommandPensDownRoute
   '/_authenticated/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
   '/_authenticated/command/scores': typeof AuthenticatedCommandScoresRoute
-  '/_authenticated/missions/new': typeof AuthenticatedMissionsNewRoute
   '/_authenticated/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/_authenticated/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/_authenticated/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
@@ -213,7 +203,6 @@ export interface FileRouteTypes {
     | '/command/pens-down'
     | '/command/question-health'
     | '/command/scores'
-    | '/missions/new'
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
     | '/missions/$missionId/library'
@@ -233,7 +222,6 @@ export interface FileRouteTypes {
     | '/command/pens-down'
     | '/command/question-health'
     | '/command/scores'
-    | '/missions/new'
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
     | '/missions/$missionId/library'
@@ -254,7 +242,6 @@ export interface FileRouteTypes {
     | '/_authenticated/command/pens-down'
     | '/_authenticated/command/question-health'
     | '/_authenticated/command/scores'
-    | '/_authenticated/missions/new'
     | '/_authenticated/missions/$missionId/brief'
     | '/_authenticated/missions/$missionId/briefing'
     | '/_authenticated/missions/$missionId/library'
@@ -299,13 +286,6 @@ declare module '@tanstack/react-router' {
       path: '/home'
       fullPath: '/home'
       preLoaderRoute: typeof AuthenticatedHomeRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/missions/new': {
-      id: '/_authenticated/missions/new'
-      path: '/missions/new'
-      fullPath: '/missions/new'
-      preLoaderRoute: typeof AuthenticatedMissionsNewRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/command/scores': {
@@ -417,7 +397,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCommandPensDownRoute: typeof AuthenticatedCommandPensDownRoute
   AuthenticatedCommandQuestionHealthRoute: typeof AuthenticatedCommandQuestionHealthRoute
   AuthenticatedCommandScoresRoute: typeof AuthenticatedCommandScoresRoute
-  AuthenticatedMissionsNewRoute: typeof AuthenticatedMissionsNewRoute
   AuthenticatedMissionsMissionIdBriefRoute: typeof AuthenticatedMissionsMissionIdBriefRoute
   AuthenticatedMissionsMissionIdBriefingRoute: typeof AuthenticatedMissionsMissionIdBriefingRoute
   AuthenticatedMissionsMissionIdLibraryRoute: typeof AuthenticatedMissionsMissionIdLibraryRoute
@@ -438,7 +417,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCommandQuestionHealthRoute:
     AuthenticatedCommandQuestionHealthRoute,
   AuthenticatedCommandScoresRoute: AuthenticatedCommandScoresRoute,
-  AuthenticatedMissionsNewRoute: AuthenticatedMissionsNewRoute,
   AuthenticatedMissionsMissionIdBriefRoute:
     AuthenticatedMissionsMissionIdBriefRoute,
   AuthenticatedMissionsMissionIdBriefingRoute:
@@ -469,3 +447,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

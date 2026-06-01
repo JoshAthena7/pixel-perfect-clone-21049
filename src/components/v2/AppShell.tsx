@@ -1,7 +1,7 @@
 import { type ReactNode } from "react";
 import { Link, useRouterState, useParams } from "@tanstack/react-router";
 import {
-  Home, ListChecks, AlertTriangle, BarChart3, Clock, Megaphone, Plus, LogOut,
+  Home, ListChecks, AlertTriangle, BarChart3, Clock, Megaphone, LogOut,
   ChevronLeft, LayoutDashboard, FolderOpen, BookOpen, Sparkles, Settings,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
