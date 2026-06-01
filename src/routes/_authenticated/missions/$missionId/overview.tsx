@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AttentionBadge } from "@/components/v2/AttentionBadge";
 import { relativeTime, signalTypeLabel } from "@/lib/signals";
-import { ListChecks, FolderOpen, BookOpen, Sparkles, Settings, Activity, AlertTriangle, AlertCircle } from "lucide-react";
+import { ListChecks, FolderOpen, BookOpen, Settings, Activity, AlertTriangle, AlertCircle, ArrowRight, Megaphone, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/overview")({
   component: OverviewPage,
