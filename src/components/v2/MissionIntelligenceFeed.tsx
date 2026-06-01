@@ -129,7 +129,8 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
           <div className="flex items-center gap-2">
             <Sparkles className="h-3.5 w-3.5 text-primary" />
             <h3 className="iris-label">Mission Intelligence Feed</h3>
-            <span className="ml-2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+            <LiveBadge />
+            <span className="ml-2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground mono">
               {visible.length} scored items
             </span>
           </div>
@@ -150,8 +151,8 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
                 : "No relevant intelligence yet. IRIS will surface items as they arrive."}
             </li>
           ) : (
-            visible.map((s) => (
-              <FeedItem key={s.item.id} scored={s} missionId={missionId} />
+            visible.map((s, idx) => (
+              <FeedItem key={s.item.id} scored={s} missionId={missionId} idx={idx} />
             ))
           )}
         </ul>
