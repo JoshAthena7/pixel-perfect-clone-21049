@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { scoreAll, type IntelItem, type MissionProfile, type ScoredItem } from "@/lib/intelligence-feed";
@@ -62,6 +62,28 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
 
   const scored = useMemo(() => scoreAll(items, profile), [items, profile]);
   const visible = showLow ? scored : scored.filter((s) => s.level !== "LOW");
+
+  // Persist scores to mission_intelligence_scores (upsert) — fire once per scored snapshot.
+  const persistedRef = useRef<string>("");
+  useEffect(() => {
+    if (scored.length === 0) return;
+    const sig = `${missionId}:${scored.length}:${scored[0]?.item.id}:${scored[0]?.score}`;
+    if (persistedRef.current === sig) return;
+    persistedRef.current = sig;
+    const rows = scored.slice(0, 50).map((s) => ({
+      mission_id: missionId,
+      intelligence_id: s.item.id,
+      score: s.score,
+      matched_themes: s.matchedThemes,
+      iris_insight: s.insight,
+    }));
+    supabase
+      .from("mission_intelligence_scores")
+      .upsert(rows, { onConflict: "mission_id,intelligence_id" })
+      .then(({ error }) => {
+        if (error) console.warn("[mis] persist failed", error.message);
+      });
+  }, [scored, missionId]);
 
   const profileEmpty =
     !mission?.state && !mission?.client &&
