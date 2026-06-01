@@ -398,7 +398,7 @@ function AthenaHQ() {
             </div>
             <ul className="divide-y divide-border">
               {firmActivity.length === 0 && (
-                <li className="px-5 py-8 text-center text-sm text-muted-foreground">No activity yet.</li>
+                <li className="px-5 py-8 text-center text-sm text-muted-foreground">Activity will flow here as your team begins working.</li>
               )}
               {firmActivity.map((s: any) => (
                 <li key={s.id} className="px-5 py-3">
