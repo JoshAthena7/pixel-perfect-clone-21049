@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { inviteMissionMember } from "@/lib/mission-members.functions";
-import { Save, Plus, Trash2, X, UserPlus } from "lucide-react";
+import { Save, Plus, Trash2, X, UserPlus, Pencil, Archive, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/settings")({
   component: SettingsPage,
