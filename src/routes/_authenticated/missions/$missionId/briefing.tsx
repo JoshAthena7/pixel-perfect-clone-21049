@@ -28,6 +28,8 @@ type SectionRow = {
   content: string | null;
   status: string;
   generated_at: string | null;
+  sources: SourceRef[] | null;
+  version_number: number | null;
 };
 
 function BriefingBookPage() {
@@ -51,9 +53,9 @@ function BriefingBookPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("briefing_book_sections")
-        .select("id,section_key,content,status,generated_at")
+        .select("id,section_key,content,status,generated_at,sources,version_number")
         .eq("mission_id", missionId);
-      return (data ?? []) as SectionRow[];
+      return (data ?? []) as unknown as SectionRow[];
     },
   });
 
@@ -63,12 +65,13 @@ function BriefingBookPage() {
     mutationFn: async (sectionKey: string) =>
       generateFn({ data: { missionId, sectionKey } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["bb-sections", missionId] }),
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const generateAll = useMutation({
     mutationFn: async () => {
       for (const key of BRIEFING_SECTION_KEYS) {
-        await generateFn({ data: { missionId, sectionKey: key } });
+        try { await generateFn({ data: { missionId, sectionKey: key } }); } catch { /* rate-limit etc */ }
       }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["bb-sections", missionId] }),
