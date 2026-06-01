@@ -63,12 +63,27 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
         </Section>
 
         <Section label="Missions">
-          {missions.map((m) => (
-            <NavItem key={m.id} to="/missions/$missionId" params={{ missionId: m.id }} active={currentPath.startsWith(`/missions/${m.id}`)}>
-              <span className={`dot dot-${m.health.toLowerCase()} mr-2`} />
-              <span className="truncate">{m.name}</span>
-            </NavItem>
-          ))}
+          {missions.map((m) => {
+            const score = scoreMap.get(m.id) ?? 0;
+            return (
+              <NavItem key={m.id} to="/missions/$missionId" params={{ missionId: m.id }} active={currentPath.startsWith(`/missions/${m.id}`)}>
+                <span className={`dot dot-${m.health.toLowerCase()} mr-2`} />
+                <span className="truncate flex-1">{m.name}</span>
+                {score > 0 && (
+                  <span
+                    className={`ml-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-semibold ${
+                      score >= 50 ? "bg-destructive/20 text-destructive" :
+                      score >= 20 ? "bg-amber-500/20 text-amber-400" :
+                      "bg-primary/15 text-primary"
+                    }`}
+                    title={`Leadership Attention Score: ${score}`}
+                  >
+                    {score}
+                  </span>
+                )}
+              </NavItem>
+            );
+          })}
           <NavItem to="/missions/new" icon={<Plus className="h-4 w-4" />} active={currentPath === "/missions/new"}>New Mission</NavItem>
         </Section>
 
