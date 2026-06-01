@@ -318,11 +318,11 @@ class ModalErrorBoundary extends Component<
     if (this.state.error) {
       return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="modal-backdrop" onClick={this.props.onClose} />
-          <div className="modal-surface relative w-full max-w-md p-6">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={this.props.onClose} />
+          <div className="relative z-10 w-full max-w-md rounded-xl border border-red-500/40 bg-[#111827] p-6 shadow-2xl">
             <h2 className="text-base font-semibold text-red-300">Modal failed to load</h2>
             <p className="mt-2 text-sm text-muted-foreground">{this.state.error.message}</p>
-            <button onClick={this.props.onClose} className="btn-secondary mt-4">Close</button>
+            <button onClick={this.props.onClose} className="rounded-lg border border-[#2a3a55] px-4 py-2 text-sm text-[#e8edf5] hover:bg-[#1a2235] transition mt-4">Close</button>
           </div>
         </div>
       );
