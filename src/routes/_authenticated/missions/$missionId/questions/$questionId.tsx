@@ -710,3 +710,39 @@ function AlignmentPanel({
     </Card>
   );
 }
+
+function RecentSignalsPanel({ questionId }: { questionId: string }) {
+  const fn = useServerFn(irisQuestionSignals);
+  const { data } = useQuery({
+    queryKey: ["question-signals", questionId],
+    queryFn: () => fn({ data: { questionId, limit: 5 } }),
+    refetchInterval: 60_000,
+  });
+  const signals = data?.signals ?? [];
+  return (
+    <Card title="Recent Signals" icon={<Activity className="h-4 w-4" />}>
+      {signals.length === 0 ? (
+        <p className="text-xs text-muted-foreground py-2">No signals on this question yet.</p>
+      ) : (
+        <ul className="space-y-2">
+          {signals.map((s) => {
+            const color =
+              s.severity === "critical" ? "border-red/40 bg-red/5"
+              : s.severity === "warning" ? "border-yellow/40 bg-yellow/5"
+              : "border-border bg-background/40";
+            return (
+              <li key={s.id} className={`rounded-md border px-3 py-2 ${color}`}>
+                <div className="flex items-center justify-between gap-2 text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <span>{s.signal_type.replace(/_/g, " ")}</span>
+                  <span>{new Date(s.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+                </div>
+                <div className="mt-0.5 text-sm font-medium text-foreground/90">{s.signal_title}</div>
+                {s.signal_summary && <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">{s.signal_summary}</p>}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </Card>
+  );
+}
