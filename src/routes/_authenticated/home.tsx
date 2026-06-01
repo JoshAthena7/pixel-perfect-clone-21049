@@ -205,7 +205,7 @@ function AthenaHQ() {
 
           {missions.length === 0 ? (
             <div className="rounded-[12px] border border-dashed border-border bg-surface/50 px-8 py-16 text-center">
-              <p className="text-sm text-muted-foreground">No active missions. Missions are created in Athena Admin.</p>
+              <p className="text-sm text-muted-foreground">No active missions. Missions are created in Olympus.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">

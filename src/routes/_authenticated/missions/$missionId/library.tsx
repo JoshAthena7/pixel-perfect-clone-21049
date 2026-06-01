@@ -128,7 +128,7 @@ function LibraryPage() {
     <div className="mx-auto max-w-7xl px-6 py-8">
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Mission Library</h1>
+          <h1 className="text-2xl font-semibold">The Vault</h1>
           <p className="text-sm text-muted-foreground">All RFPs, intelligence, and reference docs for this mission.</p>
         </div>
         <button

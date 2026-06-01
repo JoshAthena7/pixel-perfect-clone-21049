@@ -23,7 +23,7 @@ function QuestionCommand() {
   return (
     <div className="px-8 py-8">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Mission Studio</h1>
+        <h1 className="text-xl font-semibold">Questions</h1>
         <div className="text-xs text-muted-foreground">Bulk actions, RFP upload, and add-question modal arrive in the next phase.</div>
       </div>
       <div className="rounded-[10px] border border-border bg-surface overflow-hidden">
