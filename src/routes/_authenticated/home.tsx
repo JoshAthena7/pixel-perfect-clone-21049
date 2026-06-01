@@ -439,33 +439,6 @@ function MissionCard({ mission, attention }: { mission: Mission; attention: numb
   );
 }
 
-function SignalRow({ signal, missionName }: { signal: Signal; missionName?: string }) {
-  return (
-    <Link
-      to={signal.related_question_id ? "/missions/$missionId/questions/$questionId" : "/missions/$missionId/overview"}
-      params={signal.related_question_id
-        ? { missionId: signal.mission_id, questionId: signal.related_question_id }
-        : { missionId: signal.mission_id }}
-      className="flex items-start gap-3 rounded-[8px] border border-border bg-background p-3 transition hover:border-primary/50"
-    >
-      <SeverityIcon severity={signal.severity} />
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <MissionPill name={missionName ?? "—"} />
-          <span className={`rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.1em] ${
-            signal.severity === "critical" ? "bg-destructive/15 text-destructive" : "bg-amber-500/15 text-amber-400"
-          }`}>{signalTypeLabel(signal.signal_type)}</span>
-          <span className="ml-auto text-[10px] text-muted-foreground">{relativeTime(signal.created_at)}</span>
-        </div>
-        <p className="mt-1 text-sm text-foreground">{signal.signal_title}</p>
-        {signal.signal_summary && (
-          <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{signal.signal_summary}</p>
-        )}
-      </div>
-    </Link>
-  );
-}
-
 function MissionPill({ name }: { name: string }) {
   return (
     <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-[10px] font-medium text-foreground/80 truncate max-w-[160px]">
@@ -474,8 +447,107 @@ function MissionPill({ name }: { name: string }) {
   );
 }
 
-function SeverityIcon({ severity }: { severity: string }) {
-  if (severity === "critical") return <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />;
-  if (severity === "warning") return <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400" />;
-  return <Activity className="h-4 w-4 shrink-0 text-muted-foreground" />;
+// ─── HORIZON FEED ──────────────────────────────────────────────────────────
+
+function HorizonFeed({ items, missionCount }: { items: IntelItem[]; missionCount: number }) {
+  const [filter, setFilter] = useState<string>("All");
+  const [search, setSearch] = useState("");
+
+  const enriched = useMemo(
+    () => items.map((it) => ({ ...it, _cat: inferCategory(it) })),
+    [items],
+  );
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return enriched.filter((it) => {
+      if (!matchesHorizonFilter(it._cat, filter)) return false;
+      if (!q) return true;
+      const hay = `${it.title ?? ""} ${it.summary ?? ""}`.toLowerCase();
+      return hay.includes(q);
+    });
+  }, [enriched, filter, search]);
+
+  return (
+    <section className="iris-panel rounded-[12px] border border-border bg-surface">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
+        <div className="flex items-center gap-2">
+          <Globe className="h-3.5 w-3.5 text-primary" />
+          <h3 className="iris-label">Horizon Feed</h3>
+          <span className="ml-2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+            What is happening in our industry
+          </span>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search intelligence…"
+            className="w-64 rounded-[8px] border border-border bg-background pl-8 pr-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-1.5 border-b border-border bg-background/30 px-5 py-2.5">
+        {HORIZON_FILTERS.map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`rounded-full border px-2.5 py-1 text-[11px] transition ${
+              filter === f
+                ? "border-primary/40 bg-primary/10 text-primary"
+                : "border-border bg-background text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
+      <ul className="divide-y divide-border max-h-[640px] overflow-y-auto">
+        {filtered.length === 0 ? (
+          <li className="px-5 py-12 text-center text-sm text-muted-foreground">
+            {items.length === 0
+              ? "IRIS is scanning the industry. Items will appear shortly."
+              : "No items match this filter."}
+          </li>
+        ) : (
+          filtered.map((it) => (
+            <li key={it.id} className="px-5 py-4">
+              <a
+                href={it.url ?? "#"}
+                target={it.url ? "_blank" : undefined}
+                rel="noreferrer"
+                className="block group"
+              >
+                <div className="flex items-center gap-2 flex-wrap">
+                  {it._cat && (
+                    <span className="rounded-full border border-primary/30 bg-primary/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">
+                      {it._cat}
+                    </span>
+                  )}
+                  <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{it.source}</span>
+                  <span className="ml-auto text-[10px] text-muted-foreground">
+                    {relativeTime(it.published_at ?? it.created_at)}
+                  </span>
+                </div>
+                <p className="mt-1.5 text-sm font-semibold text-foreground group-hover:text-primary">{it.title}</p>
+                {it.summary && (
+                  <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{it.summary}</p>
+                )}
+                {missionCount > 0 && (
+                  <p className="mt-1.5 text-[10px] uppercase tracking-[0.1em] text-muted-foreground/70">
+                    Relevant to {missionCount} active {missionCount === 1 ? "mission" : "missions"}
+                  </p>
+                )}
+              </a>
+            </li>
+          ))
+        )}
+      </ul>
+    </section>
+  );
 }
+
