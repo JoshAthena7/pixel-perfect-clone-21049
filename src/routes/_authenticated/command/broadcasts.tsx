@@ -149,9 +149,13 @@ function BroadcastsPage() {
                     Global
                   </span>
                 )}
+                <SlackStatusBadge b={b} />
                 <span className="text-muted-foreground ml-auto">{relTime(b.created_at)}</span>
               </div>
               <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{b.text}</p>
+              {b.slack_delivery_status === "failed" && b.slack_error && (
+                <p className="mt-2 text-[11px] text-rose-400/80">Slack error: {b.slack_error}</p>
+              )}
             </article>
           ))}
         </div>
