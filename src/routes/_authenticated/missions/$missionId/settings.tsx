@@ -343,6 +343,7 @@ function TagEditor({ label, placeholder, tags, onChange, tone }: {
       </div>
     </Field>
   );
+}
 
 /* ─── Tab 2: Review Gates ────────────────────────── */
 
