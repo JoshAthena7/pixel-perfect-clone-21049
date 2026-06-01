@@ -1,6 +1,9 @@
 import { type ReactNode } from "react";
 import { Link, useRouterState, useParams } from "@tanstack/react-router";
-import { Home, ListChecks, AlertTriangle, BarChart3, Clock, Megaphone, Plus, LogOut, ChevronLeft } from "lucide-react";
+import {
+  Home, ListChecks, AlertTriangle, BarChart3, Clock, Megaphone, Plus, LogOut,
+  ChevronLeft, LayoutDashboard, FolderOpen, BookOpen, Sparkles, Settings,
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -60,15 +63,20 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
-        <Section label="Home">
-          <NavItem to="/home" icon={<Home className="h-4 w-4" />} active={currentPath === "/home"}>My Brief</NavItem>
+        <Section label="HQ">
+          <NavItem to="/home" icon={<Home className="h-4 w-4" />} active={currentPath === "/home"}>Athena HQ</NavItem>
         </Section>
 
         <Section label="Missions">
           {missions.map((m) => {
             const score = scoreMap.get(m.id) ?? 0;
             return (
-              <NavItem key={m.id} to="/missions/$missionId" params={{ missionId: m.id }} active={currentPath.startsWith(`/missions/${m.id}`)}>
+              <NavItem
+                key={m.id}
+                to="/missions/$missionId/overview"
+                params={{ missionId: m.id }}
+                active={currentPath.startsWith(`/missions/${m.id}`)}
+              >
                 <span className={`dot dot-${m.health.toLowerCase()} mr-2`} />
                 <span className="truncate flex-1">{m.name}</span>
                 {score > 0 && (
@@ -140,10 +148,12 @@ function MissionNav({ missionId }: { missionId: string }) {
         )}
       </div>
       <nav className="flex-1 px-3 py-4 space-y-1">
-        <NavItem to="/missions/$missionId" params={{ missionId }} active={path === `/missions/${missionId}`} icon={<ListChecks className="h-4 w-4" />}>Question Command</NavItem>
-        <NavItem to="/missions/$missionId/brief" params={{ missionId }} active={path.endsWith("/brief")} icon={<Home className="h-4 w-4" />}>IRIS Mission Brief</NavItem>
-        <NavItem to="/missions/$missionId/library" params={{ missionId }} active={path.endsWith("/library")} icon={<BarChart3 className="h-4 w-4" />}>Library</NavItem>
-        <NavItem to="/missions/$missionId/settings" params={{ missionId }} active={path.endsWith("/settings")} icon={<Clock className="h-4 w-4" />}>Mission Settings</NavItem>
+        <NavItem to="/missions/$missionId/overview" params={{ missionId }} active={path.endsWith("/overview")} icon={<LayoutDashboard className="h-4 w-4" />}>Overview</NavItem>
+        <NavItem to="/missions/$missionId" params={{ missionId }} active={path === `/missions/${missionId}` || path.startsWith(`/missions/${missionId}/questions`)} icon={<ListChecks className="h-4 w-4" />}>Question Command</NavItem>
+        <NavItem to="/missions/$missionId/library" params={{ missionId }} active={path.endsWith("/library")} icon={<FolderOpen className="h-4 w-4" />}>Library</NavItem>
+        <NavItem to="/missions/$missionId/briefing" params={{ missionId }} active={path.endsWith("/briefing")} icon={<BookOpen className="h-4 w-4" />}>Briefing Book</NavItem>
+        <NavItem to="/missions/$missionId/brief" params={{ missionId }} active={path.endsWith("/brief")} icon={<Sparkles className="h-4 w-4" />}>IRIS Mission Brief</NavItem>
+        <NavItem to="/missions/$missionId/settings" params={{ missionId }} active={path.endsWith("/settings")} icon={<Settings className="h-4 w-4" />}>Settings</NavItem>
       </nav>
       <SignOut />
     </div>
