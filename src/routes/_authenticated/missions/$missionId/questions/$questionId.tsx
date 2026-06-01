@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { createSignal } from "@/lib/signals";
 import { toast } from "sonner";
 import {
   ArrowLeft, Sparkles, MessageSquare, AlertTriangle, FileText,
