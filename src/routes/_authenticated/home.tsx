@@ -5,11 +5,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { irisLeadershipAttention } from "@/lib/iris.functions";
 import { AttentionBadge } from "@/components/v2/AttentionBadge";
 import { signalTypeLabel, relativeTime } from "@/lib/signals";
-import { Activity, AlertTriangle, AlertCircle, ArrowRight, GitBranch, Radio, Megaphone, Newspaper, CalendarClock } from "lucide-react";
+import { MissionGridSkeleton, QuestionListSkeleton } from "@/components/v2/Skeletons";
+import { Activity, AlertTriangle, AlertCircle, ArrowRight, GitBranch, Radio, Megaphone, Newspaper, CalendarClock, DoorOpen, ListChecks } from "lucide-react";
+import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/_authenticated/home")({
   component: AthenaHQ,
 });
+
+function EmptyState({ icon, title, subtitle, cta }: { icon: ReactNode; title: string; subtitle?: string; cta?: ReactNode }) {
+  return (
+    <div className="rounded-[12px] border border-dashed border-border bg-surface/40 px-8 py-14 text-center">
+      <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center text-muted-foreground opacity-50">
+        {icon}
+      </div>
+      <p className="text-sm font-medium text-foreground">{title}</p>
+      {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
+      {cta && <div className="mt-4">{cta}</div>}
+    </div>
+  );
+}
 
 type Mission = {
   id: string;
@@ -76,7 +91,7 @@ function AthenaHQ() {
   const isLeader = myRole === "admin" || myRole === "lead";
 
 
-  const { data: missions = [] } = useQuery({
+  const { data: missions = [], isLoading: missionsLoading } = useQuery({
     queryKey: ["hq-missions"],
     queryFn: async () => {
       const { data } = await supabase
@@ -89,7 +104,7 @@ function AthenaHQ() {
   });
 
   // ARCH-1: Writer/SME assignments across all missions
-  const { data: myAssignments = [] } = useQuery({
+  const { data: myAssignments = [], isLoading: assignmentsLoading } = useQuery({
     queryKey: ["hq-my-assignments", myRole],
     enabled: myRole !== null && !isLeader,
     queryFn: async () => {
@@ -210,20 +225,21 @@ function AthenaHQ() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* HQ HEADER */}
+      {/* DESIGN-14: Atrium executive header */}
       <header className="border-b border-border bg-gradient-to-b from-surface to-background">
-        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-6 px-8 py-7">
+        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-6 px-8 py-8">
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">The Atrium</div>
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-foreground">
+            <h1 className="h1-display mt-2">
               {greeting}, {profile?.name ?? "…"}.
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">{today}</p>
+            <p className="mt-1.5 text-sm text-muted-foreground">{today}</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <div className="text-right">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Firm status</div>
-              <div className={`mt-1 text-sm font-medium ${totalAttention === 0 ? "text-emerald-400" : totalAttention >= 50 ? "text-destructive" : "text-amber-400"}`}>
+              <div className="h2-label">Firm Status</div>
+              <div className={`mt-1.5 flex items-center justify-end gap-2 text-sm font-medium ${totalAttention === 0 ? "text-[color:var(--green)]" : totalAttention >= 50 ? "text-destructive" : "text-amber-400"}`}>
+                {totalAttention === 0 && <span className="pulse-dot" />}
                 {statusLabel}
               </div>
             </div>
@@ -232,23 +248,26 @@ function AthenaHQ() {
         </div>
       </header>
 
+
       <div className="mx-auto max-w-[1400px] px-8 py-10 space-y-12">
         {/* ROLE-DIFFERENTIATED: Active Missions (leaders) or Your Assignments (writers/SMEs) */}
         {isLeader ? (
           <section>
             <div className="mb-5 flex items-end justify-between">
               <div>
-                <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Active Missions</h2>
-                <p className="mt-1 text-2xl font-semibold tracking-tight">{missions.length} in flight</p>
+                <h2 className="h2-label">Active Missions</h2>
+                <p className="mt-1.5 text-2xl font-semibold tracking-tight">{missions.length} in flight</p>
               </div>
             </div>
 
-            {missions.length === 0 ? (
-              <div className="rounded-[12px] border border-dashed border-border bg-surface/50 px-8 py-16 text-center">
-                <p className="text-sm text-muted-foreground">
-                  No missions activated yet. Enter Olympus to create and activate your first mission.
-                </p>
-              </div>
+            {missionsLoading ? (
+              <MissionGridSkeleton count={3} />
+            ) : missions.length === 0 ? (
+              <EmptyState
+                icon={<DoorOpen className="h-10 w-10" />}
+                title="No missions yet."
+                subtitle="Enter Olympus to create and activate your first mission."
+              />
             ) : (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {missions.map((m) => (
@@ -261,19 +280,21 @@ function AthenaHQ() {
           <section>
             <div className="mb-5 flex items-end justify-between">
               <div>
-                <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Your Assignments</h2>
-                <p className="mt-1 text-2xl font-semibold tracking-tight">
+                <h2 className="h2-label">Your Assignments</h2>
+                <p className="mt-1.5 text-2xl font-semibold tracking-tight">
                   {myAssignments.length} {myAssignments.length === 1 ? "question" : "questions"} assigned to you
                 </p>
               </div>
             </div>
 
-            {myAssignments.length === 0 ? (
-              <div className="rounded-[12px] border border-dashed border-border bg-surface/50 px-8 py-16 text-center">
-                <p className="text-sm text-muted-foreground">
-                  No questions assigned to you yet. Your mission lead will assign you when work is ready.
-                </p>
-              </div>
+            {assignmentsLoading ? (
+              <QuestionListSkeleton count={5} />
+            ) : myAssignments.length === 0 ? (
+              <EmptyState
+                icon={<ListChecks className="h-10 w-10" />}
+                title="No questions assigned yet."
+                subtitle="Your mission lead will assign you when work is ready."
+              />
             ) : (
               <ul className="divide-y divide-border rounded-[12px] border border-border bg-surface">
                 {myAssignments.map((q) => {
@@ -285,9 +306,9 @@ function AthenaHQ() {
                     : days <= 3 ? "text-destructive"
                     : days <= 7 ? "text-amber-400"
                     : "text-foreground";
-                  const dot = q.health === "green" ? "bg-emerald-500"
-                    : q.health === "red" ? "bg-destructive"
-                    : "bg-amber-400";
+                  const dotCls = q.health === "green" ? "dot dot-green"
+                    : q.health === "red" ? "dot dot-red"
+                    : "dot dot-yellow";
                   return (
                     <li key={q.id} className="px-5 py-3">
                       <Link
@@ -295,7 +316,7 @@ function AthenaHQ() {
                         params={{ missionId: q.mission_id, questionId: q.id }}
                         className="flex items-center gap-3 hover:text-primary"
                       >
-                        <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} />
+                        <span className={dotCls} />
                         <MissionPill name={missionMap.get(q.mission_id) ?? "—"} />
                         <span className="text-[11px] font-semibold tabular-nums text-muted-foreground shrink-0">{q.question_number}</span>
                         <span className="flex-1 min-w-0 truncate text-sm text-foreground">{q.title}</span>
@@ -313,6 +334,7 @@ function AthenaHQ() {
             )}
           </section>
         )}
+
 
         {/* INTEL FEED + ACTIVITY */}
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
@@ -463,17 +485,34 @@ function AthenaHQ() {
                   ? Math.ceil((new Date(m.submission_date).getTime() - Date.now()) / 86400000)
                   : null;
                 const tone = d === null ? "text-muted-foreground" : d <= 7 ? "text-destructive" : d <= 21 ? "text-amber-400" : "text-foreground";
+                const dotCls = m.health === "Green" ? "dot dot-green" : m.health === "Red" ? "dot dot-red" : "dot dot-yellow";
+                const risk = d === null ? null : d <= 7 ? "High" : d <= 21 ? "Medium" : "Low";
+                const riskPill = risk === "High" ? "pill-red" : risk === "Medium" ? "pill-yellow" : "pill-green";
                 return (
-                  <li key={m.id} className="px-5 py-3">
-                    <Link to="/missions/$missionId/overview" params={{ missionId: m.id }} className="flex items-center gap-3 hover:text-primary">
-                      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${m.health === "Green" ? "bg-emerald-500" : m.health === "Red" ? "bg-destructive" : "bg-amber-400"}`} />
+                  <li key={m.id} className="px-3 py-2">
+                    <Link
+                      to="/missions/$missionId/overview"
+                      params={{ missionId: m.id }}
+                      className="flex items-center gap-4 rounded-[8px] border border-transparent bg-transparent px-3 py-3 transition-colors hover:bg-surface-hover"
+                    >
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-medium">{m.name}</div>
-                        <div className="truncate text-[11px] text-muted-foreground">{m.client}{m.state ? ` · ${m.state}` : ""}</div>
+                        <div className="flex items-center gap-2">
+                          <span className={dotCls} />
+                          <div className="truncate text-sm font-semibold">{m.name}</div>
+                        </div>
+                        <div className="mt-0.5 truncate pl-4 text-[11px] text-muted-foreground">{m.client}{m.state ? ` · ${m.state}` : ""}</div>
                       </div>
-                      <span className={`text-xs font-semibold tabular-nums ${tone}`}>
-                        {d === null ? "—" : d < 0 ? `${Math.abs(d)}d overdue` : `${d}d`}
-                      </span>
+                      <div className="text-right">
+                        <div className={`text-lg font-semibold tabular-nums leading-none ${tone}`}>
+                          {d === null ? "—" : d < 0 ? `${Math.abs(d)}` : `${d}`}
+                        </div>
+                        <div className="mt-0.5 text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+                          {d === null ? "" : d < 0 ? "d overdue" : "days"}
+                        </div>
+                      </div>
+                      {risk && (
+                        <span className={`pill ${riskPill}`}>{risk} Risk</span>
+                      )}
                     </Link>
                   </li>
                 );
@@ -499,11 +538,12 @@ function MissionCard({ mission, attention }: { mission: Mission; attention: numb
     <Link
       to="/missions/$missionId/overview"
       params={{ missionId: mission.id }}
-      className={`group block rounded-[12px] border border-border border-l-4 bg-surface p-5 transition-all duration-200 ${HEALTH_BORDER[mission.health] ?? "border-l-border"} ${HEALTH_GLOW[mission.health] ?? ""}`}
+      className={`group relative block rounded-[12px] border border-border border-l-4 bg-surface p-5 transition-all duration-200 hover:-translate-y-0.5 ${HEALTH_BORDER[mission.health] ?? "border-l-border"} ${HEALTH_GLOW[mission.health] ?? ""}`}
+      style={{ minHeight: 160 }}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="text-lg font-semibold tracking-tight text-foreground truncate">{mission.name}</h3>
+          <h3 className="h3-card text-[1.05rem] font-bold truncate">{mission.name}</h3>
           <p className="mt-0.5 text-xs text-muted-foreground truncate">{mission.client}{mission.state ? ` · ${mission.state}` : ""}</p>
         </div>
         {attention > 0 && (
@@ -517,23 +557,24 @@ function MissionCard({ mission, attention }: { mission: Mission; attention: numb
         )}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${HEALTH_PILL[mission.health] ?? ""}`}>
-          {mission.health}
-        </span>
-        <span className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] text-muted-foreground">
-          {mission.question_count ?? 0} Q
-        </span>
+      <div className="mt-4 flex items-center gap-3">
+        <span className={`dot dot-${mission.health.toLowerCase()}`} />
+        <span className="text-xs font-medium text-foreground/90">{mission.health}</span>
         {days !== null && (
-          <span className={`ml-auto text-xs font-semibold tabular-nums ${countdownTone}`}>
-            {days < 0 ? `${Math.abs(days)}d overdue` : `${days}d`}
+          <span className={`ml-auto text-xl font-semibold tabular-nums leading-none ${countdownTone}`}>
+            {days < 0 ? `${Math.abs(days)}d` : `${days}d`}
           </span>
         )}
       </div>
 
-      <div className="mt-4 flex items-center justify-between border-t border-border pt-3 text-[11px] text-muted-foreground">
-        <span>Enter war room</span>
-        <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+      <div className="mt-4 flex items-center gap-2 border-t border-border pt-3">
+        <span className="rounded-full bg-surface-hover px-2 py-0.5 text-[10px] text-muted-foreground tabular-nums">
+          {mission.question_count ?? 0} questions
+        </span>
+        <span className="ml-auto inline-flex items-center gap-1 text-[11px] text-muted-foreground transition-colors group-hover:text-primary">
+          Enter war room
+          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+        </span>
       </div>
     </Link>
   );

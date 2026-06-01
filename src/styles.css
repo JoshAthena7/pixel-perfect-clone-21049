@@ -67,6 +67,21 @@
   @media (max-width: 640px) {
     input, textarea, select { font-size: 16px !important; }
   }
+
+  /* DESIGN-3: Typography hierarchy primitives */
+  .h1-display {
+    font-size: 2rem; line-height: 1.15; font-weight: 300;
+    letter-spacing: -0.02em; color: color-mix(in oklab, var(--foreground) 92%, transparent);
+  }
+  .h2-label {
+    font-size: 0.65rem; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted-foreground);
+  }
+  .h3-card {
+    font-size: 0.95rem; font-weight: 600; color: var(--foreground);
+    letter-spacing: -0.005em;
+  }
+  .text-caption { font-size: 0.65rem; color: color-mix(in oklab, var(--muted-foreground) 70%, transparent); }
 }
 
 @layer utilities {
@@ -81,10 +96,116 @@
   .pill-red    { background: color-mix(in oklab, var(--red) 14%, transparent); color: var(--red); }
   .pill-muted  { background: var(--surface-hover); color: var(--muted-foreground); }
 
-  .dot { display:inline-block; width:8px; height:8px; border-radius:9999px; }
-  .dot-green  { background: var(--green); box-shadow: 0 0 8px color-mix(in oklab, var(--green) 60%, transparent); }
-  .dot-yellow { background: var(--yellow); box-shadow: 0 0 8px color-mix(in oklab, var(--yellow) 60%, transparent); }
-  .dot-red    { background: var(--red); box-shadow: 0 0 8px color-mix(in oklab, var(--red) 60%, transparent); }
+  /* DESIGN-6: Health dots — consistent size + alive glow */
+  .dot { display:inline-block; width:8px; height:8px; border-radius:9999px; flex-shrink: 0; }
+  .dot-green  { background: var(--green);  box-shadow: 0 0 6px color-mix(in oklab, var(--green) 60%, transparent); }
+  .dot-yellow { background: var(--yellow); box-shadow: 0 0 6px color-mix(in oklab, var(--yellow) 60%, transparent); }
+  .dot-red    { background: var(--red);    box-shadow: 0 0 6px color-mix(in oklab, var(--red) 60%, transparent); }
+
+  /* DESIGN-1: Skeleton shimmer */
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background: var(--surface-hover);
+    border-radius: 6px;
+  }
+  .skeleton::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in oklab, var(--foreground) 6%, transparent) 50%,
+      transparent 100%
+    );
+    transform: translateX(-100%);
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+  @keyframes shimmer { 100% { transform: translateX(100%); } }
+
+  /* DESIGN-2: Page transitions */
+  .route-fade { animation: routeFade 150ms ease-out both; }
+  @keyframes routeFade {
+    from { opacity: 0; transform: translateX(8px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  /* DESIGN-4: Button hierarchy */
+  .btn-primary {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    background: var(--primary); color: var(--primary-foreground);
+    border-radius: 8px; padding: 8px 16px; font-weight: 600; font-size: 0.875rem;
+    transition: background 150ms ease, transform 100ms ease;
+  }
+  .btn-primary:hover { background: color-mix(in oklab, var(--primary) 88%, black); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-secondary {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    background: transparent; color: var(--foreground);
+    border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px;
+    font-weight: 500; font-size: 0.875rem;
+    transition: background 150ms ease;
+  }
+  .btn-secondary:hover { background: var(--surface-hover); }
+  .btn-destructive {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    background: transparent; color: var(--red);
+    border: 1px solid color-mix(in oklab, var(--red) 50%, transparent);
+    border-radius: 8px; padding: 8px 16px; font-weight: 500; font-size: 0.875rem;
+    transition: background 150ms ease;
+  }
+  .btn-destructive:hover { background: color-mix(in oklab, var(--red) 12%, transparent); }
+  .btn-ghost {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    background: transparent; color: var(--muted-foreground);
+    border-radius: 8px; padding: 6px 10px; font-size: 0.875rem;
+    transition: background 150ms ease, color 150ms ease;
+  }
+  .btn-ghost:hover { background: var(--surface-hover); color: var(--foreground); }
+
+  /* DESIGN-5: Modal glass — apply class to backdrop / surface */
+  .modal-backdrop {
+    position: fixed; inset: 0; z-index: 50;
+    background: color-mix(in oklab, var(--background) 80%, black);
+    backdrop-filter: blur(8px);
+    animation: routeFade 150ms ease-out both;
+  }
+  .modal-surface {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    animation: modalIn 150ms ease-out both;
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  /* DESIGN-7: Score chip */
+  .score-chip {
+    display: inline-flex; align-items: baseline; gap: 4px;
+    background: var(--surface-hover);
+    border-radius: 6px; padding: 4px 10px;
+    font-variant-numeric: tabular-nums;
+  }
+  .score-chip-num { font-size: 0.95rem; font-weight: 700; color: var(--foreground); }
+  .score-chip-num.standard   { color: var(--green); }
+  .score-chip-num.intervene  { color: var(--red); }
+  .score-chip-denom { font-size: 0.7rem; color: var(--muted-foreground); }
+
+  /* DESIGN-14: Atrium pulse for status */
+  .pulse-dot {
+    display:inline-block; width:6px; height:6px; border-radius:9999px;
+    background: var(--green);
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--green) 60%, transparent);
+    animation: statusPulse 2s ease-out infinite;
+  }
+  @keyframes statusPulse {
+    0%   { box-shadow: 0 0 0 0 color-mix(in oklab, var(--green) 55%, transparent); }
+    70%  { box-shadow: 0 0 0 8px color-mix(in oklab, var(--green) 0%, transparent); }
+    100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--green) 0%, transparent); }
+  }
 }
 
 /* WRITER-1: Write Mode — hide app shell sidebar + studio right column */

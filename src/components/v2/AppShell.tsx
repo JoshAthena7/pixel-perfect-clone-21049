@@ -1,8 +1,8 @@
-import { type ReactNode } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useParams } from "@tanstack/react-router";
 import {
   Home, ListChecks, AlertTriangle, BarChart3, Clock, Megaphone, LogOut,
-  ChevronLeft, LayoutDashboard, FolderOpen, BookOpen, Settings, Shield,
+  ChevronLeft, LayoutDashboard, FolderOpen, BookOpen, Settings, Shield, User,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -31,13 +31,79 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
       <main className="flex-1 min-w-0 flex flex-col">
         {!isStudio && (
-          <header className="flex h-12 shrink-0 items-center justify-end gap-2 border-b border-border bg-surface/40 px-4">
+          <header className="flex h-[52px] shrink-0 items-center justify-end gap-2 border-b border-border bg-surface/40 px-4">
             <NotificationBell />
+            <UserAvatarMenu />
           </header>
         )}
         {inMission && !isStudio && <Breadcrumbs />}
-        <div className="flex-1 min-w-0">{children}</div>
+        {/* DESIGN-2: page transition wrapper keyed on route */}
+        <div key={path} className="route-fade flex-1 min-w-0">{children}</div>
       </main>
+    </div>
+  );
+}
+
+function UserAvatarMenu() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const { data: profile } = useQuery({
+    queryKey: ["shell-me"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      const { data } = await supabase.from("profiles").select("display_name,email").eq("id", user.id).maybeSingle();
+      const name = data?.display_name?.trim() || data?.email?.split("@")[0] || user.email?.split("@")[0] || "?";
+      return { name, email: data?.email ?? user.email ?? "" };
+    },
+  });
+
+  useEffect(() => {
+    function onDown(e: MouseEvent) {
+      if (open && ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [open]);
+
+  const initials = (profile?.name ?? "?")
+    .split(/\s+/).map((s) => s[0]).join("").slice(0, 2).toUpperCase();
+
+  async function signOut() {
+    await supabase.auth.signOut();
+    toast.success("Signed out");
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-[11px] font-semibold text-primary hover:bg-primary/25 transition-colors"
+        aria-label="Account menu"
+      >
+        {initials}
+      </button>
+      {open && (
+        <div className="modal-surface absolute right-0 top-10 z-50 w-56 p-1 text-sm">
+          <div className="border-b border-border px-3 py-2.5">
+            <div className="truncate text-sm font-medium">{profile?.name}</div>
+            <div className="truncate text-xs text-muted-foreground">{profile?.email}</div>
+          </div>
+          <button
+            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+            onClick={() => setOpen(false)}
+          >
+            <User className="h-4 w-4" /> Profile
+          </button>
+          <button
+            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+            onClick={signOut}
+          >
+            <LogOut className="h-4 w-4" /> Sign out
+          </button>
+        </div>
+      )}
     </div>
   );
 }
