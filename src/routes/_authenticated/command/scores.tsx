@@ -320,11 +320,20 @@ function BatchScoresModal({
   const [scores, setScores] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
+  type ScoreInsert = {
+    question_id: string;
+    score: number;
+    score_type: string;
+    review_gate: string;
+    review_notes: string | null;
+    reviewer_id: string | null;
+  };
+
   const save = useMutation({
     mutationFn: async () => {
       const { data: u } = await supabase.auth.getUser();
-      const rows = Object.entries(scores)
-        .map(([qid, val]) => {
+      const rows: ScoreInsert[] = Object.entries(scores)
+        .map(([qid, val]): ScoreInsert | null => {
           const n = parseFloat(val);
           if (Number.isNaN(n) || n < 0 || n > 5) return null;
           return {
@@ -336,12 +345,11 @@ function BatchScoresModal({
             reviewer_id: u.user?.id ?? null,
           };
         })
-        .filter(Boolean) as Array<Record<string, unknown>>;
+        .filter((r): r is ScoreInsert => r !== null);
 
       if (rows.length === 0) return;
       await supabase.from("question_scores").insert(rows);
 
-      // Update question_records.current_score with the latest values
       for (const row of rows) {
         await supabase
           .from("question_records")
