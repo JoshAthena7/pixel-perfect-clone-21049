@@ -37,6 +37,14 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
     },
   });
 
+  const attentionFn = useServerFn(irisLeadershipAttention);
+  const { data: attention } = useQuery({
+    queryKey: ["leadership-attention"],
+    queryFn: () => attentionFn(),
+    refetchInterval: 60_000,
+  });
+  const scoreMap = new Map((attention?.missions ?? []).map((m) => [m.mission_id, m.attention_score]));
+
   return (
     <div className="flex h-full flex-col">
       <div className="border-b border-border px-5 py-4">
