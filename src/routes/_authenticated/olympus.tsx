@@ -305,13 +305,13 @@ function MissionsTab() {
 
 /* ─── Error boundary so a modal crash never blanks the page ─── */
 
-class ModalErrorBoundary extends React.Component<
-  { children: React.ReactNode; onClose: () => void },
+class ModalErrorBoundary extends Component<
+  { children: ReactNode; onClose: () => void },
   { error: Error | null }
 > {
   state = { error: null as Error | null };
   static getDerivedStateFromError(error: Error) { return { error }; }
-  componentDidCatch(error: Error, info: React.ErrorInfo) {
+  componentDidCatch(error: Error, info: ErrorInfo) {
     console.error("ActivateMissionModal crashed:", error, info);
   }
   render() {
