@@ -3,11 +3,19 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { createSignal } from "@/lib/signals";
-import { Upload, Plus, FileText, ExternalLink, Trash2, X } from "lucide-react";
+import { Upload, Plus, FileText, ExternalLink, Trash2, X, Search } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/library")({
   component: LibraryPage,
 });
+
+/** ARCH-8: hash a File for dedup detection. */
+async function sha256(file: File): Promise<string> {
+  const buf = await file.arrayBuffer();
+  const hash = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
 
 const CATEGORIES = [
   "RFP",
@@ -37,6 +45,8 @@ type Doc = {
   is_rfp: boolean | null;
   added_by: string | null;
   created_at: string;
+  file_hash: string | null;
+  file_size: number | null;
 };
 
 function LibraryPage() {
@@ -45,6 +55,7 @@ function LibraryPage() {
   const [activeCategory, setActiveCategory] = useState<Category | "All">("All");
   const [showAddModal, setShowAddModal] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [search, setSearch] = useState("");
 
   const { data: docs = [], isLoading } = useQuery({
     queryKey: ["mission-library", missionId],
@@ -65,10 +76,24 @@ function LibraryPage() {
     return map;
   }, [docs]);
 
-  const visible = activeCategory === "All" ? docs : docs.filter((d) => d.category === activeCategory);
+  // ARCH-7: filter by category AND by free-text search across name + notes
+  const visible = useMemo(() => {
+    let list = activeCategory === "All" ? docs : docs.filter((d) => d.category === activeCategory);
+    const q = search.trim().toLowerCase();
+    if (q) {
+      list = list.filter((d) =>
+        d.name.toLowerCase().includes(q) ||
+        (d.notes ?? "").toLowerCase().includes(q) ||
+        d.category.toLowerCase().includes(q),
+      );
+    }
+    return list;
+  }, [docs, activeCategory, search]);
 
   const deleteDoc = useMutation({
     mutationFn: async (doc: Doc) => {
+      // ARCH-11: removing the row triggers the cascade trigger that clears the
+      // matching embeddings; the file in storage is removed here.
       if (doc.file_path) {
         await supabase.storage.from("mission-library").remove([doc.file_path]);
       }
@@ -80,6 +105,24 @@ function LibraryPage() {
   async function handleRfpUpload(file: File) {
     setUploading(true);
     try {
+      // ARCH-8: dedup guard — compute SHA-256, look for an existing identical file in this mission
+      const hash = await sha256(file);
+      const { data: dup } = await supabase
+        .from("mission_library")
+        .select("id,name")
+        .eq("mission_id", missionId)
+        .eq("file_hash", hash)
+        .maybeSingle();
+      if (dup) {
+        const proceed = window.confirm(
+          `An identical file is already in The Vault as "${dup.name}". Upload anyway?`,
+        );
+        if (!proceed) {
+          toast.info("Upload cancelled — duplicate detected.");
+          return;
+        }
+      }
+
       const { data: u } = await supabase.auth.getUser();
       const path = `${missionId}/${Date.now()}-${file.name}`;
       const { error: upErr } = await supabase.storage.from("mission-library").upload(path, file);
@@ -95,6 +138,8 @@ function LibraryPage() {
         category: "RFP",
         is_rfp: true,
         file_path: path,
+        file_hash: hash,
+        file_size: file.size,
         added_by_id: u.user!.id,
         added_by: profile?.display_name ?? u.user!.email,
         notes: "Upload RFP → Auto-create Question Records (parsing pending).",
@@ -106,8 +151,9 @@ function LibraryPage() {
         signal_title: `RFP uploaded: ${file.name}`,
         severity: "info",
         related_document_id: ins?.id ?? null,
-      });
+      }, qc);
       qc.invalidateQueries({ queryKey: ["mission-library", missionId] });
+      toast.success(`Uploaded "${file.name}" to The Vault.`);
     } finally {
       setUploading(false);
     }
@@ -166,6 +212,17 @@ function LibraryPage() {
           </div>
         </div>
       </label>
+
+      {/* ARCH-7: search across name, notes, category */}
+      <div className="mb-4 relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search The Vault by name, notes, or category…"
+          className="w-full rounded-md border border-border bg-background pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+        />
+      </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-[240px_1fr]">
         {/* Category filter list */}

@@ -2,7 +2,7 @@ import { type ReactNode } from "react";
 import { Link, useRouterState, useParams } from "@tanstack/react-router";
 import {
   Home, ListChecks, AlertTriangle, BarChart3, Clock, Megaphone, LogOut,
-  ChevronLeft, LayoutDashboard, FolderOpen, BookOpen, Settings,
+  ChevronLeft, LayoutDashboard, FolderOpen, BookOpen, Settings, Shield,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -54,6 +54,17 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
         .eq("status", "Active")
         .order("created_at", { ascending: false });
       return (data ?? []) as Mission[];
+    },
+  });
+
+  const { data: isPrivileged = false } = useQuery({
+    queryKey: ["sidebar-is-privileged"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+      const { data } = await supabase.from("mission_members").select("role").eq("user_id", user.id);
+      const roles = (data ?? []).map((r: any) => r.role);
+      return roles.includes("admin") || roles.includes("lead");
     },
   });
 
@@ -129,6 +140,12 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
           <NavItem to="/command/pens-down" icon={<Clock className="h-4 w-4" />} active={currentPath === "/command/pens-down"}>Pens Down Watch</NavItem>
           <NavItem to="/command/broadcasts" icon={<Megaphone className="h-4 w-4" />} active={currentPath === "/command/broadcasts"}>Broadcasts</NavItem>
         </Section>
+
+        {isPrivileged && (
+          <Section label="Admin">
+            <NavItem to="/olympus" icon={<Shield className="h-4 w-4" />} active={currentPath.startsWith("/olympus")}>Olympus</NavItem>
+          </Section>
+        )}
       </nav>
 
       <SignOut />

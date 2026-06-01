@@ -5,12 +5,13 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { inviteMissionMember } from "@/lib/mission-members.functions";
 import { Save, Plus, Trash2, X, UserPlus, Pencil, Archive, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/settings")({
   component: SettingsPage,
 });
 
-const STATUSES = ["Active", "Won", "Lost", "Withdrawn", "On Hold"] as const;
+const STATUSES = ["Active", "Won", "Lost", "Withdrawn", "On Hold", "Archived"] as const;
 const HEALTHS = ["green", "yellow", "red"] as const;
 const ROLES = ["admin", "lead", "writer", "sme", "viewer"] as const;
 type Role = (typeof ROLES)[number];
@@ -120,8 +121,17 @@ function DetailsTab({ missionId }: { missionId: string }) {
   if (isLoading) return <div className="py-12 text-sm text-muted-foreground">Loading mission…</div>;
   if (!mission) return <div className="py-12 text-sm text-muted-foreground">Mission not found.</div>;
 
+  const isClosed = ["Won", "Lost", "Withdrawn", "Archived"].includes(form.status);
+
   return (
     <div>
+      {/* ARCH-6: lifecycle banner */}
+      {isClosed && (
+        <div className="mb-4 rounded-[10px] border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-xs text-amber-300">
+          This mission is marked <span className="font-semibold">{form.status}</span>. It will stay
+          visible in the Olympus archive but is no longer counted as Active in The Atrium or sidebar.
+        </div>
+      )}
       <div className="rounded-[10px] border border-border bg-surface p-6">
         <h2 className="mb-4 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Core</h2>
         <div className="grid grid-cols-2 gap-4">
@@ -331,6 +341,15 @@ function TeamTab({ missionId }: { missionId: string }) {
   const qc = useQueryClient();
   const [showInvite, setShowInvite] = useState(false);
 
+  // ARCH-10: identify current user so we can guard self-revocation
+  const { data: currentUserId } = useQuery({
+    queryKey: ["current-user-id"],
+    queryFn: async () => {
+      const { data } = await supabase.auth.getUser();
+      return data.user?.id ?? null;
+    },
+  });
+
   const { data: members = [], isLoading } = useQuery({
     queryKey: ["mission-members", missionId],
     queryFn: async () => {
@@ -342,6 +361,8 @@ function TeamTab({ missionId }: { missionId: string }) {
       return (data ?? []) as Member[];
     },
   });
+
+  const adminCount = members.filter((m) => m.role === "admin").length;
 
   const ids = members.map((m) => m.user_id);
   const { data: profiles = [] } = useQuery({
@@ -357,19 +378,29 @@ function TeamTab({ missionId }: { missionId: string }) {
   const profileMap = new Map(profiles.map((p) => [p.id, p]));
 
   const updateRole = useMutation({
-    mutationFn: async ({ id, role }: { id: string; role: Role }) => {
+    mutationFn: async ({ id, role, member }: { id: string; role: Role; member: Member }) => {
+      // ARCH-10: block demoting the last admin (especially yourself)
+      if (member.role === "admin" && role !== "admin" && adminCount <= 1) {
+        throw new Error("You can't demote the only admin on this mission. Promote another member first.");
+      }
       const { error } = await supabase.from("mission_members").update({ role }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["mission-members", missionId] }),
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const removeMember = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("mission_members").delete().eq("id", id);
+    mutationFn: async (member: Member) => {
+      // ARCH-10: block removing yourself if you are the only admin
+      if (member.user_id === currentUserId && member.role === "admin" && adminCount <= 1) {
+        throw new Error("You can't remove yourself as the only admin. Promote another member first.");
+      }
+      const { error } = await supabase.from("mission_members").delete().eq("id", member.id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["mission-members", missionId] }),
+    onError: (e: Error) => toast.error(e.message),
   });
 
   return (
@@ -410,14 +441,14 @@ function TeamTab({ missionId }: { missionId: string }) {
                       <select
                         className="rounded-[6px] border border-border bg-background px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                         value={m.role}
-                        onChange={(e) => updateRole.mutate({ id: m.id, role: e.target.value as Role })}
+                        onChange={(e) => updateRole.mutate({ id: m.id, role: e.target.value as Role, member: m })}
                       >
                         {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
                       </select>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button onClick={() => removeMember.mutate(m.id)} className="text-muted-foreground hover:text-destructive">
+                    <button onClick={() => removeMember.mutate(m)} className="text-muted-foreground hover:text-destructive">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </td>
