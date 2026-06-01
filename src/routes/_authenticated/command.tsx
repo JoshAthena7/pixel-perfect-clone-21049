@@ -733,7 +733,7 @@ function SignalsTab() {
     e.preventDefault();
     if (!engagement || !user || !member || !title.trim()) return;
     setSubmitting(true);
-    const { error } = await supabase.from("risks").insert({ engagement_id: engagement.id, title: title.trim(), description: desc || null, severity: sev, status: "Open", owner_name: member.display_name, created_by: user.id });
+    const { error } = await supabase.from("risks").insert({ engagement_id: engagement.id, title: title.trim(), description: desc || null, severity: sev, likelihood: "Medium", status: "Open", owner_name: member.display_name, created_by: user.id });
     setSubmitting(false);
     if (error) return toast.error(error.message);
     toast.success("Signal logged"); setTitle(""); setDesc("");
