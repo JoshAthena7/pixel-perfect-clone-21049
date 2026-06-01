@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { createSignal } from "@/lib/signals";
 import { Trophy, Plus, X, ArrowUpDown } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/command/scores")({
