@@ -467,6 +467,23 @@ function CollabPanel({ collab, questionId, missionId }: { collab: Collab[]; ques
         body: body.trim(),
       });
       if (error) throw error;
+      const typeToSignal: Record<string, { st: string; sev: "info" | "warning" | "critical"; title: string }> = {
+        note: { st: "comment_added", sev: "info", title: "Comment added" },
+        open_question: { st: "comment_added", sev: "info", title: "Open question raised" },
+        sme_request: { st: "sme_requested", sev: "warning", title: "SME requested" },
+        decision_needed: { st: "decision_needed", sev: "warning", title: "Decision needed" },
+        leadership_guidance: { st: "leadership_guidance_added", sev: "info", title: "Leadership guidance added" },
+      };
+      const cfg = typeToSignal[type] ?? typeToSignal.note;
+      await createSignal({
+        mission_id: missionId,
+        source_module: "question_workspace",
+        signal_type: cfg.st,
+        signal_title: cfg.title,
+        signal_summary: body.trim().slice(0, 200),
+        severity: cfg.sev,
+        related_question_id: questionId,
+      });
     },
     onSuccess: () => { setBody(""); qc.invalidateQueries({ queryKey: ["question-collab", questionId] }); },
     onError: (e: Error) => toast.error(e.message),
