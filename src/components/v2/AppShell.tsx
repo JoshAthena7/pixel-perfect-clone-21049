@@ -3,7 +3,7 @@ import { Link, useRouterState, useParams } from "@tanstack/react-router";
 import {
   Building2, Target, Mountain, Eye, Activity, GitMerge, BarChart2, Clock, Radio,
   LayoutDashboard, PenTool, Archive, Sparkles, Settings2,
-  ChevronLeft, LogOut, User,
+  ChevronLeft, ChevronRight, LogOut, User,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -161,61 +161,64 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
         <Section label="The Atrium">
           <NavItem to="/home" icon={<Building2 size={16} strokeWidth={1.5} />} active={currentPath === "/home"}>The Atrium</NavItem>
         </Section>
 
-        <Section label="Missions">
-          {missions.length === 0 && (
-            <div className="px-3 py-2 text-xs text-muted-foreground">You'll be assigned to a mission when work begins. Check back soon.</div>
+        <Section label="Missions" zone="missions" expandable>
+          {missions.length === 0 ? (
+            <div className="nav-empty-inset">You'll be assigned to a mission when work begins. Check back soon.</div>
+          ) : (
+            missions.map((m) => {
+              const score = scoreMap.get(m.id) ?? 0;
+              const days = m.submission_date
+                ? Math.ceil((new Date(m.submission_date).getTime() - Date.now()) / 86400000)
+                : null;
+              const isActive = currentPath.startsWith(`/missions/${m.id}`);
+              return (
+                <Link
+                  key={m.id}
+                  to="/missions/$missionId/overview"
+                  params={{ missionId: m.id }}
+                  className={`nav-mission-item ${isActive ? "is-active" : ""}`}
+                >
+                  <Target size={14} strokeWidth={1.5} className="shrink-0 text-muted-foreground" />
+                  <span className={`dot dot-${m.health.toLowerCase()}`} />
+                  <span className="truncate flex-1">{m.name}</span>
+                  {days !== null && (
+                    <span className="text-[10px] text-muted-foreground tabular-nums">{days}d</span>
+                  )}
+                  {score > 0 && (
+                    <span
+                      className={`inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-semibold ${
+                        score >= 50 ? "bg-destructive/20 text-destructive" :
+                        score >= 20 ? "bg-amber-500/20 text-amber-400" :
+                        "bg-primary/15 text-primary"
+                      }`}
+                      title={`Leadership Attention Score: ${score}`}
+                    >
+                      {score}
+                    </span>
+                  )}
+                </Link>
+              );
+            })
           )}
-          {missions.map((m) => {
-            const score = scoreMap.get(m.id) ?? 0;
-            const days = m.submission_date
-              ? Math.ceil((new Date(m.submission_date).getTime() - Date.now()) / 86400000)
-              : null;
-            return (
-              <NavItem
-                key={m.id}
-                to="/missions/$missionId/overview"
-                params={{ missionId: m.id }}
-                active={currentPath.startsWith(`/missions/${m.id}`)}
-              >
-                <Target size={14} strokeWidth={1.5} className="mr-1.5 text-muted-foreground shrink-0" />
-                <span className={`dot dot-${m.health.toLowerCase()} mr-2`} />
-                <span className="truncate flex-1">{m.name}</span>
-                {days !== null && (
-                  <span className="ml-2 text-[10px] text-muted-foreground tabular-nums">{days}d</span>
-                )}
-                {score > 0 && (
-                  <span
-                    className={`ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-semibold ${
-                      score >= 50 ? "bg-destructive/20 text-destructive" :
-                      score >= 20 ? "bg-amber-500/20 text-amber-400" :
-                      "bg-primary/15 text-primary"
-                    }`}
-                    title={`Leadership Attention Score: ${score}`}
-                  >
-                    {score}
-                  </span>
-                )}
-              </NavItem>
-            );
-          })}
         </Section>
 
-
-        <Section label="The Bridge">
-          <NavItem to="/command/question-health" icon={<Activity size={14} strokeWidth={1.5} />} active={currentPath === "/command/question-health"}>Question Health</NavItem>
-          <NavItem to="/command/alignment" icon={<GitMerge size={14} strokeWidth={1.5} />} active={currentPath === "/command/alignment"}>Alignment Conflicts</NavItem>
-          <NavItem to="/command/scores" icon={<BarChart2 size={14} strokeWidth={1.5} />} active={currentPath === "/command/scores"}>Score Dashboard</NavItem>
-          <NavItem to="/command/pens-down" icon={<Clock size={14} strokeWidth={1.5} />} active={currentPath === "/command/pens-down"}>Pens Down Watch</NavItem>
-          <NavItem to="/command/broadcasts" icon={<Radio size={14} strokeWidth={1.5} />} active={currentPath === "/command/broadcasts"}>Broadcasts</NavItem>
+        <Section label="The Bridge" zone="bridge" leadingIcon={<Eye size={12} strokeWidth={1.5} className="text-[color:var(--iris)]" />}>
+          <div className="nav-zone-bridge-items space-y-0.5">
+            <NavItem to="/command/question-health" icon={<Activity size={14} strokeWidth={1.5} />} active={currentPath === "/command/question-health"}>Question Health</NavItem>
+            <NavItem to="/command/alignment" icon={<GitMerge size={14} strokeWidth={1.5} />} active={currentPath === "/command/alignment"}>Alignment Conflicts</NavItem>
+            <NavItem to="/command/scores" icon={<BarChart2 size={14} strokeWidth={1.5} />} active={currentPath === "/command/scores"}>Score Dashboard</NavItem>
+            <NavItem to="/command/pens-down" icon={<Clock size={14} strokeWidth={1.5} />} active={currentPath === "/command/pens-down"}>Pens Down Watch</NavItem>
+            <NavItem to="/command/broadcasts" icon={<Radio size={14} strokeWidth={1.5} />} active={currentPath === "/command/broadcasts"}>Broadcasts</NavItem>
+          </div>
         </Section>
 
         {isPrivileged && (
-          <Section label="Admin">
+          <Section label="Admin" zone="admin">
             <NavItem to="/olympus" icon={<Mountain size={16} strokeWidth={1.5} className="text-[color:var(--athena-gold)]" />} active={currentPath.startsWith("/olympus")}>Olympus</NavItem>
           </Section>
         )}
@@ -275,10 +278,25 @@ function MissionNav({ missionId }: { missionId: string }) {
   );
 }
 
-function Section({ label, children }: { label: string; children: ReactNode }) {
+function Section({
+  label, children, zone, expandable, leadingIcon,
+}: {
+  label: string; children: ReactNode;
+  zone?: "missions" | "bridge" | "admin";
+  expandable?: boolean;
+  leadingIcon?: ReactNode;
+}) {
+  const zoneCls =
+    zone === "missions" ? "nav-zone-missions" :
+    zone === "bridge" ? "nav-zone-bridge" :
+    zone === "admin" ? "nav-zone-admin" : "";
   return (
-    <div>
-      <div className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{label}</div>
+    <div className={zoneCls}>
+      <div className="nav-section-label">
+        {leadingIcon}
+        <span className="flex-1">{label}</span>
+        {expandable && <ChevronRight size={10} strokeWidth={1.5} className="text-muted-foreground/60" />}
+      </div>
       <div className="space-y-0.5">{children}</div>
     </div>
   );
