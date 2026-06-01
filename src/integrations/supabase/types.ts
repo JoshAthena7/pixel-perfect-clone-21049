@@ -1109,6 +1109,7 @@ export type Database = {
           assigned_writer_id: string | null
           created_at: string | null
           current_score: number | null
+          estimated_hours: number | null
           evaluation_weight: number | null
           formatting_rules: string | null
           health: string | null
@@ -1135,6 +1136,7 @@ export type Database = {
           assigned_writer_id?: string | null
           created_at?: string | null
           current_score?: number | null
+          estimated_hours?: number | null
           evaluation_weight?: number | null
           formatting_rules?: string | null
           health?: string | null
@@ -1161,6 +1163,7 @@ export type Database = {
           assigned_writer_id?: string | null
           created_at?: string | null
           current_score?: number | null
+          estimated_hours?: number | null
           evaluation_weight?: number | null
           formatting_rules?: string | null
           health?: string | null
