@@ -97,7 +97,7 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
           
         </Section>
 
-        <Section label="Command Center">
+        <Section label="The Bridge">
           <NavItem to="/command/question-health" icon={<ListChecks className="h-4 w-4" />} active={currentPath === "/command/question-health"}>Question Health</NavItem>
           <NavItem to="/command/alignment" icon={<AlertTriangle className="h-4 w-4" />} active={currentPath === "/command/alignment"}>Alignment Conflicts</NavItem>
           <NavItem to="/command/scores" icon={<BarChart3 className="h-4 w-4" />} active={currentPath === "/command/scores"}>Score Dashboard</NavItem>
