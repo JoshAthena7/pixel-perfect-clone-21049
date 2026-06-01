@@ -66,9 +66,9 @@ function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-md rounded-[10px] border border-border bg-surface p-8">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-[10px] bg-primary/15 text-2xl font-bold text-primary">Ā</div>
-          <h1 className="text-lg font-semibold tracking-[0.18em] uppercase">Athena Command</h1>
-          <p className="mt-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">Proposal Intelligence System</p>
+          <img src="/athena-full-lockup.png" alt="Athena Strategy Group" className="mx-auto mb-5 h-16 object-contain" />
+          <h1 className="text-base font-extrabold tracking-[0.22em] uppercase text-foreground">Command</h1>
+          <p className="mt-1 text-[10px] uppercase tracking-[0.24em] text-[color:var(--athena-gold)]">Proposal Intelligence System</p>
         </div>
 
         {sent ? (
