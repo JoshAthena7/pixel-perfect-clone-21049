@@ -466,6 +466,7 @@ function HorizonFeed({ items, missionCount }: { items: IntelItem[]; missionCount
         <div className="flex items-center gap-2">
           <Globe className="h-3.5 w-3.5 text-primary" />
           <h3 className="iris-label">Horizon Feed</h3>
+          <LiveBadge />
           <span className="ml-2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
             What is happening in our industry
           </span>
@@ -487,11 +488,7 @@ function HorizonFeed({ items, missionCount }: { items: IntelItem[]; missionCount
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`rounded-full border px-2.5 py-1 text-[11px] transition ${
-              filter === f
-                ? "border-primary/40 bg-primary/10 text-primary"
-                : "border-border bg-background text-muted-foreground hover:text-foreground"
-            }`}
+            className={`pill-classified ${filter === f ? "is-active" : ""}`}
           >
             {f}
           </button>
@@ -500,14 +497,20 @@ function HorizonFeed({ items, missionCount }: { items: IntelItem[]; missionCount
 
       <ul className="divide-y divide-border max-h-[640px] overflow-y-auto">
         {filtered.length === 0 ? (
-          <li className="px-5 py-12 text-center text-sm text-muted-foreground">
-            {items.length === 0
-              ? "IRIS is scanning the industry. Items will appear shortly."
-              : "No items match this filter."}
-          </li>
+          items.length === 0 ? (
+            <li><ScanningBeam /></li>
+          ) : (
+            <li className="px-5 py-12 text-center text-sm text-muted-foreground">
+              No items match this filter.
+            </li>
+          )
         ) : (
-          filtered.map((it) => (
-            <li key={it.id} className="px-5 py-4">
+          filtered.map((it, idx) => (
+            <li
+              key={it.id}
+              className="px-5 py-4 feed-item"
+              style={{ animationDelay: `${Math.min(idx, 12) * 80}ms` }}
+            >
               <a
                 href={it.url ?? "#"}
                 target={it.url ? "_blank" : undefined}
@@ -521,7 +524,7 @@ function HorizonFeed({ items, missionCount }: { items: IntelItem[]; missionCount
                     </span>
                   )}
                   <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{it.source}</span>
-                  <span className="ml-auto text-[10px] text-muted-foreground">
+                  <span className="ml-auto text-[10px] text-muted-foreground mono">
                     {relativeTime(it.published_at ?? it.created_at)}
                   </span>
                 </div>
