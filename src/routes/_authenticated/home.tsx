@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { irisLeadershipAttention } from "@/lib/iris.functions";
 import { AttentionBadge } from "@/components/v2/AttentionBadge";
 import { signalTypeLabel, relativeTime } from "@/lib/signals";
-import { Activity, AlertTriangle, AlertCircle, ArrowRight, Plus, GitBranch, Radio, Megaphone, Newspaper, CalendarClock } from "lucide-react";
+import { Activity, AlertTriangle, AlertCircle, ArrowRight, GitBranch, Radio, Megaphone, Newspaper, CalendarClock } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/home")({
   component: AthenaHQ,
@@ -205,7 +205,7 @@ function AthenaHQ() {
 
           {missions.length === 0 ? (
             <div className="rounded-[12px] border border-dashed border-border bg-surface/50 px-8 py-16 text-center">
-              <p className="text-sm text-muted-foreground">No active missions. Open your first one to begin.</p>
+              <p className="text-sm text-muted-foreground">No active missions. Missions are created in Athena Admin.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -214,15 +214,6 @@ function AthenaHQ() {
               ))}
             </div>
           )}
-
-          <div className="mt-6 flex justify-center">
-            <Link
-              to="/missions/new"
-              className="inline-flex items-center gap-2 rounded-[10px] bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition hover:bg-primary/90"
-            >
-              <Plus className="h-4 w-4" /> Open New Mission
-            </Link>
-          </div>
         </section>
 
         {/* INTEL FEED + ACTIVITY */}
