@@ -283,7 +283,7 @@ export const generateMissionDna = createServerFn({ method: "POST" })
     }
 
     // 3. Call Claude
-    const dna = await callClaudeForDna(text);
+    const dna = await callLovableAiForDna(text);
 
     // 4. Mark previous DNA as not-current; insert new versioned row
     await supabase
