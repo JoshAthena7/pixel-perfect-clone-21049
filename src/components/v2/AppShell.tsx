@@ -165,7 +165,7 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
         <NavItem to="/home" icon={<Building2 size={16} strokeWidth={1.5} />} active={currentPath === "/home"}>Home</NavItem>
         <NavItem to="/pipeline-horizon" icon={<CalendarClock size={16} strokeWidth={1.5} />} active={currentPath.startsWith("/pipeline-horizon")}>Pipeline Horizon</NavItem>
         <NavItem to="/pathfinder" icon={<Compass size={16} strokeWidth={1.5} />} active={currentPath.startsWith("/pathfinder")}>Pathfinder</NavItem>
-        <NavItem to="/olympus" icon={<Shield size={16} strokeWidth={1.5} className="text-[color:var(--athena-gold)]" />} active={currentPath.startsWith("/olympus")}>Olympus</NavItem>
+        <NavItem to="/olympus" icon={<Shield size={16} strokeWidth={1.5} className="text-[color:var(--athena-gold)]" />} active={currentPath.startsWith("/olympus")}>Olympus · Admin</NavItem>
       </nav>
 
       <div className="border-t border-border p-3 flex items-center justify-between">
@@ -202,8 +202,8 @@ function MissionRail({ missionId }: { missionId: string }) {
   });
 
   const sections = [
-    { to: "/missions/$missionId/overview", label: "Overview", icon: <LayoutDashboard size={16} strokeWidth={1.5} />, match: ["/overview"] },
-    { to: "/missions/$missionId/intelligence", label: "Intelligence", icon: <Sparkles size={16} strokeWidth={1.5} className="text-[color:var(--iris,#22d3ee)]" />, match: ["/intelligence", "/library", "/briefing", "/brief", "/iris"] },
+    { to: "/missions/$missionId/overview", label: "Command Center · Overview", icon: <LayoutDashboard size={16} strokeWidth={1.5} />, match: ["/overview"] },
+    { to: "/missions/$missionId/intelligence", label: "The Oracle · Intelligence", icon: <Sparkles size={16} strokeWidth={1.5} className="text-[color:var(--iris,#22d3ee)]" />, match: ["/intelligence", "/library", "/briefing", "/brief", "/iris"] },
     { to: "/missions/$missionId/operations", label: "Operations", icon: <Wrench size={16} strokeWidth={1.5} />, match: ["/operations"] },
     { to: "/missions/$missionId/team", label: "Team", icon: <Users size={16} strokeWidth={1.5} />, match: ["/team"] },
     { to: "/missions/$missionId/activity", label: "Activity", icon: <History size={16} strokeWidth={1.5} />, match: ["/activity"] },
@@ -219,7 +219,7 @@ function MissionRail({ missionId }: { missionId: string }) {
     <div className="flex h-full flex-col">
       <div className="border-b border-border px-5 py-4">
         <Link to="/home" className="mb-3 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-          <ChevronLeft className="h-3 w-3" /> Back to Lobby
+          <ChevronLeft className="h-3 w-3" /> Back to The Atrium · Home
         </Link>
         {mission && (
           <div>

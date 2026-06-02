@@ -185,7 +185,7 @@ function OlympusSidebar({ isAdmin }: { isAdmin: boolean }) {
         <SidebarItem to="/olympus/questions" path={path} icon={<FileText size={15} strokeWidth={1.5} />}>Questions</SidebarItem>
         <SidebarItem to="/olympus/gates" path={path} icon={<ClipboardCheck size={15} strokeWidth={1.5} />}>Gates</SidebarItem>
         <SidebarItem to="/olympus/win-themes" path={path} icon={<Trophy size={15} strokeWidth={1.5} />}>Win Themes</SidebarItem>
-        <SidebarItem to="/olympus/vault" path={path} icon={<FolderOpen size={15} strokeWidth={1.5} />}>Vault</SidebarItem>
+        <SidebarItem to="/olympus/vault" path={path} icon={<FolderOpen size={15} strokeWidth={1.5} />}>Vault · Documents</SidebarItem>
         <SidebarItem to="/olympus/settings" path={path} icon={<SettingsIcon size={15} strokeWidth={1.5} />}>Settings</SidebarItem>
 
         {isAdmin && (

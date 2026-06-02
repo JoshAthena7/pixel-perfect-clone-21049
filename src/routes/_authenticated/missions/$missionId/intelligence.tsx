@@ -52,7 +52,7 @@ function IntelligencePage() {
           className="group rounded-[12px] border border-border bg-surface p-6 hover:border-primary/40 transition-colors"
         >
           <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            <Archive className="h-3.5 w-3.5" /> The Vault
+            <Archive className="h-3.5 w-3.5" /> The Vault · Documents
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-semibold tabular-nums">{vaultCount}</span>
@@ -62,7 +62,7 @@ function IntelligencePage() {
             RFP, amendments, state Q&amp;A, past responses, templates, reference materials.
           </p>
           <div className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-primary group-hover:gap-2 transition-all">
-            Open The Vault <ArrowRight className="h-3.5 w-3.5" />
+            Open Documents <ArrowRight className="h-3.5 w-3.5" />
           </div>
         </Link>
 
@@ -77,7 +77,7 @@ function IntelligencePage() {
               <span className="absolute inset-0 animate-ping rounded-full bg-[color:var(--iris,#22d3ee)]/60" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[color:var(--iris,#22d3ee)]" />
             </span>
-            The Oracle
+            The Oracle · Intelligence
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-semibold tabular-nums">{oracleSections.length}</span>
@@ -88,7 +88,7 @@ function IntelligencePage() {
             landscape, priorities, competitor and stakeholder intelligence.
           </p>
           <div className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-[color:var(--iris,#22d3ee)] group-hover:gap-2 transition-all">
-            Open The Oracle <ArrowRight className="h-3.5 w-3.5" />
+            Open Intelligence <ArrowRight className="h-3.5 w-3.5" />
           </div>
           <div className="mt-4 grid grid-cols-2 gap-1.5 text-[11px] text-muted-foreground">
             {[

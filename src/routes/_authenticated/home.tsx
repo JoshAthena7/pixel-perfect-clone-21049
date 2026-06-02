@@ -289,7 +289,7 @@ function AthenaHQ() {
       <header className="border-b border-border bg-gradient-to-b from-surface to-background">
         <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-6 px-8 py-8">
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">The Atrium</div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">The Atrium · Home</div>
             <h1 className="h1-display mt-2">
               {greeting}, {profile?.name ?? "…"}.
             </h1>
