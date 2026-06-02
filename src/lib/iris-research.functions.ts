@@ -138,8 +138,9 @@ const RunMissionInput = z.object({
 
 const RunTaskInput = z.object({ taskId: z.string().uuid() });
 
-// ─── HELPERS ──────────────────────────────────────────────────────────────
-async function runOneTask(
+// ─── HELPERS (exported for cron / refresh route) ──────────────────────────
+export { buildSystemPrompt, buildUserPrompt, callPerplexity };
+export async function runOneTask(
   supabase: any,
   task: {
     id: string;
