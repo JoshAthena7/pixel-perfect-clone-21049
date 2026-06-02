@@ -311,9 +311,24 @@ function LibraryPage() {
                 {doc.notes && (
                   <p className="text-xs text-muted-foreground line-clamp-2">{doc.notes}</p>
                 )}
-                <div className="mt-2 text-[11px] text-muted-foreground">
-                  {doc.added_by ? `Added by ${doc.added_by} · ` : ""}
-                  {new Date(doc.created_at).toLocaleDateString()}
+                <div className="mt-2 flex items-center justify-between gap-2">
+                  <div className="text-[11px] text-muted-foreground">
+                    {doc.added_by ? `Added by ${doc.added_by} · ` : ""}
+                    {new Date(doc.created_at).toLocaleDateString()}
+                  </div>
+                  {doc.is_rfp && doc.file_path && (
+                    <button
+                      onClick={() => parseRfp(doc)}
+                      disabled={parsingId !== null}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-primary/10 px-2 py-1 text-[11px] text-primary hover:bg-primary/15 disabled:opacity-50"
+                    >
+                      {parsingId === doc.id ? (
+                        <><Loader2 className="h-3 w-3 animate-spin" /> IRIS is extracting questions…</>
+                      ) : (
+                        <><Sparkles className="h-3 w-3" /> Parse → Responses</>
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
