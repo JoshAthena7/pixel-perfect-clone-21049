@@ -434,7 +434,7 @@ function AthenaHQ() {
         {/* PHASE 7 / CHANGE 4: Firm Intel — collapsed by default */}
         <FirmIntel
           horizonItems={horizonItems}
-          missionCount={missions.length}
+          missions={missions}
           leadershipMessages={leadershipMessages as any[]}
           pipeline={pipeline}
         />
@@ -445,12 +445,12 @@ function AthenaHQ() {
 
 function FirmIntel({
   horizonItems,
-  missionCount,
+  missions,
   leadershipMessages,
   pipeline,
 }: {
-  horizonItems: IntelItem[];
-  missionCount: number;
+  horizonItems: (IntelItem & { matched_mission_ids?: string[] | null })[];
+  missions: Mission[];
   leadershipMessages: any[];
   pipeline: Mission[];
 }) {
