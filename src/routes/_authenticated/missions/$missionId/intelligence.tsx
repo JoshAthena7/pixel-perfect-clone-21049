@@ -62,7 +62,7 @@ function IntelligencePage() {
             RFP, amendments, state Q&amp;A, past responses, templates, reference materials.
           </p>
           <div className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-primary group-hover:gap-2 transition-all">
-            Open The Vault <ArrowRight className="h-3.5 w-3.5" />
+            Open Documents <ArrowRight className="h-3.5 w-3.5" />
           </div>
         </Link>
 
