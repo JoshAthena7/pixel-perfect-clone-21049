@@ -49,6 +49,7 @@ type Intel = {
   procurement_priorities: string | null;
   competitor_signals: string | null;
   compliance_flags: string[] | null;
+  relevant_research: string[] | null;
 };
 type Collab = { id: string; entry_type: string; body: string; author_name: string; created_at: string; resolved: boolean };
 type GateStatus = { gate_id: string; status: string; reviewer_notes: string | null };
