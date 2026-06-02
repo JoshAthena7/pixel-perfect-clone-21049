@@ -704,7 +704,61 @@ function MissionPill({ name }: { name: string }) {
   );
 }
 
+// ─── IRIS MORNING BRIEF (firm-wide) ────────────────────────────────────────
+
+function IrisMorningBrief() {
+  const qc = useQueryClient();
+  const generate = useServerFn(generateLobbyBrief);
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ["iris-morning-brief"],
+    queryFn: () => generate({ data: { force: false } }),
+    staleTime: 30 * 60 * 1000,
+  });
+
+  const refresh = async () => {
+    const fresh = await generate({ data: { force: true } });
+    qc.setQueryData(["iris-morning-brief"], fresh);
+  };
+
+  const stamp = data?.generated_at
+    ? new Date(data.generated_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+    : "—";
+
+  return (
+    <section className="iris-panel rounded-[12px] border border-[color:var(--iris,#22d3ee)]/30 border-l-2 border-l-[color:var(--iris,#22d3ee)] bg-[color:var(--iris,#22d3ee)]/[0.04] px-5 py-4">
+      <div className="flex items-start gap-4">
+        <span className="iris-label inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[color:var(--iris,#22d3ee)] shrink-0 mt-1">
+          <span className="relative inline-flex h-1.5 w-1.5">
+            <span className="absolute inset-0 animate-ping rounded-full bg-[color:var(--iris,#22d3ee)]/60" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[color:var(--iris,#22d3ee)]" />
+          </span>
+          IRIS · Morning Brief
+        </span>
+        <div className="flex-1 min-w-0">
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground italic">IRIS is preparing your firm-wide brief…</p>
+          ) : (
+            <p className="text-[15px] leading-relaxed text-foreground/90">{data?.brief}</p>
+          )}
+          <div className="mt-2 flex items-center gap-3 text-[11px] text-muted-foreground">
+            <span>Updated {stamp}</span>
+            <button
+              onClick={refresh}
+              disabled={isFetching}
+              className="inline-flex items-center gap-1 hover:text-foreground transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3 w-3 ${isFetching ? "animate-spin" : ""}`} />
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ─── ASK IRIS BAR ──────────────────────────────────────────────────────────
+
 
 function AskIrisBar() {
   const [value, setValue] = useState("");
