@@ -365,7 +365,7 @@ export const irisGenerateBriefingSection = createServerFn({ method: "POST" })
           mission_id: data.missionId,
           section_key: data.sectionKey,
           content,
-          sources: grounded as unknown as object,
+          sources: grounded as unknown as never,
           status: "ready",
           generated_at: now,
           updated_at: now,
