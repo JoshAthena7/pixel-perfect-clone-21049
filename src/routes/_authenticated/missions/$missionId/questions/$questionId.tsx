@@ -613,7 +613,7 @@ function ResponseView() {
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 backdrop-blur">
         <div className="mx-auto flex max-w-[1400px] items-center justify-center gap-3 px-6 py-3">
           <button
-            onClick={() => setRealityOpen(true)}
+            onClick={() => openUpdateReality(questionId)}
             className="rounded-md bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
           >
             Update Reality
