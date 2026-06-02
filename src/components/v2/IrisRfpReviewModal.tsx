@@ -183,11 +183,31 @@ export function IrisRfpReviewModal({
               data: { missionId, documentId },
             });
             toast.success(
-              `IRIS comprehension complete — ${out.questionsGenerated} research questions queued`,
+              `IRIS comprehension complete — ${out.questionsGenerated} research questions queued. Executing now…`,
               { id: "iris-dna" },
             );
             qc.invalidateQueries({ queryKey: ["mission-dna", missionId] });
             qc.invalidateQueries({ queryKey: ["research-agenda", missionId] });
+
+            // ─── Phase 3: execute research agenda via Perplexity ───
+            try {
+              const { executeResearchAgenda } = await import("@/lib/iris-research.functions");
+              const res = await executeResearchAgenda({
+                data: { missionId, limit: 12 },
+              });
+              toast.success(
+                `IRIS research complete — ${res.succeeded}/${res.executed} answered`,
+                { id: "iris-research", duration: 6000 },
+              );
+              qc.invalidateQueries({ queryKey: ["research-agenda", missionId] });
+              qc.invalidateQueries({ queryKey: ["research-results", missionId] });
+            } catch (rerr) {
+              toast.error(
+                `Research execution failed: ${rerr instanceof Error ? rerr.message : "unknown error"}`,
+                { id: "iris-research" },
+              );
+            }
+
           } catch (err) {
             toast.error(
               `Deep RFP comprehension failed: ${err instanceof Error ? err.message : "unknown error"}`,
