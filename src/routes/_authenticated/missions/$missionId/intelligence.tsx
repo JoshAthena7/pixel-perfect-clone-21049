@@ -88,7 +88,7 @@ function IntelligencePage() {
             landscape, priorities, competitor and stakeholder intelligence.
           </p>
           <div className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-[color:var(--iris,#22d3ee)] group-hover:gap-2 transition-all">
-            Open The Oracle <ArrowRight className="h-3.5 w-3.5" />
+            Open Intelligence <ArrowRight className="h-3.5 w-3.5" />
           </div>
           <div className="mt-4 grid grid-cols-2 gap-1.5 text-[11px] text-muted-foreground">
             {[
