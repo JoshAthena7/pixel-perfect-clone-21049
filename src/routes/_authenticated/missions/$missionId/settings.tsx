@@ -85,7 +85,7 @@ function DetailsTab({ missionId }: { missionId: string }) {
 
   const [form, setForm] = useState({
     name: "", client: "", state: "", status: "Active", health: "green",
-    submission_date: "", description: "", slack_webhook: "",
+    submission_date: "", description: "",
   });
 
   useEffect(() => {
@@ -98,7 +98,6 @@ function DetailsTab({ missionId }: { missionId: string }) {
         health: mission.health ?? "green",
         submission_date: mission.submission_date ?? "",
         description: mission.description ?? "",
-        slack_webhook: mission.slack_webhook ?? "",
       });
     }
   }, [mission]);
@@ -113,7 +112,6 @@ function DetailsTab({ missionId }: { missionId: string }) {
         health: form.health,
         submission_date: form.submission_date || null,
         description: form.description || null,
-        slack_webhook: form.slack_webhook || null,
       }).eq("id", missionId);
       if (error) throw error;
     },
@@ -155,12 +153,6 @@ function DetailsTab({ missionId }: { missionId: string }) {
         </div>
       </div>
 
-      <div className="mt-6 rounded-[10px] border border-border bg-surface p-6">
-        <h2 className="mb-4 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Integrations</h2>
-        <Field label="Slack Webhook URL">
-          <input className={inputCls} placeholder="https://hooks.slack.com/services/…" value={form.slack_webhook} onChange={(e) => setForm({ ...form, slack_webhook: e.target.value })} />
-        </Field>
-      </div>
 
       <div className="mt-6 flex items-center justify-between">
         {save.isError && <p className="text-xs text-destructive">{(save.error as Error).message}</p>}
