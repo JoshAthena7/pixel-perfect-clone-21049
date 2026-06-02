@@ -85,7 +85,7 @@ function DetailsTab({ missionId }: { missionId: string }) {
 
   const [form, setForm] = useState({
     name: "", client: "", state: "", status: "Active", health: "green",
-    submission_date: "", description: "", slack_webhook: "",
+    submission_date: "", description: "",
   });
 
   useEffect(() => {
