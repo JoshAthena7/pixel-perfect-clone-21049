@@ -252,8 +252,30 @@ function ResponseView() {
             />
 
             {q.guidance && <Field label="Guidance" value={q.guidance} />}
+
+            <div className="pt-1">
+              <Link
+                to="/missions/$missionId/briefing"
+                params={{ missionId }}
+                className="text-[11px] text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+              >
+                View full briefing →
+              </Link>
+            </div>
           </div>
         </section>
+
+        {/* Source documents link (replaces removed Library nav) */}
+        <div>
+          <Link
+            to="/missions/$missionId/library"
+            params={{ missionId }}
+            className="text-[11px] text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+          >
+            Source documents →
+          </Link>
+        </div>
+
 
         {/* Update Reality */}
         <section>
