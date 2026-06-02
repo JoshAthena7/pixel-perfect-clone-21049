@@ -293,7 +293,7 @@ function ResponsesList() {
                   view === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {k === "mine" ? "My Questions" : "All Questions"}
+                {k === "mine" ? "My Assignments" : "All Assignments"}
               </button>
             ))}
           </div>
@@ -309,7 +309,7 @@ function ResponsesList() {
 
       {filtersOpen && (
         <div className="mb-4 rounded-md border border-border bg-surface/60 p-3 text-xs text-muted-foreground">
-          No additional filters configured. Use the toggle to switch between My Questions and All Questions.
+          No additional filters configured. Use the toggle to switch between My Assignments and All Assignments.
         </div>
       )}
 

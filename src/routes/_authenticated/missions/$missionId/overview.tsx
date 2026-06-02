@@ -328,7 +328,7 @@ function MissionHomePage() {
         <QuickCard to="/missions/$missionId/briefing" params={{ missionId }} icon={<BookOpen className="h-5 w-5" />} label="The Oracle" sub={`Last updated ${oracleAgo}`} />
         <QuickCard to="/missions/$missionId/questions" params={{ missionId }} icon={<PenLine className="h-5 w-5" />} label="The Studio" sub={`${questions.length} question${questions.length === 1 ? "" : "s"}`} tone="primary" />
         {isLeader && (
-          <QuickCard to="/command/question-health" icon={<GitBranch className="h-5 w-5" />} label="The Bridge" sub="Cross-mission view" />
+          <QuickCard to="/command/question-health" icon={<GitBranch className="h-5 w-5" />} label="Mission Overview" sub="Cross-mission view" />
         )}
       </section>
 

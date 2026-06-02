@@ -353,7 +353,7 @@ function ResponseView() {
       }, qc);
     },
     onSuccess: () => {
-      toast.success("Flagged to Command Center.");
+      toast.success("Flagged to Overview.");
       setFlagOpen(false); setFlagType(null); setFlagBody("");
       qc.invalidateQueries({ queryKey: ["question-collabs", questionId] });
     },
@@ -482,8 +482,9 @@ function ResponseView() {
 
       {/* TWO COLUMNS */}
       <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-8 px-6 py-8 lg:grid-cols-[55fr_45fr]">
-        {/* LEFT */}
+        {/* LEFT — Work Area */}
         <div className="space-y-6">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Work Area</div>
           <Block label="Question">
             <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">{q.question_text}</p>
           </Block>
@@ -543,6 +544,7 @@ function ResponseView() {
           </Block>
 
           <div>
+            <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Feedback</div>
             <button
               onClick={() => setCollabExpanded((o) => !o)}
               className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
@@ -579,10 +581,10 @@ function ResponseView() {
           </div>
         </div>
 
-        {/* RIGHT — IRIS */}
+        {/* RIGHT — Question Intelligence */}
         <div className="iris-panel rounded-r-[10px] pl-6 pr-5 py-5">
           <div className="mb-4 flex items-center justify-between gap-3">
-            <span className="iris-label"><span className="iris-dot" />IRIS</span>
+            <span className="iris-label"><span className="iris-dot" />Question Intelligence</span>
             <button
               onClick={() => regenerateCoaching(true)}
               disabled={coachingPending}
