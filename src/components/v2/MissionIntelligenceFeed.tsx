@@ -56,7 +56,10 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
   }), [mission]);
 
   const scored = useMemo(() => scoreAll(items, profile), [items, profile]);
-  const visible = showLow ? scored : scored.filter((s) => s.level !== "LOW");
+  const hasNonLow = scored.some((s) => s.level !== "LOW");
+  // Auto-show LOW items when nothing else qualifies, so the feed isn't empty for
+  // sparsely-configured mission profiles.
+  const visible = showLow || !hasNonLow ? scored : scored.filter((s) => s.level !== "LOW");
 
   // Persist scores to mission_intelligence_scores (upsert) — fire once per scored snapshot.
   const persistedRef = useRef<string>("");
@@ -131,7 +134,7 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
             <h3 className="iris-label">Mission Intelligence Feed</h3>
             <LiveBadge />
             <span className="ml-2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground mono">
-              {visible.length} scored items
+              {visible.length} of {scored.length} scored
             </span>
           </div>
           <button
@@ -157,7 +160,7 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
           )}
         </ul>
 
-        {!showLow && scored.some((s) => s.level === "LOW") && (
+        {!showLow && hasNonLow && scored.some((s) => s.level === "LOW") && (
           <div className="border-t border-border px-5 py-3 text-center">
             <button
               onClick={() => setShowLow(true)}
