@@ -56,7 +56,10 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
   }), [mission]);
 
   const scored = useMemo(() => scoreAll(items, profile), [items, profile]);
-  const visible = showLow ? scored : scored.filter((s) => s.level !== "LOW");
+  const hasNonLow = scored.some((s) => s.level !== "LOW");
+  // Auto-show LOW items when nothing else qualifies, so the feed isn't empty for
+  // sparsely-configured mission profiles.
+  const visible = showLow || !hasNonLow ? scored : scored.filter((s) => s.level !== "LOW");
 
   // Persist scores to mission_intelligence_scores (upsert) — fire once per scored snapshot.
   const persistedRef = useRef<string>("");
