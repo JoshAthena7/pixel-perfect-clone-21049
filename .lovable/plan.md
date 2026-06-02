@@ -1,96 +1,51 @@
-## Phase B — Mission Page Consolidation
+## Phase E — IRIS Context Wiring
 
-Reorganize navigation so everything mission-related lives inside `/missions/$missionId/*` with five sections, a persistent IRIS strip, and a Studio CTA. No backend changes; no functionality deleted — content is moved and renamed.
+No navigation or layout changes. We add three context-aware IRIS briefs powered by Gemini via Lovable AI, make Ask IRIS context-aware, and add five background triggers. All using existing tables.
 
-### New routes (file-based)
+### 1. Server functions (new / updated in `src/lib/`)
 
-Create a layout route that owns the Mission sidebar + IRIS strip + section outlet:
+- **`iris-lobby-brief.functions.ts`** *(new)* — `generateLobbyBrief({ force?: boolean })`. Pulls active `missions`, aggregated `question_records` health counts, unresolved `question_collaboration` (sme_request/decision_needed/air_cover, last 24h), unresolved `alignment_conflicts`, `mission_review_gates` within 14d, latest 3 `market_intelligence`, open SOS `signals`. Calls `google/gemini-2.5-flash` via Lovable AI Gateway with the firm-level prompt. Caches in `iris_brief_cache` with `scope='lobby'`, `user_id=auth.uid()`, daily key; `force` bypasses cache.
 
-```
-src/routes/_authenticated/missions/$missionId.tsx       (layout: sidebar + IRIS strip + <Outlet />)
-src/routes/_authenticated/missions/$missionId/index.tsx (redirect → overview)
-src/routes/_authenticated/missions/$missionId/overview.tsx       (rewritten)
-src/routes/_authenticated/missions/$missionId/intelligence.tsx   (new — Vault + Oracle)
-src/routes/_authenticated/missions/$missionId/operations.tsx     (new — tabs: Risks/Issues/Decisions/Assumptions/Signals/Health)
-src/routes/_authenticated/missions/$missionId/team.tsx           (new)
-src/routes/_authenticated/missions/$missionId/activity.tsx       (new)
-src/routes/_authenticated/missions/$missionId/studio.tsx         (new layout/back-link shell wrapping question list)
-```
+- **`iris-mission-brief.functions.ts`** *(new)* — `generateMissionBrief({ missionId, force? })`. Pulls mission's `question_records` (totals/health/score<4.5/pens_down≤14d), `alignment_conflicts` (unresolved), `question_collaboration` (unresolved signals), next `mission_review_gates`, recent `signals`, `win_themes`. Caches in `iris_brief_cache` scope=`mission`, ref_id=missionId, 30-min TTL. Replaces the simple status string in `$missionId.tsx`.
 
-Existing `library.tsx`, `briefing.tsx`, `brief.tsx`, `iris.tsx` route files: keep file but replace body with `<Navigate to="…/intelligence" replace />` so deep links keep working. `questions/` stays under Studio.
+- **`iris-question-brief.functions.ts`** *(extend existing)* — Add 3 labeled outputs (State Priority / Procurement Signal / Differentiation) + optional Compliance Note via tool-calling JSON. Uses `question_records`, `question_intelligence`, semantic matches from `embeddings` (cosine) to `market_intelligence` and engagement research, `win_themes`, `question_relationships`, `mission_assumptions`. 4-hour TTL.
 
-### Mission layout (`$missionId.tsx`)
+- **`iris-ask.functions.ts`** *(extend)* — Accept `contextLevel: 'lobby'|'mission'|'question'` + `missionId?`, `questionId?`. Build system prompt with the base IRIS persona + level-specific data block. Persona suffix per level.
 
-- Left rail (240px): mission name + client, divider, 5 nav links (Overview, Intelligence, Operations, Team, Activity), divider, prominent **Studio →** filled button, footer settings gear (icon-only link to `settings`).
-- Main column: persistent **IRIS Brief Strip** (collapsible, teal border, pulse dot, ▾ chevron, default expanded; collapsed shows truncated first sentence). Reads `missions.iris_brief` if present, else fallback copy.
-- Below strip: `<Outlet />`.
+### 2. UI integrations
 
-Use `useRouterState` for active link styling. Active section gets `bg-accent` + left teal accent.
+- **Lobby (`home.tsx`)**: Add IRIS Morning Brief card at the top — prose, "● IRIS · Updated {time}", Refresh link. Calls `generateLobbyBrief` via TanStack Query (auto-fetch on mount, manual refresh).
 
-### AppShell / global nav changes
+- **Mission layout (`$missionId.tsx`)**: Replace the hand-computed status text in the existing IRIS strip with `generateMissionBrief({ missionId })`. Keep strip layout/styling untouched. Add Refresh link + timestamp.
 
-In `src/components/v2/AppShell.tsx`: remove top-level "Mission Control", "Library", "Briefing Book", "Command Center", "Mission Overview" entries. Top-level nav becomes just **Lobby** (home) and the active mission (which expands into its own sidebar inside the layout). Keep Olympus if it exists for admins. Eliminate the string "Mission Control" everywhere in UI copy.
+- **Question workspace (Studio)**: Locate the existing IRIS right column in `questions/$questionId` route. Render the three labeled insights (State Priority, Procurement Signal, Differentiation, optional Compliance) returned by the extended question brief fn. Keep visual treatment.
 
-### Section content (move, don't rewrite logic)
+- **Ask IRIS**: Find current Ask IRIS entry points (drawer/modal) and pass `contextLevel` + IDs based on current route. No UI redesign.
 
-**Overview** — port from current `overview.tsx` + `command/attention.tsx`:
-- Block A Health summary (Green/Yellow/Red counts from `question_records`)
-- Block B Timeline (submission + pens-down + review gates; red if ≤7d)
-- Block C Team Needs (from existing Team Needs component / signals where `entry_type` in (decision_needed, sme_request, air_cover) and unresolved; inline Respond form → `leadership_guidance` insert + resolve)
-- Block D Responses At Risk (query: red health OR score<3.0 with <14d to pens-down OR unresolved critical conflict OR no writer <14d)
-- Block E Leadership Notes (read all; write Leadership/Admin only via role check)
-- Block F SOS banner (only if active SOS signals exist)
+### 3. Proactive triggers (lightweight, no new tables)
 
-**Intelligence** — two-column:
-- Left "THE VAULT": category list (RFP & Amendments, State Q&A, Past Responses, Templates, Reference Materials, Research, Supporting Materials, Client Materials) + filtered document table. Upload button gated to Admin/Leadership.
-- Right "● ORACLE": collapsible IRIS panels (Alignment Analysis, Theme Analysis, Question Clusters, Reviewer Signals, Emerging Risks, Predictive Insights, Political Landscape, State Priorities, Procurement Landscape, Competitor Analysis, Stakeholder Intelligence, Policy & Regulatory Climate). First 3 expanded by default; each has timestamp + Refresh; empty state copy when none.
-- Bottom: link "Mission Activity — Recent uploads and intelligence updates →" to Activity section.
+Implemented as server functions invoked from existing write paths (no cron required for v1):
 
-**Operations** — tabbed surface (Risks | Issues | Decisions | Assumptions | Signals | Health Checks). Pull existing components/queries; no logic change.
+- **Conflict detection**: after a `question_collaboration` insert (writer comment/sme_request), an existing trigger or follow-up server fn compares embeddings across the mission's recent entries. On semantic similarity + LLM "contradicts?" check → insert `alignment_conflicts`. *(Wire only if embedding pipeline already exists — otherwise stub a TODO function and document.)*
+- **Win-theme coverage**: server fn `checkWinThemeCoverage(missionId)` called on win_theme or question save; emits a `signals` row when a theme has < 3 linked questions.
+- **Pens-down proximity**: SQL view/query already feeds Responses At Risk; add a tiny server fn that flips `question_records.health = 'red'` when pens_down ≤ 7d and status != complete. Invoked on mission brief refresh.
+- **SME silence**: server fn invoked on mission brief refresh; emits a `signals` row for unresolved `sme_request` older than 3 days (idempotent via dedupe on related_question_id + signal_type).
+- **New market intel match**: server fn `matchIntelToQuestions(intelId)` called after a new `market_intelligence` insert; semantic match → invalidate matching question briefs (delete `question_intelligence` cache rows) and insert a `signals` row.
 
-**Team** — roster, SME directory, leadership, assignment matrix, access management (Admin only).
+### 4. Prompts
 
-**Activity** — reverse-chron feed combining inserts from documents, signals, mission_decisions, comments, assignments, reviews, IRIS updates, leadership notes. Filter chips: All / Documents / Signals / Decisions / Comments / IRIS. Default All, last 7 days.
+Single shared base prompt constant (`IRIS_BASE_PROMPT`) + per-level append. JSON tool-call output for question brief (3–4 fields). Prose output for lobby & mission briefs.
 
-### Studio entry
+### 5. Out of scope
 
-`Studio →` from sidebar navigates to `…/studio` which renders existing question list + writer brief panel (currently in `questions/index.tsx`). Studio shell sidebar shows: mission name, "My Questions", "← Mission" back link to `…/overview`.
+- No schema migrations.
+- No new routes or layout changes.
+- No changes to Update Reality modal, lobby card layout, IRIS visual tokens.
+- Cron-based scheduling for proactive triggers (kept synchronous on write paths for v1).
 
-### Terminology sweep
+### Files touched
 
-Replace strings project-wide in UI copy only:
-- "Library" → "The Vault"
-- "Briefing Book" → "The Oracle"
-- Remove all "Mission Control"
+New: `src/lib/iris-lobby-brief.functions.ts`, `src/lib/iris-mission-brief.functions.ts`, `src/lib/iris-prompts.ts`, `src/lib/iris-triggers.functions.ts`.
+Edited: `src/lib/iris-question-brief.functions.ts`, `src/lib/iris-ask.functions.ts`, `src/routes/_authenticated/home.tsx`, `src/routes/_authenticated/missions/$missionId.tsx`, question workspace component, Ask IRIS component(s).
 
-### Redirects
-
-Add redirect components in the now-vestigial route files (`library.tsx`, `briefing.tsx`, `brief.tsx`, `iris.tsx`) and in `command/*` top-level files (or remove from nav and let the layout absence handle it).
-
-### Out of scope
-
-No DB migrations. No RLS edits. No deletion of existing components — only moves/renames in the UI.
-
-### Acceptance
-
-- Land on Overview on mission entry.
-- IRIS strip visible across all 5 sections, collapsible.
-- Vault + Oracle live in Intelligence.
-- Team Needs + Responses At Risk live in Overview.
-- Studio reachable from sidebar CTA; back link present in Studio.
-- "Mission Control" and "Briefing Book" do not appear in UI. "Library" replaced with "The Vault".
-
----
-
-### Scope note
-
-This is a very large refactor (~6k lines of touched route/component code: new layout, 5 new section files, AppShell rewrite, redirects, terminology sweep, role-gated Leadership Notes + SOS + Activity feed). I'd recommend landing it in stages so each piece is reviewable:
-
-1. Layout + sidebar + IRIS strip + redirects + AppShell nav cleanup (skeleton, sections render placeholders).
-2. Overview (port + new blocks).
-3. Intelligence (Vault + Oracle).
-4. Operations tabs.
-5. Team + Activity.
-6. Terminology sweep + Studio shell.
-
-Reply with **"go"** to start at stage 1, or tell me to do it all in one pass.
+Confirm to proceed and I'll implement in batches (server fns first, then UI wiring, then triggers).
