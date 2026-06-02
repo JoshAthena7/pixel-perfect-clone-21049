@@ -1,9 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Trash2, Search, FileText, X, CheckSquare, Square } from "lucide-react";
+import { Plus, Trash2, Search, FileText, X, CheckSquare, Square, Sparkles, Download } from "lucide-react";
 import { useSelectedOlympusMission } from "../olympus";
 import { logOlympusAction } from "@/lib/audit";
 
@@ -141,6 +141,17 @@ function QuestionsPage() {
               Bulk assign ({selected.size})
             </button>
           )}
+          <button
+            onClick={() => exportCsv(rows, members)}
+            disabled={rows.length === 0}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-sm hover:bg-surface-hover disabled:opacity-50"
+          >
+            <Download className="h-3.5 w-3.5" /> Export
+          </button>
+          <Link to="/olympus/vault"
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-sm hover:bg-surface-hover">
+            <Sparkles className="h-3.5 w-3.5" /> Import from RFP
+          </Link>
           <button onClick={() => setAddOpen(true)}
             className="inline-flex items-center gap-2 rounded-md bg-[#C49A22] px-4 py-2 text-sm font-semibold text-black hover:bg-[#D4AA32]">
             <Plus className="h-4 w-4" /> Add Question
@@ -426,4 +437,31 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       {children}
     </div>
   );
+}
+
+function exportCsv(rows: QRow[], members: Member[]) {
+  const nameFor = (id: string | null) => {
+    if (!id) return "";
+    const m = members.find((x) => x.user_id === id);
+    return m?.profile?.display_name ?? m?.profile?.email ?? id;
+  };
+  const header = ["Q#", "Title", "Section", "Status", "Writer", "SME", "Pens Down", "Pages", "Weight", "Health"];
+  const lines = [header.join(",")];
+  for (const r of rows) {
+    const cells = [
+      r.question_number, r.title, r.section_number ?? "", r.status ?? "",
+      nameFor(r.assigned_writer_id), nameFor(r.assigned_sme_id),
+      r.pens_down_date ?? "", r.page_limit ?? "", r.evaluation_weight ?? "", r.health ?? "",
+    ].map((v) => {
+      const s = String(v ?? "");
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    });
+    lines.push(cells.join(","));
+  }
+  const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `questions-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  toast.success("Exported CSV");
 }
