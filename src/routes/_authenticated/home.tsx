@@ -222,10 +222,11 @@ function AthenaHQ() {
     queryFn: async () => {
       const { data } = await supabase
         .from("market_intelligence")
-        .select("id,source,type,category,title,summary,url,published_at,created_at")
+        .select("id,source,type,category,title,summary,url,published_at,created_at,matched_mission_ids")
+        .eq("feed_type", "industry")
         .order("created_at", { ascending: false })
         .limit(100);
-      return (data ?? []) as IntelItem[];
+      return (data ?? []) as (IntelItem & { matched_mission_ids?: string[] | null })[];
     },
     refetchInterval: 60_000,
   });
