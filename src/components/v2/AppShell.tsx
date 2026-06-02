@@ -107,6 +107,13 @@ function UserAvatarMenu() {
           >
             <User className="h-4 w-4" /> Profile
           </button>
+          <Link
+            to="/olympus"
+            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+            onClick={() => setOpen(false)}
+          >
+            <Shield className="h-4 w-4 text-[color:var(--athena-gold)]" /> Olympus
+          </Link>
           <button
             className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-muted-foreground hover:bg-surface-hover hover:text-foreground"
             onClick={signOut}
@@ -255,17 +262,27 @@ function MissionRail({ missionId }: { missionId: string }) {
       </nav>
 
       <div className="border-t border-border p-3 flex items-center justify-between">
-        <Link
-          to="/missions/$missionId/settings"
-          params={{ missionId }}
-          aria-label="Mission settings"
-          title="Mission settings"
-          className={`inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-surface-hover hover:text-foreground ${
-            path.endsWith("/settings") ? "bg-surface-hover text-foreground" : ""
-          }`}
-        >
-          <Settings2 size={16} strokeWidth={1.5} />
-        </Link>
+        <div className="flex items-center gap-1">
+          <Link
+            to="/olympus"
+            aria-label="Olympus"
+            title="Olympus"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+          >
+            <Shield size={16} strokeWidth={1.5} className="text-[color:var(--athena-gold)]" />
+          </Link>
+          <Link
+            to="/missions/$missionId/settings"
+            params={{ missionId }}
+            aria-label="Mission settings"
+            title="Mission settings"
+            className={`inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-surface-hover hover:text-foreground ${
+              path.endsWith("/settings") ? "bg-surface-hover text-foreground" : ""
+            }`}
+          >
+            <Settings2 size={16} strokeWidth={1.5} />
+          </Link>
+        </div>
         <SignOutButton />
       </div>
     </div>
@@ -320,17 +337,27 @@ function StudioRail({ missionId }: { missionId: string }) {
       </nav>
 
       <div className="border-t border-border p-3 flex items-center justify-between">
-        <Link
-          to="/missions/$missionId/settings"
-          params={{ missionId }}
-          aria-label="Mission settings"
-          title="Mission settings"
-          className={`inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-surface-hover hover:text-foreground ${
-            path.endsWith("/settings") ? "bg-surface-hover text-foreground" : ""
-          }`}
-        >
-          <Settings2 size={16} strokeWidth={1.5} />
-        </Link>
+        <div className="flex items-center gap-1">
+          <Link
+            to="/olympus"
+            aria-label="Olympus"
+            title="Olympus"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+          >
+            <Shield size={16} strokeWidth={1.5} className="text-[color:var(--athena-gold)]" />
+          </Link>
+          <Link
+            to="/missions/$missionId/settings"
+            params={{ missionId }}
+            aria-label="Mission settings"
+            title="Mission settings"
+            className={`inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-surface-hover hover:text-foreground ${
+              path.endsWith("/settings") ? "bg-surface-hover text-foreground" : ""
+            }`}
+          >
+            <Settings2 size={16} strokeWidth={1.5} />
+          </Link>
+        </div>
         <SignOutButton />
       </div>
     </div>
