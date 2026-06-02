@@ -324,9 +324,9 @@ function MissionHomePage() {
 
       {/* ROW 4 — QUICK LINKS */}
       <section className={`grid grid-cols-1 gap-3 md:grid-cols-${isLeader ? 4 : 3}`}>
-        <QuickCard to="/missions/$missionId/library" params={{ missionId }} icon={<FolderOpen className="h-5 w-5" />} label="The Vault" sub={`${vaultCount} document${vaultCount === 1 ? "" : "s"}`} />
-        <QuickCard to="/missions/$missionId/briefing" params={{ missionId }} icon={<BookOpen className="h-5 w-5" />} label="The Oracle" sub={`Last updated ${oracleAgo}`} />
-        <QuickCard to="/missions/$missionId/questions" params={{ missionId }} icon={<PenLine className="h-5 w-5" />} label="The Studio" sub={`${questions.length} question${questions.length === 1 ? "" : "s"}`} tone="primary" />
+        <QuickCard to="/missions/$missionId/library" params={{ missionId }} icon={<FolderOpen className="h-5 w-5" />} label="The Vault · Documents" sub={`${vaultCount} document${vaultCount === 1 ? "" : "s"}`} />
+        <QuickCard to="/missions/$missionId/briefing" params={{ missionId }} icon={<BookOpen className="h-5 w-5" />} label="The Oracle · Intelligence" sub={`Last updated ${oracleAgo}`} />
+        <QuickCard to="/missions/$missionId/questions" params={{ missionId }} icon={<PenLine className="h-5 w-5" />} label="The Studio · Studio" sub={`${questions.length} question${questions.length === 1 ? "" : "s"}`} tone="primary" />
         {isLeader && (
           <QuickCard to="/command/question-health" icon={<GitBranch className="h-5 w-5" />} label="Mission Overview" sub="Cross-mission view" />
         )}
