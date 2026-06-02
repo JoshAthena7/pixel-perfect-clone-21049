@@ -160,7 +160,7 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
           )}
         </ul>
 
-        {!showLow && scored.some((s) => s.level === "LOW") && (
+        {!showLow && hasNonLow && scored.some((s) => s.level === "LOW") && (
           <div className="border-t border-border px-5 py-3 text-center">
             <button
               onClick={() => setShowLow(true)}
