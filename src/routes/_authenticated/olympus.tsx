@@ -105,7 +105,9 @@ function OlympusHeader() {
       <div className="flex items-center gap-2">
         <Zap className="h-4 w-4 text-[color:var(--athena-gold)]" />
         <span className="text-[12px] font-extrabold uppercase tracking-[0.32em]">Olympus</span>
+        <span className="ml-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Atlas Administration</span>
       </div>
+
 
       <MissionSwitcher missions={missions} selected={selected} onPick={pick} />
 
