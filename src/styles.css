@@ -60,6 +60,10 @@
   /* DESIGN-1 (BRAND): IRIS visual identity */
   --iris: #0891b2;
   --iris-rgb: 8, 145, 178;
+  --iris-hover: #0e7490;
+  --iris-subtle: rgba(8, 145, 178, 0.10);
+  --iris-pulse: rgba(8, 145, 178, 0.30);
+  --iris-border: rgba(8, 145, 178, 0.40);
 
   /* ATHENA BRAND tokens */
   --athena-navy: #1E3A6B;
