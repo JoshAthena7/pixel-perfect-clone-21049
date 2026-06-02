@@ -2,7 +2,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useParams } from "@tanstack/react-router";
 import {
   Building2, Target, Mountain, Eye, Activity, GitMerge, BarChart2, Clock, Radio,
-  LayoutDashboard, PenTool, Archive, Sparkles, Settings2,
+  LayoutDashboard, PenTool, Archive, Sparkles, Settings2, AlertOctagon,
   ChevronLeft, ChevronRight, LogOut, User,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -209,6 +209,7 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
 
         <Section label="The Bridge" zone="bridge" leadingIcon={<Eye size={12} strokeWidth={1.5} className="text-[color:var(--iris)]" />}>
           <div className="nav-zone-bridge-items space-y-0.5">
+            <AttentionNavItem currentPath={currentPath} />
             <NavItem to="/command/question-health" icon={<Activity size={14} strokeWidth={1.5} />} active={currentPath === "/command/question-health"}>Question Health</NavItem>
             <NavItem to="/command/alignment" icon={<GitMerge size={14} strokeWidth={1.5} />} active={currentPath === "/command/alignment"}>Alignment Conflicts</NavItem>
             <NavItem to="/command/scores" icon={<BarChart2 size={14} strokeWidth={1.5} />} active={currentPath === "/command/scores"}>Score Dashboard</NavItem>
@@ -313,6 +314,38 @@ function NavItem({ to, params, icon, active, children }: { to: string; params?: 
     >
       {icon}
       <span className="flex-1 truncate flex items-center">{children}</span>
+    </Link>
+  );
+}
+
+function AttentionNavItem({ currentPath }: { currentPath: string }) {
+  const { data: count = 0 } = useQuery({
+    queryKey: ["attention-need-count"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("reality_updates")
+        .select("id", { count: "exact", head: true })
+        .eq("signal_type", "need")
+        .eq("resolved", false);
+      return count ?? 0;
+    },
+    refetchInterval: 60_000,
+  });
+  const active = currentPath === "/command/attention";
+  return (
+    <Link
+      to={"/command/attention" as any}
+      className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors ${
+        active ? "bg-surface-hover text-foreground" : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+      }`}
+    >
+      <AlertOctagon size={14} strokeWidth={1.5} className={count > 0 ? "text-destructive" : ""} />
+      <span className="flex-1 truncate">Attention</span>
+      {count > 0 && (
+        <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-destructive/20 px-1.5 text-[10px] font-semibold text-destructive">
+          {count}
+        </span>
+      )}
     </Link>
   );
 }

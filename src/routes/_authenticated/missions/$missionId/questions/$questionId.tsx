@@ -4,817 +4,390 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { createSignal } from "@/lib/signals";
-import { irisQuestionSignals } from "@/lib/iris.functions";
+import { irisAskQuestion } from "@/lib/iris-ask.functions";
 import { toast } from "sonner";
-import {
-  ArrowLeft, Sparkles, MessageSquare, AlertTriangle, FileText, Activity,
-  Target, Calendar, User as UserIcon, Send, CheckCircle2, Shield, Trophy, Link2, Copy,
-  Maximize2, Minimize2,
-} from "lucide-react";
-import { ScoreTrend } from "@/components/v2/ScoreTrend";
-import { ShortcutsHint } from "@/components/v2/KeyboardShortcuts";
-import { pensDownInfo, pensDownPillClass, getWriteMode, applyWriteMode, markQuestionVisited } from "@/lib/writer-utils";
-
+import { ArrowLeft, Sparkles, Send } from "lucide-react";
 
 export const Route = createFileRoute(
   "/_authenticated/missions/$missionId/questions/$questionId",
 )({
-  component: QuestionWorkspace,
+  component: ResponseView,
 });
 
-type Question = {
+type Q = {
   id: string;
   mission_id: string;
   question_number: string;
-  section_number: string | null;
   title: string;
   question_text: string;
-  requirements: string[] | null;
-  mandatory_language: string[] | null;
-  scoring_criteria: string | null;
-  evaluation_weight: number | null;
-  page_limit: number | null;
-  word_limit: number | null;
-  formatting_rules: string | null;
   pens_down_date: string | null;
-  status: string;
-  health: "green" | "yellow" | "red";
-  health_drivers: Record<string, unknown> | null;
-  current_score: number | null;
-  target_score: number | null;
-  assigned_writer_id: string | null;
-  assigned_sme_id: string | null;
+  current_focus: string | null;
+  next_step: string | null;
+  waiting_on: string | null;
+  guidance: string | null;
 };
 
-type Collab = {
-  id: string;
-  entry_type: string;
-  body: string;
-  author_id: string | null;
-  author_name: string;
-  resolved: boolean;
-  created_at: string;
+type Gate = { id: string; gate_name: string; target_date: string | null };
+type WinTheme = { id: string; title: string; question_ids: string[] | null };
+
+type NeedType = "direction" | "decision" | "help" | "air_cover";
+type Choice = null | "learned" | "need" | "unchanged";
+
+const NEED_COLORS: Record<NeedType, { bg: string; border: string; text: string; label: string }> = {
+  direction: { bg: "rgba(59,130,246,0.15)", border: "#3b82f6", text: "#60a5fa", label: "NEED DIRECTION" },
+  decision: { bg: "rgba(168,85,247,0.15)", border: "#a855f7", text: "#c084fc", label: "NEED DECISION" },
+  help: { bg: "rgba(245,158,11,0.15)", border: "#f59e0b", text: "#fbbf24", label: "NEED HELP" },
+  air_cover: { bg: "rgba(239,68,68,0.15)", border: "#ef4444", text: "#f87171", label: "NEED AIR COVER" },
 };
 
-type Intel = {
-  iris_brief: string | null;
-  state_priorities: string | null;
-  procurement_priorities: string | null;
-  competitor_signals: string | null;
-  key_messages: string[] | null;
-  compliance_flags: string[] | null;
-  generated_at: string | null;
-  expires_at: string | null;
-};
-
-type Conflict = {
-  id: string;
-  conflict_type: string;
-  description: string | null;
-  resolved: boolean;
-  question_a_id: string;
-  question_b_id: string;
-  question_a: { question_number: string; title: string } | null;
-  question_b: { question_number: string; title: string } | null;
-};
-
-type Profile = { id: string; display_name: string | null; email: string | null };
-type Gate = { id: string; gate_name: string; gate_order: number; target_date: string | null };
-type GateStatus = { gate_id: string; status: string; completed_at: string | null };
-type WinTheme = { id: string; title: string; description: string | null; key_message: string | null; question_ids: string[] | null };
-
-function QuestionWorkspace() {
+function ResponseView() {
   const { missionId, questionId } = Route.useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const [writeMode, setWriteMode] = useState<boolean>(() => getWriteMode());
-
-  useEffect(() => { applyWriteMode(writeMode); }, [writeMode]);
-  useEffect(() => () => { applyWriteMode(false); }, []); // cleanup on unmount
-
-  // WRITER-5: mark this question as visited so new-signals badges clear
-  useEffect(() => { markQuestionVisited(questionId); }, [questionId]);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const inField = !!(e.target as HTMLElement)?.closest("textarea,input,select,[contenteditable='true']");
-      if (e.key === "Escape" && !inField) {
-        navigate({ to: "/missions/$missionId/questions", params: { missionId } });
-      } else if ((e.key === "w" || e.key === "W") && !inField && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        e.preventDefault();
-        setWriteMode((v) => !v);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [navigate, missionId, questionId]);
 
   const { data: q, isLoading } = useQuery({
     queryKey: ["question", questionId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("question_records").select("*").eq("id", questionId).maybeSingle();
+        .from("question_records")
+        .select("id,mission_id,question_number,title,question_text,pens_down_date,current_focus,next_step,waiting_on,guidance")
+        .eq("id", questionId)
+        .maybeSingle();
       if (error) throw error;
-      return data as Question | null;
-    },
-  });
-
-  const assignedIds = [q?.assigned_writer_id, q?.assigned_sme_id].filter(Boolean) as string[];
-  const { data: people = [] } = useQuery({
-    queryKey: ["question-people", questionId, assignedIds.join(",")],
-    enabled: assignedIds.length > 0,
-    queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("id,display_name,email").in("id", assignedIds);
-      return (data ?? []) as Profile[];
-    },
-  });
-  const peopleById = Object.fromEntries(people.map((p) => [p.id, p]));
-
-  const { data: collab = [] } = useQuery({
-    queryKey: ["question-collab", questionId],
-    queryFn: async () => {
-      const { data } = await supabase.from("question_collaboration")
-        .select("id,entry_type,body,author_id,author_name,resolved,created_at")
-        .eq("question_id", questionId).order("created_at", { ascending: false });
-      return (data ?? []) as Collab[];
-    },
-  });
-
-  const { data: intel = null } = useQuery({
-    queryKey: ["question-intel", questionId],
-    queryFn: async () => {
-      const { data } = await supabase.from("question_intelligence")
-        .select("*").eq("question_id", questionId).maybeSingle();
-      return (data as Intel | null) ?? null;
-    },
-  });
-
-  const { data: conflicts = [] } = useQuery({
-    queryKey: ["question-conflicts", questionId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("alignment_conflicts")
-        .select(`id,conflict_type,description,resolved,question_a_id,question_b_id,
-          question_a:question_records!alignment_conflicts_question_a_id_fkey(question_number,title),
-          question_b:question_records!alignment_conflicts_question_b_id_fkey(question_number,title)`)
-        .or(`question_a_id.eq.${questionId},question_b_id.eq.${questionId}`);
-      return (data ?? []) as unknown as Conflict[];
+      return data as Q | null;
     },
   });
 
   const { data: gates = [] } = useQuery({
     queryKey: ["mission-gates", missionId],
     queryFn: async () => {
-      const { data } = await supabase.from("mission_review_gates")
-        .select("id,gate_name,gate_order,target_date")
-        .eq("mission_id", missionId).order("gate_order");
+      const { data } = await supabase
+        .from("mission_review_gates")
+        .select("id,gate_name,target_date")
+        .eq("mission_id", missionId)
+        .order("gate_order");
       return (data ?? []) as Gate[];
     },
   });
 
-  const { data: gateStatuses = [] } = useQuery({
-    queryKey: ["question-gates", questionId],
-    queryFn: async () => {
-      const { data } = await supabase.from("question_gate_status")
-        .select("gate_id,status,completed_at").eq("question_id", questionId);
-      return (data ?? []) as GateStatus[];
-    },
-  });
-  const gateStatusMap = Object.fromEntries(gateStatuses.map((g) => [g.gate_id, g]));
-
   const { data: winThemes = [] } = useQuery({
     queryKey: ["mission-winthemes", missionId],
     queryFn: async () => {
-      const { data } = await supabase.from("win_themes")
-        .select("id,title,description,key_message,question_ids").eq("mission_id", missionId);
+      const { data } = await supabase
+        .from("win_themes")
+        .select("id,title,question_ids")
+        .eq("mission_id", missionId);
       return (data ?? []) as WinTheme[];
     },
   });
-  const connectedThemes = winThemes.filter((w) => (w.question_ids ?? []).includes(questionId));
+  const connectedTheme = winThemes.find((w) => (w.question_ids ?? []).includes(questionId));
 
-  useEffect(() => {
-    const ch = supabase
-      .channel(`collab-${questionId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "question_collaboration", filter: `question_id=eq.${questionId}` },
-        () => qc.invalidateQueries({ queryKey: ["question-collab", questionId] }))
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, [questionId, qc]);
+  const nextGate = gates
+    .filter((g) => g.target_date && new Date(g.target_date) > new Date())
+    .sort((a, b) => new Date(a.target_date!).getTime() - new Date(b.target_date!).getTime())[0];
 
-  const updateStatus = useMutation({
-    mutationFn: async (status: string) => {
-      const { error } = await supabase.from("question_records").update({ status }).eq("id", questionId);
+  const daysUntil = (iso: string | null) =>
+    iso ? Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000) : null;
+
+  const dueDays = daysUntil(q?.pens_down_date ?? null);
+  const gateDays = daysUntil(nextGate?.target_date ?? null);
+
+  // Update reality state
+  const [choice, setChoice] = useState<Choice>(null);
+  const [needType, setNeedType] = useState<NeedType | null>(null);
+  const [details, setDetails] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const submitUpdate = useMutation({
+    mutationFn: async () => {
+      if (!choice || !q) return;
+      setSubmitting(true);
+      const { data: auth } = await supabase.auth.getUser();
+      const user = auth.user;
+      if (!user) throw new Error("Not signed in");
+
+      const { data: profile } = await supabase
+        .from("profiles").select("display_name,email").eq("id", user.id).maybeSingle();
+      const name = profile?.display_name || profile?.email?.split("@")[0] || "Unknown";
+
+      const { error } = await supabase.from("reality_updates").insert({
+        question_id: questionId,
+        mission_id: missionId,
+        user_id: user.id,
+        user_name: name,
+        signal_type: choice,
+        need_type: choice === "need" ? needType : null,
+        details: details.trim() || null,
+      });
       if (error) throw error;
-      if (status === "complete" && q) {
-        await createSignal({
-          mission_id: missionId,
-          source_module: "question_workspace",
-          signal_type: "question_completed",
-          signal_title: `Question ${q.question_number} completed`,
-          signal_summary: q.title,
-          severity: "info",
-          related_question_id: questionId,
-        });
-      }
+
+      // Emit IRIS signal
+      const severity =
+        choice === "need" && (needType === "air_cover" || needType === "decision") ? "critical"
+        : choice === "need" ? "warning"
+        : "info";
+      const titleMap: Record<string, string> = {
+        learned: "Writer learned something",
+        need: needType ? NEED_COLORS[needType].label : "Writer needs something",
+        unchanged: "Status check — no change",
+      };
+      await createSignal({
+        mission_id: missionId,
+        source_module: "response_view",
+        signal_type: choice === "need" ? "decision_needed" : choice === "learned" ? "comment_added" : "comment_added",
+        signal_title: `${titleMap[choice]} · ${q.question_number}`,
+        signal_summary: details.trim() || q.title,
+        severity,
+        related_question_id: questionId,
+      }, qc);
     },
     onSuccess: () => {
-      toast.success("Status updated");
-      qc.invalidateQueries({ queryKey: ["question", questionId] });
-      qc.invalidateQueries({ queryKey: ["mission-questions", missionId] });
+      toast.success("Signal sent.");
+      setChoice(null);
+      setNeedType(null);
+      setDetails("");
+      setSubmitting(false);
+      qc.invalidateQueries({ queryKey: ["reality-updates", questionId] });
+      qc.invalidateQueries({ queryKey: ["mission-reality-latest", missionId] });
+      qc.invalidateQueries({ queryKey: ["attention-needs"] });
+    },
+    onError: (e: Error) => {
+      toast.error(e.message);
+      setSubmitting(false);
     },
   });
 
-  if (isLoading) return <div className="px-8 py-12 text-sm text-muted-foreground">Loading question…</div>;
+  // Ask IRIS state
+  const askFn = useServerFn(irisAskQuestion);
+  const [prompt, setPrompt] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [asking, setAsking] = useState(false);
+  const onAsk = async () => {
+    if (!prompt.trim()) return;
+    setAsking(true);
+    setAnswer("");
+    try {
+      const r = await askFn({ data: { questionId, prompt: prompt.trim() } });
+      setAnswer(r.answer);
+    } catch (e: any) {
+      setAnswer(`_Error: ${e?.message ?? "unknown"}_`);
+    } finally {
+      setAsking(false);
+    }
+  };
+
+  // Escape to return
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const inField = !!(e.target as HTMLElement)?.closest("textarea,input,select,[contenteditable='true']");
+      if (e.key === "Escape" && !inField) {
+        navigate({ to: "/missions/$missionId/questions", params: { missionId } });
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [navigate, missionId]);
+
+  if (isLoading) return <div className="px-8 py-12 text-sm text-muted-foreground">Loading…</div>;
   if (!q) {
     return (
       <div className="px-8 py-12 text-sm">
-        Question not found.{" "}
-        <Link to="/missions/$missionId/questions" params={{ missionId }} className="text-primary hover:underline">Back</Link>
+        Response not found.{" "}
+        <Link to="/missions/$missionId/questions" params={{ missionId }} className="text-primary hover:underline">
+          Back
+        </Link>
       </div>
     );
   }
 
-  const pens = pensDownInfo(q.pens_down_date);
-  const writer = q.assigned_writer_id ? peopleById[q.assigned_writer_id] : null;
-  const sme = q.assigned_sme_id ? peopleById[q.assigned_sme_id] : null;
-
   return (
-    <div className="flex flex-col h-screen relative">
-      {writeMode && (
-        <div className="absolute top-2 left-3 z-30 text-[10px] uppercase tracking-[0.18em] text-primary/80">
-          Write Mode
-        </div>
-      )}
-      {writeMode && (
-        <button
-          onClick={() => setWriteMode(false)}
-          className="absolute top-2 right-3 z-30 inline-flex items-center gap-1 rounded-md border border-border bg-surface/80 px-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground"
-          title="Exit Write Mode (W)"
-        >
-          <Minimize2 className="h-3 w-3" /> Exit Write Mode
-        </button>
-      )}
-
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="shrink-0 border-b border-border bg-surface/60 backdrop-blur px-8 py-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4 min-w-0">
-            <Link
-              to="/missions/$missionId/questions" params={{ missionId }}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" /> Questions
-              <span className="ml-2 hidden md:inline text-[10px] uppercase tracking-wider opacity-60">Esc</span>
-            </Link>
-            <div className="h-5 w-px bg-border" />
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className={`dot dot-${q.health}`} />
-                <span className="font-mono">{q.question_number}</span>
-                {q.section_number && <><span>·</span><span>§ {q.section_number}</span></>}
-                {q.page_limit && <><span>·</span><span>{q.page_limit}p</span></>}
-              </div>
-              <h1 className="mt-0.5 text-base font-semibold truncate">{q.title}</h1>
-              {(writer || sme) && (
-                <div className="mt-1 flex items-center gap-3 text-[11px] text-muted-foreground">
-                  {writer && <span><UserIcon className="inline h-3 w-3 mr-1" />Writer: <span className="text-foreground/80">{writer.display_name || writer.email}</span></span>}
-                  {sme && <span><Shield className="inline h-3 w-3 mr-1" />SME: <span className="text-foreground/80">{sme.display_name || sme.email}</span></span>}
-                </div>
-              )}
+      <header className="border-b border-border bg-surface/60 backdrop-blur px-8 py-5">
+        <Link
+          to="/missions/$missionId/questions"
+          params={{ missionId }}
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> Responses
+        </Link>
+        <div className="mt-2 flex items-baseline gap-3">
+          <span className="font-mono text-xs text-muted-foreground">{q.question_number}</span>
+          <h1 className="text-2xl font-semibold tracking-tight">{q.title}</h1>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-3xl px-8 py-10 space-y-10">
+        {/* IRIS Briefing */}
+        <section className="rounded-[12px] border border-border bg-surface pl-1">
+          <div className="border-l-2 border-[color:var(--iris,#22d3ee)] pl-6 pr-6 py-6 space-y-6">
+            <div className="flex items-center gap-2">
+              <span className="pulse-dot" />
+              <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[color:var(--iris,#22d3ee)]">IRIS Brief</span>
             </div>
+
+            <Field label="Today · Current Focus" value={q.current_focus || "IRIS is preparing your brief…"} muted={!q.current_focus} />
+
+            <Field
+              label="Why It Matters"
+              value={
+                connectedTheme
+                  ? `${connectedTheme.title}${dueDays !== null ? ` · Due in ${dueDays} days` : ""}`
+                  : dueDays !== null
+                  ? `Due in ${dueDays} days`
+                  : "Not linked to a win theme yet."
+              }
+            />
+
+            <Field label="Waiting On" value={q.waiting_on || "Nothing outstanding"} muted={!q.waiting_on} />
+
+            <Field
+              label="Next Gate"
+              value={
+                nextGate
+                  ? `${nextGate.gate_name} · ${new Date(nextGate.target_date!).toLocaleDateString()} · ${gateDays} days away`
+                  : "No upcoming gates."
+              }
+              muted={!nextGate}
+            />
+
+            {q.guidance && <Field label="Guidance" value={q.guidance} />}
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            {pens && (
-              <div
-                className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium ${pensDownPillClass(pens.tone)} ${pens.urgent ? "pens-urgent" : ""}`}
-                title={`Pens Down ${pens.date.toLocaleDateString()}`}
+        </section>
+
+        {/* Update Reality */}
+        <section>
+          <div className="mb-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Update Reality
+          </div>
+
+          {choice === null ? (
+            <div className="grid grid-cols-3 gap-3">
+              <RealityButton
+                label="I Learned Something"
+                onClick={() => setChoice("learned")}
+                bg="rgba(34,197,94,0.15)" border="#22c55e" color="#22c55e"
+              />
+              <RealityButton
+                label="I Need Something"
+                onClick={() => setChoice("need")}
+                bg="rgba(245,158,11,0.15)" border="#f59e0b" color="#f59e0b"
+              />
+              <RealityButton
+                label="Nothing Changed"
+                onClick={() => setChoice("unchanged")}
+                bg="rgba(85,96,112,0.15)" border="#556070" color="#8b9ab5"
+              />
+            </div>
+          ) : choice === "need" && !needType ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {(Object.keys(NEED_COLORS) as NeedType[]).map((k) => (
+                  <RealityButton
+                    key={k}
+                    label={NEED_COLORS[k].label}
+                    onClick={() => setNeedType(k)}
+                    bg={NEED_COLORS[k].bg}
+                    border={NEED_COLORS[k].border}
+                    color={NEED_COLORS[k].text}
+                  />
+                ))}
+              </div>
+              <button
+                onClick={() => { setChoice(null); }}
+                className="text-[11px] text-muted-foreground hover:text-foreground"
               >
-                <Calendar className="h-3.5 w-3.5" />
-                Pens Down: {pens.long}
+                ← Back
+              </button>
+            </div>
+          ) : (
+            <div className="rounded-[12px] border border-border bg-surface p-5 space-y-3">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                {choice === "learned" ? "I Learned Something"
+                 : choice === "unchanged" ? "Nothing Changed"
+                 : needType ? NEED_COLORS[needType].label : ""}
               </div>
-            )}
-            <select
-              value={q.status}
-              onChange={(e) => updateStatus.mutate(e.target.value)}
-              className="rounded-md border border-border bg-surface px-3 py-1.5 text-xs"
-            >
-              <option value="not_started">Not Started</option>
-              <option value="in_progress">In Progress</option>
-              <option value="in_review">In Review</option>
-              <option value="complete">Complete</option>
-            </select>
-            {q.current_score != null && (
-              <div className="rounded-md border border-border bg-surface px-3 py-1.5 text-xs inline-flex items-center gap-2">
-                <span>Score <span className="font-semibold text-primary">{q.current_score}</span>
-                <span className="text-muted-foreground"> / {q.target_score ?? 5}</span></span>
-                <ScoreTrend questionId={questionId} />
+              <textarea
+                value={details}
+                onChange={(e) => setDetails(e.target.value)}
+                placeholder="What do you want to say?"
+                rows={3}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground/60 focus:border-primary/60 focus:outline-none"
+                autoFocus
+              />
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => submitUpdate.mutate()}
+                  disabled={submitting || (choice !== "unchanged" && !details.trim())}
+                  className="rounded-md bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                >
+                  {submitting ? "Sending…" : "Submit"}
+                </button>
+                <button
+                  onClick={() => { setChoice(null); setNeedType(null); setDetails(""); }}
+                  className="rounded-md border border-border px-4 py-2 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  Cancel
+                </button>
               </div>
-            )}
+            </div>
+          )}
+        </section>
+
+        {/* Ask IRIS */}
+        <section className="rounded-[12px] border border-border bg-surface p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-3.5 w-3.5 text-[color:var(--iris,#22d3ee)]" />
+            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Ask IRIS</span>
+          </div>
+          <div className="flex gap-2">
+            <input
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") onAsk(); }}
+              placeholder="Ask IRIS anything about this response…"
+              className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground/60 focus:border-primary/60 focus:outline-none"
+            />
             <button
-              onClick={() => setWriteMode((v) => !v)}
-              title={writeMode ? "Exit Write Mode (W)" : "Enter Write Mode (W)"}
-              className="rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs inline-flex items-center gap-1.5 hover:border-primary/40 hover:text-primary"
+              onClick={onAsk}
+              disabled={asking || !prompt.trim()}
+              className="rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 inline-flex items-center gap-1.5"
             >
-              {writeMode ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
-              <span className="hidden md:inline">{writeMode ? "Exit" : "Write Mode"}</span>
+              <Send className="h-3.5 w-3.5" /> {asking ? "…" : "Send"}
             </button>
           </div>
-        </div>
-      </header>
-
-
-      {/* Two-column body */}
-      <div className="studio-body flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] overflow-hidden">
-        {/* LEFT */}
-        <div className="studio-left overflow-y-auto border-r border-border">
-          <div className="px-8 py-6 space-y-6">
-            <Card title="Question Details" icon={<FileText className="h-4 w-4" />} action={
-              <button
-                onClick={() => { navigator.clipboard.writeText(q.question_text); toast.success("Question text copied"); }}
-                className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground"
-                title="Copy question text"
-              ><Copy className="h-3 w-3" /> Copy</button>
-            }>
-              <div className="space-y-4 text-sm">
-                <p className="whitespace-pre-wrap leading-relaxed">{q.question_text}</p>
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <Meta label="Weight" value={q.evaluation_weight ? `${q.evaluation_weight}%` : "—"} icon={<Target className="h-3 w-3" />} />
-                  <Meta label="Word Limit" value={q.word_limit ? q.word_limit.toLocaleString() : "—"} icon={<FileText className="h-3 w-3" />} />
-                  <Meta label="Page Limit" value={q.page_limit ? `${q.page_limit} pages` : "—"} icon={<FileText className="h-3 w-3" />} />
-                  <Meta label="Pens Down" value={q.pens_down_date ? new Date(q.pens_down_date).toLocaleDateString() : "—"} icon={<Calendar className="h-3 w-3" />} />
-                </div>
-
-                {q.requirements && q.requirements.length > 0 && (
-                  <Block label="Requirements">
-                    <ul className="space-y-1.5">
-                      {q.requirements.map((r, i) => (
-                        <li key={i} className="group flex gap-2 text-xs"><span className="text-primary mt-0.5">›</span><span className="flex-1 text-foreground/80">{r}</span>
-                          <button
-                            onClick={() => { navigator.clipboard.writeText(r); toast.success("Requirement copied"); }}
-                            className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground"
-                            title="Copy requirement"
-                          ><Copy className="h-3 w-3" /></button>
-                        </li>
-                      ))}
-                    </ul>
-                  </Block>
-                )}
-
-
-                {q.mandatory_language && q.mandatory_language.length > 0 && (
-                  <Block label="Mandatory Language">
-                    <ul className="space-y-1.5">
-                      {q.mandatory_language.map((m, i) => (
-                        <li key={i} className="rounded-md border border-red/30 bg-red/5 px-3 py-2 text-xs text-foreground/90">
-                          <span className="text-red mr-1.5">⚠</span>{m}
-                        </li>
-                      ))}
-                    </ul>
-                  </Block>
-                )}
-
-                {q.scoring_criteria && (
-                  <Block label="Scoring Criteria">
-                    <p className="text-xs text-foreground/80 whitespace-pre-wrap">{q.scoring_criteria}</p>
-                  </Block>
-                )}
-
-                {q.formatting_rules && (
-                  <Block label="Formatting Rules">
-                    <p className="text-xs text-foreground/80 whitespace-pre-wrap">{q.formatting_rules}</p>
-                  </Block>
-                )}
-              </div>
-            </Card>
-
-            <CollabPanel collab={collab} questionId={questionId} missionId={missionId} />
-
-            <HealthPanel question={q} gates={gates} gateStatusMap={gateStatusMap} />
-          </div>
-        </div>
-
-        {/* RIGHT */}
-        <div className="studio-right overflow-y-auto bg-background/40">
-          <div className="px-8 py-6 space-y-6">
-            <IntelPanel intel={intel} questionId={questionId} missionId={missionId} />
-            <RecentSignalsPanel questionId={questionId} />
-            <AlignmentPanel
-              conflicts={conflicts}
-              missionId={missionId}
-              currentId={questionId}
-              winThemes={connectedThemes}
-            />
-          </div>
-        </div>
+          {(asking || answer) && (
+            <div className="rounded-md border border-border bg-background/40 px-4 py-3 text-sm whitespace-pre-wrap text-[color:var(--iris,#22d3ee)]">
+              {asking ? "IRIS is thinking…" : answer}
+            </div>
+          )}
+        </section>
       </div>
-      <ShortcutsHint />
     </div>
   );
 }
 
-
-function Card({ title, icon, action, children }: { title: string; icon?: React.ReactNode; action?: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <section className="rounded-[10px] border border-border bg-surface">
-      <header className="flex items-center justify-between border-b border-border px-4 py-3">
-        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-          {icon}{title}
-        </div>
-        {action}
-      </header>
-      <div className="p-4">{children}</div>
-    </section>
-  );
-}
-
-function Block({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, value, muted }: { label: string; value: string; muted?: boolean }) {
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-1.5">{label}</div>
-      {children}
+      <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{label}</div>
+      <div className={`mt-1.5 text-sm leading-relaxed ${muted ? "text-muted-foreground italic" : "text-foreground"}`}>
+        {value}
+      </div>
     </div>
   );
 }
 
-function Meta({ label, value, icon }: { label: string; value: string; icon?: React.ReactNode }) {
+function RealityButton({
+  label, onClick, bg, border, color,
+}: { label: string; onClick: () => void; bg: string; border: string; color: string }) {
   return (
-    <div className="rounded-md border border-border/60 bg-background/40 px-3 py-2">
-      <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">{icon}{label}</div>
-      <div className="mt-0.5 text-xs text-foreground/90">{value}</div>
-    </div>
-  );
-}
-
-function HealthPanel({
-  question, gates, gateStatusMap,
-}: { question: Question; gates: Gate[]; gateStatusMap: Record<string, GateStatus> }) {
-  const drivers = (question.health_drivers ?? {}) as Record<string, string>;
-  const entries = Object.entries(drivers);
-  const completed = gates.filter((g) => gateStatusMap[g.id]?.status === "passed").length;
-  return (
-    <Card title="Question Health" icon={<span className={`dot dot-${question.health}`} />}>
-      <div className="flex items-center gap-4">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full text-sm font-semibold uppercase text-white" style={{ background: `var(--${question.health})` }}>
-          {question.health[0]}
-        </div>
-        <div className="text-xs text-muted-foreground">
-          {question.health === "green" && "On track. No blockers detected."}
-          {question.health === "yellow" && "Needs attention — review drivers below."}
-          {question.health === "red" && "Critical — blocking issues need resolution."}
-        </div>
-      </div>
-
-      {entries.length > 0 && (
-        <ul className="mt-4 space-y-1.5 border-t border-border pt-3 text-xs">
-          {entries.map(([k, v]) => (
-            <li key={k} className="flex justify-between gap-3">
-              <span className="text-muted-foreground capitalize">{k.replace(/_/g, " ")}</span>
-              <span className="text-foreground/80 text-right">{String(v)}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {gates.length > 0 && (
-        <div className="mt-4 border-t border-border pt-3">
-          <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-2">
-            <span>Review Gates</span>
-            <span>{completed} / {gates.length} passed</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            {gates.map((g) => {
-              const st = gateStatusMap[g.id]?.status ?? "pending";
-              const color = st === "passed" ? "var(--green)" : st === "failed" ? "var(--red)" : st === "in_review" ? "var(--yellow)" : "var(--border)";
-              return (
-                <div key={g.id} className="flex-1 group relative">
-                  <div className="h-1.5 rounded-full" style={{ background: color }} />
-                  <div className="mt-1 text-[10px] text-muted-foreground truncate">{g.gate_name}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </Card>
-  );
-}
-
-const ENTRY_TYPES = [
-  { value: "note", label: "Note" },
-  { value: "open_question", label: "Open Question" },
-  { value: "sme_request", label: "SME Request" },
-  { value: "decision_needed", label: "Decision Needed" },
-  { value: "leadership_guidance", label: "Leadership Guidance" },
-];
-
-function CollabPanel({ collab, questionId, missionId }: { collab: Collab[]; questionId: string; missionId: string }) {
-  const qc = useQueryClient();
-  const [body, setBody] = useState("");
-  const [type, setType] = useState("note");
-
-  const post = useMutation({
-    mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-      const { data: prof } = await supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle();
-      const { error } = await supabase.from("question_collaboration").insert({
-        question_id: questionId,
-        mission_id: missionId,
-        author_id: user.id,
-        author_name: prof?.display_name || user.email || "User",
-        entry_type: type,
-        body: body.trim(),
-      });
-      if (error) throw error;
-      const typeToSignal: Record<string, { st: string; sev: "info" | "warning" | "critical"; title: string }> = {
-        note: { st: "comment_added", sev: "info", title: "Comment added" },
-        open_question: { st: "comment_added", sev: "info", title: "Open question raised" },
-        sme_request: { st: "sme_requested", sev: "warning", title: "SME requested" },
-        decision_needed: { st: "decision_needed", sev: "warning", title: "Decision needed" },
-        leadership_guidance: { st: "leadership_guidance_added", sev: "info", title: "Leadership guidance added" },
-      };
-      const cfg = typeToSignal[type] ?? typeToSignal.note;
-      await createSignal({
-        mission_id: missionId,
-        source_module: "question_workspace",
-        signal_type: cfg.st,
-        signal_title: cfg.title,
-        signal_summary: body.trim().slice(0, 200),
-        severity: cfg.sev,
-        related_question_id: questionId,
-      });
-    },
-    onSuccess: () => {
-      setBody(""); 
-      qc.invalidateQueries({ queryKey: ["question-collab", questionId] });
-      toast.success(type === "sme_request" ? "SME request sent · IRIS notified" : type === "decision_needed" ? "Decision flagged · IRIS notified" : "Note added");
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-
-  const resolve = useMutation({
-    mutationFn: async (id: string) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      const { error } = await supabase.from("question_collaboration")
-        .update({ resolved: true, resolved_by: user?.id, resolved_at: new Date().toISOString() })
-        .eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["question-collab", questionId] }),
-  });
-
-  return (
-    <Card title="Collaboration" icon={<MessageSquare className="h-4 w-4" />}>
-      <div className="space-y-3">
-        <div className="flex gap-2">
-          <select value={type} onChange={(e) => setType(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1.5 text-xs">
-            {ENTRY_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-          </select>
-          <textarea
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            placeholder="Add note, question, or request…"
-            rows={2}
-            className="flex-1 rounded-md border border-border bg-background px-3 py-1.5 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary"
-          />
-          <button
-            onClick={() => post.mutate()}
-            disabled={!body.trim() || post.isPending}
-            className="self-start rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
-          >
-            <Send className="h-3.5 w-3.5" />
-          </button>
-        </div>
-
-        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
-          {collab.length === 0 && <p className="text-xs text-muted-foreground py-4 text-center">No collaboration yet.</p>}
-          {collab.map((c) => {
-            const st = entryStyle(c.entry_type);
-            return (
-            <div key={c.id} className={`rounded-md border border-l-4 px-3 py-2 ${st.border} ${c.resolved ? "border-border/40 bg-background/30 opacity-60" : `border-border ${st.bg}`}`}>
-              <div className="flex items-center justify-between gap-2 text-[10px] uppercase tracking-wider">
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground"><UserIcon className="inline h-3 w-3 mr-1" />{c.author_name}</span>
-                  <span className={`rounded px-1.5 py-0.5 ${st.badge}`}>{c.entry_type.replace(/_/g, " ")}</span>
-                </div>
-                <span className="text-muted-foreground/70">{new Date(c.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
-              </div>
-              <p className="mt-1.5 text-sm whitespace-pre-wrap text-foreground/90">{c.body}</p>
-              {!c.resolved && c.entry_type !== "note" && (
-                <button onClick={() => resolve.mutate(c.id)} className="mt-1.5 inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground hover:text-primary">
-                  <CheckCircle2 className="h-3 w-3" /> Resolve
-                </button>
-              )}
-            </div>
-          );})}
-
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-function entryStyle(t: string): { border: string; bg: string; badge: string } {
-  switch (t) {
-    case "iris_alert":          return { border: "border-l-[#0891b2]",  bg: "bg-[rgba(8,145,178,0.08)]",  badge: "bg-[#0891b2]/15 text-[#22d3ee]" };
-    case "decision_needed":     return { border: "border-l-[#7c3aed]",  bg: "bg-[rgba(124,58,237,0.08)]", badge: "bg-[#7c3aed]/15 text-[#a78bfa]" };
-    case "sme_request":         return { border: "border-l-[#ea580c]",  bg: "bg-[rgba(234,88,12,0.08)]",  badge: "bg-[#ea580c]/15 text-[#fb923c]" };
-    case "open_question":       return { border: "border-l-[#d97706]",  bg: "bg-[rgba(217,119,6,0.08)]",  badge: "bg-[#d97706]/15 text-[#fbbf24]" };
-    case "leadership_guidance": return { border: "border-l-[#2563eb]",  bg: "bg-[rgba(37,99,235,0.08)]",  badge: "bg-[#2563eb]/15 text-[#60a5fa]" };
-    default:                    return { border: "border-l-border",     bg: "bg-background/60",           badge: "bg-surface-hover text-muted-foreground" };
-  }
-}
-
-
-function IntelPanel({ intel, questionId, missionId }: { intel: Intel | null; questionId: string; missionId: string }) {
-  const qc = useQueryClient();
-  const generate = useMutation({
-    mutationFn: async () => {
-      const stub = {
-        question_id: questionId,
-        mission_id: missionId,
-        iris_brief: "IRIS intelligence generation will activate in Step 9 (iris-question-brief). When live, this panel will surface a synthesized brief tying state priorities, procurement signals, and recent research to this specific question.",
-        state_priorities: null,
-        procurement_priorities: null,
-        competitor_signals: null,
-        key_messages: null,
-        compliance_flags: null,
-        generated_at: new Date().toISOString(),
-        expires_at: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
-      };
-      const { error } = await supabase.from("question_intelligence").upsert(stub, { onConflict: "question_id" });
-      if (error) throw error;
-    },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["question-intel", questionId] }); toast.success("Brief refreshed (stub)"); },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const expired = intel?.expires_at && new Date(intel.expires_at).getTime() < Date.now();
-
-  return (
-    <Card
-      title="Athena Intelligence"
-      icon={<Sparkles className="h-4 w-4 text-primary" />}
-      action={
-        <button onClick={() => generate.mutate()} disabled={generate.isPending}
-          className="rounded-md border border-border px-2.5 py-1 text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground hover:border-primary/40 disabled:opacity-50">
-          {intel ? "Refresh" : "Generate"}
-        </button>
-      }
+    <button
+      onClick={onClick}
+      className="rounded-[10px] border px-4 py-5 text-xs font-semibold uppercase tracking-wider transition hover:brightness-125"
+      style={{ background: bg, borderColor: border, color }}
     >
-      {!intel ? (
-        <div className="space-y-2.5 py-1">
-          {[88, 72, 90, 65, 80].map((w, i) => (
-            <div key={i} className="h-2.5 rounded bg-surface-hover animate-pulse" style={{ width: `${w}%` }} />
-          ))}
-          <p className="pt-2 text-xs text-muted-foreground flex items-center gap-2">
-            <span className="inline-block h-2 w-2 rounded-full bg-primary animate-pulse" />
-            IRIS is preparing intelligence for this question…
-          </p>
-        </div>
-      ) : (
-
-        <div className="space-y-3 text-sm">
-          {expired && <div className="rounded-md border border-yellow/40 bg-yellow/10 px-3 py-1.5 text-[10px] uppercase tracking-wider text-yellow">Cached brief expired — refresh recommended</div>}
-          {intel.iris_brief && <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap">{intel.iris_brief}</p>}
-          {intel.state_priorities && <IntelBlock label="State Priorities" body={intel.state_priorities} />}
-          {intel.procurement_priorities && <IntelBlock label="Procurement Signals" body={intel.procurement_priorities} />}
-          {intel.competitor_signals && <IntelBlock label="Competitor Signals" body={intel.competitor_signals} />}
-          {intel.key_messages && intel.key_messages.length > 0 && (
-            <div>
-              <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-1.5">Key Messages</div>
-              <ul className="space-y-1">{intel.key_messages.map((m, i) => <li key={i} className="text-xs text-foreground/80">• {m}</li>)}</ul>
-            </div>
-          )}
-          {intel.compliance_flags && intel.compliance_flags.length > 0 && (
-            <div>
-              <div className="text-[10px] uppercase tracking-[0.14em] text-red mb-1.5">Compliance Flags</div>
-              <ul className="space-y-1">{intel.compliance_flags.map((m, i) => <li key={i} className="text-xs text-foreground/80">⚠ {m}</li>)}</ul>
-            </div>
-          )}
-          {intel.generated_at && <div className="text-[10px] uppercase tracking-wider text-muted-foreground/70 pt-2 border-t border-border">Generated {new Date(intel.generated_at).toLocaleString()}</div>}
-        </div>
-      )}
-    </Card>
-  );
-}
-
-function IntelBlock({ label, body }: { label: string; body: string }) {
-  return (
-    <div>
-      <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-1">{label}</div>
-      <p className="text-xs text-foreground/80 whitespace-pre-wrap">{body}</p>
-    </div>
-  );
-}
-
-function AlignmentPanel({
-  conflicts, missionId, currentId, winThemes,
-}: { conflicts: Conflict[]; missionId: string; currentId: string; winThemes: WinTheme[] }) {
-  const open = conflicts.filter((c) => !c.resolved);
-  return (
-    <Card
-      title="Strategy Alignment"
-      icon={<AlertTriangle className="h-4 w-4" />}
-      action={
-        <Link
-          to="/command/alignment"
-          className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1 text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground hover:border-primary/40"
-        >
-          <Link2 className="h-3 w-3" /> Alignment Map
-        </Link>
-      }
-    >
-      <div className="space-y-4">
-        <div>
-          <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-2 flex items-center gap-1.5">
-            <Trophy className="h-3 w-3" /> Connected Win Themes
-          </div>
-          {winThemes.length === 0 ? (
-            <p className="text-xs text-muted-foreground py-1">No win themes connected to this question yet.</p>
-          ) : (
-            <div className="space-y-1.5">
-              {winThemes.map((w) => (
-                <div key={w.id} className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2">
-                  <div className="text-xs font-semibold text-foreground">{w.title}</div>
-                  {w.key_message && <p className="mt-0.5 text-[11px] text-foreground/70 italic">"{w.key_message}"</p>}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="border-t border-border pt-3">
-          <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-2">Related Questions / Conflicts</div>
-          {open.length === 0 ? (
-            <div className="flex items-center gap-2 py-1 text-xs text-muted-foreground">
-              <CheckCircle2 className="h-4 w-4 text-green" />
-              No alignment conflicts detected.
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {open.map((c) => {
-                const other = c.question_a_id === currentId ? c.question_b : c.question_a;
-                const otherId = c.question_a_id === currentId ? c.question_b_id : c.question_a_id;
-                return (
-                  <div key={c.id} className="rounded-md border border-yellow/30 bg-yellow/5 px-3 py-2">
-                    <div className="flex items-center justify-between text-[10px] uppercase tracking-wider">
-                      <span className="text-yellow font-semibold">{c.conflict_type.replace(/_/g, " ")}</span>
-                    </div>
-                    {c.description && <p className="mt-1 text-xs text-foreground/90">{c.description}</p>}
-                    {other && (
-                      <Link
-                        to="/missions/$missionId/questions/$questionId"
-                        params={{ missionId, questionId: otherId }}
-                        className="mt-2 inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-primary hover:underline"
-                      >
-                        ↔ {other.question_number} · {other.title}
-                      </Link>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-function RecentSignalsPanel({ questionId }: { questionId: string }) {
-  const fn = useServerFn(irisQuestionSignals);
-  const { data } = useQuery({
-    queryKey: ["question-signals", questionId],
-    queryFn: () => fn({ data: { questionId, limit: 5 } }),
-    refetchInterval: 60_000,
-  });
-  const signals = data?.signals ?? [];
-  return (
-    <Card title="Recent Signals" icon={<Activity className="h-4 w-4" />}>
-      {signals.length === 0 ? (
-        <p className="text-xs text-muted-foreground py-2">No signals on this question yet.</p>
-      ) : (
-        <ul className="space-y-2">
-          {signals.map((s) => {
-            const color =
-              s.severity === "critical" ? "border-red/40 bg-red/5"
-              : s.severity === "warning" ? "border-yellow/40 bg-yellow/5"
-              : "border-border bg-background/40";
-            return (
-              <li key={s.id} className={`rounded-md border px-3 py-2 ${color}`}>
-                <div className="flex items-center justify-between gap-2 text-[10px] uppercase tracking-wider text-muted-foreground">
-                  <span>{s.signal_type.replace(/_/g, " ")}</span>
-                  <span>{new Date(s.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
-                </div>
-                <div className="mt-0.5 text-sm font-medium text-foreground/90">{s.signal_title}</div>
-                {s.signal_summary && <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">{s.signal_summary}</p>}
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </Card>
+      {label}
+    </button>
   );
 }
