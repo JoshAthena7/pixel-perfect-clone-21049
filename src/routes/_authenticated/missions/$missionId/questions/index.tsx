@@ -200,19 +200,12 @@ function ResponsesList() {
 
   return (
     <div className="mx-auto max-w-[1200px] px-8 py-10">
-      <div className="mb-8 flex items-end justify-between">
-        <div>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">The Studio</div>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">Responses</h1>
-        </div>
-        <Link
-          to="/missions/$missionId/overview"
-          params={{ missionId }}
-          className="text-xs text-muted-foreground hover:text-foreground"
-        >
-          ← Mission Home
-        </Link>
+      <MissionBriefStrip missionId={missionId} />
+      <div className="mb-8">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">The Studio</div>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight">Responses</h1>
       </div>
+
 
       <div className="mb-5 flex flex-wrap gap-2">
         {([
