@@ -1,10 +1,11 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useParams } from "@tanstack/react-router";
 import {
-  Building2, LayoutDashboard, Sparkles, Wrench, Users, History,
+  Building2, Sparkles, Wrench, Users, History,
   Settings2, ChevronLeft, LogOut, User, ArrowRight, PenTool,
   CalendarClock, Compass, Shield,
 } from "lucide-react";
+import { StudioHealthStrip } from "@/components/v2/StudioHealthStrip";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
