@@ -1159,15 +1159,18 @@ export type Database = {
           assigned_sme_id: string | null
           assigned_writer_id: string | null
           created_at: string | null
+          current_focus: string | null
           current_score: number | null
           estimated_hours: number | null
           evaluation_weight: number | null
           formatting_rules: string | null
+          guidance: string | null
           health: string | null
           health_drivers: Json | null
           id: string
           mandatory_language: string[] | null
           mission_id: string
+          next_step: string | null
           page_limit: number | null
           pens_down_date: string | null
           question_number: string
@@ -1180,21 +1183,25 @@ export type Database = {
           target_score: number | null
           title: string
           updated_at: string | null
+          waiting_on: string | null
           word_limit: number | null
         }
         Insert: {
           assigned_sme_id?: string | null
           assigned_writer_id?: string | null
           created_at?: string | null
+          current_focus?: string | null
           current_score?: number | null
           estimated_hours?: number | null
           evaluation_weight?: number | null
           formatting_rules?: string | null
+          guidance?: string | null
           health?: string | null
           health_drivers?: Json | null
           id?: string
           mandatory_language?: string[] | null
           mission_id: string
+          next_step?: string | null
           page_limit?: number | null
           pens_down_date?: string | null
           question_number: string
@@ -1207,21 +1214,25 @@ export type Database = {
           target_score?: number | null
           title: string
           updated_at?: string | null
+          waiting_on?: string | null
           word_limit?: number | null
         }
         Update: {
           assigned_sme_id?: string | null
           assigned_writer_id?: string | null
           created_at?: string | null
+          current_focus?: string | null
           current_score?: number | null
           estimated_hours?: number | null
           evaluation_weight?: number | null
           formatting_rules?: string | null
+          guidance?: string | null
           health?: string | null
           health_drivers?: Json | null
           id?: string
           mandatory_language?: string[] | null
           mission_id?: string
+          next_step?: string | null
           page_limit?: number | null
           pens_down_date?: string | null
           question_number?: string
@@ -1234,6 +1245,7 @@ export type Database = {
           target_score?: number | null
           title?: string
           updated_at?: string | null
+          waiting_on?: string | null
           word_limit?: number | null
         }
         Relationships: [
@@ -1373,6 +1385,80 @@ export type Database = {
           {
             foreignKeyName: "question_scores_reviewer_id_fkey"
             columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reality_updates: {
+        Row: {
+          created_at: string
+          details: string | null
+          id: string
+          mission_id: string
+          need_type: string | null
+          question_id: string
+          resolved: boolean
+          resolved_at: string | null
+          resolved_by: string | null
+          signal_type: string
+          user_id: string | null
+          user_name: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          mission_id: string
+          need_type?: string | null
+          question_id: string
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          signal_type: string
+          user_id?: string | null
+          user_name: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          mission_id?: string
+          need_type?: string | null
+          question_id?: string
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          signal_type?: string
+          user_id?: string | null
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reality_updates_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reality_updates_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "question_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reality_updates_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reality_updates_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
