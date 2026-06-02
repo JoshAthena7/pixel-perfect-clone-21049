@@ -652,6 +652,39 @@ export type Database = {
           },
         ]
       }
+      mission_intelligence_dna: {
+        Row: {
+          dna: Json
+          dna_version: number
+          generated_at: string
+          generated_by: string | null
+          generated_from: string | null
+          id: string
+          is_current: boolean
+          mission_id: string
+        }
+        Insert: {
+          dna: Json
+          dna_version?: number
+          generated_at?: string
+          generated_by?: string | null
+          generated_from?: string | null
+          id?: string
+          is_current?: boolean
+          mission_id: string
+        }
+        Update: {
+          dna?: Json
+          dna_version?: number
+          generated_at?: string
+          generated_by?: string | null
+          generated_from?: string | null
+          id?: string
+          is_current?: boolean
+          mission_id?: string
+        }
+        Relationships: []
+      }
       mission_intelligence_scores: {
         Row: {
           created_at: string
@@ -1261,6 +1294,51 @@ export type Database = {
           },
         ]
       }
+      question_intelligence_matches: {
+        Row: {
+          id: string
+          matched_at: string
+          mission_id: string
+          question_id: string
+          relevance_score: number
+          result_id: string
+          task_id: string
+        }
+        Insert: {
+          id?: string
+          matched_at?: string
+          mission_id: string
+          question_id: string
+          relevance_score?: number
+          result_id: string
+          task_id: string
+        }
+        Update: {
+          id?: string
+          matched_at?: string
+          mission_id?: string
+          question_id?: string
+          relevance_score?: number
+          result_id?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_intelligence_matches_result_id_fkey"
+            columns: ["result_id"]
+            isOneToOne: false
+            referencedRelation: "research_results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_intelligence_matches_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "research_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       question_records: {
         Row: {
           assigned_sme_id: string | null
@@ -1568,6 +1646,100 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_results: {
+        Row: {
+          answer: string
+          confidence: string
+          embedding: string | null
+          follow_up_questions: string[] | null
+          generated_at: string
+          id: string
+          mission_id: string
+          sources: Json
+          task_id: string
+        }
+        Insert: {
+          answer: string
+          confidence?: string
+          embedding?: string | null
+          follow_up_questions?: string[] | null
+          generated_at?: string
+          id?: string
+          mission_id: string
+          sources?: Json
+          task_id: string
+        }
+        Update: {
+          answer?: string
+          confidence?: string
+          embedding?: string | null
+          follow_up_questions?: string[] | null
+          generated_at?: string
+          id?: string
+          mission_id?: string
+          sources?: Json
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_results_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "research_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_tasks: {
+        Row: {
+          created_at: string
+          dna_id: string | null
+          id: string
+          mission_id: string
+          priority: string
+          question: string
+          relevant_question_ids: string[] | null
+          relevant_rfp_sections: string[] | null
+          status: string
+          updated_at: string
+          why_it_matters: string | null
+        }
+        Insert: {
+          created_at?: string
+          dna_id?: string | null
+          id?: string
+          mission_id: string
+          priority?: string
+          question: string
+          relevant_question_ids?: string[] | null
+          relevant_rfp_sections?: string[] | null
+          status?: string
+          updated_at?: string
+          why_it_matters?: string | null
+        }
+        Update: {
+          created_at?: string
+          dna_id?: string | null
+          id?: string
+          mission_id?: string
+          priority?: string
+          question?: string
+          relevant_question_ids?: string[] | null
+          relevant_rfp_sections?: string[] | null
+          status?: string
+          updated_at?: string
+          why_it_matters?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_tasks_dna_id_fkey"
+            columns: ["dna_id"]
+            isOneToOne: false
+            referencedRelation: "mission_intelligence_dna"
             referencedColumns: ["id"]
           },
         ]

@@ -167,7 +167,38 @@ export function IrisRfpReviewModal({
       toast.success(activate ? "Intelligence activated for this mission" : "Saved as draft");
       qc.invalidateQueries({ queryKey: ["olympus-mission-settings", missionId] });
       qc.invalidateQueries({ queryKey: ["olympus-missions"] });
+
+      // ─── Phase 2 trigger: deep RFP comprehension + research agenda ───
+      // Fire-and-forget so the modal closes immediately; the DNA build can
+      // take 60–120s. Status surfaces in Olympus > Research Agenda.
+      if (activate) {
+        toast.loading("IRIS is reading the full RFP and building the research agenda…", {
+          id: "iris-dna",
+          duration: 8000,
+        });
+        (async () => {
+          try {
+            const { generateMissionDna } = await import("@/lib/iris-dna.functions");
+            const out = await generateMissionDna({
+              data: { missionId, documentId },
+            });
+            toast.success(
+              `IRIS comprehension complete — ${out.questionsGenerated} research questions queued`,
+              { id: "iris-dna" },
+            );
+            qc.invalidateQueries({ queryKey: ["mission-dna", missionId] });
+            qc.invalidateQueries({ queryKey: ["research-agenda", missionId] });
+          } catch (err) {
+            toast.error(
+              `Deep RFP comprehension failed: ${err instanceof Error ? err.message : "unknown error"}`,
+              { id: "iris-dna" },
+            );
+          }
+        })();
+      }
+
       onClose();
+
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Save failed");
     } finally {
