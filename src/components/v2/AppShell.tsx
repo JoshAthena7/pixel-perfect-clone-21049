@@ -21,6 +21,7 @@ import { KeyboardShortcuts } from "@/components/v2/KeyboardShortcuts";
 import { IrisStatusIndicator } from "@/components/v2/effects";
 import { UpdateRealityMount } from "@/components/v2/UpdateRealityModal";
 import { IrisOnboardingMount } from "@/components/v2/IrisOnboardingModal";
+import athenaSgLogo from "@/assets/athena-sg-lockup.png.asset.json";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
@@ -156,14 +157,18 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
     <div className="flex h-full flex-col">
       <div className="border-b border-border px-5 py-4">
         <div className="flex items-center gap-2.5">
-          <span className="text-xl text-[color:var(--athena-gold)] leading-none">⚡</span>
+          <img src={athenaSgLogo.url} alt="Athena Strategy Group" className="h-8 w-8 object-contain shrink-0" />
           <div className="flex-1 min-w-0">
-            <div className="text-[13px] font-extrabold uppercase tracking-[0.22em] text-foreground/95">Atlas</div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[14px] leading-none text-[color:var(--athena-gold)]">⚡</span>
+              <div className="text-[13px] font-extrabold uppercase tracking-[0.22em] text-foreground/95">Atlas</div>
+            </div>
             <div className="text-[10px] text-muted-foreground tracking-[0.04em]">by Athena Strategy Group</div>
           </div>
           <AttentionBadge variant="compact" />
         </div>
       </div>
+
 
 
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">

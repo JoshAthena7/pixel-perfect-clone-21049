@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import athenaSgLogo from "@/assets/athena-sg-lockup.png.asset.json";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — Atlas" }] }),
@@ -66,13 +67,15 @@ function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-md rounded-[10px] border border-border bg-surface p-8">
         <div className="mb-8 text-center">
-          <div className="mb-3 flex items-center justify-center gap-2">
+          <img src={athenaSgLogo.url} alt="Athena Strategy Group" className="mx-auto mb-5 h-16 object-contain" />
+          <div className="mb-2 flex items-center justify-center gap-2">
             <span className="text-2xl text-[color:var(--athena-gold)]">⚡</span>
             <span className="text-2xl font-extrabold tracking-[0.22em] uppercase text-foreground">Atlas</span>
           </div>
           <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">by Athena Strategy Group</p>
           <p className="mt-2 text-[12px] tracking-[0.08em] text-muted-foreground">Built by Athena. Powered by IRIS.</p>
         </div>
+
 
 
         {sent ? (
