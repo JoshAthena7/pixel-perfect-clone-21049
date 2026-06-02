@@ -515,6 +515,34 @@ function MissionOverviewPage() {
         <p className="mt-2 text-[10px] text-muted-foreground">● IRIS · Updated {relativeTime(briefStamp.toISOString())}</p>
       </section>
 
+      {/* ADD 6 — IRIS FOCUS TODAY */}
+      <section className="iris-panel rounded-[12px] border border-[color:var(--iris,#22d3ee)]/30 border-l-2 border-l-[color:var(--iris,#22d3ee)] bg-[color:var(--iris,#22d3ee)]/[0.04] p-5">
+        <div className="iris-label flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[color:var(--iris,#22d3ee)]">
+          <span className="relative inline-flex h-1.5 w-1.5">
+            <span className="absolute inset-0 animate-ping rounded-full bg-[color:var(--iris,#22d3ee)]/60" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[color:var(--iris,#22d3ee)]" />
+          </span>
+          IRIS · FOCUS TODAY
+        </div>
+        {focusQuestion ? (
+          <>
+            <p className="mt-2 text-sm leading-relaxed text-foreground/90">{focusQuestion.rationale}</p>
+            <button
+              onClick={() => navigate({ to: "/missions/$missionId/questions/$questionId", params: { missionId, questionId: focusQuestion.q.id } })}
+              className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-[color:var(--iris,#22d3ee)] hover:underline"
+            >
+              Open Q{focusQuestion.q.question_number} <ArrowRight className="h-3 w-3" />
+            </button>
+          </>
+        ) : (
+          <p className="mt-2 text-sm leading-relaxed text-emerald-400/80">
+            No focus question today. All questions are on track.
+          </p>
+        )}
+      </section>
+
+
+
       {/* BLOCK 3 — NEEDS YOUR ATTENTION */}
       <SectionBlock
         title="Needs Your Attention"
