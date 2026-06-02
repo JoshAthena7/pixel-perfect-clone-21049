@@ -318,6 +318,38 @@ function NavItem({ to, params, icon, active, children }: { to: string; params?: 
   );
 }
 
+function AttentionNavItem({ currentPath }: { currentPath: string }) {
+  const { data: count = 0 } = useQuery({
+    queryKey: ["attention-need-count"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("reality_updates")
+        .select("id", { count: "exact", head: true })
+        .eq("signal_type", "need")
+        .eq("resolved", false);
+      return count ?? 0;
+    },
+    refetchInterval: 60_000,
+  });
+  const active = currentPath === "/command/attention";
+  return (
+    <Link
+      to={"/command/attention" as any}
+      className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors ${
+        active ? "bg-surface-hover text-foreground" : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+      }`}
+    >
+      <AlertOctagon size={14} strokeWidth={1.5} className={count > 0 ? "text-destructive" : ""} />
+      <span className="flex-1 truncate">Attention</span>
+      {count > 0 && (
+        <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-destructive/20 px-1.5 text-[10px] font-semibold text-destructive">
+          {count}
+        </span>
+      )}
+    </Link>
+  );
+}
+
 function SignOut() {
   async function signOut() {
     await supabase.auth.signOut();
