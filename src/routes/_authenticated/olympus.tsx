@@ -619,7 +619,6 @@ function IrisOperationsPanel() {
             </ul>
           )}
         </div>
-        </div>
         <div className="px-5 py-4">
           <div className="mb-1 text-sm font-medium text-foreground">Generate Morning Briefs</div>
           <div className="mb-3 text-xs text-muted-foreground">Fill <code>current_focus</code>, <code>next_step</code>, <code>waiting_on</code> for every question in a mission. Skips questions already briefed.</div>
