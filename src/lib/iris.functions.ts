@@ -272,10 +272,37 @@ export const irisGenerateBriefingSection = createServerFn({ method: "POST" })
     if (!m) throw new Error("Mission not found");
 
     const apiKey = process.env.LOVABLE_API_KEY;
+    const firecrawlKey = process.env.FIRECRAWL_API_KEY;
     let content = "";
+    type SourceRef = { type: "web"; url: string; title?: string; source?: string; date?: string };
+    const grounded: SourceRef[] = [];
+    let groundingText = "";
+
+    if (firecrawlKey) {
+      try {
+        const q = `${cfg.title} ${m.state ?? ""} Medicaid ${m.client ?? ""}`.trim();
+        const fcRes = await fetch("https://api.firecrawl.dev/v2/search", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${firecrawlKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ query: q, limit: 5, scrapeOptions: { formats: ["markdown"] } }),
+        });
+        if (fcRes.ok) {
+          const j = (await fcRes.json()) as { data?: Array<{ url?: string; title?: string; markdown?: string; description?: string }> };
+          const hits = j.data ?? [];
+          for (const h of hits) {
+            if (h.url) grounded.push({ type: "web", url: h.url, title: h.title, source: h.title });
+          }
+          groundingText = hits
+            .slice(0, 5)
+            .map((h, i) => `[${i + 1}] ${h.title ?? h.url}\n${(h.markdown ?? h.description ?? "").slice(0, 1200)}`)
+            .join("\n\n---\n\n");
+        }
+      } catch { /* non-fatal */ }
+    }
+
     if (apiKey) {
-      const sys = `You are IRIS, an intelligence analyst for Medicaid procurement consultants. Generate concise, specific, defensible external intelligence for one briefing book section. Use markdown bullets. Do not hedge. Do not preface with "Here is" — output the content directly.`;
-      const user = `Mission: ${m.name}\nClient: ${m.client}\nState: ${m.state ?? "Unknown"}\nSubmission: ${m.submission_date ?? "TBD"}\n${m.description ? `Context: ${m.description}\n` : ""}\nSection: ${cfg.title}\n\nTask: ${cfg.prompt}`;
+      const sys = `You are IRIS, an intelligence analyst for Medicaid procurement consultants. Generate concise, specific, defensible external intelligence for one briefing book section. Use markdown bullets. Do not hedge. Do not preface with "Here is" — output the content directly.${groundingText ? " When you use a fact from the provided SOURCES, cite it inline like [1], [2]." : ""}`;
+      const user = `Mission: ${m.name}\nClient: ${m.client}\nState: ${m.state ?? "Unknown"}\nSubmission: ${m.submission_date ?? "TBD"}\n${m.description ? `Context: ${m.description}\n` : ""}\nSection: ${cfg.title}\n\nTask: ${cfg.prompt}${groundingText ? `\n\nSOURCES:\n${groundingText}` : ""}`;
       try {
         const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
