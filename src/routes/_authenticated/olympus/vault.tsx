@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Upload, FileText, ExternalLink, Trash2, Search, Sparkles, FolderOpen, Link2 } from "lucide-react";
 import { useSelectedOlympusMission } from "../olympus";
 import { logOlympusAction } from "@/lib/audit";
+import { IrisRfpReviewModal } from "@/components/v2/IrisRfpReviewModal";
 
 export const Route = createFileRoute("/_authenticated/olympus/vault")({
   component: VaultPage,
