@@ -332,7 +332,7 @@ function VaultPage() {
                 onClick={() => {
                   setReviewDocId(parsePromptFor.id);
                   setReviewOpen(true);
-                  setConfigureFor(parsePromptFor);
+                  
                   setParsePromptFor(null);
                   // Kick off extraction immediately
                   (async () => {
@@ -370,7 +370,7 @@ function VaultPage() {
           missionId={missionId}
           documentId={reviewDocId}
           open={reviewOpen}
-          onClose={() => { setReviewOpen(false); setConfigureFor(null); }}
+          onClose={() => { setReviewOpen(false); }}
         />
       )}
     </div>
