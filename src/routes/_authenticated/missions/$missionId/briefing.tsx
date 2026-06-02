@@ -140,14 +140,18 @@ function BriefingBookPage() {
 
       {tab === "feed" ? (
         <div className="mx-auto max-w-[920px] px-8 py-8">
-          <header className="mb-6">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">The Oracle · Intelligence</div>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight">{mission?.name ?? "—"}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Mission Intelligence Feed — scored for relevance to your win themes, topics, and competitors.
-            </p>
+          <header className="mb-6 flex items-start gap-4">
+            <OracleIcon size={32} active className="mt-2 shrink-0" />
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">The Oracle · Intelligence</div>
+              <h1 className="mt-2 text-2xl font-semibold tracking-tight">{mission?.name ?? "—"}</h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Mission Intelligence Feed — scored for relevance to your win themes, topics, and competitors.
+              </p>
+            </div>
           </header>
           <MissionIntelligenceFeed missionId={missionId} />
+
         </div>
       ) : (
         <article className="briefing-book mx-auto max-w-[920px] px-10 py-12 space-y-6 text-foreground">
