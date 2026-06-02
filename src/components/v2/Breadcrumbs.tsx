@@ -37,15 +37,15 @@ export function Breadcrumbs() {
   const isSettings = path.endsWith("/settings");
   const isBrief = path.endsWith("/overview");
 
-  const pageLabel = isQuestion ? "Q" : isQuestionsList ? "The Studio" : isLibrary ? "The Vault" : isOracle ? "The Oracle" : isSettings ? "Settings" : isBrief ? "Mission Home" : "";
+  const pageLabel = isQuestion ? "Q" : isQuestionsList ? "The Studio · Studio" : isLibrary ? "The Vault · Documents" : isOracle ? "The Oracle · Intelligence" : isSettings ? "Settings" : isBrief ? "Mission Home · Overview" : "";
 
   const crumbs: Array<{ label: string; to?: string; params?: any }> = [
-    { label: "The Atrium", to: "/home" },
+    { label: "The Atrium · Home", to: "/home" },
     { label: mission?.name ?? "…", to: "/missions/$missionId/overview", params: { missionId } },
   ];
 
   if (isQuestion) {
-    crumbs.push({ label: "The Studio", to: "/missions/$missionId/questions", params: { missionId } });
+    crumbs.push({ label: "The Studio · Studio", to: "/missions/$missionId/questions", params: { missionId } });
     const qTitle = question ? `Q${question.question_number} ${(question.title ?? "").slice(0, 30)}${(question.title?.length ?? 0) > 30 ? "…" : ""}` : "…";
     crumbs.push({ label: qTitle });
   } else if (pageLabel) {
