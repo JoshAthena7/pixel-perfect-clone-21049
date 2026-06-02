@@ -581,9 +581,19 @@ function ResponseView() {
 
         {/* RIGHT — IRIS */}
         <div className="iris-panel rounded-r-[10px] pl-6 pr-5 py-5">
-          <div className="mb-4">
+          <div className="mb-4 flex items-center justify-between gap-3">
             <span className="iris-label"><span className="iris-dot" />IRIS</span>
+            <button
+              onClick={() => regenerateCoaching(true)}
+              disabled={coachingPending}
+              className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground disabled:opacity-50"
+              title="Regenerate coaching"
+            >
+              <RefreshCw className={`h-3 w-3 ${coachingPending ? "animate-spin" : ""}`} />
+              Refresh
+            </button>
           </div>
+
 
           {intelLoading ? (
             <div className="space-y-3">
