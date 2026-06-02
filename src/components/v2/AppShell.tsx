@@ -1,9 +1,8 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useParams } from "@tanstack/react-router";
 import {
-  Building2, Target, Mountain, Eye, Activity, GitMerge, BarChart2, Clock, Radio,
-  LayoutDashboard, PenTool, Archive, Sparkles, Settings2, AlertOctagon,
-  ChevronLeft, ChevronRight, LogOut, User,
+  Building2, Target, Mountain, LayoutDashboard, Sparkles, BookOpen, Wrench, Users, History,
+  Settings2, ChevronRight, ChevronLeft, LogOut, User, ArrowRight, PenTool,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -24,17 +23,22 @@ export function AppShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const params = useParams({ strict: false }) as { missionId?: string };
   const inMission = path.startsWith("/missions/") && !!params.missionId;
-  const isStudio = inMission && path.includes("/questions/") && path.split("/").length > 5;
+  const isStudio = inMission && (path.includes("/questions") || path.endsWith("/studio"));
+  const isQuestionWorkspace = inMission && path.includes("/questions/") && path.split("/").length > 5;
   const isAtrium = path === "/home";
 
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground">
       <KeyboardShortcuts />
       <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-border bg-surface">
-        {inMission ? <MissionNav missionId={params.missionId!} /> : <GlobalNav currentPath={path} />}
+        {inMission
+          ? (isStudio
+              ? <StudioRail missionId={params.missionId!} />
+              : <MissionRail missionId={params.missionId!} />)
+          : <GlobalNav currentPath={path} />}
       </aside>
       <main className={`flex-1 min-w-0 flex flex-col ${isAtrium ? "atrium-grid" : ""}`}>
-        {!isStudio && (
+        {!isQuestionWorkspace && (
           <header className="flex h-[52px] shrink-0 items-center justify-end gap-3 border-b border-border bg-surface/40 px-4">
             <IrisStatusIndicator />
             <NotificationBell />
@@ -42,13 +46,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           </header>
         )}
         {inMission && !isStudio && <Breadcrumbs />}
-        {/* DESIGN-2: page transition wrapper keyed on route */}
         <div key={path} className="route-fade flex-1 min-w-0">{children}</div>
       </main>
       {inMission && params.missionId && <UpdateRealityMount missionId={params.missionId} />}
     </div>
   );
 }
+
 
 function UserAvatarMenu() {
   const [open, setOpen] = useState(false);
