@@ -20,6 +20,7 @@ import { NotificationBell } from "@/components/v2/NotificationBell";
 import { KeyboardShortcuts } from "@/components/v2/KeyboardShortcuts";
 import { IrisStatusIndicator } from "@/components/v2/effects";
 import { UpdateRealityMount } from "@/components/v2/UpdateRealityModal";
+import { IrisOnboardingMount } from "@/components/v2/IrisOnboardingModal";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
@@ -52,6 +53,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div key={path} className="route-fade flex-1 min-w-0">{children}</div>
       </main>
       {inMission && params.missionId && <UpdateRealityMount missionId={params.missionId} />}
+      <IrisOnboardingMount />
     </div>
   );
 }
