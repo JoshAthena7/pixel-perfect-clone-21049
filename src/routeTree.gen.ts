@@ -34,6 +34,7 @@ import { Route as AuthenticatedCommandAttentionRouteImport } from './routes/_aut
 import { Route as AuthenticatedCommandAlignmentConflictsRouteImport } from './routes/_authenticated/command/alignment-conflicts'
 import { Route as AuthenticatedCommandAlignmentRouteImport } from './routes/_authenticated/command/alignment'
 import { Route as AuthenticatedMissionsMissionIdIndexRouteImport } from './routes/_authenticated/missions/$missionId/index'
+import { Route as ApiPublicHooksRefreshIntelligenceRouteImport } from './routes/api/public/hooks/refresh-intelligence'
 import { Route as ApiPublicHooksIngestIntelRouteImport } from './routes/api/public/hooks/ingest-intel'
 import { Route as ApiPublicHooksBackfillQuestionEmbeddingsRouteImport } from './routes/api/public/hooks/backfill-question-embeddings'
 import { Route as AuthenticatedMissionsMissionIdTeamRouteImport } from './routes/_authenticated/missions/$missionId/team'
@@ -193,6 +194,12 @@ const AuthenticatedMissionsMissionIdIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
+const ApiPublicHooksRefreshIntelligenceRoute =
+  ApiPublicHooksRefreshIntelligenceRouteImport.update({
+    id: '/api/public/hooks/refresh-intelligence',
+    path: '/api/public/hooks/refresh-intelligence',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksIngestIntelRoute =
   ApiPublicHooksIngestIntelRouteImport.update({
     id: '/api/public/hooks/ingest-intel',
@@ -321,6 +328,7 @@ export interface FileRoutesByFullPath {
   '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
   '/api/public/hooks/backfill-question-embeddings': typeof ApiPublicHooksBackfillQuestionEmbeddingsRoute
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
+  '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
   '/missions/$missionId/questions/': typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
@@ -360,6 +368,7 @@ export interface FileRoutesByTo {
   '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
   '/api/public/hooks/backfill-question-embeddings': typeof ApiPublicHooksBackfillQuestionEmbeddingsRoute
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
+  '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
   '/missions/$missionId/questions': typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
@@ -403,6 +412,7 @@ export interface FileRoutesById {
   '/_authenticated/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
   '/api/public/hooks/backfill-question-embeddings': typeof ApiPublicHooksBackfillQuestionEmbeddingsRoute
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
+  '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/_authenticated/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/_authenticated/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
   '/_authenticated/missions/$missionId/questions/': typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
@@ -446,6 +456,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/team'
     | '/api/public/hooks/backfill-question-embeddings'
     | '/api/public/hooks/ingest-intel'
+    | '/api/public/hooks/refresh-intelligence'
     | '/missions/$missionId/'
     | '/missions/$missionId/questions/$questionId'
     | '/missions/$missionId/questions/'
@@ -485,6 +496,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/team'
     | '/api/public/hooks/backfill-question-embeddings'
     | '/api/public/hooks/ingest-intel'
+    | '/api/public/hooks/refresh-intelligence'
     | '/missions/$missionId'
     | '/missions/$missionId/questions/$questionId'
     | '/missions/$missionId/questions'
@@ -527,6 +539,7 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/$missionId/team'
     | '/api/public/hooks/backfill-question-embeddings'
     | '/api/public/hooks/ingest-intel'
+    | '/api/public/hooks/refresh-intelligence'
     | '/_authenticated/missions/$missionId/'
     | '/_authenticated/missions/$missionId/questions/$questionId'
     | '/_authenticated/missions/$missionId/questions/'
@@ -538,6 +551,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ApiPublicHooksBackfillQuestionEmbeddingsRoute: typeof ApiPublicHooksBackfillQuestionEmbeddingsRoute
   ApiPublicHooksIngestIntelRoute: typeof ApiPublicHooksIngestIntelRoute
+  ApiPublicHooksRefreshIntelligenceRoute: typeof ApiPublicHooksRefreshIntelligenceRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -716,6 +730,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/missions/$missionId/'
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdIndexRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
+    '/api/public/hooks/refresh-intelligence': {
+      id: '/api/public/hooks/refresh-intelligence'
+      path: '/api/public/hooks/refresh-intelligence'
+      fullPath: '/api/public/hooks/refresh-intelligence'
+      preLoaderRoute: typeof ApiPublicHooksRefreshIntelligenceRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/ingest-intel': {
       id: '/api/public/hooks/ingest-intel'
@@ -950,6 +971,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksBackfillQuestionEmbeddingsRoute:
     ApiPublicHooksBackfillQuestionEmbeddingsRoute,
   ApiPublicHooksIngestIntelRoute: ApiPublicHooksIngestIntelRoute,
+  ApiPublicHooksRefreshIntelligenceRoute:
+    ApiPublicHooksRefreshIntelligenceRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
