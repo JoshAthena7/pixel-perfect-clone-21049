@@ -98,7 +98,6 @@ function DetailsTab({ missionId }: { missionId: string }) {
         health: mission.health ?? "green",
         submission_date: mission.submission_date ?? "",
         description: mission.description ?? "",
-        slack_webhook: mission.slack_webhook ?? "",
       });
     }
   }, [mission]);
