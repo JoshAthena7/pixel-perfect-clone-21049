@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { History, Search, Filter } from "lucide-react";
+import { History, Search, Filter, Download } from "lucide-react";
+import { toast } from "sonner";
 import { useSelectedOlympusMission } from "../olympus";
 
 export const Route = createFileRoute("/_authenticated/olympus/audit")({
@@ -25,6 +26,8 @@ function AuditPage() {
   const [scope, setScope] = useState<"mission" | "all">("mission");
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
 
   const { data: entries = [], isLoading } = useQuery({
     queryKey: ["olympus-audit", scope, missionId],
@@ -43,15 +46,42 @@ function AuditPage() {
   const types = useMemo(() => Array.from(new Set(entries.map((e) => e.action_type))).sort(), [entries]);
 
   const visible = useMemo(() => {
+    const fromTs = dateFrom ? new Date(dateFrom).getTime() : null;
+    const toTs = dateTo ? new Date(dateTo).getTime() + 86400000 : null;
     return entries.filter((e) => {
       if (filterType !== "all" && e.action_type !== filterType) return false;
+      const ts = new Date(e.created_at).getTime();
+      if (fromTs !== null && ts < fromTs) return false;
+      if (toTs !== null && ts >= toTs) return false;
       if (!search.trim()) return true;
       const q = search.toLowerCase();
       return e.action_summary.toLowerCase().includes(q) ||
         (e.user_name ?? "").toLowerCase().includes(q) ||
         e.action_type.toLowerCase().includes(q);
     });
-  }, [entries, search, filterType]);
+  }, [entries, search, filterType, dateFrom, dateTo]);
+
+  function exportCsv() {
+    const header = ["When", "Who", "Action", "Summary", "Mission", "Target"];
+    const lines = [header.join(",")];
+    for (const e of visible) {
+      const cells = [
+        new Date(e.created_at).toISOString(),
+        e.user_name ?? "", e.action_type, e.action_summary,
+        e.mission_id ?? "", e.target_table ?? "",
+      ].map((v) => {
+        const s = String(v ?? "");
+        return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+      });
+      lines.push(cells.join(","));
+    }
+    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `olympus-audit-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+    toast.success("Exported CSV");
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-8 py-8">
@@ -77,8 +107,8 @@ function AuditPage() {
         </div>
       </header>
 
-      <div className="mb-3 flex items-center gap-2">
-        <div className="relative flex-1 max-w-md">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="relative flex-1 min-w-[200px] max-w-md">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search summary, user, or type…"
             className="w-full rounded-md border border-border bg-background py-2 pl-8 pr-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
@@ -91,6 +121,15 @@ function AuditPage() {
             {types.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
+        <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
+          className="rounded-md border border-border bg-background px-2 py-1.5 text-xs" title="From date" />
+        <span className="text-[11px] text-muted-foreground">→</span>
+        <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
+          className="rounded-md border border-border bg-background px-2 py-1.5 text-xs" title="To date" />
+        <button onClick={exportCsv} disabled={visible.length === 0}
+          className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs hover:bg-surface-hover disabled:opacity-50">
+          <Download className="h-3 w-3" /> Export CSV
+        </button>
       </div>
 
       <div className="rounded-[10px] border border-border bg-surface overflow-hidden">

@@ -271,8 +271,76 @@ function InvitePanel({ missionId }: { missionId: string }) {
       )}
 
       <p className="mt-3 text-[11px] text-muted-foreground">
-        Members must have signed in to Athena at least once to appear in search. Pending email invites ship in a later phase.
+        Members must have signed in to Athena at least once to appear in search. Bulk-invite pastes below add them in one click.
       </p>
+
+      <BulkInvitePanel missionId={missionId} defaultRole={role} />
+    </div>
+  );
+}
+
+function BulkInvitePanel({ missionId, defaultRole }: { missionId: string; defaultRole: Role }) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [role, setRole] = useState<Role>(defaultRole);
+  const [busy, setBusy] = useState(false);
+
+  async function process() {
+    const emails = Array.from(new Set(
+      text.split(/[\n,;\s]+/).map((s) => s.trim().toLowerCase()).filter((s) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s)),
+    ));
+    if (emails.length === 0) { toast.error("Paste one or more valid email addresses"); return; }
+    setBusy(true);
+    let added = 0, skipped = 0, missing = 0;
+    for (const email of emails) {
+      const { data: prof } = await supabase.from("profiles").select("id,email").eq("email", email).maybeSingle();
+      if (!prof) { missing++; continue; }
+      const { data: existing } = await supabase.from("mission_members").select("id").eq("mission_id", missionId).eq("user_id", prof.id).maybeSingle();
+      if (existing) { skipped++; continue; }
+      const { error } = await supabase.from("mission_members").insert({ mission_id: missionId, user_id: prof.id, role });
+      if (!error) {
+        added++;
+        await logOlympusAction({
+          action_type: "team.add",
+          action_summary: `Bulk-added ${email} as ${role}`,
+          mission_id: missionId,
+          target_table: "mission_members",
+        });
+      }
+    }
+    setBusy(false);
+    toast.success(`Added ${added}, skipped ${skipped}, no profile ${missing}`);
+    if (added > 0) {
+      setText("");
+      qc.invalidateQueries({ queryKey: ["olympus-team", missionId] });
+    }
+  }
+
+  return (
+    <div className="mt-4 rounded-[10px] border border-border bg-surface p-5">
+      <button onClick={() => setOpen((o) => !o)} className="flex w-full items-center justify-between text-sm font-medium">
+        <span className="flex items-center gap-2"><UserPlus className="h-4 w-4 text-muted-foreground" /> Bulk invite</span>
+        <span className="text-[11px] text-muted-foreground">{open ? "Hide" : "Show"}</span>
+      </button>
+      {open && (
+        <div className="mt-3 space-y-2">
+          <select value={role} onChange={(e) => setRole(e.target.value as Role)}
+            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm">
+            {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+          </select>
+          <textarea value={text} onChange={(e) => setText(e.target.value)} rows={5}
+            placeholder={"Paste emails — one per line\nteammate1@firm.com\nteammate2@firm.com"}
+            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm font-mono" />
+          <button onClick={process} disabled={busy}
+            className="w-full rounded-md bg-[#C49A22] px-3 py-2 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50">
+            {busy ? "Inviting…" : "Send All Invitations"}
+          </button>
+          <p className="text-[11px] text-muted-foreground">
+            Users without an Athena profile yet are reported as "no profile" — ask them to sign in once, then re-run.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
