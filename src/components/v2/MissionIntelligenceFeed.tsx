@@ -134,7 +134,7 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
             <h3 className="iris-label">Mission Intelligence Feed</h3>
             <LiveBadge />
             <span className="ml-2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground mono">
-              {visible.length} scored items
+              {visible.length} of {scored.length} scored
             </span>
           </div>
           <button
