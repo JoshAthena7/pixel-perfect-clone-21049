@@ -126,24 +126,57 @@ function AthenaHQ() {
     },
   });
 
-  // ARCH-1: Writer/SME assignments across all missions
-  const { data: myAssignments = [], isLoading: assignmentsLoading } = useQuery({
-    queryKey: ["hq-my-assignments", myRole],
-    enabled: myRole !== null && !isLeader,
+  const missionIds = missions.map((m) => m.id);
+
+  // PHASE 7: per-mission questions (for next deadline + computed health)
+  const { data: missionQuestions = [] } = useQuery({
+    queryKey: ["hq-mission-questions", missionIds.join(",")],
+    enabled: missionIds.length > 0,
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
       const { data } = await supabase
         .from("question_records")
-        .select("id,mission_id,question_number,title,status,health,current_score,pens_down_date,assigned_writer_id,assigned_sme_id")
-        .or(`assigned_writer_id.eq.${user.id},assigned_sme_id.eq.${user.id}`)
-        .order("pens_down_date", { ascending: true, nullsFirst: false })
-        .limit(50);
-      return (data ?? []) as Array<{
-        id: string; mission_id: string; question_number: string; title: string;
-        status: string | null; health: string | null; current_score: number | null;
-        pens_down_date: string | null; assigned_writer_id: string | null; assigned_sme_id: string | null;
-      }>;
+        .select("id,mission_id,question_number,title,pens_down_date,health")
+        .in("mission_id", missionIds);
+      return (data ?? []) as Array<{ id: string; mission_id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null }>;
+    },
+  });
+
+  // PHASE 7: latest signal/collab per mission
+  const { data: lastSignalByMission = {} } = useQuery({
+    queryKey: ["hq-last-signal", missionIds.join(",")],
+    enabled: missionIds.length > 0,
+    queryFn: async () => {
+      const [collabRes, signalRes, realityRes] = await Promise.all([
+        supabase.from("question_collaboration").select("mission_id,created_at").in("mission_id", missionIds).order("created_at", { ascending: false }).limit(500),
+        supabase.from("signals").select("mission_id,created_at").in("mission_id", missionIds).order("created_at", { ascending: false }).limit(500),
+        supabase.from("reality_updates").select("mission_id,created_at").in("mission_id", missionIds).order("created_at", { ascending: false }).limit(500),
+      ]);
+      const map: Record<string, string> = {};
+      for (const row of [...(collabRes.data ?? []), ...(signalRes.data ?? []), ...(realityRes.data ?? [])] as any[]) {
+        if (!map[row.mission_id] || new Date(row.created_at) > new Date(map[row.mission_id])) {
+          map[row.mission_id] = row.created_at;
+        }
+      }
+      return map;
+    },
+  });
+
+  // PHASE 7: unresolved "I Need Something" per mission (leaders only)
+  const { data: needsByMission = {} } = useQuery({
+    queryKey: ["hq-needs", missionIds.join(","), isLeader],
+    enabled: isLeader && missionIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("reality_updates")
+        .select("mission_id")
+        .in("mission_id", missionIds)
+        .eq("signal_type", "need")
+        .eq("resolved", false);
+      const counts: Record<string, number> = {};
+      for (const row of (data ?? []) as any[]) {
+        counts[row.mission_id] = (counts[row.mission_id] ?? 0) + 1;
+      }
+      return counts;
     },
   });
 
@@ -192,12 +225,39 @@ function AthenaHQ() {
     return da - db;
   });
 
+  // PHASE 7: leader shortcut — most recently viewed mission
+  const lastViewedMissionId = typeof window !== "undefined" ? sessionStorage.getItem("athena:last-mission") : null;
+  const leaderShortcutMissionId = lastViewedMissionId && missions.find((m) => m.id === lastViewedMissionId)
+    ? lastViewedMissionId
+    : missions[0]?.id;
+
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   const statusLabel = totalAttention === 0
     ? "All systems operational"
     : `${totalAttention} ${totalAttention === 1 ? "item needs" : "items need"} attention`;
+
+  // PHASE 7 / CHANGE 5: writer with 0 active missions — show only welcome message
+  if (myRole === "writer" && writerMissions && writerMissions.length === 0) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-6">
+        <div className="max-w-md text-center">
+          <img src={athenaLogo} alt="Athena" className="mx-auto mb-8 h-12 w-auto opacity-80" />
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Welcome to Athena Command.</h1>
+          <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
+            You haven't been assigned to a mission yet.<br />
+            Your Engagement Lead will add you once your mission is activated.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // While we're about to redirect a single-mission writer, render nothing
+  if (myRole === "writer" && writerMissions && writerMissions.length === 1) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -232,11 +292,21 @@ function AthenaHQ() {
         {/* ROLE-DIFFERENTIATED: Active Missions (leaders) or Your Assignments (writers/SMEs) */}
         {isLeader ? (
           <section>
-            <div className="mb-5 flex items-end justify-between">
+            <div className="mb-5 flex items-end justify-between gap-4">
               <div>
                 <h2 className="h2-label">Active Missions</h2>
                 <p className="mt-1.5 text-2xl font-semibold tracking-tight">{missions.length} in flight</p>
               </div>
+              {/* PHASE 7 / CHANGE 2: leader shortcut */}
+              {leaderShortcutMissionId && (
+                <Link
+                  to="/command/attention"
+                  className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-surface-hover transition-colors"
+                >
+                  Command Center
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              )}
             </div>
 
             {missionsLoading ? (
@@ -255,9 +325,20 @@ function AthenaHQ() {
               />
             ) : (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {missions.map((m) => (
-                  <MissionCard key={m.id} mission={m} attention={attMap.get(m.id) ?? 0} />
-                ))}
+                {missions.map((m) => {
+                  const qs = missionQuestions.filter((q) => q.mission_id === m.id);
+                  return (
+                    <MissionCard
+                      key={m.id}
+                      mission={m}
+                      attention={attMap.get(m.id) ?? 0}
+                      questions={qs}
+                      lastSignalAt={lastSignalByMission[m.id] ?? null}
+                      needsCount={needsByMission[m.id] ?? 0}
+                      showNeedsBadge={isLeader}
+                    />
+                  );
+                })}
               </div>
             )}
           </section>
@@ -321,37 +402,74 @@ function AthenaHQ() {
         )}
 
 
-        {/* HORIZON FEED — firm-wide industry intelligence */}
-        <HorizonFeed items={horizonItems} missionCount={missions.length} />
+        {/* PHASE 7 / CHANGE 4: Firm Intel — collapsed by default */}
+        <FirmIntel
+          horizonItems={horizonItems}
+          missionCount={missions.length}
+          leadershipMessages={leadershipMessages as any[]}
+          pipeline={pipeline}
+        />
+      </div>
+    </div>
+  );
+}
 
-        {/* LEADERSHIP MESSAGES */}
-        <section className="rounded-[12px] border border-border bg-surface">
-          <div className="flex items-center justify-between border-b border-border px-5 py-4">
-            <div className="flex items-center gap-2">
-              <Megaphone className="h-3.5 w-3.5 text-primary" />
-              <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Leadership Messages</h3>
+function FirmIntel({
+  horizonItems,
+  missionCount,
+  leadershipMessages,
+  pipeline,
+}: {
+  horizonItems: IntelItem[];
+  missionCount: number;
+  leadershipMessages: any[];
+  pipeline: Mission[];
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <section className="rounded-[12px] border border-border bg-surface/50">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between px-5 py-3 text-left hover:bg-surface-hover transition-colors rounded-[12px]"
+      >
+        <span className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+          Firm Intel
+        </span>
+        <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+          Horizon · Leadership · Pipeline
+        </span>
+      </button>
+      {open && (
+        <div className="border-t border-border p-5 space-y-8">
+          <HorizonFeed items={horizonItems} missionCount={missionCount} />
+
+          <section className="rounded-[12px] border border-border bg-surface">
+            <div className="flex items-center justify-between border-b border-border px-5 py-4">
+              <div className="flex items-center gap-2">
+                <Megaphone className="h-3.5 w-3.5 text-primary" />
+                <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Leadership Messages</h3>
+              </div>
+              <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Firm-wide</span>
             </div>
-            <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Firm-wide</span>
-          </div>
-          <ul className="divide-y divide-border">
-            {leadershipMessages.length === 0 && (
-              <li className="px-5 py-8 text-center text-sm text-muted-foreground">No broadcasts yet. Leadership messages will appear here.</li>
-            )}
-            {leadershipMessages.map((m: any) => (
-              <li key={m.id} className="px-5 py-4">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-semibold text-foreground">{m.from_name}</span>
-                  <span className="text-[10px] text-muted-foreground">{relativeTime(m.created_at)}</span>
-                </div>
-                <p className="mt-1 text-sm text-foreground/90 leading-relaxed">{m.text}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
+            <ul className="divide-y divide-border">
+              {leadershipMessages.length === 0 && (
+                <li className="px-5 py-8 text-center text-sm text-muted-foreground">No broadcasts yet. Leadership messages will appear here.</li>
+              )}
+              {leadershipMessages.map((m: any) => (
+                <li key={m.id} className="px-5 py-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-semibold text-foreground">{m.from_name}</span>
+                    <span className="text-[10px] text-muted-foreground">{relativeTime(m.created_at)}</span>
+                  </div>
+                  <p className="mt-1 text-sm text-foreground/90 leading-relaxed">{m.text}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
 
-        {/* PIPELINE HORIZON */}
-        <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-          <div className="lg:col-span-5 rounded-[12px] border border-border bg-surface">
+          <section className="rounded-[12px] border border-border bg-surface">
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
               <div className="flex items-center gap-2">
                 <CalendarClock className="h-3.5 w-3.5 text-primary" />
@@ -401,12 +519,13 @@ function AthenaHQ() {
                 );
               })}
             </ul>
-          </div>
-        </section>
-      </div>
-    </div>
+          </section>
+        </div>
+      )}
+    </section>
   );
 }
+
 
 function MissionCard({ mission, attention }: { mission: Mission; attention: number }) {
   const days = mission.submission_date
