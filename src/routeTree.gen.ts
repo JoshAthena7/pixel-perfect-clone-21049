@@ -18,6 +18,7 @@ import { Route as AuthenticatedCommandScoresRouteImport } from './routes/_authen
 import { Route as AuthenticatedCommandQuestionHealthRouteImport } from './routes/_authenticated/command/question-health'
 import { Route as AuthenticatedCommandPensDownRouteImport } from './routes/_authenticated/command/pens-down'
 import { Route as AuthenticatedCommandBroadcastsRouteImport } from './routes/_authenticated/command/broadcasts'
+import { Route as AuthenticatedCommandAttentionRouteImport } from './routes/_authenticated/command/attention'
 import { Route as AuthenticatedCommandAlignmentConflictsRouteImport } from './routes/_authenticated/command/alignment-conflicts'
 import { Route as AuthenticatedCommandAlignmentRouteImport } from './routes/_authenticated/command/alignment'
 import { Route as AuthenticatedMissionsMissionIdIndexRouteImport } from './routes/_authenticated/missions/$missionId/index'
@@ -75,6 +76,12 @@ const AuthenticatedCommandBroadcastsRoute =
   AuthenticatedCommandBroadcastsRouteImport.update({
     id: '/command/broadcasts',
     path: '/command/broadcasts',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedCommandAttentionRoute =
+  AuthenticatedCommandAttentionRouteImport.update({
+    id: '/command/attention',
+    path: '/command/attention',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedCommandAlignmentConflictsRoute =
@@ -145,6 +152,7 @@ export interface FileRoutesByFullPath {
   '/olympus': typeof AuthenticatedOlympusRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
+  '/command/attention': typeof AuthenticatedCommandAttentionRoute
   '/command/broadcasts': typeof AuthenticatedCommandBroadcastsRoute
   '/command/pens-down': typeof AuthenticatedCommandPensDownRoute
   '/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
@@ -165,6 +173,7 @@ export interface FileRoutesByTo {
   '/olympus': typeof AuthenticatedOlympusRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
+  '/command/attention': typeof AuthenticatedCommandAttentionRoute
   '/command/broadcasts': typeof AuthenticatedCommandBroadcastsRoute
   '/command/pens-down': typeof AuthenticatedCommandPensDownRoute
   '/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
@@ -187,6 +196,7 @@ export interface FileRoutesById {
   '/_authenticated/olympus': typeof AuthenticatedOlympusRoute
   '/_authenticated/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/_authenticated/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
+  '/_authenticated/command/attention': typeof AuthenticatedCommandAttentionRoute
   '/_authenticated/command/broadcasts': typeof AuthenticatedCommandBroadcastsRoute
   '/_authenticated/command/pens-down': typeof AuthenticatedCommandPensDownRoute
   '/_authenticated/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
@@ -209,6 +219,7 @@ export interface FileRouteTypes {
     | '/olympus'
     | '/command/alignment'
     | '/command/alignment-conflicts'
+    | '/command/attention'
     | '/command/broadcasts'
     | '/command/pens-down'
     | '/command/question-health'
@@ -229,6 +240,7 @@ export interface FileRouteTypes {
     | '/olympus'
     | '/command/alignment'
     | '/command/alignment-conflicts'
+    | '/command/attention'
     | '/command/broadcasts'
     | '/command/pens-down'
     | '/command/question-health'
@@ -250,6 +262,7 @@ export interface FileRouteTypes {
     | '/_authenticated/olympus'
     | '/_authenticated/command/alignment'
     | '/_authenticated/command/alignment-conflicts'
+    | '/_authenticated/command/attention'
     | '/_authenticated/command/broadcasts'
     | '/_authenticated/command/pens-down'
     | '/_authenticated/command/question-health'
@@ -335,6 +348,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCommandBroadcastsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/command/attention': {
+      id: '/_authenticated/command/attention'
+      path: '/command/attention'
+      fullPath: '/command/attention'
+      preLoaderRoute: typeof AuthenticatedCommandAttentionRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/command/alignment-conflicts': {
       id: '/_authenticated/command/alignment-conflicts'
       path: '/command/alignment-conflicts'
@@ -413,6 +433,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedOlympusRoute: typeof AuthenticatedOlympusRoute
   AuthenticatedCommandAlignmentRoute: typeof AuthenticatedCommandAlignmentRoute
   AuthenticatedCommandAlignmentConflictsRoute: typeof AuthenticatedCommandAlignmentConflictsRoute
+  AuthenticatedCommandAttentionRoute: typeof AuthenticatedCommandAttentionRoute
   AuthenticatedCommandBroadcastsRoute: typeof AuthenticatedCommandBroadcastsRoute
   AuthenticatedCommandPensDownRoute: typeof AuthenticatedCommandPensDownRoute
   AuthenticatedCommandQuestionHealthRoute: typeof AuthenticatedCommandQuestionHealthRoute
@@ -433,6 +454,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCommandAlignmentRoute: AuthenticatedCommandAlignmentRoute,
   AuthenticatedCommandAlignmentConflictsRoute:
     AuthenticatedCommandAlignmentConflictsRoute,
+  AuthenticatedCommandAttentionRoute: AuthenticatedCommandAttentionRoute,
   AuthenticatedCommandBroadcastsRoute: AuthenticatedCommandBroadcastsRoute,
   AuthenticatedCommandPensDownRoute: AuthenticatedCommandPensDownRoute,
   AuthenticatedCommandQuestionHealthRoute:
