@@ -162,7 +162,9 @@ Identify every numbered prompt the bidder must answer. If no questions exist, re
       const err = await res.text();
       lastError = `Anthropic ${res.status}: ${err.slice(0, 500)}`;
       if (res.status === 404 && err.includes("not_found_error")) continue;
-      if (res.status === 429 && err.includes("input tokens per minute")) return fallbackExtractQuestions(text);
+      if (res.status === 429 && err.includes("input tokens per minute")) {
+        return fallbackExtractQuestions(text);
+      }
       throw new Error(lastError);
     }
 
