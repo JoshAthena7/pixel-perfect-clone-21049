@@ -651,11 +651,17 @@ function MissionOverviewPage() {
       <LeadershipNotesBlock
         notes={notes}
         canWrite={isLeader}
+        isLeader={isLeader}
         missionId={missionId}
         meName={me?.name ?? "Leader"}
         meId={me?.id ?? null}
+        myRole={me?.role ?? null}
+        writerIds={writerMembers.map((m) => m.user_id)}
+        noteReads={noteReads}
         onSaved={() => qc.invalidateQueries({ queryKey: ["overview-notes", missionId] })}
+        onReadsChanged={() => qc.invalidateQueries({ queryKey: ["overview-note-reads", missionId] })}
       />
+
 
       {/* FOOTER */}
       <div className="pt-4 border-t border-border">
