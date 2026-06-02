@@ -52,8 +52,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Athena Command" },
-      { name: "description", content: "Proposal Intelligence and Alignment System — Athena Strategy Group." },
+      { title: "Atlas" },
+      { name: "description", content: "Atlas — Proposal Intelligence and Alignment System. Built by Athena Strategy Group. Powered by IRIS." },
       { name: "theme-color", content: "#0a0e1a" },
     ],
     links: [
