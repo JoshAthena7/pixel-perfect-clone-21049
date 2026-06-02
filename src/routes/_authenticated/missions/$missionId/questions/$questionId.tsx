@@ -554,13 +554,9 @@ function ResponseView() {
         </div>
 
         {/* RIGHT — IRIS */}
-        <div className="border-l-[3px] border-[#0891b2] pl-6">
-          <div className="mb-4 flex items-center gap-2">
-            <span className="relative inline-flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#0891b2] opacity-60" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#0891b2]" />
-            </span>
-            <span className="text-[10px] font-semibold uppercase tracking-[0.32em] text-[#22d3ee]">● IRIS</span>
+        <div className="iris-panel rounded-r-[10px] pl-6 pr-5 py-5">
+          <div className="mb-4">
+            <span className="iris-label"><span className="iris-dot" />IRIS</span>
           </div>
 
           {intelLoading ? (
@@ -568,11 +564,14 @@ function ResponseView() {
               <div className="h-3 w-3/4 animate-pulse rounded bg-muted" />
               <div className="h-3 w-full animate-pulse rounded bg-muted" />
               <div className="h-3 w-5/6 animate-pulse rounded bg-muted" />
-              <div className="mt-2 text-[10px] text-[#22d3ee]">IRIS is preparing your brief…</div>
+              <div className="iris-loading-text mt-3">
+                <span className="iris-dot" />IRIS is preparing your brief...
+              </div>
             </div>
           ) : !hasIntel ? (
-            <div className="text-sm text-muted-foreground italic">
-              IRIS intelligence will generate once the RFP is uploaded and analyzed.
+            <div className="text-sm leading-relaxed text-muted-foreground">
+              Intelligence generates once the RFP is uploaded and analyzed.
+              Upload the RFP in Mission Settings to activate IRIS for this mission.
             </div>
           ) : (
             <div className="space-y-5">
@@ -644,7 +643,7 @@ function ResponseView() {
                 value={prompt} onChange={(e) => setPrompt(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") onAsk(); }}
                 placeholder="Ask IRIS anything about this response…"
-                className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                className="iris-input flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm"
                 autoFocus
               />
               <button onClick={onAsk} disabled={asking || !prompt.trim()}
@@ -653,8 +652,13 @@ function ResponseView() {
               </button>
             </div>
             {(asking || answer) && (
-              <div className="rounded-md border border-border bg-background/40 px-4 py-3 text-sm whitespace-pre-wrap text-[color:var(--iris,#22d3ee)]">
-                {asking ? "IRIS is thinking…" : answer}
+              <div className="iris-panel rounded-r-md px-4 py-3 text-sm">
+                <div className="mb-2"><span className="iris-label"><span className="iris-dot" />IRIS</span></div>
+                {asking ? (
+                  <div className="iris-loading-text text-left"><span className="iris-dot" />IRIS is preparing your brief...</div>
+                ) : (
+                  <div className="whitespace-pre-wrap text-foreground">{answer}</div>
+                )}
               </div>
             )}
           </div>
@@ -725,7 +729,7 @@ function Block({ label, children }: { label: string; children: React.ReactNode }
 function IrisInsight({ label, content }: { label: string; content: string }) {
   return (
     <div>
-      <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#22d3ee]">{label}</div>
+      <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[color:var(--iris)]">{label}</div>
       <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">{content}</p>
     </div>
   );
