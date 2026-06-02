@@ -18,6 +18,7 @@ import { Breadcrumbs } from "@/components/v2/Breadcrumbs";
 import { NotificationBell } from "@/components/v2/NotificationBell";
 import { KeyboardShortcuts } from "@/components/v2/KeyboardShortcuts";
 import { IrisStatusIndicator } from "@/components/v2/effects";
+import { UpdateRealityMount } from "@/components/v2/UpdateRealityModal";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
