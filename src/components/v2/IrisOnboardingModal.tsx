@@ -27,7 +27,7 @@ function pickRole(roles: string[]): Role {
 function buildMessage(ctx: OnboardingContext): { firstLine: string; body: string; button: string; destination: string } {
   const first = ctx.firstName || "there";
   const state = ctx.state || "your state";
-  const missionLabel = ctx.missionName || "your first mission";
+  void ctx.missionName;
 
   switch (ctx.role) {
     case "admin":
