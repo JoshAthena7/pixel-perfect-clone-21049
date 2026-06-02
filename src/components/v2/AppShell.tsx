@@ -1,8 +1,9 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useParams } from "@tanstack/react-router";
 import {
-  Building2, Target, Mountain, LayoutDashboard, Sparkles, BookOpen, Wrench, Users, History,
+  Building2, Mountain, LayoutDashboard, Sparkles, Wrench, Users, History,
   Settings2, ChevronRight, ChevronLeft, LogOut, User, ArrowRight, PenTool,
+  CalendarClock, Compass,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -121,18 +122,6 @@ function UserAvatarMenu() {
 
 
 function GlobalNav({ currentPath }: { currentPath: string }) {
-  const { data: missions = [] } = useQuery({
-    queryKey: ["sidebar-missions"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("missions")
-        .select("id,name,client,health,submission_date")
-        .eq("status", "Active")
-        .order("created_at", { ascending: false });
-      return (data ?? []) as Mission[];
-    },
-  });
-
   const { data: isPrivileged = false } = useQuery({
     queryKey: ["sidebar-is-privileged"],
     queryFn: async () => {
@@ -140,19 +129,17 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
       if (!user) return false;
       const { data } = await supabase.from("mission_members").select("role").eq("user_id", user.id);
       const roles = (data ?? []).map((r: any) => r.role);
-      // Show Olympus to admins/leads OR to any signed-in user with zero mission memberships
-      // (first-time admin needs the door in to create the first mission).
       return roles.includes("admin") || roles.includes("lead") || roles.length === 0;
     },
   });
 
+  // Keep leadership attention call so other badges stay accurate elsewhere.
   const attentionFn = useServerFn(irisLeadershipAttention);
-  const { data: attention } = useQuery({
+  useQuery({
     queryKey: ["leadership-attention"],
     queryFn: () => attentionFn(),
     refetchInterval: 60_000,
   });
-  const scoreMap = new Map((attention?.missions ?? []).map((m) => [m.mission_id, m.attention_score]));
 
   return (
     <div className="flex h-full flex-col">
@@ -167,60 +154,27 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
-        <Section label="The Atrium">
-          <NavItem to="/home" icon={<Building2 size={16} strokeWidth={1.5} />} active={currentPath === "/home"}>The Atrium</NavItem>
-        </Section>
-
-        <Section label="Missions" zone="missions" expandable>
-          {missions.length === 0 ? (
-            <div className="nav-empty-inset">You'll be assigned to a mission when work begins. Check back soon.</div>
-          ) : (
-            missions.map((m) => {
-              const score = scoreMap.get(m.id) ?? 0;
-              const days = m.submission_date
-                ? Math.ceil((new Date(m.submission_date).getTime() - Date.now()) / 86400000)
-                : null;
-              const isActive = currentPath.startsWith(`/missions/${m.id}`);
-              return (
-                <Link
-                  key={m.id}
-                  to="/missions/$missionId/overview"
-                  params={{ missionId: m.id }}
-                  className={`nav-mission-item ${isActive ? "is-active" : ""}`}
-                >
-                  <Target size={14} strokeWidth={1.5} className="shrink-0 text-muted-foreground" />
-                  <span className={`dot dot-${m.health.toLowerCase()}`} />
-                  <span className="truncate flex-1">{m.name}</span>
-                  {days !== null && (
-                    <span className="text-[10px] text-muted-foreground tabular-nums">{days}d</span>
-                  )}
-                  {score > 0 && (
-                    <span
-                      className={`inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-semibold ${
-                        score >= 50 ? "bg-destructive/20 text-destructive" :
-                        score >= 20 ? "bg-amber-500/20 text-amber-400" :
-                        "bg-primary/15 text-primary"
-                      }`}
-                      title={`Leadership Attention Score: ${score}`}
-                    >
-                      {score}
-                    </span>
-                  )}
-                </Link>
-              );
-            })
-          )}
-        </Section>
-
-        {isPrivileged && (
-          <Section label="Admin" zone="admin">
-            <NavItem to="/olympus" icon={<Mountain size={16} strokeWidth={1.5} className="text-[color:var(--athena-gold)]" />} active={currentPath.startsWith("/olympus")}>Olympus</NavItem>
-          </Section>
-        )}
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
+        <NavItem to="/home" icon={<Building2 size={16} strokeWidth={1.5} />} active={currentPath === "/home"}>Home</NavItem>
+        <NavItem to="/pipeline-horizon" icon={<CalendarClock size={16} strokeWidth={1.5} />} active={currentPath.startsWith("/pipeline-horizon")}>Pipeline Horizon</NavItem>
+        <NavItem to="/pathfinder" icon={<Compass size={16} strokeWidth={1.5} />} active={currentPath.startsWith("/pathfinder")}>Pathfinder</NavItem>
       </nav>
 
-      <SignOut />
+      <div className="border-t border-border p-3 flex items-center justify-between">
+        {isPrivileged ? (
+          <Link
+            to="/olympus"
+            aria-label="Admin"
+            title="Admin · Olympus"
+            className={`inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-surface-hover hover:text-foreground ${
+              currentPath.startsWith("/olympus") ? "bg-surface-hover text-foreground" : ""
+            }`}
+          >
+            <Settings2 size={16} strokeWidth={1.5} />
+          </Link>
+        ) : <span />}
+        <SignOutButton />
+      </div>
     </div>
   );
 }
@@ -350,7 +304,7 @@ function StudioRail({ missionId }: { missionId: string }) {
           icon={<PenTool size={16} strokeWidth={1.5} />}
           active={path.endsWith("/questions") || path.includes("/questions/")}
         >
-          My Questions
+          My Assignments
         </NavItem>
 
         <div className="my-3 border-t border-border" />

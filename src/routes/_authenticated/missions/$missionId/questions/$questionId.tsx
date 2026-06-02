@@ -353,7 +353,7 @@ function ResponseView() {
       }, qc);
     },
     onSuccess: () => {
-      toast.success("Flagged to Command Center.");
+      toast.success("Flagged to Overview.");
       setFlagOpen(false); setFlagType(null); setFlagBody("");
       qc.invalidateQueries({ queryKey: ["question-collabs", questionId] });
     },
