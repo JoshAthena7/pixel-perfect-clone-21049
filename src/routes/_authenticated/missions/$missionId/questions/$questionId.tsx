@@ -633,49 +633,7 @@ function ResponseView() {
         </div>
       </div>
 
-      {/* UPDATE REALITY MODAL */}
-      {realityOpen && (
-        <Modal onClose={() => { setRealityOpen(false); setChoice(null); setNeedType(null); setDetails(""); }} title="Update Reality">
-          {choice === null ? (
-            <div className="grid grid-cols-3 gap-3">
-              <RealityButton label="I Learned Something" onClick={() => setChoice("learned")} bg="rgba(34,197,94,0.15)" border="#22c55e" color="#22c55e" />
-              <RealityButton label="I Need Something" onClick={() => setChoice("need")} bg="rgba(245,158,11,0.15)" border="#f59e0b" color="#f59e0b" />
-              <RealityButton label="Nothing Changed" onClick={() => setChoice("unchanged")} bg="rgba(85,96,112,0.15)" border="#556070" color="#8b9ab5" />
-            </div>
-          ) : choice === "need" && !needType ? (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {(Object.keys(NEED_COLORS) as NeedType[]).map((k) => (
-                  <RealityButton key={k} label={NEED_COLORS[k].label} onClick={() => setNeedType(k)} bg={NEED_COLORS[k].bg} border={NEED_COLORS[k].border} color={NEED_COLORS[k].text} />
-                ))}
-              </div>
-              <button onClick={() => setChoice(null)} className="text-[11px] text-muted-foreground hover:text-foreground">← Back</button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                {choice === "learned" ? "I Learned Something" : choice === "unchanged" ? "Nothing Changed" : needType ? NEED_COLORS[needType].label : ""}
-              </div>
-              <textarea
-                value={details} onChange={(e) => setDetails(e.target.value)}
-                placeholder="What do you want to say?" rows={4}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
-                autoFocus
-              />
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => submitUpdate.mutate()}
-                  disabled={submitting || (choice !== "unchanged" && !details.trim())}
-                  className="rounded-md bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
-                >
-                  {submitting ? "Sending…" : "Submit"}
-                </button>
-                <button onClick={() => { setChoice(null); setNeedType(null); setDetails(""); }} className="rounded-md border border-border px-4 py-2 text-xs text-muted-foreground hover:text-foreground">Cancel</button>
-              </div>
-            </div>
-          )}
-        </Modal>
-      )}
+      {/* Update Reality is rendered globally by AppShell's UpdateRealityMount */}
 
       {/* ASK IRIS MODAL */}
       {askOpen && (
