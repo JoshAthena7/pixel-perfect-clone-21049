@@ -112,7 +112,6 @@ function DetailsTab({ missionId }: { missionId: string }) {
         health: form.health,
         submission_date: form.submission_date || null,
         description: form.description || null,
-        slack_webhook: form.slack_webhook || null,
       }).eq("id", missionId);
       if (error) throw error;
     },
