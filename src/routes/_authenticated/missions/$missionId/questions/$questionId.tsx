@@ -161,19 +161,43 @@ function ResponseView() {
   });
   const relById = Object.fromEntries(relatedQs.map((r) => [r.id, r]));
 
-  const { data: intel, isLoading: intelLoading } = useQuery({
+  const { data: intel, isLoading: intelLoading, refetch: refetchIntel } = useQuery({
     queryKey: ["question-intel", questionId],
     queryFn: async () => {
       const { data } = await supabase
         .from("question_intelligence")
-        .select("iris_brief,state_priorities,procurement_priorities,competitor_signals,compliance_flags")
+        .select("iris_brief,state_priorities,procurement_priorities,competitor_signals,compliance_flags,generated_at")
         .eq("question_id", questionId)
         .order("generated_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      return data as Intel | null;
+      return data as (Intel & { generated_at?: string }) | null;
     },
   });
+
+  const coachingFn = useServerFn(generateQuestionCoaching);
+  const [coachingPending, setCoachingPending] = useState(false);
+  const regenerateCoaching = async (force: boolean) => {
+    setCoachingPending(true);
+    try {
+      await coachingFn({ data: { questionId, force } });
+      await refetchIntel();
+    } catch (e: any) {
+      toast.error(e?.message ?? "IRIS coaching failed");
+    } finally {
+      setCoachingPending(false);
+    }
+  };
+  // Auto-generate on first view if no intel exists yet.
+  useEffect(() => {
+    if (intelLoading) return;
+    if (intel) return;
+    if (coachingPending) return;
+    regenerateCoaching(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [intelLoading, intel?.generated_at]);
+
+
 
   const { data: collabs = [] } = useQuery({
     queryKey: ["question-collabs", questionId],
