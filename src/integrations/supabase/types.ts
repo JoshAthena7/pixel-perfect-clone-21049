@@ -1056,8 +1056,10 @@ export type Database = {
           created_at: string | null
           display_name: string
           email: string | null
+          has_onboarded: boolean
           id: string
           last_seen_signals_at: string | null
+          onboarded_at: string | null
         }
         Insert: {
           avatar_color?: string | null
@@ -1065,8 +1067,10 @@ export type Database = {
           created_at?: string | null
           display_name: string
           email?: string | null
+          has_onboarded?: boolean
           id: string
           last_seen_signals_at?: string | null
+          onboarded_at?: string | null
         }
         Update: {
           avatar_color?: string | null
@@ -1074,8 +1078,10 @@ export type Database = {
           created_at?: string | null
           display_name?: string
           email?: string | null
+          has_onboarded?: boolean
           id?: string
           last_seen_signals_at?: string | null
+          onboarded_at?: string | null
         }
         Relationships: []
       }
