@@ -118,13 +118,13 @@ In the old stories, Iris was the messenger of the gods — the one who moved bet
 
 That's still the job.
 
-I've already read the RFP. I know what ${state} is prioritizing, what the evaluators have weighted in similar procurements, and where the competitive opening is for your sections. I'll have it waiting for you when you open your first question.
+I've already read the RFP and configured your Atlas mission intelligence. I know what ${state} is prioritizing, what the evaluators have weighted in similar procurements, and where the competitive opening is for your sections. I'll have it waiting for you when you open your first question.
 
 Your job is to write. My job is to make sure you never have to wonder what to say or whether your answer contradicts someone else's.
 
 One thing I need from you. When reality changes — you learned something, you're stuck, or nothing changed — tell me. Hit Update Reality. Fifteen seconds. It keeps the whole mission calibrated.
 
-Athena doesn't lose proposals because of bad writers. She loses them because the right intelligence didn't reach the right person in time.
+Atlas doesn't lose proposals because of bad writers. We lose them because the right intelligence didn't reach the right person in time.
 
 That won't happen here.
 
