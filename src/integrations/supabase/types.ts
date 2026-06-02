@@ -498,8 +498,14 @@ export type Database = {
         Row: {
           category: string | null
           created_at: string
+          feed_type: string
+          fetched_at: string
           id: string
+          is_cross_referenced: boolean
+          matched_mission_ids: string[] | null
+          mission_id: string | null
           published_at: string | null
+          question_ids: string[] | null
           source: string
           summary: string | null
           title: string
@@ -509,8 +515,14 @@ export type Database = {
         Insert: {
           category?: string | null
           created_at?: string
+          feed_type?: string
+          fetched_at?: string
           id?: string
+          is_cross_referenced?: boolean
+          matched_mission_ids?: string[] | null
+          mission_id?: string | null
           published_at?: string | null
+          question_ids?: string[] | null
           source: string
           summary?: string | null
           title: string
@@ -520,15 +532,29 @@ export type Database = {
         Update: {
           category?: string | null
           created_at?: string
+          feed_type?: string
+          fetched_at?: string
           id?: string
+          is_cross_referenced?: boolean
+          matched_mission_ids?: string[] | null
+          mission_id?: string | null
           published_at?: string | null
+          question_ids?: string[] | null
           source?: string
           summary?: string | null
           title?: string
           type?: string
           url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "market_intelligence_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mission_assumptions: {
         Row: {
@@ -1694,6 +1720,18 @@ export type Database = {
       }
       is_platform_admin: { Args: { _user_id: string }; Returns: boolean }
       leadership_count: { Args: { _engagement_id: string }; Returns: number }
+      match_intel_to_questions: {
+        Args: {
+          max_questions?: number
+          query_embedding: string
+          similarity_threshold?: number
+        }
+        Returns: {
+          mission_id: string
+          question_id: string
+          similarity: number
+        }[]
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string

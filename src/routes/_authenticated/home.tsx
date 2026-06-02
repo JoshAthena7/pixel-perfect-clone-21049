@@ -222,10 +222,11 @@ function AthenaHQ() {
     queryFn: async () => {
       const { data } = await supabase
         .from("market_intelligence")
-        .select("id,source,type,category,title,summary,url,published_at,created_at")
+        .select("id,source,type,category,title,summary,url,published_at,created_at,matched_mission_ids")
+        .eq("feed_type", "industry")
         .order("created_at", { ascending: false })
         .limit(100);
-      return (data ?? []) as IntelItem[];
+      return (data ?? []) as (IntelItem & { matched_mission_ids?: string[] | null })[];
     },
     refetchInterval: 60_000,
   });
@@ -433,7 +434,7 @@ function AthenaHQ() {
         {/* PHASE 7 / CHANGE 4: Firm Intel — collapsed by default */}
         <FirmIntel
           horizonItems={horizonItems}
-          missionCount={missions.length}
+          missions={missions}
           leadershipMessages={leadershipMessages as any[]}
           pipeline={pipeline}
         />
@@ -444,12 +445,12 @@ function AthenaHQ() {
 
 function FirmIntel({
   horizonItems,
-  missionCount,
+  missions,
   leadershipMessages,
   pipeline,
 }: {
-  horizonItems: IntelItem[];
-  missionCount: number;
+  horizonItems: (IntelItem & { matched_mission_ids?: string[] | null })[];
+  missions: Mission[];
   leadershipMessages: any[];
   pipeline: Mission[];
 }) {
@@ -471,7 +472,7 @@ function FirmIntel({
       </button>
       {open && (
         <div className="border-t border-border p-5 space-y-8">
-          <HorizonFeed items={horizonItems} missionCount={missionCount} />
+          <HorizonFeed items={horizonItems} missions={missions} />
 
           <section className="rounded-[12px] border border-border bg-surface">
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
@@ -793,9 +794,10 @@ function AskIrisBar() {
 
 // ─── HORIZON FEED ──────────────────────────────────────────────────────────
 
-function HorizonFeed({ items, missionCount }: { items: IntelItem[]; missionCount: number }) {
+function HorizonFeed({ items, missions }: { items: (IntelItem & { matched_mission_ids?: string[] | null })[]; missions: Mission[] }) {
   const [filter, setFilter] = useState<string>("All");
   const [search, setSearch] = useState("");
+  const missionNameMap = useMemo(() => new Map(missions.map((m) => [m.id, m.name])), [missions]);
 
   const enriched = useMemo(
     () => items.map((it) => ({ ...it, _cat: inferCategory(it) })),
@@ -886,10 +888,21 @@ function HorizonFeed({ items, missionCount }: { items: IntelItem[]; missionCount
                 {it.summary && (
                   <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{it.summary}</p>
                 )}
-                {missionCount > 0 && (
-                  <p className="mt-1.5 text-[10px] uppercase tracking-[0.1em] text-muted-foreground/70">
-                    Relevant to {missionCount} active {missionCount === 1 ? "mission" : "missions"}
-                  </p>
+                {it.matched_mission_ids && it.matched_mission_ids.length > 0 && (
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    <span className="text-[10px] uppercase tracking-[0.1em] text-[color:var(--iris,#22d3ee)]">● Relevant to</span>
+                    {it.matched_mission_ids.slice(0, 4).map((mid) => (
+                      <span
+                        key={mid}
+                        className="rounded-full border border-[color:var(--iris,#22d3ee)]/30 bg-[color:var(--iris,#22d3ee)]/[0.06] px-2 py-0.5 text-[10px] font-medium text-[color:var(--iris,#22d3ee)]"
+                      >
+                        {missionNameMap.get(mid) ?? "Mission"}
+                      </span>
+                    ))}
+                    {it.matched_mission_ids.length > 4 && (
+                      <span className="text-[10px] text-muted-foreground">+{it.matched_mission_ids.length - 4} more</span>
+                    )}
+                  </div>
                 )}
               </a>
             </li>
