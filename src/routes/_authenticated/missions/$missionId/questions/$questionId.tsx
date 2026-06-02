@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { createSignal } from "@/lib/signals";
 import { irisAskQuestion } from "@/lib/iris-ask.functions";
+import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
 import { toast } from "sonner";
 import { ArrowLeft, Sparkles, Send, ChevronDown, ChevronRight, X, MessageSquare, AlertTriangle, Flag } from "lucide-react";
 
