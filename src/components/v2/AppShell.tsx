@@ -53,6 +53,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div key={path} className="route-fade flex-1 min-w-0">{children}</div>
       </main>
       {inMission && params.missionId && <UpdateRealityMount missionId={params.missionId} />}
+      <IrisOnboardingMount />
     </div>
   );
 }
