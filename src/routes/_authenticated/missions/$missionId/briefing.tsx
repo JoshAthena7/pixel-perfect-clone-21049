@@ -13,6 +13,8 @@ import { relativeTime } from "@/lib/signals";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { MissionIntelligenceFeed } from "@/components/v2/MissionIntelligenceFeed";
+import { OracleIcon } from "@/components/v2/icons/AtlasIcons";
+
 
 type SourceRef =
   | { type: "vault_document"; name: string; document_id: string }
