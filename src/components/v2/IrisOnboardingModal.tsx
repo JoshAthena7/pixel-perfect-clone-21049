@@ -118,9 +118,9 @@ In the old stories, Iris was the messenger of the gods — the one who moved bet
 
 That's still the job.
 
-I've already read the RFP. I know what ${state} is prioritizing, what the evaluators have weighted in similar procurements, and where the competitive opening is for your sections. I'll have it waiting for you when you open ${missionLabel === "your first mission" ? "your first question" : "your first question"}.
+I've already read the RFP. I know what ${state} is prioritizing, what the evaluators have weighted in similar procurements, and where the competitive opening is for your sections. I'll have it waiting for you when you open your first question.
 
-Your job is write. My job is to make sure you never have to wonder what to say or whether your answer contradicts someone else's.
+Your job is to write. My job is to make sure you never have to wonder what to say or whether your answer contradicts someone else's.
 
 One thing I need from you. When reality changes — you learned something, you're stuck, or nothing changed — tell me. Hit Update Reality. Fifteen seconds. It keeps the whole mission calibrated.
 
