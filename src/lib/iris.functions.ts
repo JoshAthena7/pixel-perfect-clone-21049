@@ -365,6 +365,7 @@ export const irisGenerateBriefingSection = createServerFn({ method: "POST" })
           mission_id: data.missionId,
           section_key: data.sectionKey,
           content,
+          sources: grounded as unknown as object,
           status: "ready",
           generated_at: now,
           updated_at: now,
@@ -373,5 +374,5 @@ export const irisGenerateBriefingSection = createServerFn({ method: "POST" })
         { onConflict: "mission_id,section_key" },
       );
     if (error) throw new Error(error.message);
-    return { ok: true, content, generated_at: now, version_number: nextVersion };
+    return { ok: true, content, generated_at: now, version_number: nextVersion, sources: grounded.length };
   });
