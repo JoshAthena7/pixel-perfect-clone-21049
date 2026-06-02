@@ -17,6 +17,8 @@ type MissionRow = {
   win_themes: string[] | null;
   priority_topics: string[] | null;
   competitors: string[] | null;
+  focus_areas: string[] | null;
+  iris_search_terms: string[] | null;
 };
 
 export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
@@ -28,7 +30,7 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
     queryFn: async () => {
       const { data } = await supabase
         .from("missions")
-        .select("id,name,client,state,program_type,win_themes,priority_topics,competitors")
+        .select("id,name,client,state,program_type,win_themes,priority_topics,competitors,focus_areas,iris_search_terms")
         .eq("id", missionId)
         .maybeSingle();
       return data as MissionRow | null;
@@ -53,7 +55,10 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
     competitors: mission?.competitors ?? [],
     win_themes: mission?.win_themes ?? [],
     priority_topics: mission?.priority_topics ?? [],
+    focus_areas: mission?.focus_areas ?? [],
+    search_terms: mission?.iris_search_terms ?? [],
   }), [mission]);
+
 
   const scored = useMemo(() => scoreAll(items, profile), [items, profile]);
   const hasNonLow = scored.some((s) => s.level !== "LOW");
