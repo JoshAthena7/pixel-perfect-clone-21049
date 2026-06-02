@@ -45,6 +45,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* DESIGN-2: page transition wrapper keyed on route */}
         <div key={path} className="route-fade flex-1 min-w-0">{children}</div>
       </main>
+      {inMission && params.missionId && <UpdateRealityMount missionId={params.missionId} />}
     </div>
   );
 }
