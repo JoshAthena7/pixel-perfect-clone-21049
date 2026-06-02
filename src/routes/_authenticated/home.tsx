@@ -472,7 +472,7 @@ function FirmIntel({
       </button>
       {open && (
         <div className="border-t border-border p-5 space-y-8">
-          <HorizonFeed items={horizonItems} missionCount={missionCount} />
+          <HorizonFeed items={horizonItems} missions={missions} />
 
           <section className="rounded-[12px] border border-border bg-surface">
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
