@@ -1,11 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Archive, BookOpen, ArrowRight, Activity } from "lucide-react";
+import { ArrowRight, Activity } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { VaultIcon, OracleIcon } from "@/components/v2/icons/AtlasIcons";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/intelligence")({
   component: IntelligencePage,
 });
+
 
 function IntelligencePage() {
   const { missionId } = Route.useParams();
