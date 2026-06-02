@@ -158,9 +158,7 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
         <NavItem to="/home" icon={<Building2 size={16} strokeWidth={1.5} />} active={currentPath === "/home"}>Home</NavItem>
         <NavItem to="/pipeline-horizon" icon={<CalendarClock size={16} strokeWidth={1.5} />} active={currentPath.startsWith("/pipeline-horizon")}>Pipeline Horizon</NavItem>
         <NavItem to="/pathfinder" icon={<Compass size={16} strokeWidth={1.5} />} active={currentPath.startsWith("/pathfinder")}>Pathfinder</NavItem>
-        {isPrivileged && (
-          <NavItem to="/olympus" icon={<Shield size={16} strokeWidth={1.5} className="text-[color:var(--athena-gold)]" />} active={currentPath.startsWith("/olympus")}>Olympus</NavItem>
-        )}
+        <NavItem to="/olympus" icon={<Shield size={16} strokeWidth={1.5} className="text-[color:var(--athena-gold)]" />} active={currentPath.startsWith("/olympus")}>Olympus</NavItem>
       </nav>
 
       <div className="border-t border-border p-3 flex items-center justify-between">
