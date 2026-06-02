@@ -124,22 +124,38 @@
   }
 
   /* DESIGN-1 (BRAND): IRIS visual identity */
-  .iris-panel { border-left: 3px solid var(--iris) !important; }
+  .iris-panel {
+    border-left: 3px solid var(--iris) !important;
+    background: var(--iris-subtle);
+  }
   .iris-label {
+    display: inline-flex; align-items: center;
     color: var(--iris);
-    font-size: 0.65rem; font-weight: 600; letter-spacing: 0.12em;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
     text-transform: uppercase;
   }
-  /* EFFECT 1: IRIS Neural Pulse — concentric expanding rings */
+  /* IRIS Neural Pulse — concentric expanding rings */
   .iris-dot, .iris-pulse-dot {
     display: inline-block; width: 6px; height: 6px; border-radius: 9999px;
     background: var(--iris);
-    animation: iris-neural 2s ease-out infinite;
+    margin-right: 5px;
+    vertical-align: middle;
+    animation: iris-neural 2.5s ease-in-out infinite;
   }
   @keyframes iris-neural {
-    0%   { box-shadow: 0 0 0 0 rgba(8,145,178,0.6), 0 0 0 0 rgba(8,145,178,0.3); }
-    50%  { box-shadow: 0 0 0 8px rgba(8,145,178,0), 0 0 0 16px rgba(8,145,178,0); }
-    100% { box-shadow: 0 0 0 0 rgba(8,145,178,0), 0 0 0 0 rgba(8,145,178,0); }
+    0%, 100% { box-shadow: 0 0 0 0 var(--iris-pulse); opacity: 1; }
+    50%      { box-shadow: 0 0 0 5px transparent; opacity: 0.8; }
+  }
+  .iris-loading-text {
+    font-size: 12px;
+    color: var(--iris);
+    text-align: center;
+  }
+  .iris-input:focus,
+  .iris-input:focus-visible {
+    border-color: var(--iris) !important;
+    outline: none;
+    box-shadow: 0 0 0 1px var(--iris-border);
   }
 
   /* EFFECT 2: LIVE badge */
