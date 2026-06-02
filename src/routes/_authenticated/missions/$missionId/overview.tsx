@@ -312,6 +312,7 @@ function MissionOverviewPage() {
   const respondMutation = useMutation({
     mutationFn: async ({ need, text }: { need: Collab; text: string }) => {
       if (!me) throw new Error("Not signed in");
+      if (!need.question_id) throw new Error("Missing question");
       const { error: e1 } = await supabase.from("question_collaboration").insert({
         question_id: need.question_id,
         mission_id: need.mission_id,
