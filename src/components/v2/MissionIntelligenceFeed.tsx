@@ -1,12 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { scoreAll, type IntelItem, type MissionProfile, type ScoredItem } from "@/lib/intelligence-feed";
-import { Sparkles, BookmarkPlus, Link2, Users, Flag, MessageSquarePlus, Target, ChevronDown, ChevronRight, RefreshCw } from "lucide-react";
+import type { IntelItem } from "@/lib/intelligence-feed";
+import {
+  Sparkles, BookmarkPlus, Link2, Users, Flag, MessageSquarePlus,
+  Target, ChevronDown, ChevronRight, RefreshCw, Brain, Loader2, ExternalLink,
+} from "lucide-react";
 import { relativeTime } from "@/lib/signals";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { LiveBadge, SignalStrengthBars, TypewriterText, TransmittedFlash } from "@/components/v2/effects";
+import { LiveBadge, TypewriterText, TransmittedFlash } from "@/components/v2/effects";
 
 type MissionRow = {
   id: string;
@@ -21,9 +24,27 @@ type MissionRow = {
   iris_search_terms: string[] | null;
 };
 
+type ResearchSource = { title?: string; url: string };
+
+type ResearchFeedRow = {
+  task_id: string;
+  result_id: string | null;
+  question: string;
+  why_it_matters: string | null;
+  priority: "high" | "medium" | "low";
+  status: "pending" | "in_progress" | "complete" | "failed";
+  answer: string | null;
+  sources: ResearchSource[];
+  confidence: "high" | "medium" | "low" | null;
+  follow_up_questions: string[];
+  generated_at: string | null;
+  created_at: string;
+};
+
 export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
+  const qc = useQueryClient();
   const [profileOpen, setProfileOpen] = useState(true);
-  const [showLow, setShowLow] = useState(false);
+  const [running, setRunning] = useState<"dna" | "research" | null>(null);
 
   const { data: mission } = useQuery({
     queryKey: ["mip-mission", missionId],
@@ -37,56 +58,100 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
     },
   });
 
-  const { data: items = [], refetch, isFetching } = useQuery({
-    queryKey: ["mip-intel", missionId],
+  const { data: dna } = useQuery({
+    queryKey: ["mission-dna", missionId],
     queryFn: async () => {
       const { data } = await supabase
-        .from("market_intelligence")
-        .select("id,source,type,category,title,summary,url,published_at,created_at")
-        .order("created_at", { ascending: false })
-        .limit(200);
-      return (data ?? []) as IntelItem[];
+        .from("mission_intelligence_dna")
+        .select("id,dna_version,generated_from,generated_at")
+        .eq("mission_id", missionId)
+        .eq("is_current", true)
+        .maybeSingle();
+      return data;
     },
   });
 
-  const profile: MissionProfile = useMemo(() => ({
-    state: mission?.state ?? null,
-    client: mission?.client ?? null,
-    competitors: mission?.competitors ?? [],
-    win_themes: mission?.win_themes ?? [],
-    priority_topics: mission?.priority_topics ?? [],
-    focus_areas: mission?.focus_areas ?? [],
-    search_terms: mission?.iris_search_terms ?? [],
-  }), [mission]);
+  const { data: feed = [], refetch, isFetching } = useQuery({
+    queryKey: ["iris-research-feed", missionId],
+    queryFn: async (): Promise<ResearchFeedRow[]> => {
+      const { data: tasks } = await supabase
+        .from("research_tasks")
+        .select("id,question,why_it_matters,priority,status,created_at")
+        .eq("mission_id", missionId)
+        .order("priority", { ascending: true })
+        .order("created_at", { ascending: false });
 
+      const list = tasks ?? [];
+      if (list.length === 0) return [];
 
-  const scored = useMemo(() => scoreAll(items, profile), [items, profile]);
-  const hasNonLow = scored.some((s) => s.level !== "LOW");
-  // Stay laser-focused: only show items that matched the mission's state or topics.
-  const visible = showLow ? scored : scored.filter((s) => s.level !== "LOW");
+      const { data: results } = await supabase
+        .from("research_results")
+        .select("id,task_id,answer,sources,confidence,follow_up_questions,generated_at")
+        .in("task_id", list.map((t) => t.id));
 
+      const byTask = new Map<string, any>();
+      for (const r of results ?? []) byTask.set(r.task_id, r);
 
-  // Persist scores to mission_intelligence_scores (upsert) — fire once per scored snapshot.
-  const persistedRef = useRef<string>("");
-  useEffect(() => {
-    if (scored.length === 0) return;
-    const sig = `${missionId}:${scored.length}:${scored[0]?.item.id}:${scored[0]?.score}`;
-    if (persistedRef.current === sig) return;
-    persistedRef.current = sig;
-    const rows = scored.slice(0, 50).map((s) => ({
-      mission_id: missionId,
-      intelligence_id: s.item.id,
-      score: s.score,
-      matched_themes: s.matchedThemes,
-      iris_insight: s.insight,
-    }));
-    supabase
-      .from("mission_intelligence_scores")
-      .upsert(rows, { onConflict: "mission_id,intelligence_id" })
-      .then(({ error }) => {
-        if (error) console.warn("[mis] persist failed", error.message);
+      return list.map((t) => {
+        const r = byTask.get(t.id);
+        return {
+          task_id: t.id,
+          result_id: r?.id ?? null,
+          question: t.question,
+          why_it_matters: t.why_it_matters ?? null,
+          priority: (t.priority as ResearchFeedRow["priority"]) ?? "medium",
+          status: (t.status as ResearchFeedRow["status"]) ?? "pending",
+          answer: r?.answer ?? null,
+          sources: Array.isArray(r?.sources) ? (r.sources as ResearchSource[]) : [],
+          confidence: r?.confidence ?? null,
+          follow_up_questions: Array.isArray(r?.follow_up_questions) ? r.follow_up_questions : [],
+          generated_at: r?.generated_at ?? null,
+          created_at: t.created_at,
+        };
       });
-  }, [scored, missionId]);
+    },
+    refetchInterval: running ? 4000 : false,
+  });
+
+  const counts = useMemo(() => ({
+    total: feed.length,
+    complete: feed.filter((f) => f.status === "complete").length,
+    pending: feed.filter((f) => f.status === "pending").length,
+    in_progress: feed.filter((f) => f.status === "in_progress").length,
+    failed: feed.filter((f) => f.status === "failed").length,
+  }), [feed]);
+
+  async function runResearch() {
+    setRunning("research");
+    toast.loading("IRIS is executing research via Perplexity…", { id: "iris-research" });
+    try {
+      const { executeResearchAgenda } = await import("@/lib/iris-research.functions");
+      const out = await executeResearchAgenda({ data: { missionId, limit: 12 } });
+      toast.success(`Research complete — ${out.succeeded}/${out.executed} answered`, { id: "iris-research" });
+      qc.invalidateQueries({ queryKey: ["iris-research-feed", missionId] });
+    } catch (e) {
+      toast.error(`Research execution failed: ${e instanceof Error ? e.message : "unknown"}`, { id: "iris-research" });
+    } finally {
+      setRunning(null);
+    }
+  }
+
+  async function buildDna() {
+    setRunning("dna");
+    toast.loading("IRIS is reading the RFP and building the research agenda…", { id: "iris-dna" });
+    try {
+      const { generateMissionDna } = await import("@/lib/iris-dna.functions");
+      const out = await generateMissionDna({ data: { missionId } });
+      toast.success(`Research agenda built — ${out.questionsGenerated} questions queued`, { id: "iris-dna" });
+      qc.invalidateQueries({ queryKey: ["mission-dna", missionId] });
+      qc.invalidateQueries({ queryKey: ["iris-research-feed", missionId] });
+      await runResearch();
+    } catch (e) {
+      toast.error(`DNA generation failed: ${e instanceof Error ? e.message : "unknown"}`, { id: "iris-dna" });
+    } finally {
+      setRunning(null);
+    }
+  }
 
   const profileEmpty =
     !mission?.state && !mission?.client &&
@@ -95,7 +160,6 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
     (mission?.focus_areas ?? []).length === 0 &&
     (mission?.iris_search_terms ?? []).length === 0 &&
     (mission?.competitors ?? []).length === 0;
-
 
   return (
     <div className="space-y-5">
@@ -111,14 +175,14 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
             <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Mission Profile</h3>
           </div>
           <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-            {profileEmpty ? "Not configured" : "Configured"}
+            {dna ? `DNA v${(dna as any).dna_version}` : profileEmpty ? "Not configured" : "Configured"}
           </span>
         </button>
         {profileOpen && (
           <div className="px-5 py-4">
             {profileEmpty ? (
               <p className="text-sm text-muted-foreground italic">
-                Configure the Intelligence Profile in Mission Settings to start scoring intelligence relevance.
+                Configure the Intelligence Profile in Mission Settings or upload an RFP so IRIS can build the mission DNA.
               </p>
             ) : (
               <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm">
@@ -131,57 +195,81 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
                 <ProfileTags label="Priority Topics" tags={mission?.priority_topics ?? []} />
                 <ProfileTags label="Competitors" tags={mission?.competitors ?? []} tone="warn" />
               </dl>
-
             )}
           </div>
         )}
       </section>
 
-      {/* FEED HEADER */}
+      {/* IRIS RESEARCH FEED */}
       <section className="iris-panel rounded-[12px] border border-border bg-surface">
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+        <div className="flex items-center justify-between border-b border-border px-5 py-4 gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <Sparkles className="h-3.5 w-3.5 text-primary" />
-            <h3 className="iris-label">Mission Intelligence Feed</h3>
+            <h3 className="iris-label">IRIS Research Feed</h3>
             <LiveBadge />
             <span className="ml-2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground mono">
-              {visible.length} of {scored.length} scored
+              {counts.complete} answered · {counts.in_progress + counts.pending} pending{counts.failed > 0 ? ` · ${counts.failed} failed` : ""}
             </span>
           </div>
-          <button
-            onClick={() => refetch()}
-            disabled={isFetching}
-            className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] hover:bg-surface-hover disabled:opacity-50"
-          >
-            <RefreshCw className={`h-3 w-3 ${isFetching ? "animate-spin" : ""}`} /> Refresh
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => refetch()}
+              disabled={isFetching}
+              className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] hover:bg-surface-hover disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3 w-3 ${isFetching ? "animate-spin" : ""}`} /> Refresh
+            </button>
+            {!dna ? (
+              <button
+                onClick={buildDna}
+                disabled={running !== null}
+                className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] text-primary hover:bg-primary/20 disabled:opacity-50"
+              >
+                {running === "dna" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Brain className="h-3 w-3" />}
+                Build Intelligence DNA
+              </button>
+            ) : (counts.pending + counts.failed) > 0 ? (
+              <button
+                onClick={runResearch}
+                disabled={running !== null}
+                className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] text-primary hover:bg-primary/20 disabled:opacity-50"
+              >
+                {running === "research" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                Run Research ({counts.pending + counts.failed})
+              </button>
+            ) : null}
+          </div>
         </div>
 
         <ul className="divide-y divide-border">
-          {scored.length === 0 ? (
-            <li className="px-5 py-12 text-center text-sm text-muted-foreground">
-              {profileEmpty
-                ? "Upload an RFP so IRIS can configure the state and topics that drive this feed."
-                : `No intelligence yet that matches ${mission?.state ?? "this mission"}'s state or its IRIS-extracted topics. Generic federal coverage is intentionally filtered out.`}
+          {feed.length === 0 ? (
+            <li className="px-5 py-12 text-center text-sm text-muted-foreground space-y-3">
+              <div>
+                {dna
+                  ? "Intelligence DNA built but no research questions yet."
+                  : profileEmpty
+                    ? "Upload an RFP to the Vault first — IRIS will read it and build the research agenda."
+                    : "No IRIS research yet. Build the intelligence DNA from the latest RFP in the Vault."}
+              </div>
+              {!profileEmpty && !dna && (
+                <div className="pt-2">
+                  <button
+                    onClick={buildDna}
+                    disabled={running !== null}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-[12px] text-primary hover:bg-primary/20 disabled:opacity-50"
+                  >
+                    {running === "dna" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Brain className="h-3 w-3" />}
+                    Build Intelligence DNA from latest RFP
+                  </button>
+                </div>
+              )}
             </li>
-
           ) : (
-            visible.map((s, idx) => (
-              <FeedItem key={s.item.id} scored={s} missionId={missionId} idx={idx} />
+            feed.map((row, idx) => (
+              <ResearchFeedItem key={row.task_id} row={row} missionId={missionId} idx={idx} />
             ))
           )}
         </ul>
-
-        {!showLow && hasNonLow && scored.some((s) => s.level === "LOW") && (
-          <div className="border-t border-border px-5 py-3 text-center">
-            <button
-              onClick={() => setShowLow(true)}
-              className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground hover:text-foreground"
-            >
-              Show {scored.filter((s) => s.level === "LOW").length} low-relevance items
-            </button>
-          </div>
-        )}
       </section>
     </div>
   );
@@ -214,8 +302,9 @@ function ProfileTags({ label, tags, tone }: { label: string; tags: string[]; ton
   );
 }
 
-function FeedItem({ scored, missionId, idx = 0 }: { scored: ScoredItem; missionId: string; idx?: number }) {
+function ResearchFeedItem({ row, missionId, idx = 0 }: { row: ResearchFeedRow; missionId: string; idx?: number }) {
   const qc = useQueryClient();
+  const [expanded, setExpanded] = useState(idx < 3 && row.status === "complete");
   const [attachOpen, setAttachOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
   const [discussOpen, setDiscussOpen] = useState(false);
@@ -225,17 +314,43 @@ function FeedItem({ scored, missionId, idx = 0 }: { scored: ScoredItem; missionI
     window.setTimeout(() => setFlash(null), 1600);
   };
 
-  const { item, level, insight, matchedThemes } = scored;
+  const item: IntelItem = useMemo(() => ({
+    id: row.result_id ?? row.task_id,
+    source: "IRIS Research",
+    type: "research",
+    category: row.priority === "high" ? "PRIORITY" : "RESEARCH",
+    title: row.question,
+    summary: row.answer ?? row.why_it_matters ?? "",
+    url: row.sources[0]?.url ?? null,
+    published_at: row.generated_at,
+    created_at: row.created_at,
+  }), [row]);
+  const insight = (row.answer ?? row.why_it_matters ?? "").slice(0, 600);
+
+  const retry = useMutation({
+    mutationFn: async () => {
+      const { executeResearchTask } = await import("@/lib/iris-research.functions");
+      await executeResearchTask({ data: { taskId: row.task_id } });
+    },
+    onSuccess: () => {
+      toast.success("Research retried");
+      qc.invalidateQueries({ queryKey: ["iris-research-feed", missionId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const saveToVault = useMutation({
     mutationFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
+      const noteBody = row.answer
+        ? `${row.answer}\n\nSources:\n${row.sources.map((s) => `• ${s.url}`).join("\n")}`
+        : row.why_it_matters ?? "";
       const { error } = await supabase.from("mission_library").insert({
         mission_id: missionId,
-        name: item.title ?? "Intelligence item",
-        category: "Market Intelligence",
-        url: item.url,
-        notes: insight,
+        name: `IRIS: ${row.question.slice(0, 120)}`,
+        category: "IRIS Research",
+        url: row.sources[0]?.url ?? null,
+        notes: noteBody,
         added_by_id: user?.id ?? null,
       });
       if (error) throw error;
@@ -250,11 +365,11 @@ function FeedItem({ scored, missionId, idx = 0 }: { scored: ScoredItem; missionI
       const { data: prof } = await supabase.from("profiles").select("display_name").eq("id", user!.id).maybeSingle();
       const { error } = await supabase.from("question_collaboration").insert({
         mission_id: missionId,
-        question_id: "00000000-0000-0000-0000-000000000000", // mission-level note (not tied to a question)
+        question_id: "00000000-0000-0000-0000-000000000000",
         author_id: user!.id,
         author_name: prof?.display_name ?? "Member",
         entry_type: "note",
-        body: `📡 Intelligence shared: ${item.title}\n${insight}${item.url ? `\n${item.url}` : ""}`,
+        body: `🧠 IRIS Research: ${row.question}\n\n${insight}`,
       });
       if (error) throw error;
     },
@@ -269,7 +384,7 @@ function FeedItem({ scored, missionId, idx = 0 }: { scored: ScoredItem; missionI
         mission_id: missionId,
         signal_type: "iris_alert",
         severity: "warning",
-        signal_title: `Intelligence flagged for leadership review: ${item.title}`,
+        signal_title: `IRIS research flagged: ${row.question.slice(0, 140)}`,
         signal_summary: insight,
         source_module: "oracle",
         user_id: user?.id ?? null,
@@ -280,52 +395,100 @@ function FeedItem({ scored, missionId, idx = 0 }: { scored: ScoredItem; missionI
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const priorityCls =
+    row.priority === "high" ? "border-amber-500/40 bg-amber-500/10 text-amber-300" :
+    row.priority === "low"  ? "border-border bg-background text-muted-foreground" :
+                              "border-primary/30 bg-primary/5 text-primary";
+
+  const statusCls =
+    row.status === "complete"    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" :
+    row.status === "in_progress" ? "border-primary/40 bg-primary/10 text-primary" :
+    row.status === "failed"      ? "border-red-500/40 bg-red-500/10 text-red-300" :
+                                   "border-border bg-background text-muted-foreground";
+
   return (
     <li className="relative px-5 py-4 feed-item" style={{ animationDelay: `${Math.min(idx, 12) * 80}ms` }}>
       <TransmittedFlash show={!!flash} label={flash?.label ?? ""} tone={flash?.tone ?? "teal"} />
-      <div className="flex items-start gap-3">
-        <SignalStrengthBars level={level} />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            {item.category && (
-              <span className="rounded-full border border-primary/30 bg-primary/5 px-2 py-0.5 text-[10px] uppercase tracking-[0.1em] text-primary">
-                {item.category}
-              </span>
-            )}
-            <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{item.source}</span>
-            <span className="ml-auto text-[10px] text-muted-foreground mono">
-              {relativeTime(item.published_at ?? item.created_at)}
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-[0.1em] ${priorityCls}`}>
+            {row.priority}
+          </span>
+          <span className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-[0.1em] ${statusCls}`}>
+            {row.status === "in_progress" ? "researching…" : row.status}
+          </span>
+          {row.confidence && (
+            <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+              confidence: {row.confidence}
             </span>
-          </div>
-
-          <a
-            href={item.url ?? "#"}
-            target={item.url ? "_blank" : undefined}
-            rel="noreferrer"
-            className="mt-1.5 block text-sm font-semibold text-foreground hover:text-primary"
-          >
-            {item.title}
-          </a>
-
-          {/* IRIS INSIGHT — typewriter */}
-          <div className="mt-2 border-l-2 border-primary bg-primary/5 px-3 py-2">
-            <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-primary mb-0.5">IRIS Insight</div>
-            <p className="text-xs text-foreground/90 leading-relaxed">
-              <TypewriterText text={insight} />
-            </p>
-          </div>
-
-          {matchedThemes.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1">
-              {matchedThemes.map((t) => (
-                <span key={t} className="rounded-full bg-primary/10 text-primary px-2 py-0.5 text-[10px]">
-                  {t}
-                </span>
-              ))}
-            </div>
           )}
+          <span className="ml-auto text-[10px] text-muted-foreground mono">
+            {relativeTime(row.generated_at ?? row.created_at)}
+          </span>
+        </div>
 
-          {/* Action buttons */}
+        <button
+          onClick={() => row.status === "complete" && setExpanded((v) => !v)}
+          className="mt-1.5 block text-left text-sm font-semibold text-foreground hover:text-primary"
+        >
+          {row.question}
+        </button>
+
+        {row.status === "failed" && (
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-xs text-red-400">Research failed.</span>
+            <button
+              onClick={() => retry.mutate()}
+              disabled={retry.isPending}
+              className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-0.5 text-[11px] hover:bg-surface-hover disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3 w-3 ${retry.isPending ? "animate-spin" : ""}`} /> Retry
+            </button>
+          </div>
+        )}
+
+        {row.status === "complete" && expanded && row.answer && (
+          <div className="mt-2 border-l-2 border-primary bg-primary/5 px-3 py-2">
+            <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-primary mb-1">IRIS Finding</div>
+            <p className="text-xs text-foreground/90 leading-relaxed whitespace-pre-wrap">
+              {idx < 1 ? <TypewriterText text={row.answer} /> : row.answer}
+            </p>
+            {row.sources.length > 0 && (
+              <div className="mt-3">
+                <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-1">Sources</div>
+                <ul className="space-y-1">
+                  {row.sources.slice(0, 8).map((s, i) => (
+                    <li key={i}>
+                      <a href={s.url} target="_blank" rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline break-all">
+                        <ExternalLink className="h-3 w-3 shrink-0" />
+                        <span className="truncate">{s.title ?? s.url}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {row.follow_up_questions.length > 0 && (
+              <div className="mt-3">
+                <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-1">Follow-up questions</div>
+                <ul className="text-[11px] text-foreground/80 list-disc pl-4 space-y-0.5">
+                  {row.follow_up_questions.slice(0, 4).map((q, i) => <li key={i}>{q}</li>)}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
+        {row.status === "complete" && !expanded && (
+          <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{row.answer}</p>
+        )}
+
+        {row.why_it_matters && row.status !== "complete" && (
+          <p className="mt-1 text-xs text-muted-foreground italic">Why it matters: {row.why_it_matters}</p>
+        )}
+
+        {row.status === "complete" && (
           <div className="mt-3 flex flex-wrap gap-1.5">
             <ActionBtn icon={<BookmarkPlus className="h-3 w-3" />} onClick={() => { saveToVault.mutate(); fireFlash("VAULTED ✓", "teal"); }} disabled={saveToVault.isPending}>
               Save to Vault
@@ -346,32 +509,17 @@ function FeedItem({ scored, missionId, idx = 0 }: { scored: ScoredItem; missionI
               Add to Win Theme
             </ActionBtn>
           </div>
-        </div>
+        )}
       </div>
 
       {attachOpen && (
-        <AttachToQuestionDialog
-          missionId={missionId}
-          item={item}
-          insight={insight}
-          onClose={() => setAttachOpen(false)}
-        />
+        <AttachToQuestionDialog missionId={missionId} item={item} insight={insight} onClose={() => setAttachOpen(false)} />
       )}
       {themeOpen && (
-        <AddToThemeDialog
-          missionId={missionId}
-          item={item}
-          insight={insight}
-          onClose={() => setThemeOpen(false)}
-        />
+        <AddToThemeDialog missionId={missionId} item={item} insight={insight} onClose={() => setThemeOpen(false)} />
       )}
       {discussOpen && (
-        <CreateDiscussionDialog
-          missionId={missionId}
-          item={item}
-          insight={insight}
-          onClose={() => setDiscussOpen(false)}
-        />
+        <CreateDiscussionDialog missionId={missionId} item={item} insight={insight} onClose={() => setDiscussOpen(false)} />
       )}
     </li>
   );
