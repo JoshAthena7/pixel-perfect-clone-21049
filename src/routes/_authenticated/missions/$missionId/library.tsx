@@ -91,7 +91,7 @@ function LibraryPage() {
   return (
     <div className="mx-auto max-w-7xl px-6 py-8">
       <div className="mb-2">
-        <h1 className="text-2xl font-semibold">The Vault</h1>
+        <h1 className="text-2xl font-semibold">The Vault · Documents</h1>
         <p className="text-sm text-muted-foreground">All RFPs, intelligence, and reference docs for this mission.</p>
       </div>
       <p className="mb-6 text-xs text-muted-foreground">
