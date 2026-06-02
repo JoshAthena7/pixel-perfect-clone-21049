@@ -219,7 +219,7 @@ function MissionRail({ missionId }: { missionId: string }) {
     <div className="flex h-full flex-col">
       <div className="border-b border-border px-5 py-4">
         <Link to="/home" className="mb-3 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-          <ChevronLeft className="h-3 w-3" /> All Missions
+          <ChevronLeft className="h-3 w-3" /> Back to Lobby
         </Link>
         {mission && (
           <div>
