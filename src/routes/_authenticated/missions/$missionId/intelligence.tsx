@@ -76,12 +76,10 @@ function IntelligencePage() {
           className="group iris-panel rounded-[12px] border border-[color:var(--iris,#22d3ee)]/30 border-l-2 border-l-[color:var(--iris,#22d3ee)] bg-[color:var(--iris,#22d3ee)]/[0.04] p-6 hover:border-[color:var(--iris,#22d3ee)]/60 transition-colors"
         >
           <div className="iris-label flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[color:var(--iris,#22d3ee)]">
-            <span className="relative inline-flex h-1.5 w-1.5">
-              <span className="absolute inset-0 animate-ping rounded-full bg-[color:var(--iris,#22d3ee)]/60" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[color:var(--iris,#22d3ee)]" />
-            </span>
+            <OracleIcon size={16} active />
             The Oracle · Intelligence
           </div>
+
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-semibold tabular-nums">{oracleSections.length}</span>
             <span className="text-sm text-muted-foreground">section{oracleSections.length === 1 ? "" : "s"}</span>
