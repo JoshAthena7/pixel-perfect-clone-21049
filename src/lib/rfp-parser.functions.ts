@@ -43,6 +43,14 @@ async function callAnthropic(text: string): Promise<ParsedQuestion[]> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not configured");
 
+  const models = [
+    process.env.ANTHROPIC_MODEL,
+    "claude-sonnet-4-5-20250929",
+    "claude-sonnet-4-20250514",
+    "claude-3-7-sonnet-20250219",
+    "claude-3-5-sonnet-latest",
+  ].filter(Boolean) as string[];
+
   // Truncate to keep prompt manageable
   const MAX_CHARS = 120_000;
   const body = text.length > MAX_CHARS ? text.slice(0, MAX_CHARS) : text;
@@ -55,33 +63,42 @@ Return ONLY a JSON array (no prose, no markdown fences) of objects with this sha
   "requirements": string[]|null }
 Identify every numbered prompt the bidder must answer. If no questions exist, return [].`;
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "claude-3-5-sonnet-20241022",
-      max_tokens: 8000,
-      system,
-      messages: [{ role: "user", content: `RFP TEXT:\n\n${body}` }],
-    }),
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Anthropic ${res.status}: ${err.slice(0, 500)}`);
+  let lastError = "";
+  for (const model of models) {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 8000,
+        system,
+        messages: [{ role: "user", content: `RFP TEXT:\n\n${body}` }],
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      lastError = `Anthropic ${res.status}: ${err.slice(0, 500)}`;
+      if (res.status === 404 && err.includes("not_found_error")) continue;
+      throw new Error(lastError);
+    }
+
+    const json = (await res.json()) as { content: Array<{ type: string; text?: string }> };
+    const raw = json.content?.find((c) => c.type === "text")?.text ?? "[]";
+    // Strip code fences if present
+    const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+    const start = cleaned.indexOf("[");
+    const end = cleaned.lastIndexOf("]");
+    if (start < 0 || end < 0) return [];
+    const parsed = JSON.parse(cleaned.slice(start, end + 1)) as ParsedQuestion[];
+    return Array.isArray(parsed) ? parsed : [];
   }
-  const json = (await res.json()) as { content: Array<{ type: string; text?: string }> };
-  const raw = json.content?.find((c) => c.type === "text")?.text ?? "[]";
-  // Strip code fences if present
-  const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
-  const start = cleaned.indexOf("[");
-  const end = cleaned.lastIndexOf("]");
-  if (start < 0 || end < 0) return [];
-  const parsed = JSON.parse(cleaned.slice(start, end + 1)) as ParsedQuestion[];
-  return Array.isArray(parsed) ? parsed : [];
+
+  throw new Error(lastError || "Anthropic model unavailable");
 }
 
 export const parseRfpDocument = createServerFn({ method: "POST" })
@@ -110,7 +127,7 @@ export const parseRfpDocument = createServerFn({ method: "POST" })
     const text = await extractDocxText(bytes);
     if (text.length < 100) throw new Error("Extracted text is too short to be an RFP");
 
-    // 4. Ask Anthropic to parse questions
+    // 4. Ask AI to parse questions
     const questions = await callAnthropic(text);
     if (questions.length === 0) {
       await supabase.from("missions").update({ rfp_parsed: true }).eq("id", doc.mission_id);
