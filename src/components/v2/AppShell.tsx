@@ -2,7 +2,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useParams } from "@tanstack/react-router";
 import {
   Building2, Target, Mountain, Eye, Activity, GitMerge, BarChart2, Clock, Radio,
-  LayoutDashboard, PenTool, Archive, Sparkles, Settings2,
+  LayoutDashboard, PenTool, Archive, Sparkles, Settings2, AlertOctagon,
   ChevronLeft, ChevronRight, LogOut, User,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -209,6 +209,7 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
 
         <Section label="The Bridge" zone="bridge" leadingIcon={<Eye size={12} strokeWidth={1.5} className="text-[color:var(--iris)]" />}>
           <div className="nav-zone-bridge-items space-y-0.5">
+            <AttentionNavItem currentPath={currentPath} />
             <NavItem to="/command/question-health" icon={<Activity size={14} strokeWidth={1.5} />} active={currentPath === "/command/question-health"}>Question Health</NavItem>
             <NavItem to="/command/alignment" icon={<GitMerge size={14} strokeWidth={1.5} />} active={currentPath === "/command/alignment"}>Alignment Conflicts</NavItem>
             <NavItem to="/command/scores" icon={<BarChart2 size={14} strokeWidth={1.5} />} active={currentPath === "/command/scores"}>Score Dashboard</NavItem>
