@@ -5,9 +5,11 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { createSignal } from "@/lib/signals";
 import { irisAskQuestion } from "@/lib/iris-ask.functions";
+import { generateQuestionCoaching } from "@/lib/iris-question-coaching.functions";
 import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
 import { toast } from "sonner";
-import { ArrowLeft, Sparkles, Send, ChevronDown, ChevronRight, X, MessageSquare, AlertTriangle, Flag } from "lucide-react";
+import { ArrowLeft, Sparkles, Send, ChevronDown, ChevronRight, X, MessageSquare, AlertTriangle, Flag, RefreshCw } from "lucide-react";
+
 
 export const Route = createFileRoute(
   "/_authenticated/missions/$missionId/questions/$questionId",
