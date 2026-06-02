@@ -5,11 +5,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 export async function extractDocxText(bytes: ArrayBuffer): Promise<string> {
   const JSZipMod = await import("jszip");
-  const JSZip = (JSZipMod as { default?: typeof JSZipMod }).default ?? JSZipMod;
-  // @ts-expect-error — JSZip default vs namespace runtime shape
+  const JSZip = (JSZipMod as unknown as { default?: typeof JSZipMod }).default ?? JSZipMod;
   const zip = await JSZip.loadAsync(bytes);
   const docXml = await zip.file("word/document.xml")?.async("string");
   if (!docXml) throw new Error("document.xml not found in .docx");
+
   const withBreaks = docXml
     .replace(/<w:p[^>]*>/g, "\n")
     .replace(/<w:br[^>]*\/>/g, "\n")
