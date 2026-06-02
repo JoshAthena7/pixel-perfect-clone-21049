@@ -3,9 +3,10 @@ import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Zap, Save, AlertTriangle, Settings as Cog } from "lucide-react";
+import { Zap, Save, AlertTriangle, Settings as Cog, Sparkles, X, Plus } from "lucide-react";
 import { useSelectedOlympusMission } from "../olympus";
 import { logOlympusAction } from "@/lib/audit";
+import { IrisRfpReviewModal } from "@/components/v2/IrisRfpReviewModal";
 
 export const Route = createFileRoute("/_authenticated/olympus/settings")({
   component: SettingsPage,
