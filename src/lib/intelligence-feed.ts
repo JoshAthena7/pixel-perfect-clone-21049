@@ -165,9 +165,27 @@ export function scoreItem(item: IntelItem, profile: MissionProfile): ScoredItem 
 
 
 export function scoreAll(items: IntelItem[], profile: MissionProfile): ScoredItem[] {
+  // Laser focus: an item must match the mission STATE or one of its TOPICS
+  // (focus_areas, IRIS search_terms, or priority_topics) extracted from the RFP.
+  // Generic federal / Medicare / Medicaid items that don't mention the state
+  // or a configured topic are dropped — they are not mission-relevant.
+  const hasTopics =
+    profile.focus_areas.length > 0 ||
+    profile.search_terms.length > 0 ||
+    profile.priority_topics.length > 0;
+
   return items
     .map((i) => scoreItem(i, profile))
-    .filter((s) => s.score > 0)
+    .filter((s) => {
+      const topicHit =
+        s.matchedTopics.length > 0 ||
+        // matchedThemes carries the merged topic/focus/term hits in this build
+        s.matchedThemes.some((t) =>
+          [...profile.focus_areas, ...profile.search_terms, ...profile.priority_topics].includes(t)
+        );
+      if (!hasTopics && !profile.state) return false;
+      return s.mentionsState || topicHit;
+    })
     .sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score;
       const da = new Date(a.item.published_at ?? a.item.created_at).getTime();
@@ -175,3 +193,4 @@ export function scoreAll(items: IntelItem[], profile: MissionProfile): ScoredIte
       return db - da;
     });
 }
+
