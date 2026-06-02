@@ -156,17 +156,21 @@ function BriefingBookPage() {
       ) : (
         <article className="briefing-book mx-auto max-w-[920px] px-10 py-12 space-y-6 text-foreground">
           {/* Cover */}
-          <header className="border-b border-border pb-6">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">The Oracle · Intelligence</div>
-            <h1 className="mt-3 text-4xl font-semibold tracking-tight">{mission?.name ?? "—"}</h1>
-            <p className="mt-2 text-base text-muted-foreground">
-              IRIS Analysis — Static Briefing Sections
-              {mission?.state ? ` · ${mission.state}` : ""}
-            </p>
-            <p className="mt-3 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-              {lastUpdated ? `Last updated ${relativeTime(lastUpdated)}` : "Not yet generated"}
-            </p>
+          <header className="border-b border-border pb-6 flex items-start gap-5">
+            <OracleIcon size={48} active className="mt-3 shrink-0" />
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">The Oracle · Intelligence</div>
+              <h1 className="mt-3 text-4xl font-semibold tracking-tight">{mission?.name ?? "—"}</h1>
+              <p className="mt-2 text-base text-muted-foreground">
+                IRIS Analysis — Static Briefing Sections
+                {mission?.state ? ` · ${mission.state}` : ""}
+              </p>
+              <p className="mt-3 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                {lastUpdated ? `Last updated ${relativeTime(lastUpdated)}` : "Not yet generated"}
+              </p>
+            </div>
           </header>
+
 
           {BRIEFING_SECTION_KEYS.map((key, idx) => (
             <Section
