@@ -3,6 +3,8 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { FileText, ExternalLink, Search } from "lucide-react";
+import { VaultIcon } from "@/components/v2/icons/AtlasIcons";
+
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/library")({
   component: LibraryPage,
@@ -90,10 +92,14 @@ function LibraryPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8">
-      <div className="mb-2">
-        <h1 className="text-2xl font-semibold">The Vault · Documents</h1>
-        <p className="text-sm text-muted-foreground">All RFPs, intelligence, and reference docs for this mission.</p>
+      <div className="mb-2 flex items-center gap-3">
+        <VaultIcon size={32} active />
+        <div>
+          <h1 className="text-2xl font-semibold">The Vault · Documents</h1>
+          <p className="text-sm text-muted-foreground">All RFPs, intelligence, and reference docs for this mission.</p>
+        </div>
       </div>
+
       <p className="mb-6 text-xs text-muted-foreground">
         Documents are managed in Olympus. Contact your Engagement Lead to upload new materials.
       </p>
@@ -132,11 +138,13 @@ function LibraryPage() {
           {isLoading && <div className="text-sm text-muted-foreground">Loading…</div>}
           {!isLoading && visible.length === 0 && (
             <div className="rounded-lg border border-dashed border-border p-12 text-center text-sm text-muted-foreground">
+              <VaultIcon size={48} static className="mx-auto mb-4 opacity-50" />
               {docs.length === 0
                 ? "No documents have been added to The Vault yet. Administrators upload mission documents in Olympus."
                 : `No documents in ${activeCategory} yet.`}
             </div>
           )}
+
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
             {visible.map((doc) => (
               <div

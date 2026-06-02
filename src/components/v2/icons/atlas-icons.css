@@ -1,0 +1,112 @@
+/* Atlas custom icon animations — Vault (temple) + Oracle (eye).
+   Pure CSS. Respects prefers-reduced-motion. */
+
+.atlas-icon { color: var(--foreground); display: inline-block; }
+.atlas-icon.is-active { color: currentColor; }
+
+/* ─── VAULT — THE TEMPLE ─────────────────────────────────────── */
+
+.vault-icon { animation: vault-breathe 3s ease-in-out infinite; }
+.vault-icon.is-active {
+  color: #f59e0b; /* warm gold */
+  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.5));
+}
+
+/* Base draws first (0–200ms) */
+.vault-base {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: vault-draw 200ms ease-out 0ms forwards;
+}
+
+/* Columns rise from base — staggered (150–350ms) */
+.vault-col { transform-origin: center bottom; transform-box: fill-box; }
+.vault-col-left  { transform: scaleY(0); animation: vault-rise 200ms ease-out 150ms forwards; }
+.vault-col-mid   { transform: scaleY(0); animation: vault-rise 200ms ease-out 200ms forwards; }
+.vault-col-right { transform: scaleY(0); animation: vault-rise 200ms ease-out 250ms forwards; }
+
+/* Pediment draws last (300–450ms) */
+.vault-pediment {
+  stroke-dasharray: 32;
+  stroke-dashoffset: 32;
+  animation: vault-draw 150ms ease-out 300ms forwards;
+}
+
+@keyframes vault-draw { to { stroke-dashoffset: 0; } }
+@keyframes vault-rise { to { transform: scaleY(1); } }
+@keyframes vault-breathe {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.65; }
+}
+
+/* ─── ORACLE — THE EYE ───────────────────────────────────────── */
+
+.oracle-icon.is-active {
+  color: var(--iris, #0891b2);
+  filter: drop-shadow(0 0 8px rgba(8, 145, 178, 0.6));
+}
+
+/* Eye opens — scaleY from 0 with overshoot (0–300ms) */
+.oracle-eye {
+  transform: scaleY(0);
+  animation: oracle-open 300ms cubic-bezier(0.34, 1.56, 0.64, 1) 0ms forwards;
+}
+
+/* Iris ring fades + scales in (250–400ms) */
+.oracle-iris {
+  opacity: 0;
+  transform: scale(0.5);
+  animation: oracle-iris-in 150ms ease-out 250ms forwards;
+}
+
+/* Pupil pops + then breathes */
+.oracle-pupil {
+  opacity: 0;
+  transform: scale(0);
+  animation:
+    oracle-pupil-in 100ms cubic-bezier(0.34, 1.56, 0.64, 1) 350ms forwards,
+    oracle-pupil-breathe 2.5s ease-in-out 800ms infinite;
+}
+
+/* Rays draw outward one by one (400–600ms), then group rotates slowly */
+.oracle-rays {
+  animation: oracle-rays-spin 12s linear 800ms infinite;
+}
+.oracle-ray {
+  stroke-dasharray: 4;
+  stroke-dashoffset: 4;
+  animation: oracle-ray-draw 120ms ease-out forwards;
+}
+
+@keyframes oracle-open      { to { transform: scaleY(1); } }
+@keyframes oracle-iris-in   { to { opacity: 0.7; transform: scale(1); } }
+@keyframes oracle-pupil-in  { to { opacity: 1; transform: scale(1); } }
+@keyframes oracle-ray-draw  { to { stroke-dashoffset: 0; } }
+@keyframes oracle-rays-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes oracle-pupil-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.4); }
+}
+
+/* ─── STATIC MODE (empty states, inline body text) ───────────── */
+.atlas-icon.is-static,
+.atlas-icon.is-static * {
+  animation: none !important;
+  transform: none !important;
+  stroke-dashoffset: 0 !important;
+  opacity: 1 !important;
+}
+.atlas-icon.is-static .oracle-iris  { opacity: 0.7 !important; }
+.atlas-icon.is-static .oracle-ray   { opacity: 0.5 !important; }
+
+/* ─── REDUCED MOTION ─────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .atlas-icon, .atlas-icon * {
+    animation: none !important;
+    transform: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+  .oracle-iris { opacity: 0.7; }
+  .oracle-pupil { opacity: 1; }
+  .oracle-ray { opacity: 0.5; }
+}

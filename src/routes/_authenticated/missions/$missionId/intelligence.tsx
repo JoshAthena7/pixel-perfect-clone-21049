@@ -1,11 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Archive, BookOpen, ArrowRight, Activity } from "lucide-react";
+import { ArrowRight, Activity } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { VaultIcon, OracleIcon } from "@/components/v2/icons/AtlasIcons";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/intelligence")({
   component: IntelligencePage,
 });
+
 
 function IntelligencePage() {
   const { missionId } = Route.useParams();
@@ -52,7 +54,8 @@ function IntelligencePage() {
           className="group rounded-[12px] border border-border bg-surface p-6 hover:border-primary/40 transition-colors"
         >
           <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            <Archive className="h-3.5 w-3.5" /> The Vault · Documents
+            <VaultIcon size={16} /> The Vault · Documents
+
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-semibold tabular-nums">{vaultCount}</span>
@@ -73,12 +76,10 @@ function IntelligencePage() {
           className="group iris-panel rounded-[12px] border border-[color:var(--iris,#22d3ee)]/30 border-l-2 border-l-[color:var(--iris,#22d3ee)] bg-[color:var(--iris,#22d3ee)]/[0.04] p-6 hover:border-[color:var(--iris,#22d3ee)]/60 transition-colors"
         >
           <div className="iris-label flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[color:var(--iris,#22d3ee)]">
-            <span className="relative inline-flex h-1.5 w-1.5">
-              <span className="absolute inset-0 animate-ping rounded-full bg-[color:var(--iris,#22d3ee)]/60" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[color:var(--iris,#22d3ee)]" />
-            </span>
+            <OracleIcon size={16} active />
             The Oracle · Intelligence
           </div>
+
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-semibold tabular-nums">{oracleSections.length}</span>
             <span className="text-sm text-muted-foreground">section{oracleSections.length === 1 ? "" : "s"}</span>
