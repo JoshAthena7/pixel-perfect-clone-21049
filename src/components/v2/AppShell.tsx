@@ -202,8 +202,8 @@ function MissionRail({ missionId }: { missionId: string }) {
   });
 
   const sections = [
-    { to: "/missions/$missionId/overview", label: "Overview", icon: <LayoutDashboard size={16} strokeWidth={1.5} />, match: ["/overview"] },
-    { to: "/missions/$missionId/intelligence", label: "Intelligence", icon: <Sparkles size={16} strokeWidth={1.5} className="text-[color:var(--iris,#22d3ee)]" />, match: ["/intelligence", "/library", "/briefing", "/brief", "/iris"] },
+    { to: "/missions/$missionId/overview", label: "Command Center · Overview", icon: <LayoutDashboard size={16} strokeWidth={1.5} />, match: ["/overview"] },
+    { to: "/missions/$missionId/intelligence", label: "The Oracle · Intelligence", icon: <Sparkles size={16} strokeWidth={1.5} className="text-[color:var(--iris,#22d3ee)]" />, match: ["/intelligence", "/library", "/briefing", "/brief", "/iris"] },
     { to: "/missions/$missionId/operations", label: "Operations", icon: <Wrench size={16} strokeWidth={1.5} />, match: ["/operations"] },
     { to: "/missions/$missionId/team", label: "Team", icon: <Users size={16} strokeWidth={1.5} />, match: ["/team"] },
     { to: "/missions/$missionId/activity", label: "Activity", icon: <History size={16} strokeWidth={1.5} />, match: ["/activity"] },
