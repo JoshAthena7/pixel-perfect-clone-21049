@@ -888,10 +888,21 @@ function HorizonFeed({ items, missions }: { items: (IntelItem & { matched_missio
                 {it.summary && (
                   <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{it.summary}</p>
                 )}
-                {missionCount > 0 && (
-                  <p className="mt-1.5 text-[10px] uppercase tracking-[0.1em] text-muted-foreground/70">
-                    Relevant to {missionCount} active {missionCount === 1 ? "mission" : "missions"}
-                  </p>
+                {it.matched_mission_ids && it.matched_mission_ids.length > 0 && (
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    <span className="text-[10px] uppercase tracking-[0.1em] text-[color:var(--iris,#22d3ee)]">● Relevant to</span>
+                    {it.matched_mission_ids.slice(0, 4).map((mid) => (
+                      <span
+                        key={mid}
+                        className="rounded-full border border-[color:var(--iris,#22d3ee)]/30 bg-[color:var(--iris,#22d3ee)]/[0.06] px-2 py-0.5 text-[10px] font-medium text-[color:var(--iris,#22d3ee)]"
+                      >
+                        {missionNameMap.get(mid) ?? "Mission"}
+                      </span>
+                    ))}
+                    {it.matched_mission_ids.length > 4 && (
+                      <span className="text-[10px] text-muted-foreground">+{it.matched_mission_ids.length - 4} more</span>
+                    )}
+                  </div>
                 )}
               </a>
             </li>
