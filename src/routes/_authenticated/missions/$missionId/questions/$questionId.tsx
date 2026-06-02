@@ -167,7 +167,7 @@ function ResponseView() {
     queryFn: async () => {
       const { data } = await supabase
         .from("question_intelligence")
-        .select("iris_brief,state_priorities,procurement_priorities,competitor_signals,compliance_flags,generated_at")
+        .select("iris_brief,state_priorities,procurement_priorities,competitor_signals,compliance_flags,relevant_research,generated_at")
         .eq("question_id", questionId)
         .order("generated_at", { ascending: false })
         .limit(1)
