@@ -132,6 +132,8 @@ async function callAnthropic(text: string): Promise<ParsedQuestion[]> {
   ].filter(Boolean) as string[];
 
   const body = compactRfpTextForAi(text);
+  const localQuestions = fallbackExtractQuestions(text);
+  if (localQuestions.length > 0) return localQuestions;
 
   const system = `You extract proposal questions from RFP documents.
 Return ONLY a JSON array (no prose, no markdown fences) of objects with this shape:
@@ -143,26 +145,32 @@ Identify every numbered prompt the bidder must answer. If no questions exist, re
 
   let lastError = "";
   for (const model of models) {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: 8000,
-        system,
-        messages: [{ role: "user", content: `RFP TEXT:\n\n${body}` }],
-      }),
-    });
+    let res: Response;
+    try {
+      res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: 2000,
+          system,
+          messages: [{ role: "user", content: `RFP TEXT:\n\n${body}` }],
+        }),
+        signal: AbortSignal.timeout(18_000),
+      });
+    } catch {
+      return fallbackExtractQuestions(text);
+    }
 
     if (!res.ok) {
       const err = await res.text();
       lastError = `Anthropic ${res.status}: ${err.slice(0, 500)}`;
       if (res.status === 404 && err.includes("not_found_error")) continue;
-      if (res.status === 429 && err.includes("input tokens per minute")) {
+      if (res.status === 408 || res.status === 429 || res.status >= 500) {
         return fallbackExtractQuestions(text);
       }
       throw new Error(lastError);
