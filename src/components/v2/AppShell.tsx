@@ -1,9 +1,8 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useParams } from "@tanstack/react-router";
 import {
-  Building2, Target, Mountain, Eye, Activity, GitMerge, BarChart2, Clock, Radio,
-  LayoutDashboard, PenTool, Archive, Sparkles, Settings2, AlertOctagon,
-  ChevronLeft, ChevronRight, LogOut, User,
+  Building2, Target, Mountain, LayoutDashboard, Sparkles, BookOpen, Wrench, Users, History,
+  Settings2, ChevronRight, ChevronLeft, LogOut, User, ArrowRight, PenTool,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -24,17 +23,22 @@ export function AppShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const params = useParams({ strict: false }) as { missionId?: string };
   const inMission = path.startsWith("/missions/") && !!params.missionId;
-  const isStudio = inMission && path.includes("/questions/") && path.split("/").length > 5;
+  const isStudio = inMission && (path.includes("/questions") || path.endsWith("/studio"));
+  const isQuestionWorkspace = inMission && path.includes("/questions/") && path.split("/").length > 5;
   const isAtrium = path === "/home";
 
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground">
       <KeyboardShortcuts />
       <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-border bg-surface">
-        {inMission ? <MissionNav missionId={params.missionId!} /> : <GlobalNav currentPath={path} />}
+        {inMission
+          ? (isStudio
+              ? <StudioRail missionId={params.missionId!} />
+              : <MissionRail missionId={params.missionId!} />)
+          : <GlobalNav currentPath={path} />}
       </aside>
       <main className={`flex-1 min-w-0 flex flex-col ${isAtrium ? "atrium-grid" : ""}`}>
-        {!isStudio && (
+        {!isQuestionWorkspace && (
           <header className="flex h-[52px] shrink-0 items-center justify-end gap-3 border-b border-border bg-surface/40 px-4">
             <IrisStatusIndicator />
             <NotificationBell />
@@ -42,13 +46,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           </header>
         )}
         {inMission && !isStudio && <Breadcrumbs />}
-        {/* DESIGN-2: page transition wrapper keyed on route */}
         <div key={path} className="route-fade flex-1 min-w-0">{children}</div>
       </main>
       {inMission && params.missionId && <UpdateRealityMount missionId={params.missionId} />}
     </div>
   );
 }
+
 
 function UserAvatarMenu() {
   const [open, setOpen] = useState(false);
@@ -209,17 +213,6 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
           )}
         </Section>
 
-        <Section label="The Bridge" zone="bridge" leadingIcon={<Eye size={12} strokeWidth={1.5} className="text-[color:var(--iris)]" />}>
-          <div className="nav-zone-bridge-items space-y-0.5">
-            <AttentionNavItem currentPath={currentPath} />
-            <NavItem to="/command/question-health" icon={<Activity size={14} strokeWidth={1.5} />} active={currentPath === "/command/question-health"}>Question Health</NavItem>
-            <NavItem to="/command/alignment" icon={<GitMerge size={14} strokeWidth={1.5} />} active={currentPath === "/command/alignment"}>Alignment Conflicts</NavItem>
-            <NavItem to="/command/scores" icon={<BarChart2 size={14} strokeWidth={1.5} />} active={currentPath === "/command/scores"}>Score Dashboard</NavItem>
-            <NavItem to="/command/pens-down" icon={<Clock size={14} strokeWidth={1.5} />} active={currentPath === "/command/pens-down"}>Pens Down Watch</NavItem>
-            <NavItem to="/command/broadcasts" icon={<Radio size={14} strokeWidth={1.5} />} active={currentPath === "/command/broadcasts"}>Broadcasts</NavItem>
-          </div>
-        </Section>
-
         {isPrivileged && (
           <Section label="Admin" zone="admin">
             <NavItem to="/olympus" icon={<Mountain size={16} strokeWidth={1.5} className="text-[color:var(--athena-gold)]" />} active={currentPath.startsWith("/olympus")}>Olympus</NavItem>
@@ -232,7 +225,7 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
   );
 }
 
-function MissionNav({ missionId }: { missionId: string }) {
+function MissionRail({ missionId }: { missionId: string }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { data: mission } = useQuery({
     queryKey: ["mission", missionId],
@@ -246,24 +239,19 @@ function MissionNav({ missionId }: { missionId: string }) {
     },
   });
 
-  const { data: roleInMission } = useQuery({
-    queryKey: ["mission-my-role", missionId],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
-      const { data } = await supabase
-        .from("mission_members")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("mission_id", missionId);
-      const roles = (data ?? []).map((r: any) => r.role);
-      if (roles.includes("admin")) return "admin";
-      if (roles.includes("lead")) return "lead";
-      if (roles.includes("writer")) return "writer";
-      return roles[0] ?? null;
-    },
-  });
-  const isLeader = roleInMission === "admin" || roleInMission === "lead";
+  const sections = [
+    { to: "/missions/$missionId/overview", label: "Overview", icon: <LayoutDashboard size={16} strokeWidth={1.5} />, match: ["/overview"] },
+    { to: "/missions/$missionId/intelligence", label: "Intelligence", icon: <Sparkles size={16} strokeWidth={1.5} className="text-[color:var(--iris,#22d3ee)]" />, match: ["/intelligence", "/library", "/briefing", "/brief", "/iris"] },
+    { to: "/missions/$missionId/operations", label: "Operations", icon: <Wrench size={16} strokeWidth={1.5} />, match: ["/operations"] },
+    { to: "/missions/$missionId/team", label: "Team", icon: <Users size={16} strokeWidth={1.5} />, match: ["/team"] },
+    { to: "/missions/$missionId/activity", label: "Activity", icon: <History size={16} strokeWidth={1.5} />, match: ["/activity"] },
+  ] as const;
+
+  const tail = path.replace(`/missions/${missionId}`, "");
+  const isActive = (matches: readonly string[]) => {
+    if (tail === "" && matches.includes("/overview")) return true;
+    return matches.some((m) => tail === m || tail.startsWith(`${m}/`));
+  };
 
   return (
     <div className="flex h-full flex-col">
@@ -272,62 +260,108 @@ function MissionNav({ missionId }: { missionId: string }) {
           <ChevronLeft className="h-3 w-3" /> All Missions
         </Link>
         {mission && (
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[color:var(--athena-gold)]">⚡</span>
+              <span className="text-sm font-semibold truncate">{mission.name}</span>
+            </div>
+            {mission.client && (
+              <div className="mt-0.5 ml-5 text-[11px] text-muted-foreground truncate">{mission.client}</div>
+            )}
+          </div>
+        )}
+      </div>
+
+      <nav className="flex-1 px-3 py-4 space-y-0.5">
+        {sections.map((s) => (
+          <NavItem
+            key={s.to}
+            to={s.to}
+            params={{ missionId }}
+            icon={s.icon}
+            active={isActive(s.match)}
+          >
+            {s.label}
+          </NavItem>
+        ))}
+
+        <div className="my-3 border-t border-border" />
+
+        <Link
+          to="/missions/$missionId/questions"
+          params={{ missionId }}
+          className="flex items-center justify-between gap-2 rounded-md bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
+        >
+          <span className="inline-flex items-center gap-2">
+            <PenTool size={16} strokeWidth={1.75} /> Studio
+          </span>
+          <ArrowRight size={16} strokeWidth={1.75} />
+        </Link>
+      </nav>
+
+      <div className="border-t border-border p-3 flex items-center justify-between">
+        <Link
+          to="/missions/$missionId/settings"
+          params={{ missionId }}
+          aria-label="Mission settings"
+          title="Mission settings"
+          className={`inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-surface-hover hover:text-foreground ${
+            path.endsWith("/settings") ? "bg-surface-hover text-foreground" : ""
+          }`}
+        >
+          <Settings2 size={16} strokeWidth={1.5} />
+        </Link>
+        <SignOutButton />
+      </div>
+    </div>
+  );
+}
+
+function StudioRail({ missionId }: { missionId: string }) {
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const { data: mission } = useQuery({
+    queryKey: ["mission", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("missions")
+        .select("id,name,client")
+        .eq("id", missionId)
+        .maybeSingle();
+      return data as Mission | null;
+    },
+  });
+
+  return (
+    <div className="flex h-full flex-col">
+      <div className="border-b border-border px-5 py-4">
+        {mission && (
           <div className="flex items-center gap-2">
             <span className="text-[color:var(--athena-gold)]">⚡</span>
             <span className="text-sm font-semibold truncate">{mission.name}</span>
           </div>
         )}
+        <div className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Studio</div>
       </div>
 
-      <nav className="flex-1 px-3 py-4 space-y-1">
-        {isLeader ? (
-          <>
-            <NavItem
-              to="/missions/$missionId/overview"
-              params={{ missionId }}
-              active={path === `/missions/${missionId}` || path.endsWith("/overview")}
-              icon={<LayoutDashboard size={16} strokeWidth={1.5} />}
-            >
-              Command
-            </NavItem>
-            <NavItem
-              to="/missions/$missionId/iris"
-              params={{ missionId }}
-              active={path.endsWith("/iris")}
-              icon={<Sparkles size={16} strokeWidth={1.5} className="text-[color:var(--iris)]" />}
-            >
-              Ask IRIS
-            </NavItem>
-            <div className="my-3 border-t border-border" />
-            <NavItem
-              to="/missions/$missionId/questions"
-              params={{ missionId }}
-              active={path.startsWith(`/missions/${missionId}/questions`)}
-              icon={<PenTool size={16} strokeWidth={1.5} />}
-            >
-              All Questions
-            </NavItem>
-          </>
-        ) : (
-          <>
-            <NavItem
-              to="/missions/$missionId/questions"
-              params={{ missionId }}
-              active={path === `/missions/${missionId}` || path.startsWith(`/missions/${missionId}/questions`)}
-              icon={<PenTool size={16} strokeWidth={1.5} />}
-            >
-              My Questions
-            </NavItem>
-            <NavItem
-              to="/missions/$missionId/iris"
-              params={{ missionId }}
-              active={path.endsWith("/iris")}
-              icon={<Sparkles size={16} strokeWidth={1.5} className="text-[color:var(--iris)]" />}
-            >
-              Ask IRIS
-            </NavItem>
-          </>
-        )}
+      <nav className="flex-1 px-3 py-4 space-y-0.5">
+        <NavItem
+          to="/missions/$missionId/questions"
+          params={{ missionId }}
+          icon={<PenTool size={16} strokeWidth={1.5} />}
+          active={path.endsWith("/questions") || path.includes("/questions/")}
+        >
+          My Questions
+        </NavItem>
+
+        <div className="my-3 border-t border-border" />
+
+        <Link
+          to="/missions/$missionId/overview"
+          params={{ missionId }}
+          className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+        >
+          <ChevronLeft size={16} strokeWidth={1.5} /> Mission
+        </Link>
       </nav>
 
       <div className="border-t border-border p-3 flex items-center justify-between">
@@ -404,37 +438,6 @@ function NavItem({ to, params, icon, active, children }: { to: string; params?: 
   );
 }
 
-function AttentionNavItem({ currentPath }: { currentPath: string }) {
-  const { data: count = 0 } = useQuery({
-    queryKey: ["attention-need-count"],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("reality_updates")
-        .select("id", { count: "exact", head: true })
-        .eq("signal_type", "need")
-        .eq("resolved", false);
-      return count ?? 0;
-    },
-    refetchInterval: 60_000,
-  });
-  const active = currentPath === "/command/attention";
-  return (
-    <Link
-      to={"/command/attention" as any}
-      className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors ${
-        active ? "bg-surface-hover text-foreground" : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
-      }`}
-    >
-      <AlertOctagon size={14} strokeWidth={1.5} className={count > 0 ? "text-destructive" : ""} />
-      <span className="flex-1 truncate">Attention</span>
-      {count > 0 && (
-        <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-destructive/20 px-1.5 text-[10px] font-semibold text-destructive">
-          {count}
-        </span>
-      )}
-    </Link>
-  );
-}
 
 function SignOut() {
   async function signOut() {

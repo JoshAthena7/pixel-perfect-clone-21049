@@ -1,72 +1,96 @@
-# Athena Command V2 — Foundation (Steps 1–6)
+## Phase B — Mission Page Consolidation
 
-Full replacement of the existing app. Existing routes/components/server-fns under `_authenticated/`, `war-room/`, `iris/`, `holy-grail`, etc. will be removed. New V2 system built from scratch on the same Supabase project with a new schema.
+Reorganize navigation so everything mission-related lives inside `/missions/$missionId/*` with five sections, a persistent IRIS strip, and a Studio CTA. No backend changes; no functionality deleted — content is moved and renamed.
 
-## Step 1 — Database (single migration)
+### New routes (file-based)
 
-Drop existing app tables that conflict (engagements, huddles, decisions, risks, sos_alerts, heatmap_sections, win_themes, intel_documents, mission_strategic_signals, pipeline_horizon, market_intelligence, engagement_research, engagement_members, etc.). Keep `profiles`, `embeddings` (recreated to V2 shape), pgvector.
+Create a layout route that owns the Mission sidebar + IRIS strip + section outlet:
 
-Create V2 tables exactly as specified:
-- `missions`, `mission_members`, `profiles` (recreate cleanly)
-- `mission_review_gates`
-- `question_records`, `question_gate_status`, `question_scores`, `question_collaboration`, `question_intelligence`, `question_relationships`
-- `alignment_conflicts`, `win_themes`
-- `mission_library`, `mission_risks`, `mission_decisions`
-- `escalations`, `broadcasts`, `iris_brief_cache`
-- `embeddings` (1536 dims, ivfflat)
+```
+src/routes/_authenticated/missions/$missionId.tsx       (layout: sidebar + IRIS strip + <Outlet />)
+src/routes/_authenticated/missions/$missionId/index.tsx (redirect → overview)
+src/routes/_authenticated/missions/$missionId/overview.tsx       (rewritten)
+src/routes/_authenticated/missions/$missionId/intelligence.tsx   (new — Vault + Oracle)
+src/routes/_authenticated/missions/$missionId/operations.tsx     (new — tabs: Risks/Issues/Decisions/Assumptions/Signals/Health)
+src/routes/_authenticated/missions/$missionId/team.tsx           (new)
+src/routes/_authenticated/missions/$missionId/activity.tsx       (new)
+src/routes/_authenticated/missions/$missionId/studio.tsx         (new layout/back-link shell wrapping question list)
+```
 
-RLS on every table, scoped via `mission_members`. `handle_new_user` trigger creates profile. GRANTs to authenticated + service_role. Realtime publication for `question_records`, `question_collaboration`, `alignment_conflicts`, `escalations`, `broadcasts`.
+Existing `library.tsx`, `briefing.tsx`, `brief.tsx`, `iris.tsx` route files: keep file but replace body with `<Navigate to="…/intelligence" replace />` so deep links keep working. `questions/` stays under Studio.
 
-## Step 2 — Magic-link auth
+### Mission layout (`$missionId.tsx`)
 
-- Strip Google OAuth + password flows.
-- New `/login` route: email input → `supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } })`. Show "Check your email" state.
-- `_authenticated` layout gates everything (re-validates with `getUser()`).
-- Sign-out in sidebar.
+- Left rail (240px): mission name + client, divider, 5 nav links (Overview, Intelligence, Operations, Team, Activity), divider, prominent **Studio →** filled button, footer settings gear (icon-only link to `settings`).
+- Main column: persistent **IRIS Brief Strip** (collapsible, teal border, pulse dot, ▾ chevron, default expanded; collapsed shows truncated first sentence). Reads `missions.iris_brief` if present, else fallback copy.
+- Below strip: `<Outlet />`.
 
-## Step 3 — Shell, theme, navigation
+Use `useRouterState` for active link styling. Active section gets `bg-accent` + left teal accent.
 
-- Replace `src/styles.css` tokens with the V2 dark palette (oklch equivalents of the hex values).
-- New `__root.tsx` with single `onAuthStateChange` invalidator.
-- New left sidebar (`AppSidebar`) with three contexts:
-  - HOME → `My Brief`
-  - MISSIONS list (live, with health dot) + `New Mission` modal
-  - COMMAND CENTER section (Question Health, Alignment Conflicts, Score Dashboard, Pens Down Watch, Broadcasts)
-- Sidebar switches to Mission-context nav when inside `/missions/$missionId/*`.
-- Delete all `src/routes/_authenticated/*` (old), `src/components/war-room/*`, `src/components/iris/*`, `src/lib/ai/*` (old), `src/lib/iris/*`, old AppSidebar.
+### AppShell / global nav changes
 
-## Step 4 — Home / My Brief (`/`)
+In `src/components/v2/AppShell.tsx`: remove top-level "Mission Control", "Library", "Briefing Book", "Command Center", "Mission Overview" entries. Top-level nav becomes just **Lobby** (home) and the active mission (which expands into its own sidebar inside the layout). Keep Olympus if it exists for admins. Eliminate the string "Mission Control" everywhere in UI copy.
 
-- Server fn `getMyBriefData` returns role-aware payload: writer = assigned non-green questions, leader = portfolio Red+Yellow.
-- Server fn `generateMorningBrief` (stubbed text for now — actual streaming IRIS comes in Step 11). Uses `iris_brief_cache` (30 min TTL).
-- Renders greeting, today's questions table (clickable rows → workspace), brief text, regenerate button.
+### Section content (move, don't rewrite logic)
 
-## Step 5 — Mission / Question Command (`/missions/$missionId`)
+**Overview** — port from current `overview.tsx` + `command/attention.tsx`:
+- Block A Health summary (Green/Yellow/Red counts from `question_records`)
+- Block B Timeline (submission + pens-down + review gates; red if ≤7d)
+- Block C Team Needs (from existing Team Needs component / signals where `entry_type` in (decision_needed, sme_request, air_cover) and unresolved; inline Respond form → `leadership_guidance` insert + resolve)
+- Block D Responses At Risk (query: red health OR score<3.0 with <14d to pens-down OR unresolved critical conflict OR no writer <14d)
+- Block E Leadership Notes (read all; write Leadership/Admin only via role check)
+- Block F SOS banner (only if active SOS signals exist)
 
-- Mission header (name, client, days to pens-down, health pill, [+ Add Question], [Upload RFP]).
-- Filters: All / Red / Yellow / Green / No Writer / Awaiting SME / Below Standard / Approaching Deadline.
-- Sortable question list with all spec fields. Empty state copy from spec.
-- Add Question modal. Upload RFP stub (real parser is Step 8).
-- Bulk-assign actions: writer, SME, pens-down date.
+**Intelligence** — two-column:
+- Left "THE VAULT": category list (RFP & Amendments, State Q&A, Past Responses, Templates, Reference Materials, Research, Supporting Materials, Client Materials) + filtered document table. Upload button gated to Admin/Leadership.
+- Right "● ORACLE": collapsible IRIS panels (Alignment Analysis, Theme Analysis, Question Clusters, Reviewer Signals, Emerging Risks, Predictive Insights, Political Landscape, State Priorities, Procurement Landscape, Competitor Analysis, Stakeholder Intelligence, Policy & Regulatory Climate). First 3 expanded by default; each has timestamp + Refresh; empty state copy when none.
+- Bottom: link "Mission Activity — Recent uploads and intelligence updates →" to Activity section.
 
-## Step 6 — Mission / Question Workspace (`/missions/$missionId/questions/$questionId`)
+**Operations** — tabbed surface (Risks | Issues | Decisions | Assumptions | Signals | Health Checks). Pull existing components/queries; no logic change.
 
-- Two-column layout (60/40 desktop, stacked mobile).
-- Left: question detail, requirements, mandatory language, scoring criteria, collaboration panel (typed cards with colors per entry_type), Question Health panel (gate progress, score history, [+ Log Score]).
-- Right: Athena Intelligence panel (reads `question_intelligence` cache; "Generate" button stubs IRIS until Step 9), Strategy Alignment panel (related questions, conflicts, link to alignment map modal).
-- Alignment map modal: all mission questions grouped by section with relationship lines (SVG), filterable.
-- Esc → back to Question Command.
-- Modals: Add Note, Log Score, Assign Writer/SME.
+**Team** — roster, SME directory, leadership, assignment matrix, access management (Admin only).
 
-## Out of scope this turn (Steps 7–18)
+**Activity** — reverse-chron feed combining inserts from documents, signals, mission_decisions, comments, assignments, reviews, IRIS updates, leadership notes. Filter chips: All / Documents / Signals / Decisions / Comments / IRIS. Default All, last 7 days.
 
-Library page polish, IRIS edge functions (rfp-parser, question-brief, alignment-scan, morning-brief), Command Center pages, Mission Settings, Mission Brief, Broadcasts, batch scoring. Stub buttons will be visible but say "Coming in next phase" where they depend on IRIS or later steps.
+### Studio entry
 
-## Technical notes
+`Studio →` from sidebar navigates to `…/studio` which renders existing question list + writer brief panel (currently in `questions/index.tsx`). Studio shell sidebar shows: mission name, "My Questions", "← Mission" back link to `…/overview`.
 
-- Stack stays TanStack Start + Supabase (no Edge Functions for app logic; server fns via `createServerFn`). IRIS edge functions in spec will be implemented as TanStack server routes/server fns in later steps.
-- Files structured as: `src/lib/missions/*.functions.ts`, `src/lib/questions/*.functions.ts`, `src/lib/iris/*.functions.ts`, `src/components/v2/*`, `src/routes/_authenticated/...`.
-- One big SQL migration (will require your approval). Code lands after migration runs.
-- Existing data in old tables will be lost — confirming this is acceptable since you chose "Replace entirely".
+### Terminology sweep
 
-Approve to proceed, or tell me what to change.
+Replace strings project-wide in UI copy only:
+- "Library" → "The Vault"
+- "Briefing Book" → "The Oracle"
+- Remove all "Mission Control"
+
+### Redirects
+
+Add redirect components in the now-vestigial route files (`library.tsx`, `briefing.tsx`, `brief.tsx`, `iris.tsx`) and in `command/*` top-level files (or remove from nav and let the layout absence handle it).
+
+### Out of scope
+
+No DB migrations. No RLS edits. No deletion of existing components — only moves/renames in the UI.
+
+### Acceptance
+
+- Land on Overview on mission entry.
+- IRIS strip visible across all 5 sections, collapsible.
+- Vault + Oracle live in Intelligence.
+- Team Needs + Responses At Risk live in Overview.
+- Studio reachable from sidebar CTA; back link present in Studio.
+- "Mission Control" and "Briefing Book" do not appear in UI. "Library" replaced with "The Vault".
+
+---
+
+### Scope note
+
+This is a very large refactor (~6k lines of touched route/component code: new layout, 5 new section files, AppShell rewrite, redirects, terminology sweep, role-gated Leadership Notes + SOS + Activity feed). I'd recommend landing it in stages so each piece is reviewable:
+
+1. Layout + sidebar + IRIS strip + redirects + AppShell nav cleanup (skeleton, sections render placeholders).
+2. Overview (port + new blocks).
+3. Intelligence (Vault + Oracle).
+4. Operations tabs.
+5. Team + Activity.
+6. Terminology sweep + Studio shell.
+
+Reply with **"go"** to start at stage 1, or tell me to do it all in one pass.

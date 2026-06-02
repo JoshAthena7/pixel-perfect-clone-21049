@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedOlympusRouteImport } from './routes/_authenticated/olympus'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
+import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_authenticated/missions/$missionId'
 import { Route as AuthenticatedCommandScoresRouteImport } from './routes/_authenticated/command/scores'
 import { Route as AuthenticatedCommandQuestionHealthRouteImport } from './routes/_authenticated/command/question-health'
 import { Route as AuthenticatedCommandPensDownRouteImport } from './routes/_authenticated/command/pens-down'
@@ -22,12 +23,17 @@ import { Route as AuthenticatedCommandAttentionRouteImport } from './routes/_aut
 import { Route as AuthenticatedCommandAlignmentConflictsRouteImport } from './routes/_authenticated/command/alignment-conflicts'
 import { Route as AuthenticatedCommandAlignmentRouteImport } from './routes/_authenticated/command/alignment'
 import { Route as AuthenticatedMissionsMissionIdIndexRouteImport } from './routes/_authenticated/missions/$missionId/index'
+import { Route as AuthenticatedMissionsMissionIdTeamRouteImport } from './routes/_authenticated/missions/$missionId/team'
+import { Route as AuthenticatedMissionsMissionIdStudioRouteImport } from './routes/_authenticated/missions/$missionId/studio'
 import { Route as AuthenticatedMissionsMissionIdSettingsRouteImport } from './routes/_authenticated/missions/$missionId/settings'
 import { Route as AuthenticatedMissionsMissionIdOverviewRouteImport } from './routes/_authenticated/missions/$missionId/overview'
+import { Route as AuthenticatedMissionsMissionIdOperationsRouteImport } from './routes/_authenticated/missions/$missionId/operations'
 import { Route as AuthenticatedMissionsMissionIdLibraryRouteImport } from './routes/_authenticated/missions/$missionId/library'
 import { Route as AuthenticatedMissionsMissionIdIrisRouteImport } from './routes/_authenticated/missions/$missionId/iris'
+import { Route as AuthenticatedMissionsMissionIdIntelligenceRouteImport } from './routes/_authenticated/missions/$missionId/intelligence'
 import { Route as AuthenticatedMissionsMissionIdBriefingRouteImport } from './routes/_authenticated/missions/$missionId/briefing'
 import { Route as AuthenticatedMissionsMissionIdBriefRouteImport } from './routes/_authenticated/missions/$missionId/brief'
+import { Route as AuthenticatedMissionsMissionIdActivityRouteImport } from './routes/_authenticated/missions/$missionId/activity'
 import { Route as AuthenticatedMissionsMissionIdQuestionsIndexRouteImport } from './routes/_authenticated/missions/$missionId/questions/index'
 import { Route as AuthenticatedMissionsMissionIdQuestionsQuestionIdRouteImport } from './routes/_authenticated/missions/$missionId/questions/$questionId'
 
@@ -55,6 +61,12 @@ const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   path: '/home',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedMissionsMissionIdRoute =
+  AuthenticatedMissionsMissionIdRouteImport.update({
+    id: '/missions/$missionId',
+    path: '/missions/$missionId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedCommandScoresRoute =
   AuthenticatedCommandScoresRouteImport.update({
     id: '/command/scores',
@@ -99,57 +111,87 @@ const AuthenticatedCommandAlignmentRoute =
   } as any)
 const AuthenticatedMissionsMissionIdIndexRoute =
   AuthenticatedMissionsMissionIdIndexRouteImport.update({
-    id: '/missions/$missionId/',
-    path: '/missions/$missionId/',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
+  } as any)
+const AuthenticatedMissionsMissionIdTeamRoute =
+  AuthenticatedMissionsMissionIdTeamRouteImport.update({
+    id: '/team',
+    path: '/team',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
+  } as any)
+const AuthenticatedMissionsMissionIdStudioRoute =
+  AuthenticatedMissionsMissionIdStudioRouteImport.update({
+    id: '/studio',
+    path: '/studio',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
 const AuthenticatedMissionsMissionIdSettingsRoute =
   AuthenticatedMissionsMissionIdSettingsRouteImport.update({
-    id: '/missions/$missionId/settings',
-    path: '/missions/$missionId/settings',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
 const AuthenticatedMissionsMissionIdOverviewRoute =
   AuthenticatedMissionsMissionIdOverviewRouteImport.update({
-    id: '/missions/$missionId/overview',
-    path: '/missions/$missionId/overview',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/overview',
+    path: '/overview',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
+  } as any)
+const AuthenticatedMissionsMissionIdOperationsRoute =
+  AuthenticatedMissionsMissionIdOperationsRouteImport.update({
+    id: '/operations',
+    path: '/operations',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
 const AuthenticatedMissionsMissionIdLibraryRoute =
   AuthenticatedMissionsMissionIdLibraryRouteImport.update({
-    id: '/missions/$missionId/library',
-    path: '/missions/$missionId/library',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/library',
+    path: '/library',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
 const AuthenticatedMissionsMissionIdIrisRoute =
   AuthenticatedMissionsMissionIdIrisRouteImport.update({
-    id: '/missions/$missionId/iris',
-    path: '/missions/$missionId/iris',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/iris',
+    path: '/iris',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
+  } as any)
+const AuthenticatedMissionsMissionIdIntelligenceRoute =
+  AuthenticatedMissionsMissionIdIntelligenceRouteImport.update({
+    id: '/intelligence',
+    path: '/intelligence',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
 const AuthenticatedMissionsMissionIdBriefingRoute =
   AuthenticatedMissionsMissionIdBriefingRouteImport.update({
-    id: '/missions/$missionId/briefing',
-    path: '/missions/$missionId/briefing',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/briefing',
+    path: '/briefing',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
 const AuthenticatedMissionsMissionIdBriefRoute =
   AuthenticatedMissionsMissionIdBriefRouteImport.update({
-    id: '/missions/$missionId/brief',
-    path: '/missions/$missionId/brief',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/brief',
+    path: '/brief',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
+  } as any)
+const AuthenticatedMissionsMissionIdActivityRoute =
+  AuthenticatedMissionsMissionIdActivityRouteImport.update({
+    id: '/activity',
+    path: '/activity',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
 const AuthenticatedMissionsMissionIdQuestionsIndexRoute =
   AuthenticatedMissionsMissionIdQuestionsIndexRouteImport.update({
-    id: '/missions/$missionId/questions/',
-    path: '/missions/$missionId/questions/',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/questions/',
+    path: '/questions/',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
 const AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute =
   AuthenticatedMissionsMissionIdQuestionsQuestionIdRouteImport.update({
-    id: '/missions/$missionId/questions/$questionId',
-    path: '/missions/$missionId/questions/$questionId',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/questions/$questionId',
+    path: '/questions/$questionId',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -164,12 +206,18 @@ export interface FileRoutesByFullPath {
   '/command/pens-down': typeof AuthenticatedCommandPensDownRoute
   '/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
   '/command/scores': typeof AuthenticatedCommandScoresRoute
+  '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
+  '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
+  '/missions/$missionId/intelligence': typeof AuthenticatedMissionsMissionIdIntelligenceRoute
   '/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
   '/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
+  '/missions/$missionId/operations': typeof AuthenticatedMissionsMissionIdOperationsRoute
   '/missions/$missionId/overview': typeof AuthenticatedMissionsMissionIdOverviewRoute
   '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
+  '/missions/$missionId/studio': typeof AuthenticatedMissionsMissionIdStudioRoute
+  '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
   '/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
   '/missions/$missionId/questions/': typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
@@ -186,12 +234,17 @@ export interface FileRoutesByTo {
   '/command/pens-down': typeof AuthenticatedCommandPensDownRoute
   '/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
   '/command/scores': typeof AuthenticatedCommandScoresRoute
+  '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
+  '/missions/$missionId/intelligence': typeof AuthenticatedMissionsMissionIdIntelligenceRoute
   '/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
   '/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
+  '/missions/$missionId/operations': typeof AuthenticatedMissionsMissionIdOperationsRoute
   '/missions/$missionId/overview': typeof AuthenticatedMissionsMissionIdOverviewRoute
   '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
+  '/missions/$missionId/studio': typeof AuthenticatedMissionsMissionIdStudioRoute
+  '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
   '/missions/$missionId/questions': typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
@@ -210,12 +263,18 @@ export interface FileRoutesById {
   '/_authenticated/command/pens-down': typeof AuthenticatedCommandPensDownRoute
   '/_authenticated/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
   '/_authenticated/command/scores': typeof AuthenticatedCommandScoresRoute
+  '/_authenticated/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
+  '/_authenticated/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/_authenticated/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/_authenticated/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
+  '/_authenticated/missions/$missionId/intelligence': typeof AuthenticatedMissionsMissionIdIntelligenceRoute
   '/_authenticated/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
   '/_authenticated/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
+  '/_authenticated/missions/$missionId/operations': typeof AuthenticatedMissionsMissionIdOperationsRoute
   '/_authenticated/missions/$missionId/overview': typeof AuthenticatedMissionsMissionIdOverviewRoute
   '/_authenticated/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
+  '/_authenticated/missions/$missionId/studio': typeof AuthenticatedMissionsMissionIdStudioRoute
+  '/_authenticated/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
   '/_authenticated/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/_authenticated/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
   '/_authenticated/missions/$missionId/questions/': typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
@@ -234,12 +293,18 @@ export interface FileRouteTypes {
     | '/command/pens-down'
     | '/command/question-health'
     | '/command/scores'
+    | '/missions/$missionId'
+    | '/missions/$missionId/activity'
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
+    | '/missions/$missionId/intelligence'
     | '/missions/$missionId/iris'
     | '/missions/$missionId/library'
+    | '/missions/$missionId/operations'
     | '/missions/$missionId/overview'
     | '/missions/$missionId/settings'
+    | '/missions/$missionId/studio'
+    | '/missions/$missionId/team'
     | '/missions/$missionId/'
     | '/missions/$missionId/questions/$questionId'
     | '/missions/$missionId/questions/'
@@ -256,12 +321,17 @@ export interface FileRouteTypes {
     | '/command/pens-down'
     | '/command/question-health'
     | '/command/scores'
+    | '/missions/$missionId/activity'
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
+    | '/missions/$missionId/intelligence'
     | '/missions/$missionId/iris'
     | '/missions/$missionId/library'
+    | '/missions/$missionId/operations'
     | '/missions/$missionId/overview'
     | '/missions/$missionId/settings'
+    | '/missions/$missionId/studio'
+    | '/missions/$missionId/team'
     | '/missions/$missionId'
     | '/missions/$missionId/questions/$questionId'
     | '/missions/$missionId/questions'
@@ -279,12 +349,18 @@ export interface FileRouteTypes {
     | '/_authenticated/command/pens-down'
     | '/_authenticated/command/question-health'
     | '/_authenticated/command/scores'
+    | '/_authenticated/missions/$missionId'
+    | '/_authenticated/missions/$missionId/activity'
     | '/_authenticated/missions/$missionId/brief'
     | '/_authenticated/missions/$missionId/briefing'
+    | '/_authenticated/missions/$missionId/intelligence'
     | '/_authenticated/missions/$missionId/iris'
     | '/_authenticated/missions/$missionId/library'
+    | '/_authenticated/missions/$missionId/operations'
     | '/_authenticated/missions/$missionId/overview'
     | '/_authenticated/missions/$missionId/settings'
+    | '/_authenticated/missions/$missionId/studio'
+    | '/_authenticated/missions/$missionId/team'
     | '/_authenticated/missions/$missionId/'
     | '/_authenticated/missions/$missionId/questions/$questionId'
     | '/_authenticated/missions/$missionId/questions/'
@@ -331,6 +407,13 @@ declare module '@tanstack/react-router' {
       path: '/home'
       fullPath: '/home'
       preLoaderRoute: typeof AuthenticatedHomeRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/missions/$missionId': {
+      id: '/_authenticated/missions/$missionId'
+      path: '/missions/$missionId'
+      fullPath: '/missions/$missionId'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/command/scores': {
@@ -384,69 +467,158 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/missions/$missionId/': {
       id: '/_authenticated/missions/$missionId/'
-      path: '/missions/$missionId'
+      path: '/'
       fullPath: '/missions/$missionId/'
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
+    '/_authenticated/missions/$missionId/team': {
+      id: '/_authenticated/missions/$missionId/team'
+      path: '/team'
+      fullPath: '/missions/$missionId/team'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdTeamRouteImport
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
+    '/_authenticated/missions/$missionId/studio': {
+      id: '/_authenticated/missions/$missionId/studio'
+      path: '/studio'
+      fullPath: '/missions/$missionId/studio'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdStudioRouteImport
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
     '/_authenticated/missions/$missionId/settings': {
       id: '/_authenticated/missions/$missionId/settings'
-      path: '/missions/$missionId/settings'
+      path: '/settings'
       fullPath: '/missions/$missionId/settings'
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdSettingsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
     '/_authenticated/missions/$missionId/overview': {
       id: '/_authenticated/missions/$missionId/overview'
-      path: '/missions/$missionId/overview'
+      path: '/overview'
       fullPath: '/missions/$missionId/overview'
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdOverviewRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
+    '/_authenticated/missions/$missionId/operations': {
+      id: '/_authenticated/missions/$missionId/operations'
+      path: '/operations'
+      fullPath: '/missions/$missionId/operations'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdOperationsRouteImport
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
     '/_authenticated/missions/$missionId/library': {
       id: '/_authenticated/missions/$missionId/library'
-      path: '/missions/$missionId/library'
+      path: '/library'
       fullPath: '/missions/$missionId/library'
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdLibraryRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
     '/_authenticated/missions/$missionId/iris': {
       id: '/_authenticated/missions/$missionId/iris'
-      path: '/missions/$missionId/iris'
+      path: '/iris'
       fullPath: '/missions/$missionId/iris'
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdIrisRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
+    '/_authenticated/missions/$missionId/intelligence': {
+      id: '/_authenticated/missions/$missionId/intelligence'
+      path: '/intelligence'
+      fullPath: '/missions/$missionId/intelligence'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdIntelligenceRouteImport
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
     '/_authenticated/missions/$missionId/briefing': {
       id: '/_authenticated/missions/$missionId/briefing'
-      path: '/missions/$missionId/briefing'
+      path: '/briefing'
       fullPath: '/missions/$missionId/briefing'
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdBriefingRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
     '/_authenticated/missions/$missionId/brief': {
       id: '/_authenticated/missions/$missionId/brief'
-      path: '/missions/$missionId/brief'
+      path: '/brief'
       fullPath: '/missions/$missionId/brief'
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdBriefRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
+    '/_authenticated/missions/$missionId/activity': {
+      id: '/_authenticated/missions/$missionId/activity'
+      path: '/activity'
+      fullPath: '/missions/$missionId/activity'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdActivityRouteImport
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
     '/_authenticated/missions/$missionId/questions/': {
       id: '/_authenticated/missions/$missionId/questions/'
-      path: '/missions/$missionId/questions'
+      path: '/questions'
       fullPath: '/missions/$missionId/questions/'
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdQuestionsIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
     '/_authenticated/missions/$missionId/questions/$questionId': {
       id: '/_authenticated/missions/$missionId/questions/$questionId'
-      path: '/missions/$missionId/questions/$questionId'
+      path: '/questions/$questionId'
       fullPath: '/missions/$missionId/questions/$questionId'
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
   }
 }
+
+interface AuthenticatedMissionsMissionIdRouteChildren {
+  AuthenticatedMissionsMissionIdActivityRoute: typeof AuthenticatedMissionsMissionIdActivityRoute
+  AuthenticatedMissionsMissionIdBriefRoute: typeof AuthenticatedMissionsMissionIdBriefRoute
+  AuthenticatedMissionsMissionIdBriefingRoute: typeof AuthenticatedMissionsMissionIdBriefingRoute
+  AuthenticatedMissionsMissionIdIntelligenceRoute: typeof AuthenticatedMissionsMissionIdIntelligenceRoute
+  AuthenticatedMissionsMissionIdIrisRoute: typeof AuthenticatedMissionsMissionIdIrisRoute
+  AuthenticatedMissionsMissionIdLibraryRoute: typeof AuthenticatedMissionsMissionIdLibraryRoute
+  AuthenticatedMissionsMissionIdOperationsRoute: typeof AuthenticatedMissionsMissionIdOperationsRoute
+  AuthenticatedMissionsMissionIdOverviewRoute: typeof AuthenticatedMissionsMissionIdOverviewRoute
+  AuthenticatedMissionsMissionIdSettingsRoute: typeof AuthenticatedMissionsMissionIdSettingsRoute
+  AuthenticatedMissionsMissionIdStudioRoute: typeof AuthenticatedMissionsMissionIdStudioRoute
+  AuthenticatedMissionsMissionIdTeamRoute: typeof AuthenticatedMissionsMissionIdTeamRoute
+  AuthenticatedMissionsMissionIdIndexRoute: typeof AuthenticatedMissionsMissionIdIndexRoute
+  AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute: typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
+  AuthenticatedMissionsMissionIdQuestionsIndexRoute: typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
+}
+
+const AuthenticatedMissionsMissionIdRouteChildren: AuthenticatedMissionsMissionIdRouteChildren =
+  {
+    AuthenticatedMissionsMissionIdActivityRoute:
+      AuthenticatedMissionsMissionIdActivityRoute,
+    AuthenticatedMissionsMissionIdBriefRoute:
+      AuthenticatedMissionsMissionIdBriefRoute,
+    AuthenticatedMissionsMissionIdBriefingRoute:
+      AuthenticatedMissionsMissionIdBriefingRoute,
+    AuthenticatedMissionsMissionIdIntelligenceRoute:
+      AuthenticatedMissionsMissionIdIntelligenceRoute,
+    AuthenticatedMissionsMissionIdIrisRoute:
+      AuthenticatedMissionsMissionIdIrisRoute,
+    AuthenticatedMissionsMissionIdLibraryRoute:
+      AuthenticatedMissionsMissionIdLibraryRoute,
+    AuthenticatedMissionsMissionIdOperationsRoute:
+      AuthenticatedMissionsMissionIdOperationsRoute,
+    AuthenticatedMissionsMissionIdOverviewRoute:
+      AuthenticatedMissionsMissionIdOverviewRoute,
+    AuthenticatedMissionsMissionIdSettingsRoute:
+      AuthenticatedMissionsMissionIdSettingsRoute,
+    AuthenticatedMissionsMissionIdStudioRoute:
+      AuthenticatedMissionsMissionIdStudioRoute,
+    AuthenticatedMissionsMissionIdTeamRoute:
+      AuthenticatedMissionsMissionIdTeamRoute,
+    AuthenticatedMissionsMissionIdIndexRoute:
+      AuthenticatedMissionsMissionIdIndexRoute,
+    AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute:
+      AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute,
+    AuthenticatedMissionsMissionIdQuestionsIndexRoute:
+      AuthenticatedMissionsMissionIdQuestionsIndexRoute,
+  }
+
+const AuthenticatedMissionsMissionIdRouteWithChildren =
+  AuthenticatedMissionsMissionIdRoute._addFileChildren(
+    AuthenticatedMissionsMissionIdRouteChildren,
+  )
 
 interface AuthenticatedRouteChildren {
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
@@ -458,15 +630,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCommandPensDownRoute: typeof AuthenticatedCommandPensDownRoute
   AuthenticatedCommandQuestionHealthRoute: typeof AuthenticatedCommandQuestionHealthRoute
   AuthenticatedCommandScoresRoute: typeof AuthenticatedCommandScoresRoute
-  AuthenticatedMissionsMissionIdBriefRoute: typeof AuthenticatedMissionsMissionIdBriefRoute
-  AuthenticatedMissionsMissionIdBriefingRoute: typeof AuthenticatedMissionsMissionIdBriefingRoute
-  AuthenticatedMissionsMissionIdIrisRoute: typeof AuthenticatedMissionsMissionIdIrisRoute
-  AuthenticatedMissionsMissionIdLibraryRoute: typeof AuthenticatedMissionsMissionIdLibraryRoute
-  AuthenticatedMissionsMissionIdOverviewRoute: typeof AuthenticatedMissionsMissionIdOverviewRoute
-  AuthenticatedMissionsMissionIdSettingsRoute: typeof AuthenticatedMissionsMissionIdSettingsRoute
-  AuthenticatedMissionsMissionIdIndexRoute: typeof AuthenticatedMissionsMissionIdIndexRoute
-  AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute: typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
-  AuthenticatedMissionsMissionIdQuestionsIndexRoute: typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
+  AuthenticatedMissionsMissionIdRoute: typeof AuthenticatedMissionsMissionIdRouteWithChildren
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -481,24 +645,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCommandQuestionHealthRoute:
     AuthenticatedCommandQuestionHealthRoute,
   AuthenticatedCommandScoresRoute: AuthenticatedCommandScoresRoute,
-  AuthenticatedMissionsMissionIdBriefRoute:
-    AuthenticatedMissionsMissionIdBriefRoute,
-  AuthenticatedMissionsMissionIdBriefingRoute:
-    AuthenticatedMissionsMissionIdBriefingRoute,
-  AuthenticatedMissionsMissionIdIrisRoute:
-    AuthenticatedMissionsMissionIdIrisRoute,
-  AuthenticatedMissionsMissionIdLibraryRoute:
-    AuthenticatedMissionsMissionIdLibraryRoute,
-  AuthenticatedMissionsMissionIdOverviewRoute:
-    AuthenticatedMissionsMissionIdOverviewRoute,
-  AuthenticatedMissionsMissionIdSettingsRoute:
-    AuthenticatedMissionsMissionIdSettingsRoute,
-  AuthenticatedMissionsMissionIdIndexRoute:
-    AuthenticatedMissionsMissionIdIndexRoute,
-  AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute:
-    AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute,
-  AuthenticatedMissionsMissionIdQuestionsIndexRoute:
-    AuthenticatedMissionsMissionIdQuestionsIndexRoute,
+  AuthenticatedMissionsMissionIdRoute:
+    AuthenticatedMissionsMissionIdRouteWithChildren,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
