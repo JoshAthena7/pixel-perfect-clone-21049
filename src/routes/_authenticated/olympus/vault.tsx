@@ -12,8 +12,8 @@ export const Route = createFileRoute("/_authenticated/olympus/vault")({
 });
 
 const CATEGORIES = [
-  "RFP", "Amendments", "Q&A Documents", "Client Materials", "Contract Template",
-  "Win Themes", "Contacts", "Past Submissions", "Source Documents", "Meeting Notes", "Research", "Other",
+  "RFP & Amendments", "State Q&A", "Past Responses", "Templates",
+  "Reference Materials", "Research", "Supporting Materials", "Client Materials",
 ] as const;
 type Category = (typeof CATEGORIES)[number];
 
@@ -38,8 +38,10 @@ function VaultPage() {
   const [uploading, setUploading] = useState(false);
   const [parsingId, setParsingId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const [uploadCategory, setUploadCategory] = useState<Category>("RFP");
+  const [uploadCategory, setUploadCategory] = useState<Category>("RFP & Amendments");
   const [uploadIsRfp, setUploadIsRfp] = useState(true);
+  const [dragOver, setDragOver] = useState(false);
+  const [parsePromptFor, setParsePromptFor] = useState<{ id: string; name: string } | null>(null);
 
   const { data: docs = [], isLoading } = useQuery({
     queryKey: ["olympus-vault", missionId],
@@ -73,7 +75,19 @@ function VaultPage() {
     setUploading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      let lastRfp: { id: string; name: string } | null = null;
       for (const file of Array.from(files)) {
+        // Duplicate guard
+        const dup = docs.find((d) => d.name === file.name);
+        if (dup) {
+          const choice = window.confirm(
+            `A file named "${file.name}" already exists.\n\nOK = Replace existing\nCancel = Keep both (renames new file)`,
+          );
+          if (choice && dup.file_path) {
+            await supabase.storage.from("mission-library").remove([dup.file_path]);
+            await supabase.from("mission_library").delete().eq("id", dup.id);
+          }
+        }
         const hash = await sha256(file);
         const path = `${missionId}/${Date.now()}-${file.name}`;
         const { error: upErr } = await supabase.storage.from("mission-library").upload(path, file);
@@ -97,9 +111,11 @@ function VaultPage() {
           target_table: "mission_library",
           target_id: row?.id ?? null,
         });
+        if (uploadIsRfp && row?.id) lastRfp = { id: row.id, name: file.name };
       }
       toast.success(`Uploaded ${files.length} file${files.length === 1 ? "" : "s"}`);
       qc.invalidateQueries({ queryKey: ["olympus-vault", missionId] });
+      if (lastRfp) setParsePromptFor(lastRfp);
     } catch (e: any) {
       toast.error(e?.message ?? "Upload failed");
     } finally {
@@ -256,7 +272,15 @@ function VaultPage() {
 
         {/* Upload panel */}
         <aside className="space-y-4">
-          <div className="rounded-[10px] border border-dashed border-border bg-surface p-5">
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault(); setDragOver(false);
+              handleUpload(e.dataTransfer.files);
+            }}
+            className={`rounded-[10px] border-2 border-dashed p-5 transition ${dragOver ? "border-[#C49A22] bg-[#C49A22]/5" : "border-border bg-surface"}`}
+          >
             <div className="mb-3 flex items-center gap-2 text-sm font-medium">
               <Upload className="h-4 w-4 text-muted-foreground" /> Upload files
             </div>
@@ -269,27 +293,54 @@ function VaultPage() {
               <input type="checkbox" checked={uploadIsRfp} onChange={(e) => setUploadIsRfp(e.target.checked)} />
               This is an RFP (enables IRIS parsing)
             </label>
-            <input ref={fileRef} type="file" multiple onChange={(e) => handleUpload(e.target.files)} disabled={uploading}
-              className="block w-full text-xs text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-[#C49A22] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-black hover:file:bg-[#D4AA32]" />
+            <div
+              onClick={() => fileRef.current?.click()}
+              className="cursor-pointer rounded-md border border-dashed border-border bg-background/40 px-3 py-4 text-center text-[11px] text-muted-foreground hover:bg-surface-hover"
+            >
+              Drop files here or click to browse
+              <div className="mt-1 text-[10px] opacity-60">PDF, DOCX, XLSX, PPTX, TXT</div>
+            </div>
+            <input ref={fileRef} type="file" multiple accept=".pdf,.docx,.xlsx,.pptx,.txt"
+              onChange={(e) => handleUpload(e.target.files)} disabled={uploading} className="hidden" />
             {uploading && <div className="mt-2 text-[11px] text-muted-foreground">Uploading…</div>}
           </div>
 
           <AddUrlPanel onSubmit={addUrl} />
         </aside>
       </div>
+
+      {parsePromptFor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setParsePromptFor(null)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-md rounded-[10px] border border-border bg-surface p-6">
+            <div className="h2-label" style={{ letterSpacing: "0.32em" }}>RFP Detected</div>
+            <h2 className="mt-1 text-lg font-semibold">Parse this RFP?</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Have IRIS parse <span className="text-foreground font-medium">{parsePromptFor.name}</span> and auto-create question records for every question found?
+            </p>
+            <footer className="mt-6 flex justify-end gap-2">
+              <button onClick={() => setParsePromptFor(null)} className="rounded-lg border border-border px-4 py-2 text-sm hover:bg-surface-hover">Skip</button>
+              <button onClick={() => { const d = docs.find((x) => x.id === parsePromptFor.id) ?? { ...parsePromptFor, mission_id: missionId, category: uploadCategory, notes: null, url: null, file_path: null, is_rfp: true, added_by: null, created_at: "", file_size: null } as any; parseRfp(d as Doc); setParsePromptFor(null); }}
+                className="inline-flex items-center gap-2 rounded-lg bg-[#C49A22] px-4 py-2 text-sm font-semibold text-black hover:bg-[#D4AA32]">
+                <Sparkles className="h-4 w-4" /> Parse RFP
+              </button>
+            </footer>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 function AddUrlPanel({ onSubmit }: { onSubmit: (f: { name: string; url: string; category: Category; notes: string }) => Promise<void> }) {
-  const [form, setForm] = useState({ name: "", url: "", category: "Other" as Category, notes: "" });
+  const [form, setForm] = useState({ name: "", url: "", category: "Reference Materials" as Category, notes: "" });
   const [busy, setBusy] = useState(false);
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     await onSubmit(form);
     setBusy(false);
-    setForm({ name: "", url: "", category: "Other", notes: "" });
+    setForm({ name: "", url: "", category: "Reference Materials", notes: "" });
   }
   return (
     <form onSubmit={submit} className="rounded-[10px] border border-border bg-surface p-5">
