@@ -52,10 +52,28 @@ type Doc = {
 function LibraryPage() {
   const { missionId } = Route.useParams();
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState<Category | "All">("All");
   const [showAddModal, setShowAddModal] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState("");
+  const [parsingId, setParsingId] = useState<string | null>(null);
+
+  async function parseRfp(doc: Doc) {
+    setParsingId(doc.id);
+    try {
+      const { parseRfpDocument } = await import("@/lib/rfp-parser.functions");
+      const res = await parseRfpDocument({ data: { documentId: doc.id } });
+      toast.success(`${res.inserted} questions created from "${doc.name}"`);
+      qc.invalidateQueries({ queryKey: ["mission-library", missionId] });
+      navigate({ to: "/missions/$missionId/questions", params: { missionId } });
+    } catch (e) {
+      toast.error(`Parse failed: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setParsingId(null);
+    }
+  }
+
 
   const { data: docs = [], isLoading } = useQuery({
     queryKey: ["mission-library", missionId],
