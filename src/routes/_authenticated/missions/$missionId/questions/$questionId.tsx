@@ -775,11 +775,40 @@ function Block({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function IrisInsight({ label, content }: { label: string; content: string }) {
+function IrisInsight({
+  label,
+  content,
+  confidence,
+  sourceCount,
+}: {
+  label: string;
+  content: string;
+  confidence?: "High" | "Medium" | "Low";
+  sourceCount?: number;
+}) {
+  const confColor =
+    confidence === "High"
+      ? "var(--green)"
+      : confidence === "Medium"
+      ? "var(--yellow)"
+      : "var(--muted-foreground, #94a3b8)";
   return (
     <div>
       <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[color:var(--iris)]">{label}</div>
       <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">{content}</p>
+      {confidence && (
+        <div className="mt-1.5 text-[11px]" style={{ color: confColor }}>
+          Confidence: {confidence}
+          {typeof sourceCount === "number" && (
+            <span className="text-muted-foreground"> · Based on {sourceCount} source{sourceCount === 1 ? "" : "s"}</span>
+          )}
+        </div>
+      )}
+      {confidence === "Low" && (
+        <div className="mt-1 text-[11px] italic text-muted-foreground">
+          IRIS has limited specific intelligence on this topic. Consider additional research.
+        </div>
+      )}
     </div>
   );
 }
