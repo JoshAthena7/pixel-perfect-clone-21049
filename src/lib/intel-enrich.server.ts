@@ -105,7 +105,12 @@ export async function enrichIntelRow(row: {
   const summary = row.summary ?? (await summarizeIntel(row.title, row.summary));
   const vector = await embed(`${row.title}\n\n${row.summary ?? ""}`);
 
-  const update: Record<string, unknown> = {};
+  const update: {
+    summary?: string;
+    matched_mission_ids?: string[];
+    question_ids?: string[];
+    is_cross_referenced?: boolean;
+  } = {};
   if (summary && summary !== row.summary) update.summary = summary;
 
   if (vector) {
