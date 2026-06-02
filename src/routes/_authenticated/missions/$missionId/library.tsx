@@ -171,7 +171,23 @@ function LibraryPage() {
         related_document_id: ins?.id ?? null,
       }, qc);
       qc.invalidateQueries({ queryKey: ["mission-library", missionId] });
-      toast.success(`Uploaded "${file.name}" to The Vault.`);
+      toast.success(`Uploaded "${file.name}" — extracting questions…`);
+
+      // Auto-parse: kick off IRIS extraction immediately after upload
+      if (ins?.id) {
+        try {
+          setParsingId(ins.id);
+          const { parseRfpDocument } = await import("@/lib/rfp-parser.functions");
+          const res = await parseRfpDocument({ data: { documentId: ins.id } });
+          toast.success(`${res.inserted} questions extracted from "${file.name}"`);
+          qc.invalidateQueries({ queryKey: ["mission-library", missionId] });
+          navigate({ to: "/missions/$missionId/questions", params: { missionId } });
+        } catch (e) {
+          toast.error(`Auto-parse failed: ${e instanceof Error ? e.message : String(e)}. Use "Parse RFP" to retry.`);
+        } finally {
+          setParsingId(null);
+        }
+      }
     } finally {
       setUploading(false);
     }
