@@ -643,7 +643,7 @@ function ResponseView() {
                 value={prompt} onChange={(e) => setPrompt(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") onAsk(); }}
                 placeholder="Ask IRIS anything about this response…"
-                className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                className="iris-input flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm"
                 autoFocus
               />
               <button onClick={onAsk} disabled={asking || !prompt.trim()}
@@ -652,8 +652,13 @@ function ResponseView() {
               </button>
             </div>
             {(asking || answer) && (
-              <div className="rounded-md border border-border bg-background/40 px-4 py-3 text-sm whitespace-pre-wrap text-[color:var(--iris,#22d3ee)]">
-                {asking ? "IRIS is thinking…" : answer}
+              <div className="iris-panel rounded-r-md px-4 py-3 text-sm">
+                <div className="mb-2"><span className="iris-label"><span className="iris-dot" />IRIS</span></div>
+                {asking ? (
+                  <div className="iris-loading-text text-left"><span className="iris-dot" />IRIS is preparing your brief...</div>
+                ) : (
+                  <div className="whitespace-pre-wrap text-foreground">{answer}</div>
+                )}
               </div>
             )}
           </div>
