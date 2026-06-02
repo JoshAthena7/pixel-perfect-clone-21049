@@ -1,206 +1,120 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
-import { useState, useMemo, useEffect, useRef } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { irisMissionPulse } from "@/lib/iris.functions";
-import { AlertTriangle, Activity, GitMerge, ChevronDown, Sparkles } from "lucide-react";
-import { ScoreTrend } from "@/components/v2/ScoreTrend";
-import { pensDownInfo, pensDownPillClass, STATUS_ORDER, STATUS_LABELS, statusBadgeClass, getLastQuestionVisit } from "@/lib/writer-utils";
-import { toast } from "sonner";
-
+import { relativeTime } from "@/lib/signals";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/questions/")({
-  component: QuestionCommand,
+  component: ResponsesList,
 });
-
 
 type Q = {
   id: string;
+  mission_id: string;
   question_number: string;
-  section_number: string | null;
   title: string;
-  health: "green" | "yellow" | "red";
-  status: string;
   pens_down_date: string | null;
-  current_score: number | null;
-  target_score: number | null;
-  page_limit: number | null;
-  evaluation_weight: number | null;
+  assigned_writer_id: string | null;
 };
 
-const STATUSES = ["all", "not_started", "in_progress", "in_review", "complete"] as const;
-const HEALTHS = ["all", "green", "yellow", "red"] as const;
+type Gate = { id: string; gate_name: string; target_date: string | null };
+type Profile = { id: string; display_name: string | null; email: string | null };
+type RU = { question_id: string; signal_type: "learned" | "need" | "unchanged"; resolved: boolean; created_at: string };
 
-function QuestionCommand() {
+type Filter = "all" | "mine" | "attention" | "noactivity";
+
+const SIGNAL_BADGE: Record<string, { label: string; cls: string }> = {
+  learned: { label: "Learned", cls: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
+  need: { label: "Need", cls: "bg-amber-500/15 text-amber-400 border-amber-500/30" },
+  unchanged: { label: "Unchanged", cls: "bg-muted text-muted-foreground border-border" },
+};
+
+function ResponsesList() {
   const { missionId } = Route.useParams();
-  const navigate = useNavigate();
-  const [statusFilter, setStatusFilter] = useState<(typeof STATUSES)[number]>("all");
-  const [healthFilter, setHealthFilter] = useState<(typeof HEALTHS)[number]>("all");
-  const lsKey = `questions-scope:${missionId}`;
-  const [scope, setScopeState] = useState<"mine" | "all" | null>(() => {
-    if (typeof window === "undefined") return null;
-    const v = window.localStorage.getItem(lsKey);
-    return v === "mine" || v === "all" ? v : null;
-  });
-  const setScope = (s: "mine" | "all") => {
-    setScopeState(s);
-    try { window.localStorage.setItem(lsKey, s); } catch { /* ignore */ }
-  };
-  const [selectedIdx, setSelectedIdx] = useState(0);
+  const [filter, setFilter] = useState<Filter>("all");
 
   const { data: me } = useQuery({
     queryKey: ["me-id"],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      return user?.id ?? null;
-    },
+    queryFn: async () => (await supabase.auth.getUser()).data.user?.id ?? null,
   });
-
-  const { data: myRole } = useQuery({
-    queryKey: ["my-mission-role", missionId],
-    queryFn: async () => {
-      if (!me) return null;
-      const { data } = await supabase
-        .from("mission_members").select("role").eq("mission_id", missionId).eq("user_id", me).maybeSingle();
-      return (data?.role as string | null) ?? null;
-    },
-    enabled: !!me,
-  });
-
-  const isLeader = myRole === "admin" || myRole === "lead";
-
-  useEffect(() => {
-    if (scope === null && me !== undefined && myRole !== undefined) {
-      setScope(isLeader ? "all" : "mine");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scope, me, myRole, isLeader]);
-
-
 
   const { data: questions = [], isLoading } = useQuery({
     queryKey: ["mission-questions", missionId],
     queryFn: async () => {
       const { data } = await supabase
         .from("question_records")
-        .select("id,question_number,section_number,title,health,status,pens_down_date,current_score,target_score,page_limit,evaluation_weight,assigned_writer_id,assigned_sme_id")
+        .select("id,mission_id,question_number,title,pens_down_date,assigned_writer_id")
         .eq("mission_id", missionId)
         .order("sort_order", { ascending: true });
-      return (data ?? []) as (Q & { assigned_writer_id: string | null; assigned_sme_id: string | null })[];
+      return (data ?? []) as Q[];
     },
   });
 
-  const myQuestions = me ? questions.filter((q) => q.assigned_writer_id === me || q.assigned_sme_id === me) : [];
-  const activeScope = scope ?? "all";
-  const scoped = activeScope === "mine" ? myQuestions : questions;
-
-  const pulseFn = useServerFn(irisMissionPulse);
-  const { data: pulse } = useQuery({
-    queryKey: ["mission-pulse", missionId],
-    queryFn: () => pulseFn({ data: { missionId } }),
-    refetchInterval: 60_000,
-  });
-  const { data: openConflicts = 0 } = useQuery({
-    queryKey: ["mission-conflicts-count", missionId],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("alignment_conflicts")
-        .select("id", { count: "exact", head: true })
-        .eq("mission_id", missionId)
-        .is("resolved_at", null);
-      return count ?? 0;
-    },
-  });
-
-  // WRITER-5: count open signals per question
-  const { data: signalCounts = {} } = useQuery<Record<string, { count: number; latest: string }>>({
-    queryKey: ["mission-question-signal-counts", missionId],
+  const { data: gates = [] } = useQuery({
+    queryKey: ["mission-gates", missionId],
     queryFn: async () => {
       const { data } = await supabase
-        .from("signals")
-        .select("related_question_id,created_at")
+        .from("mission_review_gates")
+        .select("id,gate_name,target_date")
         .eq("mission_id", missionId)
-        .neq("status", "archived")
-        .not("related_question_id", "is", null)
+        .order("gate_order");
+      return (data ?? []) as Gate[];
+    },
+  });
+  const nextGate = gates
+    .filter((g) => g.target_date && new Date(g.target_date) > new Date())
+    .sort((a, b) => new Date(a.target_date!).getTime() - new Date(b.target_date!).getTime())[0];
+
+  const writerIds = Array.from(new Set(questions.map((q) => q.assigned_writer_id).filter(Boolean) as string[]));
+  const { data: profiles = [] } = useQuery({
+    queryKey: ["mission-writers", missionId, writerIds.join(",")],
+    enabled: writerIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("id,display_name,email").in("id", writerIds);
+      return (data ?? []) as Profile[];
+    },
+  });
+  const writerById = Object.fromEntries(profiles.map((p) => [p.id, p]));
+
+  const { data: latestRU = {} } = useQuery<Record<string, RU>>({
+    queryKey: ["mission-reality-latest", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("reality_updates")
+        .select("question_id,signal_type,resolved,created_at")
+        .eq("mission_id", missionId)
         .order("created_at", { ascending: false })
         .limit(500);
-      const map: Record<string, { count: number; latest: string }> = {};
-      for (const s of data ?? []) {
-        const id = (s as any).related_question_id as string;
-        if (!map[id]) map[id] = { count: 0, latest: (s as any).created_at };
-        map[id].count += 1;
+      const map: Record<string, RU> = {};
+      for (const r of (data ?? []) as RU[]) {
+        if (!map[r.question_id]) map[r.question_id] = r;
       }
       return map;
     },
     refetchInterval: 60_000,
   });
 
-  // WRITER-3: inline status quick-update
-  const updateStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase.from("question_records").update({ status }).eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: (_d, v) => {
-      toast.success(`Status updated to ${STATUS_LABELS[v.status]}`);
-      qc.invalidateQueries({ queryKey: ["mission-questions", missionId] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-  const qc = useQueryClient();
+  const filtered = useMemo(() => {
+    const sevenDaysAgo = Date.now() - 7 * 86400000;
+    return questions.filter((q) => {
+      if (filter === "mine") return me && q.assigned_writer_id === me;
+      const ru = latestRU[q.id];
+      if (filter === "attention") return ru && ru.signal_type === "need" && !ru.resolved;
+      if (filter === "noactivity") return !ru || new Date(ru.created_at).getTime() < sevenDaysAgo;
+      return true;
+    });
+  }, [questions, filter, me, latestRU]);
 
-  const counts = useMemo(() => {
-    const byStatus: Record<string, number> = { all: scoped.length };
-    const byHealth: Record<string, number> = { all: scoped.length };
-    for (const q of scoped) {
-      byStatus[q.status] = (byStatus[q.status] ?? 0) + 1;
-      byHealth[q.health] = (byHealth[q.health] ?? 0) + 1;
-    }
-    return { byStatus, byHealth };
-  }, [scoped]);
-
-  const filtered = scoped.filter(
-    (q) =>
-      (statusFilter === "all" || q.status === statusFilter) &&
-      (healthFilter === "all" || q.health === healthFilter),
-  );
-
-
-
-
-  useEffect(() => {
-    function isTyping(t: EventTarget | null) {
-      const el = t as HTMLElement | null;
-      if (!el) return false;
-      return ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName) || el.isContentEditable;
-    }
-    function onKey(e: KeyboardEvent) {
-      if (isTyping(e.target) || filtered.length === 0) return;
-      if (e.key === "j" || e.key === "ArrowDown") {
-        e.preventDefault();
-        setSelectedIdx((i) => Math.min(filtered.length - 1, i + 1));
-      } else if (e.key === "k" || e.key === "ArrowUp") {
-        e.preventDefault();
-        setSelectedIdx((i) => Math.max(0, i - 1));
-      } else if (e.key === "Enter") {
-        const q = filtered[selectedIdx];
-        if (q) navigate({ to: "/missions/$missionId/questions/$questionId", params: { missionId, questionId: q.id } });
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [filtered, selectedIdx, navigate, missionId]);
+  const gateDays = nextGate?.target_date
+    ? Math.ceil((new Date(nextGate.target_date).getTime() - Date.now()) / 86400000)
+    : null;
 
   return (
-    <div className="px-8 py-8 max-w-[1400px] mx-auto">
-      <div className="mb-6 flex items-end justify-between gap-4">
+    <div className="mx-auto max-w-[1200px] px-8 py-10">
+      <div className="mb-8 flex items-end justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Questions</h1>
-
-          <p className="mt-1 text-xs text-muted-foreground">
-            Every procurement is a collection of questions. Answer them better than anyone else.
-          </p>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">The Studio</div>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight">Responses</h1>
         </div>
         <Link
           to="/missions/$missionId/overview"
@@ -211,368 +125,72 @@ function QuestionCommand() {
         </Link>
       </div>
 
-
-      {/* Scope toggle */}
-      <div className="mb-4 inline-flex rounded-[10px] border border-border bg-surface p-0.5">
-        <button
-          onClick={() => setScope("mine")}
-          className={`px-3 py-1.5 text-xs rounded-[8px] transition ${activeScope === "mine" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"}`}
-        >
-          My Questions <span className="opacity-60">({myQuestions.length})</span>
-        </button>
-        <button
-          onClick={() => setScope("all")}
-          className={`px-3 py-1.5 text-xs rounded-[8px] transition ${activeScope === "all" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"}`}
-        >
-          All Questions <span className="opacity-60">({questions.length})</span>
-        </button>
-      </div>
-
-      {/* Filter pills */}
-      <div className="mb-4 flex flex-wrap items-center gap-4">
-        <FilterRow label="Health">
-          {HEALTHS.map((h) => (
-            <Pill
-              key={h}
-              active={healthFilter === h}
-              onClick={() => setHealthFilter(h)}
-              dot={h !== "all" ? h : undefined}
-              count={counts.byHealth[h] ?? 0}
-            >
-              {h}
-            </Pill>
-          ))}
-        </FilterRow>
-        <div className="h-5 w-px bg-border" />
-        <FilterRow label="Status">
-          {STATUSES.map((s) => (
-            <Pill
-              key={s}
-              active={statusFilter === s}
-              onClick={() => setStatusFilter(s)}
-              count={counts.byStatus[s] ?? 0}
-            >
-              {s.replace(/_/g, " ")}
-            </Pill>
-          ))}
-        </FilterRow>
-      </div>
-
-
-      {/* IRIS signal banner */}
-      {(pulse || openConflicts > 0) && (
-        <div className="mb-4 grid grid-cols-2 md:grid-cols-4 gap-2">
-          <SignalStat
-            icon={<AlertTriangle className="h-3.5 w-3.5" />}
-            label="Critical"
-            value={pulse?.counts.critical ?? 0}
-            tone={pulse?.counts.critical ? "red" : "muted"}
-          />
-          <SignalStat
-            icon={<Activity className="h-3.5 w-3.5" />}
-            label="Warnings"
-            value={pulse?.counts.warning ?? 0}
-            tone={pulse?.counts.warning ? "yellow" : "muted"}
-          />
-          <SignalStat
-            icon={<Activity className="h-3.5 w-3.5" />}
-            label="Open Signals"
-            value={pulse?.counts.total ?? 0}
-            tone="primary"
-          />
-          <SignalStat
-            icon={<GitMerge className="h-3.5 w-3.5" />}
-            label="Open Conflicts"
-            value={openConflicts}
-            tone={openConflicts > 0 ? "yellow" : "muted"}
-          />
-        </div>
-      )}
-
-
-      <div className="rounded-[10px] border border-border bg-surface overflow-hidden">
-        {isLoading ? (
-          <div className="p-8 text-center text-sm text-muted-foreground">Loading questions…</div>
-        ) : filtered.length === 0 ? (
-          <div className="p-12 text-center">
-            <p className="text-sm text-foreground/90">
-              {questions.length === 0
-                ? "No questions have been created for this mission yet."
-                : activeScope === "mine" && myQuestions.length === 0
-                ? "You haven't been assigned any questions on this mission."
-                : "No questions match these filters."}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {questions.length === 0
-                ? "An administrator can create questions in Olympus."
-                : activeScope === "mine" && myQuestions.length === 0
-                ? "Contact your mission administrator."
-                : null}
-            </p>
-          </div>
-        ) : (
-          <table className="w-full text-sm">
-            <thead className="border-b border-border bg-surface-hover text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3 text-left w-8" />
-                <th className="px-4 py-3 text-left">Question</th>
-                <th className="px-4 py-3 text-left">Section</th>
-                <th className="px-4 py-3 text-left">Title</th>
-                <th className="px-4 py-3 text-left">Status</th>
-                <th className="px-4 py-3 text-right">Weight</th>
-                <th className="px-4 py-3 text-right">Pages</th>
-                <th className="px-4 py-3 text-right">Score</th>
-                <th className="px-4 py-3 text-right">Pens Down</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filtered.map((q, idx) => (
-                <QuestionRow
-                  key={q.id}
-                  q={q}
-                  selected={idx === selectedIdx}
-                  missionId={missionId}
-                  isLeader={isLeader}
-                  signalCount={signalCounts[q.id]?.count ?? 0}
-                  signalLatest={signalCounts[q.id]?.latest}
-                  onStatusChange={(status) => updateStatus.mutate({ id: q.id, status })}
-                  onNavigate={() => navigate({ to: "/missions/$missionId/questions/$questionId", params: { missionId, questionId: q.id } })}
-                />
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function FilterRow({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{label}</span>
-      <div className="flex flex-wrap gap-1.5">{children}</div>
-    </div>
-  );
-}
-
-function Pill({
-  active, onClick, dot, count, children,
-}: { active: boolean; onClick: () => void; dot?: string; count: number; children: React.ReactNode }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] capitalize transition ${
-        active
-          ? "border-primary/60 bg-primary/10 text-primary"
-          : "border-border bg-surface text-muted-foreground hover:text-foreground hover:border-primary/30"
-      }`}
-    >
-      {dot && <span className={`dot dot-${dot}`} />}
-      {children}
-      <span className="opacity-60">{count}</span>
-    </button>
-  );
-}
-
-function SignalStat({
-  icon, label, value, tone,
-}: { icon: React.ReactNode; label: string; value: number; tone: "red" | "yellow" | "primary" | "muted" }) {
-  const cls =
-    tone === "red" ? "border-red/40 bg-red/5 text-red"
-    : tone === "yellow" ? "border-yellow/40 bg-yellow/5 text-yellow"
-    : tone === "primary" ? "border-primary/40 bg-primary/5 text-primary"
-    : "border-border bg-surface text-muted-foreground";
-  return (
-    <div className={`flex items-center gap-2 rounded-[10px] border px-3 py-2 ${cls}`}>
-      {icon}
-      <div className="flex-1 min-w-0">
-        <div className="text-[10px] uppercase tracking-[0.14em] opacity-80">{label}</div>
-        <div className="text-base font-semibold tabular-nums text-foreground">{value}</div>
-      </div>
-    </div>
-  );
-}
-
-// ---------- Row + inline status menu + context menu ----------
-
-type RowQ = Q & { assigned_writer_id: string | null; assigned_sme_id: string | null };
-
-function QuestionRow({
-  q, selected, missionId, isLeader, signalCount, signalLatest, onStatusChange, onNavigate,
-}: {
-  q: RowQ;
-  selected: boolean;
-  missionId: string;
-  isLeader: boolean;
-  signalCount: number;
-  signalLatest?: string;
-  onStatusChange: (status: string) => void;
-  onNavigate: () => void;
-}) {
-  const [statusOpen, setStatusOpen] = useState(false);
-  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
-  const rowRef = useRef<HTMLTableRowElement>(null);
-
-  // WRITER-5: "new since last visit"
-  const lastVisit = getLastQuestionVisit(q.id);
-  const hasNew = signalCount > 0 && signalLatest && new Date(signalLatest).getTime() > lastVisit;
-
-  const pens = pensDownInfo(q.pens_down_date);
-
-  return (
-    <tr
-      ref={rowRef}
-      onContextMenu={(e) => { e.preventDefault(); setMenu({ x: e.clientX, y: e.clientY }); }}
-      className={`hover:bg-surface-hover ${selected ? "bg-primary/5 ring-1 ring-inset ring-primary/30" : ""}`}
-    >
-      <td className="px-4 py-3"><span className={`dot dot-${q.health}`} /></td>
-      <td className="px-4 py-3 font-mono text-muted-foreground">
-        <Link to="/missions/$missionId/questions/$questionId" params={{ missionId, questionId: q.id }} className="hover:text-primary">
-          {q.question_number}
-        </Link>
-        {hasNew && (
-          <span title={`${signalCount} new IRIS signal${signalCount === 1 ? "" : "s"} since your last visit`} className="ml-1.5 inline-flex items-center gap-1 align-middle">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#22d3ee] shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
-          </span>
-        )}
-      </td>
-      <td className="px-4 py-3 text-xs text-muted-foreground">{q.section_number ?? "—"}</td>
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-2 min-w-0">
-          <Link to="/missions/$missionId/questions/$questionId" params={{ missionId, questionId: q.id }} className="hover:text-primary truncate">
-            {q.title}
-          </Link>
-          {pens && (
-            <span className={`shrink-0 inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${pensDownPillClass(pens.tone)}`} title={`Pens down ${pens.date.toLocaleDateString()}`}>
-              {pens.short}
-            </span>
-          )}
-          {hasNew && (
-            <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-[#0891b2]/15 text-[#22d3ee] px-1.5 py-0.5 text-[10px] font-medium">
-              <Sparkles className="h-2.5 w-2.5" /> {signalCount} new
-            </span>
-          )}
-        </div>
-      </td>
-      <td className="px-4 py-3 relative">
-        <button
-          onClick={() => setStatusOpen((v) => !v)}
-          className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${statusBadgeClass(q.status)}`}
-        >
-          {STATUS_LABELS[q.status] ?? q.status}
-          <ChevronDown className="h-3 w-3 opacity-70" />
-        </button>
-        {statusOpen && (
-          <>
-            <div className="fixed inset-0 z-30" onClick={() => setStatusOpen(false)} />
-            <div className="absolute left-4 top-full mt-1 z-40 w-40 rounded-md border border-border bg-surface shadow-lg py-1">
-              {STATUS_ORDER.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => { setStatusOpen(false); if (s !== q.status) onStatusChange(s); }}
-                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-surface-hover ${s === q.status ? "text-primary" : ""}`}
-                >
-                  {STATUS_LABELS[s]}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-      </td>
-      <td className="px-4 py-3 text-right text-xs text-muted-foreground">{q.evaluation_weight ? `${q.evaluation_weight}%` : "—"}</td>
-      <td className="px-4 py-3 text-right text-xs text-muted-foreground">{q.page_limit ?? "—"}</td>
-      <td className="px-4 py-3 text-right">
-        {q.current_score != null
-          ? <span className="inline-flex items-center gap-1.5"><span className="text-primary font-semibold">{q.current_score}<span className="text-muted-foreground font-normal"> / {q.target_score ?? 5}</span></span><ScoreTrend questionId={q.id} /></span>
-          : <span className="text-muted-foreground">—</span>}
-      </td>
-      <td className="px-4 py-3 text-right text-xs">
-        {pens ? (
-          <span className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${pensDownPillClass(pens.tone)}`}>
-            {pens.short}
-          </span>
-        ) : <span className="text-muted-foreground">—</span>}
-      </td>
-
-      {menu && (
-        <ContextMenu
-          x={menu.x}
-          y={menu.y}
-          onClose={() => setMenu(null)}
-          questionNumber={q.question_number}
-          questionText={q.title}
-          currentStatus={q.status}
-          isLeader={isLeader}
-          onStatusChange={onStatusChange}
-          onView={onNavigate}
-        />
-      )}
-    </tr>
-  );
-}
-
-function ContextMenu({
-  x, y, onClose, questionNumber, questionText, currentStatus, isLeader, onStatusChange, onView,
-}: {
-  x: number; y: number; onClose: () => void;
-  questionNumber: string; questionText: string; currentStatus: string; isLeader: boolean;
-  onStatusChange: (status: string) => void; onView: () => void;
-}) {
-  const [statusSub, setStatusSub] = useState(false);
-  return (
-    <>
-      <div className="fixed inset-0 z-40" onClick={onClose} onContextMenu={(e) => { e.preventDefault(); onClose(); }} />
-      <div
-        className="fixed z-50 w-56 rounded-md border border-border bg-surface shadow-xl py-1 text-sm"
-        style={{ left: x, top: y }}
-      >
-        <div
-          className="relative px-3 py-1.5 hover:bg-surface-hover cursor-default flex items-center justify-between"
-          onMouseEnter={() => setStatusSub(true)}
-          onMouseLeave={() => setStatusSub(false)}
-        >
-          <span>Update Status</span>
-          <span className="text-muted-foreground">▸</span>
-          {statusSub && (
-            <div className="absolute left-full top-0 w-40 rounded-md border border-border bg-surface shadow-xl py-1">
-              {STATUS_ORDER.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => { onClose(); if (s !== currentStatus) onStatusChange(s); }}
-                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-surface-hover ${s === currentStatus ? "text-primary" : ""}`}
-                >
-                  {STATUS_LABELS[s]}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-        {isLeader && (
+      <div className="mb-5 flex flex-wrap gap-2">
+        {([
+          ["all", "All"],
+          ["mine", "My Responses"],
+          ["attention", "Needs Attention"],
+          ["noactivity", "No Activity"],
+        ] as [Filter, string][]).map(([k, label]) => (
           <button
-            onClick={() => { onClose(); toast.info("Open the question to assign an SME."); }}
-            className="w-full text-left px-3 py-1.5 hover:bg-surface-hover"
+            key={k}
+            onClick={() => setFilter(k)}
+            className={`rounded-full border px-3 py-1.5 text-xs transition ${
+              filter === k
+                ? "border-primary/60 bg-primary/10 text-primary"
+                : "border-border bg-surface text-muted-foreground hover:text-foreground"
+            }`}
           >
-            Assign SME…
+            {label}
           </button>
-        )}
-        <button
-          onClick={() => {
-            onClose();
-            navigator.clipboard.writeText(`${questionNumber} — ${questionText}`);
-            toast.success("Question copied to clipboard");
-          }}
-          className="w-full text-left px-3 py-1.5 hover:bg-surface-hover"
-        >
-          Copy Question Text
-        </button>
-        <button
-          onClick={() => { onClose(); onView(); }}
-          className="w-full text-left px-3 py-1.5 hover:bg-surface-hover"
-        >
-          View in The Studio
-        </button>
+        ))}
       </div>
-    </>
+
+      {isLoading ? (
+        <div className="rounded-[12px] border border-border bg-surface p-8 text-center text-sm text-muted-foreground">
+          Loading responses…
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="rounded-[12px] border border-dashed border-border bg-surface/40 p-12 text-center text-sm text-muted-foreground">
+          No responses match this filter.
+        </div>
+      ) : (
+        <ul className="divide-y divide-border rounded-[12px] border border-border bg-surface">
+          {filtered.map((q) => {
+            const writer = q.assigned_writer_id ? writerById[q.assigned_writer_id] : null;
+            const ru = latestRU[q.id];
+            const badge = ru ? SIGNAL_BADGE[ru.signal_type] : null;
+            return (
+              <li key={q.id}>
+                <Link
+                  to="/missions/$missionId/questions/$questionId"
+                  params={{ missionId, questionId: q.id }}
+                  className="block px-5 py-4 hover:bg-surface-hover"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-[11px] text-muted-foreground shrink-0">{q.question_number}</span>
+                    <span className="flex-1 truncate text-sm font-medium">{q.title}</span>
+                    {badge && (
+                      <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${badge.cls}`}>
+                        {badge.label}
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 pl-[3.25rem] text-[11px] text-muted-foreground">
+                    <span>{writer?.display_name || writer?.email || "Unassigned"}</span>
+                    {nextGate && (
+                      <span>
+                        Next gate: {nextGate.gate_name} · {gateDays}d
+                      </span>
+                    )}
+                    {ru && <span>Last update {relativeTime(ru.created_at)}</span>}
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
   );
 }
