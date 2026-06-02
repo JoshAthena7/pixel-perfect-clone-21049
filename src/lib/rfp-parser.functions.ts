@@ -90,7 +90,10 @@ Identify every numbered prompt the bidder must answer. If no questions exist, re
     const json = (await res.json()) as { content: Array<{ type: string; text?: string }> };
     const raw = json.content?.find((c) => c.type === "text")?.text ?? "[]";
     // Strip code fences if present
-    const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+    const cleaned = raw
+      .replace(/^```(?:json)?\s*/i, "")
+      .replace(/```\s*$/i, "")
+      .trim();
     const start = cleaned.indexOf("[");
     const end = cleaned.lastIndexOf("]");
     if (start < 0 || end < 0) return [];
