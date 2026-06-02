@@ -127,22 +127,35 @@ export const ingestMarketIntel = createServerFn({ method: "POST" })
     });
 
     let inserted = 0;
+    let enriched = 0;
     if (toInsert.length > 0) {
       // market_intelligence has no public INSERT policy for authenticated; use admin client
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { error, count } = await supabaseAdmin
+      const { data: insertedRows, error } = await supabaseAdmin
         .from("market_intelligence")
-        .insert(toInsert, { count: "exact" });
+        .insert(toInsert.map((r) => ({ ...r, feed_type: "industry" })))
+        .select("id,title,summary,source");
       if (error) throw new Error(`Insert failed: ${error.message}`);
-      inserted = count ?? toInsert.length;
+      inserted = insertedRows?.length ?? 0;
+
+      // Enrich (summary + embedding + cross-mission match) — best-effort, sequential to avoid rate limits
+      const { enrichIntelRow } = await import("./intel-enrich.server");
+      for (const row of insertedRows ?? []) {
+        try {
+          await enrichIntelRow(row);
+          enriched++;
+        } catch (e) {
+          console.warn("[intel-enrich] failed", row.id, e);
+        }
+      }
     }
 
     await supabase.from("olympus_audit_log").insert({
       user_id: userId,
       action_type: "market_intel_ingested",
-      action_summary: `Ingested ${inserted} new market intelligence items (${unique.length} fetched)`,
+      action_summary: `Ingested ${inserted} new industry intelligence items (${enriched} enriched)`,
       target_table: "market_intelligence",
     });
 
-    return { inserted, fetched: unique.length, sources: RSS_FEEDS.length + 1 };
+    return { inserted, enriched, fetched: unique.length, sources: RSS_FEEDS.length + 1 };
   });
