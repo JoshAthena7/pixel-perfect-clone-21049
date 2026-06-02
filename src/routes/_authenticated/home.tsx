@@ -794,9 +794,10 @@ function AskIrisBar() {
 
 // ─── HORIZON FEED ──────────────────────────────────────────────────────────
 
-function HorizonFeed({ items, missionCount }: { items: IntelItem[]; missionCount: number }) {
+function HorizonFeed({ items, missions }: { items: (IntelItem & { matched_mission_ids?: string[] | null })[]; missions: Mission[] }) {
   const [filter, setFilter] = useState<string>("All");
   const [search, setSearch] = useState("");
+  const missionNameMap = useMemo(() => new Map(missions.map((m) => [m.id, m.name])), [missions]);
 
   const enriched = useMemo(
     () => items.map((it) => ({ ...it, _cat: inferCategory(it) })),
