@@ -92,7 +92,10 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
     !mission?.state && !mission?.client &&
     (mission?.win_themes ?? []).length === 0 &&
     (mission?.priority_topics ?? []).length === 0 &&
+    (mission?.focus_areas ?? []).length === 0 &&
+    (mission?.iris_search_terms ?? []).length === 0 &&
     (mission?.competitors ?? []).length === 0;
+
 
   return (
     <div className="space-y-5">
