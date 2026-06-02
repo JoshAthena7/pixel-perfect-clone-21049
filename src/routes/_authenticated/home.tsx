@@ -549,7 +549,23 @@ function FirmIntel({
 }
 
 
-function MissionCard({ mission, attention }: { mission: Mission; attention: number }) {
+type MissionCardQ = { id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null };
+
+function MissionCard({
+  mission,
+  attention,
+  questions,
+  lastSignalAt,
+  needsCount,
+  showNeedsBadge,
+}: {
+  mission: Mission;
+  attention: number;
+  questions: MissionCardQ[];
+  lastSignalAt: string | null;
+  needsCount: number;
+  showNeedsBadge: boolean;
+}) {
   const days = mission.submission_date
     ? Math.ceil((new Date(mission.submission_date).getTime() - Date.now()) / 86400000)
     : null;
@@ -558,33 +574,96 @@ function MissionCard({ mission, attention }: { mission: Mission; attention: numb
     : days <= 21 ? "text-amber-400"
     : "text-foreground";
 
+  // Computed mission health from question health
+  const qHealths = questions.map((q) => (q.health ?? "").toLowerCase());
+  const computedHealth = qHealths.includes("red") ? "Red"
+    : qHealths.includes("yellow") ? "Yellow"
+    : qHealths.length > 0 && qHealths.every((h) => h === "green") ? "Green"
+    : mission.health;
+
+  // Nearest pens-down across questions
+  const nextQ = questions
+    .filter((q) => q.pens_down_date)
+    .sort((a, b) => new Date(a.pens_down_date!).getTime() - new Date(b.pens_down_date!).getTime())[0];
+  const nextDate = nextQ?.pens_down_date ? new Date(nextQ.pens_down_date) : null;
+  const nextDays = nextDate ? Math.ceil((nextDate.getTime() - Date.now()) / 86400000) : null;
+  const nextDateLabel = nextDate ? nextDate.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : null;
+  const nextIsUrgent = nextDays !== null && nextDays <= 7;
+
+  // IRIS one-liner
+  const redCount = qHealths.filter((h) => h === "red").length;
+  const yellowCount = qHealths.filter((h) => h === "yellow").length;
+  const oneLiner = questions.length === 0
+    ? "Activate this mission to begin IRIS intelligence."
+    : computedHealth === "Red"
+    ? `${redCount} ${redCount === 1 ? "question" : "questions"} at risk — leadership attention needed.`
+    : computedHealth === "Yellow"
+    ? `${yellowCount} ${yellowCount === 1 ? "question" : "questions"} need attention.`
+    : "All questions on track.";
+
+  // Last signal
+  const signalAgeMs = lastSignalAt ? Date.now() - new Date(lastSignalAt).getTime() : null;
+  const noSignalToday = signalAgeMs === null || signalAgeMs > 24 * 60 * 60 * 1000;
+
+  // Health border + glow
+  const borderColor = computedHealth === "Green" ? "var(--green, #22c55e)"
+    : computedHealth === "Red" ? "var(--red, #ef4444)"
+    : "var(--yellow, #f59e0b)";
+  const glow = computedHealth === "Green" ? "0 0 12px rgba(34,197,94,0.25)"
+    : computedHealth === "Red" ? "0 0 12px rgba(239,68,68,0.25)"
+    : "0 0 12px rgba(245,158,11,0.25)";
+
   return (
     <Link
       to="/missions/$missionId/overview"
       params={{ missionId: mission.id }}
-      data-health={mission.health}
-      className={`mission-card group relative block rounded-[12px] border border-border border-l-4 bg-surface p-5 transition-all duration-200 ease-out hover:-translate-y-0.5 ${HEALTH_GLOW[mission.health] ?? ""}`}
-      style={{ minHeight: 140 }}
+      data-health={computedHealth}
+      onClick={() => { try { sessionStorage.setItem("athena:last-mission", mission.id); } catch {} }}
+      className="mission-card-v7 group relative block rounded-[12px] border border-border bg-surface p-5 transition-all duration-200 ease-out hover:-translate-y-[3px] hover:border-foreground/30"
+      style={{
+        minHeight: 140,
+        borderLeftWidth: 4,
+        borderLeftColor: borderColor,
+        boxShadow: glow,
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = `${glow}, 0 8px 24px rgba(0,0,0,0.3)`; }}
+      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = glow; }}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h3 className="truncate text-[1.1rem] font-bold text-foreground">{mission.name}</h3>
           <p className="mt-0.5 text-xs text-muted-foreground truncate">{mission.client}{mission.state ? ` · ${mission.state}` : ""}</p>
+          {/* IRIS one-liner */}
+          <p className="mt-2 text-[12px] italic text-muted-foreground/90 line-clamp-2">{oneLiner}</p>
+          {/* Next deadline */}
+          {nextQ && nextDateLabel && (
+            <p className="mt-1.5 text-[11px] text-muted-foreground truncate">
+              Next: <span className={nextIsUrgent && computedHealth !== "Green" ? "text-destructive font-medium" : "text-foreground/90"}>{nextDateLabel}</span>
+              {" · "}
+              <span className="mono-q font-semibold">{nextQ.question_number}</span>{" "}{nextQ.title}
+            </p>
+          )}
         </div>
-        {attention > 0 && (
-          <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold mono ${
-            attention >= 50 ? "border-destructive/40 bg-destructive/10 text-destructive" :
-            attention >= 20 ? "border-amber-500/40 bg-amber-500/10 text-amber-400" :
-            "border-primary/30 bg-primary/5 text-primary"
-          }`}>
-            ATT {attention}
-          </span>
-        )}
+        <div className="flex flex-col items-end gap-1.5 shrink-0">
+          {showNeedsBadge && needsCount > 0 && (
+            <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-semibold text-white">
+              {needsCount} {needsCount === 1 ? "need" : "needs"}
+            </span>
+          )}
+          {attention > 0 && (
+            <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold mono ${
+              attention >= 50 ? "border-destructive/40 bg-destructive/10 text-destructive" :
+              attention >= 20 ? "border-amber-500/40 bg-amber-500/10 text-amber-400" :
+              "border-primary/30 bg-primary/5 text-primary"
+            }`}>
+              ATT {attention}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="mt-4 flex items-center gap-3">
-        <span className={`dot dot-${mission.health.toLowerCase()}`} />
-        <span className="text-xs font-medium text-foreground/90">{mission.health}</span>
+        <span className="text-xs font-medium text-foreground/90">{computedHealth}</span>
         {days !== null && (
           <span className={`ml-auto text-xl font-semibold mono-days leading-none ${countdownTone}`}>
             {days < 0 ? `${Math.abs(days)}d` : `${days}d`}
@@ -594,8 +673,13 @@ function MissionCard({ mission, attention }: { mission: Mission; attention: numb
 
       <div className="mt-4 flex items-center gap-2 border-t border-border pt-3">
         <span className="rounded-full bg-surface-hover px-2 py-0.5 text-[10px] text-muted-foreground mono">
-          {mission.question_count ?? 0} questions
+          {mission.question_count ?? questions.length} questions
         </span>
+        {noSignalToday ? (
+          <span className="text-[10px] text-amber-400">⚠ No signal today</span>
+        ) : (
+          <span className="text-[10px] text-muted-foreground">Last signal: {relativeTime(lastSignalAt!)}</span>
+        )}
         <span className="ml-auto inline-flex items-center gap-1 text-[11px] text-muted-foreground transition-colors group-hover:text-primary">
           Enter war room
           <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -604,6 +688,7 @@ function MissionCard({ mission, attention }: { mission: Mission; attention: numb
     </Link>
   );
 }
+
 
 function MissionPill({ name }: { name: string }) {
   return (
