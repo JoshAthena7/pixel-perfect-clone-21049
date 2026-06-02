@@ -335,6 +335,91 @@ function MissionOverviewPage() {
 
   const [briefStamp, setBriefStamp] = useState<Date>(() => new Date());
 
+  // ADD 6 — IRIS Focus Today: pick the single highest-risk question
+  const focusQuestion = useMemo(() => {
+    type FocusReason = { q: Question; reason: string; rationale: string; priority: number };
+    const candidates: FocusReason[] = [];
+    const unresolvedConflictQids = new Set<string>();
+    for (const c of conflicts) {
+      unresolvedConflictQids.add(c.question_a_id);
+      unresolvedConflictQids.add(c.question_b_id);
+    }
+    const openNeedsByQ = new Map<string, Collab[]>();
+    for (const n of needs) {
+      if (!n.question_id) continue;
+      const arr = openNeedsByQ.get(n.question_id) ?? [];
+      arr.push(n);
+      openNeedsByQ.set(n.question_id, arr);
+    }
+    for (const q of questions) {
+      const d = daysTo(q.pens_down_date);
+      const h = (q.health ?? "").toLowerCase();
+      const smeNeeds = (openNeedsByQ.get(q.id) ?? []).filter((c) => c.entry_type === "sme_request");
+      const oldestSme = smeNeeds.length
+        ? Math.max(...smeNeeds.map((c) => Math.floor((Date.now() - new Date(c.created_at).getTime()) / 86400000)))
+        : 0;
+      // 1. Red + no writer + Pens Down within 14 days
+      if (h === "red" && !q.assigned_writer_id && d !== null && d <= 14) {
+        candidates.push({
+          q,
+          reason: "no writer assigned",
+          rationale: `Q${q.question_number} ${q.title} has no writer assigned with ${d} day${d === 1 ? "" : "s"} to Pens Down. This is the highest risk question on the mission today.`,
+          priority: 1,
+        });
+      }
+      // 2. Red + Pens Down within 7 days
+      if (h === "red" && d !== null && d <= 7) {
+        candidates.push({
+          q,
+          reason: "red with deadline imminent",
+          rationale: `Q${q.question_number} ${q.title} is Red with only ${d} day${d === 1 ? "" : "s"} to Pens Down. This is the highest risk question on the mission today.`,
+          priority: 2,
+        });
+      }
+      // 3. Yellow + unresolved conflict + Pens Down within 14 days
+      if (h === "yellow" && unresolvedConflictQids.has(q.id) && d !== null && d <= 14) {
+        candidates.push({
+          q,
+          reason: "unresolved alignment conflict",
+          rationale: `Q${q.question_number} ${q.title} has an unresolved alignment conflict with ${d} day${d === 1 ? "" : "s"} to Pens Down. This is the highest risk question on the mission today.`,
+          priority: 3,
+        });
+      }
+      // 4. Yellow + SME silent > 3 days + Pens Down within 14 days
+      if (h === "yellow" && oldestSme > 3 && d !== null && d <= 14) {
+        candidates.push({
+          q,
+          reason: "SME silent",
+          rationale: `Q${q.question_number} ${q.title} has had no SME response for ${oldestSme} days with ${d} day${d === 1 ? "" : "s"} to Pens Down. This is the highest risk question on the mission today.`,
+          priority: 4,
+        });
+      }
+    }
+    if (candidates.length === 0) {
+      // 5. Fallback — lowest score + nearest Pens Down
+      const scored = questions
+        .filter((q) => q.current_score !== null && q.pens_down_date)
+        .sort((a, b) => {
+          const sa = Number(a.current_score), sb = Number(b.current_score);
+          if (sa !== sb) return sa - sb;
+          return (daysTo(a.pens_down_date) ?? 999) - (daysTo(b.pens_down_date) ?? 999);
+        });
+      const top = scored[0];
+      if (top && (top.health ?? "").toLowerCase() !== "green") {
+        const d = daysTo(top.pens_down_date);
+        candidates.push({
+          q: top,
+          reason: "lowest score and nearest deadline",
+          rationale: `Q${top.question_number} ${top.title} has the lowest current score (${Number(top.current_score).toFixed(1)}) with ${d ?? "?"} day${d === 1 ? "" : "s"} to Pens Down. Focus here today.`,
+          priority: 5,
+        });
+      }
+    }
+    candidates.sort((a, b) => a.priority - b.priority);
+    return candidates[0] ?? null;
+  }, [questions, conflicts, needs]);
+
+
   // ── MUTATIONS ────────────────────────────────────────
   const respondMutation = useMutation({
     mutationFn: async ({ need, text }: { need: Collab; text: string }) => {
