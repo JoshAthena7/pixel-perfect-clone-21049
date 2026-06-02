@@ -729,7 +729,7 @@ function Block({ label, children }: { label: string; children: React.ReactNode }
 function IrisInsight({ label, content }: { label: string; content: string }) {
   return (
     <div>
-      <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#22d3ee]">{label}</div>
+      <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[color:var(--iris)]">{label}</div>
       <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">{content}</p>
     </div>
   );
