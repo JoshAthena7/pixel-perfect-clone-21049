@@ -1,8 +1,8 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useParams } from "@tanstack/react-router";
 import {
-  Building2, Mountain, LayoutDashboard, Sparkles, Wrench, Users, History,
-  Settings2, ChevronRight, ChevronLeft, LogOut, User, ArrowRight, PenTool,
+  Building2, LayoutDashboard, Sparkles, Wrench, Users, History,
+  Settings2, ChevronLeft, LogOut, User, ArrowRight, PenTool,
   CalendarClock, Compass,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -353,30 +353,6 @@ function SignOutButton() {
   );
 }
 
-function Section({
-  label, children, zone, expandable, leadingIcon,
-}: {
-  label: string; children: ReactNode;
-  zone?: "missions" | "bridge" | "admin";
-  expandable?: boolean;
-  leadingIcon?: ReactNode;
-}) {
-  const zoneCls =
-    zone === "missions" ? "nav-zone-missions" :
-    zone === "bridge" ? "nav-zone-bridge" :
-    zone === "admin" ? "nav-zone-admin" : "";
-  return (
-    <div className={zoneCls}>
-      <div className="nav-section-label">
-        {leadingIcon}
-        <span className="flex-1">{label}</span>
-        {expandable && <ChevronRight size={10} strokeWidth={1.5} className="text-muted-foreground/60" />}
-      </div>
-      <div className="space-y-0.5">{children}</div>
-    </div>
-  );
-}
-
 function NavItem({ to, params, icon, active, children }: { to: string; params?: Record<string, string>; icon?: ReactNode; active?: boolean; children: ReactNode }) {
   return (
     <Link
@@ -392,17 +368,3 @@ function NavItem({ to, params, icon, active, children }: { to: string; params?: 
   );
 }
 
-
-function SignOut() {
-  async function signOut() {
-    await supabase.auth.signOut();
-    toast.success("Signed out");
-  }
-  return (
-    <div className="border-t border-border p-3">
-      <button onClick={signOut} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-surface-hover hover:text-foreground">
-        <LogOut className="h-4 w-4" /> Sign out
-      </button>
-    </div>
-  );
-}
