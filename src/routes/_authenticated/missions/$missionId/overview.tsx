@@ -963,16 +963,57 @@ function BroadcastModal({
 }
 
 function LeadershipNotesBlock({
-  notes, canWrite, missionId, meName, meId, onSaved,
+  notes, canWrite, isLeader, missionId, meName, meId, myRole, writerIds, noteReads, onSaved, onReadsChanged,
 }: {
-  notes: Note[]; canWrite: boolean; missionId: string;
-  meName: string; meId: string | null; onSaved: () => void;
+  notes: Note[]; canWrite: boolean; isLeader: boolean; missionId: string;
+  meName: string; meId: string | null; myRole: string | null;
+  writerIds: string[];
+  noteReads: Array<{ note_id: string; user_id: string }>;
+  onSaved: () => void;
+  onReadsChanged: () => void;
 }) {
   const [showAll, setShowAll] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [text, setText] = useState("");
   const [saving, setSaving] = useState(false);
+  const [remindBusy, setRemindBusy] = useState<string | null>(null);
   const visible = showAll ? notes : notes.slice(0, 3);
+
+  // Map note_id -> Set<user_id> of writers that have seen it
+  const writerSet = useMemo(() => new Set(writerIds), [writerIds]);
+  const seenByNote = useMemo(() => {
+    const m: Record<string, Set<string>> = {};
+    for (const r of noteReads) {
+      if (!writerSet.has(r.user_id)) continue;
+      (m[r.note_id] ??= new Set()).add(r.user_id);
+    }
+    return m;
+  }, [noteReads, writerSet]);
+
+  // Mark all currently-visible notes as seen by the current user (writers only)
+  // The "intended audience" tracking only records writers; admins/leaders viewing
+  // do not generate a read entry.
+  useEffect(() => {
+    if (!meId || myRole !== "writer" || notes.length === 0) return;
+    const myReadIds = new Set(noteReads.filter((r) => r.user_id === meId).map((r) => r.note_id));
+    const toMark = notes.filter((n) => !myReadIds.has(n.id));
+    if (toMark.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const rows = toMark.map((n) => ({
+        note_id: n.id,
+        user_id: meId,
+        mission_id: missionId,
+      }));
+      const { error } = await supabase.from("note_reads").upsert(rows, {
+        onConflict: "note_id,user_id",
+        ignoreDuplicates: true,
+      });
+      if (!cancelled && !error) onReadsChanged();
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [meId, myRole, notes.length, noteReads.length, missionId]);
 
   async function post() {
     if (!text.trim() || !meId) return;
@@ -995,6 +1036,27 @@ function LeadershipNotesBlock({
       setSaving(false);
     }
   }
+
+  async function remindTeam(noteId: string) {
+    if (!meId) return;
+    setRemindBusy(noteId);
+    try {
+      const { error } = await supabase.from("broadcasts").insert({
+        mission_id: missionId,
+        user_id: meId,
+        from_name: meName,
+        text: "Please review the latest leadership note in Mission Overview.",
+      });
+      if (error) throw error;
+      toast.success("Reminder sent to team");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setRemindBusy(null);
+    }
+  }
+
+  const writerTotal = writerIds.length;
 
   return (
     <section className="space-y-2">
@@ -1045,21 +1107,56 @@ function LeadershipNotesBlock({
         )
       ) : (
         <ul className="space-y-2">
-          {visible.map((n) => (
-            <li key={n.id} className="rounded-[10px] border border-border bg-surface p-4">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-medium">{firstName(n.from_name)}</span>
-                <span className="text-[11px] text-muted-foreground">{relativeTime(n.created_at)}</span>
-              </div>
-              <p className="mt-1 text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">{n.text}</p>
-            </li>
-          ))}
+          {visible.map((n) => {
+            const seenCount = seenByNote[n.id]?.size ?? 0;
+            const ageHours = (Date.now() - new Date(n.created_at).getTime()) / 3_600_000;
+            const allSeen = writerTotal > 0 && seenCount >= writerTotal;
+            const staleNoReads = ageHours > 4 && seenCount === 0;
+            const unreadCount = Math.max(0, writerTotal - seenCount);
+            const showStaleWarning = ageHours > 48 && !allSeen && writerTotal > 0;
+            return (
+              <li key={n.id} className="rounded-[10px] border border-border bg-surface p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium">{firstName(n.from_name)}</span>
+                  <span className="text-[11px] text-muted-foreground">{relativeTime(n.created_at)}</span>
+                </div>
+                <p className="mt-1 text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">{n.text}</p>
+                {isLeader && writerTotal > 0 && (
+                  <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-2">
+                    <span
+                      className={`text-[11px] ${
+                        allSeen ? "text-emerald-400" : staleNoReads ? "text-amber-400" : "text-muted-foreground"
+                      }`}
+                    >
+                      Seen by {seenCount} of {writerTotal} writers
+                      {allSeen && " ✓"}
+                    </span>
+                    {showStaleWarning && (
+                      <>
+                        <span className="text-[11px] text-amber-400">
+                          ⚠ Not seen by {unreadCount} writer{unreadCount === 1 ? "" : "s"}
+                        </span>
+                        <button
+                          onClick={() => remindTeam(n.id)}
+                          disabled={remindBusy === n.id}
+                          className="inline-flex items-center gap-1 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] text-amber-300 hover:bg-amber-500/20 disabled:opacity-50"
+                        >
+                          {remindBusy === n.id ? "Sending…" : "Remind Team"}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
       {notes.length > 3 && !showAll && (
         <button onClick={() => setShowAll(true)} className="text-xs text-primary hover:underline">View all →</button>
       )}
     </section>
+
   );
 }
 
