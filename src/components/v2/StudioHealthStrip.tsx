@@ -30,10 +30,6 @@ function daysUntil(dateStr: string | null): number | null {
   return diff;
 }
 
-function fmtDate(dateStr: string | null): string {
-  if (!dateStr) return "—";
-  return new Date(dateStr + "T00:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" });
-}
 
 export function StudioHealthStrip({ missionId }: { missionId: string }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
