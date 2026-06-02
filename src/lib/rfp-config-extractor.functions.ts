@@ -284,7 +284,7 @@ export const confirmRfpConfig = createServerFn({ method: "POST" })
     for (const [k, v] of Object.entries(f)) {
       if (v !== undefined) update[k] = v;
     }
-    const { error } = await supabase.from("missions").update(update).eq("id", data.missionId);
+    const { error } = await supabase.from("missions").update(update as any).eq("id", data.missionId);
     if (error) throw new Error(error.message);
 
     await supabase.from("olympus_audit_log").insert({
