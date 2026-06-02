@@ -5,9 +5,11 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { createSignal } from "@/lib/signals";
 import { irisAskQuestion } from "@/lib/iris-ask.functions";
+import { generateQuestionCoaching } from "@/lib/iris-question-coaching.functions";
 import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
 import { toast } from "sonner";
-import { ArrowLeft, Sparkles, Send, ChevronDown, ChevronRight, X, MessageSquare, AlertTriangle, Flag } from "lucide-react";
+import { ArrowLeft, Sparkles, Send, ChevronDown, ChevronRight, X, MessageSquare, AlertTriangle, Flag, RefreshCw } from "lucide-react";
+
 
 export const Route = createFileRoute(
   "/_authenticated/missions/$missionId/questions/$questionId",
@@ -159,19 +161,43 @@ function ResponseView() {
   });
   const relById = Object.fromEntries(relatedQs.map((r) => [r.id, r]));
 
-  const { data: intel, isLoading: intelLoading } = useQuery({
+  const { data: intel, isLoading: intelLoading, refetch: refetchIntel } = useQuery({
     queryKey: ["question-intel", questionId],
     queryFn: async () => {
       const { data } = await supabase
         .from("question_intelligence")
-        .select("iris_brief,state_priorities,procurement_priorities,competitor_signals,compliance_flags")
+        .select("iris_brief,state_priorities,procurement_priorities,competitor_signals,compliance_flags,generated_at")
         .eq("question_id", questionId)
         .order("generated_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      return data as Intel | null;
+      return data as (Intel & { generated_at?: string }) | null;
     },
   });
+
+  const coachingFn = useServerFn(generateQuestionCoaching);
+  const [coachingPending, setCoachingPending] = useState(false);
+  const regenerateCoaching = async (force: boolean) => {
+    setCoachingPending(true);
+    try {
+      await coachingFn({ data: { questionId, force } });
+      await refetchIntel();
+    } catch (e: any) {
+      toast.error(e?.message ?? "IRIS coaching failed");
+    } finally {
+      setCoachingPending(false);
+    }
+  };
+  // Auto-generate on first view if no intel exists yet.
+  useEffect(() => {
+    if (intelLoading) return;
+    if (intel) return;
+    if (coachingPending) return;
+    regenerateCoaching(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [intelLoading, intel?.generated_at]);
+
+
 
   const { data: collabs = [] } = useQuery({
     queryKey: ["question-collabs", questionId],
@@ -555,9 +581,19 @@ function ResponseView() {
 
         {/* RIGHT — IRIS */}
         <div className="iris-panel rounded-r-[10px] pl-6 pr-5 py-5">
-          <div className="mb-4">
+          <div className="mb-4 flex items-center justify-between gap-3">
             <span className="iris-label"><span className="iris-dot" />IRIS</span>
+            <button
+              onClick={() => regenerateCoaching(true)}
+              disabled={coachingPending}
+              className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground disabled:opacity-50"
+              title="Regenerate coaching"
+            >
+              <RefreshCw className={`h-3 w-3 ${coachingPending ? "animate-spin" : ""}`} />
+              Refresh
+            </button>
           </div>
+
 
           {intelLoading ? (
             <div className="space-y-3">

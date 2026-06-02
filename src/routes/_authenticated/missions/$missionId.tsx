@@ -1,8 +1,9 @@
 import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
+import { ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
+import { generateMissionBrief } from "@/lib/iris-mission-brief.functions";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId")({
   component: MissionLayout,
@@ -30,62 +31,25 @@ function MissionLayout() {
 
 function IrisBriefStrip({ missionId }: { missionId: string }) {
   const [open, setOpen] = useState(true);
+  const qc = useQueryClient();
+  const generate = useServerFn(generateMissionBrief);
 
-  const { data: mission } = useQuery({
-    queryKey: ["mlayout-mission", missionId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("missions")
-        .select("id,name,client,state,submission_date,rfp_parsed")
-        .eq("id", missionId)
-        .maybeSingle();
-      return data;
-    },
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ["iris-mission-brief", missionId],
+    queryFn: () => generate({ data: { missionId, force: false } }),
+    staleTime: 15 * 60 * 1000,
   });
 
-  const { data: counts } = useQuery({
-    queryKey: ["mlayout-counts", missionId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("question_records")
-        .select("id,health,current_score")
-        .eq("mission_id", missionId);
-      const qs = data ?? [];
-      const g = qs.filter((q: any) => q.health === "green").length;
-      const y = qs.filter((q: any) => q.health === "yellow").length;
-      const r = qs.filter((q: any) => q.health === "red").length;
-      return { total: qs.length, g, y, r };
-    },
-  });
+  const refresh = async () => {
+    const fresh = await generate({ data: { missionId, force: true } });
+    qc.setQueryData(["iris-mission-brief", missionId], fresh);
+  };
 
-  const brief = useMemo(() => {
-    if (!mission) return "";
-    if (!mission.rfp_parsed && (counts?.total ?? 0) === 0) {
-      return "IRIS is ready. Upload the RFP to activate mission intelligence.";
-    }
-    const parts: string[] = [];
-    const days = mission.submission_date
-      ? Math.ceil((new Date(mission.submission_date).getTime() - Date.now()) / 86400000)
-      : null;
-    if (days !== null) {
-      if (days < 0) parts.push(`Submission is ${Math.abs(days)} days overdue.`);
-      else if (days <= 7) parts.push(`Submission in ${days} days — critical window.`);
-      else if (days <= 21) parts.push(`${days} days to submission.`);
-      else parts.push(`${days} days to submission; comfortable runway.`);
-    }
-    if (counts && counts.total > 0) {
-      parts.push(
-        `${counts.total} questions in flight: ${counts.g} green, ${counts.y} yellow, ${counts.r} red.`,
-      );
-      if (counts.r > 0) {
-        parts.push(`${counts.r} red question${counts.r > 1 ? "s need" : " needs"} immediate attention.`);
-      }
-    }
-    if (parts.length === 0) parts.push("Mission underway. IRIS is monitoring.");
-    return parts.join(" ");
-  }, [mission, counts]);
-
+  const brief = data?.brief ?? "";
   const firstSentence = brief.split(/(?<=[.!?])\s/)[0] ?? brief;
+  const stamp = data?.generated_at
+    ? relativeStamp(data.generated_at)
+    : "—";
 
   return (
     <div className="border-b border-border bg-surface/40">
@@ -99,9 +63,30 @@ function IrisBriefStrip({ missionId }: { missionId: string }) {
               </span>
               IRIS
             </span>
-            <p className="flex-1 text-sm text-foreground/90 leading-relaxed">
-              {open ? brief : firstSentence}
-            </p>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-foreground/90 leading-relaxed">
+                {isLoading ? (
+                  <span className="italic text-muted-foreground">IRIS is reading the mission…</span>
+                ) : open ? (
+                  brief
+                ) : (
+                  firstSentence
+                )}
+              </p>
+              {!isLoading && open && (
+                <div className="mt-1.5 flex items-center gap-3 text-[10px] text-muted-foreground">
+                  <span>Updated {stamp}</span>
+                  <button
+                    onClick={refresh}
+                    disabled={isFetching}
+                    className="inline-flex items-center gap-1 hover:text-foreground transition-colors disabled:opacity-50"
+                  >
+                    <RefreshCw className={`h-2.5 w-2.5 ${isFetching ? "animate-spin" : ""}`} />
+                    Refresh
+                  </button>
+                </div>
+              )}
+            </div>
             <button
               onClick={() => setOpen((o) => !o)}
               aria-label={open ? "Collapse IRIS brief" : "Expand IRIS brief"}
@@ -114,4 +99,13 @@ function IrisBriefStrip({ missionId }: { missionId: string }) {
       </div>
     </div>
   );
+}
+
+function relativeStamp(iso: string): string {
+  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins} min ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return new Date(iso).toLocaleDateString();
 }
