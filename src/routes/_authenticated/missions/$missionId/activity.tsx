@@ -45,7 +45,7 @@ function ActivityPage() {
       for (const d of docs.data ?? []) {
         items.push({
           id: `doc-${d.id}`, kind: "Documents",
-          actor: "Someone", text: `uploaded ${d.name}`, at: d.created_at,
+          actor: "Someone", text: `uploaded ${d.name}`, at: d.created_at ?? new Date().toISOString(),
         });
       }
       for (const s of sigs.data ?? []) {
@@ -54,13 +54,13 @@ function ActivityPage() {
           id: `sig-${s.id}`, kind: isIris ? "IRIS" : "Signals",
           actor: isIris ? "IRIS" : "Someone",
           text: isIris ? `updated ${s.signal_title}` : `submitted signal: ${s.signal_title}`,
-          at: s.created_at,
+          at: s.created_at ?? new Date().toISOString(),
         });
       }
       for (const d of decs.data ?? []) {
         items.push({
           id: `dec-${d.id}`, kind: "Decisions",
-          actor: d.owner ?? "Someone", text: `logged decision: ${d.title}`, at: d.created_at,
+          actor: d.owner ?? "Someone", text: `logged decision: ${d.title}`, at: d.created_at ?? new Date().toISOString(),
         });
       }
       items.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
