@@ -5,6 +5,28 @@ import { createSignal } from "@/lib/signals";
 import { toast } from "sonner";
 import { X, Sparkles, HelpCircle, Check } from "lucide-react";
 
+/** Wrapper that fetches the current user's role for this mission, then renders the host. */
+export function UpdateRealityMount({ missionId }: { missionId: string }) {
+  const { data: role = null } = useQuery({
+    queryKey: ["mission-my-role", missionId],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      const { data } = await supabase
+        .from("mission_members")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("mission_id", missionId);
+      const roles = (data ?? []).map((r: any) => r.role);
+      if (roles.includes("writer")) return "writer";
+      if (roles.includes("admin")) return "admin";
+      if (roles.includes("lead")) return "lead";
+      return roles[0] ?? null;
+    },
+  });
+  return <UpdateRealityHost missionId={missionId} role={role} />;
+}
+
 /** Open the modal from anywhere. Optionally pre-select a question. */
 export function openUpdateReality(questionId?: string | null) {
   window.dispatchEvent(
