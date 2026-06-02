@@ -274,7 +274,8 @@ export const generateMissionDna = createServerFn({ method: "POST" })
       .from("mission_intelligence_dna")
       .insert({
         mission_id: data.missionId,
-        dna: dna as unknown as Record<string, unknown>,
+        // Postgres jsonb — Supabase typings expect `Json`; cast intentionally.
+        dna: JSON.parse(JSON.stringify(dna)),
         dna_version: nextVersion,
         generated_from: filename,
         generated_by: userId,
@@ -283,6 +284,7 @@ export const generateMissionDna = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (insErr || !inserted) throw new Error(`Failed to store DNA: ${insErr?.message}`);
+
 
     // 5. Generate research_tasks from intelligence_questions
     const questions = Array.isArray(dna.intelligence_questions) ? dna.intelligence_questions : [];
