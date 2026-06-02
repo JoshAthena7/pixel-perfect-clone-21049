@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import { ChevronDown, ChevronRight, Filter as FilterIcon } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMemo, useState, useRef, useEffect } from "react";
+import { ChevronDown, ChevronRight, Filter as FilterIcon, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { PensDownCountdown, daysUntil } from "@/lib/countdowns";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/questions/")({
   component: ResponsesList,
@@ -23,6 +25,7 @@ type Q = {
 type Gate = { id: string; gate_name: string; target_date: string | null };
 type Profile = { id: string; display_name: string | null; email: string | null };
 type Collab = { id: string; question_id: string; entry_type: string; resolved: boolean; body: string | null };
+type CollabLatest = { question_id: string; created_at: string; author_name: string };
 type Conflict = { question_a_id: string; question_b_id: string; description: string; resolved_at: string | null };
 
 type View = "mine" | "all";
@@ -38,14 +41,51 @@ const HEALTH_LABEL: Record<string, string> = {
   green: "Green",
 };
 
-function daysUntil(date: string | null): number | null {
-  if (!date) return null;
-  return Math.ceil((new Date(date).getTime() - Date.now()) / 86_400_000);
+// UI status options for the pill -> DB question_records.status mapping
+const STATUS_OPTIONS: Array<{ ui: string; db: string }> = [
+  { ui: "Not Started", db: "not_started" },
+  { ui: "In Progress", db: "in_progress" },
+  { ui: "In Review", db: "ready_for_review" },
+  { ui: "Complete", db: "approved" },
+];
+
+function statusUiLabel(db: string | null | undefined): string {
+  const match = STATUS_OPTIONS.find((s) => s.db === db);
+  if (match) return match.ui;
+  if (!db || db === "not_started") return "Not Started";
+  return db.replace(/_/g, " ");
+}
+
+function statusPillClass(db: string | null | undefined): string {
+  const v = db ?? "not_started";
+  if (v === "in_progress") return "bg-primary/15 text-primary border-primary/30";
+  if (v === "ready_for_review") return "bg-yellow-500/15 text-yellow-300 border-yellow-500/30";
+  if (v === "approved") return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
+  return "bg-muted/30 text-muted-foreground border-border";
 }
 
 function fmtDate(date: string | null): string {
   if (!date) return "—";
   return new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function timeAgo(iso: string): string {
+  const secs = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (secs < 60) return "just now";
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days === 1) return "yesterday";
+  if (days < 7) return `${days}d ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return `${weeks}w ago`;
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function firstName(name: string): string {
+  return name.trim().split(/\s+/)[0] || name;
 }
 
 // ---------- Writer brief panel ----------
@@ -153,14 +193,110 @@ function BriefRow({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
+// ---------- Status pill (clickable, ADD 4) ----------
+
+function StatusPill({
+  current,
+  onChange,
+}: {
+  current: string | null | undefined;
+  onChange: (newDb: string) => Promise<void>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+  const [pending, setPending] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
+
+  const handle = async (e: React.MouseEvent, db: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (db === (current ?? "not_started")) {
+      setOpen(false);
+      return;
+    }
+    setPending(true);
+    try {
+      await onChange(db);
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 1200);
+      setOpen(false);
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <div className="relative shrink-0" ref={ref}>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setOpen((o) => !o);
+        }}
+        disabled={pending}
+        className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition ${statusPillClass(current)} hover:brightness-110 disabled:opacity-60`}
+      >
+        {justSaved ? <Check className="h-3 w-3" /> : null}
+        <span>{statusUiLabel(current)}</span>
+        <ChevronDown className="h-3 w-3 opacity-70" />
+      </button>
+      {open && (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="absolute right-0 top-[calc(100%+4px)] z-20 min-w-[140px] overflow-hidden rounded-md border border-border bg-surface shadow-lg"
+        >
+          {STATUS_OPTIONS.map((opt) => {
+            const active = (current ?? "not_started") === opt.db;
+            return (
+              <button
+                key={opt.db}
+                type="button"
+                onClick={(e) => handle(e, opt.db)}
+                className={`flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-xs hover:bg-surface-hover ${active ? "text-foreground" : "text-muted-foreground"}`}
+              >
+                <span>{opt.ui}</span>
+                {active && <Check className="h-3 w-3" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ---------- Main ----------
 
 function ResponsesList() {
   const { missionId } = Route.useParams();
+  const qc = useQueryClient();
 
   const { data: me } = useQuery({
     queryKey: ["me-id"],
     queryFn: async () => (await supabase.auth.getUser()).data.user?.id ?? null,
+  });
+
+  const { data: meProfile } = useQuery({
+    queryKey: ["me-profile", me],
+    enabled: !!me,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name,email")
+        .eq("id", me!)
+        .maybeSingle();
+      return data;
+    },
   });
 
   const { data: myRole } = useQuery({
@@ -224,6 +360,27 @@ function ResponsesList() {
     return m;
   }, [collabs]);
 
+  // ADD 2: latest collaboration per question for "Updated X ago by Y"
+  const { data: latestCollabs = [] } = useQuery({
+    queryKey: ["mission-collabs-latest", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("question_collaboration")
+        .select("question_id,created_at,author_name")
+        .eq("mission_id", missionId)
+        .order("created_at", { ascending: false })
+        .limit(500);
+      return (data ?? []) as CollabLatest[];
+    },
+  });
+  const lastEditByQ = useMemo(() => {
+    const m: Record<string, CollabLatest> = {};
+    for (const c of latestCollabs) {
+      if (!m[c.question_id]) m[c.question_id] = c;
+    }
+    return m;
+  }, [latestCollabs]);
+
   const { data: conflicts = [] } = useQuery({
     queryKey: ["mission-conflicts", missionId],
     queryFn: async () => {
@@ -251,6 +408,48 @@ function ResponsesList() {
 
   const visible = effectiveView === "mine" ? myQuestions : questions;
 
+  // ADD 4: status update mutation
+  const meName = meProfile?.display_name || meProfile?.email?.split("@")[0] || "Unknown";
+  async function updateStatus(q: Q, newDb: string) {
+    if (!me) {
+      toast.error("Not signed in");
+      return;
+    }
+    const prev = q.status;
+    // Optimistic update
+    qc.setQueryData<Q[]>(["mission-questions-v2", missionId], (old) =>
+      (old ?? []).map((r) => (r.id === q.id ? { ...r, status: newDb } : r)),
+    );
+
+    const { error: e1 } = await supabase
+      .from("question_records")
+      .update({ status: newDb })
+      .eq("id", q.id);
+    if (e1) {
+      qc.setQueryData<Q[]>(["mission-questions-v2", missionId], (old) =>
+        (old ?? []).map((r) => (r.id === q.id ? { ...r, status: prev } : r)),
+      );
+      toast.error(e1.message);
+      return;
+    }
+
+    const uiLabel = statusUiLabel(newDb);
+    const { error: e2 } = await supabase.from("question_collaboration").insert({
+      question_id: q.id,
+      mission_id: missionId,
+      author_id: me,
+      author_name: meName,
+      entry_type: "note",
+      body: `Status updated to ${uiLabel}`,
+    });
+    if (e2) {
+      // Non-fatal; status changed, just log
+      console.warn("Failed to record status note", e2);
+    }
+    qc.invalidateQueries({ queryKey: ["mission-collabs-latest", missionId] });
+    toast.success(`Status: ${uiLabel}`);
+  }
+
   function statusNote(q: Q): string {
     const days = daysUntil(q.pens_down_date);
     if (q.health === "red" && conflictByQ[q.id]) {
@@ -267,10 +466,10 @@ function ResponsesList() {
       (!q.status || q.status === "not_started") &&
       days !== null && days >= 0 && days <= 14
     ) {
-      return `No draft started · ${days} day${days === 1 ? "" : "s"}`;
+      return "No draft started";
     }
     if (q.health === "green") return "On track";
-    return (q.status ?? "—").replace(/_/g, " ");
+    return "";
   }
 
   return (
@@ -325,10 +524,10 @@ function ResponsesList() {
         <ul className="divide-y divide-border rounded-[12px] border border-border bg-surface">
           {visible.map((q) => {
             const writer = q.assigned_writer_id ? writerById[q.assigned_writer_id] : null;
-            const days = daysUntil(q.pens_down_date);
-            const urgentRed = days !== null && days <= 7 && q.health !== "green";
+            const lastEdit = lastEditByQ[q.id];
+            const note = statusNote(q);
             return (
-              <li key={q.id}>
+              <li key={q.id} className="relative">
                 <Link
                   to="/missions/$missionId/questions/$questionId"
                   params={{ missionId, questionId: q.id }}
@@ -337,21 +536,29 @@ function ResponsesList() {
                   <div className="flex items-center gap-3">
                     <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${HEALTH_DOT[q.health ?? "yellow"] ?? "bg-muted"}`} />
                     <span className="font-mono text-[11px] text-muted-foreground shrink-0">Q{q.question_number}</span>
-                    <span className="flex-1 truncate text-sm font-medium">· {q.title}</span>
-                    <span
-                      className={`shrink-0 text-xs ${
-                        urgentRed ? "text-red-400 font-semibold" : "text-muted-foreground"
-                      }`}
-                    >
-                      {q.pens_down_date ? fmtDate(q.pens_down_date) : "—"}
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium">· {q.title}</span>
+
+                    {/* ADD 1: Pens Down countdown */}
+                    <PensDownCountdown date={q.pens_down_date} />
+
+                    {/* ADD 4: status pill */}
+                    <StatusPill current={q.status} onChange={(db) => updateStatus(q, db)} />
+
+                    {/* ADD 2: last-edited indicator (rightmost) */}
+                    <span className="shrink-0 text-[11px] text-muted-foreground/80 min-w-[140px] text-right">
+                      {lastEdit
+                        ? `Updated ${timeAgo(lastEdit.created_at)} by ${firstName(lastEdit.author_name)}`
+                        : "Not yet started"}
                     </span>
                   </div>
-                  <div className="mt-1 pl-[1.5rem] text-[11px] text-muted-foreground">
-                    {statusNote(q)}
-                    {!isWriter && writer && (
-                      <span className="ml-3 opacity-70">· {writer.display_name || writer.email}</span>
-                    )}
-                  </div>
+                  {(note || (!isWriter && writer)) && (
+                    <div className="mt-1 pl-[1.5rem] text-[11px] text-muted-foreground">
+                      {note}
+                      {!isWriter && writer && (
+                        <span className="ml-3 opacity-70">· {writer.display_name || writer.email}</span>
+                      )}
+                    </div>
+                  )}
                 </Link>
               </li>
             );

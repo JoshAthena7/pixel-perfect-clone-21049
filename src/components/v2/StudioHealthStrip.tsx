@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { SubmissionCountdown } from "@/lib/countdowns";
 
 type StripData = {
   missionName: string;
@@ -29,10 +30,6 @@ function daysUntil(dateStr: string | null): number | null {
   return diff;
 }
 
-function fmtDate(dateStr: string | null): string {
-  if (!dateStr) return "—";
-  return new Date(dateStr + "T00:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" });
-}
 
 export function StudioHealthStrip({ missionId }: { missionId: string }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
@@ -114,15 +111,11 @@ export function StudioHealthStrip({ missionId }: { missionId: string }) {
     : "var(--green, #22c55e)";
 
   const gateDays = daysUntil(data.nextGateDate);
-  const subDays = daysUntil(data.submissionDate);
 
   const gateTextColor =
     gateDays !== null && gateDays <= 3 ? "var(--red, #ef4444)"
     : gateDays !== null && gateDays <= 7 ? "var(--yellow, #eab308)"
     : undefined;
-
-  const subTextColor =
-    subDays !== null && subDays <= 7 ? "var(--red, #ef4444)" : undefined;
 
   const target = isQuestionWorkspace
     ? { to: "/missions/$missionId/overview" as const, params: { missionId } }
@@ -166,9 +159,7 @@ export function StudioHealthStrip({ missionId }: { missionId: string }) {
       {data.submissionDate && (
         <>
           <Sep />
-          <span style={subTextColor ? { color: subTextColor } : undefined}>
-            Submission {fmtDate(data.submissionDate)}
-          </span>
+          <SubmissionCountdown date={data.submissionDate} />
         </>
       )}
     </Link>

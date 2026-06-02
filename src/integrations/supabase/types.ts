@@ -935,6 +935,30 @@ export type Database = {
         }
         Relationships: []
       }
+      note_reads: {
+        Row: {
+          id: string
+          mission_id: string
+          note_id: string
+          seen_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          mission_id: string
+          note_id: string
+          seen_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          mission_id?: string
+          note_id?: string
+          seen_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       olympus_audit_log: {
         Row: {
           action_summary: string

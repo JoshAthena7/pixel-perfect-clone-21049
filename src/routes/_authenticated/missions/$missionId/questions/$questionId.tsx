@@ -49,6 +49,7 @@ type Intel = {
   procurement_priorities: string | null;
   competitor_signals: string | null;
   compliance_flags: string[] | null;
+  relevant_research: string[] | null;
 };
 type Collab = { id: string; entry_type: string; body: string; author_name: string; created_at: string; resolved: boolean };
 type GateStatus = { gate_id: string; status: string; reviewer_notes: string | null };
@@ -166,7 +167,7 @@ function ResponseView() {
     queryFn: async () => {
       const { data } = await supabase
         .from("question_intelligence")
-        .select("iris_brief,state_priorities,procurement_priorities,competitor_signals,compliance_flags,generated_at")
+        .select("iris_brief,state_priorities,procurement_priorities,competitor_signals,compliance_flags,relevant_research,generated_at")
         .eq("question_id", questionId)
         .order("generated_at", { ascending: false })
         .limit(1)
@@ -613,15 +614,25 @@ function ResponseView() {
             </div>
           ) : (
             <div className="space-y-5">
-              {intel?.state_priorities && (
-                <IrisInsight label="State Priority" content={intel.state_priorities} />
-              )}
-              {intel?.procurement_priorities && (
-                <IrisInsight label="Procurement Signal" content={intel.procurement_priorities} />
-              )}
-              {intel?.competitor_signals && (
-                <IrisInsight label="Differentiation" content={intel.competitor_signals} />
-              )}
+              {(() => {
+                const sources = intel?.relevant_research ?? [];
+                const sourceCount = sources.length;
+                const confidence: "High" | "Medium" | "Low" =
+                  sourceCount >= 3 ? "High" : sourceCount >= 1 ? "Medium" : "Low";
+                return (
+                  <>
+                    {intel?.state_priorities && (
+                      <IrisInsight label="State Priority" content={intel.state_priorities} confidence={confidence} sourceCount={sourceCount} />
+                    )}
+                    {intel?.procurement_priorities && (
+                      <IrisInsight label="Procurement Signal" content={intel.procurement_priorities} confidence={confidence} sourceCount={sourceCount} />
+                    )}
+                    {intel?.competitor_signals && (
+                      <IrisInsight label="Differentiation" content={intel.competitor_signals} confidence={confidence} sourceCount={sourceCount} />
+                    )}
+                  </>
+                );
+              })()}
               {intel?.compliance_flags && intel.compliance_flags.length > 0 && (
                 <div>
                   <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-400">Compliance Note</div>
@@ -764,11 +775,40 @@ function Block({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function IrisInsight({ label, content }: { label: string; content: string }) {
+function IrisInsight({
+  label,
+  content,
+  confidence,
+  sourceCount,
+}: {
+  label: string;
+  content: string;
+  confidence?: "High" | "Medium" | "Low";
+  sourceCount?: number;
+}) {
+  const confColor =
+    confidence === "High"
+      ? "var(--green)"
+      : confidence === "Medium"
+      ? "var(--yellow)"
+      : "var(--muted-foreground, #94a3b8)";
   return (
     <div>
       <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[color:var(--iris)]">{label}</div>
       <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">{content}</p>
+      {confidence && (
+        <div className="mt-1.5 text-[11px]" style={{ color: confColor }}>
+          Confidence: {confidence}
+          {typeof sourceCount === "number" && (
+            <span className="text-muted-foreground"> · Based on {sourceCount} source{sourceCount === 1 ? "" : "s"}</span>
+          )}
+        </div>
+      )}
+      {confidence === "Low" && (
+        <div className="mt-1 text-[11px] italic text-muted-foreground">
+          IRIS has limited specific intelligence on this topic. Consider additional research.
+        </div>
+      )}
     </div>
   );
 }
