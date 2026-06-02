@@ -16,6 +16,79 @@ type ParsedQuestion = {
   requirements?: string[] | null;
 };
 
+const AI_PROMPT_CHAR_LIMIT = 26_000;
+const QUESTION_START = /^(?:(?:question|q)\s*)?(\d{1,3}(?:\.\d{1,3}){0,4}|[A-Z]\d{0,2}|[a-z]|\([a-z]\))[\s).:-]+(.+)/i;
+const PROMPT_ACTION = /\b(describe|explain|provide|identify|list|include|demonstrate|submit|detail|discuss|respond|response|narrative|approach|plan)\b/i;
+
+function compactRfpTextForAi(text: string): string {
+  const normalized = text.replace(/\r/g, "\n").replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim();
+  const lines = normalized
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const selected = new Map<number, string>();
+
+  const addLine = (index: number) => {
+    const line = lines[index];
+    if (!line) return;
+    selected.set(index, line.slice(0, 1_200));
+  };
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    const looksLikePrompt = line.includes("?") || (QUESTION_START.test(line) && PROMPT_ACTION.test(line));
+    if (!looksLikePrompt) continue;
+    addLine(i - 1);
+    addLine(i);
+    addLine(i + 1);
+  }
+
+  const compacted = [...selected.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([, line]) => line)
+    .join("\n");
+
+  return (compacted.length > 2_000 ? compacted : normalized).slice(0, AI_PROMPT_CHAR_LIMIT);
+}
+
+function fallbackExtractQuestions(text: string): ParsedQuestion[] {
+  const lines = compactRfpTextForAi(text)
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const questions: ParsedQuestion[] = [];
+  const seen = new Set<string>();
+
+  for (let i = 0; i < lines.length && questions.length < 120; i += 1) {
+    const line = lines[i];
+    const match = line.match(QUESTION_START);
+    if (!line.includes("?") && !(match && PROMPT_ACTION.test(line))) continue;
+
+    const questionNumber = match?.[1]?.replace(/[()]/g, "") ?? `Q${questions.length + 1}`;
+    if (seen.has(questionNumber)) continue;
+    seen.add(questionNumber);
+
+    const block = [line];
+    for (let j = i + 1; j < lines.length && j <= i + 3 && !QUESTION_START.test(lines[j]); j += 1) {
+      block.push(lines[j]);
+    }
+    const questionText = block.join(" ").slice(0, 8_000);
+    questions.push({
+      question_number: questionNumber,
+      section_number: null,
+      title: (match?.[2] ?? questionText).slice(0, 120),
+      question_text: questionText,
+      page_limit: null,
+      word_limit: null,
+      evaluation_weight: null,
+      scoring_criteria: null,
+      requirements: null,
+    });
+  }
+
+  return questions;
+}
+
 /** Extract text content from .docx (zip → word/document.xml → strip tags). */
 async function extractDocxText(bytes: ArrayBuffer): Promise<string> {
   const JSZipMod = await import("jszip");
