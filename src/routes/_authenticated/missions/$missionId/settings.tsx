@@ -153,12 +153,6 @@ function DetailsTab({ missionId }: { missionId: string }) {
         </div>
       </div>
 
-      <div className="mt-6 rounded-[10px] border border-border bg-surface p-6">
-        <h2 className="mb-4 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Integrations</h2>
-        <Field label="Slack Webhook URL">
-          <input className={inputCls} placeholder="https://hooks.slack.com/services/…" value={form.slack_webhook} onChange={(e) => setForm({ ...form, slack_webhook: e.target.value })} />
-        </Field>
-      </div>
 
       <div className="mt-6 flex items-center justify-between">
         {save.isError && <p className="text-xs text-destructive">{(save.error as Error).message}</p>}
