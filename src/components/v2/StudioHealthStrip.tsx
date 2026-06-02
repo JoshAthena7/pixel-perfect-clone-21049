@@ -115,15 +115,11 @@ export function StudioHealthStrip({ missionId }: { missionId: string }) {
     : "var(--green, #22c55e)";
 
   const gateDays = daysUntil(data.nextGateDate);
-  const subDays = daysUntil(data.submissionDate);
 
   const gateTextColor =
     gateDays !== null && gateDays <= 3 ? "var(--red, #ef4444)"
     : gateDays !== null && gateDays <= 7 ? "var(--yellow, #eab308)"
     : undefined;
-
-  const subTextColor =
-    subDays !== null && subDays <= 7 ? "var(--red, #ef4444)" : undefined;
 
   const target = isQuestionWorkspace
     ? { to: "/missions/$missionId/overview" as const, params: { missionId } }
