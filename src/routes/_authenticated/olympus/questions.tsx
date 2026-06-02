@@ -225,6 +225,11 @@ function QuestionsPage() {
                       <input type="date" value={q.pens_down_date ?? ""}
                         onChange={(e) => patch(q, { pens_down_date: e.target.value || null })}
                         className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs" />
+                      {q.pens_down_date && (
+                        <div className="mt-1">
+                          <PensDownCountdown date={q.pens_down_date} />
+                        </div>
+                      )}
                     </td>
                     <td className="px-3 py-2">
                       <input type="number" min={0} value={q.page_limit ?? ""}
