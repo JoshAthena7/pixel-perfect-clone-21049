@@ -62,9 +62,9 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
 
   const scored = useMemo(() => scoreAll(items, profile), [items, profile]);
   const hasNonLow = scored.some((s) => s.level !== "LOW");
-  // Auto-show LOW items when nothing else qualifies, so the feed isn't empty for
-  // sparsely-configured mission profiles.
-  const visible = showLow || !hasNonLow ? scored : scored.filter((s) => s.level !== "LOW");
+  // Stay laser-focused: only show items that matched the mission's state or topics.
+  const visible = showLow ? scored : scored.filter((s) => s.level !== "LOW");
+
 
   // Persist scores to mission_intelligence_scores (upsert) — fire once per scored snapshot.
   const persistedRef = useRef<string>("");
@@ -161,9 +161,10 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
           {scored.length === 0 ? (
             <li className="px-5 py-12 text-center text-sm text-muted-foreground">
               {profileEmpty
-                ? "Set up the Mission Profile to begin relevance scoring."
-                : "No relevant intelligence yet. IRIS will surface items as they arrive."}
+                ? "Upload an RFP so IRIS can configure the state and topics that drive this feed."
+                : `No intelligence yet that matches ${mission?.state ?? "this mission"}'s state or its IRIS-extracted topics. Generic federal coverage is intentionally filtered out.`}
             </li>
+
           ) : (
             visible.map((s, idx) => (
               <FeedItem key={s.item.id} scored={s} missionId={missionId} idx={idx} />
