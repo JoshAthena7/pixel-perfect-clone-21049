@@ -34,6 +34,7 @@ import { Route as AuthenticatedCommandAttentionRouteImport } from './routes/_aut
 import { Route as AuthenticatedCommandAlignmentConflictsRouteImport } from './routes/_authenticated/command/alignment-conflicts'
 import { Route as AuthenticatedCommandAlignmentRouteImport } from './routes/_authenticated/command/alignment'
 import { Route as AuthenticatedMissionsMissionIdIndexRouteImport } from './routes/_authenticated/missions/$missionId/index'
+import { Route as ApiPublicHooksIngestIntelRouteImport } from './routes/api/public/hooks/ingest-intel'
 import { Route as AuthenticatedMissionsMissionIdTeamRouteImport } from './routes/_authenticated/missions/$missionId/team'
 import { Route as AuthenticatedMissionsMissionIdStudioRouteImport } from './routes/_authenticated/missions/$missionId/studio'
 import { Route as AuthenticatedMissionsMissionIdSettingsRouteImport } from './routes/_authenticated/missions/$missionId/settings'
@@ -191,6 +192,12 @@ const AuthenticatedMissionsMissionIdIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
+const ApiPublicHooksIngestIntelRoute =
+  ApiPublicHooksIngestIntelRouteImport.update({
+    id: '/api/public/hooks/ingest-intel',
+    path: '/api/public/hooks/ingest-intel',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedMissionsMissionIdTeamRoute =
   AuthenticatedMissionsMissionIdTeamRouteImport.update({
     id: '/team',
@@ -305,6 +312,7 @@ export interface FileRoutesByFullPath {
   '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/missions/$missionId/studio': typeof AuthenticatedMissionsMissionIdStudioRoute
   '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
+  '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
   '/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
   '/missions/$missionId/questions/': typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
@@ -342,6 +350,7 @@ export interface FileRoutesByTo {
   '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/missions/$missionId/studio': typeof AuthenticatedMissionsMissionIdStudioRoute
   '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
+  '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
   '/missions/$missionId/questions': typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
@@ -383,6 +392,7 @@ export interface FileRoutesById {
   '/_authenticated/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/_authenticated/missions/$missionId/studio': typeof AuthenticatedMissionsMissionIdStudioRoute
   '/_authenticated/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
+  '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
   '/_authenticated/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/_authenticated/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
   '/_authenticated/missions/$missionId/questions/': typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
@@ -424,6 +434,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/settings'
     | '/missions/$missionId/studio'
     | '/missions/$missionId/team'
+    | '/api/public/hooks/ingest-intel'
     | '/missions/$missionId/'
     | '/missions/$missionId/questions/$questionId'
     | '/missions/$missionId/questions/'
@@ -461,6 +472,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/settings'
     | '/missions/$missionId/studio'
     | '/missions/$missionId/team'
+    | '/api/public/hooks/ingest-intel'
     | '/missions/$missionId'
     | '/missions/$missionId/questions/$questionId'
     | '/missions/$missionId/questions'
@@ -501,6 +513,7 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/$missionId/settings'
     | '/_authenticated/missions/$missionId/studio'
     | '/_authenticated/missions/$missionId/team'
+    | '/api/public/hooks/ingest-intel'
     | '/_authenticated/missions/$missionId/'
     | '/_authenticated/missions/$missionId/questions/$questionId'
     | '/_authenticated/missions/$missionId/questions/'
@@ -510,6 +523,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
+  ApiPublicHooksIngestIntelRoute: typeof ApiPublicHooksIngestIntelRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -688,6 +702,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/missions/$missionId/'
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdIndexRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
+    '/api/public/hooks/ingest-intel': {
+      id: '/api/public/hooks/ingest-intel'
+      path: '/api/public/hooks/ingest-intel'
+      fullPath: '/api/public/hooks/ingest-intel'
+      preLoaderRoute: typeof ApiPublicHooksIngestIntelRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/missions/$missionId/team': {
       id: '/_authenticated/missions/$missionId/team'
@@ -905,6 +926,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
+  ApiPublicHooksIngestIntelRoute: ApiPublicHooksIngestIntelRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
