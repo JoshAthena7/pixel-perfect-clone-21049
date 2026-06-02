@@ -53,11 +53,11 @@ function OlympusLayout() {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-52px)] -mt-[52px] pt-[52px] w-full">
+    <div className="flex min-h-[calc(100vh-52px)] w-full">
       <OlympusSidebar isAdmin={me.isAdmin} />
       <div className="flex-1 min-w-0 flex flex-col">
         <OlympusHeader />
-        <div className="flex-1 min-w-0 overflow-auto">
+        <div className="flex-1 min-w-0">
           <Outlet />
         </div>
       </div>
