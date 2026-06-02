@@ -722,23 +722,32 @@ function WhatChangedBlock({
         </div>
       ) : (
         <ul className="divide-y divide-border rounded-[10px] border border-border bg-surface">
-          {items.map((it) => (
-            <li key={it.key} className="px-4 py-3">
+          {items.map((it) => {
+            const isIris = it.authorName === "IRIS";
+            return (
+            <li key={it.key} className={`px-4 py-3 ${isIris ? "border-l-2 border-l-[color:var(--iris,#22d3ee)] bg-[color:var(--iris,#22d3ee)]/[0.04]" : ""}`}>
               <button
                 onClick={() => setExpanded((cur) => (cur === it.key ? null : it.key))}
                 className="flex w-full items-center gap-3 text-left"
               >
-                <Avatar name={it.authorName} />
-                <span className="text-sm font-medium">{firstName(it.authorName)}</span>
+                {isIris ? (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[color:var(--iris,#22d3ee)]">● IRIS</span>
+                ) : (
+                  <>
+                    <Avatar name={it.authorName} />
+                    <span className="text-sm font-medium">{firstName(it.authorName)}</span>
+                  </>
+                )}
                 <span className="text-xs text-muted-foreground">· {it.questionLabel}</span>
                 <span className="text-xs text-muted-foreground">· {it.activityLabel}</span>
                 <span className="ml-auto text-[11px] text-muted-foreground">{relativeTime(it.created_at)}</span>
               </button>
               {expanded === it.key && it.body && (
-                <p className="mt-2 ml-11 text-sm text-foreground/80 whitespace-pre-wrap">{it.body}</p>
+                <p className={`mt-2 text-sm text-foreground/80 whitespace-pre-wrap ${isIris ? "ml-4" : "ml-11"}`}>{it.body}</p>
               )}
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
       {showBroadcast && (
