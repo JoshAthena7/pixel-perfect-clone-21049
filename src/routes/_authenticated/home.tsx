@@ -308,8 +308,12 @@ function AthenaHQ() {
 
 
       <div className="mx-auto max-w-[1400px] px-8 py-10 space-y-12">
+        {/* IRIS MORNING BRIEF — firm-wide context */}
+        <IrisMorningBrief />
+
         {/* ASK IRIS — global query bar with waveform */}
         <AskIrisBar />
+
 
         {/* ROLE-DIFFERENTIATED: Active Missions (leaders) or Your Assignments (writers/SMEs) */}
         {isLeader ? (
