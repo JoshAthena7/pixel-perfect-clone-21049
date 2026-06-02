@@ -1,9 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { createSignal } from "@/lib/signals";
-import { Upload, Plus, FileText, ExternalLink, Trash2, X, Search } from "lucide-react";
+import { Upload, Plus, FileText, ExternalLink, Trash2, X, Search, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/library")({
@@ -52,10 +52,28 @@ type Doc = {
 function LibraryPage() {
   const { missionId } = Route.useParams();
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState<Category | "All">("All");
   const [showAddModal, setShowAddModal] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState("");
+  const [parsingId, setParsingId] = useState<string | null>(null);
+
+  async function parseRfp(doc: Doc) {
+    setParsingId(doc.id);
+    try {
+      const { parseRfpDocument } = await import("@/lib/rfp-parser.functions");
+      const res = await parseRfpDocument({ data: { documentId: doc.id } });
+      toast.success(`${res.inserted} questions created from "${doc.name}"`);
+      qc.invalidateQueries({ queryKey: ["mission-library", missionId] });
+      navigate({ to: "/missions/$missionId/questions", params: { missionId } });
+    } catch (e) {
+      toast.error(`Parse failed: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setParsingId(null);
+    }
+  }
+
 
   const { data: docs = [], isLoading } = useQuery({
     queryKey: ["mission-library", missionId],
@@ -293,9 +311,24 @@ function LibraryPage() {
                 {doc.notes && (
                   <p className="text-xs text-muted-foreground line-clamp-2">{doc.notes}</p>
                 )}
-                <div className="mt-2 text-[11px] text-muted-foreground">
-                  {doc.added_by ? `Added by ${doc.added_by} · ` : ""}
-                  {new Date(doc.created_at).toLocaleDateString()}
+                <div className="mt-2 flex items-center justify-between gap-2">
+                  <div className="text-[11px] text-muted-foreground">
+                    {doc.added_by ? `Added by ${doc.added_by} · ` : ""}
+                    {new Date(doc.created_at).toLocaleDateString()}
+                  </div>
+                  {doc.is_rfp && doc.file_path && (
+                    <button
+                      onClick={() => parseRfp(doc)}
+                      disabled={parsingId !== null}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-primary/10 px-2 py-1 text-[11px] text-primary hover:bg-primary/15 disabled:opacity-50"
+                    >
+                      {parsingId === doc.id ? (
+                        <><Loader2 className="h-3 w-3 animate-spin" /> IRIS is extracting questions…</>
+                      ) : (
+                        <><Sparkles className="h-3 w-3" /> Parse → Responses</>
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
