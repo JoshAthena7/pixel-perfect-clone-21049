@@ -107,8 +107,8 @@ function AuditPage() {
         </div>
       </header>
 
-      <div className="mb-3 flex items-center gap-2">
-        <div className="relative flex-1 max-w-md">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="relative flex-1 min-w-[200px] max-w-md">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search summary, user, or type…"
             className="w-full rounded-md border border-border bg-background py-2 pl-8 pr-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
@@ -121,6 +121,15 @@ function AuditPage() {
             {types.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
+        <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
+          className="rounded-md border border-border bg-background px-2 py-1.5 text-xs" title="From date" />
+        <span className="text-[11px] text-muted-foreground">→</span>
+        <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
+          className="rounded-md border border-border bg-background px-2 py-1.5 text-xs" title="To date" />
+        <button onClick={exportCsv} disabled={visible.length === 0}
+          className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs hover:bg-surface-hover disabled:opacity-50">
+          <Download className="h-3 w-3" /> Export CSV
+        </button>
       </div>
 
       <div className="rounded-[10px] border border-border bg-surface overflow-hidden">
