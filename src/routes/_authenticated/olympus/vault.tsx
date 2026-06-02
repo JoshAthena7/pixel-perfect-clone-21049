@@ -1,20 +1,315 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState, useMemo, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Upload, FileText, ExternalLink, Trash2, Search, Sparkles, FolderOpen, Link2 } from "lucide-react";
 import { useSelectedOlympusMission } from "../olympus";
-import { SectionStub } from "@/components/v2/OlympusSectionStub";
+import { logOlympusAction } from "@/lib/audit";
 
 export const Route = createFileRoute("/_authenticated/olympus/vault")({
   component: VaultPage,
 });
 
+const CATEGORIES = [
+  "RFP", "Amendments", "Q&A Documents", "Client Materials", "Contract Template",
+  "Win Themes", "Contacts", "Past Submissions", "Source Documents", "Meeting Notes", "Research", "Other",
+] as const;
+type Category = (typeof CATEGORIES)[number];
+
+type Doc = {
+  id: string; mission_id: string; name: string; category: string;
+  notes: string | null; url: string | null; file_path: string | null;
+  is_rfp: boolean | null; added_by: string | null; created_at: string;
+  file_size: number | null;
+};
+
+async function sha256(file: File): Promise<string> {
+  const buf = await file.arrayBuffer();
+  const hash = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 function VaultPage() {
   const missionId = useSelectedOlympusMission();
+  const qc = useQueryClient();
+  const [activeCategory, setActiveCategory] = useState<Category | "All">("All");
+  const [search, setSearch] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [parsingId, setParsingId] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploadCategory, setUploadCategory] = useState<Category>("RFP");
+  const [uploadIsRfp, setUploadIsRfp] = useState(true);
+
+  const { data: docs = [], isLoading } = useQuery({
+    queryKey: ["olympus-vault", missionId],
+    enabled: !!missionId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_library")
+        .select("id,mission_id,name,category,notes,url,file_path,is_rfp,added_by,created_at,file_size")
+        .eq("mission_id", missionId!)
+        .order("created_at", { ascending: false });
+      return (data ?? []) as Doc[];
+    },
+  });
+
+  const counts = useMemo(() => {
+    const m: Record<string, number> = { All: docs.length };
+    for (const c of CATEGORIES) m[c] = 0;
+    for (const d of docs) m[d.category] = (m[d.category] ?? 0) + 1;
+    return m;
+  }, [docs]);
+
+  const visible = useMemo(() => {
+    let list = activeCategory === "All" ? docs : docs.filter((d) => d.category === activeCategory);
+    const q = search.trim().toLowerCase();
+    if (q) list = list.filter((d) => d.name.toLowerCase().includes(q) || (d.notes ?? "").toLowerCase().includes(q));
+    return list;
+  }, [docs, activeCategory, search]);
+
+  async function handleUpload(files: FileList | null) {
+    if (!files || files.length === 0 || !missionId) return;
+    setUploading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      for (const file of Array.from(files)) {
+        const hash = await sha256(file);
+        const path = `${missionId}/${Date.now()}-${file.name}`;
+        const { error: upErr } = await supabase.storage.from("mission-library").upload(path, file);
+        if (upErr) throw upErr;
+        const { data: row, error } = await supabase.from("mission_library").insert({
+          mission_id: missionId,
+          name: file.name,
+          category: uploadCategory,
+          file_path: path,
+          file_size: file.size,
+          file_hash: hash,
+          is_rfp: uploadIsRfp,
+          added_by: user?.email ?? null,
+          added_by_id: user?.id ?? null,
+        }).select("id").single();
+        if (error) throw error;
+        await logOlympusAction({
+          action_type: "vault.upload",
+          action_summary: `Uploaded "${file.name}" (${uploadCategory})`,
+          mission_id: missionId,
+          target_table: "mission_library",
+          target_id: row?.id ?? null,
+        });
+      }
+      toast.success(`Uploaded ${files.length} file${files.length === 1 ? "" : "s"}`);
+      qc.invalidateQueries({ queryKey: ["olympus-vault", missionId] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Upload failed");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
+  async function addUrl(form: { name: string; url: string; category: Category; notes: string }) {
+    if (!missionId || !form.name.trim() || !form.url.trim()) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    const { data: row, error } = await supabase.from("mission_library").insert({
+      mission_id: missionId,
+      name: form.name.trim(),
+      category: form.category,
+      url: form.url.trim(),
+      notes: form.notes.trim() || null,
+      added_by: user?.email ?? null,
+      added_by_id: user?.id ?? null,
+    }).select("id").single();
+    if (error) { toast.error(error.message); return; }
+    toast.success("Link added");
+    await logOlympusAction({
+      action_type: "vault.add_link",
+      action_summary: `Added link "${form.name.trim()}"`,
+      mission_id: missionId,
+      target_table: "mission_library",
+      target_id: row?.id ?? null,
+    });
+    qc.invalidateQueries({ queryKey: ["olympus-vault", missionId] });
+  }
+
+  async function openDoc(doc: Doc) {
+    if (doc.url) { window.open(doc.url, "_blank"); return; }
+    if (doc.file_path) {
+      const { data } = await supabase.storage.from("mission-library").createSignedUrl(doc.file_path, 300);
+      if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+    }
+  }
+
+  async function remove(doc: Doc) {
+    if (!confirm(`Delete "${doc.name}"?`)) return;
+    if (doc.file_path) await supabase.storage.from("mission-library").remove([doc.file_path]);
+    const { error } = await supabase.from("mission_library").delete().eq("id", doc.id);
+    if (error) return toast.error(error.message);
+    toast.success("Deleted");
+    await logOlympusAction({
+      action_type: "vault.delete",
+      action_summary: `Deleted "${doc.name}"`,
+      mission_id: missionId!,
+      target_table: "mission_library",
+      target_id: doc.id,
+    });
+    qc.invalidateQueries({ queryKey: ["olympus-vault", missionId] });
+  }
+
+  async function parseRfp(doc: Doc) {
+    setParsingId(doc.id);
+    try {
+      const { parseRfpDocument } = await import("@/lib/rfp-parser.functions");
+      const res = await parseRfpDocument({ data: { documentId: doc.id } });
+      toast.success(`${res.inserted} questions parsed from "${doc.name}"`);
+      await logOlympusAction({
+        action_type: "vault.parse_rfp",
+        action_summary: `Parsed RFP "${doc.name}" → ${res.inserted} questions`,
+        mission_id: missionId!,
+        target_table: "mission_library",
+        target_id: doc.id,
+      });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Parse failed");
+    } finally {
+      setParsingId(null);
+    }
+  }
+
+  if (!missionId) {
+    return <div className="mx-auto max-w-4xl px-8 py-16 text-center text-sm text-muted-foreground">Select a mission to manage its vault.</div>;
+  }
+
   return (
-    <SectionStub
-      eyebrow="Vault"
-      title="Document Vault"
-      description="Upload and manage every mission document. Categories on the left, document list center, drag-and-drop upload on the right. RFP uploads prompt IRIS to parse into question records."
-      missionId={missionId}
-      phase="Phase 5"
-    />
+    <div className="mx-auto max-w-7xl px-8 py-8">
+      <header className="mb-6">
+        <div className="h2-label" style={{ letterSpacing: "0.32em" }}>Vault</div>
+        <h1 className="h1-display mt-1">Document Vault</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Upload and manage every mission document. IRIS auto-parses RFPs into questions.</p>
+      </header>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr_320px] gap-6">
+        {/* Categories */}
+        <aside className="rounded-[10px] border border-border bg-surface p-2">
+          <button onClick={() => setActiveCategory("All")}
+            className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-sm ${activeCategory === "All" ? "bg-surface-hover text-foreground" : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"}`}>
+            <span>All</span><span className="text-[11px]">{counts.All ?? 0}</span>
+          </button>
+          {CATEGORIES.map((c) => (
+            <button key={c} onClick={() => setActiveCategory(c)}
+              className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-sm ${activeCategory === c ? "bg-surface-hover text-foreground" : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"}`}>
+              <span className="truncate">{c}</span><span className="text-[11px]">{counts[c] ?? 0}</span>
+            </button>
+          ))}
+        </aside>
+
+        {/* Document list */}
+        <div className="rounded-[10px] border border-border bg-surface overflow-hidden">
+          <div className="flex items-center gap-2 border-b border-border px-3 py-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search documents…"
+                className="w-full rounded-md bg-background py-1.5 pl-8 pr-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary border border-border" />
+            </div>
+          </div>
+          {isLoading ? (
+            <div className="p-4 space-y-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="skeleton h-12 w-full" />)}</div>
+          ) : visible.length === 0 ? (
+            <div className="p-10 text-center text-sm text-muted-foreground">
+              <FolderOpen className="mx-auto mb-2 h-6 w-6 opacity-60" />
+              No documents in this view.
+            </div>
+          ) : (
+            <ul className="divide-y divide-border">
+              {visible.map((d) => (
+                <li key={d.id} className="flex items-center gap-3 px-4 py-3 hover:bg-surface-hover">
+                  {d.url ? <Link2 className="h-4 w-4 text-muted-foreground shrink-0" /> : <FileText className="h-4 w-4 text-muted-foreground shrink-0" />}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate text-sm font-medium">{d.name}</span>
+                      {d.is_rfp && <span className="rounded bg-primary/15 px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-primary">RFP</span>}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground">
+                      {d.category} · {new Date(d.created_at).toLocaleDateString()}
+                      {d.file_size ? ` · ${(d.file_size / 1024).toFixed(0)} KB` : ""}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {d.is_rfp && (
+                      <button onClick={() => parseRfp(d)} disabled={parsingId !== null}
+                        className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] hover:bg-surface-hover disabled:opacity-50">
+                        <Sparkles className="h-3 w-3" /> {parsingId === d.id ? "Parsing…" : "Parse"}
+                      </button>
+                    )}
+                    <button onClick={() => openDoc(d)} className="rounded-md p-1.5 text-muted-foreground hover:bg-surface-hover hover:text-foreground" title="Open">
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </button>
+                    <button onClick={() => remove(d)} className="rounded-md p-1.5 text-muted-foreground hover:bg-red-500/10 hover:text-red-400" title="Delete">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Upload panel */}
+        <aside className="space-y-4">
+          <div className="rounded-[10px] border border-dashed border-border bg-surface p-5">
+            <div className="mb-3 flex items-center gap-2 text-sm font-medium">
+              <Upload className="h-4 w-4 text-muted-foreground" /> Upload files
+            </div>
+            <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Category</label>
+            <select value={uploadCategory} onChange={(e) => setUploadCategory(e.target.value as Category)}
+              className="mb-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm">
+              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <label className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
+              <input type="checkbox" checked={uploadIsRfp} onChange={(e) => setUploadIsRfp(e.target.checked)} />
+              This is an RFP (enables IRIS parsing)
+            </label>
+            <input ref={fileRef} type="file" multiple onChange={(e) => handleUpload(e.target.files)} disabled={uploading}
+              className="block w-full text-xs text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-[#C49A22] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-black hover:file:bg-[#D4AA32]" />
+            {uploading && <div className="mt-2 text-[11px] text-muted-foreground">Uploading…</div>}
+          </div>
+
+          <AddUrlPanel onSubmit={addUrl} />
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function AddUrlPanel({ onSubmit }: { onSubmit: (f: { name: string; url: string; category: Category; notes: string }) => Promise<void> }) {
+  const [form, setForm] = useState({ name: "", url: "", category: "Other" as Category, notes: "" });
+  const [busy, setBusy] = useState(false);
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    await onSubmit(form);
+    setBusy(false);
+    setForm({ name: "", url: "", category: "Other", notes: "" });
+  }
+  return (
+    <form onSubmit={submit} className="rounded-[10px] border border-border bg-surface p-5">
+      <div className="mb-3 flex items-center gap-2 text-sm font-medium">
+        <Link2 className="h-4 w-4 text-muted-foreground" /> Add link
+      </div>
+      <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Display name"
+        className="mb-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm" />
+      <input value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} placeholder="https://…"
+        className="mb-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm" />
+      <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as Category })}
+        className="mb-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm">
+        {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+      </select>
+      <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} placeholder="Notes (optional)"
+        className="mb-3 w-full rounded-md border border-border bg-background px-3 py-2 text-sm" />
+      <button type="submit" disabled={busy || !form.name.trim() || !form.url.trim()}
+        className="w-full rounded-md bg-[#C49A22] px-3 py-2 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50">
+        {busy ? "Adding…" : "Add Link"}
+      </button>
+    </form>
   );
 }
