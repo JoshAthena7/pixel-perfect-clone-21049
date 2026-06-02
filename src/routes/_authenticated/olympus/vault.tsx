@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Upload, FileText, ExternalLink, Trash2, Search, Sparkles, FolderOpen, Link2 } from "lucide-react";
 import { useSelectedOlympusMission } from "../olympus";
 import { logOlympusAction } from "@/lib/audit";
+import { IrisRfpReviewModal } from "@/components/v2/IrisRfpReviewModal";
 
 export const Route = createFileRoute("/_authenticated/olympus/vault")({
   component: VaultPage,
@@ -42,6 +43,8 @@ function VaultPage() {
   const [uploadIsRfp, setUploadIsRfp] = useState(true);
   const [dragOver, setDragOver] = useState(false);
   const [parsePromptFor, setParsePromptFor] = useState<{ id: string; name: string } | null>(null);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewDocId, setReviewDocId] = useState<string | undefined>(undefined);
 
   const { data: docs = [], isLoading } = useQuery({
     queryKey: ["olympus-vault", missionId],
@@ -313,20 +316,62 @@ function VaultPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setParsePromptFor(null)}>
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
           <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-md rounded-[10px] border border-border bg-surface p-6">
-            <div className="h2-label" style={{ letterSpacing: "0.32em" }}>RFP Detected</div>
-            <h2 className="mt-1 text-lg font-semibold">Parse this RFP?</h2>
+            <div className="flex items-center gap-2">
+              <span className="relative inline-flex h-2.5 w-2.5">
+                <span className="absolute inset-0 animate-ping rounded-full bg-teal-400 opacity-60" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-teal-400" />
+              </span>
+              <div className="h2-label text-teal-300" style={{ letterSpacing: "0.32em" }}>RFP Detected</div>
+            </div>
+            <h2 className="mt-2 text-lg font-semibold">Would you like IRIS to read this RFP and configure the mission automatically?</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Have IRIS parse <span className="text-foreground font-medium">{parsePromptFor.name}</span> and auto-create question records for every question found?
+              IRIS will read <span className="text-foreground font-medium">{parsePromptFor.name}</span> and pre-populate state, agency, deadlines, focus areas, evaluation criteria, and search terms — then parse questions. Typically 30–60 seconds.
             </p>
-            <footer className="mt-6 flex justify-end gap-2">
-              <button onClick={() => setParsePromptFor(null)} className="rounded-lg border border-border px-4 py-2 text-sm hover:bg-surface-hover">Skip</button>
-              <button onClick={() => { const d = docs.find((x) => x.id === parsePromptFor.id) ?? { ...parsePromptFor, mission_id: missionId, category: uploadCategory, notes: null, url: null, file_path: null, is_rfp: true, added_by: null, created_at: "", file_size: null } as any; parseRfp(d as Doc); setParsePromptFor(null); }}
-                className="inline-flex items-center gap-2 rounded-lg bg-[#C49A22] px-4 py-2 text-sm font-semibold text-black hover:bg-[#D4AA32]">
-                <Sparkles className="h-4 w-4" /> Parse RFP
+            <footer className="mt-6 flex flex-col gap-2">
+              <button
+                onClick={() => {
+                  setReviewDocId(parsePromptFor.id);
+                  setReviewOpen(true);
+                  
+                  setParsePromptFor(null);
+                  // Kick off extraction immediately
+                  (async () => {
+                    try {
+                      const { extractRfpConfig } = await import("@/lib/rfp-config-extractor.functions");
+                      await extractRfpConfig({ data: { documentId: parsePromptFor!.id } });
+                      qc.invalidateQueries({ queryKey: ["iris-rfp-mission", missionId] });
+                    } catch (e) {
+                      toast.error(e instanceof Error ? e.message : "IRIS extraction failed");
+                    }
+                  })();
+                  // Also parse questions in parallel
+                  const d = docs.find((x) => x.id === parsePromptFor!.id);
+                  if (d) parseRfp(d);
+                }}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-500 px-4 py-2.5 text-sm font-semibold text-black hover:bg-teal-400">
+                <Sparkles className="h-4 w-4" /> Yes, configure mission
+              </button>
+              <button
+                onClick={() => {
+                  const d = docs.find((x) => x.id === parsePromptFor!.id);
+                  if (d) parseRfp(d);
+                  setParsePromptFor(null);
+                }}
+                className="rounded-lg border border-border px-4 py-2 text-sm hover:bg-surface-hover">
+                Skip — just parse questions
               </button>
             </footer>
           </div>
         </div>
+      )}
+
+      {missionId && (
+        <IrisRfpReviewModal
+          missionId={missionId}
+          documentId={reviewDocId}
+          open={reviewOpen}
+          onClose={() => { setReviewOpen(false); }}
+        />
       )}
     </div>
   );

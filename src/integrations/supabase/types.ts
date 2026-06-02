@@ -879,18 +879,35 @@ export type Database = {
         Row: {
           client: string
           competitors: string[] | null
+          contract_start_date: string | null
+          contract_term: string | null
+          contract_value: string | null
           created_at: string | null
           created_by: string | null
           description: string | null
+          evaluation_criteria: Json | null
+          focus_areas: string[] | null
           health: string | null
           id: string
+          incumbent_name: string | null
+          iris_search_terms: string[] | null
+          key_requirements: string[] | null
           name: string
+          page_limit: number | null
+          pens_down_date: string | null
           priority_topics: string[] | null
+          procurement_name: string | null
           program_type: string | null
+          qa_deadline: string | null
           question_count: number | null
+          rfp_extracted_at: string | null
+          rfp_extraction: Json | null
+          rfp_extraction_status: string | null
+          rfp_number: string | null
           rfp_parsed: boolean | null
           slack_webhook: string | null
           state: string | null
+          state_agency: string | null
           status: string | null
           submission_date: string | null
           win_themes: string[] | null
@@ -898,18 +915,35 @@ export type Database = {
         Insert: {
           client: string
           competitors?: string[] | null
+          contract_start_date?: string | null
+          contract_term?: string | null
+          contract_value?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          evaluation_criteria?: Json | null
+          focus_areas?: string[] | null
           health?: string | null
           id?: string
+          incumbent_name?: string | null
+          iris_search_terms?: string[] | null
+          key_requirements?: string[] | null
           name: string
+          page_limit?: number | null
+          pens_down_date?: string | null
           priority_topics?: string[] | null
+          procurement_name?: string | null
           program_type?: string | null
+          qa_deadline?: string | null
           question_count?: number | null
+          rfp_extracted_at?: string | null
+          rfp_extraction?: Json | null
+          rfp_extraction_status?: string | null
+          rfp_number?: string | null
           rfp_parsed?: boolean | null
           slack_webhook?: string | null
           state?: string | null
+          state_agency?: string | null
           status?: string | null
           submission_date?: string | null
           win_themes?: string[] | null
@@ -917,18 +951,35 @@ export type Database = {
         Update: {
           client?: string
           competitors?: string[] | null
+          contract_start_date?: string | null
+          contract_term?: string | null
+          contract_value?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          evaluation_criteria?: Json | null
+          focus_areas?: string[] | null
           health?: string | null
           id?: string
+          incumbent_name?: string | null
+          iris_search_terms?: string[] | null
+          key_requirements?: string[] | null
           name?: string
+          page_limit?: number | null
+          pens_down_date?: string | null
           priority_topics?: string[] | null
+          procurement_name?: string | null
           program_type?: string | null
+          qa_deadline?: string | null
           question_count?: number | null
+          rfp_extracted_at?: string | null
+          rfp_extraction?: Json | null
+          rfp_extraction_status?: string | null
+          rfp_number?: string | null
           rfp_parsed?: boolean | null
           slack_webhook?: string | null
           state?: string | null
+          state_agency?: string | null
           status?: string | null
           submission_date?: string | null
           win_themes?: string[] | null
