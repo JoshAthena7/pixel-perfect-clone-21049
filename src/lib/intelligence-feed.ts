@@ -59,7 +59,10 @@ export type MissionProfile = {
   competitors: string[];
   win_themes: string[];
   priority_topics: string[];
+  focus_areas: string[];
+  search_terms: string[];
 };
+
 
 export type IntelItem = {
   id: string;
