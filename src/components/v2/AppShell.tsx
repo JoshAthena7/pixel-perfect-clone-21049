@@ -47,6 +47,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <UserAvatarMenu />
           </header>
         )}
+        {inMission && isStudio && params.missionId && <StudioHealthStrip missionId={params.missionId} />}
         {inMission && !isStudio && <Breadcrumbs />}
         <div key={path} className="route-fade flex-1 min-w-0">{children}</div>
       </main>
