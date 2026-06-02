@@ -124,9 +124,7 @@ async function callAnthropic(text: string): Promise<ParsedQuestion[]> {
     "claude-3-5-sonnet-latest",
   ].filter(Boolean) as string[];
 
-  // Truncate to keep prompt manageable
-  const MAX_CHARS = 120_000;
-  const body = text.length > MAX_CHARS ? text.slice(0, MAX_CHARS) : text;
+  const body = compactRfpTextForAi(text);
 
   const system = `You extract proposal questions from RFP documents.
 Return ONLY a JSON array (no prose, no markdown fences) of objects with this shape:
@@ -157,6 +155,7 @@ Identify every numbered prompt the bidder must answer. If no questions exist, re
       const err = await res.text();
       lastError = `Anthropic ${res.status}: ${err.slice(0, 500)}`;
       if (res.status === 404 && err.includes("not_found_error")) continue;
+      if (res.status === 429 && err.includes("input tokens per minute")) return fallbackExtractQuestions(text);
       throw new Error(lastError);
     }
 
