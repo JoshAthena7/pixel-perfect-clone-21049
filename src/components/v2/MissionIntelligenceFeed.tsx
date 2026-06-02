@@ -125,10 +125,13 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
                 <ProfileRow label="State" value={mission?.state} />
                 <ProfileRow label="Client" value={mission?.client} />
                 <ProfileRow label="Program" value={mission?.program_type} />
+                <ProfileTags label="Focus Areas" tags={mission?.focus_areas ?? []} tone="primary" />
+                <ProfileTags label="IRIS Search Terms" tags={mission?.iris_search_terms ?? []} />
                 <ProfileTags label="Win Themes" tags={mission?.win_themes ?? []} tone="primary" />
                 <ProfileTags label="Priority Topics" tags={mission?.priority_topics ?? []} />
                 <ProfileTags label="Competitors" tags={mission?.competitors ?? []} tone="warn" />
               </dl>
+
             )}
           </div>
         )}
