@@ -16,6 +16,15 @@ import { Route as AuthenticatedPipelineHorizonRouteImport } from './routes/_auth
 import { Route as AuthenticatedPathfinderRouteImport } from './routes/_authenticated/pathfinder'
 import { Route as AuthenticatedOlympusRouteImport } from './routes/_authenticated/olympus'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
+import { Route as AuthenticatedOlympusIndexRouteImport } from './routes/_authenticated/olympus/index'
+import { Route as AuthenticatedOlympusWinThemesRouteImport } from './routes/_authenticated/olympus/win-themes'
+import { Route as AuthenticatedOlympusVaultRouteImport } from './routes/_authenticated/olympus/vault'
+import { Route as AuthenticatedOlympusUsersRouteImport } from './routes/_authenticated/olympus/users'
+import { Route as AuthenticatedOlympusTeamRouteImport } from './routes/_authenticated/olympus/team'
+import { Route as AuthenticatedOlympusSettingsRouteImport } from './routes/_authenticated/olympus/settings'
+import { Route as AuthenticatedOlympusQuestionsRouteImport } from './routes/_authenticated/olympus/questions'
+import { Route as AuthenticatedOlympusGatesRouteImport } from './routes/_authenticated/olympus/gates'
+import { Route as AuthenticatedOlympusAuditRouteImport } from './routes/_authenticated/olympus/audit'
 import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_authenticated/missions/$missionId'
 import { Route as AuthenticatedCommandScoresRouteImport } from './routes/_authenticated/command/scores'
 import { Route as AuthenticatedCommandQuestionHealthRouteImport } from './routes/_authenticated/command/question-health'
@@ -74,6 +83,60 @@ const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   path: '/home',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedOlympusIndexRoute =
+  AuthenticatedOlympusIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
+const AuthenticatedOlympusWinThemesRoute =
+  AuthenticatedOlympusWinThemesRouteImport.update({
+    id: '/win-themes',
+    path: '/win-themes',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
+const AuthenticatedOlympusVaultRoute =
+  AuthenticatedOlympusVaultRouteImport.update({
+    id: '/vault',
+    path: '/vault',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
+const AuthenticatedOlympusUsersRoute =
+  AuthenticatedOlympusUsersRouteImport.update({
+    id: '/users',
+    path: '/users',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
+const AuthenticatedOlympusTeamRoute =
+  AuthenticatedOlympusTeamRouteImport.update({
+    id: '/team',
+    path: '/team',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
+const AuthenticatedOlympusSettingsRoute =
+  AuthenticatedOlympusSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
+const AuthenticatedOlympusQuestionsRoute =
+  AuthenticatedOlympusQuestionsRouteImport.update({
+    id: '/questions',
+    path: '/questions',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
+const AuthenticatedOlympusGatesRoute =
+  AuthenticatedOlympusGatesRouteImport.update({
+    id: '/gates',
+    path: '/gates',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
+const AuthenticatedOlympusAuditRoute =
+  AuthenticatedOlympusAuditRouteImport.update({
+    id: '/audit',
+    path: '/audit',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
 const AuthenticatedMissionsMissionIdRoute =
   AuthenticatedMissionsMissionIdRouteImport.update({
     id: '/missions/$missionId',
@@ -211,7 +274,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/home': typeof AuthenticatedHomeRoute
-  '/olympus': typeof AuthenticatedOlympusRoute
+  '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/pathfinder': typeof AuthenticatedPathfinderRoute
   '/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
@@ -222,6 +285,15 @@ export interface FileRoutesByFullPath {
   '/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
   '/command/scores': typeof AuthenticatedCommandScoresRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
+  '/olympus/audit': typeof AuthenticatedOlympusAuditRoute
+  '/olympus/gates': typeof AuthenticatedOlympusGatesRoute
+  '/olympus/questions': typeof AuthenticatedOlympusQuestionsRoute
+  '/olympus/settings': typeof AuthenticatedOlympusSettingsRoute
+  '/olympus/team': typeof AuthenticatedOlympusTeamRoute
+  '/olympus/users': typeof AuthenticatedOlympusUsersRoute
+  '/olympus/vault': typeof AuthenticatedOlympusVaultRoute
+  '/olympus/win-themes': typeof AuthenticatedOlympusWinThemesRoute
+  '/olympus/': typeof AuthenticatedOlympusIndexRoute
   '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
@@ -241,7 +313,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/home': typeof AuthenticatedHomeRoute
-  '/olympus': typeof AuthenticatedOlympusRoute
   '/pathfinder': typeof AuthenticatedPathfinderRoute
   '/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
@@ -251,6 +322,15 @@ export interface FileRoutesByTo {
   '/command/pens-down': typeof AuthenticatedCommandPensDownRoute
   '/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
   '/command/scores': typeof AuthenticatedCommandScoresRoute
+  '/olympus/audit': typeof AuthenticatedOlympusAuditRoute
+  '/olympus/gates': typeof AuthenticatedOlympusGatesRoute
+  '/olympus/questions': typeof AuthenticatedOlympusQuestionsRoute
+  '/olympus/settings': typeof AuthenticatedOlympusSettingsRoute
+  '/olympus/team': typeof AuthenticatedOlympusTeamRoute
+  '/olympus/users': typeof AuthenticatedOlympusUsersRoute
+  '/olympus/vault': typeof AuthenticatedOlympusVaultRoute
+  '/olympus/win-themes': typeof AuthenticatedOlympusWinThemesRoute
+  '/olympus': typeof AuthenticatedOlympusIndexRoute
   '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
@@ -272,7 +352,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
-  '/_authenticated/olympus': typeof AuthenticatedOlympusRoute
+  '/_authenticated/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/_authenticated/pathfinder': typeof AuthenticatedPathfinderRoute
   '/_authenticated/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
   '/_authenticated/command/alignment': typeof AuthenticatedCommandAlignmentRoute
@@ -283,6 +363,15 @@ export interface FileRoutesById {
   '/_authenticated/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
   '/_authenticated/command/scores': typeof AuthenticatedCommandScoresRoute
   '/_authenticated/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
+  '/_authenticated/olympus/audit': typeof AuthenticatedOlympusAuditRoute
+  '/_authenticated/olympus/gates': typeof AuthenticatedOlympusGatesRoute
+  '/_authenticated/olympus/questions': typeof AuthenticatedOlympusQuestionsRoute
+  '/_authenticated/olympus/settings': typeof AuthenticatedOlympusSettingsRoute
+  '/_authenticated/olympus/team': typeof AuthenticatedOlympusTeamRoute
+  '/_authenticated/olympus/users': typeof AuthenticatedOlympusUsersRoute
+  '/_authenticated/olympus/vault': typeof AuthenticatedOlympusVaultRoute
+  '/_authenticated/olympus/win-themes': typeof AuthenticatedOlympusWinThemesRoute
+  '/_authenticated/olympus/': typeof AuthenticatedOlympusIndexRoute
   '/_authenticated/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/_authenticated/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/_authenticated/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
@@ -315,6 +404,15 @@ export interface FileRouteTypes {
     | '/command/question-health'
     | '/command/scores'
     | '/missions/$missionId'
+    | '/olympus/audit'
+    | '/olympus/gates'
+    | '/olympus/questions'
+    | '/olympus/settings'
+    | '/olympus/team'
+    | '/olympus/users'
+    | '/olympus/vault'
+    | '/olympus/win-themes'
+    | '/olympus/'
     | '/missions/$missionId/activity'
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
@@ -334,7 +432,6 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/home'
-    | '/olympus'
     | '/pathfinder'
     | '/pipeline-horizon'
     | '/command/alignment'
@@ -344,6 +441,15 @@ export interface FileRouteTypes {
     | '/command/pens-down'
     | '/command/question-health'
     | '/command/scores'
+    | '/olympus/audit'
+    | '/olympus/gates'
+    | '/olympus/questions'
+    | '/olympus/settings'
+    | '/olympus/team'
+    | '/olympus/users'
+    | '/olympus/vault'
+    | '/olympus/win-themes'
+    | '/olympus'
     | '/missions/$missionId/activity'
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
@@ -375,6 +481,15 @@ export interface FileRouteTypes {
     | '/_authenticated/command/question-health'
     | '/_authenticated/command/scores'
     | '/_authenticated/missions/$missionId'
+    | '/_authenticated/olympus/audit'
+    | '/_authenticated/olympus/gates'
+    | '/_authenticated/olympus/questions'
+    | '/_authenticated/olympus/settings'
+    | '/_authenticated/olympus/team'
+    | '/_authenticated/olympus/users'
+    | '/_authenticated/olympus/vault'
+    | '/_authenticated/olympus/win-themes'
+    | '/_authenticated/olympus/'
     | '/_authenticated/missions/$missionId/activity'
     | '/_authenticated/missions/$missionId/brief'
     | '/_authenticated/missions/$missionId/briefing'
@@ -447,6 +562,69 @@ declare module '@tanstack/react-router' {
       fullPath: '/home'
       preLoaderRoute: typeof AuthenticatedHomeRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/olympus/': {
+      id: '/_authenticated/olympus/'
+      path: '/'
+      fullPath: '/olympus/'
+      preLoaderRoute: typeof AuthenticatedOlympusIndexRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
+    '/_authenticated/olympus/win-themes': {
+      id: '/_authenticated/olympus/win-themes'
+      path: '/win-themes'
+      fullPath: '/olympus/win-themes'
+      preLoaderRoute: typeof AuthenticatedOlympusWinThemesRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
+    '/_authenticated/olympus/vault': {
+      id: '/_authenticated/olympus/vault'
+      path: '/vault'
+      fullPath: '/olympus/vault'
+      preLoaderRoute: typeof AuthenticatedOlympusVaultRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
+    '/_authenticated/olympus/users': {
+      id: '/_authenticated/olympus/users'
+      path: '/users'
+      fullPath: '/olympus/users'
+      preLoaderRoute: typeof AuthenticatedOlympusUsersRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
+    '/_authenticated/olympus/team': {
+      id: '/_authenticated/olympus/team'
+      path: '/team'
+      fullPath: '/olympus/team'
+      preLoaderRoute: typeof AuthenticatedOlympusTeamRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
+    '/_authenticated/olympus/settings': {
+      id: '/_authenticated/olympus/settings'
+      path: '/settings'
+      fullPath: '/olympus/settings'
+      preLoaderRoute: typeof AuthenticatedOlympusSettingsRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
+    '/_authenticated/olympus/questions': {
+      id: '/_authenticated/olympus/questions'
+      path: '/questions'
+      fullPath: '/olympus/questions'
+      preLoaderRoute: typeof AuthenticatedOlympusQuestionsRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
+    '/_authenticated/olympus/gates': {
+      id: '/_authenticated/olympus/gates'
+      path: '/gates'
+      fullPath: '/olympus/gates'
+      preLoaderRoute: typeof AuthenticatedOlympusGatesRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
+    '/_authenticated/olympus/audit': {
+      id: '/_authenticated/olympus/audit'
+      path: '/audit'
+      fullPath: '/olympus/audit'
+      preLoaderRoute: typeof AuthenticatedOlympusAuditRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
     }
     '/_authenticated/missions/$missionId': {
       id: '/_authenticated/missions/$missionId'
@@ -605,6 +783,33 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedOlympusRouteChildren {
+  AuthenticatedOlympusAuditRoute: typeof AuthenticatedOlympusAuditRoute
+  AuthenticatedOlympusGatesRoute: typeof AuthenticatedOlympusGatesRoute
+  AuthenticatedOlympusQuestionsRoute: typeof AuthenticatedOlympusQuestionsRoute
+  AuthenticatedOlympusSettingsRoute: typeof AuthenticatedOlympusSettingsRoute
+  AuthenticatedOlympusTeamRoute: typeof AuthenticatedOlympusTeamRoute
+  AuthenticatedOlympusUsersRoute: typeof AuthenticatedOlympusUsersRoute
+  AuthenticatedOlympusVaultRoute: typeof AuthenticatedOlympusVaultRoute
+  AuthenticatedOlympusWinThemesRoute: typeof AuthenticatedOlympusWinThemesRoute
+  AuthenticatedOlympusIndexRoute: typeof AuthenticatedOlympusIndexRoute
+}
+
+const AuthenticatedOlympusRouteChildren: AuthenticatedOlympusRouteChildren = {
+  AuthenticatedOlympusAuditRoute: AuthenticatedOlympusAuditRoute,
+  AuthenticatedOlympusGatesRoute: AuthenticatedOlympusGatesRoute,
+  AuthenticatedOlympusQuestionsRoute: AuthenticatedOlympusQuestionsRoute,
+  AuthenticatedOlympusSettingsRoute: AuthenticatedOlympusSettingsRoute,
+  AuthenticatedOlympusTeamRoute: AuthenticatedOlympusTeamRoute,
+  AuthenticatedOlympusUsersRoute: AuthenticatedOlympusUsersRoute,
+  AuthenticatedOlympusVaultRoute: AuthenticatedOlympusVaultRoute,
+  AuthenticatedOlympusWinThemesRoute: AuthenticatedOlympusWinThemesRoute,
+  AuthenticatedOlympusIndexRoute: AuthenticatedOlympusIndexRoute,
+}
+
+const AuthenticatedOlympusRouteWithChildren =
+  AuthenticatedOlympusRoute._addFileChildren(AuthenticatedOlympusRouteChildren)
+
 interface AuthenticatedMissionsMissionIdRouteChildren {
   AuthenticatedMissionsMissionIdActivityRoute: typeof AuthenticatedMissionsMissionIdActivityRoute
   AuthenticatedMissionsMissionIdBriefRoute: typeof AuthenticatedMissionsMissionIdBriefRoute
@@ -661,7 +866,7 @@ const AuthenticatedMissionsMissionIdRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
-  AuthenticatedOlympusRoute: typeof AuthenticatedOlympusRoute
+  AuthenticatedOlympusRoute: typeof AuthenticatedOlympusRouteWithChildren
   AuthenticatedPathfinderRoute: typeof AuthenticatedPathfinderRoute
   AuthenticatedPipelineHorizonRoute: typeof AuthenticatedPipelineHorizonRoute
   AuthenticatedCommandAlignmentRoute: typeof AuthenticatedCommandAlignmentRoute
@@ -676,7 +881,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
-  AuthenticatedOlympusRoute: AuthenticatedOlympusRoute,
+  AuthenticatedOlympusRoute: AuthenticatedOlympusRouteWithChildren,
   AuthenticatedPathfinderRoute: AuthenticatedPathfinderRoute,
   AuthenticatedPipelineHorizonRoute: AuthenticatedPipelineHorizonRoute,
   AuthenticatedCommandAlignmentRoute: AuthenticatedCommandAlignmentRoute,

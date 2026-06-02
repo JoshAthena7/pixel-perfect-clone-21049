@@ -3,7 +3,7 @@ import { Link, useRouterState, useParams } from "@tanstack/react-router";
 import {
   Building2, LayoutDashboard, Sparkles, Wrench, Users, History,
   Settings2, ChevronLeft, LogOut, User, ArrowRight, PenTool,
-  CalendarClock, Compass,
+  CalendarClock, Compass, Shield,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -158,6 +158,9 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
         <NavItem to="/home" icon={<Building2 size={16} strokeWidth={1.5} />} active={currentPath === "/home"}>Home</NavItem>
         <NavItem to="/pipeline-horizon" icon={<CalendarClock size={16} strokeWidth={1.5} />} active={currentPath.startsWith("/pipeline-horizon")}>Pipeline Horizon</NavItem>
         <NavItem to="/pathfinder" icon={<Compass size={16} strokeWidth={1.5} />} active={currentPath.startsWith("/pathfinder")}>Pathfinder</NavItem>
+        {isPrivileged && (
+          <NavItem to="/olympus" icon={<Shield size={16} strokeWidth={1.5} className="text-[color:var(--athena-gold)]" />} active={currentPath.startsWith("/olympus")}>Olympus</NavItem>
+        )}
       </nav>
 
       <div className="border-t border-border p-3 flex items-center justify-between">

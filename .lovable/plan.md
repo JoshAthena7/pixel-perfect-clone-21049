@@ -1,51 +1,70 @@
-## Phase E — IRIS Context Wiring
+# Olympus Admin Build-Out — Phased Plan
 
-No navigation or layout changes. We add three context-aware IRIS briefs powered by Gemini via Lovable AI, make Ask IRIS context-aware, and add five background triggers. All using existing tables.
+The current `src/routes/_authenticated/olympus.tsx` is a single-page tab view (Status, Missions, Settings placeholder). The new spec turns Olympus into a full admin workspace with its own left-rail nav, a mission switcher header, and 9 sections. This is a multi-day build; below is a phased plan so each phase ships clean.
 
-### 1. Server functions (new / updated in `src/lib/`)
+No existing Lobby / Mission / Studio code is touched. Schema additions are kept minimal — most sections use tables that already exist.
 
-- **`iris-lobby-brief.functions.ts`** *(new)* — `generateLobbyBrief({ force?: boolean })`. Pulls active `missions`, aggregated `question_records` health counts, unresolved `question_collaboration` (sme_request/decision_needed/air_cover, last 24h), unresolved `alignment_conflicts`, `mission_review_gates` within 14d, latest 3 `market_intelligence`, open SOS `signals`. Calls `google/gemini-2.5-flash` via Lovable AI Gateway with the firm-level prompt. Caches in `iris_brief_cache` with `scope='lobby'`, `user_id=auth.uid()`, daily key; `force` bypasses cache.
+## Phase 1 — Shell & Navigation (foundation)
 
-- **`iris-mission-brief.functions.ts`** *(new)* — `generateMissionBrief({ missionId, force? })`. Pulls mission's `question_records` (totals/health/score<4.5/pens_down≤14d), `alignment_conflicts` (unresolved), `question_collaboration` (unresolved signals), next `mission_review_gates`, recent `signals`, `win_themes`. Caches in `iris_brief_cache` scope=`mission`, ref_id=missionId, 30-min TTL. Replaces the simple status string in `$missionId.tsx`.
+- Convert `/olympus` from a single file into a layout route:
+  - `src/routes/_authenticated/olympus.tsx` becomes the layout (header + left rail + `<Outlet />`).
+  - New child routes under `src/routes/_authenticated/olympus/`:
+    `index.tsx` (Missions), `team.tsx`, `questions.tsx`, `gates.tsx`, `win-themes.tsx`, `vault.tsx`, `settings.tsx`, `users.tsx`, `audit.tsx`.
+- Olympus header: `⚡ OLYMPUS` wordmark · mission switcher dropdown (lists all missions admin/lead can see, writes selection to `localStorage` key `olympus:mission`) · `← Back to Mission` button.
+- Left rail items: Missions · Team · Questions · Gates · Win Themes · Vault · Settings · divider · Users (admin only) · Audit Log (admin only).
+- Access rules:
+  - Whole `/olympus` tree: admin or lead only (`mission_members.role in ('admin','lead')`, plus zero-membership escape hatch already used today).
+  - `users.tsx` + `audit.tsx`: admin only — gated client-side, with redirect-to-Missions for leads.
+- AppShell already shows the Olympus gear; add a top-level "Olympus" link visible only to admin/lead (currently we only show the gear footer).
 
-- **`iris-question-brief.functions.ts`** *(extend existing)* — Add 3 labeled outputs (State Priority / Procurement Signal / Differentiation) + optional Compliance Note via tool-calling JSON. Uses `question_records`, `question_intelligence`, semantic matches from `embeddings` (cosine) to `market_intelligence` and engagement research, `win_themes`, `question_relationships`, `mission_assumptions`. 4-hour TTL.
+## Phase 2 — Missions (master list + create + activate)
 
-- **`iris-ask.functions.ts`** *(extend)* — Accept `contextLevel: 'lobby'|'mission'|'question'` + `missionId?`, `questionId?`. Build system prompt with the base IRIS persona + level-specific data block. Persona suffix per level.
+- Missions index: real columns — name · client · status · submission date · question count · health · last activity.
+- `[+ Create New Mission]` opens an inline form (name, client, state, procurement type, submission date, description). On save → insert into `missions`, then navigate to `/olympus/settings?mission=<id>`.
+- `[Import from Template]` — stub button with "Coming soon" toast (no template tables yet; flagged as deferred).
+- Row actions: Open (→ Mission page) · Edit (→ Olympus settings for that mission) · Activate (modal w/ checklist) · Archive (sets `status='Archived'`).
+- Activation checklist driven by live data: RFP uploaded (`mission_library.is_rfp=true`), ≥1 writer (`mission_members.role='writer'`), submission_date set, ≥1 review gate. Warnings, not blockers.
 
-### 2. UI integrations
+## Phase 3 — Team
 
-- **Lobby (`home.tsx`)**: Add IRIS Morning Brief card at the top — prose, "● IRIS · Updated {time}", Refresh link. Calls `generateLobbyBrief` via TanStack Query (auto-fetch on mount, manual refresh).
+- Two-column layout. Left: roster from `mission_members` + `profiles` (avatar/initials, name, role, questions assigned count from `question_records`, last active from `profiles.last_seen_signals_at`).
+- Filter chips: All / Writers / SMEs / Leaders / Reviewers.
+- Edit role (inline dropdown) · Remove (delete row).
+- Right panel: invite by email — reuses existing `inviteMissionMember` server fn. Pending invitations list = members whose profile shows no `last_seen_signals_at` AND created within last 30d (heuristic — no separate invites table). Bulk invite collapsible: textarea + role, loops the same server fn.
 
-- **Mission layout (`$missionId.tsx`)**: Replace the hand-computed status text in the existing IRIS strip with `generateMissionBrief({ missionId })`. Keep strip layout/styling untouched. Add Refresh link + timestamp.
+## Phase 4 — Questions (the big one)
 
-- **Question workspace (Studio)**: Locate the existing IRIS right column in `questions/$questionId` route. Render the three labeled insights (State Priority, Procurement Signal, Differentiation, optional Compliance) returned by the extended question brief fn. Keep visual treatment.
+- Full-width table over `question_records`. Inline-editable cells (writer, SME, pens_down, page_limit, status, weight) using small popovers / native inputs that fire `update` mutations on blur.
+- `[+ Add Question]` — inline new-row form at top.
+- `[Import from RFP]` — calls existing `parseRfp` server function; progress toast.
+- `[Bulk Assign]` — checkbox column → action bar with writer/SME dropdown.
+- Question detail drawer (right-side `Sheet`): full text, requirements, mandatory language, scoring criteria, compliance flags — all editable.
 
-- **Ask IRIS**: Find current Ask IRIS entry points (drawer/modal) and pass `contextLevel` + IDs based on current route. No UI redesign.
+## Phase 5 — Gates · Win Themes · Vault
 
-### 3. Proactive triggers (lightweight, no new tables)
+- **Gates**: CRUD over `mission_review_gates` (already exists). Add inline form + reviewer multi-select. Reviewers stored as JSON in a new column **OR** we reuse `question_gate_status` indirectly; if needed, one tiny migration adds `mission_review_gates.reviewer_ids uuid[]`.
+- **Win Themes**: CRUD over `win_themes`. "Link Questions" opens a checklist that writes to `win_themes.question_ids`.
+- **Vault**: left rail = categories, main = `mission_library` rows filtered by category, right = upload panel using existing `mission-library` storage bucket. RFP upload prompts "Parse RFP?" → calls existing parser. Duplicate guard by filename.
 
-Implemented as server functions invoked from existing write paths (no cron required for v1):
+## Phase 6 — Settings · Users · Audit Log
 
-- **Conflict detection**: after a `question_collaboration` insert (writer comment/sme_request), an existing trigger or follow-up server fn compares embeddings across the mission's recent entries. On semantic similarity + LLM "contradicts?" check → insert `alignment_conflicts`. *(Wire only if embedding pipeline already exists — otherwise stub a TODO function and document.)*
-- **Win-theme coverage**: server fn `checkWinThemeCoverage(missionId)` called on win_theme or question save; emits a `signals` row when a theme has < 3 linked questions.
-- **Pens-down proximity**: SQL view/query already feeds Responses At Risk; add a tiny server fn that flips `question_records.health = 'red'` when pens_down ≤ 7d and status != complete. Invoked on mission brief refresh.
-- **SME silence**: server fn invoked on mission brief refresh; emits a `signals` row for unresolved `sme_request` older than 3 days (idempotent via dedupe on related_question_id + signal_type).
-- **New market intel match**: server fn `matchIntelToQuestions(intelId)` called after a new `market_intelligence` insert; semantic match → invalidate matching question briefs (delete `question_intelligence` cache rows) and insert a `signals` row.
+- **Settings**: edit `missions` row (name/client/state/program_type/submission_date/description). Status changer with confirm-on-Archived. Scoring fields (threshold/scale) — needs **one small migration**: add `missions.score_threshold numeric default 4.5`, `missions.score_scale numeric default 5.0`. Danger zone: delete mission with typed-name confirmation.
+- **Users (admin only)**: lists all profiles + their mission roles (aggregated from `mission_members`). Invite at firm level uses `supabaseAdmin.auth.admin.inviteUserByEmail` via a new `inviteFirmUser` server fn. Suspend = no schema support today; ship as disabled with tooltip "Coming soon" rather than fake it.
+- **Audit Log (admin only)**: reads `olympus_audit_log` (already exists). Filters by user / action_type / date range. CSV export client-side.
 
-### 4. Prompts
+## Out of scope (this build)
 
-Single shared base prompt constant (`IRIS_BASE_PROMPT`) + per-level append. JSON tool-call output for question brief (3–4 fields). Prose output for lobby & mission briefs.
+- Templates library (no tables yet — "Import from Template" is a stub).
+- User suspension / firm-level role storage (no `is_suspended` or `firm_role` columns yet — flagged as deferred).
+- Real-time presence in roster beyond `last_seen_signals_at`.
+- PDF preview inside Vault drawer (download only).
 
-### 5. Out of scope
+## Schema changes (minimal — submitted as one migration in Phase 5/6)
 
-- No schema migrations.
-- No new routes or layout changes.
-- No changes to Update Reality modal, lobby card layout, IRIS visual tokens.
-- Cron-based scheduling for proactive triggers (kept synchronous on write paths for v1).
+1. `mission_review_gates.reviewer_ids uuid[] default '{}'`
+2. `missions.score_threshold numeric default 4.5`, `missions.score_scale numeric default 5.0`
+3. No new tables. All other sections use existing tables.
 
-### Files touched
+## Suggested approval order
 
-New: `src/lib/iris-lobby-brief.functions.ts`, `src/lib/iris-mission-brief.functions.ts`, `src/lib/iris-prompts.ts`, `src/lib/iris-triggers.functions.ts`.
-Edited: `src/lib/iris-question-brief.functions.ts`, `src/lib/iris-ask.functions.ts`, `src/routes/_authenticated/home.tsx`, `src/routes/_authenticated/missions/$missionId.tsx`, question workspace component, Ask IRIS component(s).
-
-Confirm to proceed and I'll implement in batches (server fns first, then UI wiring, then triggers).
+I recommend approving and shipping **Phase 1 + Phase 2 first** (shell + Missions section + activate modal upgrade). That gives you the new structure end-to-end with the most-used section live, and we iterate Phases 3-6 in follow-up turns. Reply with "ship 1+2" (or any subset) to proceed.
