@@ -614,15 +614,25 @@ function ResponseView() {
             </div>
           ) : (
             <div className="space-y-5">
-              {intel?.state_priorities && (
-                <IrisInsight label="State Priority" content={intel.state_priorities} />
-              )}
-              {intel?.procurement_priorities && (
-                <IrisInsight label="Procurement Signal" content={intel.procurement_priorities} />
-              )}
-              {intel?.competitor_signals && (
-                <IrisInsight label="Differentiation" content={intel.competitor_signals} />
-              )}
+              {(() => {
+                const sources = intel?.relevant_research ?? [];
+                const sourceCount = sources.length;
+                const confidence: "High" | "Medium" | "Low" =
+                  sourceCount >= 3 ? "High" : sourceCount >= 1 ? "Medium" : "Low";
+                return (
+                  <>
+                    {intel?.state_priorities && (
+                      <IrisInsight label="State Priority" content={intel.state_priorities} confidence={confidence} sourceCount={sourceCount} />
+                    )}
+                    {intel?.procurement_priorities && (
+                      <IrisInsight label="Procurement Signal" content={intel.procurement_priorities} confidence={confidence} sourceCount={sourceCount} />
+                    )}
+                    {intel?.competitor_signals && (
+                      <IrisInsight label="Differentiation" content={intel.competitor_signals} confidence={confidence} sourceCount={sourceCount} />
+                    )}
+                  </>
+                );
+              })()}
               {intel?.compliance_flags && intel.compliance_flags.length > 0 && (
                 <div>
                   <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-400">Compliance Note</div>
