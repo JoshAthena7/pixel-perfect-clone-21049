@@ -319,7 +319,7 @@ export const generateMissionDna = createServerFn({ method: "POST" })
     // 5. Generate research_tasks from intelligence_questions
     const questions = Array.isArray(dna.intelligence_questions) ? dna.intelligence_questions : [];
     if (questions.length > 0) {
-      const rows = questions.slice(0, 40).map((q) => ({
+      const rows = questions.slice(0, 40).map((q: DnaQuestion) => ({
         mission_id: data.missionId,
         dna_id: inserted.id,
         question: String(q.question ?? "").slice(0, 2000),
