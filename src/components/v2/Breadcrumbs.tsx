@@ -31,24 +31,35 @@ export function Breadcrumbs() {
   if (!missionId) return null;
 
   const isQuestion = path.includes("/questions/") && !!questionId;
-  const isQuestionsList = path === `/missions/${missionId}` || (path.startsWith(`/missions/${missionId}/questions`) && !questionId);
+  const isQuestionsList = path.startsWith(`/missions/${missionId}/questions`) && !questionId;
   const isLibrary = path.endsWith("/library");
-  const isOracle = path.endsWith("/briefing");
+  const isOracle = path.endsWith("/briefing") || path.endsWith("/intelligence");
+  const isOperations = path.endsWith("/operations");
+  const isTeam = path.endsWith("/team");
+  const isActivity = path.endsWith("/activity");
   const isSettings = path.endsWith("/settings");
-  const isBrief = path.endsWith("/overview");
+  const isHome = path.endsWith("/overview") || path === `/missions/${missionId}`;
 
-  const pageLabel = isQuestion ? "Q" : isQuestionsList ? "The Studio · Studio" : isLibrary ? "The Vault · Documents" : isOracle ? "The Oracle · Intelligence" : isSettings ? "Settings" : isBrief ? "Mission Home · Overview" : "";
+  const pageLabel = isQuestion ? "Q"
+    : isQuestionsList ? "Studio"
+    : isLibrary ? "Library"
+    : isOracle ? "Intelligence"
+    : isOperations ? "Operations"
+    : isTeam ? "Team"
+    : isActivity ? "Activity"
+    : isSettings ? "Settings"
+    : "";
 
   const crumbs: Array<{ label: string; to?: string; params?: any }> = [
-    { label: "The Atrium · Home", to: "/home" },
+    { label: "Home", to: "/home" },
     { label: mission?.name ?? "…", to: "/missions/$missionId/overview", params: { missionId } },
   ];
 
   if (isQuestion) {
-    crumbs.push({ label: "The Studio · Studio", to: "/missions/$missionId/questions", params: { missionId } });
+    crumbs.push({ label: "Studio", to: "/missions/$missionId/questions", params: { missionId } });
     const qTitle = question ? `Q${question.question_number} ${(question.title ?? "").slice(0, 30)}${(question.title?.length ?? 0) > 30 ? "…" : ""}` : "…";
     crumbs.push({ label: qTitle });
-  } else if (pageLabel) {
+  } else if (!isHome && pageLabel) {
     crumbs.push({ label: pageLabel });
   }
 
