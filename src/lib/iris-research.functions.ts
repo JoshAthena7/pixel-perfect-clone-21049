@@ -140,7 +140,7 @@ const RunTaskInput = z.object({ taskId: z.string().uuid() });
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────
 async function runOneTask(
-  supabase: Awaited<ReturnType<typeof requireSupabaseAuth.handler>>["context"]["supabase"] extends infer S ? S : never,
+  supabase: any,
   task: {
     id: string;
     mission_id: string;
@@ -150,6 +150,7 @@ async function runOneTask(
   },
   dna: MissionDna,
 ): Promise<{ ok: boolean; error?: string }> {
+
   // Mark in_progress
   await (supabase as any)
     .from("research_tasks")
