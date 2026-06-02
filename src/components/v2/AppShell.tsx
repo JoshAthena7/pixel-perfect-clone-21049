@@ -244,9 +244,24 @@ function MissionNav({ missionId }: { missionId: string }) {
     },
   });
 
-  const days = mission?.submission_date
-    ? Math.ceil((new Date(mission.submission_date).getTime() - Date.now()) / 86400000)
-    : null;
+  const { data: roleInMission } = useQuery({
+    queryKey: ["mission-my-role", missionId],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      const { data } = await supabase
+        .from("mission_members")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("mission_id", missionId);
+      const roles = (data ?? []).map((r: any) => r.role);
+      if (roles.includes("admin")) return "admin";
+      if (roles.includes("lead")) return "lead";
+      if (roles.includes("writer")) return "writer";
+      return roles[0] ?? null;
+    },
+  });
+  const isLeader = roleInMission === "admin" || roleInMission === "lead";
 
   return (
     <div className="flex h-full flex-col">
@@ -255,27 +270,96 @@ function MissionNav({ missionId }: { missionId: string }) {
           <ChevronLeft className="h-3 w-3" /> All Missions
         </Link>
         {mission && (
-          <>
-            <div className="flex items-center gap-2">
-              <span className={`dot dot-${mission.health.toLowerCase()}`} />
-              <span className="text-sm font-semibold truncate">{mission.name}</span>
-            </div>
-            <div className="mt-1 text-xs text-muted-foreground">
-              {mission.client}{days !== null && <> · {days}d</>}
-            </div>
-          </>
+          <div className="flex items-center gap-2">
+            <span className="text-[color:var(--athena-gold)]">⚡</span>
+            <span className="text-sm font-semibold truncate">{mission.name}</span>
+          </div>
         )}
       </div>
+
       <nav className="flex-1 px-3 py-4 space-y-1">
-        <NavItem to="/missions/$missionId/overview" params={{ missionId }} active={path === `/missions/${missionId}` || path.endsWith("/overview")} icon={<LayoutDashboard size={16} strokeWidth={1.5} />}>Mission Home</NavItem>
-        <NavItem to="/missions/$missionId/questions" params={{ missionId }} active={path.startsWith(`/missions/${missionId}/questions`)} icon={<PenTool size={16} strokeWidth={1.5} />}>The Studio</NavItem>
-        <NavItem to="/missions/$missionId/library" params={{ missionId }} active={path.endsWith("/library")} icon={<Archive size={16} strokeWidth={1.5} />}>The Vault</NavItem>
-        <NavItem to="/missions/$missionId/briefing" params={{ missionId }} active={path.endsWith("/briefing")} icon={<Sparkles size={16} strokeWidth={1.5} />}>The Oracle</NavItem>
-        <NavItem to="/missions/$missionId/settings" params={{ missionId }} active={path.endsWith("/settings")} icon={<Settings2 size={16} strokeWidth={1.5} />}>Settings</NavItem>
+        {isLeader ? (
+          <>
+            <NavItem
+              to="/missions/$missionId/overview"
+              params={{ missionId }}
+              active={path === `/missions/${missionId}` || path.endsWith("/overview")}
+              icon={<LayoutDashboard size={16} strokeWidth={1.5} />}
+            >
+              Command
+            </NavItem>
+            <NavItem
+              to="/missions/$missionId/iris"
+              params={{ missionId }}
+              active={path.endsWith("/iris")}
+              icon={<Sparkles size={16} strokeWidth={1.5} className="text-[color:var(--iris)]" />}
+            >
+              Ask IRIS
+            </NavItem>
+            <div className="my-3 border-t border-border" />
+            <NavItem
+              to="/missions/$missionId/questions"
+              params={{ missionId }}
+              active={path.startsWith(`/missions/${missionId}/questions`)}
+              icon={<PenTool size={16} strokeWidth={1.5} />}
+            >
+              All Questions
+            </NavItem>
+          </>
+        ) : (
+          <>
+            <NavItem
+              to="/missions/$missionId/questions"
+              params={{ missionId }}
+              active={path === `/missions/${missionId}` || path.startsWith(`/missions/${missionId}/questions`)}
+              icon={<PenTool size={16} strokeWidth={1.5} />}
+            >
+              My Questions
+            </NavItem>
+            <NavItem
+              to="/missions/$missionId/iris"
+              params={{ missionId }}
+              active={path.endsWith("/iris")}
+              icon={<Sparkles size={16} strokeWidth={1.5} className="text-[color:var(--iris)]" />}
+            >
+              Ask IRIS
+            </NavItem>
+          </>
+        )}
       </nav>
 
-      <SignOut />
+      <div className="border-t border-border p-3 flex items-center justify-between">
+        <Link
+          to="/missions/$missionId/settings"
+          params={{ missionId }}
+          aria-label="Mission settings"
+          title="Mission settings"
+          className={`inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-surface-hover hover:text-foreground ${
+            path.endsWith("/settings") ? "bg-surface-hover text-foreground" : ""
+          }`}
+        >
+          <Settings2 size={16} strokeWidth={1.5} />
+        </Link>
+        <SignOutButton />
+      </div>
     </div>
+  );
+}
+
+function SignOutButton() {
+  async function signOut() {
+    await supabase.auth.signOut();
+    toast.success("Signed out");
+  }
+  return (
+    <button
+      onClick={signOut}
+      aria-label="Sign out"
+      title="Sign out"
+      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+    >
+      <LogOut className="h-4 w-4" />
+    </button>
   );
 }
 
