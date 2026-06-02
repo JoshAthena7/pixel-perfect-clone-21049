@@ -12,9 +12,10 @@ type IntelRow = {
 };
 
 const RSS_FEEDS: Array<{ url: string; source: string; category: string }> = [
-  { url: "https://www.cms.gov/newsroom/rss-feeds/all-press-releases-and-fact-sheets/feed", source: "CMS Newsroom", category: "CMS" },
-  { url: "https://www.medicaid.gov/about-us/news-and-blog/index.rss", source: "Medicaid.gov", category: "Medicaid" },
-  { url: "https://www.hhs.gov/about/news/rss/news.xml", source: "HHS News", category: "CMS" },
+  { url: "https://www.kff.org/feed/", source: "KFF Health News", category: "Medicaid" },
+  { url: "https://www.healthaffairs.org/action/showFeed?type=etoc&feed=rss&jc=hlthaff", source: "Health Affairs", category: "Medicare" },
+  { url: "https://www.fiercehealthcare.com/rss/xml", source: "Fierce Healthcare", category: "CMS" },
+  { url: "https://www.healthcaredive.com/feeds/news/", source: "Healthcare Dive", category: "CMS" },
 ];
 
 async function fetchFederalRegister(): Promise<IntelRow[]> {
