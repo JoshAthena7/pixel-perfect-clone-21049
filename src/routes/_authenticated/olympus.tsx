@@ -557,6 +557,20 @@ function IrisOperationsPanel() {
     }
   }
 
+  async function runMorningBriefs(missionId: string, missionName: string) {
+    setRunning(`brief:${missionId}`);
+    try {
+      const { generateMissionQuestionBriefs } = await import("@/lib/iris-question-brief.functions");
+      const res = await generateMissionQuestionBriefs({ data: { missionId, overwrite: false } });
+      toast.success(`${missionName}: ${res.updated}/${res.total} morning briefs generated${res.failed ? ` (${res.failed} failed)` : ""}`);
+      qc.invalidateQueries({ queryKey: ["olympus-audit"] });
+    } catch (e) {
+      toast.error(`Brief generation failed: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setRunning(null);
+    }
+  }
+
   return (
     <div className="rounded-[10px] border border-border bg-surface overflow-hidden">
       <div className="border-b border-border px-5 py-4">
