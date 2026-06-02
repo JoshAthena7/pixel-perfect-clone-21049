@@ -375,3 +375,177 @@ function IrisOperationsPanel() {
     </div>
   );
 }
+
+/* ────────── IRIS Intelligence Panel ────────── */
+
+function IrisIntelligencePanel({ missionId }: { missionId: string }) {
+  const qc = useQueryClient();
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [draftTerm, setDraftTerm] = useState("");
+  const [running, setRunning] = useState(false);
+
+  const { data: mission } = useQuery({
+    queryKey: ["olympus-iris-intelligence", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("missions")
+        .select("id, name, state, state_agency, procurement_name, rfp_number, focus_areas, qa_deadline, pens_down_date, contract_start_date, contract_value, contract_term, incumbent_name, page_limit, key_requirements, evaluation_criteria, iris_search_terms, rfp_extraction_status, rfp_extracted_at")
+        .eq("id", missionId)
+        .maybeSingle();
+      return data as any;
+    },
+  });
+
+  const { data: rfpDoc } = useQuery({
+    queryKey: ["olympus-iris-rfp-doc", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_library")
+        .select("id, name")
+        .eq("mission_id", missionId)
+        .eq("is_rfp", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data as { id: string; name: string } | null;
+    },
+  });
+
+  async function updateTerms(next: string[]) {
+    const { error } = await supabase
+      .from("missions")
+      .update({ iris_search_terms: next })
+      .eq("id", missionId);
+    if (error) { toast.error(error.message); return; }
+    qc.invalidateQueries({ queryKey: ["olympus-iris-intelligence", missionId] });
+  }
+
+  async function runPerplexitySweep() {
+    setRunning(true);
+    try {
+      const { ingestMarketIntel } = await import("@/lib/market-intel.functions");
+      const res = await ingestMarketIntel();
+      toast.success(`Sweep complete: ${res.inserted} new items`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Sweep failed");
+    } finally {
+      setRunning(false);
+    }
+  }
+
+  if (!mission) return null;
+  const terms = (mission.iris_search_terms ?? []) as string[];
+  const status = mission.rfp_extraction_status as string | null;
+  const extractedAt = mission.rfp_extracted_at ? new Date(mission.rfp_extracted_at) : null;
+
+  return (
+    <>
+      <div className="rounded-[10px] border border-border bg-surface overflow-hidden">
+        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+          <div>
+            <h2 className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground flex items-center gap-2">
+              <Sparkles className="h-3 w-3 text-teal-400" /> IRIS Intelligence
+            </h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {status === "running" && <span className="text-teal-300">● IRIS is reading the RFP…</span>}
+              {status === "review" && <span className="text-amber-300">● Extraction ready for review</span>}
+              {status === "confirmed" && <span className="text-teal-300">● Intelligence active</span>}
+              {status === "failed" && <span className="text-red-400">● Extraction failed</span>}
+              {!status && <span>No RFP extraction yet</span>}
+              {extractedAt && ` · last run ${extractedAt.toLocaleString()}`}
+            </p>
+          </div>
+          <button onClick={() => setReviewOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-md border border-teal-500/40 bg-teal-500/10 px-3 py-1.5 text-xs text-teal-300 hover:bg-teal-500/20">
+            <Sparkles className="h-3 w-3" /> {status === "confirmed" ? "Edit extraction" : "Review extraction"}
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-5 py-4 text-xs">
+          <Row label="State agency" value={mission.state_agency} />
+          <Row label="Procurement" value={mission.procurement_name} />
+          <Row label="RFP number" value={mission.rfp_number} />
+          <Row label="Incumbent" value={mission.incumbent_name} />
+          <Row label="Q&A deadline" value={mission.qa_deadline} />
+          <Row label="Pens Down" value={mission.pens_down_date} />
+          <Row label="Contract start" value={mission.contract_start_date} />
+          <Row label="Contract value" value={mission.contract_value} />
+          <Row label="Contract term" value={mission.contract_term} />
+          <Row label="Page limit" value={mission.page_limit?.toString()} />
+        </div>
+
+        {(mission.focus_areas ?? []).length > 0 && (
+          <div className="border-t border-border px-5 py-4">
+            <div className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground mb-2">Focus areas</div>
+            <div className="flex flex-wrap gap-1.5">
+              {(mission.focus_areas as string[]).map((f) => (
+                <span key={f} className="rounded-full bg-teal-500/10 px-2.5 py-0.5 text-[11px] text-teal-300">{f}</span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="border-t border-border px-5 py-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">IRIS Search Terms</div>
+            <span className="text-[10px] text-muted-foreground">{terms.length} term{terms.length === 1 ? "" : "s"}</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {terms.map((t, i) => (
+              <span key={i} className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-0.5 text-[11px]">
+                {t}
+                <button onClick={() => updateTerms(terms.filter((_, j) => j !== i))}
+                  className="text-muted-foreground hover:text-red-400">
+                  <X className="h-2.5 w-2.5" />
+                </button>
+              </span>
+            ))}
+            {terms.length === 0 && <span className="text-[11px] text-muted-foreground">No terms yet — IRIS will generate these from state + focus areas after extraction.</span>}
+          </div>
+          <div className="flex gap-2">
+            <input value={draftTerm} onChange={(e) => setDraftTerm(e.target.value)} placeholder="Add custom term…"
+              onKeyDown={(e) => { if (e.key === "Enter" && draftTerm.trim()) { updateTerms([...terms, draftTerm.trim()]); setDraftTerm(""); } }}
+              className="flex-1 rounded-md border border-border bg-background px-3 py-1.5 text-xs" />
+            <button onClick={() => { if (draftTerm.trim()) { updateTerms([...terms, draftTerm.trim()]); setDraftTerm(""); } }}
+              className="rounded-md border border-border bg-background px-3 text-xs hover:bg-surface-hover">
+              <Plus className="h-3 w-3" />
+            </button>
+          </div>
+        </div>
+
+        <div className="border-t border-border px-5 py-4">
+          <div className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground mb-2">Intelligence Feed Status</div>
+          <div className="space-y-1 text-xs">
+            <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-teal-400" /> Industry feed: <span className="text-muted-foreground">Active</span></div>
+            <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-teal-400" /> Mission feed: <span className="text-muted-foreground">{terms.length > 0 ? "Active" : "Awaiting search terms"}</span></div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-400" /> Perplexity sweep: <span className="text-muted-foreground">on demand</span>
+              </div>
+              <button onClick={runPerplexitySweep} disabled={running}
+                className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1 text-[11px] hover:bg-surface-hover disabled:opacity-50">
+                <Zap className="h-3 w-3" /> {running ? "Running…" : "Run now"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <IrisRfpReviewModal
+        missionId={missionId}
+        documentId={rfpDoc?.id}
+        open={reviewOpen}
+        onClose={() => setReviewOpen(false)}
+      />
+    </>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string | null | undefined }) {
+  return (
+    <div className="flex items-center justify-between border-b border-border/40 py-1">
+      <span className="text-muted-foreground">{label}</span>
+      <span className={value ? "text-foreground" : "text-muted-foreground/60"}>{value || "—"}</span>
+    </div>
+  );
+}
