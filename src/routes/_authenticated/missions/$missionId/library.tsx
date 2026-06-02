@@ -1,21 +1,12 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { createSignal } from "@/lib/signals";
-import { Upload, Plus, FileText, ExternalLink, Trash2, X, Search, Sparkles, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { FileText, ExternalLink, Search } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/library")({
   component: LibraryPage,
 });
-
-/** ARCH-8: hash a File for dedup detection. */
-async function sha256(file: File): Promise<string> {
-  const buf = await file.arrayBuffer();
-  const hash = await crypto.subtle.digest("SHA-256", buf);
-  return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
 
 const CATEGORIES = [
   "RFP",
@@ -51,29 +42,8 @@ type Doc = {
 
 function LibraryPage() {
   const { missionId } = Route.useParams();
-  const qc = useQueryClient();
-  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState<Category | "All">("All");
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState("");
-  const [parsingId, setParsingId] = useState<string | null>(null);
-
-  async function parseRfp(doc: Doc) {
-    setParsingId(doc.id);
-    try {
-      const { parseRfpDocument } = await import("@/lib/rfp-parser.functions");
-      const res = await parseRfpDocument({ data: { documentId: doc.id } });
-      toast.success(`${res.inserted} questions created from "${doc.name}"`);
-      qc.invalidateQueries({ queryKey: ["mission-library", missionId] });
-      navigate({ to: "/missions/$missionId/questions", params: { missionId } });
-    } catch (e) {
-      toast.error(`Parse failed: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
-      setParsingId(null);
-    }
-  }
-
 
   const { data: docs = [], isLoading } = useQuery({
     queryKey: ["mission-library", missionId],
@@ -94,7 +64,6 @@ function LibraryPage() {
     return map;
   }, [docs]);
 
-  // ARCH-7: filter by category AND by free-text search across name + notes
   const visible = useMemo(() => {
     let list = activeCategory === "All" ? docs : docs.filter((d) => d.category === activeCategory);
     const q = search.trim().toLowerCase();
@@ -107,91 +76,6 @@ function LibraryPage() {
     }
     return list;
   }, [docs, activeCategory, search]);
-
-  const deleteDoc = useMutation({
-    mutationFn: async (doc: Doc) => {
-      // ARCH-11: removing the row triggers the cascade trigger that clears the
-      // matching embeddings; the file in storage is removed here.
-      if (doc.file_path) {
-        await supabase.storage.from("mission-library").remove([doc.file_path]);
-      }
-      await supabase.from("mission_library").delete().eq("id", doc.id);
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["mission-library", missionId] }),
-  });
-
-  async function handleRfpUpload(file: File) {
-    setUploading(true);
-    try {
-      // ARCH-8: dedup guard — compute SHA-256, look for an existing identical file in this mission
-      const hash = await sha256(file);
-      const { data: dup } = await supabase
-        .from("mission_library")
-        .select("id,name")
-        .eq("mission_id", missionId)
-        .eq("file_hash", hash)
-        .maybeSingle();
-      if (dup) {
-        const proceed = window.confirm(
-          `An identical file is already in The Vault as "${dup.name}". Upload anyway?`,
-        );
-        if (!proceed) {
-          toast.info("Upload cancelled — duplicate detected.");
-          return;
-        }
-      }
-
-      const { data: u } = await supabase.auth.getUser();
-      const path = `${missionId}/${Date.now()}-${file.name}`;
-      const { error: upErr } = await supabase.storage.from("mission-library").upload(path, file);
-      if (upErr) throw upErr;
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("display_name")
-        .eq("id", u.user!.id)
-        .maybeSingle();
-      const { data: ins } = await supabase.from("mission_library").insert({
-        mission_id: missionId,
-        name: file.name,
-        category: "RFP",
-        is_rfp: true,
-        file_path: path,
-        file_hash: hash,
-        file_size: file.size,
-        added_by_id: u.user!.id,
-        added_by: profile?.display_name ?? u.user!.email,
-        notes: "Upload RFP → Auto-create Question Records (parsing pending).",
-      }).select("id").maybeSingle();
-      await createSignal({
-        mission_id: missionId,
-        source_module: "library",
-        signal_type: "document_uploaded",
-        signal_title: `RFP uploaded: ${file.name}`,
-        severity: "info",
-        related_document_id: ins?.id ?? null,
-      }, qc);
-      qc.invalidateQueries({ queryKey: ["mission-library", missionId] });
-      toast.success(`Uploaded "${file.name}" — extracting questions…`);
-
-      // Auto-parse: kick off IRIS extraction immediately after upload
-      if (ins?.id) {
-        try {
-          setParsingId(ins.id);
-          const { parseRfpDocument } = await import("@/lib/rfp-parser.functions");
-          const res = await parseRfpDocument({ data: { documentId: ins.id } });
-          toast.success(`${res.inserted} questions extracted from "${file.name}"`);
-          qc.invalidateQueries({ queryKey: ["mission-library", missionId] });
-          navigate({ to: "/missions/$missionId/questions", params: { missionId } });
-        } catch (e) {
-          toast.error(`Auto-parse failed: ${e instanceof Error ? e.message : String(e)}. Use "Parse RFP" to retry.`);
-        } finally {
-          setParsingId(null);
-        }
-      }
-    } finally {
-      setUploading(false);
-    }
-  }
 
   async function downloadDoc(doc: Doc) {
     if (doc.url) {
@@ -206,48 +90,14 @@ function LibraryPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8">
-      <div className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">The Vault</h1>
-          <p className="text-sm text-muted-foreground">All RFPs, intelligence, and reference docs for this mission.</p>
-        </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm hover:bg-muted"
-        >
-          <Plus className="h-4 w-4" /> Add Document
-        </button>
+      <div className="mb-2">
+        <h1 className="text-2xl font-semibold">The Vault</h1>
+        <p className="text-sm text-muted-foreground">All RFPs, intelligence, and reference docs for this mission.</p>
       </div>
+      <p className="mb-6 text-xs text-muted-foreground">
+        Documents are managed in Olympus. Contact your Engagement Lead to upload new materials.
+      </p>
 
-      {/* Upload RFP banner */}
-      <label className="mb-6 block cursor-pointer rounded-lg border-2 border-dashed border-primary/40 bg-primary/5 p-6 transition hover:border-primary hover:bg-primary/10">
-        <input
-          type="file"
-          className="hidden"
-          accept=".pdf,.docx,.doc,.txt"
-          disabled={uploading}
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) handleRfpUpload(f);
-            e.target.value = "";
-          }}
-        />
-        <div className="flex items-center gap-4">
-          <div className="rounded-full bg-primary/15 p-3">
-            <Upload className="h-6 w-6 text-primary" />
-          </div>
-          <div className="flex-1">
-            <div className="text-base font-semibold text-foreground">
-              {uploading ? "Uploading…" : "Upload RFP"}
-            </div>
-            <div className="text-sm text-muted-foreground">
-              Upload RFP → Auto-create Question Records
-            </div>
-          </div>
-        </div>
-      </label>
-
-      {/* ARCH-7: search across name, notes, category */}
       <div className="mb-4 relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <input
@@ -259,7 +109,6 @@ function LibraryPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-[240px_1fr]">
-        {/* Category filter list */}
         <aside className="rounded-lg border border-border p-2">
           <CategoryRow
             label="All Documents"
@@ -279,7 +128,6 @@ function LibraryPage() {
           ))}
         </aside>
 
-        {/* Document cards */}
         <div>
           {isLoading && <div className="text-sm text-muted-foreground">Loading…</div>}
           {!isLoading && visible.length === 0 && (
@@ -295,73 +143,36 @@ function LibraryPage() {
                 key={doc.id}
                 className="group rounded-lg border border-border bg-card p-4 transition hover:border-primary/50"
               >
-                <div className="mb-2 flex items-start justify-between gap-2">
-                  <div className="flex items-start gap-3 min-w-0">
-                    <FileText className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" />
-                    <div className="min-w-0">
-                      <button
-                        onClick={() => downloadDoc(doc)}
-                        className="text-left text-sm font-medium text-foreground hover:underline truncate block"
-                      >
-                        {doc.name}
-                      </button>
-                      <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                        <span className="rounded bg-muted px-1.5 py-0.5">{doc.category}</span>
-                        {doc.is_rfp && (
-                          <span className="rounded bg-primary/15 px-1.5 py-0.5 text-primary">RFP</span>
-                        )}
-                        {doc.url && <ExternalLink className="h-3 w-3" />}
-                      </div>
+                <div className="mb-2 flex items-start gap-3 min-w-0">
+                  <FileText className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" />
+                  <div className="min-w-0">
+                    <button
+                      onClick={() => downloadDoc(doc)}
+                      className="text-left text-sm font-medium text-foreground hover:underline truncate block"
+                    >
+                      {doc.name}
+                    </button>
+                    <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                      <span className="rounded bg-muted px-1.5 py-0.5">{doc.category}</span>
+                      {doc.is_rfp && (
+                        <span className="rounded bg-primary/15 px-1.5 py-0.5 text-primary">RFP</span>
+                      )}
+                      {doc.url && <ExternalLink className="h-3 w-3" />}
                     </div>
                   </div>
-                  <button
-                    onClick={() => {
-                      if (confirm(`Delete ${doc.name}?`)) deleteDoc.mutate(doc);
-                    }}
-                    className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition"
-                    aria-label="Delete"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
                 </div>
                 {doc.notes && (
                   <p className="text-xs text-muted-foreground line-clamp-2">{doc.notes}</p>
                 )}
-                <div className="mt-2 flex items-center justify-between gap-2">
-                  <div className="text-[11px] text-muted-foreground">
-                    {doc.added_by ? `Added by ${doc.added_by} · ` : ""}
-                    {new Date(doc.created_at).toLocaleDateString()}
-                  </div>
-                  {doc.is_rfp && doc.file_path && (
-                    <button
-                      onClick={() => parseRfp(doc)}
-                      disabled={parsingId !== null}
-                      className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-primary/10 px-2 py-1 text-[11px] text-primary hover:bg-primary/15 disabled:opacity-50"
-                    >
-                      {parsingId === doc.id ? (
-                        <><Loader2 className="h-3 w-3 animate-spin" /> IRIS is extracting questions…</>
-                      ) : (
-                        <><Sparkles className="h-3 w-3" /> Parse → Responses</>
-                      )}
-                    </button>
-                  )}
+                <div className="mt-2 text-[11px] text-muted-foreground">
+                  {doc.added_by ? `Added by ${doc.added_by} · ` : ""}
+                  {new Date(doc.created_at).toLocaleDateString()}
                 </div>
               </div>
             ))}
           </div>
         </div>
       </div>
-
-      {showAddModal && (
-        <AddDocumentModal
-          missionId={missionId}
-          onClose={() => setShowAddModal(false)}
-          onSaved={() => {
-            qc.invalidateQueries({ queryKey: ["mission-library", missionId] });
-            setShowAddModal(false);
-          }}
-        />
-      )}
     </div>
   );
 }
@@ -387,137 +198,5 @@ function CategoryRow({
       <span className="truncate">{label}</span>
       <span className="text-xs text-muted-foreground">{count}</span>
     </button>
-  );
-}
-
-function AddDocumentModal({
-  missionId,
-  onClose,
-  onSaved,
-}: {
-  missionId: string;
-  onClose: () => void;
-  onSaved: () => void;
-}) {
-  const [name, setName] = useState("");
-  const [category, setCategory] = useState<Category>("Other");
-  const [notes, setNotes] = useState("");
-  const [url, setUrl] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  async function save() {
-    if (!name.trim()) return;
-    setSaving(true);
-    try {
-      const { data: u } = await supabase.auth.getUser();
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("display_name")
-        .eq("id", u.user!.id)
-        .maybeSingle();
-      const { data: ins } = await supabase.from("mission_library").insert({
-        mission_id: missionId,
-        name: name.trim().slice(0, 200),
-        category,
-        notes: notes.trim().slice(0, 2000) || null,
-        url: url.trim().slice(0, 1000) || null,
-        added_by_id: u.user!.id,
-        added_by: profile?.display_name ?? u.user!.email,
-      }).select("id").maybeSingle();
-      await createSignal({
-        mission_id: missionId,
-        source_module: "library",
-        signal_type: "document_uploaded",
-        signal_title: `${category}: ${name.trim().slice(0, 80)}`,
-        signal_summary: notes.trim().slice(0, 200) || undefined,
-        severity: "info",
-        related_document_id: ins?.id ?? null,
-      });
-      onSaved();
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Add Document</h2>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-        <div className="space-y-3">
-          <Field label="Name">
-            <input
-              value={name}
-              maxLength={200}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-              placeholder="Document title"
-            />
-          </Field>
-          <Field label="Category">
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value as Category)}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="URL (optional)">
-            <input
-              value={url}
-              maxLength={1000}
-              onChange={(e) => setUrl(e.target.value)}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-              placeholder="https://…"
-            />
-          </Field>
-          <Field label="Notes (optional)">
-            <textarea
-              value={notes}
-              maxLength={2000}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-            />
-          </Field>
-        </div>
-        <div className="mt-5 flex justify-end gap-2">
-          <button onClick={onClose} className="rounded-md px-3 py-2 text-sm hover:bg-muted">
-            Cancel
-          </button>
-          <button
-            onClick={save}
-            disabled={!name.trim() || saving}
-            className="rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground disabled:opacity-50"
-          >
-            {saving ? "Saving…" : "Add Document"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <div className="mb-1 text-xs font-medium text-muted-foreground">{label}</div>
-      {children}
-    </label>
   );
 }
