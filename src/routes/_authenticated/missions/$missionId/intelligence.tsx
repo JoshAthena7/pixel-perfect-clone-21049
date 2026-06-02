@@ -77,7 +77,7 @@ function IntelligencePage() {
               <span className="absolute inset-0 animate-ping rounded-full bg-[color:var(--iris,#22d3ee)]/60" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[color:var(--iris,#22d3ee)]" />
             </span>
-            The Oracle
+            The Oracle · Intelligence
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-semibold tabular-nums">{oracleSections.length}</span>
