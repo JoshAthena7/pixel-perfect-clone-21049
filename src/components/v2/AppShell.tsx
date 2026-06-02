@@ -1,10 +1,11 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useParams } from "@tanstack/react-router";
 import {
-  Building2, LayoutDashboard, Sparkles, Wrench, Users, History,
+  Building2, Sparkles, Wrench, Users, History,
   Settings2, ChevronLeft, LogOut, User, ArrowRight, PenTool,
   CalendarClock, Compass, Shield,
 } from "lucide-react";
+import { StudioHealthStrip } from "@/components/v2/StudioHealthStrip";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,6 +47,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <UserAvatarMenu />
           </header>
         )}
+        {inMission && isStudio && params.missionId && <StudioHealthStrip missionId={params.missionId} />}
         {inMission && !isStudio && <Breadcrumbs />}
         <div key={path} className="route-fade flex-1 min-w-0">{children}</div>
       </main>
@@ -202,37 +204,38 @@ function MissionRail({ missionId }: { missionId: string }) {
   });
 
   const sections = [
-    { to: "/missions/$missionId/overview", label: "Command Center · Overview", icon: <LayoutDashboard size={16} strokeWidth={1.5} />, match: ["/overview"] },
-    { to: "/missions/$missionId/intelligence", label: "The Oracle · Intelligence", icon: <Sparkles size={16} strokeWidth={1.5} className="text-[color:var(--iris,#22d3ee)]" />, match: ["/intelligence", "/library", "/briefing", "/brief", "/iris"] },
+    { to: "/missions/$missionId/intelligence", label: "Intelligence", icon: <Sparkles size={16} strokeWidth={1.5} className="text-[color:var(--iris,#22d3ee)]" />, match: ["/intelligence", "/library", "/briefing", "/brief", "/iris"] },
     { to: "/missions/$missionId/operations", label: "Operations", icon: <Wrench size={16} strokeWidth={1.5} />, match: ["/operations"] },
     { to: "/missions/$missionId/team", label: "Team", icon: <Users size={16} strokeWidth={1.5} />, match: ["/team"] },
     { to: "/missions/$missionId/activity", label: "Activity", icon: <History size={16} strokeWidth={1.5} />, match: ["/activity"] },
   ] as const;
 
   const tail = path.replace(`/missions/${missionId}`, "");
-  const isActive = (matches: readonly string[]) => {
-    if (tail === "" && matches.includes("/overview")) return true;
-    return matches.some((m) => tail === m || tail.startsWith(`${m}/`));
-  };
+  const isActive = (matches: readonly string[]) =>
+    matches.some((m) => tail === m || tail.startsWith(`${m}/`));
 
   return (
     <div className="flex h-full flex-col">
       <div className="border-b border-border px-5 py-4">
-        <Link to="/home" className="mb-3 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-          <ChevronLeft className="h-3 w-3" /> Back to The Atrium · Home
-        </Link>
         {mission && (
-          <div>
+          <Link
+            to="/missions/$missionId/overview"
+            params={{ missionId }}
+            className="block group"
+            title="Mission home"
+          >
             <div className="flex items-center gap-2">
               <span className="text-[color:var(--athena-gold)]">⚡</span>
-              <span className="text-sm font-semibold truncate">{mission.name}</span>
+              <span className="text-sm font-semibold truncate group-hover:text-foreground">{mission.name}</span>
             </div>
             {mission.client && (
               <div className="mt-0.5 ml-5 text-[11px] text-muted-foreground truncate">{mission.client}</div>
             )}
-          </div>
+          </Link>
         )}
       </div>
+
+
 
       <nav className="flex-1 px-3 py-4 space-y-0.5">
         {sections.map((s) => (
