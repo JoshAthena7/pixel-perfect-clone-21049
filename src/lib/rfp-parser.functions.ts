@@ -17,11 +17,17 @@ type ParsedQuestion = {
 };
 
 const AI_PROMPT_CHAR_LIMIT = 26_000;
-const QUESTION_START = /^(?:(?:question|q)\s*)?(\d{1,3}(?:\.\d{1,3}){0,4}|[A-Z]\d{0,2}|[a-z]|\([a-z]\))[\s).:-]+(.+)/i;
-const PROMPT_ACTION = /\b(describe|explain|provide|identify|list|include|demonstrate|submit|detail|discuss|respond|response|narrative|approach|plan)\b/i;
+const QUESTION_START =
+  /^(?:(?:question|q)\s*)?(\d{1,3}(?:\.\d{1,3}){0,4}|[A-Z]\d{0,2}|[a-z]|\([a-z]\))[\s).:-]+(.+)/i;
+const PROMPT_ACTION =
+  /\b(describe|explain|provide|identify|list|include|demonstrate|submit|detail|discuss|respond|response|narrative|approach|plan)\b/i;
 
 function compactRfpTextForAi(text: string): string {
-  const normalized = text.replace(/\r/g, "\n").replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim();
+  const normalized = text
+    .replace(/\r/g, "\n")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
   const lines = normalized
     .split(/\n+/)
     .map((line) => line.trim())
@@ -36,7 +42,8 @@ function compactRfpTextForAi(text: string): string {
 
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i];
-    const looksLikePrompt = line.includes("?") || (QUESTION_START.test(line) && PROMPT_ACTION.test(line));
+    const looksLikePrompt =
+      line.includes("?") || (QUESTION_START.test(line) && PROMPT_ACTION.test(line));
     if (!looksLikePrompt) continue;
     addLine(i - 1);
     addLine(i);
