@@ -167,9 +167,7 @@ export function StudioHealthStrip({ missionId }: { missionId: string }) {
       {data.submissionDate && (
         <>
           <Sep />
-          <span style={subTextColor ? { color: subTextColor } : undefined}>
-            Submission {fmtDate(data.submissionDate)}
-          </span>
+          <SubmissionCountdown date={data.submissionDate} />
         </>
       )}
     </Link>
