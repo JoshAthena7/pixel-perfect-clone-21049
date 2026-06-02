@@ -120,7 +120,7 @@ function VaultPage() {
       added_by: user?.email ?? null,
       added_by_id: user?.id ?? null,
     }).select("id").single();
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Link added");
     await logOlympusAction({
       action_type: "vault.add_link",
