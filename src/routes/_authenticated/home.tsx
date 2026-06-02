@@ -1,7 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { irisLeadershipAttention } from "@/lib/iris.functions";
 import { AttentionBadge } from "@/components/v2/AttentionBadge";
@@ -15,6 +15,7 @@ import type { ReactNode } from "react";
 export const Route = createFileRoute("/_authenticated/home")({
   component: AthenaHQ,
 });
+
 
 function EmptyState({ icon, title, subtitle, cta }: { icon: ReactNode; title: string; subtitle?: string; cta?: ReactNode }) {
   return (
@@ -82,6 +83,34 @@ function AthenaHQ() {
     },
   });
   const isLeader = myRole === "admin" || myRole === "lead";
+
+  // CHANGE 5: Writers with exactly one active mission skip the Lobby.
+  const navigate = useNavigate();
+  const { data: writerMissions } = useQuery({
+    queryKey: ["writer-active-missions", myRole],
+    enabled: myRole === "writer",
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [] as string[];
+      const { data } = await supabase
+        .from("mission_members")
+        .select("mission_id, missions!inner(status)")
+        .eq("user_id", user.id)
+        .eq("role", "writer")
+        .eq("missions.status", "Active");
+      return Array.from(new Set((data ?? []).map((r: any) => r.mission_id))) as string[];
+    },
+  });
+  useEffect(() => {
+    if (myRole === "writer" && writerMissions && writerMissions.length === 1) {
+      navigate({
+        to: "/missions/$missionId/questions",
+        params: { missionId: writerMissions[0] },
+        replace: true,
+      });
+    }
+  }, [myRole, writerMissions, navigate]);
+
 
 
   const { data: missions = [], isLoading: missionsLoading } = useQuery({

@@ -1,12 +1,101 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { relativeTime } from "@/lib/signals";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/questions/")({
   component: ResponsesList,
 });
+
+function MissionBriefStrip({ missionId }: { missionId: string }) {
+  const [open, setOpen] = useState(false);
+
+  const { data: mission } = useQuery({
+    queryKey: ["brief-strip-mission", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("missions")
+        .select("name,client,submission_date")
+        .eq("id", missionId)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  const { data: activeGate } = useQuery({
+    queryKey: ["brief-strip-gate", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_review_gates")
+        .select("gate_name,target_date")
+        .eq("mission_id", missionId)
+        .order("gate_order");
+      const upcoming = (data ?? []).find(
+        (g: any) => g.target_date && new Date(g.target_date) >= new Date(),
+      );
+      return upcoming ?? null;
+    },
+  });
+
+  const { data: latestSignal } = useQuery({
+    queryKey: ["brief-strip-signal", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("signals")
+        .select("signal_title,created_at")
+        .eq("mission_id", missionId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  const submission = mission?.submission_date
+    ? new Date(mission.submission_date).toLocaleDateString()
+    : "—";
+
+  return (
+    <div className="mb-6 rounded-[10px] border border-border bg-surface/80">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-between px-4 py-2.5 text-left text-xs"
+      >
+        <span className="flex items-center gap-2 font-semibold text-foreground">
+          <span className="text-[color:var(--athena-gold)]">⚡</span>
+          {mission?.name ?? "Mission"}
+        </span>
+        {open ? (
+          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+        ) : (
+          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+        )}
+      </button>
+      {open && (
+        <div className="grid grid-cols-2 gap-x-6 gap-y-2 border-t border-border px-4 py-3 text-[11px] md:grid-cols-4">
+          <BriefCell label="Client" value={mission?.client ?? "—"} />
+          <BriefCell label="Submission Date" value={submission} />
+          <BriefCell label="Current Gate" value={activeGate?.gate_name ?? "No active gate"} />
+          <BriefCell label="IRIS Alert" value={latestSignal?.signal_title ?? "No alerts"} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BriefCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0">
+      <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+        {label}
+      </div>
+      <div className="mt-0.5 truncate text-foreground">{value}</div>
+    </div>
+  );
+}
+
 
 type Q = {
   id: string;
@@ -111,19 +200,12 @@ function ResponsesList() {
 
   return (
     <div className="mx-auto max-w-[1200px] px-8 py-10">
-      <div className="mb-8 flex items-end justify-between">
-        <div>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">The Studio</div>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">Responses</h1>
-        </div>
-        <Link
-          to="/missions/$missionId/overview"
-          params={{ missionId }}
-          className="text-xs text-muted-foreground hover:text-foreground"
-        >
-          ← Mission Home
-        </Link>
+      <MissionBriefStrip missionId={missionId} />
+      <div className="mb-8">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">The Studio</div>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight">Responses</h1>
       </div>
+
 
       <div className="mb-5 flex flex-wrap gap-2">
         {([

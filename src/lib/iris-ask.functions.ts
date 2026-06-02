@@ -54,3 +54,48 @@ export const irisAskQuestion = createServerFn({ method: "POST" })
       return { answer: `_IRIS error: ${e?.message ?? "unknown"}._` };
     }
   });
+
+export const irisAskMission = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({
+      missionId: z.string().uuid(),
+      prompt: z.string().min(1).max(2000),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const { data: m } = await supabase
+      .from("missions")
+      .select("name,client,state,description,submission_date")
+      .eq("id", data.missionId)
+      .maybeSingle();
+    if (!m) throw new Error("Mission not found");
+
+    const apiKey = process.env.LOVABLE_API_KEY;
+    if (!apiKey) {
+      return { answer: "_IRIS is not yet configured (missing LOVABLE_API_KEY)._" };
+    }
+
+    const sys = `You are IRIS, an intelligence analyst for Medicaid procurement consultants. Answer the user's question about this mission with sharp, concise, actionable guidance. No filler. Use short paragraphs or bullets.`;
+    const user = `Mission: ${m.name} · Client: ${m.client ?? "—"} · State: ${m.state ?? "—"}\nSubmission: ${m.submission_date ?? "—"}\nDescription: ${m.description ?? "(none)"}\n\nUser asks: ${data.prompt}`;
+
+    try {
+      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: sys },
+            { role: "user", content: user },
+          ],
+        }),
+      });
+      if (!res.ok) return { answer: `_IRIS gateway returned ${res.status}._` };
+      const json: any = await res.json();
+      return { answer: (json?.choices?.[0]?.message?.content as string) ?? "_No response._" };
+    } catch (e: any) {
+      return { answer: `_IRIS error: ${e?.message ?? "unknown"}._` };
+    }
+  });
