@@ -43,7 +43,6 @@ function VaultPage() {
   const [uploadIsRfp, setUploadIsRfp] = useState(true);
   const [dragOver, setDragOver] = useState(false);
   const [parsePromptFor, setParsePromptFor] = useState<{ id: string; name: string } | null>(null);
-  const [configureFor, setConfigureFor] = useState<{ id: string; name: string } | null>(null);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [reviewDocId, setReviewDocId] = useState<string | undefined>(undefined);
 
