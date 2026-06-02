@@ -59,7 +59,10 @@ export type MissionProfile = {
   competitors: string[];
   win_themes: string[];
   priority_topics: string[];
+  focus_areas: string[];
+  search_terms: string[];
 };
+
 
 export type IntelItem = {
   id: string;
@@ -118,7 +121,7 @@ export function scoreItem(item: IntelItem, profile: MissionProfile): ScoredItem 
   let score = 0;
 
   const mentionsState = mentionsStateAware(text, profile.state);
-  if (mentionsState) score += 3;
+  if (mentionsState) score += 4;
 
   const mentionsClient = !!profile.client && containsWord(text, profile.client);
   if (mentionsClient) score += 3;
@@ -132,9 +135,15 @@ export function scoreItem(item: IntelItem, profile: MissionProfile): ScoredItem 
   const matchedTopics = profile.priority_topics.filter((t) => t && containsWord(text, t));
   score += matchedTopics.length * 2;
 
-  const isFederal = /\b(cms|federal register|hhs|congress|medicare|medicaid)\b/.test(text) || (item.source ?? "").toLowerCase().includes("federal");
-  if (isFederal) score += 1;
+  const matchedFocus = profile.focus_areas.filter((t) => t && containsWord(text, t));
+  score += matchedFocus.length * 2;
 
+  const matchedTerms = profile.search_terms.filter((t) => t && containsWord(text, t));
+  score += matchedTerms.length * 2;
+
+  const isFederal = /\b(cms|federal register|hhs|congress|medicare|medicaid)\b/.test(text) || (item.source ?? "").toLowerCase().includes("federal");
+
+  const allTopics = [...matchedThemes, ...matchedTopics, ...matchedFocus, ...matchedTerms];
   const level: ScoredItem["level"] = score >= 5 ? "HIGH" : score >= 2 ? "MEDIUM" : "LOW";
 
   // Compose IRIS Insight
@@ -144,14 +153,16 @@ export function scoreItem(item: IntelItem, profile: MissionProfile): ScoredItem 
   if (matchedCompetitors.length) bits.push(`names competitor ${matchedCompetitors[0]}`);
   if (matchedThemes.length) bits.push(`reinforces win theme "${matchedThemes[0]}"`);
   if (matchedTopics.length) bits.push(`supports priority topic "${matchedTopics[0]}"`);
-  if (!bits.length && isFederal) bits.push("federal guidance worth tracking for compliance posture");
+  if (matchedFocus.length) bits.push(`relevant to focus area "${matchedFocus[0]}"`);
+  if (matchedTerms.length && !matchedFocus.length && !matchedTopics.length) bits.push(`matches IRIS search term "${matchedTerms[0]}"`);
 
   const insight = bits.length
     ? `This may strengthen your proposal — ${bits.join("; ")}.`
     : "Background context for the procurement landscape.";
 
-  return { item, score, level, matchedThemes, matchedTopics, matchedCompetitors, mentionsState, mentionsClient, isFederal, insight };
+  return { item, score, level, matchedThemes: allTopics, matchedTopics, matchedCompetitors, mentionsState, mentionsClient, isFederal, insight };
 }
+
 
 export function scoreAll(items: IntelItem[], profile: MissionProfile): ScoredItem[] {
   return items

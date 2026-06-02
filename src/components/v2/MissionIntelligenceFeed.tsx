@@ -17,6 +17,8 @@ type MissionRow = {
   win_themes: string[] | null;
   priority_topics: string[] | null;
   competitors: string[] | null;
+  focus_areas: string[] | null;
+  iris_search_terms: string[] | null;
 };
 
 export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
@@ -28,7 +30,7 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
     queryFn: async () => {
       const { data } = await supabase
         .from("missions")
-        .select("id,name,client,state,program_type,win_themes,priority_topics,competitors")
+        .select("id,name,client,state,program_type,win_themes,priority_topics,competitors,focus_areas,iris_search_terms")
         .eq("id", missionId)
         .maybeSingle();
       return data as MissionRow | null;
@@ -53,7 +55,10 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
     competitors: mission?.competitors ?? [],
     win_themes: mission?.win_themes ?? [],
     priority_topics: mission?.priority_topics ?? [],
+    focus_areas: mission?.focus_areas ?? [],
+    search_terms: mission?.iris_search_terms ?? [],
   }), [mission]);
+
 
   const scored = useMemo(() => scoreAll(items, profile), [items, profile]);
   const hasNonLow = scored.some((s) => s.level !== "LOW");
@@ -87,7 +92,10 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
     !mission?.state && !mission?.client &&
     (mission?.win_themes ?? []).length === 0 &&
     (mission?.priority_topics ?? []).length === 0 &&
+    (mission?.focus_areas ?? []).length === 0 &&
+    (mission?.iris_search_terms ?? []).length === 0 &&
     (mission?.competitors ?? []).length === 0;
+
 
   return (
     <div className="space-y-5">
@@ -117,10 +125,13 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
                 <ProfileRow label="State" value={mission?.state} />
                 <ProfileRow label="Client" value={mission?.client} />
                 <ProfileRow label="Program" value={mission?.program_type} />
+                <ProfileTags label="Focus Areas" tags={mission?.focus_areas ?? []} tone="primary" />
+                <ProfileTags label="IRIS Search Terms" tags={mission?.iris_search_terms ?? []} />
                 <ProfileTags label="Win Themes" tags={mission?.win_themes ?? []} tone="primary" />
                 <ProfileTags label="Priority Topics" tags={mission?.priority_topics ?? []} />
                 <ProfileTags label="Competitors" tags={mission?.competitors ?? []} tone="warn" />
               </dl>
+
             )}
           </div>
         )}
