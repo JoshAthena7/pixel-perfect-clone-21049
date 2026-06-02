@@ -521,6 +521,14 @@ function IrisOperationsPanel() {
     },
   });
 
+  const { data: missionsList = [] } = useQuery({
+    queryKey: ["olympus-missions-list"],
+    queryFn: async () => {
+      const { data } = await supabase.from("missions").select("id,name,client").order("name");
+      return (data ?? []) as Array<{ id: string; name: string; client: string }>;
+    },
+  });
+
   async function runRfpParse(documentId: string, label: string) {
     setRunning(`rfp:${documentId}`);
     try {
