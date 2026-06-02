@@ -87,28 +87,30 @@ function MissionSettingsForm({ missionId }: { missionId: string }) {
   }
 
   async function save() {
-    if (!form.name.trim() || !form.client.trim()) return toast.error("Name and client are required");
+    const f = form;
+    if (!f) return;
+    if (!f.name.trim() || !f.client.trim()) { toast.error("Name and client are required"); return; }
     setBusy(true);
     const { error } = await supabase.from("missions").update({
-      name: form.name.trim(),
-      client: form.client.trim(),
-      state: form.state?.trim() || null,
-      status: form.status,
-      health: form.health,
-      submission_date: form.submission_date || null,
-      description: form.description?.trim() || null,
-      program_type: form.program_type?.trim() || null,
-      win_themes: form.win_themes,
-      priority_topics: form.priority_topics,
-      competitors: form.competitors,
-      slack_webhook: form.slack_webhook?.trim() || null,
+      name: f.name.trim(),
+      client: f.client.trim(),
+      state: f.state?.trim() || null,
+      status: f.status,
+      health: f.health,
+      submission_date: f.submission_date || null,
+      description: f.description?.trim() || null,
+      program_type: f.program_type?.trim() || null,
+      win_themes: f.win_themes,
+      priority_topics: f.priority_topics,
+      competitors: f.competitors,
+      slack_webhook: f.slack_webhook?.trim() || null,
     }).eq("id", missionId);
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Mission updated");
     await logOlympusAction({
       action_type: "mission.update",
-      action_summary: `Updated mission "${form.name.trim()}"`,
+      action_summary: `Updated mission "${f.name.trim()}"`,
       mission_id: missionId,
       target_table: "missions",
       target_id: missionId,
