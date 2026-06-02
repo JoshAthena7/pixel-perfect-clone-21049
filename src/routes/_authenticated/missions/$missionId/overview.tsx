@@ -209,6 +209,33 @@ function MissionOverviewPage() {
     },
   });
 
+  // ADD 7: writers in this mission (denominator for read receipts)
+  const { data: writerMembers = [] } = useQuery<Array<{ user_id: string }>>({
+    queryKey: ["overview-writer-members", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_members")
+        .select("user_id,role")
+        .eq("mission_id", missionId)
+        .eq("role", "writer");
+      return (data ?? []) as Array<{ user_id: string }>;
+    },
+  });
+
+  // ADD 7: note read receipts
+  const noteIds = notes.map((n) => n.id);
+  const { data: noteReads = [] } = useQuery<Array<{ note_id: string; user_id: string }>>({
+    queryKey: ["overview-note-reads", missionId, noteIds.join(",")],
+    enabled: noteIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("note_reads")
+        .select("note_id,user_id")
+        .in("note_id", noteIds);
+      return (data ?? []) as Array<{ note_id: string; user_id: string }>;
+    },
+  });
+
   // ── DERIVATIONS ──────────────────────────────────────
   const qById = useMemo(() => new Map(questions.map((q) => [q.id, q])), [questions]);
 
