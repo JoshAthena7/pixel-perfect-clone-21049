@@ -3,6 +3,8 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { FileText, ExternalLink, Search } from "lucide-react";
+import { VaultIcon } from "@/components/v2/icons/AtlasIcons";
+
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/library")({
   component: LibraryPage,
