@@ -7,9 +7,10 @@ import { irisLeadershipAttention } from "@/lib/iris.functions";
 import { AttentionBadge } from "@/components/v2/AttentionBadge";
 import { relativeTime } from "@/lib/signals";
 import { MissionGridSkeleton, QuestionListSkeleton } from "@/components/v2/Skeletons";
-import { ArrowRight, Megaphone, CalendarClock, DoorOpen, ClipboardList, Search, Globe, Sparkles, Mountain } from "lucide-react";
+import { ArrowRight, Megaphone, CalendarClock, DoorOpen, ClipboardList, Search, Globe, Sparkles, Mountain, ChevronDown, ChevronRight } from "lucide-react";
 import { HORIZON_FILTERS, inferCategory, matchesHorizonFilter, type IntelItem } from "@/lib/intelligence-feed";
 import { LiveBadge, ScanningBeam, IrisWaveform, TypewriterText } from "@/components/v2/effects";
+import athenaLogo from "@/assets/athena-logo.png";
 import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/_authenticated/home")({
@@ -146,6 +147,61 @@ function AthenaHQ() {
     },
   });
 
+
+  const missionIds = missions.map((m) => m.id);
+
+  // PHASE 7: per-mission questions (for next deadline + computed health)
+  const { data: missionQuestions = [] } = useQuery({
+    queryKey: ["hq-mission-questions", missionIds.join(",")],
+    enabled: missionIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("question_records")
+        .select("id,mission_id,question_number,title,pens_down_date,health")
+        .in("mission_id", missionIds);
+      return (data ?? []) as Array<{ id: string; mission_id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null }>;
+    },
+  });
+
+  // PHASE 7: latest signal/collab per mission
+  const { data: lastSignalByMission = {} } = useQuery({
+    queryKey: ["hq-last-signal", missionIds.join(",")],
+    enabled: missionIds.length > 0,
+    queryFn: async () => {
+      const [collabRes, signalRes, realityRes] = await Promise.all([
+        supabase.from("question_collaboration").select("mission_id,created_at").in("mission_id", missionIds).order("created_at", { ascending: false }).limit(500),
+        supabase.from("signals").select("mission_id,created_at").in("mission_id", missionIds).order("created_at", { ascending: false }).limit(500),
+        supabase.from("reality_updates").select("mission_id,created_at").in("mission_id", missionIds).order("created_at", { ascending: false }).limit(500),
+      ]);
+      const map: Record<string, string> = {};
+      for (const row of [...(collabRes.data ?? []), ...(signalRes.data ?? []), ...(realityRes.data ?? [])] as any[]) {
+        if (!map[row.mission_id] || new Date(row.created_at) > new Date(map[row.mission_id])) {
+          map[row.mission_id] = row.created_at;
+        }
+      }
+      return map;
+    },
+  });
+
+  // PHASE 7: unresolved "I Need Something" per mission (leaders only)
+  const { data: needsByMission = {} } = useQuery({
+    queryKey: ["hq-needs", missionIds.join(","), isLeader],
+    enabled: isLeader && missionIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("reality_updates")
+        .select("mission_id")
+        .in("mission_id", missionIds)
+        .eq("signal_type", "need")
+        .eq("resolved", false);
+      const counts: Record<string, number> = {};
+      for (const row of (data ?? []) as any[]) {
+        counts[row.mission_id] = (counts[row.mission_id] ?? 0) + 1;
+      }
+      return counts;
+    },
+  });
+
   const attentionFn = useServerFn(irisLeadershipAttention);
   const { data: attention } = useQuery({
     queryKey: ["leadership-attention"],
@@ -191,12 +247,39 @@ function AthenaHQ() {
     return da - db;
   });
 
+  // PHASE 7: leader shortcut — most recently viewed mission
+  const lastViewedMissionId = typeof window !== "undefined" ? sessionStorage.getItem("athena:last-mission") : null;
+  const leaderShortcutMissionId = lastViewedMissionId && missions.find((m) => m.id === lastViewedMissionId)
+    ? lastViewedMissionId
+    : missions[0]?.id;
+
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   const statusLabel = totalAttention === 0
     ? "All systems operational"
     : `${totalAttention} ${totalAttention === 1 ? "item needs" : "items need"} attention`;
+
+  // PHASE 7 / CHANGE 5: writer with 0 active missions — show only welcome message
+  if (myRole === "writer" && writerMissions && writerMissions.length === 0) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-6">
+        <div className="max-w-md text-center">
+          <img src={athenaLogo} alt="Athena" className="mx-auto mb-8 h-12 w-auto opacity-80" />
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Welcome to Athena Command.</h1>
+          <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
+            You haven't been assigned to a mission yet.<br />
+            Your Engagement Lead will add you once your mission is activated.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // While we're about to redirect a single-mission writer, render nothing
+  if (myRole === "writer" && writerMissions && writerMissions.length === 1) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -231,11 +314,21 @@ function AthenaHQ() {
         {/* ROLE-DIFFERENTIATED: Active Missions (leaders) or Your Assignments (writers/SMEs) */}
         {isLeader ? (
           <section>
-            <div className="mb-5 flex items-end justify-between">
+            <div className="mb-5 flex items-end justify-between gap-4">
               <div>
                 <h2 className="h2-label">Active Missions</h2>
                 <p className="mt-1.5 text-2xl font-semibold tracking-tight">{missions.length} in flight</p>
               </div>
+              {/* PHASE 7 / CHANGE 2: leader shortcut */}
+              {leaderShortcutMissionId && (
+                <Link
+                  to="/command/attention"
+                  className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-surface-hover transition-colors"
+                >
+                  Command Center
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              )}
             </div>
 
             {missionsLoading ? (
@@ -254,9 +347,20 @@ function AthenaHQ() {
               />
             ) : (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {missions.map((m) => (
-                  <MissionCard key={m.id} mission={m} attention={attMap.get(m.id) ?? 0} />
-                ))}
+                {missions.map((m) => {
+                  const qs = missionQuestions.filter((q) => q.mission_id === m.id);
+                  return (
+                    <MissionCard
+                      key={m.id}
+                      mission={m}
+                      attention={attMap.get(m.id) ?? 0}
+                      questions={qs}
+                      lastSignalAt={lastSignalByMission[m.id] ?? null}
+                      needsCount={needsByMission[m.id] ?? 0}
+                      showNeedsBadge={isLeader}
+                    />
+                  );
+                })}
               </div>
             )}
           </section>
@@ -320,37 +424,74 @@ function AthenaHQ() {
         )}
 
 
-        {/* HORIZON FEED — firm-wide industry intelligence */}
-        <HorizonFeed items={horizonItems} missionCount={missions.length} />
+        {/* PHASE 7 / CHANGE 4: Firm Intel — collapsed by default */}
+        <FirmIntel
+          horizonItems={horizonItems}
+          missionCount={missions.length}
+          leadershipMessages={leadershipMessages as any[]}
+          pipeline={pipeline}
+        />
+      </div>
+    </div>
+  );
+}
 
-        {/* LEADERSHIP MESSAGES */}
-        <section className="rounded-[12px] border border-border bg-surface">
-          <div className="flex items-center justify-between border-b border-border px-5 py-4">
-            <div className="flex items-center gap-2">
-              <Megaphone className="h-3.5 w-3.5 text-primary" />
-              <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Leadership Messages</h3>
+function FirmIntel({
+  horizonItems,
+  missionCount,
+  leadershipMessages,
+  pipeline,
+}: {
+  horizonItems: IntelItem[];
+  missionCount: number;
+  leadershipMessages: any[];
+  pipeline: Mission[];
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <section className="rounded-[12px] border border-border bg-surface/50">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between px-5 py-3 text-left hover:bg-surface-hover transition-colors rounded-[12px]"
+      >
+        <span className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+          Firm Intel
+        </span>
+        <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+          Horizon · Leadership · Pipeline
+        </span>
+      </button>
+      {open && (
+        <div className="border-t border-border p-5 space-y-8">
+          <HorizonFeed items={horizonItems} missionCount={missionCount} />
+
+          <section className="rounded-[12px] border border-border bg-surface">
+            <div className="flex items-center justify-between border-b border-border px-5 py-4">
+              <div className="flex items-center gap-2">
+                <Megaphone className="h-3.5 w-3.5 text-primary" />
+                <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Leadership Messages</h3>
+              </div>
+              <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Firm-wide</span>
             </div>
-            <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Firm-wide</span>
-          </div>
-          <ul className="divide-y divide-border">
-            {leadershipMessages.length === 0 && (
-              <li className="px-5 py-8 text-center text-sm text-muted-foreground">No broadcasts yet. Leadership messages will appear here.</li>
-            )}
-            {leadershipMessages.map((m: any) => (
-              <li key={m.id} className="px-5 py-4">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-semibold text-foreground">{m.from_name}</span>
-                  <span className="text-[10px] text-muted-foreground">{relativeTime(m.created_at)}</span>
-                </div>
-                <p className="mt-1 text-sm text-foreground/90 leading-relaxed">{m.text}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
+            <ul className="divide-y divide-border">
+              {leadershipMessages.length === 0 && (
+                <li className="px-5 py-8 text-center text-sm text-muted-foreground">No broadcasts yet. Leadership messages will appear here.</li>
+              )}
+              {leadershipMessages.map((m: any) => (
+                <li key={m.id} className="px-5 py-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-semibold text-foreground">{m.from_name}</span>
+                    <span className="text-[10px] text-muted-foreground">{relativeTime(m.created_at)}</span>
+                  </div>
+                  <p className="mt-1 text-sm text-foreground/90 leading-relaxed">{m.text}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
 
-        {/* PIPELINE HORIZON */}
-        <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-          <div className="lg:col-span-5 rounded-[12px] border border-border bg-surface">
+          <section className="rounded-[12px] border border-border bg-surface">
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
               <div className="flex items-center gap-2">
                 <CalendarClock className="h-3.5 w-3.5 text-primary" />
@@ -400,14 +541,31 @@ function AthenaHQ() {
                 );
               })}
             </ul>
-          </div>
-        </section>
-      </div>
-    </div>
+          </section>
+        </div>
+      )}
+    </section>
   );
 }
 
-function MissionCard({ mission, attention }: { mission: Mission; attention: number }) {
+
+type MissionCardQ = { id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null };
+
+function MissionCard({
+  mission,
+  attention,
+  questions,
+  lastSignalAt,
+  needsCount,
+  showNeedsBadge,
+}: {
+  mission: Mission;
+  attention: number;
+  questions: MissionCardQ[];
+  lastSignalAt: string | null;
+  needsCount: number;
+  showNeedsBadge: boolean;
+}) {
   const days = mission.submission_date
     ? Math.ceil((new Date(mission.submission_date).getTime() - Date.now()) / 86400000)
     : null;
@@ -416,33 +574,96 @@ function MissionCard({ mission, attention }: { mission: Mission; attention: numb
     : days <= 21 ? "text-amber-400"
     : "text-foreground";
 
+  // Computed mission health from question health
+  const qHealths = questions.map((q) => (q.health ?? "").toLowerCase());
+  const computedHealth = qHealths.includes("red") ? "Red"
+    : qHealths.includes("yellow") ? "Yellow"
+    : qHealths.length > 0 && qHealths.every((h) => h === "green") ? "Green"
+    : mission.health;
+
+  // Nearest pens-down across questions
+  const nextQ = questions
+    .filter((q) => q.pens_down_date)
+    .sort((a, b) => new Date(a.pens_down_date!).getTime() - new Date(b.pens_down_date!).getTime())[0];
+  const nextDate = nextQ?.pens_down_date ? new Date(nextQ.pens_down_date) : null;
+  const nextDays = nextDate ? Math.ceil((nextDate.getTime() - Date.now()) / 86400000) : null;
+  const nextDateLabel = nextDate ? nextDate.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : null;
+  const nextIsUrgent = nextDays !== null && nextDays <= 7;
+
+  // IRIS one-liner
+  const redCount = qHealths.filter((h) => h === "red").length;
+  const yellowCount = qHealths.filter((h) => h === "yellow").length;
+  const oneLiner = questions.length === 0
+    ? "Activate this mission to begin IRIS intelligence."
+    : computedHealth === "Red"
+    ? `${redCount} ${redCount === 1 ? "question" : "questions"} at risk — leadership attention needed.`
+    : computedHealth === "Yellow"
+    ? `${yellowCount} ${yellowCount === 1 ? "question" : "questions"} need attention.`
+    : "All questions on track.";
+
+  // Last signal
+  const signalAgeMs = lastSignalAt ? Date.now() - new Date(lastSignalAt).getTime() : null;
+  const noSignalToday = signalAgeMs === null || signalAgeMs > 24 * 60 * 60 * 1000;
+
+  // Health border + glow
+  const borderColor = computedHealth === "Green" ? "var(--green, #22c55e)"
+    : computedHealth === "Red" ? "var(--red, #ef4444)"
+    : "var(--yellow, #f59e0b)";
+  const glow = computedHealth === "Green" ? "0 0 12px rgba(34,197,94,0.25)"
+    : computedHealth === "Red" ? "0 0 12px rgba(239,68,68,0.25)"
+    : "0 0 12px rgba(245,158,11,0.25)";
+
   return (
     <Link
       to="/missions/$missionId/overview"
       params={{ missionId: mission.id }}
-      data-health={mission.health}
-      className={`mission-card group relative block rounded-[12px] border border-border border-l-4 bg-surface p-5 transition-all duration-200 ease-out hover:-translate-y-0.5 ${HEALTH_GLOW[mission.health] ?? ""}`}
-      style={{ minHeight: 140 }}
+      data-health={computedHealth}
+      onClick={() => { try { sessionStorage.setItem("athena:last-mission", mission.id); } catch {} }}
+      className="mission-card-v7 group relative block rounded-[12px] border border-border bg-surface p-5 transition-all duration-200 ease-out hover:-translate-y-[3px] hover:border-foreground/30"
+      style={{
+        minHeight: 140,
+        borderLeftWidth: 4,
+        borderLeftColor: borderColor,
+        boxShadow: glow,
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = `${glow}, 0 8px 24px rgba(0,0,0,0.3)`; }}
+      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = glow; }}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h3 className="truncate text-[1.1rem] font-bold text-foreground">{mission.name}</h3>
           <p className="mt-0.5 text-xs text-muted-foreground truncate">{mission.client}{mission.state ? ` · ${mission.state}` : ""}</p>
+          {/* IRIS one-liner */}
+          <p className="mt-2 text-[12px] italic text-muted-foreground/90 line-clamp-2">{oneLiner}</p>
+          {/* Next deadline */}
+          {nextQ && nextDateLabel && (
+            <p className="mt-1.5 text-[11px] text-muted-foreground truncate">
+              Next: <span className={nextIsUrgent && computedHealth !== "Green" ? "text-destructive font-medium" : "text-foreground/90"}>{nextDateLabel}</span>
+              {" · "}
+              <span className="mono-q font-semibold">{nextQ.question_number}</span>{" "}{nextQ.title}
+            </p>
+          )}
         </div>
-        {attention > 0 && (
-          <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold mono ${
-            attention >= 50 ? "border-destructive/40 bg-destructive/10 text-destructive" :
-            attention >= 20 ? "border-amber-500/40 bg-amber-500/10 text-amber-400" :
-            "border-primary/30 bg-primary/5 text-primary"
-          }`}>
-            ATT {attention}
-          </span>
-        )}
+        <div className="flex flex-col items-end gap-1.5 shrink-0">
+          {showNeedsBadge && needsCount > 0 && (
+            <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-semibold text-white">
+              {needsCount} {needsCount === 1 ? "need" : "needs"}
+            </span>
+          )}
+          {attention > 0 && (
+            <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold mono ${
+              attention >= 50 ? "border-destructive/40 bg-destructive/10 text-destructive" :
+              attention >= 20 ? "border-amber-500/40 bg-amber-500/10 text-amber-400" :
+              "border-primary/30 bg-primary/5 text-primary"
+            }`}>
+              ATT {attention}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="mt-4 flex items-center gap-3">
-        <span className={`dot dot-${mission.health.toLowerCase()}`} />
-        <span className="text-xs font-medium text-foreground/90">{mission.health}</span>
+        <span className="text-xs font-medium text-foreground/90">{computedHealth}</span>
         {days !== null && (
           <span className={`ml-auto text-xl font-semibold mono-days leading-none ${countdownTone}`}>
             {days < 0 ? `${Math.abs(days)}d` : `${days}d`}
@@ -452,8 +673,13 @@ function MissionCard({ mission, attention }: { mission: Mission; attention: numb
 
       <div className="mt-4 flex items-center gap-2 border-t border-border pt-3">
         <span className="rounded-full bg-surface-hover px-2 py-0.5 text-[10px] text-muted-foreground mono">
-          {mission.question_count ?? 0} questions
+          {mission.question_count ?? questions.length} questions
         </span>
+        {noSignalToday ? (
+          <span className="text-[10px] text-amber-400">⚠ No signal today</span>
+        ) : (
+          <span className="text-[10px] text-muted-foreground">Last signal: {relativeTime(lastSignalAt!)}</span>
+        )}
         <span className="ml-auto inline-flex items-center gap-1 text-[11px] text-muted-foreground transition-colors group-hover:text-primary">
           Enter war room
           <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -462,6 +688,7 @@ function MissionCard({ mission, attention }: { mission: Mission; attention: numb
     </Link>
   );
 }
+
 
 function MissionPill({ name }: { name: string }) {
   return (
