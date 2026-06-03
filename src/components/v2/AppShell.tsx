@@ -18,6 +18,7 @@ import { IrisOnboardingMount } from "@/components/v2/IrisOnboardingModal";
 import { CommandPalette } from "@/components/v2/CommandPalette";
 import { IrisDock } from "@/components/v2/IrisDock";
 import { MobileBottomNav, MobileBottomNavSpacer } from "@/components/v2/MobileBottomNav";
+import { SupportCenterMount } from "@/components/v2/SupportCenter";
 import athenaSgLogo from "@/assets/athena-sg-lockup.png.asset.json";
 
 // ─── Room detection (only two rooms inside a mission) ──────────────────────
