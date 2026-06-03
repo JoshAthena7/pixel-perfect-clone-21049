@@ -7,8 +7,10 @@ import { toast } from "sonner";
 import { CalendarClock, Activity, Users, AlertTriangle, Radio, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/command/attention")({
-  component: CommandCenter,
+  component: () => <CommandCenter />,
 });
+
+export function CommandCenter({ missionId }: { missionId?: string } = {}) {
 
 type RealityUpdate = {
   id: string;
