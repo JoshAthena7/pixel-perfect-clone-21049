@@ -1329,3 +1329,110 @@ function AskDrawer({ children, onClose }: { children: React.ReactNode; onClose: 
     </>
   );
 }
+
+/* ──────────── First-visit tooltip ──────────── */
+function FirstVisitTooltip({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="pointer-events-none absolute right-4 top-4 z-30 max-w-[260px] rounded-md border px-3 py-2 text-[12px] shadow-lg animate-in fade-in"
+      style={{
+        background: "rgba(34,211,238,0.12)",
+        borderColor: "rgba(34,211,238,0.4)",
+        color: "#cffafe",
+        backdropFilter: "blur(6px)",
+      }}
+    >
+      <span className="iris-dot mr-1.5" />
+      {children}
+    </div>
+  );
+}
+
+/* ──────────── Cockpit overflow menu (Score Me · Phone a Friend · Get Help) ──────────── */
+function CockpitOverflow({
+  open, setOpen, showSublabels, primaryAction,
+  onScoreMe, onPhoneAFriend, onGetHelp,
+}: {
+  open: boolean;
+  setOpen: (b: boolean) => void;
+  showSublabels: boolean;
+  primaryAction: "read_copilot" | "check_in" | "read_iris" | "get_help" | "urgent_write" | "default";
+  onScoreMe: () => void;
+  onPhoneAFriend: () => void;
+  onGetHelp: () => void;
+}) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open, setOpen]);
+
+  const helpHighlighted = primaryAction === "get_help";
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(!open)}
+        aria-label="More actions"
+        className={`inline-flex h-9 w-9 items-center justify-center rounded-md border transition ${
+          helpHighlighted
+            ? "border-amber-500/50 bg-amber-500/15 text-amber-200 hover:bg-amber-500/25"
+            : "border-white/10 bg-transparent text-muted-foreground hover:text-foreground hover:border-white/20"
+        }`}
+      >
+        <MoreHorizontal className="h-4 w-4" />
+      </button>
+      {open && (
+        <div className="absolute bottom-full right-0 mb-2 w-[300px] overflow-hidden rounded-lg border border-white/10 bg-[#0a0e1a] shadow-2xl">
+          <OverflowItem
+            icon={<CheckCircle2 className="h-3.5 w-3.5" />}
+            label="Score Me"
+            sublabel={showSublabels ? "How would this score right now?" : undefined}
+            onClick={onScoreMe}
+          />
+          <div className="h-px bg-white/5" />
+          <OverflowItem
+            icon={<Phone className="h-3.5 w-3.5" />}
+            label="Phone a Friend"
+            sublabel={showSublabels ? "Talk to someone who has done this." : undefined}
+            onClick={onPhoneAFriend}
+          />
+          <div className="h-px bg-white/5" />
+          <OverflowItem
+            icon={<Lightbulb className="h-3.5 w-3.5" />}
+            label="Get Help"
+            sublabel={showSublabels ? "Ask leadership for what you need." : undefined}
+            onClick={onGetHelp}
+            highlighted={helpHighlighted}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OverflowItem({
+  icon, label, sublabel, onClick, highlighted,
+}: { icon: React.ReactNode; label: string; sublabel?: string; onClick: () => void; highlighted?: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex w-full items-start gap-3 px-3 py-2.5 text-left transition ${
+        highlighted ? "bg-amber-500/10 hover:bg-amber-500/15" : "hover:bg-white/5"
+      }`}
+    >
+      <span className={`mt-0.5 ${highlighted ? "text-amber-300" : "text-muted-foreground"}`}>{icon}</span>
+      <span className="flex-1">
+        <span className={`block text-sm font-semibold ${highlighted ? "text-amber-100" : "text-foreground"}`}>{label}</span>
+        {sublabel && (
+          <span className="mt-0.5 block text-[11px] text-muted-foreground">{sublabel}</span>
+        )}
+      </span>
+    </button>
+  );
+}
+
