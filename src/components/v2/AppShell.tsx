@@ -22,12 +22,13 @@ import { SupportCenterMount } from "@/components/v2/SupportCenter";
 import athenaSgLogo from "@/assets/athena-sg-lockup.png.asset.json";
 import atlasLogo from "@/assets/atlas-logo.png.asset.json";
 
-// ─── Room detection (only two rooms inside a mission) ──────────────────────
-type Room = "mission" | "studio" | null;
+// ─── Room detection (three rooms inside a mission) ─────────────────────────
+type Room = "mission" | "studio" | "brief" | null;
 
 function detectRoom(path: string, missionId?: string): Room {
   if (!missionId) return null;
   const tail = path.replace(`/missions/${missionId}`, "");
+  if (tail.startsWith("/command")) return "brief";
   // Studio = writer workspace (questions list + question workspace + ask iris)
   if (tail.startsWith("/questions") || tail.startsWith("/iris")) return "studio";
   // Everything else inside a mission is Mission Room
