@@ -514,6 +514,10 @@ function ResultStage({
           )}
         </section>
 
+        {/* COMPLIANCE CHECK */}
+        <ComplianceResultsSection analysis={analysis} />
+
+
 
         {/* SECTION B */}
         <section>
