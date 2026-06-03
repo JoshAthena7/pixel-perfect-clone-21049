@@ -19,6 +19,7 @@ import { Eye } from "lucide-react";
 import {
   Sparkles, Send, RefreshCw, AlertTriangle, MessageSquare, ChevronDown, ChevronUp,
   CheckCircle2, ArrowLeftRight, FileEdit, Lightbulb, Pin, CornerDownLeft, X, LifeBuoy,
+  MoreHorizontal, Phone, ArrowRight, Bell,
 } from "lucide-react";
 
 export const Route = createFileRoute(
