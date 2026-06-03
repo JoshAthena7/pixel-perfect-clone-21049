@@ -16,7 +16,7 @@ const SCORE_TOOL = {
         reasons: {
           type: "array",
           minItems: 3,
-          maxItems: 5,
+          maxItems: 6,
           items: {
             type: "object",
             properties: {
@@ -43,6 +43,22 @@ const SCORE_TOOL = {
               estimated_points: { type: "number" },
             },
             required: ["label", "what", "where", "suggested_language", "why", "estimated_points"],
+            additionalProperties: false,
+          },
+        },
+        compliance_findings: {
+          type: "array",
+          description: "Per-requirement compliance status. Required when compliance requirements were provided.",
+          items: {
+            type: "object",
+            properties: {
+              requirement_id: { type: "string", description: "Pass through the id provided in the prompt." },
+              requirement_source: { type: "string", enum: ["mission", "federal"] },
+              status: { type: "string", enum: ["compliant", "partial", "non_compliant", "conflicting", "unknown"] },
+              evidence: { type: "string", description: "What in the response was checked." },
+              iris_note: { type: "string", description: "Short note explaining the finding." },
+            },
+            required: ["requirement_id", "requirement_source", "status"],
             additionalProperties: false,
           },
         },
@@ -107,7 +123,7 @@ export const scoreResponse = createServerFn({ method: "POST" })
       .eq("id", q.mission_id)
       .maybeSingle();
 
-    const [{ data: themes }, { data: dnaRow }, { data: memories }] = await Promise.all([
+    const [{ data: themes }, { data: dnaRow }, { data: memories }, { data: missionComp }, { data: fedComp }] = await Promise.all([
       supabase.from("win_themes" as any).select("title,key_message").eq("mission_id", q.mission_id).eq("status", "active"),
       supabase.from("mission_intelligence_dna").select("dna").eq("mission_id", q.mission_id).eq("is_current", true).maybeSingle(),
       supabase.from("iris_memories").select("title,content,scope")
@@ -115,9 +131,49 @@ export const scoreResponse = createServerFn({ method: "POST" })
         .or(`scope.eq.global,mission_id.eq.${q.mission_id}`)
         .is("archived_at", null)
         .limit(20),
+      supabase.from("compliance_requirements")
+        .select("id,source_document,source_kind,section_reference,requirement_text,plain_language,requirement_type,severity")
+        .eq("mission_id", q.mission_id)
+        .contains("relevant_question_ids", [q.id]),
+      supabase.from("federal_compliance_library")
+        .select("id,regulation_name,citation,section_text,plain_language,severity,program_types"),
     ]);
 
     const dna = (dnaRow?.dna ?? {}) as any;
+
+    // Pick applicable federal regs (program match) — limit to most relevant for prompt size
+    const program = mission?.program_type;
+    const applicableFederal = (fedComp ?? []).filter((f: any) =>
+      !program || (f.program_types ?? []).length === 0 || (f.program_types ?? []).includes(program),
+    );
+
+    type ComplianceForPrompt = {
+      id: string;
+      source: "mission" | "federal";
+      label: string;
+      requirement: string;
+      severity: string;
+    };
+    const missionComplianceList: ComplianceForPrompt[] = (missionComp ?? []).map((m: any) => ({
+      id: m.id,
+      source: "mission",
+      label: `${m.source_document}${m.section_reference ? ` ${m.section_reference}` : ""} [${m.source_kind}]`,
+      requirement: m.plain_language ?? m.requirement_text,
+      severity: m.severity,
+    }));
+    const federalComplianceList: ComplianceForPrompt[] = applicableFederal.slice(0, 8).map((f: any) => ({
+      id: f.id,
+      source: "federal",
+      label: `${f.regulation_name} (${f.citation})`,
+      requirement: f.plain_language ?? f.section_text,
+      severity: f.severity,
+    }));
+    const allComplianceForPrompt = [...missionComplianceList, ...federalComplianceList];
+
+    const formatCompliance = (items: ComplianceForPrompt[]) =>
+      items.length === 0 ? "(none on file)" : items
+        .map((c) => `- id=${c.id} [${c.severity}] ${c.label}: ${String(c.requirement).slice(0, 350)}`)
+        .join("\n");
 
     const userMsg = `QUESTION ${q.question_number} — ${q.title}
 ${q.question_text}
@@ -148,6 +204,12 @@ ${typeof dna?.competitive_context === "string" ? dna.competitive_context : JSON.
 
 CRITICAL INSTITUTIONAL KNOWLEDGE (non-negotiable firm standards):
 ${(memories ?? []).map((m: any) => `- ${m.title}: ${String(m.content).slice(0, 400)}`).join("\n") || "(none)"}
+
+MODEL CONTRACT + STATE REGULATORY REQUIREMENTS (mission-specific):
+${formatCompliance(missionComplianceList)}
+
+FEDERAL REQUIREMENTS (applicable to this program):
+${formatCompliance(federalComplianceList)}
 
 THE RESPONSE TO SCORE:
 """
@@ -182,7 +244,25 @@ PERSON-FIRST LANGUAGE SCORING (mandatory dimension):
 - If non-person-first terms are found, add a reason with type: "person_first" and label: "PERSON-FIRST LANGUAGE". In the explanation, name each flagged term and provide the person-first alternative.
 - Apply a score deduction of −0.1 (one or two minor instances) to −0.3 (multiple instances or terms in critical sections like the opening paragraph or evaluation-criteria responses).
 - If non-person-first language appears in critical sections, include a Change with exact replacement language; this Change can be ranked first if its impact exceeds the other gaps.
-- State evaluators and CMS reviewers are trained to notice non-person-first language. Its presence signals cultural insensitivity about the population being served and lowers scores on health equity, member experience, and cultural competency sections.`;
+- State evaluators and CMS reviewers are trained to notice non-person-first language. Its presence signals cultural insensitivity about the population being served and lowers scores on health equity, member experience, and cultural competency sections.
+
+COMPLIANCE CHECKING (mandatory dimension when requirements are present):
+For each compliance requirement provided in the prompt (Model Contract, State Regulations, Federal), evaluate the response and emit one entry in compliance_findings with the requirement id (exactly as provided), source ("mission" or "federal"), and one status:
+- compliant — response clearly addresses this requirement
+- partial — response partially addresses but incompletely
+- non_compliant — response does not address this requirement
+- conflicting — response makes a commitment that conflicts with this requirement
+- unknown — cannot tell from the response alone
+
+Score impact:
+- Critical non-compliant: −0.5 per requirement
+- Critical conflicting: −0.8 per requirement
+- Significant non-compliant: −0.2 per requirement
+- Standard non-compliant: −0.1 per requirement
+
+For every non-compliant or conflicting requirement, add a reason with type: "compliance" naming the source and the gap.
+
+Compliance fixes take priority in the changes array. A non-compliant CRITICAL requirement is ALWAYS Change 1 regardless of other factors (above mandatory_language, above person-first). For each compliance change, the suggested_language MUST include the exact text that would make the response compliant — including the specific citation if required language is mandated.`;
 
     const analysis = await callScoreEngine(sys, userMsg);
     if (!analysis) {
@@ -207,6 +287,46 @@ PERSON-FIRST LANGUAGE SCORING (mandatory dimension):
       .select("id,created_at")
       .maybeSingle();
 
+    // Persist compliance findings
+    const validIds = new Set(allComplianceForPrompt.map((c) => c.id));
+    const findings = Array.isArray(analysis.compliance_findings) ? analysis.compliance_findings : [];
+    const findingRows = findings
+      .filter((f: any) => f?.requirement_id && validIds.has(f.requirement_id))
+      .map((f: any) => {
+        const ref = allComplianceForPrompt.find((c) => c.id === f.requirement_id);
+        return {
+          question_id: q.id,
+          mission_id: q.mission_id,
+          score_me_run_id: inserted?.id ?? null,
+          requirement_id: f.requirement_id,
+          requirement_source: ref?.source ?? f.requirement_source ?? "mission",
+          requirement_snapshot: ref ?? {},
+          status: f.status ?? "unknown",
+          evidence: String(f.evidence ?? "").slice(0, 2000),
+          iris_note: String(f.iris_note ?? "").slice(0, 2000),
+        };
+      });
+    if (findingRows.length > 0) {
+      await supabase.from("compliance_check_results").insert(findingRows);
+    }
+
+    // Build compliance summary for the UI
+    const findingMap = new Map<string, any>();
+    for (const f of findings) if (f?.requirement_id) findingMap.set(f.requirement_id, f);
+    const complianceSummary = allComplianceForPrompt.map((c) => {
+      const f = findingMap.get(c.id);
+      return {
+        requirement_id: c.id,
+        source: c.source,
+        label: c.label,
+        requirement: c.requirement,
+        severity: c.severity,
+        status: (f?.status as string) ?? "unknown",
+        evidence: f?.evidence ?? "",
+        iris_note: f?.iris_note ?? "",
+      };
+    });
+
     return {
       id: inserted?.id ?? null,
       created_at: inserted?.created_at ?? new Date().toISOString(),
@@ -218,6 +338,7 @@ PERSON-FIRST LANGUAGE SCORING (mandatory dimension):
       sources_used: Array.isArray(analysis.sources_used) ? analysis.sources_used : [],
       confidence: (analysis.confidence ?? "medium") as "high" | "medium" | "low",
       confidence_note: String(analysis.confidence_note ?? ""),
+      compliance: complianceSummary,
       question: {
         id: q.id,
         question_number: q.question_number,
