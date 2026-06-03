@@ -225,6 +225,7 @@ function IrisMemoryPage() {
           )}
         </div>
       </div>
+      )}
 
       {teachOpen && (
         <TeachIrisModal
