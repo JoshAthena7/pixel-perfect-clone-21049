@@ -663,13 +663,13 @@ function ResponseView() {
                 return (
                   <>
                     {intel?.state_priorities && (
-                      <IrisInsight label="State Priority" content={intel.state_priorities} confidence={confidence} sourceCount={sourceCount} />
+                      <IrisInsight label="State Priority" content={intel.state_priorities} confidence={confidence} sourceCount={sourceCount} missionId={missionId} questionId={questionId} />
                     )}
                     {intel?.procurement_priorities && (
-                      <IrisInsight label="Procurement Signal" content={intel.procurement_priorities} confidence={confidence} sourceCount={sourceCount} />
+                      <IrisInsight label="Procurement Signal" content={intel.procurement_priorities} confidence={confidence} sourceCount={sourceCount} missionId={missionId} questionId={questionId} />
                     )}
                     {intel?.competitor_signals && (
-                      <IrisInsight label="Differentiation" content={intel.competitor_signals} confidence={confidence} sourceCount={sourceCount} />
+                      <IrisInsight label="Differentiation" content={intel.competitor_signals} confidence={confidence} sourceCount={sourceCount} missionId={missionId} questionId={questionId} />
                     )}
                   </>
                 );
