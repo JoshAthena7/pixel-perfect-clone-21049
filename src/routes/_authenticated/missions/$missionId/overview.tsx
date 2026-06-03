@@ -855,7 +855,7 @@ function DateCell({
   );
 }
 
-function LeaderCard({ label, person }: { label: string; person: Member | null }) {
+function LeaderCard({ label, person, onMessage }: { label: string; person: Member | null; onMessage: (p: Member, label: string) => void }) {
   if (!person) {
     return (
       <div className="rounded-[10px] border border-dashed border-border px-4 py-3 text-center">
@@ -866,14 +866,20 @@ function LeaderCard({ label, person }: { label: string; person: Member | null })
     );
   }
   return (
-    <div className="rounded-[10px] border border-border bg-card px-4 py-3 flex items-center gap-3">
+    <button
+      type="button"
+      onClick={() => onMessage(person, label)}
+      className="group text-left rounded-[10px] border border-border bg-card px-4 py-3 flex items-center gap-3 transition-transform duration-150 hover:-translate-y-0.5 hover:border-cyan-500/40 hover:shadow-[0_4px_16px_-4px_rgba(34,211,238,0.18)] cursor-pointer w-full"
+    >
       <Avatar name={person.name} />
       <div className="min-w-0 flex-1">
         <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{label}</div>
         <div className="text-[13px] font-semibold truncate">{person.name}</div>
-        {person.email && <div className="text-[11px] text-muted-foreground truncate">{person.email}</div>}
+        <div className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1" style={{ color: "var(--iris, #22d3ee)" }}>
+          <Mail className="h-2.5 w-2.5" /> Message
+        </div>
       </div>
-    </div>
+    </button>
   );
 }
 
