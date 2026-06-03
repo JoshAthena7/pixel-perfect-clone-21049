@@ -188,9 +188,10 @@ export function CommandPalette() {
       return out;
     }
     // Pre-typing view: recents first, then quick actions, then jumps
-    for (const r of recents) {
+    for (const r of recents.slice(0, 3)) {
       out.push({ kind: "jump", item: {
-        id: `r-${r.id}`, group: "Recently visited", label: r.label, hint: r.hint, icon: iconForGroup((r.group as SearchHit["group"]) ?? "Questions"),
+        id: `r-${r.id}`, group: "Recent", label: r.label, hint: r.hint,
+        icon: <Clock size={14} className="text-muted-foreground" />,
         onGo: () => navigate({ to: r.to as any }),
       }});
     }
