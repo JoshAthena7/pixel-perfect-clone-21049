@@ -2,7 +2,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useParams, useNavigate } from "@tanstack/react-router";
 import {
   LogOut, User, Shield, Settings2,
-  Plane,
+  Plane, Search,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -152,7 +152,7 @@ function TopBar({
       <div className="flex shrink-0 items-center gap-2">
         <button
           onClick={() => {
-            window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
+            window.dispatchEvent(new CustomEvent("atlas:open-search"));
           }}
           title="Search & Jump (⌘K)"
           aria-label="Open command palette"
@@ -163,6 +163,15 @@ function TopBar({
         </button>
         <IrisStatusIndicator />
         <NotificationBell />
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent("atlas:open-search"))}
+          title="Search Atlas (⌘K)"
+          aria-label="Search Atlas"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
+        >
+          <Search size={16} strokeWidth={1.5} />
+        </button>
+        <UserAvatarMenu />
         {isPrivileged && (
           <Link
             to="/olympus"
@@ -175,7 +184,6 @@ function TopBar({
             <Settings2 size={16} strokeWidth={1.5} className="text-[color:var(--athena-gold)]" />
           </Link>
         )}
-        <UserAvatarMenu />
       </div>
     </header>
   );
