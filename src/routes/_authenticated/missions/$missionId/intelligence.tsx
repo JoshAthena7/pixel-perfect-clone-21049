@@ -91,7 +91,7 @@ function IntelligencePage() {
             <span className="text-[color:var(--red)]/60">Authorized Personnel Only</span>
           </div>
           <h1 className="mt-3 text-2xl font-light uppercase tracking-[0.18em] text-foreground">
-            Mission Intelligence
+            Briefing Room
           </h1>
           <div className="mt-1.5 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
             {[mission?.name, mission?.state, mission?.program_type].filter(Boolean).join("  ·  ")}
