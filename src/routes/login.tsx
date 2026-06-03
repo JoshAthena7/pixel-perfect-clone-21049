@@ -208,28 +208,12 @@ function LoginPage() {
             </form>
           )}
 
-          <div className="mt-12 flex flex-col items-center gap-6">
-            <div className="flex items-center gap-3">
-              <div className="h-px w-8 bg-white/10" />
-              <span className="text-[10px] uppercase tracking-[0.2em] text-white/20">
-                Authorized access only
-              </span>
-              <div className="h-px w-8 bg-white/10" />
-            </div>
-
-            <div className="flex items-center gap-6 opacity-30 grayscale transition-all duration-700 hover:opacity-100 hover:grayscale-0">
-              <div className="flex flex-col items-center">
-                <div className="mb-1 text-[8px] font-bold tracking-[0.3em] text-white">ATHENA</div>
-                <div className="h-0.5 w-10 bg-white/20" />
-              </div>
-              <div className="h-6 w-px bg-white/10" />
-              <div className="flex items-center gap-1.5">
-                <div className="flex h-3 w-3 items-center justify-center rounded-full border border-amber-500">
-                  <div className="h-1 w-1 rounded-full bg-amber-500" />
-                </div>
-                <span className="text-[9px] font-bold tracking-[0.2em] text-amber-500">IRIS</span>
-              </div>
-            </div>
+          <div className="mt-12 flex items-center justify-center gap-3">
+            <div className="h-px w-10 bg-white/10" />
+            <span className="text-[10px] uppercase tracking-[0.25em] text-white/30">
+              Authorized access only
+            </span>
+            <div className="h-px w-10 bg-white/10" />
           </div>
         </div>
       </div>
