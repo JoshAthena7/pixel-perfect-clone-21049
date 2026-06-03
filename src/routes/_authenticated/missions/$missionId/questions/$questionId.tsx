@@ -601,7 +601,50 @@ function CockpitPage() {
               <span className="iris-dot mr-2" /> IRIS is preparing your brief. Intelligence generates once the RFP is parsed.
             </p>
           )}
+          {tipStage === 0 && !isReadOnlyView && (
+            <FirstVisitTooltip>
+              This is your mission briefing. IRIS updates it every morning.
+            </FirstVisitTooltip>
+          )}
         </section>
+
+        {/* SUGGESTED QUESTION — IRIS recommends */}
+        {!isReadOnlyView && !isSME && suggestedQuestion && suggestedQuestion.id !== questionId && (
+          <section className="mb-8">
+            <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--iris, #22d3ee)" }}>
+              <span className="iris-dot mr-1.5" /> IRIS suggests starting with
+            </div>
+            <Link
+              to="/missions/$missionId/questions/$questionId"
+              params={{ missionId, questionId: suggestedQuestion.id }}
+              className="flex w-full items-center justify-between gap-3 rounded-[8px] border px-4 py-2.5 text-sm font-semibold transition hover:bg-[rgba(59,127,255,0.12)]"
+              style={{ background: "rgba(59,127,255,0.08)", borderColor: "rgba(59,127,255,0.2)" }}
+            >
+              <span className="truncate">
+                Q{suggestedQuestion.question_number} · {suggestedQuestion.title}
+              </span>
+              <ArrowRight className="h-4 w-4 shrink-0 opacity-80" />
+            </Link>
+            <div className="mt-1.5 text-[11px] text-muted-foreground">
+              {(() => {
+                const d = daysUntil(suggestedQuestion.pens_down_date);
+                const dStr = d === null ? "—" : d < 0 ? `${Math.abs(d)}d overdue` : `${d} days`;
+                const hStr = suggestedQuestion.health
+                  ? suggestedQuestion.health[0].toUpperCase() + suggestedQuestion.health.slice(1)
+                  : "—";
+                const reason = suggestedQuestion.writer_confidence === "stuck"
+                  ? "You marked it stuck"
+                  : suggestedQuestion.health === "red"
+                    ? "Most urgent"
+                    : suggestedQuestion.health === "yellow"
+                      ? "Needs attention"
+                      : "Next up";
+                return `${dStr} · ${hStr} · ${reason}`;
+              })()}
+            </div>
+          </section>
+        )}
+
 
         {/* BLOCK 2 — MY QUESTION + WHAT CHANGED */}
         <section className="mb-8 grid gap-6 md:grid-cols-[40fr_60fr]">
