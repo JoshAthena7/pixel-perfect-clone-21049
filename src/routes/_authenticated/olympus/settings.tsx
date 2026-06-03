@@ -551,3 +551,124 @@ function Row({ label, value }: { label: string; value: string | null | undefined
     </div>
   );
 }
+
+/* ────────── Support Settings (Help Center config) ────────── */
+
+type QuickLink = { label: string; url: string };
+
+function SupportSettingsPanel() {
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false);
+  const [itEmail, setItEmail] = useState("");
+  const [billingEmail, setBillingEmail] = useState("");
+  const [pmEmail, setPmEmail] = useState("");
+  const [talentUrl, setTalentUrl] = useState("");
+  const [links, setLinks] = useState<QuickLink[]>([]);
+
+  const { data } = useQuery({
+    queryKey: ["app_support_settings"],
+    queryFn: async () => {
+      const { data } = await supabase.from("app_support_settings").select("*").eq("id", 1).maybeSingle();
+      return data;
+    },
+  });
+
+  useEffect(() => {
+    if (!data) return;
+    setItEmail(data.it_contact_email ?? "");
+    setBillingEmail(data.billing_contact_email ?? "");
+    setPmEmail(data.pm_contact_email ?? "");
+    setTalentUrl(data.talent_desk_url ?? "");
+    const arr = Array.isArray(data.talent_desk_quick_links) ? (data.talent_desk_quick_links as QuickLink[]) : [];
+    setLinks(arr.length ? arr : [
+      { label: "New SOW", url: "" },
+      { label: "Submit Invoice", url: "" },
+      { label: "View Contract", url: "" },
+      { label: "Onboarding Documents", url: "" },
+      { label: "Expense Report", url: "" },
+    ]);
+  }, [data]);
+
+  async function save() {
+    setBusy(true);
+    const { error } = await supabase.from("app_support_settings").upsert({
+      id: 1,
+      it_contact_email: itEmail.trim() || null,
+      billing_contact_email: billingEmail.trim() || null,
+      pm_contact_email: pmEmail.trim() || null,
+      talent_desk_url: talentUrl.trim() || null,
+      talent_desk_quick_links: links.filter((l) => l.label.trim()),
+      updated_at: new Date().toISOString(),
+    });
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("Support settings saved");
+    qc.invalidateQueries({ queryKey: ["app_support_settings"] });
+  }
+
+  return (
+    <div className="rounded-[10px] border border-border bg-surface overflow-hidden">
+      <div className="border-b border-border px-5 py-4">
+        <h2 className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Support</h2>
+        <p className="mt-1 text-xs text-muted-foreground">Routing for the global Help (?) overlay and Talent Desk links.</p>
+      </div>
+      <div className="space-y-4 p-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <Field label="IT Support contact (email)">
+            <input value={itEmail} onChange={(e) => setItEmail(e.target.value)} placeholder="it@firm.com" className={inputCls} />
+          </Field>
+          <Field label="Billing contact (email)">
+            <input value={billingEmail} onChange={(e) => setBillingEmail(e.target.value)} placeholder="finance@firm.com" className={inputCls} />
+          </Field>
+          <Field label="Project Manager — Ask Leanne (email)">
+            <input value={pmEmail} onChange={(e) => setPmEmail(e.target.value)} placeholder="leanne@firm.com" className={inputCls} />
+          </Field>
+        </div>
+        <Field label="Talent Desk URL" hint="Main destination for the Talent Desk card.">
+          <input value={talentUrl} onChange={(e) => setTalentUrl(e.target.value)} placeholder="https://talentdesk.example.com" className={inputCls} />
+        </Field>
+        <div>
+          <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Talent Desk Quick Links</div>
+          <div className="space-y-2">
+            {links.map((l, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <input
+                  value={l.label}
+                  onChange={(e) => setLinks((arr) => arr.map((x, j) => j === i ? { ...x, label: e.target.value } : x))}
+                  placeholder="Label"
+                  className={inputCls + " max-w-[220px]"}
+                />
+                <input
+                  value={l.url}
+                  onChange={(e) => setLinks((arr) => arr.map((x, j) => j === i ? { ...x, url: e.target.value } : x))}
+                  placeholder="https://…"
+                  className={inputCls}
+                />
+                <button
+                  onClick={() => setLinks((arr) => arr.filter((_, j) => j !== i))}
+                  className="rounded-md border border-border bg-background p-2 text-muted-foreground hover:text-foreground"
+                  aria-label="Remove link"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() => setLinks((arr) => [...arr, { label: "", url: "" }])}
+            className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+          >
+            <Plus className="h-3 w-3" /> Add quick link
+          </button>
+        </div>
+        <div className="flex justify-end">
+          <button onClick={save} disabled={busy}
+            className="inline-flex items-center gap-2 rounded-md bg-[#C49A22] px-4 py-2 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50">
+            <Save className="h-4 w-4" /> {busy ? "Saving…" : "Save support settings"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
