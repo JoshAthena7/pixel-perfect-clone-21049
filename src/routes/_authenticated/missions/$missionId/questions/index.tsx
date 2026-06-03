@@ -723,7 +723,18 @@ function ResponsesList() {
 
   const myQuestionsSorted = useMemo(() => sortForWriter(myQuestions), [myQuestions]);
 
-  const visible = effectiveView === "mine" ? myQuestionsSorted : questions;
+  // Natural sort by question_number (e.g. "2.10" after "2.2")
+  const cmpNum = (a: string, b: string) => {
+    const ap = a.split(".").map((s) => parseInt(s, 10));
+    const bp = b.split(".").map((s) => parseInt(s, 10));
+    const n = Math.max(ap.length, bp.length);
+    for (let i = 0; i < n; i++) {
+      const x = ap[i] ?? 0, y = bp[i] ?? 0;
+      if (Number.isNaN(x) || Number.isNaN(y)) return a.localeCompare(b);
+      if (x !== y) return x - y;
+    }
+    return 0;
+  };
 
   // Health summary across the mission
   const healthCounts = useMemo(() => {
@@ -741,20 +752,32 @@ function ResponsesList() {
     [myQuestions],
   );
 
-  // Group All Questions by RFP section
-  const grouped = useMemo(() => {
+  // "Other" questions = everything not assigned to me (for writers).
+  // Non-writers see all questions in this section.
+  const otherQuestions = useMemo(
+    () => (isWriter && me ? questions.filter((q) => q.assigned_writer_id !== me) : questions),
+    [questions, me, isWriter],
+  );
+
+  // Group others by RFP section, sorted naturally by question_number within each.
+  const groupedOthers = useMemo(() => {
     const map = new Map<string, Q[]>();
-    for (const q of questions) {
+    for (const q of otherQuestions) {
       const sec = q.section_number?.trim() || "Unsectioned";
       if (!map.has(sec)) map.set(sec, []);
       map.get(sec)!.push(q);
     }
-    return Array.from(map.entries()).map(([section, items]) => ({
+    const entries = Array.from(map.entries()).map(([section, items]) => ({
       section,
-      items: sortForWriter(items),
-      hasMine: me ? items.some((q) => q.assigned_writer_id === me) : false,
+      items: [...items].sort((a, b) => cmpNum(a.question_number, b.question_number)),
     }));
-  }, [questions, me]);
+    entries.sort((a, b) => {
+      if (a.section === "Unsectioned") return 1;
+      if (b.section === "Unsectioned") return -1;
+      return cmpNum(a.section, b.section);
+    });
+    return entries;
+  }, [otherQuestions]);
 
   const actionQuestion = useMemo(() => {
     const pool = myQuestions.length > 0 ? myQuestions : questions;
