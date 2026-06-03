@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import atlasIrisBrand from "@/assets/atlas-iris-brand.png.asset.json";
-import athenaSgBrand from "@/assets/athena-sg-brand.png.asset.json";
+import athenaSgBrand from "@/assets/athena-sg-transparent.png.asset.json";
 
 
 export const Route = createFileRoute("/login")({
@@ -106,8 +106,7 @@ function LoginPage() {
             <img
               src={athenaSgBrand.url}
               alt="Athena Strategy Group"
-              className="h-12 w-auto object-contain opacity-60 mix-blend-luminosity"
-              style={{ filter: "brightness(0.4) contrast(1.1)" }}
+              className="h-10 w-auto object-contain opacity-90"
             />
             <div className="flex items-center gap-2">
               <span className="relative flex h-2 w-2">
