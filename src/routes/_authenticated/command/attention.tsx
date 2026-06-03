@@ -7,8 +7,9 @@ import { toast } from "sonner";
 import { CalendarClock, Activity, Users, AlertTriangle, Radio, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/command/attention")({
-  component: CommandCenter,
+  component: () => <CommandCenter />,
 });
+
 
 type RealityUpdate = {
   id: string;
@@ -58,14 +59,16 @@ function firstName(name: string) {
   return (name || "").split(/\s+/)[0] || "—";
 }
 
-function CommandCenter() {
+export function CommandCenter({ missionId }: { missionId?: string } = {}) {
   const qc = useQueryClient();
 
-  // -------- Section 1: Health bar (all questions across missions) --------
+  // -------- Section 1: Health bar (questions, optionally scoped to mission) --------
   const { data: healthCounts = { total: 0, green: 0, yellow: 0, red: 0 } } = useQuery({
-    queryKey: ["cc-health"],
+    queryKey: ["cc-health", missionId ?? "all"],
     queryFn: async () => {
-      const { data } = await supabase.from("question_records").select("health");
+      let q = supabase.from("question_records").select("health");
+      if (missionId) q = q.eq("mission_id", missionId);
+      const { data } = await q;
       const c = { total: 0, green: 0, yellow: 0, red: 0 };
       for (const r of data ?? []) {
         c.total++;
@@ -82,28 +85,30 @@ function CommandCenter() {
   // Sources: question_collaboration (decision_needed, sme_request, air_cover) unresolved,
   // PLUS reality_updates with signal_type='need' unresolved.
   const { data: collabNeeds = [] } = useQuery({
-    queryKey: ["cc-collab-needs"],
+    queryKey: ["cc-collab-needs", missionId ?? "all"],
     queryFn: async () => {
-      const { data } = await supabase
+      let q = supabase
         .from("question_collaboration")
         .select("id,question_id,mission_id,author_id,author_name,entry_type,body,resolved,created_at")
         .in("entry_type", ["decision_needed", "sme_request", "air_cover"])
-        .eq("resolved", false)
-        .order("created_at", { ascending: false });
+        .eq("resolved", false);
+      if (missionId) q = q.eq("mission_id", missionId);
+      const { data } = await q.order("created_at", { ascending: false });
       return (data ?? []) as CollabEntry[];
     },
     refetchInterval: 60_000,
   });
 
   const { data: realityNeeds = [] } = useQuery({
-    queryKey: ["cc-reality-needs"],
+    queryKey: ["cc-reality-needs", missionId ?? "all"],
     queryFn: async () => {
-      const { data } = await supabase
+      let q = supabase
         .from("reality_updates")
         .select("id,question_id,mission_id,user_id,user_name,signal_type,need_type,details,resolved,created_at")
         .eq("signal_type", "need")
-        .eq("resolved", false)
-        .order("created_at", { ascending: false });
+        .eq("resolved", false);
+      if (missionId) q = q.eq("mission_id", missionId);
+      const { data } = await q.order("created_at", { ascending: false });
       return (data ?? []) as RealityUpdate[];
     },
     refetchInterval: 60_000,
@@ -160,13 +165,15 @@ function CommandCenter() {
 
   // -------- Section 3: Responses At Risk --------
   const { data: atRisk = [] } = useQuery({
-    queryKey: ["cc-at-risk"],
+    queryKey: ["cc-at-risk", missionId ?? "all"],
     queryFn: async () => {
       const today = new Date().toISOString().slice(0, 10);
       const in14 = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10);
-      const { data: qs } = await supabase
+      let qBase = supabase
         .from("question_records")
         .select("id,mission_id,question_number,title,health,health_drivers,current_score,pens_down_date,assigned_writer_id");
+      if (missionId) qBase = qBase.eq("mission_id", missionId);
+      const { data: qs } = await qBase;
       const allQs = qs ?? [];
       const { data: conflicts } = await supabase
         .from("alignment_conflicts")
@@ -206,16 +213,16 @@ function CommandCenter() {
 
   // -------- Section 4: Gates Approaching --------
   const { data: gates = [] } = useQuery({
-    queryKey: ["cc-gates"],
+    queryKey: ["cc-gates", missionId ?? "all"],
     queryFn: async () => {
       const today = new Date().toISOString().slice(0, 10);
-      const { data: gs } = await supabase
+      let gq = supabase
         .from("mission_review_gates")
         .select("id,gate_name,target_date,mission_id")
-        .gte("target_date", today)
-        .order("target_date", { ascending: true });
+        .gte("target_date", today);
+      if (missionId) gq = gq.eq("mission_id", missionId);
+      const { data: gs } = await gq.order("target_date", { ascending: true });
       const gates = gs ?? [];
-      // Per mission, count questions not at standard
       const missionIds = Array.from(new Set(gates.map((g: any) => g.mission_id)));
       let notReady: Record<string, number> = {};
       if (missionIds.length > 0) {
@@ -235,26 +242,28 @@ function CommandCenter() {
   // -------- Section 5: What Changed (last 24h) --------
   const since24 = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
   const { data: changedCollab = [] } = useQuery({
-    queryKey: ["cc-changed-collab"],
+    queryKey: ["cc-changed-collab", missionId ?? "all"],
     queryFn: async () => {
-      const { data } = await supabase
+      let q = supabase
         .from("question_collaboration")
         .select("id,question_id,mission_id,author_id,author_name,entry_type,body,created_at")
         .gte("created_at", since24)
-        .neq("entry_type", "leadership_guidance")
-        .order("created_at", { ascending: false });
+        .neq("entry_type", "leadership_guidance");
+      if (missionId) q = q.eq("mission_id", missionId);
+      const { data } = await q.order("created_at", { ascending: false });
       return data ?? [];
     },
     refetchInterval: 60_000,
   });
   const { data: changedReality = [] } = useQuery({
-    queryKey: ["cc-changed-reality"],
+    queryKey: ["cc-changed-reality", missionId ?? "all"],
     queryFn: async () => {
-      const { data } = await supabase
+      let q = supabase
         .from("reality_updates")
         .select("id,question_id,mission_id,user_id,user_name,signal_type,need_type,details,created_at")
-        .gte("created_at", since24)
-        .order("created_at", { ascending: false });
+        .gte("created_at", since24);
+      if (missionId) q = q.eq("mission_id", missionId);
+      const { data } = await q.order("created_at", { ascending: false });
       return data ?? [];
     },
     refetchInterval: 60_000,
@@ -351,8 +360,8 @@ function CommandCenter() {
   return (
     <div className="mx-auto max-w-[1200px] px-8 py-8 space-y-8">
       <div>
-        <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">The Brief</div>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">The Brief</h1>
+        <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">{missionId ? "Mission Brief" : "The Brief"}</div>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight">{missionId ? "Mission Brief" : "The Brief"}</h1>
       </div>
 
       {/* Section 1: Health bar */}
@@ -486,7 +495,7 @@ function CommandCenter() {
         </Link>
       </div>
 
-      {broadcastOpen && <BroadcastModal onClose={() => setBroadcastOpen(false)} />}
+      {broadcastOpen && <BroadcastModal missionId={missionId} onClose={() => setBroadcastOpen(false)} />}
     </div>
   );
 }
@@ -689,7 +698,7 @@ function ActivityRow({ a, q }: { a: any; q?: { question_number: string; title: s
   );
 }
 
-function BroadcastModal({ onClose }: { onClose: () => void }) {
+function BroadcastModal({ onClose, missionId }: { onClose: () => void; missionId?: string }) {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [fromName, setFromName] = useState("");
@@ -712,7 +721,7 @@ function BroadcastModal({ onClose }: { onClose: () => void }) {
         user_id: u.user.id,
         from_name: fromName.trim() || "Leadership",
         text: text.trim(),
-        mission_id: null,
+        mission_id: missionId ?? null,
       });
       if (error) throw error;
       toast.success("Broadcast sent");

@@ -56,6 +56,7 @@ import { Route as AuthenticatedMissionsMissionIdOperationsRouteImport } from './
 import { Route as AuthenticatedMissionsMissionIdLibraryRouteImport } from './routes/_authenticated/missions/$missionId/library'
 import { Route as AuthenticatedMissionsMissionIdIrisRouteImport } from './routes/_authenticated/missions/$missionId/iris'
 import { Route as AuthenticatedMissionsMissionIdIntelligenceRouteImport } from './routes/_authenticated/missions/$missionId/intelligence'
+import { Route as AuthenticatedMissionsMissionIdCommandRouteImport } from './routes/_authenticated/missions/$missionId/command'
 import { Route as AuthenticatedMissionsMissionIdBriefingRouteImport } from './routes/_authenticated/missions/$missionId/briefing'
 import { Route as AuthenticatedMissionsMissionIdBriefRouteImport } from './routes/_authenticated/missions/$missionId/brief'
 import { Route as AuthenticatedMissionsMissionIdActivityRouteImport } from './routes/_authenticated/missions/$missionId/activity'
@@ -337,6 +338,12 @@ const AuthenticatedMissionsMissionIdIntelligenceRoute =
     path: '/intelligence',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
+const AuthenticatedMissionsMissionIdCommandRoute =
+  AuthenticatedMissionsMissionIdCommandRouteImport.update({
+    id: '/command',
+    path: '/command',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
+  } as any)
 const AuthenticatedMissionsMissionIdBriefingRoute =
   AuthenticatedMissionsMissionIdBriefingRouteImport.update({
     id: '/briefing',
@@ -406,6 +413,7 @@ export interface FileRoutesByFullPath {
   '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
+  '/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
   '/missions/$missionId/intelligence': typeof AuthenticatedMissionsMissionIdIntelligenceRoute
   '/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
   '/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
@@ -457,6 +465,7 @@ export interface FileRoutesByTo {
   '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
+  '/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
   '/missions/$missionId/intelligence': typeof AuthenticatedMissionsMissionIdIntelligenceRoute
   '/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
   '/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
@@ -512,6 +521,7 @@ export interface FileRoutesById {
   '/_authenticated/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/_authenticated/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/_authenticated/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
+  '/_authenticated/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
   '/_authenticated/missions/$missionId/intelligence': typeof AuthenticatedMissionsMissionIdIntelligenceRoute
   '/_authenticated/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
   '/_authenticated/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
@@ -567,6 +577,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/activity'
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
+    | '/missions/$missionId/command'
     | '/missions/$missionId/intelligence'
     | '/missions/$missionId/iris'
     | '/missions/$missionId/library'
@@ -618,6 +629,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/activity'
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
+    | '/missions/$missionId/command'
     | '/missions/$missionId/intelligence'
     | '/missions/$missionId/iris'
     | '/missions/$missionId/library'
@@ -672,6 +684,7 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/$missionId/activity'
     | '/_authenticated/missions/$missionId/brief'
     | '/_authenticated/missions/$missionId/briefing'
+    | '/_authenticated/missions/$missionId/command'
     | '/_authenticated/missions/$missionId/intelligence'
     | '/_authenticated/missions/$missionId/iris'
     | '/_authenticated/missions/$missionId/library'
@@ -1028,6 +1041,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdIntelligenceRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
+    '/_authenticated/missions/$missionId/command': {
+      id: '/_authenticated/missions/$missionId/command'
+      path: '/command'
+      fullPath: '/missions/$missionId/command'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdCommandRouteImport
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
     '/_authenticated/missions/$missionId/briefing': {
       id: '/_authenticated/missions/$missionId/briefing'
       path: '/briefing'
@@ -1117,6 +1137,7 @@ interface AuthenticatedMissionsMissionIdRouteChildren {
   AuthenticatedMissionsMissionIdActivityRoute: typeof AuthenticatedMissionsMissionIdActivityRoute
   AuthenticatedMissionsMissionIdBriefRoute: typeof AuthenticatedMissionsMissionIdBriefRoute
   AuthenticatedMissionsMissionIdBriefingRoute: typeof AuthenticatedMissionsMissionIdBriefingRoute
+  AuthenticatedMissionsMissionIdCommandRoute: typeof AuthenticatedMissionsMissionIdCommandRoute
   AuthenticatedMissionsMissionIdIntelligenceRoute: typeof AuthenticatedMissionsMissionIdIntelligenceRoute
   AuthenticatedMissionsMissionIdIrisRoute: typeof AuthenticatedMissionsMissionIdIrisRoute
   AuthenticatedMissionsMissionIdLibraryRoute: typeof AuthenticatedMissionsMissionIdLibraryRoute
@@ -1138,6 +1159,8 @@ const AuthenticatedMissionsMissionIdRouteChildren: AuthenticatedMissionsMissionI
       AuthenticatedMissionsMissionIdBriefRoute,
     AuthenticatedMissionsMissionIdBriefingRoute:
       AuthenticatedMissionsMissionIdBriefingRoute,
+    AuthenticatedMissionsMissionIdCommandRoute:
+      AuthenticatedMissionsMissionIdCommandRoute,
     AuthenticatedMissionsMissionIdIntelligenceRoute:
       AuthenticatedMissionsMissionIdIntelligenceRoute,
     AuthenticatedMissionsMissionIdIrisRoute:

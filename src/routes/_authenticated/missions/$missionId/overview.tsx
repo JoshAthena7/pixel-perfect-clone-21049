@@ -678,6 +678,30 @@ function MissionOverviewPage() {
         {/* ── 3a. SUPPORT REQUESTS (lead-only) ────── */}
         {isLeader && (
           <>
+            <Link
+              to="/missions/$missionId/command"
+              params={{ missionId }}
+              className="block w-full text-left rounded-[12px] px-6 py-5 transition-transform hover:-translate-y-0.5 mb-4"
+              style={{
+                border: "1px solid rgba(245,158,11,0.3)",
+                background: "radial-gradient(ellipse at 0% 50%, rgba(245,158,11,0.10), hsl(var(--card)) 70%)",
+                boxShadow: "0 0 0 1px rgba(245,158,11,0.05)",
+              }}
+            >
+              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em]" style={{ color: "var(--athena-gold, #f59e0b)" }}>
+                <span className="relative inline-flex h-1.5 w-1.5">
+                  <span className="absolute inset-0 rounded-full animate-ping" style={{ background: "var(--athena-gold, #f59e0b)" }} />
+                  <span className="relative inline-block h-1.5 w-1.5 rounded-full" style={{ background: "var(--athena-gold, #f59e0b)" }} />
+                </span>
+                Mission Brief
+              </div>
+              <div className="mt-2 text-sm text-foreground/90 max-w-2xl leading-relaxed">
+                Leadership command for this mission. Team needs, responses at risk, gates approaching, and the last 24 hours of signals — scoped to this mission only.
+              </div>
+              <div className="mt-3 inline-flex items-center gap-1 text-xs font-semibold" style={{ color: "var(--athena-gold, #f59e0b)" }}>
+                Open Mission Brief →
+              </div>
+            </Link>
             <SupportQueueSection />
             <div className="mr-divider" />
           </>
