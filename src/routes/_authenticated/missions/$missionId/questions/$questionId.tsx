@@ -19,6 +19,7 @@ import { Eye } from "lucide-react";
 import {
   Sparkles, Send, RefreshCw, AlertTriangle, MessageSquare, ChevronDown, ChevronUp,
   CheckCircle2, ArrowLeftRight, FileEdit, Lightbulb, Pin, CornerDownLeft, X, LifeBuoy,
+  MoreHorizontal, Phone, ArrowRight, Bell,
 } from "lucide-react";
 
 export const Route = createFileRoute(
@@ -325,6 +326,7 @@ function CockpitPage() {
   const [askOpen, setAskOpen] = useState(false);
   const [getHelpOpen, setGetHelpOpen] = useState(false);
   const [scoreMeOpen, setScoreMeOpen] = useState(false);
+  const [overflowOpen, setOverflowOpen] = useState(false);
 
   /* Ask IRIS */
   const askFn = useServerFn(irisAskQuestion);
@@ -341,6 +343,124 @@ function CockpitPage() {
       setAnswer(`_Error: ${e?.message ?? "unknown"}_`);
     } finally { setAsking(false); }
   };
+
+  /* ──────── Situation engine ──────── */
+  // Unread co-pilot messages targeted to me on this question/mission
+  const { data: unreadCopilotCount = 0 } = useQuery({
+    queryKey: ["copilot-unread", missionId, questionId, me?.id],
+    enabled: !!me?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("pilot_copilot_messages")
+        .select("id,to_user_id,is_broadcast,acknowledged")
+        .eq("mission_id", missionId)
+        .or(`question_id.eq.${questionId},is_broadcast.eq.true`);
+      return (data ?? []).filter((m: any) =>
+        !m.acknowledged && (m.to_user_id === me!.id || m.is_broadcast)
+      ).length;
+    },
+  });
+
+  // Last check-in (latest signal authored by me on this mission)
+  const { data: lastCheckInAt } = useQuery({
+    queryKey: ["last-checkin", missionId, me?.id],
+    enabled: !!me?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("signals")
+        .select("created_at")
+        .eq("mission_id", missionId)
+        .eq("user_id", me!.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return (data?.created_at as string | null) ?? null;
+    },
+  });
+
+  // Brief read this session (sessionStorage flag keyed by question)
+  const briefSeenKey = `cockpit:brief-seen:${questionId}`;
+  const [briefSeenThisSession, setBriefSeenThisSession] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    return !!sessionStorage.getItem(briefSeenKey);
+  });
+  useEffect(() => {
+    if (!intel?.iris_brief || briefSeenThisSession) return;
+    const t = setTimeout(() => {
+      sessionStorage.setItem(briefSeenKey, "1");
+      setBriefSeenThisSession(true);
+    }, 6000); // counts as read after 6s of brief being visible
+    return () => clearTimeout(t);
+  }, [intel?.iris_brief, briefSeenThisSession, briefSeenKey]);
+
+  type PrimaryAction = "read_copilot" | "check_in" | "read_iris" | "get_help" | "urgent_write" | "default";
+  const primaryAction: PrimaryAction = useMemo(() => {
+    if (unreadCopilotCount > 0) return "read_copilot";
+    const hoursSinceCheckIn = lastCheckInAt
+      ? (Date.now() - new Date(lastCheckInAt).getTime()) / 3_600_000
+      : Infinity;
+    const pd = daysUntil(q?.pens_down_date ?? null);
+    if (hoursSinceCheckIn > 20 && pd !== null && pd < 14) return "check_in";
+    if (q?.writer_confidence === "stuck") return "get_help";
+    if (pd !== null && pd >= 0 && pd < 7 && q?.status !== "approved") return "urgent_write";
+    if (intel?.iris_brief && !briefSeenThisSession) return "read_iris";
+    return "default";
+  }, [unreadCopilotCount, lastCheckInAt, q?.pens_down_date, q?.writer_confidence, q?.status, intel?.iris_brief, briefSeenThisSession]);
+
+  const microLabel: string = useMemo(() => {
+    switch (primaryAction) {
+      case "read_copilot": return "Your Co-Pilot sent you a message.";
+      case "check_in":     return "You haven't checked in today.";
+      case "read_iris":    return "Read IRIS before you write.";
+      case "get_help":     return "You marked yourself as stuck.";
+      case "urgent_write": return `${daysUntil(q?.pens_down_date ?? null) ?? "—"} days to Pens Down.`;
+      default:             return `Q${q?.question_number ?? ""} is open.`;
+    }
+  }, [primaryAction, q?.pens_down_date, q?.question_number]);
+
+  /* ──────── Suggested question (IRIS) ──────── */
+  const suggestedQuestion = useMemo(() => {
+    if (myQuestions.length === 0) return null;
+    const list = [...myQuestions];
+    const score = (mq: typeof list[number]) => {
+      const d = daysUntil(mq.pens_down_date);
+      const dScore = d === null ? 9999 : Math.max(0, d);
+      const hScore = mq.health === "red" ? 0 : mq.health === "yellow" ? 1 : 2;
+      const stuck = mq.writer_confidence === "stuck" ? -1 : 0;
+      return hScore * 10000 + dScore + stuck;
+    };
+    list.sort((a, b) => score(a) - score(b));
+    const top = list[0];
+    if (!top) return null;
+    return top;
+  }, [myQuestions]);
+
+  /* First-visit tooltips */
+  const [tipStage, setTipStage] = useState<0 | 1 | 2>(0); // 0 = brief, 1 = action bar, 2 = done
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const seen = localStorage.getItem("cockpit:has_used");
+    if (seen) { setTipStage(2); return; }
+    setTipStage(0);
+    const t1 = setTimeout(() => setTipStage(1), 4000);
+    const t2 = setTimeout(() => {
+      setTipStage(2);
+      localStorage.setItem("cockpit:has_used", "1");
+    }, 7000);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
+
+  /* Sublabels for overflow menu — disappear after first use */
+  const [showSublabels, setShowSublabels] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return !localStorage.getItem("cockpit:overflow_used");
+  });
+  const markOverflowUsed = () => {
+    localStorage.setItem("cockpit:overflow_used", "1");
+    setShowSublabels(false);
+  };
+
+
 
   if (isLoading) return <div className="px-8 py-12 text-sm text-muted-foreground">Loading…</div>;
   if (!q) {
@@ -382,7 +502,13 @@ function CockpitPage() {
       <Link
         to="/missions/$missionId/overview"
         params={{ missionId }}
-        className="sticky top-0 z-30 flex h-10 items-center gap-3 border-b border-white/5 bg-[#060b14]/95 px-10 text-[12px] backdrop-blur hover:bg-[#0a1426]/95 transition-colors"
+        className={`sticky top-0 z-30 flex h-10 items-center gap-3 border-b px-10 text-[12px] backdrop-blur transition-colors hover:bg-[#0a1426]/95 ${
+          primaryAction === "urgent_write" ? "animate-pulse" : ""
+        }`}
+        style={{
+          background: primaryAction === "urgent_write" ? "rgba(127,29,29,0.6)" : "rgba(6,11,20,0.95)",
+          borderColor: primaryAction === "urgent_write" ? "rgba(239,68,68,0.4)" : "rgba(255,255,255,0.06)",
+        }}
         title="Open Mission Room"
       >
         <span className="relative inline-flex h-2 w-2">
@@ -444,7 +570,7 @@ function CockpitPage() {
 
         {/* BLOCK 1 — IRIS MORNING BRIEF */}
         <section
-          className="mb-8 rounded-[12px] border p-6"
+          className="relative mb-8 rounded-[12px] border p-6"
           style={{
             background: "radial-gradient(ellipse at 0% 50%, rgba(8,145,178,0.08), rgba(10,14,26,0) 70%)",
             borderColor: "rgba(8,145,178,0.25)",
@@ -481,7 +607,50 @@ function CockpitPage() {
               <span className="iris-dot mr-2" /> IRIS is preparing your brief. Intelligence generates once the RFP is parsed.
             </p>
           )}
+          {tipStage === 0 && !isReadOnlyView && (
+            <FirstVisitTooltip>
+              This is your mission briefing. IRIS updates it every morning.
+            </FirstVisitTooltip>
+          )}
         </section>
+
+        {/* SUGGESTED QUESTION — IRIS recommends */}
+        {!isReadOnlyView && !isSME && suggestedQuestion && suggestedQuestion.id !== questionId && (
+          <section className="mb-8">
+            <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--iris, #22d3ee)" }}>
+              <span className="iris-dot mr-1.5" /> IRIS suggests starting with
+            </div>
+            <Link
+              to="/missions/$missionId/questions/$questionId"
+              params={{ missionId, questionId: suggestedQuestion.id }}
+              className="flex w-full items-center justify-between gap-3 rounded-[8px] border px-4 py-2.5 text-sm font-semibold transition hover:bg-[rgba(59,127,255,0.12)]"
+              style={{ background: "rgba(59,127,255,0.08)", borderColor: "rgba(59,127,255,0.2)" }}
+            >
+              <span className="truncate">
+                Q{suggestedQuestion.question_number} · {suggestedQuestion.title}
+              </span>
+              <ArrowRight className="h-4 w-4 shrink-0 opacity-80" />
+            </Link>
+            <div className="mt-1.5 text-[11px] text-muted-foreground">
+              {(() => {
+                const d = daysUntil(suggestedQuestion.pens_down_date);
+                const dStr = d === null ? "—" : d < 0 ? `${Math.abs(d)}d overdue` : `${d} days`;
+                const hStr = suggestedQuestion.health
+                  ? suggestedQuestion.health[0].toUpperCase() + suggestedQuestion.health.slice(1)
+                  : "—";
+                const reason = suggestedQuestion.writer_confidence === "stuck"
+                  ? "You marked it stuck"
+                  : suggestedQuestion.health === "red"
+                    ? "Most urgent"
+                    : suggestedQuestion.health === "yellow"
+                      ? "Needs attention"
+                      : "Next up";
+                return `${dStr} · ${hStr} · ${reason}`;
+              })()}
+            </div>
+          </section>
+        )}
+
 
         {/* BLOCK 2 — MY QUESTION + WHAT CHANGED */}
         <section className="mb-8 grid gap-6 md:grid-cols-[40fr_60fr]">
@@ -649,9 +818,31 @@ function CockpitPage() {
 
       {/* FIXED ACTION BAR */}
       <div
-        className="fixed inset-x-0 bottom-[58px] md:bottom-0 z-40 border-t"
+        className={`fixed inset-x-0 bottom-[58px] md:bottom-0 z-40 border-t ${tipStage === 1 && !isReadOnlyView ? "ring-2 ring-primary/40" : ""}`}
         style={{ background: "rgba(6,11,20,0.95)", backdropFilter: "blur(12px)", borderColor: "rgba(255,255,255,0.06)" }}
       >
+        {/* Micro-label — tells the writer why the bar looks the way it does */}
+        {!isReadOnlyView && !isSME && (
+          <div
+            className="pt-2 pb-1 text-center text-[11px] text-muted-foreground max-md:hidden"
+            style={{ letterSpacing: "0.04em" }}
+          >
+            {microLabel}
+          </div>
+        )}
+
+        {/* "Nothing Changed — Check In" ghost button for check_in priority */}
+        {primaryAction === "check_in" && !isReadOnlyView && !isSME && (
+          <div className="mx-auto max-w-[1100px] px-10 pb-2 max-md:hidden">
+            <button
+              onClick={() => openUpdateReality(questionId)}
+              className="w-full rounded-md border border-white/15 bg-transparent py-2 text-xs font-semibold text-foreground hover:bg-white/5"
+            >
+              Nothing Changed — Check In
+            </button>
+          </div>
+        )}
+
         <div className="mx-auto flex h-16 max-w-[1100px] items-center justify-between gap-3 px-10 max-md:hidden">
           {/* LEFT */}
           <div className="flex items-center gap-2">
@@ -669,7 +860,11 @@ function CockpitPage() {
             ) : (
               <button
                 onClick={() => openUpdateReality(questionId)}
-                className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+                className={`rounded-md px-4 py-2 text-sm font-semibold transition ${
+                  primaryAction === "check_in"
+                    ? "bg-primary text-primary-foreground ring-2 ring-primary/40 hover:opacity-90"
+                    : "bg-primary text-primary-foreground hover:opacity-90"
+                }`}
               >
                 Update Reality
               </button>
@@ -677,19 +872,22 @@ function CockpitPage() {
             {!isReadOnlyView && (
               <button
                 onClick={() => setAskOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-transparent px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/10"
+                className={`inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold transition ${
+                  primaryAction === "read_iris"
+                    ? "bg-primary text-primary-foreground ring-2 ring-primary/40 hover:opacity-90"
+                    : "border border-primary/40 bg-transparent text-primary hover:bg-primary/10"
+                }`}
               >
                 <Sparkles className="h-3.5 w-3.5" /> Ask IRIS
               </button>
             )}
             {!isSME && !isReadOnlyView && (
-              <button
-                onClick={() => setScoreMeOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold text-white transition"
-                style={{ background: "var(--iris, #22d3ee)", boxShadow: "0 4px 14px -4px rgba(34,211,238,0.5)" }}
-              >
-                <span className="inline-block h-1.5 w-1.5 rounded-full bg-white/90" /> Score Me
-              </button>
+              <ConfidenceButton
+                questionId={questionId}
+                questionNumber={q.question_number}
+                currentLevel={q.writer_confidence ?? null}
+                onStuckEscalate={() => setGetHelpOpen(true)}
+              />
             )}
           </div>
 
@@ -704,24 +902,41 @@ function CockpitPage() {
           {/* RIGHT */}
           <div className="flex items-center gap-2">
             {!isSME && !isReadOnlyView && (
-              <ConfidenceButton
-                questionId={questionId}
-                questionNumber={q.question_number}
-                currentLevel={q.writer_confidence ?? null}
-                onStuckEscalate={() => setGetHelpOpen(true)}
+              <CockpitOverflow
+                open={overflowOpen}
+                setOpen={setOverflowOpen}
+                showSublabels={showSublabels}
+                primaryAction={primaryAction}
+                onScoreMe={() => { setScoreMeOpen(true); setOverflowOpen(false); markOverflowUsed(); }}
+                onPhoneAFriend={() => {
+                  setOverflowOpen(false);
+                  markOverflowUsed();
+                  toast("Phone a Friend — coming soon", { description: "Pair-program with another writer." });
+                }}
+                onGetHelp={() => { setGetHelpOpen(true); setOverflowOpen(false); markOverflowUsed(); }}
               />
             )}
             {!isSME && !isReadOnlyView && (
-              <GetHelpDropdown
-                open={getHelpOpen} setOpen={setGetHelpOpen}
-                missionId={missionId} questionId={questionId} questionNumber={q.question_number}
-                meId={me?.id ?? null} meName={firstName(me)}
-                onSent={() => qc.invalidateQueries({ queryKey: ["question-collabs", questionId] })}
-              />
+              <div className="[&>div>button]:hidden">
+                <GetHelpDropdown
+                  open={getHelpOpen} setOpen={setGetHelpOpen}
+                  missionId={missionId} questionId={questionId} questionNumber={q.question_number}
+                  meId={me?.id ?? null} meName={firstName(me)}
+                  onSent={() => qc.invalidateQueries({ queryKey: ["question-collabs", questionId] })}
+                />
+              </div>
             )}
             {!isSME && !isReadOnlyView && <SOSButton missionId={missionId} questionId={questionId} />}
           </div>
+
+          {/* First-visit tooltip pointing at the action bar */}
+          {tipStage === 1 && !isReadOnlyView && (
+            <div className="pointer-events-none absolute left-1/2 top-0 z-50 -translate-x-1/2 -translate-y-[110%]">
+              <FirstVisitTooltip>This is how you talk to your team.</FirstVisitTooltip>
+            </div>
+          )}
         </div>
+
 
         {/* MOBILE 2×2 ACTION GRID */}
         <div className="md:hidden grid grid-cols-2 gap-2 p-3">
@@ -1120,3 +1335,110 @@ function AskDrawer({ children, onClose }: { children: React.ReactNode; onClose: 
     </>
   );
 }
+
+/* ──────────── First-visit tooltip ──────────── */
+function FirstVisitTooltip({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="pointer-events-none absolute right-4 top-4 z-30 max-w-[260px] rounded-md border px-3 py-2 text-[12px] shadow-lg animate-in fade-in"
+      style={{
+        background: "rgba(34,211,238,0.12)",
+        borderColor: "rgba(34,211,238,0.4)",
+        color: "#cffafe",
+        backdropFilter: "blur(6px)",
+      }}
+    >
+      <span className="iris-dot mr-1.5" />
+      {children}
+    </div>
+  );
+}
+
+/* ──────────── Cockpit overflow menu (Score Me · Phone a Friend · Get Help) ──────────── */
+function CockpitOverflow({
+  open, setOpen, showSublabels, primaryAction,
+  onScoreMe, onPhoneAFriend, onGetHelp,
+}: {
+  open: boolean;
+  setOpen: (b: boolean) => void;
+  showSublabels: boolean;
+  primaryAction: "read_copilot" | "check_in" | "read_iris" | "get_help" | "urgent_write" | "default";
+  onScoreMe: () => void;
+  onPhoneAFriend: () => void;
+  onGetHelp: () => void;
+}) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open, setOpen]);
+
+  const helpHighlighted = primaryAction === "get_help";
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(!open)}
+        aria-label="More actions"
+        className={`inline-flex h-9 w-9 items-center justify-center rounded-md border transition ${
+          helpHighlighted
+            ? "border-amber-500/50 bg-amber-500/15 text-amber-200 hover:bg-amber-500/25"
+            : "border-white/10 bg-transparent text-muted-foreground hover:text-foreground hover:border-white/20"
+        }`}
+      >
+        <MoreHorizontal className="h-4 w-4" />
+      </button>
+      {open && (
+        <div className="absolute bottom-full right-0 mb-2 w-[300px] overflow-hidden rounded-lg border border-white/10 bg-[#0a0e1a] shadow-2xl">
+          <OverflowItem
+            icon={<CheckCircle2 className="h-3.5 w-3.5" />}
+            label="Score Me"
+            sublabel={showSublabels ? "How would this score right now?" : undefined}
+            onClick={onScoreMe}
+          />
+          <div className="h-px bg-white/5" />
+          <OverflowItem
+            icon={<Phone className="h-3.5 w-3.5" />}
+            label="Phone a Friend"
+            sublabel={showSublabels ? "Talk to someone who has done this." : undefined}
+            onClick={onPhoneAFriend}
+          />
+          <div className="h-px bg-white/5" />
+          <OverflowItem
+            icon={<Lightbulb className="h-3.5 w-3.5" />}
+            label="Get Help"
+            sublabel={showSublabels ? "Ask leadership for what you need." : undefined}
+            onClick={onGetHelp}
+            highlighted={helpHighlighted}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OverflowItem({
+  icon, label, sublabel, onClick, highlighted,
+}: { icon: React.ReactNode; label: string; sublabel?: string; onClick: () => void; highlighted?: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex w-full items-start gap-3 px-3 py-2.5 text-left transition ${
+        highlighted ? "bg-amber-500/10 hover:bg-amber-500/15" : "hover:bg-white/5"
+      }`}
+    >
+      <span className={`mt-0.5 ${highlighted ? "text-amber-300" : "text-muted-foreground"}`}>{icon}</span>
+      <span className="flex-1">
+        <span className={`block text-sm font-semibold ${highlighted ? "text-amber-100" : "text-foreground"}`}>{label}</span>
+        {sublabel && (
+          <span className="mt-0.5 block text-[11px] text-muted-foreground">{sublabel}</span>
+        )}
+      </span>
+    </button>
+  );
+}
+
