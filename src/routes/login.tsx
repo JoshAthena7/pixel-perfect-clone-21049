@@ -194,19 +194,12 @@ function LoginPage() {
                   Strategic Intelligence Platform
                 </span>
               </div>
-              <div className="flex items-end gap-5">
-                <img
-                  src={atlasLogo.url}
-                  alt="ATLAS"
-                  className="h-20 w-auto object-contain"
-                />
-                <h1
-                  className="text-7xl font-light leading-none tracking-tight text-white"
-                  style={{ letterSpacing: "0.06em" }}
-                >
-                  ATLAS
-                </h1>
-              </div>
+              <h1
+                className="text-7xl font-light leading-none tracking-tight text-white"
+                style={{ letterSpacing: "0.06em" }}
+              >
+                ATLAS
+              </h1>
               <p className="text-sm font-light uppercase tracking-[0.4em] text-white/50">
                 Intelligence · Alignment · Execution
               </p>
