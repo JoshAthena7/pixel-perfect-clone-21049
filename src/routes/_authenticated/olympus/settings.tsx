@@ -67,7 +67,7 @@ function MissionSettingsForm({ missionId }: { missionId: string }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("missions")
-        .select("id,name,client,state,status,health,submission_date,description,program_type,win_themes,priority_topics,competitors,slack_webhook")
+        .select("id,name,client,state,status,health,submission_date,description,program_type,win_themes,priority_topics,competitors")
         .eq("id", missionId)
         .maybeSingle();
       if (error) throw error;
@@ -106,7 +106,7 @@ function MissionSettingsForm({ missionId }: { missionId: string }) {
       win_themes: f.win_themes,
       priority_topics: f.priority_topics,
       competitors: f.competitors,
-      slack_webhook: f.slack_webhook?.trim() || null,
+      ...(f.slack_webhook && f.slack_webhook.trim() ? { slack_webhook: f.slack_webhook.trim() } : {}),
     }).eq("id", missionId);
     setBusy(false);
     if (error) { toast.error(error.message); return; }
@@ -197,8 +197,8 @@ function MissionSettingsForm({ missionId }: { missionId: string }) {
       </Section>
 
       <Section title="Integrations">
-        <Field label="Slack incoming webhook" hint="Used by Broadcasts to push leadership announcements to a channel.">
-          <input value={form.slack_webhook ?? ""} onChange={(e) => update("slack_webhook", e.target.value)} placeholder="https://hooks.slack.com/services/…" className={inputCls} />
+        <Field label="Slack incoming webhook" hint="Stored securely. Existing value is hidden; enter a new URL to replace it, or leave blank to keep the current one.">
+          <input value={form.slack_webhook ?? ""} onChange={(e) => update("slack_webhook", e.target.value)} placeholder="https://hooks.slack.com/services/… (leave blank to keep existing)" className={inputCls} />
         </Field>
       </Section>
 
