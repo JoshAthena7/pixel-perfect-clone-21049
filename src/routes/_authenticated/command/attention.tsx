@@ -10,7 +10,6 @@ export const Route = createFileRoute("/_authenticated/command/attention")({
   component: () => <CommandCenter />,
 });
 
-export function CommandCenter({ missionId }: { missionId?: string } = {}) {
 
 type RealityUpdate = {
   id: string;
