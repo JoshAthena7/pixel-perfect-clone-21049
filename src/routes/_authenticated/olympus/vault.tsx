@@ -263,13 +263,17 @@ function VaultPage() {
           </button>
         </aside>
 
-        {/* Document list */}
-        <div className="rounded-[10px] border border-border bg-surface overflow-hidden">
-          <div className="flex items-center gap-2 border-b border-border px-3 py-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
         {/* Document list / Amendments list */}
         <div className="rounded-[10px] border border-border bg-surface overflow-hidden">
+          {activeCategory !== "__amendments" && (
+            <div className="flex items-center gap-2 border-b border-border px-3 py-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search documents…"
+                  className="w-full rounded-md bg-background py-1.5 pl-8 pr-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary border border-border" />
+              </div>
+            </div>
+          )}
           {activeCategory === "__amendments" ? (
             <>
               <div className="flex items-center gap-2 border-b border-border px-3 py-2">
