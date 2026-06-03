@@ -106,8 +106,7 @@ function LoginPage() {
             <img
               src={athenaSgBrand.url}
               alt="Athena Strategy Group"
-              className="h-12 w-auto object-contain opacity-60 mix-blend-luminosity"
-              style={{ filter: "brightness(0.4) contrast(1.1)" }}
+              className="h-10 w-auto object-contain opacity-90"
             />
             <div className="flex items-center gap-2">
               <span className="relative flex h-2 w-2">
