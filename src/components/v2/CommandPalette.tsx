@@ -30,7 +30,7 @@ function saveRecent(r: Recent) {
   try {
     const existing = loadRecents().filter((x) => x.id !== r.id);
     existing.unshift(r);
-    localStorage.setItem(RECENTS_KEY, JSON.stringify(existing.slice(0, 5)));
+    localStorage.setItem(RECENTS_KEY, JSON.stringify(existing.slice(0, 3)));
   } catch { /* noop */ }
 }
 
