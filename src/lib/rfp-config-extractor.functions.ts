@@ -78,8 +78,8 @@ function buildSearchTerms(state: string | null, focusAreas: string[]): string[] 
 }
 
 async function callClaude(text: string): Promise<Extraction> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not configured");
+  const apiKey = process.env.LOVABLE_API_KEY;
+  if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured");
 
   const body = text.slice(0, 60_000);
   const system = `You extract structured procurement data from a US government RFP.
@@ -107,48 +107,59 @@ Shape:
 }`;
 
   const models = [
-    process.env.ANTHROPIC_MODEL,
-    "claude-sonnet-4-5-20250929",
-    "claude-sonnet-4-20250514",
-    "claude-3-5-sonnet-latest",
+    process.env.IRIS_EXTRACT_MODEL,
+    "google/gemini-3-flash-preview",
+    "google/gemini-2.5-flash",
+    "google/gemini-2.5-pro",
   ].filter(Boolean) as string[];
 
   let lastError = "";
   for (const model of models) {
     let res: Response;
     try {
-      res = await fetch("https://api.anthropic.com/v1/messages", {
+      res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-          "content-type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           model,
-          max_tokens: 2500,
-          system,
-          messages: [{ role: "user", content: `RFP TEXT:\n\n${body}` }],
+          messages: [
+            { role: "system", content: system },
+            { role: "user", content: `RFP TEXT:\n\n${body}` },
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0.1,
         }),
-        signal: AbortSignal.timeout(45_000),
+        signal: AbortSignal.timeout(60_000),
       });
     } catch (e) {
       lastError = `Network: ${e instanceof Error ? e.message : String(e)}`;
       continue;
     }
+    if (res.status === 402) {
+      throw new Error("Lovable AI credits exhausted — add credits in Settings → Workspace → Usage.");
+    }
     if (!res.ok) {
       const err = await res.text();
-      lastError = `Anthropic ${res.status}: ${err.slice(0, 400)}`;
-      if (res.status === 404) continue;
+      lastError = `Lovable AI ${res.status}: ${err.slice(0, 400)}`;
+      if (res.status === 404 || res.status === 400) continue;
       throw new Error(lastError);
     }
-    const json = (await res.json()) as { content: Array<{ type: string; text?: string }> };
-    const raw = json.content?.find((c) => c.type === "text")?.text ?? "{}";
+    const json = (await res.json()) as {
+      choices?: Array<{ message?: { content?: string } }>;
+    };
+    const raw = json.choices?.[0]?.message?.content ?? "{}";
     const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
     const start = cleaned.indexOf("{");
     const end = cleaned.lastIndexOf("}");
-    if (start < 0 || end < 0) throw new Error("Claude returned no JSON object");
+    if (start < 0 || end < 0) {
+      lastError = "Lovable AI returned no JSON object";
+      continue;
+    }
     const parsed = JSON.parse(cleaned.slice(start, end + 1)) as Partial<Extraction>;
+
 
     const focus = (parsed.focus_areas ?? []).filter((f) =>
       (FOCUS_CATEGORIES as readonly string[]).includes(f),
