@@ -14,7 +14,7 @@ function BriefPage() {
   const { data: mission } = useQuery({
     queryKey: ["mission", missionId],
     queryFn: async () => {
-      const { data } = await supabase.from("missions").select("*").eq("id", missionId).maybeSingle();
+      const { data } = await supabase.from("missions").select("id,name,client,state,status,health,submission_date,description,program_type,win_themes,priority_topics,competitors,state_agency,procurement_name,rfp_number,focus_areas").eq("id", missionId).maybeSingle();
       return data;
     },
   });
