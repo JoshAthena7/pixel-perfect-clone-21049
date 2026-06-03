@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import athenaSgBrand from "@/assets/athena-sg-transparent.png.asset.json";
+import atlasLogo from "@/assets/atlas-logo.png.asset.json";
+import irisLogo from "@/assets/iris-logo.png.asset.json";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — Atlas" }] }),
