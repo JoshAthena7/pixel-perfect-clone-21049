@@ -201,3 +201,71 @@ export function IrisDock() {
     </>
   );
 }
+
+function AskIrisFeedback({
+  text,
+  missionId,
+  questionId,
+}: { text: string; missionId: string; questionId: string | null }) {
+  const [voted, setVoted] = useState<null | "up" | "down">(null);
+  const [flagOpen, setFlagOpen] = useState(false);
+  return (
+    <div className="mt-1">
+      <div className="flex items-center gap-1 pl-1">
+        <button
+          onClick={() => { setVoted("up"); toast.success("Thanks — signal recorded"); }}
+          className={`rounded p-1 transition-colors ${voted === "up" ? "text-emerald-400" : "text-muted-foreground/50 hover:text-emerald-400"}`}
+          title="Helpful"
+          aria-label="Helpful"
+        >
+          <ThumbsUp className="h-3 w-3" />
+        </button>
+        <button
+          onClick={() => { setVoted("down"); setFlagOpen(true); }}
+          className={`rounded p-1 transition-colors ${voted === "down" ? "text-yellow-400" : "text-muted-foreground/50 hover:text-yellow-400"}`}
+          title="Not helpful"
+          aria-label="Not helpful"
+        >
+          <ThumbsDown className="h-3 w-3" />
+        </button>
+        <button
+          onClick={() => setFlagOpen((v) => !v)}
+          className="rounded p-1 text-muted-foreground/50 transition-colors hover:text-yellow-400"
+          title="Flag IRIS error"
+          aria-label="Flag IRIS error"
+        >
+          <Flag className="h-3 w-3" />
+        </button>
+      </div>
+      {flagOpen && (
+        <IrisCorrectableInline
+          text={text}
+          missionId={missionId}
+          questionId={questionId}
+        />
+      )}
+    </div>
+  );
+}
+
+function IrisCorrectableInline({
+  text,
+  missionId,
+  questionId,
+}: { text: string; missionId: string; questionId: string | null }) {
+  // Renders a pre-opened correction form by reusing the IrisCorrectable wrapper
+  // with the children-less form auto-opened.
+  return (
+    <div className="mt-1">
+      <IrisCorrectable
+        contentType="ask_iris"
+        contentBlock={text}
+        missionId={missionId}
+        questionId={questionId}
+        flagPosition="inline"
+      >
+        <span className="sr-only">Ask IRIS response</span>
+      </IrisCorrectable>
+    </div>
+  );
+}
