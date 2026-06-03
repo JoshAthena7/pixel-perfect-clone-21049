@@ -564,7 +564,7 @@ function CockpitPage() {
 
         {/* BLOCK 1 — IRIS MORNING BRIEF */}
         <section
-          className="mb-8 rounded-[12px] border p-6"
+          className="relative mb-8 rounded-[12px] border p-6"
           style={{
             background: "radial-gradient(ellipse at 0% 50%, rgba(8,145,178,0.08), rgba(10,14,26,0) 70%)",
             borderColor: "rgba(8,145,178,0.25)",
