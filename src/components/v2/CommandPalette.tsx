@@ -57,6 +57,7 @@ export function CommandPalette() {
   const [q, setQ] = useState("");
   const [idx, setIdx] = useState(0);
   const [recents, setRecents] = useState<Recent[]>([]);
+  const [sosOpen, setSosOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const params = useParams({ strict: false }) as { missionId?: string };
