@@ -821,11 +821,15 @@ function IrisInsight({
   content,
   confidence,
   sourceCount,
+  missionId,
+  questionId,
 }: {
   label: string;
   content: string;
   confidence?: "High" | "Medium" | "Low";
   sourceCount?: number;
+  missionId?: string;
+  questionId?: string;
 }) {
   const confColor =
     confidence === "High"
@@ -834,7 +838,13 @@ function IrisInsight({
       ? "var(--yellow)"
       : "var(--muted-foreground, #94a3b8)";
   return (
-    <div>
+    <IrisCorrectable
+      contentType="question_brief"
+      contentBlock={`${label}: ${content}`}
+      missionId={missionId}
+      questionId={questionId}
+      className="pr-7"
+    >
       <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[color:var(--iris)]">{label}</div>
       <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">{content}</p>
       {confidence && (
@@ -850,7 +860,7 @@ function IrisInsight({
           IRIS has limited specific intelligence on this topic. Consider additional research.
         </div>
       )}
-    </div>
+    </IrisCorrectable>
   );
 }
 
