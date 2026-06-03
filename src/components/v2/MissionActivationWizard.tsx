@@ -651,7 +651,7 @@ function Step3Activation({
           <SummaryRow label="Questions created" value={summary.questions} highlight={summary.questions > 0} />
           <SummaryRow label="Documents indexed" value={`${summary.indexed} of ${summary.documents}`} highlight={summary.indexed > 0} />
           <SummaryRow
-            label="Briefing Book"
+            label="Oracle"
             value={summary.briefingReady ? "ready" : "pending"}
             highlight={summary.briefingReady}
           />
