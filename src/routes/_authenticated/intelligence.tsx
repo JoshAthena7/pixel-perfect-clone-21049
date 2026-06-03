@@ -1,16 +1,20 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Search, Plus, Sparkles, MapPin, Layers as LayersIcon,
-  Target, Brain, Shield, ArrowRight, Loader2,
+  Target, Brain, Shield, ArrowRight, Loader2, Inbox, Zap,
 } from "lucide-react";
 import {
   hubStats, listStates, listPrograms, listMissionsForHub,
   listLessons, globalAtlasSearch,
 } from "@/lib/atlas-intelligence.functions";
 import { listAtlasSources } from "@/lib/atlas-sources.functions";
+import {
+  activateCanonStarterKit, discoverProgramSources,
+  createProgram, listReviewQueue,
+} from "@/lib/atlas-onboarding.functions";
 
 export const Route = createFileRoute("/_authenticated/intelligence")({
   component: IntelligenceHub,
@@ -85,8 +89,13 @@ function IntelligenceHub() {
               Athena's permanent knowledge infrastructure. Every source. Every program. Every lesson learned.
             </p>
           </div>
-          <IntelligenceHealth stats={stats} />
+          <div className="flex items-center gap-2">
+            <ReviewQueueLink />
+            <IntelligenceHealth stats={stats} />
+          </div>
         </div>
+
+        <OnboardingBanner stats={stats} />
 
         {/* Live stats pills */}
         <div className="mt-5 flex flex-wrap gap-2">
@@ -252,11 +261,14 @@ function CanonTab() {
 
   return (
     <div>
-      <div className="mb-6 flex flex-col gap-2">
-        <LayerBadge layer="canon" />
-        <p className="text-[13px] text-muted-foreground max-w-3xl">
-          Federal regulations, CMS guidance, Medicaid authorities, and Athena methodology. These sources are always available to IRIS regardless of mission.
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-2">
+          <LayerBadge layer="canon" />
+          <p className="text-[13px] text-muted-foreground max-w-3xl">
+            Federal regulations, CMS guidance, Medicaid authorities, and Athena methodology. These sources are always available to IRIS regardless of mission.
+          </p>
+        </div>
+        <ActivateStarterKitButton />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-6">
         <aside>
@@ -407,9 +419,12 @@ function ProgramsTab() {
 
   return (
     <div>
-      <div className="mb-6 flex flex-col gap-2">
-        <LayerBadge layer="programs" />
-        <p className="text-[13px] text-muted-foreground">Program intelligence built once, reused across every bid for that program.</p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-2">
+          <LayerBadge layer="programs" />
+          <p className="text-[13px] text-muted-foreground">Program intelligence built once, reused across every bid for that program.</p>
+        </div>
+        <CreateProgramButton />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] gap-6">
         <aside className="space-y-3">
@@ -439,9 +454,12 @@ function ProgramsTab() {
         <div>
           {selected ? (
             <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-semibold">{selected.program_name}</h2>
-                <div className="mt-1 text-[12px] text-muted-foreground">{selected.state_code} · {selected.program_type ?? "Program"}</div>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-semibold">{selected.program_name}</h2>
+                  <div className="mt-1 text-[12px] text-muted-foreground">{selected.state_code} · {selected.program_type ?? "Program"}</div>
+                </div>
+                <DiscoverSourcesButton programCode={selected.program_code} programName={selected.program_name} />
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <Vital label="Current Contractor" value={selected.current_contractor} />
@@ -800,5 +818,223 @@ function SearchResults({ results, loading }: { results: any; loading: boolean })
       ))}
       {total === 0 && <Empty msg="No matches across any layer." />}
     </div>
+  );
+}
+
+/* ────────────── onboarding components ────────────── */
+
+function ReviewQueueLink() {
+  const fn = useServerFn(listReviewQueue);
+  const { data } = useQuery({
+    queryKey: ["atlas-review-queue", "count"],
+    queryFn: () => fn({ data: {} as any }),
+    refetchInterval: 30_000,
+  });
+  const n = data?.sources?.length ?? 0;
+  return (
+    <Link
+      to="/intelligence-queue"
+      className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs hover:bg-white/[0.06]"
+    >
+      <Inbox size={12} /> Review Queue
+      {n > 0 && (
+        <span className="rounded-full bg-[color:var(--athena-gold,#f59e0b)] px-1.5 text-[10px] font-bold text-[#0b0b0b]">{n}</span>
+      )}
+    </Link>
+  );
+}
+
+function OnboardingBanner({ stats }: { stats: any }) {
+  const empty = !stats || (stats.canonSources === 0 && stats.programSources === 0);
+  if (!empty) return null;
+  return (
+    <div
+      className="mt-6 rounded-lg p-5 flex items-start gap-4"
+      style={{
+        background: "linear-gradient(135deg, rgba(245,158,11,0.08), rgba(34,211,238,0.06))",
+        border: "1px solid rgba(245,158,11,0.25)",
+      }}
+    >
+      <Zap className="h-5 w-5 mt-0.5 text-[color:var(--athena-gold,#f59e0b)]" />
+      <div className="flex-1">
+        <div className="text-sm font-semibold">Atlas is empty. Start in two clicks.</div>
+        <p className="mt-1 text-[13px] text-muted-foreground">
+          Activate the Canon Starter Kit to seed 10 federal sources, then create a program and let IRIS discover its sources.
+        </p>
+      </div>
+      <ActivateStarterKitButton />
+    </div>
+  );
+}
+
+function ActivateStarterKitButton() {
+  const qc = useQueryClient();
+  const fn = useServerFn(activateCanonStarterKit);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  async function go() {
+    setBusy(true); setMsg(null);
+    try {
+      const r = await fn({ data: {} as any });
+      setMsg(`Inserted ${r.inserted} · Skipped ${r.skipped}`);
+      qc.invalidateQueries({ queryKey: ["atlas-hub-stats"] });
+      qc.invalidateQueries({ queryKey: ["atlas-sources"] });
+    } catch (e: any) { setMsg(`Error: ${e.message}`); }
+    finally { setBusy(false); }
+  }
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <button
+        onClick={go}
+        disabled={busy}
+        className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium disabled:opacity-50"
+        style={{ background: "var(--athena-gold, #f59e0b)", color: "#0b0b0b" }}
+      >
+        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap size={14} />} Activate Canon Starter Kit
+      </button>
+      {msg && <span className="text-[11px] text-muted-foreground">{msg}</span>}
+    </div>
+  );
+}
+
+function CreateProgramButton() {
+  const qc = useQueryClient();
+  const fn = useServerFn(createProgram);
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ program_code: "", program_name: "", state_code: "", program_type: "" });
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true); setErr(null);
+    try {
+      await fn({ data: {
+        program_code: form.program_code.toUpperCase(),
+        program_name: form.program_name,
+        state_code: form.state_code.toUpperCase(),
+        program_type: form.program_type || undefined,
+      }});
+      qc.invalidateQueries({ queryKey: ["atlas-programs"] });
+      qc.invalidateQueries({ queryKey: ["atlas-hub-stats"] });
+      setOpen(false);
+      setForm({ program_code: "", program_name: "", state_code: "", program_type: "" });
+    } catch (e: any) { setErr(e.message); }
+    finally { setBusy(false); }
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--iris,#22d3ee)]/40 bg-[color:var(--iris,#22d3ee)]/10 px-3 py-2 text-sm text-[color:var(--iris,#22d3ee)] hover:bg-[color:var(--iris,#22d3ee)]/20"
+      >
+        <Plus size={14} /> Create Program
+      </button>
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setOpen(false)}>
+          <form
+            onSubmit={submit}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md rounded-lg border border-white/10 bg-[#0b1220] p-6 space-y-3"
+          >
+            <h3 className="text-lg font-semibold">Create Program</h3>
+            <Field label="Program code (e.g. NJ_CSOC)">
+              <input required value={form.program_code} onChange={(e) => setForm({ ...form, program_code: e.target.value })}
+                className="w-full rounded border border-white/10 bg-white/[0.03] px-2 py-1.5 text-sm" />
+            </Field>
+            <Field label="Program name">
+              <input required value={form.program_name} onChange={(e) => setForm({ ...form, program_name: e.target.value })}
+                className="w-full rounded border border-white/10 bg-white/[0.03] px-2 py-1.5 text-sm" />
+            </Field>
+            <Field label="State code (2-letter)">
+              <input required maxLength={2} value={form.state_code} onChange={(e) => setForm({ ...form, state_code: e.target.value })}
+                className="w-full rounded border border-white/10 bg-white/[0.03] px-2 py-1.5 text-sm" />
+            </Field>
+            <Field label="Program type (optional)">
+              <input value={form.program_type} onChange={(e) => setForm({ ...form, program_type: e.target.value })}
+                placeholder="e.g. Behavioral Health, HCBS, Managed LTSS"
+                className="w-full rounded border border-white/10 bg-white/[0.03] px-2 py-1.5 text-sm" />
+            </Field>
+            {err && <div className="text-xs text-red-400">{err}</div>}
+            <div className="flex justify-end gap-2 pt-2">
+              <button type="button" onClick={() => setOpen(false)} className="rounded border border-white/10 px-3 py-1.5 text-sm">Cancel</button>
+              <button type="submit" disabled={busy} className="rounded bg-[color:var(--iris,#22d3ee)] px-3 py-1.5 text-sm font-medium text-[#04141a] disabled:opacity-50">
+                {busy ? <Loader2 className="inline h-4 w-4 animate-spin" /> : "Create"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+    </>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function DiscoverSourcesButton({ programCode, programName }: { programCode: string; programName: string }) {
+  const qc = useQueryClient();
+  const fn = useServerFn(discoverProgramSources);
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+
+  async function discover() {
+    setBusy(true); setResult(null);
+    try {
+      const r = await fn({ data: { programCode } });
+      setResult(`IRIS proposed ${r.inserted} new sources (skipped ${r.skipped}). They're waiting in the Review Queue.`);
+      qc.invalidateQueries({ queryKey: ["atlas-review-queue"] });
+      qc.invalidateQueries({ queryKey: ["atlas-programs"] });
+    } catch (e: any) { setResult(`Error: ${e.message}`); }
+    finally { setBusy(false); }
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--iris,#22d3ee)]/40 bg-[color:var(--iris,#22d3ee)]/10 px-3 py-2 text-sm text-[color:var(--iris,#22d3ee)] hover:bg-[color:var(--iris,#22d3ee)]/20"
+      >
+        <Sparkles size={14} /> Discover sources with IRIS
+      </button>
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => !busy && setOpen(false)}>
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md rounded-lg border border-white/10 bg-[#0b1220] p-6 space-y-3">
+            <div className="flex items-center gap-2">
+              <Brain size={18} className="text-[color:var(--iris,#22d3ee)]" />
+              <h3 className="text-lg font-semibold">IRIS source discovery</h3>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              IRIS will propose authoritative source documents for <span className="font-medium text-foreground">{programName}</span> — official agency publications, contractor manuals, model contracts, RFPs, EQR reports.
+            </p>
+            <p className="text-[12px] text-muted-foreground">
+              Proposed sources land in the <strong>Review Queue</strong> with status <code>under_review</code>. They won't be visible to IRIS until an Admin approves them.
+            </p>
+            {result && <div className="rounded border border-white/10 bg-white/5 px-3 py-2 text-sm">{result}</div>}
+            <div className="flex justify-end gap-2 pt-2">
+              <button onClick={() => setOpen(false)} disabled={busy} className="rounded border border-white/10 px-3 py-1.5 text-sm">Close</button>
+              {!result && (
+                <button onClick={discover} disabled={busy} className="rounded bg-[color:var(--iris,#22d3ee)] px-3 py-1.5 text-sm font-medium text-[#04141a] disabled:opacity-50">
+                  {busy ? <><Loader2 className="inline mr-1 h-4 w-4 animate-spin" />Discovering…</> : "Run IRIS discovery"}
+                </button>
+              )}
+              {result && (
+                <Link to="/intelligence-queue" className="rounded bg-[color:var(--athena-gold,#f59e0b)] px-3 py-1.5 text-sm font-medium text-[#0b0b0b]">
+                  Open Review Queue →
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
