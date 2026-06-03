@@ -582,7 +582,7 @@ function MissionOverviewPage() {
           {/* Leadership row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
             {leadershipRow.map((slot) => (
-              <LeaderCard key={slot.label} label={slot.label} person={slot.person} />
+              <LeaderCard key={slot.label} label={slot.label} person={slot.person} onMessage={openCompose} />
             ))}
           </div>
         </section>
