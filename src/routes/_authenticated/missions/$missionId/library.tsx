@@ -214,13 +214,23 @@ function LibraryPage() {
                     >
                       {doc.name}
                     </button>
-                    <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                       <span className="rounded bg-muted px-1.5 py-0.5">{doc.category}</span>
                       {doc.is_rfp && (
                         <span className="rounded bg-primary/15 px-1.5 py-0.5 text-primary">RFP</span>
                       )}
+                      {indexedIds.has(doc.id) ? (
+                        <span className="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-1.5 py-0.5 text-emerald-400">
+                          <CheckCircle2 className="h-3 w-3" /> Indexed by IRIS
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded bg-amber-500/10 px-1.5 py-0.5 text-amber-300">
+                          <Loader2 className="h-3 w-3 animate-spin" /> Pending IRIS indexing…
+                        </span>
+                      )}
                       {doc.url && <ExternalLink className="h-3 w-3" />}
                     </div>
+
                   </div>
                 </div>
                 {doc.notes && (
