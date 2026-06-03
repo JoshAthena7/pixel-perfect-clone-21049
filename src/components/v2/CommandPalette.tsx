@@ -174,8 +174,8 @@ export function CommandPalette() {
       { id: "qa-phone", group: "Quick actions", label: "Phone a Friend", hint: "Talk to an Athena expert",
         icon: <Phone size={16} className="text-[#8b5cf6]" />,
         onGo: () => {
-          window.dispatchEvent(new CustomEvent("atlas:open-phone-a-friend"));
-          toast("Phone a Friend", { description: "IRIS is finding the right expert for you…" });
+          if (missionId) window.dispatchEvent(new CustomEvent("atlas:open-phone-a-friend"));
+          else toast.error("Open a mission to use Phone a Friend.");
         } },
     ];
     if (missionId) {
