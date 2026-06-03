@@ -264,6 +264,45 @@ function VaultPage() {
         <p className="mt-1 text-sm text-muted-foreground">Upload and manage every mission document. IRIS auto-parses RFPs into questions.</p>
       </header>
 
+      {/* Hero upload card — single friendly box */}
+      <div
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => { e.preventDefault(); setDragOver(false); handleUpload(e.dataTransfer.files); }}
+        onClick={() => !uploading && fileRef.current?.click()}
+        className={`mb-6 cursor-pointer rounded-[12px] border-2 border-dashed p-6 transition ${dragOver ? "border-[#C49A22] bg-[#C49A22]/10" : "border-border bg-surface hover:border-[#C49A22]/60 hover:bg-[#C49A22]/5"}`}
+      >
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#C49A22]/15 text-[#C49A22]">
+            <Upload className="h-7 w-7" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-base font-semibold text-foreground">Drop a file here, or click to browse</div>
+            <div className="mt-0.5 text-xs text-muted-foreground">PDF, DOCX, XLSX, PPTX, TXT · IRIS will read RFPs automatically</div>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center" onClick={(e) => e.stopPropagation()}>
+            <select value={uploadCategory} onChange={(e) => setUploadCategory(e.target.value as Category)}
+              className="rounded-md border border-border bg-background px-3 py-2 text-sm">
+              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <label className="flex items-center gap-2 text-xs text-muted-foreground whitespace-nowrap">
+              <input type="checkbox" checked={uploadIsRfp} onChange={(e) => setUploadIsRfp(e.target.checked)} />
+              This is an RFP
+            </label>
+            <button
+              type="button"
+              disabled={uploading}
+              onClick={(e) => { e.stopPropagation(); fileRef.current?.click(); }}
+              className="rounded-md bg-[#C49A22] px-4 py-2 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50"
+            >
+              {uploading ? "Uploading…" : "Choose file"}
+            </button>
+          </div>
+        </div>
+        <input ref={fileRef} type="file" multiple accept=".pdf,.docx,.xlsx,.pptx,.txt"
+          onChange={(e) => handleUpload(e.target.files)} disabled={uploading} className="hidden" />
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr_320px] gap-6">
         {/* Categories */}
         <aside className="rounded-[10px] border border-border bg-surface p-2">
@@ -376,41 +415,8 @@ function VaultPage() {
           )}
         </div>
 
-        {/* Upload panel */}
+        {/* Side panel — add link only (upload lives in hero box above) */}
         <aside className="space-y-4">
-          <div
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={(e) => {
-              e.preventDefault(); setDragOver(false);
-              handleUpload(e.dataTransfer.files);
-            }}
-            className={`rounded-[10px] border-2 border-dashed p-5 transition ${dragOver ? "border-[#C49A22] bg-[#C49A22]/5" : "border-border bg-surface"}`}
-          >
-            <div className="mb-3 flex items-center gap-2 text-sm font-medium">
-              <Upload className="h-4 w-4 text-muted-foreground" /> Upload files
-            </div>
-            <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Category</label>
-            <select value={uploadCategory} onChange={(e) => setUploadCategory(e.target.value as Category)}
-              className="mb-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm">
-              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <label className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
-              <input type="checkbox" checked={uploadIsRfp} onChange={(e) => setUploadIsRfp(e.target.checked)} />
-              This is an RFP (enables IRIS parsing)
-            </label>
-            <div
-              onClick={() => fileRef.current?.click()}
-              className="cursor-pointer rounded-md border border-dashed border-border bg-background/40 px-3 py-4 text-center text-[11px] text-muted-foreground hover:bg-surface-hover"
-            >
-              Drop files here or click to browse
-              <div className="mt-1 text-[10px] opacity-60">PDF, DOCX, XLSX, PPTX, TXT</div>
-            </div>
-            <input ref={fileRef} type="file" multiple accept=".pdf,.docx,.xlsx,.pptx,.txt"
-              onChange={(e) => handleUpload(e.target.files)} disabled={uploading} className="hidden" />
-            {uploading && <div className="mt-2 text-[11px] text-muted-foreground">Uploading…</div>}
-          </div>
-
           <AddUrlPanel onSubmit={addUrl} />
         </aside>
       </div>
