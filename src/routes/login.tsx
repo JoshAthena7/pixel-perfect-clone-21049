@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import athenaSgBrand from "@/assets/athena-sg-transparent.png.asset.json";
+import atlasLogo from "@/assets/atlas-logo.png.asset.json";
+import irisLogo from "@/assets/iris-logo.png.asset.json";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — Atlas" }] }),
@@ -192,12 +194,19 @@ function LoginPage() {
                   Strategic Intelligence Platform
                 </span>
               </div>
-              <h1
-                className="text-7xl font-light leading-none tracking-tight text-white"
-                style={{ letterSpacing: "0.06em" }}
-              >
-                ATLAS
-              </h1>
+              <div className="flex items-end gap-5">
+                <img
+                  src={atlasLogo.url}
+                  alt="ATLAS"
+                  className="h-20 w-auto object-contain"
+                />
+                <h1
+                  className="text-7xl font-light leading-none tracking-tight text-white"
+                  style={{ letterSpacing: "0.06em" }}
+                >
+                  ATLAS
+                </h1>
+              </div>
               <p className="text-sm font-light uppercase tracking-[0.4em] text-white/50">
                 Intelligence · Alignment · Execution
               </p>
@@ -232,7 +241,12 @@ function LoginPage() {
                   ))}
                 </div>
               </div>
-              <div className="relative min-h-[110px] px-6 py-6">
+              <div className="relative flex min-h-[110px] items-start gap-4 px-6 py-6">
+                <img
+                  src={irisLogo.url}
+                  alt="IRIS"
+                  className="mt-1 h-10 w-10 shrink-0 object-contain"
+                />
                 <p
                   key={briefingIdx}
                   className="iris-fade text-lg font-light leading-relaxed text-white"
