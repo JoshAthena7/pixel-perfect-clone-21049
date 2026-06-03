@@ -88,6 +88,62 @@ export type Database = {
           },
         ]
       }
+      amendment_changes: {
+        Row: {
+          acknowledged: boolean
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          affected_question_ids: string[] | null
+          affected_sections: string[] | null
+          amendment_id: string
+          change_type: string
+          created_at: string
+          description: string
+          id: string
+          mission_id: string
+          severity: string
+          writer_action_required: string | null
+        }
+        Insert: {
+          acknowledged?: boolean
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          affected_question_ids?: string[] | null
+          affected_sections?: string[] | null
+          amendment_id: string
+          change_type: string
+          created_at?: string
+          description: string
+          id?: string
+          mission_id: string
+          severity?: string
+          writer_action_required?: string | null
+        }
+        Update: {
+          acknowledged?: boolean
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          affected_question_ids?: string[] | null
+          affected_sections?: string[] | null
+          amendment_id?: string
+          change_type?: string
+          created_at?: string
+          description?: string
+          id?: string
+          mission_id?: string
+          severity?: string
+          writer_action_required?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "amendment_changes_amendment_id_fkey"
+            columns: ["amendment_id"]
+            isOneToOne: false
+            referencedRelation: "rfp_amendments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       briefing_book_section_history: {
         Row: {
           content: string | null
@@ -1743,6 +1799,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      rfp_amendments: {
+        Row: {
+          amendment_type: string
+          analyzed_at: string | null
+          analyzed_by: string | null
+          base_rfp_document_id: string | null
+          created_at: string
+          critical_changes: number
+          document_id: string
+          error_message: string | null
+          id: string
+          mission_id: string
+          status: string
+          summary: string | null
+          total_changes: number
+        }
+        Insert: {
+          amendment_type: string
+          analyzed_at?: string | null
+          analyzed_by?: string | null
+          base_rfp_document_id?: string | null
+          created_at?: string
+          critical_changes?: number
+          document_id: string
+          error_message?: string | null
+          id?: string
+          mission_id: string
+          status?: string
+          summary?: string | null
+          total_changes?: number
+        }
+        Update: {
+          amendment_type?: string
+          analyzed_at?: string | null
+          analyzed_by?: string | null
+          base_rfp_document_id?: string | null
+          created_at?: string
+          critical_changes?: number
+          document_id?: string
+          error_message?: string | null
+          id?: string
+          mission_id?: string
+          status?: string
+          summary?: string | null
+          total_changes?: number
+        }
+        Relationships: []
       }
       signals: {
         Row: {
