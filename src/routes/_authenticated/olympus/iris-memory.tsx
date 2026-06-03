@@ -54,6 +54,7 @@ type Memory = {
 };
 
 function IrisMemoryPage() {
+  const [tab, setTab] = useState<"memories" | "corrections">("memories");
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [scopeFilter, setScopeFilter] = useState<"all" | Scope>("all");
   const [importanceFilter, setImportanceFilter] = useState<"all" | Importance>("all");
