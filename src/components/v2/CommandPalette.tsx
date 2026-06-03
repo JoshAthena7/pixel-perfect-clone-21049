@@ -351,18 +351,27 @@ export function CommandPalette() {
                   const hint = item.hint ?? item.subtitle;
                   const meta = isHit ? (row as any).item.meta : undefined;
                   const badge = isHit ? (row as any).item.badge : undefined;
+                  const tone: Tone = !isHit ? ((item.tone as Tone) ?? "default") : "default";
+                  const bg = active
+                    ? (tone === "danger" ? "rgba(239,68,68,0.08)" : tone === "iris" ? "rgba(8,145,178,0.08)" : "rgba(255,255,255,0.07)")
+                    : (tone === "danger" ? "transparent" : "transparent");
+                  const borderColor = active
+                    ? (tone === "danger" ? "var(--red,#ef4444)" : tone === "iris" ? "var(--iris,#0891b2)" : "var(--accent,#3b7fff)")
+                    : (tone === "danger" ? "rgba(239,68,68,0.3)" : "transparent");
+                  const accentColor = tone === "danger" ? "var(--red,#ef4444)" : tone === "iris" ? "var(--iris,#0891b2)" : "var(--accent,#3b7fff)";
                   return (
                     <button
                       key={item.id}
                       onMouseEnter={() => setIdx(myIdx)}
                       onClick={() => activate(row)}
-                      className="flex w-full items-start gap-3 px-6 py-2 text-left text-sm transition-colors"
+                      className="flex w-full items-center gap-3 px-5 text-left text-sm transition-colors"
                       style={{
-                        background: active ? "rgba(34,211,238,0.08)" : "transparent",
-                        borderLeft: active ? "2px solid var(--iris,#22d3ee)" : "2px solid transparent",
+                        height: 48,
+                        background: bg,
+                        borderLeft: `2px solid ${borderColor}`,
                       }}
                     >
-                      <span className="mt-0.5 shrink-0">{icon}</span>
+                      <span className="shrink-0">{icon}</span>
                       <span className="min-w-0 flex-1">
                         <span className="flex items-center gap-2">
                           {badge && (
@@ -370,12 +379,12 @@ export function CommandPalette() {
                               {badge}
                             </span>
                           )}
-                          <span className="truncate text-foreground">{label}</span>
+                          <span className="truncate text-[14px] font-medium text-foreground">{label}</span>
+                          {hint && <span className="ml-1 truncate text-[12px] text-muted-foreground">{hint}</span>}
                         </span>
-                        {hint && <div className="mt-0.5 truncate text-[11px] text-muted-foreground">{hint}</div>}
                         {meta && <div className="mt-0.5 line-clamp-1 text-[11px] text-muted-foreground/70">{meta}</div>}
                       </span>
-                      {active && <CornerDownLeft size={12} className="mt-1 text-[color:var(--iris,#22d3ee)]" />}
+                      {active && <CornerDownLeft size={12} className="shrink-0" style={{ color: accentColor }} />}
                     </button>
                   );
                 })}
