@@ -181,6 +181,7 @@ export function PilotStatusSection({ missionId, isLead }: { missionId: string; i
         {sortedPilots.map((p) => (
           <PilotCard
             key={p.question_id}
+            missionId={missionId}
             pilot={p}
             onCompose={() => setComposeTarget(p)}
           />
