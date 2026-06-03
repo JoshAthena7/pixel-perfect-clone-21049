@@ -57,23 +57,24 @@ function LoginPage() {
   }
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-[#040814] text-white">
-      {/* Full-bleed reference graphic */}
-      <img
-        src={loginBg.url}
-        alt=""
-        aria-hidden
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-      />
+    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[#040814] text-white">
+      {/* Aspect-locked stage holds both the reference graphic and the interactive overlay so they always align */}
+      <div
+        className="relative w-full"
+        style={{ aspectRatio: "1536 / 1024", maxHeight: "100vh", maxWidth: "calc(100vh * 1536 / 1024)" }}
+      >
+        <img
+          src={loginBg.url}
+          alt=""
+          aria-hidden
+          className="pointer-events-none absolute inset-0 h-full w-full object-fill"
+        />
 
-      {/* Aspect-ratio frame: positions the form precisely over the WELCOME BACK panel */}
-      <div className="relative z-10 mx-auto h-screen w-full">
-        <div className="relative mx-auto h-full" style={{ aspectRatio: "1536 / 1024", maxWidth: "min(100vw, calc(100vh * 1536 / 1024))" }}>
-          {/* Interactive form overlay — covers the WELCOME BACK panel in the graphic */}
-          <div
-            className="absolute"
-            style={{ left: "33.5%", right: "33.5%", top: "36.5%", bottom: "32%" }}
-          >
+        {/* Interactive form overlay — covers the WELCOME BACK panel in the graphic */}
+        <div
+          className="absolute"
+          style={{ left: "34.2%", right: "34.2%", top: "36.2%", bottom: "32.8%" }}
+        >
             <div className="relative h-full w-full overflow-hidden rounded-xl border border-amber-500/30 bg-gradient-to-b from-[#0b1733] to-[#050b1a] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)]">
               <form onSubmit={onSubmit} className="flex h-full w-full flex-col px-7 py-5">
                 <h2 className="mb-4 text-center text-[15px] font-semibold uppercase tracking-[0.35em] text-amber-400">
