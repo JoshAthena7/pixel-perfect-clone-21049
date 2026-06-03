@@ -84,7 +84,7 @@ function LoginPage() {
           }}
         >
           <div className="mb-8 text-center">
-            <img src={athenaSgLogo.url} alt="Athena Strategy Group" className="mx-auto mb-6 h-12 object-contain opacity-90" />
+            <img src={athenaSgLogo.url} alt="Athena Strategy Group" className="mx-auto mb-6 h-12 object-contain opacity-30 mix-blend-luminosity" style={{ filter: "brightness(0.55) contrast(0.85)" }} />
             <div className="mb-2 flex items-center justify-center gap-2">
               <span className="text-xl text-[color:var(--athena-gold,#f59e0b)] drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">⚡</span>
               <span className="text-2xl font-extrabold tracking-[0.18em] text-foreground" style={{ letterSpacing: "0.18em" }}>
