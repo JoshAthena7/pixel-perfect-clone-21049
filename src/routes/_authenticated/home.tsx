@@ -359,8 +359,18 @@ function AthenaHQ() {
               <MissionGridSkeleton count={3} />
             ) : missions.length === 0 ? (
               <EmptyState
-                icon={<DoorOpen className="h-10 w-10" />}
-                title="No missions assigned."
+                icon={<Rocket className="h-10 w-10" strokeWidth={1.5} />}
+                title="Atlas is ready."
+                subtitle="Create your first mission in Olympus to get started."
+                cta={
+                  <Link
+                    to="/olympus"
+                    className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-[13px] font-medium text-background hover:opacity-90"
+                  >
+                    Go to Olympus
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                }
               />
 
 
@@ -398,9 +408,9 @@ function AthenaHQ() {
               <QuestionListSkeleton count={5} />
             ) : myAssignments.length === 0 ? (
               <EmptyState
-                icon={<ClipboardList className="h-10 w-10" />}
-                title="Your questions will appear here once your lead assigns them in Olympus."
-                subtitle="Check back soon — you'll be notified when work is ready."
+                icon={<ClipboardList className="h-10 w-10" strokeWidth={1.5} />}
+                title="No questions assigned yet."
+                subtitle="Your Engagement Lead will assign your questions once the RFP is uploaded and parsed."
               />
             ) : (
               <ul className="divide-y divide-border rounded-[12px] border border-border bg-surface">
