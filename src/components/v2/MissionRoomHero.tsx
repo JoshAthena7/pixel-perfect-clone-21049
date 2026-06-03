@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, PenTool } from "lucide-react";
+import { ArrowRight, PenTool, Plane } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 function timeAgo(iso: string | null | undefined): string {
