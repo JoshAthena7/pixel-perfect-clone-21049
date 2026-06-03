@@ -345,6 +345,12 @@ function CockpitPage() {
   const [getHelpOpen, setGetHelpOpen] = useState(false);
   const [scoreMeOpen, setScoreMeOpen] = useState(false);
   const [overflowOpen, setOverflowOpen] = useState(false);
+  const [phoneOpen, setPhoneOpen] = useState(false);
+  useEffect(() => {
+    const onOpen = () => setPhoneOpen(true);
+    window.addEventListener("atlas:open-phone-a-friend", onOpen);
+    return () => window.removeEventListener("atlas:open-phone-a-friend", onOpen);
+  }, []);
 
   /* Ask IRIS */
   const askFn = useServerFn(irisAskQuestion);
