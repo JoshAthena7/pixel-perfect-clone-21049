@@ -262,11 +262,6 @@ function AthenaHQ() {
     },
   });
 
-  const pipeline = missions.slice().sort((a, b) => {
-    const da = a.submission_date ? new Date(a.submission_date).getTime() : Infinity;
-    const db = b.submission_date ? new Date(b.submission_date).getTime() : Infinity;
-    return da - db;
-  });
 
   // PHASE 7: leader shortcut — most recently viewed mission
   const lastViewedMissionId = typeof window !== "undefined" ? sessionStorage.getItem("athena:last-mission") : null;
