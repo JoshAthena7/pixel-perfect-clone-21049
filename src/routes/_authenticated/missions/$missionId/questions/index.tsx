@@ -10,6 +10,7 @@ import { StudioHealthStrip } from "@/components/v2/StudioHealthStrip";
 import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
 import { SOSButton } from "@/components/v2/SOSButton";
 import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
+import { Cockpit } from "@/components/v2/Cockpit";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/questions/")({
   component: ResponsesList,
