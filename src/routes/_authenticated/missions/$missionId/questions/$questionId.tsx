@@ -407,6 +407,7 @@ function CockpitPage() {
                     <span className="h-1.5 w-1.5 rounded-full" style={{ background: c, boxShadow: `0 0 4px ${c}` }} />
                     <span className="font-mono">Q{mq.question_number}</span>
                     {d !== null && <span className="text-muted-foreground">{d}d</span>}
+                    <ConfidenceDot level={mq.writer_confidence ?? null} />
                   </Link>
                 );
               })}
