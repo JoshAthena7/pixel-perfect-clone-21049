@@ -144,6 +144,831 @@ export type Database = {
           },
         ]
       }
+      atlas_entities: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          entity_name: string
+          entity_type: string
+          id: string
+          is_active: boolean | null
+          key_sources: string[] | null
+          knowledge_layer: string | null
+          notes: string | null
+          parent_entity: string | null
+          program_code: string | null
+          related_entities: string[] | null
+          slug: string
+          state_code: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          entity_name: string
+          entity_type: string
+          id?: string
+          is_active?: boolean | null
+          key_sources?: string[] | null
+          knowledge_layer?: string | null
+          notes?: string | null
+          parent_entity?: string | null
+          program_code?: string | null
+          related_entities?: string[] | null
+          slug: string
+          state_code?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          entity_name?: string
+          entity_type?: string
+          id?: string
+          is_active?: boolean | null
+          key_sources?: string[] | null
+          knowledge_layer?: string | null
+          notes?: string | null
+          parent_entity?: string | null
+          program_code?: string | null
+          related_entities?: string[] | null
+          slug?: string
+          state_code?: string | null
+        }
+        Relationships: []
+      }
+      atlas_knowledge_objects: {
+        Row: {
+          authority_score: number | null
+          body: string
+          created_at: string | null
+          embedding: string | null
+          entities_tagged: string[] | null
+          id: string
+          issuing_authority: string | null
+          knowledge_layer: string
+          last_retrieved_at: string | null
+          mission_id: string | null
+          object_type: string
+          page_reference: string | null
+          program_code: string | null
+          proposal_use_case: string | null
+          related_chapters: string[] | null
+          related_objects: string[] | null
+          related_questions: string[] | null
+          retrieval_count: number | null
+          section_reference: string | null
+          source_id: string | null
+          state_code: string | null
+          tags: string[] | null
+          title: string | null
+          topic_category: string | null
+          updated_at: string | null
+          verbatim_quote: string | null
+        }
+        Insert: {
+          authority_score?: number | null
+          body: string
+          created_at?: string | null
+          embedding?: string | null
+          entities_tagged?: string[] | null
+          id?: string
+          issuing_authority?: string | null
+          knowledge_layer: string
+          last_retrieved_at?: string | null
+          mission_id?: string | null
+          object_type: string
+          page_reference?: string | null
+          program_code?: string | null
+          proposal_use_case?: string | null
+          related_chapters?: string[] | null
+          related_objects?: string[] | null
+          related_questions?: string[] | null
+          retrieval_count?: number | null
+          section_reference?: string | null
+          source_id?: string | null
+          state_code?: string | null
+          tags?: string[] | null
+          title?: string | null
+          topic_category?: string | null
+          updated_at?: string | null
+          verbatim_quote?: string | null
+        }
+        Update: {
+          authority_score?: number | null
+          body?: string
+          created_at?: string | null
+          embedding?: string | null
+          entities_tagged?: string[] | null
+          id?: string
+          issuing_authority?: string | null
+          knowledge_layer?: string
+          last_retrieved_at?: string | null
+          mission_id?: string | null
+          object_type?: string
+          page_reference?: string | null
+          program_code?: string | null
+          proposal_use_case?: string | null
+          related_chapters?: string[] | null
+          related_objects?: string[] | null
+          related_questions?: string[] | null
+          retrieval_count?: number | null
+          section_reference?: string | null
+          source_id?: string | null
+          state_code?: string | null
+          tags?: string[] | null
+          title?: string | null
+          topic_category?: string | null
+          updated_at?: string | null
+          verbatim_quote?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atlas_knowledge_objects_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atlas_knowledge_objects_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "atlas_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      atlas_lessons_learned: {
+        Row: {
+          applies_to_programs: string[] | null
+          applies_to_question_types: string[] | null
+          applies_to_states: string[] | null
+          authority_score: number | null
+          confidence: string | null
+          created_at: string | null
+          id: string
+          iris_memory_id: string | null
+          last_applied_at: string | null
+          lesson_body: string
+          lesson_type: string
+          promoted_at: string | null
+          promoted_by: string | null
+          source_mission_ids: string[] | null
+          times_applied: number | null
+          title: string
+          updated_at: string | null
+          win_or_loss: string | null
+        }
+        Insert: {
+          applies_to_programs?: string[] | null
+          applies_to_question_types?: string[] | null
+          applies_to_states?: string[] | null
+          authority_score?: number | null
+          confidence?: string | null
+          created_at?: string | null
+          id?: string
+          iris_memory_id?: string | null
+          last_applied_at?: string | null
+          lesson_body: string
+          lesson_type: string
+          promoted_at?: string | null
+          promoted_by?: string | null
+          source_mission_ids?: string[] | null
+          times_applied?: number | null
+          title: string
+          updated_at?: string | null
+          win_or_loss?: string | null
+        }
+        Update: {
+          applies_to_programs?: string[] | null
+          applies_to_question_types?: string[] | null
+          applies_to_states?: string[] | null
+          authority_score?: number | null
+          confidence?: string | null
+          created_at?: string | null
+          id?: string
+          iris_memory_id?: string | null
+          last_applied_at?: string | null
+          lesson_body?: string
+          lesson_type?: string
+          promoted_at?: string | null
+          promoted_by?: string | null
+          source_mission_ids?: string[] | null
+          times_applied?: number | null
+          title?: string
+          updated_at?: string | null
+          win_or_loss?: string | null
+        }
+        Relationships: []
+      }
+      atlas_playbook_chapters: {
+        Row: {
+          applicable_rfq_types: string[] | null
+          chapter_code: string
+          chapter_title: string
+          common_mistakes: Json | null
+          created_at: string | null
+          example_language: Json | null
+          id: string
+          iris_summary: string | null
+          is_active: boolean | null
+          key_principles: Json | null
+          knowledge_layer: string
+          overview: string | null
+          program_code: string | null
+          related_chapters: string[] | null
+          related_entities: string[] | null
+          related_sources: string[] | null
+          state_code: string | null
+          updated_at: string | null
+          version: number | null
+          winning_patterns: Json | null
+          writing_guidance: Json | null
+        }
+        Insert: {
+          applicable_rfq_types?: string[] | null
+          chapter_code: string
+          chapter_title: string
+          common_mistakes?: Json | null
+          created_at?: string | null
+          example_language?: Json | null
+          id?: string
+          iris_summary?: string | null
+          is_active?: boolean | null
+          key_principles?: Json | null
+          knowledge_layer: string
+          overview?: string | null
+          program_code?: string | null
+          related_chapters?: string[] | null
+          related_entities?: string[] | null
+          related_sources?: string[] | null
+          state_code?: string | null
+          updated_at?: string | null
+          version?: number | null
+          winning_patterns?: Json | null
+          writing_guidance?: Json | null
+        }
+        Update: {
+          applicable_rfq_types?: string[] | null
+          chapter_code?: string
+          chapter_title?: string
+          common_mistakes?: Json | null
+          created_at?: string | null
+          example_language?: Json | null
+          id?: string
+          iris_summary?: string | null
+          is_active?: boolean | null
+          key_principles?: Json | null
+          knowledge_layer?: string
+          overview?: string | null
+          program_code?: string | null
+          related_chapters?: string[] | null
+          related_entities?: string[] | null
+          related_sources?: string[] | null
+          state_code?: string | null
+          updated_at?: string | null
+          version?: number | null
+          winning_patterns?: Json | null
+          writing_guidance?: Json | null
+        }
+        Relationships: []
+      }
+      atlas_programs: {
+        Row: {
+          contract_term: string | null
+          contract_value: string | null
+          created_at: string | null
+          current_contractor: string | null
+          eligibility: string | null
+          id: string
+          iris_brief_updated_at: string | null
+          iris_program_brief: string | null
+          is_active: boolean | null
+          last_procurement: string | null
+          next_procurement: string | null
+          operational_requirements: string | null
+          population_served: string | null
+          procurement_notes: string | null
+          program_code: string
+          program_name: string
+          program_overview: string | null
+          program_type: string | null
+          proposal_implications: string | null
+          quality_requirements: string | null
+          reporting_requirements: string | null
+          service_array: string | null
+          state_code: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          contract_term?: string | null
+          contract_value?: string | null
+          created_at?: string | null
+          current_contractor?: string | null
+          eligibility?: string | null
+          id?: string
+          iris_brief_updated_at?: string | null
+          iris_program_brief?: string | null
+          is_active?: boolean | null
+          last_procurement?: string | null
+          next_procurement?: string | null
+          operational_requirements?: string | null
+          population_served?: string | null
+          procurement_notes?: string | null
+          program_code: string
+          program_name: string
+          program_overview?: string | null
+          program_type?: string | null
+          proposal_implications?: string | null
+          quality_requirements?: string | null
+          reporting_requirements?: string | null
+          service_array?: string | null
+          state_code?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          contract_term?: string | null
+          contract_value?: string | null
+          created_at?: string | null
+          current_contractor?: string | null
+          eligibility?: string | null
+          id?: string
+          iris_brief_updated_at?: string | null
+          iris_program_brief?: string | null
+          is_active?: boolean | null
+          last_procurement?: string | null
+          next_procurement?: string | null
+          operational_requirements?: string | null
+          population_served?: string | null
+          procurement_notes?: string | null
+          program_code?: string
+          program_name?: string
+          program_overview?: string | null
+          program_type?: string | null
+          proposal_implications?: string | null
+          quality_requirements?: string | null
+          reporting_requirements?: string | null
+          service_array?: string | null
+          state_code?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atlas_programs_state_code_fkey"
+            columns: ["state_code"]
+            isOneToOne: false
+            referencedRelation: "atlas_states"
+            referencedColumns: ["state_code"]
+          },
+        ]
+      }
+      atlas_source_citations: {
+        Row: {
+          created_at: string | null
+          embedding: string | null
+          id: string
+          knowledge_layer: string | null
+          page_ref: string | null
+          program_code: string | null
+          proposal_use_case: string | null
+          quote_text: string
+          section_ref: string | null
+          source_id: string | null
+          tags: string[] | null
+        }
+        Insert: {
+          created_at?: string | null
+          embedding?: string | null
+          id?: string
+          knowledge_layer?: string | null
+          page_ref?: string | null
+          program_code?: string | null
+          proposal_use_case?: string | null
+          quote_text: string
+          section_ref?: string | null
+          source_id?: string | null
+          tags?: string[] | null
+        }
+        Update: {
+          created_at?: string | null
+          embedding?: string | null
+          id?: string
+          knowledge_layer?: string | null
+          page_ref?: string | null
+          program_code?: string | null
+          proposal_use_case?: string | null
+          quote_text?: string
+          section_ref?: string | null
+          source_id?: string | null
+          tags?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atlas_source_citations_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "atlas_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      atlas_source_definitions: {
+        Row: {
+          created_at: string | null
+          definition: string
+          id: string
+          is_verbatim: boolean | null
+          knowledge_layer: string | null
+          program_code: string | null
+          section_ref: string | null
+          source_id: string | null
+          term: string
+        }
+        Insert: {
+          created_at?: string | null
+          definition: string
+          id?: string
+          is_verbatim?: boolean | null
+          knowledge_layer?: string | null
+          program_code?: string | null
+          section_ref?: string | null
+          source_id?: string | null
+          term: string
+        }
+        Update: {
+          created_at?: string | null
+          definition?: string
+          id?: string
+          is_verbatim?: boolean | null
+          knowledge_layer?: string | null
+          program_code?: string | null
+          section_ref?: string | null
+          source_id?: string | null
+          term?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atlas_source_definitions_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "atlas_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      atlas_source_monitor_log: {
+        Row: {
+          change_summary: string | null
+          checked_at: string | null
+          id: string
+          requires_reingest: boolean | null
+          source_id: string | null
+          status: string | null
+        }
+        Insert: {
+          change_summary?: string | null
+          checked_at?: string | null
+          id?: string
+          requires_reingest?: boolean | null
+          source_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          change_summary?: string | null
+          checked_at?: string | null
+          id?: string
+          requires_reingest?: boolean | null
+          source_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atlas_source_monitor_log_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "atlas_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      atlas_source_question_links: {
+        Row: {
+          connection_type: string | null
+          created_at: string | null
+          id: string
+          linked_by: string | null
+          question_id: string | null
+          relevance_score: number | null
+          source_id: string | null
+        }
+        Insert: {
+          connection_type?: string | null
+          created_at?: string | null
+          id?: string
+          linked_by?: string | null
+          question_id?: string | null
+          relevance_score?: number | null
+          source_id?: string | null
+        }
+        Update: {
+          connection_type?: string | null
+          created_at?: string | null
+          id?: string
+          linked_by?: string | null
+          question_id?: string | null
+          relevance_score?: number | null
+          source_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atlas_source_question_links_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "question_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atlas_source_question_links_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "atlas_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      atlas_source_requirements: {
+        Row: {
+          created_at: string | null
+          embedding: string | null
+          entities_tagged: string[] | null
+          id: string
+          knowledge_layer: string | null
+          program_code: string | null
+          requirement: string
+          requirement_type: string | null
+          section_ref: string | null
+          source_id: string | null
+          state_code: string | null
+          verbatim: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          embedding?: string | null
+          entities_tagged?: string[] | null
+          id?: string
+          knowledge_layer?: string | null
+          program_code?: string | null
+          requirement: string
+          requirement_type?: string | null
+          section_ref?: string | null
+          source_id?: string | null
+          state_code?: string | null
+          verbatim?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          embedding?: string | null
+          entities_tagged?: string[] | null
+          id?: string
+          knowledge_layer?: string | null
+          program_code?: string | null
+          requirement?: string
+          requirement_type?: string | null
+          section_ref?: string | null
+          source_id?: string | null
+          state_code?: string | null
+          verbatim?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atlas_source_requirements_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "atlas_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      atlas_sources: {
+        Row: {
+          authority_score: number | null
+          change_history: Json | null
+          citation_ready_quotes: Json | null
+          created_at: string | null
+          date_last_checked: string | null
+          date_last_ingested: string | null
+          date_last_reviewed: string | null
+          date_published: string | null
+          embedding: string | null
+          id: string
+          ingested_by: string | null
+          ingestion_confidence: string | null
+          ingestion_notes: string | null
+          issuing_authority: string | null
+          key_definitions: Json | null
+          key_requirements: Json | null
+          knowledge_layer: string
+          library_category: string | null
+          mission_id: string | null
+          needs_human_review: boolean | null
+          program_code: string | null
+          programs_applicable: string[] | null
+          promoted_at: string | null
+          promoted_by: string | null
+          promoted_from_mission: string | null
+          proposal_implications: Json | null
+          related_concepts: string[] | null
+          related_entities: string[] | null
+          related_playbook_chapters: string[] | null
+          related_rfp_questions: string[] | null
+          review_reason: string | null
+          source_file_id: string | null
+          source_id: string
+          source_raw_text: string | null
+          source_title: string
+          source_type: string | null
+          source_url: string | null
+          state_code: string | null
+          states_applicable: string[] | null
+          status: string | null
+          summary: string | null
+          tags: string[] | null
+          topic_category: string | null
+          updated_at: string | null
+          version: string | null
+        }
+        Insert: {
+          authority_score?: number | null
+          change_history?: Json | null
+          citation_ready_quotes?: Json | null
+          created_at?: string | null
+          date_last_checked?: string | null
+          date_last_ingested?: string | null
+          date_last_reviewed?: string | null
+          date_published?: string | null
+          embedding?: string | null
+          id?: string
+          ingested_by?: string | null
+          ingestion_confidence?: string | null
+          ingestion_notes?: string | null
+          issuing_authority?: string | null
+          key_definitions?: Json | null
+          key_requirements?: Json | null
+          knowledge_layer: string
+          library_category?: string | null
+          mission_id?: string | null
+          needs_human_review?: boolean | null
+          program_code?: string | null
+          programs_applicable?: string[] | null
+          promoted_at?: string | null
+          promoted_by?: string | null
+          promoted_from_mission?: string | null
+          proposal_implications?: Json | null
+          related_concepts?: string[] | null
+          related_entities?: string[] | null
+          related_playbook_chapters?: string[] | null
+          related_rfp_questions?: string[] | null
+          review_reason?: string | null
+          source_file_id?: string | null
+          source_id?: string
+          source_raw_text?: string | null
+          source_title: string
+          source_type?: string | null
+          source_url?: string | null
+          state_code?: string | null
+          states_applicable?: string[] | null
+          status?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          topic_category?: string | null
+          updated_at?: string | null
+          version?: string | null
+        }
+        Update: {
+          authority_score?: number | null
+          change_history?: Json | null
+          citation_ready_quotes?: Json | null
+          created_at?: string | null
+          date_last_checked?: string | null
+          date_last_ingested?: string | null
+          date_last_reviewed?: string | null
+          date_published?: string | null
+          embedding?: string | null
+          id?: string
+          ingested_by?: string | null
+          ingestion_confidence?: string | null
+          ingestion_notes?: string | null
+          issuing_authority?: string | null
+          key_definitions?: Json | null
+          key_requirements?: Json | null
+          knowledge_layer?: string
+          library_category?: string | null
+          mission_id?: string | null
+          needs_human_review?: boolean | null
+          program_code?: string | null
+          programs_applicable?: string[] | null
+          promoted_at?: string | null
+          promoted_by?: string | null
+          promoted_from_mission?: string | null
+          proposal_implications?: Json | null
+          related_concepts?: string[] | null
+          related_entities?: string[] | null
+          related_playbook_chapters?: string[] | null
+          related_rfp_questions?: string[] | null
+          review_reason?: string | null
+          source_file_id?: string | null
+          source_id?: string
+          source_raw_text?: string | null
+          source_title?: string
+          source_type?: string | null
+          source_url?: string | null
+          state_code?: string | null
+          states_applicable?: string[] | null
+          status?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          topic_category?: string | null
+          updated_at?: string | null
+          version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atlas_sources_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atlas_sources_program_code_fkey"
+            columns: ["program_code"]
+            isOneToOne: false
+            referencedRelation: "atlas_programs"
+            referencedColumns: ["program_code"]
+          },
+          {
+            foreignKeyName: "atlas_sources_promoted_from_mission_fkey"
+            columns: ["promoted_from_mission"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atlas_sources_state_code_fkey"
+            columns: ["state_code"]
+            isOneToOne: false
+            referencedRelation: "atlas_states"
+            referencedColumns: ["state_code"]
+          },
+        ]
+      }
+      atlas_states: {
+        Row: {
+          agency_structure: string | null
+          created_at: string | null
+          id: string
+          iris_brief_updated_at: string | null
+          iris_state_brief: string | null
+          is_active: boolean | null
+          managed_care_model: string | null
+          medicaid_authority: string | null
+          political_environment: string | null
+          procurement_history: string | null
+          state_code: string
+          state_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          agency_structure?: string | null
+          created_at?: string | null
+          id?: string
+          iris_brief_updated_at?: string | null
+          iris_state_brief?: string | null
+          is_active?: boolean | null
+          managed_care_model?: string | null
+          medicaid_authority?: string | null
+          political_environment?: string | null
+          procurement_history?: string | null
+          state_code: string
+          state_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          agency_structure?: string | null
+          created_at?: string | null
+          id?: string
+          iris_brief_updated_at?: string | null
+          iris_state_brief?: string | null
+          is_active?: boolean | null
+          managed_care_model?: string | null
+          medicaid_authority?: string | null
+          political_environment?: string | null
+          procurement_history?: string | null
+          state_code?: string
+          state_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       briefing_book_section_history: {
         Row: {
           content: string | null
