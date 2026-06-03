@@ -288,34 +288,44 @@ function CockpitListActionBar({ missionId, question }: { missionId: string; ques
 
   return (
     <>
-      <div
-        className="fixed inset-x-0 bottom-[58px] z-40 border-t border-border bg-background/95 backdrop-blur md:bottom-0"
-      >
-        <div className="mx-auto max-w-[1100px] px-6 pt-2 text-center text-[11px] text-muted-foreground max-md:hidden">
-          Q{question.question_number} is your {urgency} question.
+      <div className="fixed inset-x-0 bottom-[58px] z-40 border-t border-border bg-background/95 backdrop-blur md:bottom-0">
+        {/* Row 1 — context label */}
+        <div className="mx-auto flex max-w-[1100px] items-center justify-between gap-3 border-b border-border/50 px-6 py-1.5 text-[11px]">
+          <div className="flex min-w-0 items-center gap-2 text-muted-foreground">
+            <span className={`inline-block h-1.5 w-1.5 rounded-full ${question.health === "red" ? "bg-red-500" : question.health === "yellow" ? "bg-yellow-500" : "bg-green-500"}`} />
+            <span className="font-mono text-foreground">Q{question.question_number}</span>
+            <span className="truncate">· {question.title}</span>
+          </div>
+          <div className="flex shrink-0 items-center gap-2 text-muted-foreground">
+            <span>Your {urgency} question</span>
+            {days !== null && <span>· {days}d left</span>}
+          </div>
         </div>
-        <div className="mx-auto flex h-16 max-w-[1100px] items-center justify-between gap-3 px-6">
-          <div className="flex min-w-0 items-center gap-2">
-            <button
-              type="button"
-              onClick={() => openUpdateReality(question.id)}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
-            >
-              Update Reality
-            </button>
+
+        {/* Row 2 — actions */}
+        <div className="mx-auto flex h-14 max-w-[1100px] items-center justify-between gap-3 px-6">
+          <div className="flex items-center gap-2">
             <Link
               to="/missions/$missionId/questions/$questionId"
               params={{ missionId, questionId: question.id }}
-              className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/10"
+              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+            >
+              Open Question →
+            </Link>
+            <Link
+              to="/missions/$missionId/questions/$questionId"
+              params={{ missionId, questionId: question.id }}
+              className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/10"
             >
               <Sparkles className="h-3.5 w-3.5" /> Ask IRIS
             </Link>
-          </div>
-
-          <div className="hidden min-w-0 flex-1 items-center justify-center gap-2 text-[12px] text-muted-foreground md:flex">
-            <span className="font-mono">Q{question.question_number}</span>
-            <span className="truncate">· {question.title}</span>
-            {days !== null && <span className="shrink-0">· {days} days</span>}
+            <button
+              type="button"
+              onClick={() => openUpdateReality(question.id)}
+              className="hidden rounded-md border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground transition hover:bg-surface-hover sm:inline-flex"
+            >
+              Update Reality
+            </button>
           </div>
 
           <div className="flex items-center gap-2">
@@ -323,13 +333,20 @@ function CockpitListActionBar({ missionId, question }: { missionId: string; ques
               <button
                 type="button"
                 onClick={() => setOverflowOpen((open) => !open)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border bg-surface text-muted-foreground transition hover:text-foreground"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-muted-foreground transition hover:text-foreground"
                 aria-label="More Cockpit actions"
               >
                 <MoreHorizontal className="h-4 w-4" />
               </button>
               {overflowOpen && (
                 <div className="absolute bottom-[calc(100%+8px)] right-0 z-50 w-48 overflow-hidden rounded-md border border-border bg-surface shadow-lg">
+                  <button
+                    type="button"
+                    onClick={() => { openUpdateReality(question.id); setOverflowOpen(false); }}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-surface-hover sm:hidden"
+                  >
+                    <LifeBuoy className="h-3.5 w-3.5" /> Update Reality
+                  </button>
                   <button
                     type="button"
                     onClick={() => { setScoreOpen(true); setOverflowOpen(false); }}
