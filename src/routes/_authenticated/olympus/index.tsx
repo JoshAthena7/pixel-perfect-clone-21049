@@ -6,6 +6,7 @@ import { Plus, X, ArrowRight, Archive, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { logOlympusAction } from "@/lib/audit";
 import { MissionActivationWizard } from "@/components/v2/MissionActivationWizard";
+import { MissionReadinessPanel, ReadinessChip } from "@/components/v2/MissionReadinessPanel";
 
 
 export const Route = createFileRoute("/_authenticated/olympus/")({
@@ -29,6 +30,7 @@ function MissionsIndex() {
   const qc = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [activateFor, setActivateFor] = useState<MissionRow | null>(null);
+  const [readinessFor, setReadinessFor] = useState<MissionRow | null>(null);
 
   const { data: missions = [], isLoading } = useQuery({
     queryKey: ["olympus-missions"],
@@ -99,6 +101,7 @@ function MissionsIndex() {
                 <th className="px-4 py-3 text-left w-20">Qs</th>
                 <th className="px-4 py-3 text-left w-20">Health</th>
                 <th className="px-4 py-3 text-left w-32">Created</th>
+                <th className="px-4 py-3 text-left w-24">Readiness</th>
                 <th className="px-4 py-3 text-right w-72">&nbsp;</th>
               </tr>
             </thead>
@@ -123,6 +126,9 @@ function MissionsIndex() {
                     <td className="px-4 py-3"><span className={`dot ${healthCls}`} /></td>
                     <td className="px-4 py-3 text-[11px] text-muted-foreground">
                       {m.created_at ? new Date(m.created_at).toLocaleDateString() : "—"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <ReadinessChip missionId={m.id} onClick={() => setReadinessFor(m)} />
                     </td>
                     <td className="px-4 py-3 text-right space-x-1">
                       <Link
@@ -179,9 +185,18 @@ function MissionsIndex() {
           />
         </ModalErrorBoundary>
       )}
+      {readinessFor && (
+        <MissionReadinessPanel
+          missionId={readinessFor.id}
+          missionName={readinessFor.name}
+          missionStatus={readinessFor.status}
+          onClose={() => setReadinessFor(null)}
+        />
+      )}
     </div>
   );
 }
+//
 
 
 function StatusChip({ status }: { status: string | null }) {
