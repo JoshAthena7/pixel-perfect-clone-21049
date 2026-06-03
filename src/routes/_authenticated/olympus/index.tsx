@@ -30,6 +30,7 @@ function MissionsIndex() {
   const qc = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [activateFor, setActivateFor] = useState<MissionRow | null>(null);
+  const [readinessFor, setReadinessFor] = useState<MissionRow | null>(null);
 
   const { data: missions = [], isLoading } = useQuery({
     queryKey: ["olympus-missions"],
