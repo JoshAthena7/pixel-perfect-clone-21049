@@ -72,8 +72,8 @@ function ReviewQueue() {
 
         <div className="mt-4 flex items-start justify-between gap-6">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-red-400">CLASSIFIED</span>
-            <h1 className="mt-2 text-white text-3xl font-light tracking-wider uppercase">
+            <span className="section-label" style={{ color: "var(--iris, #0891b2)" }}>● Review Queue</span>
+            <h1 className="mt-2 text-white text-3xl display-tight">
               <Inbox className="inline -mt-1 mr-2" size={26} /> Review Queue
             </h1>
             <p className="mt-2 text-sm text-muted-foreground max-w-xl">
