@@ -259,37 +259,37 @@ function RoomToggle({ missionId, room }: { missionId: string; room: Room }) {
     },
   });
 
-  const segments = [
-    {
-      key: "mission" as const,
-      label: "Mission Room",
-      icon: "🏛",
-      activeBg: "rgba(245,158,11,0.12)",
-      activeBorder: "rgba(245,158,11,0.35)",
-      activeColor: "var(--yellow, #f59e0b)",
-      onGo: () => navigate({ to: "/missions/$missionId/overview", params: { missionId } }),
-    },
-    {
-      key: "studio" as const,
-      label: "Cockpit",
-      icon: <Plane size={13} strokeWidth={2} />,
-      activeBg: "rgba(59,127,255,0.12)",
-      activeBorder: "rgba(59,127,255,0.35)",
-      activeColor: "#3b7fff",
-      onGo: () => navigate({ to: "/missions/$missionId/questions", params: { missionId } }),
-    },
-    ...(isLeader
-      ? [{
-          key: "brief" as const,
-          label: "Mission Brief",
-          icon: <Shield size={13} strokeWidth={2} />,
-          activeBg: "rgba(245,158,11,0.12)",
-          activeBorder: "rgba(245,158,11,0.45)",
-          activeColor: "var(--athena-gold, #f59e0b)",
-          onGo: () => navigate({ to: "/missions/$missionId/command", params: { missionId } }),
-        }]
-      : []),
-  ];
+  const briefSegment = {
+    key: "brief" as const,
+    label: "Brief",
+    icon: <span className="text-[14px]">📋</span>,
+    activeBg: "rgba(124,58,237,0.12)",
+    activeBorder: "rgba(124,58,237,0.45)",
+    activeColor: "#a78bfa",
+    onGo: () => navigate({ to: "/missions/$missionId/command", params: { missionId } }),
+  };
+  const missionSegment = {
+    key: "mission" as const,
+    label: "Mission",
+    icon: "🏛",
+    activeBg: "rgba(245,158,11,0.12)",
+    activeBorder: "rgba(245,158,11,0.35)",
+    activeColor: "var(--yellow, #f59e0b)",
+    onGo: () => navigate({ to: "/missions/$missionId/overview", params: { missionId } }),
+  };
+  const cockpitSegment = {
+    key: "studio" as const,
+    label: "Cockpit",
+    icon: <Plane size={13} strokeWidth={2} />,
+    activeBg: "rgba(59,127,255,0.12)",
+    activeBorder: "rgba(59,127,255,0.35)",
+    activeColor: "#3b7fff",
+    onGo: () => navigate({ to: "/missions/$missionId/questions", params: { missionId } }),
+  };
+
+  const segments = isLeader
+    ? [briefSegment, missionSegment, cockpitSegment]
+    : [missionSegment, cockpitSegment];
 
   return (
     <div
