@@ -519,6 +519,14 @@ function VaultPage() {
           onClose={() => { setReviewOpen(false); }}
         />
       )}
+
+      {openAmendmentId && missionId && (
+        <AmendmentReviewPanel
+          amendmentId={openAmendmentId}
+          missionId={missionId}
+          onClose={() => setOpenAmendmentId(null)}
+        />
+      )}
     </div>
   );
 }
