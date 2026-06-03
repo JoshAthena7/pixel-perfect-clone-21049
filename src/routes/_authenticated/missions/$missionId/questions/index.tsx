@@ -864,52 +864,22 @@ function ResponsesList() {
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         {isWriter && (
-          <div
-            className="inline-flex items-center gap-0.5 rounded-lg border bg-white/[0.04] p-[3px]"
-            style={{ borderColor: "rgba(255,255,255,0.08)" }}
-          >
-            {(["mine", "all"] as View[]).map((k) => {
-              const active = view === k;
-              const label = k === "mine" ? "My Assignments" : "All Questions";
-              const count = k === "mine" ? myQuestions.length : questions.length;
-              const showUrgent = k === "mine" && myUrgentCount > 0;
-              const showRed = k === "all" && healthCounts.red > 0;
-              return (
-                <button
-                  key={k}
-                  onClick={() => setView(k)}
-                  className={`inline-flex h-8 items-center gap-1.5 rounded-md px-4 text-[12px] font-semibold tracking-wide transition ${
-                    active
-                      ? "border bg-surface text-foreground"
-                      : "border border-transparent text-muted-foreground hover:text-foreground"
-                  }`}
-                  style={active ? { borderColor: "var(--border-default, rgba(255,255,255,0.08))" } : undefined}
-                >
-                  <span>{label}</span>
-                  {showUrgent ? (
-                    <span
-                      className="rounded-full px-1.5 py-px text-[11px] font-medium"
-                      style={{ background: "rgba(245,158,11,0.15)", color: "var(--yellow,#f59e0b)" }}
-                    >
-                      {myUrgentCount} need attention
-                    </span>
-                  ) : showRed ? (
-                    <span
-                      className="rounded-full px-1.5 py-px text-[11px] font-medium"
-                      style={{ background: "rgba(239,68,68,0.12)", color: "var(--red,#ef4444)" }}
-                    >
-                      {count}
-                    </span>
-                  ) : (
-                    <span className="rounded-full bg-white/[0.08] px-1.5 py-px text-[11px] font-medium text-muted-foreground">
-                      {count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+          <div className="inline-flex items-center gap-2 text-[12px] text-muted-foreground">
+            <span className="font-semibold text-foreground">My Assignments</span>
+            <span className="rounded-full bg-white/[0.08] px-1.5 py-px text-[11px] font-medium text-muted-foreground">
+              {myQuestions.length}
+            </span>
+            {myUrgentCount > 0 && (
+              <span
+                className="rounded-full px-1.5 py-px text-[11px] font-medium"
+                style={{ background: "rgba(245,158,11,0.15)", color: "var(--yellow,#f59e0b)" }}
+              >
+                {myUrgentCount} need attention
+              </span>
+            )}
           </div>
         )}
+        <div className="ml-auto" />
         <button
           onClick={() => setFiltersOpen((o) => !o)}
           className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
@@ -921,25 +891,7 @@ function ResponsesList() {
 
       {filtersOpen && (
         <div className="mb-4 rounded-md border border-border bg-surface/60 p-3 text-xs text-muted-foreground">
-          No additional filters configured. Use the toggle to switch between My Assignments and All Questions.
-        </div>
-      )}
-
-      {effectiveView === "all" && !isLoading && questions.length > 0 && (
-        <div className="mb-3 flex flex-wrap items-center gap-4 text-[12px] text-muted-foreground">
-          <span>{healthCounts.total} total</span>
-          <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            <span className="text-emerald-400">{healthCounts.green} Green</span>
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-yellow-500" />
-            <span className="text-yellow-400">{healthCounts.yellow} Yellow</span>
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-red-500" />
-            <span className="text-red-400">{healthCounts.red} Red</span>
-          </span>
+          No additional filters configured. Your assigned questions are shown first; expand "Other questions" below to see the rest of the mission.
         </div>
       )}
 
@@ -947,34 +899,17 @@ function ResponsesList() {
         <div className="rounded-[12px] border border-border bg-surface p-8 text-center text-sm text-muted-foreground">
           Loading responses…
         </div>
-      ) : visible.length === 0 ? (
-        <div className="rounded-[12px] border border-dashed border-border bg-surface/40 p-12 text-center text-sm text-muted-foreground">
-          {effectiveView === "mine" ? (
-            <>
-              <div className="font-medium text-foreground">No questions assigned yet.</div>
-              <div className="mt-1">Your Engagement Lead will assign questions in Olympus.</div>
-            </>
-          ) : (
-            "No responses yet."
-          )}
-        </div>
-      ) : effectiveView === "all" ? (
-        <div className="space-y-6">
-          {grouped.map(({ section, items, hasMine }) => (
-            <div key={section}>
-              <div
-                className={`mb-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground ${
-                  hasMine ? "border-l-2 pl-2" : ""
-                }`}
-                style={hasMine ? { borderColor: "#3b7fff" } : undefined}
-              >
-                <div className="flex items-center justify-between border-b border-border pb-1.5 pt-3">
-                  <span>Section {section} {hasMine && <span className="ml-1 text-[#3b7fff]">·  yours</span>}</span>
-                  <span className="text-muted-foreground/70">{items.length} {items.length === 1 ? "question" : "questions"}</span>
-                </div>
+      ) : (
+        <>
+          {isWriter && (
+            myQuestionsSorted.length === 0 ? (
+              <div className="rounded-[12px] border border-dashed border-border bg-surface/40 p-12 text-center text-sm text-muted-foreground">
+                <div className="font-medium text-foreground">No questions assigned yet.</div>
+                <div className="mt-1">Your Engagement Lead will assign questions in Olympus.</div>
               </div>
+            ) : (
               <ul className="divide-y divide-border rounded-[12px] border border-border bg-surface">
-                {items.map((q) => (
+                {myQuestionsSorted.map((q) => (
                   <QuestionRow
                     key={q.id}
                     q={q}
@@ -987,34 +922,76 @@ function ResponsesList() {
                     statusNote={statusNote}
                     updateStatus={updateStatus}
                     isWriter={isWriter}
-                    showYouBadge
+                    showYouBadge={false}
                     onOpenReadOnly={setDrawerQ}
                   />
                 ))}
               </ul>
+            )
+          )}
+
+          {otherQuestions.length > 0 && (
+            <div className={isWriter ? "mt-8" : ""}>
+              <button
+                onClick={() => setOthersOpen((o) => !o)}
+                className="flex w-full items-center justify-between rounded-[10px] border border-border bg-surface/60 px-4 py-2.5 text-left transition hover:bg-surface"
+              >
+                <div className="flex items-center gap-2">
+                  {othersOpen ? (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  )}
+                  <span className="text-[13px] font-semibold text-foreground">
+                    {isWriter ? "Other questions in this mission" : "All questions"}
+                  </span>
+                  <span className="rounded-full bg-white/[0.08] px-1.5 py-px text-[11px] font-medium text-muted-foreground">
+                    {otherQuestions.length}
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+                  <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-500" /><span className="text-emerald-400">{healthCounts.green}</span></span>
+                  <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-yellow-500" /><span className="text-yellow-400">{healthCounts.yellow}</span></span>
+                  <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-red-500" /><span className="text-red-400">{healthCounts.red}</span></span>
+                </div>
+              </button>
+
+              {othersOpen && (
+                <div className="mt-3 space-y-6">
+                  {groupedOthers.map(({ section, items }) => (
+                    <div key={section}>
+                      <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+                        <div className="flex items-center justify-between border-b border-border pb-1.5 pt-1">
+                          <span>Section {section}</span>
+                          <span className="text-muted-foreground/70">{items.length} {items.length === 1 ? "question" : "questions"}</span>
+                        </div>
+                      </div>
+                      <ul className="divide-y divide-border rounded-[12px] border border-border bg-surface">
+                        {items.map((q) => (
+                          <QuestionRow
+                            key={q.id}
+                            q={q}
+                            me={me}
+                            missionId={missionId}
+                            writerById={writerById}
+                            lastEditByQ={lastEditByQ}
+                            conflictByQ={conflictByQ}
+                            questionsById={Object.fromEntries(questions.map((x) => [x.id, x]))}
+                            statusNote={statusNote}
+                            updateStatus={updateStatus}
+                            isWriter={isWriter}
+                            showYouBadge
+                            onOpenReadOnly={setDrawerQ}
+                          />
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          ))}
-        </div>
-      ) : (
-        <ul className="divide-y divide-border rounded-[12px] border border-border bg-surface">
-          {visible.map((q) => (
-            <QuestionRow
-              key={q.id}
-              q={q}
-              me={me}
-              missionId={missionId}
-              writerById={writerById}
-              lastEditByQ={lastEditByQ}
-              conflictByQ={conflictByQ}
-              questionsById={Object.fromEntries(questions.map((x) => [x.id, x]))}
-              statusNote={statusNote}
-              updateStatus={updateStatus}
-              isWriter={isWriter}
-              showYouBadge={false}
-              onOpenReadOnly={setDrawerQ}
-            />
-          ))}
-        </ul>
+          )}
+        </>
       )}
       {actionQuestion && <CockpitListActionBar missionId={missionId} question={actionQuestion} />}
       {drawerQ && (
