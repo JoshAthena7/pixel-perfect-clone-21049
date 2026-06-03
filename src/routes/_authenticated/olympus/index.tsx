@@ -185,9 +185,18 @@ function MissionsIndex() {
           />
         </ModalErrorBoundary>
       )}
+      {readinessFor && (
+        <MissionReadinessPanel
+          missionId={readinessFor.id}
+          missionName={readinessFor.name}
+          missionStatus={readinessFor.status}
+          onClose={() => setReadinessFor(null)}
+        />
+      )}
     </div>
   );
 }
+//
 
 
 function StatusChip({ status }: { status: string | null }) {
