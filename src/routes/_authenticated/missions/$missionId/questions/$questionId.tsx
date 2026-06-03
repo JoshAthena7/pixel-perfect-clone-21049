@@ -152,10 +152,10 @@ function CockpitPage() {
       const col = isSME ? "assigned_sme_id" : "assigned_writer_id";
       const { data } = await supabase
         .from("question_records")
-        .select("id,question_number,title,pens_down_date,health")
+        .select("id,question_number,title,pens_down_date,health,writer_confidence")
         .eq("mission_id", missionId).eq(col, me!.id)
         .order("question_number");
-      return (data ?? []) as Array<{ id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null }>;
+      return (data ?? []) as Array<{ id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null; writer_confidence: "confident" | "uncertain" | "stuck" | null }>;
     },
   });
 
