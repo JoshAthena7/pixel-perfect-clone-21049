@@ -5,10 +5,15 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Search, Plane, PenTool, Zap, Sparkles, BookOpen, Eye, Home,
-  Shield, ArrowRight, CornerDownLeft, Brain, Lightbulb, GitFork,
-  MessageSquare, RadioTower, FilePlus, ClipboardList, Target, Clock,
+  ArrowRight, CornerDownLeft, Brain, GitFork,
+  MessageSquare, RadioTower, ClipboardList, Target, Clock,
+  AlertTriangle, Phone, Lightbulb,
 } from "lucide-react";
 import { globalSearch, type SearchHit } from "@/lib/global-search.functions";
+import { SOSModal } from "@/components/v2/SOSButton";
+import { toast } from "sonner";
+
+type Tone = "default" | "danger" | "iris";
 
 type JumpItem = {
   id: string;
@@ -18,6 +23,7 @@ type JumpItem = {
   icon: React.ReactNode;
   onGo: () => void;
   keywords?: string;
+  tone?: Tone;
 };
 
 const RECENTS_KEY = "atlas.search.recents";
