@@ -59,7 +59,7 @@ function firstName(name: string) {
   return (name || "").split(/\s+/)[0] || "—";
 }
 
-function CommandCenter() {
+export function CommandCenter({ missionId }: { missionId?: string } = {}) {
   const qc = useQueryClient();
 
   // -------- Section 1: Health bar (all questions across missions) --------
