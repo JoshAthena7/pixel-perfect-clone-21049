@@ -14,10 +14,13 @@ export const Route = createFileRoute("/_authenticated/olympus/vault")({
 });
 
 const CATEGORIES = [
-  "RFP & Amendments", "State Q&A", "Past Responses", "Templates",
-  "Reference Materials", "Research", "Supporting Materials", "Client Materials",
+  "RFP & Amendments", "Model Contract", "State Regulations", "State Q&A",
+  "Past Responses", "Templates", "Reference Materials", "Research",
+  "Supporting Materials", "Client Materials",
 ] as const;
 type Category = (typeof CATEGORIES)[number];
+
+const COMPLIANCE_CATEGORIES = new Set<Category>(["Model Contract", "State Regulations"]);
 
 type Doc = {
   id: string; mission_id: string; name: string; category: string;
