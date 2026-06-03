@@ -155,6 +155,20 @@ function VaultPage() {
           import("@/lib/mission-activation.functions")
             .then(({ extractDocumentIntelligence }) => extractDocumentIntelligence({ data: { documentId: row.id } }))
             .catch((e) => console.warn("IRIS extraction failed", e?.message));
+          // Compliance extraction for Model Contract / State Regulations uploads
+          if (COMPLIANCE_CATEGORIES.has(uploadCategory)) {
+            const sourceKind = uploadCategory === "Model Contract" ? "model_contract" : "state_regulation";
+            toast.info(`IRIS is extracting compliance requirements from "${file.name}"…`);
+            import("@/lib/compliance.functions")
+              .then(({ extractComplianceRequirements }) =>
+                extractComplianceRequirements({ data: { documentId: row.id, sourceKind } }),
+              )
+              .then((res) => {
+                toast.success(`IRIS extracted ${res.inserted} compliance requirements (${res.matched} matched to questions)`);
+                qc.invalidateQueries({ queryKey: ["mission-compliance", missionId] });
+              })
+              .catch((e) => toast.error(`Compliance extraction failed: ${e?.message ?? e}`));
+          }
         }
       }
 
