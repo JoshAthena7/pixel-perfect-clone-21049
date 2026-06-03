@@ -710,7 +710,7 @@ function MissionCard({
           <span className="text-[10px] text-muted-foreground">Last signal: {relativeTime(lastSignalAt!)}</span>
         )}
         <span className="ml-auto inline-flex items-center gap-1 text-[11px] text-muted-foreground transition-colors group-hover:text-primary">
-          Enter war room
+          Enter Mission Room
           <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
         </span>
       </div>
