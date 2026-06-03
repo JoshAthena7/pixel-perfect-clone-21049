@@ -239,9 +239,25 @@ function AtriumNav() {
   );
 }
 
-// ─── Room Toggle: two segments only ────────────────────────────────────────
+// ─── Room Toggle: mission / cockpit / (brief if leader) ────────────────────
 function RoomToggle({ missionId, room }: { missionId: string; room: Room }) {
   const navigate = useNavigate();
+
+  const { data: isLeader = false } = useQuery({
+    queryKey: ["shell-is-mission-leader", missionId],
+    enabled: !!missionId,
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+      const { data } = await supabase
+        .from("mission_members")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("mission_id", missionId);
+      const roles = (data ?? []).map((r: { role: string }) => r.role);
+      return roles.includes("admin") || roles.includes("lead");
+    },
+  });
 
   const segments = [
     {
@@ -262,6 +278,17 @@ function RoomToggle({ missionId, room }: { missionId: string; room: Room }) {
       activeColor: "#3b7fff",
       onGo: () => navigate({ to: "/missions/$missionId/questions", params: { missionId } }),
     },
+    ...(isLeader
+      ? [{
+          key: "brief" as const,
+          label: "Mission Brief",
+          icon: <Shield size={13} strokeWidth={2} />,
+          activeBg: "rgba(245,158,11,0.12)",
+          activeBorder: "rgba(245,158,11,0.45)",
+          activeColor: "var(--athena-gold, #f59e0b)",
+          onGo: () => navigate({ to: "/missions/$missionId/command", params: { missionId } }),
+        }]
+      : []),
   ];
 
   return (
