@@ -85,16 +85,21 @@ function LoginPage() {
           }}
         >
           <div className="mb-8 text-center">
-            <img src={athenaSgLogo.url} alt="Athena Strategy Group" className="mx-auto mb-6 h-12 object-contain opacity-30 mix-blend-luminosity" style={{ filter: "brightness(0.55) contrast(0.85)" }} />
-            <div className="mb-2 flex items-center justify-center gap-2">
-              <span className="text-xl text-[color:var(--athena-gold,#f59e0b)] drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">⚡</span>
-              <span className="text-2xl font-extrabold tracking-[0.18em] text-foreground" style={{ letterSpacing: "0.18em" }}>
+            <img
+              src={atlasLogo.url}
+              alt="Atlas"
+              className="mx-auto mb-5 h-28 w-28 object-contain"
+              style={{ filter: "drop-shadow(0 0 24px rgba(125,211,252,0.35))" }}
+            />
+            <div className="mb-2 flex items-center justify-center">
+              <span className="text-2xl font-extrabold tracking-[0.22em] text-foreground" style={{ letterSpacing: "0.22em" }}>
                 ATLAS
               </span>
             </div>
             <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
               by Athena Strategy Group
             </p>
+            <img src={athenaSgLogo.url} alt="Athena Strategy Group" className="mx-auto mt-5 h-7 object-contain opacity-30 mix-blend-luminosity" style={{ filter: "brightness(0.55) contrast(0.85)" }} />
           </div>
 
           {sent ? (
