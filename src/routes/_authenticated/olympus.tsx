@@ -191,6 +191,7 @@ function OlympusSidebar({ isAdmin }: { isAdmin: boolean }) {
         <SidebarItem to="/olympus/settings" path={path} icon={<SettingsIcon size={15} strokeWidth={1.5} />}>Settings</SidebarItem>
 
         <div className="my-3 border-t border-border" />
+        <SidebarItem to="/olympus/score-me" path={path} icon={<Sparkles size={15} strokeWidth={1.5} />}>Score Me</SidebarItem>
         <IrisMemorySidebarItem path={path} />
 
         {isAdmin && (
