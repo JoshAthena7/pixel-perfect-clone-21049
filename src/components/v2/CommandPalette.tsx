@@ -132,7 +132,7 @@ export function CommandPalette() {
     }
     list.push(
       { id: "g-home", group: "Global", label: "Home · Atrium", icon: <Home size={14} />, onGo: () => navigate({ to: "/home" }) },
-      { id: "g-command", group: "Global", label: "The Bridge", icon: <Zap size={14} className="text-[color:var(--red,#ef4444)]" />,
+      { id: "g-command", group: "Global", label: "Attention Queue", icon: <Zap size={14} className="text-[color:var(--red,#ef4444)]" />,
         onGo: () => navigate({ to: "/command/attention" }) },
       { id: "g-intel", group: "Global", label: "Intelligence Hub", icon: <Brain size={14} className="text-[color:var(--iris,#22d3ee)]" />,
         onGo: () => navigate({ to: "/intelligence" }) },
