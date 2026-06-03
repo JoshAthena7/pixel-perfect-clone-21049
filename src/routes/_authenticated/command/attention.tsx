@@ -360,8 +360,8 @@ export function CommandCenter({ missionId }: { missionId?: string } = {}) {
   return (
     <div className="mx-auto max-w-[1200px] px-8 py-8 space-y-8">
       <div>
-        <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">The Brief</div>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">The Brief</h1>
+        <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">{missionId ? "Mission Brief" : "The Brief"}</div>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight">{missionId ? "Mission Brief" : "The Brief"}</h1>
       </div>
 
       {/* Section 1: Health bar */}
@@ -495,7 +495,7 @@ export function CommandCenter({ missionId }: { missionId?: string } = {}) {
         </Link>
       </div>
 
-      {broadcastOpen && <BroadcastModal onClose={() => setBroadcastOpen(false)} />}
+      {broadcastOpen && <BroadcastModal missionId={missionId} onClose={() => setBroadcastOpen(false)} />}
     </div>
   );
 }
