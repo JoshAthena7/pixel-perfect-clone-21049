@@ -216,8 +216,6 @@ function AtriumNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const items: { to: string; label: string }[] = [
     { to: "/home", label: "Home" },
-    { to: "/pipeline-horizon", label: "Pipeline" },
-    { to: "/pathfinder", label: "Pathfinder" },
   ];
   return (
     <nav className="flex items-center gap-1">

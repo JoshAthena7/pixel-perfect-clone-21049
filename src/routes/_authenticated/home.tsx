@@ -330,11 +330,8 @@ function AthenaHQ() {
         {/* Leadership Messages — pinned to top */}
         <LeadershipMessages messages={leadershipMessages as any[]} />
 
-        {/* IRIS MORNING BRIEF — firm-wide context */}
-        <IrisMorningBrief />
 
-        {/* ASK IRIS — global query bar with waveform */}
-        <AskIrisBar />
+
 
 
 
