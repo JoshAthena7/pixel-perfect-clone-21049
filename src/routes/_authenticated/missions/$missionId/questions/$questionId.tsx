@@ -8,6 +8,7 @@ import { irisAskQuestion } from "@/lib/iris-ask.functions";
 import { generateQuestionCoaching } from "@/lib/iris-question-coaching.functions";
 import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
 import { SOSButton } from "@/components/v2/SOSButton";
+import { PhoneAFriendOverlay } from "@/components/v2/PhoneAFriendOverlay";
 import { IrisCorrectable } from "@/components/v2/IrisCorrectable";
 import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
 import { CompliancePanel as ComplianceRequirementsPanel } from "@/components/v2/CompliancePanel";
@@ -344,6 +345,12 @@ function CockpitPage() {
   const [getHelpOpen, setGetHelpOpen] = useState(false);
   const [scoreMeOpen, setScoreMeOpen] = useState(false);
   const [overflowOpen, setOverflowOpen] = useState(false);
+  const [phoneOpen, setPhoneOpen] = useState(false);
+  useEffect(() => {
+    const onOpen = () => setPhoneOpen(true);
+    window.addEventListener("atlas:open-phone-a-friend", onOpen);
+    return () => window.removeEventListener("atlas:open-phone-a-friend", onOpen);
+  }, []);
 
   /* Ask IRIS */
   const askFn = useServerFn(irisAskQuestion);
@@ -854,7 +861,7 @@ function CockpitPage() {
                 onPhoneAFriend={() => {
                   setOverflowOpen(false);
                   markOverflowUsed();
-                  toast("Phone a Friend — coming soon", { description: "Pair-program with another writer." });
+                  setPhoneOpen(true);
                 }}
                 onGetHelp={() => { setGetHelpOpen(true); setOverflowOpen(false); markOverflowUsed(); }}
               />
@@ -972,6 +979,17 @@ function CockpitPage() {
         missionId={missionId}
         lockedQuestionId={questionId}
       />
+
+      {phoneOpen && (
+        <PhoneAFriendOverlay
+          missionId={missionId}
+          questionId={questionId}
+          questionNumber={q.question_number}
+          meId={me?.id ?? null}
+          meName={firstName(me)}
+          onClose={() => setPhoneOpen(false)}
+        />
+      )}
     </div>
   );
 }

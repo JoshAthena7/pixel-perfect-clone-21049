@@ -1569,6 +1569,30 @@ export type Database = {
           },
         ]
       }
+      expertise_options: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          label: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          label: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          label?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       federal_compliance_library: {
         Row: {
           citation: string
@@ -2584,40 +2608,76 @@ export type Database = {
       }
       profiles: {
         Row: {
+          availability_note: string | null
+          availability_status: string
+          availability_until: string | null
           avatar_color: string | null
           avatar_url: string | null
           created_at: string | null
           display_name: string
           email: string | null
+          expert_bio: string | null
+          expertise_areas: string[]
+          expertise_embedding: string | null
           has_onboarded: boolean
           id: string
           is_platform_admin: boolean
           last_seen_signals_at: string | null
+          notable_wins: Json
           onboarded_at: string | null
+          profile_completed: boolean
+          profile_updated_at: string | null
+          programs_experience: string[]
+          question_types: string[]
+          states_experience: string[]
         }
         Insert: {
+          availability_note?: string | null
+          availability_status?: string
+          availability_until?: string | null
           avatar_color?: string | null
           avatar_url?: string | null
           created_at?: string | null
           display_name: string
           email?: string | null
+          expert_bio?: string | null
+          expertise_areas?: string[]
+          expertise_embedding?: string | null
           has_onboarded?: boolean
           id: string
           is_platform_admin?: boolean
           last_seen_signals_at?: string | null
+          notable_wins?: Json
           onboarded_at?: string | null
+          profile_completed?: boolean
+          profile_updated_at?: string | null
+          programs_experience?: string[]
+          question_types?: string[]
+          states_experience?: string[]
         }
         Update: {
+          availability_note?: string | null
+          availability_status?: string
+          availability_until?: string | null
           avatar_color?: string | null
           avatar_url?: string | null
           created_at?: string | null
           display_name?: string
           email?: string | null
+          expert_bio?: string | null
+          expertise_areas?: string[]
+          expertise_embedding?: string | null
           has_onboarded?: boolean
           id?: string
           is_platform_admin?: boolean
           last_seen_signals_at?: string | null
+          notable_wins?: Json
           onboarded_at?: string | null
+          profile_completed?: boolean
+          profile_updated_at?: string | null
+          programs_experience?: string[]
+          question_types?: string[]
+          states_experience?: string[]
         }
         Relationships: []
       }
@@ -3817,6 +3877,7 @@ export type Database = {
         Args: { _engagement_id: string; _state: string }
         Returns: undefined
       }
+      sync_pens_down_availability: { Args: never; Returns: undefined }
       user_has_any_leadership_role: {
         Args: { _user_id: string }
         Returns: boolean

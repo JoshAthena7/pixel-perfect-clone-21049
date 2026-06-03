@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, UserCog } from "lucide-react";
+import { Search, UserCog, Users as UsersIcon, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/olympus/users")({
   component: UsersPage,
@@ -70,7 +70,23 @@ function UsersPage() {
         </div>
       </header>
 
+      <div className="mb-4 inline-flex items-center gap-0.5 rounded-lg border bg-white/[0.04] p-[3px]" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+        <span
+          className="inline-flex h-8 items-center gap-1.5 rounded-md border bg-surface px-4 text-[12px] font-semibold tracking-wide text-foreground"
+          style={{ borderColor: "var(--border-default, rgba(255,255,255,0.08))" }}
+        >
+          <UsersIcon className="h-3 w-3" /> Users
+        </span>
+        <Link
+          to="/olympus/expertise"
+          className="inline-flex h-8 items-center gap-1.5 rounded-md border border-transparent px-4 text-[12px] font-semibold tracking-wide text-muted-foreground hover:text-foreground"
+        >
+          <Sparkles className="h-3 w-3" /> Expertise
+        </Link>
+      </div>
+
       <div className="rounded-[10px] border border-border bg-surface overflow-hidden">
+
         {isLoading ? (
           <div className="p-4 space-y-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="skeleton h-12 w-full" />)}</div>
         ) : visible.length === 0 ? (

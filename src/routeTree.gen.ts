@@ -19,6 +19,7 @@ import { Route as AuthenticatedIntelligenceQueueRouteImport } from './routes/_au
 import { Route as AuthenticatedIntelligenceRouteImport } from './routes/_authenticated/intelligence'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedOlympusIndexRouteImport } from './routes/_authenticated/olympus/index'
+import { Route as AuthenticatedProfileExpertiseRouteImport } from './routes/_authenticated/profile/expertise'
 import { Route as AuthenticatedOlympusWinThemesRouteImport } from './routes/_authenticated/olympus/win-themes'
 import { Route as AuthenticatedOlympusVaultRouteImport } from './routes/_authenticated/olympus/vault'
 import { Route as AuthenticatedOlympusUsersRouteImport } from './routes/_authenticated/olympus/users'
@@ -32,6 +33,7 @@ import { Route as AuthenticatedOlympusQuestionsRouteImport } from './routes/_aut
 import { Route as AuthenticatedOlympusIrisMemoryRouteImport } from './routes/_authenticated/olympus/iris-memory'
 import { Route as AuthenticatedOlympusIntelligenceRouteImport } from './routes/_authenticated/olympus/intelligence'
 import { Route as AuthenticatedOlympusGatesRouteImport } from './routes/_authenticated/olympus/gates'
+import { Route as AuthenticatedOlympusExpertiseRouteImport } from './routes/_authenticated/olympus/expertise'
 import { Route as AuthenticatedOlympusDiscoveryHistoryRouteImport } from './routes/_authenticated/olympus/discovery-history'
 import { Route as AuthenticatedOlympusCanonLibraryRouteImport } from './routes/_authenticated/olympus/canon-library'
 import { Route as AuthenticatedOlympusAuditRouteImport } from './routes/_authenticated/olympus/audit'
@@ -116,6 +118,12 @@ const AuthenticatedOlympusIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
+const AuthenticatedProfileExpertiseRoute =
+  AuthenticatedProfileExpertiseRouteImport.update({
+    id: '/profile/expertise',
+    path: '/profile/expertise',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedOlympusWinThemesRoute =
   AuthenticatedOlympusWinThemesRouteImport.update({
     id: '/win-themes',
@@ -192,6 +200,12 @@ const AuthenticatedOlympusGatesRoute =
   AuthenticatedOlympusGatesRouteImport.update({
     id: '/gates',
     path: '/gates',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
+const AuthenticatedOlympusExpertiseRoute =
+  AuthenticatedOlympusExpertiseRouteImport.update({
+    id: '/expertise',
+    path: '/expertise',
     getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
 const AuthenticatedOlympusDiscoveryHistoryRoute =
@@ -396,6 +410,7 @@ export interface FileRoutesByFullPath {
   '/olympus/audit': typeof AuthenticatedOlympusAuditRoute
   '/olympus/canon-library': typeof AuthenticatedOlympusCanonLibraryRoute
   '/olympus/discovery-history': typeof AuthenticatedOlympusDiscoveryHistoryRoute
+  '/olympus/expertise': typeof AuthenticatedOlympusExpertiseRoute
   '/olympus/gates': typeof AuthenticatedOlympusGatesRoute
   '/olympus/intelligence': typeof AuthenticatedOlympusIntelligenceRoute
   '/olympus/iris-memory': typeof AuthenticatedOlympusIrisMemoryRoute
@@ -409,6 +424,7 @@ export interface FileRoutesByFullPath {
   '/olympus/users': typeof AuthenticatedOlympusUsersRoute
   '/olympus/vault': typeof AuthenticatedOlympusVaultRoute
   '/olympus/win-themes': typeof AuthenticatedOlympusWinThemesRoute
+  '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/olympus/': typeof AuthenticatedOlympusIndexRoute
   '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
@@ -448,6 +464,7 @@ export interface FileRoutesByTo {
   '/olympus/audit': typeof AuthenticatedOlympusAuditRoute
   '/olympus/canon-library': typeof AuthenticatedOlympusCanonLibraryRoute
   '/olympus/discovery-history': typeof AuthenticatedOlympusDiscoveryHistoryRoute
+  '/olympus/expertise': typeof AuthenticatedOlympusExpertiseRoute
   '/olympus/gates': typeof AuthenticatedOlympusGatesRoute
   '/olympus/intelligence': typeof AuthenticatedOlympusIntelligenceRoute
   '/olympus/iris-memory': typeof AuthenticatedOlympusIrisMemoryRoute
@@ -461,6 +478,7 @@ export interface FileRoutesByTo {
   '/olympus/users': typeof AuthenticatedOlympusUsersRoute
   '/olympus/vault': typeof AuthenticatedOlympusVaultRoute
   '/olympus/win-themes': typeof AuthenticatedOlympusWinThemesRoute
+  '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/olympus': typeof AuthenticatedOlympusIndexRoute
   '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
@@ -504,6 +522,7 @@ export interface FileRoutesById {
   '/_authenticated/olympus/audit': typeof AuthenticatedOlympusAuditRoute
   '/_authenticated/olympus/canon-library': typeof AuthenticatedOlympusCanonLibraryRoute
   '/_authenticated/olympus/discovery-history': typeof AuthenticatedOlympusDiscoveryHistoryRoute
+  '/_authenticated/olympus/expertise': typeof AuthenticatedOlympusExpertiseRoute
   '/_authenticated/olympus/gates': typeof AuthenticatedOlympusGatesRoute
   '/_authenticated/olympus/intelligence': typeof AuthenticatedOlympusIntelligenceRoute
   '/_authenticated/olympus/iris-memory': typeof AuthenticatedOlympusIrisMemoryRoute
@@ -517,6 +536,7 @@ export interface FileRoutesById {
   '/_authenticated/olympus/users': typeof AuthenticatedOlympusUsersRoute
   '/_authenticated/olympus/vault': typeof AuthenticatedOlympusVaultRoute
   '/_authenticated/olympus/win-themes': typeof AuthenticatedOlympusWinThemesRoute
+  '/_authenticated/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/_authenticated/olympus/': typeof AuthenticatedOlympusIndexRoute
   '/_authenticated/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/_authenticated/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
@@ -560,6 +580,7 @@ export interface FileRouteTypes {
     | '/olympus/audit'
     | '/olympus/canon-library'
     | '/olympus/discovery-history'
+    | '/olympus/expertise'
     | '/olympus/gates'
     | '/olympus/intelligence'
     | '/olympus/iris-memory'
@@ -573,6 +594,7 @@ export interface FileRouteTypes {
     | '/olympus/users'
     | '/olympus/vault'
     | '/olympus/win-themes'
+    | '/profile/expertise'
     | '/olympus/'
     | '/missions/$missionId/activity'
     | '/missions/$missionId/brief'
@@ -612,6 +634,7 @@ export interface FileRouteTypes {
     | '/olympus/audit'
     | '/olympus/canon-library'
     | '/olympus/discovery-history'
+    | '/olympus/expertise'
     | '/olympus/gates'
     | '/olympus/intelligence'
     | '/olympus/iris-memory'
@@ -625,6 +648,7 @@ export interface FileRouteTypes {
     | '/olympus/users'
     | '/olympus/vault'
     | '/olympus/win-themes'
+    | '/profile/expertise'
     | '/olympus'
     | '/missions/$missionId/activity'
     | '/missions/$missionId/brief'
@@ -667,6 +691,7 @@ export interface FileRouteTypes {
     | '/_authenticated/olympus/audit'
     | '/_authenticated/olympus/canon-library'
     | '/_authenticated/olympus/discovery-history'
+    | '/_authenticated/olympus/expertise'
     | '/_authenticated/olympus/gates'
     | '/_authenticated/olympus/intelligence'
     | '/_authenticated/olympus/iris-memory'
@@ -680,6 +705,7 @@ export interface FileRouteTypes {
     | '/_authenticated/olympus/users'
     | '/_authenticated/olympus/vault'
     | '/_authenticated/olympus/win-themes'
+    | '/_authenticated/profile/expertise'
     | '/_authenticated/olympus/'
     | '/_authenticated/missions/$missionId/activity'
     | '/_authenticated/missions/$missionId/brief'
@@ -782,6 +808,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOlympusIndexRouteImport
       parentRoute: typeof AuthenticatedOlympusRoute
     }
+    '/_authenticated/profile/expertise': {
+      id: '/_authenticated/profile/expertise'
+      path: '/profile/expertise'
+      fullPath: '/profile/expertise'
+      preLoaderRoute: typeof AuthenticatedProfileExpertiseRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/olympus/win-themes': {
       id: '/_authenticated/olympus/win-themes'
       path: '/win-themes'
@@ -871,6 +904,13 @@ declare module '@tanstack/react-router' {
       path: '/gates'
       fullPath: '/olympus/gates'
       preLoaderRoute: typeof AuthenticatedOlympusGatesRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
+    '/_authenticated/olympus/expertise': {
+      id: '/_authenticated/olympus/expertise'
+      path: '/expertise'
+      fullPath: '/olympus/expertise'
+      preLoaderRoute: typeof AuthenticatedOlympusExpertiseRouteImport
       parentRoute: typeof AuthenticatedOlympusRoute
     }
     '/_authenticated/olympus/discovery-history': {
@@ -1091,6 +1131,7 @@ interface AuthenticatedOlympusRouteChildren {
   AuthenticatedOlympusAuditRoute: typeof AuthenticatedOlympusAuditRoute
   AuthenticatedOlympusCanonLibraryRoute: typeof AuthenticatedOlympusCanonLibraryRoute
   AuthenticatedOlympusDiscoveryHistoryRoute: typeof AuthenticatedOlympusDiscoveryHistoryRoute
+  AuthenticatedOlympusExpertiseRoute: typeof AuthenticatedOlympusExpertiseRoute
   AuthenticatedOlympusGatesRoute: typeof AuthenticatedOlympusGatesRoute
   AuthenticatedOlympusIntelligenceRoute: typeof AuthenticatedOlympusIntelligenceRoute
   AuthenticatedOlympusIrisMemoryRoute: typeof AuthenticatedOlympusIrisMemoryRoute
@@ -1113,6 +1154,7 @@ const AuthenticatedOlympusRouteChildren: AuthenticatedOlympusRouteChildren = {
   AuthenticatedOlympusCanonLibraryRoute: AuthenticatedOlympusCanonLibraryRoute,
   AuthenticatedOlympusDiscoveryHistoryRoute:
     AuthenticatedOlympusDiscoveryHistoryRoute,
+  AuthenticatedOlympusExpertiseRoute: AuthenticatedOlympusExpertiseRoute,
   AuthenticatedOlympusGatesRoute: AuthenticatedOlympusGatesRoute,
   AuthenticatedOlympusIntelligenceRoute: AuthenticatedOlympusIntelligenceRoute,
   AuthenticatedOlympusIrisMemoryRoute: AuthenticatedOlympusIrisMemoryRoute,
@@ -1205,6 +1247,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCommandQuestionHealthRoute: typeof AuthenticatedCommandQuestionHealthRoute
   AuthenticatedCommandScoresRoute: typeof AuthenticatedCommandScoresRoute
   AuthenticatedMissionsMissionIdRoute: typeof AuthenticatedMissionsMissionIdRouteWithChildren
+  AuthenticatedProfileExpertiseRoute: typeof AuthenticatedProfileExpertiseRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -1225,6 +1268,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCommandScoresRoute: AuthenticatedCommandScoresRoute,
   AuthenticatedMissionsMissionIdRoute:
     AuthenticatedMissionsMissionIdRouteWithChildren,
+  AuthenticatedProfileExpertiseRoute: AuthenticatedProfileExpertiseRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
