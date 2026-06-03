@@ -475,11 +475,9 @@ function MissionOverviewPage() {
     <div className="mission-room-bg min-h-screen">
       <style>{`
         .mission-room-bg {
-          background: #060b14;
-          background-image:
-            linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-          background-size: 48px 48px;
+          background-color: #060b14;
+          background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+          background-size: 24px 24px;
         }
         .mr-section-label {
           font-size: 10px;
@@ -487,9 +485,7 @@ function MissionOverviewPage() {
           letter-spacing: 0.25em;
           text-transform: uppercase;
           color: hsl(var(--muted-foreground));
-          padding-left: 12px;
-          border-left: 2px solid currentColor;
-          margin-bottom: 24px;
+          margin-bottom: 20px;
         }
         .mr-divider { border-top: 1px solid rgba(255,255,255,0.06); }
       `}</style>
