@@ -861,7 +861,7 @@ function CockpitPage() {
                 onPhoneAFriend={() => {
                   setOverflowOpen(false);
                   markOverflowUsed();
-                  toast("Phone a Friend — coming soon", { description: "Pair-program with another writer." });
+                  setPhoneOpen(true);
                 }}
                 onGetHelp={() => { setGetHelpOpen(true); setOverflowOpen(false); markOverflowUsed(); }}
               />
