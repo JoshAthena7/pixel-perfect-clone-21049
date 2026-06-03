@@ -144,11 +144,14 @@ export const extractDocumentIntelligence = createServerFn({ method: "POST" })
     }
 
     const now = new Date().toISOString();
+    // Postgres TEXT columns reject NUL (\u0000) bytes; strip them defensively.
+    const stripNul = (s: string) => s.replace(/\u0000/g, "");
+    const safeText = stripNul(rawText).slice(0, 200_000);
     const { error: upErr } = await supabase.from("document_extractions").upsert(
       {
         document_id: doc.id,
         mission_id: doc.mission_id,
-        extracted_text: rawText.slice(0, 200_000),
+        extracted_text: safeText,
         key_themes: extraction.key_themes,
         key_entities: extraction.key_entities,
         summary: extraction.summary,
