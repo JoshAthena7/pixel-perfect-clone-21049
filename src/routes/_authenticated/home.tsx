@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { irisLeadershipAttention } from "@/lib/iris.functions";
 import { generateLobbyBrief } from "@/lib/iris-lobby-brief.functions";
+import { irisAskGlobal } from "@/lib/iris-ask.functions";
 import { AttentionBadge } from "@/components/v2/AttentionBadge";
 import { relativeTime } from "@/lib/signals";
 import { MissionGridSkeleton, QuestionListSkeleton } from "@/components/v2/Skeletons";
@@ -763,31 +764,61 @@ function IrisMorningBrief() {
 
 function AskIrisBar() {
   const [value, setValue] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [asking, setAsking] = useState(false);
   const [focused, setFocused] = useState(false);
+  const askFn = useServerFn(irisAskGlobal);
   const active = focused || value.length > 0;
+  const onAsk = async () => {
+    const prompt = value.trim();
+    if (!prompt || asking) return;
+    setAsking(true);
+    setAnswer("");
+    try {
+      const r = await askFn({ data: { prompt } });
+      setAnswer(r.answer);
+    } catch (e: any) {
+      setAnswer(`_Error: ${e?.message ?? "unknown"}_`);
+    } finally {
+      setAsking(false);
+    }
+  };
   return (
     <section
-      className={`iris-panel rounded-[12px] border bg-surface px-4 py-3 flex items-center gap-3 transition-colors ${
+      className={`iris-panel rounded-[12px] border bg-surface px-4 py-3 transition-colors ${
         active ? "border-primary/50" : "border-border"
       }`}
     >
-      <Sparkles className={`h-4 w-4 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
-      <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground hidden sm:inline">
-        Ask IRIS
-      </span>
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        placeholder="Ask IRIS about any mission, signal, or policy…"
-        className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-      />
-      {active && <IrisWaveform />}
-      <kbd className="hidden md:inline-flex items-center rounded border border-border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground mono">
-        /
-      </kbd>
+      <div className="flex items-center gap-3">
+        <Sparkles className={`h-4 w-4 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
+        <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground hidden sm:inline">
+          Ask IRIS
+        </span>
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          onKeyDown={(e) => { if (e.key === "Enter") onAsk(); }}
+          placeholder="Ask IRIS about any mission, signal, or policy…"
+          className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+        />
+        {(active || asking) && <IrisWaveform />}
+        <button
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={onAsk}
+          disabled={asking || !value.trim()}
+          className="rounded-md bg-primary px-3 py-1.5 text-[11px] font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-40"
+        >
+          {asking ? "…" : "Ask"}
+        </button>
+      </div>
+      {(asking || answer) && (
+        <div className="mt-3 rounded-md border border-[color:var(--iris,#22d3ee)]/20 bg-background/40 px-4 py-3 text-sm text-foreground whitespace-pre-wrap">
+          {asking ? "IRIS is thinking…" : answer}
+        </div>
+      )}
     </section>
   );
 }
