@@ -679,6 +679,14 @@ function MissionOverviewPage() {
 
         <div className="mr-divider" />
 
+        {/* ── 3a. SUPPORT REQUESTS (lead-only) ────── */}
+        {isLeader && (
+          <>
+            <SupportQueueSection />
+            <div className="mr-divider" />
+          </>
+        )}
+
         {/* ── 3b. PILOT STATUS (lead-only) ───── */}
         <PilotStatusSection missionId={missionId} isLead={isLeader} />
 
