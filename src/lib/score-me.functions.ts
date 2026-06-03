@@ -141,6 +141,40 @@ export const scoreResponse = createServerFn({ method: "POST" })
 
     const dna = (dnaRow?.dna ?? {}) as any;
 
+    // Pick applicable federal regs (program match) — limit to most relevant for prompt size
+    const program = mission?.program_type;
+    const applicableFederal = (fedComp ?? []).filter((f: any) =>
+      !program || (f.program_types ?? []).length === 0 || (f.program_types ?? []).includes(program),
+    );
+
+    type ComplianceForPrompt = {
+      id: string;
+      source: "mission" | "federal";
+      label: string;
+      requirement: string;
+      severity: string;
+    };
+    const missionComplianceList: ComplianceForPrompt[] = (missionComp ?? []).map((m: any) => ({
+      id: m.id,
+      source: "mission",
+      label: `${m.source_document}${m.section_reference ? ` ${m.section_reference}` : ""} [${m.source_kind}]`,
+      requirement: m.plain_language ?? m.requirement_text,
+      severity: m.severity,
+    }));
+    const federalComplianceList: ComplianceForPrompt[] = applicableFederal.slice(0, 8).map((f: any) => ({
+      id: f.id,
+      source: "federal",
+      label: `${f.regulation_name} (${f.citation})`,
+      requirement: f.plain_language ?? f.section_text,
+      severity: f.severity,
+    }));
+    const allComplianceForPrompt = [...missionComplianceList, ...federalComplianceList];
+
+    const formatCompliance = (items: ComplianceForPrompt[]) =>
+      items.length === 0 ? "(none on file)" : items
+        .map((c) => `- id=${c.id} [${c.severity}] ${c.label}: ${String(c.requirement).slice(0, 350)}`)
+        .join("\n");
+
     const userMsg = `QUESTION ${q.question_number} — ${q.title}
 ${q.question_text}
 
@@ -170,6 +204,12 @@ ${typeof dna?.competitive_context === "string" ? dna.competitive_context : JSON.
 
 CRITICAL INSTITUTIONAL KNOWLEDGE (non-negotiable firm standards):
 ${(memories ?? []).map((m: any) => `- ${m.title}: ${String(m.content).slice(0, 400)}`).join("\n") || "(none)"}
+
+MODEL CONTRACT + STATE REGULATORY REQUIREMENTS (mission-specific):
+${formatCompliance(missionComplianceList)}
+
+FEDERAL REQUIREMENTS (applicable to this program):
+${formatCompliance(federalComplianceList)}
 
 THE RESPONSE TO SCORE:
 """
