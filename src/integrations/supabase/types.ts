@@ -550,6 +550,130 @@ export type Database = {
           },
         ]
       }
+      iris_memories: {
+        Row: {
+          archived_at: string | null
+          category: string
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          importance: string
+          iris_reasoning: string | null
+          last_used_at: string | null
+          mission_id: string | null
+          scope: string
+          source: string | null
+          summary: string | null
+          tags: string[]
+          title: string
+          updated_at: string
+          usage_count: number
+        }
+        Insert: {
+          archived_at?: string | null
+          category?: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          importance?: string
+          iris_reasoning?: string | null
+          last_used_at?: string | null
+          mission_id?: string | null
+          scope?: string
+          source?: string | null
+          summary?: string | null
+          tags?: string[]
+          title: string
+          updated_at?: string
+          usage_count?: number
+        }
+        Update: {
+          archived_at?: string | null
+          category?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          importance?: string
+          iris_reasoning?: string | null
+          last_used_at?: string | null
+          mission_id?: string | null
+          scope?: string
+          source?: string | null
+          summary?: string | null
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          usage_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iris_memories_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "iris_memories_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      iris_memory_usage: {
+        Row: {
+          context: string | null
+          id: string
+          memory_id: string
+          mission_id: string | null
+          question_id: string | null
+          used_at: string
+        }
+        Insert: {
+          context?: string | null
+          id?: string
+          memory_id: string
+          mission_id?: string | null
+          question_id?: string | null
+          used_at?: string
+        }
+        Update: {
+          context?: string | null
+          id?: string
+          memory_id?: string
+          mission_id?: string | null
+          question_id?: string | null
+          used_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iris_memory_usage_memory_id_fkey"
+            columns: ["memory_id"]
+            isOneToOne: false
+            referencedRelation: "iris_memories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "iris_memory_usage_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "iris_memory_usage_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "question_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       market_intelligence: {
         Row: {
           category: string | null
@@ -2075,6 +2199,7 @@ export type Database = {
         Args: { _mission_id: string; _user_id: string }
         Returns: boolean
       }
+      is_olympus_user: { Args: { _user_id: string }; Returns: boolean }
       is_platform_admin: { Args: { _user_id: string }; Returns: boolean }
       leadership_count: { Args: { _engagement_id: string }; Returns: number }
       match_intel_to_questions: {

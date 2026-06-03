@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Shield, ArrowLeft, ChevronDown, Zap,
   LayoutGrid, Users, FileText, ClipboardCheck, Trophy,
-  FolderOpen, Settings as SettingsIcon, UserCog, History,
+  FolderOpen, Settings as SettingsIcon, UserCog, History, Brain,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/olympus")({
@@ -190,6 +190,9 @@ function OlympusSidebar({ isAdmin }: { isAdmin: boolean }) {
         <SidebarItem to="/olympus/vault" path={path} icon={<FolderOpen size={15} strokeWidth={1.5} />}>Vault · Documents</SidebarItem>
         <SidebarItem to="/olympus/settings" path={path} icon={<SettingsIcon size={15} strokeWidth={1.5} />}>Settings</SidebarItem>
 
+        <div className="my-3 border-t border-border" />
+        <IrisMemorySidebarItem path={path} />
+
         {isAdmin && (
           <>
             <div className="my-3 border-t border-border" />
@@ -215,6 +218,28 @@ function SidebarItem({ to, path, icon, children, exact }: {
     >
       {icon}
       <span className="flex-1 truncate">{children}</span>
+    </Link>
+  );
+}
+
+function IrisMemorySidebarItem({ path }: { path: string }) {
+  const to = "/olympus/iris-memory";
+  const active = path === to || path.startsWith(to + "/");
+  return (
+    <Link
+      to={to as any}
+      className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors"
+      style={{
+        color: "var(--iris)",
+        background: active ? "var(--iris-subtle)" : "transparent",
+      }}
+    >
+      <span
+        className="iris-pulse-dot"
+        style={{ width: 8, height: 8, borderRadius: 999, background: "var(--iris)", boxShadow: "0 0 0 0 var(--iris-pulse)" }}
+      />
+      <Brain size={15} strokeWidth={1.5} />
+      <span className="flex-1 truncate font-medium">IRIS Memory</span>
     </Link>
   );
 }
