@@ -7,8 +7,11 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Shield, ArrowLeft, ChevronDown, Zap,
   LayoutGrid, Users, FileText, ClipboardCheck, Trophy,
-  FolderOpen, Settings as SettingsIcon, UserCog, History, Brain, Sparkles, Layers,
+  FolderOpen, Settings as SettingsIcon, UserCog, History, Brain,
+  Search, Inbox, Library, BookOpen, Bell, LifeBuoy, UserPlus,
 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { listReviewQueue } from "@/lib/atlas-onboarding.functions";
 
 export const Route = createFileRoute("/_authenticated/olympus")({
   component: OlympusLayout,
