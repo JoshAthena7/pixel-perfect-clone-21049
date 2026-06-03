@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { withPersonFirst } from "./person-first";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
@@ -13,7 +14,7 @@ async function callGemini(system: string, user: string): Promise<Brief | null> {
     body: JSON.stringify({
       model: "google/gemini-2.5-flash",
       messages: [
-        { role: "system", content: system },
+        { role: "system", content: withPersonFirst(system) },
         { role: "user", content: user },
       ],
       response_format: {

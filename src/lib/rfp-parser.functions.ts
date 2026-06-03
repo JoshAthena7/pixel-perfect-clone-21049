@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { withPersonFirst } from "./person-first";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
@@ -156,7 +157,7 @@ Wrap the array in an object: {"questions": [...]}`;
         body: JSON.stringify({
           model,
           messages: [
-            { role: "system", content: system },
+            { role: "system", content: withPersonFirst(system) },
             { role: "user", content: `RFP TEXT:\n\n${body}` },
           ],
           response_format: { type: "json_object" },

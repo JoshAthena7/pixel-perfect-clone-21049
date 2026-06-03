@@ -1,4 +1,5 @@
 // Server-only helpers for IRIS summarization, embeddings, and cross-mission matching
+import { withPersonFirst } from "./person-first";
 // of market_intelligence items. Used by both the manual ingestion server fn and the
 // pg_cron-triggered /api/public/hooks/ingest-intel route.
 

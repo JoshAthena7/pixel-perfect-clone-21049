@@ -1,4 +1,5 @@
 // Mission Activation + Document Intelligence Pipeline
+import { withPersonFirst } from "./person-first";
 // Server-side orchestration for extracting document text, generating themes/entities,
 // indexing into document_extractions, and regenerating Briefing Book sections.
 
@@ -57,7 +58,7 @@ async function llmExtractThemes(rawText: string, filename: string, missionName: 
     body: JSON.stringify({
       model: EXTRACTION_MODEL,
       messages: [
-        { role: "system", content: sys },
+        { role: "system", content: withPersonFirst(sys) },
         { role: "user", content: user },
       ],
       response_format: { type: "json_object" },

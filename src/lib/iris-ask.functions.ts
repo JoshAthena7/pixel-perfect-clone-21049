@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { withPersonFirst } from "./person-first";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { fetchIrisMemoryContext, logIrisMemoryUsage } from "./iris-memory.functions";
@@ -14,7 +15,7 @@ async function callIris(system: string, user: string) {
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: system },
+          { role: "system", content: withPersonFirst(system) },
           { role: "user", content: user },
         ],
       }),

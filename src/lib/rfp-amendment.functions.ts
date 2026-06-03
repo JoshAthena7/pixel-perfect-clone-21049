@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { withPersonFirst } from "./person-first";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { loadRfpText, findLatestRfp } from "@/lib/rfp-text.server";
@@ -97,7 +98,7 @@ Identify every change the amendment introduces vs the original RFP. Be exhaustiv
     body: JSON.stringify({
       model: "google/gemini-2.5-pro",
       messages: [
-        { role: "system", content: system },
+        { role: "system", content: withPersonFirst(system) },
         { role: "user", content: user },
       ],
       response_format: { type: "json_object" },

@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { withPersonFirst } from "./person-first";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
@@ -310,7 +311,7 @@ export const irisGenerateBriefingSection = createServerFn({ method: "POST" })
           body: JSON.stringify({
             model: "google/gemini-2.5-flash",
             messages: [
-              { role: "system", content: sys },
+              { role: "system", content: withPersonFirst(sys) },
               { role: "user", content: user },
             ],
           }),

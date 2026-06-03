@@ -1,4 +1,5 @@
 // IRIS Research Executor — Phase 3.
+import { withPersonFirst } from "./person-first";
 // Picks pending research_tasks for a mission and runs them through
 // Perplexity (sonar-pro) with full mission DNA context so the answers
 // are laser-focused on THIS procurement — not generic Medicaid coverage.
@@ -75,7 +76,7 @@ async function callPerplexity(
     body: JSON.stringify({
       model: "sonar-pro",
       messages: [
-        { role: "system", content: system },
+        { role: "system", content: withPersonFirst(system) },
         { role: "user", content: user },
       ],
       temperature: 0.2,
