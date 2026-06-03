@@ -83,7 +83,7 @@ export function IrisDock() {
             color: "#001218",
           }}
         >
-          <Eye size={16} strokeWidth={2.25} />
+          <img src={irisLogo.url} alt="" className="h-6 w-6 object-contain -ml-1" style={{ filter: "drop-shadow(0 0 6px rgba(245,158,11,0.5))" }} />
           <span className="text-[11px] font-bold uppercase tracking-[0.12em]">Ask IRIS</span>
           <kbd className="hidden md:inline-flex items-center rounded bg-black/20 px-1.5 py-0.5 text-[9px] font-mono">⌘J</kbd>
         </button>
