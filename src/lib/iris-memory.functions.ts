@@ -269,20 +269,28 @@ export async function logIrisMemoryUsage(
   ctx: { missionId?: string | null; questionId?: string | null; context?: string },
 ) {
   if (memoryIds.length === 0) return;
-  const rows = memoryIds.map((id) => ({
-    memory_id: id,
-    mission_id: ctx.missionId ?? null,
-    question_id: ctx.questionId ?? null,
-    context: ctx.context ?? null,
-  }));
-  await supabase.from("iris_memory_usage").insert(rows);
-  // bump usage_count
-  for (const id of memoryIds) {
-    await supabase.rpc("noop_bump_memory", { p_id: id }).catch(() => {});
+  try {
+    const rows = memoryIds.map((id) => ({
+      memory_id: id,
+      mission_id: ctx.missionId ?? null,
+      question_id: ctx.questionId ?? null,
+      context: ctx.context ?? null,
+    }));
+    await supabase.from("iris_memory_usage").insert(rows);
+    // Bump usage counters and last_used_at. usage_count increments via individual updates.
+    const now = new Date().toISOString();
+    for (const id of memoryIds) {
+      const { data: cur } = await supabase
+        .from("iris_memories")
+        .select("usage_count")
+        .eq("id", id)
+        .maybeSingle();
+      await supabase
+        .from("iris_memories")
+        .update({ usage_count: (cur?.usage_count ?? 0) + 1, last_used_at: now })
+        .eq("id", id);
+    }
+  } catch {
+    // best-effort logging; never block the IRIS answer
   }
-  // Simpler: do a single update via SQL — but RPC not defined. Use update loop:
-  await supabase
-    .from("iris_memories")
-    .update({ last_used_at: new Date().toISOString() })
-    .in("id", memoryIds);
 }
