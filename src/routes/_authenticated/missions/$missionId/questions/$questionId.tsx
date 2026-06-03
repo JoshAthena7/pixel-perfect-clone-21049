@@ -323,6 +323,7 @@ function CockpitPage() {
   /* UI state */
   const [askOpen, setAskOpen] = useState(false);
   const [getHelpOpen, setGetHelpOpen] = useState(false);
+  const [scoreMeOpen, setScoreMeOpen] = useState(false);
 
   /* Ask IRIS */
   const askFn = useServerFn(irisAskQuestion);
