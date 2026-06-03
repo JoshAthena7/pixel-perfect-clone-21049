@@ -16,7 +16,7 @@ const SCORE_TOOL = {
         reasons: {
           type: "array",
           minItems: 3,
-          maxItems: 5,
+          maxItems: 6,
           items: {
             type: "object",
             properties: {
@@ -43,6 +43,22 @@ const SCORE_TOOL = {
               estimated_points: { type: "number" },
             },
             required: ["label", "what", "where", "suggested_language", "why", "estimated_points"],
+            additionalProperties: false,
+          },
+        },
+        compliance_findings: {
+          type: "array",
+          description: "Per-requirement compliance status. Required when compliance requirements were provided.",
+          items: {
+            type: "object",
+            properties: {
+              requirement_id: { type: "string", description: "Pass through the id provided in the prompt." },
+              requirement_source: { type: "string", enum: ["mission", "federal"] },
+              status: { type: "string", enum: ["compliant", "partial", "non_compliant", "conflicting", "unknown"] },
+              evidence: { type: "string", description: "What in the response was checked." },
+              iris_note: { type: "string", description: "Short note explaining the finding." },
+            },
+            required: ["requirement_id", "requirement_source", "status"],
             additionalProperties: false,
           },
         },
