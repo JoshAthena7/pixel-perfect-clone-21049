@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import atlasMark from "@/assets/atlas-mark.png.asset.json";
+
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — Atlas" }] }),
@@ -59,25 +61,6 @@ function LoginPage() {
     }
   }
 
-  const AtlasMark = ({ size = 192 }: { size?: number }) => (
-    <div
-      className="relative flex items-center justify-center"
-      style={{ width: size, height: size }}
-    >
-      <svg viewBox="0 0 100 100" className="h-full w-full text-sky-400">
-        <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="1 4" className="opacity-30" />
-        <circle cx="50" cy="50" r="28" fill="none" stroke="currentColor" strokeWidth="0.5" className="opacity-20" />
-        <circle cx="50" cy="50" r="2" fill="currentColor" />
-        <circle cx="35" cy="35" r="1.5" fill="currentColor" />
-        <circle cx="65" cy="40" r="1.5" fill="currentColor" />
-        <circle cx="45" cy="65" r="1.5" fill="currentColor" />
-        <circle cx="60" cy="60" r="1" fill="currentColor" />
-        <path d="M50 50 L35 35 M50 50 L65 40 M50 50 L45 65 M45 65 L60 60 M65 40 L60 60" stroke="currentColor" strokeWidth="0.5" className="opacity-40" />
-      </svg>
-      <div className="pointer-events-none absolute inset-0 rounded-full bg-sky-500/10 blur-3xl" />
-    </div>
-  );
-
   return (
     <div
       className="flex min-h-screen w-full select-none items-center justify-center bg-[#020203] p-4 md:p-8 text-foreground"
@@ -95,31 +78,46 @@ function LoginPage() {
           />
           <div className="relative z-10">
             <div className="mb-2 flex items-center gap-2">
-              <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-sky-400">
+              <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-amber-400/90">
                 Strategic Intelligence
               </span>
-              <div className="h-px w-8 bg-sky-400/30" />
+              <div className="h-px w-8 bg-amber-400/30" />
             </div>
-            <h1 className="text-2xl font-light tracking-tight text-white">
-              Intelligence for <span className="text-sky-300">Elite Proposal Operations</span>
+            <h1 className="text-2xl font-light leading-snug tracking-tight text-white">
+              Intelligence for{" "}
+              <span className="text-amber-300">Elite Proposal Operations</span>
             </h1>
           </div>
 
-          <div className="relative z-10 flex justify-center py-12">
-            <AtlasMark size={192} />
+          <div className="relative z-10 flex justify-center py-6">
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-0 -m-8 rounded-full bg-amber-500/10 blur-3xl" />
+              <img
+                src={atlasMark.url}
+                alt="Atlas — Remembers"
+                className="relative h-56 w-auto object-contain"
+                style={{ filter: "drop-shadow(0 0 32px rgba(245,158,11,0.25))" }}
+              />
+            </div>
           </div>
 
-          <div className="relative z-10">
-            <p className="mb-4 font-mono text-[11px] uppercase tracking-widest text-white/40">
+          <div className="relative z-10 space-y-5">
+            <p className="font-mono text-[11px] uppercase tracking-widest text-white/40">
               Atlas. Built by Athena. Powered by IRIS.
             </p>
-            <div className="flex items-center gap-1.5">
-              <div className="flex h-3 w-3 items-center justify-center rounded-full border border-amber-500/50">
-                <div className="h-1 w-1 rounded-full bg-amber-500" />
-              </div>
-              <span className="text-[10px] font-medium uppercase tracking-wide text-amber-500/80">
-                IRIS Active
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-[10px] uppercase tracking-[0.25em] text-white/30">
+                Athena Strategy Group
               </span>
+              <div className="flex items-center gap-1.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400/60 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-sky-400" />
+                </span>
+                <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-sky-300/90">
+                  IRIS Active
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -128,7 +126,12 @@ function LoginPage() {
         <div className="flex flex-col justify-center bg-[#08080a] p-8 md:p-16">
           <div className="mb-10">
             <div className="mb-8 flex justify-center md:hidden">
-              <AtlasMark size={56} />
+              <img
+                src={atlasMark.url}
+                alt="Atlas"
+                className="h-28 w-auto object-contain"
+                style={{ filter: "drop-shadow(0 0 24px rgba(245,158,11,0.25))" }}
+              />
             </div>
             <h2 className="mb-2 text-xl font-medium tracking-tight text-white">
               Personnel Sign-in
@@ -137,6 +140,8 @@ function LoginPage() {
               Secure access via encrypted magic link.
             </p>
           </div>
+
+
 
           {sent ? (
             <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-5 text-center text-sm">
@@ -158,7 +163,7 @@ function LoginPage() {
               <div className="group space-y-2">
                 <label
                   htmlFor="email"
-                  className="ml-1 block text-[10px] font-medium uppercase tracking-[0.15em] text-white/40 transition-colors group-focus-within:text-sky-400"
+                  className="ml-1 block text-[10px] font-medium uppercase tracking-[0.15em] text-white/40 transition-colors group-focus-within:text-amber-400"
                 >
                   Corporate Email Address
                 </label>
@@ -169,7 +174,7 @@ function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@athenasg.com"
-                  className="h-12 rounded-lg border-white/10 bg-white/[0.03] px-4 text-white placeholder:text-white/20 focus-visible:border-sky-500/50 focus-visible:ring-1 focus-visible:ring-sky-500/50"
+                  className="h-12 rounded-lg border-white/10 bg-white/[0.03] px-4 text-white placeholder:text-white/20 focus-visible:border-amber-500/50 focus-visible:ring-1 focus-visible:ring-amber-500/50"
                 />
               </div>
 
@@ -202,28 +207,12 @@ function LoginPage() {
             </form>
           )}
 
-          <div className="mt-12 flex flex-col items-center gap-6">
-            <div className="flex items-center gap-3">
-              <div className="h-px w-8 bg-white/10" />
-              <span className="text-[10px] uppercase tracking-[0.2em] text-white/20">
-                Authorized access only
-              </span>
-              <div className="h-px w-8 bg-white/10" />
-            </div>
-
-            <div className="flex items-center gap-6 opacity-30 grayscale transition-all duration-700 hover:opacity-100 hover:grayscale-0">
-              <div className="flex flex-col items-center">
-                <div className="mb-1 text-[8px] font-bold tracking-[0.3em] text-white">ATHENA</div>
-                <div className="h-0.5 w-10 bg-white/20" />
-              </div>
-              <div className="h-6 w-px bg-white/10" />
-              <div className="flex items-center gap-1.5">
-                <div className="flex h-3 w-3 items-center justify-center rounded-full border border-amber-500">
-                  <div className="h-1 w-1 rounded-full bg-amber-500" />
-                </div>
-                <span className="text-[9px] font-bold tracking-[0.2em] text-amber-500">IRIS</span>
-              </div>
-            </div>
+          <div className="mt-12 flex items-center justify-center gap-3">
+            <div className="h-px w-10 bg-white/10" />
+            <span className="text-[10px] uppercase tracking-[0.25em] text-white/30">
+              Authorized access only
+            </span>
+            <div className="h-px w-10 bg-white/10" />
           </div>
         </div>
       </div>
