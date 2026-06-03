@@ -5,10 +5,15 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Search, Plane, PenTool, Zap, Sparkles, BookOpen, Eye, Home,
-  Shield, ArrowRight, CornerDownLeft, Brain, Lightbulb, GitFork,
-  MessageSquare, RadioTower, FilePlus, ClipboardList, Target, Clock,
+  ArrowRight, CornerDownLeft, Brain, GitFork,
+  MessageSquare, RadioTower, ClipboardList, Target, Clock,
+  AlertTriangle, Phone, Lightbulb,
 } from "lucide-react";
 import { globalSearch, type SearchHit } from "@/lib/global-search.functions";
+import { SOSModal } from "@/components/v2/SOSButton";
+import { toast } from "sonner";
+
+type Tone = "default" | "danger" | "iris";
 
 type JumpItem = {
   id: string;
@@ -18,6 +23,7 @@ type JumpItem = {
   icon: React.ReactNode;
   onGo: () => void;
   keywords?: string;
+  tone?: Tone;
 };
 
 const RECENTS_KEY = "atlas.search.recents";
@@ -51,6 +57,7 @@ export function CommandPalette() {
   const [q, setQ] = useState("");
   const [idx, setIdx] = useState(0);
   const [recents, setRecents] = useState<Recent[]>([]);
+  const [sosOpen, setSosOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const params = useParams({ strict: false }) as { missionId?: string };
@@ -152,27 +159,40 @@ export function CommandPalette() {
   const quickActions: JumpItem[] = useMemo(() => {
     const list: JumpItem[] = [
       { id: "qa-update", group: "Quick actions", label: "Update Reality", hint: "Signal to your team",
-        icon: <Zap size={14} className="text-[color:var(--accent,#3b7fff)]" />,
+        icon: <Zap size={16} className="text-[color:var(--accent,#3b7fff)]" />,
         onGo: () => window.dispatchEvent(new CustomEvent("atlas:open-update-reality")) },
+      { id: "qa-score", group: "Quick actions", label: "Score Me", hint: "Score a draft response",
+        icon: <Target size={16} className="text-[color:var(--accent,#3b7fff)]" />,
+        onGo: () => window.dispatchEvent(new CustomEvent("atlas:open-score-me")) },
+      { id: "qa-sos", group: "Quick actions", label: "SOS", hint: "Emergency — notify leadership",
+        tone: "danger",
+        icon: <AlertTriangle size={16} className="text-[color:var(--red,#ef4444)]" />,
+        onGo: () => {
+          if (missionId) setSosOpen(true);
+          else toast.error("Open a mission to send an SOS.");
+        } },
+      { id: "qa-phone", group: "Quick actions", label: "Phone a Friend", hint: "Talk to an Athena expert",
+        icon: <Phone size={16} className="text-[#8b5cf6]" />,
+        onGo: () => {
+          window.dispatchEvent(new CustomEvent("atlas:open-phone-a-friend"));
+          toast("Phone a Friend", { description: "IRIS is finding the right expert for you…" });
+        } },
     ];
     if (missionId) {
       list.push({
-        id: "qa-ask", group: "Quick actions", label: "Ask IRIS", hint: "Get coaching now",
-        icon: <Sparkles size={14} className="text-[color:var(--iris,#22d3ee)]" />,
+        id: "qa-ask", group: "Quick actions", label: "Ask IRIS", hint: "Get coaching right now",
+        tone: "iris",
+        icon: <span className="relative inline-flex h-2 w-2"><span className="absolute inset-0 animate-ping rounded-full bg-[color:var(--iris,#0891b2)] opacity-60" /><span className="relative inline-flex h-2 w-2 rounded-full bg-[color:var(--iris,#0891b2)]" /></span>,
         onGo: () => navigate({ to: "/missions/$missionId/iris", params: { missionId } }),
       });
+    } else {
+      list.push({
+        id: "qa-ask", group: "Quick actions", label: "Ask IRIS", hint: "Get coaching right now",
+        tone: "iris",
+        icon: <span className="relative inline-flex h-2 w-2"><span className="absolute inset-0 animate-ping rounded-full bg-[color:var(--iris,#0891b2)] opacity-60" /><span className="relative inline-flex h-2 w-2 rounded-full bg-[color:var(--iris,#0891b2)]" /></span>,
+        onGo: () => navigate({ to: "/intelligence" }),
+      });
     }
-    list.push(
-      { id: "qa-teach", group: "Quick actions", label: "Teach IRIS", hint: "Add to IRIS Memory",
-        icon: <Brain size={14} className="text-[color:var(--iris,#22d3ee)]" />,
-        onGo: () => navigate({ to: "/olympus/iris-memory" }) },
-      { id: "qa-source", group: "Quick actions", label: "Add Source", hint: "Ingest intelligence",
-        icon: <BookOpen size={14} className="text-[color:var(--yellow,#f59e0b)]" />,
-        onGo: () => navigate({ to: "/olympus/source-finder" }) },
-      { id: "qa-score", group: "Quick actions", label: "Score Me", hint: "Score a draft",
-        icon: <Target size={14} className="text-[color:var(--accent,#3b7fff)]" />,
-        onGo: () => window.dispatchEvent(new CustomEvent("atlas:open-score-me")) },
-    );
     return list;
   }, [navigate, missionId]);
 
@@ -331,18 +351,27 @@ export function CommandPalette() {
                   const hint = item.hint ?? item.subtitle;
                   const meta = isHit ? (row as any).item.meta : undefined;
                   const badge = isHit ? (row as any).item.badge : undefined;
+                  const tone: Tone = !isHit ? ((item.tone as Tone) ?? "default") : "default";
+                  const bg = active
+                    ? (tone === "danger" ? "rgba(239,68,68,0.08)" : tone === "iris" ? "rgba(8,145,178,0.08)" : "rgba(255,255,255,0.07)")
+                    : (tone === "danger" ? "transparent" : "transparent");
+                  const borderColor = active
+                    ? (tone === "danger" ? "var(--red,#ef4444)" : tone === "iris" ? "var(--iris,#0891b2)" : "var(--accent,#3b7fff)")
+                    : (tone === "danger" ? "rgba(239,68,68,0.3)" : "transparent");
+                  const accentColor = tone === "danger" ? "var(--red,#ef4444)" : tone === "iris" ? "var(--iris,#0891b2)" : "var(--accent,#3b7fff)";
                   return (
                     <button
                       key={item.id}
                       onMouseEnter={() => setIdx(myIdx)}
                       onClick={() => activate(row)}
-                      className="flex w-full items-start gap-3 px-6 py-2 text-left text-sm transition-colors"
+                      className="flex w-full items-center gap-3 px-5 text-left text-sm transition-colors"
                       style={{
-                        background: active ? "rgba(34,211,238,0.08)" : "transparent",
-                        borderLeft: active ? "2px solid var(--iris,#22d3ee)" : "2px solid transparent",
+                        height: 48,
+                        background: bg,
+                        borderLeft: `2px solid ${borderColor}`,
                       }}
                     >
-                      <span className="mt-0.5 shrink-0">{icon}</span>
+                      <span className="shrink-0">{icon}</span>
                       <span className="min-w-0 flex-1">
                         <span className="flex items-center gap-2">
                           {badge && (
@@ -350,12 +379,12 @@ export function CommandPalette() {
                               {badge}
                             </span>
                           )}
-                          <span className="truncate text-foreground">{label}</span>
+                          <span className="truncate text-[14px] font-medium text-foreground">{label}</span>
+                          {hint && <span className="ml-1 truncate text-[12px] text-muted-foreground">{hint}</span>}
                         </span>
-                        {hint && <div className="mt-0.5 truncate text-[11px] text-muted-foreground">{hint}</div>}
                         {meta && <div className="mt-0.5 line-clamp-1 text-[11px] text-muted-foreground/70">{meta}</div>}
                       </span>
-                      {active && <CornerDownLeft size={12} className="mt-1 text-[color:var(--iris,#22d3ee)]" />}
+                      {active && <CornerDownLeft size={12} className="shrink-0" style={{ color: accentColor }} />}
                     </button>
                   );
                 })}
@@ -379,6 +408,9 @@ export function CommandPalette() {
           </span>
         </div>
       </div>
+      {sosOpen && missionId && (
+        <SOSModal missionId={missionId} onClose={() => { setSosOpen(false); setOpen(false); }} />
+      )}
     </div>
   );
 }
