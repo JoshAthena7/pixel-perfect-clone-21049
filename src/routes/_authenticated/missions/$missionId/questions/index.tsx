@@ -848,6 +848,18 @@ function ResponsesList() {
     return "";
   }
 
+  if (isWriter && me) {
+    return (
+      <Cockpit
+        missionId={missionId}
+        me={me}
+        myQuestions={myQuestions}
+        allQuestions={questions}
+        updateStatus={updateStatus}
+      />
+    );
+  }
+
   return (
     <div className="mx-auto max-w-[1200px] px-8 pb-32 pt-10">
       <div className="mb-6">
@@ -855,6 +867,7 @@ function ResponsesList() {
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">Your Workspace</h1>
         <p className="mt-1 text-sm text-muted-foreground">Your questions. Your deadline. Help one click away.</p>
       </div>
+
 
       <StudioHealthStrip missionId={missionId} />
       <div className="h-4" />
