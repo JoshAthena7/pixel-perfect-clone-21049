@@ -85,28 +85,30 @@ export function CommandCenter({ missionId }: { missionId?: string } = {}) {
   // Sources: question_collaboration (decision_needed, sme_request, air_cover) unresolved,
   // PLUS reality_updates with signal_type='need' unresolved.
   const { data: collabNeeds = [] } = useQuery({
-    queryKey: ["cc-collab-needs"],
+    queryKey: ["cc-collab-needs", missionId ?? "all"],
     queryFn: async () => {
-      const { data } = await supabase
+      let q = supabase
         .from("question_collaboration")
         .select("id,question_id,mission_id,author_id,author_name,entry_type,body,resolved,created_at")
         .in("entry_type", ["decision_needed", "sme_request", "air_cover"])
-        .eq("resolved", false)
-        .order("created_at", { ascending: false });
+        .eq("resolved", false);
+      if (missionId) q = q.eq("mission_id", missionId);
+      const { data } = await q.order("created_at", { ascending: false });
       return (data ?? []) as CollabEntry[];
     },
     refetchInterval: 60_000,
   });
 
   const { data: realityNeeds = [] } = useQuery({
-    queryKey: ["cc-reality-needs"],
+    queryKey: ["cc-reality-needs", missionId ?? "all"],
     queryFn: async () => {
-      const { data } = await supabase
+      let q = supabase
         .from("reality_updates")
         .select("id,question_id,mission_id,user_id,user_name,signal_type,need_type,details,resolved,created_at")
         .eq("signal_type", "need")
-        .eq("resolved", false)
-        .order("created_at", { ascending: false });
+        .eq("resolved", false);
+      if (missionId) q = q.eq("mission_id", missionId);
+      const { data } = await q.order("created_at", { ascending: false });
       return (data ?? []) as RealityUpdate[];
     },
     refetchInterval: 60_000,
