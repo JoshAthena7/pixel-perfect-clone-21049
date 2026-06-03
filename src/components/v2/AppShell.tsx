@@ -17,6 +17,7 @@ import { UpdateRealityMount } from "@/components/v2/UpdateRealityModal";
 import { IrisOnboardingMount } from "@/components/v2/IrisOnboardingModal";
 import { CommandPalette } from "@/components/v2/CommandPalette";
 import { IrisDock } from "@/components/v2/IrisDock";
+import { MobileBottomNav, MobileBottomNavSpacer } from "@/components/v2/MobileBottomNav";
 import athenaSgLogo from "@/assets/athena-sg-lockup.png.asset.json";
 
 // ─── Room detection (only two rooms inside a mission) ──────────────────────
@@ -59,11 +60,13 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <main className="flex-1 min-w-0">
         <div key={path} className="route-fade min-h-full">{children}</div>
+        <MobileBottomNavSpacer />
       </main>
 
       {inMission && missionId && isStudio && <UpdateRealityMount missionId={missionId} />}
       <IrisOnboardingMount />
       <IrisDock />
+      <MobileBottomNav />
     </div>
   );
 }
@@ -139,8 +142,8 @@ function TopBar({
         )}
       </div>
 
-      {/* CENTER — atrium nav / room toggle */}
-      <div className="flex-1 flex items-center justify-center min-w-0">
+      {/* CENTER — atrium nav / room toggle (hidden on mobile; bottom nav replaces room toggle) */}
+      <div className="hidden md:flex flex-1 items-center justify-center min-w-0">
         {isAtrium ? (
           <AtriumNav />
         ) : isOlympus ? null : inMission && missionId ? (
@@ -149,7 +152,7 @@ function TopBar({
       </div>
 
       {/* RIGHT */}
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="ml-auto md:ml-0 flex shrink-0 items-center gap-2">
         <button
           onClick={() => {
             window.dispatchEvent(new CustomEvent("atlas:open-search"));
