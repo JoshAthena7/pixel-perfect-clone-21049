@@ -628,3 +628,111 @@ function SourcesPanel({ analysis }: { analysis: Analysis }) {
     </section>
   );
 }
+
+type ComplianceItem = {
+  requirement_id: string;
+  source: "mission" | "federal";
+  label: string;
+  requirement: string;
+  severity: string;
+  status: string;
+  evidence: string;
+  iris_note: string;
+};
+
+function ComplianceResultsSection({ analysis }: { analysis: Analysis }) {
+  const compliance = ((analysis as any).compliance ?? []) as ComplianceItem[];
+  const [showAll, setShowAll] = useState(false);
+  if (compliance.length === 0) return null;
+
+  const groupBySource = (src: "mission" | "federal" | "model_contract" | "state_regulation") =>
+    compliance.filter((c) => {
+      if (src === "mission") return c.source === "mission";
+      if (src === "federal") return c.source === "federal";
+      return false;
+    });
+
+  const allMission = groupBySource("mission");
+  const allFederal = groupBySource("federal");
+  const splitByDoc = (items: ComplianceItem[], kindHint: string) =>
+    items.filter((i) => i.label.toLowerCase().includes(kindHint));
+  const modelContract = splitByDoc(allMission, "model_contract");
+  const stateReg = splitByDoc(allMission, "state_regulation");
+  const otherMission = allMission.filter((i) => !modelContract.includes(i) && !stateReg.includes(i));
+
+  const compliantCount = (items: ComplianceItem[]) => items.filter((i) => i.status === "compliant").length;
+  const offenders = compliance.filter((c) => c.status === "non_compliant" || c.status === "conflicting" || c.status === "partial");
+  const critical = offenders.filter((o) => o.severity === "critical");
+  const significant = offenders.filter((o) => o.severity === "significant");
+  const compliantItems = compliance.filter((c) => c.status === "compliant");
+
+  const Bar = ({ label, items }: { label: string; items: ComplianceItem[] }) => {
+    if (items.length === 0) return null;
+    const met = compliantCount(items);
+    const pct = (met / items.length) * 100;
+    return (
+      <div className="grid grid-cols-[140px_1fr_80px] items-center gap-3 text-[11px]">
+        <div className="font-semibold uppercase tracking-wider text-muted-foreground">{label}</div>
+        <div className="h-2 overflow-hidden rounded-full bg-black/50">
+          <div className="h-full bg-emerald-500" style={{ width: `${pct}%` }} />
+        </div>
+        <div className="text-right text-muted-foreground">{met} of {items.length}</div>
+      </div>
+    );
+  };
+
+  return (
+    <section>
+      <h3 className="text-[11px] font-bold uppercase tracking-[0.24em] text-muted-foreground mb-4">
+        ● Compliance Check
+      </h3>
+      <div className="rounded-[10px] border border-white/10 bg-white/[0.02] p-5 space-y-2">
+        <Bar label="Model Contract" items={modelContract.concat(otherMission.filter((i) => i.label.toLowerCase().includes("model")))} />
+        <Bar label="State Regs" items={stateReg.concat(otherMission.filter((i) => i.label.toLowerCase().includes("state")))} />
+        <Bar label="Federal Regs" items={allFederal} />
+      </div>
+
+      {critical.length > 0 && (
+        <div className="mt-4 space-y-3">
+          {critical.map((c) => (
+            <div key={c.requirement_id} className="rounded-[10px] border border-rose-500/40 bg-rose-500/[0.05] p-4 text-sm">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-rose-300">
+                ⚠ {c.status === "conflicting" ? "CONFLICTING" : "CRITICAL — NOT ADDRESSED"} · {c.label}
+              </div>
+              <div className="mt-2 text-foreground/90"><span className="text-muted-foreground">Requirement:</span> {c.requirement}</div>
+              {c.evidence && <div className="mt-2 text-foreground/80"><span className="text-muted-foreground">In your response:</span> {c.evidence}</div>}
+              {c.iris_note && <div className="mt-2 text-rose-200/90"><span className="text-muted-foreground">IRIS:</span> {c.iris_note}</div>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {significant.length > 0 && (
+        <div className="mt-3 space-y-2">
+          {significant.map((c) => (
+            <div key={c.requirement_id} className="rounded-[8px] border border-amber-500/30 bg-amber-500/[0.04] px-4 py-3 text-xs">
+              <div className="font-semibold text-amber-300">◉ {c.label}</div>
+              <div className="mt-1 text-foreground/80">{c.iris_note || c.requirement}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {compliantItems.length > 0 && (
+        <div className="mt-3">
+          <button onClick={() => setShowAll((s) => !s)} className="text-[11px] text-emerald-400 hover:underline">
+            ✓ {compliantItems.length} requirement{compliantItems.length === 1 ? "" : "s"} met · View all {showAll ? "▴" : "▾"}
+          </button>
+          {showAll && (
+            <ul className="mt-2 space-y-1 text-[11px] text-foreground/70">
+              {compliantItems.map((c) => (
+                <li key={c.requirement_id}>✓ {c.label}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
