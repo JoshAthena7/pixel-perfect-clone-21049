@@ -38,10 +38,10 @@ export function MissionRoomHero({ missionId }: { missionId: string }) {
     queryFn: async () => {
       const { data } = await supabase
         .from("briefing_book_sections")
-        .select("section_key,generated_at,summary")
+        .select("section_key,generated_at,content")
         .eq("mission_id", missionId)
         .order("generated_at", { ascending: false });
-      return (data ?? []) as Array<{ section_key: string; generated_at: string | null; summary?: string | null }>;
+      return (data ?? []) as Array<{ section_key: string; generated_at: string | null; content?: string | null }>;
     },
   });
 
@@ -171,7 +171,7 @@ export function MissionRoomHero({ missionId }: { missionId: string }) {
           {oracleTop.map((s) => (
             <li key={s.section_key} className="truncate">
               · {s.section_key.replace(/_/g, " ")}
-              {s.summary && <span className="opacity-70"> — {s.summary.slice(0, 60)}…</span>}
+              {s.content && <span className="opacity-70"> — {s.content.slice(0, 60)}…</span>}
             </li>
           ))}
         </ul>
