@@ -876,7 +876,7 @@ function QuestionMapTable({
           <li
             key={q.id}
             className={`flex items-center gap-3 px-4 py-3 text-sm hover:bg-white/[0.02] cursor-pointer ${isMine ? "border-l-2 border-l-primary" : ""}`}
-            onClick={() => isMine ? onOpenMine(q.id) : onPeek(q.id)}
+            onClick={() => onOpenMine(q.id)}
           >
             <HealthDot tone={tone} size="sm" />
             <span className="font-mono text-xs text-muted-foreground w-12 shrink-0">Q{q.question_number}</span>
