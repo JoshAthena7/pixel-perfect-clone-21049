@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Search, Plane, PenTool, Zap, Sparkles, BookOpen, Eye, Home,
-  Shield, Users, Activity, ArrowRight, CornerDownLeft,
+  Shield, ArrowRight, CornerDownLeft,
 } from "lucide-react";
 
 type Item = {
@@ -80,25 +80,19 @@ export function CommandPalette() {
   const items: Item[] = useMemo(() => {
     const list: Item[] = [];
 
-    // Mission-scoped jumps
+    // Mission-scoped jumps — only the rooms + Vault + Oracle
     if (missionId) {
       list.push(
+        { id: "j-mission", group: "Jump", label: "Mission Room", hint: "Full briefing", icon: <Sparkles size={14} className="text-[color:var(--yellow,#f59e0b)]" />,
+          onGo: () => navigate({ to: "/missions/$missionId/overview", params: { missionId } }) },
+        { id: "j-studio", group: "Jump", label: "Studio", hint: "My work", icon: <PenTool size={14} className="text-[#3b7fff]" />,
+          onGo: () => navigate({ to: "/missions/$missionId/questions", params: { missionId } }) },
         { id: "j-vault", group: "Jump", label: "Vault", hint: "Mission documents", icon: <BookOpen size={14} className="text-[color:var(--athena-gold,#d4af37)]" />,
           onGo: () => navigate({ to: "/missions/$missionId/library", params: { missionId } }) },
-        { id: "j-oracle", group: "Jump", label: "Oracle", hint: "Mission briefing", icon: <Eye size={14} className="text-[color:var(--iris,#22d3ee)]" />,
+        { id: "j-oracle", group: "Jump", label: "Oracle", hint: "Intelligence", icon: <Eye size={14} className="text-[color:var(--iris,#22d3ee)]" />,
           onGo: () => navigate({ to: "/missions/$missionId/briefing", params: { missionId } }) },
-        { id: "j-intel", group: "Jump", label: "Briefing Room", icon: <Sparkles size={14} className="text-[color:var(--iris,#22d3ee)]" />,
-          onGo: () => navigate({ to: "/missions/$missionId/intelligence", params: { missionId } }) },
-        { id: "j-studio", group: "Jump", label: "Studio · My Assignments", icon: <PenTool size={14} className="text-[#3b7fff]" />,
-          onGo: () => navigate({ to: "/missions/$missionId/questions", params: { missionId } }) },
         { id: "j-iris", group: "Jump", label: "Ask IRIS", icon: <Sparkles size={14} className="text-[color:var(--iris,#22d3ee)]" />,
           onGo: () => navigate({ to: "/missions/$missionId/iris", params: { missionId } }) },
-        { id: "j-team", group: "Jump", label: "Team", icon: <Users size={14} />,
-          onGo: () => navigate({ to: "/missions/$missionId/team", params: { missionId } }) },
-        { id: "j-timeline", group: "Jump", label: "Timeline", icon: <Activity size={14} />,
-          onGo: () => navigate({ to: "/missions/$missionId/activity", params: { missionId } }) },
-        { id: "j-flightplan", group: "Jump", label: "Flight Plan · Mission Overview", icon: <Plane size={14} className="text-[color:var(--yellow,#f59e0b)]" />,
-          onGo: () => navigate({ to: "/missions/$missionId/overview", params: { missionId } }) },
       );
     }
 

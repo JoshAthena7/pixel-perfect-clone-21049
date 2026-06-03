@@ -6,6 +6,7 @@ import { relativeTime, createSignal } from "@/lib/signals";
 import { ArrowRight, Megaphone, RefreshCw, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import { AmendmentDashboardBanner } from "@/components/AmendmentDashboardBanner";
+import { MissionRoomHero, EnterStudioCTA } from "@/components/v2/MissionRoomHero";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/overview")({
   component: MissionOverviewPage,
@@ -545,6 +546,11 @@ function MissionOverviewPage() {
         )}
       </section>
 
+      {/* MISSION ROOM HERO — Vault + Oracle */}
+      <MissionRoomHero missionId={missionId} />
+
+
+
 
 
       {/* BLOCK 3 — NEEDS YOUR ATTENTION */}
@@ -667,16 +673,12 @@ function MissionOverviewPage() {
       />
 
 
-      {/* FOOTER */}
-      <div className="pt-4 border-t border-border">
-        <Link
-          to="/missions/$missionId/intelligence"
-          params={{ missionId }}
-          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-        >
-          Full mission details — Intelligence, Operations, Team, Activity <ArrowRight className="h-3 w-3" />
-        </Link>
-      </div>
+      {/* ENTER STUDIO CTA — the writer's next step */}
+      <EnterStudioCTA
+        missionId={missionId}
+        assignedCount={me ? questions.filter((q) => q.assigned_writer_id === me.id).length : 0}
+        attentionCount={me ? questions.filter((q) => q.assigned_writer_id === me.id && ((q.health ?? "").toLowerCase() === "red" || (q.health ?? "").toLowerCase() === "yellow")).length : 0}
+      />
     </div>
   );
 }
