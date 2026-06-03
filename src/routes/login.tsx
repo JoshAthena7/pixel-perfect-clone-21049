@@ -90,43 +90,32 @@ function LoginPage() {
             </h1>
           </div>
 
-          <div className="relative z-10 flex justify-center py-6">
+          <div className="relative z-10 flex justify-center py-4">
             <div className="relative">
               <div className="pointer-events-none absolute inset-0 -m-8 rounded-full bg-amber-500/10 blur-3xl" />
               <img
-                src={atlasMark.url}
-                alt="Atlas — Remembers"
-                className="relative h-56 w-auto object-contain"
-                style={{ filter: "drop-shadow(0 0 32px rgba(245,158,11,0.25))" }}
+                src={atlasIrisBrand.url}
+                alt="Atlas Remembers — IRIS Understands — Athena Command"
+                className="relative w-full max-w-sm object-contain"
+                style={{ filter: "drop-shadow(0 0 32px rgba(245,158,11,0.18))" }}
               />
             </div>
           </div>
 
-          <div className="relative z-10 space-y-5">
-            <p className="font-mono text-[11px] uppercase tracking-widest text-white/40">
-              Atlas. Built by Athena. Powered by IRIS.
-            </p>
-            <div className="flex items-center justify-between gap-4">
-              <img
-                src={athenaLogo.url}
-                alt="Athena Strategy Group"
-                className="h-6 w-auto object-contain opacity-80"
-              />
-              <div className="flex items-center gap-2">
-                <img
-                  src={irisLogo.url}
-                  alt="IRIS"
-                  className="h-5 w-auto object-contain"
-                  style={{ filter: "drop-shadow(0 0 8px rgba(245,158,11,0.45))" }}
-                />
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400/60 opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-400" />
-                </span>
-                <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-amber-300/90">
-                  IRIS Active
-                </span>
-              </div>
+          <div className="relative z-10 flex items-center justify-between gap-4">
+            <img
+              src={athenaSgBrand.url}
+              alt="Athena Strategy Group"
+              className="h-12 w-auto object-contain"
+            />
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400/60 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-400" />
+              </span>
+              <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-amber-300/90">
+                IRIS Active
+              </span>
             </div>
           </div>
         </div>
@@ -136,10 +125,9 @@ function LoginPage() {
           <div className="mb-10">
             <div className="mb-8 flex justify-center md:hidden">
               <img
-                src={atlasMark.url}
-                alt="Atlas"
-                className="h-28 w-auto object-contain"
-                style={{ filter: "drop-shadow(0 0 24px rgba(245,158,11,0.25))" }}
+                src={atlasIrisBrand.url}
+                alt="Atlas — IRIS"
+                className="w-full max-w-[260px] object-contain"
               />
             </div>
             <h2 className="mb-2 text-xl font-medium tracking-tight text-white">
