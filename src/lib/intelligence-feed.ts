@@ -42,11 +42,31 @@ export function inferCategory(item: { title?: string | null; summary?: string | 
   return null;
 }
 
-export function matchesHorizonFilter(category: HorizonCategory | null, filter: string): boolean {
+// Keywords used by Horizon Feed filter pills. Filters scan title+summary+source
+// directly so items with a single stored category (e.g. "Medicaid") still
+// light up the Procurement / MCO / State pills when their text matches.
+const FILTER_KEYWORDS: Record<string, string[]> = {
+  CMS: CATEGORY_KEYWORDS.CMS,
+  Medicaid: CATEGORY_KEYWORDS.Medicaid,
+  Procurement: CATEGORY_KEYWORDS.Procurement,
+  MCO: [...CATEGORY_KEYWORDS.MCO, "managed care", "medicaid managed care"],
+  State: [
+    "state of ", "state medicaid", "state agency", "governor", "state legislature",
+    "state plan amendment", " spa ", "1115 waiver", "1915", "department of health",
+    "department of human services", "medicaid director",
+  ],
+};
+
+export function matchesHorizonFilter(
+  category: HorizonCategory | null,
+  filter: string,
+  item?: { title?: string | null; summary?: string | null; source?: string | null },
+): boolean {
   if (filter === "All") return true;
-  if (filter === "State") {
-    // "State" filter = state-level intelligence (LTSS, HCBS, Procurement often)
-    return category === "Procurement" || category === "MCO";
+  const kws = FILTER_KEYWORDS[filter];
+  if (item && kws) {
+    const text = `${item.title ?? ""} ${item.summary ?? ""} ${item.source ?? ""}`.toLowerCase();
+    if (kws.some((k) => text.includes(k))) return true;
   }
   return category === filter;
 }
