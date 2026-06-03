@@ -176,6 +176,20 @@ function GlobalNav({ currentPath }: { currentPath: string }) {
         <NavItem to="/pipeline-horizon" icon={<CalendarClock size={16} strokeWidth={1.5} />} active={currentPath.startsWith("/pipeline-horizon")}>Pipeline Horizon</NavItem>
         <NavItem to="/pathfinder" icon={<Compass size={16} strokeWidth={1.5} />} active={currentPath.startsWith("/pathfinder")}>Pathfinder</NavItem>
         <NavItem to="/olympus" icon={<Shield size={16} strokeWidth={1.5} className="text-[color:var(--athena-gold)]" />} active={currentPath.startsWith("/olympus")}>Olympus · Admin</NavItem>
+
+        <div className="my-3 border-t border-border" />
+        <div className="px-3 pb-1.5 text-[9px] font-semibold uppercase tracking-[0.28em] text-muted-foreground/70">Live Intel</div>
+        <Link
+          to="/olympus/vault"
+          className="group relative flex items-center justify-between gap-2 overflow-hidden rounded-md border border-[color:var(--iris,#22d3ee)]/30 bg-[color:var(--iris,#22d3ee)]/[0.06] px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-[color:var(--iris,#22d3ee)]/[0.12] transition-colors"
+        >
+          <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-[color:var(--iris,#22d3ee)]/15 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
+          <span className="inline-flex items-center gap-2">
+            <Sparkles size={16} strokeWidth={1.75} className="text-[color:var(--iris,#22d3ee)] drop-shadow-[0_0_6px_var(--iris,#22d3ee)]" />
+            <span>Vault &amp; Oracle</span>
+          </span>
+          <ArrowRight size={14} strokeWidth={1.75} className="text-[color:var(--iris,#22d3ee)]" />
+        </Link>
       </nav>
 
       <div className="border-t border-border p-3 flex items-center justify-between">
