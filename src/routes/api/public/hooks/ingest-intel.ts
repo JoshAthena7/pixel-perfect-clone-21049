@@ -4,9 +4,11 @@ export const Route = createFileRoute("/api/public/hooks/ingest-intel")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        // Shared-secret check via apikey header (matches pg_cron call).
-        const apikey = request.headers.get("apikey");
-        if (!apikey || apikey !== process.env.SUPABASE_PUBLISHABLE_KEY) {
+        // Shared-secret check via dedicated server-only cron secret.
+        const provided =
+          request.headers.get("x-cron-secret") ?? request.headers.get("apikey");
+        const expected = process.env.CRON_HOOK_SECRET;
+        if (!expected || !provided || provided !== expected) {
           return new Response("Unauthorized", { status: 401 });
         }
         try {

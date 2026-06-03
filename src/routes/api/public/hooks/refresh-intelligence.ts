@@ -14,12 +14,13 @@ export const Route = createFileRoute("/api/public/hooks/refresh-intelligence")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        // Auth via Supabase anon key (canonical pg_cron pattern)
-        const apiKey =
+        // Auth via dedicated server-side cron secret (never shipped to the browser)
+        const provided =
+          request.headers.get("x-cron-secret") ??
           request.headers.get("apikey") ??
           request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-        const expected = process.env.SUPABASE_PUBLISHABLE_KEY;
-        if (!apiKey || !expected || apiKey !== expected) {
+        const expected = process.env.CRON_HOOK_SECRET;
+        if (!expected || !provided || provided !== expected) {
           return new Response(
             JSON.stringify({ error: "Unauthorized" }),
             { status: 401, headers: { "Content-Type": "application/json" } },

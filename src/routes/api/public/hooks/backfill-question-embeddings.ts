@@ -4,8 +4,10 @@ export const Route = createFileRoute("/api/public/hooks/backfill-question-embedd
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const apikey = request.headers.get("apikey");
-        if (!apikey || apikey !== process.env.SUPABASE_PUBLISHABLE_KEY) {
+        const provided =
+          request.headers.get("x-cron-secret") ?? request.headers.get("apikey");
+        const expected = process.env.CRON_HOOK_SECRET;
+        if (!expected || !provided || provided !== expected) {
           return new Response("Unauthorized", { status: 401 });
         }
         try {
