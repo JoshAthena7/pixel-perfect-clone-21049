@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import atlasIrisBrand from "@/assets/atlas-iris-brand.png.asset.json";
-import athenaSgBrand from "@/assets/athena-sg-brand.png.asset.json";
+import athenaSgBrand from "@/assets/athena-sg-transparent.png.asset.json";
 
 
 export const Route = createFileRoute("/login")({
