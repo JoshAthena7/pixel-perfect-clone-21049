@@ -466,24 +466,108 @@ function AthenaHQ() {
         <FirmIntel
           horizonItems={horizonItems}
           missions={missions}
-          leadershipMessages={leadershipMessages as any[]}
-          pipeline={pipeline}
         />
       </div>
     </div>
   );
 }
 
+const DAILY_QUOTES: { quote: string; author: string }[] = [
+  { quote: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+  { quote: "Quality means doing it right when no one is looking.", author: "Henry Ford" },
+  { quote: "Excellence is never an accident.", author: "Aristotle" },
+  { quote: "What gets measured gets managed.", author: "Peter Drucker" },
+  { quote: "The best way to predict the future is to create it.", author: "Peter Drucker" },
+  { quote: "Strategy without tactics is the slowest route to victory.", author: "Sun Tzu" },
+  { quote: "Done is better than perfect.", author: "Sheryl Sandberg" },
+  { quote: "If you can't explain it simply, you don't understand it well enough.", author: "Albert Einstein" },
+  { quote: "Discipline is the bridge between goals and accomplishment.", author: "Jim Rohn" },
+  { quote: "It always seems impossible until it's done.", author: "Nelson Mandela" },
+  { quote: "Make every detail perfect, and limit the number of details to perfect.", author: "Jack Dorsey" },
+  { quote: "The function of leadership is to produce more leaders, not more followers.", author: "Ralph Nader" },
+  { quote: "Vision without execution is hallucination.", author: "Thomas Edison" },
+  { quote: "Hard work beats talent when talent doesn't work hard.", author: "Tim Notke" },
+  { quote: "Plans are nothing; planning is everything.", author: "Dwight D. Eisenhower" },
+  { quote: "Be regular and orderly in your life so that you may be violent and original in your work.", author: "Gustave Flaubert" },
+  { quote: "Success is the sum of small efforts repeated day in and day out.", author: "Robert Collier" },
+  { quote: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+  { quote: "Focus is about saying no.", author: "Steve Jobs" },
+  { quote: "Slow is smooth, smooth is fast.", author: "Navy SEAL adage" },
+  { quote: "Amateurs talk strategy. Professionals talk logistics.", author: "Gen. Omar Bradley" },
+  { quote: "The expert in anything was once a beginner.", author: "Helen Hayes" },
+  { quote: "Action is the foundational key to all success.", author: "Pablo Picasso" },
+  { quote: "Clarity precedes success.", author: "Robin Sharma" },
+  { quote: "What you do every day matters more than what you do once in a while.", author: "Gretchen Rubin" },
+  { quote: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+  { quote: "The way to get started is to quit talking and begin doing.", author: "Walt Disney" },
+  { quote: "Perfection is achieved not when there is nothing more to add, but when there is nothing left to take away.", author: "Antoine de Saint-Exupéry" },
+  { quote: "If you want to go fast, go alone. If you want to go far, go together.", author: "African proverb" },
+  { quote: "Operational excellence is everyone's responsibility.", author: "W. Edwards Deming" },
+  { quote: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", author: "Will Durant" },
+];
+
+function getDailyQuote() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor((now.getTime() - start.getTime()) / 86400000);
+  return DAILY_QUOTES[dayOfYear % DAILY_QUOTES.length];
+}
+
+function DailyQuoteBanner({ today }: { today: string }) {
+  const q = useMemo(getDailyQuote, []);
+  return (
+    <section className="rounded-[12px] border border-border bg-gradient-to-br from-surface to-background px-6 py-5">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <CalendarClock className="h-4 w-4 text-primary" />
+          <div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Today</div>
+            <div className="mt-0.5 text-base font-semibold tracking-tight">{today}</div>
+          </div>
+        </div>
+        <blockquote className="max-w-2xl text-right">
+          <p className="text-sm italic leading-relaxed text-foreground/90">"{q.quote}"</p>
+          <footer className="mt-1 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">— {q.author}</footer>
+        </blockquote>
+      </div>
+    </section>
+  );
+}
+
+function LeadershipMessages({ messages }: { messages: any[] }) {
+  return (
+    <section className="rounded-[12px] border border-border bg-surface">
+      <div className="flex items-center justify-between border-b border-border px-5 py-4">
+        <div className="flex items-center gap-2">
+          <Megaphone className="h-3.5 w-3.5 text-primary" />
+          <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Leadership Messages</h3>
+        </div>
+        <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Firm-wide</span>
+      </div>
+      <ul className="divide-y divide-border">
+        {messages.length === 0 && (
+          <li className="px-5 py-8 text-center text-sm text-muted-foreground">No broadcasts yet. Leadership messages will appear here.</li>
+        )}
+        {messages.map((m: any) => (
+          <li key={m.id} className="px-5 py-4">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] font-semibold text-foreground">{m.from_name}</span>
+              <span className="text-[10px] text-muted-foreground">{relativeTime(m.created_at)}</span>
+            </div>
+            <p className="mt-1 text-sm text-foreground/90 leading-relaxed">{m.text}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function FirmIntel({
   horizonItems,
   missions,
-  leadershipMessages,
-  pipeline,
 }: {
   horizonItems: (IntelItem & { matched_mission_ids?: string[] | null })[];
   missions: Mission[];
-  leadershipMessages: any[];
-  pipeline: Mission[];
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -498,93 +582,18 @@ function FirmIntel({
           Firm Intel
         </span>
         <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-          Horizon · Leadership · Pipeline
+          Horizon Feed
         </span>
       </button>
       {open && (
-        <div className="border-t border-border p-5 space-y-8">
+        <div className="border-t border-border p-5">
           <HorizonFeed items={horizonItems} missions={missions} />
-
-          <section className="rounded-[12px] border border-border bg-surface">
-            <div className="flex items-center justify-between border-b border-border px-5 py-4">
-              <div className="flex items-center gap-2">
-                <Megaphone className="h-3.5 w-3.5 text-primary" />
-                <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Leadership Messages</h3>
-              </div>
-              <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Firm-wide</span>
-            </div>
-            <ul className="divide-y divide-border">
-              {leadershipMessages.length === 0 && (
-                <li className="px-5 py-8 text-center text-sm text-muted-foreground">No broadcasts yet. Leadership messages will appear here.</li>
-              )}
-              {leadershipMessages.map((m: any) => (
-                <li key={m.id} className="px-5 py-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-semibold text-foreground">{m.from_name}</span>
-                    <span className="text-[10px] text-muted-foreground">{relativeTime(m.created_at)}</span>
-                  </div>
-                  <p className="mt-1 text-sm text-foreground/90 leading-relaxed">{m.text}</p>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section className="rounded-[12px] border border-border bg-surface">
-            <div className="flex items-center justify-between border-b border-border px-5 py-4">
-              <div className="flex items-center gap-2">
-                <CalendarClock className="h-3.5 w-3.5 text-primary" />
-                <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Pipeline Horizon</h3>
-              </div>
-              <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{pipeline.length}</span>
-            </div>
-            <ul className="divide-y divide-border">
-              {pipeline.length === 0 && (
-                <li className="px-5 py-8 text-center text-sm text-muted-foreground">No active missions in pipeline.</li>
-              )}
-              {pipeline.map((m) => {
-                const d = m.submission_date
-                  ? Math.ceil((new Date(m.submission_date).getTime() - Date.now()) / 86400000)
-                  : null;
-                const tone = d === null ? "text-muted-foreground" : d <= 7 ? "text-destructive" : d <= 21 ? "text-amber-400" : "text-foreground";
-                const dotCls = m.health === "Green" ? "dot dot-green" : m.health === "Red" ? "dot dot-red" : "dot dot-yellow";
-                const risk = d === null ? null : d <= 7 ? "High" : d <= 21 ? "Medium" : "Low";
-                const riskPill = risk === "High" ? "pill-red" : risk === "Medium" ? "pill-yellow" : "pill-green";
-                return (
-                  <li key={m.id} className="px-3 py-2">
-                    <Link
-                      to="/missions/$missionId/overview"
-                      params={{ missionId: m.id }}
-                      className="flex items-center gap-4 rounded-[8px] border border-transparent bg-transparent px-3 py-3 transition-colors hover:bg-surface-hover"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className={dotCls} />
-                          <div className="truncate text-sm font-semibold">{m.name}</div>
-                        </div>
-                        <div className="mt-0.5 truncate pl-4 text-[11px] text-muted-foreground">{m.client}{m.state ? ` · ${m.state}` : ""}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className={`text-lg font-semibold tabular-nums leading-none ${tone}`}>
-                          {d === null ? "—" : d < 0 ? `${Math.abs(d)}` : `${d}`}
-                        </div>
-                        <div className="mt-0.5 text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
-                          {d === null ? "" : d < 0 ? "d overdue" : "days"}
-                        </div>
-                      </div>
-                      {risk && (
-                        <span className={`pill ${riskPill}`}>{risk} Risk</span>
-                      )}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
         </div>
       )}
     </section>
   );
 }
+
 
 
 type MissionCardQ = { id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null };
