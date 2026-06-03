@@ -1043,8 +1043,8 @@ function QuestionDrawer({
 
 // ── Team columns ───────────────────────────────────────
 function TeamColumn({
-  title, members, questions, roleField,
-}: { title: string; members: Member[]; questions: Question[]; roleField: "writer" | "sme" }) {
+  title, members, questions, roleField, onMessage,
+}: { title: string; members: Member[]; questions: Question[]; roleField: "writer" | "sme"; onMessage: (p: Member, label: string) => void }) {
   const countsByMember = useMemo(() => {
     const m = new Map<string, number>();
     for (const q of questions) {
@@ -1062,22 +1062,116 @@ function TeamColumn({
       ) : (
         <ul className="divide-y divide-border">
           {members.map((m) => (
-            <li key={m.user_id} className="px-4 py-2.5 flex items-center gap-3 text-sm">
+            <li key={m.user_id} className="group px-4 py-2.5 flex items-center gap-3 text-sm hover:bg-white/[0.03] cursor-pointer" onClick={() => onMessage(m, m.role)}>
               <Avatar name={m.name} />
               <div className="flex-1 min-w-0 truncate">
                 <span className="font-medium">{m.name}</span>
                 <span className="text-muted-foreground"> · {m.role}</span>
+                <span className="ml-2 text-[10px] opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1" style={{ color: "var(--iris, #22d3ee)" }}>
+                  <Mail className="h-2.5 w-2.5" /> Message
+                </span>
               </div>
               <span className="text-xs text-muted-foreground tabular-nums">
                 {countsByMember.get(m.user_id) ?? 0} Q
               </span>
-              {m.email && (
-                <a href={`mailto:${m.email}`} className="text-muted-foreground hover:text-foreground"><Mail className="h-3.5 w-3.5" /></a>
-              )}
             </li>
           ))}
         </ul>
       )}
+    </div>
+  );
+}
+
+// ── Message Compose Panel ──────────────────────────────
+function MessageComposePanel({
+  recipient, label, missionId, missionName, sender, onClose,
+}: {
+  recipient: Member;
+  label: string;
+  missionId: string;
+  missionName: string;
+  sender: { id: string; name: string };
+  onClose: () => void;
+}) {
+  const [body, setBody] = useState("");
+  const [sending, setSending] = useState(false);
+  const max = 280;
+
+  const send = async () => {
+    const text = body.trim();
+    if (!text || sending) return;
+    setSending(true);
+    const { error } = await supabase.from("pilot_copilot_messages").insert({
+      mission_id: missionId,
+      from_user_id: sender.id,
+      to_user_id: recipient.user_id,
+      from_name: sender.name,
+      message_type: "direct",
+      body: text,
+      is_broadcast: false,
+      question_id: null,
+    });
+    if (error) {
+      setSending(false);
+      toast.error("Couldn't send message", { description: error.message });
+      return;
+    }
+    try {
+      await createSignal({
+        missionId,
+        userId: sender.id,
+        signalType: "direct_message",
+        signalTitle: `${sender.name} → ${recipient.name ?? "teammate"}`,
+        signalSummary: text.slice(0, 120),
+      });
+    } catch {}
+    toast.success(`Message sent to ${firstName(recipient.name)}.`);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="w-full max-w-md rounded-[12px] border border-border bg-card shadow-2xl animate-in slide-in-from-bottom-4 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 py-3 border-b border-border">
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">{label}</div>
+            <div className="text-sm font-semibold">Message {firstName(recipient.name)}</div>
+          </div>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
+        </div>
+        <div className="px-5 py-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Avatar name={recipient.name} />
+            <div className="text-sm font-medium">{recipient.name}</div>
+          </div>
+          <textarea
+            autoFocus
+            value={body}
+            onChange={(e) => setBody(e.target.value.slice(0, max))}
+            placeholder={`Write your message to ${firstName(recipient.name)}...`}
+            rows={5}
+            className="w-full resize-none rounded-[8px] border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-500/40"
+          />
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+            <span>This will appear in {firstName(recipient.name)}'s Mission Room and notify them immediately.</span>
+            <span className="tabular-nums shrink-0 ml-3">{body.length}/{max}</span>
+          </div>
+        </div>
+        <div className="px-5 py-3 border-t border-border flex items-center justify-end gap-2">
+          <button onClick={onClose} className="px-3 py-1.5 text-xs rounded-md border border-border hover:bg-white/[0.04]">Cancel</button>
+          <button
+            onClick={send}
+            disabled={!body.trim() || sending}
+            className="px-3 py-1.5 text-xs rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {sending ? "Sending…" : "Send Message"}
+          </button>
+        </div>
+        <div className="sr-only">Mission: {missionName}</div>
+      </div>
     </div>
   );
 }
