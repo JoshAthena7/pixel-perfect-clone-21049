@@ -61,25 +61,6 @@ function LoginPage() {
     }
   }
 
-  const AtlasMark = ({ size = 192 }: { size?: number }) => (
-    <div
-      className="relative flex items-center justify-center"
-      style={{ width: size, height: size }}
-    >
-      <svg viewBox="0 0 100 100" className="h-full w-full text-sky-400">
-        <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="1 4" className="opacity-30" />
-        <circle cx="50" cy="50" r="28" fill="none" stroke="currentColor" strokeWidth="0.5" className="opacity-20" />
-        <circle cx="50" cy="50" r="2" fill="currentColor" />
-        <circle cx="35" cy="35" r="1.5" fill="currentColor" />
-        <circle cx="65" cy="40" r="1.5" fill="currentColor" />
-        <circle cx="45" cy="65" r="1.5" fill="currentColor" />
-        <circle cx="60" cy="60" r="1" fill="currentColor" />
-        <path d="M50 50 L35 35 M50 50 L65 40 M50 50 L45 65 M45 65 L60 60 M65 40 L60 60" stroke="currentColor" strokeWidth="0.5" className="opacity-40" />
-      </svg>
-      <div className="pointer-events-none absolute inset-0 rounded-full bg-sky-500/10 blur-3xl" />
-    </div>
-  );
-
   return (
     <div
       className="flex min-h-screen w-full select-none items-center justify-center bg-[#020203] p-4 md:p-8 text-foreground"
@@ -97,31 +78,47 @@ function LoginPage() {
           />
           <div className="relative z-10">
             <div className="mb-2 flex items-center gap-2">
-              <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-sky-400">
+              <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-amber-400/90">
                 Strategic Intelligence
               </span>
-              <div className="h-px w-8 bg-sky-400/30" />
+              <div className="h-px w-8 bg-amber-400/30" />
             </div>
-            <h1 className="text-2xl font-light tracking-tight text-white">
-              Intelligence for <span className="text-sky-300">Elite Proposal Operations</span>
+            <h1 className="text-2xl font-light leading-snug tracking-tight text-white">
+              Intelligence for{" "}
+              <span className="text-amber-300">Elite Proposal Operations</span>
             </h1>
           </div>
 
-          <div className="relative z-10 flex justify-center py-12">
-            <AtlasMark size={192} />
+          <div className="relative z-10 flex justify-center py-6">
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-0 -m-8 rounded-full bg-amber-500/10 blur-3xl" />
+              <img
+                src={atlasMark.url}
+                alt="Atlas — Remembers"
+                className="relative h-56 w-auto object-contain"
+                style={{ filter: "drop-shadow(0 0 32px rgba(245,158,11,0.25))" }}
+              />
+            </div>
           </div>
 
-          <div className="relative z-10">
-            <p className="mb-4 font-mono text-[11px] uppercase tracking-widest text-white/40">
+          <div className="relative z-10 space-y-5">
+            <p className="font-mono text-[11px] uppercase tracking-widest text-white/40">
               Atlas. Built by Athena. Powered by IRIS.
             </p>
-            <div className="flex items-center gap-1.5">
-              <div className="flex h-3 w-3 items-center justify-center rounded-full border border-amber-500/50">
-                <div className="h-1 w-1 rounded-full bg-amber-500" />
+            <div className="flex items-center justify-between gap-4">
+              <img
+                src={athenaSgLockup.url}
+                alt="Athena Strategy Group"
+                className="h-7 w-auto object-contain opacity-80"
+              />
+              <div className="flex items-center gap-1.5">
+                <div className="flex h-3 w-3 items-center justify-center rounded-full border border-sky-400/60">
+                  <div className="h-1 w-1 rounded-full bg-sky-400" />
+                </div>
+                <span className="text-[10px] font-medium uppercase tracking-wide text-sky-300/80">
+                  IRIS Active
+                </span>
               </div>
-              <span className="text-[10px] font-medium uppercase tracking-wide text-amber-500/80">
-                IRIS Active
-              </span>
             </div>
           </div>
         </div>
@@ -130,7 +127,12 @@ function LoginPage() {
         <div className="flex flex-col justify-center bg-[#08080a] p-8 md:p-16">
           <div className="mb-10">
             <div className="mb-8 flex justify-center md:hidden">
-              <AtlasMark size={56} />
+              <img
+                src={atlasMark.url}
+                alt="Atlas"
+                className="h-28 w-auto object-contain"
+                style={{ filter: "drop-shadow(0 0 24px rgba(245,158,11,0.25))" }}
+              />
             </div>
             <h2 className="mb-2 text-xl font-medium tracking-tight text-white">
               Personnel Sign-in
@@ -139,6 +141,8 @@ function LoginPage() {
               Secure access via encrypted magic link.
             </p>
           </div>
+
+
 
           {sent ? (
             <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-5 text-center text-sm">
