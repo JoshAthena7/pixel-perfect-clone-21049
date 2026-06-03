@@ -8,6 +8,7 @@ import { irisAskQuestion } from "@/lib/iris-ask.functions";
 import { generateQuestionCoaching } from "@/lib/iris-question-coaching.functions";
 import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
 import { SOSButton } from "@/components/v2/SOSButton";
+import { PhoneAFriendOverlay } from "@/components/v2/PhoneAFriendOverlay";
 import { IrisCorrectable } from "@/components/v2/IrisCorrectable";
 import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
 import { CompliancePanel as ComplianceRequirementsPanel } from "@/components/v2/CompliancePanel";
