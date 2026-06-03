@@ -88,18 +88,12 @@ function LoginPage() {
             <img
               src={atlasLogo.url}
               alt="Atlas"
-              className="mx-auto mb-5 h-28 w-28 object-contain"
-              style={{ filter: "drop-shadow(0 0 24px rgba(125,211,252,0.35))" }}
+              className="mx-auto mb-4 h-40 w-40 object-contain"
+              style={{ filter: "drop-shadow(0 0 32px rgba(125,211,252,0.4))" }}
             />
-            <div className="mb-2 flex items-center justify-center">
-              <span className="text-2xl font-extrabold tracking-[0.22em] text-foreground" style={{ letterSpacing: "0.22em" }}>
-                ATLAS
-              </span>
-            </div>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            <p className="text-[10px] uppercase tracking-[0.32em] text-muted-foreground">
               by Athena Strategy Group
             </p>
-            <img src={athenaSgLogo.url} alt="Athena Strategy Group" className="mx-auto mt-5 h-7 object-contain opacity-30 mix-blend-luminosity" style={{ filter: "brightness(0.55) contrast(0.85)" }} />
           </div>
 
           {sent ? (
