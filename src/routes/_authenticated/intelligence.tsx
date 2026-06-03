@@ -68,20 +68,18 @@ function IntelligenceHub() {
       style={{
         background: "#060b14",
         backgroundImage:
-          "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)",
-        backgroundSize: "48px 48px",
+          "radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px)",
+        backgroundSize: "24px 24px",
       }}
     >
       <div className="mx-auto max-w-[1400px] px-8 py-10">
         {/* Header */}
         <div className="flex items-start justify-between gap-6">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-red-400">CLASSIFIED</span>
+            <span className="section-label" style={{ color: "var(--iris, #0891b2)" }}>● Atlas Intelligence</span>
             <h1
-              className="mt-2 text-white"
-              style={{
-                fontSize: 32, fontWeight: 300, letterSpacing: "0.15em", textTransform: "uppercase",
-              }}
+              className="mt-2 text-white display-tight"
+              style={{ fontSize: 32 }}
             >
               ⚡ Atlas Intelligence
             </h1>
