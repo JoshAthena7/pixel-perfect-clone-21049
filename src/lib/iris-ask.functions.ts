@@ -3,6 +3,7 @@ import { withPersonFirst } from "./person-first";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { fetchIrisMemoryContext, logIrisMemoryUsage } from "./iris-memory.functions";
+import { loadLayeredContext } from "./iris-layered-context";
 
 async function callIris(system: string, user: string) {
   const apiKey = process.env.LOVABLE_API_KEY;
