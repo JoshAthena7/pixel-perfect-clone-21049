@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Sparkles, X, Send, Eye } from "lucide-react";
-import { irisAskMission, irisAskQuestion } from "@/lib/iris-ask.functions";
+import { irisAskGlobal, irisAskMission, irisAskQuestion } from "@/lib/iris-ask.functions";
 
 type Msg = { role: "user" | "iris"; text: string };
 
@@ -18,6 +18,7 @@ export function IrisDock() {
   const missionId = params.missionId;
   const questionId = params.questionId;
 
+  const askGlobal = useServerFn(irisAskGlobal);
   const askMission = useServerFn(irisAskMission);
   const askQuestion = useServerFn(irisAskQuestion);
 
@@ -42,17 +43,15 @@ export function IrisDock() {
   async function send() {
     const text = input.trim();
     if (!text || busy) return;
-    if (!missionId) {
-      setMsgs((m) => [...m, { role: "iris", text: "_Open a mission to ask IRIS._" }]);
-      return;
-    }
     setMsgs((m) => [...m, { role: "user", text }]);
     setInput("");
     setBusy(true);
     try {
       const res = questionId
         ? await askQuestion({ data: { questionId, prompt: text } })
-        : await askMission({ data: { missionId, prompt: text } });
+        : missionId
+          ? await askMission({ data: { missionId, prompt: text } })
+          : await askGlobal({ data: { prompt: text } });
       setMsgs((m) => [...m, { role: "iris", text: res.answer }]);
     } catch (e: any) {
       setMsgs((m) => [...m, { role: "iris", text: `_Error: ${e?.message ?? "unknown"}_` }]);

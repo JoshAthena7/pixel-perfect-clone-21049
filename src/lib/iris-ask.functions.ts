@@ -2,6 +2,61 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
+async function callIris(system: string, user: string) {
+  const apiKey = process.env.LOVABLE_API_KEY;
+  if (!apiKey) return "_IRIS is not configured yet. The built-in AI key is missing._";
+
+  try {
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+      }),
+    });
+
+    if (res.status === 402) return "_IRIS needs workspace AI credits before it can answer._";
+    if (res.status === 429) return "_IRIS is rate limited right now. Try again in a minute._";
+    if (!res.ok) return `_IRIS gateway returned ${res.status}._`;
+
+    const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+    return json.choices?.[0]?.message?.content?.trim() || "_IRIS returned an empty answer._";
+  } catch (e: any) {
+    return `_IRIS error: ${e?.message ?? "unknown"}._`;
+  }
+}
+
+const IRIS_SYSTEM = `You are IRIS, Athena Strategy Group's embedded intelligence analyst for Medicaid procurement and proposal teams. Be direct, specific, concise, and operational. Use bullets when helpful. Do not use filler or a "Here is" preamble.`;
+
+export const irisAskGlobal = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({ prompt: z.string().min(1).max(2000) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+
+    const [{ data: missions }, { data: signals }, { data: intel }] = await Promise.all([
+      supabase.from("missions").select("id,name,client,state,health,status,submission_date").eq("status", "Active").limit(20),
+      supabase.from("signals").select("signal_title,signal_summary,severity,status,created_at").eq("status", "open").order("created_at", { ascending: false }).limit(12),
+      supabase.from("market_intelligence").select("title,summary,published_at").order("created_at", { ascending: false }).limit(6),
+    ]);
+
+    const missionLines = (missions ?? []).map((m) => `- ${m.name} (${m.client}${m.state ? `, ${m.state}` : ""}): ${m.health}, due ${m.submission_date ?? "TBD"}`).join("\n");
+    const signalLines = (signals ?? []).map((s) => `- [${s.severity}] ${s.signal_title}: ${s.signal_summary ?? ""}`).join("\n");
+    const intelLines = (intel ?? []).map((i) => `- ${i.title}: ${i.summary ?? ""}`).join("\n");
+
+    const answer = await callIris(
+      `${IRIS_SYSTEM}\nYou are answering from the Lobby, so use firm-wide context across missions, open signals, and market intelligence. If the user asks for a mission-specific answer, tell them which mission to open.`,
+      `Active missions:\n${missionLines || "(none)"}\n\nOpen signals:\n${signalLines || "(none)"}\n\nMarket intelligence:\n${intelLines || "(none)"}\n\nUser asks: ${data.prompt}`,
+    );
+    return { answer };
+  });
+
 export const irisAskQuestion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
@@ -25,34 +80,10 @@ export const irisAskQuestion = createServerFn({ method: "POST" })
       .eq("id", q.mission_id)
       .maybeSingle();
 
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) {
-      return { answer: "_IRIS is not yet configured (missing LOVABLE_API_KEY)._" };
-    }
-
-    const sys = `You are IRIS, an intelligence analyst for Medicaid procurement consultants. Answer the writer's question about this specific response with sharp, concise, actionable guidance. No filler, no "Here is" preamble. Use short paragraphs or bullets.`;
+    const sys = `${IRIS_SYSTEM}\nAnswer the writer's question about this specific response with actionable guidance.`;
     const user = `Mission: ${m?.name ?? "Unknown"} · Client: ${m?.client ?? "—"} · State: ${m?.state ?? "—"}\nResponse: ${q.question_number} — ${q.title}\nPrompt: ${q.question_text}\nCurrent focus: ${q.current_focus ?? "(none)"}\nNext step: ${q.next_step ?? "(none)"}\nWaiting on: ${q.waiting_on ?? "(none)"}\nLeadership guidance: ${q.guidance ?? "(none)"}\n\nWriter asks: ${data.prompt}`;
 
-    try {
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            { role: "system", content: sys },
-            { role: "user", content: user },
-          ],
-        }),
-      });
-      if (!res.ok) {
-        return { answer: `_IRIS gateway returned ${res.status}._` };
-      }
-      const json: any = await res.json();
-      return { answer: (json?.choices?.[0]?.message?.content as string) ?? "_No response._" };
-    } catch (e: any) {
-      return { answer: `_IRIS error: ${e?.message ?? "unknown"}._` };
-    }
+    return { answer: await callIris(sys, user) };
   });
 
 export const irisAskMission = createServerFn({ method: "POST" })
@@ -72,30 +103,8 @@ export const irisAskMission = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!m) throw new Error("Mission not found");
 
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) {
-      return { answer: "_IRIS is not yet configured (missing LOVABLE_API_KEY)._" };
-    }
-
-    const sys = `You are IRIS, an intelligence analyst for Medicaid procurement consultants. Answer the user's question about this mission with sharp, concise, actionable guidance. No filler. Use short paragraphs or bullets.`;
+    const sys = `${IRIS_SYSTEM}\nAnswer the user's question about this mission with actionable guidance.`;
     const user = `Mission: ${m.name} · Client: ${m.client ?? "—"} · State: ${m.state ?? "—"}\nSubmission: ${m.submission_date ?? "—"}\nDescription: ${m.description ?? "(none)"}\n\nUser asks: ${data.prompt}`;
 
-    try {
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            { role: "system", content: sys },
-            { role: "user", content: user },
-          ],
-        }),
-      });
-      if (!res.ok) return { answer: `_IRIS gateway returned ${res.status}._` };
-      const json: any = await res.json();
-      return { answer: (json?.choices?.[0]?.message?.content as string) ?? "_No response._" };
-    } catch (e: any) {
-      return { answer: `_IRIS error: ${e?.message ?? "unknown"}._` };
-    }
+    return { answer: await callIris(sys, user) };
   });
