@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, X, Loader2, Sparkles, Inbox, ArrowLeft } from "lucide-react";
 import { listReviewQueue, setSourceStatus } from "@/lib/atlas-onboarding.functions";
+import { EmptyState, EmptyIcon } from "@/components/v2/EmptyState";
 
 export const Route = createFileRoute("/_authenticated/intelligence-queue")({
   component: ReviewQueue,
