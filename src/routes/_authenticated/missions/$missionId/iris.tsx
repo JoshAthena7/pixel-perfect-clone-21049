@@ -37,7 +37,7 @@ function AskIrisPage() {
           Mission Intelligence
         </div>
         <h1 className="mt-2 flex items-center gap-2 text-2xl font-semibold tracking-tight">
-          <Sparkles className="h-5 w-5 text-[color:var(--iris,#22d3ee)]" /> Ask IRIS
+          <img src={irisLogo.url} alt="" className="h-7 w-7 object-contain" style={{ filter: "drop-shadow(0 0 8px rgba(245,158,11,0.45))" }} /> Ask IRIS
         </h1>
       </div>
 
