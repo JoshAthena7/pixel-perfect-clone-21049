@@ -274,9 +274,9 @@
     transition: opacity 200ms ease;
   }
   .mission-card:hover::after { opacity: 0.12; }
-  .mission-card[data-health="Green"] { --health-color: rgba(34,197,94,1); border-left-color: #22c55e; filter: drop-shadow(0 0 6px rgba(34,197,94,0.3)); }
-  .mission-card[data-health="Yellow"] { --health-color: rgba(245,158,11,1); border-left-color: #f59e0b; filter: drop-shadow(0 0 6px rgba(245,158,11,0.3)); }
-  .mission-card[data-health="Red"] { --health-color: rgba(239,68,68,1); border-left-color: #ef4444; filter: drop-shadow(0 0 6px rgba(239,68,68,0.35)); }
+  .mission-card[data-health="Green"] { --health-color: rgba(34,197,94,1); border-left-color: #22c55e; }
+  .mission-card[data-health="Yellow"] { --health-color: rgba(245,158,11,1); border-left-color: #f59e0b; }
+  .mission-card[data-health="Red"] { --health-color: rgba(239,68,68,1); border-left-color: #ef4444; }
 
   /* EFFECT 8: Monospace classified data styling */
   .mono { font-family: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, monospace; font-variant-numeric: tabular-nums; }
