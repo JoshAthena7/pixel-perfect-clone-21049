@@ -307,7 +307,7 @@ function AthenaHQ() {
             <h1 className="h1-display mt-2">
               {greeting}, {profile?.name ?? "…"}.
             </h1>
-            <p className="mt-1.5 text-sm text-muted-foreground">{today}</p>
+            
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
