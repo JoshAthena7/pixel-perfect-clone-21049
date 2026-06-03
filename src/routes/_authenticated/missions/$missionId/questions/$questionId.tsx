@@ -1,110 +1,192 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { createSignal } from "@/lib/signals";
 import { irisAskQuestion } from "@/lib/iris-ask.functions";
 import { generateQuestionCoaching } from "@/lib/iris-question-coaching.functions";
 import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
 import { SOSButton } from "@/components/v2/SOSButton";
-import { toast } from "sonner";
-import { ArrowLeft, Sparkles, Send, ChevronDown, ChevronRight, X, MessageSquare, AlertTriangle, Flag, RefreshCw } from "lucide-react";
 import { IrisCorrectable } from "@/components/v2/IrisCorrectable";
-
+import { getLastQuestionVisit, markQuestionVisited } from "@/lib/writer-utils";
+import { toast } from "sonner";
+import {
+  Sparkles, Send, RefreshCw, AlertTriangle, MessageSquare, ChevronDown, ChevronUp,
+  CheckCircle2, ArrowLeftRight, FileEdit, Lightbulb, Pin, CornerDownLeft, X, LifeBuoy,
+} from "lucide-react";
 
 export const Route = createFileRoute(
   "/_authenticated/missions/$missionId/questions/$questionId",
 )({
-  component: ResponseView,
+  component: CockpitPage,
 });
 
-type Q = {
-  id: string;
-  mission_id: string;
-  question_number: string;
-  title: string;
-  question_text: string;
-  pens_down_date: string | null;
-  current_focus: string | null;
-  next_step: string | null;
-  waiting_on: string | null;
-  guidance: string | null;
-  requirements: string[] | null;
-  mandatory_language: string[] | null;
-  status: string | null;
-  health: "red" | "yellow" | "green" | null;
-  current_score: number | null;
-  health_drivers: any;
-  assigned_writer_id: string | null;
-  assigned_sme_id: string | null;
-};
+/* ──────────────────────────── types ──────────────────────────── */
 
+type Q = {
+  id: string; mission_id: string; question_number: string; title: string;
+  question_text: string; pens_down_date: string | null;
+  guidance: string | null; requirements: string[] | null; mandatory_language: string[] | null;
+  status: string | null; health: "red" | "yellow" | "green" | null;
+  health_drivers: any; assigned_writer_id: string | null; assigned_sme_id: string | null;
+  section: string | null; page_limit: number | null; weight: number | null;
+};
+type Profile = { id: string; display_name: string | null; email: string | null };
+type Intel = {
+  iris_brief: string | null; state_priorities: string | null;
+  procurement_priorities: string | null; competitor_signals: string | null;
+  compliance_flags: string[] | null; relevant_research: string[] | null;
+  generated_at?: string;
+};
+type Collab = {
+  id: string; entry_type: string; body: string; author_name: string;
+  created_at: string; resolved: boolean;
+};
+type Mission = { id: string; name: string; submission_date: string | null };
 type Gate = { id: string; gate_name: string; target_date: string | null };
 type WinTheme = { id: string; title: string; question_ids: string[] | null };
-type Profile = { id: string; display_name: string | null; email: string | null };
-type Rel = { related_question_id: string; relationship_type: string; conflict_detected: boolean; conflict_description: string | null };
-type RelatedQ = { id: string; question_number: string; title: string };
-type Intel = {
-  iris_brief: string | null;
-  state_priorities: string | null;
-  procurement_priorities: string | null;
-  competitor_signals: string | null;
-  compliance_flags: string[] | null;
-  relevant_research: string[] | null;
-};
-type Collab = { id: string; entry_type: string; body: string; author_name: string; created_at: string; resolved: boolean };
-type GateStatus = { gate_id: string; status: string; reviewer_notes: string | null };
-type Score = { score: number; score_type: string; scored_at: string; review_notes: string | null };
 
-const HEALTH_DOT: Record<string, string> = {
-  red: "bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.7)]",
-  yellow: "bg-yellow-500 shadow-[0_0_12px_rgba(234,179,8,0.6)]",
-  green: "bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.6)]",
-};
+/* ──────────────────────────── helpers ──────────────────────────── */
 
-function firstName(p?: Profile | null): string {
-  if (!p) return "Unassigned";
-  const n = p.display_name || p.email?.split("@")[0] || "";
-  return n.split(" ")[0] || "—";
-}
+const HEALTH_HEX: Record<string, string> = {
+  red: "#ef4444", yellow: "#eab308", green: "#22c55e",
+};
 
 function daysUntil(iso: string | null): number | null {
   return iso ? Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000) : null;
 }
-
 function fmtDate(iso: string | null): string {
-  return iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—";
+  return iso ? new Date(iso).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "—";
+}
+function timeAgo(iso: string): string {
+  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (s < 60) return "just now";
+  const m = Math.floor(s / 60); if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60); if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24); if (d < 7) return `${d}d ago`;
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+function firstName(p?: Profile | null): string {
+  if (!p) return "—";
+  const n = p.display_name || p.email?.split("@")[0] || "";
+  return n.split(" ")[0] || "—";
 }
 
-type NeedType = "direction" | "decision" | "help" | "air_cover";
-type Choice = null | "learned" | "need" | "unchanged";
+/* ──────────────────────────── page ──────────────────────────── */
 
-const NEED_COLORS: Record<NeedType, { bg: string; border: string; text: string; label: string }> = {
-  direction: { bg: "rgba(59,130,246,0.15)", border: "#3b82f6", text: "#60a5fa", label: "NEED DIRECTION" },
-  decision: { bg: "rgba(168,85,247,0.15)", border: "#a855f7", text: "#c084fc", label: "NEED DECISION" },
-  help: { bg: "rgba(245,158,11,0.15)", border: "#f59e0b", text: "#fbbf24", label: "NEED HELP" },
-  air_cover: { bg: "rgba(239,68,68,0.15)", border: "#ef4444", text: "#f87171", label: "NEED AIR COVER" },
-};
-
-function ResponseView() {
+function CockpitPage() {
   const { missionId, questionId } = Route.useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
 
+  /* current user + role */
+  const { data: me } = useQuery({
+    queryKey: ["me"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      const { data: profile } = await supabase
+        .from("profiles").select("id,display_name,email").eq("id", user.id).maybeSingle();
+      return profile as Profile | null;
+    },
+  });
+  const { data: role } = useQuery({
+    queryKey: ["cockpit-role", missionId, me?.id],
+    enabled: !!me?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_members").select("role")
+        .eq("mission_id", missionId).eq("user_id", me!.id).maybeSingle();
+      return (data?.role as string | undefined) ?? null;
+    },
+  });
+  const isSME = role === "sme";
+
+  /* the question */
   const { data: q, isLoading } = useQuery({
     queryKey: ["question", questionId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("question_records")
-        .select("id,mission_id,question_number,title,question_text,pens_down_date,current_focus,next_step,waiting_on,guidance,requirements,mandatory_language,status,health,current_score,health_drivers,assigned_writer_id,assigned_sme_id")
-        .eq("id", questionId)
-        .maybeSingle();
+        .select("id,mission_id,question_number,title,question_text,pens_down_date,guidance,requirements,mandatory_language,status,health,health_drivers,assigned_writer_id,assigned_sme_id,section,page_limit,weight")
+        .eq("id", questionId).maybeSingle();
       if (error) throw error;
       return data as Q | null;
     },
   });
 
+  /* mission + gates for health strip */
+  const { data: mission } = useQuery({
+    queryKey: ["mission-meta", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("missions").select("id,name,submission_date").eq("id", missionId).maybeSingle();
+      return data as Mission | null;
+    },
+  });
+  const { data: gates = [] } = useQuery({
+    queryKey: ["mission-gates", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_review_gates")
+        .select("id,gate_name,target_date")
+        .eq("mission_id", missionId)
+        .order("target_date", { ascending: true });
+      return (data ?? []) as Gate[];
+    },
+  });
+  const nextGate = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    return gates.find((g) => g.target_date && g.target_date >= today) ?? null;
+  }, [gates]);
+
+  /* writer's other assigned questions in this mission */
+  const { data: myQuestions = [] } = useQuery({
+    queryKey: ["cockpit-my-questions", missionId, me?.id, isSME],
+    enabled: !!me?.id,
+    queryFn: async () => {
+      const col = isSME ? "assigned_sme_id" : "assigned_writer_id";
+      const { data } = await supabase
+        .from("question_records")
+        .select("id,question_number,title,pens_down_date,health")
+        .eq("mission_id", missionId).eq(col, me!.id)
+        .order("question_number");
+      return (data ?? []) as Array<{ id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null }>;
+    },
+  });
+
+  /* intel — drives morning brief + 2x2 grid */
+  const { data: intel, isLoading: intelLoading, refetch: refetchIntel } = useQuery({
+    queryKey: ["question-intel", questionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("question_intelligence")
+        .select("iris_brief,state_priorities,procurement_priorities,competitor_signals,compliance_flags,relevant_research,generated_at")
+        .eq("question_id", questionId)
+        .order("generated_at", { ascending: false }).limit(1).maybeSingle();
+      return data as Intel | null;
+    },
+  });
+  const coachingFn = useServerFn(generateQuestionCoaching);
+  const [coachingPending, setCoachingPending] = useState(false);
+  const regenerateCoaching = async (force: boolean) => {
+    setCoachingPending(true);
+    try {
+      await coachingFn({ data: { questionId, force } });
+      await refetchIntel();
+      if (force) toast.success("IRIS brief refreshed.");
+    } catch (e: any) {
+      toast.error(e?.message ?? "IRIS refresh failed");
+    } finally { setCoachingPending(false); }
+  };
+  useEffect(() => {
+    if (intelLoading || intel || coachingPending) return;
+    regenerateCoaching(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [intelLoading, intel?.generated_at]);
+
+  /* profiles for writer/SME labels */
   const profileIds = [q?.assigned_writer_id, q?.assigned_sme_id].filter(Boolean) as string[];
   const { data: profiles = [] } = useQuery({
     queryKey: ["question-profiles", profileIds.join(",")],
@@ -116,157 +198,18 @@ function ResponseView() {
   });
   const profById = Object.fromEntries(profiles.map((p) => [p.id, p]));
 
-  const { data: gates = [] } = useQuery({
-    queryKey: ["mission-gates", missionId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("mission_review_gates")
-        .select("id,gate_name,target_date")
-        .eq("mission_id", missionId)
-        .order("gate_order");
-      return (data ?? []) as Gate[];
-    },
-  });
-
+  /* win themes (chips) */
   const { data: winThemes = [] } = useQuery({
     queryKey: ["mission-winthemes", missionId],
     queryFn: async () => {
       const { data } = await supabase
-        .from("win_themes")
-        .select("id,title,question_ids")
-        .eq("mission_id", missionId);
+        .from("win_themes").select("id,title,question_ids").eq("mission_id", missionId);
       return (data ?? []) as WinTheme[];
     },
   });
   const connectedThemes = winThemes.filter((w) => (w.question_ids ?? []).includes(questionId));
 
-  const { data: relations = [] } = useQuery({
-    queryKey: ["question-relations", questionId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("question_relationships")
-        .select("related_question_id,relationship_type,conflict_detected,conflict_description")
-        .eq("question_id", questionId);
-      return (data ?? []) as Rel[];
-    },
-  });
-  const relatedIds = relations.map((r) => r.related_question_id);
-  const { data: relatedQs = [] } = useQuery({
-    queryKey: ["related-q-records", relatedIds.join(",")],
-    enabled: relatedIds.length > 0,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("question_records")
-        .select("id,question_number,title")
-        .in("id", relatedIds);
-      return (data ?? []) as RelatedQ[];
-    },
-  });
-  const relById = Object.fromEntries(relatedQs.map((r) => [r.id, r]));
-
-  const { data: intel, isLoading: intelLoading, refetch: refetchIntel } = useQuery({
-    queryKey: ["question-intel", questionId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("question_intelligence")
-        .select("iris_brief,state_priorities,procurement_priorities,competitor_signals,compliance_flags,relevant_research,generated_at")
-        .eq("question_id", questionId)
-        .order("generated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      return data as (Intel & { generated_at?: string }) | null;
-    },
-  });
-
-  const coachingFn = useServerFn(generateQuestionCoaching);
-  const [coachingPending, setCoachingPending] = useState(false);
-  const regenerateCoaching = async (force: boolean) => {
-    setCoachingPending(true);
-    try {
-      await coachingFn({ data: { questionId, force } });
-      await refetchIntel();
-    } catch (e: any) {
-      toast.error(e?.message ?? "IRIS coaching failed");
-    } finally {
-      setCoachingPending(false);
-    }
-  };
-  // Auto-generate on first view if no intel exists yet.
-  useEffect(() => {
-    if (intelLoading) return;
-    if (intel) return;
-    if (coachingPending) return;
-    regenerateCoaching(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [intelLoading, intel?.generated_at]);
-
-
-
-  const { data: collabs = [] } = useQuery({
-    queryKey: ["question-collabs", questionId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("question_collaboration")
-        .select("id,entry_type,body,author_name,created_at,resolved")
-        .eq("question_id", questionId)
-        .order("created_at", { ascending: false });
-      return (data ?? []) as Collab[];
-    },
-  });
-  const openCollabs = collabs.filter(
-    (c) => !c.resolved && (c.entry_type === "sme_request" || c.entry_type === "decision_needed"),
-  );
-
-  const { data: gateStatuses = [] } = useQuery({
-    queryKey: ["question-gate-status", questionId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("question_gate_status")
-        .select("gate_id,status,reviewer_notes")
-        .eq("question_id", questionId);
-      return (data ?? []) as GateStatus[];
-    },
-  });
-
-  const { data: scoreHistory = [] } = useQuery({
-    queryKey: ["question-scores", questionId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("question_scores")
-        .select("score,score_type,scored_at,review_notes")
-        .eq("question_id", questionId)
-        .order("scored_at", { ascending: true });
-      return (data ?? []) as Score[];
-    },
-  });
-
-  const { data: amendmentChanges = [] } = useQuery({
-    queryKey: ["amendment-changes", questionId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("amendment_changes")
-        .select("id,change_type,severity,description,writer_action_required,acknowledged,created_at,amendment_id")
-        .contains("affected_question_ids", [questionId])
-        .order("created_at", { ascending: false });
-      return (data ?? []) as Array<{
-        id: string;
-        change_type: string;
-        severity: "critical" | "significant" | "administrative";
-        description: string;
-        writer_action_required: string | null;
-        acknowledged: boolean;
-        created_at: string;
-        amendment_id: string;
-      }>;
-    },
-  });
-
-  // Derived
-  const writer = q?.assigned_writer_id ? profById[q.assigned_writer_id] : null;
-  const sme = q?.assigned_sme_id ? profById[q.assigned_sme_id] : null;
-  const dueDays = daysUntil(q?.pens_down_date ?? null);
-  const urgentDate = dueDays !== null && dueDays <= 7 && q?.health !== "green";
-
+  /* health drivers compact list */
   const drivers = useMemo<string[]>(() => {
     const list: string[] = [];
     if (q?.health_drivers && typeof q.health_drivers === "object") {
@@ -274,67 +217,109 @@ function ResponseView() {
         if (typeof v === "string" && v.trim()) list.push(v);
       }
     }
-    if (q?.waiting_on) list.push(q.waiting_on);
-    const conflictRel = relations.find((r) => r.conflict_detected);
-    if (conflictRel) {
-      const rq = relById[conflictRel.related_question_id];
-      list.push(`Alignment conflict with Q${rq?.question_number ?? "?"}`);
-    }
-    return list.slice(0, 2);
-  }, [q, relations, relById]);
+    return list.slice(0, 4);
+  }, [q]);
 
-  // UI state
-  const [scoreOpen, setScoreOpen] = useState(false);
-  const [collabExpanded, setCollabExpanded] = useState(false);
-  const [realityOpen, setRealityOpen] = useState(false);
-  const [askOpen, setAskOpen] = useState(false);
-  const [flagOpen, setFlagOpen] = useState(false);
-
-  // Update Reality state
-  const [choice, setChoice] = useState<Choice>(null);
-  const [needType, setNeedType] = useState<NeedType | null>(null);
-  const [details, setDetails] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const submitUpdate = useMutation({
-    mutationFn: async () => {
-      if (!choice || !q) return;
-      setSubmitting(true);
-      const { data: auth } = await supabase.auth.getUser();
-      const user = auth.user;
-      if (!user) throw new Error("Not signed in");
-      const { data: profile } = await supabase.from("profiles").select("display_name,email").eq("id", user.id).maybeSingle();
-      const name = profile?.display_name || profile?.email?.split("@")[0] || "Unknown";
-      const { error } = await supabase.from("reality_updates").insert({
-        question_id: questionId, mission_id: missionId, user_id: user.id, user_name: name,
-        signal_type: choice, need_type: choice === "need" ? needType : null,
-        details: details.trim() || null,
-      });
-      if (error) throw error;
-      const severity =
-        choice === "need" && (needType === "air_cover" || needType === "decision") ? "critical"
-        : choice === "need" ? "warning" : "info";
-      const titleMap: Record<string, string> = {
-        learned: "Writer learned something",
-        need: needType ? NEED_COLORS[needType].label : "Writer needs something",
-        unchanged: "Status check — no change",
-      };
-      await createSignal({
-        mission_id: missionId, source_module: "response_view",
-        signal_type: choice === "need" ? "decision_needed" : "comment_added",
-        signal_title: `${titleMap[choice]} · ${q.question_number}`,
-        signal_summary: details.trim() || q.title,
-        severity, related_question_id: questionId,
-      }, qc);
+  /* What Changed feed */
+  const { data: collabs = [] } = useQuery({
+    queryKey: ["question-collabs", questionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("question_collaboration")
+        .select("id,entry_type,body,author_name,created_at,resolved")
+        .eq("question_id", questionId)
+        .order("created_at", { ascending: false }).limit(30);
+      return (data ?? []) as Collab[];
     },
-    onSuccess: () => {
-      toast.success("Signal sent.");
-      setChoice(null); setNeedType(null); setDetails(""); setSubmitting(false); setRealityOpen(false);
-      qc.invalidateQueries({ queryKey: ["mission-reality-latest", missionId] });
+  });
+  const { data: amendmentChanges = [] } = useQuery({
+    queryKey: ["amendment-changes", questionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("amendment_changes")
+        .select("id,description,writer_action_required,acknowledged,created_at,severity")
+        .contains("affected_question_ids", [questionId])
+        .order("created_at", { ascending: false });
+      return (data ?? []) as Array<{ id: string; description: string; writer_action_required: string | null; acknowledged: boolean; created_at: string; severity: string }>;
     },
-    onError: (e: Error) => { toast.error(e.message); setSubmitting(false); },
   });
 
-  // Ask IRIS
+  /* last visit + mark as visited on mount */
+  const lastVisitRef = useRef<number>(0);
+  useEffect(() => {
+    lastVisitRef.current = getLastQuestionVisit(questionId);
+    // mark after we record what was unread
+    const t = setTimeout(() => markQuestionVisited(questionId), 500);
+    return () => clearTimeout(t);
+  }, [questionId]);
+
+  type FeedItem = {
+    kind: "sme" | "intel" | "leader" | "conflict" | "amendment" | "leader_reply" | "decision";
+    id: string;
+    title: string;
+    author: string;
+    created_at: string;
+    body: string;
+    ackButton?: { label: string; onClick: () => void } | null;
+  };
+  const feed: FeedItem[] = useMemo(() => {
+    const items: FeedItem[] = [];
+    for (const c of collabs) {
+      const base = { id: c.id, author: c.author_name, created_at: c.created_at, body: c.body };
+      if (c.entry_type === "sme_response" || c.entry_type === "sme_input") {
+        items.push({ kind: "sme", title: `${c.author_name} responded`, ...base });
+      } else if (c.entry_type === "leadership_note" || c.entry_type === "broadcast") {
+        items.push({ kind: "leader", title: `${c.author_name} posted a leadership note`, ...base });
+      } else if (c.entry_type === "decision_response") {
+        items.push({ kind: "leader_reply", title: `${c.author_name} responded to your decision request`, ...base });
+      } else if (c.entry_type === "decision_logged" || c.entry_type === "decision") {
+        items.push({ kind: "decision", title: `Decision logged`, ...base });
+      } else if (c.entry_type === "alignment_conflict") {
+        items.push({ kind: "conflict", title: `IRIS detected an alignment conflict`, ...base });
+      }
+    }
+    for (const a of amendmentChanges) {
+      items.push({
+        kind: "amendment",
+        id: a.id,
+        title: `Amendment affects your question`,
+        author: "Admin",
+        created_at: a.created_at,
+        body: `${a.description}${a.writer_action_required ? `\n\nWhat you need to do: ${a.writer_action_required}` : ""}`,
+        ackButton: a.acknowledged ? null : {
+          label: "Acknowledge",
+          onClick: async () => {
+            const { data: auth } = await supabase.auth.getUser();
+            await supabase.from("amendment_changes")
+              .update({ acknowledged: true, acknowledged_at: new Date().toISOString(), acknowledged_by: auth.user?.id ?? null })
+              .eq("id", a.id);
+            qc.invalidateQueries({ queryKey: ["amendment-changes", questionId] });
+          },
+        },
+      });
+    }
+    return items.sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
+  }, [collabs, amendmentChanges, qc, questionId]);
+
+  const lastVisitTimeStr = lastVisitRef.current
+    ? timeAgo(new Date(lastVisitRef.current).toISOString())
+    : "your first visit";
+
+  /* writer + sme */
+  const writer = q?.assigned_writer_id ? profById[q.assigned_writer_id] : null;
+  const sme = q?.assigned_sme_id ? profById[q.assigned_sme_id] : null;
+
+  /* derived */
+  const pdDays = daysUntil(q?.pens_down_date ?? null);
+  const gateDays = daysUntil(nextGate?.target_date ?? null);
+  const subDays = daysUntil(mission?.submission_date ?? null);
+  const healthHex = HEALTH_HEX[q?.health ?? "yellow"];
+
+  /* UI state */
+  const [askOpen, setAskOpen] = useState(false);
+  const [getHelpOpen, setGetHelpOpen] = useState(false);
+
+  /* Ask IRIS */
   const askFn = useServerFn(irisAskQuestion);
   const [prompt, setPrompt] = useState("");
   const [answer, setAnswer] = useState("");
@@ -350,52 +335,6 @@ function ResponseView() {
     } finally { setAsking(false); }
   };
 
-  // Flag / escalate
-  const [flagType, setFlagType] = useState<"decision_needed" | "sme_request" | "air_cover" | null>(null);
-  const [flagBody, setFlagBody] = useState("");
-  const flagSubmit = useMutation({
-    mutationFn: async () => {
-      if (!flagType) return;
-      const { data: auth } = await supabase.auth.getUser();
-      const user = auth.user;
-      if (!user) throw new Error("Not signed in");
-      const { data: profile } = await supabase.from("profiles").select("display_name,email").eq("id", user.id).maybeSingle();
-      const name = profile?.display_name || profile?.email?.split("@")[0] || "Unknown";
-      const entryType = flagType === "air_cover" ? "decision_needed" : flagType;
-      const { error } = await supabase.from("question_collaboration").insert({
-        question_id: questionId, mission_id: missionId, author_id: user.id, author_name: name,
-        entry_type: entryType, body: flagBody.trim() || "(no context provided)",
-      });
-      if (error) throw error;
-      await createSignal({
-        mission_id: missionId, source_module: "response_view",
-        signal_type: "decision_needed",
-        signal_title: `${flagType === "decision_needed" ? "Decision needed" : flagType === "sme_request" ? "Need help" : "Need air cover"} · ${q?.question_number}`,
-        signal_summary: flagBody.trim() || q?.title || "",
-        severity: flagType === "air_cover" ? "critical" : "warning",
-        related_question_id: questionId,
-      }, qc);
-    },
-    onSuccess: () => {
-      toast.success("Flagged to Overview.");
-      setFlagOpen(false); setFlagType(null); setFlagBody("");
-      qc.invalidateQueries({ queryKey: ["question-collabs", questionId] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  // Escape to return
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const inField = !!(e.target as HTMLElement)?.closest("textarea,input,select,[contenteditable='true']");
-      if (e.key === "Escape" && !inField && !realityOpen && !askOpen && !flagOpen) {
-        navigate({ to: "/missions/$missionId/questions", params: { missionId } });
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [navigate, missionId, realityOpen, askOpen, flagOpen]);
-
   if (isLoading) return <div className="px-8 py-12 text-sm text-muted-foreground">Loading…</div>;
   if (!q) {
     return (
@@ -406,339 +345,333 @@ function ResponseView() {
     );
   }
 
-  const hasIntel = !!(intel && (intel.state_priorities || intel.procurement_priorities || intel.competitor_signals || intel.iris_brief));
-  const trendArrow = scoreHistory.length >= 2
-    ? scoreHistory[scoreHistory.length - 1].score > scoreHistory[scoreHistory.length - 2].score
-      ? "▲" : scoreHistory[scoreHistory.length - 1].score < scoreHistory[scoreHistory.length - 2].score ? "▼" : "→"
-    : null;
-
   return (
-    <div className="min-h-screen bg-background pb-24">
-      {/* HEADER */}
-      <header className="border-b border-border bg-surface/60 backdrop-blur px-6 py-4">
-        <Link
-          to="/missions/$missionId/questions"
-          params={{ missionId }}
-          className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-3 w-3" /> Responses
-        </Link>
-        <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2">
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            <span className={`h-3 w-3 shrink-0 rounded-full ${HEALTH_DOT[q.health ?? "yellow"] ?? "bg-muted"}`} />
-            <span className="font-mono text-xs text-muted-foreground shrink-0">Q{q.question_number}</span>
-            <span className="text-muted-foreground">·</span>
-            <h1 className="truncate text-lg font-semibold tracking-tight">{q.title}</h1>
-          </div>
-          <div className="flex items-center gap-5 text-[11px]">
-            <span className="text-muted-foreground">Writer: <span className="text-foreground">{firstName(writer)}</span></span>
-            <span className="text-muted-foreground">SME: <span className="text-foreground">{firstName(sme)}</span></span>
-            <span className="text-muted-foreground">
-              Pens Down: <span className={urgentDate ? "text-red-400 font-semibold" : "text-foreground"}>{fmtDate(q.pens_down_date)}</span>
+    <div style={{ background: "#0a0e1a", minHeight: "100vh" }} className="text-foreground">
+      {/* HEALTH STRIP — persistent */}
+      <Link
+        to="/missions/$missionId/overview"
+        params={{ missionId }}
+        className="sticky top-0 z-30 flex h-10 items-center gap-3 border-b border-white/5 bg-[#060b14]/95 px-10 text-[12px] backdrop-blur hover:bg-[#0a1426]/95 transition-colors"
+        title="Open Mission Room"
+      >
+        <span className="relative inline-flex h-2 w-2">
+          <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: healthHex, boxShadow: `0 0 8px ${healthHex}` }} />
+        </span>
+        <span className="text-foreground font-medium truncate">{mission?.name ?? "Mission"}</span>
+        <Dot />
+        <span className="font-mono text-muted-foreground">Q{q.question_number}</span>
+        <span className="text-foreground truncate">{q.title}</span>
+        <Dot />
+        <PensDownLabel days={pdDays} />
+        {nextGate && gateDays !== null && (
+          <>
+            <Dot />
+            <span style={gateDays <= 3 ? { color: "#ef4444" } : gateDays <= 7 ? { color: "#eab308" } : undefined}>
+              {nextGate.gate_name} in {gateDays}d
             </span>
-            <button
-              onClick={() => setScoreOpen((o) => !o)}
-              className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"
-            >
-              Score: <span className="text-foreground font-semibold">{q.current_score != null ? q.current_score.toFixed(1) : "—"}</span>
-              {scoreOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-            </button>
-          </div>
-        </div>
-
-        {(q.health === "red" || q.health === "yellow") && drivers.length > 0 && (
-          <div className={`mt-3 inline-flex items-start gap-2 rounded-md border px-3 py-1.5 text-xs ${
-            q.health === "red"
-              ? "border-red-500/30 bg-red-500/10 text-red-300"
-              : "border-yellow-500/30 bg-yellow-500/10 text-yellow-200"
-          }`}>
-            <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-            <span>{drivers.join(" · ")}</span>
-          </div>
+          </>
         )}
+        {subDays !== null && (
+          <>
+            <Dot />
+            <span className="text-muted-foreground">Submission in {subDays}d</span>
+          </>
+        )}
+      </Link>
 
-        {scoreOpen && (
-          <div className="mt-4 rounded-md border border-border bg-background/60 p-4 text-xs">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="font-semibold text-foreground">Score & Gates</span>
-              <button onClick={() => setScoreOpen(false)} className="text-muted-foreground hover:text-foreground">
-                <X className="h-3 w-3" />
-              </button>
+      <div className="mx-auto max-w-[960px] px-10 pt-8 pb-40">
+        {/* QUESTION SELECTOR — only if multiple */}
+        {myQuestions.length > 1 && (
+          <div className="mb-6">
+            <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+              My Questions
             </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Trend</div>
-                {scoreHistory.length === 0 ? (
-                  <div className="text-muted-foreground">No score history yet.</div>
-                ) : (
-                  <div className="font-mono text-foreground">
-                    {scoreHistory.map((s) => s.score.toFixed(1)).join(" → ")} {trendArrow}
-                  </div>
-                )}
-                {scoreHistory.length > 0 && scoreHistory[scoreHistory.length - 1].review_notes && (
-                  <div className="mt-2 text-muted-foreground italic">
-                    "{scoreHistory[scoreHistory.length - 1].review_notes}"
-                  </div>
-                )}
-              </div>
-              <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Review Gates</div>
-                {gates.length === 0 ? (
-                  <div className="text-muted-foreground">No gates configured.</div>
-                ) : (
-                  <ul className="space-y-1">
-                    {gates.map((g) => {
-                      const st = gateStatuses.find((s) => s.gate_id === g.id);
-                      return (
-                        <li key={g.id} className="flex justify-between gap-3">
-                          <span className="text-foreground">{g.gate_name}</span>
-                          <span className="text-muted-foreground capitalize">{st?.status ?? "pending"}</span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </div>
+            <div className="flex flex-wrap gap-2">
+              {myQuestions.map((mq) => {
+                const active = mq.id === questionId;
+                const d = daysUntil(mq.pens_down_date);
+                const c = HEALTH_HEX[mq.health ?? "yellow"];
+                return (
+                  <Link
+                    key={mq.id}
+                    to="/missions/$missionId/questions/$questionId"
+                    params={{ missionId, questionId: mq.id }}
+                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition ${
+                      active ? "border-white/20 bg-white/10 text-foreground" : "border-white/10 bg-transparent text-muted-foreground hover:text-foreground hover:border-white/20"
+                    }`}
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full" style={{ background: c, boxShadow: `0 0 4px ${c}` }} />
+                    <span className="font-mono">Q{mq.question_number}</span>
+                    {d !== null && <span className="text-muted-foreground">{d}d</span>}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         )}
-      </header>
 
-      {/* TWO COLUMNS */}
-      <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-8 px-6 py-8 lg:grid-cols-[55fr_45fr]">
-        {/* LEFT — Work Area */}
-        <div className="space-y-6">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Work Area</div>
-
-          {amendmentChanges.length > 0 && (
-            <AmendmentBanner
-              changes={amendmentChanges}
-              onAck={async (id) => {
-                const { data: auth } = await supabase.auth.getUser();
-                await supabase
-                  .from("amendment_changes")
-                  .update({
-                    acknowledged: true,
-                    acknowledged_at: new Date().toISOString(),
-                    acknowledged_by: auth.user?.id ?? null,
-                  })
-                  .eq("id", id);
-                qc.invalidateQueries({ queryKey: ["amendment-changes", questionId] });
-              }}
-            />
-          )}
-          <Block label="Question">
-            <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">{q.question_text}</p>
-          </Block>
-
-          <Block label="Requirements">
-            {q.requirements && q.requirements.length > 0 ? (
-              <ul className="list-disc space-y-1 pl-5 text-sm text-foreground">
-                {q.requirements.map((r, i) => <li key={i}>{r}</li>)}
-              </ul>
-            ) : (
-              <div className="text-sm text-muted-foreground italic">No requirements listed.</div>
-            )}
-            {q.mandatory_language && q.mandatory_language.length > 0 && (
-              <div className="mt-3 border-l-2 border-yellow-500/60 bg-yellow-500/5 px-3 py-2 text-xs text-yellow-200">
-                <span className="font-semibold uppercase tracking-wider text-[10px] block mb-1">Required language</span>
-                {q.mandatory_language.join(" — ")}
-              </div>
-            )}
-          </Block>
-
-          <Block label="Win Themes">
-            {connectedThemes.length === 0 ? (
-              <div className="text-sm text-muted-foreground italic">No win themes linked</div>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {connectedThemes.map((w) => (
-                  <span key={w.id} className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs text-primary">
-                    {w.title}
-                  </span>
-                ))}
-              </div>
-            )}
-          </Block>
-
-          <Block label="Related Questions">
-            {relations.length === 0 ? (
-              <div className="text-sm text-muted-foreground italic">None detected</div>
-            ) : (
-              <ul className="space-y-1.5 text-sm">
-                {relations.map((r) => {
-                  const rq = relById[r.related_question_id];
-                  if (!rq) return null;
-                  return (
-                    <li key={r.related_question_id}>
-                      <Link
-                        to="/missions/$missionId/questions/$questionId"
-                        params={{ missionId, questionId: r.related_question_id }}
-                        className={r.conflict_detected ? "text-yellow-300 hover:underline" : "text-foreground hover:underline"}
-                      >
-                        {r.conflict_detected && "⚠ "}Q{rq.question_number} · {r.conflict_detected && r.conflict_description ? r.conflict_description : rq.title}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </Block>
-
-          <div>
-            <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Feedback</div>
-            <button
-              onClick={() => setCollabExpanded((o) => !o)}
-              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-            >
-              <MessageSquare className="h-3.5 w-3.5" />
-              {collabs.length} note{collabs.length === 1 ? "" : "s"} ·{" "}
-              <span className={openCollabs.length > 0 ? "text-yellow-300" : ""}>
-                {openCollabs.length} open item{openCollabs.length === 1 ? "" : "s"}
-              </span>
-              {collabExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-            </button>
-            {collabExpanded && (
-              <div className="mt-3 rounded-md border border-border bg-surface/60 p-4">
-                {collabs.length === 0 ? (
-                  <div className="text-xs text-muted-foreground">No collaboration entries yet.</div>
-                ) : (
-                  <ul className="space-y-3">
-                    {collabs.map((c) => (
-                      <li key={c.id} className="border-b border-border/50 pb-3 last:border-0 last:pb-0">
-                        <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
-                          <span><span className="text-foreground font-medium">{c.author_name}</span> · {c.entry_type.replace(/_/g, " ")}</span>
-                          <span>{new Date(c.created_at).toLocaleDateString()}</span>
-                        </div>
-                        <div className="text-sm text-foreground whitespace-pre-wrap">{c.body}</div>
-                        {!c.resolved && (c.entry_type === "sme_request" || c.entry_type === "decision_needed") && (
-                          <div className="mt-1 text-[10px] uppercase tracking-wider text-yellow-300">Open</div>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* RIGHT — Question Intelligence */}
-        <div className="iris-panel rounded-r-[10px] pl-6 pr-5 py-5">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <span className="iris-label"><span className="iris-dot" />Question Intelligence</span>
+        {/* BLOCK 1 — IRIS MORNING BRIEF */}
+        <section
+          className="mb-8 rounded-[12px] border p-6"
+          style={{
+            background: "radial-gradient(ellipse at 0% 50%, rgba(8,145,178,0.08), rgba(10,14,26,0) 70%)",
+            borderColor: "rgba(8,145,178,0.25)",
+          }}
+        >
+          <div className="mb-3 flex items-center justify-between">
+            <span className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.32em]" style={{ color: "#22d3ee" }}>
+              <span className="iris-dot" /> IRIS — Your Morning Brief
+            </span>
             <button
               onClick={() => regenerateCoaching(true)}
               disabled={coachingPending}
-              className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground disabled:opacity-50"
-              title="Regenerate coaching"
+              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-50"
             >
-              <RefreshCw className={`h-3 w-3 ${coachingPending ? "animate-spin" : ""}`} />
-              Refresh
+              {intel?.generated_at && (<span>Updated {timeAgo(intel.generated_at)} · </span>)}
+              <RefreshCw className={`h-3 w-3 ${coachingPending ? "animate-spin" : ""}`} /> Refresh
             </button>
           </div>
+          {intelLoading || coachingPending ? (
+            <div className="iris-loading-text"><span className="iris-dot" /> IRIS is preparing your brief…</div>
+          ) : intel?.iris_brief ? (
+            <IrisCorrectable
+              contentType="morning_brief"
+              contentBlock={intel.iris_brief}
+              missionId={missionId}
+              questionId={questionId}
+            >
+              <p className="text-[15px] leading-relaxed text-foreground whitespace-pre-wrap pr-8">
+                {intel.iris_brief}
+              </p>
+            </IrisCorrectable>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              <span className="iris-dot mr-2" /> IRIS is preparing your brief. Intelligence generates once the RFP is parsed.
+            </p>
+          )}
+        </section>
 
-
-          {intelLoading ? (
-            <div className="space-y-3">
-              <div className="h-3 w-3/4 animate-pulse rounded bg-muted" />
-              <div className="h-3 w-full animate-pulse rounded bg-muted" />
-              <div className="h-3 w-5/6 animate-pulse rounded bg-muted" />
-              <div className="iris-loading-text mt-3">
-                <span className="iris-dot" />IRIS is preparing your brief...
+        {/* BLOCK 2 — MY QUESTION + WHAT CHANGED */}
+        <section className="mb-8 grid gap-6 md:grid-cols-[40fr_60fr]">
+          {/* LEFT — MY QUESTION */}
+          <div className="space-y-5 rounded-[12px] border border-white/5 bg-white/[0.02] p-6">
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">My Question</div>
+              <h1 className="mt-2 text-[20px] font-bold leading-tight">
+                Q{q.question_number} — {q.title}
+              </h1>
+              <div className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
+                {q.section && <span>Section {q.section}</span>}
+                {q.section && q.page_limit && <Dot />}
+                {q.page_limit && <span>{q.page_limit} pages</span>}
+                {(q.section || q.page_limit) && q.weight && <Dot />}
+                {q.weight && <span>{q.weight}% weight</span>}
               </div>
             </div>
-          ) : !hasIntel ? (
-            <div className="text-sm leading-relaxed text-muted-foreground">
-              Intelligence generates once the RFP is uploaded and analyzed.
-              Upload the RFP in Mission Settings to activate IRIS for this mission.
+
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Pens Down</div>
+              <div
+                className="mt-1 text-[32px] font-bold leading-none"
+                style={{
+                  color: pdDays !== null && pdDays < 7 ? "#ef4444" : pdDays !== null && pdDays <= 14 ? "#eab308" : "var(--foreground)",
+                }}
+              >
+                {pdDays !== null ? (pdDays < 0 ? `${Math.abs(pdDays)}d overdue` : `${pdDays} DAYS`) : "—"}
+              </div>
+              <div className="mt-1 text-[12px] text-muted-foreground">{fmtDate(q.pens_down_date)}</div>
             </div>
-          ) : (
-            <div className="space-y-5">
-              {(() => {
-                const sources = intel?.relevant_research ?? [];
-                const sourceCount = sources.length;
-                const confidence: "High" | "Medium" | "Low" =
-                  sourceCount >= 3 ? "High" : sourceCount >= 1 ? "Medium" : "Low";
-                return (
-                  <>
-                    {intel?.state_priorities && (
-                      <IrisInsight label="State Priority" content={intel.state_priorities} confidence={confidence} sourceCount={sourceCount} missionId={missionId} questionId={questionId} />
-                    )}
-                    {intel?.procurement_priorities && (
-                      <IrisInsight label="Procurement Signal" content={intel.procurement_priorities} confidence={confidence} sourceCount={sourceCount} missionId={missionId} questionId={questionId} />
-                    )}
-                    {intel?.competitor_signals && (
-                      <IrisInsight label="Differentiation" content={intel.competitor_signals} confidence={confidence} sourceCount={sourceCount} missionId={missionId} questionId={questionId} />
-                    )}
-                  </>
-                );
-              })()}
-              {intel?.compliance_flags && intel.compliance_flags.length > 0 && (
-                <div>
-                  <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-400">Compliance Note</div>
-                  <ul className="list-disc space-y-1 pl-5 text-sm text-amber-200">
-                    {intel.compliance_flags.map((f, i) => <li key={i}>{f}</li>)}
-                  </ul>
+
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Scoring Target</div>
+              <div className="mt-1 text-[10px] text-muted-foreground/70">What does a 5 look like?</div>
+              {q.guidance ? (
+                <IrisCorrectable
+                  contentType="question_brief"
+                  contentBlock={q.guidance}
+                  missionId={missionId}
+                  questionId={questionId}
+                >
+                  <div className="mt-2 text-sm leading-relaxed whitespace-pre-wrap pr-8">{q.guidance}</div>
+                </IrisCorrectable>
+              ) : q.requirements && q.requirements.length > 0 ? (
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+                  {q.requirements.slice(0, 5).map((r, i) => <li key={i}>{r}</li>)}
+                </ul>
+              ) : (
+                <div className="mt-2 text-sm text-muted-foreground italic">No scoring target captured yet.</div>
+              )}
+              {q.mandatory_language && q.mandatory_language.length > 0 && (
+                <div className="mt-3 border-l-2 px-3 py-2 text-xs" style={{ borderColor: "#eab308", background: "rgba(234,179,8,0.05)", color: "#fde68a" }}>
+                  <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider">Required language</span>
+                  {q.mandatory_language.join(" — ")}
                 </div>
               )}
             </div>
-          )}
 
-          <div className="mt-6 space-y-1.5">
-            <Link to="/missions/$missionId/briefing" params={{ missionId }}
-              className="block text-[11px] text-muted-foreground hover:text-foreground underline-offset-2 hover:underline">
-              View full intelligence brief →
-            </Link>
-            <Link to="/missions/$missionId/library" params={{ missionId }}
-              className="block text-[11px] text-muted-foreground hover:text-foreground underline-offset-2 hover:underline">
-              Source documents →
-            </Link>
+            {!isSME && (q.health === "red" || q.health === "yellow") && drivers.length > 0 && (
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Health Drivers</div>
+                <ul className="mt-2 space-y-1.5">
+                  {drivers.map((d, i) => (
+                    <li key={i} className="flex items-start gap-2 text-xs" style={{ color: q.health === "red" ? "#fca5a5" : "#fde68a" }}>
+                      <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" /><span>{d}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {connectedThemes.length > 0 && (
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Win Themes</div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {connectedThemes.map((w) => (
+                    <span key={w.id} className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] text-primary">
+                      {w.title}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="border-t border-white/5 pt-3 text-[11px] text-muted-foreground">
+              Writer: <span className="text-foreground">{firstName(writer)}</span>
+              {sme && <> · SME: <span className="text-foreground">{firstName(sme)}</span></>}
+            </div>
+          </div>
+
+          {/* RIGHT — WHAT CHANGED */}
+          <div className="rounded-[12px] border border-white/5 bg-white/[0.02] p-6">
+            <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">What Changed</div>
+            <div className="mb-4 text-[11px] text-muted-foreground/70">Since your last visit · {lastVisitTimeStr}</div>
+
+            {feed.length === 0 ? (
+              <div className="rounded-md border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm" style={{ color: "#86efac" }}>
+                <span className="iris-dot mr-2" /> Nothing new since your last visit. You're current. Go write.
+              </div>
+            ) : (
+              <ul className="space-y-1">
+                {feed.map((item) => (
+                  <FeedRow
+                    key={`${item.kind}-${item.id}`}
+                    item={item}
+                    unread={+new Date(item.created_at) > lastVisitRef.current}
+                  />
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
+
+        {/* BLOCK 3 — IRIS INTELLIGENCE */}
+        <section className="mb-8">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.32em]" style={{ color: "#22d3ee" }}>
+              <span className="iris-dot" /> IRIS Intelligence for This Question
+            </span>
+            <span className="text-[11px] text-muted-foreground">
+              {(intel?.relevant_research?.length ?? 0)} sources
+              {intel?.generated_at && <> · Updated {timeAgo(intel.generated_at)}</>}
+            </span>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <IntelPanel
+              label="State Priority"
+              content={intel?.state_priorities}
+              sourceCount={intel?.relevant_research?.length ?? 0}
+              missionId={missionId} questionId={questionId}
+            />
+            <IntelPanel
+              label="Procurement Signal"
+              content={intel?.procurement_priorities}
+              sourceCount={intel?.relevant_research?.length ?? 0}
+              missionId={missionId} questionId={questionId}
+            />
+            <IntelPanel
+              label="Differentiation"
+              content={intel?.competitor_signals}
+              sourceCount={intel?.relevant_research?.length ?? 0}
+              missionId={missionId} questionId={questionId}
+            />
+            <CompliancePanel
+              flags={intel?.compliance_flags ?? null}
+              missionId={missionId} questionId={questionId}
+            />
+          </div>
+        </section>
+      </div>
+
+      {/* FIXED ACTION BAR */}
+      <div
+        className="fixed inset-x-0 bottom-0 z-40 border-t"
+        style={{ background: "rgba(6,11,20,0.95)", backdropFilter: "blur(12px)", borderColor: "rgba(255,255,255,0.06)" }}
+      >
+        <div className="mx-auto flex h-16 max-w-[1100px] items-center justify-between gap-3 px-10">
+          {/* LEFT */}
+          <div className="flex items-center gap-2">
+            {isSME ? (
+              <button
+                onClick={() => openUpdateReality(questionId)}
+                className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+              >
+                Submit SME Input
+              </button>
+            ) : (
+              <button
+                onClick={() => openUpdateReality(questionId)}
+                className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+              >
+                Update Reality
+              </button>
+            )}
+            <button
+              onClick={() => setAskOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-transparent px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/10"
+            >
+              <Sparkles className="h-3.5 w-3.5" /> Ask IRIS
+            </button>
+          </div>
+
+          {/* CENTER status */}
+          <div className="hidden items-center gap-2 text-[12px] text-muted-foreground md:flex">
+            <span className="h-2 w-2 rounded-full" style={{ background: healthHex, boxShadow: `0 0 6px ${healthHex}` }} />
+            <span className="font-mono">Q{q.question_number}</span>
+            <Dot />
+            <PensDownLabel days={pdDays} compact />
+          </div>
+
+          {/* RIGHT */}
+          <div className="flex items-center gap-2">
+            {!isSME && (
+              <GetHelpDropdown
+                open={getHelpOpen} setOpen={setGetHelpOpen}
+                missionId={missionId} questionId={questionId} questionNumber={q.question_number}
+                meId={me?.id ?? null} meName={firstName(me)}
+                onSent={() => qc.invalidateQueries({ queryKey: ["question-collabs", questionId] })}
+              />
+            )}
+            {!isSME && <SOSButton missionId={missionId} questionId={questionId} />}
           </div>
         </div>
       </div>
 
-      {/* ACTION BAR */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 backdrop-blur">
-        <div className="mx-auto flex max-w-[1400px] items-center justify-center gap-3 px-6 py-3">
-          <button
-            onClick={() => openUpdateReality(questionId)}
-            className="rounded-md bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
-          >
-            Update Reality
-          </button>
-          <button
-            onClick={() => setAskOpen(true)}
-            className="rounded-md border border-primary/60 bg-transparent px-5 py-2 text-sm font-semibold text-primary hover:bg-primary/10 inline-flex items-center gap-2"
-          >
-            <Sparkles className="h-3.5 w-3.5" /> Ask IRIS
-          </button>
-          <SOSButton missionId={missionId} questionId={questionId} />
-          <button
-            onClick={() => setFlagOpen(true)}
-            className="rounded-md border border-border bg-transparent px-5 py-2 text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-2"
-          >
-            <Flag className="h-3.5 w-3.5" /> Flag
-          </button>
-        </div>
-      </div>
-
-      {/* Update Reality is rendered globally by AppShell's UpdateRealityMount */}
-
-      {/* ASK IRIS MODAL */}
+      {/* ASK IRIS DRAWER */}
       {askOpen && (
-        <Modal onClose={() => setAskOpen(false)} title="Ask IRIS">
+        <AskDrawer onClose={() => setAskOpen(false)}>
           <div className="space-y-3">
             <div className="flex gap-2">
               <input
                 value={prompt} onChange={(e) => setPrompt(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") onAsk(); }}
-                placeholder="Ask IRIS anything about this response…"
-                className="iris-input flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm"
+                placeholder="Ask IRIS anything about this question…"
                 autoFocus
+                className="iris-input flex-1 rounded-md border border-white/10 bg-white/[0.03] px-3 py-2 text-sm placeholder:text-muted-foreground/60"
               />
-              <button onClick={onAsk} disabled={asking || !prompt.trim()}
-                className="rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 inline-flex items-center gap-1.5">
+              <button
+                onClick={onAsk} disabled={asking || !prompt.trim()}
+                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
+              >
                 <Send className="h-3.5 w-3.5" /> {asking ? "…" : "Send"}
               </button>
             </div>
@@ -746,266 +679,302 @@ function ResponseView() {
               <div className="iris-panel rounded-r-md px-4 py-3 text-sm">
                 <div className="mb-2"><span className="iris-label"><span className="iris-dot" />IRIS</span></div>
                 {asking ? (
-                  <div className="iris-loading-text text-left"><span className="iris-dot" />IRIS is preparing your brief...</div>
+                  <div className="iris-loading-text"><span className="iris-dot" /> IRIS is thinking…</div>
                 ) : (
-                  <div className="whitespace-pre-wrap text-foreground">{answer}</div>
+                  <IrisCorrectable
+                    contentType="ask_iris"
+                    contentBlock={answer}
+                    missionId={missionId}
+                    questionId={questionId}
+                  >
+                    <div className="whitespace-pre-wrap text-foreground pr-8">{answer}</div>
+                  </IrisCorrectable>
                 )}
               </div>
             )}
           </div>
-        </Modal>
+        </AskDrawer>
       )}
+    </div>
+  );
+}
 
-      {/* FLAG / ESCALATE MODAL */}
-      {flagOpen && (
-        <Modal onClose={() => { setFlagOpen(false); setFlagType(null); setFlagBody(""); }} title="Flag / Escalate">
-          {!flagType ? (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {([
-                ["decision_needed", "Decision Needed", "#a855f7"],
-                ["sme_request", "Need Help", "#f59e0b"],
-                ["air_cover", "Need Air Cover", "#ef4444"],
-              ] as const).map(([k, label, color]) => (
-                <button
-                  key={k}
-                  onClick={() => setFlagType(k)}
-                  className="rounded-[10px] border px-4 py-6 text-sm font-semibold transition hover:brightness-125"
-                  style={{ borderColor: color, color, background: `${color}1a` }}
-                >
-                  {label}
-                </button>
-              ))}
+/* ──────────────────────────── sub-components ──────────────────────────── */
+
+function Dot() {
+  return <span className="text-muted-foreground/40">·</span>;
+}
+
+function PensDownLabel({ days, compact }: { days: number | null; compact?: boolean }) {
+  if (days === null) return <span className="text-muted-foreground">—</span>;
+  const color = days < 7 ? "#ef4444" : days <= 14 ? "#eab308" : undefined;
+  const bold = days < 7;
+  return (
+    <span style={color ? { color, fontWeight: bold ? 600 : undefined } : { color: "var(--muted-foreground)" }}>
+      {days < 0 ? `${Math.abs(days)}d overdue` : compact ? `${days}d to Pens Down` : `${days} days to Pens Down`}
+    </span>
+  );
+}
+
+function FeedRow({
+  item,
+  unread,
+}: {
+  item: {
+    kind: "sme" | "intel" | "leader" | "conflict" | "amendment" | "leader_reply" | "decision";
+    id: string; title: string; author: string; created_at: string; body: string;
+    ackButton?: { label: string; onClick: () => void } | null;
+  };
+  unread: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const meta: Record<string, { icon: any; color: string }> = {
+    sme: { icon: MessageSquare, color: "#22c55e" },
+    intel: { icon: Sparkles, color: "#22d3ee" },
+    leader: { icon: Pin, color: "#f59e0b" },
+    conflict: { icon: AlertTriangle, color: "#ef4444" },
+    amendment: { icon: FileEdit, color: "#f59e0b" },
+    leader_reply: { icon: CornerDownLeft, color: "#3b82f6" },
+    decision: { icon: CheckCircle2, color: "#a855f7" },
+  };
+  const m = meta[item.kind];
+  const Icon = m.icon;
+  return (
+    <li>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className={`flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-[13px] transition hover:bg-white/[0.04] ${unread ? "text-foreground" : "text-muted-foreground"}`}
+      >
+        <Icon className="h-3.5 w-3.5 shrink-0" style={{ color: m.color }} />
+        <span className="flex-1 truncate">{item.title}</span>
+        <span className="text-[11px] text-muted-foreground/70 shrink-0">
+          {item.author} · {timeAgo(item.created_at)}
+        </span>
+        {open ? <ChevronUp className="h-3 w-3 text-muted-foreground" /> : <ChevronDown className="h-3 w-3 text-muted-foreground" />}
+      </button>
+      {open && (
+        <div className="ml-7 mr-2 mt-1 mb-2 rounded-md border border-white/5 bg-black/20 px-3 py-2.5 text-[13px] leading-relaxed text-foreground whitespace-pre-wrap">
+          {item.body}
+          {item.ackButton && (
+            <div className="mt-2">
+              <button
+                onClick={() => item.ackButton!.onClick()}
+                className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-300 hover:bg-amber-500/20"
+              >
+                {item.ackButton.label} →
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </li>
+  );
+}
+
+function IntelPanel({
+  label, content, sourceCount, missionId, questionId,
+}: { label: string; content: string | null | undefined; sourceCount: number; missionId: string; questionId: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const text = content ?? "";
+  const isLong = text.length > 220;
+  const display = !expanded && isLong ? text.slice(0, 220).trimEnd() + "…" : text;
+  const confidence: "High" | "Medium" | "Low" =
+    sourceCount >= 3 ? "High" : sourceCount >= 1 ? "Medium" : "Low";
+  const confColor = confidence === "High" ? "#22c55e" : confidence === "Medium" ? "#eab308" : "#94a3b8";
+
+  return (
+    <div className="iris-panel rounded-r-[10px] p-4 relative">
+      <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em]" style={{ color: "#22d3ee" }}>
+        {label}
+      </div>
+      {content ? (
+        <IrisCorrectable
+          contentType="question_brief"
+          contentBlock={text}
+          missionId={missionId}
+          questionId={questionId}
+        >
+          <p className="text-[13px] leading-relaxed text-foreground whitespace-pre-wrap pr-8">{display}</p>
+        </IrisCorrectable>
+      ) : (
+        <p className="text-[13px] text-muted-foreground italic">No intelligence yet.</p>
+      )}
+      {content && (
+        <div className="mt-3 flex items-center justify-between text-[11px]">
+          <span style={{ color: confColor }}>● {confidence} confidence · {sourceCount} source{sourceCount === 1 ? "" : "s"}</span>
+          {isLong && (
+            <button onClick={() => setExpanded((e) => !e)} className="text-muted-foreground hover:text-foreground">
+              {expanded ? "Show less ↑" : "Show more ↓"}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CompliancePanel({
+  flags, missionId, questionId,
+}: { flags: string[] | null; missionId: string; questionId: string }) {
+  const has = !!(flags && flags.length > 0);
+  return (
+    <div
+      className="rounded-[10px] p-4 relative"
+      style={{
+        background: "rgba(245,158,11,0.04)",
+        borderLeft: `3px solid ${has ? "#eab308" : "rgba(255,255,255,0.08)"}`,
+      }}
+    >
+      <div className="mb-2 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em]" style={{ color: has ? "#fbbf24" : "var(--muted-foreground)" }}>
+        {has && <AlertTriangle className="h-3 w-3" />}
+        {has ? "Compliance Required" : "Past Performance"}
+      </div>
+      {has ? (
+        <IrisCorrectable
+          contentType="question_brief"
+          contentBlock={flags!.join("\n")}
+          missionId={missionId}
+          questionId={questionId}
+        >
+          <ul className="list-disc space-y-1 pl-5 text-[13px] leading-relaxed pr-8" style={{ color: "#fde68a" }}>
+            {flags!.map((f, i) => <li key={i}>{f}</li>)}
+          </ul>
+        </IrisCorrectable>
+      ) : (
+        <p className="text-[13px] text-muted-foreground italic">
+          No past-performance match yet. Athena's wins on similar questions will surface here once IRIS Memory has examples.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function GetHelpDropdown({
+  open, setOpen, missionId, questionId, questionNumber, meId, meName, onSent,
+}: {
+  open: boolean; setOpen: (b: boolean) => void;
+  missionId: string; questionId: string; questionNumber: string;
+  meId: string | null; meName: string;
+  onSent: () => void;
+}) {
+  const qc = useQueryClient();
+  const [activeType, setActiveType] = useState<null | "direction" | "decision" | "sme" | "review">(null);
+  const [body, setBody] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const TYPES = {
+    direction: { label: "Direction Needed", desc: "I need strategic guidance", routeTo: "Engagement Lead", color: "#3b82f6" },
+    decision: { label: "Decision Needed", desc: "I need a decision made", routeTo: "Engagement Lead", color: "#a855f7" },
+    sme: { label: "SME Input Needed", desc: "I need domain expertise", routeTo: "SME + PM", color: "#f59e0b" },
+    review: { label: "Review Needed", desc: "I need someone to review my draft", routeTo: "Lead / Reviewer", color: "#22c55e" },
+  } as const;
+
+  const submit = async () => {
+    if (!activeType || !meId) return;
+    setSending(true);
+    try {
+      const entryType =
+        activeType === "decision" ? "decision_needed" :
+        activeType === "sme" ? "sme_request" :
+        activeType === "review" ? "review_request" : "direction_request";
+      const { error } = await supabase.from("question_collaboration").insert({
+        question_id: questionId, mission_id: missionId,
+        author_id: meId, author_name: meName,
+        entry_type: entryType, body: body.trim() || "(no detail provided)",
+      });
+      if (error) throw error;
+      await createSignal({
+        mission_id: missionId, source_module: "cockpit",
+        signal_type: activeType === "decision" ? "decision_needed" : "comment_added",
+        signal_title: `${TYPES[activeType].label} · Q${questionNumber}`,
+        signal_summary: body.trim() || TYPES[activeType].desc,
+        severity: activeType === "decision" ? "critical" : "warning",
+        related_question_id: questionId,
+      }, qc);
+      toast.success(`Sent to ${TYPES[activeType].routeTo}.`);
+      setOpen(false); setActiveType(null); setBody("");
+      onSent();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to send");
+    } finally { setSending(false); }
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-transparent px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:border-white/20"
+      >
+        <Lightbulb className="h-3.5 w-3.5" /> Get Help <ChevronUp className="h-3 w-3" />
+      </button>
+      {open && (
+        <div className="absolute bottom-full right-0 mb-2 w-[340px] rounded-lg border border-white/10 bg-[#0a0e1a] p-3 shadow-2xl">
+          {!activeType ? (
+            <div className="space-y-1.5">
+              {(Object.keys(TYPES) as Array<keyof typeof TYPES>).map((k) => {
+                const t = TYPES[k];
+                return (
+                  <button
+                    key={k}
+                    onClick={() => setActiveType(k)}
+                    className="block w-full rounded-md border border-white/5 bg-white/[0.02] p-3 text-left hover:bg-white/[0.06] transition"
+                  >
+                    <div className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: t.color }}>
+                      {t.label}
+                    </div>
+                    <div className="mt-0.5 text-[12px] text-muted-foreground">"{t.desc}"</div>
+                    <div className="mt-1 text-[10px] text-muted-foreground/60">→ Routes to {t.routeTo}</div>
+                  </button>
+                );
+              })}
             </div>
           ) : (
-            <div className="space-y-3">
-              <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                {flagType === "decision_needed" ? "Decision Needed" : flagType === "sme_request" ? "Need Help" : "Need Air Cover"}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: TYPES[activeType].color }}>
+                  {TYPES[activeType].label}
+                </div>
+                <button onClick={() => setActiveType(null)} className="text-muted-foreground hover:text-foreground"><X className="h-3 w-3" /></button>
               </div>
               <textarea
-                value={flagBody} onChange={(e) => setFlagBody(e.target.value.slice(0, 280))}
-                placeholder="Add context (280 chars max)…" rows={4} maxLength={280}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
+                value={body} onChange={(e) => setBody(e.target.value.slice(0, 500))}
+                placeholder="Add context (optional)…"
+                rows={4}
+                className="w-full rounded-md border border-white/10 bg-white/[0.03] px-2 py-1.5 text-xs"
                 autoFocus
               />
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] text-muted-foreground">{flagBody.length}/280</span>
-                <div className="flex gap-2">
-                  <button onClick={() => setFlagType(null)} className="rounded-md border border-border px-4 py-2 text-xs text-muted-foreground hover:text-foreground">Back</button>
-                  <button
-                    onClick={() => flagSubmit.mutate()}
-                    disabled={flagSubmit.isPending}
-                    className="rounded-md bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
-                  >
-                    {flagSubmit.isPending ? "Sending…" : "Submit"}
-                  </button>
-                </div>
-              </div>
+              <button
+                onClick={submit} disabled={sending}
+                className="w-full rounded-md bg-primary py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
+              >
+                {sending ? "Sending…" : `Send to ${TYPES[activeType].routeTo}`}
+              </button>
             </div>
           )}
-        </Modal>
+        </div>
       )}
     </div>
   );
 }
 
-function Block({ label, children }: { label: string; children: React.ReactNode }) {
+function AskDrawer({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
   return (
-    <div>
-      <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">{label}</div>
-      {children}
-    </div>
-  );
-}
-
-function IrisInsight({
-  label,
-  content,
-  confidence,
-  sourceCount,
-  missionId,
-  questionId,
-}: {
-  label: string;
-  content: string;
-  confidence?: "High" | "Medium" | "Low";
-  sourceCount?: number;
-  missionId?: string;
-  questionId?: string;
-}) {
-  const confColor =
-    confidence === "High"
-      ? "var(--green)"
-      : confidence === "Medium"
-      ? "var(--yellow)"
-      : "var(--muted-foreground, #94a3b8)";
-  return (
-    <IrisCorrectable
-      contentType="question_brief"
-      contentBlock={`${label}: ${content}`}
-      missionId={missionId}
-      questionId={questionId}
-      className="pr-7"
-    >
-      <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[color:var(--iris)]">{label}</div>
-      <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">{content}</p>
-      {confidence && (
-        <div className="mt-1.5 text-[11px]" style={{ color: confColor }}>
-          Confidence: {confidence}
-          {typeof sourceCount === "number" && (
-            <span className="text-muted-foreground"> · Based on {sourceCount} source{sourceCount === 1 ? "" : "s"}</span>
-          )}
-        </div>
-      )}
-      {confidence === "Low" && (
-        <div className="mt-1 text-[11px] italic text-muted-foreground">
-          IRIS has limited specific intelligence on this topic. Consider additional research.
-        </div>
-      )}
-    </IrisCorrectable>
-  );
-}
-
-function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
-      <div className="w-full max-w-2xl rounded-[12px] border border-border bg-surface p-6" onClick={(e) => e.stopPropagation()}>
+    <>
+      <div className="fixed inset-0 z-50 bg-black/60" onClick={onClose} />
+      <div className="fixed right-0 top-0 z-50 h-full w-full max-w-md overflow-y-auto border-l border-white/10 bg-[#0a0e1a] p-6 shadow-2xl">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-sm font-semibold tracking-tight">{title}</h2>
+          <div className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.32em]" style={{ color: "#22d3ee" }}>
+            <span className="iris-dot" /> Ask IRIS
+          </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
         </div>
         {children}
       </div>
-    </div>
-  );
-}
-
-function RealityButton({ label, onClick, bg, border, color }: { label: string; onClick: () => void; bg: string; border: string; color: string }) {
-  return (
-    <button
-      onClick={onClick}
-      className="rounded-[10px] border px-4 py-5 text-xs font-semibold uppercase tracking-wider transition hover:brightness-125"
-      style={{ background: bg, borderColor: border, color }}
-    >
-      {label}
-    </button>
-  );
-}
-
-type AmendmentChange = {
-  id: string;
-  change_type: string;
-  severity: "critical" | "significant" | "administrative";
-  description: string;
-  writer_action_required: string | null;
-  acknowledged: boolean;
-  created_at: string;
-  amendment_id: string;
-};
-
-function AmendmentBanner({
-  changes,
-  onAck,
-}: {
-  changes: AmendmentChange[];
-  onAck: (id: string) => Promise<void>;
-}) {
-  const unack = changes.filter((c) => !c.acknowledged);
-  const [expanded, setExpanded] = useState(unack.length > 0);
-  const critical = changes.filter((c) => c.severity === "critical").length;
-  const tone =
-    critical > 0
-      ? "border-red-500/60 bg-red-500/10"
-      : unack.length > 0
-        ? "border-amber-500/60 bg-amber-500/10"
-        : "border-border bg-surface";
-  const dot =
-    critical > 0 ? "bg-red-400" : unack.length > 0 ? "bg-amber-400" : "bg-muted-foreground";
-
-  return (
-    <div className={`rounded-[10px] border ${tone} p-4`}>
-      <button
-        onClick={() => setExpanded((e) => !e)}
-        className="flex w-full items-center justify-between text-left"
-      >
-        <div className="flex items-center gap-3">
-          <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${dot}`}>
-            {unack.length > 0 && (
-              <span className={`absolute inset-0 animate-ping rounded-full ${dot} opacity-60`} />
-            )}
-          </span>
-          <div>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-foreground/80">
-              RFP Amendment Impact
-            </div>
-            <div className="text-sm font-medium">
-              {changes.length} change{changes.length === 1 ? "" : "s"} affect this question
-              {critical > 0 && (
-                <span className="ml-2 rounded bg-red-500/20 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-red-200">
-                  {critical} critical
-                </span>
-              )}
-              {unack.length > 0 && (
-                <span className="ml-2 text-[11px] text-muted-foreground">
-                  {unack.length} unacknowledged
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-        <span className="text-xs text-muted-foreground">{expanded ? "Hide" : "Show"}</span>
-      </button>
-
-      {expanded && (
-        <ul className="mt-4 space-y-3">
-          {changes.map((c) => (
-            <li
-              key={c.id}
-              className={`rounded-md border p-3 ${
-                c.severity === "critical"
-                  ? "border-red-500/40 bg-background/40"
-                  : c.severity === "significant"
-                    ? "border-amber-500/40 bg-background/40"
-                    : "border-border bg-background/40"
-              } ${c.acknowledged ? "opacity-60" : ""}`}
-            >
-              <div className="mb-1 flex items-center gap-2">
-                <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-                  {c.change_type.replace(/_/g, " ")}
-                </span>
-                <span
-                  className={`rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
-                    c.severity === "critical"
-                      ? "bg-red-500/20 text-red-200"
-                      : c.severity === "significant"
-                        ? "bg-amber-500/20 text-amber-200"
-                        : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  {c.severity}
-                </span>
-                {c.acknowledged && (
-                  <span className="text-[10px] text-muted-foreground">acknowledged</span>
-                )}
-              </div>
-              <p className="text-sm text-foreground">{c.description}</p>
-              {c.writer_action_required && (
-                <div className="mt-2 rounded border border-border bg-surface p-2 text-[12px]">
-                  <span className="font-semibold text-foreground">Action: </span>
-                  <span className="text-foreground/90">{c.writer_action_required}</span>
-                </div>
-              )}
-              {!c.acknowledged && (
-                <button
-                  onClick={() => onAck(c.id)}
-                  className="mt-2 rounded-md border border-border bg-background px-2 py-1 text-[11px] hover:bg-surface-hover"
-                >
-                  Acknowledge
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    </>
   );
 }
