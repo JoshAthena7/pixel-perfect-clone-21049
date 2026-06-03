@@ -286,6 +286,13 @@ function CockpitListActionBar({ missionId, question }: { missionId: string; ques
   const days = daysUntil(question.pens_down_date);
   const urgency = question.health === "red" ? "most urgent" : question.health === "yellow" ? "needs attention" : "open";
 
+  useEffect(() => {
+    const onScore = () => setScoreOpen(true);
+    window.addEventListener("atlas:open-score-me", onScore as EventListener);
+    return () => window.removeEventListener("atlas:open-score-me", onScore as EventListener);
+  }, []);
+
+
   return (
     <>
       <div className="fixed inset-x-0 bottom-[58px] z-40 border-t border-border bg-background/95 backdrop-blur md:bottom-0">
