@@ -162,7 +162,7 @@ function BriefingBookPage() {
               <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">The Oracle · Intelligence</div>
               <h1 className="mt-3 text-4xl font-semibold tracking-tight">{mission?.name ?? "—"}</h1>
               <p className="mt-2 text-base text-muted-foreground">
-                IRIS Analysis — Static Briefing Sections
+                IRIS Analysis — The Oracle Sections
                 {mission?.state ? ` · ${mission.state}` : ""}
               </p>
               <p className="mt-3 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
