@@ -255,6 +255,12 @@ function VaultPage() {
               <span className="truncate">{c}</span><span className="text-[11px]">{counts[c] ?? 0}</span>
             </button>
           ))}
+          <div className="my-2 border-t border-border" />
+          <button onClick={() => setActiveCategory("__amendments")}
+            className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-sm ${activeCategory === "__amendments" ? "bg-surface-hover text-amber-300" : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"}`}>
+            <span className="flex items-center gap-1.5"><AlertTriangle className="h-3.5 w-3.5" />Amendments</span>
+            <span className="text-[11px]">{amendments.length}</span>
+          </button>
         </aside>
 
         {/* Document list */}
@@ -262,11 +268,47 @@ function VaultPage() {
           <div className="flex items-center gap-2 border-b border-border px-3 py-2">
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search documents…"
-                className="w-full rounded-md bg-background py-1.5 pl-8 pr-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary border border-border" />
-            </div>
-          </div>
-          {isLoading ? (
+        {/* Document list / Amendments list */}
+        <div className="rounded-[10px] border border-border bg-surface overflow-hidden">
+          {activeCategory === "__amendments" ? (
+            <>
+              <div className="flex items-center gap-2 border-b border-border px-3 py-2">
+                <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
+                <div className="text-sm font-medium">RFP Amendments — IRIS analysis history</div>
+              </div>
+              {amendments.length === 0 ? (
+                <div className="p-10 text-center text-sm text-muted-foreground">
+                  No amendments analyzed yet. Upload an amendment under "RFP & Amendments" and confirm the prompt to trigger IRIS analysis.
+                </div>
+              ) : (
+                <ul className="divide-y divide-border">
+                  {amendments.map((a) => (
+                    <li key={a.id} className="flex items-center gap-3 px-4 py-3 hover:bg-surface-hover">
+                      <AlertTriangle className={`h-4 w-4 shrink-0 ${a.critical_changes > 0 ? "text-destructive" : "text-amber-400"}`} />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium capitalize">{a.amendment_type.replace(/_/g, " ")}</span>
+                          <span className={`rounded px-1.5 py-0.5 text-[9px] uppercase tracking-wide ${
+                            a.status === "analyzed" ? "bg-emerald-500/15 text-emerald-400"
+                            : a.status === "analyzing" ? "bg-amber-500/15 text-amber-400"
+                            : "bg-destructive/15 text-destructive"
+                          }`}>{a.status}</span>
+                        </div>
+                        <div className="text-[11px] text-muted-foreground">
+                          {new Date(a.created_at).toLocaleString()} · {a.total_changes} change{a.total_changes === 1 ? "" : "s"} · {a.critical_changes} critical
+                          {a.error_message && <span className="text-destructive"> · {a.error_message}</span>}
+                        </div>
+                      </div>
+                      <button onClick={() => setOpenAmendmentId(a.id)}
+                        className="rounded-md border border-border bg-background px-2 py-1 text-[11px] hover:bg-surface-hover">
+                        View analysis →
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          ) : isLoading ? (
             <div className="p-4 space-y-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="skeleton h-12 w-full" />)}</div>
           ) : visible.length === 0 ? (
             <div className="p-10 text-center text-sm text-muted-foreground">
