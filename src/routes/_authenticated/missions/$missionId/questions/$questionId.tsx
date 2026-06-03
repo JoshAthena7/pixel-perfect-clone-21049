@@ -754,12 +754,14 @@ function CockpitPage() {
                 <Sparkles className="h-4 w-4" /> Ask IRIS
               </button>
               {!isSME && (
-                <button
-                  onClick={() => setGetHelpOpen(true)}
-                  className="h-14 inline-flex items-center justify-center rounded-md border border-white/10 bg-white/[0.03] text-sm font-semibold text-foreground hover:bg-white/[0.06]"
-                >
-                  Get Help
-                </button>
+                <div className="h-14 [&>div]:h-full [&>div>button]:h-full [&>div>button]:w-full [&>div>button]:justify-center">
+                  <GetHelpDropdown
+                    open={getHelpOpen} setOpen={setGetHelpOpen}
+                    missionId={missionId} questionId={questionId} questionNumber={q.question_number}
+                    meId={me?.id ?? null} meName={firstName(me)}
+                    onSent={() => qc.invalidateQueries({ queryKey: ["question-collabs", questionId] })}
+                  />
+                </div>
               )}
             </>
           )}
