@@ -877,3 +877,122 @@ function RealityButton({ label, onClick, bg, border, color }: { label: string; o
     </button>
   );
 }
+
+type AmendmentChange = {
+  id: string;
+  change_type: string;
+  severity: "critical" | "significant" | "administrative";
+  description: string;
+  writer_action_required: string | null;
+  acknowledged: boolean;
+  created_at: string;
+  amendment_id: string;
+};
+
+function AmendmentBanner({
+  changes,
+  onAck,
+}: {
+  changes: AmendmentChange[];
+  onAck: (id: string) => Promise<void>;
+}) {
+  const unack = changes.filter((c) => !c.acknowledged);
+  const [expanded, setExpanded] = useState(unack.length > 0);
+  const critical = changes.filter((c) => c.severity === "critical").length;
+  const tone =
+    critical > 0
+      ? "border-red-500/60 bg-red-500/10"
+      : unack.length > 0
+        ? "border-amber-500/60 bg-amber-500/10"
+        : "border-border bg-surface";
+  const dot =
+    critical > 0 ? "bg-red-400" : unack.length > 0 ? "bg-amber-400" : "bg-muted-foreground";
+
+  return (
+    <div className={`rounded-[10px] border ${tone} p-4`}>
+      <button
+        onClick={() => setExpanded((e) => !e)}
+        className="flex w-full items-center justify-between text-left"
+      >
+        <div className="flex items-center gap-3">
+          <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${dot}`}>
+            {unack.length > 0 && (
+              <span className={`absolute inset-0 animate-ping rounded-full ${dot} opacity-60`} />
+            )}
+          </span>
+          <div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-foreground/80">
+              RFP Amendment Impact
+            </div>
+            <div className="text-sm font-medium">
+              {changes.length} change{changes.length === 1 ? "" : "s"} affect this question
+              {critical > 0 && (
+                <span className="ml-2 rounded bg-red-500/20 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-red-200">
+                  {critical} critical
+                </span>
+              )}
+              {unack.length > 0 && (
+                <span className="ml-2 text-[11px] text-muted-foreground">
+                  {unack.length} unacknowledged
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+        <span className="text-xs text-muted-foreground">{expanded ? "Hide" : "Show"}</span>
+      </button>
+
+      {expanded && (
+        <ul className="mt-4 space-y-3">
+          {changes.map((c) => (
+            <li
+              key={c.id}
+              className={`rounded-md border p-3 ${
+                c.severity === "critical"
+                  ? "border-red-500/40 bg-background/40"
+                  : c.severity === "significant"
+                    ? "border-amber-500/40 bg-background/40"
+                    : "border-border bg-background/40"
+              } ${c.acknowledged ? "opacity-60" : ""}`}
+            >
+              <div className="mb-1 flex items-center gap-2">
+                <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                  {c.change_type.replace(/_/g, " ")}
+                </span>
+                <span
+                  className={`rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
+                    c.severity === "critical"
+                      ? "bg-red-500/20 text-red-200"
+                      : c.severity === "significant"
+                        ? "bg-amber-500/20 text-amber-200"
+                        : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {c.severity}
+                </span>
+                {c.acknowledged && (
+                  <span className="text-[10px] text-muted-foreground">acknowledged</span>
+                )}
+              </div>
+              <p className="text-sm text-foreground">{c.description}</p>
+              {c.writer_action_required && (
+                <div className="mt-2 rounded border border-border bg-surface p-2 text-[12px]">
+                  <span className="font-semibold text-foreground">Action: </span>
+                  <span className="text-foreground/90">{c.writer_action_required}</span>
+                </div>
+              )}
+              {!c.acknowledged && (
+                <button
+                  onClick={() => onAck(c.id)}
+                  className="mt-2 rounded-md border border-border bg-background px-2 py-1 text-[11px] hover:bg-surface-hover"
+                >
+                  Acknowledge
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
