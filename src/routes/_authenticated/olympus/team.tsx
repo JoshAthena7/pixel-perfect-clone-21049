@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { UserPlus, Trash2, Users as UsersIcon } from "lucide-react";
 import { useSelectedOlympusMission } from "../olympus";
 import { logOlympusAction } from "@/lib/audit";
+import { EmptyState, EmptyIcon } from "@/components/v2/EmptyState";
 
 export const Route = createFileRoute("/_authenticated/olympus/team")({
   component: TeamPage,
