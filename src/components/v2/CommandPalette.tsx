@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Search, Plane, PenTool, Zap, Sparkles, BookOpen, Eye, Home,
   Shield, ArrowRight, CornerDownLeft, Brain, Lightbulb, GitFork,
-  MessageSquare, RadioTower, FilePlus,
+  MessageSquare, RadioTower, FilePlus, ClipboardList, Target, Clock,
 } from "lucide-react";
 import { globalSearch, type SearchHit } from "@/lib/global-search.functions";
 
