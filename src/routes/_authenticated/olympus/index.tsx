@@ -127,6 +127,9 @@ function MissionsIndex() {
                     <td className="px-4 py-3 text-[11px] text-muted-foreground">
                       {m.created_at ? new Date(m.created_at).toLocaleDateString() : "—"}
                     </td>
+                    <td className="px-4 py-3">
+                      <ReadinessChip missionId={m.id} onClick={() => setReadinessFor(m)} />
+                    </td>
                     <td className="px-4 py-3 text-right space-x-1">
                       <Link
                         to="/missions/$missionId/overview" params={{ missionId: m.id }}
