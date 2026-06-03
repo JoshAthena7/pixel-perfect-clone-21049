@@ -1,12 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState, useRef, useEffect } from "react";
-import { ChevronDown, ChevronRight, Filter as FilterIcon, Check } from "lucide-react";
+import { ChevronDown, ChevronRight, Filter as FilterIcon, Check, Sparkles, MoreHorizontal, FileText, Phone, LifeBuoy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PensDownCountdown, daysUntil } from "@/lib/countdowns";
 import { toast } from "sonner";
 import { StudioVaultOraclePeek } from "@/components/v2/StudioVaultOraclePeek";
 import { StudioHealthStrip } from "@/components/v2/StudioHealthStrip";
+import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
+import { SOSButton } from "@/components/v2/SOSButton";
+import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/questions/")({
   component: ResponsesList,
@@ -274,6 +277,89 @@ function StatusPill({
         </div>
       )}
     </div>
+  );
+}
+
+function CockpitListActionBar({ missionId, question }: { missionId: string; question: Q }) {
+  const [overflowOpen, setOverflowOpen] = useState(false);
+  const [scoreOpen, setScoreOpen] = useState(false);
+  const days = daysUntil(question.pens_down_date);
+  const urgency = question.health === "red" ? "most urgent" : question.health === "yellow" ? "needs attention" : "open";
+
+  return (
+    <>
+      <div
+        className="fixed inset-x-0 bottom-[58px] z-40 border-t border-border bg-background/95 backdrop-blur md:bottom-0"
+      >
+        <div className="mx-auto max-w-[1100px] px-6 pt-2 text-center text-[11px] text-muted-foreground max-md:hidden">
+          Q{question.question_number} is your {urgency} question.
+        </div>
+        <div className="mx-auto flex h-16 max-w-[1100px] items-center justify-between gap-3 px-6">
+          <div className="flex min-w-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={() => openUpdateReality(question.id)}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+            >
+              Update Reality
+            </button>
+            <Link
+              to="/missions/$missionId/questions/$questionId"
+              params={{ missionId, questionId: question.id }}
+              className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/10"
+            >
+              <Sparkles className="h-3.5 w-3.5" /> Ask IRIS
+            </Link>
+          </div>
+
+          <div className="hidden min-w-0 flex-1 items-center justify-center gap-2 text-[12px] text-muted-foreground md:flex">
+            <span className="font-mono">Q{question.question_number}</span>
+            <span className="truncate">· {question.title}</span>
+            {days !== null && <span className="shrink-0">· {days} days</span>}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setOverflowOpen((open) => !open)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border bg-surface text-muted-foreground transition hover:text-foreground"
+                aria-label="More Cockpit actions"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </button>
+              {overflowOpen && (
+                <div className="absolute bottom-[calc(100%+8px)] right-0 z-50 w-48 overflow-hidden rounded-md border border-border bg-surface shadow-lg">
+                  <button
+                    type="button"
+                    onClick={() => { setScoreOpen(true); setOverflowOpen(false); }}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-surface-hover"
+                  >
+                    <FileText className="h-3.5 w-3.5" /> Score Me
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setOverflowOpen(false); toast("Phone a Friend — coming soon", { description: "Open the question workspace to collaborate." }); }}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-surface-hover"
+                  >
+                    <Phone className="h-3.5 w-3.5" /> Phone a Friend
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setOverflowOpen(false); openUpdateReality(question.id); }}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-surface-hover"
+                  >
+                    <LifeBuoy className="h-3.5 w-3.5" /> Get Help
+                  </button>
+                </div>
+              )}
+            </div>
+            <SOSButton missionId={missionId} questionId={question.id} />
+          </div>
+        </div>
+      </div>
+      <ScoreMeOverlay open={scoreOpen} onClose={() => setScoreOpen(false)} missionId={missionId} lockedQuestionId={question.id} />
+    </>
   );
 }
 
