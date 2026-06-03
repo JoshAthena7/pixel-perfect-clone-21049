@@ -139,12 +139,10 @@ function TopBar({
         )}
       </div>
 
-      {/* CENTER — room toggle (mission only) */}
+      {/* CENTER — atrium nav / room toggle */}
       <div className="flex-1 flex items-center justify-center min-w-0">
         {isAtrium ? (
-          <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
-            Atrium
-          </span>
+          <AtriumNav />
         ) : isOlympus ? null : inMission && missionId ? (
           <RoomToggle missionId={missionId} room={room} />
         ) : null}
@@ -180,6 +178,37 @@ function TopBar({
         <UserAvatarMenu />
       </div>
     </header>
+  );
+}
+
+// ─── Atrium top-bar nav ───────────────────────────────────────────────────
+function AtriumNav() {
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const items: { to: string; label: string }[] = [
+    { to: "/home", label: "Home" },
+    { to: "/intelligence", label: "Intelligence" },
+    { to: "/pipeline-horizon", label: "Pipeline" },
+    { to: "/pathfinder", label: "Pathfinder" },
+  ];
+  return (
+    <nav className="flex items-center gap-1">
+      {items.map((it) => {
+        const active = path === it.to || path.startsWith(it.to + "/");
+        return (
+          <Link
+            key={it.to}
+            to={it.to as any}
+            className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] rounded-md transition-colors"
+            style={{
+              color: active ? "var(--athena-gold, #f59e0b)" : "var(--muted-foreground)",
+              background: active ? "rgba(245,158,11,0.08)" : "transparent",
+            }}
+          >
+            {it.label}
+          </Link>
+        );
+      })}
+    </nav>
   );
 }
 
