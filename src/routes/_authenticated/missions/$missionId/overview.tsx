@@ -1585,7 +1585,7 @@ function LeadershipNotesBlock({
     if (newlyVisible.length === 0) return;
     (async () => {
       await supabase.from("note_reads").upsert(
-        newlyVisible.map((n) => ({ note_id: n.id, user_id: meId })),
+        newlyVisible.map((n) => ({ note_id: n.id, user_id: meId, mission_id: missionId })),
         { onConflict: "note_id,user_id" }
       );
       onReadsChanged();
