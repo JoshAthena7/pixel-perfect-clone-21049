@@ -1722,3 +1722,448 @@ function LeadershipNotesBlock({
     </div>
   );
 }
+
+// ══════════════════════════════════════════════════════════
+// ── NEW ZONE-BASED COMPONENTS ────────────────────────────
+// ══════════════════════════════════════════════════════════
+
+function ZoneLabel({ num, label }: { num: string; label: string }) {
+  return (
+    <div
+      className="text-[9px] font-semibold uppercase select-none -mb-2"
+      style={{ letterSpacing: "0.2em", color: "rgba(255,255,255,0.10)" }}
+    >
+      {num} / {label}
+    </div>
+  );
+}
+
+// ── Needs Attention ────────────────────────────────────
+function NeedsAttention({
+  needs, qById, isLeader, onRespond, onDismiss,
+}: {
+  needs: Collab[];
+  qById: Map<string, Question>;
+  isLeader: boolean;
+  onRespond: (need: Collab, text: string) => Promise<unknown>;
+  onDismiss: (need: Collab) => Promise<unknown>;
+}) {
+  if (needs.length === 0) {
+    return (
+      <div
+        className="rounded-[10px] border px-4 py-3 flex items-center gap-2 text-sm"
+        style={{
+          background: "rgba(16,185,129,0.06)",
+          borderColor: "rgba(16,185,129,0.25)",
+          color: "rgb(110,231,183)",
+        }}
+      >
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 inline-block" />
+        No open needs. Team is operating independently.
+      </div>
+    );
+  }
+
+  if (!isLeader) {
+    return (
+      <div
+        className="rounded-[10px] border px-4 py-3 text-sm"
+        style={{
+          background: "rgba(245,158,11,0.06)",
+          borderColor: "rgba(245,158,11,0.25)",
+          color: "rgb(252,211,77)",
+        }}
+      >
+        <AlertTriangle className="h-3.5 w-3.5 inline-block mr-2 -mt-0.5" />
+        {needs.length} item{needs.length === 1 ? "" : "s"} need leadership attention
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <div
+        className="rounded-[10px] border px-4 py-2 text-xs"
+        style={{
+          background: "rgba(245,158,11,0.06)",
+          borderColor: "rgba(245,158,11,0.25)",
+          color: "rgb(252,211,77)",
+        }}
+      >
+        <AlertTriangle className="h-3 w-3 inline-block mr-2 -mt-0.5" />
+        <strong>{needs.length}</strong> team need{needs.length === 1 ? "" : "s"} require your attention
+      </div>
+      <ul className="divide-y divide-border rounded-[10px] border border-border bg-card overflow-hidden">
+        {needs.map((n) => (
+          <DecisionNeedRow
+            key={n.id}
+            need={n}
+            question={n.question_id ? qById.get(n.question_id) ?? null : null}
+            isLeader={isLeader}
+            onRespond={(text) => onRespond(n, text)}
+            onDismiss={() => onDismiss(n)}
+          />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// ── Decisions + Risks Tabs ──────────────────────────────
+function DecisionsRisksTabs({
+  decisions, risks, isLeader, canLogRisk, missionId, qc,
+}: {
+  decisions: Decision[];
+  risks: Risk[];
+  isLeader: boolean;
+  canLogRisk: boolean;
+  missionId: string;
+  qc: ReturnType<typeof useQueryClient>;
+}) {
+  const openDecisions = decisions.filter((d) => d.status === "Pending");
+  const openRisks = risks.filter((r) => r.status === "Open" || r.status === "Monitoring");
+  const [tab, setTab] = useState<"decisions" | "risks">(
+    openDecisions.length >= openRisks.length ? "decisions" : "risks"
+  );
+  const [showResolved, setShowResolved] = useState(false);
+  const resolved = decisions.filter((d) => d.status === "Final" || d.status === "Revisited");
+
+  const [showAdd, setShowAdd] = useState(false);
+  const [title, setTitle] = useState("");
+  const [severity, setSeverity] = useState("Medium");
+  const [saving, setSaving] = useState(false);
+
+  async function saveRisk() {
+    if (!title.trim()) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from("mission_risks").insert({
+        mission_id: missionId, title: title.trim(), severity, status: "Open",
+      });
+      if (error) throw error;
+      setTitle(""); setShowAdd(false);
+      qc.invalidateQueries({ queryKey: ["overview-risks", missionId] });
+      toast.success("Risk logged");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (openDecisions.length === 0 && openRisks.length === 0 && resolved.length === 0) {
+    return (
+      <div className="rounded-[10px] border border-dashed border-border p-4 text-sm text-muted-foreground">
+        No open decisions or risks.
+      </div>
+    );
+  }
+
+  const tabBtn = (k: "decisions" | "risks", label: string, count: number) => (
+    <button
+      onClick={() => setTab(k)}
+      className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+        tab === k ? "bg-white/[0.06] text-foreground" : "text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      {label}{count > 0 && <span className="ml-1.5 text-[10px] opacity-70">{count}</span>}
+    </button>
+  );
+
+  return (
+    <div className="rounded-[10px] border border-border bg-card overflow-hidden">
+      <div className="px-3 py-2 border-b border-border flex items-center justify-between">
+        <div className="flex gap-1">
+          {tabBtn("decisions", "Decisions", openDecisions.length)}
+          {tabBtn("risks", "Risks", openRisks.length)}
+        </div>
+        {tab === "risks" && canLogRisk && (
+          <button onClick={() => setShowAdd((s) => !s)} className="text-xs text-primary hover:underline inline-flex items-center gap-1">
+            <Plus className="h-3 w-3" /> Log Risk
+          </button>
+        )}
+      </div>
+
+      {tab === "decisions" && (
+        <>
+          {openDecisions.length === 0 ? (
+            <div className="p-4 text-sm text-muted-foreground">No open decisions.</div>
+          ) : (
+            <ul className="divide-y divide-border">
+              {openDecisions.map((d) => (
+                <li key={d.id} className="px-4 py-3 text-sm">
+                  <div className="font-medium">{d.title}</div>
+                  {d.rationale && <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{d.rationale}</div>}
+                  <div className="flex items-center justify-between mt-1">
+                    <div className="text-[11px] text-muted-foreground">
+                      {d.owner ?? "—"} · {relativeTime(d.created_at)}
+                    </div>
+                    {isLeader && (
+                      <button className="text-xs text-primary hover:underline">Make Decision →</button>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+          {resolved.length > 0 && (
+            <div className="border-t border-border">
+              <button
+                onClick={() => setShowResolved((s) => !s)}
+                className="w-full px-4 py-2 text-xs text-muted-foreground hover:text-foreground text-left"
+              >
+                {showResolved ? "Hide" : "View"} {resolved.length} resolved →
+              </button>
+              {showResolved && (
+                <ul className="divide-y divide-border">
+                  {resolved.map((d) => (
+                    <li key={d.id} className="px-4 py-2 text-xs text-muted-foreground">
+                      <span className="text-foreground/70">{d.title}</span> · {d.status} {d.decided_at && `· ${fmtDate(d.decided_at)}`}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </>
+      )}
+
+      {tab === "risks" && (
+        <>
+          {showAdd && canLogRisk && (
+            <div className="p-3 border-b border-border space-y-2 bg-muted/20">
+              <input
+                value={title} onChange={(e) => setTitle(e.target.value)}
+                placeholder="Risk description"
+                className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm"
+              />
+              <div className="flex items-center gap-2">
+                <select value={severity} onChange={(e) => setSeverity(e.target.value)}
+                  className="rounded-md border border-border bg-background px-2 py-1.5 text-xs">
+                  <option>Low</option><option>Medium</option><option>High</option>
+                </select>
+                <button onClick={saveRisk} disabled={saving || !title.trim()}
+                  className="rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground disabled:opacity-50">Save</button>
+                <button onClick={() => setShowAdd(false)} className="text-xs text-muted-foreground">Cancel</button>
+              </div>
+            </div>
+          )}
+          {openRisks.length === 0 ? (
+            <div className="p-4 text-sm text-muted-foreground">No active risks.</div>
+          ) : (
+            <ul className="divide-y divide-border">
+              {openRisks.map((r) => (
+                <li key={r.id} className="px-4 py-3 text-sm flex items-start gap-3">
+                  <span className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${
+                    r.severity === "High" ? "bg-destructive" : r.severity === "Medium" ? "bg-amber-400" : "bg-muted-foreground"
+                  }`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium">{r.title}</div>
+                    {r.description && <div className="text-xs text-muted-foreground mt-0.5">{r.description}</div>}
+                    <div className="text-[11px] text-muted-foreground mt-1">
+                      {r.owner ?? "Unassigned"} · {fmtDate(r.created_at)}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+// ── Win Themes Pills (horizontal row) ───────────────────
+function WinThemesPills({ themes, questions, isLeader }: { themes: WinTheme[]; questions: Question[]; isLeader: boolean }) {
+  if (themes.length === 0) {
+    return (
+      <div className="rounded-[10px] border border-dashed border-border p-6 text-sm text-muted-foreground text-center">
+        No win themes defined yet.{" "}
+        {isLeader && (
+          <Link to="/olympus" className="text-primary hover:underline">Manage in Olympus →</Link>
+        )}
+      </div>
+    );
+  }
+  const qById = new Map(questions.map((q) => [q.id, q]));
+  const total = questions.length || 1;
+  const uncovered = themes.filter((t) => {
+    const linked = (t.question_ids ?? []).filter((id) => qById.has(id));
+    return (linked.length / total) * 100 < 40;
+  });
+
+  return (
+    <div>
+      <div className="flex gap-3 overflow-x-auto pb-2">
+        {themes.map((t) => {
+          const linked = (t.question_ids ?? []).filter((id) => qById.has(id));
+          const coverage = (linked.length / total) * 100;
+          const tone = coverage > 80 ? "emerald" : coverage >= 40 ? "amber" : "red";
+          const toneCls = tone === "emerald" ? "bg-emerald-400" : tone === "amber" ? "bg-amber-400" : "bg-destructive";
+          return (
+            <div
+              key={t.id}
+              className="shrink-0 w-56 rounded-[12px] border border-border bg-card p-4"
+            >
+              <div className="text-sm font-semibold truncate">{t.title}</div>
+              <div className="mt-1 text-xs text-muted-foreground">{linked.length} question{linked.length === 1 ? "" : "s"}</div>
+              <div className="mt-3 h-1.5 rounded-full bg-muted overflow-hidden">
+                <div className={`h-full ${toneCls}`} style={{ width: `${Math.min(100, coverage)}%` }} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {uncovered.length > 0 && (
+        <div className="mt-3 space-y-1">
+          {uncovered.slice(0, 3).map((t) => {
+            const linked = (t.question_ids ?? []).filter((id) => qById.has(id));
+            return (
+              <p key={t.id} className="text-xs" style={{ color: "var(--iris, #22d3ee)" }}>
+                ● IRIS — <strong>{t.title}</strong> is reflected in only {linked.length} question{linked.length === 1 ? "" : "s"}.
+              </p>
+            );
+          })}
+        </div>
+      )}
+      {isLeader && (
+        <div className="mt-3">
+          <Link to="/olympus" className="text-xs text-primary hover:underline">Manage Win Themes →</Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Team Tabs (Mission Team / SMEs) ─────────────────────
+function TeamTabs({
+  members, questions, onMessage,
+}: { members: Member[]; questions: Question[]; onMessage: (p: Member, label: string) => void }) {
+  const [tab, setTab] = useState<"team" | "smes">("team");
+  const teamMembers = members.filter((m) => m.role !== "sme");
+  const smes = members.filter((m) => m.role === "sme");
+
+  const tabBtn = (k: "team" | "smes", label: string, count: number) => (
+    <button
+      onClick={() => setTab(k)}
+      className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+        tab === k ? "bg-white/[0.06] text-foreground" : "text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      {label} <span className="ml-1 text-[10px] opacity-70">{count}</span>
+    </button>
+  );
+
+  return (
+    <div className="rounded-[10px] border border-border bg-card overflow-hidden">
+      <div className="px-3 py-2 border-b border-border flex gap-1">
+        {tabBtn("team", "Mission Team", teamMembers.length)}
+        {tabBtn("smes", "SMEs", smes.length)}
+      </div>
+      <TeamList
+        members={tab === "team" ? teamMembers : smes}
+        questions={questions}
+        roleField={tab === "team" ? "writer" : "sme"}
+        onMessage={onMessage}
+      />
+    </div>
+  );
+}
+
+function TeamList({
+  members, questions, roleField, onMessage,
+}: { members: Member[]; questions: Question[]; roleField: "writer" | "sme"; onMessage: (p: Member, label: string) => void }) {
+  const countsByMember = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const q of questions) {
+      const id = roleField === "writer" ? q.assigned_writer_id : q.assigned_sme_id;
+      if (id) m.set(id, (m.get(id) ?? 0) + 1);
+    }
+    return m;
+  }, [questions, roleField]);
+
+  if (members.length === 0) {
+    return <div className="p-4 text-sm text-muted-foreground">No members.</div>;
+  }
+
+  return (
+    <ul className="divide-y divide-border">
+      {members.map((m) => (
+        <li
+          key={m.user_id}
+          className="group px-4 py-2.5 flex items-center gap-3 text-sm hover:bg-white/[0.03] cursor-pointer"
+          onClick={() => onMessage(m, m.role)}
+        >
+          <Avatar name={m.name} />
+          <div className="flex-1 min-w-0 truncate">
+            <span className="font-medium">{m.name}</span>
+            <span className="text-muted-foreground"> · {m.role}</span>
+          </div>
+          <span className="text-xs text-muted-foreground tabular-nums">
+            {countsByMember.get(m.user_id) ?? 0} Q
+          </span>
+          <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1" style={{ color: "var(--iris, #22d3ee)" }}>
+            <Mail className="h-2.5 w-2.5" /> Message
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+// ── Enter Cockpit Panel (big destination) ───────────────
+function EnterCockpitPanel({
+  isLeader, assignedCount, attentionCount, onEnter,
+}: { isLeader: boolean; assignedCount: number; attentionCount: number; onEnter: () => void }) {
+  return (
+    <div
+      className="rounded-[14px] text-center"
+      style={{
+        background: "rgba(59,127,255,0.05)",
+        border: "1px solid rgba(59,127,255,0.15)",
+        padding: "36px 40px",
+        margin: "0 0 8px",
+      }}
+    >
+      <div className="inline-flex items-center justify-center h-12 w-12 rounded-full mb-2"
+        style={{ background: "rgba(59,127,255,0.10)", border: "1px solid rgba(59,127,255,0.25)" }}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b7fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 19l7-7 3 3-7 7-3-3z" />
+          <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
+          <path d="M2 2l7.586 7.586" />
+        </svg>
+      </div>
+      {isLeader ? (
+        <>
+          <div className="text-[20px] font-bold text-white mt-3">Review a specific question?</div>
+          <div className="text-sm text-muted-foreground mt-1">Open any question directly in the Cockpit.</div>
+          <button
+            onClick={onEnter}
+            className="mt-6 inline-flex items-center justify-center gap-2 rounded-md border px-6 py-2.5 text-sm font-medium transition-colors hover:bg-white/[0.04]"
+            style={{ borderColor: "rgba(59,127,255,0.35)", color: "#3b7fff" }}
+          >
+            Open Cockpit <ArrowRight className="h-4 w-4" />
+          </button>
+        </>
+      ) : (
+        <>
+          <div className="text-[20px] font-bold text-white mt-3">Ready to work?</div>
+          <div className="text-sm text-muted-foreground mt-1">Your Cockpit is waiting.</div>
+          <div className="text-[13px] text-muted-foreground mt-1.5 mb-6">
+            {assignedCount} question{assignedCount === 1 ? "" : "s"} assigned
+            {attentionCount > 0 && <> · {attentionCount} need attention today</>}
+          </div>
+          <button
+            onClick={onEnter}
+            className="inline-flex items-center justify-center gap-2 rounded-md bg-[#3b7fff] px-8 py-3 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5"
+            style={{ minWidth: 240 }}
+          >
+            Enter Cockpit <ArrowRight className="h-4 w-4" />
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
