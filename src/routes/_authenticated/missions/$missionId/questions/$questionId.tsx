@@ -326,6 +326,7 @@ function CockpitPage() {
   const [askOpen, setAskOpen] = useState(false);
   const [getHelpOpen, setGetHelpOpen] = useState(false);
   const [scoreMeOpen, setScoreMeOpen] = useState(false);
+  const [overflowOpen, setOverflowOpen] = useState(false);
 
   /* Ask IRIS */
   const askFn = useServerFn(irisAskQuestion);
@@ -342,6 +343,124 @@ function CockpitPage() {
       setAnswer(`_Error: ${e?.message ?? "unknown"}_`);
     } finally { setAsking(false); }
   };
+
+  /* ──────── Situation engine ──────── */
+  // Unread co-pilot messages targeted to me on this question/mission
+  const { data: unreadCopilotCount = 0 } = useQuery({
+    queryKey: ["copilot-unread", missionId, questionId, me?.id],
+    enabled: !!me?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("pilot_copilot_messages")
+        .select("id,to_user_id,is_broadcast,acknowledged")
+        .eq("mission_id", missionId)
+        .or(`question_id.eq.${questionId},is_broadcast.eq.true`);
+      return (data ?? []).filter((m: any) =>
+        !m.acknowledged && (m.to_user_id === me!.id || m.is_broadcast)
+      ).length;
+    },
+  });
+
+  // Last check-in (latest signal authored by me on this mission)
+  const { data: lastCheckInAt } = useQuery({
+    queryKey: ["last-checkin", missionId, me?.id],
+    enabled: !!me?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("signals")
+        .select("created_at")
+        .eq("mission_id", missionId)
+        .eq("source_user_id", me!.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return (data?.created_at as string | null) ?? null;
+    },
+  });
+
+  // Brief read this session (sessionStorage flag keyed by question)
+  const briefSeenKey = `cockpit:brief-seen:${questionId}`;
+  const [briefSeenThisSession, setBriefSeenThisSession] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    return !!sessionStorage.getItem(briefSeenKey);
+  });
+  useEffect(() => {
+    if (!intel?.iris_brief || briefSeenThisSession) return;
+    const t = setTimeout(() => {
+      sessionStorage.setItem(briefSeenKey, "1");
+      setBriefSeenThisSession(true);
+    }, 6000); // counts as read after 6s of brief being visible
+    return () => clearTimeout(t);
+  }, [intel?.iris_brief, briefSeenThisSession, briefSeenKey]);
+
+  type PrimaryAction = "read_copilot" | "check_in" | "read_iris" | "get_help" | "urgent_write" | "default";
+  const primaryAction: PrimaryAction = useMemo(() => {
+    if (unreadCopilotCount > 0) return "read_copilot";
+    const hoursSinceCheckIn = lastCheckInAt
+      ? (Date.now() - new Date(lastCheckInAt).getTime()) / 3_600_000
+      : Infinity;
+    const pd = daysUntil(q?.pens_down_date ?? null);
+    if (hoursSinceCheckIn > 20 && pd !== null && pd < 14) return "check_in";
+    if (q?.writer_confidence === "stuck") return "get_help";
+    if (pd !== null && pd >= 0 && pd < 7 && q?.status !== "approved") return "urgent_write";
+    if (intel?.iris_brief && !briefSeenThisSession) return "read_iris";
+    return "default";
+  }, [unreadCopilotCount, lastCheckInAt, q?.pens_down_date, q?.writer_confidence, q?.status, intel?.iris_brief, briefSeenThisSession]);
+
+  const microLabel: string = useMemo(() => {
+    switch (primaryAction) {
+      case "read_copilot": return "Your Co-Pilot sent you a message.";
+      case "check_in":     return "You haven't checked in today.";
+      case "read_iris":    return "Read IRIS before you write.";
+      case "get_help":     return "You marked yourself as stuck.";
+      case "urgent_write": return `${daysUntil(q?.pens_down_date ?? null) ?? "—"} days to Pens Down.`;
+      default:             return `Q${q?.question_number ?? ""} is open.`;
+    }
+  }, [primaryAction, q?.pens_down_date, q?.question_number]);
+
+  /* ──────── Suggested question (IRIS) ──────── */
+  const suggestedQuestion = useMemo(() => {
+    if (myQuestions.length === 0) return null;
+    const list = [...myQuestions];
+    const score = (mq: typeof list[number]) => {
+      const d = daysUntil(mq.pens_down_date);
+      const dScore = d === null ? 9999 : Math.max(0, d);
+      const hScore = mq.health === "red" ? 0 : mq.health === "yellow" ? 1 : 2;
+      const stuck = mq.writer_confidence === "stuck" ? -1 : 0;
+      return hScore * 10000 + dScore + stuck;
+    };
+    list.sort((a, b) => score(a) - score(b));
+    const top = list[0];
+    if (!top) return null;
+    return top;
+  }, [myQuestions]);
+
+  /* First-visit tooltips */
+  const [tipStage, setTipStage] = useState<0 | 1 | 2>(0); // 0 = brief, 1 = action bar, 2 = done
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const seen = localStorage.getItem("cockpit:has_used");
+    if (seen) { setTipStage(2); return; }
+    setTipStage(0);
+    const t1 = setTimeout(() => setTipStage(1), 4000);
+    const t2 = setTimeout(() => {
+      setTipStage(2);
+      localStorage.setItem("cockpit:has_used", "1");
+    }, 7000);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
+
+  /* Sublabels for overflow menu — disappear after first use */
+  const [showSublabels, setShowSublabels] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return !localStorage.getItem("cockpit:overflow_used");
+  });
+  const markOverflowUsed = () => {
+    localStorage.setItem("cockpit:overflow_used", "1");
+    setShowSublabels(false);
+  };
+
+
 
   if (isLoading) return <div className="px-8 py-12 text-sm text-muted-foreground">Loading…</div>;
   if (!q) {
