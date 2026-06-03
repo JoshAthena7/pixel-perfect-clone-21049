@@ -285,7 +285,7 @@ function AthenaHQ() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-6">
         <div className="max-w-md text-center">
-          <img src={athenaLogo} alt="Athena" className="mx-auto mb-8 h-12 w-auto opacity-80" />
+          <img src={athenaLogo} alt="Athena" className="mx-auto mb-8 h-12 w-auto opacity-25 mix-blend-luminosity" style={{ filter: "brightness(0.55) contrast(0.85)" }} />
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Welcome to Atlas.</h1>
           <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
             You haven't been assigned to a mission yet.<br />
