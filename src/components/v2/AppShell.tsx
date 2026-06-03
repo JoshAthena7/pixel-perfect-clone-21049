@@ -139,12 +139,10 @@ function TopBar({
         )}
       </div>
 
-      {/* CENTER — room toggle (mission only) */}
+      {/* CENTER — atrium nav / room toggle */}
       <div className="flex-1 flex items-center justify-center min-w-0">
         {isAtrium ? (
-          <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
-            Atrium
-          </span>
+          <AtriumNav />
         ) : isOlympus ? null : inMission && missionId ? (
           <RoomToggle missionId={missionId} room={room} />
         ) : null}
