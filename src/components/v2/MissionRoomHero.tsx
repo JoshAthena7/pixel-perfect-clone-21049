@@ -27,11 +27,11 @@ export function MissionRoomHero({ missionId }: { missionId: string }) {
     queryFn: async () => {
       const { data, count } = await supabase
         .from("mission_library")
-        .select("file_name,created_at", { count: "exact" })
+        .select("name,created_at", { count: "exact" })
         .eq("mission_id", missionId)
         .order("created_at", { ascending: false })
         .limit(3);
-      return { count: count ?? 0, latest: (data ?? []) as Array<{ file_name?: string; created_at?: string }> };
+      return { count: count ?? 0, latest: (data ?? []) as Array<{ name?: string; created_at?: string }> };
     },
   });
 
