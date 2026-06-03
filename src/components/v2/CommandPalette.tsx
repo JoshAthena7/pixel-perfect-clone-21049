@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Search, Plane, PenTool, Zap, Sparkles, BookOpen, Eye, Home,
   Shield, ArrowRight, CornerDownLeft, Brain, Lightbulb, GitFork,
-  MessageSquare, RadioTower, FilePlus,
+  MessageSquare, RadioTower, FilePlus, ClipboardList, Target, Clock,
 } from "lucide-react";
 import { globalSearch, type SearchHit } from "@/lib/global-search.functions";
 
@@ -30,7 +30,7 @@ function saveRecent(r: Recent) {
   try {
     const existing = loadRecents().filter((x) => x.id !== r.id);
     existing.unshift(r);
-    localStorage.setItem(RECENTS_KEY, JSON.stringify(existing.slice(0, 5)));
+    localStorage.setItem(RECENTS_KEY, JSON.stringify(existing.slice(0, 3)));
   } catch { /* noop */ }
 }
 
@@ -118,28 +118,24 @@ export function CommandPalette() {
     const list: JumpItem[] = [];
     if (missionId) {
       list.push(
-        { id: "j-mission", group: "Jump", label: "Mission Room", hint: "Full briefing", icon: <Sparkles size={14} className="text-[color:var(--yellow,#f59e0b)]" />,
+        { id: "j-brief", group: "This mission", label: "Mission Brief", hint: "Leadership view", icon: <ClipboardList size={14} className="text-[#7c3aed]" />,
+          onGo: () => navigate({ to: "/missions/$missionId/command", params: { missionId } }) },
+        { id: "j-mission", group: "This mission", label: "Mission Room", hint: "Full mission reference", icon: <Sparkles size={14} className="text-[color:var(--yellow,#f59e0b)]" />,
           onGo: () => navigate({ to: "/missions/$missionId/overview", params: { missionId } }) },
-        { id: "j-studio", group: "Jump", label: "Cockpit", hint: "My work", icon: <PenTool size={14} className="text-[#3b7fff]" />,
+        { id: "j-studio", group: "This mission", label: "Cockpit", hint: "Your work", icon: <PenTool size={14} className="text-[#3b7fff]" />,
           onGo: () => navigate({ to: "/missions/$missionId/questions", params: { missionId } }) },
-        { id: "j-vault", group: "Jump", label: "Vault", hint: "Mission documents", icon: <BookOpen size={14} className="text-[color:var(--athena-gold,#d4af37)]" />,
+        { id: "j-vault", group: "This mission", label: "Vault", hint: "Source documents", icon: <BookOpen size={14} className="text-[color:var(--athena-gold,#d4af37)]" />,
           onGo: () => navigate({ to: "/missions/$missionId/library", params: { missionId } }) },
-        { id: "j-oracle", group: "Jump", label: "The Oracle", hint: "Intelligence Hub", icon: <Eye size={14} className="text-[color:var(--iris,#22d3ee)]" />,
+        { id: "j-oracle", group: "This mission", label: "Oracle", hint: "IRIS intelligence", icon: <Eye size={14} className="text-[color:var(--iris,#22d3ee)]" />,
           onGo: () => navigate({ to: "/missions/$missionId/briefing", params: { missionId } }) },
-        { id: "j-iris", group: "Jump", label: "Ask IRIS", icon: <Sparkles size={14} className="text-[color:var(--iris,#22d3ee)]" />,
-          onGo: () => navigate({ to: "/missions/$missionId/iris", params: { missionId } }) },
       );
     }
     list.push(
-      { id: "g-home", group: "Global", label: "Home · Atrium", icon: <Home size={14} />, onGo: () => navigate({ to: "/home" }) },
-      { id: "g-command", group: "Global", label: "Attention Queue", icon: <Zap size={14} className="text-[color:var(--red,#ef4444)]" />,
-        onGo: () => navigate({ to: "/command/attention" }) },
-      { id: "g-intel", group: "Global", label: "The Oracle (Intelligence Hub)", icon: <Brain size={14} className="text-[color:var(--iris,#22d3ee)]" />,
+      { id: "g-home", group: "Global", label: "Atrium", hint: "Home", icon: <Home size={14} />, onGo: () => navigate({ to: "/home" }) },
+      { id: "g-intel", group: "Global", label: "Intelligence Hub", hint: "All knowledge layers", icon: <Brain size={14} className="text-[color:var(--iris,#22d3ee)]" />,
         onGo: () => navigate({ to: "/intelligence" }) },
-      { id: "g-olympus", group: "Global", label: "Olympus · Admin", icon: <Shield size={14} className="text-[color:var(--athena-gold,#d4af37)]" />,
-        onGo: () => navigate({ to: "/olympus" }) },
     );
-    for (const m of missions) {
+    for (const m of missions.slice(0, 5)) {
       list.push({
         id: `m-${m.id}`,
         group: "Missions",
@@ -153,17 +149,32 @@ export function CommandPalette() {
     return list;
   }, [missionId, missions, navigate]);
 
-  const quickActions: JumpItem[] = useMemo(() => ([
-    { id: "qa-update", group: "Quick actions", label: "Update Reality",
-      icon: <FilePlus size={14} className="text-[color:var(--iris,#22d3ee)]" />,
-      onGo: () => window.dispatchEvent(new CustomEvent("atlas:open-update-reality")) },
-    { id: "qa-teach", group: "Quick actions", label: "Teach IRIS",
-      icon: <Brain size={14} className="text-[color:var(--iris,#22d3ee)]" />,
-      onGo: () => navigate({ to: "/olympus/iris-memory" }) },
-    { id: "qa-source", group: "Quick actions", label: "Add Source",
-      icon: <BookOpen size={14} className="text-[color:var(--athena-gold,#d4af37)]" />,
-      onGo: () => navigate({ to: "/olympus/source-finder" }) },
-  ]), [navigate]);
+  const quickActions: JumpItem[] = useMemo(() => {
+    const list: JumpItem[] = [
+      { id: "qa-update", group: "Quick actions", label: "Update Reality", hint: "Signal to your team",
+        icon: <Zap size={14} className="text-[color:var(--accent,#3b7fff)]" />,
+        onGo: () => window.dispatchEvent(new CustomEvent("atlas:open-update-reality")) },
+    ];
+    if (missionId) {
+      list.push({
+        id: "qa-ask", group: "Quick actions", label: "Ask IRIS", hint: "Get coaching now",
+        icon: <Sparkles size={14} className="text-[color:var(--iris,#22d3ee)]" />,
+        onGo: () => navigate({ to: "/missions/$missionId/iris", params: { missionId } }),
+      });
+    }
+    list.push(
+      { id: "qa-teach", group: "Quick actions", label: "Teach IRIS", hint: "Add to IRIS Memory",
+        icon: <Brain size={14} className="text-[color:var(--iris,#22d3ee)]" />,
+        onGo: () => navigate({ to: "/olympus/iris-memory" }) },
+      { id: "qa-source", group: "Quick actions", label: "Add Source", hint: "Ingest intelligence",
+        icon: <BookOpen size={14} className="text-[color:var(--yellow,#f59e0b)]" />,
+        onGo: () => navigate({ to: "/olympus/source-finder" }) },
+      { id: "qa-score", group: "Quick actions", label: "Score Me", hint: "Score a draft",
+        icon: <Target size={14} className="text-[color:var(--accent,#3b7fff)]" />,
+        onGo: () => window.dispatchEvent(new CustomEvent("atlas:open-score-me")) },
+    );
+    return list;
+  }, [navigate, missionId]);
 
   // Build flat list for keyboard navigation
   type FlatRow =
@@ -177,9 +188,10 @@ export function CommandPalette() {
       return out;
     }
     // Pre-typing view: recents first, then quick actions, then jumps
-    for (const r of recents) {
+    for (const r of recents.slice(0, 3)) {
       out.push({ kind: "jump", item: {
-        id: `r-${r.id}`, group: "Recently visited", label: r.label, hint: r.hint, icon: iconForGroup((r.group as SearchHit["group"]) ?? "Questions"),
+        id: `r-${r.id}`, group: "Recent", label: r.label, hint: r.hint,
+        icon: <Clock size={14} className="text-muted-foreground" />,
         onGo: () => navigate({ to: r.to as any }),
       }});
     }
@@ -277,7 +289,23 @@ export function CommandPalette() {
         </div>
         <div className="overflow-y-auto py-2" style={{ maxHeight: 400 }}>
           {grouped.length === 0 && debounced.length >= 2 && !isFetching && (
-            <div className="px-6 py-10 text-center text-sm text-muted-foreground">No matches for “{debounced}”</div>
+            <div className="px-6 py-10 text-center">
+              <div className="text-sm text-muted-foreground">No results for “{debounced}”</div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (missionId) {
+                    navigate({ to: "/missions/$missionId/iris", params: { missionId }, search: { q: debounced } as any });
+                  } else {
+                    navigate({ to: "/intelligence" });
+                  }
+                  setOpen(false);
+                }}
+                className="mt-2 inline-flex items-center gap-1 text-[12px] text-[color:var(--iris,#22d3ee)] hover:underline"
+              >
+                Try asking IRIS instead <ArrowRight size={11} />
+              </button>
+            </div>
           )}
           {grouped.length === 0 && debounced.length < 2 && (
             <div className="px-6 py-10 text-center text-sm text-muted-foreground">Start typing to search Atlas.</div>
