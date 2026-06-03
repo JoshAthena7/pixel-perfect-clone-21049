@@ -698,7 +698,7 @@ function ActivityRow({ a, q }: { a: any; q?: { question_number: string; title: s
   );
 }
 
-function BroadcastModal({ onClose }: { onClose: () => void }) {
+function BroadcastModal({ onClose, missionId }: { onClose: () => void; missionId?: string }) {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [fromName, setFromName] = useState("");
@@ -721,7 +721,7 @@ function BroadcastModal({ onClose }: { onClose: () => void }) {
         user_id: u.user.id,
         from_name: fromName.trim() || "Leadership",
         text: text.trim(),
-        mission_id: null,
+        mission_id: missionId ?? null,
       });
       if (error) throw error;
       toast.success("Broadcast sent");
