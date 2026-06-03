@@ -19,6 +19,7 @@ type Q = {
   id: string;
   mission_id: string;
   question_number: string;
+  section_number: string | null;
   title: string;
   pens_down_date: string | null;
   assigned_writer_id: string | null;
