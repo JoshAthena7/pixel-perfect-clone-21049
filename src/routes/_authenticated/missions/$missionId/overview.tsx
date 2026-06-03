@@ -582,106 +582,61 @@ function MissionOverviewPage() {
           </div>
         </section>
 
-        {/* IRIS Intelligence section removed — persistent top strip is the single IRIS voice */}
-
-
-        {/* Leader-only Team Needs alert */}
-        {isLeader && needs.length > 0 && (
-          <section
-            className="rounded-[10px] px-5 py-4 flex items-center justify-between gap-4"
-            style={{
-              background: "rgba(245, 158, 11, 0.08)",
-              border: "1px solid rgba(245, 158, 11, 0.3)",
-            }}
-          >
-            <div className="flex items-center gap-3 text-sm">
-              <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
-              <span className="text-amber-100">
-                <strong>{needs.length}</strong> team need{needs.length === 1 ? "" : "s"} require your attention
-              </span>
-            </div>
-            <a href="#decisions-risks" className="text-xs text-amber-300 hover:underline inline-flex items-center gap-1">
-              Review needs <ArrowRight className="h-3 w-3" />
-            </a>
-          </section>
-        )}
-
-        <div className="mr-divider" />
-
-        {/* ── 3. MISSION KNOWLEDGE (Vault + Oracle) ───── */}
+        {/* ── MISSION KNOWLEDGE (Vault + Oracle) ──────── */}
         <section>
           <h2 className="mr-section-label" style={{ color: "rgba(255,255,255,0.5)" }}>Mission Knowledge</h2>
           <MissionRoomHero missionId={missionId} />
-
-          {/* Score Me card */}
-          <button
-            type="button"
-            onClick={() => setScoreMeOpen(true)}
-            className="mt-4 w-full text-left rounded-[12px] px-6 py-5 transition-transform hover:-translate-y-0.5"
-            style={{
-              border: "1px solid rgba(8,145,178,0.3)",
-              background: "radial-gradient(ellipse at 0% 50%, rgba(8,145,178,0.10), hsl(var(--card)) 70%)",
-              boxShadow: "0 0 0 1px rgba(8,145,178,0.05)",
-            }}
-          >
-            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em]" style={{ color: "var(--iris, #22d3ee)" }}>
-              <span className="relative inline-flex h-1.5 w-1.5">
-                <span className="absolute inset-0 rounded-full animate-ping" style={{ background: "var(--iris, #22d3ee)" }} />
-                <span className="relative inline-block h-1.5 w-1.5 rounded-full" style={{ background: "var(--iris, #22d3ee)" }} />
-              </span>
-              Score Me
-            </div>
-            <div className="mt-2 text-sm text-foreground/90 max-w-2xl leading-relaxed">
-              Paste any response. IRIS scores it against the RFP evaluation criteria and tells you exactly what to change to reach 4.7.
-            </div>
-            <div className="mt-3 inline-flex items-center gap-1 text-xs font-semibold" style={{ color: "var(--iris, #22d3ee)" }}>
-              Score a Response →
-            </div>
-          </button>
         </section>
 
         <div className="mr-divider" />
 
-        {/* ── 3a. SUPPORT REQUESTS (lead-only) ────── */}
-        {isLeader && (
-          <>
-            <Link
-              to="/missions/$missionId/command"
-              params={{ missionId }}
-              className="block w-full text-left rounded-[12px] px-6 py-5 transition-transform hover:-translate-y-0.5 mb-4"
-              style={{
-                border: "1px solid rgba(245,158,11,0.3)",
-                background: "radial-gradient(ellipse at 0% 50%, rgba(245,158,11,0.10), hsl(var(--card)) 70%)",
-                boxShadow: "0 0 0 1px rgba(245,158,11,0.05)",
-              }}
-            >
-              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em]" style={{ color: "var(--athena-gold, #f59e0b)" }}>
-                <span className="relative inline-flex h-1.5 w-1.5">
-                  <span className="absolute inset-0 rounded-full animate-ping" style={{ background: "var(--athena-gold, #f59e0b)" }} />
-                  <span className="relative inline-block h-1.5 w-1.5 rounded-full" style={{ background: "var(--athena-gold, #f59e0b)" }} />
-                </span>
-                Mission Brief
-              </div>
-              <div className="mt-2 text-sm text-foreground/90 max-w-2xl leading-relaxed">
-                Leadership command for this mission. Team needs, responses at risk, gates approaching, and the last 24 hours of signals — scoped to this mission only.
-              </div>
-              <div className="mt-3 inline-flex items-center gap-1 text-xs font-semibold" style={{ color: "var(--athena-gold, #f59e0b)" }}>
-                Open Mission Brief →
-              </div>
-            </Link>
-            <SupportQueueSection />
-            <div className="mr-divider" />
-          </>
-        )}
-
-        {/* ── 3b. PILOT STATUS (lead-only) ───── */}
-        <PilotStatusSection missionId={missionId} isLead={isLeader} />
+        {/* ══════════════════════════════════════════════════════════ */}
+        {/* ZONE 1 · RIGHT NOW                                         */}
+        {/* ══════════════════════════════════════════════════════════ */}
+        <ZoneLabel num="01" label="RIGHT NOW" />
+        <section>
+          <h2 className="mr-section-label">Needs Attention</h2>
+          <NeedsAttention
+            needs={needs}
+            qById={qById}
+            isLeader={isLeader}
+            onRespond={(need, text) => respondMutation.mutateAsync({ need, text })}
+            onDismiss={(n) => dismissMutation.mutateAsync(n)}
+          />
+        </section>
 
         <div className="mr-divider" />
 
-        {/* ── 4. QUESTION MAP ─────────────────────────── */}
+        {/* ══════════════════════════════════════════════════════════ */}
+        {/* ZONE 2 · PULSE                                             */}
+        {/* ══════════════════════════════════════════════════════════ */}
+        <ZoneLabel num="02" label="PULSE" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <section>
+            <h2 className="mr-section-label">Timeline</h2>
+            <Timeline mission={mission ?? null} gates={gates} />
+          </section>
+          <section id="decisions-risks">
+            <h2 className="mr-section-label">Decisions + Risks</h2>
+            <DecisionsRisksTabs
+              decisions={decisions}
+              risks={risks}
+              isLeader={isLeader}
+              canLogRisk={isLeader || isPM}
+              missionId={missionId}
+              qc={qc}
+            />
+          </section>
+        </div>
+
+        <div className="mr-divider" />
+
+        {/* ══════════════════════════════════════════════════════════ */}
+        {/* ZONE 3 · THE MISSION                                       */}
+        {/* ══════════════════════════════════════════════════════════ */}
+        <ZoneLabel num="03" label="THE MISSION" />
         <section>
-          <h2 className="mr-section-label" style={{ color: "hsl(var(--primary))" }}>Question Map</h2>
+          <h2 className="mr-section-label">Question Map</h2>
           <div className="mb-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
             <span>{counts.total} Total</span>
             <span className="text-emerald-400">●{counts.green} Green</span>
@@ -699,71 +654,13 @@ function MissionOverviewPage() {
           />
         </section>
 
-        <div className="mr-divider" />
-
-        {/* ── 5. TEAM ─────────────────────────────────── */}
-        <section>
-          <h2 className="mr-section-label" style={{ color: "rgba(255,255,255,0.5)" }}>Team</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <TeamColumn
-              title="Mission Team"
-              members={members.filter((m) => m.role !== "sme")}
-              questions={questions}
-              roleField="writer"
-              onMessage={openCompose}
-            />
-            <TeamColumn
-              title="SME Directory"
-              members={members.filter((m) => m.role === "sme")}
-              questions={questions}
-              roleField="sme"
-              onMessage={openCompose}
-            />
-          </div>
+        <section className="mt-8">
+          <h2 className="mr-section-label">Win Themes</h2>
+          <WinThemesPills themes={winThemes} questions={questions} isLeader={isLeader} />
         </section>
 
-        <div className="mr-divider" />
-
-        {/* ── 6. TIMELINE ─────────────────────────────── */}
-        <section>
-          <h2 className="mr-section-label" style={{ color: "rgb(245, 158, 11)" }}>Timeline</h2>
-          <Timeline
-            mission={mission ?? null}
-            gates={gates}
-          />
-        </section>
-
-        <div className="mr-divider" />
-
-        {/* ── 7. DECISIONS + RISKS ────────────────────── */}
-        <section id="decisions-risks">
-          <h2 className="mr-section-label" style={{ color: "rgba(255,255,255,0.5)" }}>Decisions + Risks</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <DecisionsCol
-              decisions={decisions}
-              needs={needs}
-              qById={qById}
-              isLeader={isLeader}
-              onRespond={(need, text) => respondMutation.mutateAsync({ need, text })}
-              onDismiss={(n) => dismissMutation.mutateAsync(n)}
-            />
-            <RisksCol risks={risks} canLog={isLeader || isPM} missionId={missionId} qc={qc} />
-          </div>
-        </section>
-
-        <div className="mr-divider" />
-
-        {/* ── 8. WIN THEMES ───────────────────────────── */}
-        <section>
-          <h2 className="mr-section-label" style={{ color: "rgba(255,255,255,0.5)" }}>Win Themes</h2>
-          <WinThemesGrid themes={winThemes} questions={questions} />
-        </section>
-
-        <div className="mr-divider" />
-
-        {/* ── 9. LEADERSHIP NOTES ─────────────────────── */}
-        <section>
-          <h2 className="mr-section-label" style={{ color: "rgba(255,255,255,0.5)" }}>Leadership Notes</h2>
+        <section className="mt-8">
+          <h2 className="mr-section-label">Leadership Notes</h2>
           <LeadershipNotesBlock
             notes={notes}
             canWrite={isLeader}
@@ -781,9 +678,23 @@ function MissionOverviewPage() {
 
         <div className="mr-divider" />
 
-        {/* ── 10. WHAT CHANGED ────────────────────────── */}
+        {/* ══════════════════════════════════════════════════════════ */}
+        {/* ZONE 4 · PEOPLE                                            */}
+        {/* ══════════════════════════════════════════════════════════ */}
+        <ZoneLabel num="04" label="PEOPLE" />
         <section>
-          <h2 className="mr-section-label" style={{ color: "rgba(255,255,255,0.5)" }}>What Changed</h2>
+          <h2 className="mr-section-label">Team</h2>
+          <TeamTabs members={members} questions={questions} onMessage={openCompose} />
+        </section>
+
+        <div className="mr-divider" />
+
+        {/* ══════════════════════════════════════════════════════════ */}
+        {/* ZONE 5 · ACTIVITY                                          */}
+        {/* ══════════════════════════════════════════════════════════ */}
+        <ZoneLabel num="05" label="ACTIVITY" />
+        <section>
+          <h2 className="mr-section-label">What Changed</h2>
           <p className="-mt-5 mb-4 text-[11px] text-muted-foreground">Last 24 hours</p>
           <WhatChangedBlock
             signals={recentSignals}
@@ -797,17 +708,17 @@ function MissionOverviewPage() {
           />
         </section>
 
-        <div className="mr-divider" />
-
-        {/* ── 11. ENTER STUDIO ────────────────────────── */}
-        <section>
-          <EnterStudioCTA
-            missionId={missionId}
+        {/* ── ENTER COCKPIT — destination panel ───────── */}
+        <section className="pt-4">
+          <EnterCockpitPanel
+            isLeader={isLeader}
             assignedCount={myAssigned.length}
             attentionCount={myAttention.length}
+            onEnter={() => navigate({ to: "/missions/$missionId/studio", params: { missionId } })}
           />
         </section>
       </div>
+
 
       {/* Read-only question drawer */}
       {drawerQ && (
