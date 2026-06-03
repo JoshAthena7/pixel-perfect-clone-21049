@@ -185,7 +185,7 @@ function MissionSettingsForm({ missionId }: { missionId: string }) {
       </Section>
 
       <Section title="Strategy">
-        <Field label="Win themes (comma-separated)" hint="Used by IRIS to surface theme alignment in Studio.">
+        <Field label="Win themes (comma-separated)" hint="Used by IRIS to surface theme alignment in the Cockpit.">
           <input value={(form.win_themes ?? []).join(", ")} onChange={(e) => csvUpdate("win_themes", e.target.value)} className={inputCls} />
         </Field>
         <Field label="Priority topics (comma-separated)">

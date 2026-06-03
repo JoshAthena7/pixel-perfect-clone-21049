@@ -339,7 +339,7 @@ function ActivateChecklistModal({ mission, onClose }: { mission: MissionRow; onC
   return (
     <ModalShell onClose={onClose} title={`Activate ${mission.name}`} subtitle="Activation Checklist">
       <p className="text-sm text-muted-foreground">
-        Activating makes this mission visible to assigned team members in the Lobby and Studio. Drafts are hidden from non-admins.
+        Activating makes this mission visible to assigned team members in the Lobby and Cockpit. Drafts are hidden from non-admins.
       </p>
       <ul className="mt-4 space-y-2">
         {items.map((i) => (

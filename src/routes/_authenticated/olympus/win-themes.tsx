@@ -76,7 +76,7 @@ function WinThemesPage() {
           <div className="h2-label" style={{ letterSpacing: "0.32em" }}>Win Themes</div>
           <h1 className="h1-display mt-1">Mission Win Themes</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Define and link themes to questions — they surface as chips in Studio automatically.
+            Define and link themes to questions — they surface as chips in the Cockpit automatically.
           </p>
         </div>
         <button

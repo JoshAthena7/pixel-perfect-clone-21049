@@ -41,7 +41,7 @@ export function Breadcrumbs() {
   const isHome = path.endsWith("/overview") || path === `/missions/${missionId}`;
 
   const pageLabel = isQuestion ? "Q"
-    : isQuestionsList ? "Studio"
+    : isQuestionsList ? "Cockpit"
     : isLibrary ? "Library"
     : isOracle ? "Briefing Room"
     : isOperations ? "Operations"
@@ -56,7 +56,7 @@ export function Breadcrumbs() {
   ];
 
   if (isQuestion) {
-    crumbs.push({ label: "Studio", to: "/missions/$missionId/questions", params: { missionId } });
+    crumbs.push({ label: "Cockpit", to: "/missions/$missionId/questions", params: { missionId } });
     const qTitle = question ? `Q${question.question_number} ${(question.title ?? "").slice(0, 30)}${(question.title?.length ?? 0) > 30 ? "…" : ""}` : "…";
     crumbs.push({ label: qTitle });
   } else if (!isHome && pageLabel) {
