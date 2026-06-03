@@ -608,7 +608,7 @@ function Step3Activation({
   const lines = [
     "IRIS is reading your documents…",
     "IRIS is building question intelligence…",
-    "IRIS is seeding your Briefing Book…",
+    "IRIS is seeding your Oracle…",
     "IRIS is ready.",
   ];
 
