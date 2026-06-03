@@ -182,6 +182,7 @@ export function ScoreMeOverlay({ open, onClose, missionId, lockedQuestionId }: P
           <ResultStage
             analysis={analysis}
             question={selectedQ}
+            responseText={responseText}
             onAnother={() => { setResponseText(""); setAnalysis(null); setStage("input"); }}
             onClose={onClose}
             missionId={missionId}
@@ -357,16 +358,22 @@ function OracleEye({ size = 80 }: { size?: number }) {
 /* ──────────────────────────────────────────── RESULT ────────── */
 
 function ResultStage({
-  analysis, question, onAnother, onClose, missionId,
+  analysis, question, onAnother, onClose, missionId, responseText,
 }: {
   analysis: Analysis;
   question: Question;
   onAnother: () => void;
   onClose: () => void;
   missionId: string;
+  responseText: string;
 }) {
   const [count, setCount] = useState(0);
   const rafRef = useRef<number | null>(null);
+  const personFirstFlags = useMemo(() => scanForPersonFirstFlags(responseText), [responseText]);
+  const personFirstImpact = personFirstFlags.length === 0
+    ? 0
+    : personFirstFlags.length <= 2 ? 0.1 : personFirstFlags.length <= 4 ? 0.2 : 0.3;
+
 
   useEffect(() => {
     const target = analysis.score;
