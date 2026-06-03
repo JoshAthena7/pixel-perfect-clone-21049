@@ -641,7 +641,11 @@ function CockpitPage() {
         <div className="mx-auto flex h-16 max-w-[1100px] items-center justify-between gap-3 px-10">
           {/* LEFT */}
           <div className="flex items-center gap-2">
-            {isSME ? (
+            {isReadOnlyView ? (
+              <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                Read-only — actions disabled
+              </span>
+            ) : isSME ? (
               <button
                 onClick={() => openUpdateReality(questionId)}
                 className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
@@ -656,12 +660,14 @@ function CockpitPage() {
                 Update Reality
               </button>
             )}
-            <button
-              onClick={() => setAskOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-transparent px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/10"
-            >
-              <Sparkles className="h-3.5 w-3.5" /> Ask IRIS
-            </button>
+            {!isReadOnlyView && (
+              <button
+                onClick={() => setAskOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-transparent px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/10"
+              >
+                <Sparkles className="h-3.5 w-3.5" /> Ask IRIS
+              </button>
+            )}
           </div>
 
           {/* CENTER status */}
