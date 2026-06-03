@@ -109,7 +109,8 @@ function LoginPage() {
               <img
                 src={athenaSgLockup.url}
                 alt="Athena Strategy Group"
-                className="h-7 w-auto object-contain opacity-80"
+                className="h-8 w-auto object-contain"
+                style={{ filter: "brightness(1.6) saturate(1.1)" }}
               />
               <div className="flex items-center gap-1.5">
                 <div className="flex h-3 w-3 items-center justify-center rounded-full border border-sky-400/60">
