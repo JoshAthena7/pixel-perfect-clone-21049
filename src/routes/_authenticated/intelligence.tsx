@@ -89,8 +89,13 @@ function IntelligenceHub() {
               Athena's permanent knowledge infrastructure. Every source. Every program. Every lesson learned.
             </p>
           </div>
-          <IntelligenceHealth stats={stats} />
+          <div className="flex items-center gap-2">
+            <ReviewQueueLink />
+            <IntelligenceHealth stats={stats} />
+          </div>
         </div>
+
+        <OnboardingBanner stats={stats} />
 
         {/* Live stats pills */}
         <div className="mt-5 flex flex-wrap gap-2">
