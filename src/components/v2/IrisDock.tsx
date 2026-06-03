@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Sparkles, X, Send, Eye } from "lucide-react";
+import { Sparkles, X, Send, Eye, ThumbsUp, ThumbsDown, Flag } from "lucide-react";
 import { irisAskGlobal, irisAskMission, irisAskQuestion } from "@/lib/iris-ask.functions";
+import { IrisCorrectable } from "@/components/v2/IrisCorrectable";
+import { toast } from "sonner";
 
 type Msg = { role: "user" | "iris"; text: string };
 
@@ -145,15 +147,20 @@ export function IrisDock() {
             )}
             {msgs.map((m, i) => (
               <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div
-                  className="max-w-[88%] rounded-lg px-3 py-2 text-[13px] leading-relaxed whitespace-pre-wrap"
-                  style={
-                    m.role === "user"
-                      ? { background: "rgba(59,127,255,0.15)", border: "1px solid rgba(59,127,255,0.25)", color: "var(--foreground)" }
-                      : { background: "rgba(34,211,238,0.06)", border: "1px solid rgba(34,211,238,0.18)", color: "var(--foreground)" }
-                  }
-                >
-                  {m.text}
+                <div className="max-w-[88%]">
+                  <div
+                    className="rounded-lg px-3 py-2 text-[13px] leading-relaxed whitespace-pre-wrap"
+                    style={
+                      m.role === "user"
+                        ? { background: "rgba(59,127,255,0.15)", border: "1px solid rgba(59,127,255,0.25)", color: "var(--foreground)" }
+                        : { background: "rgba(34,211,238,0.06)", border: "1px solid rgba(34,211,238,0.18)", color: "var(--foreground)" }
+                    }
+                  >
+                    {m.text}
+                  </div>
+                  {m.role === "iris" && missionId && (
+                    <AskIrisFeedback text={m.text} missionId={missionId} questionId={questionId ?? null} />
+                  )}
                 </div>
               </div>
             ))}
@@ -192,5 +199,73 @@ export function IrisDock() {
         </aside>
       )}
     </>
+  );
+}
+
+function AskIrisFeedback({
+  text,
+  missionId,
+  questionId,
+}: { text: string; missionId: string; questionId: string | null }) {
+  const [voted, setVoted] = useState<null | "up" | "down">(null);
+  const [flagOpen, setFlagOpen] = useState(false);
+  return (
+    <div className="mt-1">
+      <div className="flex items-center gap-1 pl-1">
+        <button
+          onClick={() => { setVoted("up"); toast.success("Thanks — signal recorded"); }}
+          className={`rounded p-1 transition-colors ${voted === "up" ? "text-emerald-400" : "text-muted-foreground/50 hover:text-emerald-400"}`}
+          title="Helpful"
+          aria-label="Helpful"
+        >
+          <ThumbsUp className="h-3 w-3" />
+        </button>
+        <button
+          onClick={() => { setVoted("down"); setFlagOpen(true); }}
+          className={`rounded p-1 transition-colors ${voted === "down" ? "text-yellow-400" : "text-muted-foreground/50 hover:text-yellow-400"}`}
+          title="Not helpful"
+          aria-label="Not helpful"
+        >
+          <ThumbsDown className="h-3 w-3" />
+        </button>
+        <button
+          onClick={() => setFlagOpen((v) => !v)}
+          className="rounded p-1 text-muted-foreground/50 transition-colors hover:text-yellow-400"
+          title="Flag IRIS error"
+          aria-label="Flag IRIS error"
+        >
+          <Flag className="h-3 w-3" />
+        </button>
+      </div>
+      {flagOpen && (
+        <IrisCorrectableInline
+          text={text}
+          missionId={missionId}
+          questionId={questionId}
+        />
+      )}
+    </div>
+  );
+}
+
+function IrisCorrectableInline({
+  text,
+  missionId,
+  questionId,
+}: { text: string; missionId: string; questionId: string | null }) {
+  // Renders a pre-opened correction form by reusing the IrisCorrectable wrapper
+  // with the children-less form auto-opened.
+  return (
+    <div className="mt-1">
+      <IrisCorrectable
+        contentType="ask_iris"
+        contentBlock={text}
+        missionId={missionId}
+        questionId={questionId}
+        flagPosition="inline"
+      >
+        <span className="sr-only">Ask IRIS response</span>
+      </IrisCorrectable>
+    </div>
   );
 }

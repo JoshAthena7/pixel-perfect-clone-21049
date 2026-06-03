@@ -550,6 +550,57 @@ export type Database = {
           },
         ]
       }
+      iris_corrections: {
+        Row: {
+          correct_text: string
+          criticality: string
+          flagged_at: string
+          flagged_by: string | null
+          id: string
+          incorrect_text: string
+          iris_content_block: string
+          iris_content_type: string
+          memory_id: string | null
+          mission_id: string
+          question_id: string | null
+          resolved: boolean
+          resolved_at: string | null
+          scope: string
+        }
+        Insert: {
+          correct_text: string
+          criticality?: string
+          flagged_at?: string
+          flagged_by?: string | null
+          id?: string
+          incorrect_text: string
+          iris_content_block: string
+          iris_content_type: string
+          memory_id?: string | null
+          mission_id: string
+          question_id?: string | null
+          resolved?: boolean
+          resolved_at?: string | null
+          scope?: string
+        }
+        Update: {
+          correct_text?: string
+          criticality?: string
+          flagged_at?: string
+          flagged_by?: string | null
+          id?: string
+          incorrect_text?: string
+          iris_content_block?: string
+          iris_content_type?: string
+          memory_id?: string | null
+          mission_id?: string
+          question_id?: string | null
+          resolved?: boolean
+          resolved_at?: string | null
+          scope?: string
+        }
+        Relationships: []
+      }
       iris_memories: {
         Row: {
           archived_at: string | null

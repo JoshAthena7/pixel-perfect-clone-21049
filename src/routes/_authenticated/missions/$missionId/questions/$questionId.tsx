@@ -10,6 +10,7 @@ import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
 import { SOSButton } from "@/components/v2/SOSButton";
 import { toast } from "sonner";
 import { ArrowLeft, Sparkles, Send, ChevronDown, ChevronRight, X, MessageSquare, AlertTriangle, Flag, RefreshCw } from "lucide-react";
+import { IrisCorrectable } from "@/components/v2/IrisCorrectable";
 
 
 export const Route = createFileRoute(
@@ -662,13 +663,13 @@ function ResponseView() {
                 return (
                   <>
                     {intel?.state_priorities && (
-                      <IrisInsight label="State Priority" content={intel.state_priorities} confidence={confidence} sourceCount={sourceCount} />
+                      <IrisInsight label="State Priority" content={intel.state_priorities} confidence={confidence} sourceCount={sourceCount} missionId={missionId} questionId={questionId} />
                     )}
                     {intel?.procurement_priorities && (
-                      <IrisInsight label="Procurement Signal" content={intel.procurement_priorities} confidence={confidence} sourceCount={sourceCount} />
+                      <IrisInsight label="Procurement Signal" content={intel.procurement_priorities} confidence={confidence} sourceCount={sourceCount} missionId={missionId} questionId={questionId} />
                     )}
                     {intel?.competitor_signals && (
-                      <IrisInsight label="Differentiation" content={intel.competitor_signals} confidence={confidence} sourceCount={sourceCount} />
+                      <IrisInsight label="Differentiation" content={intel.competitor_signals} confidence={confidence} sourceCount={sourceCount} missionId={missionId} questionId={questionId} />
                     )}
                   </>
                 );
@@ -821,11 +822,15 @@ function IrisInsight({
   content,
   confidence,
   sourceCount,
+  missionId,
+  questionId,
 }: {
   label: string;
   content: string;
   confidence?: "High" | "Medium" | "Low";
   sourceCount?: number;
+  missionId?: string;
+  questionId?: string;
 }) {
   const confColor =
     confidence === "High"
@@ -834,7 +839,13 @@ function IrisInsight({
       ? "var(--yellow)"
       : "var(--muted-foreground, #94a3b8)";
   return (
-    <div>
+    <IrisCorrectable
+      contentType="question_brief"
+      contentBlock={`${label}: ${content}`}
+      missionId={missionId}
+      questionId={questionId}
+      className="pr-7"
+    >
       <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[color:var(--iris)]">{label}</div>
       <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">{content}</p>
       {confidence && (
@@ -850,7 +861,7 @@ function IrisInsight({
           IRIS has limited specific intelligence on this topic. Consider additional research.
         </div>
       )}
-    </div>
+    </IrisCorrectable>
   );
 }
 
