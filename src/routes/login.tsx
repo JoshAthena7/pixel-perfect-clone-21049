@@ -164,7 +164,7 @@ function LoginPage() {
               <div className="group space-y-2">
                 <label
                   htmlFor="email"
-                  className="ml-1 block text-[10px] font-medium uppercase tracking-[0.15em] text-white/40 transition-colors group-focus-within:text-sky-400"
+                  className="ml-1 block text-[10px] font-medium uppercase tracking-[0.15em] text-white/40 transition-colors group-focus-within:text-amber-400"
                 >
                   Corporate Email Address
                 </label>
@@ -175,7 +175,7 @@ function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@athenasg.com"
-                  className="h-12 rounded-lg border-white/10 bg-white/[0.03] px-4 text-white placeholder:text-white/20 focus-visible:border-sky-500/50 focus-visible:ring-1 focus-visible:ring-sky-500/50"
+                  className="h-12 rounded-lg border-white/10 bg-white/[0.03] px-4 text-white placeholder:text-white/20 focus-visible:border-amber-500/50 focus-visible:ring-1 focus-visible:ring-amber-500/50"
                 />
               </div>
 
