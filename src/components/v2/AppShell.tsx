@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useParams, useNavigate } from "@tanstack/react-router";
 import {
-  LogOut, User, Shield, Settings2, Menu as MenuIcon,
+  LogOut, User, Shield, Settings2,
   Plane, PenTool, Zap, Sparkles, ChevronRight,
 } from "lucide-react";
 import { StudioHealthStrip } from "@/components/v2/StudioHealthStrip";
