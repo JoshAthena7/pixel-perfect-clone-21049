@@ -106,15 +106,20 @@ export const irisAskMission = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const { data: m } = await supabase
-      .from("missions")
-      .select("name,client,state,description,submission_date")
-      .eq("id", data.missionId)
-      .maybeSingle();
+    const [{ data: m }, mem] = await Promise.all([
+      supabase
+        .from("missions")
+        .select("name,client,state,description,submission_date")
+        .eq("id", data.missionId)
+        .maybeSingle(),
+      fetchIrisMemoryContext(supabase, { missionId: data.missionId }),
+    ]);
     if (!m) throw new Error("Mission not found");
 
-    const sys = `${IRIS_SYSTEM}\nAnswer the user's question about this mission with actionable guidance.`;
+    const sys = `${IRIS_SYSTEM}\nAnswer the user's question about this mission with actionable guidance.\n\n${mem.block}`;
     const user = `Mission: ${m.name} · Client: ${m.client ?? "—"} · State: ${m.state ?? "—"}\nSubmission: ${m.submission_date ?? "—"}\nDescription: ${m.description ?? "(none)"}\n\nUser asks: ${data.prompt}`;
 
-    return { answer: await callIris(sys, user) };
+    const answer = await callIris(sys, user);
+    if (mem.ids.length) await logIrisMemoryUsage(supabase, mem.ids, { missionId: data.missionId, context: "Ask IRIS · Mission" });
+    return { answer };
   });
