@@ -72,7 +72,73 @@
   --athena-gold-light: #D4AA32;
   --athena-gold-subtle: rgba(196, 154, 34, 0.12);
   --athena-gold-glow: rgba(196, 154, 34, 0.35);
+
+  /* CLASSIFIED INTELLIGENCE tokens (Vault + Oracle) */
+  --vault-glow: rgba(245, 158, 11, 0.15);
+  --vault-glow-strong: rgba(245, 158, 11, 0.35);
+  --vault-glow-edge: rgba(245, 158, 11, 0.06);
+  --vault-gold: #f59e0b;
+  --vault-gold-dim: rgba(245, 158, 11, 0.6);
+  --oracle-glow: rgba(8, 145, 178, 0.15);
+  --oracle-glow-strong: rgba(8, 145, 178, 0.40);
+  --oracle-glow-edge: rgba(8, 145, 178, 0.06);
+  --oracle-active: #0891b2;
+  --classified-bg: #060b14;
+  --classified-surface: #0a1020;
+  --classified-grid: rgba(255,255,255,0.025);
+  --scanline: rgba(255,255,255,0.015);
 }
+
+/* Classified intelligence aesthetic */
+.classified-stage {
+  background-color: var(--classified-bg);
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 2px, var(--scanline) 2px, var(--scanline) 4px),
+    linear-gradient(var(--classified-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--classified-grid) 1px, transparent 1px);
+  background-size: 100% 100%, 32px 32px, 32px 32px;
+}
+.classified-corner::before,
+.classified-corner::after,
+.classified-corner > .cc-bl,
+.classified-corner > .cc-br {
+  content: "";
+  position: absolute;
+  width: 14px; height: 14px;
+  border-color: currentColor;
+  opacity: 0.35;
+  pointer-events: none;
+}
+.classified-corner::before { top: 8px; left: 8px; border-top: 1px solid; border-left: 1px solid; }
+.classified-corner::after { top: 8px; right: 8px; border-top: 1px solid; border-right: 1px solid; }
+.classified-corner > .cc-bl { bottom: 8px; left: 8px; border-bottom: 1px solid; border-left: 1px solid; }
+.classified-corner > .cc-br { bottom: 8px; right: 8px; border-bottom: 1px solid; border-right: 1px solid; }
+
+@keyframes vault-breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+@keyframes badge-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(8,145,178,0.3); }
+  50% { opacity: 0.7; box-shadow: 0 0 16px rgba(8,145,178,0.5); }
+}
+@keyframes scan-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes pupil-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.5); }
+}
+@keyframes ticker-scroll {
+  from { transform: translateX(0%); }
+  to { transform: translateX(-50%); }
+}
+.vault-breathe { animation: vault-breathe 4s ease-in-out infinite; }
+.oracle-rays { transform-origin: center; animation: scan-rotate 8s linear infinite; transform-box: fill-box; }
+.oracle-pupil { transform-origin: center; animation: pupil-pulse 2s ease-in-out infinite; transform-box: fill-box; }
+.badge-pulse { animation: badge-pulse 3s ease-in-out infinite; }
+.ticker-track { animation: ticker-scroll 60s linear infinite; }
 
 @layer base {
   html, body { background: var(--background); color: var(--foreground); }
