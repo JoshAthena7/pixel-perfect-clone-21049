@@ -166,17 +166,23 @@ function MissionsIndex() {
 
       {createOpen && (
         <ModalErrorBoundary onClose={() => setCreateOpen(false)}>
-          <CreateMissionModal onClose={() => setCreateOpen(false)} />
+          <MissionActivationWizard onClose={() => setCreateOpen(false)} />
         </ModalErrorBoundary>
       )}
       {activateFor && (
         <ModalErrorBoundary onClose={() => setActivateFor(null)}>
-          <ActivateChecklistModal mission={activateFor} onClose={() => setActivateFor(null)} />
+          <MissionActivationWizard
+            onClose={() => setActivateFor(null)}
+            resumeMissionId={activateFor.id}
+            initialName={activateFor.name}
+            initialClient={activateFor.client}
+          />
         </ModalErrorBoundary>
       )}
     </div>
   );
 }
+
 
 function StatusChip({ status }: { status: string | null }) {
   const s = status ?? "Draft";
