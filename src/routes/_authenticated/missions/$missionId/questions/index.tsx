@@ -388,6 +388,191 @@ function CockpitListActionBar({ missionId, question }: { missionId: string; ques
   );
 }
 
+// ---------- Question row (shared) ----------
+
+function QuestionRow({
+  q, me, missionId, writerById, lastEditByQ, conflictByQ, questionsById,
+  statusNote, updateStatus, isWriter, showYouBadge, onOpenReadOnly,
+}: {
+  q: Q;
+  me: string | null | undefined;
+  missionId: string;
+  writerById: Record<string, Profile>;
+  lastEditByQ: Record<string, CollabLatest>;
+  conflictByQ: Record<string, Conflict>;
+  questionsById: Record<string, Q>;
+  statusNote: (q: Q) => string;
+  updateStatus: (q: Q, db: string) => Promise<void>;
+  isWriter: boolean;
+  showYouBadge: boolean;
+  onOpenReadOnly: (q: Q) => void;
+}) {
+  const writer = q.assigned_writer_id ? writerById[q.assigned_writer_id] : null;
+  const lastEdit = lastEditByQ[q.id];
+  const note = statusNote(q);
+  const isMine = !!me && q.assigned_writer_id === me;
+  const isUnassigned = !q.assigned_writer_id;
+  const conflict = conflictByQ[q.id];
+  const otherId = conflict ? (conflict.question_a_id === q.id ? conflict.question_b_id : conflict.question_a_id) : null;
+  const otherQ = otherId ? questionsById[otherId] : null;
+
+  const ownStyle = isMine && showYouBadge
+    ? { borderLeft: "2px solid #3b7fff", background: "rgba(59,127,255,0.04)" }
+    : undefined;
+
+  const rowInner = (
+    <div className="flex items-center gap-3">
+      <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${HEALTH_DOT[q.health ?? "yellow"] ?? "bg-muted"}`} />
+      <span className="font-mono text-[11px] text-muted-foreground shrink-0">Q{q.question_number}</span>
+      {showYouBadge && isMine && (
+        <span
+          className="shrink-0 rounded px-1.5 py-px text-[9px] font-bold tracking-[0.12em]"
+          style={{ background: "rgba(59,127,255,0.12)", color: "#3b7fff" }}
+        >
+          YOU
+        </span>
+      )}
+      {showYouBadge && isUnassigned && (
+        <span
+          className="shrink-0 rounded px-1.5 py-px text-[9px] font-bold tracking-[0.12em]"
+          style={{ background: "rgba(245,158,11,0.10)", color: "var(--yellow,#f59e0b)" }}
+        >
+          UNASSIGNED
+        </span>
+      )}
+      <span className="min-w-0 flex-1 truncate text-sm font-medium">· {q.title}</span>
+      <PensDownCountdown date={q.pens_down_date} />
+      {isMine ? (
+        <StatusPill current={q.status} onChange={(db) => updateStatus(q, db)} />
+      ) : (
+        <span className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${statusPillClass(q.status)}`}>
+          {statusUiLabel(q.status)}
+        </span>
+      )}
+      <span className="shrink-0 text-[11px] text-muted-foreground/80 min-w-[140px] text-right">
+        {isMine
+          ? (lastEdit ? `Updated ${timeAgo(lastEdit.created_at)} by ${firstName(lastEdit.author_name)}` : "Not yet started")
+          : (writer ? firstName(writer.display_name || writer.email || "—") : "Unassigned")}
+      </span>
+    </div>
+  );
+
+  const subRow = (note || (!isWriter && writer)) ? (
+    <div className="mt-1 pl-[1.5rem] text-[11px] text-muted-foreground">
+      {note}
+      {!isWriter && writer && (
+        <span className="ml-3 opacity-70">· {writer.display_name || writer.email}</span>
+      )}
+    </div>
+  ) : null;
+
+  const conflictRow = conflict ? (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (otherQ) onOpenReadOnly(otherQ);
+      }}
+      className="mt-1 block w-full pl-[1.625rem] text-left text-[11px] hover:underline"
+      style={{ color: "var(--yellow,#f59e0b)" }}
+    >
+      ⚠ IRIS: Conflict with Q{otherQ?.question_number ?? "?"}
+    </button>
+  ) : null;
+
+  return (
+    <li className="relative" style={ownStyle}>
+      {isMine || !showYouBadge ? (
+        <Link
+          to="/missions/$missionId/questions/$questionId"
+          params={{ missionId, questionId: q.id }}
+          className="block px-5 py-4 hover:bg-surface-hover"
+        >
+          {rowInner}
+          {subRow}
+        </Link>
+      ) : (
+        <button
+          type="button"
+          onClick={() => onOpenReadOnly(q)}
+          className="block w-full cursor-pointer px-5 py-4 text-left hover:bg-surface-hover"
+        >
+          {rowInner}
+          {subRow}
+        </button>
+      )}
+      {conflictRow && <div className="px-5 pb-3">{conflictRow}</div>}
+    </li>
+  );
+}
+
+// ---------- Read-only question drawer ----------
+
+function ReadOnlyQuestionDrawer({
+  q, writer, onClose,
+}: {
+  q: Q;
+  writer: Profile | null;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-[1500] flex justify-end" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative h-full w-full max-w-[520px] overflow-y-auto border-l border-border bg-surface p-6 shadow-2xl"
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className={`h-2 w-2 rounded-full ${HEALTH_DOT[q.health ?? "yellow"]}`} />
+              <span className="font-mono text-[11px] text-muted-foreground">Q{q.question_number}</span>
+              <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Read only</span>
+            </div>
+            <h2 className="mt-2 text-lg font-semibold leading-tight">{q.title}</h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded border border-border bg-surface px-3 py-1 text-xs text-muted-foreground hover:text-foreground"
+          >
+            Close
+          </button>
+        </div>
+
+        <div className="mt-6 space-y-4 text-sm">
+          <div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Health</div>
+            <div className="mt-1">{HEALTH_LABEL[q.health ?? "yellow"]}</div>
+          </div>
+          <div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Assigned writer</div>
+            <div className="mt-1">{writer ? (writer.display_name || writer.email) : <span className="text-yellow-400">Unassigned</span>}</div>
+          </div>
+          <div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Pens down</div>
+            <div className="mt-1">{fmtDate(q.pens_down_date)}</div>
+          </div>
+          <div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Current score</div>
+            <div className="mt-1">{q.current_score ?? "—"}</div>
+          </div>
+          <div className="rounded-md border border-border bg-background/40 p-3 text-[12px] text-muted-foreground">
+            This is a read-only view. Only the assigned writer can edit Q{q.question_number}.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ---------- Main ----------
 
 function ResponsesList() {
