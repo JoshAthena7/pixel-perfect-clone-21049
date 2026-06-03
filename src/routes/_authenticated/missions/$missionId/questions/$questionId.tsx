@@ -1385,3 +1385,254 @@ function OverflowItem({
   );
 }
 
+/* ──────────── Morning Brief — 3-sentence hard cap with Read more ──────────── */
+function MorningBriefBody({ text, missionId, questionId }: { text: string; missionId: string; questionId: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const parts = text.match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+$/g) ?? [text];
+  const truncated = parts.length > 3;
+  const clipped = truncated ? parts.slice(0, 3).join("").trim() : text.trim();
+  const display = expanded ? text.trim() : clipped;
+  return (
+    <div>
+      <IrisCorrectable contentType="morning_brief" contentBlock={text} missionId={missionId} questionId={questionId}>
+        <p className="text-[14px] leading-[1.7] pr-8" style={{ color: "rgba(255,255,255,0.75)" }}>{display}</p>
+      </IrisCorrectable>
+      {truncated && (
+        <button onClick={() => setExpanded((e) => !e)} className="mt-2 text-[12px] text-muted-foreground hover:text-foreground">
+          {expanded ? "Show less ↑" : "Read more ↓"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+/* ──────────── What Changed (max 5, expandable) ──────────── */
+function WhatChangedFiltered({
+  feed, lastVisit, lastVisitTimeStr,
+}: {
+  feed: Array<{ kind: "sme" | "intel" | "leader" | "conflict" | "amendment" | "leader_reply" | "decision"; id: string; title: string; author: string; created_at: string; body: string; ackButton?: { label: string; onClick: () => void } | null }>;
+  lastVisit: number;
+  lastVisitTimeStr: string;
+}) {
+  const [showAll, setShowAll] = useState(false);
+  const shown = showAll ? feed : feed.slice(0, 5);
+  const extra = Math.max(0, feed.length - 5);
+  return (
+    <section className="mb-6">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">What Changed</span>
+        <span className="text-[11px] text-muted-foreground/70">Since {lastVisitTimeStr}</span>
+      </div>
+      {feed.length === 0 ? (
+        <div className="text-[13px]" style={{ color: "#22c55e" }}>You're current. Go write.</div>
+      ) : (
+        <>
+          <ul className="space-y-1">
+            {shown.map((item) => (
+              <FeedRow key={`${item.kind}-${item.id}`} item={item} unread={+new Date(item.created_at) > lastVisit} />
+            ))}
+          </ul>
+          {extra > 0 && !showAll && (
+            <button onClick={() => setShowAll(true)} className="mt-2 text-[12px] text-muted-foreground hover:text-foreground">
+              · · · {extra} more
+            </button>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
+/* ──────────── Brief Panel — 4 fixed rows ──────────── */
+function BriefPanel({
+  todayCount, nextStep, waitingCount, nextGateName, nextGateDate,
+}: {
+  todayCount: number;
+  nextStep: { question_number: string; title: string; pens_down_date: string | null } | null;
+  waitingCount: number;
+  nextGateName: string | null;
+  nextGateDate: string | null;
+}) {
+  const rows: Array<{ label: string; value: React.ReactNode }> = [
+    {
+      label: "Today",
+      value: todayCount > 0
+        ? <span>{todayCount} question{todayCount === 1 ? "" : "s"} need attention</span>
+        : <span className="text-muted-foreground">All on track</span>,
+    },
+    {
+      label: "Next Step",
+      value: nextStep ? (() => {
+        const d = daysUntil(nextStep.pens_down_date);
+        const dStr = d === null ? "—" : d < 0 ? `${Math.abs(d)}d overdue` : `${d} days`;
+        return <span className="truncate">Q{nextStep.question_number} · {nextStep.title} · {dStr}</span>;
+      })() : <span className="text-muted-foreground">—</span>,
+    },
+    {
+      label: "Waiting On",
+      value: waitingCount > 0
+        ? <span>{waitingCount} open item{waitingCount === 1 ? "" : "s"}</span>
+        : <span className="text-muted-foreground">Nothing waiting</span>,
+    },
+    {
+      label: "Next Gate",
+      value: nextGateName ? <span>{nextGateName} · {fmtDate(nextGateDate)}</span> : <span className="text-muted-foreground">—</span>,
+    },
+  ];
+  return (
+    <section className="mb-6 rounded-[10px] border bg-white/[0.02] px-4" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+      {rows.map((r, i) => (
+        <div key={r.label} className={`flex h-9 items-center gap-4 ${i < rows.length - 1 ? "border-b" : ""}`} style={{ borderColor: "rgba(255,255,255,0.05)" }}>
+          <span className="w-[90px] text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{r.label}</span>
+          <span className="flex-1 truncate text-[13px] text-foreground">{r.value}</span>
+        </div>
+      ))}
+    </section>
+  );
+}
+
+/* ──────────── My Assignments — 52px rows w/ inline status pill ──────────── */
+const STATUS_OPTIONS = ["Not Started", "In Progress", "In Review", "Complete"] as const;
+type StatusLabel = typeof STATUS_OPTIONS[number];
+
+function statusLabel(raw: string | null | undefined): StatusLabel {
+  const s = (raw ?? "").toLowerCase();
+  if (s.includes("complete") || s === "approved") return "Complete";
+  if (s.includes("review")) return "In Review";
+  if (s.includes("progress") || s === "drafting" || s === "draft") return "In Progress";
+  return "Not Started";
+}
+function statusToDb(s: StatusLabel): string {
+  return s === "Not Started" ? "not_started" : s === "In Progress" ? "in_progress" : s === "In Review" ? "in_review" : "complete";
+}
+
+function MyAssignments({
+  questions, missionId, activeQuestionId, qc,
+}: {
+  questions: Array<{ id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null; status: string | null; updated_at: string | null }>;
+  missionId: string;
+  activeQuestionId: string;
+  qc: ReturnType<typeof useQueryClient>;
+}) {
+  const [filter, setFilter] = useState<"mine" | "all">("mine");
+  const [allQs, setAllQs] = useState<typeof questions | null>(null);
+  const [loadingAll, setLoadingAll] = useState(false);
+
+  useEffect(() => {
+    if (filter !== "all" || allQs) return;
+    setLoadingAll(true);
+    supabase.from("question_records")
+      .select("id,question_number,title,pens_down_date,health,status,updated_at")
+      .eq("mission_id", missionId).order("question_number")
+      .then(({ data }) => { setAllQs((data ?? []) as any); setLoadingAll(false); });
+  }, [filter, allQs, missionId]);
+
+  const list = filter === "all" ? (allQs ?? []) : questions;
+
+  const updateStatus = async (id: string, next: StatusLabel) => {
+    const dbVal = statusToDb(next);
+    const { error } = await supabase.from("question_records").update({ status: dbVal }).eq("id", id);
+    if (error) { toast.error("Could not update status"); return; }
+    toast.success(`Status: ${next}`);
+    qc.invalidateQueries({ queryKey: ["cockpit-my-questions"] });
+    qc.invalidateQueries({ queryKey: ["question", id] });
+    if (filter === "all") setAllQs(null);
+  };
+
+  return (
+    <section className="mb-6">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">My Assignments</span>
+        <div className="inline-flex rounded-md border border-white/10 p-0.5 text-[11px]">
+          <button
+            onClick={() => setFilter("mine")}
+            className={`rounded-sm px-2 py-0.5 ${filter === "mine" ? "bg-white/10 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >My Questions</button>
+          <button
+            onClick={() => setFilter("all")}
+            className={`rounded-sm px-2 py-0.5 ${filter === "all" ? "bg-white/10 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >All</button>
+        </div>
+      </div>
+      <div className="rounded-[10px] border bg-white/[0.02]" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+        {loadingAll ? (
+          <div className="px-4 py-6 text-[12px] text-muted-foreground">Loading…</div>
+        ) : list.length === 0 ? (
+          <div className="px-4 py-6 text-[12px] text-muted-foreground">No assigned questions.</div>
+        ) : list.map((mq, i) => {
+          const active = mq.id === activeQuestionId;
+          const d = daysUntil(mq.pens_down_date);
+          const dotColor = HEALTH_HEX[mq.health ?? "yellow"];
+          const dStr = d === null ? "—" : d < 0 ? `${Math.abs(d)}d overdue` : `${d}d`;
+          const dColor = d === null ? undefined : d < 7 ? "#ef4444" : d <= 14 ? "#eab308" : undefined;
+          return (
+            <div
+              key={mq.id}
+              className={`flex h-[52px] items-center gap-3 px-4 ${i > 0 ? "border-t" : ""} ${active ? "border-l-2" : ""} transition hover:bg-white/[0.03]`}
+              style={{
+                borderColor: "rgba(255,255,255,0.05)",
+                borderLeftColor: active ? "#3b7fff" : undefined,
+                background: active ? "rgba(59,127,255,0.05)" : undefined,
+              }}
+            >
+              <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: dotColor, boxShadow: `0 0 4px ${dotColor}` }} />
+              <Link
+                to="/missions/$missionId/questions/$questionId"
+                params={{ missionId, questionId: mq.id }}
+                className="flex flex-1 items-center gap-3 truncate"
+              >
+                <span className="font-mono text-[11px] text-muted-foreground">Q{mq.question_number}</span>
+                <span className="flex-1 truncate text-[13px] text-foreground">{mq.title}</span>
+              </Link>
+              <StatusPill current={statusLabel(mq.status)} onPick={(s) => updateStatus(mq.id, s)} />
+              <span className="w-[70px] text-right text-[12px]" style={{ color: dColor, fontWeight: d !== null && d < 7 ? 600 : undefined }}>
+                {dStr}
+              </span>
+              <span className="hidden w-[80px] text-right text-[11px] text-muted-foreground md:inline">
+                {mq.updated_at ? timeAgo(mq.updated_at) : "—"}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function StatusPill({ current, onPick }: { current: StatusLabel; onPick: (s: StatusLabel) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
+  const color = current === "Complete" ? "#22c55e" : current === "In Review" ? "#22d3ee" : current === "In Progress" ? "#eab308" : "#94a3b8";
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((o) => !o); }}
+        className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] hover:bg-white/5"
+        style={{ borderColor: `${color}55`, color }}
+      >
+        {current} <ChevronDown className="h-3 w-3 opacity-70" />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-20 mt-1 min-w-[140px] rounded-md border border-white/10 bg-[#0a0e1a] p-1 shadow-2xl">
+          {STATUS_OPTIONS.map((s) => (
+            <button
+              key={s}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(false); onPick(s); }}
+              className={`block w-full rounded-sm px-2 py-1.5 text-left text-[12px] hover:bg-white/5 ${current === s ? "text-foreground font-semibold" : "text-muted-foreground"}`}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
