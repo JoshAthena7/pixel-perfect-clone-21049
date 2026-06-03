@@ -313,7 +313,7 @@ function FlightPlanNav({ missionId, path }: { missionId: string; path: string })
   const items = [
     { to: "/missions/$missionId/library", label: "Vault", match: ["/library"], icon: <VaultIcon size={14} /> },
     { to: "/missions/$missionId/briefing", label: "Oracle", match: ["/briefing", "/brief"], icon: <OracleIcon size={14} active /> },
-    { to: "/missions/$missionId/intelligence", label: "Intelligence", match: ["/intelligence"], icon: null },
+    { to: "/missions/$missionId/intelligence", label: "Briefing Room", match: ["/intelligence"], icon: null },
     { to: "/missions/$missionId/team", label: "Team", match: ["/team"], icon: null },
     { to: "/missions/$missionId/activity", label: "Timeline", match: ["/activity"], icon: null },
   ] as const;
@@ -441,7 +441,7 @@ function BreadcrumbStrip({
     if (!missionId) return null;
     if (tail.startsWith("/library")) return "Vault";
     if (tail.startsWith("/briefing") || tail.startsWith("/brief")) return "Oracle";
-    if (tail.startsWith("/intelligence")) return "Intelligence";
+    if (tail.startsWith("/intelligence")) return "Briefing Room";
     if (tail.startsWith("/team")) return "Team";
     if (tail.startsWith("/activity")) return "Timeline";
     if (tail.startsWith("/operations")) return "Operations";

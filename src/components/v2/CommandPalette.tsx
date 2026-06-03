@@ -87,7 +87,7 @@ export function CommandPalette() {
           onGo: () => navigate({ to: "/missions/$missionId/library", params: { missionId } }) },
         { id: "j-oracle", group: "Jump", label: "Oracle", hint: "Mission briefing", icon: <Eye size={14} className="text-[color:var(--iris,#22d3ee)]" />,
           onGo: () => navigate({ to: "/missions/$missionId/briefing", params: { missionId } }) },
-        { id: "j-intel", group: "Jump", label: "Intelligence", icon: <Sparkles size={14} className="text-[color:var(--iris,#22d3ee)]" />,
+        { id: "j-intel", group: "Jump", label: "Briefing Room", icon: <Sparkles size={14} className="text-[color:var(--iris,#22d3ee)]" />,
           onGo: () => navigate({ to: "/missions/$missionId/intelligence", params: { missionId } }) },
         { id: "j-studio", group: "Jump", label: "Studio · My Assignments", icon: <PenTool size={14} className="text-[#3b7fff]" />,
           onGo: () => navigate({ to: "/missions/$missionId/questions", params: { missionId } }) },

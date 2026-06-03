@@ -43,7 +43,7 @@ export function Breadcrumbs() {
   const pageLabel = isQuestion ? "Q"
     : isQuestionsList ? "Studio"
     : isLibrary ? "Library"
-    : isOracle ? "Intelligence"
+    : isOracle ? "Briefing Room"
     : isOperations ? "Operations"
     : isTeam ? "Team"
     : isActivity ? "Activity"
