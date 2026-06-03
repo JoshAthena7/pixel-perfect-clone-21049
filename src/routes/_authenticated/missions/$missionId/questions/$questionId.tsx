@@ -502,7 +502,13 @@ function CockpitPage() {
       <Link
         to="/missions/$missionId/overview"
         params={{ missionId }}
-        className="sticky top-0 z-30 flex h-10 items-center gap-3 border-b border-white/5 bg-[#060b14]/95 px-10 text-[12px] backdrop-blur hover:bg-[#0a1426]/95 transition-colors"
+        className={`sticky top-0 z-30 flex h-10 items-center gap-3 border-b px-10 text-[12px] backdrop-blur transition-colors hover:bg-[#0a1426]/95 ${
+          primaryAction === "urgent_write" ? "animate-pulse" : ""
+        }`}
+        style={{
+          background: primaryAction === "urgent_write" ? "rgba(127,29,29,0.6)" : "rgba(6,11,20,0.95)",
+          borderColor: primaryAction === "urgent_write" ? "rgba(239,68,68,0.4)" : "rgba(255,255,255,0.06)",
+        }}
         title="Open Mission Room"
       >
         <span className="relative inline-flex h-2 w-2">
