@@ -903,3 +903,204 @@ function DetailDrawer({
     </div>
   );
 }
+
+function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className="-mb-px border-b-2 px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.16em] transition-colors"
+      style={{
+        borderColor: active ? "var(--iris)" : "transparent",
+        color: active ? "var(--iris)" : "var(--muted-foreground)",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+type Correction = {
+  id: string;
+  mission_id: string;
+  question_id: string | null;
+  iris_content_type: string;
+  incorrect_text: string;
+  correct_text: string;
+  criticality: "critical" | "minor" | "small";
+  scope: "response" | "mission" | "global";
+  flagged_by: string | null;
+  flagged_at: string;
+  memory_id: string | null;
+  resolved: boolean;
+};
+
+function CorrectionsTab() {
+  const [critFilter, setCritFilter] = useState<"all" | "critical" | "minor" | "small">("all");
+  const [scopeFilter, setScopeFilter] = useState<"all" | "response" | "mission" | "global">("all");
+
+  const { data: rows = [], isLoading } = useQuery({
+    queryKey: ["iris-corrections"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("iris_corrections")
+        .select("*")
+        .order("flagged_at", { ascending: false })
+        .limit(500);
+      return (data ?? []) as Correction[];
+    },
+  });
+
+  const { data: missions = {} } = useQuery({
+    queryKey: ["iris-corrections-missions", rows.map((r) => r.mission_id).join(",")],
+    enabled: rows.length > 0,
+    queryFn: async () => {
+      const ids = Array.from(new Set(rows.map((r) => r.mission_id)));
+      const { data } = await supabase.from("missions").select("id,name").in("id", ids);
+      const map: Record<string, string> = {};
+      (data ?? []).forEach((m: any) => (map[m.id] = m.name));
+      return map;
+    },
+  });
+
+  const { data: profiles = {} } = useQuery({
+    queryKey: ["iris-corrections-profiles", rows.map((r) => r.flagged_by).filter(Boolean).join(",")],
+    enabled: rows.length > 0,
+    queryFn: async () => {
+      const ids = Array.from(new Set(rows.map((r) => r.flagged_by).filter(Boolean) as string[]));
+      if (!ids.length) return {} as Record<string, string>;
+      const { data } = await supabase.from("profiles").select("id,display_name,email").in("id", ids);
+      const map: Record<string, string> = {};
+      (data ?? []).forEach((p: any) => (map[p.id] = p.display_name || p.email?.split("@")[0] || "Unknown"));
+      return map;
+    },
+  });
+
+  const visible = useMemo(() => {
+    return rows.filter(
+      (r) =>
+        (critFilter === "all" || r.criticality === critFilter) &&
+        (scopeFilter === "all" || r.scope === scopeFilter),
+    );
+  }, [rows, critFilter, scopeFilter]);
+
+  const patterns = useMemo(() => {
+    const buckets = new Map<string, Correction[]>();
+    for (const r of rows) {
+      const key = r.correct_text.toLowerCase().split(/\s+/).slice(0, 4).join(" ");
+      if (!key) continue;
+      const arr = buckets.get(key) ?? [];
+      arr.push(r);
+      buckets.set(key, arr);
+    }
+    return Array.from(buckets.entries()).filter(([, arr]) => arr.length >= 3);
+  }, [rows]);
+
+  return (
+    <div>
+      {patterns.length > 0 && (
+        <div className="mb-5 space-y-2">
+          {patterns.map(([key, arr]) => (
+            <div
+              key={key}
+              className="flex items-center justify-between gap-3 rounded-md border px-4 py-3 text-sm"
+              style={{ background: "rgba(34,211,238,0.05)", borderColor: "rgba(34,211,238,0.3)" }}
+            >
+              <div>
+                <span className="iris-pulse-dot mr-2" />
+                IRIS has been corrected on <b>"{key}…"</b> {arr.length} times. Consider adding a Critical global memory.
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <FilterPill active={critFilter === "all"} onClick={() => setCritFilter("all")} label="All criticality" />
+        <FilterPill active={critFilter === "critical"} onClick={() => setCritFilter("critical")} label="● Changes what we write" color="#ef4444" />
+        <FilterPill active={critFilter === "minor"} onClick={() => setCritFilter("minor")} label="◉ Misleading" color="#f59e0b" />
+        <FilterPill active={critFilter === "small"} onClick={() => setCritFilter("small")} label="○ Small" color="#94a3b8" />
+        <div className="mx-2 h-4 w-px bg-border" />
+        <FilterPill active={scopeFilter === "all"} onClick={() => setScopeFilter("all")} label="All scope" />
+        <FilterPill active={scopeFilter === "global"} onClick={() => setScopeFilter("global")} label="Global" />
+        <FilterPill active={scopeFilter === "mission"} onClick={() => setScopeFilter("mission")} label="Mission" />
+        <FilterPill active={scopeFilter === "response"} onClick={() => setScopeFilter("response")} label="Response only" />
+      </div>
+
+      {isLoading ? (
+        <div className="rounded-[12px] border border-border bg-surface p-10 text-center text-sm text-muted-foreground">Loading corrections…</div>
+      ) : visible.length === 0 ? (
+        <div className="rounded-[12px] border border-border bg-surface p-10 text-center text-sm text-muted-foreground">
+          No corrections yet. When team members flag an IRIS error, it shows up here.
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {visible.map((r) => (
+            <CorrectionRow
+              key={r.id}
+              row={r}
+              missionName={missions[r.mission_id] ?? "Unknown mission"}
+              userName={(r.flagged_by && profiles[r.flagged_by]) || "Unknown"}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FilterPill({ active, onClick, label, color }: { active: boolean; onClick: () => void; label: string; color?: string }) {
+  return (
+    <button
+      onClick={onClick}
+      className="rounded-full border px-3 py-1 text-[11px] transition-colors"
+      style={{
+        background: active ? "rgba(255,255,255,0.06)" : "transparent",
+        borderColor: active ? (color ?? "rgba(255,255,255,0.3)") : "rgba(255,255,255,0.1)",
+        color: active ? (color ?? "white") : "var(--muted-foreground)",
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
+function CorrectionRow({
+  row,
+  missionName,
+  userName,
+}: { row: Correction; missionName: string; userName: string }) {
+  const critColor = row.criticality === "critical" ? "#ef4444" : row.criticality === "minor" ? "#f59e0b" : "#94a3b8";
+  const critLabel = row.criticality === "critical" ? "Changes what we write" : row.criticality === "minor" ? "Misleading" : "Small";
+  return (
+    <div className="rounded-[10px] border border-border bg-surface p-4">
+      <div className="mb-2 flex flex-wrap items-center gap-2 text-[11px]">
+        <span
+          className="rounded-full border px-2 py-0.5 font-semibold uppercase tracking-wider"
+          style={{ color: critColor, borderColor: critColor }}
+        >
+          {critLabel}
+        </span>
+        <span className="text-muted-foreground">·</span>
+        <span className="font-semibold text-foreground">{missionName}</span>
+        <span className="text-muted-foreground">·</span>
+        <span className="text-muted-foreground">{row.iris_content_type.replace(/_/g, " ")}</span>
+        <span className="ml-auto text-muted-foreground">
+          {userName} · {new Date(row.flagged_at).toLocaleDateString()}
+        </span>
+      </div>
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+        <div className="rounded-md border border-yellow-500/20 bg-yellow-500/5 p-2 text-xs">
+          <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-yellow-400">IRIS said</div>
+          <div className="text-muted-foreground line-through">{row.incorrect_text}</div>
+        </div>
+        <div className="rounded-md border border-emerald-500/20 bg-emerald-500/5 p-2 text-xs">
+          <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-400">Correct</div>
+          <div className="text-foreground">{row.correct_text}</div>
+        </div>
+      </div>
+      <div className="mt-2 flex items-center gap-2 text-[10px] uppercase tracking-wider text-muted-foreground">
+        Scope: {row.scope} {row.memory_id && <span className="text-emerald-400">· Active memory</span>}
+      </div>
+    </div>
+  );
+}
