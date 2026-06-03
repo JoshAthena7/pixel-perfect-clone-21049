@@ -45,11 +45,12 @@ export const irisAskGlobal = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase } = context;
 
-    const [{ data: missions }, { data: signals }, { data: intel }, mem] = await Promise.all([
+    const [{ data: missions }, { data: signals }, { data: intel }, mem, layered] = await Promise.all([
       supabase.from("missions").select("id,name,client,state,health,status,submission_date").eq("status", "Active").limit(20),
       supabase.from("signals").select("signal_title,signal_summary,severity,status,created_at").eq("status", "open").order("created_at", { ascending: false }).limit(12),
       supabase.from("market_intelligence").select("title,summary,published_at").order("created_at", { ascending: false }).limit(6),
       fetchIrisMemoryContext(supabase, { missionId: null }),
+      loadLayeredContext(supabase, { missionId: null }),
     ]);
 
     const missionLines = (missions ?? []).map((m) => `- ${m.name} (${m.client}${m.state ? `, ${m.state}` : ""}): ${m.health}, due ${m.submission_date ?? "TBD"}`).join("\n");
@@ -57,7 +58,7 @@ export const irisAskGlobal = createServerFn({ method: "POST" })
     const intelLines = (intel ?? []).map((i) => `- ${i.title}: ${i.summary ?? ""}`).join("\n");
 
     const answer = await callIris(
-      `${IRIS_SYSTEM}\nYou are answering from the Lobby, so use firm-wide context across missions, open signals, and market intelligence. If the user asks for a mission-specific answer, tell them which mission to open.\n\n${mem.block}`,
+      `${IRIS_SYSTEM}\nYou are answering from the Lobby, so use firm-wide context across missions, open signals, and market intelligence. If the user asks for a mission-specific answer, tell them which mission to open.\n\n${layered}\n\n${mem.block}`,
       `Active missions:\n${missionLines || "(none)"}\n\nOpen signals:\n${signalLines || "(none)"}\n\nMarket intelligence:\n${intelLines || "(none)"}\n\nUser asks: ${data.prompt}`,
     );
     if (mem.ids.length) await logIrisMemoryUsage(supabase, mem.ids, { context: "Ask IRIS · Lobby" });
@@ -81,16 +82,17 @@ export const irisAskQuestion = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!q) throw new Error("Response not found");
 
-    const [{ data: m }, mem] = await Promise.all([
+    const [{ data: m }, mem, layered] = await Promise.all([
       supabase
         .from("missions")
         .select("name,client,state,description,submission_date")
         .eq("id", q.mission_id)
         .maybeSingle(),
       fetchIrisMemoryContext(supabase, { missionId: q.mission_id }),
+      loadLayeredContext(supabase, { missionId: q.mission_id }),
     ]);
 
-    const sys = `${IRIS_SYSTEM}\nAnswer the writer's question about this specific response with actionable guidance.\n\n${mem.block}`;
+    const sys = `${IRIS_SYSTEM}\nAnswer the writer's question about this specific response with actionable guidance.\n\n${layered}\n\n${mem.block}`;
     const user = `Mission: ${m?.name ?? "Unknown"} · Client: ${m?.client ?? "—"} · State: ${m?.state ?? "—"}\nResponse: ${q.question_number} — ${q.title}\nPrompt: ${q.question_text}\nCurrent focus: ${q.current_focus ?? "(none)"}\nNext step: ${q.next_step ?? "(none)"}\nWaiting on: ${q.waiting_on ?? "(none)"}\nLeadership guidance: ${q.guidance ?? "(none)"}\n\nWriter asks: ${data.prompt}`;
 
     const answer = await callIris(sys, user);
@@ -108,17 +110,18 @@ export const irisAskMission = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const [{ data: m }, mem] = await Promise.all([
+    const [{ data: m }, mem, layered] = await Promise.all([
       supabase
         .from("missions")
         .select("name,client,state,description,submission_date")
         .eq("id", data.missionId)
         .maybeSingle(),
       fetchIrisMemoryContext(supabase, { missionId: data.missionId }),
+      loadLayeredContext(supabase, { missionId: data.missionId }),
     ]);
     if (!m) throw new Error("Mission not found");
 
-    const sys = `${IRIS_SYSTEM}\nAnswer the user's question about this mission with actionable guidance.\n\n${mem.block}`;
+    const sys = `${IRIS_SYSTEM}\nAnswer the user's question about this mission with actionable guidance.\n\n${layered}\n\n${mem.block}`;
     const user = `Mission: ${m.name} · Client: ${m.client ?? "—"} · State: ${m.state ?? "—"}\nSubmission: ${m.submission_date ?? "—"}\nDescription: ${m.description ?? "(none)"}\n\nUser asks: ${data.prompt}`;
 
     const answer = await callIris(sys, user);
