@@ -349,8 +349,32 @@ function CockpitPage() {
     );
   }
 
+  const isLead = role === "admin" || role === "lead";
+  const isAssignedWriter = !!me?.id && q.assigned_writer_id === me.id;
+  const isAssignedSme = !!me?.id && q.assigned_sme_id === me.id;
+  const isReadOnlyView = isLead && !isAssignedWriter && !isAssignedSme;
+
   return (
     <div style={{ background: "#0a0e1a", minHeight: "100vh" }} className="text-foreground">
+      {isReadOnlyView && (
+        <div
+          className="sticky top-0 z-40 flex h-10 items-center justify-between gap-3 border-b px-10 text-[12px]"
+          style={{ background: "rgba(245,158,11,0.15)", borderColor: "rgba(245,158,11,0.4)", color: "#fde68a" }}
+        >
+          <div className="flex items-center gap-2">
+            <Eye className="h-3.5 w-3.5" />
+            <span className="font-semibold">VIEWING {firstName(writer).toUpperCase()}'S COCKPIT</span>
+            <span className="opacity-80">· Read-only · {firstName(writer)} cannot see you here</span>
+          </div>
+          <Link
+            to="/missions/$missionId/overview"
+            params={{ missionId }}
+            className="text-[11px] underline-offset-2 hover:underline"
+          >
+            ← Back to Mission Room
+          </Link>
+        </div>
+      )}
       {/* HEALTH STRIP — persistent */}
       <Link
         to="/missions/$missionId/overview"
