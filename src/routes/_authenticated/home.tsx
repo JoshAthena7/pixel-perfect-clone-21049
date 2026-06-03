@@ -344,15 +344,10 @@ function AthenaHQ() {
             ) : missions.length === 0 ? (
               <EmptyState
                 icon={<DoorOpen className="h-10 w-10" />}
-                title="No active missions yet."
-                subtitle="Olympus is where missions are activated and configured."
-                cta={
-                  <Link to="/olympus" className="btn-primary inline-flex items-center gap-2">
-                    <Mountain size={16} strokeWidth={1.5} /> Enter Olympus to activate your first mission
-                    <ArrowRight size={16} strokeWidth={1.5} />
-                  </Link>
-                }
+                title="No active missions."
+                subtitle="Missions are activated by administrators in the Admin Board."
               />
+
             ) : (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {missions.map((m) => {
