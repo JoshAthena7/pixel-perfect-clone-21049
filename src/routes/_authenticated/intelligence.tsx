@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/intelligence")({
   component: IntelligenceHub,
   head: () => ({
     meta: [
-      { title: "Atlas Intelligence — Athena" },
+      { title: "The Oracle (Intelligence Hub) — Athena" },
       { name: "description", content: "Athena's permanent knowledge infrastructure across five layers." },
     ],
   }),
@@ -76,12 +76,12 @@ function IntelligenceHub() {
         {/* Header */}
         <div className="flex items-start justify-between gap-6">
           <div>
-            <span className="section-label" style={{ color: "var(--iris, #0891b2)" }}>● Atlas Intelligence</span>
+            <span className="section-label" style={{ color: "var(--iris, #0891b2)" }}>● The Oracle</span>
             <h1
               className="mt-2 text-white display-tight"
               style={{ fontSize: 32 }}
             >
-              ⚡ Atlas Intelligence
+              ⚡ The Oracle <span className="text-muted-foreground font-normal">(Intelligence Hub)</span>
             </h1>
             <p className="mt-2 max-w-2xl text-[13px] text-muted-foreground">
               Athena's permanent knowledge infrastructure. Every source. Every program. Every lesson learned.
@@ -109,7 +109,7 @@ function IntelligenceHub() {
           <input
             value={query}
             onChange={(e) => { setQuery(e.target.value); setSearchActive(e.target.value.trim().length > 1); }}
-            placeholder="Search all of Atlas Intelligence…"
+            placeholder="Search all of The Oracle…"
             className="w-full rounded-lg border border-white/10 bg-white/[0.03] py-4 pl-12 pr-4 text-sm placeholder:text-muted-foreground/60 focus:border-[color:var(--iris,#22d3ee)]/40 focus:outline-none"
           />
         </div>
@@ -724,7 +724,7 @@ function IntelligenceHealth({ stats }: { stats: any }) {
       </button>
       {open && (
         <div className="absolute right-0 top-10 z-30 w-80 rounded-lg border border-white/10 bg-[#0b1220] p-4 shadow-xl">
-          <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Atlas Intelligence Health</div>
+          <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Oracle Health</div>
           <HealthBar label="Canon Coverage" value={Math.min(100, (stats?.canonSources ?? 0) * 5)} />
           <HealthBar label="State Coverage" value={Math.min(100, (stats?.stateSources ?? 0) * 4)} />
           <HealthBar label="Program Coverage" value={Math.min(100, (stats?.programSources ?? 0) * 6)} />
