@@ -25,8 +25,9 @@ export async function summarizeIntel(title: string, body: string | null): Promis
         messages: [
           {
             role: "system",
-            content:
+            content: withPersonFirst(
               "You are IRIS, a senior Medicaid/Medicare proposal strategist. Summarize the following intelligence item in ONE sentence (max 30 words). Be specific, concrete, no hedging.",
+            ),
           },
           { role: "user", content: `TITLE: ${title}\n\n${(body ?? "").slice(0, 4000)}` },
         ],
