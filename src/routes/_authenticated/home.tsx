@@ -120,14 +120,18 @@ function AthenaHQ() {
   const { data: missions = [], isLoading: missionsLoading } = useQuery({
     queryKey: ["hq-missions"],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [] as Mission[];
       const { data } = await supabase
         .from("missions")
-        .select("id,name,client,state,health,status,submission_date,question_count")
+        .select("id,name,client,state,health,status,submission_date,question_count,mission_members!inner(user_id)")
         .eq("status", "Active")
+        .eq("mission_members.user_id", user.id)
         .order("submission_date", { ascending: true, nullsFirst: false });
       return (data ?? []) as Mission[];
     },
   });
+
 
   // ARCH-1: Writer/SME assignments across all missions
   const { data: myAssignments = [], isLoading: assignmentsLoading } = useQuery({
