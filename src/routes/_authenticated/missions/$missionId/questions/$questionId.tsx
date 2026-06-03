@@ -551,6 +551,8 @@ function CockpitPage() {
             <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">What Changed</div>
             <div className="mb-4 text-[11px] text-muted-foreground/70">Since your last visit · {lastVisitTimeStr}</div>
 
+            <CoPilotInbox missionId={missionId} questionId={questionId} currentUserId={me?.id ?? null} />
+
             {feed.length === 0 ? (
               <div className="rounded-md border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm" style={{ color: "#86efac" }}>
                 <span className="iris-dot mr-2" /> Nothing new since your last visit. You're current. Go write.
