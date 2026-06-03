@@ -90,7 +90,7 @@ export function MissionRoomHero({ missionId }: { missionId: string }) {
 
           <ul className="mt-3 space-y-1 text-[11px] text-muted-foreground">
             {(vault?.latest ?? []).slice(0, 3).map((d, i) => (
-              <li key={i} className="truncate">↑ {d.file_name} <span className="opacity-60">· {timeAgo(d.created_at)}</span></li>
+              <li key={i} className="truncate">↑ {d.name} <span className="opacity-60">· {timeAgo(d.created_at)}</span></li>
             ))}
           </ul>
 
