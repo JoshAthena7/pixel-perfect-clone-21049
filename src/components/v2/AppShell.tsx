@@ -313,7 +313,7 @@ function FlightPlanNav({ missionId, path }: { missionId: string; path: string })
   const items = [
     { to: "/missions/$missionId/library", label: "Vault", match: ["/library"], icon: <VaultIcon size={14} /> },
     { to: "/missions/$missionId/briefing", label: "Oracle", match: ["/briefing", "/brief"], icon: <OracleIcon size={14} active /> },
-    { to: "/missions/$missionId/intelligence", label: "Intelligence", match: ["/intelligence"], icon: null },
+    { to: "/missions/$missionId/intelligence", label: "Briefing Room", match: ["/intelligence"], icon: null },
     { to: "/missions/$missionId/team", label: "Team", match: ["/team"], icon: null },
     { to: "/missions/$missionId/activity", label: "Timeline", match: ["/activity"], icon: null },
   ] as const;
