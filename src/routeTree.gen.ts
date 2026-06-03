@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedPipelineHorizonRouteImport } from './routes/_authenticated/pipeline-horizon'
 import { Route as AuthenticatedPathfinderRouteImport } from './routes/_authenticated/pathfinder'
 import { Route as AuthenticatedOlympusRouteImport } from './routes/_authenticated/olympus'
+import { Route as AuthenticatedIntelligenceQueueRouteImport } from './routes/_authenticated/intelligence-queue'
 import { Route as AuthenticatedIntelligenceRouteImport } from './routes/_authenticated/intelligence'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedOlympusIndexRouteImport } from './routes/_authenticated/olympus/index'
@@ -31,7 +32,6 @@ import { Route as AuthenticatedOlympusGatesRouteImport } from './routes/_authent
 import { Route as AuthenticatedOlympusAuditRouteImport } from './routes/_authenticated/olympus/audit'
 import { Route as AuthenticatedOlympusAtlasSourcesRouteImport } from './routes/_authenticated/olympus/atlas-sources'
 import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_authenticated/missions/$missionId'
-import { Route as AuthenticatedIntelligenceReviewQueueRouteImport } from './routes/_authenticated/intelligence/review-queue'
 import { Route as AuthenticatedCommandScoresRouteImport } from './routes/_authenticated/command/scores'
 import { Route as AuthenticatedCommandQuestionHealthRouteImport } from './routes/_authenticated/command/question-health'
 import { Route as AuthenticatedCommandPensDownRouteImport } from './routes/_authenticated/command/pens-down'
@@ -87,6 +87,12 @@ const AuthenticatedOlympusRoute = AuthenticatedOlympusRouteImport.update({
   path: '/olympus',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedIntelligenceQueueRoute =
+  AuthenticatedIntelligenceQueueRouteImport.update({
+    id: '/intelligence-queue',
+    path: '/intelligence-queue',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedIntelligenceRoute =
   AuthenticatedIntelligenceRouteImport.update({
     id: '/intelligence',
@@ -181,12 +187,6 @@ const AuthenticatedMissionsMissionIdRoute =
     id: '/missions/$missionId',
     path: '/missions/$missionId',
     getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedIntelligenceReviewQueueRoute =
-  AuthenticatedIntelligenceReviewQueueRouteImport.update({
-    id: '/review-queue',
-    path: '/review-queue',
-    getParentRoute: () => AuthenticatedIntelligenceRoute,
   } as any)
 const AuthenticatedCommandScoresRoute =
   AuthenticatedCommandScoresRouteImport.update({
@@ -337,7 +337,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/home': typeof AuthenticatedHomeRoute
-  '/intelligence': typeof AuthenticatedIntelligenceRouteWithChildren
+  '/intelligence': typeof AuthenticatedIntelligenceRoute
+  '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
   '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/pathfinder': typeof AuthenticatedPathfinderRoute
   '/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
@@ -348,7 +349,6 @@ export interface FileRoutesByFullPath {
   '/command/pens-down': typeof AuthenticatedCommandPensDownRoute
   '/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
   '/command/scores': typeof AuthenticatedCommandScoresRoute
-  '/intelligence/review-queue': typeof AuthenticatedIntelligenceReviewQueueRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
   '/olympus/atlas-sources': typeof AuthenticatedOlympusAtlasSourcesRoute
   '/olympus/audit': typeof AuthenticatedOlympusAuditRoute
@@ -385,7 +385,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/home': typeof AuthenticatedHomeRoute
-  '/intelligence': typeof AuthenticatedIntelligenceRouteWithChildren
+  '/intelligence': typeof AuthenticatedIntelligenceRoute
+  '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
   '/pathfinder': typeof AuthenticatedPathfinderRoute
   '/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
@@ -395,7 +396,6 @@ export interface FileRoutesByTo {
   '/command/pens-down': typeof AuthenticatedCommandPensDownRoute
   '/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
   '/command/scores': typeof AuthenticatedCommandScoresRoute
-  '/intelligence/review-queue': typeof AuthenticatedIntelligenceReviewQueueRoute
   '/olympus/atlas-sources': typeof AuthenticatedOlympusAtlasSourcesRoute
   '/olympus/audit': typeof AuthenticatedOlympusAuditRoute
   '/olympus/gates': typeof AuthenticatedOlympusGatesRoute
@@ -433,7 +433,8 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
-  '/_authenticated/intelligence': typeof AuthenticatedIntelligenceRouteWithChildren
+  '/_authenticated/intelligence': typeof AuthenticatedIntelligenceRoute
+  '/_authenticated/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
   '/_authenticated/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/_authenticated/pathfinder': typeof AuthenticatedPathfinderRoute
   '/_authenticated/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
@@ -444,7 +445,6 @@ export interface FileRoutesById {
   '/_authenticated/command/pens-down': typeof AuthenticatedCommandPensDownRoute
   '/_authenticated/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
   '/_authenticated/command/scores': typeof AuthenticatedCommandScoresRoute
-  '/_authenticated/intelligence/review-queue': typeof AuthenticatedIntelligenceReviewQueueRoute
   '/_authenticated/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
   '/_authenticated/olympus/atlas-sources': typeof AuthenticatedOlympusAtlasSourcesRoute
   '/_authenticated/olympus/audit': typeof AuthenticatedOlympusAuditRoute
@@ -484,6 +484,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/home'
     | '/intelligence'
+    | '/intelligence-queue'
     | '/olympus'
     | '/pathfinder'
     | '/pipeline-horizon'
@@ -494,7 +495,6 @@ export interface FileRouteTypes {
     | '/command/pens-down'
     | '/command/question-health'
     | '/command/scores'
-    | '/intelligence/review-queue'
     | '/missions/$missionId'
     | '/olympus/atlas-sources'
     | '/olympus/audit'
@@ -532,6 +532,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/home'
     | '/intelligence'
+    | '/intelligence-queue'
     | '/pathfinder'
     | '/pipeline-horizon'
     | '/command/alignment'
@@ -541,7 +542,6 @@ export interface FileRouteTypes {
     | '/command/pens-down'
     | '/command/question-health'
     | '/command/scores'
-    | '/intelligence/review-queue'
     | '/olympus/atlas-sources'
     | '/olympus/audit'
     | '/olympus/gates'
@@ -579,6 +579,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authenticated/home'
     | '/_authenticated/intelligence'
+    | '/_authenticated/intelligence-queue'
     | '/_authenticated/olympus'
     | '/_authenticated/pathfinder'
     | '/_authenticated/pipeline-horizon'
@@ -589,7 +590,6 @@ export interface FileRouteTypes {
     | '/_authenticated/command/pens-down'
     | '/_authenticated/command/question-health'
     | '/_authenticated/command/scores'
-    | '/_authenticated/intelligence/review-queue'
     | '/_authenticated/missions/$missionId'
     | '/_authenticated/olympus/atlas-sources'
     | '/_authenticated/olympus/audit'
@@ -674,6 +674,13 @@ declare module '@tanstack/react-router' {
       path: '/olympus'
       fullPath: '/olympus'
       preLoaderRoute: typeof AuthenticatedOlympusRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/intelligence-queue': {
+      id: '/_authenticated/intelligence-queue'
+      path: '/intelligence-queue'
+      fullPath: '/intelligence-queue'
+      preLoaderRoute: typeof AuthenticatedIntelligenceQueueRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/intelligence': {
@@ -787,13 +794,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/missions/$missionId'
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdRouteImport
       parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/intelligence/review-queue': {
-      id: '/_authenticated/intelligence/review-queue'
-      path: '/review-queue'
-      fullPath: '/intelligence/review-queue'
-      preLoaderRoute: typeof AuthenticatedIntelligenceReviewQueueRouteImport
-      parentRoute: typeof AuthenticatedIntelligenceRoute
     }
     '/_authenticated/command/scores': {
       id: '/_authenticated/command/scores'
@@ -966,21 +966,6 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AuthenticatedIntelligenceRouteChildren {
-  AuthenticatedIntelligenceReviewQueueRoute: typeof AuthenticatedIntelligenceReviewQueueRoute
-}
-
-const AuthenticatedIntelligenceRouteChildren: AuthenticatedIntelligenceRouteChildren =
-  {
-    AuthenticatedIntelligenceReviewQueueRoute:
-      AuthenticatedIntelligenceReviewQueueRoute,
-  }
-
-const AuthenticatedIntelligenceRouteWithChildren =
-  AuthenticatedIntelligenceRoute._addFileChildren(
-    AuthenticatedIntelligenceRouteChildren,
-  )
-
 interface AuthenticatedOlympusRouteChildren {
   AuthenticatedOlympusAtlasSourcesRoute: typeof AuthenticatedOlympusAtlasSourcesRoute
   AuthenticatedOlympusAuditRoute: typeof AuthenticatedOlympusAuditRoute
@@ -1072,7 +1057,8 @@ const AuthenticatedMissionsMissionIdRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
-  AuthenticatedIntelligenceRoute: typeof AuthenticatedIntelligenceRouteWithChildren
+  AuthenticatedIntelligenceRoute: typeof AuthenticatedIntelligenceRoute
+  AuthenticatedIntelligenceQueueRoute: typeof AuthenticatedIntelligenceQueueRoute
   AuthenticatedOlympusRoute: typeof AuthenticatedOlympusRouteWithChildren
   AuthenticatedPathfinderRoute: typeof AuthenticatedPathfinderRoute
   AuthenticatedPipelineHorizonRoute: typeof AuthenticatedPipelineHorizonRoute
@@ -1088,7 +1074,8 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
-  AuthenticatedIntelligenceRoute: AuthenticatedIntelligenceRouteWithChildren,
+  AuthenticatedIntelligenceRoute: AuthenticatedIntelligenceRoute,
+  AuthenticatedIntelligenceQueueRoute: AuthenticatedIntelligenceQueueRoute,
   AuthenticatedOlympusRoute: AuthenticatedOlympusRouteWithChildren,
   AuthenticatedPathfinderRoute: AuthenticatedPathfinderRoute,
   AuthenticatedPipelineHorizonRoute: AuthenticatedPipelineHorizonRoute,
@@ -1122,3 +1109,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
