@@ -43,6 +43,9 @@ function VaultPage() {
   const [uploadIsRfp, setUploadIsRfp] = useState(true);
   const [dragOver, setDragOver] = useState(false);
   const [parsePromptFor, setParsePromptFor] = useState<{ id: string; name: string } | null>(null);
+  const [amendmentPromptFor, setAmendmentPromptFor] = useState<{ id: string; name: string } | null>(null);
+  const [amendmentType, setAmendmentType] = useState<"formal_amendment" | "qa_response" | "scope_change" | "deadline_extension" | "clarification">("formal_amendment");
+  const [analyzingAmendment, setAnalyzingAmendment] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [reviewDocId, setReviewDocId] = useState<string | undefined>(undefined);
 
