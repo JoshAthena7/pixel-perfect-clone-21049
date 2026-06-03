@@ -13,6 +13,7 @@ import { ArrowRight, Megaphone, CalendarClock, DoorOpen, ClipboardList, Search, 
 import { HORIZON_FILTERS, inferCategory, matchesHorizonFilter, type IntelItem } from "@/lib/intelligence-feed";
 import { LiveBadge, ScanningBeam, IrisWaveform, TypewriterText } from "@/components/v2/effects";
 import athenaLogo from "@/assets/athena-logo.png";
+import atlasLogo from "@/assets/atlas-logo.png.asset.json";
 import type { ReactNode } from "react";
 
 
