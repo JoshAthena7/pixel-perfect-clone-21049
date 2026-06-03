@@ -507,6 +507,24 @@ function ResponseView() {
         {/* LEFT — Work Area */}
         <div className="space-y-6">
           <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Work Area</div>
+
+          {amendmentChanges.length > 0 && (
+            <AmendmentBanner
+              changes={amendmentChanges}
+              onAck={async (id) => {
+                const { data: auth } = await supabase.auth.getUser();
+                await supabase
+                  .from("amendment_changes")
+                  .update({
+                    acknowledged: true,
+                    acknowledged_at: new Date().toISOString(),
+                    acknowledged_by: auth.user?.id ?? null,
+                  })
+                  .eq("id", id);
+                qc.invalidateQueries({ queryKey: ["amendment-changes", questionId] });
+              }}
+            />
+          )}
           <Block label="Question">
             <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">{q.question_text}</p>
           </Block>
