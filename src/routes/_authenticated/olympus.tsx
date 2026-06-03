@@ -7,8 +7,11 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Shield, ArrowLeft, ChevronDown, Zap,
   LayoutGrid, Users, FileText, ClipboardCheck, Trophy,
-  FolderOpen, Settings as SettingsIcon, UserCog, History, Brain, Sparkles, Layers,
+  FolderOpen, Settings as SettingsIcon, UserCog, History, Brain,
+  Search, Inbox, Library, BookOpen, Bell, LifeBuoy, UserPlus,
 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { listReviewQueue } from "@/lib/atlas-onboarding.functions";
 
 export const Route = createFileRoute("/_authenticated/olympus")({
   component: OlympusLayout,
@@ -176,36 +179,70 @@ function MissionSwitcher({ missions, selected, onPick }: {
 function OlympusSidebar({ isAdmin }: { isAdmin: boolean }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   return (
-    <aside className="hidden md:flex w-56 shrink-0 flex-col border-r border-border bg-surface">
-      <div className="border-b border-border px-5 py-4">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">Admin</div>
-        <div className="mt-1 text-sm font-semibold">Workspace</div>
-      </div>
-      <nav className="flex-1 px-3 py-4 space-y-0.5">
+    <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-border bg-surface">
+      <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
+        <SectionHeader>Mission</SectionHeader>
         <SidebarItem to="/olympus" path={path} icon={<LayoutGrid size={15} strokeWidth={1.5} />} exact>Missions</SidebarItem>
         <SidebarItem to="/olympus/team" path={path} icon={<Users size={15} strokeWidth={1.5} />}>Team</SidebarItem>
         <SidebarItem to="/olympus/questions" path={path} icon={<FileText size={15} strokeWidth={1.5} />}>Questions</SidebarItem>
         <SidebarItem to="/olympus/gates" path={path} icon={<ClipboardCheck size={15} strokeWidth={1.5} />}>Gates</SidebarItem>
         <SidebarItem to="/olympus/win-themes" path={path} icon={<Trophy size={15} strokeWidth={1.5} />}>Win Themes</SidebarItem>
-        <SidebarItem to="/olympus/vault" path={path} icon={<FolderOpen size={15} strokeWidth={1.5} />}>Vault · Documents</SidebarItem>
+        <SidebarItem to="/olympus/vault" path={path} icon={<FolderOpen size={15} strokeWidth={1.5} />}>Vault</SidebarItem>
         <SidebarItem to="/olympus/settings" path={path} icon={<SettingsIcon size={15} strokeWidth={1.5} />}>Settings</SidebarItem>
 
-        <div className="my-3 border-t border-border" />
-        <SidebarItem to="/intelligence" path={path} icon={<Layers size={15} strokeWidth={1.5} />}>Intelligence Hub</SidebarItem>
-        <SidebarItem to="/olympus/intelligence" path={path} icon={<Layers size={15} strokeWidth={1.5} />}>Intelligence Layers</SidebarItem>
-        <SidebarItem to="/olympus/atlas-sources" path={path} icon={<FolderOpen size={15} strokeWidth={1.5} />}>Atlas Sources</SidebarItem>
-        <SidebarItem to="/olympus/score-me" path={path} icon={<Sparkles size={15} strokeWidth={1.5} />}>Score Me</SidebarItem>
-        <IrisMemorySidebarItem path={path} />
+        <IntelligenceSectionHeader />
+        <IrisSidebarItem to="/olympus/source-finder" path={path} icon={<Search size={15} strokeWidth={1.5} />} pulse>Source Finder</IrisSidebarItem>
+        <ReviewQueueItem path={path} />
+        <IrisSidebarItem to="/olympus/source-library" path={path} icon={<Library size={15} strokeWidth={1.5} />}>Source Library</IrisSidebarItem>
+        <IrisSidebarItem to="/olympus/canon-library" path={path} icon={<BookOpen size={15} strokeWidth={1.5} />}>Canon Library</IrisSidebarItem>
+        <IrisSidebarItem to="/olympus/iris-memory" path={path} icon={<Brain size={15} strokeWidth={1.5} />}>IRIS Memory</IrisSidebarItem>
+        <IrisSidebarItem to="/olympus/discovery-history" path={path} icon={<History size={15} strokeWidth={1.5} />}>Discovery History</IrisSidebarItem>
 
         {isAdmin && (
           <>
-            <div className="my-3 border-t border-border" />
+            <SectionHeader>Platform</SectionHeader>
             <SidebarItem to="/olympus/users" path={path} icon={<UserCog size={15} strokeWidth={1.5} />}>Users</SidebarItem>
             <SidebarItem to="/olympus/audit" path={path} icon={<History size={15} strokeWidth={1.5} />}>Audit Log</SidebarItem>
+            <SidebarItem to="/olympus/support" path={path} icon={<LifeBuoy size={15} strokeWidth={1.5} />}>Support Config</SidebarItem>
+            <SidebarItem to="/olympus/talent" path={path} icon={<UserPlus size={15} strokeWidth={1.5} />}>Talent Desk</SidebarItem>
+            <SidebarItem to="/olympus/notifications" path={path} icon={<Bell size={15} strokeWidth={1.5} />}>Notifications</SidebarItem>
           </>
         )}
       </nav>
     </aside>
+  );
+}
+
+function SectionHeader({ children }: { children: ReactNode }) {
+  return (
+    <div
+      className="text-muted-foreground"
+      style={{
+        fontSize: 10, fontWeight: 700, letterSpacing: "0.2em",
+        textTransform: "uppercase", padding: "16px 16px 4px", marginTop: 8,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function IntelligenceSectionHeader() {
+  return (
+    <div
+      className="flex items-center gap-2"
+      style={{
+        fontSize: 10, fontWeight: 700, letterSpacing: "0.2em",
+        textTransform: "uppercase", padding: "16px 16px 4px", marginTop: 8,
+        color: "var(--iris, #22d3ee)",
+      }}
+    >
+      <span
+        className="iris-pulse-dot"
+        style={{ width: 6, height: 6, borderRadius: 999, background: "var(--iris, #22d3ee)" }}
+      />
+      Intelligence
+    </div>
   );
 }
 
@@ -226,25 +263,56 @@ function SidebarItem({ to, path, icon, children, exact }: {
   );
 }
 
-function IrisMemorySidebarItem({ path }: { path: string }) {
-  const to = "/olympus/iris-memory";
+function IrisSidebarItem({ to, path, icon, children, pulse, badge }: {
+  to: string; path: string; icon: ReactNode; children: ReactNode; pulse?: boolean; badge?: ReactNode;
+}) {
   const active = path === to || path.startsWith(to + "/");
   return (
     <Link
       to={to as any}
       className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors"
       style={{
-        color: "var(--iris)",
-        background: active ? "var(--iris-subtle)" : "transparent",
+        color: active ? "var(--iris, #22d3ee)" : "var(--text-muted, hsl(var(--muted-foreground)))",
+        background: active ? "color-mix(in oklab, var(--iris, #22d3ee) 10%, transparent)" : "transparent",
       }}
     >
-      <span
-        className="iris-pulse-dot"
-        style={{ width: 8, height: 8, borderRadius: 999, background: "var(--iris)", boxShadow: "0 0 0 0 var(--iris-pulse)" }}
-      />
-      <Brain size={15} strokeWidth={1.5} />
-      <span className="flex-1 truncate font-medium">IRIS Memory</span>
+      {pulse && (
+        <span
+          className="iris-pulse-dot"
+          style={{ width: 6, height: 6, borderRadius: 999, background: "var(--iris, #22d3ee)" }}
+        />
+      )}
+      {icon}
+      <span className="flex-1 truncate">{children}</span>
+      {badge}
     </Link>
+  );
+}
+
+function ReviewQueueItem({ path }: { path: string }) {
+  const listFn = useServerFn(listReviewQueue);
+  const { data } = useQuery({
+    queryKey: ["olympus-review-queue-count"],
+    queryFn: () => listFn({ data: {} as any }),
+    refetchInterval: 30_000,
+  });
+  const count = data?.sources?.length ?? 0;
+  return (
+    <IrisSidebarItem
+      to="/olympus/review-queue"
+      path={path}
+      icon={<Inbox size={15} strokeWidth={1.5} />}
+      badge={count > 0 ? (
+        <span
+          className="rounded px-1.5 py-0.5 text-[10px] font-semibold"
+          style={{ background: "rgba(245,158,11,0.18)", color: "#f59e0b" }}
+        >
+          {count}
+        </span>
+      ) : null}
+    >
+      Review Queue
+    </IrisSidebarItem>
   );
 }
 
