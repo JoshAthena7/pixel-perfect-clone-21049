@@ -131,7 +131,7 @@ That won't happen here.
 When you're ready to work, enter the Cockpit. Your questions, your intelligence, your controls — everything you need to fly this mission.
 
 Ready?`,
-        button: "Open my questions →",
+        button: "Open my assignments →",
         destination: ctx.missionId ? `/missions/${ctx.missionId}/questions` : "/home",
       };
   }
