@@ -96,9 +96,13 @@ export function PilotStatusSection({ missionId, isLead }: { missionId: string; i
 
       const profMap = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p]));
       const lastCollab: Record<string, { body: string | null; created_at: string }> = {};
-      for (const c of latestCollab ?? []) if (!lastCollab[c.question_id]) lastCollab[c.question_id] = { body: c.body, created_at: c.created_at };
+      for (const c of latestCollab ?? []) {
+        if (c.question_id && !lastCollab[c.question_id]) lastCollab[c.question_id] = { body: c.body, created_at: c.created_at };
+      }
       const lastReality: Record<string, { body: string | null; created_at: string }> = {};
-      for (const r of latestRealities ?? []) if (!lastReality[r.question_id]) lastReality[r.question_id] = { body: r.details, created_at: r.created_at };
+      for (const r of latestRealities ?? []) {
+        if (r.question_id && !lastReality[r.question_id]) lastReality[r.question_id] = { body: r.details, created_at: r.created_at };
+      }
       const briefMap: Record<string, string> = {};
       for (const b of briefs ?? []) if (!briefMap[b.question_id]) briefMap[b.question_id] = b.generated_at;
 
