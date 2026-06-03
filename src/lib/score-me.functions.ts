@@ -244,7 +244,25 @@ PERSON-FIRST LANGUAGE SCORING (mandatory dimension):
 - If non-person-first terms are found, add a reason with type: "person_first" and label: "PERSON-FIRST LANGUAGE". In the explanation, name each flagged term and provide the person-first alternative.
 - Apply a score deduction of −0.1 (one or two minor instances) to −0.3 (multiple instances or terms in critical sections like the opening paragraph or evaluation-criteria responses).
 - If non-person-first language appears in critical sections, include a Change with exact replacement language; this Change can be ranked first if its impact exceeds the other gaps.
-- State evaluators and CMS reviewers are trained to notice non-person-first language. Its presence signals cultural insensitivity about the population being served and lowers scores on health equity, member experience, and cultural competency sections.`;
+- State evaluators and CMS reviewers are trained to notice non-person-first language. Its presence signals cultural insensitivity about the population being served and lowers scores on health equity, member experience, and cultural competency sections.
+
+COMPLIANCE CHECKING (mandatory dimension when requirements are present):
+For each compliance requirement provided in the prompt (Model Contract, State Regulations, Federal), evaluate the response and emit one entry in compliance_findings with the requirement id (exactly as provided), source ("mission" or "federal"), and one status:
+- compliant — response clearly addresses this requirement
+- partial — response partially addresses but incompletely
+- non_compliant — response does not address this requirement
+- conflicting — response makes a commitment that conflicts with this requirement
+- unknown — cannot tell from the response alone
+
+Score impact:
+- Critical non-compliant: −0.5 per requirement
+- Critical conflicting: −0.8 per requirement
+- Significant non-compliant: −0.2 per requirement
+- Standard non-compliant: −0.1 per requirement
+
+For every non-compliant or conflicting requirement, add a reason with type: "compliance" naming the source and the gap.
+
+Compliance fixes take priority in the changes array. A non-compliant CRITICAL requirement is ALWAYS Change 1 regardless of other factors (above mandatory_language, above person-first). For each compliance change, the suggested_language MUST include the exact text that would make the response compliant — including the specific citation if required language is mandated.`;
 
     const analysis = await callScoreEngine(sys, userMsg);
     if (!analysis) {
@@ -269,6 +287,46 @@ PERSON-FIRST LANGUAGE SCORING (mandatory dimension):
       .select("id,created_at")
       .maybeSingle();
 
+    // Persist compliance findings
+    const validIds = new Set(allComplianceForPrompt.map((c) => c.id));
+    const findings = Array.isArray(analysis.compliance_findings) ? analysis.compliance_findings : [];
+    const findingRows = findings
+      .filter((f: any) => f?.requirement_id && validIds.has(f.requirement_id))
+      .map((f: any) => {
+        const ref = allComplianceForPrompt.find((c) => c.id === f.requirement_id);
+        return {
+          question_id: q.id,
+          mission_id: q.mission_id,
+          score_me_run_id: inserted?.id ?? null,
+          requirement_id: f.requirement_id,
+          requirement_source: ref?.source ?? f.requirement_source ?? "mission",
+          requirement_snapshot: ref ?? {},
+          status: f.status ?? "unknown",
+          evidence: String(f.evidence ?? "").slice(0, 2000),
+          iris_note: String(f.iris_note ?? "").slice(0, 2000),
+        };
+      });
+    if (findingRows.length > 0) {
+      await supabase.from("compliance_check_results").insert(findingRows);
+    }
+
+    // Build compliance summary for the UI
+    const findingMap = new Map<string, any>();
+    for (const f of findings) if (f?.requirement_id) findingMap.set(f.requirement_id, f);
+    const complianceSummary = allComplianceForPrompt.map((c) => {
+      const f = findingMap.get(c.id);
+      return {
+        requirement_id: c.id,
+        source: c.source,
+        label: c.label,
+        requirement: c.requirement,
+        severity: c.severity,
+        status: (f?.status as string) ?? "unknown",
+        evidence: f?.evidence ?? "",
+        iris_note: f?.iris_note ?? "",
+      };
+    });
+
     return {
       id: inserted?.id ?? null,
       created_at: inserted?.created_at ?? new Date().toISOString(),
@@ -280,6 +338,7 @@ PERSON-FIRST LANGUAGE SCORING (mandatory dimension):
       sources_used: Array.isArray(analysis.sources_used) ? analysis.sources_used : [],
       confidence: (analysis.confidence ?? "medium") as "high" | "medium" | "low",
       confidence_note: String(analysis.confidence_note ?? ""),
+      compliance: complianceSummary,
       question: {
         id: q.id,
         question_number: q.question_number,
