@@ -212,8 +212,8 @@ function SourceCard({ s, layer }: { s: any; layer: Tab }) {
           }}
         >
           {layer === "canon" ? `CANON ${s.authority_score ?? "?"}/10`
-            : layer === "state" ? `${s.state_code ?? "STATE"} ${s.authority_score ?? "?"}/10`
-            : layer === "program" ? `${s.program_code ?? "PROG"} ${s.authority_score ?? "?"}/10`
+            : layer === "states" ? `${s.state_code ?? "STATE"} ${s.authority_score ?? "?"}/10`
+            : layer === "programs" ? `${s.program_code ?? "PROG"} ${s.authority_score ?? "?"}/10`
             : `${layer.toUpperCase()} ${s.authority_score ?? "?"}/10`}
         </span>
       </div>
