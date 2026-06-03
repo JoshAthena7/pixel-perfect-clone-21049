@@ -131,9 +131,32 @@ function LibraryPage() {
         </div>
       </div>
 
-      <p className="mb-6 text-xs text-muted-foreground">
+      <p className="mb-3 text-xs text-muted-foreground">
         Documents are managed in Olympus. Contact your Engagement Lead to upload new materials.
       </p>
+
+      {/* IRIS indexing status bar */}
+      <div className="mb-5 flex items-center justify-between gap-3 rounded-md border border-[#C49A22]/20 bg-[#C49A22]/[0.05] px-3 py-2 text-xs">
+        <div className="flex items-center gap-2 min-w-0">
+          <Sparkles className="h-3.5 w-3.5 text-[#C49A22] shrink-0" />
+          <span className="text-foreground">
+            IRIS has indexed <span className="font-semibold">{indexStatus?.indexed ?? 0}</span> of{" "}
+            <span className="font-semibold">{indexStatus?.total ?? 0}</span> documents
+          </span>
+          {indexStatus?.lastIndexedAt && (
+            <span className="text-muted-foreground">· Last indexed: {timeAgo(indexStatus.lastIndexedAt)}</span>
+          )}
+        </div>
+        <button
+          onClick={reindexAll}
+          disabled={reindexing || (indexStatus?.total ?? 0) === 0}
+          className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-black/30 px-2.5 py-1 text-[11px] text-muted-foreground hover:text-foreground hover:border-white/30 disabled:opacity-50"
+        >
+          {reindexing ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+          {reindexing ? "Re-indexing…" : "Re-index All"}
+        </button>
+      </div>
+
 
       <div className="mb-4 relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
