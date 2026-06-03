@@ -1,14 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { FileText, ExternalLink, Search } from "lucide-react";
+import { FileText, ExternalLink, Search, Sparkles, CheckCircle2, Loader2, RefreshCw } from "lucide-react";
 import { VaultIcon } from "@/components/v2/icons/AtlasIcons";
+import { getLibraryIndexStatus, reindexMissionDocuments } from "@/lib/mission-activation.functions";
+import { toast } from "sonner";
 
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/library")({
   component: LibraryPage,
 });
+
 
 const CATEGORIES = [
   "RFP",
@@ -46,6 +50,10 @@ function LibraryPage() {
   const { missionId } = Route.useParams();
   const [activeCategory, setActiveCategory] = useState<Category | "All">("All");
   const [search, setSearch] = useState("");
+  const qc = useQueryClient();
+  const statusFn = useServerFn(getLibraryIndexStatus);
+  const reindexFn = useServerFn(reindexMissionDocuments);
+  const [reindexing, setReindexing] = useState(false);
 
   const { data: docs = [], isLoading } = useQuery({
     queryKey: ["mission-library", missionId],
@@ -58,6 +66,29 @@ function LibraryPage() {
       return (data ?? []) as Doc[];
     },
   });
+
+  const { data: indexStatus } = useQuery({
+    queryKey: ["mission-library-index", missionId],
+    queryFn: () => statusFn({ data: { missionId } }),
+  });
+  const indexedIds = useMemo(
+    () => new Set(indexStatus?.indexedDocumentIds ?? []),
+    [indexStatus],
+  );
+
+  async function reindexAll() {
+    setReindexing(true);
+    try {
+      const res = await reindexFn({ data: { missionId, onlyMissing: false } });
+      toast.success(`Re-indexed ${res.ok} of ${res.processed} documents`);
+      qc.invalidateQueries({ queryKey: ["mission-library-index", missionId] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Re-index failed");
+    } finally {
+      setReindexing(false);
+    }
+  }
+
 
   const counts = useMemo(() => {
     const map: Record<string, number> = { All: docs.length };
@@ -100,9 +131,32 @@ function LibraryPage() {
         </div>
       </div>
 
-      <p className="mb-6 text-xs text-muted-foreground">
+      <p className="mb-3 text-xs text-muted-foreground">
         Documents are managed in Olympus. Contact your Engagement Lead to upload new materials.
       </p>
+
+      {/* IRIS indexing status bar */}
+      <div className="mb-5 flex items-center justify-between gap-3 rounded-md border border-[#C49A22]/20 bg-[#C49A22]/[0.05] px-3 py-2 text-xs">
+        <div className="flex items-center gap-2 min-w-0">
+          <Sparkles className="h-3.5 w-3.5 text-[#C49A22] shrink-0" />
+          <span className="text-foreground">
+            IRIS has indexed <span className="font-semibold">{indexStatus?.indexed ?? 0}</span> of{" "}
+            <span className="font-semibold">{indexStatus?.total ?? 0}</span> documents
+          </span>
+          {indexStatus?.lastIndexedAt && (
+            <span className="text-muted-foreground">· Last indexed: {timeAgo(indexStatus.lastIndexedAt)}</span>
+          )}
+        </div>
+        <button
+          onClick={reindexAll}
+          disabled={reindexing || (indexStatus?.total ?? 0) === 0}
+          className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-black/30 px-2.5 py-1 text-[11px] text-muted-foreground hover:text-foreground hover:border-white/30 disabled:opacity-50"
+        >
+          {reindexing ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+          {reindexing ? "Re-indexing…" : "Re-index All"}
+        </button>
+      </div>
+
 
       <div className="mb-4 relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -160,13 +214,23 @@ function LibraryPage() {
                     >
                       {doc.name}
                     </button>
-                    <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                       <span className="rounded bg-muted px-1.5 py-0.5">{doc.category}</span>
                       {doc.is_rfp && (
                         <span className="rounded bg-primary/15 px-1.5 py-0.5 text-primary">RFP</span>
                       )}
+                      {indexedIds.has(doc.id) ? (
+                        <span className="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-1.5 py-0.5 text-emerald-400">
+                          <CheckCircle2 className="h-3 w-3" /> Indexed by IRIS
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded bg-amber-500/10 px-1.5 py-0.5 text-amber-300">
+                          <Loader2 className="h-3 w-3 animate-spin" /> Pending IRIS indexing…
+                        </span>
+                      )}
                       {doc.url && <ExternalLink className="h-3 w-3" />}
                     </div>
+
                   </div>
                 </div>
                 {doc.notes && (
@@ -208,3 +272,15 @@ function CategoryRow({
     </button>
   );
 }
+
+function timeAgo(iso: string): string {
+  const sec = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 1000));
+  if (sec < 60) return `${sec}s ago`;
+  const min = Math.round(sec / 60);
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const d = Math.round(hr / 24);
+  return `${d}d ago`;
+}
+

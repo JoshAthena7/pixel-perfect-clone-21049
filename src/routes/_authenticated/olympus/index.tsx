@@ -1,10 +1,12 @@
 import React, { Component, useState, type ErrorInfo, type ReactNode } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, X, ArrowRight, CheckCircle2, Circle, AlertCircle, Archive, Pencil, Zap } from "lucide-react";
+import { Plus, X, ArrowRight, Archive, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { logOlympusAction } from "@/lib/audit";
+import { MissionActivationWizard } from "@/components/v2/MissionActivationWizard";
+
 
 export const Route = createFileRoute("/_authenticated/olympus/")({
   component: MissionsIndex,
@@ -164,17 +166,23 @@ function MissionsIndex() {
 
       {createOpen && (
         <ModalErrorBoundary onClose={() => setCreateOpen(false)}>
-          <CreateMissionModal onClose={() => setCreateOpen(false)} />
+          <MissionActivationWizard onClose={() => setCreateOpen(false)} />
         </ModalErrorBoundary>
       )}
       {activateFor && (
         <ModalErrorBoundary onClose={() => setActivateFor(null)}>
-          <ActivateChecklistModal mission={activateFor} onClose={() => setActivateFor(null)} />
+          <MissionActivationWizard
+            onClose={() => setActivateFor(null)}
+            resumeMissionId={activateFor.id}
+            initialName={activateFor.name}
+            initialClient={activateFor.client}
+          />
         </ModalErrorBoundary>
       )}
     </div>
   );
 }
+
 
 function StatusChip({ status }: { status: string | null }) {
   const s = status ?? "Draft";
@@ -187,186 +195,9 @@ function StatusChip({ status }: { status: string | null }) {
   return <span className={`rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] ${cls}`}>{s}</span>;
 }
 
-/* ────────── Create Mission Modal ────────── */
+/* Mission creation + activation flows now live in MissionActivationWizard. */
 
-function CreateMissionModal({ onClose }: { onClose: () => void }) {
-  const navigate = useNavigate();
-  const qc = useQueryClient();
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const [form, setForm] = useState({
-    name: "", client: "", state: "", program_type: "Medicaid",
-    submission_date: "", description: "",
-  });
 
-  function upd<K extends keyof typeof form>(k: K, v: string) {
-    setForm((f) => ({ ...f, [k]: v }));
-  }
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setErr(null);
-    if (!form.name.trim() || !form.client.trim()) {
-      setErr("Mission name and client are required.");
-      return;
-    }
-    setBusy(true);
-    try {
-      const { data: { user }, error: ue } = await supabase.auth.getUser();
-      if (ue || !user) throw new Error(ue?.message ?? "Not authenticated");
-      await supabase.from("profiles").upsert(
-        { id: user.id, display_name: user.email?.split("@")[0] ?? "User", email: user.email ?? null },
-        { onConflict: "id" },
-      );
-      const desc = form.program_type ? `${form.program_type}${form.description ? "\n\n" + form.description : ""}` : form.description || null;
-      const { data, error } = await supabase
-        .from("missions")
-        .insert({
-          name: form.name.trim(),
-          client: form.client.trim(),
-          state: form.state.trim() || null,
-          submission_date: form.submission_date || null,
-          description: desc,
-          status: "Draft",
-          health: "Yellow",
-          created_by: user.id,
-        })
-        .select("id")
-        .single();
-      if (error) throw new Error(error.message);
-      if (!data?.id) throw new Error("Created but no id returned.");
-
-      toast.success("Mission created as Draft");
-      await logOlympusAction({
-        action_type: "mission.create",
-        action_summary: `Created mission "${form.name.trim()}"`,
-        mission_id: data.id,
-        target_table: "missions",
-        target_id: data.id,
-      });
-      window.localStorage.setItem("olympus:mission", data.id);
-      window.dispatchEvent(new CustomEvent("olympus:mission-changed", { detail: data.id }));
-      qc.invalidateQueries({ queryKey: ["olympus-missions"] });
-      qc.invalidateQueries({ queryKey: ["olympus-header-missions"] });
-      navigate({ to: "/olympus/settings" });
-    } catch (e: any) {
-      setErr(e?.message ?? "Failed to create mission");
-      setBusy(false);
-    }
-  }
-
-  return (
-    <ModalShell onClose={onClose} title="Create New Mission" subtitle="Setup">
-      <form onSubmit={submit} className="space-y-4">
-        <TextField label="Mission name *" value={form.name} onChange={(v) => upd("name", v)} placeholder="Indiana Medicaid RFP" />
-        <TextField label="Client *" value={form.client} onChange={(v) => upd("client", v)} placeholder="Indiana FSSA" />
-        <div className="grid grid-cols-2 gap-3">
-          <TextField label="State" value={form.state} onChange={(v) => upd("state", v)} placeholder="IN" />
-          <SelectField label="Procurement type" value={form.program_type} onChange={(v) => upd("program_type", v)}
-            options={["Medicaid", "Medicare", "CHIP", "Other"]} />
-        </div>
-        <TextField label="Submission deadline" type="date" value={form.submission_date} onChange={(v) => upd("submission_date", v)} />
-        <div>
-          <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Description</label>
-          <textarea
-            value={form.description} onChange={(e) => upd("description", e.target.value)} rows={3}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-            placeholder="Optional context for the team."
-          />
-        </div>
-        {err && <div className="rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300">{err}</div>}
-        <footer className="flex items-center justify-end gap-2 pt-2">
-          <button type="button" onClick={onClose} className="rounded-lg border border-border px-4 py-2 text-sm hover:bg-surface-hover" disabled={busy}>Cancel</button>
-          <button type="submit" disabled={busy}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#C49A22] px-4 py-2 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50">
-            {busy && <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />}
-            {busy ? "Creating…" : "Create Mission"}
-          </button>
-        </footer>
-      </form>
-    </ModalShell>
-  );
-}
-
-/* ────────── Activate Checklist Modal ────────── */
-
-function ActivateChecklistModal({ mission, onClose }: { mission: MissionRow; onClose: () => void }) {
-  const qc = useQueryClient();
-  const [busy, setBusy] = useState(false);
-
-  const { data: check, isLoading } = useQuery({
-    queryKey: ["olympus-activate-check", mission.id],
-    queryFn: async () => {
-      const [rfp, writers, gates, missionRow] = await Promise.all([
-        supabase.from("mission_library").select("id", { count: "exact", head: true }).eq("mission_id", mission.id).eq("is_rfp", true),
-        supabase.from("mission_members").select("id", { count: "exact", head: true }).eq("mission_id", mission.id).eq("role", "writer"),
-        supabase.from("mission_review_gates").select("id", { count: "exact", head: true }).eq("mission_id", mission.id),
-        supabase.from("missions").select("submission_date").eq("id", mission.id).maybeSingle(),
-      ]);
-      return {
-        rfp: (rfp.count ?? 0) > 0,
-        writer: (writers.count ?? 0) > 0,
-        gate: (gates.count ?? 0) > 0,
-        deadline: !!missionRow.data?.submission_date,
-      };
-    },
-  });
-
-  async function activate() {
-    setBusy(true);
-    const { error } = await supabase.from("missions").update({ status: "Active" }).eq("id", mission.id);
-    if (error) { toast.error(error.message); setBusy(false); return; }
-    toast.success(`${mission.name} is now Active`);
-    await logOlympusAction({
-      action_type: "mission.activate",
-      action_summary: `Activated mission "${mission.name}"`,
-      mission_id: mission.id,
-      target_table: "missions",
-      target_id: mission.id,
-    });
-    qc.invalidateQueries({ queryKey: ["olympus-missions"] });
-    onClose();
-  }
-
-  const items = [
-    { label: "RFP uploaded", ok: check?.rfp },
-    { label: "At least one writer assigned", ok: check?.writer },
-    { label: "Submission date set", ok: check?.deadline },
-    { label: "At least one Review Gate set", ok: check?.gate },
-  ];
-  const warnings = items.filter((i) => i.ok === false).length;
-
-  return (
-    <ModalShell onClose={onClose} title={`Activate ${mission.name}`} subtitle="Activation Checklist">
-      <p className="text-sm text-muted-foreground">
-        Activating makes this mission visible to assigned team members in the Lobby and Cockpit. Drafts are hidden from non-admins.
-      </p>
-      <ul className="mt-4 space-y-2">
-        {items.map((i) => (
-          <li key={i.label} className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm">
-            {isLoading ? <Circle className="h-4 w-4 text-muted-foreground" />
-              : i.ok ? <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-              : <AlertCircle className="h-4 w-4 text-amber-400" />}
-            <span className={i.ok ? "text-foreground" : "text-muted-foreground"}>{i.label}</span>
-          </li>
-        ))}
-      </ul>
-      {warnings > 0 && !isLoading && (
-        <div className="mt-3 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
-          {warnings} item{warnings === 1 ? "" : "s"} unchecked. You can activate anyway — IRIS will continue flagging risks in the mission.
-        </div>
-      )}
-      <footer className="mt-6 flex items-center justify-end gap-2">
-        <button onClick={onClose} className="rounded-lg border border-border px-4 py-2 text-sm hover:bg-surface-hover" disabled={busy}>Cancel</button>
-        <button onClick={activate} disabled={busy || isLoading}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#C49A22] px-4 py-2 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50">
-          {busy && <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />}
-          <Zap className="h-4 w-4" /> Activate Mission
-        </button>
-      </footer>
-    </ModalShell>
-  );
-}
 
 /* ────────── Helpers ────────── */
 

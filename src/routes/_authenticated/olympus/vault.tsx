@@ -148,8 +148,13 @@ function VaultPage() {
           } else if (uploadIsRfp) {
             lastRfp = { id: row.id, name: file.name };
           }
+          // Fire IRIS extraction in the background (non-blocking, non-fatal)
+          import("@/lib/mission-activation.functions")
+            .then(({ extractDocumentIntelligence }) => extractDocumentIntelligence({ data: { documentId: row.id } }))
+            .catch((e) => console.warn("IRIS extraction failed", e?.message));
         }
       }
+
       toast.success(`Uploaded ${files.length} file${files.length === 1 ? "" : "s"}`);
       qc.invalidateQueries({ queryKey: ["olympus-vault", missionId] });
       if (lastAmendment) setAmendmentPromptFor(lastAmendment);

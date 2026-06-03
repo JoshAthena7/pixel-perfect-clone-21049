@@ -278,6 +278,66 @@ export type Database = {
           },
         ]
       }
+      document_extractions: {
+        Row: {
+          created_at: string
+          document_id: string
+          error_message: string | null
+          extracted_text: string | null
+          id: string
+          key_entities: string[]
+          key_themes: string[]
+          mission_id: string
+          processed_at: string
+          status: string
+          summary: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          error_message?: string | null
+          extracted_text?: string | null
+          id?: string
+          key_entities?: string[]
+          key_themes?: string[]
+          mission_id: string
+          processed_at?: string
+          status?: string
+          summary?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          error_message?: string | null
+          extracted_text?: string | null
+          id?: string
+          key_entities?: string[]
+          key_themes?: string[]
+          mission_id?: string
+          processed_at?: string
+          status?: string
+          summary?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_extractions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: true
+            referencedRelation: "mission_library"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_extractions_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_send_log: {
         Row: {
           created_at: string
