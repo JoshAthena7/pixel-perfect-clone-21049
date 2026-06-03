@@ -177,6 +177,19 @@ export function MissionRoomHero({ missionId }: { missionId: string }) {
           ))}
         </ul>
 
+        {oracleTop.length > 0 && (
+          <div className="mt-2" onClick={(e) => e.preventDefault()}>
+            <IrisCorrectable
+              contentType="oracle_section"
+              contentBlock={oracleTop.map((s) => `${s.section_key}: ${(s.content ?? "").slice(0, 400)}`).join("\n\n")}
+              missionId={missionId}
+              wrap={false}
+              flagPosition="inline"
+            />
+            <span className="ml-1 text-[10px] uppercase tracking-wider text-muted-foreground/60">Flag error</span>
+          </div>
+        )}
+
         <div className="mt-auto pt-5">
           <div className="w-full rounded-md px-5 py-2.5 text-center text-[11px] font-bold uppercase tracking-[0.2em] transition-all"
             style={{
