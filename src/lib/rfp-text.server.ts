@@ -44,11 +44,18 @@ export async function loadRfpText(
   if (dlErr || !file) throw new Error(`Download failed: ${dlErr?.message}`);
 
   const lower = (doc.name as string).toLowerCase();
-  if (!lower.endsWith(".docx")) {
-    throw new Error(`Unsupported file type for RFP text extraction: ${doc.name}. Please upload a .docx file.`);
+  const bytes = await file.arrayBuffer();
+  let text = "";
+  if (lower.endsWith(".docx")) {
+    text = await extractDocxText(bytes);
+  } else if (lower.endsWith(".txt") || lower.endsWith(".md")) {
+    text = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+  } else {
+    throw new Error(
+      `IRIS can only analyze .docx (or .txt/.md) files right now — "${doc.name}" is not supported. Please re-upload the RFP/amendment as a Word .docx file.`,
+    );
   }
-  const text = await extractDocxText(await file.arrayBuffer());
-  if (text.length < 200) throw new Error("RFP text too short — could not extract meaningful content");
+  if (text.length < 200) throw new Error("Document text too short — could not extract meaningful content");
   return { text, filename: doc.name, missionId: doc.mission_id };
 }
 
