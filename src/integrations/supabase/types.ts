@@ -2163,6 +2163,42 @@ export type Database = {
         }
         Relationships: []
       }
+      score_me_history: {
+        Row: {
+          created_at: string
+          full_analysis: Json
+          id: string
+          mission_id: string
+          projected_score: number | null
+          question_id: string
+          response_text: string
+          score: number
+          scored_by: string
+        }
+        Insert: {
+          created_at?: string
+          full_analysis?: Json
+          id?: string
+          mission_id: string
+          projected_score?: number | null
+          question_id: string
+          response_text: string
+          score: number
+          scored_by: string
+        }
+        Update: {
+          created_at?: string
+          full_analysis?: Json
+          id?: string
+          mission_id?: string
+          projected_score?: number | null
+          question_id?: string
+          response_text?: string
+          score?: number
+          scored_by?: string
+        }
+        Relationships: []
+      }
       signals: {
         Row: {
           confidence: number | null
