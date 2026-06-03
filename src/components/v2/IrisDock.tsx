@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Sparkles, X, Send, Eye, ThumbsUp, ThumbsDown, Flag } from "lucide-react";
+import { Sparkles, X, Send, ThumbsUp, ThumbsDown, Flag } from "lucide-react";
 import { irisAskGlobal, irisAskMission, irisAskQuestion } from "@/lib/iris-ask.functions";
 import { IrisCorrectable } from "@/components/v2/IrisCorrectable";
+import irisLogo from "@/assets/iris-logo.png.asset.json";
 import { toast } from "sonner";
 
 type Msg = { role: "user" | "iris"; text: string };
