@@ -652,7 +652,7 @@ function CockpitPage() {
         className="fixed inset-x-0 bottom-[58px] md:bottom-0 z-40 border-t"
         style={{ background: "rgba(6,11,20,0.95)", backdropFilter: "blur(12px)", borderColor: "rgba(255,255,255,0.06)" }}
       >
-        <div className="mx-auto grid grid-cols-2 gap-2 p-3 md:flex md:h-16 md:max-w-[1100px] md:items-center md:justify-between md:gap-3 md:p-0 md:px-10">
+        <div className="mx-auto flex h-16 max-w-[1100px] items-center justify-between gap-3 px-10 max-md:hidden">
           {/* LEFT */}
           <div className="flex items-center gap-2">
             {isReadOnlyView ? (
@@ -721,6 +721,48 @@ function CockpitPage() {
             )}
             {!isSME && !isReadOnlyView && <SOSButton missionId={missionId} questionId={questionId} />}
           </div>
+        </div>
+
+        {/* MOBILE 2×2 ACTION GRID */}
+        <div className="md:hidden grid grid-cols-2 gap-2 p-3">
+          {isReadOnlyView ? (
+            <div className="col-span-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-3 text-center text-xs text-amber-200">
+              Read-only — actions disabled
+            </div>
+          ) : (
+            <>
+              <button
+                onClick={() => openUpdateReality(questionId)}
+                className="h-14 rounded-md bg-primary text-sm font-semibold text-primary-foreground hover:opacity-90 active:opacity-80"
+              >
+                {isSME ? "Submit SME Input" : "Update Reality"}
+              </button>
+              {!isSME ? (
+                <SOSButton missionId={missionId} questionId={questionId} />
+              ) : (
+                <button
+                  onClick={() => setAskOpen(true)}
+                  className="h-14 rounded-md border border-primary/40 text-sm font-semibold text-primary hover:bg-primary/10"
+                >
+                  Ask IRIS
+                </button>
+              )}
+              <button
+                onClick={() => setAskOpen(true)}
+                className="h-14 inline-flex items-center justify-center gap-1.5 rounded-md border border-primary/40 text-sm font-semibold text-primary hover:bg-primary/10"
+              >
+                <Sparkles className="h-4 w-4" /> Ask IRIS
+              </button>
+              {!isSME && (
+                <button
+                  onClick={() => setGetHelpOpen(true)}
+                  className="h-14 inline-flex items-center justify-center rounded-md border border-white/10 bg-white/[0.03] text-sm font-semibold text-foreground hover:bg-white/[0.06]"
+                >
+                  Get Help
+                </button>
+              )}
+            </>
+          )}
         </div>
       </div>
 
