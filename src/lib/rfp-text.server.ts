@@ -43,6 +43,10 @@ export async function loadRfpText(
     .download(doc.file_path);
   if (dlErr || !file) throw new Error(`Download failed: ${dlErr?.message}`);
 
+  const lower = (doc.name as string).toLowerCase();
+  if (!lower.endsWith(".docx")) {
+    throw new Error(`Unsupported file type for RFP text extraction: ${doc.name}. Please upload a .docx file.`);
+  }
   const text = await extractDocxText(await file.arrayBuffer());
   if (text.length < 200) throw new Error("RFP text too short — could not extract meaningful content");
   return { text, filename: doc.name, missionId: doc.mission_id };
