@@ -6,6 +6,7 @@ import { Plus, X, ArrowRight, Archive, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { logOlympusAction } from "@/lib/audit";
 import { MissionActivationWizard } from "@/components/v2/MissionActivationWizard";
+import { MissionReadinessPanel, ReadinessChip } from "@/components/v2/MissionReadinessPanel";
 
 
 export const Route = createFileRoute("/_authenticated/olympus/")({
