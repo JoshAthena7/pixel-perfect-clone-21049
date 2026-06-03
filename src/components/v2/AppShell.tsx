@@ -152,7 +152,7 @@ function TopBar({
       </div>
 
       {/* RIGHT */}
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="ml-auto md:ml-0 flex shrink-0 items-center gap-2">
         <button
           onClick={() => {
             window.dispatchEvent(new CustomEvent("atlas:open-search"));
