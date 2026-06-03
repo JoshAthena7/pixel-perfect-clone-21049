@@ -669,20 +669,52 @@ function ResponsesList() {
 
       {isWriter && <WriterBriefPanel missionId={missionId} myQuestions={myQuestions} collabsByQ={collabsByQ} />}
 
-      <div className="mb-4 flex flex-wrap items-center gap-2">
+      <div className="mb-4 flex flex-wrap items-center gap-3">
         {isWriter && (
-          <div className="inline-flex rounded-full border border-border bg-surface p-0.5">
-            {(["mine", "all"] as View[]).map((k) => (
-              <button
-                key={k}
-                onClick={() => setView(k)}
-                className={`rounded-full px-3 py-1 text-xs transition ${
-                  view === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {k === "mine" ? "My Assignments" : "All Assignments"}
-              </button>
-            ))}
+          <div
+            className="inline-flex items-center gap-0.5 rounded-lg border bg-white/[0.04] p-[3px]"
+            style={{ borderColor: "rgba(255,255,255,0.08)" }}
+          >
+            {(["mine", "all"] as View[]).map((k) => {
+              const active = view === k;
+              const label = k === "mine" ? "My Assignments" : "All Questions";
+              const count = k === "mine" ? myQuestions.length : questions.length;
+              const showUrgent = k === "mine" && myUrgentCount > 0;
+              const showRed = k === "all" && healthCounts.red > 0;
+              return (
+                <button
+                  key={k}
+                  onClick={() => setView(k)}
+                  className={`inline-flex h-8 items-center gap-1.5 rounded-md px-4 text-[12px] font-semibold tracking-wide transition ${
+                    active
+                      ? "border bg-surface text-foreground"
+                      : "border border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
+                  style={active ? { borderColor: "var(--border-default, rgba(255,255,255,0.08))" } : undefined}
+                >
+                  <span>{label}</span>
+                  {showUrgent ? (
+                    <span
+                      className="rounded-full px-1.5 py-px text-[11px] font-medium"
+                      style={{ background: "rgba(245,158,11,0.15)", color: "var(--yellow,#f59e0b)" }}
+                    >
+                      {myUrgentCount} need attention
+                    </span>
+                  ) : showRed ? (
+                    <span
+                      className="rounded-full px-1.5 py-px text-[11px] font-medium"
+                      style={{ background: "rgba(239,68,68,0.12)", color: "var(--red,#ef4444)" }}
+                    >
+                      {count}
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-white/[0.08] px-1.5 py-px text-[11px] font-medium text-muted-foreground">
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
         <button
@@ -696,7 +728,25 @@ function ResponsesList() {
 
       {filtersOpen && (
         <div className="mb-4 rounded-md border border-border bg-surface/60 p-3 text-xs text-muted-foreground">
-          No additional filters configured. Use the toggle to switch between My Assignments and All Assignments.
+          No additional filters configured. Use the toggle to switch between My Assignments and All Questions.
+        </div>
+      )}
+
+      {effectiveView === "all" && !isLoading && questions.length > 0 && (
+        <div className="mb-3 flex flex-wrap items-center gap-4 text-[12px] text-muted-foreground">
+          <span>{healthCounts.total} total</span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <span className="text-emerald-400">{healthCounts.green} Green</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-yellow-500" />
+            <span className="text-yellow-400">{healthCounts.yellow} Yellow</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-red-500" />
+            <span className="text-red-400">{healthCounts.red} Red</span>
+          </span>
         </div>
       )}
 
@@ -706,54 +756,81 @@ function ResponsesList() {
         </div>
       ) : visible.length === 0 ? (
         <div className="rounded-[12px] border border-dashed border-border bg-surface/40 p-12 text-center text-sm text-muted-foreground">
-          {effectiveView === "mine" ? "You have no assigned questions on this mission." : "No responses yet."}
+          {effectiveView === "mine" ? (
+            <>
+              <div className="font-medium text-foreground">No questions assigned yet.</div>
+              <div className="mt-1">Your Engagement Lead will assign questions in Olympus.</div>
+            </>
+          ) : (
+            "No responses yet."
+          )}
+        </div>
+      ) : effectiveView === "all" ? (
+        <div className="space-y-6">
+          {grouped.map(({ section, items, hasMine }) => (
+            <div key={section}>
+              <div
+                className={`mb-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground ${
+                  hasMine ? "border-l-2 pl-2" : ""
+                }`}
+                style={hasMine ? { borderColor: "#3b7fff" } : undefined}
+              >
+                <div className="flex items-center justify-between border-b border-border pb-1.5 pt-3">
+                  <span>Section {section} {hasMine && <span className="ml-1 text-[#3b7fff]">·  yours</span>}</span>
+                  <span className="text-muted-foreground/70">{items.length} {items.length === 1 ? "question" : "questions"}</span>
+                </div>
+              </div>
+              <ul className="divide-y divide-border rounded-[12px] border border-border bg-surface">
+                {items.map((q) => (
+                  <QuestionRow
+                    key={q.id}
+                    q={q}
+                    me={me}
+                    missionId={missionId}
+                    writerById={writerById}
+                    lastEditByQ={lastEditByQ}
+                    conflictByQ={conflictByQ}
+                    questionsById={Object.fromEntries(questions.map((x) => [x.id, x]))}
+                    statusNote={statusNote}
+                    updateStatus={updateStatus}
+                    isWriter={isWriter}
+                    showYouBadge
+                    onOpenReadOnly={setDrawerQ}
+                  />
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
       ) : (
         <ul className="divide-y divide-border rounded-[12px] border border-border bg-surface">
-          {visible.map((q) => {
-            const writer = q.assigned_writer_id ? writerById[q.assigned_writer_id] : null;
-            const lastEdit = lastEditByQ[q.id];
-            const note = statusNote(q);
-            return (
-              <li key={q.id} className="relative">
-                <Link
-                  to="/missions/$missionId/questions/$questionId"
-                  params={{ missionId, questionId: q.id }}
-                  className="block px-5 py-4 hover:bg-surface-hover"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${HEALTH_DOT[q.health ?? "yellow"] ?? "bg-muted"}`} />
-                    <span className="font-mono text-[11px] text-muted-foreground shrink-0">Q{q.question_number}</span>
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium">· {q.title}</span>
-
-                    {/* ADD 1: Pens Down countdown */}
-                    <PensDownCountdown date={q.pens_down_date} />
-
-                    {/* ADD 4: status pill */}
-                    <StatusPill current={q.status} onChange={(db) => updateStatus(q, db)} />
-
-                    {/* ADD 2: last-edited indicator (rightmost) */}
-                    <span className="shrink-0 text-[11px] text-muted-foreground/80 min-w-[140px] text-right">
-                      {lastEdit
-                        ? `Updated ${timeAgo(lastEdit.created_at)} by ${firstName(lastEdit.author_name)}`
-                        : "Not yet started"}
-                    </span>
-                  </div>
-                  {(note || (!isWriter && writer)) && (
-                    <div className="mt-1 pl-[1.5rem] text-[11px] text-muted-foreground">
-                      {note}
-                      {!isWriter && writer && (
-                        <span className="ml-3 opacity-70">· {writer.display_name || writer.email}</span>
-                      )}
-                    </div>
-                  )}
-                </Link>
-              </li>
-            );
-          })}
+          {visible.map((q) => (
+            <QuestionRow
+              key={q.id}
+              q={q}
+              me={me}
+              missionId={missionId}
+              writerById={writerById}
+              lastEditByQ={lastEditByQ}
+              conflictByQ={conflictByQ}
+              questionsById={Object.fromEntries(questions.map((x) => [x.id, x]))}
+              statusNote={statusNote}
+              updateStatus={updateStatus}
+              isWriter={isWriter}
+              showYouBadge={false}
+              onOpenReadOnly={setDrawerQ}
+            />
+          ))}
         </ul>
       )}
       {actionQuestion && <CockpitListActionBar missionId={missionId} question={actionQuestion} />}
+      {drawerQ && (
+        <ReadOnlyQuestionDrawer
+          q={drawerQ}
+          writer={drawerQ.assigned_writer_id ? writerById[drawerQ.assigned_writer_id] : null}
+          onClose={() => setDrawerQ(null)}
+        />
+      )}
     </div>
   );
 }
