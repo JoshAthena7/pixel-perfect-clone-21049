@@ -63,6 +63,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen w-full flex-col bg-background text-foreground">
       <KeyboardShortcuts />
+      <CommandPalette />
+      <RecentTracker />
 
       {/* GLOBAL TOP BAR */}
       <TopBar
@@ -87,6 +89,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         <BreadcrumbStrip path={path} missionId={missionId} room={room} isOlympus={isOlympus} />
       )}
 
+      {/* RECENT STRIP — Studio only */}
+      {inMission && isStudio && missionId && <RecentStrip missionId={missionId} />}
+
       {/* STUDIO HEALTH STRIP (kept) */}
       {inMission && isStudio && missionId && <StudioHealthStrip missionId={missionId} />}
 
@@ -97,6 +102,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {inMission && missionId && <UpdateRealityMount missionId={missionId} />}
       <IrisOnboardingMount />
+      <IrisDock />
     </div>
   );
 }
