@@ -49,6 +49,8 @@ function SettingsPage() {
 
       {missionId && <IrisIntelligencePanel missionId={missionId} />}
 
+      <SupportSettingsPanel />
+
       <IrisOperationsPanel />
     </div>
   );
