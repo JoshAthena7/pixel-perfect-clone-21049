@@ -210,7 +210,7 @@ export function PilotStatusSection({ missionId, isLead }: { missionId: string; i
   );
 }
 
-function PilotCard({ pilot, onCompose }: { pilot: Pilot; onCompose: () => void }) {
+function PilotCard({ missionId, pilot, onCompose }: { missionId: string; pilot: Pilot; onCompose: () => void }) {
   const d = daysUntil(pilot.pens_down_date);
   const conf = pilot.confidence ? CONF_META[pilot.confidence] : null;
   const silentHrs = pilot.last_signal_at
