@@ -1,14 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { FileText, ExternalLink, Search } from "lucide-react";
+import { FileText, ExternalLink, Search, Sparkles, CheckCircle2, Loader2, RefreshCw } from "lucide-react";
 import { VaultIcon } from "@/components/v2/icons/AtlasIcons";
+import { getLibraryIndexStatus, reindexMissionDocuments } from "@/lib/mission-activation.functions";
+import { toast } from "sonner";
 
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/library")({
   component: LibraryPage,
 });
+
 
 const CATEGORIES = [
   "RFP",
