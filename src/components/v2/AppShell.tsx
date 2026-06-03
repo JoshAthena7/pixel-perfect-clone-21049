@@ -67,7 +67,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         <MobileBottomNavSpacer />
       </main>
 
-      {inMission && missionId && isStudio && <UpdateRealityMount missionId={missionId} />}
+      {inMission && missionId && <UpdateRealityMount missionId={missionId} />}
+      {inMission && missionId && <MissionQuickActionsMount missionId={missionId} />}
       <IrisOnboardingMount />
       <IrisDock />
       <MobileBottomNav />
