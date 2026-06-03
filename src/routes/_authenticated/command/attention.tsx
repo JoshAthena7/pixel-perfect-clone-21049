@@ -62,11 +62,13 @@ function firstName(name: string) {
 export function CommandCenter({ missionId }: { missionId?: string } = {}) {
   const qc = useQueryClient();
 
-  // -------- Section 1: Health bar (all questions across missions) --------
+  // -------- Section 1: Health bar (questions, optionally scoped to mission) --------
   const { data: healthCounts = { total: 0, green: 0, yellow: 0, red: 0 } } = useQuery({
-    queryKey: ["cc-health"],
+    queryKey: ["cc-health", missionId ?? "all"],
     queryFn: async () => {
-      const { data } = await supabase.from("question_records").select("health");
+      let q = supabase.from("question_records").select("health");
+      if (missionId) q = q.eq("mission_id", missionId);
+      const { data } = await q;
       const c = { total: 0, green: 0, yellow: 0, red: 0 };
       for (const r of data ?? []) {
         c.total++;
