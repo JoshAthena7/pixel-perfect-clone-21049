@@ -14,6 +14,7 @@ import { NotificationBell } from "@/components/v2/NotificationBell";
 import { KeyboardShortcuts } from "@/components/v2/KeyboardShortcuts";
 import { IrisStatusIndicator } from "@/components/v2/effects";
 import { UpdateRealityMount } from "@/components/v2/UpdateRealityModal";
+import { MissionQuickActionsMount } from "@/components/v2/MissionQuickActions";
 import { IrisOnboardingMount } from "@/components/v2/IrisOnboardingModal";
 import { CommandPalette } from "@/components/v2/CommandPalette";
 import { IrisDock } from "@/components/v2/IrisDock";
@@ -66,7 +67,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         <MobileBottomNavSpacer />
       </main>
 
-      {inMission && missionId && isStudio && <UpdateRealityMount missionId={missionId} />}
+      {inMission && missionId && <UpdateRealityMount missionId={missionId} />}
+      {inMission && missionId && <MissionQuickActionsMount missionId={missionId} />}
       <IrisOnboardingMount />
       <IrisDock />
       <MobileBottomNav />

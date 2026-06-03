@@ -160,7 +160,7 @@ export function CommandPalette() {
     const list: JumpItem[] = [
       { id: "qa-update", group: "Quick actions", label: "Update Reality", hint: "Signal to your team",
         icon: <Zap size={16} className="text-[color:var(--accent,#3b7fff)]" />,
-        onGo: () => window.dispatchEvent(new CustomEvent("atlas:open-update-reality")) },
+        onGo: () => window.dispatchEvent(new CustomEvent("update-reality:open", { detail: { questionId: null } })) },
       { id: "qa-score", group: "Quick actions", label: "Score Me", hint: "Score a draft response",
         icon: <Target size={16} className="text-[color:var(--accent,#3b7fff)]" />,
         onGo: () => window.dispatchEvent(new CustomEvent("atlas:open-score-me")) },
@@ -174,8 +174,8 @@ export function CommandPalette() {
       { id: "qa-phone", group: "Quick actions", label: "Phone a Friend", hint: "Talk to an Athena expert",
         icon: <Phone size={16} className="text-[#8b5cf6]" />,
         onGo: () => {
-          window.dispatchEvent(new CustomEvent("atlas:open-phone-a-friend"));
-          toast("Phone a Friend", { description: "IRIS is finding the right expert for you…" });
+          if (missionId) window.dispatchEvent(new CustomEvent("atlas:open-phone-a-friend"));
+          else toast.error("Open a mission to use Phone a Friend.");
         } },
     ];
     if (missionId) {
