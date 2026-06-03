@@ -419,9 +419,12 @@ function ProgramsTab() {
 
   return (
     <div>
-      <div className="mb-6 flex flex-col gap-2">
-        <LayerBadge layer="programs" />
-        <p className="text-[13px] text-muted-foreground">Program intelligence built once, reused across every bid for that program.</p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-2">
+          <LayerBadge layer="programs" />
+          <p className="text-[13px] text-muted-foreground">Program intelligence built once, reused across every bid for that program.</p>
+        </div>
+        <CreateProgramButton />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] gap-6">
         <aside className="space-y-3">
