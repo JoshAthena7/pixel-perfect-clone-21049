@@ -255,11 +255,8 @@ function PilotCard({ missionId, pilot, onCompose }: { missionId: string; pilot: 
       <div className="mt-3 flex gap-2">
         <Link
           to="/missions/$missionId/questions/$questionId"
-          params={{ missionId: "", questionId: pilot.question_id }}
-          // params.missionId will be replaced by router context; provide via from
-          search={{}}
+          params={{ missionId, questionId: pilot.question_id }}
           className="inline-flex items-center gap-1 rounded-md border border-white/10 px-2.5 py-1 text-[11px] text-muted-foreground hover:text-foreground"
-          // @ts-expect-error: we recompute mission id via parent route at render-time
         >
           <Eye className="h-3 w-3" /> View Cockpit
         </Link>
