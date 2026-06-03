@@ -101,6 +101,7 @@ function MissionsIndex() {
                 <th className="px-4 py-3 text-left w-20">Qs</th>
                 <th className="px-4 py-3 text-left w-20">Health</th>
                 <th className="px-4 py-3 text-left w-32">Created</th>
+                <th className="px-4 py-3 text-left w-24">Readiness</th>
                 <th className="px-4 py-3 text-right w-72">&nbsp;</th>
               </tr>
             </thead>
