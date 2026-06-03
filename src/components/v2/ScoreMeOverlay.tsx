@@ -6,6 +6,8 @@ import { scoreResponse } from "@/lib/score-me.functions";
 import { X, Sparkles, Save, Send, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { createSignal } from "@/lib/signals";
+import { PersonFirstHint } from "@/components/v2/PersonFirstHint";
+import { scanForPersonFirstFlags } from "@/lib/person-first";
 
 type Analysis = Awaited<ReturnType<typeof scoreResponse>>;
 
@@ -259,6 +261,7 @@ function InputStage(props: {
             color: "var(--foreground)",
           }}
         />
+        <PersonFirstHint value={props.responseText} onChange={props.setResponseText} />
         <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
           <span>{props.wordCount.toLocaleString()} words · approximately {props.pageEstimate} {props.pageEstimate === 1 ? "page" : "pages"}</span>
           {props.wordCount > 0 && props.wordCount < 50 && <span>Need at least 50 words</span>}
