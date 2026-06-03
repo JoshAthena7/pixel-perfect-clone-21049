@@ -415,7 +415,7 @@ function CockpitPage() {
         {myQuestions.length > 1 && (
           <div className="mb-6">
             <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-              My Questions
+              My Assignments
             </div>
             <div className="flex flex-wrap gap-2">
               {myQuestions.map((mq) => {

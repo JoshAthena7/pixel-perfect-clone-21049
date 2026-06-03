@@ -608,7 +608,7 @@ function Step3Activation({
   const lines = [
     "IRIS is reading your documents…",
     "IRIS is building question intelligence…",
-    "IRIS is seeding your Briefing Book…",
+    "IRIS is seeding your Oracle…",
     "IRIS is ready.",
   ];
 
@@ -651,7 +651,7 @@ function Step3Activation({
           <SummaryRow label="Questions created" value={summary.questions} highlight={summary.questions > 0} />
           <SummaryRow label="Documents indexed" value={`${summary.indexed} of ${summary.documents}`} highlight={summary.indexed > 0} />
           <SummaryRow
-            label="Briefing Book"
+            label="Oracle"
             value={summary.briefingReady ? "ready" : "pending"}
             highlight={summary.briefingReady}
           />

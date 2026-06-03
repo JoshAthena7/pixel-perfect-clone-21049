@@ -86,7 +86,7 @@ You'll find them in the Cockpit — each one showing exactly what the writer nee
 You don't need to learn the whole platform. Just go to your questions, give the writers what they need, and the mission moves forward.
 
 The oracle always changes the outcome. Ready to be useful?`,
-        button: "Show me my questions →",
+        button: "Show me my assignments →",
         destination: ctx.missionId ? `/missions/${ctx.missionId}/questions` : "/home",
       };
     case "reviewer":
@@ -131,7 +131,7 @@ That won't happen here.
 When you're ready to work, enter the Cockpit. Your questions, your intelligence, your controls — everything you need to fly this mission.
 
 Ready?`,
-        button: "Open my questions →",
+        button: "Open my assignments →",
         destination: ctx.missionId ? `/missions/${ctx.missionId}/questions` : "/home",
       };
   }
