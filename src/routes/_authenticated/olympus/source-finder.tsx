@@ -10,6 +10,7 @@ import {
   createProgram,
 } from "@/lib/atlas-onboarding.functions";
 import { layerCounts } from "@/lib/atlas-sources.functions";
+import { EmptyState } from "@/components/v2/EmptyState";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/olympus/source-finder")({
