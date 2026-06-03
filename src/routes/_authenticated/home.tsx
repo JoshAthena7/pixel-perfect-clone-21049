@@ -348,9 +348,9 @@ function AthenaHQ() {
             ) : missions.length === 0 ? (
               <EmptyState
                 icon={<DoorOpen className="h-10 w-10" />}
-                title="No active missions."
-                subtitle="Missions are activated by administrators in the Admin Board."
+                title="No missions assigned."
               />
+
 
             ) : (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
