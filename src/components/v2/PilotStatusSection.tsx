@@ -97,14 +97,14 @@ export function PilotStatusSection({ missionId, isLead }: { missionId: string; i
       const profMap = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p]));
       const lastCollab: Record<string, { body: string | null; created_at: string }> = {};
       for (const c of latestCollab ?? []) {
-        if (c.question_id && !lastCollab[c.question_id]) lastCollab[c.question_id] = { body: c.body, created_at: c.created_at };
+        if (c.question_id && c.created_at && !lastCollab[c.question_id]) lastCollab[c.question_id] = { body: c.body, created_at: c.created_at };
       }
       const lastReality: Record<string, { body: string | null; created_at: string }> = {};
       for (const r of latestRealities ?? []) {
-        if (r.question_id && !lastReality[r.question_id]) lastReality[r.question_id] = { body: r.details, created_at: r.created_at };
+        if (r.question_id && r.created_at && !lastReality[r.question_id]) lastReality[r.question_id] = { body: r.details, created_at: r.created_at };
       }
       const briefMap: Record<string, string> = {};
-      for (const b of briefs ?? []) if (!briefMap[b.question_id]) briefMap[b.question_id] = b.generated_at;
+      for (const b of briefs ?? []) if (b.question_id && b.generated_at && !briefMap[b.question_id]) briefMap[b.question_id] = b.generated_at;
 
       const today = new Date(); today.setHours(0, 0, 0, 0);
       return list.map((q) => {
