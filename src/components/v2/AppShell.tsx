@@ -19,6 +19,9 @@ import { KeyboardShortcuts } from "@/components/v2/KeyboardShortcuts";
 import { IrisStatusIndicator } from "@/components/v2/effects";
 import { UpdateRealityMount } from "@/components/v2/UpdateRealityModal";
 import { IrisOnboardingMount } from "@/components/v2/IrisOnboardingModal";
+import { CommandPalette } from "@/components/v2/CommandPalette";
+import { IrisDock } from "@/components/v2/IrisDock";
+import { RecentStrip, RecentTracker } from "@/components/v2/RecentStrip";
 import athenaSgLogo from "@/assets/athena-sg-lockup.png.asset.json";
 
 // ─── Room detection ─────────────────────────────────────────────────────────
@@ -60,6 +63,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen w-full flex-col bg-background text-foreground">
       <KeyboardShortcuts />
+      <CommandPalette />
+      <RecentTracker />
 
       {/* GLOBAL TOP BAR */}
       <TopBar
@@ -84,6 +89,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         <BreadcrumbStrip path={path} missionId={missionId} room={room} isOlympus={isOlympus} />
       )}
 
+      {/* RECENT STRIP — Studio only */}
+      {inMission && isStudio && missionId && <RecentStrip missionId={missionId} />}
+
       {/* STUDIO HEALTH STRIP (kept) */}
       {inMission && isStudio && missionId && <StudioHealthStrip missionId={missionId} />}
 
@@ -94,6 +102,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {inMission && missionId && <UpdateRealityMount missionId={missionId} />}
       <IrisOnboardingMount />
+      <IrisDock />
     </div>
   );
 }
@@ -180,6 +189,17 @@ function TopBar({
 
       {/* RIGHT — actions */}
       <div className="flex shrink-0 items-center gap-2">
+        <button
+          onClick={() => {
+            window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
+          }}
+          title="Search & Jump (⌘K)"
+          aria-label="Open command palette"
+          className="hidden md:inline-flex h-8 items-center gap-2 rounded-md border border-white/10 bg-white/[0.03] px-2.5 text-[11px] text-muted-foreground hover:border-[color:var(--iris,#22d3ee)]/30 hover:bg-[color:var(--iris,#22d3ee)]/[0.05] hover:text-foreground transition-colors"
+        >
+          <span>Jump to…</span>
+          <kbd className="rounded border border-white/10 px-1 py-0.5 font-mono text-[9px]">⌘K</kbd>
+        </button>
         <IrisStatusIndicator />
         <NotificationBell />
         {isPrivileged && (
