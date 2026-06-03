@@ -466,6 +466,7 @@ function MissionOverviewPage() {
 
   // ── MESSAGE COMPOSE ───────────────────────────────────
   const [composeTarget, setComposeTarget] = useState<{ person: Member; label: string } | null>(null);
+  const [scoreMeOpen, setScoreMeOpen] = useState(false);
   const openCompose = (person: Member, label: string) => setComposeTarget({ person, label });
 
   // ── RENDER ────────────────────────────────────────────
