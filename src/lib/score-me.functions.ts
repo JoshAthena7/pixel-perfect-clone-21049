@@ -123,7 +123,7 @@ export const scoreResponse = createServerFn({ method: "POST" })
       .eq("id", q.mission_id)
       .maybeSingle();
 
-    const [{ data: themes }, { data: dnaRow }, { data: memories }] = await Promise.all([
+    const [{ data: themes }, { data: dnaRow }, { data: memories }, { data: missionComp }, { data: fedComp }] = await Promise.all([
       supabase.from("win_themes" as any).select("title,key_message").eq("mission_id", q.mission_id).eq("status", "active"),
       supabase.from("mission_intelligence_dna").select("dna").eq("mission_id", q.mission_id).eq("is_current", true).maybeSingle(),
       supabase.from("iris_memories").select("title,content,scope")
@@ -131,6 +131,12 @@ export const scoreResponse = createServerFn({ method: "POST" })
         .or(`scope.eq.global,mission_id.eq.${q.mission_id}`)
         .is("archived_at", null)
         .limit(20),
+      supabase.from("compliance_requirements")
+        .select("id,source_document,source_kind,section_reference,requirement_text,plain_language,requirement_type,severity")
+        .eq("mission_id", q.mission_id)
+        .contains("relevant_question_ids", [q.id]),
+      supabase.from("federal_compliance_library")
+        .select("id,regulation_name,citation,section_text,plain_language,severity,program_types"),
     ]);
 
     const dna = (dnaRow?.dna ?? {}) as any;
