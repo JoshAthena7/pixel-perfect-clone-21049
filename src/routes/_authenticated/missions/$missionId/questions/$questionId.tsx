@@ -674,7 +674,15 @@ function CockpitPage() {
 
           {/* RIGHT */}
           <div className="flex items-center gap-2">
-            {!isSME && (
+            {!isSME && !isReadOnlyView && (
+              <ConfidenceButton
+                questionId={questionId}
+                questionNumber={q.question_number}
+                currentLevel={q.writer_confidence ?? null}
+                onStuckEscalate={() => setGetHelpOpen(true)}
+              />
+            )}
+            {!isSME && !isReadOnlyView && (
               <GetHelpDropdown
                 open={getHelpOpen} setOpen={setGetHelpOpen}
                 missionId={missionId} questionId={questionId} questionNumber={q.question_number}
@@ -682,7 +690,7 @@ function CockpitPage() {
                 onSent={() => qc.invalidateQueries({ queryKey: ["question-collabs", questionId] })}
               />
             )}
-            {!isSME && <SOSButton missionId={missionId} questionId={questionId} />}
+            {!isSME && !isReadOnlyView && <SOSButton missionId={missionId} questionId={questionId} />}
           </div>
         </div>
       </div>
