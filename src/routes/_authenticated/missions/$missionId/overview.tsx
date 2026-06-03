@@ -796,6 +796,17 @@ function MissionOverviewPage() {
           onClose={() => setDrawerQid(null)}
         />
       )}
+
+      {composeTarget && me && (
+        <MessageComposePanel
+          recipient={composeTarget.person}
+          label={composeTarget.label}
+          missionId={missionId}
+          missionName={mission?.name ?? ""}
+          sender={{ id: me.id, name: me.name }}
+          onClose={() => setComposeTarget(null)}
+        />
+      )}
     </div>
   );
 }
