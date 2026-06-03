@@ -213,16 +213,16 @@ export function CommandCenter({ missionId }: { missionId?: string } = {}) {
 
   // -------- Section 4: Gates Approaching --------
   const { data: gates = [] } = useQuery({
-    queryKey: ["cc-gates"],
+    queryKey: ["cc-gates", missionId ?? "all"],
     queryFn: async () => {
       const today = new Date().toISOString().slice(0, 10);
-      const { data: gs } = await supabase
+      let gq = supabase
         .from("mission_review_gates")
         .select("id,gate_name,target_date,mission_id")
-        .gte("target_date", today)
-        .order("target_date", { ascending: true });
+        .gte("target_date", today);
+      if (missionId) gq = gq.eq("mission_id", missionId);
+      const { data: gs } = await gq.order("target_date", { ascending: true });
       const gates = gs ?? [];
-      // Per mission, count questions not at standard
       const missionIds = Array.from(new Set(gates.map((g: any) => g.mission_id)));
       let notReady: Record<string, number> = {};
       if (missionIds.length > 0) {
@@ -242,26 +242,28 @@ export function CommandCenter({ missionId }: { missionId?: string } = {}) {
   // -------- Section 5: What Changed (last 24h) --------
   const since24 = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
   const { data: changedCollab = [] } = useQuery({
-    queryKey: ["cc-changed-collab"],
+    queryKey: ["cc-changed-collab", missionId ?? "all"],
     queryFn: async () => {
-      const { data } = await supabase
+      let q = supabase
         .from("question_collaboration")
         .select("id,question_id,mission_id,author_id,author_name,entry_type,body,created_at")
         .gte("created_at", since24)
-        .neq("entry_type", "leadership_guidance")
-        .order("created_at", { ascending: false });
+        .neq("entry_type", "leadership_guidance");
+      if (missionId) q = q.eq("mission_id", missionId);
+      const { data } = await q.order("created_at", { ascending: false });
       return data ?? [];
     },
     refetchInterval: 60_000,
   });
   const { data: changedReality = [] } = useQuery({
-    queryKey: ["cc-changed-reality"],
+    queryKey: ["cc-changed-reality", missionId ?? "all"],
     queryFn: async () => {
-      const { data } = await supabase
+      let q = supabase
         .from("reality_updates")
         .select("id,question_id,mission_id,user_id,user_name,signal_type,need_type,details,created_at")
-        .gte("created_at", since24)
-        .order("created_at", { ascending: false });
+        .gte("created_at", since24);
+      if (missionId) q = q.eq("mission_id", missionId);
+      const { data } = await q.order("created_at", { ascending: false });
       return data ?? [];
     },
     refetchInterval: 60_000,
