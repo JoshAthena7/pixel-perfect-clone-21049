@@ -22,7 +22,7 @@ const SCORE_TOOL = {
             properties: {
               label: { type: "string" },
               explanation: { type: "string", description: "2-3 sentences, specific, referenced to RFP or intel." },
-              type: { type: "string", enum: ["gap", "strength", "compliance", "positioning"] },
+              type: { type: "string", enum: ["gap", "strength", "compliance", "positioning", "person_first"] },
             },
             required: ["label", "explanation", "type"],
             additionalProperties: false,
@@ -175,7 +175,14 @@ CRITICAL INSTRUCTIONS:
 - If mandatory_language is absent from the response, this MUST be Change 1 regardless of other factors.
 - Reference IRIS Memory critical entries — if the response violates a critical memory, this MUST appear in reasons.
 - Use estimated_points to convey the projected lift per change. Sum should be close to (projected_score - score).
-- Set confidence to "high" only when you have substantive procurement signals, win themes, and critical memory to compare against. Otherwise "medium" or "low" with a reason.`;
+- Set confidence to "high" only when you have substantive procurement signals, win themes, and critical memory to compare against. Otherwise "medium" or "low" with a reason.
+
+PERSON-FIRST LANGUAGE SCORING (mandatory dimension):
+- Evaluate the response for person-first language compliance using the rules in your system prompt.
+- If non-person-first terms are found, add a reason with type: "person_first" and label: "PERSON-FIRST LANGUAGE". In the explanation, name each flagged term and provide the person-first alternative.
+- Apply a score deduction of −0.1 (one or two minor instances) to −0.3 (multiple instances or terms in critical sections like the opening paragraph or evaluation-criteria responses).
+- If non-person-first language appears in critical sections, include a Change with exact replacement language; this Change can be ranked first if its impact exceeds the other gaps.
+- State evaluators and CMS reviewers are trained to notice non-person-first language. Its presence signals cultural insensitivity about the population being served and lowers scores on health equity, member experience, and cultural competency sections.`;
 
     const analysis = await callScoreEngine(sys, userMsg);
     if (!analysis) {

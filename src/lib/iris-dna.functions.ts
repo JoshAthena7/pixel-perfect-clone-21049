@@ -1,4 +1,5 @@
 // IRIS Deep RFP Comprehension Engine — Phase 2.
+import { withPersonFirst } from "./person-first";
 // Reads the full RFP, builds a complete intelligence profile (DNA),
 // and generates a prioritized research agenda from it.
 import { createServerFn } from "@tanstack/react-start";
@@ -196,7 +197,7 @@ async function callLovableAiForDna(rfpText: string): Promise<MissionDna> {
         body: JSON.stringify({
           model,
           messages: [
-            { role: "system", content: system },
+            { role: "system", content: withPersonFirst(system) },
             { role: "user", content: `RFP TEXT:\n\n${body}` },
           ],
           response_format: { type: "json_object" },

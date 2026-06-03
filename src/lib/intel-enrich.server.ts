@@ -1,4 +1,5 @@
 // Server-only helpers for IRIS summarization, embeddings, and cross-mission matching
+import { withPersonFirst } from "./person-first";
 // of market_intelligence items. Used by both the manual ingestion server fn and the
 // pg_cron-triggered /api/public/hooks/ingest-intel route.
 
@@ -24,8 +25,9 @@ export async function summarizeIntel(title: string, body: string | null): Promis
         messages: [
           {
             role: "system",
-            content:
+            content: withPersonFirst(
               "You are IRIS, a senior Medicaid/Medicare proposal strategist. Summarize the following intelligence item in ONE sentence (max 30 words). Be specific, concrete, no hedging.",
+            ),
           },
           { role: "user", content: `TITLE: ${title}\n\n${(body ?? "").slice(0, 4000)}` },
         ],

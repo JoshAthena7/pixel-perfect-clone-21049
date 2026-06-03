@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { withPersonFirst } from "./person-first";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
@@ -28,7 +29,7 @@ async function callGateway(system: string, user: string): Promise<string | null>
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: system },
+          { role: "system", content: withPersonFirst(system) },
           { role: "user", content: user },
         ],
       }),

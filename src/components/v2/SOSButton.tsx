@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PersonFirstHint } from "@/components/v2/PersonFirstHint";
 import { AlertOctagon, X, Compass, Vote, Handshake, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -129,6 +130,7 @@ function SOSModal({ missionId, questionId, onClose }: { missionId: string; quest
               placeholder="Optional — context, what you've tried, what would unblock you"
               className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary resize-none"
             />
+            <PersonFirstHint value={detail} onChange={setDetail} />
             <div className="flex items-center justify-between gap-2">
               <button onClick={() => setKind(null)} className="text-xs text-muted-foreground hover:text-foreground">← Back</button>
               <button onClick={submit} disabled={sending || !headline.trim()}

@@ -6,6 +6,8 @@ import { scoreResponse } from "@/lib/score-me.functions";
 import { X, Sparkles, Save, Send, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { createSignal } from "@/lib/signals";
+import { PersonFirstHint } from "@/components/v2/PersonFirstHint";
+import { scanForPersonFirstFlags } from "@/lib/person-first";
 
 type Analysis = Awaited<ReturnType<typeof scoreResponse>>;
 
@@ -180,6 +182,7 @@ export function ScoreMeOverlay({ open, onClose, missionId, lockedQuestionId }: P
           <ResultStage
             analysis={analysis}
             question={selectedQ}
+            responseText={responseText}
             onAnother={() => { setResponseText(""); setAnalysis(null); setStage("input"); }}
             onClose={onClose}
             missionId={missionId}
@@ -259,6 +262,7 @@ function InputStage(props: {
             color: "var(--foreground)",
           }}
         />
+        <PersonFirstHint value={props.responseText} onChange={props.setResponseText} />
         <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
           <span>{props.wordCount.toLocaleString()} words · approximately {props.pageEstimate} {props.pageEstimate === 1 ? "page" : "pages"}</span>
           {props.wordCount > 0 && props.wordCount < 50 && <span>Need at least 50 words</span>}
@@ -354,16 +358,22 @@ function OracleEye({ size = 80 }: { size?: number }) {
 /* ──────────────────────────────────────────── RESULT ────────── */
 
 function ResultStage({
-  analysis, question, onAnother, onClose, missionId,
+  analysis, question, onAnother, onClose, missionId, responseText,
 }: {
   analysis: Analysis;
   question: Question;
   onAnother: () => void;
   onClose: () => void;
   missionId: string;
+  responseText: string;
 }) {
   const [count, setCount] = useState(0);
   const rafRef = useRef<number | null>(null);
+  const personFirstFlags = useMemo(() => scanForPersonFirstFlags(responseText), [responseText]);
+  const personFirstImpact = personFirstFlags.length === 0
+    ? 0
+    : personFirstFlags.length <= 2 ? 0.1 : personFirstFlags.length <= 4 ? 0.2 : 0.3;
+
 
   useEffect(() => {
     const target = analysis.score;
@@ -468,6 +478,42 @@ function ResultStage({
             ))}
           </ol>
         </section>
+
+        {/* PERSON-FIRST LANGUAGE */}
+        <section>
+          {personFirstFlags.length === 0 ? (
+            <div className="flex items-center gap-2 rounded-[10px] border border-emerald-500/25 bg-emerald-500/[0.05] px-4 py-3 text-sm">
+              <span className="text-emerald-400">●</span>
+              <span className="text-emerald-200">Person-first language: ✓ Clear</span>
+            </div>
+          ) : (
+            <div className="rounded-[10px] border border-amber-500/25 bg-amber-500/[0.04] p-5">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-[11px] font-bold uppercase tracking-[0.24em] text-amber-300">
+                  ● Person-first language
+                </div>
+                <div className="text-[11px] text-amber-200/80">
+                  Score impact: −{personFirstImpact.toFixed(1)}
+                </div>
+              </div>
+              <div className="mt-1 text-[12px] text-amber-100/80">
+                {personFirstFlags.length} term{personFirstFlags.length === 1 ? "" : "s"} need attention. Evaluators score cultural competency on this — fix before submission.
+              </div>
+              <div className="mt-4 space-y-3">
+                {personFirstFlags.map((f, i) => (
+                  <div key={i} className="rounded-[8px] border border-white/5 bg-black/30 px-4 py-3 text-sm">
+                    <div className="flex flex-wrap items-baseline gap-2">
+                      <span className="line-through opacity-60">"{f.match}"</span>
+                      <span className="text-amber-300">→</span>
+                      <span className="font-medium text-amber-100">"{f.replacement}"</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+
 
         {/* SECTION B */}
         <section>

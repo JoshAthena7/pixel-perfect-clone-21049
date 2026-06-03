@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { createSignal } from "@/lib/signals";
 import { toast } from "sonner";
 import { X, Sparkles, HelpCircle, Check } from "lucide-react";
+import { PersonFirstHint } from "@/components/v2/PersonFirstHint";
 
 /** Wrapper that fetches the current user's role for this mission, then renders the host. */
 export function UpdateRealityMount({ missionId }: { missionId: string }) {
@@ -328,6 +329,7 @@ export function UpdateRealityHost({ missionId, role }: { missionId: string; role
                     className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
                     autoFocus
                   />
+                  <PersonFirstHint value={text} onChange={(v) => setText(v.slice(0, 280))} />
                   <div className="mt-1 text-right text-[10px] text-muted-foreground">{text.length}/280</div>
                 </div>
                 <div className="flex items-center justify-between">
@@ -389,6 +391,7 @@ export function UpdateRealityHost({ missionId, role }: { missionId: string; role
                     className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:border-primary/60 focus:outline-none"
                     autoFocus
                   />
+                  <PersonFirstHint value={text} onChange={(v) => setText(v.slice(0, 280))} />
                   <div className="mt-1 text-right text-[10px] text-muted-foreground">{text.length}/280</div>
                 </div>
                 <div className="flex items-center justify-between">
