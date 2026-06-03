@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Megaphone, Plus, CheckCircle2, AlertCircle, Clock, MinusCircle } from "lucide-react";
 import { toast } from "sonner";
+import { PersonFirstHint } from "@/components/v2/PersonFirstHint";
 
 export const Route = createFileRoute("/_authenticated/command/broadcasts")({
   component: BroadcastsPage,
@@ -231,6 +232,7 @@ function PublishDialog({ missions, onClose }: { missions: Mission[]; onClose: ()
         <div className="space-y-1.5">
           <Label htmlFor="msg">Message</Label>
           <Textarea id="msg" value={text} onChange={(e) => setText(e.target.value)} rows={5} placeholder="What do you want to announce?" />
+          <PersonFirstHint value={text} onChange={setText} />
         </div>
       </div>
       <DialogFooter>
