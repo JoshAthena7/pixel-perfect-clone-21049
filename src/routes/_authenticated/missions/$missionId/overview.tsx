@@ -686,12 +686,14 @@ function MissionOverviewPage() {
               members={members.filter((m) => m.role !== "sme")}
               questions={questions}
               roleField="writer"
+              onMessage={openCompose}
             />
             <TeamColumn
               title="SME Directory"
               members={members.filter((m) => m.role === "sme")}
               questions={questions}
               roleField="sme"
+              onMessage={openCompose}
             />
           </div>
         </section>
