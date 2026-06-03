@@ -128,7 +128,7 @@ Identify every change the amendment introduces vs the original RFP. Be exhaustiv
   const changes: Change[] = Array.isArray(parsed.changes)
     ? parsed.changes
         .filter((c: unknown): c is Record<string, unknown> => !!c && typeof c === "object")
-        .map((c) => ({
+        .map((c: Record<string, unknown>) => ({
           change_type: (CHANGE_TYPES as readonly string[]).includes(String(c.change_type))
             ? (c.change_type as Change["change_type"])
             : "clarification",
