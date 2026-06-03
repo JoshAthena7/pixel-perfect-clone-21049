@@ -289,7 +289,23 @@ export function CommandPalette() {
         </div>
         <div className="overflow-y-auto py-2" style={{ maxHeight: 400 }}>
           {grouped.length === 0 && debounced.length >= 2 && !isFetching && (
-            <div className="px-6 py-10 text-center text-sm text-muted-foreground">No matches for “{debounced}”</div>
+            <div className="px-6 py-10 text-center">
+              <div className="text-sm text-muted-foreground">No results for “{debounced}”</div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (missionId) {
+                    navigate({ to: "/missions/$missionId/iris", params: { missionId }, search: { q: debounced } as any });
+                  } else {
+                    navigate({ to: "/intelligence" });
+                  }
+                  setOpen(false);
+                }}
+                className="mt-2 inline-flex items-center gap-1 text-[12px] text-[color:var(--iris,#22d3ee)] hover:underline"
+              >
+                Try asking IRIS instead <ArrowRight size={11} />
+              </button>
+            </div>
           )}
           {grouped.length === 0 && debounced.length < 2 && (
             <div className="px-6 py-10 text-center text-sm text-muted-foreground">Start typing to search Atlas.</div>
