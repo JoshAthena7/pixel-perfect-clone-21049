@@ -105,8 +105,8 @@ export function IrisDock() {
           >
             <div className="flex items-center gap-2">
               <span className="relative inline-flex">
-                <Eye size={16} className="text-[color:var(--iris,#22d3ee)]" />
-                <span className="absolute -right-1 -top-1 h-1.5 w-1.5 animate-ping rounded-full bg-[color:var(--iris,#22d3ee)]" />
+                <img src={irisLogo.url} alt="" className="h-6 w-6 object-contain" style={{ filter: "drop-shadow(0 0 6px rgba(245,158,11,0.45))" }} />
+                <span className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 animate-ping rounded-full bg-[color:var(--athena-gold,#f59e0b)]" />
               </span>
               <div>
                 <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[color:var(--iris,#22d3ee)]">IRIS</div>
