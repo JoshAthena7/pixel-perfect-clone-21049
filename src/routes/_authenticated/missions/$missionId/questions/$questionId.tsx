@@ -910,20 +910,10 @@ function CockpitPage() {
                 onGetHelp={() => { setGetHelpOpen(true); setOverflowOpen(false); markOverflowUsed(); }}
               />
             )}
-            {!isSME && !isReadOnlyView && getHelpOpen && (
-              <div className="hidden">
+            {!isSME && !isReadOnlyView && (
+              <div className="[&>div>button]:hidden">
                 <GetHelpDropdown
                   open={getHelpOpen} setOpen={setGetHelpOpen}
-                  missionId={missionId} questionId={questionId} questionNumber={q.question_number}
-                  meId={me?.id ?? null} meName={firstName(me)}
-                  onSent={() => qc.invalidateQueries({ queryKey: ["question-collabs", questionId] })}
-                />
-              </div>
-            )}
-            {!isSME && !isReadOnlyView && !getHelpOpen && (
-              <div style={{ display: "none" }}>
-                <GetHelpDropdown
-                  open={false} setOpen={setGetHelpOpen}
                   missionId={missionId} questionId={questionId} questionNumber={q.question_number}
                   meId={me?.id ?? null} meName={firstName(me)}
                   onSent={() => qc.invalidateQueries({ queryKey: ["question-collabs", questionId] })}
