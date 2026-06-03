@@ -9,6 +9,7 @@ import { generateQuestionCoaching } from "@/lib/iris-question-coaching.functions
 import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
 import { SOSButton } from "@/components/v2/SOSButton";
 import { IrisCorrectable } from "@/components/v2/IrisCorrectable";
+import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
 import { getLastQuestionVisit, markQuestionVisited } from "@/lib/writer-utils";
 import { CoPilotInbox } from "@/components/v2/CoPilotInbox";
 import { ConfidenceButton, ConfidenceDot } from "@/components/v2/CockpitConfidence";
