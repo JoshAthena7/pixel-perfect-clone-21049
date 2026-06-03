@@ -454,9 +454,12 @@ function ProgramsTab() {
         <div>
           {selected ? (
             <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-semibold">{selected.program_name}</h2>
-                <div className="mt-1 text-[12px] text-muted-foreground">{selected.state_code} · {selected.program_type ?? "Program"}</div>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-semibold">{selected.program_name}</h2>
+                  <div className="mt-1 text-[12px] text-muted-foreground">{selected.state_code} · {selected.program_type ?? "Program"}</div>
+                </div>
+                <DiscoverSourcesButton programCode={selected.program_code} programName={selected.program_name} />
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <Vital label="Current Contractor" value={selected.current_contractor} />
