@@ -461,11 +461,11 @@ function CockpitPage() {
                 Q{q.question_number} — {q.title}
               </h1>
               <div className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
-                {q.section && <span>Section {q.section}</span>}
-                {q.section && q.page_limit && <Dot />}
+                {q.section_number && <span>Section {q.section_number}</span>}
+                {q.section_number && q.page_limit && <Dot />}
                 {q.page_limit && <span>{q.page_limit} pages</span>}
-                {(q.section || q.page_limit) && q.weight && <Dot />}
-                {q.weight && <span>{q.weight}% weight</span>}
+                {(q.section_number || q.page_limit) && q.evaluation_weight && <Dot />}
+                {q.evaluation_weight && <span>{q.evaluation_weight}% weight</span>}
               </div>
             </div>
 
