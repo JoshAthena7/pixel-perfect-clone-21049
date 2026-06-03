@@ -558,7 +558,7 @@ function SourcesPanel({ analysis }: { analysis: Analysis }) {
         <div className="border-t border-white/5 px-5 py-4 space-y-3 text-xs text-foreground/80">
           {analysis.sources_used.length > 0 ? (
             <ul className="list-disc pl-5 space-y-1">
-              {analysis.sources_used.map((s, i) => <li key={i}>{s}</li>)}
+              {analysis.sources_used.map((s: string, i: number) => <li key={i}>{s}</li>)}
             </ul>
           ) : (
             <div className="text-muted-foreground">No specific sources cited.</div>
