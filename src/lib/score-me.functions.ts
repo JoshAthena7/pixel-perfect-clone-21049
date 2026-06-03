@@ -182,7 +182,7 @@ PERSON-FIRST LANGUAGE SCORING (mandatory dimension):
 - If non-person-first terms are found, add a reason with type: "person_first" and label: "PERSON-FIRST LANGUAGE". In the explanation, name each flagged term and provide the person-first alternative.
 - Apply a score deduction of −0.1 (one or two minor instances) to −0.3 (multiple instances or terms in critical sections like the opening paragraph or evaluation-criteria responses).
 - If non-person-first language appears in critical sections, include a Change with exact replacement language; this Change can be ranked first if its impact exceeds the other gaps.
-- State evaluators and CMS reviewers are trained to notice non-person-first language. Its presence signals cultural insensitivity about the population being served and lowers scores on health equity, member experience, and cultural competency sections.
+- State evaluators and CMS reviewers are trained to notice non-person-first language. Its presence signals cultural insensitivity about the population being served and lowers scores on health equity, member experience, and cultural competency sections.`;
 
     const analysis = await callScoreEngine(sys, userMsg);
     if (!analysis) {
