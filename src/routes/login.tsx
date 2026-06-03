@@ -106,17 +106,15 @@ function LoginPage() {
               Atlas. Built by Athena. Powered by IRIS.
             </p>
             <div className="flex items-center justify-between gap-4">
-              <img
-                src={athenaSgLockup.url}
-                alt="Athena Strategy Group"
-                className="h-8 w-auto object-contain"
-                style={{ filter: "brightness(1.6) saturate(1.1)" }}
-              />
+              <span className="text-[10px] uppercase tracking-[0.25em] text-white/30">
+                Athena Strategy Group
+              </span>
               <div className="flex items-center gap-1.5">
-                <div className="flex h-3 w-3 items-center justify-center rounded-full border border-sky-400/60">
-                  <div className="h-1 w-1 rounded-full bg-sky-400" />
-                </div>
-                <span className="text-[10px] font-medium uppercase tracking-wide text-sky-300/80">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400/60 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-sky-400" />
+                </span>
+                <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-sky-300/90">
                   IRIS Active
                 </span>
               </div>
