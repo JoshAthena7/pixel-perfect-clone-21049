@@ -1,10 +1,12 @@
 import React, { Component, useState, type ErrorInfo, type ReactNode } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, X, ArrowRight, CheckCircle2, Circle, AlertCircle, Archive, Pencil, Zap } from "lucide-react";
+import { Plus, X, ArrowRight, Archive, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { logOlympusAction } from "@/lib/audit";
+import { MissionActivationWizard } from "@/components/v2/MissionActivationWizard";
+
 
 export const Route = createFileRoute("/_authenticated/olympus/")({
   component: MissionsIndex,
