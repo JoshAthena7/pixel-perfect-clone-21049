@@ -849,7 +849,7 @@ function ResponsesList() {
     return "";
   }
 
-  if (isWriter && me) {
+  if (me) {
     return (
       <Cockpit
         missionId={missionId}
