@@ -158,6 +158,14 @@ function IrisMemoryPage() {
         </div>
       </header>
 
+      <div className="mb-5 flex items-center gap-1 border-b border-border">
+        <TabButton active={tab === "memories"} onClick={() => setTab("memories")}>Memories</TabButton>
+        <TabButton active={tab === "corrections"} onClick={() => setTab("corrections")}>Corrections</TabButton>
+      </div>
+
+      {tab === "corrections" ? (
+        <CorrectionsTab />
+      ) : (
       <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6">
         {/* Left rail */}
         <aside className="space-y-5">
