@@ -10,7 +10,10 @@ import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
 import { SOSButton } from "@/components/v2/SOSButton";
 import { IrisCorrectable } from "@/components/v2/IrisCorrectable";
 import { getLastQuestionVisit, markQuestionVisited } from "@/lib/writer-utils";
+import { CoPilotInbox } from "@/components/v2/CoPilotInbox";
+import { ConfidenceButton, ConfidenceDot } from "@/components/v2/CockpitConfidence";
 import { toast } from "sonner";
+import { Eye } from "lucide-react";
 import {
   Sparkles, Send, RefreshCw, AlertTriangle, MessageSquare, ChevronDown, ChevronUp,
   CheckCircle2, ArrowLeftRight, FileEdit, Lightbulb, Pin, CornerDownLeft, X, LifeBuoy,
@@ -31,6 +34,7 @@ type Q = {
   status: string | null; health: "red" | "yellow" | "green" | null;
   health_drivers: any; assigned_writer_id: string | null; assigned_sme_id: string | null;
   section_number: string | null; page_limit: number | null; evaluation_weight: number | null;
+  writer_confidence: "confident" | "uncertain" | "stuck" | null;
 };
 type Profile = { id: string; display_name: string | null; email: string | null };
 type Intel = {
@@ -109,7 +113,7 @@ function CockpitPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("question_records")
-        .select("id,mission_id,question_number,title,question_text,pens_down_date,guidance,requirements,mandatory_language,status,health,health_drivers,assigned_writer_id,assigned_sme_id,section_number,page_limit,evaluation_weight")
+        .select("id,mission_id,question_number,title,question_text,pens_down_date,guidance,requirements,mandatory_language,status,health,health_drivers,assigned_writer_id,assigned_sme_id,section_number,page_limit,evaluation_weight,writer_confidence")
         .eq("id", questionId).maybeSingle();
       if (error) throw error;
       return data as Q | null;
@@ -149,10 +153,10 @@ function CockpitPage() {
       const col = isSME ? "assigned_sme_id" : "assigned_writer_id";
       const { data } = await supabase
         .from("question_records")
-        .select("id,question_number,title,pens_down_date,health")
+        .select("id,question_number,title,pens_down_date,health,writer_confidence")
         .eq("mission_id", missionId).eq(col, me!.id)
         .order("question_number");
-      return (data ?? []) as Array<{ id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null }>;
+      return (data ?? []) as Array<{ id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null; writer_confidence: "confident" | "uncertain" | "stuck" | null }>;
     },
   });
 
@@ -345,8 +349,32 @@ function CockpitPage() {
     );
   }
 
+  const isLead = role === "admin" || role === "lead";
+  const isAssignedWriter = !!me?.id && q.assigned_writer_id === me.id;
+  const isAssignedSme = !!me?.id && q.assigned_sme_id === me.id;
+  const isReadOnlyView = isLead && !isAssignedWriter && !isAssignedSme;
+
   return (
     <div style={{ background: "#0a0e1a", minHeight: "100vh" }} className="text-foreground">
+      {isReadOnlyView && (
+        <div
+          className="sticky top-0 z-40 flex h-10 items-center justify-between gap-3 border-b px-10 text-[12px]"
+          style={{ background: "rgba(245,158,11,0.15)", borderColor: "rgba(245,158,11,0.4)", color: "#fde68a" }}
+        >
+          <div className="flex items-center gap-2">
+            <Eye className="h-3.5 w-3.5" />
+            <span className="font-semibold">VIEWING {firstName(writer).toUpperCase()}'S COCKPIT</span>
+            <span className="opacity-80">· Read-only · {firstName(writer)} cannot see you here</span>
+          </div>
+          <Link
+            to="/missions/$missionId/overview"
+            params={{ missionId }}
+            className="text-[11px] underline-offset-2 hover:underline"
+          >
+            ← Back to Mission Room
+          </Link>
+        </div>
+      )}
       {/* HEALTH STRIP — persistent */}
       <Link
         to="/missions/$missionId/overview"
@@ -403,6 +431,7 @@ function CockpitPage() {
                     <span className="h-1.5 w-1.5 rounded-full" style={{ background: c, boxShadow: `0 0 4px ${c}` }} />
                     <span className="font-mono">Q{mq.question_number}</span>
                     {d !== null && <span className="text-muted-foreground">{d}d</span>}
+                    <ConfidenceDot level={mq.writer_confidence ?? null} />
                   </Link>
                 );
               })}
@@ -546,6 +575,8 @@ function CockpitPage() {
             <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">What Changed</div>
             <div className="mb-4 text-[11px] text-muted-foreground/70">Since your last visit · {lastVisitTimeStr}</div>
 
+            <CoPilotInbox missionId={missionId} questionId={questionId} currentUserId={me?.id ?? null} />
+
             {feed.length === 0 ? (
               <div className="rounded-md border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm" style={{ color: "#86efac" }}>
                 <span className="iris-dot mr-2" /> Nothing new since your last visit. You're current. Go write.
@@ -610,7 +641,11 @@ function CockpitPage() {
         <div className="mx-auto flex h-16 max-w-[1100px] items-center justify-between gap-3 px-10">
           {/* LEFT */}
           <div className="flex items-center gap-2">
-            {isSME ? (
+            {isReadOnlyView ? (
+              <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                Read-only — actions disabled
+              </span>
+            ) : isSME ? (
               <button
                 onClick={() => openUpdateReality(questionId)}
                 className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
@@ -625,12 +660,14 @@ function CockpitPage() {
                 Update Reality
               </button>
             )}
-            <button
-              onClick={() => setAskOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-transparent px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/10"
-            >
-              <Sparkles className="h-3.5 w-3.5" /> Ask IRIS
-            </button>
+            {!isReadOnlyView && (
+              <button
+                onClick={() => setAskOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-transparent px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/10"
+              >
+                <Sparkles className="h-3.5 w-3.5" /> Ask IRIS
+              </button>
+            )}
           </div>
 
           {/* CENTER status */}
@@ -643,7 +680,15 @@ function CockpitPage() {
 
           {/* RIGHT */}
           <div className="flex items-center gap-2">
-            {!isSME && (
+            {!isSME && !isReadOnlyView && (
+              <ConfidenceButton
+                questionId={questionId}
+                questionNumber={q.question_number}
+                currentLevel={q.writer_confidence ?? null}
+                onStuckEscalate={() => setGetHelpOpen(true)}
+              />
+            )}
+            {!isSME && !isReadOnlyView && (
               <GetHelpDropdown
                 open={getHelpOpen} setOpen={setGetHelpOpen}
                 missionId={missionId} questionId={questionId} questionNumber={q.question_number}
@@ -651,7 +696,7 @@ function CockpitPage() {
                 onSent={() => qc.invalidateQueries({ queryKey: ["question-collabs", questionId] })}
               />
             )}
-            {!isSME && <SOSButton missionId={missionId} questionId={questionId} />}
+            {!isSME && !isReadOnlyView && <SOSButton missionId={missionId} questionId={questionId} />}
           </div>
         </div>
       </div>

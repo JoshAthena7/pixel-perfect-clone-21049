@@ -1313,6 +1313,80 @@ export type Database = {
         }
         Relationships: []
       }
+      pilot_copilot_messages: {
+        Row: {
+          acknowledged: boolean
+          acknowledged_at: string | null
+          body: string
+          created_at: string
+          from_name: string
+          from_user_id: string
+          id: string
+          is_broadcast: boolean
+          message_type: string
+          mission_id: string
+          question_id: string | null
+          to_user_id: string | null
+        }
+        Insert: {
+          acknowledged?: boolean
+          acknowledged_at?: string | null
+          body: string
+          created_at?: string
+          from_name: string
+          from_user_id: string
+          id?: string
+          is_broadcast?: boolean
+          message_type: string
+          mission_id: string
+          question_id?: string | null
+          to_user_id?: string | null
+        }
+        Update: {
+          acknowledged?: boolean
+          acknowledged_at?: string | null
+          body?: string
+          created_at?: string
+          from_name?: string
+          from_user_id?: string
+          id?: string
+          is_broadcast?: boolean
+          message_type?: string
+          mission_id?: string
+          question_id?: string | null
+          to_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pilot_copilot_messages_from_user_id_fkey"
+            columns: ["from_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pilot_copilot_messages_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pilot_copilot_messages_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "question_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pilot_copilot_messages_to_user_id_fkey"
+            columns: ["to_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_color: string | null
@@ -1574,6 +1648,7 @@ export type Database = {
         Row: {
           assigned_sme_id: string | null
           assigned_writer_id: string | null
+          confidence_updated_at: string | null
           created_at: string | null
           current_focus: string | null
           current_score: number | null
@@ -1601,10 +1676,12 @@ export type Database = {
           updated_at: string | null
           waiting_on: string | null
           word_limit: number | null
+          writer_confidence: string | null
         }
         Insert: {
           assigned_sme_id?: string | null
           assigned_writer_id?: string | null
+          confidence_updated_at?: string | null
           created_at?: string | null
           current_focus?: string | null
           current_score?: number | null
@@ -1632,10 +1709,12 @@ export type Database = {
           updated_at?: string | null
           waiting_on?: string | null
           word_limit?: number | null
+          writer_confidence?: string | null
         }
         Update: {
           assigned_sme_id?: string | null
           assigned_writer_id?: string | null
+          confidence_updated_at?: string | null
           created_at?: string | null
           current_focus?: string | null
           current_score?: number | null
@@ -1663,6 +1742,7 @@ export type Database = {
           updated_at?: string | null
           waiting_on?: string | null
           word_limit?: number | null
+          writer_confidence?: string | null
         }
         Relationships: [
           {

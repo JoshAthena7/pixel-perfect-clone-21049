@@ -10,6 +10,7 @@ import {
 import { toast } from "sonner";
 import { AmendmentDashboardBanner } from "@/components/AmendmentDashboardBanner";
 import { MissionRoomHero, EnterStudioCTA } from "@/components/v2/MissionRoomHero";
+import { PilotStatusSection } from "@/components/v2/PilotStatusSection";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/overview")({
   component: MissionOverviewPage,
@@ -642,6 +643,11 @@ function MissionOverviewPage() {
           <h2 className="mr-section-label" style={{ color: "rgba(255,255,255,0.5)" }}>Mission Knowledge</h2>
           <MissionRoomHero missionId={missionId} />
         </section>
+
+        <div className="mr-divider" />
+
+        {/* ── 3b. PILOT STATUS (lead-only) ───── */}
+        <PilotStatusSection missionId={missionId} isLead={isLeader} />
 
         <div className="mr-divider" />
 
