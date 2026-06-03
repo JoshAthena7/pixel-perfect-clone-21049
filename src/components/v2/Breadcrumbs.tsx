@@ -41,7 +41,7 @@ export function Breadcrumbs() {
   const isHome = path.endsWith("/overview") || path === `/missions/${missionId}`;
 
   const pageLabel = isQuestion ? "Q"
-    : isQuestionsList ? "Cockpit"
+    : isQuestionsList ? "Questions"
     : isLibrary ? "The Vault"
     : isOracle ? "Briefing Room"
     : isOperations ? "Operations"
