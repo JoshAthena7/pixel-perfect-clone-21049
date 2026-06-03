@@ -192,7 +192,7 @@ export function MissionRoomHero({ missionId }: { missionId: string }) {
 }
 
 /**
- * Enter Studio CTA — sticky-feeling banner at the bottom of Mission Room.
+ * Enter Cockpit CTA — sticky-feeling banner at the bottom of Mission Room.
  */
 export function EnterStudioCTA({
   missionId,
@@ -213,11 +213,11 @@ export function EnterStudioCTA({
       <div className="flex items-center gap-4">
         <span className="flex h-12 w-12 items-center justify-center rounded-full"
           style={{ background: "rgba(59,127,255,0.15)", border: "1px solid rgba(59,127,255,0.35)" }}>
-          <PenTool size={20} className="text-[#3b7fff]" strokeWidth={1.8} />
+          <Plane size={20} className="text-[#3b7fff]" strokeWidth={1.8} />
         </span>
         <div>
-          <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#3b7fff]">Ready to work?</div>
-          <div className="mt-1 text-xl font-semibold tracking-tight text-foreground">Enter Studio</div>
+          <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#3b7fff]">Ready to fly?</div>
+          <div className="mt-1 text-xl font-semibold tracking-tight text-foreground">Enter Cockpit</div>
           <div className="mt-1 text-xs text-muted-foreground">
             {assignedCount > 0
               ? <>{assignedCount} question{assignedCount === 1 ? "" : "s"} assigned to you{attentionCount > 0 ? ` · ${attentionCount} need attention today` : ""}</>
@@ -229,3 +229,4 @@ export function EnterStudioCTA({
     </Link>
   );
 }
+
