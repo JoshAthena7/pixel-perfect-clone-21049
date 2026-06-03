@@ -238,6 +238,27 @@ function ResponseView() {
     },
   });
 
+  const { data: amendmentChanges = [] } = useQuery({
+    queryKey: ["amendment-changes", questionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("amendment_changes")
+        .select("id,change_type,severity,description,writer_action_required,acknowledged,created_at,amendment_id")
+        .contains("affected_question_ids", [questionId])
+        .order("created_at", { ascending: false });
+      return (data ?? []) as Array<{
+        id: string;
+        change_type: string;
+        severity: "critical" | "significant" | "administrative";
+        description: string;
+        writer_action_required: string | null;
+        acknowledged: boolean;
+        created_at: string;
+        amendment_id: string;
+      }>;
+    },
+  });
+
   // Derived
   const writer = q?.assigned_writer_id ? profById[q.assigned_writer_id] : null;
   const sme = q?.assigned_sme_id ? profById[q.assigned_sme_id] : null;
