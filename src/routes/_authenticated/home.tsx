@@ -872,7 +872,7 @@ function HorizonFeed({ items, missions }: { items: (IntelItem & { matched_missio
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return enriched.filter((it) => {
-      if (!matchesHorizonFilter(it._cat, filter)) return false;
+      if (!matchesHorizonFilter(it._cat, filter, it)) return false;
       if (!q) return true;
       const hay = `${it.title ?? ""} ${it.summary ?? ""}`.toLowerCase();
       return hay.includes(q);
