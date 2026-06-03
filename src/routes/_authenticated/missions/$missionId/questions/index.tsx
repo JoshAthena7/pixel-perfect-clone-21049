@@ -495,6 +495,17 @@ function ResponsesList() {
   );
 
   const visible = effectiveView === "mine" ? myQuestions : questions;
+  const actionQuestion = useMemo(() => {
+    const pool = myQuestions.length > 0 ? myQuestions : questions;
+    return [...pool].sort((a, b) => {
+      const healthRank = (h: Q["health"]) => (h === "red" ? 0 : h === "yellow" ? 1 : h === "green" ? 2 : 3);
+      const healthDelta = healthRank(a.health) - healthRank(b.health);
+      if (healthDelta !== 0) return healthDelta;
+      const aDays = daysUntil(a.pens_down_date) ?? 9999;
+      const bDays = daysUntil(b.pens_down_date) ?? 9999;
+      return aDays - bDays;
+    })[0] ?? null;
+  }, [myQuestions, questions]);
 
   // ADD 4: status update mutation
   const meName = meProfile?.display_name || meProfile?.email?.split("@")[0] || "Unknown";
@@ -561,7 +572,7 @@ function ResponsesList() {
   }
 
   return (
-    <div className="mx-auto max-w-[1200px] px-8 py-10">
+    <div className="mx-auto max-w-[1200px] px-8 pb-32 pt-10">
       <div className="mb-6">
         <div className="text-[10px] font-semibold uppercase tracking-[0.32em]" style={{ color: "#3b7fff" }}>Questions</div>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">Your Workspace</h1>
@@ -658,6 +669,7 @@ function ResponsesList() {
           })}
         </ul>
       )}
+      {actionQuestion && <CockpitListActionBar missionId={missionId} question={actionQuestion} />}
     </div>
   );
 }
