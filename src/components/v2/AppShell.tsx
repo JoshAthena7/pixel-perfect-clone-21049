@@ -2,7 +2,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useParams, useNavigate } from "@tanstack/react-router";
 import {
   LogOut, User, Shield, Settings2,
-  Plane, Search,
+  Plane, Search, HelpCircle,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -18,6 +18,7 @@ import { IrisOnboardingMount } from "@/components/v2/IrisOnboardingModal";
 import { CommandPalette } from "@/components/v2/CommandPalette";
 import { IrisDock } from "@/components/v2/IrisDock";
 import { MobileBottomNav, MobileBottomNavSpacer } from "@/components/v2/MobileBottomNav";
+import { SupportCenterMount } from "@/components/v2/SupportCenter";
 import athenaSgLogo from "@/assets/athena-sg-lockup.png.asset.json";
 
 // ─── Room detection (only two rooms inside a mission) ──────────────────────
@@ -67,6 +68,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <IrisOnboardingMount />
       <IrisDock />
       <MobileBottomNav />
+      <SupportCenterMount />
     </div>
   );
 }
@@ -173,6 +175,14 @@ function TopBar({
           className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
         >
           <Search size={16} strokeWidth={1.5} />
+        </button>
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent("atlas:open-support"))}
+          title="Get Help"
+          aria-label="Get Help"
+          className="inline-flex h-8 items-center justify-center rounded-md px-1.5 text-muted-foreground hover:bg-white/[0.06] hover:text-foreground transition-colors"
+        >
+          <HelpCircle size={16} strokeWidth={1.5} />
         </button>
         <UserAvatarMenu />
         {isPrivileged && (

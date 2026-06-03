@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { AmendmentDashboardBanner } from "@/components/AmendmentDashboardBanner";
 import { MissionRoomHero, EnterStudioCTA } from "@/components/v2/MissionRoomHero";
 import { PilotStatusSection } from "@/components/v2/PilotStatusSection";
+import { SupportQueueSection } from "@/components/v2/SupportQueueSection";
 import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/overview")({
@@ -677,6 +678,14 @@ function MissionOverviewPage() {
         </section>
 
         <div className="mr-divider" />
+
+        {/* ── 3a. SUPPORT REQUESTS (lead-only) ────── */}
+        {isLeader && (
+          <>
+            <SupportQueueSection />
+            <div className="mr-divider" />
+          </>
+        )}
 
         {/* ── 3b. PILOT STATUS (lead-only) ───── */}
         <PilotStatusSection missionId={missionId} isLead={isLeader} />
