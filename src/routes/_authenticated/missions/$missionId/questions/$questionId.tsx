@@ -812,9 +812,31 @@ function CockpitPage() {
 
       {/* FIXED ACTION BAR */}
       <div
-        className="fixed inset-x-0 bottom-[58px] md:bottom-0 z-40 border-t"
+        className={`fixed inset-x-0 bottom-[58px] md:bottom-0 z-40 border-t ${tipStage === 1 && !isReadOnlyView ? "ring-2 ring-primary/40" : ""}`}
         style={{ background: "rgba(6,11,20,0.95)", backdropFilter: "blur(12px)", borderColor: "rgba(255,255,255,0.06)" }}
       >
+        {/* Micro-label — tells the writer why the bar looks the way it does */}
+        {!isReadOnlyView && !isSME && (
+          <div
+            className="pt-2 pb-1 text-center text-[11px] text-muted-foreground max-md:hidden"
+            style={{ letterSpacing: "0.04em" }}
+          >
+            {microLabel}
+          </div>
+        )}
+
+        {/* "Nothing Changed — Check In" ghost button for check_in priority */}
+        {primaryAction === "check_in" && !isReadOnlyView && !isSME && (
+          <div className="mx-auto max-w-[1100px] px-10 pb-2 max-md:hidden">
+            <button
+              onClick={() => openUpdateReality(questionId)}
+              className="w-full rounded-md border border-white/15 bg-transparent py-2 text-xs font-semibold text-foreground hover:bg-white/5"
+            >
+              Nothing Changed — Check In
+            </button>
+          </div>
+        )}
+
         <div className="mx-auto flex h-16 max-w-[1100px] items-center justify-between gap-3 px-10 max-md:hidden">
           {/* LEFT */}
           <div className="flex items-center gap-2">
@@ -832,7 +854,11 @@ function CockpitPage() {
             ) : (
               <button
                 onClick={() => openUpdateReality(questionId)}
-                className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+                className={`rounded-md px-4 py-2 text-sm font-semibold transition ${
+                  primaryAction === "check_in"
+                    ? "bg-primary text-primary-foreground ring-2 ring-primary/40 hover:opacity-90"
+                    : "bg-primary text-primary-foreground hover:opacity-90"
+                }`}
               >
                 Update Reality
               </button>
@@ -840,19 +866,22 @@ function CockpitPage() {
             {!isReadOnlyView && (
               <button
                 onClick={() => setAskOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-transparent px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/10"
+                className={`inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold transition ${
+                  primaryAction === "read_iris"
+                    ? "bg-primary text-primary-foreground ring-2 ring-primary/40 hover:opacity-90"
+                    : "border border-primary/40 bg-transparent text-primary hover:bg-primary/10"
+                }`}
               >
                 <Sparkles className="h-3.5 w-3.5" /> Ask IRIS
               </button>
             )}
             {!isSME && !isReadOnlyView && (
-              <button
-                onClick={() => setScoreMeOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold text-white transition"
-                style={{ background: "var(--iris, #22d3ee)", boxShadow: "0 4px 14px -4px rgba(34,211,238,0.5)" }}
-              >
-                <span className="inline-block h-1.5 w-1.5 rounded-full bg-white/90" /> Score Me
-              </button>
+              <ConfidenceButton
+                questionId={questionId}
+                questionNumber={q.question_number}
+                currentLevel={q.writer_confidence ?? null}
+                onStuckEscalate={() => setGetHelpOpen(true)}
+              />
             )}
           </div>
 
@@ -867,24 +896,51 @@ function CockpitPage() {
           {/* RIGHT */}
           <div className="flex items-center gap-2">
             {!isSME && !isReadOnlyView && (
-              <ConfidenceButton
-                questionId={questionId}
-                questionNumber={q.question_number}
-                currentLevel={q.writer_confidence ?? null}
-                onStuckEscalate={() => setGetHelpOpen(true)}
+              <CockpitOverflow
+                open={overflowOpen}
+                setOpen={setOverflowOpen}
+                showSublabels={showSublabels}
+                primaryAction={primaryAction}
+                onScoreMe={() => { setScoreMeOpen(true); setOverflowOpen(false); markOverflowUsed(); }}
+                onPhoneAFriend={() => {
+                  setOverflowOpen(false);
+                  markOverflowUsed();
+                  toast("Phone a Friend — coming soon", { description: "Pair-program with another writer." });
+                }}
+                onGetHelp={() => { setGetHelpOpen(true); setOverflowOpen(false); markOverflowUsed(); }}
               />
             )}
-            {!isSME && !isReadOnlyView && (
-              <GetHelpDropdown
-                open={getHelpOpen} setOpen={setGetHelpOpen}
-                missionId={missionId} questionId={questionId} questionNumber={q.question_number}
-                meId={me?.id ?? null} meName={firstName(me)}
-                onSent={() => qc.invalidateQueries({ queryKey: ["question-collabs", questionId] })}
-              />
+            {!isSME && !isReadOnlyView && getHelpOpen && (
+              <div className="hidden">
+                <GetHelpDropdown
+                  open={getHelpOpen} setOpen={setGetHelpOpen}
+                  missionId={missionId} questionId={questionId} questionNumber={q.question_number}
+                  meId={me?.id ?? null} meName={firstName(me)}
+                  onSent={() => qc.invalidateQueries({ queryKey: ["question-collabs", questionId] })}
+                />
+              </div>
+            )}
+            {!isSME && !isReadOnlyView && !getHelpOpen && (
+              <div style={{ display: "none" }}>
+                <GetHelpDropdown
+                  open={false} setOpen={setGetHelpOpen}
+                  missionId={missionId} questionId={questionId} questionNumber={q.question_number}
+                  meId={me?.id ?? null} meName={firstName(me)}
+                  onSent={() => qc.invalidateQueries({ queryKey: ["question-collabs", questionId] })}
+                />
+              </div>
             )}
             {!isSME && !isReadOnlyView && <SOSButton missionId={missionId} questionId={questionId} />}
           </div>
+
+          {/* First-visit tooltip pointing at the action bar */}
+          {tipStage === 1 && !isReadOnlyView && (
+            <div className="pointer-events-none absolute left-1/2 top-0 z-50 -translate-x-1/2 -translate-y-[110%]">
+              <FirstVisitTooltip>This is how you talk to your team.</FirstVisitTooltip>
+            </div>
+          )}
         </div>
+
 
         {/* MOBILE 2×2 ACTION GRID */}
         <div className="md:hidden grid grid-cols-2 gap-2 p-3">
