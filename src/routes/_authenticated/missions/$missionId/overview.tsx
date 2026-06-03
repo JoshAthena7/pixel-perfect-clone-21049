@@ -586,37 +586,8 @@ function MissionOverviewPage() {
           </div>
         </section>
 
-        <div className="mr-divider" />
+        {/* IRIS Intelligence section removed — persistent top strip is the single IRIS voice */}
 
-        {/* ── 2. IRIS INTELLIGENCE ────────────────────── */}
-        <section>
-          <h2 className="mr-section-label" style={{ color: "var(--iris, #22d3ee)" }}>IRIS Intelligence</h2>
-          <div
-            className="rounded-[12px] px-7 py-6"
-            style={{
-              border: "1px solid rgba(8,145,178,0.3)",
-              background: "radial-gradient(ellipse at 0% 50%, rgba(8,145,178,0.08), hsl(var(--card)) 70%)",
-            }}
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em]" style={{ color: "var(--iris, #22d3ee)" }}>
-                <span className="relative inline-flex h-1.5 w-1.5">
-                  <span className="absolute inset-0 animate-ping rounded-full bg-[color:var(--iris,#22d3ee)]/60" />
-                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[color:var(--iris,#22d3ee)]" />
-                </span>
-                IRIS
-              </div>
-              <button
-                onClick={() => { setBriefStamp(new Date()); qc.invalidateQueries({ queryKey: ["overview-questions", missionId] }); qc.invalidateQueries({ queryKey: ["overview-needs", missionId] }); }}
-                className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
-              >
-                <RefreshCw className="h-3 w-3" /> Refresh
-              </button>
-            </div>
-            <p className="mt-3 text-[15px] leading-relaxed text-foreground/90">{irisBrief || "Generating briefing…"}</p>
-            <p className="mt-3 text-[10px] text-muted-foreground">Updated {relativeTime(briefStamp.toISOString())}</p>
-          </div>
-        </section>
 
         {/* Leader-only Team Needs alert */}
         {isLeader && needs.length > 0 && (
