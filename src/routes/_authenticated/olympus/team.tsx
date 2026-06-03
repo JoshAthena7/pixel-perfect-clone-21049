@@ -120,7 +120,11 @@ function Roster({ missionId }: { missionId: string }) {
       {isLoading ? (
         <div className="p-4 space-y-2">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="skeleton h-12 w-full" />)}</div>
       ) : members.length === 0 ? (
-        <div className="p-10 text-center text-sm text-muted-foreground">No members yet. Invite someone from the panel on the right.</div>
+        <EmptyState
+          icon={<EmptyIcon name="people" />}
+          title="No team assigned yet."
+          description="Invite someone from the panel on the right to staff this mission."
+        />
       ) : (
         <table className="w-full text-sm">
           <thead className="border-b border-border bg-surface-hover text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
