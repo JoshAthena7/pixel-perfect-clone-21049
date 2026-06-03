@@ -72,11 +72,29 @@ function VaultPage() {
   }, [docs]);
 
   const visible = useMemo(() => {
+    if (activeCategory === "__amendments") return [];
     let list = activeCategory === "All" ? docs : docs.filter((d) => d.category === activeCategory);
     const q = search.trim().toLowerCase();
     if (q) list = list.filter((d) => d.name.toLowerCase().includes(q) || (d.notes ?? "").toLowerCase().includes(q));
     return list;
   }, [docs, activeCategory, search]);
+
+  const { data: amendments = [] } = useQuery({
+    queryKey: ["olympus-amendments", missionId],
+    enabled: !!missionId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("rfp_amendments")
+        .select("id,amendment_type,status,summary,total_changes,critical_changes,analyzed_at,created_at,error_message")
+        .eq("mission_id", missionId!)
+        .order("created_at", { ascending: false });
+      return (data ?? []) as Array<{
+        id: string; amendment_type: string; status: string; summary: string | null;
+        total_changes: number; critical_changes: number;
+        analyzed_at: string | null; created_at: string; error_message: string | null;
+      }>;
+    },
+  });
 
   async function handleUpload(files: FileList | null) {
     if (!files || files.length === 0 || !missionId) return;
