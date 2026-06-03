@@ -1,16 +1,20 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Search, Plus, Sparkles, MapPin, Layers as LayersIcon,
-  Target, Brain, Shield, ArrowRight, Loader2,
+  Target, Brain, Shield, ArrowRight, Loader2, Inbox, Zap,
 } from "lucide-react";
 import {
   hubStats, listStates, listPrograms, listMissionsForHub,
   listLessons, globalAtlasSearch,
 } from "@/lib/atlas-intelligence.functions";
 import { listAtlasSources } from "@/lib/atlas-sources.functions";
+import {
+  activateCanonStarterKit, discoverProgramSources,
+  createProgram, listReviewQueue,
+} from "@/lib/atlas-onboarding.functions";
 
 export const Route = createFileRoute("/_authenticated/intelligence")({
   component: IntelligenceHub,
