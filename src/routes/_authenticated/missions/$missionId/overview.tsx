@@ -646,6 +646,11 @@ function MissionOverviewPage() {
 
         <div className="mr-divider" />
 
+        {/* ── 3b. PILOT STATUS (lead-only) ───── */}
+        <PilotStatusSection missionId={missionId} isLead={isLeader} />
+
+        <div className="mr-divider" />
+
         {/* ── 4. QUESTION MAP ─────────────────────────── */}
         <section>
           <h2 className="mr-section-label" style={{ color: "hsl(var(--primary))" }}>Question Map</h2>
