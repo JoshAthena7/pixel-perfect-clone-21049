@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { relativeTime, createSignal } from "@/lib/signals";
 import { ArrowRight, Megaphone, RefreshCw, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
+import { AmendmentDashboardBanner } from "@/components/AmendmentDashboardBanner";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/overview")({
   component: MissionOverviewPage,
@@ -469,8 +470,11 @@ function MissionOverviewPage() {
   });
 
   // ── RENDER ───────────────────────────────────────────
-  return (
+   return (
     <div className="mx-auto max-w-[1100px] px-8 py-10 space-y-8 page-enter">
+      {/* BLOCK 0 — AMENDMENT BANNER */}
+      <AmendmentDashboardBanner missionId={missionId} />
+
       {/* BLOCK 1 — HEADER */}
       <header className="space-y-2">
         <div className="flex flex-wrap items-center gap-3">
