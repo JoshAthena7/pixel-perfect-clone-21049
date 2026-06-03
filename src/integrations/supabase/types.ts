@@ -278,6 +278,131 @@ export type Database = {
           },
         ]
       }
+      compliance_check_results: {
+        Row: {
+          checked_at: string
+          evidence: string | null
+          id: string
+          iris_note: string | null
+          mission_id: string
+          question_id: string
+          requirement_id: string | null
+          requirement_snapshot: Json
+          requirement_source: string
+          score_me_run_id: string | null
+          status: string
+        }
+        Insert: {
+          checked_at?: string
+          evidence?: string | null
+          id?: string
+          iris_note?: string | null
+          mission_id: string
+          question_id: string
+          requirement_id?: string | null
+          requirement_snapshot?: Json
+          requirement_source?: string
+          score_me_run_id?: string | null
+          status?: string
+        }
+        Update: {
+          checked_at?: string
+          evidence?: string | null
+          id?: string
+          iris_note?: string | null
+          mission_id?: string
+          question_id?: string
+          requirement_id?: string | null
+          requirement_snapshot?: Json
+          requirement_source?: string
+          score_me_run_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_check_results_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compliance_check_results_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "question_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      compliance_requirements: {
+        Row: {
+          created_at: string
+          embedding: string | null
+          extracted_at: string
+          id: string
+          is_federal: boolean
+          last_verified: string | null
+          mission_id: string
+          plain_language: string | null
+          relevant_question_ids: string[] | null
+          requirement_text: string
+          requirement_type: string | null
+          section_reference: string | null
+          severity: string
+          source_document: string
+          source_document_id: string | null
+          source_kind: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          embedding?: string | null
+          extracted_at?: string
+          id?: string
+          is_federal?: boolean
+          last_verified?: string | null
+          mission_id: string
+          plain_language?: string | null
+          relevant_question_ids?: string[] | null
+          requirement_text: string
+          requirement_type?: string | null
+          section_reference?: string | null
+          severity?: string
+          source_document: string
+          source_document_id?: string | null
+          source_kind?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          embedding?: string | null
+          extracted_at?: string
+          id?: string
+          is_federal?: boolean
+          last_verified?: string | null
+          mission_id?: string
+          plain_language?: string | null
+          relevant_question_ids?: string[] | null
+          requirement_text?: string
+          requirement_type?: string | null
+          section_reference?: string | null
+          severity?: string
+          source_document?: string
+          source_document_id?: string | null
+          source_kind?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_requirements_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_extractions: {
         Row: {
           created_at: string
@@ -523,6 +648,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      federal_compliance_library: {
+        Row: {
+          citation: string
+          created_at: string
+          effective_date: string | null
+          embedding: string | null
+          id: string
+          last_updated: string
+          plain_language: string | null
+          program_types: string[] | null
+          regulation_name: string
+          requirement_type: string | null
+          section_text: string
+          severity: string
+        }
+        Insert: {
+          citation: string
+          created_at?: string
+          effective_date?: string | null
+          embedding?: string | null
+          id?: string
+          last_updated?: string
+          plain_language?: string | null
+          program_types?: string[] | null
+          regulation_name: string
+          requirement_type?: string | null
+          section_text: string
+          severity?: string
+        }
+        Update: {
+          citation?: string
+          created_at?: string
+          effective_date?: string | null
+          embedding?: string | null
+          id?: string
+          last_updated?: string
+          plain_language?: string | null
+          program_types?: string[] | null
+          regulation_name?: string
+          requirement_type?: string | null
+          section_text?: string
+          severity?: string
+        }
+        Relationships: []
       }
       hook_failures: {
         Row: {
