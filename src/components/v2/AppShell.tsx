@@ -441,7 +441,7 @@ function BreadcrumbStrip({
     if (!missionId) return null;
     if (tail.startsWith("/library")) return "Vault";
     if (tail.startsWith("/briefing") || tail.startsWith("/brief")) return "Oracle";
-    if (tail.startsWith("/intelligence")) return "Intelligence";
+    if (tail.startsWith("/intelligence")) return "Briefing Room";
     if (tail.startsWith("/team")) return "Team";
     if (tail.startsWith("/activity")) return "Timeline";
     if (tail.startsWith("/operations")) return "Operations";
