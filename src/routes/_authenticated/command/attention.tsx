@@ -165,13 +165,15 @@ export function CommandCenter({ missionId }: { missionId?: string } = {}) {
 
   // -------- Section 3: Responses At Risk --------
   const { data: atRisk = [] } = useQuery({
-    queryKey: ["cc-at-risk"],
+    queryKey: ["cc-at-risk", missionId ?? "all"],
     queryFn: async () => {
       const today = new Date().toISOString().slice(0, 10);
       const in14 = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10);
-      const { data: qs } = await supabase
+      let qBase = supabase
         .from("question_records")
         .select("id,mission_id,question_number,title,health,health_drivers,current_score,pens_down_date,assigned_writer_id");
+      if (missionId) qBase = qBase.eq("mission_id", missionId);
+      const { data: qs } = await qBase;
       const allQs = qs ?? [];
       const { data: conflicts } = await supabase
         .from("alignment_conflicts")
