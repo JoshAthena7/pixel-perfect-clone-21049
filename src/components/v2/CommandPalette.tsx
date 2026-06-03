@@ -408,6 +408,9 @@ export function CommandPalette() {
           </span>
         </div>
       </div>
+      {sosOpen && missionId && (
+        <SOSModal missionId={missionId} onClose={() => { setSosOpen(false); setOpen(false); }} />
+      )}
     </div>
   );
 }
