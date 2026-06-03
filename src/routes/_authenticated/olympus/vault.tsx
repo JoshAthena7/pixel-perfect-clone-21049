@@ -3,10 +3,11 @@ import { useState, useMemo, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Upload, FileText, ExternalLink, Trash2, Search, Sparkles, FolderOpen, Link2 } from "lucide-react";
+import { Upload, FileText, ExternalLink, Trash2, Search, Sparkles, FolderOpen, Link2, AlertTriangle } from "lucide-react";
 import { useSelectedOlympusMission } from "../olympus";
 import { logOlympusAction } from "@/lib/audit";
 import { IrisRfpReviewModal } from "@/components/v2/IrisRfpReviewModal";
+import { AmendmentReviewPanel } from "@/components/AmendmentReviewPanel";
 
 export const Route = createFileRoute("/_authenticated/olympus/vault")({
   component: VaultPage,
@@ -34,7 +35,8 @@ async function sha256(file: File): Promise<string> {
 function VaultPage() {
   const missionId = useSelectedOlympusMission();
   const qc = useQueryClient();
-  const [activeCategory, setActiveCategory] = useState<Category | "All">("All");
+  const [activeCategory, setActiveCategory] = useState<Category | "All" | "__amendments">("All");
+  const [openAmendmentId, setOpenAmendmentId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [uploading, setUploading] = useState(false);
   const [parsingId, setParsingId] = useState<string | null>(null);
