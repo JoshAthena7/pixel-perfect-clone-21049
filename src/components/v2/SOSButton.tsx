@@ -41,7 +41,7 @@ export function SOSButton({ missionId, questionId }: { missionId: string; questi
   );
 }
 
-function SOSModal({ missionId, questionId, onClose }: { missionId: string; questionId?: string; onClose: () => void }) {
+export function SOSModal({ missionId, questionId, onClose }: { missionId: string; questionId?: string; onClose: () => void }) {
   const [kind, setKind] = useState<SosKind | null>(null);
   const [headline, setHeadline] = useState("");
   const [detail, setDetail] = useState("");
