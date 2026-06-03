@@ -835,6 +835,8 @@ function MissionOverviewPage() {
           onClose={() => setComposeTarget(null)}
         />
       )}
+
+      <ScoreMeOverlay open={scoreMeOpen} onClose={() => setScoreMeOpen(false)} missionId={missionId} />
     </div>
   );
 }
