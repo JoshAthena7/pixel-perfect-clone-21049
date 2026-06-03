@@ -73,7 +73,7 @@ function LoginPage() {
         {/* Interactive form overlay — covers the WELCOME BACK panel in the graphic */}
         <div
           className="absolute"
-          style={{ left: "32.5%", right: "32.5%", top: "34%", bottom: "27.5%" }}
+          style={{ left: "33%", right: "33%", top: "36%", bottom: "28.5%" }}
         >
             <div className="relative h-full w-full overflow-hidden rounded-xl border border-amber-500/30 bg-gradient-to-b from-[#0b1733] to-[#050b1a] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)]">
               <form onSubmit={onSubmit} className="flex h-full w-full flex-col px-7 py-5">
