@@ -68,6 +68,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <IrisOnboardingMount />
       <IrisDock />
       <MobileBottomNav />
+      <SupportCenterMount />
     </div>
   );
 }
