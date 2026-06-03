@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Search, Plane, PenTool, Zap, Sparkles, BookOpen, Eye, Home,
-  Shield, Users, Activity, ArrowRight, CornerDownLeft,
+  Shield, ArrowRight, CornerDownLeft,
 } from "lucide-react";
 
 type Item = {
