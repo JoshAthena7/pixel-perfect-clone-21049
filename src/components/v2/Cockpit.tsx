@@ -739,7 +739,9 @@ export function Cockpit({ missionId, me, myQuestions, allQuestions, updateStatus
         <PhoneAFriendOverlay
           missionId={missionId}
           questionId={suggestedQ.id}
-          questionTitle={suggestedQ.title}
+          questionNumber={suggestedQ.question_number}
+          meId={me}
+          meName=""
           onClose={() => setPhoneOpen(false)}
         />
       )}
