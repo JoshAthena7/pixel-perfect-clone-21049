@@ -23,13 +23,25 @@ export const Route = createFileRoute("/_authenticated/home")({
 
 function EmptyState({ icon, title, subtitle, cta }: { icon: ReactNode; title: string; subtitle?: string; cta?: ReactNode }) {
   return (
-    <div className="rounded-[12px] border border-dashed border-border bg-surface/40 px-8 py-14 text-center">
-      <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center text-muted-foreground opacity-50">
-        {icon}
+    <div className="rounded-[12px] border border-dashed border-border bg-surface/40 py-12 text-center">
+      <div
+        className="mx-auto"
+        style={{ maxWidth: 320, padding: "0 24px" }}
+      >
+        <div
+          className="mx-auto mb-4 flex h-10 w-10 items-center justify-center text-muted-foreground"
+          style={{ opacity: 0.4 }}
+        >
+          {icon}
+        </div>
+        <p style={{ fontSize: 15, fontWeight: 600, color: "var(--foreground)", marginBottom: 8, lineHeight: 1.4 }}>
+          {title}
+        </p>
+        {subtitle && (
+          <p style={{ fontSize: 13, color: "var(--muted-foreground)", lineHeight: 1.6 }}>{subtitle}</p>
+        )}
+        {cta && <div className="mt-5">{cta}</div>}
       </div>
-      <p className="text-sm font-medium text-foreground">{title}</p>
-      {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
-      {cta && <div className="mt-4">{cta}</div>}
     </div>
   );
 }
