@@ -10,7 +10,10 @@ import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
 import { SOSButton } from "@/components/v2/SOSButton";
 import { IrisCorrectable } from "@/components/v2/IrisCorrectable";
 import { getLastQuestionVisit, markQuestionVisited } from "@/lib/writer-utils";
+import { CoPilotInbox } from "@/components/v2/CoPilotInbox";
+import { ConfidenceButton, ConfidenceDot } from "@/components/v2/CockpitConfidence";
 import { toast } from "sonner";
+import { Eye } from "lucide-react";
 import {
   Sparkles, Send, RefreshCw, AlertTriangle, MessageSquare, ChevronDown, ChevronUp,
   CheckCircle2, ArrowLeftRight, FileEdit, Lightbulb, Pin, CornerDownLeft, X, LifeBuoy,
