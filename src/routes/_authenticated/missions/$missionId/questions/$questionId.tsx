@@ -979,6 +979,17 @@ function CockpitPage() {
         missionId={missionId}
         lockedQuestionId={questionId}
       />
+
+      {phoneOpen && (
+        <PhoneAFriendOverlay
+          missionId={missionId}
+          questionId={questionId}
+          questionNumber={q.question_number}
+          meId={me?.id ?? null}
+          meName={firstName(me)}
+          onClose={() => setPhoneOpen(false)}
+        />
+      )}
     </div>
   );
 }
