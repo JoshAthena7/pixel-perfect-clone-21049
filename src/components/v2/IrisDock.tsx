@@ -147,15 +147,20 @@ export function IrisDock() {
             )}
             {msgs.map((m, i) => (
               <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div
-                  className="max-w-[88%] rounded-lg px-3 py-2 text-[13px] leading-relaxed whitespace-pre-wrap"
-                  style={
-                    m.role === "user"
-                      ? { background: "rgba(59,127,255,0.15)", border: "1px solid rgba(59,127,255,0.25)", color: "var(--foreground)" }
-                      : { background: "rgba(34,211,238,0.06)", border: "1px solid rgba(34,211,238,0.18)", color: "var(--foreground)" }
-                  }
-                >
-                  {m.text}
+                <div className="max-w-[88%]">
+                  <div
+                    className="rounded-lg px-3 py-2 text-[13px] leading-relaxed whitespace-pre-wrap"
+                    style={
+                      m.role === "user"
+                        ? { background: "rgba(59,127,255,0.15)", border: "1px solid rgba(59,127,255,0.25)", color: "var(--foreground)" }
+                        : { background: "rgba(34,211,238,0.06)", border: "1px solid rgba(34,211,238,0.18)", color: "var(--foreground)" }
+                    }
+                  >
+                    {m.text}
+                  </div>
+                  {m.role === "iris" && missionId && (
+                    <AskIrisFeedback text={m.text} missionId={missionId} questionId={questionId ?? null} />
+                  )}
                 </div>
               </div>
             ))}
