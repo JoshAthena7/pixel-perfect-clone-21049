@@ -94,7 +94,7 @@ export function KeyboardShortcuts() {
             <Row keys={["K"]} label="Previous question" />
             <Row keys={["↵"]} label="Open selected" />
           </Group>
-          <Group title="The Studio">
+          <Group title="The Cockpit">
             <Row keys={["N"]} label="New note" />
             <Row keys={["R"]} label="Raise risk / flag" />
             <Row keys={["Esc"]} label="Back to Questions" />

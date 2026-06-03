@@ -2,7 +2,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useParams, useNavigate } from "@tanstack/react-router";
 import {
   LogOut, User, Shield, Settings2,
-  PenTool,
+  Plane,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -199,8 +199,8 @@ function RoomToggle({ missionId, room }: { missionId: string; room: Room }) {
     },
     {
       key: "studio" as const,
-      label: "Studio",
-      icon: <PenTool size={13} strokeWidth={2} />,
+      label: "Cockpit",
+      icon: <Plane size={13} strokeWidth={2} />,
       activeBg: "rgba(59,127,255,0.12)",
       activeBorder: "rgba(59,127,255,0.35)",
       activeColor: "#3b7fff",

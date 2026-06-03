@@ -81,7 +81,7 @@ That's you.
 
 The writers on this mission are good. But there are questions where they need your specific knowledge to write a winning answer. I've flagged those questions for you.
 
-You'll find them in Studio — each one showing exactly what the writer needs from you and when they need it.
+You'll find them in the Cockpit — each one showing exactly what the writer needs from you and when they need it.
 
 You don't need to learn the whole platform. Just go to your questions, give the writers what they need, and the mission moves forward.
 
@@ -127,6 +127,8 @@ One thing I need from you. When reality changes — you learned something, you'r
 Atlas doesn't lose proposals because of bad writers. We lose them because the right intelligence didn't reach the right person in time.
 
 That won't happen here.
+
+When you're ready to work, enter the Cockpit. Your questions, your intelligence, your controls — everything you need to fly this mission.
 
 Ready?`,
         button: "Open my questions →",

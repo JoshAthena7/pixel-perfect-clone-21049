@@ -507,7 +507,7 @@ function MissionOverviewPage() {
               onClick={() => navigate({ to: "/missions/$missionId/studio", params: { missionId } })}
               className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1 text-xs font-medium text-primary-foreground"
             >
-              Enter Studio <ArrowRight className="h-3 w-3" />
+              Enter Cockpit <ArrowRight className="h-3 w-3" />
             </button>
           </div>
         </div>
@@ -1014,7 +1014,7 @@ function QuestionDrawer({
               onClick={() => navigate({ to: "/missions/$missionId/questions/$questionId", params: { missionId, questionId: q.id } })}
               className="w-full mt-2 inline-flex items-center justify-center gap-1 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground"
             >
-              Open in Studio <ArrowRight className="h-3.5 w-3.5" />
+              Open in Cockpit <ArrowRight className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
