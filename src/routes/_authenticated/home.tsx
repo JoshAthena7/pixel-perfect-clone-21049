@@ -317,7 +317,7 @@ function AthenaHQ() {
                 {statusLabel}
               </div>
             </div>
-            <AttentionBadge missionId="all" variant="header" />
+            
           </div>
         </div>
       </header>

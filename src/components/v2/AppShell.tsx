@@ -213,7 +213,6 @@ function AtriumNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const items: { to: string; label: string }[] = [
     { to: "/home", label: "Home" },
-    { to: "/intelligence", label: "Intelligence" },
     { to: "/pipeline-horizon", label: "Pipeline" },
     { to: "/pathfinder", label: "Pathfinder" },
   ];
