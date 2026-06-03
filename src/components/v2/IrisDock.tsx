@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Sparkles, X, Send, Eye, ThumbsUp, ThumbsDown, Flag } from "lucide-react";
+import { Sparkles, X, Send, ThumbsUp, ThumbsDown, Flag } from "lucide-react";
 import { irisAskGlobal, irisAskMission, irisAskQuestion } from "@/lib/iris-ask.functions";
 import { IrisCorrectable } from "@/components/v2/IrisCorrectable";
+import irisLogo from "@/assets/iris-logo.png.asset.json";
 import { toast } from "sonner";
 
 type Msg = { role: "user" | "iris"; text: string };
@@ -82,7 +83,7 @@ export function IrisDock() {
             color: "#001218",
           }}
         >
-          <Eye size={16} strokeWidth={2.25} />
+          <img src={irisLogo.url} alt="" className="h-6 w-6 object-contain -ml-1" style={{ filter: "drop-shadow(0 0 6px rgba(245,158,11,0.5))" }} />
           <span className="text-[11px] font-bold uppercase tracking-[0.12em]">Ask IRIS</span>
           <kbd className="hidden md:inline-flex items-center rounded bg-black/20 px-1.5 py-0.5 text-[9px] font-mono">⌘J</kbd>
         </button>
@@ -104,8 +105,8 @@ export function IrisDock() {
           >
             <div className="flex items-center gap-2">
               <span className="relative inline-flex">
-                <Eye size={16} className="text-[color:var(--iris,#22d3ee)]" />
-                <span className="absolute -right-1 -top-1 h-1.5 w-1.5 animate-ping rounded-full bg-[color:var(--iris,#22d3ee)]" />
+                <img src={irisLogo.url} alt="" className="h-6 w-6 object-contain" style={{ filter: "drop-shadow(0 0 6px rgba(245,158,11,0.45))" }} />
+                <span className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 animate-ping rounded-full bg-[color:var(--athena-gold,#f59e0b)]" />
               </span>
               <div>
                 <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[color:var(--iris,#22d3ee)]">IRIS</div>
