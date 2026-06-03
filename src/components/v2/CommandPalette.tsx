@@ -160,7 +160,7 @@ export function CommandPalette() {
     const list: JumpItem[] = [
       { id: "qa-update", group: "Quick actions", label: "Update Reality", hint: "Signal to your team",
         icon: <Zap size={16} className="text-[color:var(--accent,#3b7fff)]" />,
-        onGo: () => window.dispatchEvent(new CustomEvent("atlas:open-update-reality")) },
+        onGo: () => window.dispatchEvent(new CustomEvent("update-reality:open", { detail: { questionId: null } })) },
       { id: "qa-score", group: "Quick actions", label: "Score Me", hint: "Score a draft response",
         icon: <Target size={16} className="text-[color:var(--accent,#3b7fff)]" />,
         onGo: () => window.dispatchEvent(new CustomEvent("atlas:open-score-me")) },
