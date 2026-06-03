@@ -463,6 +463,10 @@ function MissionOverviewPage() {
   const [drawerQid, setDrawerQid] = useState<string | null>(null);
   const drawerQ = drawerQid ? qById.get(drawerQid) ?? null : null;
 
+  // ── MESSAGE COMPOSE ───────────────────────────────────
+  const [composeTarget, setComposeTarget] = useState<{ person: Member; label: string } | null>(null);
+  const openCompose = (person: Member, label: string) => setComposeTarget({ person, label });
+
   // ── RENDER ────────────────────────────────────────────
   return (
     <div className="mission-room-bg min-h-screen">
