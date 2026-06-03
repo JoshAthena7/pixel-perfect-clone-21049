@@ -539,17 +539,56 @@ function ResponsesList() {
     [questions, me],
   );
 
-  const visible = effectiveView === "mine" ? myQuestions : questions;
+  // Sort: Red, Yellow, then nearest due, then Green last
+  const sortForWriter = (list: Q[]) => {
+    return [...list].sort((a, b) => {
+      const rank = (h: Q["health"]) => (h === "red" ? 0 : h === "yellow" ? 1 : h === "green" ? 3 : 2);
+      const d = rank(a.health) - rank(b.health);
+      if (d !== 0) return d;
+      const ad = daysUntil(a.pens_down_date) ?? 9999;
+      const bd = daysUntil(b.pens_down_date) ?? 9999;
+      return ad - bd;
+    });
+  };
+
+  const myQuestionsSorted = useMemo(() => sortForWriter(myQuestions), [myQuestions]);
+
+  const visible = effectiveView === "mine" ? myQuestionsSorted : questions;
+
+  // Health summary across the mission
+  const healthCounts = useMemo(() => {
+    let g = 0, y = 0, r = 0;
+    for (const q of questions) {
+      if (q.health === "red") r++;
+      else if (q.health === "yellow") y++;
+      else g++;
+    }
+    return { total: questions.length, green: g, yellow: y, red: r };
+  }, [questions]);
+
+  const myUrgentCount = useMemo(
+    () => myQuestions.filter((q) => q.health === "red" || q.health === "yellow").length,
+    [myQuestions],
+  );
+
+  // Group All Questions by RFP section
+  const grouped = useMemo(() => {
+    const map = new Map<string, Q[]>();
+    for (const q of questions) {
+      const sec = q.section_number?.trim() || "Unsectioned";
+      if (!map.has(sec)) map.set(sec, []);
+      map.get(sec)!.push(q);
+    }
+    return Array.from(map.entries()).map(([section, items]) => ({
+      section,
+      items: sortForWriter(items),
+      hasMine: me ? items.some((q) => q.assigned_writer_id === me) : false,
+    }));
+  }, [questions, me]);
+
   const actionQuestion = useMemo(() => {
     const pool = myQuestions.length > 0 ? myQuestions : questions;
-    return [...pool].sort((a, b) => {
-      const healthRank = (h: Q["health"]) => (h === "red" ? 0 : h === "yellow" ? 1 : h === "green" ? 2 : 3);
-      const healthDelta = healthRank(a.health) - healthRank(b.health);
-      if (healthDelta !== 0) return healthDelta;
-      const aDays = daysUntil(a.pens_down_date) ?? 9999;
-      const bDays = daysUntil(b.pens_down_date) ?? 9999;
-      return aDays - bDays;
-    })[0] ?? null;
+    return sortForWriter(pool)[0] ?? null;
   }, [myQuestions, questions]);
 
   // ADD 4: status update mutation
