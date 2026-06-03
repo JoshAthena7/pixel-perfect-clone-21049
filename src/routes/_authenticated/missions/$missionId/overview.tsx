@@ -1118,11 +1118,11 @@ function MessageComposePanel({
     }
     try {
       await createSignal({
-        missionId,
-        userId: sender.id,
-        signalType: "direct_message",
-        signalTitle: `${sender.name} → ${recipient.name ?? "teammate"}`,
-        signalSummary: text.slice(0, 120),
+        mission_id: missionId,
+        source_module: "mission_room",
+        signal_type: "direct_message",
+        signal_title: `${sender.name} → ${recipient.name ?? "teammate"}`,
+        signal_summary: text.slice(0, 120),
       });
     } catch {}
     toast.success(`Message sent to ${firstName(recipient.name)}.`);
