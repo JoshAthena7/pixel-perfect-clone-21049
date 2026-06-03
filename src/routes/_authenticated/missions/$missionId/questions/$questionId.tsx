@@ -34,6 +34,7 @@ type Q = {
   status: string | null; health: "red" | "yellow" | "green" | null;
   health_drivers: any; assigned_writer_id: string | null; assigned_sme_id: string | null;
   section_number: string | null; page_limit: number | null; evaluation_weight: number | null;
+  writer_confidence: "confident" | "uncertain" | "stuck" | null;
 };
 type Profile = { id: string; display_name: string | null; email: string | null };
 type Intel = {
