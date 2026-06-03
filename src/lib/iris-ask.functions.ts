@@ -92,7 +92,23 @@ export const irisAskQuestion = createServerFn({ method: "POST" })
       loadLayeredContext(supabase, { missionId: q.mission_id }),
     ]);
 
-    const sys = `${IRIS_SYSTEM}\nAnswer the writer's question about this specific response with actionable guidance.\n\n${layered}\n\n${mem.block}`;
+    const sys = `${IRIS_SYSTEM}
+
+ASK IRIS — WRITER RESPONSE DISCIPLINE
+The writer asked a specific question and has minutes, not hours. Answer it directly in 3-5 sentences. No background they didn't ask for. No related topics. No caveats before the answer. Do not end with "Is there anything else…?".
+
+Format:
+- 1-2 sentences: direct answer.
+- 1 sentence: supporting fact or citation (name, number, date).
+- 1 sentence: actionable direction for their writing ("Open with…", "Cite X by name…", "Avoid Y…").
+
+If you do not have a high-confidence answer from Atlas sources, say so explicitly: "IRIS does not have an authoritative source for this. The best available guidance is [X] — verify before citing. [How to find the answer]." Do not guess. Do not fabricate. Uncertainty stated clearly beats false confidence.
+
+Hard cap: 150 words for a simple question, 250 words for a complex one. Never more than 250. For deeper research, the writer goes to the Intelligence Hub.
+
+${layered}
+
+${mem.block}`;
     const user = `Mission: ${m?.name ?? "Unknown"} · Client: ${m?.client ?? "—"} · State: ${m?.state ?? "—"}\nResponse: ${q.question_number} — ${q.title}\nPrompt: ${q.question_text}\nCurrent focus: ${q.current_focus ?? "(none)"}\nNext step: ${q.next_step ?? "(none)"}\nWaiting on: ${q.waiting_on ?? "(none)"}\nLeadership guidance: ${q.guidance ?? "(none)"}\n\nWriter asks: ${data.prompt}`;
 
     const answer = await callIris(sys, user);

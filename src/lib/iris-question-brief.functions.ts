@@ -90,12 +90,15 @@ export const generateMissionQuestionBriefs = createServerFn({ method: "POST" })
     const qs = questions ?? [];
     if (qs.length === 0) return { updated: 0, total: 0, message: "No questions to brief." };
 
-    const system = `You are IRIS, a proposal strategist. For each RFP question, produce a tight 'morning brief' so the writer knows exactly what to do today.
-Return JSON only. Three fields, each one crisp sentence (≤140 chars):
-- current_focus: the specific angle/topic the writer should be advancing TODAY
-- next_step: the single concrete next action (verb-led)
-- waiting_on: who or what is blocking progress (or "Nothing outstanding")
-Be specific to the question text. Use the Oracle context to ground positioning. No preface, no bullets.`;
+    const system = `MORNING BRIEF DISCIPLINE
+The writer is reading this at 8am before they open their work environment. They have 60 seconds. Three crisp sentences, in order of urgency.
+
+Return JSON only. Three fields (≤140 chars each, one sentence each):
+- current_focus: the most urgent thing they need to know today about this question (what changed overnight, what the score hinges on, or — if nothing changed — where they stand). Use names, numbers, dates. No preamble.
+- next_step: ONE concrete verb-led action. "Open with…", "Cite…", "Rewrite the opening to lead with…". Not "consider" or "think about".
+- waiting_on: who or what is blocking progress, named specifically. Or "Nothing outstanding."
+
+Do NOT cover mission-level health, other writers' work, admin updates, source ingestion, or anything that doesn't change what they do today. If the day is normal, signal normal — that is also useful. No hedging. No filler. The brief is done when the writer can read it in 60 seconds and know exactly what to work on first.`;
 
     let updated = 0;
     let failed = 0;

@@ -846,26 +846,34 @@ function FeedRow({
   );
 }
 
+/** Hard cap an insight to N sentences for the writer-facing Cockpit. */
+function clampSentences(text: string, max: number): { clipped: string; truncated: boolean } {
+  if (!text) return { clipped: "", truncated: false };
+  const parts = text.match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+$/g) ?? [text];
+  if (parts.length <= max) return { clipped: text.trim(), truncated: false };
+  return { clipped: parts.slice(0, max).join("").trim(), truncated: true };
+}
+
 function IntelPanel({
   label, content, sourceCount, missionId, questionId,
 }: { label: string; content: string | null | undefined; sourceCount: number; missionId: string; questionId: string }) {
   const [expanded, setExpanded] = useState(false);
-  const text = content ?? "";
-  const isLong = text.length > 220;
-  const display = !expanded && isLong ? text.slice(0, 220).trimEnd() + "…" : text;
-  const confidence: "High" | "Medium" | "Low" =
-    sourceCount >= 3 ? "High" : sourceCount >= 1 ? "Medium" : "Low";
-  const confColor = confidence === "High" ? "#22c55e" : confidence === "Medium" ? "#eab308" : "#94a3b8";
+  const raw = (content ?? "").trim();
+  // Cockpit discipline: hard cap at 4 sentences per insight at render time.
+  const { clipped, truncated } = clampSentences(raw, 4);
+  const display = expanded ? raw : clipped;
+  const confidence: "High" | "Lower" = sourceCount >= 2 ? "High" : "Lower";
+  const confColor = confidence === "High" ? "#22c55e" : "#eab308";
 
   return (
     <div className="iris-panel rounded-r-[10px] p-4 relative">
       <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em]" style={{ color: "#22d3ee" }}>
         {label}
       </div>
-      {content ? (
+      {raw ? (
         <IrisCorrectable
           contentType="question_brief"
-          contentBlock={text}
+          contentBlock={raw}
           missionId={missionId}
           questionId={questionId}
         >
@@ -874,12 +882,16 @@ function IntelPanel({
       ) : (
         <p className="text-[13px] text-muted-foreground italic">No intelligence yet.</p>
       )}
-      {content && (
+      {raw && (
         <div className="mt-3 flex items-center justify-between text-[11px]">
-          <span style={{ color: confColor }}>● {confidence} confidence · {sourceCount} source{sourceCount === 1 ? "" : "s"}</span>
-          {isLong && (
+          <span style={{ color: confColor }}>
+            {confidence === "High"
+              ? `● High confidence · ${sourceCount} source${sourceCount === 1 ? "" : "s"}`
+              : "⚠ IRIS inference — verify before citing"}
+          </span>
+          {truncated && (
             <button onClick={() => setExpanded((e) => !e)} className="text-muted-foreground hover:text-foreground">
-              {expanded ? "Show less ↑" : "Show more ↓"}
+              {expanded ? "Show less ↑" : "View full intelligence ↓"}
             </button>
           )}
         </div>
@@ -891,7 +903,13 @@ function IntelPanel({
 function CompliancePanel({
   flags, missionId, questionId,
 }: { flags: string[] | null; missionId: string; questionId: string }) {
-  const has = !!(flags && flags.length > 0);
+  // Cockpit discipline: writers see ONE compliance note max — the most critical.
+  // Additional notes live in the Source Library / Compliance Check section below.
+  const all = flags ?? [];
+  const has = all.length > 0;
+  const primary = has ? all[0] : null;
+  const extraCount = Math.max(0, all.length - 1);
+
   return (
     <div
       className="rounded-[10px] p-4 relative"
@@ -902,23 +920,28 @@ function CompliancePanel({
     >
       <div className="mb-2 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em]" style={{ color: has ? "#fbbf24" : "var(--muted-foreground)" }}>
         {has && <AlertTriangle className="h-3 w-3" />}
-        {has ? "Compliance Required" : "Past Performance"}
+        {has ? "⚠ Required" : "Past Performance"}
       </div>
-      {has ? (
+      {primary ? (
         <IrisCorrectable
           contentType="question_brief"
-          contentBlock={flags!.join("\n")}
+          contentBlock={primary}
           missionId={missionId}
           questionId={questionId}
         >
-          <ul className="list-disc space-y-1 pl-5 text-[13px] leading-relaxed pr-8" style={{ color: "#fde68a" }}>
-            {flags!.map((f, i) => <li key={i}>{f}</li>)}
-          </ul>
+          <p className="text-[13px] leading-relaxed pr-8" style={{ color: "#fde68a" }}>
+            {primary}
+          </p>
         </IrisCorrectable>
       ) : (
         <p className="text-[13px] text-muted-foreground italic">
           No past-performance match yet. Athena's wins on similar questions will surface here once IRIS Memory has examples.
         </p>
+      )}
+      {extraCount > 0 && (
+        <div className="mt-3 text-[11px] text-muted-foreground">
+          +{extraCount} more compliance note{extraCount === 1 ? "" : "s"} available in the Compliance Check section below.
+        </div>
       )}
     </div>
   );
