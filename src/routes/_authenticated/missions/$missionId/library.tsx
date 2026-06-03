@@ -50,6 +50,10 @@ function LibraryPage() {
   const { missionId } = Route.useParams();
   const [activeCategory, setActiveCategory] = useState<Category | "All">("All");
   const [search, setSearch] = useState("");
+  const qc = useQueryClient();
+  const statusFn = useServerFn(getLibraryIndexStatus);
+  const reindexFn = useServerFn(reindexMissionDocuments);
+  const [reindexing, setReindexing] = useState(false);
 
   const { data: docs = [], isLoading } = useQuery({
     queryKey: ["mission-library", missionId],
@@ -62,6 +66,29 @@ function LibraryPage() {
       return (data ?? []) as Doc[];
     },
   });
+
+  const { data: indexStatus } = useQuery({
+    queryKey: ["mission-library-index", missionId],
+    queryFn: () => statusFn({ data: { missionId } }),
+  });
+  const indexedIds = useMemo(
+    () => new Set(indexStatus?.indexedDocumentIds ?? []),
+    [indexStatus],
+  );
+
+  async function reindexAll() {
+    setReindexing(true);
+    try {
+      const res = await reindexFn({ data: { missionId, onlyMissing: false } });
+      toast.success(`Re-indexed ${res.ok} of ${res.processed} documents`);
+      qc.invalidateQueries({ queryKey: ["mission-library-index", missionId] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Re-index failed");
+    } finally {
+      setReindexing(false);
+    }
+  }
+
 
   const counts = useMemo(() => {
     const map: Record<string, number> = { All: docs.length };
