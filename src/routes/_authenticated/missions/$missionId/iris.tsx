@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { Sparkles, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import { irisAskMission } from "@/lib/iris-ask.functions";
+import irisLogo from "@/assets/iris-logo.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/iris")({
   component: AskIrisPage,
