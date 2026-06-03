@@ -670,6 +670,15 @@ function CockpitPage() {
                 <Sparkles className="h-3.5 w-3.5" /> Ask IRIS
               </button>
             )}
+            {!isSME && !isReadOnlyView && (
+              <button
+                onClick={() => setScoreMeOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold text-white transition"
+                style={{ background: "var(--iris, #22d3ee)", boxShadow: "0 4px 14px -4px rgba(34,211,238,0.5)" }}
+              >
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-white/90" /> Score Me
+              </button>
+            )}
           </div>
 
           {/* CENTER status */}
