@@ -19,6 +19,9 @@ import { KeyboardShortcuts } from "@/components/v2/KeyboardShortcuts";
 import { IrisStatusIndicator } from "@/components/v2/effects";
 import { UpdateRealityMount } from "@/components/v2/UpdateRealityModal";
 import { IrisOnboardingMount } from "@/components/v2/IrisOnboardingModal";
+import { CommandPalette } from "@/components/v2/CommandPalette";
+import { IrisDock } from "@/components/v2/IrisDock";
+import { RecentStrip, RecentTracker } from "@/components/v2/RecentStrip";
 import athenaSgLogo from "@/assets/athena-sg-lockup.png.asset.json";
 
 // ─── Room detection ─────────────────────────────────────────────────────────
