@@ -9,7 +9,7 @@ import { irisAskGlobal } from "@/lib/iris-ask.functions";
 import { AttentionBadge } from "@/components/v2/AttentionBadge";
 import { relativeTime } from "@/lib/signals";
 import { MissionGridSkeleton, QuestionListSkeleton } from "@/components/v2/Skeletons";
-import { ArrowRight, Megaphone, CalendarClock, DoorOpen, ClipboardList, Search, Globe, Sparkles, Mountain, ChevronDown, ChevronRight, RefreshCw } from "lucide-react";
+import { ArrowRight, Megaphone, CalendarClock, DoorOpen, ClipboardList, Search, Globe, Sparkles, Mountain, ChevronDown, ChevronRight, RefreshCw, Rocket } from "lucide-react";
 import { HORIZON_FILTERS, inferCategory, matchesHorizonFilter, type IntelItem } from "@/lib/intelligence-feed";
 import { LiveBadge, ScanningBeam, IrisWaveform, TypewriterText } from "@/components/v2/effects";
 import athenaLogo from "@/assets/athena-logo.png";
@@ -23,13 +23,25 @@ export const Route = createFileRoute("/_authenticated/home")({
 
 function EmptyState({ icon, title, subtitle, cta }: { icon: ReactNode; title: string; subtitle?: string; cta?: ReactNode }) {
   return (
-    <div className="rounded-[12px] border border-dashed border-border bg-surface/40 px-8 py-14 text-center">
-      <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center text-muted-foreground opacity-50">
-        {icon}
+    <div className="rounded-[12px] border border-dashed border-border bg-surface/40 py-12 text-center">
+      <div
+        className="mx-auto"
+        style={{ maxWidth: 320, padding: "0 24px" }}
+      >
+        <div
+          className="mx-auto mb-4 flex h-10 w-10 items-center justify-center text-muted-foreground"
+          style={{ opacity: 0.4 }}
+        >
+          {icon}
+        </div>
+        <p style={{ fontSize: 15, fontWeight: 600, color: "var(--foreground)", marginBottom: 8, lineHeight: 1.4 }}>
+          {title}
+        </p>
+        {subtitle && (
+          <p style={{ fontSize: 13, color: "var(--muted-foreground)", lineHeight: 1.6 }}>{subtitle}</p>
+        )}
+        {cta && <div className="mt-5">{cta}</div>}
       </div>
-      <p className="text-sm font-medium text-foreground">{title}</p>
-      {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
-      {cta && <div className="mt-4">{cta}</div>}
     </div>
   );
 }
@@ -347,8 +359,18 @@ function AthenaHQ() {
               <MissionGridSkeleton count={3} />
             ) : missions.length === 0 ? (
               <EmptyState
-                icon={<DoorOpen className="h-10 w-10" />}
-                title="No missions assigned."
+                icon={<Rocket className="h-10 w-10" strokeWidth={1.5} />}
+                title="Atlas is ready."
+                subtitle="Create your first mission in Olympus to get started."
+                cta={
+                  <Link
+                    to="/olympus"
+                    className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-[13px] font-medium text-background hover:opacity-90"
+                  >
+                    Go to Olympus
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                }
               />
 
 
@@ -386,9 +408,9 @@ function AthenaHQ() {
               <QuestionListSkeleton count={5} />
             ) : myAssignments.length === 0 ? (
               <EmptyState
-                icon={<ClipboardList className="h-10 w-10" />}
-                title="Your questions will appear here once your lead assigns them in Olympus."
-                subtitle="Check back soon — you'll be notified when work is ready."
+                icon={<ClipboardList className="h-10 w-10" strokeWidth={1.5} />}
+                title="No questions assigned yet."
+                subtitle="Your Engagement Lead will assign your questions once the RFP is uploaded and parsed."
               />
             ) : (
               <ul className="divide-y divide-border rounded-[12px] border border-border bg-surface">

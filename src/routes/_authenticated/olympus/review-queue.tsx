@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, X, Loader2, Inbox } from "lucide-react";
 import { listReviewQueue, setSourceStatus } from "@/lib/atlas-onboarding.functions";
+import { EmptyState, EmptyIcon } from "@/components/v2/EmptyState";
 
 export const Route = createFileRoute("/_authenticated/olympus/review-queue")({
   component: OlympusReviewQueue,
@@ -113,15 +114,12 @@ function OlympusReviewQueue() {
       {isLoading ? (
         <div className="flex justify-center py-12 text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin" /></div>
       ) : sources.length === 0 ? (
-        <div
-          className="rounded-lg border p-12 text-center text-sm"
-          style={{ borderColor: "rgba(34,197,94,0.3)", background: "rgba(34,197,94,0.05)", color: "rgb(134,239,172)" }}
-        >
-          ● All clear. No pending proposals.
-          <div className="mt-2 text-xs text-muted-foreground">
-            IRIS will notify you when new sources are found.
-          </div>
-        </div>
+        <EmptyState
+          variant="green"
+          icon={<EmptyIcon name="check" />}
+          title="All clear."
+          description="No source proposals waiting for review. IRIS will notify you when new sources are found."
+        />
       ) : (
         <div className="space-y-8">
           {Object.entries(grouped).map(([group, items]) => (

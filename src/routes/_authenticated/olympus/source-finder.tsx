@@ -10,6 +10,7 @@ import {
   createProgram,
 } from "@/lib/atlas-onboarding.functions";
 import { layerCounts } from "@/lib/atlas-sources.functions";
+import { EmptyState } from "@/components/v2/EmptyState";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/olympus/source-finder")({
@@ -123,9 +124,11 @@ function SourceFinderPage() {
         {isLoading ? (
           <div className="text-sm text-muted-foreground">Loading programs…</div>
         ) : programs.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-            No programs yet. Create one to let IRIS find its authoritative sources.
-          </div>
+          <EmptyState
+            variant="iris"
+            title="● No sources ingested yet."
+            description="Create a program above to let IRIS find its authoritative sources. Discovery takes about 20 minutes."
+          />
         ) : (
           <div className="grid gap-3">
             {programs.map((p: any) => (

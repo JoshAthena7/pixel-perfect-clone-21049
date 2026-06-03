@@ -78,9 +78,11 @@ export function CoPilotInbox({
         From Your Co-Pilot
       </div>
       {!hasMsgs ? (
-        <div className="text-[12px] text-muted-foreground italic">
-          No messages from your Co-Pilot yet. They can send you guidance, decisions, and encouragement
-          directly to your Cockpit.
+        <div className="text-[12px] text-muted-foreground" style={{ lineHeight: 1.6 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>
+            Nothing from your Co-Pilot yet.
+          </div>
+          Your Co-Pilot can send you guidance, decisions, and coaching directly to your Cockpit. You'll see it here.
         </div>
       ) : (
         <ul className="space-y-2">

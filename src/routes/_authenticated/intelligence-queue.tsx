@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, X, Loader2, Sparkles, Inbox, ArrowLeft } from "lucide-react";
 import { listReviewQueue, setSourceStatus } from "@/lib/atlas-onboarding.functions";
+import { EmptyState, EmptyIcon } from "@/components/v2/EmptyState";
 
 export const Route = createFileRoute("/_authenticated/intelligence-queue")({
   component: ReviewQueue,
@@ -113,9 +114,12 @@ function ReviewQueue() {
           {isLoading ? (
             <div className="flex justify-center py-12 text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin" /></div>
           ) : sources.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-white/10 p-12 text-center text-sm text-muted-foreground">
-              Review queue is empty. Sources discovered by IRIS will appear here for approval.
-            </div>
+            <EmptyState
+              variant="green"
+              icon={<EmptyIcon name="check" />}
+              title="All clear."
+              description="No source proposals waiting for review. IRIS will notify you when new sources are found."
+            />
           ) : (
             Object.entries(grouped).map(([group, items]) => (
               <div key={group}>
