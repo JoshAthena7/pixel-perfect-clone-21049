@@ -427,8 +427,28 @@ function ResponsesList() {
   });
   const isWriter = myRole === "writer";
 
-  const [view, setView] = useState<View>("mine");
+  const VIEW_KEY = `atlas_question_view_${missionId}`;
+  const [view, setView] = useState<View>(() => {
+    if (typeof window === "undefined") return "mine";
+    try {
+      const raw = localStorage.getItem(VIEW_KEY);
+      if (!raw) return "mine";
+      const parsed = JSON.parse(raw) as { v: View; d: string };
+      const today = new Date().toISOString().slice(0, 10);
+      if (parsed.d !== today) return "mine";
+      return parsed.v === "all" ? "all" : "mine";
+    } catch {
+      return "mine";
+    }
+  });
+  useEffect(() => {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      localStorage.setItem(VIEW_KEY, JSON.stringify({ v: view, d: today }));
+    } catch { /* noop */ }
+  }, [VIEW_KEY, view]);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [drawerQ, setDrawerQ] = useState<Q | null>(null);
 
   // For non-writers, default to All
   const effectiveView: View = isWriter === false ? "all" : view;
