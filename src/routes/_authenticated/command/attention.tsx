@@ -351,8 +351,8 @@ function CommandCenter() {
   return (
     <div className="mx-auto max-w-[1200px] px-8 py-8 space-y-8">
       <div>
-        <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">Mission Overview</div>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">Overview</h1>
+        <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">The Brief</div>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight">The Brief</h1>
       </div>
 
       {/* Section 1: Health bar */}
