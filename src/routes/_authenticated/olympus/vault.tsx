@@ -81,7 +81,12 @@ function VaultPage() {
     setUploading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      // Does a base RFP already exist for this mission?
+      const hasExistingRfp = docs.some(
+        (d) => d.is_rfp || d.category === "RFP & Amendments" || d.category === "RFP",
+      );
       let lastRfp: { id: string; name: string } | null = null;
+      let lastAmendment: { id: string; name: string } | null = null;
       for (const file of Array.from(files)) {
         // Duplicate guard
         const dup = docs.find((d) => d.name === file.name);
@@ -117,11 +122,18 @@ function VaultPage() {
           target_table: "mission_library",
           target_id: row?.id ?? null,
         });
-        if (uploadIsRfp && row?.id) lastRfp = { id: row.id, name: file.name };
+        if (row?.id) {
+          if (uploadCategory === "RFP & Amendments" && hasExistingRfp) {
+            lastAmendment = { id: row.id, name: file.name };
+          } else if (uploadIsRfp) {
+            lastRfp = { id: row.id, name: file.name };
+          }
+        }
       }
       toast.success(`Uploaded ${files.length} file${files.length === 1 ? "" : "s"}`);
       qc.invalidateQueries({ queryKey: ["olympus-vault", missionId] });
-      if (lastRfp) setParsePromptFor(lastRfp);
+      if (lastAmendment) setAmendmentPromptFor(lastAmendment);
+      else if (lastRfp) setParsePromptFor(lastRfp);
     } catch (e: any) {
       toast.error(e?.message ?? "Upload failed");
     } finally {
