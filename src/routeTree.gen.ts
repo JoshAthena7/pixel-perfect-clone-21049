@@ -23,12 +23,17 @@ import { Route as AuthenticatedOlympusWinThemesRouteImport } from './routes/_aut
 import { Route as AuthenticatedOlympusVaultRouteImport } from './routes/_authenticated/olympus/vault'
 import { Route as AuthenticatedOlympusUsersRouteImport } from './routes/_authenticated/olympus/users'
 import { Route as AuthenticatedOlympusTeamRouteImport } from './routes/_authenticated/olympus/team'
+import { Route as AuthenticatedOlympusSourceLibraryRouteImport } from './routes/_authenticated/olympus/source-library'
+import { Route as AuthenticatedOlympusSourceFinderRouteImport } from './routes/_authenticated/olympus/source-finder'
 import { Route as AuthenticatedOlympusSettingsRouteImport } from './routes/_authenticated/olympus/settings'
 import { Route as AuthenticatedOlympusScoreMeRouteImport } from './routes/_authenticated/olympus/score-me'
+import { Route as AuthenticatedOlympusReviewQueueRouteImport } from './routes/_authenticated/olympus/review-queue'
 import { Route as AuthenticatedOlympusQuestionsRouteImport } from './routes/_authenticated/olympus/questions'
 import { Route as AuthenticatedOlympusIrisMemoryRouteImport } from './routes/_authenticated/olympus/iris-memory'
 import { Route as AuthenticatedOlympusIntelligenceRouteImport } from './routes/_authenticated/olympus/intelligence'
 import { Route as AuthenticatedOlympusGatesRouteImport } from './routes/_authenticated/olympus/gates'
+import { Route as AuthenticatedOlympusDiscoveryHistoryRouteImport } from './routes/_authenticated/olympus/discovery-history'
+import { Route as AuthenticatedOlympusCanonLibraryRouteImport } from './routes/_authenticated/olympus/canon-library'
 import { Route as AuthenticatedOlympusAuditRouteImport } from './routes/_authenticated/olympus/audit'
 import { Route as AuthenticatedOlympusAtlasSourcesRouteImport } from './routes/_authenticated/olympus/atlas-sources'
 import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_authenticated/missions/$missionId'
@@ -134,6 +139,18 @@ const AuthenticatedOlympusTeamRoute =
     path: '/team',
     getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
+const AuthenticatedOlympusSourceLibraryRoute =
+  AuthenticatedOlympusSourceLibraryRouteImport.update({
+    id: '/source-library',
+    path: '/source-library',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
+const AuthenticatedOlympusSourceFinderRoute =
+  AuthenticatedOlympusSourceFinderRouteImport.update({
+    id: '/source-finder',
+    path: '/source-finder',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
 const AuthenticatedOlympusSettingsRoute =
   AuthenticatedOlympusSettingsRouteImport.update({
     id: '/settings',
@@ -144,6 +161,12 @@ const AuthenticatedOlympusScoreMeRoute =
   AuthenticatedOlympusScoreMeRouteImport.update({
     id: '/score-me',
     path: '/score-me',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
+const AuthenticatedOlympusReviewQueueRoute =
+  AuthenticatedOlympusReviewQueueRouteImport.update({
+    id: '/review-queue',
+    path: '/review-queue',
     getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
 const AuthenticatedOlympusQuestionsRoute =
@@ -168,6 +191,18 @@ const AuthenticatedOlympusGatesRoute =
   AuthenticatedOlympusGatesRouteImport.update({
     id: '/gates',
     path: '/gates',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
+const AuthenticatedOlympusDiscoveryHistoryRoute =
+  AuthenticatedOlympusDiscoveryHistoryRouteImport.update({
+    id: '/discovery-history',
+    path: '/discovery-history',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
+const AuthenticatedOlympusCanonLibraryRoute =
+  AuthenticatedOlympusCanonLibraryRouteImport.update({
+    id: '/canon-library',
+    path: '/canon-library',
     getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
 const AuthenticatedOlympusAuditRoute =
@@ -352,12 +387,17 @@ export interface FileRoutesByFullPath {
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
   '/olympus/atlas-sources': typeof AuthenticatedOlympusAtlasSourcesRoute
   '/olympus/audit': typeof AuthenticatedOlympusAuditRoute
+  '/olympus/canon-library': typeof AuthenticatedOlympusCanonLibraryRoute
+  '/olympus/discovery-history': typeof AuthenticatedOlympusDiscoveryHistoryRoute
   '/olympus/gates': typeof AuthenticatedOlympusGatesRoute
   '/olympus/intelligence': typeof AuthenticatedOlympusIntelligenceRoute
   '/olympus/iris-memory': typeof AuthenticatedOlympusIrisMemoryRoute
   '/olympus/questions': typeof AuthenticatedOlympusQuestionsRoute
+  '/olympus/review-queue': typeof AuthenticatedOlympusReviewQueueRoute
   '/olympus/score-me': typeof AuthenticatedOlympusScoreMeRoute
   '/olympus/settings': typeof AuthenticatedOlympusSettingsRoute
+  '/olympus/source-finder': typeof AuthenticatedOlympusSourceFinderRoute
+  '/olympus/source-library': typeof AuthenticatedOlympusSourceLibraryRoute
   '/olympus/team': typeof AuthenticatedOlympusTeamRoute
   '/olympus/users': typeof AuthenticatedOlympusUsersRoute
   '/olympus/vault': typeof AuthenticatedOlympusVaultRoute
@@ -398,12 +438,17 @@ export interface FileRoutesByTo {
   '/command/scores': typeof AuthenticatedCommandScoresRoute
   '/olympus/atlas-sources': typeof AuthenticatedOlympusAtlasSourcesRoute
   '/olympus/audit': typeof AuthenticatedOlympusAuditRoute
+  '/olympus/canon-library': typeof AuthenticatedOlympusCanonLibraryRoute
+  '/olympus/discovery-history': typeof AuthenticatedOlympusDiscoveryHistoryRoute
   '/olympus/gates': typeof AuthenticatedOlympusGatesRoute
   '/olympus/intelligence': typeof AuthenticatedOlympusIntelligenceRoute
   '/olympus/iris-memory': typeof AuthenticatedOlympusIrisMemoryRoute
   '/olympus/questions': typeof AuthenticatedOlympusQuestionsRoute
+  '/olympus/review-queue': typeof AuthenticatedOlympusReviewQueueRoute
   '/olympus/score-me': typeof AuthenticatedOlympusScoreMeRoute
   '/olympus/settings': typeof AuthenticatedOlympusSettingsRoute
+  '/olympus/source-finder': typeof AuthenticatedOlympusSourceFinderRoute
+  '/olympus/source-library': typeof AuthenticatedOlympusSourceLibraryRoute
   '/olympus/team': typeof AuthenticatedOlympusTeamRoute
   '/olympus/users': typeof AuthenticatedOlympusUsersRoute
   '/olympus/vault': typeof AuthenticatedOlympusVaultRoute
@@ -448,12 +493,17 @@ export interface FileRoutesById {
   '/_authenticated/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
   '/_authenticated/olympus/atlas-sources': typeof AuthenticatedOlympusAtlasSourcesRoute
   '/_authenticated/olympus/audit': typeof AuthenticatedOlympusAuditRoute
+  '/_authenticated/olympus/canon-library': typeof AuthenticatedOlympusCanonLibraryRoute
+  '/_authenticated/olympus/discovery-history': typeof AuthenticatedOlympusDiscoveryHistoryRoute
   '/_authenticated/olympus/gates': typeof AuthenticatedOlympusGatesRoute
   '/_authenticated/olympus/intelligence': typeof AuthenticatedOlympusIntelligenceRoute
   '/_authenticated/olympus/iris-memory': typeof AuthenticatedOlympusIrisMemoryRoute
   '/_authenticated/olympus/questions': typeof AuthenticatedOlympusQuestionsRoute
+  '/_authenticated/olympus/review-queue': typeof AuthenticatedOlympusReviewQueueRoute
   '/_authenticated/olympus/score-me': typeof AuthenticatedOlympusScoreMeRoute
   '/_authenticated/olympus/settings': typeof AuthenticatedOlympusSettingsRoute
+  '/_authenticated/olympus/source-finder': typeof AuthenticatedOlympusSourceFinderRoute
+  '/_authenticated/olympus/source-library': typeof AuthenticatedOlympusSourceLibraryRoute
   '/_authenticated/olympus/team': typeof AuthenticatedOlympusTeamRoute
   '/_authenticated/olympus/users': typeof AuthenticatedOlympusUsersRoute
   '/_authenticated/olympus/vault': typeof AuthenticatedOlympusVaultRoute
@@ -498,12 +548,17 @@ export interface FileRouteTypes {
     | '/missions/$missionId'
     | '/olympus/atlas-sources'
     | '/olympus/audit'
+    | '/olympus/canon-library'
+    | '/olympus/discovery-history'
     | '/olympus/gates'
     | '/olympus/intelligence'
     | '/olympus/iris-memory'
     | '/olympus/questions'
+    | '/olympus/review-queue'
     | '/olympus/score-me'
     | '/olympus/settings'
+    | '/olympus/source-finder'
+    | '/olympus/source-library'
     | '/olympus/team'
     | '/olympus/users'
     | '/olympus/vault'
@@ -544,12 +599,17 @@ export interface FileRouteTypes {
     | '/command/scores'
     | '/olympus/atlas-sources'
     | '/olympus/audit'
+    | '/olympus/canon-library'
+    | '/olympus/discovery-history'
     | '/olympus/gates'
     | '/olympus/intelligence'
     | '/olympus/iris-memory'
     | '/olympus/questions'
+    | '/olympus/review-queue'
     | '/olympus/score-me'
     | '/olympus/settings'
+    | '/olympus/source-finder'
+    | '/olympus/source-library'
     | '/olympus/team'
     | '/olympus/users'
     | '/olympus/vault'
@@ -593,12 +653,17 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/$missionId'
     | '/_authenticated/olympus/atlas-sources'
     | '/_authenticated/olympus/audit'
+    | '/_authenticated/olympus/canon-library'
+    | '/_authenticated/olympus/discovery-history'
     | '/_authenticated/olympus/gates'
     | '/_authenticated/olympus/intelligence'
     | '/_authenticated/olympus/iris-memory'
     | '/_authenticated/olympus/questions'
+    | '/_authenticated/olympus/review-queue'
     | '/_authenticated/olympus/score-me'
     | '/_authenticated/olympus/settings'
+    | '/_authenticated/olympus/source-finder'
+    | '/_authenticated/olympus/source-library'
     | '/_authenticated/olympus/team'
     | '/_authenticated/olympus/users'
     | '/_authenticated/olympus/vault'
@@ -732,6 +797,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOlympusTeamRouteImport
       parentRoute: typeof AuthenticatedOlympusRoute
     }
+    '/_authenticated/olympus/source-library': {
+      id: '/_authenticated/olympus/source-library'
+      path: '/source-library'
+      fullPath: '/olympus/source-library'
+      preLoaderRoute: typeof AuthenticatedOlympusSourceLibraryRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
+    '/_authenticated/olympus/source-finder': {
+      id: '/_authenticated/olympus/source-finder'
+      path: '/source-finder'
+      fullPath: '/olympus/source-finder'
+      preLoaderRoute: typeof AuthenticatedOlympusSourceFinderRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
     '/_authenticated/olympus/settings': {
       id: '/_authenticated/olympus/settings'
       path: '/settings'
@@ -744,6 +823,13 @@ declare module '@tanstack/react-router' {
       path: '/score-me'
       fullPath: '/olympus/score-me'
       preLoaderRoute: typeof AuthenticatedOlympusScoreMeRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
+    '/_authenticated/olympus/review-queue': {
+      id: '/_authenticated/olympus/review-queue'
+      path: '/review-queue'
+      fullPath: '/olympus/review-queue'
+      preLoaderRoute: typeof AuthenticatedOlympusReviewQueueRouteImport
       parentRoute: typeof AuthenticatedOlympusRoute
     }
     '/_authenticated/olympus/questions': {
@@ -772,6 +858,20 @@ declare module '@tanstack/react-router' {
       path: '/gates'
       fullPath: '/olympus/gates'
       preLoaderRoute: typeof AuthenticatedOlympusGatesRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
+    '/_authenticated/olympus/discovery-history': {
+      id: '/_authenticated/olympus/discovery-history'
+      path: '/discovery-history'
+      fullPath: '/olympus/discovery-history'
+      preLoaderRoute: typeof AuthenticatedOlympusDiscoveryHistoryRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
+    '/_authenticated/olympus/canon-library': {
+      id: '/_authenticated/olympus/canon-library'
+      path: '/canon-library'
+      fullPath: '/olympus/canon-library'
+      preLoaderRoute: typeof AuthenticatedOlympusCanonLibraryRouteImport
       parentRoute: typeof AuthenticatedOlympusRoute
     }
     '/_authenticated/olympus/audit': {
@@ -969,12 +1069,17 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedOlympusRouteChildren {
   AuthenticatedOlympusAtlasSourcesRoute: typeof AuthenticatedOlympusAtlasSourcesRoute
   AuthenticatedOlympusAuditRoute: typeof AuthenticatedOlympusAuditRoute
+  AuthenticatedOlympusCanonLibraryRoute: typeof AuthenticatedOlympusCanonLibraryRoute
+  AuthenticatedOlympusDiscoveryHistoryRoute: typeof AuthenticatedOlympusDiscoveryHistoryRoute
   AuthenticatedOlympusGatesRoute: typeof AuthenticatedOlympusGatesRoute
   AuthenticatedOlympusIntelligenceRoute: typeof AuthenticatedOlympusIntelligenceRoute
   AuthenticatedOlympusIrisMemoryRoute: typeof AuthenticatedOlympusIrisMemoryRoute
   AuthenticatedOlympusQuestionsRoute: typeof AuthenticatedOlympusQuestionsRoute
+  AuthenticatedOlympusReviewQueueRoute: typeof AuthenticatedOlympusReviewQueueRoute
   AuthenticatedOlympusScoreMeRoute: typeof AuthenticatedOlympusScoreMeRoute
   AuthenticatedOlympusSettingsRoute: typeof AuthenticatedOlympusSettingsRoute
+  AuthenticatedOlympusSourceFinderRoute: typeof AuthenticatedOlympusSourceFinderRoute
+  AuthenticatedOlympusSourceLibraryRoute: typeof AuthenticatedOlympusSourceLibraryRoute
   AuthenticatedOlympusTeamRoute: typeof AuthenticatedOlympusTeamRoute
   AuthenticatedOlympusUsersRoute: typeof AuthenticatedOlympusUsersRoute
   AuthenticatedOlympusVaultRoute: typeof AuthenticatedOlympusVaultRoute
@@ -985,12 +1090,19 @@ interface AuthenticatedOlympusRouteChildren {
 const AuthenticatedOlympusRouteChildren: AuthenticatedOlympusRouteChildren = {
   AuthenticatedOlympusAtlasSourcesRoute: AuthenticatedOlympusAtlasSourcesRoute,
   AuthenticatedOlympusAuditRoute: AuthenticatedOlympusAuditRoute,
+  AuthenticatedOlympusCanonLibraryRoute: AuthenticatedOlympusCanonLibraryRoute,
+  AuthenticatedOlympusDiscoveryHistoryRoute:
+    AuthenticatedOlympusDiscoveryHistoryRoute,
   AuthenticatedOlympusGatesRoute: AuthenticatedOlympusGatesRoute,
   AuthenticatedOlympusIntelligenceRoute: AuthenticatedOlympusIntelligenceRoute,
   AuthenticatedOlympusIrisMemoryRoute: AuthenticatedOlympusIrisMemoryRoute,
   AuthenticatedOlympusQuestionsRoute: AuthenticatedOlympusQuestionsRoute,
+  AuthenticatedOlympusReviewQueueRoute: AuthenticatedOlympusReviewQueueRoute,
   AuthenticatedOlympusScoreMeRoute: AuthenticatedOlympusScoreMeRoute,
   AuthenticatedOlympusSettingsRoute: AuthenticatedOlympusSettingsRoute,
+  AuthenticatedOlympusSourceFinderRoute: AuthenticatedOlympusSourceFinderRoute,
+  AuthenticatedOlympusSourceLibraryRoute:
+    AuthenticatedOlympusSourceLibraryRoute,
   AuthenticatedOlympusTeamRoute: AuthenticatedOlympusTeamRoute,
   AuthenticatedOlympusUsersRoute: AuthenticatedOlympusUsersRoute,
   AuthenticatedOlympusVaultRoute: AuthenticatedOlympusVaultRoute,
