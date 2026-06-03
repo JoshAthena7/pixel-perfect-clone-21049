@@ -278,6 +278,68 @@ export type Database = {
           },
         ]
       }
+      collective_memory: {
+        Row: {
+          detail: string | null
+          evidence: Json
+          id: string
+          is_active: boolean
+          kind: string
+          outcome: string | null
+          program_name: string | null
+          promoted_at: string
+          promoted_by: string | null
+          score_delta: number | null
+          source_mission_id: string | null
+          source_mission_name: string | null
+          state_code: string | null
+          summary: string
+          tags: string[]
+        }
+        Insert: {
+          detail?: string | null
+          evidence?: Json
+          id?: string
+          is_active?: boolean
+          kind: string
+          outcome?: string | null
+          program_name?: string | null
+          promoted_at?: string
+          promoted_by?: string | null
+          score_delta?: number | null
+          source_mission_id?: string | null
+          source_mission_name?: string | null
+          state_code?: string | null
+          summary: string
+          tags?: string[]
+        }
+        Update: {
+          detail?: string | null
+          evidence?: Json
+          id?: string
+          is_active?: boolean
+          kind?: string
+          outcome?: string | null
+          program_name?: string | null
+          promoted_at?: string
+          promoted_by?: string | null
+          score_delta?: number | null
+          source_mission_id?: string | null
+          source_mission_name?: string | null
+          state_code?: string | null
+          summary?: string
+          tags?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collective_memory_source_mission_id_fkey"
+            columns: ["source_mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compliance_check_results: {
         Row: {
           checked_at: string
@@ -739,6 +801,51 @@ export type Database = {
           runid?: number | null
           source?: string
           status_code?: number | null
+        }
+        Relationships: []
+      }
+      intelligence_canon: {
+        Row: {
+          category: string
+          citation: string | null
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          priority: number
+          source_url: string | null
+          tags: string[]
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          citation?: string | null
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          priority?: number
+          source_url?: string | null
+          tags?: string[]
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          citation?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          priority?: number
+          source_url?: string | null
+          tags?: string[]
+          topic?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1653,6 +1760,63 @@ export type Database = {
         }
         Relationships: []
       }
+      program_intelligence: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          eligibility: string | null
+          id: string
+          is_active: boolean
+          operational_requirements: string | null
+          population: string | null
+          program_name: string
+          proposal_implications: string | null
+          quality_requirements: string | null
+          refs: Json
+          reporting_requirements: string | null
+          service_array: string | null
+          state_code: string | null
+          tags: string[]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          eligibility?: string | null
+          id?: string
+          is_active?: boolean
+          operational_requirements?: string | null
+          population?: string | null
+          program_name: string
+          proposal_implications?: string | null
+          quality_requirements?: string | null
+          refs?: Json
+          reporting_requirements?: string | null
+          service_array?: string | null
+          state_code?: string | null
+          tags?: string[]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          eligibility?: string | null
+          id?: string
+          is_active?: boolean
+          operational_requirements?: string | null
+          population?: string | null
+          program_name?: string
+          proposal_implications?: string | null
+          quality_requirements?: string | null
+          refs?: Json
+          reporting_requirements?: string | null
+          service_array?: string | null
+          state_code?: string | null
+          tags?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       question_collaboration: {
         Row: {
           author_id: string | null
@@ -2438,6 +2602,51 @@ export type Database = {
           tags?: string[] | null
           user_id?: string | null
           user_role?: string | null
+        }
+        Relationships: []
+      }
+      state_intelligence: {
+        Row: {
+          citations: string[]
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          last_verified_at: string | null
+          section: string
+          sources: Json
+          state_code: string
+          tags: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          citations?: string[]
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_verified_at?: string | null
+          section: string
+          sources?: Json
+          state_code: string
+          tags?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          citations?: string[]
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_verified_at?: string | null
+          section?: string
+          sources?: Json
+          state_code?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }

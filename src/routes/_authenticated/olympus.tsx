@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Shield, ArrowLeft, ChevronDown, Zap,
   LayoutGrid, Users, FileText, ClipboardCheck, Trophy,
-  FolderOpen, Settings as SettingsIcon, UserCog, History, Brain, Sparkles,
+  FolderOpen, Settings as SettingsIcon, UserCog, History, Brain, Sparkles, Layers,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/olympus")({
@@ -191,6 +191,7 @@ function OlympusSidebar({ isAdmin }: { isAdmin: boolean }) {
         <SidebarItem to="/olympus/settings" path={path} icon={<SettingsIcon size={15} strokeWidth={1.5} />}>Settings</SidebarItem>
 
         <div className="my-3 border-t border-border" />
+        <SidebarItem to="/olympus/intelligence" path={path} icon={<Layers size={15} strokeWidth={1.5} />}>Intelligence Layers</SidebarItem>
         <SidebarItem to="/olympus/score-me" path={path} icon={<Sparkles size={15} strokeWidth={1.5} />}>Score Me</SidebarItem>
         <IrisMemorySidebarItem path={path} />
 

@@ -25,6 +25,7 @@ import { Route as AuthenticatedOlympusSettingsRouteImport } from './routes/_auth
 import { Route as AuthenticatedOlympusScoreMeRouteImport } from './routes/_authenticated/olympus/score-me'
 import { Route as AuthenticatedOlympusQuestionsRouteImport } from './routes/_authenticated/olympus/questions'
 import { Route as AuthenticatedOlympusIrisMemoryRouteImport } from './routes/_authenticated/olympus/iris-memory'
+import { Route as AuthenticatedOlympusIntelligenceRouteImport } from './routes/_authenticated/olympus/intelligence'
 import { Route as AuthenticatedOlympusGatesRouteImport } from './routes/_authenticated/olympus/gates'
 import { Route as AuthenticatedOlympusAuditRouteImport } from './routes/_authenticated/olympus/audit'
 import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_authenticated/missions/$missionId'
@@ -140,6 +141,12 @@ const AuthenticatedOlympusIrisMemoryRoute =
   AuthenticatedOlympusIrisMemoryRouteImport.update({
     id: '/iris-memory',
     path: '/iris-memory',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
+const AuthenticatedOlympusIntelligenceRoute =
+  AuthenticatedOlympusIntelligenceRouteImport.update({
+    id: '/intelligence',
+    path: '/intelligence',
     getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
 const AuthenticatedOlympusGatesRoute =
@@ -322,6 +329,7 @@ export interface FileRoutesByFullPath {
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
   '/olympus/audit': typeof AuthenticatedOlympusAuditRoute
   '/olympus/gates': typeof AuthenticatedOlympusGatesRoute
+  '/olympus/intelligence': typeof AuthenticatedOlympusIntelligenceRoute
   '/olympus/iris-memory': typeof AuthenticatedOlympusIrisMemoryRoute
   '/olympus/questions': typeof AuthenticatedOlympusQuestionsRoute
   '/olympus/score-me': typeof AuthenticatedOlympusScoreMeRoute
@@ -364,6 +372,7 @@ export interface FileRoutesByTo {
   '/command/scores': typeof AuthenticatedCommandScoresRoute
   '/olympus/audit': typeof AuthenticatedOlympusAuditRoute
   '/olympus/gates': typeof AuthenticatedOlympusGatesRoute
+  '/olympus/intelligence': typeof AuthenticatedOlympusIntelligenceRoute
   '/olympus/iris-memory': typeof AuthenticatedOlympusIrisMemoryRoute
   '/olympus/questions': typeof AuthenticatedOlympusQuestionsRoute
   '/olympus/score-me': typeof AuthenticatedOlympusScoreMeRoute
@@ -410,6 +419,7 @@ export interface FileRoutesById {
   '/_authenticated/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
   '/_authenticated/olympus/audit': typeof AuthenticatedOlympusAuditRoute
   '/_authenticated/olympus/gates': typeof AuthenticatedOlympusGatesRoute
+  '/_authenticated/olympus/intelligence': typeof AuthenticatedOlympusIntelligenceRoute
   '/_authenticated/olympus/iris-memory': typeof AuthenticatedOlympusIrisMemoryRoute
   '/_authenticated/olympus/questions': typeof AuthenticatedOlympusQuestionsRoute
   '/_authenticated/olympus/score-me': typeof AuthenticatedOlympusScoreMeRoute
@@ -456,6 +466,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId'
     | '/olympus/audit'
     | '/olympus/gates'
+    | '/olympus/intelligence'
     | '/olympus/iris-memory'
     | '/olympus/questions'
     | '/olympus/score-me'
@@ -498,6 +509,7 @@ export interface FileRouteTypes {
     | '/command/scores'
     | '/olympus/audit'
     | '/olympus/gates'
+    | '/olympus/intelligence'
     | '/olympus/iris-memory'
     | '/olympus/questions'
     | '/olympus/score-me'
@@ -543,6 +555,7 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/$missionId'
     | '/_authenticated/olympus/audit'
     | '/_authenticated/olympus/gates'
+    | '/_authenticated/olympus/intelligence'
     | '/_authenticated/olympus/iris-memory'
     | '/_authenticated/olympus/questions'
     | '/_authenticated/olympus/score-me'
@@ -692,6 +705,13 @@ declare module '@tanstack/react-router' {
       path: '/iris-memory'
       fullPath: '/olympus/iris-memory'
       preLoaderRoute: typeof AuthenticatedOlympusIrisMemoryRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
+    '/_authenticated/olympus/intelligence': {
+      id: '/_authenticated/olympus/intelligence'
+      path: '/intelligence'
+      fullPath: '/olympus/intelligence'
+      preLoaderRoute: typeof AuthenticatedOlympusIntelligenceRouteImport
       parentRoute: typeof AuthenticatedOlympusRoute
     }
     '/_authenticated/olympus/gates': {
@@ -889,6 +909,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedOlympusRouteChildren {
   AuthenticatedOlympusAuditRoute: typeof AuthenticatedOlympusAuditRoute
   AuthenticatedOlympusGatesRoute: typeof AuthenticatedOlympusGatesRoute
+  AuthenticatedOlympusIntelligenceRoute: typeof AuthenticatedOlympusIntelligenceRoute
   AuthenticatedOlympusIrisMemoryRoute: typeof AuthenticatedOlympusIrisMemoryRoute
   AuthenticatedOlympusQuestionsRoute: typeof AuthenticatedOlympusQuestionsRoute
   AuthenticatedOlympusScoreMeRoute: typeof AuthenticatedOlympusScoreMeRoute
@@ -903,6 +924,7 @@ interface AuthenticatedOlympusRouteChildren {
 const AuthenticatedOlympusRouteChildren: AuthenticatedOlympusRouteChildren = {
   AuthenticatedOlympusAuditRoute: AuthenticatedOlympusAuditRoute,
   AuthenticatedOlympusGatesRoute: AuthenticatedOlympusGatesRoute,
+  AuthenticatedOlympusIntelligenceRoute: AuthenticatedOlympusIntelligenceRoute,
   AuthenticatedOlympusIrisMemoryRoute: AuthenticatedOlympusIrisMemoryRoute,
   AuthenticatedOlympusQuestionsRoute: AuthenticatedOlympusQuestionsRoute,
   AuthenticatedOlympusScoreMeRoute: AuthenticatedOlympusScoreMeRoute,
@@ -1021,13 +1043,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
