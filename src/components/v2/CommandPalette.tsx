@@ -99,7 +99,7 @@ export function CommandPalette() {
     // Global jumps
     list.push(
       { id: "g-home", group: "Global", label: "Home · Lobby", icon: <Home size={14} />, onGo: () => navigate({ to: "/home" }) },
-      { id: "g-command", group: "Global", label: "Command Center", icon: <Zap size={14} className="text-[color:var(--red,#ef4444)]" />,
+      { id: "g-command", group: "Global", label: "The Bridge", icon: <Zap size={14} className="text-[color:var(--red,#ef4444)]" />,
         onGo: () => navigate({ to: "/command/attention" }) },
       { id: "g-olympus", group: "Global", label: "Olympus · Admin", icon: <Shield size={14} className="text-[color:var(--athena-gold,#d4af37)]" />,
         onGo: () => navigate({ to: "/olympus" }) },
