@@ -104,7 +104,7 @@ Format:
 
 If you do not have a high-confidence answer from Atlas sources, say so explicitly: "IRIS does not have an authoritative source for this. The best available guidance is [X] — verify before citing. [How to find the answer]." Do not guess. Do not fabricate. Uncertainty stated clearly beats false confidence.
 
-Hard cap: 150 words for a simple question, 250 words for a complex one. Never more than 250. For deeper research, the writer goes to the Intelligence Hub.
+Hard cap: 150 words for a simple question, 250 words for a complex one. Never more than 250. For deeper research, the writer goes to The Oracle (Intelligence Hub).
 
 ${layered}
 
