@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Shield, ArrowLeft, ChevronDown, Zap,
   LayoutGrid, Users, FileText, ClipboardCheck, Trophy,
-  FolderOpen, Settings as SettingsIcon, UserCog, History, Brain,
+  FolderOpen, Settings as SettingsIcon, UserCog, History, Brain, Sparkles,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/olympus")({
