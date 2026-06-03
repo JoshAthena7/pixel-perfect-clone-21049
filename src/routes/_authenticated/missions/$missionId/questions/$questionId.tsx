@@ -634,6 +634,17 @@ function CockpitPage() {
             />
           </div>
         </section>
+
+        {/* BLOCK 3.5 — COMPLIANCE REQUIREMENTS (Model Contract + State + Federal) */}
+        <section className="mb-8">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.32em]" style={{ color: "#22d3ee" }}>
+              <span className="iris-dot" /> Compliance Check
+            </span>
+            <span className="text-[11px] text-muted-foreground">Model Contract · State Regs · Federal</span>
+          </div>
+          <ComplianceRequirementsPanel questionId={questionId} />
+        </section>
       </div>
 
       {/* FIXED ACTION BAR */}
