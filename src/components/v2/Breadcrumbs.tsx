@@ -56,7 +56,7 @@ export function Breadcrumbs() {
   ];
 
   if (isQuestion) {
-    crumbs.push({ label: "Cockpit", to: "/missions/$missionId/questions", params: { missionId } });
+    crumbs.push({ label: "Questions", to: "/missions/$missionId/questions", params: { missionId } });
     const qTitle = question ? `Q${question.question_number} ${(question.title ?? "").slice(0, 30)}${(question.title?.length ?? 0) > 30 ? "…" : ""}` : "…";
     crumbs.push({ label: qTitle });
   } else if (!isHome && pageLabel) {
