@@ -144,6 +144,39 @@ export type Database = {
           },
         ]
       }
+      app_support_settings: {
+        Row: {
+          billing_contact_email: string | null
+          id: number
+          it_contact_email: string | null
+          pm_contact_email: string | null
+          pm_user_id: string | null
+          talent_desk_quick_links: Json
+          talent_desk_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          billing_contact_email?: string | null
+          id?: number
+          it_contact_email?: string | null
+          pm_contact_email?: string | null
+          pm_user_id?: string | null
+          talent_desk_quick_links?: Json
+          talent_desk_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          billing_contact_email?: string | null
+          id?: number
+          it_contact_email?: string | null
+          pm_contact_email?: string | null
+          pm_user_id?: string | null
+          talent_desk_quick_links?: Json
+          talent_desk_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       atlas_entities: {
         Row: {
           created_at: string | null
@@ -3474,6 +3507,80 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      support_requests: {
+        Row: {
+          assigned_to: string | null
+          body: string
+          category: string
+          context: string | null
+          created_at: string
+          id: string
+          mission_id: string | null
+          requester_id: string
+          resolved_at: string | null
+          status: string
+          urgency: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          body: string
+          category: string
+          context?: string | null
+          created_at?: string
+          id?: string
+          mission_id?: string | null
+          requester_id: string
+          resolved_at?: string | null
+          status?: string
+          urgency?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          body?: string
+          category?: string
+          context?: string | null
+          created_at?: string
+          id?: string
+          mission_id?: string | null
+          requester_id?: string
+          resolved_at?: string | null
+          status?: string
+          urgency?: string
+        }
+        Relationships: []
+      }
+      support_responses: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          request_id: string
+          responder_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          request_id: string
+          responder_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          request_id?: string
+          responder_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_responses_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "support_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       suppressed_emails: {
         Row: {
