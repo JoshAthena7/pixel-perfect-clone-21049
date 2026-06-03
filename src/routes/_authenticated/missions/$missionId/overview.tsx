@@ -9,10 +9,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { AmendmentDashboardBanner } from "@/components/AmendmentDashboardBanner";
-import { MissionRoomHero, EnterStudioCTA } from "@/components/v2/MissionRoomHero";
-import { PilotStatusSection } from "@/components/v2/PilotStatusSection";
-import { SupportQueueSection } from "@/components/v2/SupportQueueSection";
-import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
+import { MissionRoomHero } from "@/components/v2/MissionRoomHero";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/overview")({
   component: MissionOverviewPage,
