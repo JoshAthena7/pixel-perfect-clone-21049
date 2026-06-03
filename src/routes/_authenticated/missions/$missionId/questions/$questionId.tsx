@@ -649,10 +649,10 @@ function CockpitPage() {
 
       {/* FIXED ACTION BAR */}
       <div
-        className="fixed inset-x-0 bottom-0 z-40 border-t"
+        className="fixed inset-x-0 bottom-[58px] md:bottom-0 z-40 border-t"
         style={{ background: "rgba(6,11,20,0.95)", backdropFilter: "blur(12px)", borderColor: "rgba(255,255,255,0.06)" }}
       >
-        <div className="mx-auto flex h-16 max-w-[1100px] items-center justify-between gap-3 px-10">
+        <div className="mx-auto grid grid-cols-2 gap-2 p-3 md:flex md:h-16 md:max-w-[1100px] md:items-center md:justify-between md:gap-3 md:p-0 md:px-10">
           {/* LEFT */}
           <div className="flex items-center gap-2">
             {isReadOnlyView ? (
