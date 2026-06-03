@@ -22,6 +22,7 @@ import { Route as AuthenticatedOlympusVaultRouteImport } from './routes/_authent
 import { Route as AuthenticatedOlympusUsersRouteImport } from './routes/_authenticated/olympus/users'
 import { Route as AuthenticatedOlympusTeamRouteImport } from './routes/_authenticated/olympus/team'
 import { Route as AuthenticatedOlympusSettingsRouteImport } from './routes/_authenticated/olympus/settings'
+import { Route as AuthenticatedOlympusScoreMeRouteImport } from './routes/_authenticated/olympus/score-me'
 import { Route as AuthenticatedOlympusQuestionsRouteImport } from './routes/_authenticated/olympus/questions'
 import { Route as AuthenticatedOlympusIrisMemoryRouteImport } from './routes/_authenticated/olympus/iris-memory'
 import { Route as AuthenticatedOlympusGatesRouteImport } from './routes/_authenticated/olympus/gates'
@@ -121,6 +122,12 @@ const AuthenticatedOlympusSettingsRoute =
   AuthenticatedOlympusSettingsRouteImport.update({
     id: '/settings',
     path: '/settings',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
+const AuthenticatedOlympusScoreMeRoute =
+  AuthenticatedOlympusScoreMeRouteImport.update({
+    id: '/score-me',
+    path: '/score-me',
     getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
 const AuthenticatedOlympusQuestionsRoute =
@@ -317,6 +324,7 @@ export interface FileRoutesByFullPath {
   '/olympus/gates': typeof AuthenticatedOlympusGatesRoute
   '/olympus/iris-memory': typeof AuthenticatedOlympusIrisMemoryRoute
   '/olympus/questions': typeof AuthenticatedOlympusQuestionsRoute
+  '/olympus/score-me': typeof AuthenticatedOlympusScoreMeRoute
   '/olympus/settings': typeof AuthenticatedOlympusSettingsRoute
   '/olympus/team': typeof AuthenticatedOlympusTeamRoute
   '/olympus/users': typeof AuthenticatedOlympusUsersRoute
@@ -358,6 +366,7 @@ export interface FileRoutesByTo {
   '/olympus/gates': typeof AuthenticatedOlympusGatesRoute
   '/olympus/iris-memory': typeof AuthenticatedOlympusIrisMemoryRoute
   '/olympus/questions': typeof AuthenticatedOlympusQuestionsRoute
+  '/olympus/score-me': typeof AuthenticatedOlympusScoreMeRoute
   '/olympus/settings': typeof AuthenticatedOlympusSettingsRoute
   '/olympus/team': typeof AuthenticatedOlympusTeamRoute
   '/olympus/users': typeof AuthenticatedOlympusUsersRoute
@@ -403,6 +412,7 @@ export interface FileRoutesById {
   '/_authenticated/olympus/gates': typeof AuthenticatedOlympusGatesRoute
   '/_authenticated/olympus/iris-memory': typeof AuthenticatedOlympusIrisMemoryRoute
   '/_authenticated/olympus/questions': typeof AuthenticatedOlympusQuestionsRoute
+  '/_authenticated/olympus/score-me': typeof AuthenticatedOlympusScoreMeRoute
   '/_authenticated/olympus/settings': typeof AuthenticatedOlympusSettingsRoute
   '/_authenticated/olympus/team': typeof AuthenticatedOlympusTeamRoute
   '/_authenticated/olympus/users': typeof AuthenticatedOlympusUsersRoute
@@ -448,6 +458,7 @@ export interface FileRouteTypes {
     | '/olympus/gates'
     | '/olympus/iris-memory'
     | '/olympus/questions'
+    | '/olympus/score-me'
     | '/olympus/settings'
     | '/olympus/team'
     | '/olympus/users'
@@ -489,6 +500,7 @@ export interface FileRouteTypes {
     | '/olympus/gates'
     | '/olympus/iris-memory'
     | '/olympus/questions'
+    | '/olympus/score-me'
     | '/olympus/settings'
     | '/olympus/team'
     | '/olympus/users'
@@ -533,6 +545,7 @@ export interface FileRouteTypes {
     | '/_authenticated/olympus/gates'
     | '/_authenticated/olympus/iris-memory'
     | '/_authenticated/olympus/questions'
+    | '/_authenticated/olympus/score-me'
     | '/_authenticated/olympus/settings'
     | '/_authenticated/olympus/team'
     | '/_authenticated/olympus/users'
@@ -658,6 +671,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/olympus/settings'
       preLoaderRoute: typeof AuthenticatedOlympusSettingsRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
+    '/_authenticated/olympus/score-me': {
+      id: '/_authenticated/olympus/score-me'
+      path: '/score-me'
+      fullPath: '/olympus/score-me'
+      preLoaderRoute: typeof AuthenticatedOlympusScoreMeRouteImport
       parentRoute: typeof AuthenticatedOlympusRoute
     }
     '/_authenticated/olympus/questions': {
@@ -871,6 +891,7 @@ interface AuthenticatedOlympusRouteChildren {
   AuthenticatedOlympusGatesRoute: typeof AuthenticatedOlympusGatesRoute
   AuthenticatedOlympusIrisMemoryRoute: typeof AuthenticatedOlympusIrisMemoryRoute
   AuthenticatedOlympusQuestionsRoute: typeof AuthenticatedOlympusQuestionsRoute
+  AuthenticatedOlympusScoreMeRoute: typeof AuthenticatedOlympusScoreMeRoute
   AuthenticatedOlympusSettingsRoute: typeof AuthenticatedOlympusSettingsRoute
   AuthenticatedOlympusTeamRoute: typeof AuthenticatedOlympusTeamRoute
   AuthenticatedOlympusUsersRoute: typeof AuthenticatedOlympusUsersRoute
@@ -884,6 +905,7 @@ const AuthenticatedOlympusRouteChildren: AuthenticatedOlympusRouteChildren = {
   AuthenticatedOlympusGatesRoute: AuthenticatedOlympusGatesRoute,
   AuthenticatedOlympusIrisMemoryRoute: AuthenticatedOlympusIrisMemoryRoute,
   AuthenticatedOlympusQuestionsRoute: AuthenticatedOlympusQuestionsRoute,
+  AuthenticatedOlympusScoreMeRoute: AuthenticatedOlympusScoreMeRoute,
   AuthenticatedOlympusSettingsRoute: AuthenticatedOlympusSettingsRoute,
   AuthenticatedOlympusTeamRoute: AuthenticatedOlympusTeamRoute,
   AuthenticatedOlympusUsersRoute: AuthenticatedOlympusUsersRoute,

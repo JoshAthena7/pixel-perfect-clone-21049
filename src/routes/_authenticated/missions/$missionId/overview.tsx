@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { AmendmentDashboardBanner } from "@/components/AmendmentDashboardBanner";
 import { MissionRoomHero, EnterStudioCTA } from "@/components/v2/MissionRoomHero";
 import { PilotStatusSection } from "@/components/v2/PilotStatusSection";
+import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/overview")({
   component: MissionOverviewPage,
@@ -465,6 +466,7 @@ function MissionOverviewPage() {
 
   // ── MESSAGE COMPOSE ───────────────────────────────────
   const [composeTarget, setComposeTarget] = useState<{ person: Member; label: string } | null>(null);
+  const [scoreMeOpen, setScoreMeOpen] = useState(false);
   const openCompose = (person: Member, label: string) => setComposeTarget({ person, label });
 
   // ── RENDER ────────────────────────────────────────────
@@ -646,6 +648,32 @@ function MissionOverviewPage() {
         <section>
           <h2 className="mr-section-label" style={{ color: "rgba(255,255,255,0.5)" }}>Mission Knowledge</h2>
           <MissionRoomHero missionId={missionId} />
+
+          {/* Score Me card */}
+          <button
+            type="button"
+            onClick={() => setScoreMeOpen(true)}
+            className="mt-4 w-full text-left rounded-[12px] px-6 py-5 transition-transform hover:-translate-y-0.5"
+            style={{
+              border: "1px solid rgba(8,145,178,0.3)",
+              background: "radial-gradient(ellipse at 0% 50%, rgba(8,145,178,0.10), hsl(var(--card)) 70%)",
+              boxShadow: "0 0 0 1px rgba(8,145,178,0.05)",
+            }}
+          >
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em]" style={{ color: "var(--iris, #22d3ee)" }}>
+              <span className="relative inline-flex h-1.5 w-1.5">
+                <span className="absolute inset-0 rounded-full animate-ping" style={{ background: "var(--iris, #22d3ee)" }} />
+                <span className="relative inline-block h-1.5 w-1.5 rounded-full" style={{ background: "var(--iris, #22d3ee)" }} />
+              </span>
+              Score Me
+            </div>
+            <div className="mt-2 text-sm text-foreground/90 max-w-2xl leading-relaxed">
+              Paste any response. IRIS scores it against the RFP evaluation criteria and tells you exactly what to change to reach 4.7.
+            </div>
+            <div className="mt-3 inline-flex items-center gap-1 text-xs font-semibold" style={{ color: "var(--iris, #22d3ee)" }}>
+              Score a Response →
+            </div>
+          </button>
         </section>
 
         <div className="mr-divider" />
@@ -807,6 +835,8 @@ function MissionOverviewPage() {
           onClose={() => setComposeTarget(null)}
         />
       )}
+
+      <ScoreMeOverlay open={scoreMeOpen} onClose={() => setScoreMeOpen(false)} missionId={missionId} />
     </div>
   );
 }

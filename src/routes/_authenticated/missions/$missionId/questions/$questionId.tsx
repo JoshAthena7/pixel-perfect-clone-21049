@@ -9,6 +9,7 @@ import { generateQuestionCoaching } from "@/lib/iris-question-coaching.functions
 import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
 import { SOSButton } from "@/components/v2/SOSButton";
 import { IrisCorrectable } from "@/components/v2/IrisCorrectable";
+import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
 import { getLastQuestionVisit, markQuestionVisited } from "@/lib/writer-utils";
 import { CoPilotInbox } from "@/components/v2/CoPilotInbox";
 import { ConfidenceButton, ConfidenceDot } from "@/components/v2/CockpitConfidence";
@@ -322,6 +323,7 @@ function CockpitPage() {
   /* UI state */
   const [askOpen, setAskOpen] = useState(false);
   const [getHelpOpen, setGetHelpOpen] = useState(false);
+  const [scoreMeOpen, setScoreMeOpen] = useState(false);
 
   /* Ask IRIS */
   const askFn = useServerFn(irisAskQuestion);
@@ -668,6 +670,15 @@ function CockpitPage() {
                 <Sparkles className="h-3.5 w-3.5" /> Ask IRIS
               </button>
             )}
+            {!isSME && !isReadOnlyView && (
+              <button
+                onClick={() => setScoreMeOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold text-white transition"
+                style={{ background: "var(--iris, #22d3ee)", boxShadow: "0 4px 14px -4px rgba(34,211,238,0.5)" }}
+              >
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-white/90" /> Score Me
+              </button>
+            )}
           </div>
 
           {/* CENTER status */}
@@ -740,6 +751,13 @@ function CockpitPage() {
           </div>
         </AskDrawer>
       )}
+
+      <ScoreMeOverlay
+        open={scoreMeOpen}
+        onClose={() => setScoreMeOpen(false)}
+        missionId={missionId}
+        lockedQuestionId={questionId}
+      />
     </div>
   );
 }
