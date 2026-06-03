@@ -7,6 +7,7 @@ import { createSignal } from "@/lib/signals";
 import { irisAskQuestion } from "@/lib/iris-ask.functions";
 import { generateQuestionCoaching } from "@/lib/iris-question-coaching.functions";
 import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
+import { SOSButton } from "@/components/v2/SOSButton";
 import { toast } from "sonner";
 import { ArrowLeft, Sparkles, Send, ChevronDown, ChevronRight, X, MessageSquare, AlertTriangle, Flag, RefreshCw } from "lucide-react";
 
@@ -711,11 +712,12 @@ function ResponseView() {
           >
             <Sparkles className="h-3.5 w-3.5" /> Ask IRIS
           </button>
+          <SOSButton missionId={missionId} questionId={questionId} />
           <button
             onClick={() => setFlagOpen(true)}
             className="rounded-md border border-border bg-transparent px-5 py-2 text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-2"
           >
-            <Flag className="h-3.5 w-3.5" /> Flag / Escalate
+            <Flag className="h-3.5 w-3.5" /> Flag
           </button>
         </div>
       </div>
