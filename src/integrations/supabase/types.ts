@@ -2591,6 +2591,7 @@ export type Database = {
           email: string | null
           has_onboarded: boolean
           id: string
+          is_platform_admin: boolean
           last_seen_signals_at: string | null
           onboarded_at: string | null
         }
@@ -2602,6 +2603,7 @@ export type Database = {
           email?: string | null
           has_onboarded?: boolean
           id: string
+          is_platform_admin?: boolean
           last_seen_signals_at?: string | null
           onboarded_at?: string | null
         }
@@ -2613,6 +2615,7 @@ export type Database = {
           email?: string | null
           has_onboarded?: boolean
           id?: string
+          is_platform_admin?: boolean
           last_seen_signals_at?: string | null
           onboarded_at?: string | null
         }
