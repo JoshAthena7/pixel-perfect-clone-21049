@@ -148,6 +148,23 @@ function CockpitPage() {
     return gates.find((g) => g.target_date && g.target_date >= today) ?? null;
   }, [gates]);
 
+  /* mission-wide health counts for the sticky strip */
+  const { data: missionHealth = { green: 0, yellow: 0, red: 0 } } = useQuery({
+    queryKey: ["mission-health-counts", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("question_records")
+        .select("health")
+        .eq("mission_id", missionId);
+      const counts = { green: 0, yellow: 0, red: 0 } as Record<"green" | "yellow" | "red", number>;
+      for (const r of data ?? []) {
+        const h = (r.health as string) ?? "";
+        if (h === "green" || h === "yellow" || h === "red") counts[h]++;
+      }
+      return counts;
+    },
+  });
+
   /* writer's other assigned questions in this mission */
   const { data: myQuestions = [] } = useQuery({
     queryKey: ["cockpit-my-questions", missionId, me?.id, isSME],
@@ -156,10 +173,10 @@ function CockpitPage() {
       const col = isSME ? "assigned_sme_id" : "assigned_writer_id";
       const { data } = await supabase
         .from("question_records")
-        .select("id,question_number,title,pens_down_date,health,writer_confidence")
+        .select("id,question_number,title,pens_down_date,health,writer_confidence,status,updated_at")
         .eq("mission_id", missionId).eq(col, me!.id)
         .order("question_number");
-      return (data ?? []) as Array<{ id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null; writer_confidence: "confident" | "uncertain" | "stuck" | null }>;
+      return (data ?? []) as Array<{ id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null; writer_confidence: "confident" | "uncertain" | "stuck" | null; status: string | null; updated_at: string | null }>;
     },
   });
 
@@ -498,32 +515,29 @@ function CockpitPage() {
           </Link>
         </div>
       )}
-      {/* HEALTH STRIP — persistent */}
+      {/* 1. HEALTH STRIP — sticky */}
       <Link
         to="/missions/$missionId/overview"
         params={{ missionId }}
-        className={`sticky top-0 z-30 flex h-10 items-center gap-3 border-b px-10 text-[12px] backdrop-blur transition-colors hover:bg-[#0a1426]/95 ${
+        className={`sticky top-0 z-30 flex h-9 items-center gap-3 border-b px-10 text-[12px] backdrop-blur transition-colors hover:bg-[#0a1426]/95 ${
           primaryAction === "urgent_write" ? "animate-pulse" : ""
         }`}
         style={{
           background: primaryAction === "urgent_write" ? "rgba(127,29,29,0.6)" : "rgba(6,11,20,0.95)",
           borderColor: primaryAction === "urgent_write" ? "rgba(239,68,68,0.4)" : "rgba(255,255,255,0.06)",
         }}
-        title="Open Mission Room"
+        title="Open Mission Brief"
       >
-        <span className="relative inline-flex h-2 w-2">
-          <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: healthHex, boxShadow: `0 0 8px ${healthHex}` }} />
-        </span>
+        <span className="h-2 w-2 rounded-full" style={{ background: healthHex, boxShadow: `0 0 6px ${healthHex}` }} />
         <span className="text-foreground font-medium truncate">{mission?.name ?? "Mission"}</span>
         <Dot />
-        <span className="font-mono text-muted-foreground">Q{q.question_number}</span>
-        <span className="text-foreground truncate">{q.title}</span>
-        <Dot />
-        <PensDownLabel days={pdDays} />
+        <span className="text-[11px]" style={{ color: "#22c55e" }}>{missionHealth.green} Green</span>
+        <span className="text-[11px]" style={{ color: "#eab308" }}>{missionHealth.yellow} Yellow</span>
+        <span className="text-[11px]" style={{ color: "#ef4444" }}>{missionHealth.red} Red</span>
         {nextGate && gateDays !== null && (
           <>
             <Dot />
-            <span style={gateDays <= 3 ? { color: "#ef4444" } : gateDays <= 7 ? { color: "#eab308" } : undefined}>
+            <span style={gateDays <= 3 ? { color: "#ef4444" } : gateDays <= 7 ? { color: "#eab308" } : { color: "var(--muted-foreground)" }}>
               {nextGate.gate_name} in {gateDays}d
             </span>
           </>
@@ -531,50 +545,18 @@ function CockpitPage() {
         {subDays !== null && (
           <>
             <Dot />
-            <span className="text-muted-foreground">Submission in {subDays}d</span>
+            <span className={subDays < 7 ? "font-bold" : ""} style={{ color: subDays < 7 ? "#ef4444" : subDays <= 14 ? "#eab308" : "var(--muted-foreground)" }}>
+              Submission in {subDays}d
+            </span>
           </>
         )}
       </Link>
 
       <div className="mx-auto max-w-[960px] px-10 pt-8 pb-40">
-        {/* QUESTION SELECTOR — only if multiple */}
-        {myQuestions.length > 1 && (
-          <div className="mb-6">
-            <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-              My Assignments
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {myQuestions.map((mq) => {
-                const active = mq.id === questionId;
-                const d = daysUntil(mq.pens_down_date);
-                const c = HEALTH_HEX[mq.health ?? "yellow"];
-                return (
-                  <Link
-                    key={mq.id}
-                    to="/missions/$missionId/questions/$questionId"
-                    params={{ missionId, questionId: mq.id }}
-                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition ${
-                      active ? "border-white/20 bg-white/10 text-foreground" : "border-white/10 bg-transparent text-muted-foreground hover:text-foreground hover:border-white/20"
-                    }`}
-                  >
-                    <span className="h-1.5 w-1.5 rounded-full" style={{ background: c, boxShadow: `0 0 4px ${c}` }} />
-                    <span className="font-mono">Q{mq.question_number}</span>
-                    {d !== null && <span className="text-muted-foreground">{d}d</span>}
-                    <ConfidenceDot level={mq.writer_confidence ?? null} />
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* BLOCK 1 — IRIS MORNING BRIEF */}
+        {/* 2. IRIS MORNING BRIEF — 3 sentences max */}
         <section
-          className="relative mb-8 rounded-[12px] border p-6"
-          style={{
-            background: "radial-gradient(ellipse at 0% 50%, rgba(8,145,178,0.08), rgba(10,14,26,0) 70%)",
-            borderColor: "rgba(8,145,178,0.25)",
-          }}
+          className="relative mb-6 rounded-[12px] border px-6 py-5"
+          style={{ background: "rgba(8,145,178,0.05)", borderColor: "rgba(8,145,178,0.15)" }}
         >
           <div className="mb-3 flex items-center justify-between">
             <span className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.32em]" style={{ color: "#22d3ee" }}>
@@ -585,200 +567,162 @@ function CockpitPage() {
               disabled={coachingPending}
               className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-50"
             >
-              {intel?.generated_at && (<span>Updated {timeAgo(intel.generated_at)} · </span>)}
+              {intel?.generated_at && <span>Updated {timeAgo(intel.generated_at)} · </span>}
               <RefreshCw className={`h-3 w-3 ${coachingPending ? "animate-spin" : ""}`} /> Refresh
             </button>
           </div>
           {intelLoading || coachingPending ? (
             <div className="iris-loading-text"><span className="iris-dot" /> IRIS is preparing your brief…</div>
           ) : intel?.iris_brief ? (
-            <IrisCorrectable
-              contentType="morning_brief"
-              contentBlock={intel.iris_brief}
-              missionId={missionId}
-              questionId={questionId}
-            >
-              <p className="text-[15px] leading-relaxed text-foreground whitespace-pre-wrap pr-8">
-                {intel.iris_brief}
-              </p>
-            </IrisCorrectable>
+            <MorningBriefBody text={intel.iris_brief} missionId={missionId} questionId={questionId} />
           ) : (
-            <p className="text-sm text-muted-foreground">
-              <span className="iris-dot mr-2" /> IRIS is preparing your brief. Intelligence generates once the RFP is parsed.
-            </p>
+            <p className="text-sm text-muted-foreground"><span className="iris-dot mr-2" /> IRIS is preparing your brief.</p>
           )}
           {tipStage === 0 && !isReadOnlyView && (
-            <FirstVisitTooltip>
-              This is your mission briefing. IRIS updates it every morning.
-            </FirstVisitTooltip>
+            <FirstVisitTooltip>IRIS briefs you here every morning.</FirstVisitTooltip>
           )}
         </section>
 
-        {/* SUGGESTED QUESTION — IRIS recommends */}
+        {/* 3. FROM YOUR CO-PILOT — only renders when messages exist (component handles visibility) */}
+        {!isReadOnlyView && me?.id && (
+          <CoPilotInbox missionId={missionId} questionId={questionId} currentUserId={me.id} />
+        )}
+
+        {/* 4. WHAT CHANGED — filtered to this writer's questions, max 5 */}
+        <WhatChangedFiltered
+          feed={feed}
+          lastVisit={lastVisitRef.current}
+          lastVisitTimeStr={lastVisitTimeStr}
+        />
+
+        {/* 5. BRIEF PANEL — 4 fixed rows */}
+        <BriefPanel
+          todayCount={myQuestions.filter((mq) => mq.health === "red" || mq.health === "yellow").length}
+          nextStep={suggestedQuestion}
+          waitingCount={collabs.filter((c) => !c.resolved && (c.entry_type === "sme_request" || c.entry_type === "direction_request" || c.entry_type === "decision_needed" || c.entry_type === "review_request")).length}
+          nextGateName={nextGate?.gate_name ?? null}
+          nextGateDate={nextGate?.target_date ?? null}
+        />
+
+        {/* 6. SUGGESTED QUESTION — IRIS pick */}
         {!isReadOnlyView && !isSME && suggestedQuestion && suggestedQuestion.id !== questionId && (
-          <section className="mb-8">
-            <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--iris, #22d3ee)" }}>
-              <span className="iris-dot mr-1.5" /> IRIS suggests starting with
+          <section className="mb-6">
+            <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em]" style={{ color: "#22d3ee" }}>
+              <span className="iris-dot mr-1.5" /> IRIS suggests starting with:
             </div>
             <Link
               to="/missions/$missionId/questions/$questionId"
               params={{ missionId, questionId: suggestedQuestion.id }}
-              className="flex w-full items-center justify-between gap-3 rounded-[8px] border px-4 py-2.5 text-sm font-semibold transition hover:bg-[rgba(59,127,255,0.12)]"
-              style={{ background: "rgba(59,127,255,0.08)", borderColor: "rgba(59,127,255,0.2)" }}
+              className="flex h-[52px] w-full items-center justify-between rounded-[10px] border px-5 transition hover:-translate-y-px"
+              style={{ background: "rgba(59,127,255,0.08)", borderColor: "rgba(59,127,255,0.25)" }}
             >
-              <span className="truncate">
+              <span className="truncate text-[14px] font-semibold text-foreground">
                 Q{suggestedQuestion.question_number} · {suggestedQuestion.title}
               </span>
-              <ArrowRight className="h-4 w-4 shrink-0 opacity-80" />
+              <ArrowRight className="h-4 w-4 shrink-0 text-primary" />
             </Link>
-            <div className="mt-1.5 text-[11px] text-muted-foreground">
+            <div className="mt-1.5 pl-1 text-[11px] text-muted-foreground">
               {(() => {
                 const d = daysUntil(suggestedQuestion.pens_down_date);
                 const dStr = d === null ? "—" : d < 0 ? `${Math.abs(d)}d overdue` : `${d} days`;
-                const hStr = suggestedQuestion.health
-                  ? suggestedQuestion.health[0].toUpperCase() + suggestedQuestion.health.slice(1)
-                  : "—";
+                const h = suggestedQuestion.health;
+                const hStr = h ? `● ${h[0].toUpperCase() + h.slice(1)}` : "—";
                 const reason = suggestedQuestion.writer_confidence === "stuck"
                   ? "You marked it stuck"
-                  : suggestedQuestion.health === "red"
-                    ? "Most urgent"
-                    : suggestedQuestion.health === "yellow"
-                      ? "Needs attention"
-                      : "Next up";
+                  : h === "red" ? "Most urgent" : h === "yellow" ? "Needs attention" : "Next up";
                 return `${dStr} · ${hStr} · ${reason}`;
               })()}
             </div>
           </section>
         )}
 
+        {/* 7. MY ASSIGNMENTS — 52px rows */}
+        {!isReadOnlyView && (
+          <MyAssignments
+            questions={myQuestions}
+            missionId={missionId}
+            activeQuestionId={questionId}
+            qc={qc}
+          />
+        )}
 
-        {/* BLOCK 2 — MY QUESTION + WHAT CHANGED */}
-        <section className="mb-8 grid gap-6 md:grid-cols-[40fr_60fr]">
-          {/* LEFT — MY QUESTION */}
-          <div className="space-y-5 rounded-[12px] border border-white/5 bg-white/[0.02] p-6">
+        {/* 8. QUESTION WORKSPACE — 2 columns: context + IRIS */}
+        <section className="mt-8 grid gap-6 md:grid-cols-[55fr_45fr]">
+          {/* LEFT — QUESTION CONTEXT */}
+          <div className="space-y-5">
             <div>
-              <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">My Question</div>
-              <h1 className="mt-2 text-[20px] font-bold leading-tight">
-                Q{q.question_number} — {q.title}
-              </h1>
-              <div className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
-                {q.section_number && <span>Section {q.section_number}</span>}
-                {q.section_number && q.page_limit && <Dot />}
-                {q.page_limit && <span>{q.page_limit} pages</span>}
-                {(q.section_number || q.page_limit) && q.evaluation_weight && <Dot />}
-                {q.evaluation_weight && <span>{q.evaluation_weight}% weight</span>}
+              <div className="flex items-center gap-2 text-[13px]">
+                <span className="h-2 w-2 rounded-full" style={{ background: healthHex, boxShadow: `0 0 6px ${healthHex}` }} />
+                <span className="font-mono text-muted-foreground">Q{q.question_number}</span>
+                <span className="font-semibold text-foreground truncate">· {q.title}</span>
               </div>
-            </div>
-
-            <div>
-              <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Pens Down</div>
-              <div
-                className="mt-1 text-[32px] font-bold leading-none"
-                style={{
-                  color: pdDays !== null && pdDays < 7 ? "#ef4444" : pdDays !== null && pdDays <= 14 ? "#eab308" : "var(--foreground)",
-                }}
-              >
-                {pdDays !== null ? (pdDays < 0 ? `${Math.abs(pdDays)}d overdue` : `${pdDays} DAYS`) : "—"}
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                <span>Writer: <span className="text-foreground">{firstName(writer)}</span></span>
+                {sme && <span>SME: <span className="text-foreground">{firstName(sme)}</span></span>}
+                <span>Pens Down: <span className="text-foreground">{fmtDate(q.pens_down_date)}</span></span>
               </div>
-              <div className="mt-1 text-[12px] text-muted-foreground">{fmtDate(q.pens_down_date)}</div>
-            </div>
-
-            <div>
-              <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Scoring Target</div>
-              <div className="mt-1 text-[10px] text-muted-foreground/70">What does a 5 look like?</div>
-              {q.guidance ? (
-                <IrisCorrectable
-                  contentType="question_brief"
-                  contentBlock={q.guidance}
-                  missionId={missionId}
-                  questionId={questionId}
-                >
-                  <div className="mt-2 text-sm leading-relaxed whitespace-pre-wrap pr-8">{q.guidance}</div>
-                </IrisCorrectable>
-              ) : q.requirements && q.requirements.length > 0 ? (
-                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
-                  {q.requirements.slice(0, 5).map((r, i) => <li key={i}>{r}</li>)}
-                </ul>
-              ) : (
-                <div className="mt-2 text-sm text-muted-foreground italic">No scoring target captured yet.</div>
-              )}
-              {q.mandatory_language && q.mandatory_language.length > 0 && (
-                <div className="mt-3 border-l-2 px-3 py-2 text-xs" style={{ borderColor: "#eab308", background: "rgba(234,179,8,0.05)", color: "#fde68a" }}>
-                  <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider">Required language</span>
-                  {q.mandatory_language.join(" — ")}
-                </div>
-              )}
             </div>
 
             {!isSME && (q.health === "red" || q.health === "yellow") && drivers.length > 0 && (
-              <div>
-                <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Health Drivers</div>
-                <ul className="mt-2 space-y-1.5">
-                  {drivers.map((d, i) => (
-                    <li key={i} className="flex items-start gap-2 text-xs" style={{ color: q.health === "red" ? "#fca5a5" : "#fde68a" }}>
-                      <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" /><span>{d}</span>
-                    </li>
-                  ))}
-                </ul>
+              <div
+                className="rounded-md border-l-2 px-3 py-2 text-[12px]"
+                style={{ borderColor: q.health === "red" ? "#ef4444" : "#eab308", background: "rgba(234,179,8,0.05)", color: q.health === "red" ? "#fca5a5" : "#fde68a" }}
+              >
+                <AlertTriangle className="mr-1.5 inline h-3 w-3" />
+                {drivers.slice(0, 2).join(" · ")}
               </div>
             )}
 
             {connectedThemes.length > 0 && (
-              <div>
-                <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Win Themes</div>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {connectedThemes.map((w) => (
-                    <span key={w.id} className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] text-primary">
-                      {w.title}
-                    </span>
-                  ))}
-                </div>
+              <div className="flex flex-wrap gap-1.5">
+                {connectedThemes.map((w) => (
+                  <span key={w.id} className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] text-primary">
+                    {w.title}
+                  </span>
+                ))}
               </div>
             )}
 
-            <div className="border-t border-white/5 pt-3 text-[11px] text-muted-foreground">
-              Writer: <span className="text-foreground">{firstName(writer)}</span>
-              {sme && <> · SME: <span className="text-foreground">{firstName(sme)}</span></>}
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Question</div>
+              <p className="mt-2 text-[14px] leading-[1.7] text-foreground whitespace-pre-wrap">{q.question_text}</p>
+            </div>
+
+            {q.requirements && q.requirements.length > 0 && (
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Requirements</div>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-[13px]">
+                  {q.requirements.slice(0, 6).map((r, i) => <li key={i}>{r}</li>)}
+                </ul>
+                {q.mandatory_language && q.mandatory_language.length > 0 && (
+                  <div className="mt-2 border-l-2 px-3 py-1.5 text-[12px]" style={{ borderColor: "#eab308", background: "rgba(234,179,8,0.05)", color: "#fde68a" }}>
+                    Required: {q.mandatory_language.join(" — ")}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="text-[12px] text-muted-foreground">
+              <Link
+                to="/missions/$missionId/overview"
+                params={{ missionId }}
+                className="hover:text-foreground"
+              >
+                Source documents →
+              </Link>
             </div>
           </div>
 
-          {/* RIGHT — WHAT CHANGED */}
-          <div className="rounded-[12px] border border-white/5 bg-white/[0.02] p-6">
-            <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">What Changed</div>
-            <div className="mb-4 text-[11px] text-muted-foreground/70">Since your last visit · {lastVisitTimeStr}</div>
-
-            <CoPilotInbox missionId={missionId} questionId={questionId} currentUserId={me?.id ?? null} />
-
-            {feed.length === 0 ? (
-              <div className="rounded-md border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm" style={{ color: "#86efac" }}>
-                <span className="iris-dot mr-2" /> Nothing new since your last visit. You're current. Go write.
-              </div>
-            ) : (
-              <ul className="space-y-1">
-                {feed.map((item) => (
-                  <FeedRow
-                    key={`${item.kind}-${item.id}`}
-                    item={item}
-                    unread={+new Date(item.created_at) > lastVisitRef.current}
-                  />
-                ))}
-              </ul>
-            )}
-          </div>
-        </section>
-
-        {/* BLOCK 3 — IRIS INTELLIGENCE */}
-        <section className="mb-8">
-          <div className="mb-3 flex items-center justify-between">
-            <span className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.32em]" style={{ color: "#22d3ee" }}>
-              <span className="iris-dot" /> IRIS Intelligence for This Question
-            </span>
-            <span className="text-[11px] text-muted-foreground">
-              {(intel?.relevant_research?.length ?? 0)} sources
-              {intel?.generated_at && <> · Updated {timeAgo(intel.generated_at)}</>}
-            </span>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
+          {/* RIGHT — IRIS INTELLIGENCE (exactly 3 insights) */}
+          <div className="space-y-4 border-l-[3px] pl-5" style={{ borderColor: "rgba(34,211,238,0.5)" }}>
+            <div className="flex items-center justify-between">
+              <span className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em]" style={{ color: "#22d3ee" }}>
+                <span className="iris-dot" /> Intelligence for this question
+              </span>
+              <span className="text-[11px] text-muted-foreground">
+                {intel?.generated_at && <>Updated {timeAgo(intel.generated_at)}</>}
+              </span>
+            </div>
             <IntelPanel
               label="State Priority"
               content={intel?.state_priorities}
@@ -797,24 +741,23 @@ function CockpitPage() {
               sourceCount={intel?.relevant_research?.length ?? 0}
               missionId={missionId} questionId={questionId}
             />
-            <CompliancePanel
-              flags={intel?.compliance_flags ?? null}
-              missionId={missionId} questionId={questionId}
-            />
+            {intel?.compliance_flags && intel.compliance_flags.length > 0 && (
+              <div className="text-[12px]" style={{ color: "#eab308" }}>
+                ⚠ Required: {intel.compliance_flags[0]}
+              </div>
+            )}
+            <div className="pt-2 text-[12px] text-muted-foreground space-y-1">
+              <Link to="/missions/$missionId/overview" params={{ missionId }} className="block hover:text-foreground">
+                Source documents →
+              </Link>
+              <Link to="/missions/$missionId/overview" params={{ missionId }} className="block hover:text-foreground">
+                Full intelligence →
+              </Link>
+            </div>
           </div>
-        </section>
-
-        {/* BLOCK 3.5 — COMPLIANCE REQUIREMENTS (Model Contract + State + Federal) */}
-        <section className="mb-8">
-          <div className="mb-3 flex items-center justify-between">
-            <span className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.32em]" style={{ color: "#22d3ee" }}>
-              <span className="iris-dot" /> Compliance Check
-            </span>
-            <span className="text-[11px] text-muted-foreground">Model Contract · State Regs · Federal</span>
-          </div>
-          <ComplianceRequirementsPanel questionId={questionId} />
         </section>
       </div>
+
 
       {/* FIXED ACTION BAR */}
       <div
@@ -1441,4 +1384,255 @@ function OverflowItem({
     </button>
   );
 }
+
+/* ──────────── Morning Brief — 3-sentence hard cap with Read more ──────────── */
+function MorningBriefBody({ text, missionId, questionId }: { text: string; missionId: string; questionId: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const parts = text.match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+$/g) ?? [text];
+  const truncated = parts.length > 3;
+  const clipped = truncated ? parts.slice(0, 3).join("").trim() : text.trim();
+  const display = expanded ? text.trim() : clipped;
+  return (
+    <div>
+      <IrisCorrectable contentType="morning_brief" contentBlock={text} missionId={missionId} questionId={questionId}>
+        <p className="text-[14px] leading-[1.7] pr-8" style={{ color: "rgba(255,255,255,0.75)" }}>{display}</p>
+      </IrisCorrectable>
+      {truncated && (
+        <button onClick={() => setExpanded((e) => !e)} className="mt-2 text-[12px] text-muted-foreground hover:text-foreground">
+          {expanded ? "Show less ↑" : "Read more ↓"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+/* ──────────── What Changed (max 5, expandable) ──────────── */
+function WhatChangedFiltered({
+  feed, lastVisit, lastVisitTimeStr,
+}: {
+  feed: Array<{ kind: "sme" | "intel" | "leader" | "conflict" | "amendment" | "leader_reply" | "decision"; id: string; title: string; author: string; created_at: string; body: string; ackButton?: { label: string; onClick: () => void } | null }>;
+  lastVisit: number;
+  lastVisitTimeStr: string;
+}) {
+  const [showAll, setShowAll] = useState(false);
+  const shown = showAll ? feed : feed.slice(0, 5);
+  const extra = Math.max(0, feed.length - 5);
+  return (
+    <section className="mb-6">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">What Changed</span>
+        <span className="text-[11px] text-muted-foreground/70">Since {lastVisitTimeStr}</span>
+      </div>
+      {feed.length === 0 ? (
+        <div className="text-[13px]" style={{ color: "#22c55e" }}>You're current. Go write.</div>
+      ) : (
+        <>
+          <ul className="space-y-1">
+            {shown.map((item) => (
+              <FeedRow key={`${item.kind}-${item.id}`} item={item} unread={+new Date(item.created_at) > lastVisit} />
+            ))}
+          </ul>
+          {extra > 0 && !showAll && (
+            <button onClick={() => setShowAll(true)} className="mt-2 text-[12px] text-muted-foreground hover:text-foreground">
+              · · · {extra} more
+            </button>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
+/* ──────────── Brief Panel — 4 fixed rows ──────────── */
+function BriefPanel({
+  todayCount, nextStep, waitingCount, nextGateName, nextGateDate,
+}: {
+  todayCount: number;
+  nextStep: { question_number: string; title: string; pens_down_date: string | null } | null;
+  waitingCount: number;
+  nextGateName: string | null;
+  nextGateDate: string | null;
+}) {
+  const rows: Array<{ label: string; value: React.ReactNode }> = [
+    {
+      label: "Today",
+      value: todayCount > 0
+        ? <span>{todayCount} question{todayCount === 1 ? "" : "s"} need attention</span>
+        : <span className="text-muted-foreground">All on track</span>,
+    },
+    {
+      label: "Next Step",
+      value: nextStep ? (() => {
+        const d = daysUntil(nextStep.pens_down_date);
+        const dStr = d === null ? "—" : d < 0 ? `${Math.abs(d)}d overdue` : `${d} days`;
+        return <span className="truncate">Q{nextStep.question_number} · {nextStep.title} · {dStr}</span>;
+      })() : <span className="text-muted-foreground">—</span>,
+    },
+    {
+      label: "Waiting On",
+      value: waitingCount > 0
+        ? <span>{waitingCount} open item{waitingCount === 1 ? "" : "s"}</span>
+        : <span className="text-muted-foreground">Nothing waiting</span>,
+    },
+    {
+      label: "Next Gate",
+      value: nextGateName ? <span>{nextGateName} · {fmtDate(nextGateDate)}</span> : <span className="text-muted-foreground">—</span>,
+    },
+  ];
+  return (
+    <section className="mb-6 rounded-[10px] border bg-white/[0.02] px-4" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+      {rows.map((r, i) => (
+        <div key={r.label} className={`flex h-9 items-center gap-4 ${i < rows.length - 1 ? "border-b" : ""}`} style={{ borderColor: "rgba(255,255,255,0.05)" }}>
+          <span className="w-[90px] text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{r.label}</span>
+          <span className="flex-1 truncate text-[13px] text-foreground">{r.value}</span>
+        </div>
+      ))}
+    </section>
+  );
+}
+
+/* ──────────── My Assignments — 52px rows w/ inline status pill ──────────── */
+const STATUS_OPTIONS = ["Not Started", "In Progress", "In Review", "Complete"] as const;
+type StatusLabel = typeof STATUS_OPTIONS[number];
+
+function statusLabel(raw: string | null | undefined): StatusLabel {
+  const s = (raw ?? "").toLowerCase();
+  if (s.includes("complete") || s === "approved") return "Complete";
+  if (s.includes("review")) return "In Review";
+  if (s.includes("progress") || s === "drafting" || s === "draft") return "In Progress";
+  return "Not Started";
+}
+function statusToDb(s: StatusLabel): string {
+  return s === "Not Started" ? "not_started" : s === "In Progress" ? "in_progress" : s === "In Review" ? "in_review" : "complete";
+}
+
+function MyAssignments({
+  questions, missionId, activeQuestionId, qc,
+}: {
+  questions: Array<{ id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null; status: string | null; updated_at: string | null }>;
+  missionId: string;
+  activeQuestionId: string;
+  qc: ReturnType<typeof useQueryClient>;
+}) {
+  const [filter, setFilter] = useState<"mine" | "all">("mine");
+  const [allQs, setAllQs] = useState<typeof questions | null>(null);
+  const [loadingAll, setLoadingAll] = useState(false);
+
+  useEffect(() => {
+    if (filter !== "all" || allQs) return;
+    setLoadingAll(true);
+    supabase.from("question_records")
+      .select("id,question_number,title,pens_down_date,health,status,updated_at")
+      .eq("mission_id", missionId).order("question_number")
+      .then(({ data }) => { setAllQs((data ?? []) as any); setLoadingAll(false); });
+  }, [filter, allQs, missionId]);
+
+  const list = filter === "all" ? (allQs ?? []) : questions;
+
+  const updateStatus = async (id: string, next: StatusLabel) => {
+    const dbVal = statusToDb(next);
+    const { error } = await supabase.from("question_records").update({ status: dbVal }).eq("id", id);
+    if (error) { toast.error("Could not update status"); return; }
+    toast.success(`Status: ${next}`);
+    qc.invalidateQueries({ queryKey: ["cockpit-my-questions"] });
+    qc.invalidateQueries({ queryKey: ["question", id] });
+    if (filter === "all") setAllQs(null);
+  };
+
+  return (
+    <section className="mb-6">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">My Assignments</span>
+        <div className="inline-flex rounded-md border border-white/10 p-0.5 text-[11px]">
+          <button
+            onClick={() => setFilter("mine")}
+            className={`rounded-sm px-2 py-0.5 ${filter === "mine" ? "bg-white/10 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >My Questions</button>
+          <button
+            onClick={() => setFilter("all")}
+            className={`rounded-sm px-2 py-0.5 ${filter === "all" ? "bg-white/10 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >All</button>
+        </div>
+      </div>
+      <div className="rounded-[10px] border bg-white/[0.02]" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+        {loadingAll ? (
+          <div className="px-4 py-6 text-[12px] text-muted-foreground">Loading…</div>
+        ) : list.length === 0 ? (
+          <div className="px-4 py-6 text-[12px] text-muted-foreground">No assigned questions.</div>
+        ) : list.map((mq, i) => {
+          const active = mq.id === activeQuestionId;
+          const d = daysUntil(mq.pens_down_date);
+          const dotColor = HEALTH_HEX[mq.health ?? "yellow"];
+          const dStr = d === null ? "—" : d < 0 ? `${Math.abs(d)}d overdue` : `${d}d`;
+          const dColor = d === null ? undefined : d < 7 ? "#ef4444" : d <= 14 ? "#eab308" : undefined;
+          return (
+            <div
+              key={mq.id}
+              className={`flex h-[52px] items-center gap-3 px-4 ${i > 0 ? "border-t" : ""} ${active ? "border-l-2" : ""} transition hover:bg-white/[0.03]`}
+              style={{
+                borderColor: "rgba(255,255,255,0.05)",
+                borderLeftColor: active ? "#3b7fff" : undefined,
+                background: active ? "rgba(59,127,255,0.05)" : undefined,
+              }}
+            >
+              <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: dotColor, boxShadow: `0 0 4px ${dotColor}` }} />
+              <Link
+                to="/missions/$missionId/questions/$questionId"
+                params={{ missionId, questionId: mq.id }}
+                className="flex flex-1 items-center gap-3 truncate"
+              >
+                <span className="font-mono text-[11px] text-muted-foreground">Q{mq.question_number}</span>
+                <span className="flex-1 truncate text-[13px] text-foreground">{mq.title}</span>
+              </Link>
+              <StatusPill current={statusLabel(mq.status)} onPick={(s) => updateStatus(mq.id, s)} />
+              <span className="w-[70px] text-right text-[12px]" style={{ color: dColor, fontWeight: d !== null && d < 7 ? 600 : undefined }}>
+                {dStr}
+              </span>
+              <span className="hidden w-[80px] text-right text-[11px] text-muted-foreground md:inline">
+                {mq.updated_at ? timeAgo(mq.updated_at) : "—"}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function StatusPill({ current, onPick }: { current: StatusLabel; onPick: (s: StatusLabel) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
+  const color = current === "Complete" ? "#22c55e" : current === "In Review" ? "#22d3ee" : current === "In Progress" ? "#eab308" : "#94a3b8";
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((o) => !o); }}
+        className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] hover:bg-white/5"
+        style={{ borderColor: `${color}55`, color }}
+      >
+        {current} <ChevronDown className="h-3 w-3 opacity-70" />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-20 mt-1 min-w-[140px] rounded-md border border-white/10 bg-[#0a0e1a] p-1 shadow-2xl">
+          {STATUS_OPTIONS.map((s) => (
+            <button
+              key={s}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(false); onPick(s); }}
+              className={`block w-full rounded-sm px-2 py-1.5 text-left text-[12px] hover:bg-white/5 ${current === s ? "text-foreground font-semibold" : "text-muted-foreground"}`}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 
