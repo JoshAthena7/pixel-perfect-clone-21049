@@ -148,6 +148,23 @@ function CockpitPage() {
     return gates.find((g) => g.target_date && g.target_date >= today) ?? null;
   }, [gates]);
 
+  /* mission-wide health counts for the sticky strip */
+  const { data: missionHealth = { green: 0, yellow: 0, red: 0 } } = useQuery({
+    queryKey: ["mission-health-counts", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("question_records")
+        .select("health")
+        .eq("mission_id", missionId);
+      const counts = { green: 0, yellow: 0, red: 0 } as Record<"green" | "yellow" | "red", number>;
+      for (const r of data ?? []) {
+        const h = (r.health as string) ?? "";
+        if (h === "green" || h === "yellow" || h === "red") counts[h]++;
+      }
+      return counts;
+    },
+  });
+
   /* writer's other assigned questions in this mission */
   const { data: myQuestions = [] } = useQuery({
     queryKey: ["cockpit-my-questions", missionId, me?.id, isSME],
