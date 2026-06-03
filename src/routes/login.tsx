@@ -59,47 +59,91 @@ function LoginPage() {
     }
   }
 
+  const AtlasMark = ({ size = 192 }: { size?: number }) => (
+    <div
+      className="relative flex items-center justify-center"
+      style={{ width: size, height: size }}
+    >
+      <svg viewBox="0 0 100 100" className="h-full w-full text-sky-400">
+        <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="1 4" className="opacity-30" />
+        <circle cx="50" cy="50" r="28" fill="none" stroke="currentColor" strokeWidth="0.5" className="opacity-20" />
+        <circle cx="50" cy="50" r="2" fill="currentColor" />
+        <circle cx="35" cy="35" r="1.5" fill="currentColor" />
+        <circle cx="65" cy="40" r="1.5" fill="currentColor" />
+        <circle cx="45" cy="65" r="1.5" fill="currentColor" />
+        <circle cx="60" cy="60" r="1" fill="currentColor" />
+        <path d="M50 50 L35 35 M50 50 L65 40 M50 50 L45 65 M45 65 L60 60 M65 40 L60 60" stroke="currentColor" strokeWidth="0.5" className="opacity-40" />
+      </svg>
+      <div className="pointer-events-none absolute inset-0 rounded-full bg-sky-500/10 blur-3xl" />
+    </div>
+  );
+
   return (
     <div
-      className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 text-foreground"
-      style={{
-        background: "#060b14",
-        backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px)",
-        backgroundSize: "24px 24px",
-      }}
+      className="flex min-h-screen w-full select-none items-center justify-center bg-[#020203] p-4 md:p-8 text-foreground"
+      style={{ fontFamily: "'Inter', sans-serif" }}
     >
-      {/* Soft amber glow */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(245,158,11,0.08),transparent_65%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(0,0,0,0)_0%,rgba(0,0,0,0.5)_90%)]" />
+      <div className="grid w-full max-w-5xl overflow-hidden rounded-2xl border border-white/10 bg-[#08080a] shadow-2xl shadow-black/80 md:grid-cols-2">
+        {/* Left: brand immersion */}
+        <div className="relative hidden flex-col justify-between overflow-hidden border-r border-white/5 bg-gradient-to-br from-[#0a0f14] to-[#020203] p-12 md:flex">
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage: "radial-gradient(circle, #fff 1px, transparent 1px)",
+              backgroundSize: "32px 32px",
+            }}
+          />
+          <div className="relative z-10">
+            <div className="mb-2 flex items-center gap-2">
+              <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-sky-400">
+                Strategic Intelligence
+              </span>
+              <div className="h-px w-8 bg-sky-400/30" />
+            </div>
+            <h1 className="text-2xl font-light tracking-tight text-white">
+              Intelligence for <span className="text-sky-300">Elite Proposal Operations</span>
+            </h1>
+          </div>
 
-      {/* Card */}
-      <div className="relative z-20 w-full max-w-md">
-        <div
-          className="relative rounded-[16px] border p-9 backdrop-blur-xl"
-          style={{
-            background: "linear-gradient(145deg, #0f1520 0%, #0a0e1a 60%)",
-            borderColor: "rgba(245,158,11,0.20)",
-            boxShadow: "inset 0 0 80px rgba(245,158,11,0.05), 0 30px 80px rgba(0,0,0,0.5)",
-          }}
-        >
-          <div className="mb-8 text-center">
-            <img
-              src={atlasLogo.url}
-              alt="Atlas"
-              className="mx-auto mb-4 h-40 w-40 object-contain"
-              style={{ filter: "drop-shadow(0 0 32px rgba(125,211,252,0.4))" }}
-            />
-            <p className="text-[10px] uppercase tracking-[0.32em] text-muted-foreground">
-              by Athena Strategy Group
+          <div className="relative z-10 flex justify-center py-12">
+            <AtlasMark size={192} />
+          </div>
+
+          <div className="relative z-10">
+            <p className="mb-4 font-mono text-[11px] uppercase tracking-widest text-white/40">
+              Atlas. Built by Athena. Powered by IRIS.
+            </p>
+            <div className="flex items-center gap-1.5">
+              <div className="flex h-3 w-3 items-center justify-center rounded-full border border-amber-500/50">
+                <div className="h-1 w-1 rounded-full bg-amber-500" />
+              </div>
+              <span className="text-[10px] font-medium uppercase tracking-wide text-amber-500/80">
+                IRIS Active
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right: form */}
+        <div className="flex flex-col justify-center bg-[#08080a] p-8 md:p-16">
+          <div className="mb-10">
+            <div className="mb-8 flex justify-center md:hidden">
+              <AtlasMark size={56} />
+            </div>
+            <h2 className="mb-2 text-xl font-medium tracking-tight text-white">
+              Personnel Sign-in
+            </h2>
+            <p className="text-sm text-white/50">
+              Secure access via encrypted magic link.
             </p>
           </div>
 
           {sent ? (
-            <div className="rounded-[10px] border border-emerald-500/30 bg-emerald-500/5 p-5 text-center text-sm">
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-5 text-center text-sm">
               <p className="mb-2 text-[10px] uppercase tracking-[0.2em] text-emerald-400">Check your inbox</p>
-              <p className="text-foreground">We sent a sign-in link to</p>
-              <p className="mt-1 font-semibold text-[color:var(--athena-gold,#f59e0b)]">{email}</p>
-              <p className="mt-3 text-xs text-muted-foreground">
+              <p className="text-white">We sent a sign-in link to</p>
+              <p className="mt-1 font-semibold text-amber-500">{email}</p>
+              <p className="mt-3 text-xs text-white/50">
                 Open the link from your inbox to finish signing in.
               </p>
               <button
@@ -110,10 +154,13 @@ function LoginPage() {
               </button>
             </div>
           ) : (
-            <form onSubmit={onSubmit} className="space-y-5">
-              <div className="space-y-2">
-                <label htmlFor="email" className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                  Email
+            <form onSubmit={onSubmit} className="space-y-6">
+              <div className="group space-y-2">
+                <label
+                  htmlFor="email"
+                  className="ml-1 block text-[10px] font-medium uppercase tracking-[0.15em] text-white/40 transition-colors group-focus-within:text-sky-400"
+                >
+                  Corporate Email Address
                 </label>
                 <Input
                   id="email"
@@ -121,34 +168,64 @@ function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@athenasg.com"
-                  className="h-11 rounded-[8px] border-[color:var(--athena-gold,#f59e0b)]/25 bg-black/30 text-foreground placeholder:text-muted-foreground/40 focus-visible:border-[color:var(--athena-gold,#f59e0b)]/60 focus-visible:ring-[color:var(--athena-gold,#f59e0b)]/20"
+                  placeholder="name@athenasg.com"
+                  className="h-12 rounded-lg border-white/10 bg-white/[0.03] px-4 text-white placeholder:text-white/20 focus-visible:border-sky-500/50 focus-visible:ring-1 focus-visible:ring-sky-500/50"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-[8px] border px-4 py-3 text-[12px] font-semibold transition disabled:opacity-50"
-                style={{
-                  color: "var(--athena-gold, #f59e0b)",
-                  background: "rgba(245,158,11,0.10)",
-                  borderColor: "rgba(245,158,11,0.45)",
-                }}
+                className="group flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-amber-600 to-amber-500 py-3.5 font-semibold text-[#0a0a0b] shadow-lg shadow-amber-900/20 transition-all hover:from-amber-500 hover:to-amber-400 active:scale-[0.98] disabled:opacity-60"
               >
-                {loading ? "Sending link…" : "Send sign-in link →"}
+                <span className="tracking-tight">
+                  {loading ? "Sending link…" : "Send sign-in link"}
+                </span>
+                {!loading && (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="transition-transform group-hover:translate-x-1"
+                  >
+                    <path d="M5 12h14" />
+                    <path d="m12 5 7 7-7 7" />
+                  </svg>
+                )}
               </button>
-
-              <p className="pt-1 text-center text-[11px] text-muted-foreground">
-                We'll email you a single-use link. No password required.
-              </p>
             </form>
           )}
-        </div>
 
-        <p className="mt-5 text-center text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">
-          Atlas. Built by Athena. Powered by IRIS.
-        </p>
+          <div className="mt-12 flex flex-col items-center gap-6">
+            <div className="flex items-center gap-3">
+              <div className="h-px w-8 bg-white/10" />
+              <span className="text-[10px] uppercase tracking-[0.2em] text-white/20">
+                Authorized access only
+              </span>
+              <div className="h-px w-8 bg-white/10" />
+            </div>
+
+            <div className="flex items-center gap-6 opacity-30 grayscale transition-all duration-700 hover:opacity-100 hover:grayscale-0">
+              <div className="flex flex-col items-center">
+                <div className="mb-1 text-[8px] font-bold tracking-[0.3em] text-white">ATHENA</div>
+                <div className="h-0.5 w-10 bg-white/20" />
+              </div>
+              <div className="h-6 w-px bg-white/10" />
+              <div className="flex items-center gap-1.5">
+                <div className="flex h-3 w-3 items-center justify-center rounded-full border border-amber-500">
+                  <div className="h-1 w-1 rounded-full bg-amber-500" />
+                </div>
+                <span className="text-[9px] font-bold tracking-[0.2em] text-amber-500">IRIS</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
