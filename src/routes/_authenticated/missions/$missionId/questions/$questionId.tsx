@@ -370,7 +370,7 @@ function CockpitPage() {
         .from("signals")
         .select("created_at")
         .eq("mission_id", missionId)
-        .eq("source_user_id", me!.id)
+        .eq("user_id", me!.id)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
