@@ -226,7 +226,6 @@ function MissionRail({ missionId }: { missionId: string }) {
   });
 
   const sections = [
-    { to: "/missions/$missionId/intelligence", label: "Intelligence", icon: <Sparkles size={16} strokeWidth={1.5} className="text-[color:var(--iris,#22d3ee)]" />, match: ["/intelligence", "/library", "/briefing", "/brief", "/iris"] },
     { to: "/missions/$missionId/operations", label: "Operations", icon: <Wrench size={16} strokeWidth={1.5} />, match: ["/operations"] },
     { to: "/missions/$missionId/team", label: "Team", icon: <Users size={16} strokeWidth={1.5} />, match: ["/team"] },
     { to: "/missions/$missionId/activity", label: "Activity", icon: <History size={16} strokeWidth={1.5} />, match: ["/activity"] },
@@ -235,6 +234,7 @@ function MissionRail({ missionId }: { missionId: string }) {
   const tail = path.replace(`/missions/${missionId}`, "");
   const isActive = (matches: readonly string[]) =>
     matches.some((m) => tail === m || tail.startsWith(`${m}/`));
+  const intelActive = isActive(["/intelligence", "/library", "/briefing", "/brief", "/iris"]);
 
   return (
     <div className="flex h-full flex-col">
@@ -260,6 +260,25 @@ function MissionRail({ missionId }: { missionId: string }) {
 
 
       <nav className="flex-1 px-3 py-4 space-y-0.5">
+        <Link
+          to="/missions/$missionId/intelligence"
+          params={{ missionId }}
+          className={`group relative flex items-center justify-between gap-2 overflow-hidden rounded-md border px-3 py-2.5 text-sm font-semibold transition-colors ${
+            intelActive
+              ? "border-[color:var(--iris,#22d3ee)]/60 bg-[color:var(--iris,#22d3ee)]/[0.14] text-foreground"
+              : "border-[color:var(--iris,#22d3ee)]/30 bg-[color:var(--iris,#22d3ee)]/[0.06] text-foreground hover:bg-[color:var(--iris,#22d3ee)]/[0.12]"
+          }`}
+        >
+          <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-[color:var(--iris,#22d3ee)]/15 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
+          <span className="inline-flex items-center gap-2">
+            <Sparkles size={16} strokeWidth={1.75} className="text-[color:var(--iris,#22d3ee)] drop-shadow-[0_0_6px_var(--iris,#22d3ee)]" />
+            <span>Intelligence</span>
+          </span>
+          <ArrowRight size={14} strokeWidth={1.75} className="text-[color:var(--iris,#22d3ee)]" />
+        </Link>
+
+        <div className="my-3 border-t border-border" />
+
         {sections.map((s) => (
           <NavItem
             key={s.to}
