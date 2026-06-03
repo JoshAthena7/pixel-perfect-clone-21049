@@ -43,6 +43,9 @@ function VaultPage() {
   const [uploadIsRfp, setUploadIsRfp] = useState(true);
   const [dragOver, setDragOver] = useState(false);
   const [parsePromptFor, setParsePromptFor] = useState<{ id: string; name: string } | null>(null);
+  const [amendmentPromptFor, setAmendmentPromptFor] = useState<{ id: string; name: string } | null>(null);
+  const [amendmentType, setAmendmentType] = useState<"formal_amendment" | "qa_response" | "scope_change" | "deadline_extension" | "clarification">("formal_amendment");
+  const [analyzingAmendment, setAnalyzingAmendment] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [reviewDocId, setReviewDocId] = useState<string | undefined>(undefined);
 
@@ -78,7 +81,12 @@ function VaultPage() {
     setUploading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      // Does a base RFP already exist for this mission?
+      const hasExistingRfp = docs.some(
+        (d) => d.is_rfp || d.category === "RFP & Amendments" || d.category === "RFP",
+      );
       let lastRfp: { id: string; name: string } | null = null;
+      let lastAmendment: { id: string; name: string } | null = null;
       for (const file of Array.from(files)) {
         // Duplicate guard
         const dup = docs.find((d) => d.name === file.name);
@@ -114,11 +122,18 @@ function VaultPage() {
           target_table: "mission_library",
           target_id: row?.id ?? null,
         });
-        if (uploadIsRfp && row?.id) lastRfp = { id: row.id, name: file.name };
+        if (row?.id) {
+          if (uploadCategory === "RFP & Amendments" && hasExistingRfp) {
+            lastAmendment = { id: row.id, name: file.name };
+          } else if (uploadIsRfp) {
+            lastRfp = { id: row.id, name: file.name };
+          }
+        }
       }
       toast.success(`Uploaded ${files.length} file${files.length === 1 ? "" : "s"}`);
       qc.invalidateQueries({ queryKey: ["olympus-vault", missionId] });
-      if (lastRfp) setParsePromptFor(lastRfp);
+      if (lastAmendment) setAmendmentPromptFor(lastAmendment);
+      else if (lastRfp) setParsePromptFor(lastRfp);
     } catch (e: any) {
       toast.error(e?.message ?? "Upload failed");
     } finally {
@@ -359,6 +374,71 @@ function VaultPage() {
                 }}
                 className="rounded-lg border border-border px-4 py-2 text-sm hover:bg-surface-hover">
                 Skip — just parse questions
+              </button>
+            </footer>
+          </div>
+        </div>
+      )}
+
+      {amendmentPromptFor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => !analyzingAmendment && setAmendmentPromptFor(null)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-md rounded-[10px] border border-border bg-surface p-6">
+            <div className="flex items-center gap-2">
+              <span className="relative inline-flex h-2.5 w-2.5">
+                <span className="absolute inset-0 animate-ping rounded-full bg-amber-400 opacity-60" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-400" />
+              </span>
+              <div className="h2-label text-amber-300" style={{ letterSpacing: "0.32em" }}>Amendment Detected</div>
+            </div>
+            <h2 className="mt-2 text-lg font-semibold">Is this an amendment or addendum to the existing RFP?</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              IRIS will read <span className="text-foreground font-medium">{amendmentPromptFor.name}</span> alongside the original RFP and surface exactly what changed — by question, with required writer actions.
+            </p>
+            <div className="mt-4">
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Amendment type</label>
+              <select
+                value={amendmentType}
+                onChange={(e) => setAmendmentType(e.target.value as typeof amendmentType)}
+                disabled={analyzingAmendment}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+              >
+                <option value="formal_amendment">Formal Amendment / Addendum</option>
+                <option value="qa_response">Q&amp;A Response Document</option>
+                <option value="scope_change">Scope Change Notice</option>
+                <option value="deadline_extension">Deadline Extension</option>
+                <option value="clarification">Other Clarification</option>
+              </select>
+            </div>
+            <footer className="mt-6 flex flex-col gap-2">
+              <button
+                disabled={analyzingAmendment}
+                onClick={async () => {
+                  if (!amendmentPromptFor) return;
+                  setAnalyzingAmendment(true);
+                  try {
+                    const { analyzeAmendment } = await import("@/lib/rfp-amendment.functions");
+                    const res = await analyzeAmendment({ data: { documentId: amendmentPromptFor.id, amendmentType } });
+                    toast.success(`IRIS found ${res.totalChanges} change${res.totalChanges === 1 ? "" : "s"} (${res.criticalChanges} critical)`);
+                    qc.invalidateQueries({ queryKey: ["olympus-vault", missionId] });
+                    qc.invalidateQueries({ queryKey: ["amendment-changes"] });
+                    setAmendmentPromptFor(null);
+                  } catch (e) {
+                    toast.error(e instanceof Error ? e.message : "Amendment analysis failed");
+                  } finally {
+                    setAnalyzingAmendment(false);
+                  }
+                }}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-semibold text-black hover:bg-amber-400 disabled:opacity-50"
+              >
+                <Sparkles className="h-4 w-4" /> {analyzingAmendment ? "IRIS analyzing…" : "Yes — IRIS will analyze changes"}
+              </button>
+              <button
+                disabled={analyzingAmendment}
+                onClick={() => setAmendmentPromptFor(null)}
+                className="rounded-lg border border-border px-4 py-2 text-sm hover:bg-surface-hover disabled:opacity-50"
+              >
+                No — treat as new document
               </button>
             </footer>
           </div>
