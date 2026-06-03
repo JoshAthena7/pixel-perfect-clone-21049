@@ -120,16 +120,8 @@ async function extractDocxText(bytes: ArrayBuffer): Promise<string> {
 }
 
 async function callAnthropic(text: string): Promise<ParsedQuestion[]> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not configured");
-
-  const models = [
-    process.env.ANTHROPIC_MODEL,
-    "claude-sonnet-4-5-20250929",
-    "claude-sonnet-4-20250514",
-    "claude-3-7-sonnet-20250219",
-    "claude-3-5-sonnet-latest",
-  ].filter(Boolean) as string[];
+  const apiKey = process.env.LOVABLE_API_KEY;
+  if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured");
 
   const body = compactRfpTextForAi(text);
   const localQuestions = fallbackExtractQuestions(text);
@@ -141,57 +133,87 @@ Return ONLY a JSON array (no prose, no markdown fences) of objects with this sha
   "question_text": string, "page_limit": number|null, "word_limit": number|null,
   "evaluation_weight": number|null, "scoring_criteria": string|null,
   "requirements": string[]|null }
-Identify every numbered prompt the bidder must answer. If no questions exist, return [].`;
+Identify every numbered prompt the bidder must answer. If no questions exist, return [].
+Wrap the array in an object: {"questions": [...]}`;
+
+  const models = [
+    process.env.IRIS_PARSER_MODEL,
+    "google/gemini-3-flash-preview",
+    "google/gemini-2.5-flash",
+    "google/gemini-2.5-pro",
+  ].filter(Boolean) as string[];
 
   let lastError = "";
   for (const model of models) {
     let res: Response;
     try {
-      res = await fetch("https://api.anthropic.com/v1/messages", {
+      res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-          "content-type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           model,
-          max_tokens: 2000,
-          system,
-          messages: [{ role: "user", content: `RFP TEXT:\n\n${body}` }],
+          messages: [
+            { role: "system", content: system },
+            { role: "user", content: `RFP TEXT:\n\n${body}` },
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0.1,
         }),
-        signal: AbortSignal.timeout(18_000),
+        signal: AbortSignal.timeout(45_000),
       });
     } catch {
       return fallbackExtractQuestions(text);
     }
 
+    if (res.status === 402) {
+      throw new Error("Lovable AI credits exhausted — add credits in Settings → Workspace → Usage.");
+    }
     if (!res.ok) {
       const err = await res.text();
-      lastError = `Anthropic ${res.status}: ${err.slice(0, 500)}`;
-      if (res.status === 404 && err.includes("not_found_error")) continue;
+      lastError = `Lovable AI ${res.status}: ${err.slice(0, 400)}`;
+      if (res.status === 404 || res.status === 400) continue;
       if (res.status === 408 || res.status === 429 || res.status >= 500) {
         return fallbackExtractQuestions(text);
       }
       throw new Error(lastError);
     }
 
-    const json = (await res.json()) as { content: Array<{ type: string; text?: string }> };
-    const raw = json.content?.find((c) => c.type === "text")?.text ?? "[]";
-    // Strip code fences if present
+    const json = (await res.json()) as {
+      choices?: Array<{ message?: { content?: string } }>;
+    };
+    const raw = json.choices?.[0]?.message?.content ?? "[]";
     const cleaned = raw
       .replace(/^```(?:json)?\s*/i, "")
       .replace(/```\s*$/i, "")
       .trim();
-    const start = cleaned.indexOf("[");
-    const end = cleaned.lastIndexOf("]");
-    if (start < 0 || end < 0) return [];
-    const parsed = JSON.parse(cleaned.slice(start, end + 1)) as ParsedQuestion[];
-    return Array.isArray(parsed) ? parsed : [];
+
+    // Accept either a raw array or {"questions":[...]}
+    try {
+      const objStart = cleaned.indexOf("{");
+      const objEnd = cleaned.lastIndexOf("}");
+      if (objStart >= 0 && objEnd > objStart) {
+        const obj = JSON.parse(cleaned.slice(objStart, objEnd + 1));
+        if (Array.isArray(obj?.questions)) return obj.questions as ParsedQuestion[];
+        if (Array.isArray(obj)) return obj as ParsedQuestion[];
+      }
+      const arrStart = cleaned.indexOf("[");
+      const arrEnd = cleaned.lastIndexOf("]");
+      if (arrStart >= 0 && arrEnd > arrStart) {
+        const arr = JSON.parse(cleaned.slice(arrStart, arrEnd + 1));
+        if (Array.isArray(arr)) return arr as ParsedQuestion[];
+      }
+    } catch {
+      continue;
+    }
+    return [];
   }
 
-  throw new Error(lastError || "Anthropic model unavailable");
+  throw new Error(lastError || "Lovable AI unavailable");
 }
+
 
 export const parseRfpDocument = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
