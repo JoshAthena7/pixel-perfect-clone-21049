@@ -10,6 +10,7 @@ import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
 import { SOSButton } from "@/components/v2/SOSButton";
 import { toast } from "sonner";
 import { ArrowLeft, Sparkles, Send, ChevronDown, ChevronRight, X, MessageSquare, AlertTriangle, Flag, RefreshCw } from "lucide-react";
+import { IrisCorrectable } from "@/components/v2/IrisCorrectable";
 
 
 export const Route = createFileRoute(
