@@ -234,12 +234,7 @@ function LoginPage() {
                   ))}
                 </div>
               </div>
-              <div className="relative flex min-h-[110px] items-start gap-4 px-6 py-6">
-                <img
-                  src={irisLogo.url}
-                  alt="IRIS"
-                  className="mt-1 h-10 w-10 shrink-0 object-contain"
-                />
+              <div className="relative min-h-[110px] px-6 py-6">
                 <p
                   key={briefingIdx}
                   className="iris-fade text-lg font-light leading-relaxed text-white"
