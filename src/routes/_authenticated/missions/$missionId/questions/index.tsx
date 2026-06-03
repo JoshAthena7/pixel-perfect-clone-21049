@@ -612,31 +612,16 @@ function ResponsesList() {
   });
   const isWriter = myRole === "writer";
 
-  const VIEW_KEY = `atlas_question_view_${missionId}`;
-  const [view, setView] = useState<View>(() => {
-    if (typeof window === "undefined") return "mine";
-    try {
-      const raw = localStorage.getItem(VIEW_KEY);
-      if (!raw) return "mine";
-      const parsed = JSON.parse(raw) as { v: View; d: string };
-      const today = new Date().toISOString().slice(0, 10);
-      if (parsed.d !== today) return "mine";
-      return parsed.v === "all" ? "all" : "mine";
-    } catch {
-      return "mine";
-    }
+  const OTHERS_KEY = `atlas_others_open_${missionId}`;
+  const [othersOpen, setOthersOpen] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try { return localStorage.getItem(OTHERS_KEY) === "1"; } catch { return false; }
   });
   useEffect(() => {
-    try {
-      const today = new Date().toISOString().slice(0, 10);
-      localStorage.setItem(VIEW_KEY, JSON.stringify({ v: view, d: today }));
-    } catch { /* noop */ }
-  }, [VIEW_KEY, view]);
+    try { localStorage.setItem(OTHERS_KEY, othersOpen ? "1" : "0"); } catch { /* noop */ }
+  }, [OTHERS_KEY, othersOpen]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [drawerQ, setDrawerQ] = useState<Q | null>(null);
-
-  // For non-writers, default to All
-  const effectiveView: View = isWriter === false ? "all" : view;
 
   const { data: questions = [], isLoading } = useQuery({
     queryKey: ["mission-questions-v2", missionId],
