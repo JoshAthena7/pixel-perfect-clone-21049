@@ -261,11 +261,14 @@ function CanonTab() {
 
   return (
     <div>
-      <div className="mb-6 flex flex-col gap-2">
-        <LayerBadge layer="canon" />
-        <p className="text-[13px] text-muted-foreground max-w-3xl">
-          Federal regulations, CMS guidance, Medicaid authorities, and Athena methodology. These sources are always available to IRIS regardless of mission.
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-2">
+          <LayerBadge layer="canon" />
+          <p className="text-[13px] text-muted-foreground max-w-3xl">
+            Federal regulations, CMS guidance, Medicaid authorities, and Athena methodology. These sources are always available to IRIS regardless of mission.
+          </p>
+        </div>
+        <ActivateStarterKitButton />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-6">
         <aside>
