@@ -438,7 +438,7 @@ function ResponsesList() {
     queryFn: async () => {
       const { data } = await supabase
         .from("question_records")
-        .select("id,mission_id,question_number,title,pens_down_date,assigned_writer_id,health,status,current_score")
+        .select("id,mission_id,question_number,section_number,title,pens_down_date,assigned_writer_id,health,status,current_score")
         .eq("mission_id", missionId)
         .order("sort_order", { ascending: true });
       return (data ?? []) as Q[];
