@@ -109,7 +109,7 @@ function CockpitPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("question_records")
-        .select("id,mission_id,question_number,title,question_text,pens_down_date,guidance,requirements,mandatory_language,status,health,health_drivers,assigned_writer_id,assigned_sme_id,section,page_limit,weight")
+        .select("id,mission_id,question_number,title,question_text,pens_down_date,guidance,requirements,mandatory_language,status,health,health_drivers,assigned_writer_id,assigned_sme_id,section_number,page_limit,evaluation_weight")
         .eq("id", questionId).maybeSingle();
       if (error) throw error;
       return data as Q | null;
