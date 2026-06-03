@@ -479,6 +479,42 @@ function ResultStage({
           </ol>
         </section>
 
+        {/* PERSON-FIRST LANGUAGE */}
+        <section>
+          {personFirstFlags.length === 0 ? (
+            <div className="flex items-center gap-2 rounded-[10px] border border-emerald-500/25 bg-emerald-500/[0.05] px-4 py-3 text-sm">
+              <span className="text-emerald-400">●</span>
+              <span className="text-emerald-200">Person-first language: ✓ Clear</span>
+            </div>
+          ) : (
+            <div className="rounded-[10px] border border-amber-500/25 bg-amber-500/[0.04] p-5">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-[11px] font-bold uppercase tracking-[0.24em] text-amber-300">
+                  ● Person-first language
+                </div>
+                <div className="text-[11px] text-amber-200/80">
+                  Score impact: −{personFirstImpact.toFixed(1)}
+                </div>
+              </div>
+              <div className="mt-1 text-[12px] text-amber-100/80">
+                {personFirstFlags.length} term{personFirstFlags.length === 1 ? "" : "s"} need attention. Evaluators score cultural competency on this — fix before submission.
+              </div>
+              <div className="mt-4 space-y-3">
+                {personFirstFlags.map((f, i) => (
+                  <div key={i} className="rounded-[8px] border border-white/5 bg-black/30 px-4 py-3 text-sm">
+                    <div className="flex flex-wrap items-baseline gap-2">
+                      <span className="line-through opacity-60">"{f.match}"</span>
+                      <span className="text-amber-300">→</span>
+                      <span className="font-medium text-amber-100">"{f.replacement}"</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+
+
         {/* SECTION B */}
         <section>
           <h3 className="text-[11px] font-bold uppercase tracking-[0.24em] text-muted-foreground mb-4">
