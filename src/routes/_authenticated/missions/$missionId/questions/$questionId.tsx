@@ -751,6 +751,13 @@ function CockpitPage() {
           </div>
         </AskDrawer>
       )}
+
+      <ScoreMeOverlay
+        open={scoreMeOpen}
+        onClose={() => setScoreMeOpen(false)}
+        missionId={missionId}
+        lockedQuestionId={questionId}
+      />
     </div>
   );
 }
