@@ -189,6 +189,17 @@ function TopBar({
 
       {/* RIGHT — actions */}
       <div className="flex shrink-0 items-center gap-2">
+        <button
+          onClick={() => {
+            window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
+          }}
+          title="Search & Jump (⌘K)"
+          aria-label="Open command palette"
+          className="hidden md:inline-flex h-8 items-center gap-2 rounded-md border border-white/10 bg-white/[0.03] px-2.5 text-[11px] text-muted-foreground hover:border-[color:var(--iris,#22d3ee)]/30 hover:bg-[color:var(--iris,#22d3ee)]/[0.05] hover:text-foreground transition-colors"
+        >
+          <span>Jump to…</span>
+          <kbd className="rounded border border-white/10 px-1 py-0.5 font-mono text-[9px]">⌘K</kbd>
+        </button>
         <IrisStatusIndicator />
         <NotificationBell />
         {isPrivileged && (
