@@ -116,7 +116,7 @@ function TopBar({
       {/* LEFT — logo + mission name */}
       <div className="flex min-w-0 items-center gap-3">
         <Link to="/home" className="flex items-center gap-2 shrink-0" title="Atrium">
-          <img src={athenaSgLogo.url} alt="" className="h-6 w-6 object-contain" />
+          <img src={athenaSgLogo.url} alt="" className="h-6 w-6 object-contain opacity-30 mix-blend-luminosity" style={{ filter: "brightness(0.6) contrast(0.9)" }} />
           <span className="text-[color:var(--athena-gold)] text-sm leading-none">⚡</span>
           <span className="text-[13px] font-extrabold tracking-[0.2em] text-white">ATLAS</span>
         </Link>
