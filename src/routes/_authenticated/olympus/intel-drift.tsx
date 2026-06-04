@@ -69,7 +69,7 @@ function IntelDriftPage() {
           Declare an intel drift when the procurement reality has shifted and the Oracle or IRIS
           are operating on stale assumptions. Recalibration regenerates the Mission Intelligence DNA
           from the latest RFP, supersedes prior mission-scoped IRIS memories (kept for audit),
-          clears every cached brief, re-runs the top research questions through Perplexity,
+          clears every cached brief, re-queues research questions for background refresh,
           and posts a Global Briefing to the mission team. Audited.
         </p>
       </div>
@@ -119,7 +119,7 @@ function IntelDriftPage() {
           </button>
           {busy && (
             <span className="text-[11px] text-muted-foreground">
-              30–60 seconds while research runs.
+              Usually completes in a few seconds.
             </span>
           )}
         </div>
@@ -131,7 +131,7 @@ function IntelDriftPage() {
             Last Recalibration
           </div>
           <ul className="space-y-1.5 text-foreground/90">
-            <li>DNA: {lastResult.dna?.ok ? "regenerated" : `FAILED — ${lastResult.dna?.error}`}</li>
+            <li>DNA refresh queued for the next RFP intelligence run</li>
             <li>{lastResult.memoriesSuperseded} mission-scoped IRIS memories superseded</li>
             <li>{lastResult.cacheCleared} cached briefs cleared</li>
             <li>

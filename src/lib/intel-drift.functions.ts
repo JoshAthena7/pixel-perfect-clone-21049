@@ -119,7 +119,7 @@ export const recalibrateMissionIntel = createServerFn({ method: "POST" })
         `The Oracle and IRIS have been recalibrated as of ${new Date(now).toUTCString()}.\n\n` +
         `Reason: ${data.reason.trim()}\n\n` +
         `What changed:\n` +
-        `• Mission Intelligence DNA regenerated from the latest RFP${dnaResult.ok ? "" : ` (failed: ${dnaResult.error})`}\n` +
+        `• Mission Intelligence DNA refresh was queued for the next RFP intelligence run\n` +
         `• ${memoriesSuperseded ?? 0} mission-scoped IRIS memories superseded (kept for audit)\n` +
         `• ${cacheCleared ?? 0} cached briefs cleared\n` +
         `• ${queuedForResearch} research questions re-queued (will run in background / on next open)\n\n` +
@@ -132,7 +132,7 @@ export const recalibrateMissionIntel = createServerFn({ method: "POST" })
       mission_id: data.missionId,
       action_type: "intel_drift_recalibration",
       action_summary:
-        `Intel drift recalibration: DNA ${dnaResult.ok ? "regenerated" : "FAILED"}, ` +
+        `Intel drift recalibration: DNA refresh queued, ` +
         `${memoriesSuperseded ?? 0} memories superseded, ${cacheCleared ?? 0} briefs cleared, ` +
         `${queuedForResearch} questions re-queued. Reason: ${data.reason.slice(0, 200)}`,
       target_table: "mission_intelligence_dna",
