@@ -128,6 +128,8 @@ export async function enrichIntelRow(row: {
       mission_id: null,
       content_text: `${row.title}\n${row.summary ?? ""}`,
       vector,
+      // H4: published industry intel is intentionally cross-tenant.
+      scope: "global",
     });
     const { missionIds, questionIds } = await matchIntelToMissions(vector);
     if (missionIds.length) {
@@ -165,5 +167,7 @@ export async function ensureQuestionEmbedding(q: {
     mission_id: q.mission_id,
     content_text: text,
     vector: v,
+    // H4: question text is mission-scoped.
+    scope: "mission",
   });
 }

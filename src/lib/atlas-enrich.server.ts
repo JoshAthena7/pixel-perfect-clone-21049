@@ -33,13 +33,16 @@ export async function enrichAtlasSource(row: {
     update.date_last_ingested = new Date().toISOString();
 
     // Mirror into the shared embeddings table for unified semantic search.
+    // H4: atlas_sources may be mission-scoped intel or firm-wide knowledge.
+    // Treat NULL mission_id as global atlas knowledge (admin-curated by definition).
     await supabaseAdmin.from("embeddings").insert({
       source_table: "atlas_sources",
       source_id: row.id,
       mission_id: row.mission_id ?? null,
       content_text: `${row.source_title}\n${row.summary ?? body ?? ""}`.slice(0, 4000),
       embedding: vector as unknown as never,
-    });
+      scope: row.mission_id ? "mission" : "global",
+    } as never);
 
     // Cross-match to active mission questions.
     const { questionIds } = await matchIntelToMissions(vector);
