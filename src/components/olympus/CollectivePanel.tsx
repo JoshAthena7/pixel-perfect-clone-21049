@@ -410,7 +410,7 @@ export function CollectivePanel({ missionId }: { missionId: string | null }) {
                     {c.profile_id ? (
                       <span className="inline-flex rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-medium text-emerald-400">Linked</span>
                     ) : (
-                      <span className="inline-flex rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-medium text-amber-400">Pending sign-in</span>
+                      <span className="inline-flex rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-medium text-amber-400">Will invite</span>
                     )}
                   </td>
                   <td className="px-4 py-2.5">
