@@ -58,6 +58,21 @@ export function ScoreMeOverlay({ open, onClose, missionId, lockedQuestionId }: P
     }
   }, [open, lockedQuestionId]);
 
+  // Mission FedRAMP-scope flag — hard block on Score Me when true.
+  const { data: mission } = useQuery({
+    queryKey: ["score-me-mission", missionId],
+    enabled: open,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("missions")
+        .select("id, name, is_fedramp_scope")
+        .eq("id", missionId)
+        .maybeSingle();
+      return data as { id: string; name: string; is_fedramp_scope: boolean } | null;
+    },
+  });
+  const fedrampBlocked = mission?.is_fedramp_scope === true;
+
   // Mission questions for selector
   const { data: questions = [] } = useQuery({
     queryKey: ["score-me-questions", missionId],
