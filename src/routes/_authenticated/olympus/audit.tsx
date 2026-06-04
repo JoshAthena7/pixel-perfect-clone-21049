@@ -58,12 +58,25 @@ function AuditPage() {
   });
 
   const types = useMemo(() => Array.from(new Set(entries.map((e) => e.action_type))).sort(), [entries]);
+  const users = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const e of entries) {
+      if (e.user_id) seen.set(e.user_id, e.user_name ?? e.user_id);
+    }
+    return [...seen.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  }, [entries]);
+  const missionNameById = useMemo(
+    () => new Map(missionsList.map((m) => [m.id, m.name])),
+    [missionsList],
+  );
 
   const visible = useMemo(() => {
     const fromTs = dateFrom ? new Date(dateFrom).getTime() : null;
     const toTs = dateTo ? new Date(dateTo).getTime() + 86400000 : null;
     return entries.filter((e) => {
       if (filterType !== "all" && e.action_type !== filterType) return false;
+      if (filterUser !== "all" && e.user_id !== filterUser) return false;
+      if (filterMission !== "all" && e.mission_id !== filterMission) return false;
       const ts = new Date(e.created_at).getTime();
       if (fromTs !== null && ts < fromTs) return false;
       if (toTs !== null && ts >= toTs) return false;
@@ -73,16 +86,25 @@ function AuditPage() {
         (e.user_name ?? "").toLowerCase().includes(q) ||
         e.action_type.toLowerCase().includes(q);
     });
-  }, [entries, search, filterType, dateFrom, dateTo]);
+  }, [entries, search, filterType, filterUser, filterMission, dateFrom, dateTo]);
 
   function exportCsv() {
-    const header = ["When", "Who", "Action", "Summary", "Mission", "Target"];
+    // H3: CSV includes the full metadata payload (un-truncated) — required for
+    // GDPR Art. 33 breach-readiness within 72 hours.
+    const header = ["When", "User ID", "User", "Action", "Summary", "Mission ID", "Mission Name", "Target Table", "Target ID", "Metadata JSON"];
     const lines = [header.join(",")];
     for (const e of visible) {
       const cells = [
         new Date(e.created_at).toISOString(),
-        e.user_name ?? "", e.action_type, e.action_summary,
-        e.mission_id ?? "", e.target_table ?? "",
+        e.user_id ?? "",
+        e.user_name ?? "",
+        e.action_type,
+        e.action_summary,
+        e.mission_id ?? "",
+        e.mission_id ? (missionNameById.get(e.mission_id) ?? "") : "",
+        e.target_table ?? "",
+        (e as any).target_id ?? "",
+        e.metadata ? JSON.stringify(e.metadata) : "",
       ].map((v) => {
         const s = String(v ?? "");
         return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
@@ -94,7 +116,7 @@ function AuditPage() {
     const a = document.createElement("a");
     a.href = url; a.download = `olympus-audit-${new Date().toISOString().slice(0,10)}.csv`;
     a.click(); URL.revokeObjectURL(url);
-    toast.success("Exported CSV");
+    toast.success(`Exported ${visible.length} entries (full metadata)`);
   }
 
   return (
