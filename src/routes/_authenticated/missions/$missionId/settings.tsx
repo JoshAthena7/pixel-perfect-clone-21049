@@ -487,201 +487,25 @@ function AddGateModal({ missionId, defaultOrder, onClose }: { missionId: string;
 
 /* ─── Tab 3: Team ────────────────────────────── */
 
-type Member = {
-  id: string;
-  user_id: string;
-  role: Role;
-  display_name: string | null;
-  joined_at: string | null;
-};
-type ProfileLite = { id: string; display_name: string; email: string | null };
-
-function TeamTab({ missionId }: { missionId: string }) {
-  const qc = useQueryClient();
-  const [showInvite, setShowInvite] = useState(false);
-
-  // ARCH-10: identify current user so we can guard self-revocation
-  const { data: currentUserId } = useQuery({
-    queryKey: ["current-user-id"],
-    queryFn: async () => {
-      const { data } = await supabase.auth.getUser();
-      return data.user?.id ?? null;
-    },
-  });
-
-  const { data: members = [], isLoading } = useQuery({
-    queryKey: ["mission-members", missionId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("mission_members")
-        .select("id,user_id,role,display_name,joined_at")
-        .eq("mission_id", missionId)
-        .order("joined_at", { ascending: true });
-      return (data ?? []) as Member[];
-    },
-  });
-
-  const adminCount = members.filter((m) => m.role === "admin").length;
-
-  const ids = members.map((m) => m.user_id);
-  const { data: profiles = [] } = useQuery({
-    queryKey: ["profiles-batch", ids],
-    queryFn: async () => {
-      if (ids.length === 0) return [];
-      const { data } = await supabase.from("profiles").select("id,display_name,email").in("id", ids);
-      return (data ?? []) as ProfileLite[];
-    },
-    enabled: ids.length > 0,
-  });
-
-  const profileMap = new Map(profiles.map((p) => [p.id, p]));
-
-  const updateRole = useMutation({
-    mutationFn: async ({ id, role, member }: { id: string; role: Role; member: Member }) => {
-      // ARCH-10: block demoting the last admin (especially yourself)
-      if (member.role === "admin" && role !== "admin" && adminCount <= 1) {
-        throw new Error("You can't demote the only admin on this mission. Promote another member first.");
-      }
-      const { error } = await supabase.from("mission_members").update({ role }).eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["mission-members", missionId] }),
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const removeMember = useMutation({
-    mutationFn: async (member: Member) => {
-      // ARCH-10: block removing yourself if you are the only admin
-      if (member.user_id === currentUserId && member.role === "admin" && adminCount <= 1) {
-        throw new Error("You can't remove yourself as the only admin. Promote another member first.");
-      }
-      const { error } = await supabase.from("mission_members").delete().eq("id", member.id);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["mission-members", missionId] }),
-    onError: (e: Error) => toast.error(e.message),
-  });
-
+function TeamTab(_: { missionId: string }) {
   return (
-    <div className="rounded-[10px] border border-border bg-surface overflow-hidden">
-      <div className="flex items-center justify-between border-b border-border px-6 py-4">
-        <h2 className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Team Members</h2>
-        <button onClick={() => setShowInvite(true)} className="inline-flex items-center gap-1.5 rounded-[6px] border border-border bg-background px-2.5 py-1.5 text-xs text-foreground hover:bg-surface-hover">
-          <UserPlus className="h-3.5 w-3.5" /> Invite Member
-        </button>
-      </div>
-      {isLoading ? (
-        <div className="p-8 text-center text-sm text-muted-foreground">Loading…</div>
-      ) : members.length === 0 ? (
-        <div className="p-12 text-center">
-          <p className="text-sm text-foreground/90">No team members yet.</p>
-          <p className="mt-1 text-xs text-muted-foreground">Invite teammates by email to give them access to this mission.</p>
-        </div>
-      ) : (
-        <table className="w-full text-sm">
-          <thead className="border-b border-border bg-surface-hover text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-            <tr>
-              <th className="px-4 py-3 text-left">Name</th>
-              <th className="px-4 py-3 text-left">Email</th>
-              <th className="px-4 py-3 text-left w-40">Role</th>
-              <th className="px-4 py-3 w-12" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {members.map((m) => {
-              const p = profileMap.get(m.user_id);
-              return (
-                <tr key={m.id} className="hover:bg-surface-hover">
-                  <td className="px-4 py-3">{m.display_name ?? p?.display_name ?? "—"}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{p?.email ?? "—"}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <RoleBadge role={m.role} />
-                      <select
-                        className="rounded-[6px] border border-border bg-background px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                        value={m.role}
-                        onChange={(e) => updateRole.mutate({ id: m.id, role: e.target.value as Role, member: m })}
-                      >
-                        {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-                      </select>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button onClick={() => removeMember.mutate(m)} className="text-muted-foreground hover:text-destructive">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
-
-      {showInvite && <InviteModal missionId={missionId} onClose={() => setShowInvite(false)} />}
+    <div className="rounded-[10px] border border-border bg-surface p-10 text-center">
+      <h2 className="text-sm font-medium text-foreground">Team & roles are managed in Olympus</h2>
+      <p className="mx-auto mt-2 max-w-md text-xs text-muted-foreground">
+        All platform access, mission assignments, and role changes live in Olympus.
+        Mission settings here cover details, intelligence, gates, and themes only.
+      </p>
+      <Link
+        to="/olympus"
+        className="mt-5 inline-flex items-center gap-1.5 rounded-[8px] border border-border bg-background px-3 py-2 text-xs text-foreground hover:bg-surface-hover"
+      >
+        Open Olympus
+      </Link>
     </div>
   );
 }
 
-function RoleBadge({ role }: { role: Role }) {
-  const tone: Record<Role, string> = {
-    admin: "bg-primary/15 text-primary",
-    lead: "bg-blue-500/15 text-blue-400",
-    writer: "bg-emerald-500/15 text-emerald-400",
-    sme: "bg-amber-500/15 text-amber-400",
-    viewer: "bg-muted text-muted-foreground",
-  };
-  return <span className={`rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] ${tone[role]}`}>{role}</span>;
-}
 
-function InviteModal({ missionId, onClose }: { missionId: string; onClose: () => void }) {
-  const qc = useQueryClient();
-  const invite = useServerFn(inviteMissionMember);
-  const [form, setForm] = useState<{ email: string; role: Role; displayName: string }>({ email: "", role: "writer", displayName: "" });
-
-  const submit = useMutation({
-    mutationFn: async () => {
-      await invite({
-        data: {
-          missionId,
-          email: form.email,
-          role: form.role,
-          displayName: form.displayName || undefined,
-        },
-      });
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["mission-members", missionId] });
-      onClose();
-    },
-  });
-
-  return (
-    <ModalShell title="Invite Team Member" onClose={onClose}>
-      <div className="grid gap-4">
-        <Field label="Email"><input type="email" className={inputCls} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="teammate@company.com" /></Field>
-        <Field label="Display Name (optional)"><input className={inputCls} value={form.displayName} onChange={(e) => setForm({ ...form, displayName: e.target.value })} /></Field>
-        <Field label="Role">
-          <select className={inputCls} value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as Role })}>
-            {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-          </select>
-        </Field>
-      </div>
-      <p className="mt-3 text-[11px] text-muted-foreground">An email with a magic-link sign-in will be sent if the user doesn't already have an account.</p>
-      {submit.isError && <p className="mt-3 text-xs text-destructive">{(submit.error as Error).message}</p>}
-      <div className="mt-5 flex justify-end gap-2">
-        <button onClick={onClose} className="rounded-[8px] border border-border px-3 py-2 text-sm hover:bg-surface-hover">Cancel</button>
-        <button
-          disabled={!form.email || submit.isPending}
-          onClick={() => submit.mutate()}
-          className="rounded-[8px] bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
-        >
-          {submit.isPending ? "Sending…" : "Send invite"}
-        </button>
-      </div>
-    </ModalShell>
-  );
-}
 
 /* ─── Tab 4: Win Themes ────────────────────────── */
 
