@@ -21,6 +21,7 @@ import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/h
 import { Route as AuthenticatedAtriumRouteImport } from './routes/_authenticated/atrium'
 import { Route as AuthenticatedOlympusIndexRouteImport } from './routes/_authenticated/olympus/index'
 import { Route as AuthenticatedProfileExpertiseRouteImport } from './routes/_authenticated/profile/expertise'
+import { Route as AuthenticatedOlympusWriterDeletionRouteImport } from './routes/_authenticated/olympus/writer-deletion'
 import { Route as AuthenticatedOlympusWinThemesRouteImport } from './routes/_authenticated/olympus/win-themes'
 import { Route as AuthenticatedOlympusVaultRouteImport } from './routes/_authenticated/olympus/vault'
 import { Route as AuthenticatedOlympusUsersRouteImport } from './routes/_authenticated/olympus/users'
@@ -136,6 +137,12 @@ const AuthenticatedProfileExpertiseRoute =
     id: '/profile/expertise',
     path: '/profile/expertise',
     getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedOlympusWriterDeletionRoute =
+  AuthenticatedOlympusWriterDeletionRouteImport.update({
+    id: '/writer-deletion',
+    path: '/writer-deletion',
+    getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
 const AuthenticatedOlympusWinThemesRoute =
   AuthenticatedOlympusWinThemesRouteImport.update({
@@ -485,6 +492,7 @@ export interface FileRoutesByFullPath {
   '/olympus/users': typeof AuthenticatedOlympusUsersRoute
   '/olympus/vault': typeof AuthenticatedOlympusVaultRoute
   '/olympus/win-themes': typeof AuthenticatedOlympusWinThemesRoute
+  '/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/olympus/': typeof AuthenticatedOlympusIndexRoute
   '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
@@ -547,6 +555,7 @@ export interface FileRoutesByTo {
   '/olympus/users': typeof AuthenticatedOlympusUsersRoute
   '/olympus/vault': typeof AuthenticatedOlympusVaultRoute
   '/olympus/win-themes': typeof AuthenticatedOlympusWinThemesRoute
+  '/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/olympus': typeof AuthenticatedOlympusIndexRoute
   '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
@@ -613,6 +622,7 @@ export interface FileRoutesById {
   '/_authenticated/olympus/users': typeof AuthenticatedOlympusUsersRoute
   '/_authenticated/olympus/vault': typeof AuthenticatedOlympusVaultRoute
   '/_authenticated/olympus/win-themes': typeof AuthenticatedOlympusWinThemesRoute
+  '/_authenticated/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
   '/_authenticated/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/_authenticated/olympus/': typeof AuthenticatedOlympusIndexRoute
   '/_authenticated/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
@@ -679,6 +689,7 @@ export interface FileRouteTypes {
     | '/olympus/users'
     | '/olympus/vault'
     | '/olympus/win-themes'
+    | '/olympus/writer-deletion'
     | '/profile/expertise'
     | '/olympus/'
     | '/missions/$missionId/activity'
@@ -741,6 +752,7 @@ export interface FileRouteTypes {
     | '/olympus/users'
     | '/olympus/vault'
     | '/olympus/win-themes'
+    | '/olympus/writer-deletion'
     | '/profile/expertise'
     | '/olympus'
     | '/missions/$missionId/activity'
@@ -806,6 +818,7 @@ export interface FileRouteTypes {
     | '/_authenticated/olympus/users'
     | '/_authenticated/olympus/vault'
     | '/_authenticated/olympus/win-themes'
+    | '/_authenticated/olympus/writer-deletion'
     | '/_authenticated/profile/expertise'
     | '/_authenticated/olympus/'
     | '/_authenticated/missions/$missionId/activity'
@@ -925,6 +938,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/profile/expertise'
       preLoaderRoute: typeof AuthenticatedProfileExpertiseRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/olympus/writer-deletion': {
+      id: '/_authenticated/olympus/writer-deletion'
+      path: '/writer-deletion'
+      fullPath: '/olympus/writer-deletion'
+      preLoaderRoute: typeof AuthenticatedOlympusWriterDeletionRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
     }
     '/_authenticated/olympus/win-themes': {
       id: '/_authenticated/olympus/win-themes'
@@ -1308,6 +1328,7 @@ interface AuthenticatedOlympusRouteChildren {
   AuthenticatedOlympusUsersRoute: typeof AuthenticatedOlympusUsersRoute
   AuthenticatedOlympusVaultRoute: typeof AuthenticatedOlympusVaultRoute
   AuthenticatedOlympusWinThemesRoute: typeof AuthenticatedOlympusWinThemesRoute
+  AuthenticatedOlympusWriterDeletionRoute: typeof AuthenticatedOlympusWriterDeletionRoute
   AuthenticatedOlympusIndexRoute: typeof AuthenticatedOlympusIndexRoute
 }
 
@@ -1335,6 +1356,8 @@ const AuthenticatedOlympusRouteChildren: AuthenticatedOlympusRouteChildren = {
   AuthenticatedOlympusUsersRoute: AuthenticatedOlympusUsersRoute,
   AuthenticatedOlympusVaultRoute: AuthenticatedOlympusVaultRoute,
   AuthenticatedOlympusWinThemesRoute: AuthenticatedOlympusWinThemesRoute,
+  AuthenticatedOlympusWriterDeletionRoute:
+    AuthenticatedOlympusWriterDeletionRoute,
   AuthenticatedOlympusIndexRoute: AuthenticatedOlympusIndexRoute,
 }
 
