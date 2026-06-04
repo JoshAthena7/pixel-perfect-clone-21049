@@ -17,7 +17,9 @@ import atlasLogo from "@/assets/atlas-logo.png.asset.json";
 import { LegacyRecord } from "@/components/v4/LegacyRecord";
 import { DailyPulse } from "@/components/v4/DailyPulse";
 import { IrisTrustIntro } from "@/components/v4/IrisTrustIntro";
+import { useIsAdmin } from "@/hooks/useAccess";
 import type { ReactNode } from "react";
+
 
 
 export const Route = createFileRoute("/_authenticated/home")({
@@ -103,6 +105,8 @@ function AthenaHQ() {
     },
   });
   const isLeader = myRole === "admin" || myRole === "lead";
+  const { isAdmin } = useIsAdmin();
+
 
   // CHANGE 5: Writers with exactly one active mission skip the Lobby.
   const navigate = useNavigate();
@@ -355,17 +359,20 @@ function AthenaHQ() {
               <EmptyState
                 icon={<Rocket className="h-10 w-10" strokeWidth={1.5} />}
                 title="Atlas is ready."
-                subtitle="Create your first mission in Olympus to get started."
+                subtitle={isAdmin ? "Create your first mission in Olympus to get started." : "No active missions yet. An admin will set things up shortly."}
                 cta={
-                  <Link
-                    to="/olympus"
-                    className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-[13px] font-medium text-background hover:opacity-90"
-                  >
-                    Go to Olympus
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
+                  isAdmin ? (
+                    <Link
+                      to="/olympus"
+                      className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-[13px] font-medium text-background hover:opacity-90"
+                    >
+                      Go to Olympus
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  ) : null
                 }
               />
+
 
 
             ) : (

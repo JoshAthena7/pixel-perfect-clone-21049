@@ -8,7 +8,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { irisLeadershipAttention } from "@/lib/iris.functions";
+import { useIsAdmin } from "@/hooks/useAccess";
 import { toast } from "sonner";
+
 
 import { NotificationBell } from "@/components/v2/NotificationBell";
 import { KeyboardShortcuts } from "@/components/v2/KeyboardShortcuts";
@@ -83,16 +85,10 @@ function TopBar({
 }: { missionId?: string; isOlympus: boolean; isAtrium: boolean; room: Room }) {
   const inMission = !!missionId;
 
-  const { data: isPrivileged = false } = useQuery({
-    queryKey: ["shell-is-privileged"],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
-      const { data } = await supabase.from("mission_members").select("role").eq("user_id", user.id);
-      const roles = (data ?? []).map((r: { role: string }) => r.role);
-      return roles.includes("admin") || roles.includes("lead") || roles.length === 0;
-    },
-  });
+  // Per the Permissions spec: Olympus is invisible in nav for non-admins.
+  // No greyed-out link, no lock icon — absent entirely.
+  const { isAdmin } = useIsAdmin();
+
 
   const attentionFn = useServerFn(irisLeadershipAttention);
   useQuery({ queryKey: ["leadership-attention"], queryFn: () => attentionFn(), refetchInterval: 60_000 });
@@ -194,17 +190,21 @@ function TopBar({
           <HelpCircle size={16} strokeWidth={1.5} />
         </button>
         <UserAvatarMenu />
-        <Link
-          to="/olympus"
-          aria-label="Olympus"
-          title="Olympus · Admin"
-          className={`inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors ${
-            isOlympus ? "bg-white/5 text-foreground" : ""
-          }`}
-        >
-          <Settings2 size={14} strokeWidth={1.5} className="text-[color:var(--athena-gold)]" />
-          Olympus
-        </Link>
+        {isAdmin && (
+          <Link
+            to="/olympus"
+            aria-label="Olympus"
+            title="Olympus · Admin"
+            className={`inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors ${
+              isOlympus ? "bg-white/5 text-foreground" : ""
+            }`}
+          >
+            <Settings2 size={14} strokeWidth={1.5} className="text-[color:var(--athena-gold)]" />
+            Olympus
+          </Link>
+        )}
+
+
       </div>
     </header>
   );

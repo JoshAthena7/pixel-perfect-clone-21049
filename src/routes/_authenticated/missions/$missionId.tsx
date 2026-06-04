@@ -4,6 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 import { generateMissionBrief } from "@/lib/iris-mission-brief.functions";
+import { useMissionAccess } from "@/hooks/useAccess";
+import { NotAvailable } from "@/components/access/NotAvailable";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId")({
   component: MissionLayout,
@@ -12,6 +14,22 @@ export const Route = createFileRoute("/_authenticated/missions/$missionId")({
 function MissionLayout() {
   const { missionId } = Route.useParams();
   const path = useRouterState({ select: (s) => s.location.pathname });
+
+  // Per the Permissions spec: a user who is not a mission member sees
+  // "This mission is not available." — no name, no error, no role hint.
+  const { data: access, isLoading: accessLoading } = useMissionAccess(missionId);
+
+  if (accessLoading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center text-sm text-muted-foreground">
+        Loading…
+      </div>
+    );
+  }
+
+  if (!access?.allowed) {
+    return <NotAvailable kind="mission" />;
+  }
 
   // Hide persistent IRIS strip on Studio / question workspace / settings.
   const hideStrip =
@@ -28,6 +46,7 @@ function MissionLayout() {
     </div>
   );
 }
+
 
 function IrisBriefStrip({ missionId }: { missionId: string }) {
   const [open, setOpen] = useState(true);

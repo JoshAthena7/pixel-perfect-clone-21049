@@ -1,64 +1,104 @@
-# Mission Activation Flow + Document Intelligence Pipeline
+# Atlas — Permissions & Access Control Enforcement
 
-This is a substantial feature spanning DB, server functions, and UI. I want to confirm the architecture before building so we don't churn.
+## What the user will see
 
-## 1. Database (one migration)
+- **Writers/SMEs**: Olympus link disappears from navigation entirely. Visiting `/olympus` directly shows "Not available." Visiting a mission they're not assigned to shows "This mission is not available." (no error page, no name confirmation).
+- **Leads**: Same as writers, plus lead-only health views on missions they lead.
+- **Admins**: Full access — every mission, Olympus, and a new **Olympus → Team** page to invite users, assign mission roles, revoke, and promote to admin.
+- **No more "first-time escape hatch"** that currently grants Olympus to anyone with zero missions.
 
-New table `public.document_extractions`:
-- `document_id uuid` (FK → `mission_library.id`, ON DELETE CASCADE, UNIQUE)
-- `mission_id uuid` (FK → `missions.id`, ON DELETE CASCADE)
-- `extracted_text text`
-- `key_themes text[]`
-- `key_entities text[]`
-- `processed_at timestamptz`, `created_at`, `updated_at`
-- GRANT to `authenticated` + `service_role`; RLS scoped via `is_mission_member(mission_id, auth.uid())`.
-- Index on `mission_id`.
+## Architecture
 
-No other schema changes — `mission_library`, `question_records`, `briefing_book_sections`, `signals`, `win_themes`, `mission_risks`, `mission_decisions`, `mission_assumptions`, `alignment_conflicts` already exist.
+### 1. Role model (DB)
 
-## 2. Server functions (new file: `src/lib/mission-activation.functions.ts`)
+```
+app_role enum: 'admin' | 'lead' | 'writer' | 'sme'
+public.user_roles (id, user_id → auth.users, role app_role, granted_by, granted_at, UNIQUE(user_id, role))
+public.has_role(_user_id uuid, _role app_role) -> boolean   -- SECURITY DEFINER, stable
+```
 
-All `createServerFn` + `requireSupabaseAuth`:
+- `admin` in `user_roles` = platform admin = Olympus access.
+- Per-mission roles (writer/sme/lead/admin) stay in `mission_members` — that table already exists and is correct.
+- **Migration step**: backfill `user_roles(user_id, 'admin')` for every `profiles.is_platform_admin = true`, then rewrite existing SQL functions to use `has_role`:
+  - `is_platform_admin(uuid)` → `has_role(_user_id, 'admin')`
+  - `is_olympus_user(uuid)` → same
+  - `current_user_is_admin_or_founder()` → `has_role(auth.uid(),'admin') OR EXISTS(... engagement_members founder)`
+- Keep `profiles.is_platform_admin` column for now (read-only legacy) to avoid breaking any unseen reader; new writes go to `user_roles`.
 
-- `extractDocumentIntelligence({ documentId })` — pulls the file from storage via `rfp-text.server` helpers, runs Lovable AI Gateway (Gemini 3 Flash) with a JSON schema → `{ extracted_text, key_themes, key_entities }`, upserts to `document_extractions`, writes a `document_indexed` signal.
-- `reindexMissionDocuments({ missionId })` — fan-out wrapper that re-runs extraction for every doc missing/stale `document_extractions`.
-- `regenerateBriefingBook({ missionId })` — aggregates: docs + extractions + questions summary + win themes + risks + decisions + assumptions + conflicts + top 20 signals → calls existing `irisGenerateBriefingSection` for each section key.
-- `getLibraryIndexStatus({ missionId })` — returns `{ indexed, total, lastIndexedAt }` for the status bar.
+### 2. Route guards
 
-Triggers (called from UI, not DB triggers, to keep it controllable):
-- Upload handler calls `extractDocumentIntelligence` after a successful insert into `mission_library`.
-- If `is_rfp=true OR category='RFP'`: also call existing `parseRfp` server fn → on success, write a signal and surface "N questions created".
-- After extraction completes for any doc: call `regenerateBriefingBook` (debounced via React Query mutation chain, not server-side).
+| Route | Gate |
+|---|---|
+| `/_authenticated/olympus/*` | `beforeLoad` → server fn `requireAdmin()` → if false, redirect to `/home`. Olympus nav link hidden when `useIsAdmin()` returns false. |
+| `/_authenticated/missions/$missionId/*` | `beforeLoad` → server fn `requireMissionAccess(missionId)` → if not admin AND not in `mission_members`, render "This mission is not available." (no redirect, no name). |
+| `/_authenticated/atrium`, `/home` | No additional gate — Atrium is for any signed-in user. |
 
-## 3. UI changes
+`requireAdmin` and `requireMissionAccess` are `createServerFn` calls with `requireSupabaseAuth` middleware, hitting `has_role` / `is_mission_member`.
 
-### Mission Activation Wizard (`src/components/v2/MissionActivationWizard.tsx`)
-Three-step modal replacing the current `NewMissionModal` in `src/routes/_authenticated/olympus/index.tsx`. Also reachable from "Activate Mission" button on a Draft mission card.
+### 3. Nav visibility
 
-- **Step 1 — Setup**: name, client, state, submission_date, description, slack_webhook. Reuses existing form logic; on Continue inserts the mission row (status='Draft') and advances.
-- **Step 2 — Upload Core Documents**:
-  - Drag-and-drop zone (reuses Vault upload code path).
-  - Checklist of 9 categories with required vs optional indicators; checks turn green as files land in that category.
-  - Per-file row: filename, category badge, progress bar → "✓ Processed by IRIS" once extraction returns. RFP rows also show "N questions created".
-  - "Skip for now" link and "Activate Mission →" primary action.
-- **Step 3 — IRIS Activation**: animated 4-line progress (reading → questions → briefing → ready), then a summary card with counts, then "Enter Mission →" → `/missions/$missionId/overview`. Sets `missions.status='Active'`.
+- `AppShell` / sidebar: query `useIsAdmin()` once at root, hide Olympus entry when false. No greyed-out link, no lock icon — absent entirely.
+- Mission switcher: only show missions the current user is a member of (or all if admin). Already mostly correct via RLS — verify.
 
-### Library page (`src/routes/_authenticated/missions/$missionId/library.tsx`)
-- Add `LibraryIntelligenceStatusBar` at top: "IRIS has indexed N of M documents · Last indexed: X ago · [Re-index All]".
-- Each document row: "Indexed by IRIS ✓" or "Pending IRIS indexing…" badge based on `document_extractions` presence.
-- Re-index button calls `reindexMissionDocuments`.
+### 4. RLS hardening
 
-### Briefing Book page (`src/routes/_authenticated/missions/$missionId/briefing.tsx`)
-- Per-section: "Last updated X ago" + "Regenerate" button (already partially exists — wire to new `regenerateBriefingBook`).
-- Page-level "Regenerate Briefing Book" button.
+Audit and tighten policies on:
 
-## 4. What I'm NOT touching
-- Existing `iris-rfp-parser` flow stays as-is; the wizard just calls it.
-- Existing `briefing_book_sections` schema/section keys are unchanged; I'm just adding a richer aggregation context.
-- No DB triggers — all pipeline orchestration lives in server fns called from the UI, so it's debuggable and re-runnable.
-- Auto-regeneration on every signal/risk/decision change: I'll add it as a manual "Regenerate" button + auto-call after document uploads, but NOT a background job per change (would burn AI credits unpredictably). If you want fully automatic regeneration on every conflict/risk/decision change, say so and I'll add a debounced mutation hook.
+- `missions`, `question_records`, `question_*`, `mission_vault_documents`, `mission_library`, `mission_members`, `mission_decisions`, `mission_risks`, `mission_assumptions`, `mission_outcomes`, `mission_review_gates`, `briefing_book_sections`, `signals`, `broadcasts`, `iris_brief_cache`, `iris_health_flags`, `iris_memories`, `pilot_copilot_messages`, `question_pulses`, `contributions`, `reality_updates`, `escalations`, `support_requests`, `support_responses` → **read/write only if `is_mission_member(mission_id, auth.uid())` OR `has_role(auth.uid(), 'admin')`**.
+- `score_me_history` → **read/write only by the submitter** OR admin. Leads do NOT read individual rows (they consume aggregated `iris_health_flags`).
+- `question_pulses` (individual responses) → submitter + admin only. Aggregates surface via existing `iris_health_flags`.
+- Olympus-only tables (`olympus_audit_log`, `app_support_settings`, `atlas_*` curation tables, `intelligence_canon`, `federal_compliance_library`, `state_intelligence`, `program_intelligence`, `market_intelligence`) → `has_role(auth.uid(),'admin')` for write; read policy depends on whether IRIS needs them (see §5).
 
-## Open questions before I build
-1. **Wizard entry points** — confirm: (a) replace the existing "Create New Mission" modal in Olympus with the wizard, (b) add "Activate Mission" button on Draft mission cards that opens the wizard at Step 2. Anything else?
-2. **AI model for extraction** — default to `google/gemini-3-flash-preview` (cheap, fast, JSON-capable) for the per-document extraction. OK?
-3. **Auto-regen scope** — confirm: regenerate Briefing Book automatically after document uploads only; everything else (new question, conflict, risk) shows a "Stale" indicator + manual Regenerate button. OK or do you want full auto?
+### 5. IRIS scoping
+
+- Update IRIS server fns (`iris-lobby-brief`, `iris-mission-brief`, score-me, etc.) to filter all queries by `is_mission_member` for non-admins. Most already use the authenticated supabase client, so RLS does the work — but audit any place that uses `supabaseAdmin` to ensure it scopes by `userId`.
+- Atrium-level IRIS (`generateLobbyBrief`): never references mission content the user isn't on; reads legacy record + global health flags only.
+
+### 6. Olympus → Team Management UI
+
+New page `/_authenticated/olympus/team` (or extend existing `team.tsx`):
+
+- **Platform roster**: list all profiles with their platform role chips and mission count.
+- **Invite**: email + name + role hint (Writer/SME) → sends invite (existing `send-invite` flow, just ensure admin gate).
+- **Assign to mission**: pick user + mission + role (writer/sme/lead/admin) → insert `mission_members`.
+- **Revoke mission**: delete from `mission_members`. Existing `cascade_member_removal` trigger handles cleanup.
+- **Promote/demote admin**: insert/delete `user_roles(user_id, 'admin')`. Logged to `olympus_audit_log`.
+- **Deactivate**: set `profiles.deactivated_at` (new column) + remove all `mission_members` + remove `user_roles`. Login flow checks deactivation.
+- All mutations are `createServerFn` with `requireSupabaseAuth` + explicit `has_role(auth.uid(),'admin')` check.
+
+### 7. "Not available" component
+
+Tiny shared component `<NotAvailable kind="mission" | "olympus" />`:
+
+```
+This mission is not available.
+```
+
+No mission name. No error code. Just a single sentence + a "Back to Atrium" button.
+
+## Files
+
+**New**
+- `supabase/migrations/<ts>_user_roles_and_access_gates.sql`
+- `src/lib/access.functions.ts` — `requireAdmin`, `requireMissionAccess`, `getMyAccess`
+- `src/lib/team.functions.ts` — invite / assign / revoke / promote / deactivate
+- `src/components/access/NotAvailable.tsx`
+- `src/hooks/useAccess.ts` — `useIsAdmin()`, `useMissionAccess(missionId)`
+- `src/routes/_authenticated/olympus/team.tsx` (or extend existing)
+
+**Edited**
+- `src/routes/_authenticated/olympus.tsx` — replace client-side check with `beforeLoad` admin gate
+- `src/routes/_authenticated/missions/$missionId.tsx` — add `beforeLoad` mission-access gate
+- `src/components/v2/AppShell.tsx` and any sidebar/header — hide Olympus nav for non-admins
+- `src/routes/_authenticated/home.tsx` — Olympus shortcut/CTAs hidden for non-admins (already does some of this; verify)
+
+## Non-goals (this pass)
+
+- Email invitation infrastructure (assumed to exist; we only wire admin gating around it).
+- Migrating away from `profiles.is_platform_admin` reads in app code — we just stop relying on them for gates; the column becomes legacy.
+- Realtime broadcast of revocation (a revoked user stays signed in until their next request; that request 401s out of mission data via RLS, which is the spec'd behavior).
+
+## Order of operations
+
+1. **Migration** (one call): create `app_role`, `user_roles`, `has_role`, backfill from `profiles.is_platform_admin`, rewrite admin-check functions, add RLS tightening for the table list in §4.
+2. After migration approves & types regen → write server fns, hooks, components, route gates, Team UI.

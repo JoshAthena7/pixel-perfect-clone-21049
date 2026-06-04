@@ -5,13 +5,15 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Shield, ArrowLeft, ChevronDown, Zap,
+  ArrowLeft, ChevronDown, Zap,
   LayoutGrid, Users, FileText, ClipboardCheck, Trophy,
   FolderOpen, Settings as SettingsIcon, UserCog, History, Brain,
   Search, Inbox, Library, BookOpen, Bell, LifeBuoy, UserPlus,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { listReviewQueue } from "@/lib/atlas-onboarding.functions";
+import { useIsAdmin } from "@/hooks/useAccess";
+import { NotAvailable } from "@/components/access/NotAvailable";
 
 export const Route = createFileRoute("/_authenticated/olympus")({
   component: OlympusLayout,
@@ -22,42 +24,21 @@ type Mission = { id: string; name: string; client: string };
 const SELECTED_KEY = "olympus:mission";
 
 function OlympusLayout() {
-  const { data: me, isLoading: meLoading } = useQuery({
-    queryKey: ["olympus-access"],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return { ok: false as const, isAdmin: false, isLead: false };
-      const { data } = await supabase
-        .from("mission_members")
-        .select("role")
-        .eq("user_id", user.id);
-      const roles = (data ?? []).map((r: any) => r.role);
-      const isAdmin = roles.includes("admin");
-      const isLead = roles.includes("lead");
-      const ok = isAdmin || isLead || roles.length === 0; // first-time escape hatch
-      return { ok, isAdmin: isAdmin || roles.length === 0, isLead };
-    },
-  });
+  // Per the Permissions spec: Olympus is admin-only. Non-admins see "not available"
+  // — no greyed-out content, no error page, no role hints.
+  const { isAdmin, isLoading } = useIsAdmin();
 
-  if (meLoading) {
-    return <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">Loading Olympus…</div>;
+  if (isLoading) {
+    return <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">Loading…</div>;
   }
 
-  if (!me?.ok) {
-    return (
-      <div className="mx-auto max-w-2xl px-8 py-16 text-center">
-        <Shield className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
-        <h1 className="text-xl font-semibold">Olympus</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Olympus is restricted to mission admins and engagement leads.
-        </p>
-      </div>
-    );
+  if (!isAdmin) {
+    return <NotAvailable kind="olympus" />;
   }
 
   return (
     <div className="flex min-h-[calc(100vh-52px)] w-full">
-      <OlympusSidebar isAdmin={me.isAdmin} />
+      <OlympusSidebar isAdmin={isAdmin} />
       <div className="flex-1 min-w-0 flex flex-col">
         <OlympusHeader />
         <div className="flex-1 min-w-0">
@@ -67,6 +48,7 @@ function OlympusLayout() {
     </div>
   );
 }
+
 
 /* ────────── Header with mission switcher ────────── */
 
@@ -201,6 +183,7 @@ function OlympusSidebar({ isAdmin }: { isAdmin: boolean }) {
         {isAdmin && (
           <>
             <SectionHeader>Platform</SectionHeader>
+            <SidebarItem to="/olympus/admins" path={path} icon={<UserCog size={15} strokeWidth={1.5} />}>Admins</SidebarItem>
             <SidebarItem to="/olympus/users" path={path} icon={<UserCog size={15} strokeWidth={1.5} />}>Users</SidebarItem>
             <SidebarItem to="/olympus/audit" path={path} icon={<History size={15} strokeWidth={1.5} />}>Audit Log</SidebarItem>
             <SidebarItem to="/olympus/support" path={path} icon={<LifeBuoy size={15} strokeWidth={1.5} />}>Support Config</SidebarItem>
@@ -208,6 +191,7 @@ function OlympusSidebar({ isAdmin }: { isAdmin: boolean }) {
             <SidebarItem to="/olympus/notifications" path={path} icon={<Bell size={15} strokeWidth={1.5} />}>Notifications</SidebarItem>
           </>
         )}
+
       </nav>
     </aside>
   );

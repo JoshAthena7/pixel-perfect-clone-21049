@@ -39,6 +39,7 @@ import { Route as AuthenticatedOlympusDiscoveryHistoryRouteImport } from './rout
 import { Route as AuthenticatedOlympusCanonLibraryRouteImport } from './routes/_authenticated/olympus/canon-library'
 import { Route as AuthenticatedOlympusAuditRouteImport } from './routes/_authenticated/olympus/audit'
 import { Route as AuthenticatedOlympusAtlasSourcesRouteImport } from './routes/_authenticated/olympus/atlas-sources'
+import { Route as AuthenticatedOlympusAdminsRouteImport } from './routes/_authenticated/olympus/admins'
 import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_authenticated/missions/$missionId'
 import { Route as AuthenticatedCommandSecurityRouteImport } from './routes/_authenticated/command/security'
 import { Route as AuthenticatedCommandScoresRouteImport } from './routes/_authenticated/command/scores'
@@ -242,6 +243,12 @@ const AuthenticatedOlympusAtlasSourcesRoute =
     path: '/atlas-sources',
     getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
+const AuthenticatedOlympusAdminsRoute =
+  AuthenticatedOlympusAdminsRouteImport.update({
+    id: '/admins',
+    path: '/admins',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
 const AuthenticatedMissionsMissionIdRoute =
   AuthenticatedMissionsMissionIdRouteImport.update({
     id: '/missions/$missionId',
@@ -443,6 +450,7 @@ export interface FileRoutesByFullPath {
   '/command/scores': typeof AuthenticatedCommandScoresRoute
   '/command/security': typeof AuthenticatedCommandSecurityRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
+  '/olympus/admins': typeof AuthenticatedOlympusAdminsRoute
   '/olympus/atlas-sources': typeof AuthenticatedOlympusAtlasSourcesRoute
   '/olympus/audit': typeof AuthenticatedOlympusAuditRoute
   '/olympus/canon-library': typeof AuthenticatedOlympusCanonLibraryRoute
@@ -502,6 +510,7 @@ export interface FileRoutesByTo {
   '/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
   '/command/scores': typeof AuthenticatedCommandScoresRoute
   '/command/security': typeof AuthenticatedCommandSecurityRoute
+  '/olympus/admins': typeof AuthenticatedOlympusAdminsRoute
   '/olympus/atlas-sources': typeof AuthenticatedOlympusAtlasSourcesRoute
   '/olympus/audit': typeof AuthenticatedOlympusAuditRoute
   '/olympus/canon-library': typeof AuthenticatedOlympusCanonLibraryRoute
@@ -565,6 +574,7 @@ export interface FileRoutesById {
   '/_authenticated/command/scores': typeof AuthenticatedCommandScoresRoute
   '/_authenticated/command/security': typeof AuthenticatedCommandSecurityRoute
   '/_authenticated/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
+  '/_authenticated/olympus/admins': typeof AuthenticatedOlympusAdminsRoute
   '/_authenticated/olympus/atlas-sources': typeof AuthenticatedOlympusAtlasSourcesRoute
   '/_authenticated/olympus/audit': typeof AuthenticatedOlympusAuditRoute
   '/_authenticated/olympus/canon-library': typeof AuthenticatedOlympusCanonLibraryRoute
@@ -628,6 +638,7 @@ export interface FileRouteTypes {
     | '/command/scores'
     | '/command/security'
     | '/missions/$missionId'
+    | '/olympus/admins'
     | '/olympus/atlas-sources'
     | '/olympus/audit'
     | '/olympus/canon-library'
@@ -687,6 +698,7 @@ export interface FileRouteTypes {
     | '/command/question-health'
     | '/command/scores'
     | '/command/security'
+    | '/olympus/admins'
     | '/olympus/atlas-sources'
     | '/olympus/audit'
     | '/olympus/canon-library'
@@ -749,6 +761,7 @@ export interface FileRouteTypes {
     | '/_authenticated/command/scores'
     | '/_authenticated/command/security'
     | '/_authenticated/missions/$missionId'
+    | '/_authenticated/olympus/admins'
     | '/_authenticated/olympus/atlas-sources'
     | '/_authenticated/olympus/audit'
     | '/_authenticated/olympus/canon-library'
@@ -1013,6 +1026,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOlympusAtlasSourcesRouteImport
       parentRoute: typeof AuthenticatedOlympusRoute
     }
+    '/_authenticated/olympus/admins': {
+      id: '/_authenticated/olympus/admins'
+      path: '/admins'
+      fullPath: '/olympus/admins'
+      preLoaderRoute: typeof AuthenticatedOlympusAdminsRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
     '/_authenticated/missions/$missionId': {
       id: '/_authenticated/missions/$missionId'
       path: '/missions/$missionId'
@@ -1227,6 +1247,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedOlympusRouteChildren {
+  AuthenticatedOlympusAdminsRoute: typeof AuthenticatedOlympusAdminsRoute
   AuthenticatedOlympusAtlasSourcesRoute: typeof AuthenticatedOlympusAtlasSourcesRoute
   AuthenticatedOlympusAuditRoute: typeof AuthenticatedOlympusAuditRoute
   AuthenticatedOlympusCanonLibraryRoute: typeof AuthenticatedOlympusCanonLibraryRoute
@@ -1249,6 +1270,7 @@ interface AuthenticatedOlympusRouteChildren {
 }
 
 const AuthenticatedOlympusRouteChildren: AuthenticatedOlympusRouteChildren = {
+  AuthenticatedOlympusAdminsRoute: AuthenticatedOlympusAdminsRoute,
   AuthenticatedOlympusAtlasSourcesRoute: AuthenticatedOlympusAtlasSourcesRoute,
   AuthenticatedOlympusAuditRoute: AuthenticatedOlympusAuditRoute,
   AuthenticatedOlympusCanonLibraryRoute: AuthenticatedOlympusCanonLibraryRoute,
