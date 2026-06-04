@@ -289,9 +289,9 @@ function InputStage(props: {
       </button>
       {!props.canScore && (
         <div className="mt-2 text-center text-[11px] text-amber-400/90">
-          {!props.hasQuestion && !props.hasEnoughWords && "Select a question above and write at least 50 words to score."}
-          {!props.hasQuestion && props.hasEnoughWords && "Select a question above to enable scoring."}
-          {props.hasQuestion && !props.hasEnoughWords && `Write at least 50 words to score (currently ${props.wordCount}).`}
+          {!props.selectedQ && props.wordCount < 50 && "Select a question above and write at least 50 words to score."}
+          {!props.selectedQ && props.wordCount >= 50 && "Select a question above to enable scoring."}
+          {props.selectedQ && props.wordCount < 50 && `Write at least 50 words to score (currently ${props.wordCount}).`}
         </div>
       )}
       <div className="mt-3 text-center">
