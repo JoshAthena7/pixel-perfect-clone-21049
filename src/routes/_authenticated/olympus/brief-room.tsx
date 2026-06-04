@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Megaphone } from "lucide-react";
-import BriefRoomPage from "@/routes/_authenticated/brief-room";
+import { BriefRoomPage } from "@/routes/_authenticated/brief-room";
 
 // Reuse the same page; sidebar lives in the Olympus shell, and admins see
 // Compose + Delivery tabs automatically because they hold the admin role.
