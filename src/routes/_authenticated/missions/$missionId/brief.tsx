@@ -76,6 +76,8 @@ function BriefPage() {
   }, [questions]);
 
   const [snapOpen, setSnapOpen] = useState(false);
+  const { isAdmin } = useIsAdmin();
+
 
   const { data: oracleInsights = [] } = useQuery({
     queryKey: ["brief-oracle-insights", missionId],
