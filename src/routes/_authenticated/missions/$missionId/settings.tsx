@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Save, Plus, Trash2, X, Pencil, Archive, Sparkles } from "lucide-react";
+import { Save, Plus, Trash2, X, Pencil, Archive, Sparkles, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { recalibrateMissionIntel } from "@/lib/intel-drift.functions";
 
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/settings")({
