@@ -1,8 +1,8 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import { Link, useRouterState, useParams, useNavigate } from "@tanstack/react-router";
+import { Link, useRouterState, useParams, useNavigate, useRouter } from "@tanstack/react-router";
 import {
   LogOut, User, Shield, Settings2,
-  Plane, Search, HelpCircle,
+  Plane, Search, HelpCircle, ArrowLeft,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -124,8 +124,10 @@ function TopBar({
         boxShadow: "0 1px 0 rgba(255,255,255,0.04), 0 4px 24px rgba(0,0,0,0.4)",
       }}
     >
-      {/* LEFT — logo + mission name */}
+      {/* LEFT — back + logo + mission name */}
       <div className="flex min-w-0 items-center gap-3">
+        <BackButton isAtrium={isAtrium} />
+
         <Link to="/home" className="flex items-center gap-2.5 shrink-0" title="Atrium">
           <img
             src={atlasLogo.url}
@@ -200,6 +202,7 @@ function TopBar({
         >
           <HelpCircle size={16} strokeWidth={1.5} />
         </button>
+        <SignOutButton />
         <UserAvatarMenu />
         {isAdmin && (
           <Link
@@ -218,6 +221,44 @@ function TopBar({
 
       </div>
     </header>
+  );
+}
+
+// ─── Back button ──────────────────────────────────────────────────────────
+function BackButton({ isAtrium }: { isAtrium: boolean }) {
+  const router = useRouter();
+  const navigate = useNavigate();
+  if (isAtrium) return null;
+  return (
+    <button
+      onClick={() => {
+        if (window.history.length > 1) router.history.back();
+        else navigate({ to: "/home" });
+      }}
+      title="Back"
+      aria-label="Back"
+      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
+    >
+      <ArrowLeft size={16} strokeWidth={1.5} />
+    </button>
+  );
+}
+
+// ─── Sign out button (always visible in header) ───────────────────────────
+function SignOutButton() {
+  return (
+    <button
+      onClick={async () => {
+        await supabase.auth.signOut();
+        toast.success("Signed out");
+      }}
+      title="Sign out"
+      aria-label="Sign out"
+      className="inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
+    >
+      <LogOut size={14} strokeWidth={1.5} />
+      <span className="hidden sm:inline">Sign out</span>
+    </button>
   );
 }
 
