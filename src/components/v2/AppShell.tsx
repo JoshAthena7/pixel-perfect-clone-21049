@@ -249,6 +249,35 @@ function BackButton({ isAtrium }: { isAtrium: boolean }) {
   );
 }
 
+// ─── Brief Room nav button with unack badge ───────────────────────────────
+function BriefRoomNavButton() {
+  const fn = useServerFn(getUnacknowledgedBriefings);
+  const { data } = useQuery({
+    queryKey: ["brief-room", "pending"],
+    queryFn: () => fn(),
+    refetchInterval: 60_000,
+  });
+  const count = data?.count ?? 0;
+  return (
+    <Link
+      to="/brief-room"
+      title={count > 0 ? `You have ${count} unacknowledged briefing(s).` : "Brief Room"}
+      aria-label="Brief Room"
+      className="relative inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
+    >
+      <Megaphone size={16} strokeWidth={1.5} />
+      {count > 0 && (
+        <span
+          className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] px-1 rounded-full text-[9px] font-bold inline-flex items-center justify-center"
+          style={{ background: "var(--athena-gold, #f59e0b)", color: "#0a0a0a" }}
+        >
+          {count > 9 ? "9+" : count}
+        </span>
+      )}
+    </Link>
+  );
+}
+
 // ─── Sign out button (always visible in header) ───────────────────────────
 function SignOutButton() {
   return (
