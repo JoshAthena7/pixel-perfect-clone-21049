@@ -9,6 +9,16 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+async function assertAdmin(supabase: any, userId: string) {
+  const { data } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (!data) throw new Error("Forbidden: platform admin required");
+}
+
 export type ConflictMission = {
   id: string;
   name: string;
@@ -118,6 +128,7 @@ export const acknowledgeConflict = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    await assertAdmin(supabase, userId);
     const [a, b] =
       data.missionAId < data.missionBId
         ? [data.missionAId, data.missionBId]
