@@ -8,6 +8,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { extractDocxText } from "./rfp-text.server";
 import { irisGenerateBriefingSection, BRIEFING_SECTION_KEYS } from "./iris.functions";
+import { assertNoPHI } from "@/lib/phi-detection";
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const EXTRACTION_MODEL = "google/gemini-2.5-flash";
