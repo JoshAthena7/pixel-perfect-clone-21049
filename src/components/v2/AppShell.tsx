@@ -44,7 +44,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const inMission = path.startsWith("/missions/") && !!missionId;
   const room = detectRoom(path, missionId);
   const isOlympus = path.startsWith("/olympus");
-  const isAtrium = path === "/home" || path === "/";
+  const isAtrium = path === "/home" || path === "/" || path.startsWith("/atrium");
   const isStudio = room === "studio";
 
   // Room-based background. Mission Room = deep #060b14. Studio = warmer #0a0e1a.
@@ -215,6 +215,7 @@ function AtriumNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const items: { to: string; label: string }[] = [
     { to: "/home", label: "Home" },
+    { to: "/atrium", label: "Atrium" },
   ];
   return (
     <nav className="flex items-center gap-1">
