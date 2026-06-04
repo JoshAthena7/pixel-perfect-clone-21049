@@ -2777,6 +2777,50 @@ export type Database = {
           },
         ]
       }
+      mission_sensitivities: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          id: string
+          mission_id: string
+          note: string
+          severity: string
+          subject: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          mission_id: string
+          note: string
+          severity?: string
+          subject?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          mission_id?: string
+          note?: string
+          severity?: string
+          subject?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_sensitivities_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_vault_documents: {
         Row: {
           created_at: string
