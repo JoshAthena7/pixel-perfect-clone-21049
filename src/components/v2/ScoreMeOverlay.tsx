@@ -135,10 +135,10 @@ export function ScoreMeOverlay({ open, onClose, missionId, lockedQuestionId }: P
           mission_id: missionId,
           source_module: "score_me",
           signal_type: "response_scored",
-          signal_title: `Q${selectedQ.question_number} scored ${result.score.toFixed(1)}`,
-          signal_summary: result.score_context?.slice(0, 200) ?? "",
+          signal_title: `Q${selectedQ.question_number} — ${result.gapCount} gap${result.gapCount === 1 ? "" : "s"}, ${result.opportunityCount} opportunity${result.opportunityCount === 1 ? "" : "ies"}`,
+          signal_summary: (result.irisNote ?? "").slice(0, 200),
           related_question_id: selectedQ.id,
-          severity: result.score < 3.5 ? "warning" : "info",
+          severity: result.gapCount > 0 ? "warning" : "info",
         });
       } catch {}
     } catch (e: any) {
