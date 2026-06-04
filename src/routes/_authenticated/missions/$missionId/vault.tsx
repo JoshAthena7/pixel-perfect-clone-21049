@@ -101,7 +101,7 @@ function VaultPage() {
 
   const grouped = useMemo(() => {
     const out: Record<VaultDocType, VaultDoc[]> = {
-      data_security: [], contract: [], scope_of_work: [], style_guide: [], dpa: [], other: [],
+      data_security: [], contract: [], scope_of_work: [], style_guide: [], outline_template: [], dpa: [], other: [],
     };
     for (const d of docs) out[d.doc_type as VaultDocType]?.push(d);
     return out;
