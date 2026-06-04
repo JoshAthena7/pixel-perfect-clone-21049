@@ -2537,6 +2537,65 @@ export type Database = {
           },
         ]
       }
+      mission_vault_documents: {
+        Row: {
+          created_at: string
+          description: string | null
+          doc_type: Database["public"]["Enums"]["vault_doc_type"]
+          external_url: string | null
+          file_path: string | null
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          mission_id: string
+          title: string
+          updated_at: string
+          uploaded_by: string | null
+          uploaded_by_name: string | null
+          version: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          doc_type: Database["public"]["Enums"]["vault_doc_type"]
+          external_url?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          mission_id: string
+          title: string
+          updated_at?: string
+          uploaded_by?: string | null
+          uploaded_by_name?: string | null
+          version?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          doc_type?: Database["public"]["Enums"]["vault_doc_type"]
+          external_url?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          mission_id?: string
+          title?: string
+          updated_at?: string
+          uploaded_by?: string | null
+          uploaded_by_name?: string | null
+          version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_vault_documents_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       missions: {
         Row: {
           client: string
@@ -4266,7 +4325,12 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      vault_doc_type:
+        | "data_security"
+        | "contract"
+        | "scope_of_work"
+        | "style_guide"
+        | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4393,6 +4457,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      vault_doc_type: [
+        "data_security",
+        "contract",
+        "scope_of_work",
+        "style_guide",
+        "other",
+      ],
+    },
   },
 } as const
