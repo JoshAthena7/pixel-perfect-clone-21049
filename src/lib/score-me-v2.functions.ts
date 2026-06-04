@@ -146,41 +146,45 @@ async function callScorecardEngine(system: string, user: string): Promise<any | 
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) return null;
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 28_000);
+  const { withAICircuit } = await import("./ai-circuit-breaker");
+  return withAICircuit(async () => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 28_000);
 
-  try {
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      signal: controller.signal,
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: user },
-        ],
-        tools: [SCORE_TOOL],
-        tool_choice: { type: "function", function: { name: "emit_scorecard" } },
-      }),
-    });
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`Score Me engine failed (${res.status}): ${text.slice(0, 200)}`);
+    try {
+      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: system },
+            { role: "user", content: user },
+          ],
+          tools: [SCORE_TOOL],
+          tool_choice: { type: "function", function: { name: "emit_scorecard" } },
+        }),
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(`Score Me engine failed (${res.status}): ${text.slice(0, 200)}`);
+      }
+      const json = (await res.json()) as any;
+      const args = json?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+      if (!args) return null;
+      return JSON.parse(args);
+    } catch (e: any) {
+      if (e?.name === "AbortError") {
+        throw new Error("Score Me timed out after 28 seconds — try again with a shorter draft.");
+      }
+      throw e;
+    } finally {
+      clearTimeout(timeout);
     }
-    const json = (await res.json()) as any;
-    const args = json?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
-    if (!args) return null;
-    return JSON.parse(args);
-  } catch (e: any) {
-    if (e?.name === "AbortError") {
-      throw new Error("Score Me timed out after 28 seconds — try again with a shorter draft.");
-    }
-    throw e;
-  } finally {
-    clearTimeout(timeout);
-  }
+  });
 }
+
 
 // ---------- Main: runScoreMe ----------
 
