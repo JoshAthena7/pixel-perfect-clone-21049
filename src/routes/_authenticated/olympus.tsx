@@ -8,8 +8,9 @@ import {
   ArrowLeft, ChevronDown, Zap,
   LayoutGrid, Users, FileText, ClipboardCheck, Trophy,
   FolderOpen, Settings as SettingsIcon, UserCog, History, Brain,
-  Search, Inbox, Library, BookOpen, Bell, LifeBuoy, UserPlus,
+  Search, Inbox, Library, BookOpen, Bell, LifeBuoy, UserPlus, Activity,
 } from "lucide-react";
+
 import { useServerFn } from "@tanstack/react-start";
 import { listReviewQueue } from "@/lib/atlas-onboarding.functions";
 import { useIsAdmin } from "@/hooks/useAccess";
