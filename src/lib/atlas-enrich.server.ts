@@ -47,6 +47,6 @@ export async function enrichAtlasSource(row: {
   }
 
   if (Object.keys(update).length) {
-    await supabaseAdmin.from("atlas_sources").update(update).eq("id", row.id);
+    await supabaseAdmin.from("atlas_sources").update(update as never).eq("id", row.id);
   }
 }
