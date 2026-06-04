@@ -151,6 +151,24 @@ export type Database = {
           },
         ]
       }
+      app_config: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       app_support_settings: {
         Row: {
           billing_contact_email: string | null
@@ -4639,6 +4657,7 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_app_base_url: { Args: never; Returns: string }
       get_engagement_compliance_score: {
         Args: { _engagement_id: string }
         Returns: number
@@ -4697,6 +4716,7 @@ export type Database = {
         Returns: number
       }
       prune_pulse_free_text: { Args: never; Returns: number }
+      prune_score_me_full_analysis: { Args: never; Returns: number }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
