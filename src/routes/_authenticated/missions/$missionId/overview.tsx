@@ -328,15 +328,15 @@ function MissionOverviewPage() {
   // Roles → people
   const findByRole = (role: string) => members.find((m) => m.role === role) ?? null;
   const leadershipRow = useMemo(() => {
-    const lead = members.find((m) => m.role === "lead") ?? null;
-    const admin = findByRole("admin");
+    const lead = members.find((m) => m.role === "lead") ?? findByRole("admin");
+    const pm = members.find((m) => m.role === "pm") ?? null;
     const writers = members.filter((m) => m.role === "writer");
-    const smes = members.filter((m) => m.role === "sme");
+    const graphics = members.filter((m) => m.role === "graphics");
     return [
       { label: "Engagement Lead", person: lead },
-      { label: "Project Manager", person: admin },
-      { label: "Lead Reviewer", person: writers[0] ?? null },
-      { label: "Capture Lead", person: smes[0] ?? null },
+      { label: "Project Manager", person: pm },
+      { label: "Lead Writer", person: writers[0] ?? null },
+      { label: "Lead Graphics", person: graphics[0] ?? null },
     ];
   }, [members]);
 
