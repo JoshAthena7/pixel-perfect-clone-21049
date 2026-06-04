@@ -1,0 +1,1 @@
+ALTER TYPE public.vault_doc_type ADD VALUE IF NOT EXISTS 'outline_template';
