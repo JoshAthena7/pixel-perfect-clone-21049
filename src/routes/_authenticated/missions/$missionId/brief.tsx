@@ -108,12 +108,21 @@ function BriefPage() {
           </div>
         </div>
 
-        <Dialog open={snapOpen} onOpenChange={setSnapOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2">
-              <Gauge className="h-4 w-4" /> Quick Snapshot
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <Button asChild variant="outline" size="sm" className="gap-2">
+              <Link to="/command/health">
+                <Activity className="h-4 w-4" /> Health
+              </Link>
             </Button>
-          </DialogTrigger>
+          )}
+          <Dialog open={snapOpen} onOpenChange={setSnapOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Gauge className="h-4 w-4" /> Quick Snapshot
+              </Button>
+            </DialogTrigger>
+
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
