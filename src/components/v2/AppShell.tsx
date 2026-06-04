@@ -48,6 +48,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const isOlympus = path.startsWith("/olympus");
   const isAtrium = path === "/home" || path === "/" || path.startsWith("/atrium");
   const isStudio = room === "studio";
+  const { isAdmin, isLoading: adminLoading } = useIsAdmin();
+  const showBetaBanner = !adminLoading && !isAdmin;
+
 
   // Room-based background. Mission Room = deep #060b14. Studio = warmer #0a0e1a.
   const mainBg = isStudio ? "#0a0e1a" : "var(--background, #060b14)";
