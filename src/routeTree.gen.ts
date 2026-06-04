@@ -50,6 +50,7 @@ import { Route as AuthenticatedMissionsMissionIdIndexRouteImport } from './route
 import { Route as ApiPublicHooksRefreshIntelligenceRouteImport } from './routes/api/public/hooks/refresh-intelligence'
 import { Route as ApiPublicHooksIngestIntelRouteImport } from './routes/api/public/hooks/ingest-intel'
 import { Route as ApiPublicHooksBackfillQuestionEmbeddingsRouteImport } from './routes/api/public/hooks/backfill-question-embeddings'
+import { Route as ApiPublicHooksBackfillAtlasEmbeddingsRouteImport } from './routes/api/public/hooks/backfill-atlas-embeddings'
 import { Route as AuthenticatedMissionsMissionIdTeamRouteImport } from './routes/_authenticated/missions/$missionId/team'
 import { Route as AuthenticatedMissionsMissionIdStudioRouteImport } from './routes/_authenticated/missions/$missionId/studio'
 import { Route as AuthenticatedMissionsMissionIdSettingsRouteImport } from './routes/_authenticated/missions/$missionId/settings'
@@ -304,6 +305,12 @@ const ApiPublicHooksBackfillQuestionEmbeddingsRoute =
     path: '/api/public/hooks/backfill-question-embeddings',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksBackfillAtlasEmbeddingsRoute =
+  ApiPublicHooksBackfillAtlasEmbeddingsRouteImport.update({
+    id: '/api/public/hooks/backfill-atlas-embeddings',
+    path: '/api/public/hooks/backfill-atlas-embeddings',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedMissionsMissionIdTeamRoute =
   AuthenticatedMissionsMissionIdTeamRouteImport.update({
     id: '/team',
@@ -438,6 +445,7 @@ export interface FileRoutesByFullPath {
   '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/missions/$missionId/studio': typeof AuthenticatedMissionsMissionIdStudioRoute
   '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
+  '/api/public/hooks/backfill-atlas-embeddings': typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
   '/api/public/hooks/backfill-question-embeddings': typeof ApiPublicHooksBackfillQuestionEmbeddingsRoute
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
@@ -492,6 +500,7 @@ export interface FileRoutesByTo {
   '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/missions/$missionId/studio': typeof AuthenticatedMissionsMissionIdStudioRoute
   '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
+  '/api/public/hooks/backfill-atlas-embeddings': typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
   '/api/public/hooks/backfill-question-embeddings': typeof ApiPublicHooksBackfillQuestionEmbeddingsRoute
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
@@ -550,6 +559,7 @@ export interface FileRoutesById {
   '/_authenticated/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/_authenticated/missions/$missionId/studio': typeof AuthenticatedMissionsMissionIdStudioRoute
   '/_authenticated/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
+  '/api/public/hooks/backfill-atlas-embeddings': typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
   '/api/public/hooks/backfill-question-embeddings': typeof ApiPublicHooksBackfillQuestionEmbeddingsRoute
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
@@ -608,6 +618,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/settings'
     | '/missions/$missionId/studio'
     | '/missions/$missionId/team'
+    | '/api/public/hooks/backfill-atlas-embeddings'
     | '/api/public/hooks/backfill-question-embeddings'
     | '/api/public/hooks/ingest-intel'
     | '/api/public/hooks/refresh-intelligence'
@@ -662,6 +673,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/settings'
     | '/missions/$missionId/studio'
     | '/missions/$missionId/team'
+    | '/api/public/hooks/backfill-atlas-embeddings'
     | '/api/public/hooks/backfill-question-embeddings'
     | '/api/public/hooks/ingest-intel'
     | '/api/public/hooks/refresh-intelligence'
@@ -719,6 +731,7 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/$missionId/settings'
     | '/_authenticated/missions/$missionId/studio'
     | '/_authenticated/missions/$missionId/team'
+    | '/api/public/hooks/backfill-atlas-embeddings'
     | '/api/public/hooks/backfill-question-embeddings'
     | '/api/public/hooks/ingest-intel'
     | '/api/public/hooks/refresh-intelligence'
@@ -731,6 +744,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
+  ApiPublicHooksBackfillAtlasEmbeddingsRoute: typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
   ApiPublicHooksBackfillQuestionEmbeddingsRoute: typeof ApiPublicHooksBackfillQuestionEmbeddingsRoute
   ApiPublicHooksIngestIntelRoute: typeof ApiPublicHooksIngestIntelRoute
   ApiPublicHooksRefreshIntelligenceRoute: typeof ApiPublicHooksRefreshIntelligenceRoute
@@ -1025,6 +1039,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksBackfillQuestionEmbeddingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/backfill-atlas-embeddings': {
+      id: '/api/public/hooks/backfill-atlas-embeddings'
+      path: '/api/public/hooks/backfill-atlas-embeddings'
+      fullPath: '/api/public/hooks/backfill-atlas-embeddings'
+      preLoaderRoute: typeof ApiPublicHooksBackfillAtlasEmbeddingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/missions/$missionId/team': {
       id: '/_authenticated/missions/$missionId/team'
       path: '/team'
@@ -1279,6 +1300,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
+  ApiPublicHooksBackfillAtlasEmbeddingsRoute:
+    ApiPublicHooksBackfillAtlasEmbeddingsRoute,
   ApiPublicHooksBackfillQuestionEmbeddingsRoute:
     ApiPublicHooksBackfillQuestionEmbeddingsRoute,
   ApiPublicHooksIngestIntelRoute: ApiPublicHooksIngestIntelRoute,
