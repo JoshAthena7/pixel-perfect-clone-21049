@@ -83,21 +83,10 @@ function VaultPage() {
     queryFn: () => listFn({ data: { missionId } }),
   });
 
-  // Lead check (only leads / admins can upload / delete)
-  const { data: isLead = false } = useQuery({
-    queryKey: ["vault-is-lead", missionId],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
-      const { data } = await supabase
-        .from("mission_members")
-        .select("role")
-        .eq("mission_id", missionId)
-        .eq("user_id", user.id);
-      const roles = (data ?? []).map((r: { role: string }) => r.role);
-      return roles.includes("admin") || roles.includes("lead");
-    },
-  });
+  // Beta lockdown: only platform admins can upload, edit, or delete vault content.
+  const { isAdmin } = useIsAdmin();
+  const isLead = isAdmin;
+
 
   const grouped = useMemo(() => {
     const out: Record<VaultDocType, VaultDoc[]> = {
