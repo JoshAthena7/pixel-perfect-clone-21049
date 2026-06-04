@@ -106,9 +106,18 @@ export const upsertAtlasSource = createServerFn({ method: "POST" })
       return { id: data.id };
     }
     const { data: row, error } = await supabase
-      .from("atlas_sources").insert(payload).select("id").single();
+      .from("atlas_sources").insert(payload).select("id,source_title,summary,mission_id,source_raw_text").single();
     if (error) throw new Error(error.message);
-    return { id: row!.id };
+    // Fire-and-forget: summarize + embed + cross-match. Don't block the upload UI.
+    (async () => {
+      try {
+        const { enrichAtlasSource } = await import("./atlas-enrich.server");
+        await enrichAtlasSource(row as any);
+      } catch (e) {
+        console.warn("[atlas-enrich] failed", (row as any)?.id, e);
+      }
+    })();
+    return { id: (row as any).id };
   });
 
 /** Delete an Atlas source (admin). */
