@@ -76,6 +76,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       )}
 
+      <BriefRoomPinned />
+
       <main className="flex-1 min-w-0">
 
         <div key={path} className="route-fade min-h-full">{children}</div>
