@@ -124,8 +124,10 @@ function TopBar({
         boxShadow: "0 1px 0 rgba(255,255,255,0.04), 0 4px 24px rgba(0,0,0,0.4)",
       }}
     >
-      {/* LEFT — logo + mission name */}
+      {/* LEFT — back + logo + mission name */}
       <div className="flex min-w-0 items-center gap-3">
+        <BackButton isAtrium={isAtrium} />
+
         <Link to="/home" className="flex items-center gap-2.5 shrink-0" title="Atrium">
           <img
             src={atlasLogo.url}
