@@ -73,7 +73,11 @@ export const updateAtlasInvite = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     await assertAdmin(supabase, userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      display_name?: string | null;
+      role_hint?: string | null;
+      notes?: string | null;
+    } = {};
     if (data.displayName !== undefined) patch.display_name = data.displayName;
     if (data.roleHint !== undefined) patch.role_hint = data.roleHint;
     if (data.notes !== undefined) patch.notes = data.notes;
