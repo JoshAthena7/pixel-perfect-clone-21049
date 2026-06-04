@@ -194,6 +194,7 @@ function OlympusSidebar({ isAdmin }: { isAdmin: boolean }) {
             <SidebarItem to="/olympus/support" path={path} icon={<LifeBuoy size={15} strokeWidth={1.5} />}>Support Config</SidebarItem>
             <SidebarItem to="/olympus/talent" path={path} icon={<UserPlus size={15} strokeWidth={1.5} />}>Talent Desk</SidebarItem>
             <SidebarItem to="/olympus/notifications" path={path} icon={<Bell size={15} strokeWidth={1.5} />}>Notifications</SidebarItem>
+            <SidebarItem to="/olympus/brief-room" path={path} icon={<Megaphone size={15} strokeWidth={1.5} />}>Brief Room</SidebarItem>
 
             {/* H3: Security section — audit + PHI + IRP link */}
             <SectionHeader>Security</SectionHeader>
