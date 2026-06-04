@@ -450,23 +450,33 @@ function ResultStage({
 
   return (
     <div className="pb-32">
-      {/* SCORE */}
+      {/* HEADLINE — colleague framing leads, score is supporting */}
       <div className="px-6 pt-16 pb-10 flex flex-col items-center text-center">
+        <h2 className="max-w-2xl text-[28px] font-semibold leading-tight tracking-tight text-foreground">
+          {meetsStandard
+            ? "This draft is landing. Here's what IRIS noticed."
+            : "IRIS sees a few gaps worth closing before Red Team."}
+        </h2>
+        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-foreground/80">{analysis.score_context}</p>
+
         <div
-          style={{
-            fontSize: 96, fontWeight: 800, lineHeight: 1,
-            color: scoreColor, textShadow: scoreShadow,
-            fontVariantNumeric: "tabular-nums",
-          }}
+          className="mt-8 inline-flex items-baseline gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-1.5"
+          title="IRIS keeps an internal reference number — your work is judged by people, not by this number"
         >
-          {count.toFixed(1)}
+          <span
+            style={{
+              fontSize: 22, fontWeight: 700, lineHeight: 1,
+              color: scoreColor, fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            {count.toFixed(1)}
+          </span>
+          <span className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+            / 5.0 · IRIS internal reference
+          </span>
         </div>
-        <div className="mt-3 text-[11px] uppercase tracking-[0.22em] text-muted-foreground">IRIS read · internal reference</div>
-        <div className="mt-2 text-xs" style={{ color: meetsStandard ? "rgb(34,197,94)" : "rgb(245,158,11)" }}>
-          {meetsStandard ? "● This draft is landing — nice work" : "○ A few gaps worth closing before Red Team"}
-        </div>
-        <p className="mt-5 max-w-2xl text-sm leading-relaxed text-foreground/80">{analysis.score_context}</p>
       </div>
+
 
       <div className="mx-auto max-w-3xl px-6 space-y-10">
         {/* SECTION A */}
