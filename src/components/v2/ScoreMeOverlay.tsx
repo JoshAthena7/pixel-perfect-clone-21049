@@ -1,16 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { scoreResponse } from "@/lib/score-me.functions";
-import { X, Sparkles, Save, Send, RefreshCw, ChevronDown, ChevronUp, ShieldCheck, Lock } from "lucide-react";
+import { runScoreMe, getScoreMeSetup } from "@/lib/score-me-v2.functions";
+import type { ScoreMeV2Result } from "@/lib/score-me-v2.functions";
+import { X, Sparkles, ShieldCheck, Lock } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { toast } from "sonner";
 import { createSignal } from "@/lib/signals";
 import { PersonFirstHint } from "@/components/v2/PersonFirstHint";
-import { scanForPersonFirstFlags } from "@/lib/person-first";
+import { Scorecard } from "@/components/v2/Scorecard";
 
-type Analysis = Awaited<ReturnType<typeof scoreResponse>>;
+type Analysis = ScoreMeV2Result;
 
 type Question = {
   id: string;
