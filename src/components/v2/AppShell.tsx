@@ -224,13 +224,11 @@ function TopBar({
 // ─── Atrium top-bar nav ───────────────────────────────────────────────────
 function AtriumNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const { isAdmin } = useIsAdmin();
   const items: { to: string; label: string }[] = [
     { to: "/home", label: "Home" },
-    // Health is firm-wide and lives under Olympus for admins only.
-    ...(isAdmin ? [{ to: "/command/health", label: "Health" }] : []),
     { to: "/command/security", label: "Data & Privacy" },
   ];
+
 
   return (
     <nav className="flex items-center gap-1">

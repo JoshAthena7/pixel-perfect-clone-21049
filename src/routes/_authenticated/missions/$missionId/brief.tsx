@@ -2,9 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Sparkles, AlertTriangle, Target, TrendingUp, FileText, Gauge, Trophy } from "lucide-react";
+import { Sparkles, AlertTriangle, Target, TrendingUp, FileText, Gauge, Trophy, Activity } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useIsAdmin } from "@/hooks/useAccess";
+
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/brief")({
   component: BriefPage,
@@ -74,6 +76,8 @@ function BriefPage() {
   }, [questions]);
 
   const [snapOpen, setSnapOpen] = useState(false);
+  const { isAdmin } = useIsAdmin();
+
 
   const { data: oracleInsights = [] } = useQuery({
     queryKey: ["brief-oracle-insights", missionId],
@@ -104,12 +108,21 @@ function BriefPage() {
           </div>
         </div>
 
-        <Dialog open={snapOpen} onOpenChange={setSnapOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2">
-              <Gauge className="h-4 w-4" /> Quick Snapshot
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <Button asChild variant="outline" size="sm" className="gap-2">
+              <Link to="/command/health">
+                <Activity className="h-4 w-4" /> Health
+              </Link>
             </Button>
-          </DialogTrigger>
+          )}
+          <Dialog open={snapOpen} onOpenChange={setSnapOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Gauge className="h-4 w-4" /> Quick Snapshot
+              </Button>
+            </DialogTrigger>
+
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
@@ -174,7 +187,9 @@ function BriefPage() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
+
 
       {/* Headline */}
       <div className="rounded-[10px] border border-border bg-surface p-6">
