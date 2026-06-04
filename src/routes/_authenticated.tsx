@@ -8,13 +8,10 @@ export const Route = createFileRoute("/_authenticated")({
   // Unauthenticated requests are redirected to /login before any authenticated
   // shell markup is emitted. The useEffect below remains as a secondary
   // client-side guard for session expiry during active use.
-  beforeLoad: async ({ location }) => {
+  beforeLoad: async () => {
     const { data, error } = await supabase.auth.getSession();
     if (error || !data.session?.user) {
-      throw redirect({
-        to: "/login",
-        search: { redirect: location.href },
-      });
+      throw redirect({ to: "/login" });
     }
   },
   component: AuthenticatedLayout,
