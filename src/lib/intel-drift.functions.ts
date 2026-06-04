@@ -183,7 +183,7 @@ export const recalibrateMissionIntel = createServerFn({ method: "POST" })
         `${memoriesSuperseded ?? 0} memories superseded, ${cacheCleared ?? 0} briefs cleared, ` +
         `${researched} questions re-researched (${researchFailed} failed). Reason: ${data.reason.slice(0, 200)}`,
       target_table: "mission_intelligence_dna",
-      actor_user_id: userId,
+      user_id: userId,
     });
 
     return {
