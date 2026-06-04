@@ -211,10 +211,13 @@ async function callIrisReply(opts: {
       .maybeSingle(),
     supabaseAdmin
       .from("mission_intelligence_dna")
-      .select("dna_summary")
+      .select("dna")
       .eq("mission_id", opts.missionId)
+      .eq("is_current", true)
       .maybeSingle(),
   ]);
+
+  const dnaSummary = dna?.dna ? JSON.stringify(dna.dna).slice(0, 4000) : "(no DNA on file yet)";
 
   const sys = `You are IRIS, Athena Strategy Group's embedded intelligence analyst. A teammate just @-mentioned you inside an internal thread on a specific writing assignment. Answer their question directly and concisely (3-5 sentences). Cite mission specifics where helpful. No filler, no "Here is" preamble. If you do not have a confident answer, say so plainly.
 
@@ -227,7 +230,7 @@ Prompt: ${q?.question_text ?? ""}
 Leadership guidance: ${q?.guidance ?? "(none)"}
 
 MISSION DNA
-${dna?.dna_summary ?? "(no DNA on file yet)"}`;
+${dnaSummary}`;
 
   try {
     const res = await withAICircuit(async () => {
