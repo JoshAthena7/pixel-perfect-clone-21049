@@ -178,7 +178,7 @@ function Roster({ missionId }: { missionId: string }) {
                     onChange={(e) => updateRole(m, e.target.value as Role)}
                     className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs"
                   >
-                    {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                    {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
                   </select>
                 </td>
                 <td className="px-4 py-3 text-[11px] text-muted-foreground">
