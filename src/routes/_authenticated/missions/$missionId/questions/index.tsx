@@ -10,7 +10,7 @@ import { StudioHealthStrip } from "@/components/v2/StudioHealthStrip";
 import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
 import { SOSButton } from "@/components/v2/SOSButton";
 import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
-import { Cockpit } from "@/components/v2/Cockpit";
+import { CockpitV4 } from "@/components/v4/CockpitV4";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/questions/")({
   component: ResponsesList,
@@ -851,7 +851,7 @@ function ResponsesList() {
 
   if (me) {
     return (
-      <Cockpit
+      <CockpitV4
         missionId={missionId}
         me={me}
         myQuestions={myQuestions}
