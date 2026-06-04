@@ -16,6 +16,7 @@ import athenaLogo from "@/assets/athena-logo.png";
 import atlasLogo from "@/assets/atlas-logo.png.asset.json";
 import { LegacyRecord } from "@/components/v4/LegacyRecord";
 import { DailyPulse } from "@/components/v4/DailyPulse";
+import { IrisTrustIntro } from "@/components/v4/IrisTrustIntro";
 import type { ReactNode } from "react";
 
 
@@ -398,6 +399,9 @@ function AthenaHQ() {
           </section>
         ) : (
           <>
+            {/* Day-one trust intro — dismissible, sets IRIS-as-colleague framing */}
+            <IrisTrustIntro />
+
             {/* Cockpit V4 — personal IRIS briefing leads the writer view */}
             <IrisMorningBrief />
 
