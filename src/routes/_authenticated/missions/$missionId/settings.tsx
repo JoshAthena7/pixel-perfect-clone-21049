@@ -24,7 +24,7 @@ function SettingsPage() {
     <div className="px-8 py-8 max-w-4xl">
       <div className="mb-6">
         <h1 className="text-xl font-semibold">Mission Settings</h1>
-        <p className="mt-1 text-xs text-muted-foreground">Configure core details, review gates, and team access.</p>
+        <p className="mt-1 text-xs text-muted-foreground">Configure mission details, intelligence profile, review gates, and win themes. Roles and team access are managed in Olympus.</p>
       </div>
 
       <div className="mb-6 flex items-center gap-1 border-b border-border">
