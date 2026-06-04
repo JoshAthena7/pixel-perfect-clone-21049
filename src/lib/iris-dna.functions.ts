@@ -6,6 +6,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { loadRfpText, findLatestRfp } from "./rfp-text.server";
+import { assertNoPHI } from "@/lib/phi-detection";
 
 const FOCUS_CATEGORIES = [
   "Medicaid Managed Care (Full Risk)",
