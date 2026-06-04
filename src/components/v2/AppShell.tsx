@@ -2,12 +2,13 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useParams, useNavigate, useRouter } from "@tanstack/react-router";
 import {
   LogOut, User, Shield, Settings2,
-  Plane, Search, HelpCircle, ArrowLeft,
+  Plane, Search, HelpCircle, ArrowLeft, Megaphone,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { irisLeadershipAttention } from "@/lib/iris.functions";
+import { getUnacknowledgedBriefings } from "@/lib/brief-room.functions";
 import { useIsAdmin } from "@/hooks/useAccess";
 import { toast } from "sonner";
 
@@ -22,6 +23,7 @@ import { CommandPalette } from "@/components/v2/CommandPalette";
 import { IrisDock } from "@/components/v2/IrisDock";
 import { MobileBottomNav, MobileBottomNavSpacer } from "@/components/v2/MobileBottomNav";
 import { SupportCenterMount } from "@/components/v2/SupportCenter";
+import { BriefRoomPinned } from "@/components/brief-room/BriefRoomPinned";
 import athenaSgLogo from "@/assets/athena-sg-lockup.png.asset.json";
 import atlasLogo from "@/assets/atlas-logo.png.asset.json";
 
