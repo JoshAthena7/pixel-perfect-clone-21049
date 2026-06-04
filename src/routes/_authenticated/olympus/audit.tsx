@@ -29,17 +29,30 @@ function AuditPage() {
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
 
+  const [filterUser, setFilterUser] = useState<string>("all");
+  const [filterMission, setFilterMission] = useState<string>("all");
+
+  // H3: pull a wider window to support the 30-day filter without pagination.
+  // The new composite index (created_at desc, user_id, mission_id) keeps this fast.
   const { data: entries = [], isLoading } = useQuery({
     queryKey: ["olympus-audit", scope, missionId],
     queryFn: async () => {
       let q = supabase
         .from("olympus_audit_log")
-        .select("id,user_name,action_type,action_summary,target_table,mission_id,created_at,metadata")
+        .select("id,user_id,user_name,action_type,action_summary,target_table,mission_id,created_at,metadata")
         .order("created_at", { ascending: false })
-        .limit(500);
+        .limit(5000);
       if (scope === "mission" && missionId) q = q.eq("mission_id", missionId);
       const { data } = await q;
       return (data ?? []) as Entry[];
+    },
+  });
+
+  const { data: missionsList = [] } = useQuery({
+    queryKey: ["olympus-audit-missions"],
+    queryFn: async () => {
+      const { data } = await supabase.from("missions").select("id,name").order("name");
+      return (data ?? []) as Array<{ id: string; name: string }>;
     },
   });
 
