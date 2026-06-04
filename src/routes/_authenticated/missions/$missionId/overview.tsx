@@ -576,10 +576,9 @@ function MissionOverviewPage() {
             </Link>
           </p>
 
-          {/* Dates grid — two rows of 3 */}
+          {/* Dates grid */}
           <div className="grid grid-cols-3 gap-3 mt-6">
             <DateCell label="Submission" date={mission?.submission_date ?? null} sub="" />
-            <DateCell label="Contract Value" customValue={mission?.priority_topics?.[0] ?? "—"} sub="annually" />
             <DateCell label="Contract Term" customValue="—" sub="" />
             <DateCell label="Pens Down" customValue="—" sub="" />
             <DateCell label="Q&A Deadline" date={mission?.qa_deadline ?? null} sub="" />
