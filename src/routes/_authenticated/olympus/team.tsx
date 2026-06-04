@@ -64,6 +64,7 @@ function TeamPage() {
       {missionId ? (
         <div className="space-y-6">
           <Roster missionId={missionId} />
+          <ManualAddPanel missionId={missionId} />
           <CollectivePanel missionId={missionId} />
         </div>
       ) : (
