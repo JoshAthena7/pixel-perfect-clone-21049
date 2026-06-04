@@ -109,13 +109,14 @@ function BriefPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          {isAdmin && (
-            <Button asChild variant="outline" size="sm" className="gap-2">
-              <Link to="/command/health">
-                <Activity className="h-4 w-4" /> Health
-              </Link>
-            </Button>
-          )}
+          {isAdmin ? (
+            <Link
+              to="/command/health"
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 h-9 text-sm font-medium hover:bg-surface-hover"
+            >
+              <Activity className="h-4 w-4" /> Health
+            </Link>
+          ) : null}
           <Dialog open={snapOpen} onOpenChange={setSnapOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2">
