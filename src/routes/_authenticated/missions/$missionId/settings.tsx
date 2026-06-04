@@ -276,6 +276,100 @@ function IntelligenceProfileTab({ missionId }: { missionId: string }) {
           {save.isPending ? "Saving…" : "Save Intelligence Profile"}
         </button>
       </div>
+
+      <IntelDriftPanel missionId={missionId} />
+    </div>
+  );
+}
+
+function IntelDriftPanel({ missionId }: { missionId: string }) {
+  const qc = useQueryClient();
+  const recalibrate = useServerFn(recalibrateMissionIntel);
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const run = async () => {
+    if (reason.trim().length < 4) {
+      toast.error("Please describe the drift (a few words is enough).");
+      return;
+    }
+    setBusy(true);
+    try {
+      const res: any = await recalibrate({ data: { missionId, reason: reason.trim() } });
+      toast.success(
+        `Recalibrated · ${res.memoriesSuperseded} memories superseded · ${res.cacheCleared} briefs cleared · ${res.researched} questions re-researched`,
+      );
+      setOpen(false);
+      setReason("");
+      qc.invalidateQueries({ queryKey: ["mission-intel-profile", missionId] });
+      qc.invalidateQueries({ queryKey: ["mip-mission", missionId] });
+      qc.invalidateQueries({ queryKey: ["mission", missionId] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Recalibration failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="rounded-[10px] border border-destructive/30 bg-destructive/5 p-6">
+      <div className="flex items-start gap-3">
+        <AlertTriangle className="h-4 w-4 mt-0.5 text-destructive shrink-0" />
+        <div className="flex-1">
+          <h2 className="text-sm font-semibold text-foreground">Declare Intel Drift</h2>
+          <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+            Use when the procurement reality has shifted and the Oracle and IRIS are operating on stale assumptions.
+            This regenerates the Mission Intelligence DNA from the latest RFP, supersedes prior mission-scoped IRIS memories
+            (kept for audit), clears every cached brief, re-runs the top research questions through Perplexity,
+            and posts a Global Briefing to the team. Leadership only. Audited.
+          </p>
+
+          {!open ? (
+            <button
+              onClick={() => setOpen(true)}
+              className="mt-4 inline-flex items-center gap-2 rounded-[8px] border border-destructive/40 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/20"
+            >
+              <AlertTriangle className="h-3.5 w-3.5" />
+              Declare Intel Drift & Recalibrate
+            </button>
+          ) : (
+            <div className="mt-4 space-y-3">
+              <Field label="What changed? (recorded in audit log and team briefing)">
+                <textarea
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  rows={3}
+                  className={inputCls}
+                  placeholder="e.g. State released Amendment 4 — population scope expanded to include dual eligibles"
+                  disabled={busy}
+                />
+              </Field>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={run}
+                  disabled={busy}
+                  className="inline-flex items-center gap-2 rounded-[8px] bg-destructive px-3 py-1.5 text-xs font-medium text-destructive-foreground hover:opacity-90 disabled:opacity-50"
+                >
+                  {busy ? "Recalibrating…" : "Confirm Recalibration"}
+                </button>
+                <button
+                  onClick={() => { setOpen(false); setReason(""); }}
+                  disabled={busy}
+                  className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                {busy && (
+                  <span className="text-[11px] text-muted-foreground">
+                    This may take 30–60 seconds while research runs.
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
