@@ -163,8 +163,14 @@ export function ScoreMeOverlay({ open, onClose, missionId, lockedQuestionId }: P
         });
       } catch {}
     } catch (e: any) {
-      setError(e?.message ?? "Scoring failed. Please try again.");
-      setStage("input");
+      const phi = parsePHIError(e?.message);
+      if (phi) {
+        setPhiError(phi);
+        setStage("input");
+      } else {
+        setError(e?.message ?? "Scoring failed. Please try again.");
+        setStage("input");
+      }
     }
   };
 
