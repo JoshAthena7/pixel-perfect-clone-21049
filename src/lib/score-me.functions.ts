@@ -352,7 +352,9 @@ Compliance fixes take priority in the changes array. A non-compliant CRITICAL re
         }),
       ]);
     } catch (e) {
-      console.warn("[contributions] score-me wiring failed", e);
+      // NEVER log request body or parameters here — may contain draft content. See data security spec.
+      const { logSafeWarn } = await import("./sanitise-error");
+      logSafeWarn("score-me.scoreResponse:contributions", e);
     }
 
     // Persist compliance findings

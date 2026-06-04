@@ -433,7 +433,9 @@ ${data.responseText}
         await supabase.from("iris_health_flags").insert(flagsToInsert);
       }
     } catch (e) {
-      console.warn("[score-me-v2] health flag write failed", e);
+      // NEVER log request body or parameters here — may contain draft content. See data security spec.
+      const { logSafeWarn } = await import("./sanitise-error");
+      logSafeWarn("score-me-v2.runScoreMe:health_flag", e);
     }
 
     // ---- Contribution ----
@@ -456,7 +458,9 @@ ${data.responseText}
         },
       });
     } catch (e) {
-      console.warn("[score-me-v2] contribution failed", e);
+      // NEVER log request body or parameters here — may contain draft content. See data security spec.
+      const { logSafeWarn } = await import("./sanitise-error");
+      logSafeWarn("score-me-v2.runScoreMe:contribution", e);
     }
 
     return {
