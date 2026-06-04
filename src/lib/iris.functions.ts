@@ -251,20 +251,13 @@ export const irisGenerateBriefingSection = createServerFn({ method: "POST" })
     const cfg = SECTION_PROMPTS[data.sectionKey];
     if (!cfg) throw new Error("Unknown section key");
 
-    // ARCH-13: rate limit — 1 regeneration per section per 60s
     const { data: existing } = await supabase
       .from("briefing_book_sections")
       .select("id,content,sources,version_number,generated_at,mission_id,section_key")
       .eq("mission_id", data.missionId)
       .eq("section_key", data.sectionKey)
       .maybeSingle();
-    if (existing?.generated_at) {
-      const age = Date.now() - new Date(existing.generated_at).getTime();
-      if (age < 60_000) {
-        const wait = Math.ceil((60_000 - age) / 1000);
-        throw new Error(`Please wait ${wait}s before regenerating this section.`);
-      }
-    }
+
 
     const { data: m } = await supabase
       .from("missions")
