@@ -67,7 +67,15 @@ export function AppShell({ children }: { children: ReactNode }) {
         room={room}
       />
 
+      {showBetaBanner && (
+        <div className="w-full bg-amber-500/15 border-b border-amber-500/30 text-amber-100 text-xs px-4 py-1.5 text-center">
+          <span className="font-medium">Beta · Read-only mode.</span>{" "}
+          You can view everything but cannot edit, assign, upload, or delete during the beta period. Contact an admin for changes.
+        </div>
+      )}
+
       <main className="flex-1 min-w-0">
+
         <div key={path} className="route-fade min-h-full">{children}</div>
         <MobileBottomNavSpacer />
       </main>
