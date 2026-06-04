@@ -2435,6 +2435,95 @@ export type Database = {
           },
         ]
       }
+      iris_onboarding_admin_resets: {
+        Row: {
+          id: string
+          modules_reset: Json | null
+          reason: string | null
+          reset_at: string
+          reset_by: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          modules_reset?: Json | null
+          reason?: string | null
+          reset_at?: string
+          reset_by: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          modules_reset?: Json | null
+          reason?: string | null
+          reset_at?: string
+          reset_by?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      iris_onboarding_module_log: {
+        Row: {
+          cleared_at: string
+          id: string
+          module_number: number
+          questions_asked: Json
+          session_id: string
+        }
+        Insert: {
+          cleared_at?: string
+          id?: string
+          module_number: number
+          questions_asked?: Json
+          session_id: string
+        }
+        Update: {
+          cleared_at?: string
+          id?: string
+          module_number?: number
+          questions_asked?: Json
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iris_onboarding_module_log_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "iris_onboarding_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      iris_onboarding_sessions: {
+        Row: {
+          completed_at: string | null
+          completion_hash: string | null
+          id: string
+          is_complete: boolean
+          last_module: number
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completion_hash?: string | null
+          id?: string
+          is_complete?: boolean
+          last_module?: number
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          completion_hash?: string | null
+          id?: string
+          is_complete?: boolean
+          last_module?: number
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       market_intelligence: {
         Row: {
           category: string | null
