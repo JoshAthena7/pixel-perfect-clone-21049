@@ -212,7 +212,7 @@ function SecurityPage() {
         </div>
 
         {/* Roadmap */}
-        <SectionHeader index="05" title="Roadmap" />
+        <SectionHeader index="06" title="Roadmap" />
         <div className="mt-4 overflow-hidden rounded-[12px] border border-white/8">
           <table className="w-full text-[12px]">
             <thead>
