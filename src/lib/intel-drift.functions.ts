@@ -39,7 +39,7 @@ export const recalibrateMissionIntel = createServerFn({ method: "POST" })
       "@/integrations/supabase/client.server"
     );
     const { generateMissionDna } = await import("./iris-dna.functions");
-    const { runOneTask } = await import("./iris-research.functions");
+    
 
     const now = new Date().toISOString();
 
