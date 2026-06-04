@@ -199,6 +199,43 @@ function VaultPage() {
         </div>
       </header>
 
+      {/* FedRAMP-scope flag */}
+      <div
+        className="flex flex-wrap items-center justify-between gap-3 rounded-[10px] border px-4 py-3"
+        style={{
+          borderColor: fedrampScope ? "rgba(244,63,94,0.35)" : "rgba(255,255,255,0.08)",
+          background: fedrampScope ? "rgba(244,63,94,0.05)" : "rgba(255,255,255,0.02)",
+        }}
+      >
+        <div className="flex items-start gap-3 min-w-0">
+          <Lock
+            className="h-4 w-4 mt-0.5 shrink-0"
+            style={{ color: fedrampScope ? "rgb(244,63,94)" : "rgb(148,163,184)" }}
+          />
+          <div className="min-w-0">
+            <div className="text-[12px] font-semibold text-foreground/95">
+              FedRAMP-scope engagement
+            </div>
+            <div className="text-[11px] text-muted-foreground">
+              {fedrampScope
+                ? "Score Me is hard-blocked on this mission until Atlas achieves FedRAMP authorization (Phase 4)."
+                : "Leave off for commercial / state engagements. Turn on for federal scope subject to FedRAMP."}
+            </div>
+          </div>
+        </div>
+        {isLead ? (
+          <button
+            onClick={() => fedrampMut.mutate(!fedrampScope)}
+            disabled={fedrampMut.isPending}
+            className="shrink-0 rounded-md border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] font-semibold hover:bg-white/[0.08] disabled:opacity-50"
+          >
+            {fedrampMut.isPending ? "Saving…" : fedrampScope ? "Clear flag" : "Mark FedRAMP-scope"}
+          </button>
+        ) : (
+          <span className="shrink-0 text-[11px] text-muted-foreground">Lead-only</span>
+        )}
+      </div>
+
       {/* Slot grid */}
       {isLoading ? (
         <div className="text-sm text-muted-foreground">Loading vault…</div>
