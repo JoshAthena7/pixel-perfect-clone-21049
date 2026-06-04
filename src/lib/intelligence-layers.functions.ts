@@ -53,10 +53,10 @@ export const assembleLayeredContext = createServerFn({ method: "POST" })
             .ilike("program_name", `%${program}%`)
             .limit(5)
         : Promise.resolve({ data: [] as any[] }),
+      // C4: Read via sanitized view; raw source_mission_* and evidence stay admin-only.
       supabase
-        .from("collective_memory")
+        .from("collective_memory_sanitized")
         .select("kind,summary,detail,program_name,state_code,outcome")
-        .eq("is_active", true)
         .or(
           [
             state ? `state_code.eq.${state}` : null,
