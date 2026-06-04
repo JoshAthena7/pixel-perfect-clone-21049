@@ -776,3 +776,49 @@ function ComplianceResultsSection({ analysis }: { analysis: Analysis }) {
   );
 }
 
+/* ──────────────────────────────────────────── FEDRAMP BLOCK ─────────── */
+
+function FedRampBlock({ missionName, onClose }: { missionName: string; onClose: () => void }) {
+  return (
+    <div className="mx-auto max-w-2xl px-6 py-16">
+      <div className="flex flex-col items-center text-center">
+        <div
+          className="flex h-16 w-16 items-center justify-center rounded-full mb-5"
+          style={{ background: "rgba(244,63,94,0.10)", border: "1px solid rgba(244,63,94,0.35)" }}
+        >
+          <Lock className="h-7 w-7" style={{ color: "rgb(244,63,94)" }} />
+        </div>
+        <div className="text-[10px] font-bold uppercase tracking-[0.28em] text-rose-400/90">
+          Score Me unavailable
+        </div>
+        <h1 className="mt-3 text-2xl font-semibold tracking-tight">
+          {missionName} is a FedRAMP-scope engagement.
+        </h1>
+        <p className="mt-4 text-sm text-muted-foreground max-w-md leading-relaxed">
+          Score Me requires draft content to leave the client environment for processing.
+          Atlas does not yet hold FedRAMP authorization, so we don't offer this on
+          FedRAMP-scope missions — even with our ephemeral processing commitment.
+        </p>
+        <p className="mt-3 text-[11px] text-muted-foreground/80 max-w-md leading-relaxed">
+          FedRAMP Moderate authorization is on the Atlas roadmap (Phase 4). Until then,
+          use in-person Red Team review and the compliance checklist on this mission.
+        </p>
+        <div className="mt-7 flex items-center gap-3">
+          <Link
+            to="/command/security"
+            className="rounded-md border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-medium hover:bg-white/[0.08]"
+          >
+            Read the security spec
+          </Link>
+          <button
+            onClick={onClose}
+            className="rounded-md px-4 py-2 text-xs font-medium text-muted-foreground hover:text-foreground"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
