@@ -4036,6 +4036,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          granted_at: string
+          granted_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       web_research_cache: {
         Row: {
           cache_key: string
@@ -4236,6 +4260,13 @@ export type Database = {
         Args: { _mission_id: string; _roles: string[]; _user_id: string }
         Returns: boolean
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_mission_member: {
         Args: { _mission_id: string; _user_id: string }
         Returns: boolean
@@ -4332,6 +4363,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "admin" | "lead" | "writer" | "sme"
       vault_doc_type:
         | "data_security"
         | "contract"
@@ -4467,6 +4499,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "lead", "writer", "sme"],
       vault_doc_type: [
         "data_security",
         "contract",
