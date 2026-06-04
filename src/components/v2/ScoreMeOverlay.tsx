@@ -403,10 +403,6 @@ function ResultStage({
     analysis.score < 4.0 ? "rgb(245,158,11)" :
     analysis.score < 4.5 ? "rgb(232,232,236)" :
     "rgb(34,197,94)";
-  const scoreShadow =
-    analysis.score < 3.0 ? "0 0 40px rgba(239,68,68,0.4)" :
-    analysis.score < 4.0 ? "0 0 40px rgba(245,158,11,0.4)" :
-    "0 0 40px rgba(34,197,94,0.4)";
   const projectedColor = analysis.projected_score >= 4.5 ? "rgb(34,197,94)" : "rgb(232,232,236)";
 
   const meetsStandard = analysis.score >= 4.5;
