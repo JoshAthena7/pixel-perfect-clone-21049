@@ -504,6 +504,7 @@ function CockpitPage() {
 
   return (
     <div style={{ background: "#0a0e1a", minHeight: "100vh" }} className="text-foreground">
+      <ThreadsLauncher questionId={questionId} />
       {isReadOnlyView && (
         <div
           className="sticky top-0 z-40 flex h-10 items-center justify-between gap-3 border-b px-10 text-[12px]"
