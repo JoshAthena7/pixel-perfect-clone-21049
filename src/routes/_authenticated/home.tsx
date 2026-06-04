@@ -17,7 +17,9 @@ import atlasLogo from "@/assets/atlas-logo.png.asset.json";
 import { LegacyRecord } from "@/components/v4/LegacyRecord";
 import { DailyPulse } from "@/components/v4/DailyPulse";
 import { IrisTrustIntro } from "@/components/v4/IrisTrustIntro";
+import { useIsAdmin } from "@/hooks/useAccess";
 import type { ReactNode } from "react";
+
 
 
 export const Route = createFileRoute("/_authenticated/home")({
