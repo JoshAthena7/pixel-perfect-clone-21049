@@ -258,3 +258,58 @@ function Pill({ active, onClick, children, tone = "sky" }: { active: boolean; on
     </button>
   );
 }
+
+// H7: One-time disclosure for pulse free-text. Writer must acknowledge before
+// the first pulse submission. Stored in profiles.pulse_acknowledged_at.
+function PulseDisclosureModal({
+  onAck,
+  onCancel,
+  pending,
+}: {
+  onAck: () => void;
+  onCancel: () => void;
+  pending: boolean;
+}) {
+  return (
+    <div
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="pulse-disclosure-title"
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 p-6"
+    >
+      <div className="max-w-md w-full rounded-2xl border border-border bg-[#0b0f17] p-6 shadow-2xl">
+        <div className="flex items-start gap-3">
+          <ShieldCheck className="h-6 w-6 text-emerald-400 mt-0.5" aria-hidden />
+          <div className="flex-1">
+            <h2 id="pulse-disclosure-title" className="text-base font-semibold text-zinc-100">
+              How your pulse is used
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-zinc-200">
+              Your daily pulse is shared with your engagement lead to help keep
+              the mission on track. Free-text responses you submit are visible
+              to your lead for 90 days and then deleted. Platform administrators
+              see only aggregate data — not your individual responses. Your
+              pulse is never used in decisions about your pay or future
+              engagements.
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                onClick={onCancel}
+                className="rounded-md border border-border bg-background px-3 py-1.5 text-xs text-zinc-300 hover:bg-surface-hover"
+              >
+                Not now
+              </button>
+              <button
+                disabled={pending}
+                onClick={onAck}
+                className="rounded-md bg-emerald-500 px-4 py-1.5 text-xs font-medium text-emerald-950 hover:bg-emerald-400 disabled:opacity-50"
+              >
+                {pending ? "Saving…" : "I understand"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
