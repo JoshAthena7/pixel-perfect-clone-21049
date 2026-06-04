@@ -14,6 +14,7 @@ import { HORIZON_FILTERS, inferCategory, matchesHorizonFilter, type IntelItem } 
 import { LiveBadge, ScanningBeam, IrisWaveform, TypewriterText } from "@/components/v2/effects";
 import athenaLogo from "@/assets/athena-logo.png";
 import atlasLogo from "@/assets/atlas-logo.png.asset.json";
+import { LegacyRecord } from "@/components/v4/LegacyRecord";
 import type { ReactNode } from "react";
 
 
@@ -395,62 +396,72 @@ function AthenaHQ() {
             )}
           </section>
         ) : (
-          <section>
-            <div className="mb-5 flex items-end justify-between">
-              <div>
-                <h2 className="h2-label">Your Assignments</h2>
-                <p className="mt-1.5 text-2xl font-semibold tracking-tight">
-                  {myAssignments.length} {myAssignments.length === 1 ? "question" : "questions"} assigned to you
-                </p>
-              </div>
-            </div>
+          <>
+            {/* Cockpit V4 — personal IRIS briefing leads the writer view */}
+            <IrisMorningBrief />
 
-            {assignmentsLoading ? (
-              <QuestionListSkeleton count={5} />
-            ) : myAssignments.length === 0 ? (
-              <EmptyState
-                icon={<ClipboardList className="h-10 w-10" strokeWidth={1.5} />}
-                title="No questions assigned yet."
-                subtitle="Your Engagement Lead will assign your questions once the RFP is uploaded and parsed."
-              />
-            ) : (
-              <ul className="divide-y divide-border rounded-[12px] border border-border bg-surface">
-                {myAssignments.map((q) => {
-                  const days = q.pens_down_date
-                    ? Math.ceil((new Date(q.pens_down_date).getTime() - Date.now()) / 86400000)
-                    : null;
-                  const tone = days === null ? "text-muted-foreground"
-                    : days < 0 ? "text-destructive"
-                    : days <= 3 ? "text-destructive"
-                    : days <= 7 ? "text-amber-400"
-                    : "text-foreground";
-                  const dotCls = q.health === "green" ? "dot dot-green"
-                    : q.health === "red" ? "dot dot-red"
-                    : "dot dot-yellow";
-                  return (
-                    <li key={q.id} className="px-5 py-3">
-                      <Link
-                        to="/missions/$missionId/questions/$questionId"
-                        params={{ missionId: q.mission_id, questionId: q.id }}
-                        className="flex items-center gap-3 hover:text-primary"
-                      >
-                        <span className={dotCls} />
-                        <MissionPill name={missionMap.get(q.mission_id) ?? "—"} />
-                        <span className="mono-q text-[11px] font-semibold shrink-0">{q.question_number}</span>
-                        <span className="flex-1 min-w-0 truncate text-sm text-foreground">{q.title}</span>
-                        {q.current_score !== null && (
-                          <span className="shrink-0 text-[11px] mono-score text-muted-foreground">{Number(q.current_score).toFixed(1)}</span>
-                        )}
-                        <span className={`shrink-0 text-xs font-semibold mono-days ${tone}`}>
-                          {days === null ? "—" : days < 0 ? `${Math.abs(days)}d overdue` : `${days}d`}
-                        </span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </section>
+            <section>
+              <div className="mb-5 flex items-end justify-between">
+                <div>
+                  <h2 className="h2-label">Your mission today</h2>
+                  <p className="mt-1.5 text-2xl font-semibold tracking-tight">
+                    {myAssignments.length === 0
+                      ? "You're clear — help a teammate."
+                      : `${myAssignments.length} ${myAssignments.length === 1 ? "question needs" : "questions need"} you`}
+                  </p>
+                </div>
+              </div>
+
+              {assignmentsLoading ? (
+                <QuestionListSkeleton count={5} />
+              ) : myAssignments.length === 0 ? (
+                <EmptyState
+                  icon={<ClipboardList className="h-10 w-10" strokeWidth={1.5} />}
+                  title="No questions assigned yet."
+                  subtitle="Your Engagement Lead will assign your questions once the RFP is uploaded and parsed."
+                />
+              ) : (
+                <ul className="divide-y divide-border rounded-[12px] border border-border bg-surface">
+                  {myAssignments.map((q) => {
+                    const days = q.pens_down_date
+                      ? Math.ceil((new Date(q.pens_down_date).getTime() - Date.now()) / 86400000)
+                      : null;
+                    const tone = days === null ? "text-muted-foreground"
+                      : days < 0 ? "text-destructive"
+                      : days <= 3 ? "text-destructive"
+                      : days <= 7 ? "text-amber-400"
+                      : "text-foreground";
+                    const dotCls = q.health === "green" ? "dot dot-green"
+                      : q.health === "red" ? "dot dot-red"
+                      : "dot dot-yellow";
+                    return (
+                      <li key={q.id} className="px-5 py-3">
+                        <Link
+                          to="/missions/$missionId/questions/$questionId"
+                          params={{ missionId: q.mission_id, questionId: q.id }}
+                          className="flex items-center gap-3 hover:text-primary"
+                        >
+                          <span className={dotCls} />
+                          <MissionPill name={missionMap.get(q.mission_id) ?? "—"} />
+                          <span className="mono-q text-[11px] font-semibold shrink-0">{q.question_number}</span>
+                          <span className="flex-1 min-w-0 truncate text-sm text-foreground">{q.title}</span>
+                          {q.current_score !== null && (
+                            <span className="shrink-0 text-[11px] mono-score text-muted-foreground">{Number(q.current_score).toFixed(1)}</span>
+                          )}
+                          <span className={`shrink-0 text-xs font-semibold mono-days ${tone}`}>
+                            {days === null ? "—" : days < 0 ? `${Math.abs(days)}d overdue` : `${days}d`}
+                          </span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
+
+            {/* Cockpit V4 — persistent cross-engagement legacy strip */}
+            <LegacyRecord />
+          </>
         )}
 
 
