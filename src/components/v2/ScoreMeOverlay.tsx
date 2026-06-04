@@ -28,13 +28,13 @@ type Props = {
 };
 
 const PROGRESS_LINES = [
-  "Reading your response...",
-  "Comparing to RFP evaluation criteria...",
-  "Checking compliance language and mandatory requirements...",
-  "Analyzing competitive positioning...",
-  "Comparing to evaluator signals from similar procurements...",
+  "Reading your draft the way a colleague would...",
+  "Checking against the RFP evaluation criteria...",
+  "Looking for compliance language and mandatory items...",
+  "Noting where your positioning could land harder...",
+  "Comparing patterns to evaluator signals from similar procurements...",
   "Cross-referencing IRIS Memory and institutional knowledge...",
-  "Calculating score...",
+  "Surfacing the gaps worth closing before Red Team...",
 ];
 
 export function ScoreMeOverlay({ open, onClose, missionId, lockedQuestionId }: Props) {
@@ -212,9 +212,11 @@ function InputStage(props: {
 }) {
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
-      <h1 className="text-2xl font-semibold tracking-tight">Paste your response draft.</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Want a read on your draft?</h1>
       <p className="mt-2 text-sm text-muted-foreground max-w-2xl">
-        IRIS will score it against the RFP evaluation criteria and tell you exactly what to change to reach 4.7.
+        IRIS reads your draft the way a smart colleague would — looking for gaps,
+        compliance flags, and anything an evaluator might mark down. It never rewrites
+        your work. The expertise is yours.
       </p>
       <p className="mt-2 text-[11px] text-muted-foreground/70">Your response is never stored or shared outside this session.</p>
 
@@ -285,7 +287,7 @@ function InputStage(props: {
           boxShadow: "0 8px 30px -8px rgba(34,211,238,0.5)",
         }}
       >
-        <span className="inline-flex items-center gap-2"><Sparkles className="h-4 w-4" /> Score This Response →</span>
+        <span className="inline-flex items-center gap-2"><Sparkles className="h-4 w-4" /> Read My Draft →</span>
       </button>
       {!props.canScore && (
         <div className="mt-2 text-center text-[11px] text-amber-400/90">
@@ -414,7 +416,7 @@ function ResultStage({
     if (!user) { toast.error("Not signed in"); return; }
     const { data: prof } = await supabase.from("profiles").select("display_name,email").eq("id", user.id).maybeSingle();
     const author = prof?.display_name ?? prof?.email?.split("@")[0] ?? "Writer";
-    const body = `IRIS Score Me — ${analysis.score.toFixed(1)}/5.0 (projected ${analysis.projected_score.toFixed(1)} after suggested changes)\n\n${analysis.score_context}`;
+    const body = `IRIS read this draft — here's what it found (internal reference: ${analysis.score.toFixed(1)} / projected ${analysis.projected_score.toFixed(1)})\n\n${analysis.score_context}`;
     const { error } = await supabase.from("question_collaboration").insert({
       question_id: question.id,
       mission_id: missionId,
@@ -432,7 +434,7 @@ function ResultStage({
     if (!user) { toast.error("Not signed in"); return; }
     const { data: prof } = await supabase.from("profiles").select("display_name,email").eq("id", user.id).maybeSingle();
     const author = prof?.display_name ?? prof?.email?.split("@")[0] ?? "Writer";
-    const body = `I scored my Q${question.question_number} response with IRIS — ${analysis.score.toFixed(1)}. Here's the summary: ${analysis.score_context} Need guidance on the top change.`;
+    const body = `I had IRIS read my Q${question.question_number} draft. Here's what it surfaced: ${analysis.score_context} Could use your eyes on the top thing to close.`;
     const { error } = await supabase.from("pilot_copilot_messages").insert({
       mission_id: missionId,
       from_user_id: user.id,
@@ -459,9 +461,9 @@ function ResultStage({
         >
           {count.toFixed(1)}
         </div>
-        <div className="mt-3 text-[18px] tracking-[0.15em] text-muted-foreground">/ 5.0 &nbsp; IRIS SCORE</div>
-        <div className="mt-3 text-xs" style={{ color: meetsStandard ? "rgb(34,197,94)" : "rgba(255,255,255,0.4)" }}>
-          {meetsStandard ? "● Meets Athena Standard" : "○ Below Athena Standard (4.5)"}
+        <div className="mt-3 text-[11px] uppercase tracking-[0.22em] text-muted-foreground">IRIS read · internal reference</div>
+        <div className="mt-2 text-xs" style={{ color: meetsStandard ? "rgb(34,197,94)" : "rgb(245,158,11)" }}>
+          {meetsStandard ? "● This draft is landing — nice work" : "○ A few gaps worth closing before Red Team"}
         </div>
         <p className="mt-5 max-w-2xl text-sm leading-relaxed text-foreground/80">{analysis.score_context}</p>
       </div>
@@ -470,7 +472,7 @@ function ResultStage({
         {/* SECTION A */}
         <section>
           <h3 className="text-[11px] font-bold uppercase tracking-[0.24em] text-muted-foreground mb-4">
-            Here is why IRIS scored this {analysis.score.toFixed(1)}
+            What IRIS noticed
           </h3>
           <ol className="space-y-5">
             {analysis.reasons.map((r: any, i: number) => (
@@ -529,7 +531,7 @@ function ResultStage({
         {/* SECTION B */}
         <section>
           <h3 className="text-[11px] font-bold uppercase tracking-[0.24em] text-muted-foreground mb-4">
-            Three changes take this response from {analysis.score.toFixed(1)} to {analysis.projected_score.toFixed(1)}
+            What evaluators will look for — questions to consider
           </h3>
           <div className="space-y-5">
             {analysis.changes.map((c: any, i: number) => (
@@ -562,17 +564,17 @@ function ResultStage({
         {/* SECTION C */}
         <section className="text-center rounded-[12px] border border-white/10 bg-white/[0.02] px-6 py-8">
           <div className="text-[11px] font-bold uppercase tracking-[0.24em] text-muted-foreground">
-            If you implement all three changes, IRIS estimates this response scores
+            If you address these, IRIS thinks this draft is more likely to land at
           </div>
           <div className="mt-3 text-[72px] font-extrabold leading-none" style={{ color: projectedColor }}>
             {analysis.projected_score.toFixed(1)}
             <span className="ml-1 text-2xl text-muted-foreground font-medium">/ 5.0</span>
           </div>
           {analysis.projected_score >= 4.5 && (
-            <div className="mt-2 text-xs" style={{ color: "rgb(34,197,94)" }}>● Meets Athena Standard</div>
+            <div className="mt-2 text-xs" style={{ color: "rgb(34,197,94)" }}>● Comfortably in the landing zone</div>
           )}
           <p className="mt-4 text-xs text-muted-foreground max-w-md mx-auto">
-            This is an estimate. Final score depends on how you implement the changes and how evaluators weight criteria on the day. Use this as a direction, not a guarantee.
+            A direction, not a guarantee. Final landing depends on how you address these and how the panel weighs criteria on the day. The expertise is yours — IRIS just makes sure nothing gets missed.
           </p>
         </section>
 
@@ -607,7 +609,7 @@ function SourcesPanel({ analysis }: { analysis: Analysis }) {
       <button onClick={() => setOpen((o) => !o)} className="flex w-full items-center justify-between px-5 py-3 text-left">
         <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground inline-flex items-center gap-2">
           <span className="sm-pulse-dot inline-block h-1.5 w-1.5 rounded-full" style={{ background: "var(--iris, #22d3ee)" }} />
-          What IRIS used to score this response
+          What IRIS read to form this take
         </span>
         {open ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />}
       </button>
