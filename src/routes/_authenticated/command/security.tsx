@@ -399,6 +399,83 @@ const DPA_TERMS = [
   },
 ];
 
+const ACTIVE_PROTECTIONS: Array<{ icon: LucideIcon; title: string; body: string; detail?: string }> = [
+  {
+    icon: ShieldCheck,
+    title: "PHI detection (fail-closed)",
+    body: "Every ingestion path — Score Me drafts, Vault uploads, RFP parser, document extraction, IRIS knowledge ingest — runs a shared server-side PHI scrub before the content reaches the LLM or the database. Detection blocks the request and returns PHI_DETECTED; matched values are never logged.",
+    detail: "src/lib/phi-detection.ts · SSN · DOB · MRN · MemberID · Street · Clinical context",
+  },
+  {
+    icon: Database,
+    title: "Row-Level Security on every table",
+    body: "RLS is enabled on every public table. No client query can bypass the policies — even with the publishable key, Postgres enforces the user's identity on read and write.",
+    detail: "ALTER TABLE … ENABLE ROW LEVEL SECURITY · enforced in Postgres, not application code",
+  },
+  {
+    icon: Users,
+    title: "Role-based access via user_roles",
+    body: "Roles live in a separate user_roles table — never on the profile — and are checked through a SECURITY DEFINER has_role() function. This prevents privilege-escalation attacks where a user could update their own role.",
+    detail: "public.user_roles + public.has_role(_user_id, _role) · admin / lead / writer / sme",
+  },
+  {
+    icon: Fingerprint,
+    title: "Mission-scoped membership",
+    body: "Access to a mission's questions, drafts, vault, briefings, and signals is gated by mission_members. Non-members can't read or write mission data even if they know the URL.",
+    detail: "mission_members.user_id + role · enforced by RLS + server-function guards",
+  },
+  {
+    icon: Server,
+    title: "Server-side LLM calls only",
+    body: "Anthropic / Gemini / OpenAI API keys live as server secrets and are read inside TanStack server-function handlers. They are never bundled into client code and never reach the browser.",
+    detail: "createServerFn + process.env · requireSupabaseAuth middleware on every call",
+  },
+  {
+    icon: KeyRound,
+    title: "Authenticated server functions",
+    body: "Every server function that touches mission data uses requireSupabaseAuth middleware. Calls without a valid Supabase session are rejected with 401 before any handler code runs.",
+    detail: "src/integrations/supabase/auth-middleware.ts · attachSupabaseAuth on every RPC",
+  },
+  {
+    icon: ScrollText,
+    title: "Olympus audit log",
+    body: "Admin and lead actions in Olympus and other privileged surfaces are recorded to olympus_audit_log with actor, action type, target, and timestamp. Audit writes are best-effort and never break the originating action.",
+    detail: "src/lib/audit.ts · logOlympusAction() · queryable by admins from Olympus",
+  },
+  {
+    icon: FileWarning,
+    title: "PHI incident log",
+    body: "When the PHI guard fires, the event is recorded to a PHI log with user, surface (Score Me / Vault / RFP), pattern types matched, and timestamp — content is never stored.",
+    detail: "Olympus → PHI Log · pattern types only, never the matched text",
+  },
+  {
+    icon: Trash2,
+    title: "Ephemeral draft processing",
+    body: "Score Me drafts are scored in memory and discarded. Only the structured assessment — gaps, compliance flags, recommendations — is persisted. No draft text, excerpts, or paraphrases are written to the database.",
+    detail: "src/lib/score-me-v2.functions.ts · no draft column on any table",
+  },
+  {
+    icon: Eye,
+    title: "Right-to-be-forgotten for writers",
+    body: "Writer-deletion workflow scrubs personal identifiers across profiles, mission_members, signals, audit references — while preserving anonymised aggregate scoring so engagement history remains intact.",
+    detail: "src/lib/writer-deletion.functions.ts · admin-gated",
+  },
+  {
+    icon: Bug,
+    title: "Sanitised error responses",
+    body: "Server-function errors are sanitised before being returned to the client — no SQL fragments, no stack traces, no internal table names leak. Raw errors stay in server logs.",
+    detail: "src/lib/sanitise-error.ts · applied at every serverFn boundary",
+  },
+  {
+    icon: Activity,
+    title: "Lovable Cloud platform protections",
+    body: "Backend runs on Lovable Cloud (Supabase under the hood) with TLS 1.3 in transit, AES-256 at rest, US-region data residency, automated daily backups, point-in-time recovery, and leaked-password (HIBP) checks on signup.",
+    detail: "Encryption · backups · PITR · HIBP · DDoS protection at the edge",
+  },
+];
+
+
+
 const ROADMAP: Array<{
   phase: string;
   capability: string;
