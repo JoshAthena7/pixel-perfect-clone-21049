@@ -233,14 +233,34 @@ function InputStage(props: {
   error: string | null;
   onScore: () => void;
   onClose: () => void;
+  missionId: string;
+  setup?: {
+    hasOutlineTemplate: boolean;
+    hasStyleGuide: boolean;
+    hasContract: boolean;
+    hasScopeOfWork: boolean;
+    hasWinThemes: boolean;
+    hasStateProfile: boolean;
+  };
 }) {
+  const setupRows = props.setup
+    ? [
+        { label: "Person-first language", active: true, always: true },
+        { label: "Outline template", active: props.setup.hasOutlineTemplate },
+        { label: "Style guide", active: props.setup.hasStyleGuide },
+        { label: "Contract & SOW", active: props.setup.hasContract && props.setup.hasScopeOfWork },
+        { label: "Win themes", active: props.setup.hasWinThemes },
+        { label: "State priorities", active: true },
+        { label: "Proof points", active: true },
+      ]
+    : [];
+  const activeCount = setupRows.filter((r) => r.active).length;
+
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
       <h1 className="text-2xl font-semibold tracking-tight">Want a read on your draft?</h1>
       <p className="mt-2 text-sm text-muted-foreground max-w-2xl">
-        IRIS reads your draft the way a smart colleague would — looking for gaps,
-        compliance flags, and anything an evaluator might mark down. It never rewrites
-        your work. The expertise is yours.
+        IRIS scores your draft across seven dimensions — person-first language, structure, voice, scope, win themes, state priorities, and proof points. It never rewrites your work.
       </p>
       <div className="mt-3 flex items-start gap-2 rounded-[10px] border border-cyan-400/20 bg-cyan-400/[0.04] px-3 py-2.5">
         <ShieldCheck className="h-3.5 w-3.5 mt-0.5 shrink-0" style={{ color: "var(--iris, #22d3ee)" }} />
@@ -249,6 +269,38 @@ function InputStage(props: {
           <Link to="/command/security" className="underline decoration-dotted underline-offset-2 hover:text-foreground">How this works →</Link>
         </div>
       </div>
+
+      {props.setup && (
+        <div className="mt-4 rounded-[10px] border border-border bg-surface/60 px-4 py-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Active dimensions
+            </span>
+            <span className="text-[11px] text-foreground/80">
+              {activeCount} / 7 · {7 - activeCount === 0 ? "all loaded" : `${7 - activeCount} pending upload`}
+            </span>
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] md:grid-cols-3">
+            {setupRows.map((r) => (
+              <div key={r.label} className="flex items-center gap-1.5">
+                <span className={`h-1.5 w-1.5 rounded-full ${r.active ? "bg-emerald-500" : "bg-muted-foreground/40"}`} />
+                <span className={r.active ? "text-foreground/80" : "text-muted-foreground line-through decoration-dotted"}>
+                  {r.label}
+                </span>
+              </div>
+            ))}
+          </div>
+          {7 - activeCount > 0 && (
+            <Link
+              to="/missions/$missionId/vault"
+              params={{ missionId: props.missionId }}
+              className="mt-2 inline-block text-[11px] text-sky-300 hover:underline"
+            >
+              Upload missing documents in the Vault →
+            </Link>
+          )}
+        </div>
+      )}
 
       <div className="mt-8 space-y-3">
         <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Question</div>
