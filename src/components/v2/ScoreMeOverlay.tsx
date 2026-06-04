@@ -178,6 +178,9 @@ export function ScoreMeOverlay({ open, onClose, missionId, lockedQuestionId }: P
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col" style={{ background: "#060b14" }}>
+      {phiError ? (
+        <PHIRejectionWarning payload={phiError} onAcknowledge={() => setPhiError(null)} />
+      ) : null}
       <style>{`
         .smbg {
           background:
