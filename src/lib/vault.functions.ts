@@ -42,6 +42,12 @@ export const VAULT_TYPE_META: Record<
     description: "Client voice, formatting, and terminology guide.",
     required: true,
   },
+  outline_template: {
+    label: "Outline Template",
+    short: "Outline",
+    description: "Approved response outline — sections, order, length limits.",
+    required: true,
+  },
   dpa: {
     label: "Data Processing Agreement",
     short: "DPA",
