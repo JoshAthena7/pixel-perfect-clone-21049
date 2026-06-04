@@ -152,9 +152,19 @@ function AuditPage() {
         <div className="flex items-center gap-1.5">
           <Filter className="h-3.5 w-3.5 text-muted-foreground" />
           <select value={filterType} onChange={(e) => setFilterType(e.target.value)}
-            className="rounded-md border border-border bg-background px-2 py-1.5 text-xs">
+            className="rounded-md border border-border bg-background px-2 py-1.5 text-xs" title="Action type">
             <option value="all">All types</option>
             {types.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <select value={filterUser} onChange={(e) => setFilterUser(e.target.value)}
+            className="rounded-md border border-border bg-background px-2 py-1.5 text-xs max-w-[180px]" title="User">
+            <option value="all">All users</option>
+            {users.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
+          </select>
+          <select value={filterMission} onChange={(e) => setFilterMission(e.target.value)}
+            className="rounded-md border border-border bg-background px-2 py-1.5 text-xs max-w-[180px]" title="Mission">
+            <option value="all">All missions</option>
+            {missionsList.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
           </select>
         </div>
         <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
