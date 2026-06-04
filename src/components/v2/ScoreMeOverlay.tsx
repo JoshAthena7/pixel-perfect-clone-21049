@@ -203,14 +203,11 @@ export function ScoreMeOverlay({ open, onClose, missionId, lockedQuestionId }: P
           />
         )}
         {stage === "theatre" && <TheatreStage />}
-        {stage === "result" && analysis && selectedQ && (
-          <ResultStage
-            analysis={analysis}
-            question={selectedQ}
-            responseText={responseText}
+        {stage === "result" && analysis && (
+          <Scorecard
+            result={analysis}
             onAnother={() => { setResponseText(""); setAnalysis(null); setStage("input"); }}
             onClose={onClose}
-            missionId={missionId}
           />
         )}
       </div>
