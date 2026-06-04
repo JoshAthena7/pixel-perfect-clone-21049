@@ -8,6 +8,7 @@ export const VAULT_DOC_TYPES = [
   "contract",
   "scope_of_work",
   "style_guide",
+  "outline_template",
   "dpa",
   "other",
 ] as const;
