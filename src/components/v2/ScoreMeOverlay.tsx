@@ -3,7 +3,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { scoreResponse } from "@/lib/score-me.functions";
-import { X, Sparkles, Save, Send, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
+import { X, Sparkles, Save, Send, RefreshCw, ChevronDown, ChevronUp, ShieldCheck, Lock } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { createSignal } from "@/lib/signals";
 import { PersonFirstHint } from "@/components/v2/PersonFirstHint";
@@ -56,6 +57,21 @@ export function ScoreMeOverlay({ open, onClose, missionId, lockedQuestionId }: P
       setQuestionId(lockedQuestionId ?? null);
     }
   }, [open, lockedQuestionId]);
+
+  // Mission FedRAMP-scope flag — hard block on Score Me when true.
+  const { data: mission } = useQuery({
+    queryKey: ["score-me-mission", missionId],
+    enabled: open,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("missions")
+        .select("id, name, is_fedramp_scope")
+        .eq("id", missionId)
+        .maybeSingle();
+      return data as { id: string; name: string; is_fedramp_scope: boolean } | null;
+    },
+  });
+  const fedrampBlocked = mission?.is_fedramp_scope === true;
 
   // Mission questions for selector
   const { data: questions = [] } = useQuery({
@@ -160,7 +176,10 @@ export function ScoreMeOverlay({ open, onClose, missionId, lockedQuestionId }: P
       </header>
 
       <div className="smbg flex-1 min-h-0 overflow-y-auto">
-        {stage === "input" && (
+        {stage === "input" && fedrampBlocked && (
+          <FedRampBlock missionName={mission?.name ?? "this mission"} onClose={onClose} />
+        )}
+        {stage === "input" && !fedrampBlocked && (
           <InputStage
             selectedQ={selectedQ}
             questions={questions}
@@ -218,7 +237,13 @@ function InputStage(props: {
         compliance flags, and anything an evaluator might mark down. It never rewrites
         your work. The expertise is yours.
       </p>
-      <p className="mt-2 text-[11px] text-muted-foreground/70">Your response is never stored or shared outside this session.</p>
+      <div className="mt-3 flex items-start gap-2 rounded-[10px] border border-cyan-400/20 bg-cyan-400/[0.04] px-3 py-2.5">
+        <ShieldCheck className="h-3.5 w-3.5 mt-0.5 shrink-0" style={{ color: "var(--iris, #22d3ee)" }} />
+        <div className="text-[11px] leading-relaxed text-muted-foreground">
+          <span className="text-foreground/90 font-medium">Ephemeral processing.</span> Your draft is read in memory, scored, and discarded — never stored, never logged, never used to train any model.{" "}
+          <Link to="/command/security" className="underline decoration-dotted underline-offset-2 hover:text-foreground">How this works →</Link>
+        </div>
+      </div>
 
       <div className="mt-8 space-y-3">
         <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Question</div>
@@ -748,6 +773,52 @@ function ComplianceResultsSection({ analysis }: { analysis: Analysis }) {
         </div>
       )}
     </section>
+  );
+}
+
+/* ──────────────────────────────────────────── FEDRAMP BLOCK ─────────── */
+
+function FedRampBlock({ missionName, onClose }: { missionName: string; onClose: () => void }) {
+  return (
+    <div className="mx-auto max-w-2xl px-6 py-16">
+      <div className="flex flex-col items-center text-center">
+        <div
+          className="flex h-16 w-16 items-center justify-center rounded-full mb-5"
+          style={{ background: "rgba(244,63,94,0.10)", border: "1px solid rgba(244,63,94,0.35)" }}
+        >
+          <Lock className="h-7 w-7" style={{ color: "rgb(244,63,94)" }} />
+        </div>
+        <div className="text-[10px] font-bold uppercase tracking-[0.28em] text-rose-400/90">
+          Score Me unavailable
+        </div>
+        <h1 className="mt-3 text-2xl font-semibold tracking-tight">
+          {missionName} is a FedRAMP-scope engagement.
+        </h1>
+        <p className="mt-4 text-sm text-muted-foreground max-w-md leading-relaxed">
+          Score Me requires draft content to leave the client environment for processing.
+          Atlas does not yet hold FedRAMP authorization, so we don't offer this on
+          FedRAMP-scope missions — even with our ephemeral processing commitment.
+        </p>
+        <p className="mt-3 text-[11px] text-muted-foreground/80 max-w-md leading-relaxed">
+          FedRAMP Moderate authorization is on the Atlas roadmap (Phase 4). Until then,
+          use in-person Red Team review and the compliance checklist on this mission.
+        </p>
+        <div className="mt-7 flex items-center gap-3">
+          <Link
+            to="/command/security"
+            className="rounded-md border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-medium hover:bg-white/[0.08]"
+          >
+            Read the security spec
+          </Link>
+          <button
+            onClick={onClose}
+            className="rounded-md px-4 py-2 text-xs font-medium text-muted-foreground hover:text-foreground"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 

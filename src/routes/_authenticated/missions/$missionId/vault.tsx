@@ -16,6 +16,7 @@ import {
   Plus,
   Loader2,
   Link2,
+  Lock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -38,6 +39,7 @@ const TYPE_ORDER: VaultDocType[] = [
   "contract",
   "scope_of_work",
   "style_guide",
+  "dpa",
   "other",
 ];
 
@@ -46,6 +48,7 @@ const TYPE_ICON: Record<VaultDocType, typeof Shield> = {
   contract: ScrollText,
   scope_of_work: FileText,
   style_guide: BookOpen,
+  dpa: Shield,
   other: Paperclip,
 };
 
@@ -54,6 +57,7 @@ const TYPE_ACCENT: Record<VaultDocType, string> = {
   contract: "rgba(245,158,11,0.45)",       // amber
   scope_of_work: "rgba(56,189,248,0.45)",  // sky
   style_guide: "rgba(168,85,247,0.45)",    // violet
+  dpa: "rgba(34,211,238,0.45)",            // iris cyan
   other: "rgba(148,163,184,0.35)",         // slate
 };
 
@@ -94,7 +98,7 @@ function VaultPage() {
 
   const grouped = useMemo(() => {
     const out: Record<VaultDocType, VaultDoc[]> = {
-      data_security: [], contract: [], scope_of_work: [], style_guide: [], other: [],
+      data_security: [], contract: [], scope_of_work: [], style_guide: [], dpa: [], other: [],
     };
     for (const d of docs) out[d.doc_type as VaultDocType]?.push(d);
     return out;
@@ -125,6 +129,35 @@ function VaultPage() {
   ).length;
   const requiredTotal = TYPE_ORDER.filter((t) => VAULT_TYPE_META[t].required).length;
   const allRequiredFilled = requiredCount === requiredTotal;
+
+  // FedRAMP-scope flag
+  const { data: missionMeta } = useQuery({
+    queryKey: ["vault-mission-meta", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("missions")
+        .select("is_fedramp_scope")
+        .eq("id", missionId)
+        .maybeSingle();
+      return (data ?? { is_fedramp_scope: false }) as { is_fedramp_scope: boolean };
+    },
+  });
+  const fedrampScope = missionMeta?.is_fedramp_scope ?? false;
+  const fedrampMut = useMutation({
+    mutationFn: async (next: boolean) => {
+      const { error } = await supabase
+        .from("missions")
+        .update({ is_fedramp_scope: next })
+        .eq("id", missionId);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: (_v, next) => {
+      toast.success(next ? "Mission marked FedRAMP-scope · Score Me disabled" : "FedRAMP-scope cleared");
+      qc.invalidateQueries({ queryKey: ["vault-mission-meta", missionId] });
+      qc.invalidateQueries({ queryKey: ["score-me-mission", missionId] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Update failed"),
+  });
 
   return (
     <div className="mx-auto max-w-[1280px] px-6 py-10 space-y-8">
@@ -165,6 +198,43 @@ function VaultPage() {
           </Link>
         </div>
       </header>
+
+      {/* FedRAMP-scope flag */}
+      <div
+        className="flex flex-wrap items-center justify-between gap-3 rounded-[10px] border px-4 py-3"
+        style={{
+          borderColor: fedrampScope ? "rgba(244,63,94,0.35)" : "rgba(255,255,255,0.08)",
+          background: fedrampScope ? "rgba(244,63,94,0.05)" : "rgba(255,255,255,0.02)",
+        }}
+      >
+        <div className="flex items-start gap-3 min-w-0">
+          <Lock
+            className="h-4 w-4 mt-0.5 shrink-0"
+            style={{ color: fedrampScope ? "rgb(244,63,94)" : "rgb(148,163,184)" }}
+          />
+          <div className="min-w-0">
+            <div className="text-[12px] font-semibold text-foreground/95">
+              FedRAMP-scope engagement
+            </div>
+            <div className="text-[11px] text-muted-foreground">
+              {fedrampScope
+                ? "Score Me is hard-blocked on this mission until Atlas achieves FedRAMP authorization (Phase 4)."
+                : "Leave off for commercial / state engagements. Turn on for federal scope subject to FedRAMP."}
+            </div>
+          </div>
+        </div>
+        {isLead ? (
+          <button
+            onClick={() => fedrampMut.mutate(!fedrampScope)}
+            disabled={fedrampMut.isPending}
+            className="shrink-0 rounded-md border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] font-semibold hover:bg-white/[0.08] disabled:opacity-50"
+          >
+            {fedrampMut.isPending ? "Saving…" : fedrampScope ? "Clear flag" : "Mark FedRAMP-scope"}
+          </button>
+        ) : (
+          <span className="shrink-0 text-[11px] text-muted-foreground">Lead-only</span>
+        )}
+      </div>
 
       {/* Slot grid */}
       {isLoading ? (

@@ -217,6 +217,7 @@ function AtriumNav() {
     { to: "/home", label: "Home" },
     { to: "/atrium", label: "Atrium" },
     { to: "/command/health", label: "Health" },
+    { to: "/command/security", label: "Security" },
   ];
   return (
     <nav className="flex items-center gap-1">

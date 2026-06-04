@@ -8,6 +8,7 @@ export const VAULT_DOC_TYPES = [
   "contract",
   "scope_of_work",
   "style_guide",
+  "dpa",
   "other",
 ] as const;
 export type VaultDocType = (typeof VAULT_DOC_TYPES)[number];
@@ -38,6 +39,12 @@ export const VAULT_TYPE_META: Record<
     label: "Style Guide",
     short: "Style",
     description: "Client voice, formatting, and terminology guide.",
+    required: true,
+  },
+  dpa: {
+    label: "Data Processing Agreement",
+    short: "DPA",
+    description: "Executed Atlas DPA — ephemeral processing & no-training commitment.",
     required: true,
   },
   other: {
