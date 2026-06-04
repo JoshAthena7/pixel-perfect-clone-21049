@@ -237,7 +237,13 @@ function InputStage(props: {
         compliance flags, and anything an evaluator might mark down. It never rewrites
         your work. The expertise is yours.
       </p>
-      <p className="mt-2 text-[11px] text-muted-foreground/70">Your response is never stored or shared outside this session.</p>
+      <div className="mt-3 flex items-start gap-2 rounded-[10px] border border-cyan-400/20 bg-cyan-400/[0.04] px-3 py-2.5">
+        <ShieldCheck className="h-3.5 w-3.5 mt-0.5 shrink-0" style={{ color: "var(--iris, #22d3ee)" }} />
+        <div className="text-[11px] leading-relaxed text-muted-foreground">
+          <span className="text-foreground/90 font-medium">Ephemeral processing.</span> Your draft is read in memory, scored, and discarded — never stored, never logged, never used to train any model.{" "}
+          <Link to="/command/security" className="underline decoration-dotted underline-offset-2 hover:text-foreground">How this works →</Link>
+        </div>
+      </div>
 
       <div className="mt-8 space-y-3">
         <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Question</div>
