@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { runScoreMe, getScoreMeSetup } from "@/lib/score-me-v2.functions";
 import type { ScoreMeV2Result } from "@/lib/score-me-v2.functions";
+import {
+  acknowledgeScoreMeDisclosure,
+  getScoreMeDisclosureStatus,
+} from "@/lib/score-me-interactions.functions";
 import { X, Sparkles, ShieldCheck, Lock } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { createSignal } from "@/lib/signals";
@@ -47,6 +51,20 @@ export function ScoreMeOverlay({ open, onClose, missionId, lockedQuestionId }: P
 
   const scoreFn = useServerFn(runScoreMe);
   const setupFn = useServerFn(getScoreMeSetup);
+  const getDisclosureFn = useServerFn(getScoreMeDisclosureStatus);
+  const ackFn = useServerFn(acknowledgeScoreMeDisclosure);
+
+  // H5: First-time disclosure gate. Reads the writer's profile flag.
+  const { data: disclosure, refetch: refetchDisclosure } = useQuery({
+    queryKey: ["score-me-disclosure"],
+    enabled: open,
+    queryFn: () => getDisclosureFn(),
+  });
+  const ackMut = useMutation({
+    mutationFn: () => ackFn(),
+    onSuccess: () => refetchDisclosure(),
+  });
+
   const { data: setup } = useQuery({
     queryKey: ["score-me-setup", missionId],
     enabled: open,
