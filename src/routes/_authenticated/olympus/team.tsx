@@ -1,21 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { UserPlus, Trash2, Users as UsersIcon, Mail } from "lucide-react";
+import { Trash2, Users as UsersIcon } from "lucide-react";
 import { useSelectedOlympusMission } from "../olympus";
 import { logOlympusAction } from "@/lib/audit";
 import { EmptyState, EmptyIcon } from "@/components/v2/EmptyState";
 import { CollectivePanel } from "@/components/olympus/CollectivePanel";
-import { inviteMissionMember } from "@/lib/mission-members.functions";
 
 export const Route = createFileRoute("/_authenticated/olympus/team")({
   component: TeamPage,
 });
 
-const ROLES = ["admin", "lead", "writer", "sme", "reviewer", "observer"] as const;
+const ROLES = ["admin", "lead", "writer", "sme", "viewer"] as const;
 type Role = (typeof ROLES)[number];
 
 type MemberRow = {
@@ -41,17 +38,15 @@ function TeamPage() {
       </header>
 
       {missionId ? (
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
+        <div className="space-y-6">
           <Roster missionId={missionId} />
-          <InvitePanel missionId={missionId} />
+          <CollectivePanel missionId={missionId} />
         </div>
       ) : (
         <div className="rounded-[10px] border border-dashed border-border bg-surface px-6 py-4 text-sm text-muted-foreground">
           Select a mission from the header to manage its roster. The Athena Collective directory below is shared across all missions.
         </div>
       )}
-
-      <CollectivePanel missionId={missionId} />
     </div>
   );
 }
