@@ -19,6 +19,7 @@ import {
   Lock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsAdmin } from "@/hooks/useAccess";
 import { toast } from "sonner";
 import {
   listVaultDocs,
