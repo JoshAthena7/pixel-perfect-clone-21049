@@ -269,11 +269,25 @@ function FocusStack({
         )}
       </div>
 
-      <ol className="space-y-3">
-        {top3.map((q, i) => (
-          <FocusItem key={q.id} q={q} missionId={missionId} index={i} updateStatus={updateStatus} primary={i === 0} />
-        ))}
-      </ol>
+      {top3.length === 0 ? (
+        <div className="rounded-[10px] border border-dashed border-border bg-background/40 px-5 py-8 text-center">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            No questions assigned to you yet
+          </div>
+          <p className="mt-2 text-sm text-foreground/70 max-w-md mx-auto">
+            When a mission lead assigns you a question, it will appear here at the top of your Cockpit — and in the <span className="text-foreground font-medium">All Questions</span> list below with a “Mine” badge.
+          </p>
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            Browse open questions below to volunteer for one.
+          </p>
+        </div>
+      ) : (
+        <ol className="space-y-3">
+          {top3.map((q, i) => (
+            <FocusItem key={q.id} q={q} missionId={missionId} index={i} updateStatus={updateStatus} primary={i === 0} />
+          ))}
+        </ol>
+      )}
     </section>
   );
 }
