@@ -124,7 +124,7 @@ export function CollectivePanel({ missionId }: { missionId: string | null }) {
   const [importing, setImporting] = useState(false);
   const [search, setSearch] = useState("");
   const [tagFilter, setTagFilter] = useState<string | null>(null);
-  const [inviteRole, setInviteRole] = useState<Role>("writer");
+  const [addRole, setAddRole] = useState<Role>("writer");
   const [busyMemberId, setBusyMemberId] = useState<string | null>(null);
 
   const { data: collective = [], isLoading } = useQuery({
@@ -221,12 +221,12 @@ export function CollectivePanel({ missionId }: { missionId: string | null }) {
     setBusyMemberId(c.id);
     try {
       const result = await addCollectiveMember({
-        data: { missionId, collectiveMemberId: c.id, role: inviteRole },
+        data: { missionId, collectiveMemberId: c.id, role: addRole },
       });
-      toast.success(`${result.sentInvite ? "Invited and added" : "Added"} ${c.full_name} as ${inviteRole}`);
+      toast.success(`${result.sentInvite ? "Invited and added" : "Added"} ${c.full_name} as ${addRole}`);
       await logOlympusAction({
         action_type: "team.add",
-        action_summary: `${result.sentInvite ? "Invited and added" : "Added"} ${c.full_name} (${c.email ?? "no email"}) from collective as ${inviteRole}`,
+        action_summary: `${result.sentInvite ? "Invited and added" : "Added"} ${c.full_name} (${c.email ?? "no email"}) from collective as ${addRole}`,
         mission_id: missionId,
         target_table: "mission_members",
       });
@@ -351,8 +351,8 @@ export function CollectivePanel({ missionId }: { missionId: string | null }) {
         <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
           Add as
           <select
-            value={inviteRole}
-            onChange={(e) => setInviteRole(e.target.value as Role)}
+            value={addRole}
+            onChange={(e) => setAddRole(e.target.value as Role)}
             className="rounded-md border border-border bg-background px-2 py-1 text-xs"
           >
             {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
