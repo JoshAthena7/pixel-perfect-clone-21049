@@ -29,6 +29,7 @@ import { Route as AuthenticatedOlympusTeamRouteImport } from './routes/_authenti
 import { Route as AuthenticatedOlympusSourceLibraryRouteImport } from './routes/_authenticated/olympus/source-library'
 import { Route as AuthenticatedOlympusSourceFinderRouteImport } from './routes/_authenticated/olympus/source-finder'
 import { Route as AuthenticatedOlympusSettingsRouteImport } from './routes/_authenticated/olympus/settings'
+import { Route as AuthenticatedOlympusSensitivitiesRouteImport } from './routes/_authenticated/olympus/sensitivities'
 import { Route as AuthenticatedOlympusScoreMeRouteImport } from './routes/_authenticated/olympus/score-me'
 import { Route as AuthenticatedOlympusReviewQueueRouteImport } from './routes/_authenticated/olympus/review-queue'
 import { Route as AuthenticatedOlympusQuestionsRouteImport } from './routes/_authenticated/olympus/questions'
@@ -185,6 +186,12 @@ const AuthenticatedOlympusSettingsRoute =
   AuthenticatedOlympusSettingsRouteImport.update({
     id: '/settings',
     path: '/settings',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
+const AuthenticatedOlympusSensitivitiesRoute =
+  AuthenticatedOlympusSensitivitiesRouteImport.update({
+    id: '/sensitivities',
+    path: '/sensitivities',
     getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
 const AuthenticatedOlympusScoreMeRoute =
@@ -493,6 +500,7 @@ export interface FileRoutesByFullPath {
   '/olympus/questions': typeof AuthenticatedOlympusQuestionsRoute
   '/olympus/review-queue': typeof AuthenticatedOlympusReviewQueueRoute
   '/olympus/score-me': typeof AuthenticatedOlympusScoreMeRoute
+  '/olympus/sensitivities': typeof AuthenticatedOlympusSensitivitiesRoute
   '/olympus/settings': typeof AuthenticatedOlympusSettingsRoute
   '/olympus/source-finder': typeof AuthenticatedOlympusSourceFinderRoute
   '/olympus/source-library': typeof AuthenticatedOlympusSourceLibraryRoute
@@ -557,6 +565,7 @@ export interface FileRoutesByTo {
   '/olympus/questions': typeof AuthenticatedOlympusQuestionsRoute
   '/olympus/review-queue': typeof AuthenticatedOlympusReviewQueueRoute
   '/olympus/score-me': typeof AuthenticatedOlympusScoreMeRoute
+  '/olympus/sensitivities': typeof AuthenticatedOlympusSensitivitiesRoute
   '/olympus/settings': typeof AuthenticatedOlympusSettingsRoute
   '/olympus/source-finder': typeof AuthenticatedOlympusSourceFinderRoute
   '/olympus/source-library': typeof AuthenticatedOlympusSourceLibraryRoute
@@ -625,6 +634,7 @@ export interface FileRoutesById {
   '/_authenticated/olympus/questions': typeof AuthenticatedOlympusQuestionsRoute
   '/_authenticated/olympus/review-queue': typeof AuthenticatedOlympusReviewQueueRoute
   '/_authenticated/olympus/score-me': typeof AuthenticatedOlympusScoreMeRoute
+  '/_authenticated/olympus/sensitivities': typeof AuthenticatedOlympusSensitivitiesRoute
   '/_authenticated/olympus/settings': typeof AuthenticatedOlympusSettingsRoute
   '/_authenticated/olympus/source-finder': typeof AuthenticatedOlympusSourceFinderRoute
   '/_authenticated/olympus/source-library': typeof AuthenticatedOlympusSourceLibraryRoute
@@ -693,6 +703,7 @@ export interface FileRouteTypes {
     | '/olympus/questions'
     | '/olympus/review-queue'
     | '/olympus/score-me'
+    | '/olympus/sensitivities'
     | '/olympus/settings'
     | '/olympus/source-finder'
     | '/olympus/source-library'
@@ -757,6 +768,7 @@ export interface FileRouteTypes {
     | '/olympus/questions'
     | '/olympus/review-queue'
     | '/olympus/score-me'
+    | '/olympus/sensitivities'
     | '/olympus/settings'
     | '/olympus/source-finder'
     | '/olympus/source-library'
@@ -824,6 +836,7 @@ export interface FileRouteTypes {
     | '/_authenticated/olympus/questions'
     | '/_authenticated/olympus/review-queue'
     | '/_authenticated/olympus/score-me'
+    | '/_authenticated/olympus/sensitivities'
     | '/_authenticated/olympus/settings'
     | '/_authenticated/olympus/source-finder'
     | '/_authenticated/olympus/source-library'
@@ -1006,6 +1019,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/olympus/settings'
       preLoaderRoute: typeof AuthenticatedOlympusSettingsRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
+    '/_authenticated/olympus/sensitivities': {
+      id: '/_authenticated/olympus/sensitivities'
+      path: '/sensitivities'
+      fullPath: '/olympus/sensitivities'
+      preLoaderRoute: typeof AuthenticatedOlympusSensitivitiesRouteImport
       parentRoute: typeof AuthenticatedOlympusRoute
     }
     '/_authenticated/olympus/score-me': {
@@ -1342,6 +1362,7 @@ interface AuthenticatedOlympusRouteChildren {
   AuthenticatedOlympusQuestionsRoute: typeof AuthenticatedOlympusQuestionsRoute
   AuthenticatedOlympusReviewQueueRoute: typeof AuthenticatedOlympusReviewQueueRoute
   AuthenticatedOlympusScoreMeRoute: typeof AuthenticatedOlympusScoreMeRoute
+  AuthenticatedOlympusSensitivitiesRoute: typeof AuthenticatedOlympusSensitivitiesRoute
   AuthenticatedOlympusSettingsRoute: typeof AuthenticatedOlympusSettingsRoute
   AuthenticatedOlympusSourceFinderRoute: typeof AuthenticatedOlympusSourceFinderRoute
   AuthenticatedOlympusSourceLibraryRoute: typeof AuthenticatedOlympusSourceLibraryRoute
@@ -1370,6 +1391,8 @@ const AuthenticatedOlympusRouteChildren: AuthenticatedOlympusRouteChildren = {
   AuthenticatedOlympusQuestionsRoute: AuthenticatedOlympusQuestionsRoute,
   AuthenticatedOlympusReviewQueueRoute: AuthenticatedOlympusReviewQueueRoute,
   AuthenticatedOlympusScoreMeRoute: AuthenticatedOlympusScoreMeRoute,
+  AuthenticatedOlympusSensitivitiesRoute:
+    AuthenticatedOlympusSensitivitiesRoute,
   AuthenticatedOlympusSettingsRoute: AuthenticatedOlympusSettingsRoute,
   AuthenticatedOlympusSourceFinderRoute: AuthenticatedOlympusSourceFinderRoute,
   AuthenticatedOlympusSourceLibraryRoute:
