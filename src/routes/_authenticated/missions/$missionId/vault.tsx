@@ -130,6 +130,35 @@ function VaultPage() {
   const requiredTotal = TYPE_ORDER.filter((t) => VAULT_TYPE_META[t].required).length;
   const allRequiredFilled = requiredCount === requiredTotal;
 
+  // FedRAMP-scope flag
+  const { data: missionMeta } = useQuery({
+    queryKey: ["vault-mission-meta", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("missions")
+        .select("is_fedramp_scope")
+        .eq("id", missionId)
+        .maybeSingle();
+      return (data ?? { is_fedramp_scope: false }) as { is_fedramp_scope: boolean };
+    },
+  });
+  const fedrampScope = missionMeta?.is_fedramp_scope ?? false;
+  const fedrampMut = useMutation({
+    mutationFn: async (next: boolean) => {
+      const { error } = await supabase
+        .from("missions")
+        .update({ is_fedramp_scope: next })
+        .eq("id", missionId);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: (_v, next) => {
+      toast.success(next ? "Mission marked FedRAMP-scope · Score Me disabled" : "FedRAMP-scope cleared");
+      qc.invalidateQueries({ queryKey: ["vault-mission-meta", missionId] });
+      qc.invalidateQueries({ queryKey: ["score-me-mission", missionId] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Update failed"),
+  });
+
   return (
     <div className="mx-auto max-w-[1280px] px-6 py-10 space-y-8">
       {/* Header */}
