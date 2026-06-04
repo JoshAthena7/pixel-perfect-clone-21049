@@ -1,3 +1,4 @@
+// NOTE: Draft content is never persisted. This function processes content in memory only. See DPA section 2.1.
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
@@ -302,7 +303,6 @@ Compliance fixes take priority in the changes array. A non-compliant CRITICAL re
         mission_id: q.mission_id,
         question_id: q.id,
         scored_by: userId,
-        response_text: data.responseText,
         score,
         projected_score: projected,
         full_analysis: analysis,

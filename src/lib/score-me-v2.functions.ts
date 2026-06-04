@@ -1,3 +1,4 @@
+// NOTE: Draft content is never persisted. This function processes content in memory only. See DPA section 2.1.
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
@@ -365,7 +366,6 @@ ${data.responseText}
         mission_id: q.mission_id,
         question_id: q.id,
         scored_by: userId,
-        response_text: data.responseText,
         score: 0, // legacy column — V2 has no composite
         projected_score: 0,
         full_analysis: { kind: "scorecard_v2", dimensions, iris_note: analysis.iris_note ?? "" },
