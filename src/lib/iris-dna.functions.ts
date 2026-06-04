@@ -284,6 +284,14 @@ export const generateMissionDna = createServerFn({ method: "POST" })
       throw new Error("Document does not belong to this mission");
     }
 
+    // C2: PHI scrub on ingested RFP text BEFORE forwarding to AI or storage.
+    await assertNoPHI({
+      text,
+      surface: "iris_ingest",
+      actorUserId: userId,
+      engagementId: data.missionId,
+    });
+
     // 3. Call Claude
     const dna = await callLovableAiForDna(text);
 
