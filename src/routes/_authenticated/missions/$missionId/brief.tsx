@@ -2,9 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Sparkles, AlertTriangle, Target, TrendingUp, FileText, Gauge, Trophy } from "lucide-react";
+import { Sparkles, AlertTriangle, Target, TrendingUp, FileText, Gauge, Trophy, Activity } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useIsAdmin } from "@/hooks/useAccess";
+
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/brief")({
   component: BriefPage,
