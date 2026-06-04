@@ -37,13 +37,13 @@ const SCORE_TOOL = {
             type: "object",
             properties: {
               label: { type: "string" },
-              what: { type: "string" },
+              what: { type: "string", description: "What is missing or weak in the response — identify the gap, do not write the replacement." },
               where: { type: "string" },
-              suggested_language: { type: "string", description: "Exact text to add or replace — not a template." },
+              question_for_writer: { type: "string", description: "A question the writer should answer to close the gap. NEVER provide the answer text." },
               why: { type: "string" },
               estimated_points: { type: "number" },
             },
-            required: ["label", "what", "where", "suggested_language", "why", "estimated_points"],
+            required: ["label", "what", "where", "question_for_writer", "why", "estimated_points"],
             additionalProperties: false,
           },
         },
@@ -286,7 +286,7 @@ Score impact:
 
 For every non-compliant or conflicting requirement, add a reason with type: "compliance" naming the source and the gap.
 
-Compliance fixes take priority in the changes array. A non-compliant CRITICAL requirement is ALWAYS Change 1 regardless of other factors (above mandatory_language, above person-first). For each compliance change, the suggested_language MUST include the exact text that would make the response compliant — including the specific citation if required language is mandated.`;
+Compliance fixes take priority in the changes array. A non-compliant CRITICAL requirement is ALWAYS Change 1 regardless of other factors (above mandatory_language, above person-first). For each compliance change, the question_for_writer MUST ask the writer to add the required citation or commitment — IRIS identifies the gap and asks the question; it never writes the replacement text.`;
 
     const analysis = await callScoreEngine(sys, userMsg);
     if (!analysis) {

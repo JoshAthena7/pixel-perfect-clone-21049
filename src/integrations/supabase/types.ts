@@ -1161,6 +1161,8 @@ export type Database = {
           program_name: string | null
           promoted_at: string
           promoted_by: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           score_delta: number | null
           source_mission_id: string | null
           source_mission_name: string | null
@@ -1178,6 +1180,8 @@ export type Database = {
           program_name?: string | null
           promoted_at?: string
           promoted_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           score_delta?: number | null
           source_mission_id?: string | null
           source_mission_name?: string | null
@@ -1195,6 +1199,8 @@ export type Database = {
           program_name?: string | null
           promoted_at?: string
           promoted_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           score_delta?: number | null
           source_mission_id?: string | null
           source_mission_name?: string | null
@@ -1554,6 +1560,7 @@ export type Database = {
           embedding: string | null
           id: string
           mission_id: string | null
+          scope: string
           source_id: string
           source_table: string
         }
@@ -1563,6 +1570,7 @@ export type Database = {
           embedding?: string | null
           id?: string
           mission_id?: string | null
+          scope?: string
           source_id: string
           source_table: string
         }
@@ -1572,6 +1580,7 @@ export type Database = {
           embedding?: string | null
           id?: string
           mission_id?: string | null
+          scope?: string
           source_id?: string
           source_table?: string
         }
@@ -2992,6 +3001,7 @@ export type Database = {
           profile_updated_at: string | null
           programs_experience: string[]
           question_types: string[]
+          score_me_disclosure_acknowledged_at: string | null
           states_experience: string[]
         }
         Insert: {
@@ -3016,6 +3026,7 @@ export type Database = {
           profile_updated_at?: string | null
           programs_experience?: string[]
           question_types?: string[]
+          score_me_disclosure_acknowledged_at?: string | null
           states_experience?: string[]
         }
         Update: {
@@ -3040,6 +3051,7 @@ export type Database = {
           profile_updated_at?: string | null
           programs_experience?: string[]
           question_types?: string[]
+          score_me_disclosure_acknowledged_at?: string | null
           states_experience?: string[]
         }
         Relationships: []
@@ -3930,6 +3942,51 @@ export type Database = {
         }
         Relationships: []
       }
+      score_me_interactions: {
+        Row: {
+          action: string
+          created_at: string
+          dimension: string | null
+          id: string
+          mission_id: string | null
+          question_id: string | null
+          writer_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          dimension?: string | null
+          id?: string
+          mission_id?: string | null
+          question_id?: string | null
+          writer_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          dimension?: string | null
+          id?: string
+          mission_id?: string | null
+          question_id?: string | null
+          writer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "score_me_interactions_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "score_me_interactions_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "question_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       signals: {
         Row: {
           confidence: number | null
@@ -4335,6 +4392,51 @@ export type Database = {
       }
     }
     Views: {
+      collective_memory_sanitized: {
+        Row: {
+          detail: string | null
+          id: string | null
+          kind: string | null
+          outcome: string | null
+          program_name: string | null
+          promoted_at: string | null
+          reviewed_at: string | null
+          score_delta: number | null
+          source: string | null
+          state_code: string | null
+          summary: string | null
+          tags: string[] | null
+        }
+        Insert: {
+          detail?: string | null
+          id?: string | null
+          kind?: string | null
+          outcome?: string | null
+          program_name?: string | null
+          promoted_at?: string | null
+          reviewed_at?: string | null
+          score_delta?: number | null
+          source?: never
+          state_code?: string | null
+          summary?: string | null
+          tags?: string[] | null
+        }
+        Update: {
+          detail?: string | null
+          id?: string | null
+          kind?: string | null
+          outcome?: string | null
+          program_name?: string | null
+          promoted_at?: string | null
+          reviewed_at?: string | null
+          score_delta?: number | null
+          source?: never
+          state_code?: string | null
+          summary?: string | null
+          tags?: string[] | null
+        }
+        Relationships: []
+      }
       profiles_directory: {
         Row: {
           avatar_url: string | null
