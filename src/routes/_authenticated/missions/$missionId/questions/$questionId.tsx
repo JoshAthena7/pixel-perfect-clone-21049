@@ -17,6 +17,7 @@ import { CoPilotInbox } from "@/components/v2/CoPilotInbox";
 import { ConfidenceButton, ConfidenceDot } from "@/components/v2/CockpitConfidence";
 import { toast } from "sonner";
 import { Eye } from "lucide-react";
+import { ThreadPanel } from "@/components/threads/ThreadPanel";
 import {
   Sparkles, Send, RefreshCw, AlertTriangle, MessageSquare, ChevronDown, ChevronUp,
   CheckCircle2, ArrowLeftRight, FileEdit, Lightbulb, Pin, CornerDownLeft, X, LifeBuoy,
