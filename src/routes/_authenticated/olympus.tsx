@@ -182,6 +182,7 @@ function OlympusSidebar({ isAdmin }: { isAdmin: boolean }) {
         <IrisSidebarItem to="/olympus/canon-library" path={path} icon={<BookOpen size={15} strokeWidth={1.5} />}>Canon Library</IrisSidebarItem>
         <IrisSidebarItem to="/olympus/iris-memory" path={path} icon={<Brain size={15} strokeWidth={1.5} />}>IRIS Memory</IrisSidebarItem>
         <IrisSidebarItem to="/olympus/discovery-history" path={path} icon={<History size={15} strokeWidth={1.5} />}>Discovery History</IrisSidebarItem>
+        <IrisSidebarItem to="/olympus/intel-drift" path={path} icon={<AlertTriangle size={15} strokeWidth={1.5} />}>Intel Drift</IrisSidebarItem>
 
         {isAdmin && (
           <>
