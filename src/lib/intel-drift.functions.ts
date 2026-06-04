@@ -178,6 +178,7 @@ export const recalibrateMissionIntel = createServerFn({ method: "POST" })
       cacheCleared: cacheCleared ?? 0,
       researched,
       researchFailed,
+      queuedForResearch,
       recalibratedAt: now,
     };
   });
