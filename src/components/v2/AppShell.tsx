@@ -9,7 +9,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { irisLeadershipAttention } from "@/lib/iris.functions";
 import { getUnacknowledgedBriefings } from "@/lib/brief-room.functions";
-import { getUnreadSignalsCount } from "@/lib/signals.functions";
+
 import { useIsAdmin } from "@/hooks/useAccess";
 import { toast } from "sonner";
 
