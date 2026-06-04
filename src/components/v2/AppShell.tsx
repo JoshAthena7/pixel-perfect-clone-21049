@@ -2,7 +2,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useParams, useNavigate, useRouter } from "@tanstack/react-router";
 import {
   LogOut, User, Shield, Settings2,
-  Plane, Search, HelpCircle, ArrowLeft, Megaphone, Radio,
+  Plane, Search, HelpCircle, ArrowLeft, Megaphone,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
