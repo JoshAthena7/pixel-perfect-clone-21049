@@ -326,17 +326,29 @@ function MissionOverviewPage() {
     counts.red > 0 ? "Red" : counts.yellow > 0 ? "Yellow" : "Green";
 
   // Roles → people
-  const findByRole = (role: string) => members.find((m) => m.role === role) ?? null;
   const leadershipRow = useMemo(() => {
-    const lead = members.find((m) => m.role === "lead") ?? findByRole("admin");
-    const pm = members.find((m) => m.role === "pm") ?? null;
-    const writers = members.filter((m) => m.role === "writer");
-    const graphics = members.filter((m) => m.role === "graphics");
+    const lead =
+      members.find((m) => m.role === "engagement_lead") ??
+      members.find((m) => m.role === "lead") ??
+      members.find((m) => m.role === "admin") ??
+      null;
+    const pm =
+      members.find((m) => m.role === "project_manager") ??
+      members.find((m) => m.role === "pm") ??
+      null;
+    const leadWriter =
+      members.find((m) => m.role === "lead_writer") ??
+      members.find((m) => m.role === "writer") ??
+      null;
+    const leadGraphics =
+      members.find((m) => m.role === "lead_graphics") ??
+      members.find((m) => m.role === "graphics") ??
+      null;
     return [
       { label: "Engagement Lead", person: lead },
       { label: "Project Manager", person: pm },
-      { label: "Lead Writer", person: writers[0] ?? null },
-      { label: "Lead Graphics", person: graphics[0] ?? null },
+      { label: "Lead Writer", person: leadWriter },
+      { label: "Lead Graphics", person: leadGraphics },
     ];
   }, [members]);
 
