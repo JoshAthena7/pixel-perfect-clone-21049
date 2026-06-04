@@ -28,28 +28,28 @@ type MemberRow = {
 function TeamPage() {
   const missionId = useSelectedOlympusMission();
 
-  if (!missionId) {
-    return (
-      <div className="mx-auto max-w-4xl px-8 py-16 text-center text-sm text-muted-foreground">
-        Select a mission from the header to manage its team.
-      </div>
-    );
-  }
-
   return (
-    <div className="mx-auto max-w-7xl px-8 py-8">
-      <header className="mb-6">
+    <div className="mx-auto max-w-7xl px-8 py-8 space-y-8">
+      <header>
         <div className="h2-label" style={{ letterSpacing: "0.32em" }}>Team</div>
         <h1 className="h1-display mt-1">Manage Mission Team</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Invite members, change roles, and remove access for this mission.
+          Invite members, change roles, and remove access for this mission. Or import the entire Athena Collective from TalentDesk and pull people in per project.
         </p>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
-        <Roster missionId={missionId} />
-        <InvitePanel missionId={missionId} />
-      </div>
+      {missionId ? (
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
+          <Roster missionId={missionId} />
+          <InvitePanel missionId={missionId} />
+        </div>
+      ) : (
+        <div className="rounded-[10px] border border-dashed border-border bg-surface px-6 py-4 text-sm text-muted-foreground">
+          Select a mission from the header to manage its roster. The Athena Collective directory below is shared across all missions.
+        </div>
+      )}
+
+      <CollectivePanel missionId={missionId} />
     </div>
   );
 }
