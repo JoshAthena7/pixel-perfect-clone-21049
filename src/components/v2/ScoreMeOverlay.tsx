@@ -200,6 +200,8 @@ export function ScoreMeOverlay({ open, onClose, missionId, lockedQuestionId }: P
             error={error}
             onScore={runScore}
             onClose={onClose}
+            missionId={missionId}
+            setup={setup}
           />
         )}
         {stage === "theatre" && <TheatreStage />}
