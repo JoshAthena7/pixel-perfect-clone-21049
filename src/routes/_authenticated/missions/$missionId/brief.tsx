@@ -73,16 +73,107 @@ function BriefPage() {
       .slice(0, 5);
   }, [questions]);
 
+  const [snapOpen, setSnapOpen] = useState(false);
+
+  const { data: oracleInsights = [] } = useQuery({
+    queryKey: ["brief-oracle-insights", missionId],
+    enabled: snapOpen,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("atlas_knowledge_objects")
+        .select("id,title,body,topic_category,proposal_use_case,knowledge_layer")
+        .or(`mission_id.eq.${missionId},knowledge_layer.eq.collective`)
+        .or("topic_category.ilike.%win%,proposal_use_case.ilike.%win%,topic_category.ilike.%differentiat%")
+        .limit(5);
+      return data ?? [];
+    },
+  });
+
+  const overallHealth = stats.red > 0 ? "red" : stats.yellow > 0 ? "yellow" : "green";
+
   return (
     <div className="px-8 py-8 max-w-5xl">
-      <div className="mb-6 flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-[8px] bg-primary/10 text-primary">
-          <Sparkles className="h-4.5 w-4.5" />
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-[8px] bg-primary/10 text-primary">
+            <Sparkles className="h-4.5 w-4.5" />
+          </div>
+          <div>
+            <h1 className="text-xl font-semibold">IRIS Mission Brief</h1>
+            <p className="text-xs text-muted-foreground">Executive summary auto-generated from mission signals.</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-xl font-semibold">IRIS Mission Brief</h1>
-          <p className="text-xs text-muted-foreground">Executive summary auto-generated from mission signals.</p>
-        </div>
+
+        <Dialog open={snapOpen} onOpenChange={setSnapOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-2">
+              <Gauge className="h-4 w-4" /> Quick Snapshot
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Gauge className="h-4 w-4 text-primary" /> Mission Snapshot
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-5">
+              {/* Health */}
+              <div className="rounded-[10px] border border-border bg-surface p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Project Health</div>
+                    <div className="mt-1 text-lg font-semibold">{mission?.name ?? "—"}</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`dot dot-${overallHealth}`} />
+                    <span className="text-xs uppercase tracking-[0.14em] text-muted-foreground">{overallHealth}</span>
+                  </div>
+                </div>
+                <div className="mt-4 grid grid-cols-4 gap-3">
+                  <MiniStat label="Questions" value={stats.total} />
+                  <MiniStat label="Avg Score" value={stats.avg ? stats.avg.toFixed(2) : "—"} />
+                  <MiniStat label="Below Tgt" value={stats.belowTarget} tone={stats.belowTarget > 0 ? "warn" : undefined} />
+                  <MiniStat label="Conflicts" value={conflicts.length} tone={conflicts.length > 0 ? "danger" : undefined} />
+                </div>
+                <div className="mt-3 flex items-center gap-2">
+                  <HealthChip color="green" count={stats.green} label="Green" />
+                  <HealthChip color="yellow" count={stats.yellow} label="Yellow" />
+                  <HealthChip color="red" count={stats.red} label="Red" />
+                </div>
+              </div>
+
+              {/* Win themes */}
+              <div className="rounded-[10px] border border-border bg-surface p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <Trophy className="h-4 w-4 text-primary" />
+                  <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">High-Level Win Themes</div>
+                </div>
+                {themes.length === 0 && oracleInsights.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">No win themes yet. Define them in the Win Themes section or capture them in the Oracle.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {themes.slice(0, 5).map((t: any) => (
+                      <li key={t.id} className="rounded-md border border-border bg-background px-3 py-2">
+                        <div className="text-sm font-medium">{t.title}</div>
+                        {t.key_message && <div className="mt-0.5 text-xs text-muted-foreground line-clamp-2">{t.key_message}</div>}
+                      </li>
+                    ))}
+                    {oracleInsights.slice(0, 5 - Math.min(themes.length, 5)).map((o: any) => (
+                      <li key={o.id} className="rounded-md border border-dashed border-border bg-background px-3 py-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[9px] uppercase tracking-[0.14em] text-primary">Oracle</span>
+                          <div className="text-sm font-medium">{o.title ?? o.topic_category ?? "Insight"}</div>
+                        </div>
+                        {o.body && <div className="mt-0.5 text-xs text-muted-foreground line-clamp-2">{o.body}</div>}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Headline */}
