@@ -3,6 +3,7 @@ import { withPersonFirst } from "./person-first";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { loadRfpText, findLatestRfp } from "@/lib/rfp-text.server";
+import { assertNoPHI } from "@/lib/phi-detection";
 
 const Input = z.object({
   documentId: z.string().uuid(),
