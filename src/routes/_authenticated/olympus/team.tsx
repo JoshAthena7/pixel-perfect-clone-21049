@@ -188,10 +188,16 @@ function Roster({ missionId }: { missionId: string }) {
 
 function InvitePanel({ missionId }: { missionId: string }) {
   const qc = useQueryClient();
+  const inviteFn = useServerFn(inviteMissionMember);
   const [email, setEmail] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [role, setRole] = useState<Role>("writer");
   const [busy, setBusy] = useState(false);
   const [results, setResults] = useState<Array<{ id: string; email: string | null; display_name: string | null }> | null>(null);
+
+  const trimmed = email.trim().toLowerCase();
+  const isValidEmail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(trimmed);
+  const hasExactMatch = !!results?.some((r) => r.email?.toLowerCase() === trimmed);
 
   async function search(q: string) {
     setEmail(q);
@@ -204,7 +210,7 @@ function InvitePanel({ missionId }: { missionId: string }) {
     setResults(data ?? []);
   }
 
-  async function invite(userId: string, label: string) {
+  async function addExisting(userId: string, label: string) {
     setBusy(true);
     const { data: existing } = await supabase
       .from("mission_members")
@@ -218,6 +224,7 @@ function InvitePanel({ missionId }: { missionId: string }) {
       mission_id: missionId,
       user_id: userId,
       role,
+      display_name: displayName.trim() || null,
     });
     setBusy(false);
     if (error) return toast.error(error.message);
@@ -229,8 +236,40 @@ function InvitePanel({ missionId }: { missionId: string }) {
       target_table: "mission_members",
     });
     setEmail("");
+    setDisplayName("");
     setResults(null);
     qc.invalidateQueries({ queryKey: ["olympus-team", missionId] });
+  }
+
+  async function inviteNew() {
+    if (!isValidEmail) { toast.error("Enter a valid email address"); return; }
+    if (role === "admin") { toast.error("New invitees can't start as admin — pick another role"); return; }
+    setBusy(true);
+    try {
+      await inviteFn({
+        data: {
+          missionId,
+          email: trimmed,
+          role: role as "lead" | "writer" | "sme" | "viewer",
+          displayName: displayName.trim() || undefined,
+        },
+      });
+      toast.success(`Invited ${trimmed} as ${role}`);
+      await logOlympusAction({
+        action_type: "team.invite",
+        action_summary: `Invited ${trimmed} as ${role} (new account)`,
+        mission_id: missionId,
+        target_table: "mission_members",
+      });
+      setEmail("");
+      setDisplayName("");
+      setResults(null);
+      qc.invalidateQueries({ queryKey: ["olympus-team", missionId] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to invite member");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -247,7 +286,7 @@ function InvitePanel({ missionId }: { missionId: string }) {
         {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
       </select>
 
-      <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Find by email or name</label>
+      <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Email</label>
       <input
         value={email}
         onChange={(e) => search(e.target.value)}
@@ -255,31 +294,46 @@ function InvitePanel({ missionId }: { missionId: string }) {
         className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
       />
 
-      {results && (
-        <div className="mt-2 rounded-md border border-border bg-background max-h-72 overflow-y-auto">
-          {results.length === 0 ? (
-            <div className="px-3 py-3 text-xs text-muted-foreground">
-              No matching profile. The user must sign in once before you can invite them.
-            </div>
-          ) : results.map((r) => (
+      <label className="mt-3 mb-1 block text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Display name (optional)</label>
+      <input
+        value={displayName}
+        onChange={(e) => setDisplayName(e.target.value)}
+        placeholder="Josh Smith"
+        className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+      />
+
+      {results && results.length > 0 && (
+        <div className="mt-2 rounded-md border border-border bg-background max-h-60 overflow-y-auto">
+          {results.map((r) => (
             <button
               key={r.id}
               disabled={busy}
-              onClick={() => invite(r.id, r.display_name ?? r.email ?? "user")}
+              onClick={() => addExisting(r.id, r.display_name ?? r.email ?? "user")}
               className="flex w-full items-center justify-between gap-2 border-b border-border px-3 py-2 text-left text-sm last:border-0 hover:bg-surface-hover disabled:opacity-50"
             >
               <div className="min-w-0">
                 <div className="truncate font-medium">{r.display_name ?? r.email}</div>
                 <div className="truncate text-[11px] text-muted-foreground">{r.email}</div>
               </div>
-              <span className="text-[11px] text-primary">Add</span>
+              <span className="text-[11px] text-primary">Add as {role}</span>
             </button>
           ))}
         </div>
       )}
 
+      {isValidEmail && !hasExactMatch && (
+        <button
+          disabled={busy}
+          onClick={inviteNew}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-md bg-[#C49A22] px-3 py-2 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50"
+        >
+          <Mail className="h-4 w-4" />
+          {busy ? "Inviting…" : `Invite ${trimmed} as ${role}`}
+        </button>
+      )}
+
       <p className="mt-3 text-[11px] text-muted-foreground">
-        Members must have signed in to Athena at least once to appear in search. Bulk-invite pastes below add them in one click.
+        Existing Athena users show up as suggestions — click to add them. New emails get a magic-link invite and are added to the mission with the role above.
       </p>
 
       <BulkInvitePanel missionId={missionId} defaultRole={role} />
