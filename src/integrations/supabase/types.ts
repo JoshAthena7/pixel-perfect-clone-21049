@@ -1883,6 +1883,78 @@ export type Database = {
         }
         Relationships: []
       }
+      iris_health_flags: {
+        Row: {
+          created_at: string
+          detail: string | null
+          id: string
+          mission_id: string
+          question_id: string | null
+          raised_at: string
+          recommended_action: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          section_name: string | null
+          severity: string
+          status: string
+          subject_writer_id: string | null
+          title: string
+          trigger_code: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          id?: string
+          mission_id: string
+          question_id?: string | null
+          raised_at?: string
+          recommended_action?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          section_name?: string | null
+          severity: string
+          status?: string
+          subject_writer_id?: string | null
+          title: string
+          trigger_code: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          id?: string
+          mission_id?: string
+          question_id?: string | null
+          raised_at?: string
+          recommended_action?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          section_name?: string | null
+          severity?: string
+          status?: string
+          subject_writer_id?: string | null
+          title?: string
+          trigger_code?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iris_health_flags_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "iris_health_flags_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "question_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       iris_memories: {
         Row: {
           archived_at: string | null
@@ -2576,6 +2648,72 @@ export type Database = {
         }
         Relationships: []
       }
+      mock_scores: {
+        Row: {
+          created_at: string
+          evaluator_note: string | null
+          id: string
+          mission_id: string
+          question_id: string | null
+          recorded_by: string
+          score: number
+          scored_at: string
+          section_name: string | null
+          stage: string
+          threshold_critical: number
+          threshold_green: number
+          threshold_yellow: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          evaluator_note?: string | null
+          id?: string
+          mission_id: string
+          question_id?: string | null
+          recorded_by: string
+          score: number
+          scored_at?: string
+          section_name?: string | null
+          stage: string
+          threshold_critical?: number
+          threshold_green?: number
+          threshold_yellow?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          evaluator_note?: string | null
+          id?: string
+          mission_id?: string
+          question_id?: string | null
+          recorded_by?: string
+          score?: number
+          scored_at?: string
+          section_name?: string | null
+          stage?: string
+          threshold_critical?: number
+          threshold_green?: number
+          threshold_yellow?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mock_scores_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mock_scores_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "question_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       note_reads: {
         Row: {
           id: string
@@ -3062,6 +3200,66 @@ export type Database = {
             columns: ["task_id"]
             isOneToOne: false
             referencedRelation: "research_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      question_pulses: {
+        Row: {
+          blocked: boolean
+          blocked_reason: string | null
+          confidence: number
+          created_at: string
+          hedging_score: number
+          id: string
+          mission_id: string
+          note: string | null
+          progress: number
+          question_id: string | null
+          submitted_at: string
+          writer_auth_user_id: string
+        }
+        Insert: {
+          blocked?: boolean
+          blocked_reason?: string | null
+          confidence: number
+          created_at?: string
+          hedging_score?: number
+          id?: string
+          mission_id: string
+          note?: string | null
+          progress: number
+          question_id?: string | null
+          submitted_at?: string
+          writer_auth_user_id: string
+        }
+        Update: {
+          blocked?: boolean
+          blocked_reason?: string | null
+          confidence?: number
+          created_at?: string
+          hedging_score?: number
+          id?: string
+          mission_id?: string
+          note?: string | null
+          progress?: number
+          question_id?: string | null
+          submitted_at?: string
+          writer_auth_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_pulses_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_pulses_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "question_records"
             referencedColumns: ["id"]
           },
         ]
