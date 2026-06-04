@@ -335,11 +335,12 @@ export const postComment = createServerFn({ method: "POST" })
 
         await supabaseAdmin.from("olympus_audit_log").insert({
           action_type: "iris_thread_query",
-          actor_id: userId,
-          target_type: "thread",
+          action_summary: `@IRIS query on thread ${data.threadId}`,
+          user_id: userId,
+          mission_id: thread.mission_id,
+          target_table: "threads",
           target_id: data.threadId,
-          details: {
-            mission_id: thread.mission_id,
+          metadata: {
             question_id: thread.object_id,
             prompt: data.body.slice(0, 500),
           },
