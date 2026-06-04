@@ -20,6 +20,7 @@ import { IrisStatusIndicator } from "@/components/v2/effects";
 import { UpdateRealityMount } from "@/components/v2/UpdateRealityModal";
 import { MissionQuickActionsMount } from "@/components/v2/MissionQuickActions";
 import { IrisOnboardingMount } from "@/components/v2/IrisOnboardingModal";
+import { AtlasWelcomeMount } from "@/components/v2/AtlasWelcomeModal";
 import { CommandPalette } from "@/components/v2/CommandPalette";
 import { IrisDock } from "@/components/v2/IrisDock";
 import { MobileBottomNav, MobileBottomNavSpacer } from "@/components/v2/MobileBottomNav";
@@ -87,6 +88,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {inMission && missionId && <UpdateRealityMount missionId={missionId} />}
       {inMission && missionId && <MissionQuickActionsMount missionId={missionId} />}
+      <AtlasWelcomeMount />
       <IrisOnboardingMount />
       <IrisDock />
       <MobileBottomNav />
