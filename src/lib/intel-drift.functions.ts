@@ -60,14 +60,25 @@ export const recalibrateMissionIntel = createServerFn({ method: "POST" })
       .eq("mission_id", data.missionId)
       .eq("is_current", true);
 
-    // 2) Wipe IRIS brief cache for the mission
-    const { count: cacheCleared } = await supabaseAdmin
-      .from("iris_brief_cache")
-      .delete({ count: "exact" })
+    // 2) Wipe IRIS brief cache for this mission (mission/lobby briefs by ref_id,
+    //    plus any question-scoped briefs whose ref_id is a question in this mission).
+    const { data: questionIds } = await supabaseAdmin
+      .from("question_records")
+      .select("id")
       .eq("mission_id", data.missionId);
+    const qIds = (questionIds ?? []).map((q: { id: string }) => q.id);
+    const refIds = [data.missionId, ...qIds];
+    const { data: deletedCache } = await supabaseAdmin
+      .from("iris_brief_cache")
+      .delete()
+      .in("ref_id", refIds)
+      .select("id");
+    const cacheCleared = deletedCache?.length ?? 0;
 
-    // 3) Supersede mission-scoped IRIS memories (auditable — not deleted)
-    const { count: memoriesSuperseded } = await supabaseAdmin
+    // 3) Supersede mission-scoped IRIS memories (auditable — not deleted).
+    // Cast: superseded_at / superseded_reason were just added; types.ts
+    // regenerates after this migration.
+    const { data: supersededRows } = await (supabaseAdmin as any)
       .from("iris_memories")
       .update({
         superseded_at: now,
@@ -76,7 +87,8 @@ export const recalibrateMissionIntel = createServerFn({ method: "POST" })
       .eq("mission_id", data.missionId)
       .is("superseded_at", null)
       .eq("scope", "mission")
-      .select("id", { count: "exact", head: true });
+      .select("id");
+    const memoriesSuperseded = supersededRows?.length ?? 0;
 
     // 4) Regenerate DNA from the latest RFP in the Vault
     let dnaResult: { ok: true; questions: number } | { ok: false; error: string };
