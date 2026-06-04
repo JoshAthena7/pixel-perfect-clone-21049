@@ -204,9 +204,7 @@ function TopBar({
           </Link>
         )}
 
-          <Settings2 size={14} strokeWidth={1.5} className="text-[color:var(--athena-gold)]" />
-          Olympus
-        </Link>
+
       </div>
     </header>
   );
