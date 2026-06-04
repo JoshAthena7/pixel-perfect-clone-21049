@@ -21,6 +21,7 @@ import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/h
 import { Route as AuthenticatedAtriumRouteImport } from './routes/_authenticated/atrium'
 import { Route as AuthenticatedOlympusIndexRouteImport } from './routes/_authenticated/olympus/index'
 import { Route as AuthenticatedProfileExpertiseRouteImport } from './routes/_authenticated/profile/expertise'
+import { Route as AuthenticatedOlympusWriterDeletionRouteImport } from './routes/_authenticated/olympus/writer-deletion'
 import { Route as AuthenticatedOlympusWinThemesRouteImport } from './routes/_authenticated/olympus/win-themes'
 import { Route as AuthenticatedOlympusVaultRouteImport } from './routes/_authenticated/olympus/vault'
 import { Route as AuthenticatedOlympusUsersRouteImport } from './routes/_authenticated/olympus/users'
@@ -31,11 +32,13 @@ import { Route as AuthenticatedOlympusSettingsRouteImport } from './routes/_auth
 import { Route as AuthenticatedOlympusScoreMeRouteImport } from './routes/_authenticated/olympus/score-me'
 import { Route as AuthenticatedOlympusReviewQueueRouteImport } from './routes/_authenticated/olympus/review-queue'
 import { Route as AuthenticatedOlympusQuestionsRouteImport } from './routes/_authenticated/olympus/questions'
+import { Route as AuthenticatedOlympusPhiLogRouteImport } from './routes/_authenticated/olympus/phi-log'
 import { Route as AuthenticatedOlympusIrisMemoryRouteImport } from './routes/_authenticated/olympus/iris-memory'
 import { Route as AuthenticatedOlympusIntelligenceRouteImport } from './routes/_authenticated/olympus/intelligence'
 import { Route as AuthenticatedOlympusGatesRouteImport } from './routes/_authenticated/olympus/gates'
 import { Route as AuthenticatedOlympusExpertiseRouteImport } from './routes/_authenticated/olympus/expertise'
 import { Route as AuthenticatedOlympusDiscoveryHistoryRouteImport } from './routes/_authenticated/olympus/discovery-history'
+import { Route as AuthenticatedOlympusConflictsRouteImport } from './routes/_authenticated/olympus/conflicts'
 import { Route as AuthenticatedOlympusCanonLibraryRouteImport } from './routes/_authenticated/olympus/canon-library'
 import { Route as AuthenticatedOlympusAuditRouteImport } from './routes/_authenticated/olympus/audit'
 import { Route as AuthenticatedOlympusAtlasSourcesRouteImport } from './routes/_authenticated/olympus/atlas-sources'
@@ -135,6 +138,12 @@ const AuthenticatedProfileExpertiseRoute =
     path: '/profile/expertise',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedOlympusWriterDeletionRoute =
+  AuthenticatedOlympusWriterDeletionRouteImport.update({
+    id: '/writer-deletion',
+    path: '/writer-deletion',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
 const AuthenticatedOlympusWinThemesRoute =
   AuthenticatedOlympusWinThemesRouteImport.update({
     id: '/win-themes',
@@ -195,6 +204,12 @@ const AuthenticatedOlympusQuestionsRoute =
     path: '/questions',
     getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
+const AuthenticatedOlympusPhiLogRoute =
+  AuthenticatedOlympusPhiLogRouteImport.update({
+    id: '/phi-log',
+    path: '/phi-log',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
 const AuthenticatedOlympusIrisMemoryRoute =
   AuthenticatedOlympusIrisMemoryRouteImport.update({
     id: '/iris-memory',
@@ -223,6 +238,12 @@ const AuthenticatedOlympusDiscoveryHistoryRoute =
   AuthenticatedOlympusDiscoveryHistoryRouteImport.update({
     id: '/discovery-history',
     path: '/discovery-history',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
+const AuthenticatedOlympusConflictsRoute =
+  AuthenticatedOlympusConflictsRouteImport.update({
+    id: '/conflicts',
+    path: '/conflicts',
     getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
 const AuthenticatedOlympusCanonLibraryRoute =
@@ -454,11 +475,13 @@ export interface FileRoutesByFullPath {
   '/olympus/atlas-sources': typeof AuthenticatedOlympusAtlasSourcesRoute
   '/olympus/audit': typeof AuthenticatedOlympusAuditRoute
   '/olympus/canon-library': typeof AuthenticatedOlympusCanonLibraryRoute
+  '/olympus/conflicts': typeof AuthenticatedOlympusConflictsRoute
   '/olympus/discovery-history': typeof AuthenticatedOlympusDiscoveryHistoryRoute
   '/olympus/expertise': typeof AuthenticatedOlympusExpertiseRoute
   '/olympus/gates': typeof AuthenticatedOlympusGatesRoute
   '/olympus/intelligence': typeof AuthenticatedOlympusIntelligenceRoute
   '/olympus/iris-memory': typeof AuthenticatedOlympusIrisMemoryRoute
+  '/olympus/phi-log': typeof AuthenticatedOlympusPhiLogRoute
   '/olympus/questions': typeof AuthenticatedOlympusQuestionsRoute
   '/olympus/review-queue': typeof AuthenticatedOlympusReviewQueueRoute
   '/olympus/score-me': typeof AuthenticatedOlympusScoreMeRoute
@@ -469,6 +492,7 @@ export interface FileRoutesByFullPath {
   '/olympus/users': typeof AuthenticatedOlympusUsersRoute
   '/olympus/vault': typeof AuthenticatedOlympusVaultRoute
   '/olympus/win-themes': typeof AuthenticatedOlympusWinThemesRoute
+  '/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/olympus/': typeof AuthenticatedOlympusIndexRoute
   '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
@@ -514,11 +538,13 @@ export interface FileRoutesByTo {
   '/olympus/atlas-sources': typeof AuthenticatedOlympusAtlasSourcesRoute
   '/olympus/audit': typeof AuthenticatedOlympusAuditRoute
   '/olympus/canon-library': typeof AuthenticatedOlympusCanonLibraryRoute
+  '/olympus/conflicts': typeof AuthenticatedOlympusConflictsRoute
   '/olympus/discovery-history': typeof AuthenticatedOlympusDiscoveryHistoryRoute
   '/olympus/expertise': typeof AuthenticatedOlympusExpertiseRoute
   '/olympus/gates': typeof AuthenticatedOlympusGatesRoute
   '/olympus/intelligence': typeof AuthenticatedOlympusIntelligenceRoute
   '/olympus/iris-memory': typeof AuthenticatedOlympusIrisMemoryRoute
+  '/olympus/phi-log': typeof AuthenticatedOlympusPhiLogRoute
   '/olympus/questions': typeof AuthenticatedOlympusQuestionsRoute
   '/olympus/review-queue': typeof AuthenticatedOlympusReviewQueueRoute
   '/olympus/score-me': typeof AuthenticatedOlympusScoreMeRoute
@@ -529,6 +555,7 @@ export interface FileRoutesByTo {
   '/olympus/users': typeof AuthenticatedOlympusUsersRoute
   '/olympus/vault': typeof AuthenticatedOlympusVaultRoute
   '/olympus/win-themes': typeof AuthenticatedOlympusWinThemesRoute
+  '/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/olympus': typeof AuthenticatedOlympusIndexRoute
   '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
@@ -578,11 +605,13 @@ export interface FileRoutesById {
   '/_authenticated/olympus/atlas-sources': typeof AuthenticatedOlympusAtlasSourcesRoute
   '/_authenticated/olympus/audit': typeof AuthenticatedOlympusAuditRoute
   '/_authenticated/olympus/canon-library': typeof AuthenticatedOlympusCanonLibraryRoute
+  '/_authenticated/olympus/conflicts': typeof AuthenticatedOlympusConflictsRoute
   '/_authenticated/olympus/discovery-history': typeof AuthenticatedOlympusDiscoveryHistoryRoute
   '/_authenticated/olympus/expertise': typeof AuthenticatedOlympusExpertiseRoute
   '/_authenticated/olympus/gates': typeof AuthenticatedOlympusGatesRoute
   '/_authenticated/olympus/intelligence': typeof AuthenticatedOlympusIntelligenceRoute
   '/_authenticated/olympus/iris-memory': typeof AuthenticatedOlympusIrisMemoryRoute
+  '/_authenticated/olympus/phi-log': typeof AuthenticatedOlympusPhiLogRoute
   '/_authenticated/olympus/questions': typeof AuthenticatedOlympusQuestionsRoute
   '/_authenticated/olympus/review-queue': typeof AuthenticatedOlympusReviewQueueRoute
   '/_authenticated/olympus/score-me': typeof AuthenticatedOlympusScoreMeRoute
@@ -593,6 +622,7 @@ export interface FileRoutesById {
   '/_authenticated/olympus/users': typeof AuthenticatedOlympusUsersRoute
   '/_authenticated/olympus/vault': typeof AuthenticatedOlympusVaultRoute
   '/_authenticated/olympus/win-themes': typeof AuthenticatedOlympusWinThemesRoute
+  '/_authenticated/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
   '/_authenticated/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/_authenticated/olympus/': typeof AuthenticatedOlympusIndexRoute
   '/_authenticated/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
@@ -642,11 +672,13 @@ export interface FileRouteTypes {
     | '/olympus/atlas-sources'
     | '/olympus/audit'
     | '/olympus/canon-library'
+    | '/olympus/conflicts'
     | '/olympus/discovery-history'
     | '/olympus/expertise'
     | '/olympus/gates'
     | '/olympus/intelligence'
     | '/olympus/iris-memory'
+    | '/olympus/phi-log'
     | '/olympus/questions'
     | '/olympus/review-queue'
     | '/olympus/score-me'
@@ -657,6 +689,7 @@ export interface FileRouteTypes {
     | '/olympus/users'
     | '/olympus/vault'
     | '/olympus/win-themes'
+    | '/olympus/writer-deletion'
     | '/profile/expertise'
     | '/olympus/'
     | '/missions/$missionId/activity'
@@ -702,11 +735,13 @@ export interface FileRouteTypes {
     | '/olympus/atlas-sources'
     | '/olympus/audit'
     | '/olympus/canon-library'
+    | '/olympus/conflicts'
     | '/olympus/discovery-history'
     | '/olympus/expertise'
     | '/olympus/gates'
     | '/olympus/intelligence'
     | '/olympus/iris-memory'
+    | '/olympus/phi-log'
     | '/olympus/questions'
     | '/olympus/review-queue'
     | '/olympus/score-me'
@@ -717,6 +752,7 @@ export interface FileRouteTypes {
     | '/olympus/users'
     | '/olympus/vault'
     | '/olympus/win-themes'
+    | '/olympus/writer-deletion'
     | '/profile/expertise'
     | '/olympus'
     | '/missions/$missionId/activity'
@@ -765,11 +801,13 @@ export interface FileRouteTypes {
     | '/_authenticated/olympus/atlas-sources'
     | '/_authenticated/olympus/audit'
     | '/_authenticated/olympus/canon-library'
+    | '/_authenticated/olympus/conflicts'
     | '/_authenticated/olympus/discovery-history'
     | '/_authenticated/olympus/expertise'
     | '/_authenticated/olympus/gates'
     | '/_authenticated/olympus/intelligence'
     | '/_authenticated/olympus/iris-memory'
+    | '/_authenticated/olympus/phi-log'
     | '/_authenticated/olympus/questions'
     | '/_authenticated/olympus/review-queue'
     | '/_authenticated/olympus/score-me'
@@ -780,6 +818,7 @@ export interface FileRouteTypes {
     | '/_authenticated/olympus/users'
     | '/_authenticated/olympus/vault'
     | '/_authenticated/olympus/win-themes'
+    | '/_authenticated/olympus/writer-deletion'
     | '/_authenticated/profile/expertise'
     | '/_authenticated/olympus/'
     | '/_authenticated/missions/$missionId/activity'
@@ -900,6 +939,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileExpertiseRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/olympus/writer-deletion': {
+      id: '/_authenticated/olympus/writer-deletion'
+      path: '/writer-deletion'
+      fullPath: '/olympus/writer-deletion'
+      preLoaderRoute: typeof AuthenticatedOlympusWriterDeletionRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
     '/_authenticated/olympus/win-themes': {
       id: '/_authenticated/olympus/win-themes'
       path: '/win-themes'
@@ -970,6 +1016,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOlympusQuestionsRouteImport
       parentRoute: typeof AuthenticatedOlympusRoute
     }
+    '/_authenticated/olympus/phi-log': {
+      id: '/_authenticated/olympus/phi-log'
+      path: '/phi-log'
+      fullPath: '/olympus/phi-log'
+      preLoaderRoute: typeof AuthenticatedOlympusPhiLogRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
     '/_authenticated/olympus/iris-memory': {
       id: '/_authenticated/olympus/iris-memory'
       path: '/iris-memory'
@@ -1003,6 +1056,13 @@ declare module '@tanstack/react-router' {
       path: '/discovery-history'
       fullPath: '/olympus/discovery-history'
       preLoaderRoute: typeof AuthenticatedOlympusDiscoveryHistoryRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
+    '/_authenticated/olympus/conflicts': {
+      id: '/_authenticated/olympus/conflicts'
+      path: '/conflicts'
+      fullPath: '/olympus/conflicts'
+      preLoaderRoute: typeof AuthenticatedOlympusConflictsRouteImport
       parentRoute: typeof AuthenticatedOlympusRoute
     }
     '/_authenticated/olympus/canon-library': {
@@ -1251,11 +1311,13 @@ interface AuthenticatedOlympusRouteChildren {
   AuthenticatedOlympusAtlasSourcesRoute: typeof AuthenticatedOlympusAtlasSourcesRoute
   AuthenticatedOlympusAuditRoute: typeof AuthenticatedOlympusAuditRoute
   AuthenticatedOlympusCanonLibraryRoute: typeof AuthenticatedOlympusCanonLibraryRoute
+  AuthenticatedOlympusConflictsRoute: typeof AuthenticatedOlympusConflictsRoute
   AuthenticatedOlympusDiscoveryHistoryRoute: typeof AuthenticatedOlympusDiscoveryHistoryRoute
   AuthenticatedOlympusExpertiseRoute: typeof AuthenticatedOlympusExpertiseRoute
   AuthenticatedOlympusGatesRoute: typeof AuthenticatedOlympusGatesRoute
   AuthenticatedOlympusIntelligenceRoute: typeof AuthenticatedOlympusIntelligenceRoute
   AuthenticatedOlympusIrisMemoryRoute: typeof AuthenticatedOlympusIrisMemoryRoute
+  AuthenticatedOlympusPhiLogRoute: typeof AuthenticatedOlympusPhiLogRoute
   AuthenticatedOlympusQuestionsRoute: typeof AuthenticatedOlympusQuestionsRoute
   AuthenticatedOlympusReviewQueueRoute: typeof AuthenticatedOlympusReviewQueueRoute
   AuthenticatedOlympusScoreMeRoute: typeof AuthenticatedOlympusScoreMeRoute
@@ -1266,6 +1328,7 @@ interface AuthenticatedOlympusRouteChildren {
   AuthenticatedOlympusUsersRoute: typeof AuthenticatedOlympusUsersRoute
   AuthenticatedOlympusVaultRoute: typeof AuthenticatedOlympusVaultRoute
   AuthenticatedOlympusWinThemesRoute: typeof AuthenticatedOlympusWinThemesRoute
+  AuthenticatedOlympusWriterDeletionRoute: typeof AuthenticatedOlympusWriterDeletionRoute
   AuthenticatedOlympusIndexRoute: typeof AuthenticatedOlympusIndexRoute
 }
 
@@ -1274,12 +1337,14 @@ const AuthenticatedOlympusRouteChildren: AuthenticatedOlympusRouteChildren = {
   AuthenticatedOlympusAtlasSourcesRoute: AuthenticatedOlympusAtlasSourcesRoute,
   AuthenticatedOlympusAuditRoute: AuthenticatedOlympusAuditRoute,
   AuthenticatedOlympusCanonLibraryRoute: AuthenticatedOlympusCanonLibraryRoute,
+  AuthenticatedOlympusConflictsRoute: AuthenticatedOlympusConflictsRoute,
   AuthenticatedOlympusDiscoveryHistoryRoute:
     AuthenticatedOlympusDiscoveryHistoryRoute,
   AuthenticatedOlympusExpertiseRoute: AuthenticatedOlympusExpertiseRoute,
   AuthenticatedOlympusGatesRoute: AuthenticatedOlympusGatesRoute,
   AuthenticatedOlympusIntelligenceRoute: AuthenticatedOlympusIntelligenceRoute,
   AuthenticatedOlympusIrisMemoryRoute: AuthenticatedOlympusIrisMemoryRoute,
+  AuthenticatedOlympusPhiLogRoute: AuthenticatedOlympusPhiLogRoute,
   AuthenticatedOlympusQuestionsRoute: AuthenticatedOlympusQuestionsRoute,
   AuthenticatedOlympusReviewQueueRoute: AuthenticatedOlympusReviewQueueRoute,
   AuthenticatedOlympusScoreMeRoute: AuthenticatedOlympusScoreMeRoute,
@@ -1291,6 +1356,8 @@ const AuthenticatedOlympusRouteChildren: AuthenticatedOlympusRouteChildren = {
   AuthenticatedOlympusUsersRoute: AuthenticatedOlympusUsersRoute,
   AuthenticatedOlympusVaultRoute: AuthenticatedOlympusVaultRoute,
   AuthenticatedOlympusWinThemesRoute: AuthenticatedOlympusWinThemesRoute,
+  AuthenticatedOlympusWriterDeletionRoute:
+    AuthenticatedOlympusWriterDeletionRoute,
   AuthenticatedOlympusIndexRoute: AuthenticatedOlympusIndexRoute,
 }
 

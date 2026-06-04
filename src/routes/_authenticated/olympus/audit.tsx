@@ -12,6 +12,7 @@ export const Route = createFileRoute("/_authenticated/olympus/audit")({
 
 type Entry = {
   id: string;
+  user_id: string | null;
   user_name: string | null;
   action_type: string;
   action_summary: string;
@@ -29,27 +30,53 @@ function AuditPage() {
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
 
+  const [filterUser, setFilterUser] = useState<string>("all");
+  const [filterMission, setFilterMission] = useState<string>("all");
+
+  // H3: pull a wider window to support the 30-day filter without pagination.
+  // The new composite index (created_at desc, user_id, mission_id) keeps this fast.
   const { data: entries = [], isLoading } = useQuery({
     queryKey: ["olympus-audit", scope, missionId],
     queryFn: async () => {
       let q = supabase
         .from("olympus_audit_log")
-        .select("id,user_name,action_type,action_summary,target_table,mission_id,created_at,metadata")
+        .select("id,user_id,user_name,action_type,action_summary,target_table,mission_id,created_at,metadata")
         .order("created_at", { ascending: false })
-        .limit(500);
+        .limit(5000);
       if (scope === "mission" && missionId) q = q.eq("mission_id", missionId);
       const { data } = await q;
       return (data ?? []) as Entry[];
     },
   });
 
+  const { data: missionsList = [] } = useQuery({
+    queryKey: ["olympus-audit-missions"],
+    queryFn: async () => {
+      const { data } = await supabase.from("missions").select("id,name").order("name");
+      return (data ?? []) as Array<{ id: string; name: string }>;
+    },
+  });
+
   const types = useMemo(() => Array.from(new Set(entries.map((e) => e.action_type))).sort(), [entries]);
+  const users = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const e of entries) {
+      if (e.user_id) seen.set(e.user_id, e.user_name ?? e.user_id);
+    }
+    return [...seen.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  }, [entries]);
+  const missionNameById = useMemo(
+    () => new Map(missionsList.map((m) => [m.id, m.name])),
+    [missionsList],
+  );
 
   const visible = useMemo(() => {
     const fromTs = dateFrom ? new Date(dateFrom).getTime() : null;
     const toTs = dateTo ? new Date(dateTo).getTime() + 86400000 : null;
     return entries.filter((e) => {
       if (filterType !== "all" && e.action_type !== filterType) return false;
+      if (filterUser !== "all" && e.user_id !== filterUser) return false;
+      if (filterMission !== "all" && e.mission_id !== filterMission) return false;
       const ts = new Date(e.created_at).getTime();
       if (fromTs !== null && ts < fromTs) return false;
       if (toTs !== null && ts >= toTs) return false;
@@ -59,16 +86,25 @@ function AuditPage() {
         (e.user_name ?? "").toLowerCase().includes(q) ||
         e.action_type.toLowerCase().includes(q);
     });
-  }, [entries, search, filterType, dateFrom, dateTo]);
+  }, [entries, search, filterType, filterUser, filterMission, dateFrom, dateTo]);
 
   function exportCsv() {
-    const header = ["When", "Who", "Action", "Summary", "Mission", "Target"];
+    // H3: CSV includes the full metadata payload (un-truncated) — required for
+    // GDPR Art. 33 breach-readiness within 72 hours.
+    const header = ["When", "User ID", "User", "Action", "Summary", "Mission ID", "Mission Name", "Target Table", "Target ID", "Metadata JSON"];
     const lines = [header.join(",")];
     for (const e of visible) {
       const cells = [
         new Date(e.created_at).toISOString(),
-        e.user_name ?? "", e.action_type, e.action_summary,
-        e.mission_id ?? "", e.target_table ?? "",
+        e.user_id ?? "",
+        e.user_name ?? "",
+        e.action_type,
+        e.action_summary,
+        e.mission_id ?? "",
+        e.mission_id ? (missionNameById.get(e.mission_id) ?? "") : "",
+        e.target_table ?? "",
+        (e as any).target_id ?? "",
+        e.metadata ? JSON.stringify(e.metadata) : "",
       ].map((v) => {
         const s = String(v ?? "");
         return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
@@ -80,7 +116,7 @@ function AuditPage() {
     const a = document.createElement("a");
     a.href = url; a.download = `olympus-audit-${new Date().toISOString().slice(0,10)}.csv`;
     a.click(); URL.revokeObjectURL(url);
-    toast.success("Exported CSV");
+    toast.success(`Exported ${visible.length} entries (full metadata)`);
   }
 
   return (
@@ -90,7 +126,10 @@ function AuditPage() {
           <div className="h2-label" style={{ letterSpacing: "0.32em" }}>Audit Log</div>
           <h1 className="h1-display mt-1">Activity History</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Every administrative action taken in Olympus.
+            Every administrative action taken in Olympus. Read-only — exports include the full metadata payload for GDPR Art. 33 breach readiness.
+          </p>
+          <p className="mt-1 text-[11px] text-muted-foreground/80">
+            IP addresses are not currently captured. (Flagged for decision — see H3 follow-ups.)
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -116,9 +155,19 @@ function AuditPage() {
         <div className="flex items-center gap-1.5">
           <Filter className="h-3.5 w-3.5 text-muted-foreground" />
           <select value={filterType} onChange={(e) => setFilterType(e.target.value)}
-            className="rounded-md border border-border bg-background px-2 py-1.5 text-xs">
+            className="rounded-md border border-border bg-background px-2 py-1.5 text-xs" title="Action type">
             <option value="all">All types</option>
             {types.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <select value={filterUser} onChange={(e) => setFilterUser(e.target.value)}
+            className="rounded-md border border-border bg-background px-2 py-1.5 text-xs max-w-[180px]" title="User">
+            <option value="all">All users</option>
+            {users.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
+          </select>
+          <select value={filterMission} onChange={(e) => setFilterMission(e.target.value)}
+            className="rounded-md border border-border bg-background px-2 py-1.5 text-xs max-w-[180px]" title="Mission">
+            <option value="all">All missions</option>
+            {missionsList.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
           </select>
         </div>
         <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}

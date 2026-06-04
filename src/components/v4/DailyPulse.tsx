@@ -1,8 +1,12 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Check, Heart, AlertCircle } from "lucide-react";
+import { Check, Heart, AlertCircle, ShieldCheck } from "lucide-react";
 import { getMyPulseContext, submitPulse } from "@/lib/pulses.functions";
+import {
+  getPulseDisclosureStatus,
+  acknowledgePulseDisclosure,
+} from "@/lib/pulse-disclosure.functions";
 import { toast } from "sonner";
 
 const PROGRESS_LABELS = ["Just started", "In progress", "Almost done", "Ready for review"];
@@ -11,6 +15,8 @@ const CONFIDENCE_LABELS = ["Could use a hand", "Some open questions", "Steady", 
 export function DailyPulse() {
   const ctxFn = useServerFn(getMyPulseContext);
   const submit = useServerFn(submitPulse);
+  const getDisclosure = useServerFn(getPulseDisclosureStatus);
+  const ackDisclosure = useServerFn(acknowledgePulseDisclosure);
   const qc = useQueryClient();
 
   const { data, isLoading } = useQuery({
@@ -18,6 +24,17 @@ export function DailyPulse() {
     queryFn: () => ctxFn(),
     staleTime: 60_000,
   });
+
+  // H7: one-time disclosure gate
+  const { data: disclosure, refetch: refetchDisclosure } = useQuery({
+    queryKey: ["pulse-disclosure"],
+    queryFn: () => getDisclosure(),
+  });
+  const ackMut = useMutation({
+    mutationFn: () => ackDisclosure(),
+    onSuccess: () => refetchDisclosure(),
+  });
+  const [pendingSubmit, setPendingSubmit] = useState(false);
 
   const pending = useMemo(
     () => (data?.assignments ?? []).filter((a) => !a.submittedToday),
@@ -35,6 +52,11 @@ export function DailyPulse() {
   const mutation = useMutation({
     mutationFn: async () => {
       if (!selected) return;
+      // H7: block until disclosure acknowledged.
+      if (!disclosure?.acknowledged) {
+        setPendingSubmit(true);
+        return;
+      }
       await submit({
         data: {
           missionId: selected.missionId,
@@ -48,6 +70,7 @@ export function DailyPulse() {
       });
     },
     onSuccess: () => {
+      if (pendingSubmit) return; // disclosure shown — wait for ack
       toast.success("Pulse logged. Thanks for the read.");
       setNote("");
       setBlockedReason("");
@@ -56,6 +79,13 @@ export function DailyPulse() {
     },
     onError: (e: any) => toast.error(e.message ?? "Couldn't submit pulse"),
   });
+
+  async function onAckAndSubmit() {
+    await ackMut.mutateAsync();
+    setPendingSubmit(false);
+    // re-run the submit flow now that acknowledged_at is set
+    mutation.mutate();
+  }
 
   if (isLoading) return null;
   if (!data || data.assignments.length === 0) return null;
@@ -80,6 +110,13 @@ export function DailyPulse() {
 
   return (
     <section className="rounded-[12px] border border-border bg-surface px-6 py-5" aria-label="Daily pulse">
+      {pendingSubmit && !disclosure?.acknowledged ? (
+        <PulseDisclosureModal
+          onAck={onAckAndSubmit}
+          onCancel={() => setPendingSubmit(false)}
+          pending={ackMut.isPending || mutation.isPending}
+        />
+      ) : null}
       <div className="mb-4 flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
@@ -219,5 +256,60 @@ function Pill({ active, onClick, children, tone = "sky" }: { active: boolean; on
     >
       {children}
     </button>
+  );
+}
+
+// H7: One-time disclosure for pulse free-text. Writer must acknowledge before
+// the first pulse submission. Stored in profiles.pulse_acknowledged_at.
+function PulseDisclosureModal({
+  onAck,
+  onCancel,
+  pending,
+}: {
+  onAck: () => void;
+  onCancel: () => void;
+  pending: boolean;
+}) {
+  return (
+    <div
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="pulse-disclosure-title"
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 p-6"
+    >
+      <div className="max-w-md w-full rounded-2xl border border-border bg-[#0b0f17] p-6 shadow-2xl">
+        <div className="flex items-start gap-3">
+          <ShieldCheck className="h-6 w-6 text-emerald-400 mt-0.5" aria-hidden />
+          <div className="flex-1">
+            <h2 id="pulse-disclosure-title" className="text-base font-semibold text-zinc-100">
+              How your pulse is used
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-zinc-200">
+              Your daily pulse is shared with your engagement lead to help keep
+              the mission on track. Free-text responses you submit are visible
+              to your lead for 90 days and then deleted. Platform administrators
+              see only aggregate data — not your individual responses. Your
+              pulse is never used in decisions about your pay or future
+              engagements.
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                onClick={onCancel}
+                className="rounded-md border border-border bg-background px-3 py-1.5 text-xs text-zinc-300 hover:bg-surface-hover"
+              >
+                Not now
+              </button>
+              <button
+                disabled={pending}
+                onClick={onAck}
+                className="rounded-md bg-emerald-500 px-4 py-1.5 text-xs font-medium text-emerald-950 hover:bg-emerald-400 disabled:opacity-50"
+              >
+                {pending ? "Saving…" : "I understand"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

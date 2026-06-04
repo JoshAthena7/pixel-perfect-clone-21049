@@ -9,6 +9,7 @@ import {
   LayoutGrid, Users, FileText, ClipboardCheck, Trophy,
   FolderOpen, Settings as SettingsIcon, UserCog, History, Brain,
   Search, Inbox, Library, BookOpen, Bell, LifeBuoy, UserPlus, Activity,
+  ShieldAlert, UserMinus, ExternalLink,
 } from "lucide-react";
 
 import { useServerFn } from "@tanstack/react-start";
@@ -188,10 +189,25 @@ function OlympusSidebar({ isAdmin }: { isAdmin: boolean }) {
             <SidebarItem to="/olympus/admins" path={path} icon={<UserCog size={15} strokeWidth={1.5} />}>Admins</SidebarItem>
 
             <SidebarItem to="/olympus/users" path={path} icon={<UserCog size={15} strokeWidth={1.5} />}>Users</SidebarItem>
-            <SidebarItem to="/olympus/audit" path={path} icon={<History size={15} strokeWidth={1.5} />}>Audit Log</SidebarItem>
             <SidebarItem to="/olympus/support" path={path} icon={<LifeBuoy size={15} strokeWidth={1.5} />}>Support Config</SidebarItem>
             <SidebarItem to="/olympus/talent" path={path} icon={<UserPlus size={15} strokeWidth={1.5} />}>Talent Desk</SidebarItem>
             <SidebarItem to="/olympus/notifications" path={path} icon={<Bell size={15} strokeWidth={1.5} />}>Notifications</SidebarItem>
+
+            {/* H3: Security section — audit + PHI + IRP link */}
+            <SectionHeader>Security</SectionHeader>
+            <SidebarItem to="/olympus/audit" path={path} icon={<History size={15} strokeWidth={1.5} />}>Audit Log</SidebarItem>
+            <SidebarItem to="/olympus/conflicts" path={path} icon={<ShieldAlert size={15} strokeWidth={1.5} />}>Conflicts</SidebarItem>
+            <SidebarItem to="/olympus/phi-log" path={path} icon={<ShieldAlert size={15} strokeWidth={1.5} />}>PHI Rejection Log</SidebarItem>
+            <SidebarItem to="/olympus/writer-deletion" path={path} icon={<UserMinus size={15} strokeWidth={1.5} />}>Right-to-Deletion</SidebarItem>
+            <a
+              href="https://athenacommandcenter.com/security/incident-response"
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-2 rounded px-3 py-1.5 text-[12px] text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+            >
+              <ExternalLink size={15} strokeWidth={1.5} />
+              <span>Incident Response Plan</span>
+            </a>
           </>
         )}
 

@@ -2230,6 +2230,48 @@ export type Database = {
         }
         Relationships: []
       }
+      mission_conflict_ack: {
+        Row: {
+          acknowledged_by: string
+          created_at: string
+          id: string
+          justification: string
+          mission_a_id: string
+          mission_b_id: string
+        }
+        Insert: {
+          acknowledged_by: string
+          created_at?: string
+          id?: string
+          justification: string
+          mission_a_id: string
+          mission_b_id: string
+        }
+        Update: {
+          acknowledged_by?: string
+          created_at?: string
+          id?: string
+          justification?: string
+          mission_a_id?: string
+          mission_b_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_conflict_ack_mission_a_id_fkey"
+            columns: ["mission_a_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_conflict_ack_mission_b_id_fkey"
+            columns: ["mission_b_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_decisions: {
         Row: {
           created_at: string | null
@@ -2669,6 +2711,7 @@ export type Database = {
           page_limit: number | null
           pens_down_date: string | null
           priority_topics: string[] | null
+          procurement_id: string | null
           procurement_name: string | null
           program_type: string | null
           qa_deadline: string | null
@@ -2706,6 +2749,7 @@ export type Database = {
           page_limit?: number | null
           pens_down_date?: string | null
           priority_topics?: string[] | null
+          procurement_id?: string | null
           procurement_name?: string | null
           program_type?: string | null
           qa_deadline?: string | null
@@ -2743,6 +2787,7 @@ export type Database = {
           page_limit?: number | null
           pens_down_date?: string | null
           priority_topics?: string[] | null
+          procurement_id?: string | null
           procurement_name?: string | null
           program_type?: string | null
           qa_deadline?: string | null
@@ -3041,6 +3086,7 @@ export type Database = {
           profile_completed: boolean
           profile_updated_at: string | null
           programs_experience: string[]
+          pulse_acknowledged_at: string | null
           question_types: string[]
           score_me_disclosure_acknowledged_at: string | null
           states_experience: string[]
@@ -3066,6 +3112,7 @@ export type Database = {
           profile_completed?: boolean
           profile_updated_at?: string | null
           programs_experience?: string[]
+          pulse_acknowledged_at?: string | null
           question_types?: string[]
           score_me_disclosure_acknowledged_at?: string | null
           states_experience?: string[]
@@ -3091,6 +3138,7 @@ export type Database = {
           profile_completed?: boolean
           profile_updated_at?: string | null
           programs_experience?: string[]
+          pulse_acknowledged_at?: string | null
           question_types?: string[]
           score_me_disclosure_acknowledged_at?: string | null
           states_experience?: string[]
@@ -4358,32 +4406,88 @@ export type Database = {
           },
         ]
       }
+      writer_deletion_requests: {
+        Row: {
+          id: string
+          notes: string | null
+          processed_at: string | null
+          processed_by: string | null
+          request_received_at: string
+          request_source: string | null
+          writer_email: string
+          writer_id: string | null
+        }
+        Insert: {
+          id?: string
+          notes?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          request_received_at?: string
+          request_source?: string | null
+          writer_email: string
+          writer_id?: string | null
+        }
+        Update: {
+          id?: string
+          notes?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          request_received_at?: string
+          request_source?: string | null
+          writer_email?: string
+          writer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "writer_deletion_requests_writer_id_fkey"
+            columns: ["writer_id"]
+            isOneToOne: false
+            referencedRelation: "writer_identities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       writer_identities: {
         Row: {
           created_at: string
+          deleted_at: string | null
+          deletion_reason: string | null
+          deletion_requested_by: string | null
           display_name: string
           id: string
+          is_active: boolean
           merged_into_id: string | null
           metadata: Json
           primary_email: string | null
+          pulse_acknowledged_at: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
+          deletion_reason?: string | null
+          deletion_requested_by?: string | null
           display_name: string
           id?: string
+          is_active?: boolean
           merged_into_id?: string | null
           metadata?: Json
           primary_email?: string | null
+          pulse_acknowledged_at?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
+          deletion_reason?: string | null
+          deletion_requested_by?: string | null
           display_name?: string
           id?: string
+          is_active?: boolean
           merged_into_id?: string | null
           metadata?: Json
           primary_email?: string | null
+          pulse_acknowledged_at?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -4496,6 +4600,27 @@ export type Database = {
         }
         Relationships: []
       }
+      pulse_aggregates: {
+        Row: {
+          avg_confidence: number | null
+          avg_hedging: number | null
+          avg_progress: number | null
+          blocked_pct: number | null
+          day: string | null
+          distinct_writers: number | null
+          mission_id: string | null
+          pulse_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_pulses_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       archive_old_signals: { Args: never; Returns: number }
@@ -4571,6 +4696,7 @@ export type Database = {
         }
         Returns: number
       }
+      prune_pulse_free_text: { Args: never; Returns: number }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
