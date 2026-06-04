@@ -40,6 +40,7 @@ import { Route as AuthenticatedOlympusCanonLibraryRouteImport } from './routes/_
 import { Route as AuthenticatedOlympusAuditRouteImport } from './routes/_authenticated/olympus/audit'
 import { Route as AuthenticatedOlympusAtlasSourcesRouteImport } from './routes/_authenticated/olympus/atlas-sources'
 import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_authenticated/missions/$missionId'
+import { Route as AuthenticatedCommandSecurityRouteImport } from './routes/_authenticated/command/security'
 import { Route as AuthenticatedCommandScoresRouteImport } from './routes/_authenticated/command/scores'
 import { Route as AuthenticatedCommandQuestionHealthRouteImport } from './routes/_authenticated/command/question-health'
 import { Route as AuthenticatedCommandPensDownRouteImport } from './routes/_authenticated/command/pens-down'
@@ -247,6 +248,12 @@ const AuthenticatedMissionsMissionIdRoute =
     path: '/missions/$missionId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedCommandSecurityRoute =
+  AuthenticatedCommandSecurityRouteImport.update({
+    id: '/command/security',
+    path: '/command/security',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedCommandScoresRoute =
   AuthenticatedCommandScoresRouteImport.update({
     id: '/command/scores',
@@ -434,6 +441,7 @@ export interface FileRoutesByFullPath {
   '/command/pens-down': typeof AuthenticatedCommandPensDownRoute
   '/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
   '/command/scores': typeof AuthenticatedCommandScoresRoute
+  '/command/security': typeof AuthenticatedCommandSecurityRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
   '/olympus/atlas-sources': typeof AuthenticatedOlympusAtlasSourcesRoute
   '/olympus/audit': typeof AuthenticatedOlympusAuditRoute
@@ -493,6 +501,7 @@ export interface FileRoutesByTo {
   '/command/pens-down': typeof AuthenticatedCommandPensDownRoute
   '/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
   '/command/scores': typeof AuthenticatedCommandScoresRoute
+  '/command/security': typeof AuthenticatedCommandSecurityRoute
   '/olympus/atlas-sources': typeof AuthenticatedOlympusAtlasSourcesRoute
   '/olympus/audit': typeof AuthenticatedOlympusAuditRoute
   '/olympus/canon-library': typeof AuthenticatedOlympusCanonLibraryRoute
@@ -554,6 +563,7 @@ export interface FileRoutesById {
   '/_authenticated/command/pens-down': typeof AuthenticatedCommandPensDownRoute
   '/_authenticated/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
   '/_authenticated/command/scores': typeof AuthenticatedCommandScoresRoute
+  '/_authenticated/command/security': typeof AuthenticatedCommandSecurityRoute
   '/_authenticated/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
   '/_authenticated/olympus/atlas-sources': typeof AuthenticatedOlympusAtlasSourcesRoute
   '/_authenticated/olympus/audit': typeof AuthenticatedOlympusAuditRoute
@@ -616,6 +626,7 @@ export interface FileRouteTypes {
     | '/command/pens-down'
     | '/command/question-health'
     | '/command/scores'
+    | '/command/security'
     | '/missions/$missionId'
     | '/olympus/atlas-sources'
     | '/olympus/audit'
@@ -675,6 +686,7 @@ export interface FileRouteTypes {
     | '/command/pens-down'
     | '/command/question-health'
     | '/command/scores'
+    | '/command/security'
     | '/olympus/atlas-sources'
     | '/olympus/audit'
     | '/olympus/canon-library'
@@ -735,6 +747,7 @@ export interface FileRouteTypes {
     | '/_authenticated/command/pens-down'
     | '/_authenticated/command/question-health'
     | '/_authenticated/command/scores'
+    | '/_authenticated/command/security'
     | '/_authenticated/missions/$missionId'
     | '/_authenticated/olympus/atlas-sources'
     | '/_authenticated/olympus/audit'
@@ -1005,6 +1018,13 @@ declare module '@tanstack/react-router' {
       path: '/missions/$missionId'
       fullPath: '/missions/$missionId'
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/command/security': {
+      id: '/_authenticated/command/security'
+      path: '/command/security'
+      fullPath: '/command/security'
+      preLoaderRoute: typeof AuthenticatedCommandSecurityRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/command/scores': {
@@ -1331,6 +1351,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCommandPensDownRoute: typeof AuthenticatedCommandPensDownRoute
   AuthenticatedCommandQuestionHealthRoute: typeof AuthenticatedCommandQuestionHealthRoute
   AuthenticatedCommandScoresRoute: typeof AuthenticatedCommandScoresRoute
+  AuthenticatedCommandSecurityRoute: typeof AuthenticatedCommandSecurityRoute
   AuthenticatedMissionsMissionIdRoute: typeof AuthenticatedMissionsMissionIdRouteWithChildren
   AuthenticatedProfileExpertiseRoute: typeof AuthenticatedProfileExpertiseRoute
 }
@@ -1353,6 +1374,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCommandQuestionHealthRoute:
     AuthenticatedCommandQuestionHealthRoute,
   AuthenticatedCommandScoresRoute: AuthenticatedCommandScoresRoute,
+  AuthenticatedCommandSecurityRoute: AuthenticatedCommandSecurityRoute,
   AuthenticatedMissionsMissionIdRoute:
     AuthenticatedMissionsMissionIdRouteWithChildren,
   AuthenticatedProfileExpertiseRoute: AuthenticatedProfileExpertiseRoute,
