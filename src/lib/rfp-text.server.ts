@@ -3,7 +3,22 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+export async function extractPdfText(bytes: ArrayBuffer): Promise<string> {
+  const { extractText, getDocumentProxy } = await import("unpdf");
+  const pdf = await getDocumentProxy(new Uint8Array(bytes));
+  const { text } = await extractText(pdf, { mergePages: true });
+  const joined = Array.isArray(text) ? text.join("\n") : text;
+  return joined.replace(/\n{3,}/g, "\n\n").trim();
+}
+
 export async function extractDocxText(bytes: ArrayBuffer): Promise<string> {
+  const head = new Uint8Array(bytes.slice(0, 4));
+  const isPdf = head[0] === 0x25 && head[1] === 0x50 && head[2] === 0x44 && head[3] === 0x46;
+  if (isPdf) return extractPdfText(bytes);
+  const isZip = head[0] === 0x50 && head[1] === 0x4b && head[2] === 0x03 && head[3] === 0x04;
+  if (!isZip) {
+    throw new Error("This file is not a valid .docx or .pdf document. Please re-upload as .docx or .pdf.");
+  }
   const JSZipMod = await import("jszip");
   const JSZip = (JSZipMod as unknown as { default?: typeof JSZipMod }).default ?? JSZipMod;
   const zip = await JSZip.loadAsync(bytes);
