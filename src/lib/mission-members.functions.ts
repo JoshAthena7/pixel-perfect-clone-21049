@@ -2,7 +2,18 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const missionRoleSchema = z.enum(["admin", "lead", "writer", "sme", "viewer"]);
+const missionRoleSchema = z.enum([
+  "admin",
+  "lead",
+  "engagement_lead",
+  "project_manager",
+  "lead_writer",
+  "lead_graphics",
+  "writer",
+  "sme",
+  "viewer",
+]);
+const LEAD_ROLES = ["admin", "lead", "engagement_lead", "project_manager"] as const;
 
 const inviteSchema = z.object({
   missionId: z.string().uuid(),
@@ -27,7 +38,7 @@ export const inviteMissionMember = createServerFn({ method: "POST" })
     const { data: roleCheck } = await supabase.rpc("has_mission_role", {
       _mission_id: data.missionId,
       _user_id: userId,
-      _roles: ["admin", "lead"],
+      _roles: [...LEAD_ROLES],
     });
     if (!roleCheck) throw new Error("Only mission admins or leads can invite members.");
 
@@ -77,7 +88,7 @@ export const addCollectiveMemberToMission = createServerFn({ method: "POST" })
     const { data: roleCheck, error: roleErr } = await supabase.rpc("has_mission_role", {
       _mission_id: data.missionId,
       _user_id: userId,
-      _roles: ["admin", "lead"],
+      _roles: [...LEAD_ROLES],
     });
     if (roleErr) throw new Error(roleErr.message);
     if (!roleCheck) throw new Error("Only mission admins or leads can add team members.");

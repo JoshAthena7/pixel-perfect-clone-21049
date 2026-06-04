@@ -1,0 +1,1 @@
+ALTER TABLE public.mission_members DROP CONSTRAINT mission_members_role_check; ALTER TABLE public.mission_members ADD CONSTRAINT mission_members_role_check CHECK (role = ANY (ARRAY['admin','lead','writer','sme','viewer','engagement_lead','project_manager','lead_writer','lead_graphics']::text[]));

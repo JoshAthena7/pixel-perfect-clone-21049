@@ -12,8 +12,29 @@ export const Route = createFileRoute("/_authenticated/olympus/team")({
   component: TeamPage,
 });
 
-const ROLES = ["admin", "lead", "writer", "sme", "viewer"] as const;
+const ROLES = [
+  "admin",
+  "engagement_lead",
+  "project_manager",
+  "lead_writer",
+  "lead_graphics",
+  "lead",
+  "writer",
+  "sme",
+  "viewer",
+] as const;
 type Role = (typeof ROLES)[number];
+const ROLE_LABELS: Record<Role, string> = {
+  admin: "Admin",
+  engagement_lead: "Engagement Lead",
+  project_manager: "Project Manager",
+  lead_writer: "Lead Writer",
+  lead_graphics: "Lead Graphics",
+  lead: "Lead",
+  writer: "Writer",
+  sme: "SME",
+  viewer: "Viewer",
+};
 
 type MemberRow = {
   id: string;
@@ -157,7 +178,7 @@ function Roster({ missionId }: { missionId: string }) {
                     onChange={(e) => updateRole(m, e.target.value as Role)}
                     className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs"
                   >
-                    {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                    {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
                   </select>
                 </td>
                 <td className="px-4 py-3 text-[11px] text-muted-foreground">
