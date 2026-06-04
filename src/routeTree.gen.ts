@@ -43,6 +43,7 @@ import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_au
 import { Route as AuthenticatedCommandScoresRouteImport } from './routes/_authenticated/command/scores'
 import { Route as AuthenticatedCommandQuestionHealthRouteImport } from './routes/_authenticated/command/question-health'
 import { Route as AuthenticatedCommandPensDownRouteImport } from './routes/_authenticated/command/pens-down'
+import { Route as AuthenticatedCommandHealthRouteImport } from './routes/_authenticated/command/health'
 import { Route as AuthenticatedCommandBroadcastsRouteImport } from './routes/_authenticated/command/broadcasts'
 import { Route as AuthenticatedCommandAttentionRouteImport } from './routes/_authenticated/command/attention'
 import { Route as AuthenticatedCommandAlignmentConflictsRouteImport } from './routes/_authenticated/command/alignment-conflicts'
@@ -263,6 +264,12 @@ const AuthenticatedCommandPensDownRoute =
     path: '/command/pens-down',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedCommandHealthRoute =
+  AuthenticatedCommandHealthRouteImport.update({
+    id: '/command/health',
+    path: '/command/health',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedCommandBroadcastsRoute =
   AuthenticatedCommandBroadcastsRouteImport.update({
     id: '/command/broadcasts',
@@ -416,6 +423,7 @@ export interface FileRoutesByFullPath {
   '/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/command/attention': typeof AuthenticatedCommandAttentionRoute
   '/command/broadcasts': typeof AuthenticatedCommandBroadcastsRoute
+  '/command/health': typeof AuthenticatedCommandHealthRoute
   '/command/pens-down': typeof AuthenticatedCommandPensDownRoute
   '/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
   '/command/scores': typeof AuthenticatedCommandScoresRoute
@@ -473,6 +481,7 @@ export interface FileRoutesByTo {
   '/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/command/attention': typeof AuthenticatedCommandAttentionRoute
   '/command/broadcasts': typeof AuthenticatedCommandBroadcastsRoute
+  '/command/health': typeof AuthenticatedCommandHealthRoute
   '/command/pens-down': typeof AuthenticatedCommandPensDownRoute
   '/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
   '/command/scores': typeof AuthenticatedCommandScoresRoute
@@ -532,6 +541,7 @@ export interface FileRoutesById {
   '/_authenticated/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/_authenticated/command/attention': typeof AuthenticatedCommandAttentionRoute
   '/_authenticated/command/broadcasts': typeof AuthenticatedCommandBroadcastsRoute
+  '/_authenticated/command/health': typeof AuthenticatedCommandHealthRoute
   '/_authenticated/command/pens-down': typeof AuthenticatedCommandPensDownRoute
   '/_authenticated/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
   '/_authenticated/command/scores': typeof AuthenticatedCommandScoresRoute
@@ -592,6 +602,7 @@ export interface FileRouteTypes {
     | '/command/alignment-conflicts'
     | '/command/attention'
     | '/command/broadcasts'
+    | '/command/health'
     | '/command/pens-down'
     | '/command/question-health'
     | '/command/scores'
@@ -649,6 +660,7 @@ export interface FileRouteTypes {
     | '/command/alignment-conflicts'
     | '/command/attention'
     | '/command/broadcasts'
+    | '/command/health'
     | '/command/pens-down'
     | '/command/question-health'
     | '/command/scores'
@@ -707,6 +719,7 @@ export interface FileRouteTypes {
     | '/_authenticated/command/alignment-conflicts'
     | '/_authenticated/command/attention'
     | '/_authenticated/command/broadcasts'
+    | '/_authenticated/command/health'
     | '/_authenticated/command/pens-down'
     | '/_authenticated/command/question-health'
     | '/_authenticated/command/scores'
@@ -1002,6 +1015,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCommandPensDownRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/command/health': {
+      id: '/_authenticated/command/health'
+      path: '/command/health'
+      fullPath: '/command/health'
+      preLoaderRoute: typeof AuthenticatedCommandHealthRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/command/broadcasts': {
       id: '/_authenticated/command/broadcasts'
       path: '/command/broadcasts'
@@ -1284,6 +1304,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCommandAlignmentConflictsRoute: typeof AuthenticatedCommandAlignmentConflictsRoute
   AuthenticatedCommandAttentionRoute: typeof AuthenticatedCommandAttentionRoute
   AuthenticatedCommandBroadcastsRoute: typeof AuthenticatedCommandBroadcastsRoute
+  AuthenticatedCommandHealthRoute: typeof AuthenticatedCommandHealthRoute
   AuthenticatedCommandPensDownRoute: typeof AuthenticatedCommandPensDownRoute
   AuthenticatedCommandQuestionHealthRoute: typeof AuthenticatedCommandQuestionHealthRoute
   AuthenticatedCommandScoresRoute: typeof AuthenticatedCommandScoresRoute
@@ -1304,6 +1325,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
     AuthenticatedCommandAlignmentConflictsRoute,
   AuthenticatedCommandAttentionRoute: AuthenticatedCommandAttentionRoute,
   AuthenticatedCommandBroadcastsRoute: AuthenticatedCommandBroadcastsRoute,
+  AuthenticatedCommandHealthRoute: AuthenticatedCommandHealthRoute,
   AuthenticatedCommandPensDownRoute: AuthenticatedCommandPensDownRoute,
   AuthenticatedCommandQuestionHealthRoute:
     AuthenticatedCommandQuestionHealthRoute,

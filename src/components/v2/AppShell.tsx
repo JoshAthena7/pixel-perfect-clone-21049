@@ -216,6 +216,7 @@ function AtriumNav() {
   const items: { to: string; label: string }[] = [
     { to: "/home", label: "Home" },
     { to: "/atrium", label: "Atrium" },
+    { to: "/command/health", label: "Health" },
   ];
   return (
     <nav className="flex items-center gap-1">
