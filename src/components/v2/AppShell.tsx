@@ -2,12 +2,13 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useParams, useNavigate, useRouter } from "@tanstack/react-router";
 import {
   LogOut, User, Shield, Settings2,
-  Plane, Search, HelpCircle, ArrowLeft,
+  Plane, Search, HelpCircle, ArrowLeft, Megaphone,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { irisLeadershipAttention } from "@/lib/iris.functions";
+import { getUnacknowledgedBriefings } from "@/lib/brief-room.functions";
 import { useIsAdmin } from "@/hooks/useAccess";
 import { toast } from "sonner";
 
@@ -22,6 +23,7 @@ import { CommandPalette } from "@/components/v2/CommandPalette";
 import { IrisDock } from "@/components/v2/IrisDock";
 import { MobileBottomNav, MobileBottomNavSpacer } from "@/components/v2/MobileBottomNav";
 import { SupportCenterMount } from "@/components/v2/SupportCenter";
+import { BriefRoomPinned } from "@/components/brief-room/BriefRoomPinned";
 import athenaSgLogo from "@/assets/athena-sg-lockup.png.asset.json";
 import atlasLogo from "@/assets/atlas-logo.png.asset.json";
 
@@ -73,6 +75,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           You can view everything but cannot edit, assign, upload, or delete during the beta period. Contact an admin for changes.
         </div>
       )}
+
+      <BriefRoomPinned />
 
       <main className="flex-1 min-w-0">
 
@@ -202,6 +206,7 @@ function TopBar({
         >
           <HelpCircle size={16} strokeWidth={1.5} />
         </button>
+        <BriefRoomNavButton />
         <SignOutButton />
         <UserAvatarMenu />
         {isAdmin && (
@@ -241,6 +246,35 @@ function BackButton({ isAtrium }: { isAtrium: boolean }) {
     >
       <ArrowLeft size={16} strokeWidth={1.5} />
     </button>
+  );
+}
+
+// ─── Brief Room nav button with unack badge ───────────────────────────────
+function BriefRoomNavButton() {
+  const fn = useServerFn(getUnacknowledgedBriefings);
+  const { data } = useQuery({
+    queryKey: ["brief-room", "pending"],
+    queryFn: () => fn(),
+    refetchInterval: 60_000,
+  });
+  const count = data?.count ?? 0;
+  return (
+    <Link
+      to="/brief-room"
+      title={count > 0 ? `You have ${count} unacknowledged briefing(s).` : "Brief Room"}
+      aria-label="Brief Room"
+      className="relative inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
+    >
+      <Megaphone size={16} strokeWidth={1.5} />
+      {count > 0 && (
+        <span
+          className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] px-1 rounded-full text-[9px] font-bold inline-flex items-center justify-center"
+          style={{ background: "var(--athena-gold, #f59e0b)", color: "#0a0a0a" }}
+        >
+          {count > 9 ? "9+" : count}
+        </span>
+      )}
+    </Link>
   );
 }
 

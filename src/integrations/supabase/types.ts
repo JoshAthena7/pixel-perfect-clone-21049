@@ -1084,6 +1084,38 @@ export type Database = {
         }
         Relationships: []
       }
+      briefing_acknowledgments: {
+        Row: {
+          acknowledged_at: string
+          briefing_id: string
+          id: string
+          ip_address: string | null
+          user_id: string
+        }
+        Insert: {
+          acknowledged_at?: string
+          briefing_id: string
+          id?: string
+          ip_address?: string | null
+          user_id: string
+        }
+        Update: {
+          acknowledged_at?: string
+          briefing_id?: string
+          id?: string
+          ip_address?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "briefing_acknowledgments_briefing_id_fkey"
+            columns: ["briefing_id"]
+            isOneToOne: false
+            referencedRelation: "briefings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       briefing_book_section_history: {
         Row: {
           content: string | null
@@ -1164,6 +1196,48 @@ export type Database = {
           status?: string
           updated_at?: string
           version_number?: number
+        }
+        Relationships: []
+      }
+      briefings: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          is_deleted: boolean
+          recipient_id: string | null
+          sender_id: string
+          sender_name: string
+          sender_role: string | null
+          sent_at: string
+          subject: string
+          type: Database["public"]["Enums"]["briefing_type"]
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          is_deleted?: boolean
+          recipient_id?: string | null
+          sender_id: string
+          sender_name: string
+          sender_role?: string | null
+          sent_at?: string
+          subject: string
+          type: Database["public"]["Enums"]["briefing_type"]
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          is_deleted?: boolean
+          recipient_id?: string | null
+          sender_id?: string
+          sender_name?: string
+          sender_role?: string | null
+          sent_at?: string
+          subject?: string
+          type?: Database["public"]["Enums"]["briefing_type"]
         }
         Relationships: []
       }
@@ -4963,6 +5037,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "lead" | "writer" | "sme"
+      briefing_type: "global" | "direct"
       vault_doc_type:
         | "data_security"
         | "contract"
@@ -5099,6 +5174,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "lead", "writer", "sme"],
+      briefing_type: ["global", "direct"],
       vault_doc_type: [
         "data_security",
         "contract",

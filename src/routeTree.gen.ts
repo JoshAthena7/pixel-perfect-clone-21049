@@ -18,6 +18,7 @@ import { Route as AuthenticatedOlympusRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedIntelligenceQueueRouteImport } from './routes/_authenticated/intelligence-queue'
 import { Route as AuthenticatedIntelligenceRouteImport } from './routes/_authenticated/intelligence'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
+import { Route as AuthenticatedBriefRoomRouteImport } from './routes/_authenticated/brief-room'
 import { Route as AuthenticatedAtriumRouteImport } from './routes/_authenticated/atrium'
 import { Route as AuthenticatedOlympusIndexRouteImport } from './routes/_authenticated/olympus/index'
 import { Route as AuthenticatedProfileExpertiseRouteImport } from './routes/_authenticated/profile/expertise'
@@ -121,6 +122,11 @@ const AuthenticatedIntelligenceRoute =
 const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   id: '/home',
   path: '/home',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedBriefRoomRoute = AuthenticatedBriefRoomRouteImport.update({
+  id: '/brief-room',
+  path: '/brief-room',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedAtriumRoute = AuthenticatedAtriumRouteImport.update({
@@ -469,6 +475,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/atrium': typeof AuthenticatedAtriumRoute
+  '/brief-room': typeof AuthenticatedBriefRoomRoute
   '/home': typeof AuthenticatedHomeRoute
   '/intelligence': typeof AuthenticatedIntelligenceRoute
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
@@ -536,6 +543,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/atrium': typeof AuthenticatedAtriumRoute
+  '/brief-room': typeof AuthenticatedBriefRoomRoute
   '/home': typeof AuthenticatedHomeRoute
   '/intelligence': typeof AuthenticatedIntelligenceRoute
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
@@ -603,6 +611,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/atrium': typeof AuthenticatedAtriumRoute
+  '/_authenticated/brief-room': typeof AuthenticatedBriefRoomRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/intelligence': typeof AuthenticatedIntelligenceRoute
   '/_authenticated/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
@@ -672,6 +681,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/atrium'
+    | '/brief-room'
     | '/home'
     | '/intelligence'
     | '/intelligence-queue'
@@ -739,6 +749,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/atrium'
+    | '/brief-room'
     | '/home'
     | '/intelligence'
     | '/intelligence-queue'
@@ -805,6 +816,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/login'
     | '/_authenticated/atrium'
+    | '/_authenticated/brief-room'
     | '/_authenticated/home'
     | '/_authenticated/intelligence'
     | '/_authenticated/intelligence-queue'
@@ -942,6 +954,13 @@ declare module '@tanstack/react-router' {
       path: '/home'
       fullPath: '/home'
       preLoaderRoute: typeof AuthenticatedHomeRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/brief-room': {
+      id: '/_authenticated/brief-room'
+      path: '/brief-room'
+      fullPath: '/brief-room'
+      preLoaderRoute: typeof AuthenticatedBriefRoomRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/atrium': {
@@ -1471,6 +1490,7 @@ const AuthenticatedMissionsMissionIdRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAtriumRoute: typeof AuthenticatedAtriumRoute
+  AuthenticatedBriefRoomRoute: typeof AuthenticatedBriefRoomRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedIntelligenceRoute: typeof AuthenticatedIntelligenceRoute
   AuthenticatedIntelligenceQueueRoute: typeof AuthenticatedIntelligenceQueueRoute
@@ -1492,6 +1512,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAtriumRoute: AuthenticatedAtriumRoute,
+  AuthenticatedBriefRoomRoute: AuthenticatedBriefRoomRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedIntelligenceRoute: AuthenticatedIntelligenceRoute,
   AuthenticatedIntelligenceQueueRoute: AuthenticatedIntelligenceQueueRoute,
