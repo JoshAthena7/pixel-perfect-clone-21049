@@ -136,6 +136,13 @@ export const scoreResponse = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
+    // C2: PHI scrub BEFORE any DB read, AI call, or persistence. Fail-closed.
+    await assertNoPHI({
+      text: data.responseText,
+      surface: "score_me",
+      actorUserId: userId,
+    });
+
     const { data: q } = await supabase
       .from("question_records")
       .select("id,mission_id,question_number,title,question_text,requirements,mandatory_language,scoring_criteria,page_limit,evaluation_weight")
