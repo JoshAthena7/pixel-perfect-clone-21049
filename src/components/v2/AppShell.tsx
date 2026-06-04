@@ -85,16 +85,10 @@ function TopBar({
 }: { missionId?: string; isOlympus: boolean; isAtrium: boolean; room: Room }) {
   const inMission = !!missionId;
 
-  const { data: isPrivileged = false } = useQuery({
-    queryKey: ["shell-is-privileged"],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
-      const { data } = await supabase.from("mission_members").select("role").eq("user_id", user.id);
-      const roles = (data ?? []).map((r: { role: string }) => r.role);
-      return roles.includes("admin") || roles.includes("lead") || roles.length === 0;
-    },
-  });
+  // Per the Permissions spec: Olympus is invisible in nav for non-admins.
+  // No greyed-out link, no lock icon — absent entirely.
+  const { isAdmin } = useIsAdmin();
+
 
   const attentionFn = useServerFn(irisLeadershipAttention);
   useQuery({ queryKey: ["leadership-attention"], queryFn: () => attentionFn(), refetchInterval: 60_000 });
