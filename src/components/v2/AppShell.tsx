@@ -224,6 +224,44 @@ function TopBar({
   );
 }
 
+// ─── Back button ──────────────────────────────────────────────────────────
+function BackButton({ isAtrium }: { isAtrium: boolean }) {
+  const router = useRouter();
+  const navigate = useNavigate();
+  if (isAtrium) return null;
+  return (
+    <button
+      onClick={() => {
+        if (window.history.length > 1) router.history.back();
+        else navigate({ to: "/home" });
+      }}
+      title="Back"
+      aria-label="Back"
+      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
+    >
+      <ArrowLeft size={16} strokeWidth={1.5} />
+    </button>
+  );
+}
+
+// ─── Sign out button (always visible in header) ───────────────────────────
+function SignOutButton() {
+  return (
+    <button
+      onClick={async () => {
+        await supabase.auth.signOut();
+        toast.success("Signed out");
+      }}
+      title="Sign out"
+      aria-label="Sign out"
+      className="inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
+    >
+      <LogOut size={14} strokeWidth={1.5} />
+      <span className="hidden sm:inline">Sign out</span>
+    </button>
+  );
+}
+
 // ─── Atrium top-bar nav ───────────────────────────────────────────────────
 function AtriumNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
