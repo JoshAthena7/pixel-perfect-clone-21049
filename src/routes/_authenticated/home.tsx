@@ -347,16 +347,6 @@ function AthenaHQ() {
                 <h2 className="h2-label">Active Missions</h2>
                 <p className="mt-1.5 text-2xl font-semibold tracking-tight">{missions.length} in flight</p>
               </div>
-              {/* PHASE 7 / CHANGE 2: leader shortcut */}
-              {leaderShortcutMissionId && (
-                <Link
-                  to="/command/attention"
-                  className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-surface-hover transition-colors"
-                >
-                  The Brief
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              )}
             </div>
 
             {missionsLoading ? (
