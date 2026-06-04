@@ -38,6 +38,7 @@ const TYPE_ORDER: VaultDocType[] = [
   "contract",
   "scope_of_work",
   "style_guide",
+  "dpa",
   "other",
 ];
 
@@ -46,6 +47,7 @@ const TYPE_ICON: Record<VaultDocType, typeof Shield> = {
   contract: ScrollText,
   scope_of_work: FileText,
   style_guide: BookOpen,
+  dpa: Shield,
   other: Paperclip,
 };
 
@@ -54,6 +56,7 @@ const TYPE_ACCENT: Record<VaultDocType, string> = {
   contract: "rgba(245,158,11,0.45)",       // amber
   scope_of_work: "rgba(56,189,248,0.45)",  // sky
   style_guide: "rgba(168,85,247,0.45)",    // violet
+  dpa: "rgba(34,211,238,0.45)",            // iris cyan
   other: "rgba(148,163,184,0.35)",         // slate
 };
 
@@ -94,7 +97,7 @@ function VaultPage() {
 
   const grouped = useMemo(() => {
     const out: Record<VaultDocType, VaultDoc[]> = {
-      data_security: [], contract: [], scope_of_work: [], style_guide: [], other: [],
+      data_security: [], contract: [], scope_of_work: [], style_guide: [], dpa: [], other: [],
     };
     for (const d of docs) out[d.doc_type as VaultDocType]?.push(d);
     return out;
