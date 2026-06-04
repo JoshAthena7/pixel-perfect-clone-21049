@@ -1,8 +1,12 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Check, Heart, AlertCircle } from "lucide-react";
+import { Check, Heart, AlertCircle, ShieldCheck } from "lucide-react";
 import { getMyPulseContext, submitPulse } from "@/lib/pulses.functions";
+import {
+  getPulseDisclosureStatus,
+  acknowledgePulseDisclosure,
+} from "@/lib/pulse-disclosure.functions";
 import { toast } from "sonner";
 
 const PROGRESS_LABELS = ["Just started", "In progress", "Almost done", "Ready for review"];
