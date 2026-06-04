@@ -134,9 +134,26 @@ export function Scorecard({
   );
 }
 
-function DimensionRow({ dim }: { dim: DimensionResult }) {
+function DimensionRow({
+  dim,
+  questionId,
+  missionId,
+}: {
+  dim: DimensionResult;
+  questionId: string;
+  missionId: string;
+}) {
   const s = statusStyle(dim.status);
   const Icon = s.icon;
+  const logInteraction = useServerFn(logScoreMeInteraction);
+
+  const fireLog = (action: "viewed" | "copied" | "expanded" | "dismissed") => {
+    // Best-effort metadata logging. NEVER pass suggestion text — just action triples.
+    logInteraction({
+      data: { questionId, missionId, dimension: dim.key, action },
+    }).catch(() => {});
+  };
+
   return (
     <section className={`overflow-hidden rounded-[10px] border ${s.border} ${s.bg}`}>
       <div className="flex items-start gap-3 px-4 py-3">
@@ -173,12 +190,10 @@ function DimensionRow({ dim }: { dim: DimensionResult }) {
                   )}
                   <span>{f.text}</span>
                   {f.suggestion && (
-                    <div className="mt-1 rounded border border-border bg-background/60 px-2 py-1.5 text-[12px]">
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-sky-300">
-                        Try:
-                      </span>{" "}
-                      <span className="text-foreground/85">{f.suggestion}</span>
-                    </div>
+                    <SuggestionBlock
+                      suggestion={f.suggestion}
+                      onCopy={() => fireLog("copied")}
+                    />
                   )}
                 </li>
               ))}
@@ -187,5 +202,48 @@ function DimensionRow({ dim }: { dim: DimensionResult }) {
         </div>
       </div>
     </section>
+  );
+}
+
+function SuggestionBlock({
+  suggestion,
+  onCopy,
+}: {
+  suggestion: string;
+  onCopy: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(suggestion);
+      setCopied(true);
+      onCopy();
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      /* ignore */
+    }
+  };
+  return (
+    <div className="mt-1 flex items-start gap-2 rounded border border-border bg-background/60 px-2 py-1.5 text-[12px]">
+      <div className="flex-1">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-sky-300">Try:</span>{" "}
+        <span className="text-foreground/85">{suggestion}</span>
+      </div>
+      <button
+        onClick={handleCopy}
+        title="Copy suggested language"
+        className="shrink-0 rounded border border-border bg-surface px-2 py-1 text-[10px] text-muted-foreground hover:text-foreground"
+      >
+        {copied ? (
+          <span className="inline-flex items-center gap-1 text-emerald-400">
+            <Check className="h-3 w-3" /> Copied
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1">
+            <Copy className="h-3 w-3" /> Copy
+          </span>
+        )}
+      </button>
+    </div>
   );
 }
