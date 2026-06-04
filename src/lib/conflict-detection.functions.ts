@@ -128,6 +128,7 @@ export const acknowledgeConflict = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    await assertAdmin(supabase, userId);
     const [a, b] =
       data.missionAId < data.missionBId
         ? [data.missionAId, data.missionBId]
