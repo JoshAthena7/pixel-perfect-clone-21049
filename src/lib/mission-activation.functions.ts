@@ -130,6 +130,17 @@ export const extractDocumentIntelligence = createServerFn({ method: "POST" })
       rawText = `External link: ${doc.url}\nName: ${doc.name}`;
     }
 
+    // C2: PHI scrub on extracted text BEFORE LLM extraction or DB write.
+    // This is the vault-upload AND document-extraction ingestion path.
+    if (rawText.trim().length > 0) {
+      await assertNoPHI({
+        text: rawText,
+        surface: "vault_upload",
+        actorUserId: context.userId,
+        engagementId: doc.mission_id,
+      });
+    }
+
     let extraction: ExtractionJson = { summary: "", key_themes: [], key_entities: [] };
     let status = "ready";
     let errMsg: string | null = null;
