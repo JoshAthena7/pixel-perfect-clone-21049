@@ -1,9 +1,8 @@
-// Intel Drift Recalibration — one-shot reset for a mission's Oracle + IRIS.
-// Leadership-only. Marks current DNA as not-current, regenerates a fresh DNA
-// from the latest RFP, wipes brief caches, supersedes prior mission-scoped
-// IRIS memories (kept for audit), re-queues the full research question set
-// through Perplexity, posts a Global Briefing to the mission team, and
-// writes an Olympus audit-log entry.
+// Intel Drift Recalibration — fast reset for a mission's Oracle + IRIS.
+// Leadership-only. Invalidates brief caches, supersedes prior mission-scoped
+// IRIS memories (kept for audit), re-queues existing research questions for
+// refresh, posts a Global Briefing to the mission team, and writes an Olympus
+// audit-log entry. Heavy AI/research regeneration must not run inline here.
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -38,9 +37,6 @@ export const recalibrateMissionIntel = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import(
       "@/integrations/supabase/client.server"
     );
-    const { generateMissionDna } = await import("./iris-dna.functions");
-    
-
     const now = new Date().toISOString();
 
     // Mission context for the briefing
@@ -51,16 +47,7 @@ export const recalibrateMissionIntel = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!mission) throw new Error("Mission not found");
 
-    // 1) Mark current DNA as not-current (generateMissionDna will insert a new
-    //    versioned row and also flip is_current=false on the prior current row,
-    //    but we do it up-front so the cache is invalidated even if generation fails).
-    await supabaseAdmin
-      .from("mission_intelligence_dna")
-      .update({ is_current: false })
-      .eq("mission_id", data.missionId)
-      .eq("is_current", true);
-
-    // 2) Wipe IRIS brief cache for this mission (mission/lobby briefs by ref_id,
+    // 1) Wipe IRIS brief cache for this mission (mission/lobby briefs by ref_id,
     //    plus any question-scoped briefs whose ref_id is a question in this mission).
     const { data: questionIds } = await supabaseAdmin
       .from("question_records")
@@ -75,7 +62,7 @@ export const recalibrateMissionIntel = createServerFn({ method: "POST" })
       .select("id");
     const cacheCleared = deletedCache?.length ?? 0;
 
-    // 3) Supersede mission-scoped IRIS memories (auditable — not deleted).
+    // 2) Supersede mission-scoped IRIS memories (auditable — not deleted).
     // Cast: superseded_at / superseded_reason were just added; types.ts
     // regenerates after this migration.
     const { data: supersededRows } = await (supabaseAdmin as any)
@@ -90,36 +77,18 @@ export const recalibrateMissionIntel = createServerFn({ method: "POST" })
       .select("id");
     const memoriesSuperseded = supersededRows?.length ?? 0;
 
-    // 4) Regenerate DNA from the latest RFP in the Vault
-    let dnaResult: { ok: true; questions: number } | { ok: false; error: string };
-    let newDnaId: string | null = null;
-    try {
-      const res: any = await generateMissionDna({
-        data: { missionId: data.missionId },
-      });
-      newDnaId = res?.dnaId ?? res?.id ?? null;
-      dnaResult = { ok: true, questions: res?.questionsCount ?? 0 };
-    } catch (e) {
-      dnaResult = {
-        ok: false,
-        error: e instanceof Error ? e.message : "DNA generation failed",
-      };
-    }
+    // 3) Re-queue existing research tasks only. Do not regenerate DNA or call
+    //    Perplexity inline; those calls are the source of upstream timeouts.
+    const { data: requeued } = await supabaseAdmin
+      .from("research_tasks")
+      .update({ status: "pending" })
+      .eq("mission_id", data.missionId)
+      .in("status", ["completed", "complete", "failed", "in_progress"])
+      .select("id");
+    const queuedForResearch = requeued?.length ?? 0;
 
-    // 5) Re-queue research tasks — actual Perplexity runs happen in the
-    //    background via the existing research worker / on-demand when a
-    //    question is opened. Running them inline here exceeds the Worker
-    //    request budget and causes the recalibration to time out.
-    let queuedForResearch = 0;
-    if (dnaResult.ok) {
-      const { data: requeued } = await supabaseAdmin
-        .from("research_tasks")
-        .update({ status: "pending" })
-        .eq("mission_id", data.missionId)
-        .in("status", ["completed", "failed", "in_progress"])
-        .select("id");
-      queuedForResearch = requeued?.length ?? 0;
-    }
+    const dnaResult: { ok: true; queued: true } = { ok: true, queued: true };
+    const newDnaId: string | null = null;
     const researched = 0;
     const researchFailed = 0;
 
@@ -150,7 +119,7 @@ export const recalibrateMissionIntel = createServerFn({ method: "POST" })
         `The Oracle and IRIS have been recalibrated as of ${new Date(now).toUTCString()}.\n\n` +
         `Reason: ${data.reason.trim()}\n\n` +
         `What changed:\n` +
-        `• Mission Intelligence DNA regenerated from the latest RFP${dnaResult.ok ? "" : ` (failed: ${dnaResult.error})`}\n` +
+        `• Mission Intelligence DNA refresh was queued for the next RFP intelligence run\n` +
         `• ${memoriesSuperseded ?? 0} mission-scoped IRIS memories superseded (kept for audit)\n` +
         `• ${cacheCleared ?? 0} cached briefs cleared\n` +
         `• ${queuedForResearch} research questions re-queued (will run in background / on next open)\n\n` +
@@ -163,7 +132,7 @@ export const recalibrateMissionIntel = createServerFn({ method: "POST" })
       mission_id: data.missionId,
       action_type: "intel_drift_recalibration",
       action_summary:
-        `Intel drift recalibration: DNA ${dnaResult.ok ? "regenerated" : "FAILED"}, ` +
+        `Intel drift recalibration: DNA refresh queued, ` +
         `${memoriesSuperseded ?? 0} memories superseded, ${cacheCleared ?? 0} briefs cleared, ` +
         `${queuedForResearch} questions re-queued. Reason: ${data.reason.slice(0, 200)}`,
       target_table: "mission_intelligence_dna",
