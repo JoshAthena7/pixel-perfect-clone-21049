@@ -3,7 +3,22 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+export async function extractPdfText(bytes: ArrayBuffer): Promise<string> {
+  const { extractText, getDocumentProxy } = await import("unpdf");
+  const pdf = await getDocumentProxy(new Uint8Array(bytes));
+  const { text } = await extractText(pdf, { mergePages: true });
+  const joined = Array.isArray(text) ? text.join("\n") : text;
+  return joined.replace(/\n{3,}/g, "\n\n").trim();
+}
+
 export async function extractDocxText(bytes: ArrayBuffer): Promise<string> {
+  const head = new Uint8Array(bytes.slice(0, 4));
+  const isPdf = head[0] === 0x25 && head[1] === 0x50 && head[2] === 0x44 && head[3] === 0x46;
+  if (isPdf) return extractPdfText(bytes);
+  const isZip = head[0] === 0x50 && head[1] === 0x4b && head[2] === 0x03 && head[3] === 0x04;
+  if (!isZip) {
+    throw new Error("This file is not a valid .docx or .pdf document. Please re-upload as .docx or .pdf.");
+  }
   const JSZipMod = await import("jszip");
   const JSZip = (JSZipMod as unknown as { default?: typeof JSZipMod }).default ?? JSZipMod;
   const zip = await JSZip.loadAsync(bytes);
@@ -46,13 +61,13 @@ export async function loadRfpText(
   const lower = (doc.name as string).toLowerCase();
   const bytes = await file.arrayBuffer();
   let text = "";
-  if (lower.endsWith(".docx")) {
+  if (lower.endsWith(".docx") || lower.endsWith(".pdf")) {
     text = await extractDocxText(bytes);
   } else if (lower.endsWith(".txt") || lower.endsWith(".md")) {
     text = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
   } else {
     throw new Error(
-      `IRIS can only analyze .docx (or .txt/.md) files right now — "${doc.name}" is not supported. Please re-upload the RFP/amendment as a Word .docx file.`,
+      `IRIS can only analyze .docx, .pdf, .txt, or .md files right now — "${doc.name}" is not supported.`,
     );
   }
   if (text.length < 200) throw new Error("Document text too short — could not extract meaningful content");

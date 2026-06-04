@@ -98,38 +98,10 @@ function fallbackExtractQuestions(text: string): ParsedQuestion[] {
   return questions;
 }
 
-/** Extract text content from .docx (zip → word/document.xml → strip tags). */
+/** Extract text from .docx or .pdf — delegates to shared server-only helper. */
 async function extractDocxText(bytes: ArrayBuffer): Promise<string> {
-  // Validate zip signature (PK\x03\x04) — .docx is a zip
-  const head = new Uint8Array(bytes.slice(0, 4));
-  const isZip = head[0] === 0x50 && head[1] === 0x4b && head[2] === 0x03 && head[3] === 0x04;
-  if (!isZip) {
-    const isPdf = head[0] === 0x25 && head[1] === 0x50 && head[2] === 0x44 && head[3] === 0x46;
-    throw new Error(
-      isPdf
-        ? "This file is a PDF, not a .docx. Please re-upload the RFP as a Word .docx file."
-        : "This file is not a valid .docx (Word) document. Please re-upload as a .docx file.",
-    );
-  }
-  const JSZipMod = await import("jszip");
-  const JSZip = JSZipMod.default ?? JSZipMod;
-  const zip = await JSZip.loadAsync(bytes);
-  const docXml = await zip.file("word/document.xml")?.async("string");
-  if (!docXml) throw new Error("document.xml not found in .docx");
-  // Convert paragraph breaks to newlines, drop all other tags
-  const withBreaks = docXml
-    .replace(/<w:p[^>]*>/g, "\n")
-    .replace(/<w:br[^>]*\/>/g, "\n")
-    .replace(/<w:tab[^>]*\/>/g, "\t");
-  const text = withBreaks.replace(/<[^>]+>/g, "");
-  return text
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
+  const { extractDocxText: extract } = await import("./rfp-text.server");
+  return extract(bytes);
 }
 
 async function callAnthropic(text: string): Promise<ParsedQuestion[]> {

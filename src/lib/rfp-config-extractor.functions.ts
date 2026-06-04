@@ -42,24 +42,8 @@ type Extraction = {
 };
 
 async function extractDocxText(bytes: ArrayBuffer): Promise<string> {
-  const JSZipMod = await import("jszip");
-  const JSZip = JSZipMod.default ?? JSZipMod;
-  const zip = await JSZip.loadAsync(bytes);
-  const docXml = await zip.file("word/document.xml")?.async("string");
-  if (!docXml) throw new Error("document.xml not found in .docx");
-  const withBreaks = docXml
-    .replace(/<w:p[^>]*>/g, "\n")
-    .replace(/<w:br[^>]*\/>/g, "\n")
-    .replace(/<w:tab[^>]*\/>/g, "\t");
-  const text = withBreaks.replace(/<[^>]+>/g, "");
-  return text
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
+  const { extractDocxText: extract } = await import("./rfp-text.server");
+  return extract(bytes);
 }
 
 function buildSearchTerms(state: string | null, focusAreas: string[]): string[] {

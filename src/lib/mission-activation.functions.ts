@@ -19,7 +19,7 @@ const EXTRACTION_MODEL = "google/gemini-2.5-flash";
 async function extractRawTextFromFile(file: Blob, filename: string): Promise<string> {
   const lower = filename.toLowerCase();
   const bytes = await file.arrayBuffer();
-  if (lower.endsWith(".docx")) {
+  if (lower.endsWith(".docx") || lower.endsWith(".pdf")) {
     try {
       return await extractDocxText(bytes);
     } catch (e) {
