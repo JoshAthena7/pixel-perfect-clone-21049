@@ -1,12 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Trash2, Users as UsersIcon } from "lucide-react";
+import { Trash2, Users as UsersIcon, UserPlus } from "lucide-react";
 import { useSelectedOlympusMission } from "../olympus";
 import { logOlympusAction } from "@/lib/audit";
 import { EmptyState, EmptyIcon } from "@/components/v2/EmptyState";
 import { CollectivePanel } from "@/components/olympus/CollectivePanel";
+import { inviteMissionMember } from "@/lib/mission-members.functions";
 
 export const Route = createFileRoute("/_authenticated/olympus/team")({
   component: TeamPage,
@@ -61,6 +64,7 @@ function TeamPage() {
       {missionId ? (
         <div className="space-y-6">
           <Roster missionId={missionId} />
+          <ManualAddPanel missionId={missionId} />
           <CollectivePanel missionId={missionId} />
         </div>
       ) : (
@@ -198,6 +202,100 @@ function Roster({ missionId }: { missionId: string }) {
           </tbody>
         </table>
       )}
+    </div>
+  );
+}
+
+function ManualAddPanel({ missionId }: { missionId: string }) {
+  const qc = useQueryClient();
+  const invite = useServerFn(inviteMissionMember);
+  const [email, setEmail] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [role, setRole] = useState<Role>("writer");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.trim()) return toast.error("Email is required");
+    setBusy(true);
+    try {
+      await invite({
+        data: {
+          missionId,
+          email: email.trim(),
+          role,
+          displayName: displayName.trim() || undefined,
+        },
+      });
+      toast.success(`Added ${displayName.trim() || email.trim()} as ${ROLE_LABELS[role]}`);
+      await logOlympusAction({
+        action_type: "team.manual_add",
+        action_summary: `Manually added ${email.trim()} as ${role}`,
+        mission_id: missionId,
+        target_table: "mission_members",
+      });
+      setEmail("");
+      setDisplayName("");
+      setRole("writer");
+      qc.invalidateQueries({ queryKey: ["olympus-team", missionId] });
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to add member");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="rounded-[10px] border border-border bg-surface overflow-hidden">
+      <div className="flex items-center gap-2 border-b border-border px-5 py-3 text-sm font-medium">
+        <UserPlus className="h-4 w-4 text-muted-foreground" /> Manually add a teammate
+        <span className="text-xs text-muted-foreground">— for people not in the Athena Collective</span>
+      </div>
+      <form onSubmit={submit} className="grid grid-cols-1 gap-3 p-5 md:grid-cols-[1fr_1fr_180px_auto]">
+        <div>
+          <label className="mb-1 block text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="name@example.com"
+            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            required
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Display name (optional)</label>
+          <input
+            type="text"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            placeholder="Jane Doe"
+            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Role</label>
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value as Role)}
+            className="w-full rounded-md border border-border bg-background px-2 py-2 text-sm"
+          >
+            {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
+          </select>
+        </div>
+        <div className="flex items-end">
+          <button
+            type="submit"
+            disabled={busy}
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+          >
+            {busy ? "Adding…" : "Add to mission"}
+          </button>
+        </div>
+      </form>
+      <p className="px-5 pb-4 text-[11px] text-muted-foreground">
+        If they don't have an Atlas account yet, we'll send them an email invite and add them to this mission immediately.
+      </p>
     </div>
   );
 }
