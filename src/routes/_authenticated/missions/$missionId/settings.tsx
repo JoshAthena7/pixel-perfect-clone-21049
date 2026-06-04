@@ -12,10 +12,9 @@ export const Route = createFileRoute("/_authenticated/missions/$missionId/settin
 
 const STATUSES = ["Active", "Won", "Lost", "Withdrawn", "On Hold", "Archived"] as const;
 const HEALTHS = ["green", "yellow", "red"] as const;
-const ROLES = ["admin", "lead", "writer", "sme", "viewer"] as const;
-type Role = (typeof ROLES)[number];
 
 type Tab = "details" | "intelligence" | "gates" | "team" | "themes";
+
 
 function SettingsPage() {
   const { missionId } = Route.useParams();
