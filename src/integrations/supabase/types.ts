@@ -253,6 +253,63 @@ export type Database = {
         }
         Relationships: []
       }
+      atlas_invites: {
+        Row: {
+          accepted_at: string | null
+          accepted_user_id: string | null
+          contract_signed: boolean
+          contract_signed_at: string | null
+          contract_signed_by: string | null
+          created_at: string
+          display_name: string | null
+          email: string
+          id: string
+          invite_sent_at: string | null
+          invite_sent_by: string | null
+          invited_by: string | null
+          notes: string | null
+          role_hint: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_user_id?: string | null
+          contract_signed?: boolean
+          contract_signed_at?: string | null
+          contract_signed_by?: string | null
+          created_at?: string
+          display_name?: string | null
+          email: string
+          id?: string
+          invite_sent_at?: string | null
+          invite_sent_by?: string | null
+          invited_by?: string | null
+          notes?: string | null
+          role_hint?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_user_id?: string | null
+          contract_signed?: boolean
+          contract_signed_at?: string | null
+          contract_signed_by?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string
+          id?: string
+          invite_sent_at?: string | null
+          invite_sent_by?: string | null
+          invited_by?: string | null
+          notes?: string | null
+          role_hint?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       atlas_knowledge_objects: {
         Row: {
           authority_score: number | null

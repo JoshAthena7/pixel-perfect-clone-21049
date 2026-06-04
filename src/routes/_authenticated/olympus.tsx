@@ -187,6 +187,7 @@ function OlympusSidebar({ isAdmin }: { isAdmin: boolean }) {
             <SectionHeader>Platform</SectionHeader>
             <SidebarItem to="/command/health" path={path} icon={<Activity size={15} strokeWidth={1.5} />}>Firm Health</SidebarItem>
             <SidebarItem to="/olympus/admins" path={path} icon={<UserCog size={15} strokeWidth={1.5} />}>Admins</SidebarItem>
+            <SidebarItem to="/olympus/invites" path={path} icon={<UserPlus size={15} strokeWidth={1.5} />}>Invites</SidebarItem>
 
             <SidebarItem to="/olympus/users" path={path} icon={<UserCog size={15} strokeWidth={1.5} />}>Users</SidebarItem>
             <SidebarItem to="/olympus/support" path={path} icon={<LifeBuoy size={15} strokeWidth={1.5} />}>Support Config</SidebarItem>
