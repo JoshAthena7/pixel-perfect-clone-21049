@@ -19,6 +19,7 @@ import {
   Lock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsAdmin } from "@/hooks/useAccess";
 import { toast } from "sonner";
 import {
   listVaultDocs,
@@ -83,21 +84,10 @@ function VaultPage() {
     queryFn: () => listFn({ data: { missionId } }),
   });
 
-  // Lead check (only leads / admins can upload / delete)
-  const { data: isLead = false } = useQuery({
-    queryKey: ["vault-is-lead", missionId],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
-      const { data } = await supabase
-        .from("mission_members")
-        .select("role")
-        .eq("mission_id", missionId)
-        .eq("user_id", user.id);
-      const roles = (data ?? []).map((r: { role: string }) => r.role);
-      return roles.includes("admin") || roles.includes("lead");
-    },
-  });
+  // Beta lockdown: only platform admins can upload, edit, or delete vault content.
+  const { isAdmin } = useIsAdmin();
+  const isLead = isAdmin;
+
 
   const grouped = useMemo(() => {
     const out: Record<VaultDocType, VaultDoc[]> = {
@@ -201,6 +191,15 @@ function VaultPage() {
           </Link>
         </div>
       </header>
+
+      {/* Beta: sensitive-data warning. Vault content is visible to every signed-in Atlas user on this mission. */}
+      <div className="rounded-[10px] border border-rose-500/30 bg-rose-500/[0.06] px-4 py-3 text-[12px] leading-relaxed text-rose-100">
+        <div className="font-semibold text-rose-200 mb-0.5">Do not upload PHI, PII, or client-confidential material.</div>
+        Beta Vault content is visible to every signed-in user on this mission. No HIPAA-regulated data,
+        member identifiers, or confidential contract terms. Admin-only uploads during beta.
+      </div>
+
+
 
       {/* FedRAMP-scope flag */}
       <div
