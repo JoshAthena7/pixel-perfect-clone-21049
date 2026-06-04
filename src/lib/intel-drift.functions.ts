@@ -25,7 +25,7 @@ export const recalibrateMissionIntel = createServerFn({ method: "POST" })
     z
       .object({
         missionId: z.string().uuid(),
-        reason: z.string().min(4).max(2000),
+        reason: z.string().min(4).max(20000),
       })
       .parse(input),
   )
