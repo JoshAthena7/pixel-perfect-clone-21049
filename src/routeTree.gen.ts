@@ -34,6 +34,7 @@ import { Route as AuthenticatedOlympusReviewQueueRouteImport } from './routes/_a
 import { Route as AuthenticatedOlympusQuestionsRouteImport } from './routes/_authenticated/olympus/questions'
 import { Route as AuthenticatedOlympusPhiLogRouteImport } from './routes/_authenticated/olympus/phi-log'
 import { Route as AuthenticatedOlympusIrisMemoryRouteImport } from './routes/_authenticated/olympus/iris-memory'
+import { Route as AuthenticatedOlympusInvitesRouteImport } from './routes/_authenticated/olympus/invites'
 import { Route as AuthenticatedOlympusIntelligenceRouteImport } from './routes/_authenticated/olympus/intelligence'
 import { Route as AuthenticatedOlympusGatesRouteImport } from './routes/_authenticated/olympus/gates'
 import { Route as AuthenticatedOlympusExpertiseRouteImport } from './routes/_authenticated/olympus/expertise'
@@ -214,6 +215,12 @@ const AuthenticatedOlympusIrisMemoryRoute =
   AuthenticatedOlympusIrisMemoryRouteImport.update({
     id: '/iris-memory',
     path: '/iris-memory',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
+const AuthenticatedOlympusInvitesRoute =
+  AuthenticatedOlympusInvitesRouteImport.update({
+    id: '/invites',
+    path: '/invites',
     getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
 const AuthenticatedOlympusIntelligenceRoute =
@@ -480,6 +487,7 @@ export interface FileRoutesByFullPath {
   '/olympus/expertise': typeof AuthenticatedOlympusExpertiseRoute
   '/olympus/gates': typeof AuthenticatedOlympusGatesRoute
   '/olympus/intelligence': typeof AuthenticatedOlympusIntelligenceRoute
+  '/olympus/invites': typeof AuthenticatedOlympusInvitesRoute
   '/olympus/iris-memory': typeof AuthenticatedOlympusIrisMemoryRoute
   '/olympus/phi-log': typeof AuthenticatedOlympusPhiLogRoute
   '/olympus/questions': typeof AuthenticatedOlympusQuestionsRoute
@@ -543,6 +551,7 @@ export interface FileRoutesByTo {
   '/olympus/expertise': typeof AuthenticatedOlympusExpertiseRoute
   '/olympus/gates': typeof AuthenticatedOlympusGatesRoute
   '/olympus/intelligence': typeof AuthenticatedOlympusIntelligenceRoute
+  '/olympus/invites': typeof AuthenticatedOlympusInvitesRoute
   '/olympus/iris-memory': typeof AuthenticatedOlympusIrisMemoryRoute
   '/olympus/phi-log': typeof AuthenticatedOlympusPhiLogRoute
   '/olympus/questions': typeof AuthenticatedOlympusQuestionsRoute
@@ -610,6 +619,7 @@ export interface FileRoutesById {
   '/_authenticated/olympus/expertise': typeof AuthenticatedOlympusExpertiseRoute
   '/_authenticated/olympus/gates': typeof AuthenticatedOlympusGatesRoute
   '/_authenticated/olympus/intelligence': typeof AuthenticatedOlympusIntelligenceRoute
+  '/_authenticated/olympus/invites': typeof AuthenticatedOlympusInvitesRoute
   '/_authenticated/olympus/iris-memory': typeof AuthenticatedOlympusIrisMemoryRoute
   '/_authenticated/olympus/phi-log': typeof AuthenticatedOlympusPhiLogRoute
   '/_authenticated/olympus/questions': typeof AuthenticatedOlympusQuestionsRoute
@@ -677,6 +687,7 @@ export interface FileRouteTypes {
     | '/olympus/expertise'
     | '/olympus/gates'
     | '/olympus/intelligence'
+    | '/olympus/invites'
     | '/olympus/iris-memory'
     | '/olympus/phi-log'
     | '/olympus/questions'
@@ -740,6 +751,7 @@ export interface FileRouteTypes {
     | '/olympus/expertise'
     | '/olympus/gates'
     | '/olympus/intelligence'
+    | '/olympus/invites'
     | '/olympus/iris-memory'
     | '/olympus/phi-log'
     | '/olympus/questions'
@@ -806,6 +818,7 @@ export interface FileRouteTypes {
     | '/_authenticated/olympus/expertise'
     | '/_authenticated/olympus/gates'
     | '/_authenticated/olympus/intelligence'
+    | '/_authenticated/olympus/invites'
     | '/_authenticated/olympus/iris-memory'
     | '/_authenticated/olympus/phi-log'
     | '/_authenticated/olympus/questions'
@@ -1028,6 +1041,13 @@ declare module '@tanstack/react-router' {
       path: '/iris-memory'
       fullPath: '/olympus/iris-memory'
       preLoaderRoute: typeof AuthenticatedOlympusIrisMemoryRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
+    '/_authenticated/olympus/invites': {
+      id: '/_authenticated/olympus/invites'
+      path: '/invites'
+      fullPath: '/olympus/invites'
+      preLoaderRoute: typeof AuthenticatedOlympusInvitesRouteImport
       parentRoute: typeof AuthenticatedOlympusRoute
     }
     '/_authenticated/olympus/intelligence': {
@@ -1316,6 +1336,7 @@ interface AuthenticatedOlympusRouteChildren {
   AuthenticatedOlympusExpertiseRoute: typeof AuthenticatedOlympusExpertiseRoute
   AuthenticatedOlympusGatesRoute: typeof AuthenticatedOlympusGatesRoute
   AuthenticatedOlympusIntelligenceRoute: typeof AuthenticatedOlympusIntelligenceRoute
+  AuthenticatedOlympusInvitesRoute: typeof AuthenticatedOlympusInvitesRoute
   AuthenticatedOlympusIrisMemoryRoute: typeof AuthenticatedOlympusIrisMemoryRoute
   AuthenticatedOlympusPhiLogRoute: typeof AuthenticatedOlympusPhiLogRoute
   AuthenticatedOlympusQuestionsRoute: typeof AuthenticatedOlympusQuestionsRoute
@@ -1343,6 +1364,7 @@ const AuthenticatedOlympusRouteChildren: AuthenticatedOlympusRouteChildren = {
   AuthenticatedOlympusExpertiseRoute: AuthenticatedOlympusExpertiseRoute,
   AuthenticatedOlympusGatesRoute: AuthenticatedOlympusGatesRoute,
   AuthenticatedOlympusIntelligenceRoute: AuthenticatedOlympusIntelligenceRoute,
+  AuthenticatedOlympusInvitesRoute: AuthenticatedOlympusInvitesRoute,
   AuthenticatedOlympusIrisMemoryRoute: AuthenticatedOlympusIrisMemoryRoute,
   AuthenticatedOlympusPhiLogRoute: AuthenticatedOlympusPhiLogRoute,
   AuthenticatedOlympusQuestionsRoute: AuthenticatedOlympusQuestionsRoute,
