@@ -4321,6 +4321,10 @@ export type Database = {
         Args: { _engagement_id: string; _state: string }
         Returns: undefined
       }
+      set_mission_slack_webhook: {
+        Args: { _mission_id: string; _webhook: string }
+        Returns: undefined
+      }
       sync_pens_down_availability: { Args: never; Returns: undefined }
       user_has_any_leadership_role: {
         Args: { _user_id: string }
