@@ -45,7 +45,13 @@ export function ScoreMeOverlay({ open, onClose, missionId, lockedQuestionId }: P
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const scoreFn = useServerFn(scoreResponse);
+  const scoreFn = useServerFn(runScoreMe);
+  const setupFn = useServerFn(getScoreMeSetup);
+  const { data: setup } = useQuery({
+    queryKey: ["score-me-setup", missionId],
+    enabled: open,
+    queryFn: () => setupFn({ data: { missionId } }),
+  });
 
   // Reset when reopened
   useEffect(() => {
