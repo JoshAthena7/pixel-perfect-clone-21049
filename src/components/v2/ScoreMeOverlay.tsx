@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { runScoreMe, getScoreMeSetup } from "@/lib/score-me-v2.functions";
 import type { ScoreMeV2Result } from "@/lib/score-me-v2.functions";
+import {
+  acknowledgeScoreMeDisclosure,
+  getScoreMeDisclosureStatus,
+} from "@/lib/score-me-interactions.functions";
 import { X, Sparkles, ShieldCheck, Lock } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { createSignal } from "@/lib/signals";
@@ -47,6 +51,20 @@ export function ScoreMeOverlay({ open, onClose, missionId, lockedQuestionId }: P
 
   const scoreFn = useServerFn(runScoreMe);
   const setupFn = useServerFn(getScoreMeSetup);
+  const getDisclosureFn = useServerFn(getScoreMeDisclosureStatus);
+  const ackFn = useServerFn(acknowledgeScoreMeDisclosure);
+
+  // H5: First-time disclosure gate. Reads the writer's profile flag.
+  const { data: disclosure, refetch: refetchDisclosure } = useQuery({
+    queryKey: ["score-me-disclosure"],
+    enabled: open,
+    queryFn: () => getDisclosureFn(),
+  });
+  const ackMut = useMutation({
+    mutationFn: () => ackFn(),
+    onSuccess: () => refetchDisclosure(),
+  });
+
   const { data: setup } = useQuery({
     queryKey: ["score-me-setup", missionId],
     enabled: open,
@@ -208,10 +226,73 @@ export function ScoreMeOverlay({ open, onClose, missionId, lockedQuestionId }: P
         {stage === "result" && analysis && (
           <Scorecard
             result={analysis}
+            missionId={missionId}
             onAnother={() => { setResponseText(""); setAnalysis(null); setStage("input"); }}
             onClose={onClose}
           />
         )}
+      </div>
+
+      {/* H5: First-time disclosure gate. Blocks Score Me until acknowledged. */}
+      {open && disclosure && !disclosure.acknowledged && (
+        <DisclosureModal onAccept={() => ackMut.mutate()} onCancel={onClose} pending={ackMut.isPending} />
+      )}
+    </div>
+  );
+}
+
+function DisclosureModal({
+  onAccept,
+  onCancel,
+  pending,
+}: {
+  onAccept: () => void;
+  onCancel: () => void;
+  pending: boolean;
+}) {
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 px-4">
+      <div className="w-full max-w-lg rounded-[14px] border border-cyan-400/30 bg-[#0a1422] p-6 shadow-2xl">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="h-5 w-5" style={{ color: "var(--iris, #22d3ee)" }} />
+          <h2 className="text-lg font-semibold tracking-tight">Before you use Score Me</h2>
+        </div>
+        <div className="mt-4 space-y-3 text-[13px] leading-relaxed text-foreground/85">
+          <p>
+            <strong className="text-foreground">Score Me reads your draft, then discards it.</strong>{" "}
+            The full text is processed in memory only — it is never written to our database,
+            never logged, and never used to train any AI model.
+          </p>
+          <p>
+            We do store a small audit record of the score itself: the seven dimension verdicts,
+            IRIS's coaching note, the question, and your user ID. We do <em>not</em> store the
+            draft, the suggestions you copy, or any client data inside it.
+          </p>
+          <p>
+            <strong className="text-foreground">IRIS identifies gaps and asks you questions.</strong>{" "}
+            It does not write your response for you. Anything you paste in remains your work
+            product and your responsibility.
+          </p>
+          <p className="text-[12px] text-muted-foreground">
+            Full detail: <Link to="/command/security" className="underline decoration-dotted hover:text-foreground">how Score Me works →</Link>
+          </p>
+        </div>
+        <div className="mt-6 flex items-center justify-end gap-3">
+          <button
+            onClick={onCancel}
+            className="rounded-md border border-border px-4 py-2 text-sm text-muted-foreground hover:text-foreground"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onAccept}
+            disabled={pending}
+            className="rounded-md px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            style={{ background: "var(--iris, #22d3ee)" }}
+          >
+            {pending ? "Saving…" : "I understand — continue"}
+          </button>
+        </div>
       </div>
     </div>
   );

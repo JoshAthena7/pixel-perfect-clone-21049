@@ -4,12 +4,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Brain, Plus, Search, X, Loader2, Sparkles, Pencil, Archive, Trash2, ChevronDown } from "lucide-react";
+import { Brain, Plus, Search, X, Loader2, Sparkles, Pencil, Archive, Trash2, ChevronDown, CheckCircle } from "lucide-react";
 import {
   irisAnalyzeMemory,
   saveIrisMemory,
   archiveIrisMemory,
   deleteIrisMemory,
+  approveGlobalMemory,
+  rejectGlobalMemory,
 } from "@/lib/iris-memory.functions";
 import { useSelectedOlympusMission } from "../olympus";
 
@@ -54,7 +56,7 @@ type Memory = {
 };
 
 function IrisMemoryPage() {
-  const [tab, setTab] = useState<"memories" | "corrections">("memories");
+  const [tab, setTab] = useState<"memories" | "corrections" | "pending_global">("memories");
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [scopeFilter, setScopeFilter] = useState<"all" | Scope>("all");
   const [importanceFilter, setImportanceFilter] = useState<"all" | Importance>("all");
@@ -161,10 +163,15 @@ function IrisMemoryPage() {
       <div className="mb-5 flex items-center gap-1 border-b border-border">
         <TabButton active={tab === "memories"} onClick={() => setTab("memories")}>Memories</TabButton>
         <TabButton active={tab === "corrections"} onClick={() => setTab("corrections")}>Corrections</TabButton>
+        <TabButton active={tab === "pending_global"} onClick={() => setTab("pending_global")}>
+          Pending Global Review
+        </TabButton>
       </div>
 
       {tab === "corrections" ? (
         <CorrectionsTab />
+      ) : tab === "pending_global" ? (
+        <PendingGlobalTab />
       ) : (
       <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6">
         {/* Left rail */}
@@ -1100,6 +1107,161 @@ function CorrectionRow({
       </div>
       <div className="mt-2 flex items-center gap-2 text-[10px] uppercase tracking-wider text-muted-foreground">
         Scope: {row.scope} {row.memory_id && <span className="text-emerald-400">· Active memory</span>}
+      </div>
+    </div>
+  );
+}
+
+/* ───────── C5: Pending Global review queue ─────────
+   Memories proposed for global scope land in `pending_global` and stay
+   admin-only until reviewed here. Approve promotes to scope='global';
+   reject archives with an optional reason. */
+
+function PendingGlobalTab() {
+  const qc = useQueryClient();
+  const approve = useServerFn(approveGlobalMemory);
+  const reject = useServerFn(rejectGlobalMemory);
+
+  const { data: pending = [], isLoading } = useQuery({
+    queryKey: ["iris-memories", "pending_global"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("iris_memories")
+        .select("*")
+        .eq("scope", "pending_global" as any)
+        .is("archived_at", null)
+        .order("created_at", { ascending: false });
+      return (data ?? []) as Memory[];
+    },
+  });
+
+  const approveMut = useMutation({
+    mutationFn: (id: string) => approve({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Promoted to global memory");
+      qc.invalidateQueries({ queryKey: ["iris-memories"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Approve failed"),
+  });
+  const rejectMut = useMutation({
+    mutationFn: (vars: { id: string; reason?: string }) =>
+      reject({ data: vars }),
+    onSuccess: () => {
+      toast.success("Proposal rejected and archived");
+      qc.invalidateQueries({ queryKey: ["iris-memories"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Reject failed"),
+  });
+
+  if (isLoading) {
+    return (
+      <div className="rounded-[12px] border border-border bg-surface p-10 text-center text-sm text-muted-foreground">
+        Loading pending global proposals…
+      </div>
+    );
+  }
+
+  if (pending.length === 0) {
+    return (
+      <div className="rounded-[12px] border border-dashed border-border bg-surface/40 p-12 text-center">
+        <div className="mx-auto mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/10">
+          <CheckCircle className="h-5 w-5 text-emerald-400" />
+        </div>
+        <div className="text-sm font-medium text-foreground">No memories awaiting global review</div>
+        <p className="mx-auto mt-2 max-w-md text-[12px] text-muted-foreground">
+          When a mission-scoped memory is proposed for cross-firm reuse, it will appear here for
+          your approval before any other mission can see it.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-[10px] border border-amber-500/30 bg-amber-500/[0.04] px-4 py-3 text-[12px] text-amber-200/90">
+        <strong className="font-semibold">Cross-mission review gate.</strong> Approving promotes
+        this memory to <code className="rounded bg-black/40 px-1.5 py-0.5">scope = global</code>{" "}
+        and makes it visible inside IRIS to every other mission. Reject if it leaks client
+        identity, proprietary strategy, or anything tied to a specific competitor or RFP.
+      </div>
+      {pending.map((m) => (
+        <PendingMemoryCard
+          key={m.id}
+          memory={m}
+          onApprove={() => {
+            if (confirm(`Promote "${m.title}" to GLOBAL memory? It will be visible to every mission.`)) {
+              approveMut.mutate(m.id);
+            }
+          }}
+          onReject={() => {
+            const reason = prompt(`Why are you rejecting "${m.title}"? (optional)`);
+            if (reason === null) return;
+            rejectMut.mutate({ id: m.id, reason: reason || undefined });
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function PendingMemoryCard({
+  memory,
+  onApprove,
+  onReject,
+}: {
+  memory: Memory;
+  onApprove: () => void;
+  onReject: () => void;
+}) {
+  const preview = (memory.summary || memory.content).split("\n").slice(0, 4).join("\n");
+  return (
+    <div className="rounded-[12px] border border-amber-500/20 bg-amber-500/[0.02] p-5">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <span className="inline-flex items-center gap-1 rounded border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
+          ⏳ Pending Global
+        </span>
+        <ImportanceBadge value={memory.importance} />
+        <span className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] text-muted-foreground">
+          {memory.category}
+        </span>
+        {memory.mission_id && (
+          <span className="rounded-full bg-muted/30 px-2 py-0.5 text-[10px] text-muted-foreground">
+            From mission · {memory.mission_id.slice(0, 8)}
+          </span>
+        )}
+      </div>
+      <h3 className="text-[15px] font-semibold leading-snug">{memory.title}</h3>
+      <p className="mt-2 whitespace-pre-line text-[13px] leading-relaxed text-muted-foreground">
+        {preview}
+      </p>
+      {memory.tags.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {memory.tags.map((t) => (
+            <span key={t} className="rounded-full bg-muted/30 px-2 py-0.5 text-[10px] text-muted-foreground">
+              #{t}
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-amber-500/15 pt-3">
+        <div className="text-[11px] text-muted-foreground">
+          {memory.source && <span>Source: {memory.source} · </span>}
+          Proposed {timeAgo(memory.created_at)}
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onReject}
+            className="rounded-md border border-border px-3 py-1.5 text-[12px] text-muted-foreground hover:text-red-400 hover:border-red-500/40"
+          >
+            Reject
+          </button>
+          <button
+            onClick={onApprove}
+            className="rounded-md bg-emerald-500 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-emerald-400"
+          >
+            Approve as Global
+          </button>
+        </div>
       </div>
     </div>
   );

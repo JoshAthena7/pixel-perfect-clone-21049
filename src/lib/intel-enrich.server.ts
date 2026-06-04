@@ -60,13 +60,18 @@ export async function embed(text: string): Promise<number[] | null> {
   }
 }
 
-/** Store an embedding row in the shared embeddings table. */
+/** Store an embedding row in the shared embeddings table.
+ *  H4: scope is REQUIRED and isolates rows from cross-tenant reads via RLS.
+ *  - "mission"      → only mission members + admins
+ *  - "global"       → all authenticated users (e.g. published market intel, canon)
+ *  - "unclassified" → admin-only (fallback; do not use for new code paths) */
 export async function storeEmbedding(args: {
   source_table: string;
   source_id: string;
   mission_id: string | null;
   content_text: string;
   vector: number[];
+  scope: "mission" | "global" | "unclassified";
 }) {
   await supabaseAdmin.from("embeddings").insert({
     source_table: args.source_table,
@@ -74,7 +79,8 @@ export async function storeEmbedding(args: {
     mission_id: args.mission_id,
     content_text: args.content_text.slice(0, 4000),
     embedding: args.vector as unknown as never,
-  });
+    scope: args.scope,
+  } as never);
 }
 
 /** Match an intel embedding to active mission questions via cosine similarity. */
@@ -122,6 +128,8 @@ export async function enrichIntelRow(row: {
       mission_id: null,
       content_text: `${row.title}\n${row.summary ?? ""}`,
       vector,
+      // H4: published industry intel is intentionally cross-tenant.
+      scope: "global",
     });
     const { missionIds, questionIds } = await matchIntelToMissions(vector);
     if (missionIds.length) {
@@ -159,5 +167,7 @@ export async function ensureQuestionEmbedding(q: {
     mission_id: q.mission_id,
     content_text: text,
     vector: v,
+    // H4: question text is mission-scoped.
+    scope: "mission",
   });
 }

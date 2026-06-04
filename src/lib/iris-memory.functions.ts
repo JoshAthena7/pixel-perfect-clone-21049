@@ -206,6 +206,40 @@ export const deleteIrisMemory = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/* ───────── Pending-global review queue (Olympus) ───────── */
+
+export const approveGlobalMemory = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    // Promote pending_global → global. RLS already restricts pending_global writes to admins.
+    const { error } = await supabase
+      .from("iris_memories")
+      .update({ scope: "global", mission_id: null })
+      .eq("id", data.id)
+      .eq("scope", "pending_global");
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const rejectGlobalMemory = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({ id: z.string().uuid(), reason: z.string().max(500).optional() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    // Archive rather than hard-delete so we keep an audit trail of what was proposed.
+    const { error } = await supabase
+      .from("iris_memories")
+      .update({ archived_at: new Date().toISOString(), iris_reasoning: data.reason ?? null })
+      .eq("id", data.id)
+      .eq("scope", "pending_global");
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 /* ───────── Helper: fetch memory context for an IRIS prompt ─────────
    Used by Ask IRIS / briefs to inject institutional knowledge. */
 

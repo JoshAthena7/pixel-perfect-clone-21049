@@ -35,9 +35,10 @@ export async function loadLayeredContext(supabase: any, opts: { missionId?: stri
           .ilike("program_name", `%${program}%`)
           .limit(4)
       : Promise.resolve({ data: [] }),
-    supabase.from("collective_memory")
+    // C4: Read from sanitized view — strips source_mission_id, source_mission_name, evidence.
+    // View already filters is_active=true AND reviewed_at IS NOT NULL.
+    supabase.from("collective_memory_sanitized")
       .select("kind,summary,detail,program_name,state_code,outcome")
-      .eq("is_active", true)
       .or([
         state ? `state_code.eq.${state}` : null,
         program ? `program_name.ilike.%${program}%` : null,
