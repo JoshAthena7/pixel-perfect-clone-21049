@@ -287,6 +287,13 @@ function InputStage(props: {
       >
         <span className="inline-flex items-center gap-2"><Sparkles className="h-4 w-4" /> Score This Response →</span>
       </button>
+      {!props.canScore && (
+        <div className="mt-2 text-center text-[11px] text-amber-400/90">
+          {!props.selectedQ && props.wordCount < 50 && "Select a question above and write at least 50 words to score."}
+          {!props.selectedQ && props.wordCount >= 50 && "Select a question above to enable scoring."}
+          {props.selectedQ && props.wordCount < 50 && `Write at least 50 words to score (currently ${props.wordCount}).`}
+        </div>
+      )}
       <div className="mt-3 text-center">
         <button onClick={props.onClose} className="text-xs text-muted-foreground hover:text-foreground">Cancel</button>
       </div>
