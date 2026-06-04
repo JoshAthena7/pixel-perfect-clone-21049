@@ -4,6 +4,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/v2/AppShell";
 
 export const Route = createFileRoute("/_authenticated")({
+  // Server-side gate: runs on SSR + before any child loader / component renders.
+  // Unauthenticated requests are redirected to /login before any authenticated
+  // shell markup is emitted. The useEffect below remains as a secondary
+  // client-side guard for session expiry during active use.
+  beforeLoad: async ({ location }) => {
+    const { data, error } = await supabase.auth.getSession();
+    if (error || !data.session?.user) {
+      throw redirect({
+        to: "/login",
+        search: { redirect: location.href },
+      });
+    }
+  },
   component: AuthenticatedLayout,
 });
 
