@@ -2612,6 +2612,7 @@ export type Database = {
           id: string
           incumbent_name: string | null
           iris_search_terms: string[] | null
+          is_fedramp_scope: boolean
           key_requirements: string[] | null
           name: string
           page_limit: number | null
@@ -2648,6 +2649,7 @@ export type Database = {
           id?: string
           incumbent_name?: string | null
           iris_search_terms?: string[] | null
+          is_fedramp_scope?: boolean
           key_requirements?: string[] | null
           name: string
           page_limit?: number | null
@@ -2684,6 +2686,7 @@ export type Database = {
           id?: string
           incumbent_name?: string | null
           iris_search_terms?: string[] | null
+          is_fedramp_scope?: boolean
           key_requirements?: string[] | null
           name?: string
           page_limit?: number | null
@@ -4331,6 +4334,7 @@ export type Database = {
         | "scope_of_work"
         | "style_guide"
         | "other"
+        | "dpa"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4464,6 +4468,7 @@ export const Constants = {
         "scope_of_work",
         "style_guide",
         "other",
+        "dpa",
       ],
     },
   },
