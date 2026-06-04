@@ -1,3 +1,4 @@
+// NOTE: Draft content is never persisted. This function processes content in memory only. See DPA section 2.1.
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
