@@ -325,3 +325,13 @@ function Empty({ title, sub }: { title: string; sub: string }) {
     </div>
   );
 }
+
+function MiniStat({ label, value, tone }: { label: string; value: React.ReactNode; tone?: "warn" | "danger" }) {
+  const toneCls = tone === "danger" ? "text-destructive" : tone === "warn" ? "text-yellow-500" : "text-foreground";
+  return (
+    <div className="rounded-md border border-border bg-background p-2">
+      <div className="text-[9px] uppercase tracking-[0.14em] text-muted-foreground">{label}</div>
+      <div className={`mt-1 text-base font-semibold ${toneCls}`}>{value}</div>
+    </div>
+  );
+}
