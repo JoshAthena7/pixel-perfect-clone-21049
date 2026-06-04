@@ -105,6 +105,8 @@ function AthenaHQ() {
     },
   });
   const isLeader = myRole === "admin" || myRole === "lead";
+  const { isAdmin } = useIsAdmin();
+
 
   // CHANGE 5: Writers with exactly one active mission skip the Lobby.
   const navigate = useNavigate();
