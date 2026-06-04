@@ -2,7 +2,18 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const missionRoleSchema = z.enum(["admin", "lead", "writer", "sme", "viewer"]);
+const missionRoleSchema = z.enum([
+  "admin",
+  "lead",
+  "engagement_lead",
+  "project_manager",
+  "lead_writer",
+  "lead_graphics",
+  "writer",
+  "sme",
+  "viewer",
+]);
+const LEAD_ROLES = ["admin", "lead", "engagement_lead", "project_manager"] as const;
 
 const inviteSchema = z.object({
   missionId: z.string().uuid(),
