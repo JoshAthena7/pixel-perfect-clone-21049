@@ -186,7 +186,7 @@ function SecurityPage() {
         </div>
 
         {/* Coverage */}
-        <SectionHeader index="04" title="What this covers — and what it doesn't" />
+        <SectionHeader index="05" title="What this covers — and what it doesn't" />
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <Pillar
             tone="ok"
