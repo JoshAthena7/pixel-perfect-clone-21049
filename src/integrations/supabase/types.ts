@@ -2228,6 +2228,8 @@ export type Database = {
           scope: string
           source: string | null
           summary: string | null
+          superseded_at: string | null
+          superseded_reason: string | null
           tags: string[]
           title: string
           updated_at: string
@@ -2247,6 +2249,8 @@ export type Database = {
           scope?: string
           source?: string | null
           summary?: string | null
+          superseded_at?: string | null
+          superseded_reason?: string | null
           tags?: string[]
           title: string
           updated_at?: string
@@ -2266,6 +2270,8 @@ export type Database = {
           scope?: string
           source?: string | null
           summary?: string | null
+          superseded_at?: string | null
+          superseded_reason?: string | null
           tags?: string[]
           title?: string
           updated_at?: string
