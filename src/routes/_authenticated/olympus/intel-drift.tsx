@@ -47,7 +47,7 @@ function IntelDriftPage() {
       });
       setLastResult(res);
       toast.success(
-        `Recalibrated · ${res.memoriesSuperseded} memories superseded · ${res.cacheCleared} briefs cleared · ${res.researched} questions re-researched`,
+        `Recalibrated · ${res.memoriesSuperseded} memories superseded · ${res.cacheCleared} briefs cleared · ${res.queuedForResearch ?? 0} questions re-queued`,
       );
       setReason("");
     } catch (e) {
@@ -135,8 +135,7 @@ function IntelDriftPage() {
             <li>{lastResult.memoriesSuperseded} mission-scoped IRIS memories superseded</li>
             <li>{lastResult.cacheCleared} cached briefs cleared</li>
             <li>
-              {lastResult.researched} research questions re-run
-              {lastResult.researchFailed ? ` (${lastResult.researchFailed} failed)` : ""}
+              {lastResult.queuedForResearch ?? 0} research questions re-queued (will run in background / on next open)
             </li>
             <li className="text-muted-foreground">
               Global Briefing posted to the mission team. Audit entry written.

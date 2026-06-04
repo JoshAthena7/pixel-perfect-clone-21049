@@ -39,7 +39,7 @@ export const recalibrateMissionIntel = createServerFn({ method: "POST" })
       "@/integrations/supabase/client.server"
     );
     const { generateMissionDna } = await import("./iris-dna.functions");
-    const { runOneTask } = await import("./iris-research.functions");
+    
 
     const now = new Date().toISOString();
 
@@ -106,38 +106,22 @@ export const recalibrateMissionIntel = createServerFn({ method: "POST" })
       };
     }
 
-    // 5) Re-queue & run all pending research tasks for this mission's current DNA
-    let researched = 0;
-    let researchFailed = 0;
+    // 5) Re-queue research tasks — actual Perplexity runs happen in the
+    //    background via the existing research worker / on-demand when a
+    //    question is opened. Running them inline here exceeds the Worker
+    //    request budget and causes the recalibration to time out.
+    let queuedForResearch = 0;
     if (dnaResult.ok) {
-      const { data: dnaRow } = await supabaseAdmin
-        .from("mission_intelligence_dna")
-        .select("id, dna")
+      const { data: requeued } = await supabaseAdmin
+        .from("research_tasks")
+        .update({ status: "pending" })
         .eq("mission_id", data.missionId)
-        .eq("is_current", true)
-        .maybeSingle();
-
-      if (dnaRow) {
-        const { data: tasks } = await supabaseAdmin
-          .from("research_tasks")
-          .select("id, mission_id, question, why_it_matters, relevant_rfp_sections")
-          .eq("mission_id", data.missionId)
-          .eq("status", "pending")
-          .order("priority", { ascending: true })
-          .limit(20);
-
-        for (const t of tasks ?? []) {
-          const r = await runOneTask(
-            supabaseAdmin,
-            t as any,
-            dnaRow.dna as any,
-          );
-          if (r.ok) researched++;
-          else researchFailed++;
-          await new Promise((res) => setTimeout(res, 600));
-        }
-      }
+        .in("status", ["completed", "failed", "in_progress"])
+        .select("id");
+      queuedForResearch = requeued?.length ?? 0;
     }
+    const researched = 0;
+    const researchFailed = 0;
 
     // 6) Post Global Briefing to the team
     const { data: prof } = await supabaseAdmin
@@ -169,7 +153,7 @@ export const recalibrateMissionIntel = createServerFn({ method: "POST" })
         `• Mission Intelligence DNA regenerated from the latest RFP${dnaResult.ok ? "" : ` (failed: ${dnaResult.error})`}\n` +
         `• ${memoriesSuperseded ?? 0} mission-scoped IRIS memories superseded (kept for audit)\n` +
         `• ${cacheCleared ?? 0} cached briefs cleared\n` +
-        `• ${researched} research questions re-run through Perplexity (${researchFailed} failed)\n\n` +
+        `• ${queuedForResearch} research questions re-queued (will run in background / on next open)\n\n` +
         `All Question Briefs, Mission Briefs, and Lobby Briefs will regenerate on next open. ` +
         `Please re-run Score Me on any question you've already drafted.`,
     });
@@ -181,7 +165,7 @@ export const recalibrateMissionIntel = createServerFn({ method: "POST" })
       action_summary:
         `Intel drift recalibration: DNA ${dnaResult.ok ? "regenerated" : "FAILED"}, ` +
         `${memoriesSuperseded ?? 0} memories superseded, ${cacheCleared ?? 0} briefs cleared, ` +
-        `${researched} questions re-researched (${researchFailed} failed). Reason: ${data.reason.slice(0, 200)}`,
+        `${queuedForResearch} questions re-queued. Reason: ${data.reason.slice(0, 200)}`,
       target_table: "mission_intelligence_dna",
       user_id: userId,
     });
@@ -194,6 +178,7 @@ export const recalibrateMissionIntel = createServerFn({ method: "POST" })
       cacheCleared: cacheCleared ?? 0,
       researched,
       researchFailed,
+      queuedForResearch,
       recalibratedAt: now,
     };
   });
