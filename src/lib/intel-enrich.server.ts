@@ -4,6 +4,7 @@ import { withPersonFirst } from "./person-first";
 // pg_cron-triggered /api/public/hooks/ingest-intel route.
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { assertNoPHI } from "@/lib/phi-detection";
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1";
 const EMBED_DIM = 1536; // existing embeddings.embedding column is vector(1536)
