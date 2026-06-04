@@ -32,7 +32,7 @@ export const Route = createFileRoute("/_authenticated/brief-room")({
   component: BriefRoomPage,
 });
 
-function BriefRoomPage() {
+export function BriefRoomPage() {
   const { isAdmin } = useIsAdmin();
   return (
     <div className="max-w-5xl mx-auto px-6 py-8">

@@ -9,7 +9,7 @@ import {
   LayoutGrid, Users, FileText, ClipboardCheck, Trophy,
   FolderOpen, Settings as SettingsIcon, UserCog, History, Brain,
   Search, Inbox, Library, BookOpen, Bell, LifeBuoy, UserPlus, Activity,
-  ShieldAlert, UserMinus, ExternalLink, AlertTriangle,
+  ShieldAlert, UserMinus, ExternalLink, AlertTriangle, Megaphone,
 } from "lucide-react";
 
 import { useServerFn } from "@tanstack/react-start";
@@ -194,6 +194,7 @@ function OlympusSidebar({ isAdmin }: { isAdmin: boolean }) {
             <SidebarItem to="/olympus/support" path={path} icon={<LifeBuoy size={15} strokeWidth={1.5} />}>Support Config</SidebarItem>
             <SidebarItem to="/olympus/talent" path={path} icon={<UserPlus size={15} strokeWidth={1.5} />}>Talent Desk</SidebarItem>
             <SidebarItem to="/olympus/notifications" path={path} icon={<Bell size={15} strokeWidth={1.5} />}>Notifications</SidebarItem>
+            <SidebarItem to="/olympus/brief-room" path={path} icon={<Megaphone size={15} strokeWidth={1.5} />}>Brief Room</SidebarItem>
 
             {/* H3: Security section — audit + PHI + IRP link */}
             <SectionHeader>Security</SectionHeader>
