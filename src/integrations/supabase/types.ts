@@ -1439,6 +1439,91 @@ export type Database = {
           },
         ]
       }
+      comment_resolutions: {
+        Row: {
+          reopened_at: string | null
+          reopened_by: string | null
+          resolved_at: string
+          resolved_by: string
+          thread_id: string
+        }
+        Insert: {
+          reopened_at?: string | null
+          reopened_by?: string | null
+          resolved_at?: string
+          resolved_by: string
+          thread_id: string
+        }
+        Update: {
+          reopened_at?: string | null
+          reopened_by?: string | null
+          resolved_at?: string
+          resolved_by?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_resolutions_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: true
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comments: {
+        Row: {
+          anchor_offset: number | null
+          anchor_text: string | null
+          author_id: string
+          body: string
+          created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
+          id: string
+          is_deleted: boolean
+          is_iris_reply: boolean
+          thread_id: string
+          version_tag: string | null
+        }
+        Insert: {
+          anchor_offset?: number | null
+          anchor_text?: string | null
+          author_id: string
+          body: string
+          created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          id?: string
+          is_deleted?: boolean
+          is_iris_reply?: boolean
+          thread_id: string
+          version_tag?: string | null
+        }
+        Update: {
+          anchor_offset?: number | null
+          anchor_text?: string | null
+          author_id?: string
+          body?: string
+          created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          id?: string
+          is_deleted?: boolean
+          is_iris_reply?: boolean
+          thread_id?: string
+          version_tag?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compliance_check_results: {
         Row: {
           checked_at: string
@@ -2412,6 +2497,41 @@ export type Database = {
           },
         ]
       }
+      mentions: {
+        Row: {
+          comment_id: string
+          created_at: string
+          id: string
+          is_iris: boolean
+          is_read: boolean
+          mentioned_user: string | null
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          id?: string
+          is_iris?: boolean
+          is_read?: boolean
+          mentioned_user?: string | null
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          id?: string
+          is_iris?: boolean
+          is_read?: boolean
+          mentioned_user?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentions_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_assumptions: {
         Row: {
           assumption: string
@@ -3348,6 +3468,7 @@ export type Database = {
           expert_bio: string | null
           expertise_areas: string[]
           expertise_embedding: string | null
+          has_acked_threads_internal_at: string | null
           has_onboarded: boolean
           id: string
           is_platform_admin: boolean
@@ -3374,6 +3495,7 @@ export type Database = {
           expert_bio?: string | null
           expertise_areas?: string[]
           expertise_embedding?: string | null
+          has_acked_threads_internal_at?: string | null
           has_onboarded?: boolean
           id: string
           is_platform_admin?: boolean
@@ -3400,6 +3522,7 @@ export type Database = {
           expert_bio?: string | null
           expertise_areas?: string[]
           expertise_embedding?: string | null
+          has_acked_threads_internal_at?: string | null
           has_onboarded?: boolean
           id?: string
           is_platform_admin?: boolean
@@ -4347,155 +4470,6 @@ export type Database = {
           },
         ]
       }
-      signal_messages: {
-        Row: {
-          attachments: Json | null
-          body: string
-          id: string
-          is_priority: boolean
-          quote_of: string | null
-          sender_id: string
-          sent_at: string
-          thread_id: string
-        }
-        Insert: {
-          attachments?: Json | null
-          body: string
-          id?: string
-          is_priority?: boolean
-          quote_of?: string | null
-          sender_id: string
-          sent_at?: string
-          thread_id: string
-        }
-        Update: {
-          attachments?: Json | null
-          body?: string
-          id?: string
-          is_priority?: boolean
-          quote_of?: string | null
-          sender_id?: string
-          sent_at?: string
-          thread_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "signal_messages_quote_of_fkey"
-            columns: ["quote_of"]
-            isOneToOne: false
-            referencedRelation: "signal_messages"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "signal_messages_thread_id_fkey"
-            columns: ["thread_id"]
-            isOneToOne: false
-            referencedRelation: "signal_threads"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      signal_pins: {
-        Row: {
-          id: string
-          pinned_at: string
-          pinned_by: string
-          signal_id: string
-          thread_id: string
-        }
-        Insert: {
-          id?: string
-          pinned_at?: string
-          pinned_by: string
-          signal_id: string
-          thread_id: string
-        }
-        Update: {
-          id?: string
-          pinned_at?: string
-          pinned_by?: string
-          signal_id?: string
-          thread_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "signal_pins_signal_id_fkey"
-            columns: ["signal_id"]
-            isOneToOne: false
-            referencedRelation: "signal_messages"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "signal_pins_thread_id_fkey"
-            columns: ["thread_id"]
-            isOneToOne: false
-            referencedRelation: "signal_threads"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      signal_thread_participants: {
-        Row: {
-          id: string
-          is_archived: boolean
-          joined_at: string
-          last_read_at: string
-          thread_id: string
-          user_id: string
-        }
-        Insert: {
-          id?: string
-          is_archived?: boolean
-          joined_at?: string
-          last_read_at?: string
-          thread_id: string
-          user_id: string
-        }
-        Update: {
-          id?: string
-          is_archived?: boolean
-          joined_at?: string
-          last_read_at?: string
-          thread_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "signal_thread_participants_thread_id_fkey"
-            columns: ["thread_id"]
-            isOneToOne: false
-            referencedRelation: "signal_threads"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      signal_threads: {
-        Row: {
-          created_at: string
-          created_by: string
-          id: string
-          last_activity_at: string
-          name: string | null
-          type: string
-        }
-        Insert: {
-          created_at?: string
-          created_by: string
-          id?: string
-          last_activity_at?: string
-          name?: string | null
-          type: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string
-          id?: string
-          last_activity_at?: string
-          name?: string | null
-          type?: string
-        }
-        Relationships: []
-      }
       signals: {
         Row: {
           confidence: number | null
@@ -4710,6 +4684,41 @@ export type Database = {
           reason?: string
         }
         Relationships: []
+      }
+      threads: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          mission_id: string
+          object_id: string
+          object_type: Database["public"]["Enums"]["thread_object_type"]
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          mission_id: string
+          object_id: string
+          object_type: Database["public"]["Enums"]["thread_object_type"]
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          mission_id?: string
+          object_id?: string
+          object_type?: Database["public"]["Enums"]["thread_object_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "threads_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -5089,16 +5098,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      has_thread_access: {
+        Args: { _thread_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_mission_member: {
         Args: { _mission_id: string; _user_id: string }
         Returns: boolean
       }
       is_olympus_user: { Args: { _user_id: string }; Returns: boolean }
       is_platform_admin: { Args: { _user_id: string }; Returns: boolean }
-      is_signal_thread_participant: {
-        Args: { _thread_id: string; _user_id: string }
-        Returns: boolean
-      }
       leadership_count: { Args: { _engagement_id: string }; Returns: number }
       match_intel_to_questions: {
         Args: {
@@ -5197,6 +5206,11 @@ export type Database = {
     Enums: {
       app_role: "admin" | "lead" | "writer" | "sme"
       briefing_type: "global" | "direct"
+      thread_object_type:
+        | "question_record"
+        | "deliverable"
+        | "iris_output"
+        | "milestone"
       vault_doc_type:
         | "data_security"
         | "contract"
@@ -5334,6 +5348,12 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "lead", "writer", "sme"],
       briefing_type: ["global", "direct"],
+      thread_object_type: [
+        "question_record",
+        "deliverable",
+        "iris_output",
+        "milestone",
+      ],
       vault_doc_type: [
         "data_security",
         "contract",
