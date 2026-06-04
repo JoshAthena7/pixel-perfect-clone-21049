@@ -70,11 +70,13 @@ export const grantPlatformAdmin = createServerFn({ method: "POST" })
 
     await supabaseAdmin.from("olympus_audit_log").insert({
       user_id: userId,
-      action: "admin_role_granted",
-      target_type: "user",
+      action_type: "admin_role_granted",
+      action_summary: "Granted platform admin role",
+      target_table: "user_roles",
       target_id: data.userId,
       metadata: { role: "admin" },
     });
+
 
     return { ok: true };
   });
