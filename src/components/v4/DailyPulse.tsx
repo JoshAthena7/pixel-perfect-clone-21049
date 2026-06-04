@@ -52,6 +52,11 @@ export function DailyPulse() {
   const mutation = useMutation({
     mutationFn: async () => {
       if (!selected) return;
+      // H7: block until disclosure acknowledged.
+      if (!disclosure?.acknowledged) {
+        setPendingSubmit(true);
+        return;
+      }
       await submit({
         data: {
           missionId: selected.missionId,
@@ -65,6 +70,7 @@ export function DailyPulse() {
       });
     },
     onSuccess: () => {
+      if (pendingSubmit) return; // disclosure shown — wait for ack
       toast.success("Pulse logged. Thanks for the read.");
       setNote("");
       setBlockedReason("");
@@ -73,6 +79,13 @@ export function DailyPulse() {
     },
     onError: (e: any) => toast.error(e.message ?? "Couldn't submit pulse"),
   });
+
+  async function onAckAndSubmit() {
+    await ackMut.mutateAsync();
+    setPendingSubmit(false);
+    // re-run the submit flow now that acknowledged_at is set
+    mutation.mutate();
+  }
 
   if (isLoading) return null;
   if (!data || data.assignments.length === 0) return null;
