@@ -92,7 +92,7 @@ function AthenaHQ() {
     },
   });
 
-  const { data: myRole } = useQuery({
+  const { data: myRole, isLoading: roleLoading } = useQuery({
     queryKey: ["my-mission-roles"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -282,6 +282,21 @@ function AthenaHQ() {
   const statusLabel = totalAttention === 0
     ? "All systems operational"
     : `${totalAttention} ${totalAttention === 1 ? "item needs" : "items need"} attention`;
+
+  // Hold the render until we know the user's role (and, for writers, whether
+  // they have a single mission to redirect to). Without this gate the full HQ
+  // page paints for ~1s before flipping to the welcome page or redirecting,
+  // which reads as a "giant flash" on first landing.
+  const writerRouteUnresolved = myRole === "writer" && !writerMissions;
+  if (roleLoading || writerRouteUnresolved) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-xs uppercase tracking-[0.32em] text-muted-foreground animate-pulse">
+          Loading
+        </div>
+      </div>
+    );
+  }
 
   // PHASE 7 / CHANGE 5: writer with 0 active missions — show only welcome message
   if (myRole === "writer" && writerMissions && writerMissions.length === 0) {
