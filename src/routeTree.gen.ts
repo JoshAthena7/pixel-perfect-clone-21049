@@ -43,6 +43,7 @@ import { Route as AuthenticatedOlympusExpertiseRouteImport } from './routes/_aut
 import { Route as AuthenticatedOlympusDiscoveryHistoryRouteImport } from './routes/_authenticated/olympus/discovery-history'
 import { Route as AuthenticatedOlympusConflictsRouteImport } from './routes/_authenticated/olympus/conflicts'
 import { Route as AuthenticatedOlympusCanonLibraryRouteImport } from './routes/_authenticated/olympus/canon-library'
+import { Route as AuthenticatedOlympusBriefRoomRouteImport } from './routes/_authenticated/olympus/brief-room'
 import { Route as AuthenticatedOlympusAuditRouteImport } from './routes/_authenticated/olympus/audit'
 import { Route as AuthenticatedOlympusAtlasSourcesRouteImport } from './routes/_authenticated/olympus/atlas-sources'
 import { Route as AuthenticatedOlympusAdminsRouteImport } from './routes/_authenticated/olympus/admins'
@@ -272,6 +273,12 @@ const AuthenticatedOlympusCanonLibraryRoute =
     path: '/canon-library',
     getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
+const AuthenticatedOlympusBriefRoomRoute =
+  AuthenticatedOlympusBriefRoomRouteImport.update({
+    id: '/brief-room',
+    path: '/brief-room',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
 const AuthenticatedOlympusAuditRoute =
   AuthenticatedOlympusAuditRouteImport.update({
     id: '/audit',
@@ -495,6 +502,7 @@ export interface FileRoutesByFullPath {
   '/olympus/admins': typeof AuthenticatedOlympusAdminsRoute
   '/olympus/atlas-sources': typeof AuthenticatedOlympusAtlasSourcesRoute
   '/olympus/audit': typeof AuthenticatedOlympusAuditRoute
+  '/olympus/brief-room': typeof AuthenticatedOlympusBriefRoomRoute
   '/olympus/canon-library': typeof AuthenticatedOlympusCanonLibraryRoute
   '/olympus/conflicts': typeof AuthenticatedOlympusConflictsRoute
   '/olympus/discovery-history': typeof AuthenticatedOlympusDiscoveryHistoryRoute
@@ -561,6 +569,7 @@ export interface FileRoutesByTo {
   '/olympus/admins': typeof AuthenticatedOlympusAdminsRoute
   '/olympus/atlas-sources': typeof AuthenticatedOlympusAtlasSourcesRoute
   '/olympus/audit': typeof AuthenticatedOlympusAuditRoute
+  '/olympus/brief-room': typeof AuthenticatedOlympusBriefRoomRoute
   '/olympus/canon-library': typeof AuthenticatedOlympusCanonLibraryRoute
   '/olympus/conflicts': typeof AuthenticatedOlympusConflictsRoute
   '/olympus/discovery-history': typeof AuthenticatedOlympusDiscoveryHistoryRoute
@@ -631,6 +640,7 @@ export interface FileRoutesById {
   '/_authenticated/olympus/admins': typeof AuthenticatedOlympusAdminsRoute
   '/_authenticated/olympus/atlas-sources': typeof AuthenticatedOlympusAtlasSourcesRoute
   '/_authenticated/olympus/audit': typeof AuthenticatedOlympusAuditRoute
+  '/_authenticated/olympus/brief-room': typeof AuthenticatedOlympusBriefRoomRoute
   '/_authenticated/olympus/canon-library': typeof AuthenticatedOlympusCanonLibraryRoute
   '/_authenticated/olympus/conflicts': typeof AuthenticatedOlympusConflictsRoute
   '/_authenticated/olympus/discovery-history': typeof AuthenticatedOlympusDiscoveryHistoryRoute
@@ -701,6 +711,7 @@ export interface FileRouteTypes {
     | '/olympus/admins'
     | '/olympus/atlas-sources'
     | '/olympus/audit'
+    | '/olympus/brief-room'
     | '/olympus/canon-library'
     | '/olympus/conflicts'
     | '/olympus/discovery-history'
@@ -767,6 +778,7 @@ export interface FileRouteTypes {
     | '/olympus/admins'
     | '/olympus/atlas-sources'
     | '/olympus/audit'
+    | '/olympus/brief-room'
     | '/olympus/canon-library'
     | '/olympus/conflicts'
     | '/olympus/discovery-history'
@@ -836,6 +848,7 @@ export interface FileRouteTypes {
     | '/_authenticated/olympus/admins'
     | '/_authenticated/olympus/atlas-sources'
     | '/_authenticated/olympus/audit'
+    | '/_authenticated/olympus/brief-room'
     | '/_authenticated/olympus/canon-library'
     | '/_authenticated/olympus/conflicts'
     | '/_authenticated/olympus/discovery-history'
@@ -1131,6 +1144,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOlympusCanonLibraryRouteImport
       parentRoute: typeof AuthenticatedOlympusRoute
     }
+    '/_authenticated/olympus/brief-room': {
+      id: '/_authenticated/olympus/brief-room'
+      path: '/brief-room'
+      fullPath: '/olympus/brief-room'
+      preLoaderRoute: typeof AuthenticatedOlympusBriefRoomRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
     '/_authenticated/olympus/audit': {
       id: '/_authenticated/olympus/audit'
       path: '/audit'
@@ -1369,6 +1389,7 @@ interface AuthenticatedOlympusRouteChildren {
   AuthenticatedOlympusAdminsRoute: typeof AuthenticatedOlympusAdminsRoute
   AuthenticatedOlympusAtlasSourcesRoute: typeof AuthenticatedOlympusAtlasSourcesRoute
   AuthenticatedOlympusAuditRoute: typeof AuthenticatedOlympusAuditRoute
+  AuthenticatedOlympusBriefRoomRoute: typeof AuthenticatedOlympusBriefRoomRoute
   AuthenticatedOlympusCanonLibraryRoute: typeof AuthenticatedOlympusCanonLibraryRoute
   AuthenticatedOlympusConflictsRoute: typeof AuthenticatedOlympusConflictsRoute
   AuthenticatedOlympusDiscoveryHistoryRoute: typeof AuthenticatedOlympusDiscoveryHistoryRoute
@@ -1397,6 +1418,7 @@ const AuthenticatedOlympusRouteChildren: AuthenticatedOlympusRouteChildren = {
   AuthenticatedOlympusAdminsRoute: AuthenticatedOlympusAdminsRoute,
   AuthenticatedOlympusAtlasSourcesRoute: AuthenticatedOlympusAtlasSourcesRoute,
   AuthenticatedOlympusAuditRoute: AuthenticatedOlympusAuditRoute,
+  AuthenticatedOlympusBriefRoomRoute: AuthenticatedOlympusBriefRoomRoute,
   AuthenticatedOlympusCanonLibraryRoute: AuthenticatedOlympusCanonLibraryRoute,
   AuthenticatedOlympusConflictsRoute: AuthenticatedOlympusConflictsRoute,
   AuthenticatedOlympusDiscoveryHistoryRoute:
