@@ -119,12 +119,14 @@ async function callScoreEngine(system: string, user: string): Promise<any | null
     } catch (e: any) {
       if (e?.name === "AbortError") {
         throw new Error("Score engine timed out after 25s. Try again or shorten the response.");
+      }
+      throw e;
+    } finally {
+      clearTimeout(timeout);
     }
-    throw e;
-  } finally {
-    clearTimeout(timeout);
-  }
+  });
 }
+
 
 export const scoreResponse = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
