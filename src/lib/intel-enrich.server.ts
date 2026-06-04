@@ -74,6 +74,16 @@ export async function storeEmbedding(args: {
   vector: number[];
   scope: "mission" | "global" | "unclassified";
 }) {
+  // C2: IRIS knowledge ingest path — scrub PHI before persisting embeddings.
+  // Fail-closed: if PHI is detected, the embedding is NOT stored and the
+  // caller receives the structured PHI error.
+  await assertNoPHI({
+    text: args.content_text,
+    surface: "iris_ingest",
+    actorUserId: null,
+    engagementId: args.mission_id,
+  });
+
   await supabaseAdmin.from("embeddings").insert({
     source_table: args.source_table,
     source_id: args.source_id,
