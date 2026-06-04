@@ -8,8 +8,9 @@ import {
   ArrowLeft, ChevronDown, Zap,
   LayoutGrid, Users, FileText, ClipboardCheck, Trophy,
   FolderOpen, Settings as SettingsIcon, UserCog, History, Brain,
-  Search, Inbox, Library, BookOpen, Bell, LifeBuoy, UserPlus,
+  Search, Inbox, Library, BookOpen, Bell, LifeBuoy, UserPlus, Activity,
 } from "lucide-react";
+
 import { useServerFn } from "@tanstack/react-start";
 import { listReviewQueue } from "@/lib/atlas-onboarding.functions";
 import { useIsAdmin } from "@/hooks/useAccess";
@@ -183,7 +184,9 @@ function OlympusSidebar({ isAdmin }: { isAdmin: boolean }) {
         {isAdmin && (
           <>
             <SectionHeader>Platform</SectionHeader>
+            <SidebarItem to="/command/health" path={path} icon={<Activity size={15} strokeWidth={1.5} />}>Firm Health</SidebarItem>
             <SidebarItem to="/olympus/admins" path={path} icon={<UserCog size={15} strokeWidth={1.5} />}>Admins</SidebarItem>
+
             <SidebarItem to="/olympus/users" path={path} icon={<UserCog size={15} strokeWidth={1.5} />}>Users</SidebarItem>
             <SidebarItem to="/olympus/audit" path={path} icon={<History size={15} strokeWidth={1.5} />}>Audit Log</SidebarItem>
             <SidebarItem to="/olympus/support" path={path} icon={<LifeBuoy size={15} strokeWidth={1.5} />}>Support Config</SidebarItem>
