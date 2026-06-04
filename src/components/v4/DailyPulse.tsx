@@ -110,6 +110,13 @@ export function DailyPulse() {
 
   return (
     <section className="rounded-[12px] border border-border bg-surface px-6 py-5" aria-label="Daily pulse">
+      {pendingSubmit && !disclosure?.acknowledged ? (
+        <PulseDisclosureModal
+          onAck={onAckAndSubmit}
+          onCancel={() => setPendingSubmit(false)}
+          pending={ackMut.isPending || mutation.isPending}
+        />
+      ) : null}
       <div className="mb-4 flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
