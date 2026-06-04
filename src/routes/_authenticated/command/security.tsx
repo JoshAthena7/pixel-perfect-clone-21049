@@ -10,7 +10,17 @@ import {
   CheckCircle2,
   Clock,
   ArrowRight,
+  Database,
+  Users,
+  Eye,
+  FileWarning,
+  Server,
+  Fingerprint,
+  Activity,
+  Bug,
+  type LucideIcon,
 } from "lucide-react";
+
 
 export const Route = createFileRoute("/_authenticated/command/security")({
   component: SecurityPage,
