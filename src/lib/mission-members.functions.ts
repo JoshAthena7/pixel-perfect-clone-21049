@@ -117,11 +117,12 @@ export const addCollectiveMemberToMission = createServerFn({ method: "POST" })
       throw new Error("This collective member needs an email or linked account before they can be added.");
     }
 
-    await supabaseAdmin.from("profiles").upsert({
+    const { error: profileErr } = await supabaseAdmin.from("profiles").upsert({
       id: inviteeId,
       display_name: collectiveMember.full_name,
       email: collectiveMember.email,
     });
+    if (profileErr) throw new Error(profileErr.message);
 
     if (collectiveMember.profile_id !== inviteeId) {
       await supabaseAdmin
