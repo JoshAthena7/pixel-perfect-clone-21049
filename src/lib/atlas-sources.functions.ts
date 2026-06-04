@@ -117,6 +117,25 @@ export const upsertAtlasSource = createServerFn({ method: "POST" })
         console.warn("[atlas-enrich] failed", (row as any)?.id, e);
       }
     })();
+    // Record contribution event (best-effort).
+    try {
+      const { recordContribution } = await import("./contributions.server");
+      await recordContribution({
+        authUserId: userId,
+        missionId: (row as any).mission_id ?? null,
+        eventType: "source_uploaded",
+        targetTable: "atlas_sources",
+        targetId: (row as any).id,
+        weight: 1,
+        idempotencyKey: `source:${(row as any).id}`,
+        payload: {
+          knowledge_layer: data.knowledge_layer,
+          source_title: (row as any).source_title,
+        },
+      });
+    } catch (e) {
+      console.warn("[contributions] atlas-source wiring failed", e);
+    }
     return { id: (row as any).id };
   });
 
