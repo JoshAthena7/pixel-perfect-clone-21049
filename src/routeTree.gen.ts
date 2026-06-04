@@ -53,6 +53,7 @@ import { Route as ApiPublicHooksRefreshIntelligenceRouteImport } from './routes/
 import { Route as ApiPublicHooksIngestIntelRouteImport } from './routes/api/public/hooks/ingest-intel'
 import { Route as ApiPublicHooksBackfillQuestionEmbeddingsRouteImport } from './routes/api/public/hooks/backfill-question-embeddings'
 import { Route as ApiPublicHooksBackfillAtlasEmbeddingsRouteImport } from './routes/api/public/hooks/backfill-atlas-embeddings'
+import { Route as AuthenticatedMissionsMissionIdVaultRouteImport } from './routes/_authenticated/missions/$missionId/vault'
 import { Route as AuthenticatedMissionsMissionIdTeamRouteImport } from './routes/_authenticated/missions/$missionId/team'
 import { Route as AuthenticatedMissionsMissionIdStudioRouteImport } from './routes/_authenticated/missions/$missionId/studio'
 import { Route as AuthenticatedMissionsMissionIdSettingsRouteImport } from './routes/_authenticated/missions/$missionId/settings'
@@ -324,6 +325,12 @@ const ApiPublicHooksBackfillAtlasEmbeddingsRoute =
     path: '/api/public/hooks/backfill-atlas-embeddings',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedMissionsMissionIdVaultRoute =
+  AuthenticatedMissionsMissionIdVaultRouteImport.update({
+    id: '/vault',
+    path: '/vault',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
+  } as any)
 const AuthenticatedMissionsMissionIdTeamRoute =
   AuthenticatedMissionsMissionIdTeamRouteImport.update({
     id: '/team',
@@ -460,6 +467,7 @@ export interface FileRoutesByFullPath {
   '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/missions/$missionId/studio': typeof AuthenticatedMissionsMissionIdStudioRoute
   '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
+  '/missions/$missionId/vault': typeof AuthenticatedMissionsMissionIdVaultRoute
   '/api/public/hooks/backfill-atlas-embeddings': typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
   '/api/public/hooks/backfill-question-embeddings': typeof ApiPublicHooksBackfillQuestionEmbeddingsRoute
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
@@ -517,6 +525,7 @@ export interface FileRoutesByTo {
   '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/missions/$missionId/studio': typeof AuthenticatedMissionsMissionIdStudioRoute
   '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
+  '/missions/$missionId/vault': typeof AuthenticatedMissionsMissionIdVaultRoute
   '/api/public/hooks/backfill-atlas-embeddings': typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
   '/api/public/hooks/backfill-question-embeddings': typeof ApiPublicHooksBackfillQuestionEmbeddingsRoute
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
@@ -578,6 +587,7 @@ export interface FileRoutesById {
   '/_authenticated/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/_authenticated/missions/$missionId/studio': typeof AuthenticatedMissionsMissionIdStudioRoute
   '/_authenticated/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
+  '/_authenticated/missions/$missionId/vault': typeof AuthenticatedMissionsMissionIdVaultRoute
   '/api/public/hooks/backfill-atlas-embeddings': typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
   '/api/public/hooks/backfill-question-embeddings': typeof ApiPublicHooksBackfillQuestionEmbeddingsRoute
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
@@ -639,6 +649,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/settings'
     | '/missions/$missionId/studio'
     | '/missions/$missionId/team'
+    | '/missions/$missionId/vault'
     | '/api/public/hooks/backfill-atlas-embeddings'
     | '/api/public/hooks/backfill-question-embeddings'
     | '/api/public/hooks/ingest-intel'
@@ -696,6 +707,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/settings'
     | '/missions/$missionId/studio'
     | '/missions/$missionId/team'
+    | '/missions/$missionId/vault'
     | '/api/public/hooks/backfill-atlas-embeddings'
     | '/api/public/hooks/backfill-question-embeddings'
     | '/api/public/hooks/ingest-intel'
@@ -756,6 +768,7 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/$missionId/settings'
     | '/_authenticated/missions/$missionId/studio'
     | '/_authenticated/missions/$missionId/team'
+    | '/_authenticated/missions/$missionId/vault'
     | '/api/public/hooks/backfill-atlas-embeddings'
     | '/api/public/hooks/backfill-question-embeddings'
     | '/api/public/hooks/ingest-intel'
@@ -1085,6 +1098,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksBackfillAtlasEmbeddingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/missions/$missionId/vault': {
+      id: '/_authenticated/missions/$missionId/vault'
+      path: '/vault'
+      fullPath: '/missions/$missionId/vault'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdVaultRouteImport
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
     '/_authenticated/missions/$missionId/team': {
       id: '/_authenticated/missions/$missionId/team'
       path: '/team'
@@ -1248,6 +1268,7 @@ interface AuthenticatedMissionsMissionIdRouteChildren {
   AuthenticatedMissionsMissionIdSettingsRoute: typeof AuthenticatedMissionsMissionIdSettingsRoute
   AuthenticatedMissionsMissionIdStudioRoute: typeof AuthenticatedMissionsMissionIdStudioRoute
   AuthenticatedMissionsMissionIdTeamRoute: typeof AuthenticatedMissionsMissionIdTeamRoute
+  AuthenticatedMissionsMissionIdVaultRoute: typeof AuthenticatedMissionsMissionIdVaultRoute
   AuthenticatedMissionsMissionIdIndexRoute: typeof AuthenticatedMissionsMissionIdIndexRoute
   AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute: typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
   AuthenticatedMissionsMissionIdQuestionsIndexRoute: typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
@@ -1279,6 +1300,8 @@ const AuthenticatedMissionsMissionIdRouteChildren: AuthenticatedMissionsMissionI
       AuthenticatedMissionsMissionIdStudioRoute,
     AuthenticatedMissionsMissionIdTeamRoute:
       AuthenticatedMissionsMissionIdTeamRoute,
+    AuthenticatedMissionsMissionIdVaultRoute:
+      AuthenticatedMissionsMissionIdVaultRoute,
     AuthenticatedMissionsMissionIdIndexRoute:
       AuthenticatedMissionsMissionIdIndexRoute,
     AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute:

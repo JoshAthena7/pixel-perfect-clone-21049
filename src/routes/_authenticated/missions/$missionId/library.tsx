@@ -1,9 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { FileText, ExternalLink, Search, Sparkles, CheckCircle2, Loader2, RefreshCw } from "lucide-react";
+import { FileText, ExternalLink, Search, Sparkles, CheckCircle2, Loader2, RefreshCw, Shield, ChevronRight } from "lucide-react";
 import { VaultIcon } from "@/components/v2/icons/AtlasIcons";
 import { getLibraryIndexStatus, reindexMissionDocuments } from "@/lib/mission-activation.functions";
 import { toast } from "sonner";
