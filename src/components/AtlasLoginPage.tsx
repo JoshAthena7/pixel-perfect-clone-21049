@@ -12,44 +12,51 @@ export function AtlasLoginPage() {
   const [loading, setLoading] = useState(false);
 
   async function routeAfterAuth(userId: string) {
-    const { data: memberships = [] } = await supabase
-      .from("mission_members")
-      .select("role,mission_id,missions:mission_id(id,status)")
-      .eq("user_id", userId);
-    const active = (memberships ?? []).filter((m: any) => m.missions?.status === "Active");
-    const roles = active.map((m: any) => m.role);
-    const isLeader = roles.includes("admin") || roles.includes("lead");
-    if (!isLeader && active.length === 1) {
-      navigate({ to: "/missions/$missionId/questions", params: { missionId: active[0].mission_id }, replace: true });
-      return;
+    try {
+      const { data: memberships } = await supabase
+        .from("mission_members")
+        .select("role,mission_id,missions:mission_id(id,status)")
+        .eq("user_id", userId);
+      const active = (memberships ?? []).filter((m: any) => m.missions?.status === "Active");
+      const roles = active.map((m: any) => m.role);
+      const isLeader = roles.includes("admin") || roles.includes("lead");
+      if (!isLeader && active.length === 1) {
+        navigate({ to: "/missions/$missionId/questions", params: { missionId: active[0].mission_id }, replace: true });
+        return;
+      }
+    } catch {
+      // Fall through to /home — membership lookup is a nicety, not a gate.
     }
     navigate({ to: "/home", replace: true });
   }
 
+  // On mount only: if a session already exists, route the user away from /login.
+  // Do NOT also subscribe to onAuthStateChange here — it would race with the
+  // post-signIn call below and double-navigate.
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
-      if (s?.user) routeAfterAuth(s.user.id);
-    });
+    let cancelled = false;
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) routeAfterAuth(data.user.id);
+      if (!cancelled && data.user) routeAfterAuth(data.user.id);
     });
-    return () => subscription.unsubscribe();
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigate]);
+  }, []);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       toast.success("Signed in.");
+      if (data.user) await routeAfterAuth(data.user.id);
     } catch (err: any) {
-      toast.error(err.message ?? "Could not sign in");
+      toast.error(err?.message ?? "Could not sign in");
     } finally {
       setLoading(false);
     }
   }
+
 
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[#040814] text-white">
