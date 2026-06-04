@@ -82,7 +82,7 @@ export const recalibrateMissionIntel = createServerFn({ method: "POST" })
       .from("iris_memories")
       .update({
         superseded_at: now,
-        superseded_reason: data.reason.slice(0, 2000),
+        superseded_reason: data.reason.slice(0, 20000),
       })
       .eq("mission_id", data.missionId)
       .is("superseded_at", null)
