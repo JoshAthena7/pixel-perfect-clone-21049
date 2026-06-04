@@ -92,7 +92,7 @@ function AthenaHQ() {
     },
   });
 
-  const { data: myRole } = useQuery({
+  const { data: myRole, isLoading: roleLoading } = useQuery({
     queryKey: ["my-mission-roles"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
