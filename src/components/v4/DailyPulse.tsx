@@ -15,6 +15,8 @@ const CONFIDENCE_LABELS = ["Could use a hand", "Some open questions", "Steady", 
 export function DailyPulse() {
   const ctxFn = useServerFn(getMyPulseContext);
   const submit = useServerFn(submitPulse);
+  const getDisclosure = useServerFn(getPulseDisclosureStatus);
+  const ackDisclosure = useServerFn(acknowledgePulseDisclosure);
   const qc = useQueryClient();
 
   const { data, isLoading } = useQuery({
@@ -22,6 +24,17 @@ export function DailyPulse() {
     queryFn: () => ctxFn(),
     staleTime: 60_000,
   });
+
+  // H7: one-time disclosure gate
+  const { data: disclosure, refetch: refetchDisclosure } = useQuery({
+    queryKey: ["pulse-disclosure"],
+    queryFn: () => getDisclosure(),
+  });
+  const ackMut = useMutation({
+    mutationFn: () => ackDisclosure(),
+    onSuccess: () => refetchDisclosure(),
+  });
+  const [pendingSubmit, setPendingSubmit] = useState(false);
 
   const pending = useMemo(
     () => (data?.assignments ?? []).filter((a) => !a.submittedToday),
