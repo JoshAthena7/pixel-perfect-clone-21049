@@ -33,7 +33,7 @@ function TeamPage() {
         <div className="h2-label" style={{ letterSpacing: "0.32em" }}>Team</div>
         <h1 className="h1-display mt-1">Manage Mission Team</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Invite members, change roles, and remove access for this mission. Or import the entire Athena Collective from TalentDesk and pull people in per project.
+          Review the mission roster, then add people from the Athena Collective with the right role for this mission.
         </p>
       </header>
 
