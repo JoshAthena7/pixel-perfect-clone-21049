@@ -92,7 +92,12 @@ export function Scorecard({
       {/* Scorecard rows */}
       <div className="space-y-3">
         {ordered.map((d) => (
-          <DimensionRow key={d.key} dim={d} />
+          <DimensionRow
+            key={d.key}
+            dim={d}
+            questionId={result.question.id}
+            missionId={missionId}
+          />
         ))}
       </div>
 
