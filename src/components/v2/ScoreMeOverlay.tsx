@@ -50,6 +50,7 @@ export function ScoreMeOverlay({ open, onClose, missionId, lockedQuestionId }: P
   const [responseText, setResponseText] = useState("");
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [phiError, setPhiError] = useState<PHIErrorPayload | null>(null);
 
   const scoreFn = useServerFn(runScoreMe);
   const setupFn = useServerFn(getScoreMeSetup);
