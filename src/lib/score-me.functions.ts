@@ -310,6 +310,42 @@ Compliance fixes take priority in the changes array. A non-compliant CRITICAL re
       .select("id,created_at")
       .maybeSingle();
 
+    // Record contributions: a score_submitted event, and a question_answered
+    // event keyed on the response so each distinct submission counts once.
+    try {
+      const { recordContribution } = await import("./contributions.server");
+      const runId = inserted?.id ?? `${q.id}:${Date.now()}`;
+      await Promise.all([
+        recordContribution({
+          authUserId: userId,
+          missionId: q.mission_id,
+          eventType: "score_submitted",
+          targetTable: "score_me_history",
+          targetId: inserted?.id ?? undefined,
+          weight: 1,
+          idempotencyKey: `score:${runId}:${userId}`,
+          payload: { score, projected_score: projected, question_id: q.id },
+        }),
+        recordContribution({
+          authUserId: userId,
+          missionId: q.mission_id,
+          eventType: "question_answered",
+          targetTable: "question_records",
+          targetId: q.id,
+          weight: 1,
+          idempotencyKey: `answer:${runId}:${userId}`,
+          payload: {
+            question_number: (q as any).question_number,
+            title: (q as any).title,
+            word_count: data.responseText.trim().split(/\s+/).length,
+            score,
+          },
+        }),
+      ]);
+    } catch (e) {
+      console.warn("[contributions] score-me wiring failed", e);
+    }
+
     // Persist compliance findings
     const validIds = new Set(allComplianceForPrompt.map((c) => c.id));
     const findings = Array.isArray(analysis.compliance_findings) ? analysis.compliance_findings : [];
