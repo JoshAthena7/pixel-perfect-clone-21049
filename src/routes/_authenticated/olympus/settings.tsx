@@ -619,15 +619,16 @@ function SupportSettingsPanel() {
       </div>
       <div className="space-y-4 p-5">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <Field label="IT Support contact (email)">
-            <input value={itEmail} onChange={(e) => setItEmail(e.target.value)} placeholder="it@firm.com" className={inputCls} />
+          <Field label="IT Support → Leanne (email)">
+            <input value={itEmail} onChange={(e) => setItEmail(e.target.value)} placeholder="leanne@firm.com" className={inputCls} />
           </Field>
-          <Field label="Billing contact (email)">
-            <input value={billingEmail} onChange={(e) => setBillingEmail(e.target.value)} placeholder="finance@firm.com" className={inputCls} />
+          <Field label="Billing → Leanne (email)">
+            <input value={billingEmail} onChange={(e) => setBillingEmail(e.target.value)} placeholder="leanne@firm.com" className={inputCls} />
           </Field>
-          <Field label="Project Manager — Ask Leanne (email)">
-            <input value={pmEmail} onChange={(e) => setPmEmail(e.target.value)} placeholder="leanne@firm.com" className={inputCls} />
+          <Field label="Platform Help → Josh (email)">
+            <input value={pmEmail} onChange={(e) => setPmEmail(e.target.value)} placeholder="josh@firm.com" className={inputCls} />
           </Field>
+
         </div>
         <Field label="Talent Desk URL" hint="Main destination for the Talent Desk card.">
           <input value={talentUrl} onChange={(e) => setTalentUrl(e.target.value)} placeholder="https://talentdesk.example.com" className={inputCls} />
