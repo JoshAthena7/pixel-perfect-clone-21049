@@ -165,7 +165,7 @@ export const recalibrateMissionIntel = createServerFn({ method: "POST" })
       action_summary:
         `Intel drift recalibration: DNA ${dnaResult.ok ? "regenerated" : "FAILED"}, ` +
         `${memoriesSuperseded ?? 0} memories superseded, ${cacheCleared ?? 0} briefs cleared, ` +
-        `${researched} questions re-researched (${researchFailed} failed). Reason: ${data.reason.slice(0, 200)}`,
+        `${queuedForResearch} questions re-queued. Reason: ${data.reason.slice(0, 200)}`,
       target_table: "mission_intelligence_dna",
       user_id: userId,
     });
