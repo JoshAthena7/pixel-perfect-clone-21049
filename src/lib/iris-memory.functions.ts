@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { withPersonFirst } from "./person-first";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { withAICircuit } from "@/lib/ai-circuit-breaker";
 
 const CATEGORIES = [
   "Firm Intelligence",
@@ -23,16 +24,20 @@ async function callGateway(system: string, user: string): Promise<string | null>
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) return null;
   try {
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: withPersonFirst(system) },
-          { role: "user", content: user },
-        ],
-      }),
+    const res = await withAICircuit(async () => {
+      const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: withPersonFirst(system) },
+            { role: "user", content: user },
+          ],
+        }),
+      });
+      if (r.status >= 500) throw new Error(`AI gateway ${r.status}`);
+      return r;
     });
     if (!res.ok) return null;
     const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };

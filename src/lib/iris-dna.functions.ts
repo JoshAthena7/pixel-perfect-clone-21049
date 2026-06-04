@@ -7,6 +7,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { loadRfpText, findLatestRfp } from "./rfp-text.server";
 import { assertNoPHI } from "@/lib/phi-detection";
+import { withAICircuit } from "@/lib/ai-circuit-breaker";
 
 const FOCUS_CATEGORIES = [
   "Medicaid Managed Care (Full Risk)",
@@ -189,22 +190,26 @@ async function callLovableAiForDna(rfpText: string): Promise<MissionDna> {
   for (const model of models) {
     let res: Response;
     try {
-      res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: "system", content: withPersonFirst(system) },
-            { role: "user", content: `RFP TEXT:\n\n${body}` },
-          ],
-          response_format: { type: "json_object" },
-          temperature: 0.2,
-        }),
-        signal: AbortSignal.timeout(180_000),
+      res = await withAICircuit(async () => {
+        const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: "system", content: withPersonFirst(system) },
+              { role: "user", content: `RFP TEXT:\n\n${body}` },
+            ],
+            response_format: { type: "json_object" },
+            temperature: 0.2,
+          }),
+          signal: AbortSignal.timeout(180_000),
+        });
+        if (r.status >= 500) throw new Error(`AI gateway ${r.status}`);
+        return r;
       });
     } catch (e) {
       lastError = `Network: ${e instanceof Error ? e.message : String(e)}`;

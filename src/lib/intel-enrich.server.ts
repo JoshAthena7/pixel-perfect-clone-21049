@@ -5,6 +5,7 @@ import { withPersonFirst } from "./person-first";
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { assertNoPHI } from "@/lib/phi-detection";
+import { withAICircuit } from "@/lib/ai-circuit-breaker";
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1";
 const EMBED_DIM = 1536; // existing embeddings.embedding column is vector(1536)
@@ -18,21 +19,25 @@ function key() {
 
 export async function summarizeIntel(title: string, body: string | null): Promise<string | null> {
   try {
-    const res = await fetch(`${GATEWAY}/chat/completions`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key()}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
-        messages: [
-          {
-            role: "system",
-            content: withPersonFirst(
-              "You are IRIS, a senior Medicaid/Medicare proposal strategist. Summarize the following intelligence item in ONE sentence (max 30 words). Be specific, concrete, no hedging.",
-            ),
-          },
-          { role: "user", content: `TITLE: ${title}\n\n${(body ?? "").slice(0, 4000)}` },
-        ],
-      }),
+    const res = await withAICircuit(async () => {
+      const r = await fetch(`${GATEWAY}/chat/completions`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key()}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-lite",
+          messages: [
+            {
+              role: "system",
+              content: withPersonFirst(
+                "You are IRIS, a senior Medicaid/Medicare proposal strategist. Summarize the following intelligence item in ONE sentence (max 30 words). Be specific, concrete, no hedging.",
+              ),
+            },
+            { role: "user", content: `TITLE: ${title}\n\n${(body ?? "").slice(0, 4000)}` },
+          ],
+        }),
+      });
+      if (r.status >= 500) throw new Error(`AI gateway ${r.status}`);
+      return r;
     });
     if (!res.ok) return null;
     const j = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
@@ -44,14 +49,18 @@ export async function summarizeIntel(title: string, body: string | null): Promis
 
 export async function embed(text: string): Promise<number[] | null> {
   try {
-    const res = await fetch(`${GATEWAY}/embeddings`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key()}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-embedding-001",
-        input: text.slice(0, 6000),
-        dimensions: EMBED_DIM,
-      }),
+    const res = await withAICircuit(async () => {
+      const r = await fetch(`${GATEWAY}/embeddings`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key()}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-embedding-001",
+          input: text.slice(0, 6000),
+          dimensions: EMBED_DIM,
+        }),
+      });
+      if (r.status >= 500) throw new Error(`AI gateway ${r.status}`);
+      return r;
     });
     if (!res.ok) return null;
     const j = (await res.json()) as { data?: Array<{ embedding?: number[] }> };

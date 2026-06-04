@@ -2,6 +2,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { withAICircuit } from "@/lib/ai-circuit-breaker";
 
 /* ─────────── Canon Starter Kit (10 federal sources) ─────────── */
 
@@ -85,17 +86,21 @@ Type: ${program.program_type ?? "Medicaid program"}
 
 Propose 15-30 authoritative source documents for Atlas's Program Intelligence layer.`;
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: DISCOVERY_SYSTEM },
-          { role: "user", content: userPrompt },
-        ],
-        response_format: { type: "json_object" },
-      }),
+    const res = await withAICircuit(async () => {
+      const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: DISCOVERY_SYSTEM },
+            { role: "user", content: userPrompt },
+          ],
+          response_format: { type: "json_object" },
+        }),
+      });
+      if (r.status >= 500) throw new Error(`AI gateway ${r.status}`);
+      return r;
     });
     if (!res.ok) {
       const txt = await res.text();

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { loadRfpText, findLatestRfp } from "@/lib/rfp-text.server";
 import { assertNoPHI } from "@/lib/phi-detection";
+import { withAICircuit } from "@/lib/ai-circuit-breaker";
 
 const Input = z.object({
   documentId: z.string().uuid(),
@@ -93,19 +94,23 @@ ${truncate(amendmentText, MAX_DOC_CHARS)}
 
 Identify every change the amendment introduces vs the original RFP. Be exhaustive but precise.`;
 
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-pro",
-      messages: [
-        { role: "system", content: withPersonFirst(system) },
-        { role: "user", content: user },
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0.1,
-    }),
-    signal: AbortSignal.timeout(120_000),
+  const res = await withAICircuit(async () => {
+    const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-pro",
+        messages: [
+          { role: "system", content: withPersonFirst(system) },
+          { role: "user", content: user },
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.1,
+      }),
+      signal: AbortSignal.timeout(120_000),
+    });
+    if (r.status >= 500) throw new Error(`AI gateway ${r.status}`);
+    return r;
   });
 
   if (res.status === 402) {

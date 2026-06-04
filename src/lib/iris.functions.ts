@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { withPersonFirst } from "./person-first";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { withAICircuit } from "@/lib/ai-circuit-breaker";
 
 /* ──────────────── iris-mission-pulse ────────────────
    Reads signals for a mission, groups by severity, returns top 5 attention
@@ -305,16 +306,20 @@ export const irisGenerateBriefingSection = createServerFn({ method: "POST" })
       const sys = `You are IRIS, an intelligence analyst for Medicaid procurement consultants. Generate concise, specific, defensible external intelligence for one briefing book section. Use markdown bullets. Do not hedge. Do not preface with "Here is" — output the content directly.${groundingText ? " When you use a fact from the provided SOURCES, cite it inline like [1], [2]." : ""}`;
       const user = `Mission: ${m.name}\nClient: ${m.client}\nState: ${m.state ?? "Unknown"}\nSubmission: ${m.submission_date ?? "TBD"}\n${m.description ? `Context: ${m.description}\n` : ""}\nSection: ${cfg.title}\n\nTask: ${cfg.prompt}${groundingText ? `\n\nSOURCES:\n${groundingText}` : ""}`;
       try {
-        const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
-            messages: [
-              { role: "system", content: withPersonFirst(sys) },
-              { role: "user", content: user },
-            ],
-          }),
+        const res = await withAICircuit(async () => {
+          const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              model: "google/gemini-2.5-flash",
+              messages: [
+                { role: "system", content: withPersonFirst(sys) },
+                { role: "user", content: user },
+              ],
+            }),
+          });
+          if (r.status >= 500) throw new Error(`AI gateway ${r.status}`);
+          return r;
         });
         if (res.ok) {
           const json: any = await res.json();
