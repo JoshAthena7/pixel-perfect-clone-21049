@@ -1323,6 +1323,69 @@ export type Database = {
           },
         ]
       }
+      contributions: {
+        Row: {
+          created_at: string
+          event_type: string
+          firm_id: string | null
+          id: string
+          idempotency_key: string
+          mission_id: string | null
+          occurred_at: string
+          payload: Json
+          source: string
+          target_id: string | null
+          target_table: string | null
+          weight: number
+          writer_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          firm_id?: string | null
+          id?: string
+          idempotency_key: string
+          mission_id?: string | null
+          occurred_at?: string
+          payload?: Json
+          source?: string
+          target_id?: string | null
+          target_table?: string | null
+          weight?: number
+          writer_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          firm_id?: string | null
+          id?: string
+          idempotency_key?: string
+          mission_id?: string | null
+          occurred_at?: string
+          payload?: Json
+          source?: string
+          target_id?: string | null
+          target_table?: string | null
+          weight?: number
+          writer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contributions_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contributions_writer_id_fkey"
+            columns: ["writer_id"]
+            isOneToOne: false
+            referencedRelation: "writer_identities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_extractions: {
         Row: {
           created_at: string
@@ -2264,6 +2327,50 @@ export type Database = {
             foreignKeyName: "mission_members_mission_id_fkey"
             columns: ["mission_id"]
             isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_outcomes: {
+        Row: {
+          awarded_value_usd: number | null
+          created_at: string
+          decided_at: string
+          mission_id: string
+          notes: string | null
+          outcome: string
+          population_impacted: number | null
+          recorded_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          awarded_value_usd?: number | null
+          created_at?: string
+          decided_at?: string
+          mission_id: string
+          notes?: string | null
+          outcome: string
+          population_impacted?: number | null
+          recorded_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          awarded_value_usd?: number | null
+          created_at?: string
+          decided_at?: string
+          mission_id?: string
+          notes?: string | null
+          outcome?: string
+          population_impacted?: number | null
+          recorded_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_outcomes_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
             referencedRelation: "missions"
             referencedColumns: ["id"]
           },
@@ -3753,6 +3860,79 @@ export type Database = {
           },
         ]
       }
+      writer_identities: {
+        Row: {
+          created_at: string
+          display_name: string
+          id: string
+          merged_into_id: string | null
+          metadata: Json
+          primary_email: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          id?: string
+          merged_into_id?: string | null
+          metadata?: Json
+          primary_email?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          id?: string
+          merged_into_id?: string | null
+          metadata?: Json
+          primary_email?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "writer_identities_merged_into_id_fkey"
+            columns: ["merged_into_id"]
+            isOneToOne: false
+            referencedRelation: "writer_identities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      writer_identity_aliases: {
+        Row: {
+          alias_kind: string
+          alias_value: string
+          created_at: string
+          id: string
+          verified: boolean
+          writer_id: string
+        }
+        Insert: {
+          alias_kind: string
+          alias_value: string
+          created_at?: string
+          id?: string
+          verified?: boolean
+          writer_id: string
+        }
+        Update: {
+          alias_kind?: string
+          alias_value?: string
+          created_at?: string
+          id?: string
+          verified?: boolean
+          writer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "writer_identity_aliases_writer_id_fkey"
+            columns: ["writer_id"]
+            isOneToOne: false
+            referencedRelation: "writer_identities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -3840,6 +4020,10 @@ export type Database = {
           _source: string
           _status: number
         }
+        Returns: string
+      }
+      resolve_writer_identity: {
+        Args: { _auth_user_id: string; _display_name?: string; _email?: string }
         Returns: string
       }
       scan_cron_failures: { Args: { _since?: string }; Returns: number }
