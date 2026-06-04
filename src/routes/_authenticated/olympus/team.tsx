@@ -212,11 +212,13 @@ function ManualAddPanel({ missionId }: { missionId: string }) {
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [role, setRole] = useState<Role>("writer");
+  const [contractSigned, setContractSigned] = useState(false);
   const [busy, setBusy] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!email.trim()) return toast.error("Email is required");
+    if (!contractSigned) return toast.error("Confirm the contract is signed before sending the invite");
     setBusy(true);
     try {
       await invite({
@@ -230,13 +232,14 @@ function ManualAddPanel({ missionId }: { missionId: string }) {
       toast.success(`Added ${displayName.trim() || email.trim()} as ${ROLE_LABELS[role]}`);
       await logOlympusAction({
         action_type: "team.manual_add",
-        action_summary: `Manually added ${email.trim()} as ${role}`,
+        action_summary: `Manually added ${email.trim()} as ${role} (contract signed)`,
         mission_id: missionId,
         target_table: "mission_members",
       });
       setEmail("");
       setDisplayName("");
       setRole("writer");
+      setContractSigned(false);
       qc.invalidateQueries({ queryKey: ["olympus-team", missionId] });
     } catch (err: any) {
       toast.error(err?.message ?? "Failed to add member");
@@ -286,15 +289,28 @@ function ManualAddPanel({ missionId }: { missionId: string }) {
         <div className="flex items-end">
           <button
             type="submit"
-            disabled={busy}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+            disabled={busy || !contractSigned}
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            title={!contractSigned ? "Confirm the contract is signed first" : undefined}
           >
             {busy ? "Adding…" : "Add to mission"}
           </button>
         </div>
+        <div className="md:col-span-4">
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-xs">
+            <input
+              type="checkbox"
+              checked={contractSigned}
+              onChange={(e) => setContractSigned(e.target.checked)}
+              className="h-3.5 w-3.5"
+            />
+            <span className="font-medium">Contract signed</span>
+            <span className="text-muted-foreground">— required before this person gets access</span>
+          </label>
+        </div>
       </form>
       <p className="px-5 pb-4 text-[11px] text-muted-foreground">
-        If they don't have an Atlas account yet, we'll send them an email invite and add them to this mission immediately.
+        Tick <strong>Contract signed</strong> once the paperwork is back. We'll then send the magic-link invite and add them to this mission immediately.
       </p>
     </div>
   );
