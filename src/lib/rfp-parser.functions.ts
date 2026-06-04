@@ -99,6 +99,17 @@ function fallbackExtractQuestions(text: string): ParsedQuestion[] {
 
 /** Extract text content from .docx (zip → word/document.xml → strip tags). */
 async function extractDocxText(bytes: ArrayBuffer): Promise<string> {
+  // Validate zip signature (PK\x03\x04) — .docx is a zip
+  const head = new Uint8Array(bytes.slice(0, 4));
+  const isZip = head[0] === 0x50 && head[1] === 0x4b && head[2] === 0x03 && head[3] === 0x04;
+  if (!isZip) {
+    const isPdf = head[0] === 0x25 && head[1] === 0x50 && head[2] === 0x44 && head[3] === 0x46;
+    throw new Error(
+      isPdf
+        ? "This file is a PDF, not a .docx. Please re-upload the RFP as a Word .docx file."
+        : "This file is not a valid .docx (Word) document. Please re-upload as a .docx file.",
+    );
+  }
   const JSZipMod = await import("jszip");
   const JSZip = JSZipMod.default ?? JSZipMod;
   const zip = await JSZip.loadAsync(bytes);
