@@ -39,6 +39,7 @@ const TYPE_ORDER: VaultDocType[] = [
   "contract",
   "scope_of_work",
   "style_guide",
+  "outline_template",
   "dpa",
   "other",
 ];
@@ -48,6 +49,7 @@ const TYPE_ICON: Record<VaultDocType, typeof Shield> = {
   contract: ScrollText,
   scope_of_work: FileText,
   style_guide: BookOpen,
+  outline_template: FileText,
   dpa: Shield,
   other: Paperclip,
 };
@@ -57,6 +59,7 @@ const TYPE_ACCENT: Record<VaultDocType, string> = {
   contract: "rgba(245,158,11,0.45)",       // amber
   scope_of_work: "rgba(56,189,248,0.45)",  // sky
   style_guide: "rgba(168,85,247,0.45)",    // violet
+  outline_template: "rgba(132,204,22,0.45)", // lime
   dpa: "rgba(34,211,238,0.45)",            // iris cyan
   other: "rgba(148,163,184,0.35)",         // slate
 };
