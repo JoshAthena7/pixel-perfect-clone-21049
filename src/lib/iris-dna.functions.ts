@@ -339,7 +339,11 @@ export const generateMissionDna = createServerFn({ method: "POST" })
         status: "pending" as const,
       }));
       const { error: tasksErr } = await supabase.from("research_tasks").insert(rows);
-      if (tasksErr) console.warn("[dna] research_tasks insert warning:", tasksErr.message);
+      // NEVER log request body or parameters here — may contain draft content. See data security spec.
+      if (tasksErr) {
+        const { logSafeWarn } = await import("./sanitise-error");
+        logSafeWarn("iris-dna.research_tasks_insert", tasksErr);
+      }
     }
 
     // 6. Audit

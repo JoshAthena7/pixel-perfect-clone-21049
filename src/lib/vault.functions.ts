@@ -1,7 +1,17 @@
 // Per-mission Vault: client reference documents (DSR, contract, SOW, style guide, other).
+// M4: every uploaded file is validated server-side — mime allowlist, size cap,
+// magic bytes, and PHI scan on extracted text — before the row is created.
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import {
+  validateVaultMime,
+  validateVaultSize,
+  validateVaultMagicBytes,
+  extractTextForPHIScan,
+  VAULT_MAX_BYTES,
+} from "./file-validation";
+import { assertNoPHI } from "./phi-detection";
 
 export const VAULT_DOC_TYPES = [
   "data_security",
@@ -117,6 +127,63 @@ export const createVaultDoc = createServerFn({ method: "POST" })
       throw new Error("Either a file upload or an external link is required.");
     }
 
+    // ─── M4: server-side file validation (uploads only) ────────────────
+    if (data.filePath) {
+      // 1. mime allowlist + extension match
+      if (!data.mimeType) {
+        throw new Error(JSON.stringify({ error: "unsupported_file_type", message: "MIME type required for uploads." }));
+      }
+      const mimeErr = validateVaultMime(data.title, data.mimeType);
+      if (mimeErr) throw new Error(JSON.stringify(mimeErr));
+
+      // 2. size cap (trust the declared size as a fast-path reject, then
+      //    re-check the actual bytes below)
+      if (typeof data.fileSize === "number") {
+        const sizeErr = validateVaultSize(data.fileSize);
+        if (sizeErr) throw new Error(JSON.stringify(sizeErr));
+      }
+
+      // 3. download the bytes once for magic-bytes + PHI scan
+      const { data: blob, error: dlErr } = await supabase.storage
+        .from("mission-library")
+        .download(data.filePath);
+      if (dlErr || !blob) throw new Error("Uploaded file could not be read for validation.");
+      const arrayBuf = await blob.arrayBuffer();
+      const buf = new Uint8Array(arrayBuf);
+
+      // Actual-size re-check
+      const sizeErr = validateVaultSize(buf.byteLength);
+      if (sizeErr) {
+        await supabase.storage.from("mission-library").remove([data.filePath]);
+        throw new Error(JSON.stringify(sizeErr));
+      }
+
+      // 4. magic bytes vs declared MIME
+      const magicErr = validateVaultMagicBytes(buf, data.mimeType);
+      if (magicErr) {
+        await supabase.storage.from("mission-library").remove([data.filePath]);
+        throw new Error(JSON.stringify(magicErr));
+      }
+
+      // 5. PHI scan on extracted text. Fail-closed: rejection deletes the
+      //    uploaded blob and throws the standard PHI error payload so the UI
+      //    can render the non-dismissible warning.
+      const text = extractTextForPHIScan(buf, data.mimeType);
+      if (text && text.length > 0) {
+        try {
+          await assertNoPHI({
+            text,
+            surface: "vault_upload",
+            actorUserId: userId,
+          });
+        } catch (e) {
+          // Best-effort cleanup of the rejected upload
+          await supabase.storage.from("mission-library").remove([data.filePath]).catch(() => {});
+          throw e;
+        }
+      }
+    }
+
     const { data: profile } = await supabase
       .from("profiles")
       .select("display_name, full_name, email")
@@ -145,6 +212,9 @@ export const createVaultDoc = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return row as VaultDoc;
   });
+
+/** Exported limit for client-side pre-check UX. */
+export const VAULT_UPLOAD_MAX_BYTES = VAULT_MAX_BYTES;
 
 // ─── Delete ────────────────────────────────────────────────────────────────
 export const deleteVaultDoc = createServerFn({ method: "POST" })
