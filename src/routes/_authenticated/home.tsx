@@ -14,6 +14,7 @@ import { HORIZON_FILTERS, inferCategory, matchesHorizonFilter, type IntelItem } 
 import { LiveBadge, ScanningBeam, IrisWaveform, TypewriterText } from "@/components/v2/effects";
 import athenaLogo from "@/assets/athena-logo.png";
 import atlasLogo from "@/assets/atlas-logo.png.asset.json";
+import { LegacyRecord } from "@/components/v4/LegacyRecord";
 import type { ReactNode } from "react";
 
 
