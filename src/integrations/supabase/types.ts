@@ -4341,6 +4341,155 @@ export type Database = {
           },
         ]
       }
+      signal_messages: {
+        Row: {
+          attachments: Json | null
+          body: string
+          id: string
+          is_priority: boolean
+          quote_of: string | null
+          sender_id: string
+          sent_at: string
+          thread_id: string
+        }
+        Insert: {
+          attachments?: Json | null
+          body: string
+          id?: string
+          is_priority?: boolean
+          quote_of?: string | null
+          sender_id: string
+          sent_at?: string
+          thread_id: string
+        }
+        Update: {
+          attachments?: Json | null
+          body?: string
+          id?: string
+          is_priority?: boolean
+          quote_of?: string | null
+          sender_id?: string
+          sent_at?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signal_messages_quote_of_fkey"
+            columns: ["quote_of"]
+            isOneToOne: false
+            referencedRelation: "signal_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signal_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "signal_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      signal_pins: {
+        Row: {
+          id: string
+          pinned_at: string
+          pinned_by: string
+          signal_id: string
+          thread_id: string
+        }
+        Insert: {
+          id?: string
+          pinned_at?: string
+          pinned_by: string
+          signal_id: string
+          thread_id: string
+        }
+        Update: {
+          id?: string
+          pinned_at?: string
+          pinned_by?: string
+          signal_id?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signal_pins_signal_id_fkey"
+            columns: ["signal_id"]
+            isOneToOne: false
+            referencedRelation: "signal_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signal_pins_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "signal_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      signal_thread_participants: {
+        Row: {
+          id: string
+          is_archived: boolean
+          joined_at: string
+          last_read_at: string
+          thread_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          is_archived?: boolean
+          joined_at?: string
+          last_read_at?: string
+          thread_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          is_archived?: boolean
+          joined_at?: string
+          last_read_at?: string
+          thread_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signal_thread_participants_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "signal_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      signal_threads: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          last_activity_at: string
+          name: string | null
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          last_activity_at?: string
+          name?: string | null
+          type: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          last_activity_at?: string
+          name?: string | null
+          type?: string
+        }
+        Relationships: []
+      }
       signals: {
         Row: {
           confidence: number | null
@@ -4940,6 +5089,10 @@ export type Database = {
       }
       is_olympus_user: { Args: { _user_id: string }; Returns: boolean }
       is_platform_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_signal_thread_participant: {
+        Args: { _thread_id: string; _user_id: string }
+        Returns: boolean
+      }
       leadership_count: { Args: { _engagement_id: string }; Returns: number }
       match_intel_to_questions: {
         Args: {
