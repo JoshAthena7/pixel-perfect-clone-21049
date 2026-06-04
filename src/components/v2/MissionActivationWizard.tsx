@@ -209,7 +209,6 @@ function Step1Setup({
         health: "Yellow",
         created_by: user.id,
       };
-      if (slack.trim()) insertRow.slack_webhook = slack.trim();
       const { data, error } = await supabase
         .from("missions")
         .insert(insertRow as never)
@@ -217,6 +216,12 @@ function Step1Setup({
         .single();
       if (error) throw new Error(error.message);
       if (!data?.id) throw new Error("Created but no id returned.");
+      if (slack.trim()) {
+        await supabase.rpc("set_mission_slack_webhook" as never, {
+          _mission_id: data.id,
+          _webhook: slack.trim(),
+        } as never);
+      }
       await logOlympusAction({
         action_type: "mission.create",
         action_summary: `Created mission "${name.trim()}"`,
