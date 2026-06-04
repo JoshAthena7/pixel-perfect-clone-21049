@@ -1168,6 +1168,78 @@ export type Database = {
           },
         ]
       }
+      collective_members: {
+        Row: {
+          created_at: string
+          email: string | null
+          external_id: string | null
+          full_name: string
+          id: string
+          imported_at: string
+          imported_by: string | null
+          is_active: boolean
+          location: string | null
+          notes: string | null
+          phone: string | null
+          profile_id: string | null
+          skill_tags: string[]
+          source: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          external_id?: string | null
+          full_name: string
+          id?: string
+          imported_at?: string
+          imported_by?: string | null
+          is_active?: boolean
+          location?: string | null
+          notes?: string | null
+          phone?: string | null
+          profile_id?: string | null
+          skill_tags?: string[]
+          source?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          external_id?: string | null
+          full_name?: string
+          id?: string
+          imported_at?: string
+          imported_by?: string | null
+          is_active?: boolean
+          location?: string | null
+          notes?: string | null
+          phone?: string | null
+          profile_id?: string | null
+          skill_tags?: string[]
+          source?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collective_members_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collective_members_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collective_memory: {
         Row: {
           detail: string | null
