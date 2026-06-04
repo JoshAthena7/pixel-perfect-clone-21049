@@ -38,7 +38,7 @@ export const inviteMissionMember = createServerFn({ method: "POST" })
     const { data: roleCheck } = await supabase.rpc("has_mission_role", {
       _mission_id: data.missionId,
       _user_id: userId,
-      _roles: ["admin", "lead"],
+      _roles: [...LEAD_ROLES],
     });
     if (!roleCheck) throw new Error("Only mission admins or leads can invite members.");
 
@@ -88,7 +88,7 @@ export const addCollectiveMemberToMission = createServerFn({ method: "POST" })
     const { data: roleCheck, error: roleErr } = await supabase.rpc("has_mission_role", {
       _mission_id: data.missionId,
       _user_id: userId,
-      _roles: ["admin", "lead"],
+      _roles: [...LEAD_ROLES],
     });
     if (roleErr) throw new Error(roleErr.message);
     if (!roleCheck) throw new Error("Only mission admins or leads can add team members.");
