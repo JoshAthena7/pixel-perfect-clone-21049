@@ -13,6 +13,8 @@ import { Link } from "@tanstack/react-router";
 import { createSignal } from "@/lib/signals";
 import { PersonFirstHint } from "@/components/v2/PersonFirstHint";
 import { Scorecard } from "@/components/v2/Scorecard";
+import { PHIRejectionWarning } from "@/components/v2/PHIRejectionWarning";
+import { parsePHIError, type PHIErrorPayload } from "@/lib/phi-detection";
 
 type Analysis = ScoreMeV2Result;
 
