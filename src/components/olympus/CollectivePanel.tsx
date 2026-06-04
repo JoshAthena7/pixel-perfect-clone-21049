@@ -376,7 +376,7 @@ export function CollectivePanel({ missionId }: { missionId: string | null }) {
             onChange={(e) => setAddRole(e.target.value as Role)}
             className="rounded-md border border-border bg-background px-2 py-1 text-xs"
           >
-            {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+            {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
           </select>
         </div>
       </div>
