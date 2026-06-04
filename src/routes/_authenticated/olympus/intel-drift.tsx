@@ -47,7 +47,7 @@ function IntelDriftPage() {
       });
       setLastResult(res);
       toast.success(
-        `Recalibrated · ${res.memoriesSuperseded} memories superseded · ${res.cacheCleared} briefs cleared · ${res.researched} questions re-researched`,
+        `Recalibrated · ${res.memoriesSuperseded} memories superseded · ${res.cacheCleared} briefs cleared · ${res.queuedForResearch ?? 0} questions re-queued`,
       );
       setReason("");
     } catch (e) {
