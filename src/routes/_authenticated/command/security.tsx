@@ -129,6 +129,38 @@ function SecurityPage() {
           />
         </div>
 
+        {/* Active protections — implemented today */}
+        <SectionHeader index="03" title="Active protections — shipped in Atlas today" />
+        <p className="mt-3 text-sm text-muted-foreground max-w-2xl">
+          These are not roadmap items. Every safeguard below is live in production
+          and enforced server-side on every request.
+        </p>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          {ACTIVE_PROTECTIONS.map((p, i) => (
+            <div
+              key={i}
+              className="rounded-[12px] border border-emerald-500/20 bg-emerald-500/[0.03] px-5 py-4"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <p.icon className="h-4 w-4 text-emerald-400" />
+                  <div className="text-[13px] font-semibold text-foreground/95">{p.title}</div>
+                </div>
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/12 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-300">
+                  <CheckCircle2 className="h-2.5 w-2.5" /> Live
+                </span>
+              </div>
+              <p className="mt-2 text-[12px] text-muted-foreground leading-relaxed">{p.body}</p>
+              {p.detail && (
+                <div className="mt-2 text-[11px] text-foreground/70 font-mono leading-relaxed">
+                  {p.detail}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+
         {/* Contractual commitments */}
         <SectionHeader index="03" title="The Data Processing Agreement" />
         <p className="mt-3 text-sm text-muted-foreground max-w-2xl">
