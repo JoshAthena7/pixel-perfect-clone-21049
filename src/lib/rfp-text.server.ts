@@ -61,13 +61,13 @@ export async function loadRfpText(
   const lower = (doc.name as string).toLowerCase();
   const bytes = await file.arrayBuffer();
   let text = "";
-  if (lower.endsWith(".docx")) {
+  if (lower.endsWith(".docx") || lower.endsWith(".pdf")) {
     text = await extractDocxText(bytes);
   } else if (lower.endsWith(".txt") || lower.endsWith(".md")) {
     text = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
   } else {
     throw new Error(
-      `IRIS can only analyze .docx (or .txt/.md) files right now — "${doc.name}" is not supported. Please re-upload the RFP/amendment as a Word .docx file.`,
+      `IRIS can only analyze .docx, .pdf, .txt, or .md files right now — "${doc.name}" is not supported.`,
     );
   }
   if (text.length < 200) throw new Error("Document text too short — could not extract meaningful content");
