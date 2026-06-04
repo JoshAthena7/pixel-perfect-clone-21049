@@ -187,7 +187,9 @@ function BriefPage() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
+
 
       {/* Headline */}
       <div className="rounded-[10px] border border-border bg-surface p-6">
