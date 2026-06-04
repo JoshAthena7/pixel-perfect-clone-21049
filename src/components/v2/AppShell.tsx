@@ -2,13 +2,14 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useParams, useNavigate, useRouter } from "@tanstack/react-router";
 import {
   LogOut, User, Shield, Settings2,
-  Plane, Search, HelpCircle, ArrowLeft, Megaphone,
+  Plane, Search, HelpCircle, ArrowLeft, Megaphone, Radio,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { irisLeadershipAttention } from "@/lib/iris.functions";
 import { getUnacknowledgedBriefings } from "@/lib/brief-room.functions";
+import { getUnreadSignalsCount } from "@/lib/signals.functions";
 import { useIsAdmin } from "@/hooks/useAccess";
 import { toast } from "sonner";
 
@@ -207,6 +208,7 @@ function TopBar({
           <HelpCircle size={16} strokeWidth={1.5} />
         </button>
         <BriefRoomNavButton />
+        <SignalsNavButton />
         <SignOutButton />
         <UserAvatarMenu />
         {isAdmin && (
