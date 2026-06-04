@@ -9,7 +9,7 @@ import {
   LayoutGrid, Users, FileText, ClipboardCheck, Trophy,
   FolderOpen, Settings as SettingsIcon, UserCog, History, Brain,
   Search, Inbox, Library, BookOpen, Bell, LifeBuoy, UserPlus, Activity,
-  ShieldAlert, UserMinus, ExternalLink, AlertTriangle,
+  ShieldAlert, UserMinus, ExternalLink, AlertTriangle, Megaphone,
 } from "lucide-react";
 
 import { useServerFn } from "@tanstack/react-start";
