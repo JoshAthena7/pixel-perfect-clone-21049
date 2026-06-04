@@ -349,7 +349,7 @@ export function CollectivePanel({ missionId }: { missionId: string | null }) {
           {allTags.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
         <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-          Invite as
+          Add as
           <select
             value={inviteRole}
             onChange={(e) => setInviteRole(e.target.value as Role)}
@@ -417,11 +417,11 @@ export function CollectivePanel({ missionId }: { missionId: string | null }) {
                     <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => inviteToMission(c)}
-                        disabled={!missionId}
+                        disabled={!missionId || busyMemberId === c.id}
                         title={missionId ? "Add to current mission" : "Select a mission first"}
                         className="flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] hover:bg-surface-hover disabled:opacity-40"
                       >
-                        <UserPlus className="h-3 w-3" /> Add
+                        <UserPlus className="h-3 w-3" /> {busyMemberId === c.id ? "Adding…" : "Add"}
                       </button>
                       <button
                         onClick={() => removeFromCollective(c)}
