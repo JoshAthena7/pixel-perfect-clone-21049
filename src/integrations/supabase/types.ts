@@ -4339,6 +4339,7 @@ export type Database = {
         | "style_guide"
         | "other"
         | "dpa"
+        | "outline_template"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4473,6 +4474,7 @@ export const Constants = {
         "style_guide",
         "other",
         "dpa",
+        "outline_template",
       ],
     },
   },
