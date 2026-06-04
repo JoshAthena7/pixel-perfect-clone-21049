@@ -162,7 +162,7 @@ function SecurityPage() {
 
 
         {/* Contractual commitments */}
-        <SectionHeader index="03" title="The Data Processing Agreement" />
+        <SectionHeader index="04" title="The Data Processing Agreement" />
         <p className="mt-3 text-sm text-muted-foreground max-w-2xl">
           The Atlas DPA is a standard addendum to all client contracts. It commits Atlas to:
         </p>
