@@ -108,8 +108,13 @@ function MissionSettingsForm({ missionId }: { missionId: string }) {
       win_themes: f.win_themes,
       priority_topics: f.priority_topics,
       competitors: f.competitors,
-      ...(f.slack_webhook && f.slack_webhook.trim() ? { slack_webhook: f.slack_webhook.trim() } : {}),
     }).eq("id", missionId);
+    if (!error && f.slack_webhook && f.slack_webhook.trim()) {
+      await supabase.rpc("set_mission_slack_webhook" as never, {
+        _mission_id: missionId,
+        _webhook: f.slack_webhook.trim(),
+      } as never);
+    }
     setBusy(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Mission updated");
