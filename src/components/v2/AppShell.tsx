@@ -194,18 +194,17 @@ function TopBar({
           <HelpCircle size={16} strokeWidth={1.5} />
         </button>
         <UserAvatarMenu />
-        {isPrivileged && (
-          <Link
-            to="/olympus"
-            aria-label="Olympus"
-            title="Olympus · Admin"
-            className={`inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors ${
-              isOlympus ? "bg-white/5 text-foreground" : ""
-            }`}
-          >
-            <Settings2 size={16} strokeWidth={1.5} className="text-[color:var(--athena-gold)]" />
-          </Link>
-        )}
+        <Link
+          to="/olympus"
+          aria-label="Olympus"
+          title="Olympus · Admin"
+          className={`inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors ${
+            isOlympus ? "bg-white/5 text-foreground" : ""
+          }`}
+        >
+          <Settings2 size={14} strokeWidth={1.5} className="text-[color:var(--athena-gold)]" />
+          Olympus
+        </Link>
       </div>
     </header>
   );
