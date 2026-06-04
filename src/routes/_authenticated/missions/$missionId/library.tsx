@@ -1,9 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { FileText, ExternalLink, Search, Sparkles, CheckCircle2, Loader2, RefreshCw } from "lucide-react";
+import { FileText, ExternalLink, Search, Sparkles, CheckCircle2, Loader2, RefreshCw, Shield, ChevronRight } from "lucide-react";
 import { VaultIcon } from "@/components/v2/icons/AtlasIcons";
 import { getLibraryIndexStatus, reindexMissionDocuments } from "@/lib/mission-activation.functions";
 import { toast } from "sonner";
@@ -134,6 +134,27 @@ function LibraryPage() {
       <p className="mb-3 text-xs text-muted-foreground">
         Documents are managed in Olympus. Contact your Engagement Lead to upload new materials.
       </p>
+
+      {/* Vault shortcut */}
+      <Link
+        to="/missions/$missionId/vault"
+        params={{ missionId }}
+        className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-amber-500/30 bg-amber-500/[0.06] px-4 py-3 transition hover:bg-amber-500/[0.10]"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <Shield className="h-5 w-5 text-amber-300 shrink-0" />
+          <div className="min-w-0">
+            <div className="text-sm font-medium text-foreground">
+              Client Reference Vault
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Data Security Requirements · Contract · Scope of Work · Style Guide
+            </div>
+          </div>
+        </div>
+        <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+      </Link>
+
 
       {/* IRIS indexing status bar */}
       <div className="mb-5 flex items-center justify-between gap-3 rounded-md border border-[#C49A22]/20 bg-[#C49A22]/[0.05] px-3 py-2 text-xs">
