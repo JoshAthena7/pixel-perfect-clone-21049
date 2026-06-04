@@ -2,14 +2,14 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useParams, useNavigate, useRouter } from "@tanstack/react-router";
 import {
   LogOut, User, Shield, Settings2,
-  Plane, Search, HelpCircle, ArrowLeft, Megaphone, Radio,
+  Plane, Search, HelpCircle, ArrowLeft, Megaphone,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { irisLeadershipAttention } from "@/lib/iris.functions";
 import { getUnacknowledgedBriefings } from "@/lib/brief-room.functions";
-import { getUnreadSignalsCount } from "@/lib/signals.functions";
+
 import { useIsAdmin } from "@/hooks/useAccess";
 import { toast } from "sonner";
 
@@ -210,7 +210,7 @@ function TopBar({
           <HelpCircle size={16} strokeWidth={1.5} />
         </button>
         <BriefRoomNavButton />
-        <SignalsNavButton />
+        
         <SignOutButton />
         <UserAvatarMenu />
         {isAdmin && (
@@ -282,34 +282,6 @@ function BriefRoomNavButton() {
   );
 }
 
-// ─── Signals nav button with unread badge ─────────────────────────────────
-function SignalsNavButton() {
-  const fn = useServerFn(getUnreadSignalsCount);
-  const { data } = useQuery({
-    queryKey: ["signals", "unread-badge"],
-    queryFn: () => fn(),
-    refetchInterval: 30_000,
-  });
-  const count = data?.count ?? 0;
-  return (
-    <Link
-      to="/signals"
-      title={count > 0 ? `You have ${count} unread Signal(s).` : "Signals"}
-      aria-label="Signals"
-      className="relative inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
-    >
-      <Radio size={16} strokeWidth={1.5} />
-      {count > 0 && (
-        <span
-          className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] px-1 rounded-full text-[9px] font-bold inline-flex items-center justify-center"
-          style={{ background: "#f59e0b", color: "#0a0a0a" }}
-        >
-          {count > 9 ? "9+" : count}
-        </span>
-      )}
-    </Link>
-  );
-}
 
 // ─── Sign out button (always visible in header) ───────────────────────────
 function SignOutButton() {

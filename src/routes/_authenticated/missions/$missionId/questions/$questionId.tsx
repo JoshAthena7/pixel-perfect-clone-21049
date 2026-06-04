@@ -17,6 +17,7 @@ import { CoPilotInbox } from "@/components/v2/CoPilotInbox";
 import { ConfidenceButton, ConfidenceDot } from "@/components/v2/CockpitConfidence";
 import { toast } from "sonner";
 import { Eye } from "lucide-react";
+import { ThreadPanel } from "@/components/threads/ThreadPanel";
 import {
   Sparkles, Send, RefreshCw, AlertTriangle, MessageSquare, ChevronDown, ChevronUp,
   CheckCircle2, ArrowLeftRight, FileEdit, Lightbulb, Pin, CornerDownLeft, X, LifeBuoy,
@@ -503,6 +504,7 @@ function CockpitPage() {
 
   return (
     <div style={{ background: "#0a0e1a", minHeight: "100vh" }} className="text-foreground">
+      <ThreadsLauncher questionId={questionId} />
       {isReadOnlyView && (
         <div
           className="sticky top-0 z-40 flex h-10 items-center justify-between gap-3 border-b px-10 text-[12px]"
@@ -1652,5 +1654,34 @@ function StatusPill({ current, onPick }: { current: StatusLabel; onPick: (s: Sta
     </div>
   );
 }
+
+function ThreadsLauncher({ questionId }: { questionId: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        title="Open internal threads (Athena-only)"
+        aria-label="Threads"
+        className="fixed right-5 bottom-5 z-30 inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[12px] font-medium shadow-lg transition hover:-translate-y-0.5"
+        style={{
+          background: "#0b1220",
+          border: "1px solid rgba(94,234,212,0.4)",
+          color: "#5eead4",
+        }}
+      >
+        <MessageSquare className="h-3.5 w-3.5" />
+        Threads
+      </button>
+      <ThreadPanel
+        open={open}
+        onClose={() => setOpen(false)}
+        objectType="question_record"
+        objectId={questionId}
+      />
+    </>
+  );
+}
+
 
 
