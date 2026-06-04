@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Brain, Plus, Search, X, Loader2, Sparkles, Pencil, Archive, Trash2, ChevronDown } from "lucide-react";
+import { Brain, Plus, Search, X, Loader2, Sparkles, Pencil, Archive, Trash2, ChevronDown, CheckCircle } from "lucide-react";
 import {
   irisAnalyzeMemory,
   saveIrisMemory,
