@@ -12,6 +12,7 @@ export const Route = createFileRoute("/_authenticated/olympus/audit")({
 
 type Entry = {
   id: string;
+  user_id: string | null;
   user_name: string | null;
   action_type: string;
   action_summary: string;
