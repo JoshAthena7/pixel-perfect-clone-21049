@@ -16,6 +16,7 @@ import {
   Plus,
   Loader2,
   Link2,
+  Lock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
