@@ -153,7 +153,7 @@ export const recalibrateMissionIntel = createServerFn({ method: "POST" })
         `• Mission Intelligence DNA regenerated from the latest RFP${dnaResult.ok ? "" : ` (failed: ${dnaResult.error})`}\n` +
         `• ${memoriesSuperseded ?? 0} mission-scoped IRIS memories superseded (kept for audit)\n` +
         `• ${cacheCleared ?? 0} cached briefs cleared\n` +
-        `• ${researched} research questions re-run through Perplexity (${researchFailed} failed)\n\n` +
+        `• ${queuedForResearch} research questions re-queued (will run in background / on next open)\n\n` +
         `All Question Briefs, Mission Briefs, and Lobby Briefs will regenerate on next open. ` +
         `Please re-run Score Me on any question you've already drafted.`,
     });
