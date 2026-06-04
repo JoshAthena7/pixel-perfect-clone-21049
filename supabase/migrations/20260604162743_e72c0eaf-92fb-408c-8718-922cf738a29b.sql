@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS emb_select_members ON public.embeddings;
