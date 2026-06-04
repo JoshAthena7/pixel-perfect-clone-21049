@@ -1,9 +1,11 @@
 import { useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Upload, Search, UserPlus, Trash2, Users, Tag } from "lucide-react";
 import { logOlympusAction } from "@/lib/audit";
+import { addCollectiveMemberToMission } from "@/lib/mission-members.functions";
 
 type Collective = {
   id: string;
@@ -20,7 +22,7 @@ type Collective = {
   imported_at: string;
 };
 
-const ROLES = ["admin", "lead", "writer", "sme", "reviewer", "observer"] as const;
+const ROLES = ["admin", "lead", "writer", "sme", "viewer"] as const;
 type Role = (typeof ROLES)[number];
 
 // ---------- CSV parsing ----------
@@ -116,12 +118,14 @@ function parseRows(text: string): { rows: ParsedRow[]; errors: string[]; headerM
 // ---------- Component ----------
 export function CollectivePanel({ missionId }: { missionId: string | null }) {
   const qc = useQueryClient();
+  const addCollectiveMember = useServerFn(addCollectiveMemberToMission);
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<ParsedRow[] | null>(null);
   const [importing, setImporting] = useState(false);
   const [search, setSearch] = useState("");
   const [tagFilter, setTagFilter] = useState<string | null>(null);
-  const [inviteRole, setInviteRole] = useState<Role>("writer");
+  const [addRole, setAddRole] = useState<Role>("writer");
+  const [busyMemberId, setBusyMemberId] = useState<string | null>(null);
 
   const { data: collective = [], isLoading } = useQuery({
     queryKey: ["collective-members"],
@@ -214,32 +218,25 @@ export function CollectivePanel({ missionId }: { missionId: string | null }) {
 
   async function inviteToMission(c: Collective) {
     if (!missionId) { toast.error("Select a mission from the header first"); return; }
-    if (!c.profile_id) {
-      toast.message(`${c.full_name} hasn't signed in yet — ask them to sign up with ${c.email ?? "their email"}, then re-import or invite.`);
-      return;
+    setBusyMemberId(c.id);
+    try {
+      const result = await addCollectiveMember({
+        data: { missionId, collectiveMemberId: c.id, role: addRole },
+      });
+      toast.success(`${result.sentInvite ? "Invited and added" : "Added"} ${c.full_name} as ${addRole}`);
+      await logOlympusAction({
+        action_type: "team.add",
+        action_summary: `${result.sentInvite ? "Invited and added" : "Added"} ${c.full_name} (${c.email ?? "no email"}) from collective as ${addRole}`,
+        mission_id: missionId,
+        target_table: "mission_members",
+      });
+      qc.invalidateQueries({ queryKey: ["olympus-team", missionId] });
+      qc.invalidateQueries({ queryKey: ["collective-members"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not add member to mission");
+    } finally {
+      setBusyMemberId(null);
     }
-    const { data: existing } = await supabase
-      .from("mission_members")
-      .select("id")
-      .eq("mission_id", missionId)
-      .eq("user_id", c.profile_id)
-      .maybeSingle();
-    if (existing) { toast.message(`${c.full_name} is already on this mission`); return; }
-    const { error } = await supabase.from("mission_members").insert({
-      mission_id: missionId,
-      user_id: c.profile_id,
-      role: inviteRole,
-      display_name: c.full_name,
-    });
-    if (error) { toast.error(error.message); return; }
-    toast.success(`Added ${c.full_name} as ${inviteRole}`);
-    await logOlympusAction({
-      action_type: "team.add",
-      action_summary: `Added ${c.full_name} (${c.email ?? "no email"}) from collective as ${inviteRole}`,
-      mission_id: missionId,
-      target_table: "mission_members",
-    });
-    qc.invalidateQueries({ queryKey: ["olympus-team", missionId] });
   }
 
   async function removeFromCollective(c: Collective) {
@@ -352,10 +349,10 @@ export function CollectivePanel({ missionId }: { missionId: string | null }) {
           {allTags.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
         <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-          Invite as
+          Add as
           <select
-            value={inviteRole}
-            onChange={(e) => setInviteRole(e.target.value as Role)}
+            value={addRole}
+            onChange={(e) => setAddRole(e.target.value as Role)}
             className="rounded-md border border-border bg-background px-2 py-1 text-xs"
           >
             {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
@@ -413,18 +410,18 @@ export function CollectivePanel({ missionId }: { missionId: string | null }) {
                     {c.profile_id ? (
                       <span className="inline-flex rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-medium text-emerald-400">Linked</span>
                     ) : (
-                      <span className="inline-flex rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-medium text-amber-400">Pending sign-in</span>
+                      <span className="inline-flex rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-medium text-amber-400">Will invite</span>
                     )}
                   </td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => inviteToMission(c)}
-                        disabled={!missionId}
+                        disabled={!missionId || busyMemberId === c.id}
                         title={missionId ? "Add to current mission" : "Select a mission first"}
                         className="flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] hover:bg-surface-hover disabled:opacity-40"
                       >
-                        <UserPlus className="h-3 w-3" /> Add
+                        <UserPlus className="h-3 w-3" /> {busyMemberId === c.id ? "Adding…" : "Add"}
                       </button>
                       <button
                         onClick={() => removeFromCollective(c)}

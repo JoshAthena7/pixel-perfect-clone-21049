@@ -1,21 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { UserPlus, Trash2, Users as UsersIcon, Mail } from "lucide-react";
+import { Trash2, Users as UsersIcon } from "lucide-react";
 import { useSelectedOlympusMission } from "../olympus";
 import { logOlympusAction } from "@/lib/audit";
 import { EmptyState, EmptyIcon } from "@/components/v2/EmptyState";
 import { CollectivePanel } from "@/components/olympus/CollectivePanel";
-import { inviteMissionMember } from "@/lib/mission-members.functions";
 
 export const Route = createFileRoute("/_authenticated/olympus/team")({
   component: TeamPage,
 });
 
-const ROLES = ["admin", "lead", "writer", "sme", "reviewer", "observer"] as const;
+const ROLES = ["admin", "lead", "writer", "sme", "viewer"] as const;
 type Role = (typeof ROLES)[number];
 
 type MemberRow = {
@@ -36,22 +33,20 @@ function TeamPage() {
         <div className="h2-label" style={{ letterSpacing: "0.32em" }}>Team</div>
         <h1 className="h1-display mt-1">Manage Mission Team</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Invite members, change roles, and remove access for this mission. Or import the entire Athena Collective from TalentDesk and pull people in per project.
+          Review the mission roster, then add people from the Athena Collective with the right role for this mission.
         </p>
       </header>
 
       {missionId ? (
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
+        <div className="space-y-6">
           <Roster missionId={missionId} />
-          <InvitePanel missionId={missionId} />
+          <CollectivePanel missionId={missionId} />
         </div>
       ) : (
         <div className="rounded-[10px] border border-dashed border-border bg-surface px-6 py-4 text-sm text-muted-foreground">
           Select a mission from the header to manage its roster. The Athena Collective directory below is shared across all missions.
         </div>
       )}
-
-      <CollectivePanel missionId={missionId} />
     </div>
   );
 }
@@ -181,227 +176,6 @@ function Roster({ missionId }: { missionId: string }) {
             ))}
           </tbody>
         </table>
-      )}
-    </div>
-  );
-}
-
-function InvitePanel({ missionId }: { missionId: string }) {
-  const qc = useQueryClient();
-  const inviteFn = useServerFn(inviteMissionMember);
-  const [email, setEmail] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [role, setRole] = useState<Role>("writer");
-  const [busy, setBusy] = useState(false);
-  const [results, setResults] = useState<Array<{ id: string; email: string | null; display_name: string | null }> | null>(null);
-
-  const trimmed = email.trim().toLowerCase();
-  const isValidEmail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(trimmed);
-  const hasExactMatch = !!results?.some((r) => r.email?.toLowerCase() === trimmed);
-
-  async function search(q: string) {
-    setEmail(q);
-    if (q.trim().length < 2) { setResults(null); return; }
-    const { data } = await supabase
-      .from("profiles")
-      .select("id,email,display_name")
-      .or(`email.ilike.%${q}%,display_name.ilike.%${q}%`)
-      .limit(8);
-    setResults(data ?? []);
-  }
-
-  async function addExisting(userId: string, label: string) {
-    setBusy(true);
-    const { data: existing } = await supabase
-      .from("mission_members")
-      .select("id")
-      .eq("mission_id", missionId)
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (existing) { toast.message(`${label} is already on this mission`); setBusy(false); return; }
-
-    const { error } = await supabase.from("mission_members").insert({
-      mission_id: missionId,
-      user_id: userId,
-      role,
-      display_name: displayName.trim() || null,
-    });
-    setBusy(false);
-    if (error) return toast.error(error.message);
-    toast.success(`Added ${label} as ${role}`);
-    await logOlympusAction({
-      action_type: "team.add",
-      action_summary: `Added ${label} as ${role}`,
-      mission_id: missionId,
-      target_table: "mission_members",
-    });
-    setEmail("");
-    setDisplayName("");
-    setResults(null);
-    qc.invalidateQueries({ queryKey: ["olympus-team", missionId] });
-  }
-
-  async function inviteNew() {
-    if (!isValidEmail) { toast.error("Enter a valid email address"); return; }
-    if (role === "admin") { toast.error("New invitees can't start as admin — pick another role"); return; }
-    setBusy(true);
-    try {
-      await inviteFn({
-        data: {
-          missionId,
-          email: trimmed,
-          role: role as "lead" | "writer" | "sme" | "viewer",
-          displayName: displayName.trim() || undefined,
-        },
-      });
-      toast.success(`Invited ${trimmed} as ${role}`);
-      await logOlympusAction({
-        action_type: "team.invite",
-        action_summary: `Invited ${trimmed} as ${role} (new account)`,
-        mission_id: missionId,
-        target_table: "mission_members",
-      });
-      setEmail("");
-      setDisplayName("");
-      setResults(null);
-      qc.invalidateQueries({ queryKey: ["olympus-team", missionId] });
-    } catch (e: any) {
-      toast.error(e?.message ?? "Failed to invite member");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <div className="rounded-[10px] border border-border bg-surface p-5">
-      <div className="mb-3 flex items-center gap-2 text-sm font-medium">
-        <UserPlus className="h-4 w-4 text-muted-foreground" /> Invite member
-      </div>
-      <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Role</label>
-      <select
-        value={role}
-        onChange={(e) => setRole(e.target.value as Role)}
-        className="mb-3 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-      >
-        {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-      </select>
-
-      <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Email</label>
-      <input
-        value={email}
-        onChange={(e) => search(e.target.value)}
-        placeholder="josh@athenama.com"
-        className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-      />
-
-      <label className="mt-3 mb-1 block text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Display name (optional)</label>
-      <input
-        value={displayName}
-        onChange={(e) => setDisplayName(e.target.value)}
-        placeholder="Josh Smith"
-        className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-      />
-
-      {results && results.length > 0 && (
-        <div className="mt-2 rounded-md border border-border bg-background max-h-60 overflow-y-auto">
-          {results.map((r) => (
-            <button
-              key={r.id}
-              disabled={busy}
-              onClick={() => addExisting(r.id, r.display_name ?? r.email ?? "user")}
-              className="flex w-full items-center justify-between gap-2 border-b border-border px-3 py-2 text-left text-sm last:border-0 hover:bg-surface-hover disabled:opacity-50"
-            >
-              <div className="min-w-0">
-                <div className="truncate font-medium">{r.display_name ?? r.email}</div>
-                <div className="truncate text-[11px] text-muted-foreground">{r.email}</div>
-              </div>
-              <span className="text-[11px] text-primary">Add as {role}</span>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {isValidEmail && !hasExactMatch && (
-        <button
-          disabled={busy}
-          onClick={inviteNew}
-          className="mt-3 flex w-full items-center justify-center gap-2 rounded-md bg-[#C49A22] px-3 py-2 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50"
-        >
-          <Mail className="h-4 w-4" />
-          {busy ? "Inviting…" : `Invite ${trimmed} as ${role}`}
-        </button>
-      )}
-
-      <p className="mt-3 text-[11px] text-muted-foreground">
-        Existing Athena users show up as suggestions — click to add them. New emails get a magic-link invite and are added to the mission with the role above.
-      </p>
-
-      <BulkInvitePanel missionId={missionId} defaultRole={role} />
-    </div>
-  );
-}
-
-function BulkInvitePanel({ missionId, defaultRole }: { missionId: string; defaultRole: Role }) {
-  const qc = useQueryClient();
-  const [open, setOpen] = useState(false);
-  const [text, setText] = useState("");
-  const [role, setRole] = useState<Role>(defaultRole);
-  const [busy, setBusy] = useState(false);
-
-  async function process() {
-    const emails = Array.from(new Set(
-      text.split(/[\n,;\s]+/).map((s) => s.trim().toLowerCase()).filter((s) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s)),
-    ));
-    if (emails.length === 0) { toast.error("Paste one or more valid email addresses"); return; }
-    setBusy(true);
-    let added = 0, skipped = 0, missing = 0;
-    for (const email of emails) {
-      const { data: prof } = await supabase.from("profiles").select("id,email").eq("email", email).maybeSingle();
-      if (!prof) { missing++; continue; }
-      const { data: existing } = await supabase.from("mission_members").select("id").eq("mission_id", missionId).eq("user_id", prof.id).maybeSingle();
-      if (existing) { skipped++; continue; }
-      const { error } = await supabase.from("mission_members").insert({ mission_id: missionId, user_id: prof.id, role });
-      if (!error) {
-        added++;
-        await logOlympusAction({
-          action_type: "team.add",
-          action_summary: `Bulk-added ${email} as ${role}`,
-          mission_id: missionId,
-          target_table: "mission_members",
-        });
-      }
-    }
-    setBusy(false);
-    toast.success(`Added ${added}, skipped ${skipped}, no profile ${missing}`);
-    if (added > 0) {
-      setText("");
-      qc.invalidateQueries({ queryKey: ["olympus-team", missionId] });
-    }
-  }
-
-  return (
-    <div className="mt-4 rounded-[10px] border border-border bg-surface p-5">
-      <button onClick={() => setOpen((o) => !o)} className="flex w-full items-center justify-between text-sm font-medium">
-        <span className="flex items-center gap-2"><UserPlus className="h-4 w-4 text-muted-foreground" /> Bulk invite</span>
-        <span className="text-[11px] text-muted-foreground">{open ? "Hide" : "Show"}</span>
-      </button>
-      {open && (
-        <div className="mt-3 space-y-2">
-          <select value={role} onChange={(e) => setRole(e.target.value as Role)}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm">
-            {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-          </select>
-          <textarea value={text} onChange={(e) => setText(e.target.value)} rows={5}
-            placeholder={"Paste emails — one per line\nteammate1@firm.com\nteammate2@firm.com"}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm font-mono" />
-          <button onClick={process} disabled={busy}
-            className="w-full rounded-md bg-[#C49A22] px-3 py-2 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50">
-            {busy ? "Inviting…" : "Send All Invitations"}
-          </button>
-          <p className="text-[11px] text-muted-foreground">
-            Users without an Athena profile yet are reported as "no profile" — ask them to sign in once, then re-run.
-          </p>
-        </div>
       )}
     </div>
   );
