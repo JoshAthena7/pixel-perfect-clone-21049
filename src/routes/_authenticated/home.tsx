@@ -15,6 +15,7 @@ import { LiveBadge, ScanningBeam, IrisWaveform, TypewriterText } from "@/compone
 import athenaLogo from "@/assets/athena-logo.png";
 import atlasLogo from "@/assets/atlas-logo.png.asset.json";
 import { LegacyRecord } from "@/components/v4/LegacyRecord";
+import { DailyPulse } from "@/components/v4/DailyPulse";
 import type { ReactNode } from "react";
 
 
@@ -399,6 +400,11 @@ function AthenaHQ() {
           <>
             {/* Cockpit V4 — personal IRIS briefing leads the writer view */}
             <IrisMorningBrief />
+
+            {/* Health Monitoring Phase 1: Daily Pulse */}
+            <DailyPulse />
+
+
 
             <section>
               <div className="mb-5 flex items-end justify-between">
