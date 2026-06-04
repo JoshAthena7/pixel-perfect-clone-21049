@@ -1,5 +1,8 @@
-import { CheckCircle2, AlertTriangle, AlertCircle, Sparkles, Clock, Lightbulb } from "lucide-react";
+import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { CheckCircle2, AlertTriangle, AlertCircle, Sparkles, Clock, Lightbulb, Copy, Check } from "lucide-react";
 import type { DimensionResult, DimensionStatus, ScoreMeV2Result } from "@/lib/score-me-v2.functions";
+import { logScoreMeInteraction } from "@/lib/score-me-interactions.functions";
 
 const DIM_HELP: Record<DimensionResult["key"], string> = {
   person_first: "Universal language compliance. Always on.",
@@ -28,10 +31,12 @@ function statusStyle(s: DimensionStatus) {
 
 export function Scorecard({
   result,
+  missionId,
   onAnother,
   onClose,
 }: {
   result: ScoreMeV2Result;
+  missionId: string;
   onAnother: () => void;
   onClose: () => void;
 }) {
