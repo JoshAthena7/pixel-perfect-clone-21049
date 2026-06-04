@@ -1655,4 +1655,33 @@ function StatusPill({ current, onPick }: { current: StatusLabel; onPick: (s: Sta
   );
 }
 
+function ThreadsLauncher({ questionId }: { questionId: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        title="Open internal threads (Athena-only)"
+        aria-label="Threads"
+        className="fixed right-5 bottom-5 z-30 inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[12px] font-medium shadow-lg transition hover:-translate-y-0.5"
+        style={{
+          background: "#0b1220",
+          border: "1px solid rgba(94,234,212,0.4)",
+          color: "#5eead4",
+        }}
+      >
+        <MessageSquare className="h-3.5 w-3.5" />
+        Threads
+      </button>
+      <ThreadPanel
+        open={open}
+        onClose={() => setOpen(false)}
+        objectType="question_record"
+        objectId={questionId}
+      />
+    </>
+  );
+}
+
+
 
