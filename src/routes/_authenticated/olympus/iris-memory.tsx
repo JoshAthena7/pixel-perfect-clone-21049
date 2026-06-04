@@ -10,6 +10,8 @@ import {
   saveIrisMemory,
   archiveIrisMemory,
   deleteIrisMemory,
+  approveGlobalMemory,
+  rejectGlobalMemory,
 } from "@/lib/iris-memory.functions";
 import { useSelectedOlympusMission } from "../olympus";
 
@@ -54,7 +56,7 @@ type Memory = {
 };
 
 function IrisMemoryPage() {
-  const [tab, setTab] = useState<"memories" | "corrections">("memories");
+  const [tab, setTab] = useState<"memories" | "corrections" | "pending_global">("memories");
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [scopeFilter, setScopeFilter] = useState<"all" | Scope>("all");
   const [importanceFilter, setImportanceFilter] = useState<"all" | Importance>("all");
@@ -161,10 +163,15 @@ function IrisMemoryPage() {
       <div className="mb-5 flex items-center gap-1 border-b border-border">
         <TabButton active={tab === "memories"} onClick={() => setTab("memories")}>Memories</TabButton>
         <TabButton active={tab === "corrections"} onClick={() => setTab("corrections")}>Corrections</TabButton>
+        <TabButton active={tab === "pending_global"} onClick={() => setTab("pending_global")}>
+          Pending Global Review
+        </TabButton>
       </div>
 
       {tab === "corrections" ? (
         <CorrectionsTab />
+      ) : tab === "pending_global" ? (
+        <PendingGlobalTab />
       ) : (
       <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6">
         {/* Left rail */}
