@@ -126,7 +126,10 @@ function AuditPage() {
           <div className="h2-label" style={{ letterSpacing: "0.32em" }}>Audit Log</div>
           <h1 className="h1-display mt-1">Activity History</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Every administrative action taken in Olympus.
+            Every administrative action taken in Olympus. Read-only — exports include the full metadata payload for GDPR Art. 33 breach readiness.
+          </p>
+          <p className="mt-1 text-[11px] text-muted-foreground/80">
+            IP addresses are not currently captured. (Flagged for decision — see H3 follow-ups.)
           </p>
         </div>
         <div className="flex items-center gap-2">
