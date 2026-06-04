@@ -6,7 +6,7 @@ import { getMyPulseContext, submitPulse } from "@/lib/pulses.functions";
 import { toast } from "sonner";
 
 const PROGRESS_LABELS = ["Just started", "In progress", "Almost done", "Ready for review"];
-const CONFIDENCE_LABELS = ["No way", "Long shot", "Maybe", "Likely", "Confident"];
+const CONFIDENCE_LABELS = ["Could use a hand", "Some open questions", "Steady", "Tracking well", "Strong"];
 
 export function DailyPulse() {
   const ctxFn = useServerFn(getMyPulseContext);
@@ -48,7 +48,7 @@ export function DailyPulse() {
       });
     },
     onSuccess: () => {
-      toast.success("Pulse logged. Thank you.");
+      toast.success("Pulse logged. Thanks for the read.");
       setNote("");
       setBlockedReason("");
       setBlocked(false);
@@ -86,7 +86,7 @@ export function DailyPulse() {
             <Heart className="h-3 w-3 text-rose-400" /> Daily Pulse · 60 seconds
           </div>
           <p className="mt-1 text-sm text-foreground/80">
-            How's it going? Honest answers help IRIS catch problems early.
+            How's it going? A quick read so IRIS can clear blockers — not score you.
           </p>
         </div>
         {pending.length > 1 && (
@@ -141,7 +141,7 @@ export function DailyPulse() {
           )}
         </Field>
 
-        <Field label="Confidence you'll hit your next gate">
+        <Field label="How are you feeling about your next gate?">
           <div className="flex gap-1">
             {[1, 2, 3, 4, 5].map((n) => (
               <button
@@ -166,7 +166,7 @@ export function DailyPulse() {
             value={note}
             onChange={(e) => setNote(e.target.value)}
             rows={2}
-            placeholder="Anything else IRIS should know?"
+            placeholder="Anything a teammate should know?"
             className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground"
           />
         </details>
@@ -187,7 +187,7 @@ export function DailyPulse() {
         {blocked && (
           <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-300">
             <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            <span>IRIS will flag this to your lead so you get unblocked fast.</span>
+            <span>IRIS will flag this to your lead so a teammate can help unblock you.</span>
           </div>
         )}
       </div>
