@@ -80,44 +80,45 @@ async function callScoreEngine(system: string, user: string): Promise<any | null
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) return null;
 
-  // Race against a hard timeout so the serverless worker doesn't get killed mid-call.
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 25_000);
+  const { withAICircuit } = await import("./ai-circuit-breaker");
+  return withAICircuit(async () => {
+    // Race against a hard timeout so the serverless worker doesn't get killed mid-call.
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 25_000);
 
-  async function callModel(model: string) {
-    return fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      signal: controller.signal,
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: `${IRIS_BASE_PROMPT}\n\n${system}` },
-          { role: "user", content: user },
-        ],
-        tools: [SCORE_TOOL],
-        tool_choice: { type: "function", function: { name: "emit_score" } },
-      }),
-    });
-  }
+    async function callModel(model: string) {
+      return fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: `${IRIS_BASE_PROMPT}\n\n${system}` },
+            { role: "user", content: user },
+          ],
+          tools: [SCORE_TOOL],
+          tool_choice: { type: "function", function: { name: "emit_score" } },
+        }),
+      });
+    }
 
-  try {
-    // Use a fast model by default; GPT-5 with tool_choice frequently times out (>30s).
-    let res = await callModel("google/gemini-2.5-flash");
-    if (!res.ok && (res.status === 429 || res.status >= 500)) {
-      res = await callModel("google/gemini-2.5-flash-lite");
-    }
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`Score engine failed (${res.status}): ${text.slice(0, 200)}`);
-    }
-    const json = (await res.json()) as any;
-    const args = json?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
-    if (!args) return null;
-    return JSON.parse(args);
-  } catch (e: any) {
-    if (e?.name === "AbortError") {
-      throw new Error("Score engine timed out after 25s. Try again or shorten the response.");
+    try {
+      let res = await callModel("google/gemini-2.5-flash");
+      if (!res.ok && (res.status === 429 || res.status >= 500)) {
+        res = await callModel("google/gemini-2.5-flash-lite");
+      }
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(`Score engine failed (${res.status}): ${text.slice(0, 200)}`);
+      }
+      const json = (await res.json()) as any;
+      const args = json?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+      if (!args) return null;
+      return JSON.parse(args);
+    } catch (e: any) {
+      if (e?.name === "AbortError") {
+        throw new Error("Score engine timed out after 25s. Try again or shorten the response.");
     }
     throw e;
   } finally {
