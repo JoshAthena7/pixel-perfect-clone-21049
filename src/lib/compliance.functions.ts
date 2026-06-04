@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { withPersonFirst } from "./person-first";
 import { loadRfpText } from "./rfp-text.server";
+import { withAICircuit } from "@/lib/ai-circuit-breaker";
 
 const SourceKind = z.enum(["model_contract", "state_regulation"]);
 
@@ -67,21 +68,25 @@ async function callExtractor(documentLabel: string, text: string): Promise<any[]
   // Chunk if huge — process the first ~80k chars in one shot (covers most contracts)
   const truncated = text.slice(0, 80_000);
 
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-pro",
-      messages: [
-        { role: "system", content: withPersonFirst(SYSTEM_PROMPT) },
-        {
-          role: "user",
-          content: `Document: ${documentLabel}\n\n${truncated}\n\nExtract every compliance requirement.`,
-        },
-      ],
-      tools: [EXTRACT_TOOL],
-      tool_choice: { type: "function", function: { name: "emit_compliance_requirements" } },
-    }),
+  const res = await withAICircuit(async () => {
+    const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-pro",
+        messages: [
+          { role: "system", content: withPersonFirst(SYSTEM_PROMPT) },
+          {
+            role: "user",
+            content: `Document: ${documentLabel}\n\n${truncated}\n\nExtract every compliance requirement.`,
+          },
+        ],
+        tools: [EXTRACT_TOOL],
+        tool_choice: { type: "function", function: { name: "emit_compliance_requirements" } },
+      }),
+    });
+    if (r.status >= 500) throw new Error(`AI gateway ${r.status}`);
+    return r;
   });
   if (!res.ok) {
     const body = await res.text().catch(() => "");

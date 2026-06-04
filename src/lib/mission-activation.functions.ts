@@ -9,6 +9,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { extractDocxText } from "./rfp-text.server";
 import { irisGenerateBriefingSection, BRIEFING_SECTION_KEYS } from "./iris.functions";
 import { assertNoPHI } from "@/lib/phi-detection";
+import { withAICircuit } from "@/lib/ai-circuit-breaker";
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const EXTRACTION_MODEL = "google/gemini-2.5-flash";
@@ -53,17 +54,21 @@ async function llmExtractThemes(rawText: string, filename: string, missionName: 
     "For a given document, return a concise summary (2-3 sentences), 3-8 key themes (short noun phrases), " +
     "and the most important named entities (people, orgs, agencies, programs, statutes). Output VALID JSON only.";
   const user = `Mission: ${missionName}\nDocument: ${filename}\n\nContent:\n${trimmed}\n\nReturn JSON with this exact shape: {"summary": "...", "key_themes": ["..."], "key_entities": ["..."]}`;
-  const res = await fetch(GATEWAY_URL, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: EXTRACTION_MODEL,
-      messages: [
-        { role: "system", content: withPersonFirst(sys) },
-        { role: "user", content: user },
-      ],
-      response_format: { type: "json_object" },
-    }),
+  const res = await withAICircuit(async () => {
+    const r = await fetch(GATEWAY_URL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: EXTRACTION_MODEL,
+        messages: [
+          { role: "system", content: withPersonFirst(sys) },
+          { role: "user", content: user },
+        ],
+        response_format: { type: "json_object" },
+      }),
+    });
+    if (r.status >= 500) throw new Error(`AI gateway ${r.status}`);
+    return r;
   });
   if (!res.ok) {
     throw new Error(`AI gateway returned ${res.status}`);

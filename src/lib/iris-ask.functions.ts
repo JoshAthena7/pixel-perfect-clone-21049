@@ -4,22 +4,27 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { fetchIrisMemoryContext, logIrisMemoryUsage } from "./iris-memory.functions";
 import { loadLayeredContext } from "./iris-layered-context";
+import { withAICircuit } from "@/lib/ai-circuit-breaker";
 
 async function callIris(system: string, user: string) {
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) return "_IRIS is not configured yet. The built-in AI key is missing._";
 
   try {
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: withPersonFirst(system) },
-          { role: "user", content: user },
-        ],
-      }),
+    const res = await withAICircuit(async () => {
+      const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: withPersonFirst(system) },
+            { role: "user", content: user },
+          ],
+        }),
+      });
+      if (r.status >= 500) throw new Error(`AI gateway ${r.status}`);
+      return r;
     });
 
     if (res.status === 402) return "_IRIS needs workspace AI credits before it can answer._";

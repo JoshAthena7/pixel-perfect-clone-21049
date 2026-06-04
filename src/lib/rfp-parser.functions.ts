@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { withPersonFirst } from "./person-first";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { withAICircuit } from "@/lib/ai-circuit-breaker";
 
 const Input = z.object({ documentId: z.string().uuid() });
 
@@ -159,22 +160,26 @@ Wrap the array in an object: {"questions": [...]}`;
   for (const model of models) {
     let res: Response;
     try {
-      res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: "system", content: withPersonFirst(system) },
-            { role: "user", content: `RFP TEXT:\n\n${body}` },
-          ],
-          response_format: { type: "json_object" },
-          temperature: 0.1,
-        }),
-        signal: AbortSignal.timeout(45_000),
+      res = await withAICircuit(async () => {
+        const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: "system", content: withPersonFirst(system) },
+              { role: "user", content: `RFP TEXT:\n\n${body}` },
+            ],
+            response_format: { type: "json_object" },
+            temperature: 0.1,
+          }),
+          signal: AbortSignal.timeout(45_000),
+        });
+        if (r.status >= 500) throw new Error(`AI gateway ${r.status}`);
+        return r;
       });
     } catch {
       return fallbackExtractQuestions(text);

@@ -2,38 +2,43 @@ import { createServerFn } from "@tanstack/react-start";
 import { withPersonFirst } from "./person-first";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { withAICircuit } from "@/lib/ai-circuit-breaker";
 
 type Brief = { current_focus: string; next_step: string; waiting_on: string };
 
 async function callGemini(system: string, user: string): Promise<Brief | null> {
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) return null;
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages: [
-        { role: "system", content: withPersonFirst(system) },
-        { role: "user", content: user },
-      ],
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "morning_brief",
-          schema: {
-            type: "object",
-            additionalProperties: false,
-            properties: {
-              current_focus: { type: "string" },
-              next_step: { type: "string" },
-              waiting_on: { type: "string" },
+  const res = await withAICircuit(async () => {
+    const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: withPersonFirst(system) },
+          { role: "user", content: user },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "morning_brief",
+            schema: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                current_focus: { type: "string" },
+                next_step: { type: "string" },
+                waiting_on: { type: "string" },
+              },
+              required: ["current_focus", "next_step", "waiting_on"],
             },
-            required: ["current_focus", "next_step", "waiting_on"],
           },
         },
-      },
-    }),
+      }),
+    });
+    if (r.status >= 500) throw new Error(`AI gateway ${r.status}`);
+    return r;
   });
   if (!res.ok) return null;
   const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };

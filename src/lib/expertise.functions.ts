@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { withAICircuit } from "@/lib/ai-circuit-breaker";
 
 /* ───────────────────────── types returned to client ───────────────────────── */
 
@@ -167,26 +168,30 @@ export const matchExperts = createServerFn({ method: "POST" })
       const apiKey = process.env.LOVABLE_API_KEY;
       if (apiKey) {
         try {
-          const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${apiKey}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              model: "google/gemini-3-flash-preview",
-              messages: [
-                {
-                  role: "system",
-                  content:
-                    "You are IRIS, an expert recommender. Reply with ONE specific sentence (max 35 words) explaining why this person is the right call for this question. Reference their concrete experience — not generic qualities.",
-                },
-                {
-                  role: "user",
-                  content: `QUESTION (Q${q.question_number}): ${q.title}\n\n${q.question_text ?? ""}\n\nMISSION: ${m.name} · ${m.state ?? ""} · ${m.program_type ?? ""}\n\nRECOMMENDED: ${primary.display_name}\nExpertise: ${(primary.expertise_areas ?? []).join(", ")}\nStates: ${(primary.states_experience ?? []).join(", ")}\nPrograms: ${(primary.programs_experience ?? []).join(", ")}\nWins: ${JSON.stringify(primary.notable_wins ?? [])}\nBio: ${primary.expert_bio ?? ""}\n\nReasons we matched them: ${primary.reasons.join("; ")}`,
-                },
-              ],
-            }),
+          const resp = await withAICircuit(async () => {
+            const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${apiKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                model: "google/gemini-3-flash-preview",
+                messages: [
+                  {
+                    role: "system",
+                    content:
+                      "You are IRIS, an expert recommender. Reply with ONE specific sentence (max 35 words) explaining why this person is the right call for this question. Reference their concrete experience — not generic qualities.",
+                  },
+                  {
+                    role: "user",
+                    content: `QUESTION (Q${q.question_number}): ${q.title}\n\n${q.question_text ?? ""}\n\nMISSION: ${m.name} · ${m.state ?? ""} · ${m.program_type ?? ""}\n\nRECOMMENDED: ${primary.display_name}\nExpertise: ${(primary.expertise_areas ?? []).join(", ")}\nStates: ${(primary.states_experience ?? []).join(", ")}\nPrograms: ${(primary.programs_experience ?? []).join(", ")}\nWins: ${JSON.stringify(primary.notable_wins ?? [])}\nBio: ${primary.expert_bio ?? ""}\n\nReasons we matched them: ${primary.reasons.join("; ")}`,
+                  },
+                ],
+              }),
+            });
+            if (r.status >= 500) throw new Error(`AI gateway ${r.status}`);
+            return r;
           });
           if (resp.ok) {
             const json = await resp.json();
