@@ -176,7 +176,10 @@ export function ScoreMeOverlay({ open, onClose, missionId, lockedQuestionId }: P
       </header>
 
       <div className="smbg flex-1 min-h-0 overflow-y-auto">
-        {stage === "input" && (
+        {stage === "input" && fedrampBlocked && (
+          <FedRampBlock missionName={mission?.name ?? "this mission"} onClose={onClose} />
+        )}
+        {stage === "input" && !fedrampBlocked && (
           <InputStage
             selectedQ={selectedQ}
             questions={questions}
