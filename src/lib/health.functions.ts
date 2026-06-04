@@ -113,7 +113,7 @@ export const getMissionHealth = createServerFn({ method: "GET" })
         .select("user_id,role,display_name")
         .eq("mission_id", missionId),
       supabase.from("signals")
-        .select("question_id,created_at,actor_id")
+        .select("related_question_id,created_at,user_id")
         .eq("mission_id", missionId)
         .gte("created_at", new Date(Date.now() - 21 * 86400000).toISOString())
         .limit(2000),
@@ -136,7 +136,7 @@ export const getMissionHealth = createServerFn({ method: "GET" })
       subject_writer_id: string | null; question_id: string | null; severity: string; status: string;
     }>;
     const members = (membersRes.data ?? []) as Array<{ user_id: string; role: string; display_name: string | null }>;
-    const signals = (signalRes.data ?? []) as Array<{ question_id: string | null; created_at: string; actor_id: string | null }>;
+    const signals = (signalRes.data ?? []) as Array<{ related_question_id: string | null; created_at: string; user_id: string | null }>;
 
     // Latest pulse per question
     const latestPulse = new Map<string, typeof pulses[number]>();
@@ -151,9 +151,9 @@ export const getMissionHealth = createServerFn({ method: "GET" })
     // Last activity (signal) per question
     const lastActivity = new Map<string, string>();
     for (const s of signals) {
-      if (!s.question_id) continue;
-      const prev = lastActivity.get(s.question_id);
-      if (!prev || s.created_at > prev) lastActivity.set(s.question_id, s.created_at);
+      if (!s.related_question_id) continue;
+      const prev = lastActivity.get(s.related_question_id);
+      if (!prev || s.created_at > prev) lastActivity.set(s.related_question_id, s.created_at);
     }
 
     const now = Date.now();
@@ -225,7 +225,7 @@ export const getMissionHealth = createServerFn({ method: "GET" })
     }
     const sections: SectionHealth[] = Array.from(sectionMap.entries()).map(([name, qs]) => {
       const avg = Math.round(qs.reduce((a, q) => a + q.composite, 0) / qs.length);
-      const worst = qs.some((q) => q.status === "critical") ? "critical"
+      const worst: SectionHealth["status"] = qs.some((q) => q.status === "critical") ? "critical"
         : qs.some((q) => q.status === "red") ? "red"
         : qs.some((q) => q.status === "yellow") ? "yellow" : "green";
       return { section: name, questions: qs.sort((a, b) => a.composite - b.composite), composite: avg, status: worst };
@@ -270,8 +270,8 @@ export const getMissionHealth = createServerFn({ method: "GET" })
     const qIdToSectionIdx = new Map<string, number>();
     sections.forEach((sec, idx) => sec.questions.forEach((q) => qIdToSectionIdx.set(q.questionId, idx)));
     for (const sig of signals) {
-      if (!sig.question_id) continue;
-      const idx = qIdToSectionIdx.get(sig.question_id);
+      if (!sig.related_question_id) continue;
+      const idx = qIdToSectionIdx.get(sig.related_question_id);
       if (idx == null) continue;
       const dayKey = sig.created_at.slice(0, 10);
       const dayIdx = days.indexOf(dayKey);
