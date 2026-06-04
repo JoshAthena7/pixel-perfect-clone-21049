@@ -2890,6 +2890,47 @@ export type Database = {
         }
         Relationships: []
       }
+      phi_rejection_log: {
+        Row: {
+          actor_user_id: string | null
+          confidence: string | null
+          created_at: string
+          engagement_id: string | null
+          id: string
+          patterns_matched: string[]
+          surface: string
+          writer_id: string | null
+        }
+        Insert: {
+          actor_user_id?: string | null
+          confidence?: string | null
+          created_at?: string
+          engagement_id?: string | null
+          id?: string
+          patterns_matched?: string[]
+          surface: string
+          writer_id?: string | null
+        }
+        Update: {
+          actor_user_id?: string | null
+          confidence?: string | null
+          created_at?: string
+          engagement_id?: string | null
+          id?: string
+          patterns_matched?: string[]
+          surface?: string
+          writer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "phi_rejection_log_writer_id_fkey"
+            columns: ["writer_id"]
+            isOneToOne: false
+            referencedRelation: "writer_identities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pilot_copilot_messages: {
         Row: {
           acknowledged: boolean

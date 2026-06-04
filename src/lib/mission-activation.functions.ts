@@ -8,6 +8,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { extractDocxText } from "./rfp-text.server";
 import { irisGenerateBriefingSection, BRIEFING_SECTION_KEYS } from "./iris.functions";
+import { assertNoPHI } from "@/lib/phi-detection";
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const EXTRACTION_MODEL = "google/gemini-2.5-flash";
@@ -127,6 +128,17 @@ export const extractDocumentIntelligence = createServerFn({ method: "POST" })
       rawText = await extractRawTextFromFile(file, doc.name);
     } else if (doc.url) {
       rawText = `External link: ${doc.url}\nName: ${doc.name}`;
+    }
+
+    // C2: PHI scrub on extracted text BEFORE LLM extraction or DB write.
+    // This is the vault-upload AND document-extraction ingestion path.
+    if (rawText.trim().length > 0) {
+      await assertNoPHI({
+        text: rawText,
+        surface: "vault_upload",
+        actorUserId: context.userId,
+        engagementId: doc.mission_id,
+      });
     }
 
     let extraction: ExtractionJson = { summary: "", key_themes: [], key_entities: [] };

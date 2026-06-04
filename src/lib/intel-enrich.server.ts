@@ -4,6 +4,7 @@ import { withPersonFirst } from "./person-first";
 // pg_cron-triggered /api/public/hooks/ingest-intel route.
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { assertNoPHI } from "@/lib/phi-detection";
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1";
 const EMBED_DIM = 1536; // existing embeddings.embedding column is vector(1536)
@@ -73,6 +74,16 @@ export async function storeEmbedding(args: {
   vector: number[];
   scope: "mission" | "global" | "unclassified";
 }) {
+  // C2: IRIS knowledge ingest path — scrub PHI before persisting embeddings.
+  // Fail-closed: if PHI is detected, the embedding is NOT stored and the
+  // caller receives the structured PHI error.
+  await assertNoPHI({
+    text: args.content_text,
+    surface: "iris_ingest",
+    actorUserId: null,
+    engagementId: args.mission_id,
+  });
+
   await supabaseAdmin.from("embeddings").insert({
     source_table: args.source_table,
     source_id: args.source_id,

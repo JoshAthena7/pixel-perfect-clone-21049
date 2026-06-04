@@ -13,6 +13,8 @@ import { Link } from "@tanstack/react-router";
 import { createSignal } from "@/lib/signals";
 import { PersonFirstHint } from "@/components/v2/PersonFirstHint";
 import { Scorecard } from "@/components/v2/Scorecard";
+import { PHIRejectionWarning } from "@/components/v2/PHIRejectionWarning";
+import { parsePHIError, type PHIErrorPayload } from "@/lib/phi-detection";
 
 type Analysis = ScoreMeV2Result;
 
@@ -48,6 +50,7 @@ export function ScoreMeOverlay({ open, onClose, missionId, lockedQuestionId }: P
   const [responseText, setResponseText] = useState("");
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [phiError, setPhiError] = useState<PHIErrorPayload | null>(null);
 
   const scoreFn = useServerFn(runScoreMe);
   const setupFn = useServerFn(getScoreMeSetup);
@@ -160,8 +163,14 @@ export function ScoreMeOverlay({ open, onClose, missionId, lockedQuestionId }: P
         });
       } catch {}
     } catch (e: any) {
-      setError(e?.message ?? "Scoring failed. Please try again.");
-      setStage("input");
+      const phi = parsePHIError(e?.message);
+      if (phi) {
+        setPhiError(phi);
+        setStage("input");
+      } else {
+        setError(e?.message ?? "Scoring failed. Please try again.");
+        setStage("input");
+      }
     }
   };
 
@@ -169,6 +178,9 @@ export function ScoreMeOverlay({ open, onClose, missionId, lockedQuestionId }: P
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col" style={{ background: "#060b14" }}>
+      {phiError ? (
+        <PHIRejectionWarning payload={phiError} onAcknowledge={() => setPhiError(null)} />
+      ) : null}
       <style>{`
         .smbg {
           background:

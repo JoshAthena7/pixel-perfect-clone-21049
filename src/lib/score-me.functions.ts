@@ -1,8 +1,10 @@
 // NOTE: Draft content is never persisted. This function processes content in memory only. See DPA section 2.1.
+// C2: PHI scrubber runs before the AI call and before any persistence.
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { IRIS_BASE_PROMPT } from "./iris-prompts";
+import { assertNoPHI } from "@/lib/phi-detection";
 
 const SCORE_TOOL = {
   type: "function" as const,
@@ -133,6 +135,13 @@ export const scoreResponse = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+
+    // C2: PHI scrub BEFORE any DB read, AI call, or persistence. Fail-closed.
+    await assertNoPHI({
+      text: data.responseText,
+      surface: "score_me",
+      actorUserId: userId,
+    });
 
     const { data: q } = await supabase
       .from("question_records")

@@ -3,6 +3,7 @@ import { withPersonFirst } from "./person-first";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { loadRfpText, findLatestRfp } from "@/lib/rfp-text.server";
+import { assertNoPHI } from "@/lib/phi-detection";
 
 const Input = z.object({
   documentId: z.string().uuid(),
@@ -205,6 +206,22 @@ export const analyzeAmendment = createServerFn({ method: "POST" })
         loadRfpText(supabase, baseRfp.id),
         loadRfpText(supabase, amendDoc.id),
       ]);
+
+      // C2: PHI scrub on parsed text BEFORE further processing or storage.
+      await assertNoPHI({
+        text: original.text,
+        surface: "rfp_parser",
+        actorUserId: userId,
+        engagementId: amendDoc.mission_id,
+      });
+      await assertNoPHI({
+        text: amendment.text,
+        surface: "rfp_parser",
+        actorUserId: userId,
+        engagementId: amendDoc.mission_id,
+      });
+
+
 
       // 5. Call Gemini 2.5 Pro
       const analysis = await callGeminiPro(

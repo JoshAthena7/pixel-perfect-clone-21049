@@ -1,7 +1,10 @@
 // NOTE: Draft content is never persisted. This function processes content in memory only. See DPA section 2.1.
+// C2: Every draft is screened for PHI (server-side, fail-closed) BEFORE the AI
+// model is called and BEFORE any persistence. PHI-bearing drafts are rejected.
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { assertNoPHI } from "@/lib/phi-detection";
 
 // ---------- Types ----------
 
@@ -193,6 +196,13 @@ export const runScoreMe = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }): Promise<ScoreMeV2Result> => {
     const { supabase, userId } = context;
+
+    // C2: PHI scrub BEFORE any DB read, AI call, or persistence. Fail-closed.
+    await assertNoPHI({
+      text: data.responseText,
+      surface: "score_me",
+      actorUserId: userId,
+    });
 
     const { data: q } = await supabase
       .from("question_records")
