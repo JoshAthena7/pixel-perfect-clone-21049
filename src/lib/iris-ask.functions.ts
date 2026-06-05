@@ -94,7 +94,7 @@ export const irisAskQuestion = createServerFn({ method: "POST" })
         .eq("id", q.mission_id)
         .maybeSingle(),
       fetchIrisMemoryContext(supabase, { missionId: q.mission_id }),
-      loadLayeredContext(supabase, { missionId: q.mission_id }),
+      loadLayeredContext(supabase, { missionId: q.mission_id, questionId: data.questionId, topic: data.prompt }),
     ]);
 
     const sys = `${IRIS_SYSTEM}
