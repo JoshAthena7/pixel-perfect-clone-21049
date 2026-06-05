@@ -89,6 +89,8 @@ function AtriumPage() {
       </div>
     </div>
   );
+}
+
 
 function GlobalBriefing() {
   return (
