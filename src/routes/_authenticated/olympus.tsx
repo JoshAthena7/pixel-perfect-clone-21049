@@ -99,15 +99,18 @@ function OlympusHeader() {
 
       <MissionSwitcher missions={missions} selected={selected} onPick={pick} />
 
-      <button
-        onClick={() => {
-          if (selected) navigate({ to: "/missions/$missionId/overview", params: { missionId: selected.id } });
-          else navigate({ to: "/home" });
-        }}
-        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-surface-hover"
-      >
-        <ArrowLeft className="h-3 w-3" /> Back to Mission
-      </button>
+      <div className="flex items-center gap-2">
+        <TestIrisVoiceButton />
+        <button
+          onClick={() => {
+            if (selected) navigate({ to: "/missions/$missionId/overview", params: { missionId: selected.id } });
+            else navigate({ to: "/home" });
+          }}
+          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-surface-hover"
+        >
+          <ArrowLeft className="h-3 w-3" /> Back to Mission
+        </button>
+      </div>
     </header>
   );
 }
