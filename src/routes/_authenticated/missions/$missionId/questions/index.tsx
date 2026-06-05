@@ -1007,6 +1007,14 @@ function ResponsesList() {
           )}
         </>
       )}
+
+      <div className="mt-10">
+        <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+          Reference
+        </div>
+        <StudioVaultOraclePeek missionId={missionId} />
+      </div>
+
       {actionQuestion && <CockpitListActionBar missionId={missionId} question={actionQuestion} />}
       {drawerQ && (
         <ReadOnlyQuestionDrawer
