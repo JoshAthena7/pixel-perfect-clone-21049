@@ -68,13 +68,13 @@ export const approveCanonItem = createServerFn({ method: "POST" })
     if (!row) throw new Error("Suggestion not found");
 
     if (data.approve) {
-      // Promote to intelligence_canon as a universal item.
-      await supabase.from("intelligence_canon").insert({
+      // Promote to intelligence_canon as a firm-wide reference.
+      await context.supabase.from("intelligence_canon").insert({
         topic: row.title,
         content: row.body,
         category: row.category ?? "Lessons Learned",
         priority: 3,
-        universal: true,
+        is_active: true,
       } as any).then(() => null, () => null);
     }
     await supabase.from("canon_suggestions").update({
