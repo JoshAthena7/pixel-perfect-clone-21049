@@ -44,7 +44,6 @@ export function TestIrisVoiceButton() {
         setStatus("error");
         setError("Audio playback failed.");
       };
-      audio.onended = () => setStatus("idle");
       await audio.play();
       setStatus("ok");
     } catch (e) {
