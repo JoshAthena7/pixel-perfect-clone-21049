@@ -1,59 +1,88 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Save, Plus, Trash2, X, Pencil, Archive, Sparkles } from "lucide-react";
+import { Save, Plus, Trash2, X, Pencil, Archive, Sparkles, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { MissionSetupTabs } from "@/components/v2/MissionSetupTabs";
 
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/settings")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    tab: typeof s.tab === "string" ? (s.tab as string) : undefined,
+  }),
   component: SettingsPage,
 });
 
 const STATUSES = ["Active", "Won", "Lost", "Withdrawn", "On Hold", "Archived"] as const;
 const HEALTHS = ["green", "yellow", "red"] as const;
 
-type Tab = "details" | "intelligence" | "gates" | "team" | "themes";
+type Tab = "details" | "intelligence" | "gates" | "team" | "themes" | "sensitivities";
+
+const VALID_TABS: Tab[] = ["details", "intelligence", "gates", "team", "themes", "sensitivities"];
 
 
 function SettingsPage() {
   const { missionId } = Route.useParams();
-  const [tab, setTab] = useState<Tab>("details");
+  const search = Route.useSearch();
+  const navigate = useNavigate();
+  const initial = (search.tab && (VALID_TABS as string[]).includes(search.tab) ? search.tab : "details") as Tab;
+  const [tab, setTab] = useState<Tab>(initial);
+
+  // Keep local state in sync with the URL when user clicks the unified tab strip.
+  useEffect(() => {
+    const next = (search.tab && (VALID_TABS as string[]).includes(search.tab) ? search.tab : "details") as Tab;
+    if (next !== tab) setTab(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.tab]);
+
+  const setTabAndUrl = (next: Tab) => {
+    setTab(next);
+    navigate({
+      to: "/missions/$missionId/settings",
+      params: { missionId },
+      search: { tab: next },
+      replace: true,
+    });
+  };
 
   return (
-    <div className="px-8 py-8 max-w-4xl">
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold">Mission Settings</h1>
-        <p className="mt-1 text-xs text-muted-foreground">Configure mission details, intelligence profile, review gates, and win themes. Roles and team access are managed in Olympus.</p>
-      </div>
+    <>
+      <MissionSetupTabs />
+      <div className="px-8 py-8 max-w-4xl">
+        <div className="mb-6">
+          <h1 className="text-xl font-semibold">
+            {tab === "details" && "Mission Details"}
+            {tab === "intelligence" && "Intelligence Profile"}
+            {tab === "gates" && "Review Gates"}
+            {tab === "team" && "Team"}
+            {tab === "themes" && "Win Themes"}
+            {tab === "sensitivities" && "Sensitivities"}
+          </h1>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Configure mission details, review gates, win themes, and sensitivities. Team & roles are managed in Olympus.
+          </p>
+        </div>
 
-      <div className="mb-6 flex items-center gap-1 border-b border-border">
-        {([
-          ["details", "Details"],
-          ["intelligence", "Intelligence Profile"],
-          ["gates", "Review Gates"],
-          ["team", "Team"],
-          ["themes", "Win Themes"],
-        ] as const).map(([k, label]) => (
-          <button
-            key={k}
-            onClick={() => setTab(k)}
-            className={`relative px-4 py-2.5 text-sm transition ${
-              tab === k ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {label}
-            {tab === k && <span className="absolute inset-x-0 -bottom-px h-0.5 bg-primary" />}
-          </button>
-        ))}
-      </div>
+        {tab === "intelligence" && (
+          <div className="mb-4">
+            <button
+              onClick={() => setTabAndUrl("details")}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              ← Back to Mission Details
+            </button>
+          </div>
+        )}
 
-      {tab === "details" && <DetailsTab missionId={missionId} />}
-      {tab === "intelligence" && <IntelligenceProfileTab missionId={missionId} />}
-      {tab === "gates" && <GatesTab missionId={missionId} />}
-      {tab === "team" && <TeamTab missionId={missionId} />}
-      {tab === "themes" && <ThemesTab missionId={missionId} />}
-    </div>
+        {tab === "details" && <DetailsTab missionId={missionId} />}
+        {tab === "intelligence" && <IntelligenceProfileTab missionId={missionId} />}
+        {tab === "gates" && <GatesTab missionId={missionId} />}
+        {tab === "team" && <TeamTab missionId={missionId} />}
+        {tab === "themes" && <ThemesTab missionId={missionId} />}
+        {tab === "sensitivities" && <SensitivitiesTab missionId={missionId} />}
+      </div>
+    </>
   );
 }
 
