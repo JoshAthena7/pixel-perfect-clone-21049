@@ -53,14 +53,32 @@ export const inviteMissionMember = createServerFn({ method: "POST" })
       .maybeSingle();
     if (existing?.id) inviteeId = existing.id;
 
-    // If no profile exists, send a magic-link invite to create the account
+    // User may exist in auth.users without a profile row — look them up first.
+    if (!inviteeId) {
+      const authUser = await findAuthUserByEmail(supabaseAdmin, data.email);
+      if (authUser) inviteeId = authUser.id;
+    }
+
+    // Still no user: send a magic-link invite to create the account.
     if (!inviteeId) {
       const { data: invited, error: inviteErr } =
         await supabaseAdmin.auth.admin.inviteUserByEmail(data.email);
-      if (inviteErr) throw new Error(inviteErr.message);
-      inviteeId = invited.user?.id ?? null;
+      if (inviteErr) {
+        // Race: someone created the account between checks — find and continue.
+        const fallback = await findAuthUserByEmail(supabaseAdmin, data.email);
+        if (!fallback) throw new Error(inviteErr.message);
+        inviteeId = fallback.id;
+      } else {
+        inviteeId = invited.user?.id ?? null;
+      }
       if (!inviteeId) throw new Error("Invite did not produce a user.");
     }
+
+    // Ensure a profile row exists for the invitee so future lookups are fast.
+    await supabaseAdmin.from("profiles").upsert(
+      { id: inviteeId, email: data.email, display_name: data.displayName ?? null },
+      { onConflict: "id" },
+    );
 
     // Add to mission_members (idempotent on (mission_id,user_id))
     const { error: memberErr } = await supabaseAdmin
