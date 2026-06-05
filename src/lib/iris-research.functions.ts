@@ -228,8 +228,13 @@ export async function runOneTask(
 // ─── SERVER FUNCTIONS ─────────────────────────────────────────────────────
 
 /**
- * Execute pending research tasks for a mission via Perplexity.
- * Runs sequentially (Perplexity rate-friendly) and stops at `limit`.
+ * Execute ONE pending research task for a mission via Perplexity.
+ *
+ * The client loops this until `remaining` is 0. Running the whole agenda
+ * (up to 12 Perplexity calls × ~30s each) inside a single server function
+ * blows past the Worker / upstream proxy timeout and surfaces as
+ * "upstream request timeout". One task per request keeps every call
+ * under the budget and shows progress live.
  */
 export const executeResearchAgenda = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -237,7 +242,6 @@ export const executeResearchAgenda = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as { supabase: any; userId: string };
 
-    // 1. Load current DNA
     const { data: dnaRow } = await supabase
       .from("mission_intelligence_dna")
       .select("dna")
@@ -247,8 +251,6 @@ export const executeResearchAgenda = createServerFn({ method: "POST" })
     if (!dnaRow) throw new Error("No intelligence DNA found — generate it first");
     const dna = dnaRow.dna as unknown as MissionDna;
 
-    // 2. Pick pending tasks (high priority first)
-    const limit = data.limit ?? 12;
     const { data: pending } = await supabase
       .from("research_tasks")
       .select("id, mission_id, question, why_it_matters, relevant_rfp_sections, priority")
@@ -256,30 +258,34 @@ export const executeResearchAgenda = createServerFn({ method: "POST" })
       .eq("status", "pending")
       .order("priority", { ascending: true })
       .order("created_at", { ascending: true })
-      .limit(limit);
+      .limit(1);
 
-    const tasks = pending ?? [];
-    if (tasks.length === 0) return { executed: 0, succeeded: 0, failed: 0 };
+    const task = (pending ?? [])[0];
 
-    let succeeded = 0;
-    let failed = 0;
-    for (const t of tasks) {
-      const r = await runOneTask(supabase, t as any, dna);
-      if (r.ok) succeeded++;
-      else failed++;
-      // small delay to be polite to Perplexity
-      await new Promise((res) => setTimeout(res, 600));
+    const { count: pendingBefore } = await supabase
+      .from("research_tasks")
+      .select("id", { count: "exact", head: true })
+      .eq("mission_id", data.missionId)
+      .eq("status", "pending");
+
+    if (!task) {
+      return { executed: 0, succeeded: 0, failed: 0, remaining: 0 };
     }
+
+    const r = await runOneTask(supabase, task as any, dna);
+    const succeeded = r.ok ? 1 : 0;
+    const failed = r.ok ? 0 : 1;
+    const remaining = Math.max(0, (pendingBefore ?? 1) - 1);
 
     await supabase.from("olympus_audit_log").insert({
       mission_id: data.missionId,
       user_id: userId,
       action_type: "iris_research_executed",
-      action_summary: `IRIS executed ${tasks.length} research task(s) — ${succeeded} succeeded, ${failed} failed`,
+      action_summary: `IRIS executed 1 research task — ${succeeded} succeeded, ${failed} failed${r.error ? ` (${r.error.slice(0, 200)})` : ""}`,
       target_table: "research_tasks",
     });
 
-    return { executed: tasks.length, succeeded, failed };
+    return { executed: 1, succeeded, failed, remaining, error: r.error };
   });
 
 /** Run a single research task (manual retry). */
