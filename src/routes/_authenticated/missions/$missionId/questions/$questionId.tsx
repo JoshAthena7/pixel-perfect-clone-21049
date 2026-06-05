@@ -775,28 +775,6 @@ function CockpitPage() {
         className={`fixed inset-x-0 top-14 z-40 border-b ${tipStage === 1 && !isReadOnlyView ? "ring-2 ring-primary/40" : ""}`}
         style={{ background: "rgba(6,11,20,0.95)", backdropFilter: "blur(12px)", borderColor: "rgba(255,255,255,0.06)" }}
       >
-        {/* Micro-label — tells the writer why the bar looks the way it does */}
-        {!isReadOnlyView && !isSME && (
-          <div
-            className="pt-2 pb-1 text-center text-[11px] text-muted-foreground max-md:hidden"
-            style={{ letterSpacing: "0.04em" }}
-          >
-            {microLabel}
-          </div>
-        )}
-
-        {/* "Nothing Changed — Check In" ghost button for check_in priority */}
-        {primaryAction === "check_in" && !isReadOnlyView && !isSME && (
-          <div className="mx-auto max-w-[1100px] px-10 pb-2 max-md:hidden">
-            <button
-              onClick={() => openUpdateReality(questionId)}
-              className="w-full rounded-md border border-white/15 bg-transparent py-2 text-xs font-semibold text-foreground hover:bg-white/5"
-            >
-              Nothing Changed — Check In
-            </button>
-          </div>
-        )}
-
         <div
           className="mx-auto flex max-w-[1400px] items-center gap-2 max-md:hidden"
           style={{
@@ -810,7 +788,7 @@ function CockpitPage() {
               className="mr-1 shrink-0 text-[9px] font-semibold uppercase"
               style={{ letterSpacing: "0.2em", color: "rgba(255,255,255,0.18)" }}
             >
-              Controls
+              Assists
             </span>
 
             {isReadOnlyView ? (
@@ -819,22 +797,6 @@ function CockpitPage() {
               </span>
             ) : (
               <>
-                {/* Ask IRIS */}
-                <button
-                  onClick={() => setAskOpen(true)}
-                  className="inline-flex items-center justify-center gap-2 font-semibold transition"
-                  style={{
-                    height: 44, padding: "0 18px",
-                    background: "rgba(8,145,178,0.12)",
-                    border: "1.5px solid rgba(8,145,178,0.4)",
-                    borderRadius: 9, color: "#0891b2",
-                    fontSize: 13, fontWeight: 700,
-                  }}
-                >
-                  <span className="iris-pulse-dot" />
-                  Ask IRIS
-                </button>
-
                 {/* Update Reality (primary) */}
                 <button
                   onClick={() => openUpdateReality(questionId)}
@@ -856,9 +818,9 @@ function CockpitPage() {
                       className="inline-flex items-center justify-center gap-2 font-semibold transition"
                       style={{
                         height: 44, padding: "0 16px",
-                        background: "rgba(255,255,255,0.04)",
-                        border: "1.5px solid rgba(255,255,255,0.09)",
-                        borderRadius: 9, color: "rgba(255,255,255,0.7)",
+                        background: "rgba(16,185,129,0.10)",
+                        border: "1.5px solid rgba(16,185,129,0.32)",
+                        borderRadius: 9, color: "#10b981",
                         fontSize: 13, fontWeight: 600,
                       }}
                     >
@@ -871,8 +833,8 @@ function CockpitPage() {
                       className="inline-flex items-center justify-center gap-2 font-semibold transition"
                       style={{
                         height: 44, padding: "0 16px",
-                        background: "rgba(124,58,237,0.08)",
-                        border: "1.5px solid rgba(124,58,237,0.22)",
+                        background: "rgba(124,58,237,0.10)",
+                        border: "1.5px solid rgba(124,58,237,0.30)",
                         borderRadius: 9, color: "#a78bfa",
                         fontSize: 13, fontWeight: 600,
                       }}
@@ -880,50 +842,24 @@ function CockpitPage() {
                       <Phone className="h-4 w-4" /> Phone a Friend
                     </button>
 
-                    {/* Get Help */}
+                    {/* Daily Pulse */}
                     <button
-                      onClick={() => { setGetHelpOpen(true); markOverflowUsed(); }}
+                      onClick={() => setPulseOpen(true)}
                       className="inline-flex items-center justify-center gap-2 font-semibold transition"
                       style={{
                         height: 44, padding: "0 16px",
-                        background: "rgba(245,158,11,0.10)",
-                        border: "1.5px solid rgba(245,158,11,0.30)",
-                        borderRadius: 9, color: "#f59e0b",
+                        background: "rgba(236,72,153,0.10)",
+                        border: "1.5px solid rgba(236,72,153,0.30)",
+                        borderRadius: 9, color: "#f472b6",
                         fontSize: 13, fontWeight: 600,
                       }}
                     >
-                      <Lightbulb className="h-4 w-4" /> Get Help
+                      <Heart className="h-4 w-4" /> Daily Pulse
                     </button>
-
-                    {/* Hidden GetHelp dropdown mount */}
-                    <div className="hidden">
-                      <GetHelpDropdown
-                        open={getHelpOpen} setOpen={setGetHelpOpen}
-                        missionId={missionId} questionId={questionId} questionNumber={q.question_number}
-                        meId={me?.id ?? null} meName={firstName(me)}
-                        onSent={() => qc.invalidateQueries({ queryKey: ["question-collabs", questionId] })}
-                      />
-                    </div>
-
-                    {/* Confidence */}
-                    <ConfidenceButton
-                      questionId={questionId}
-                      questionNumber={q.question_number}
-                      currentLevel={q.writer_confidence ?? null}
-                      onStuckEscalate={() => setGetHelpOpen(true)}
-                    />
                   </>
                 )}
               </>
             )}
-          </div>
-
-          {/* CENTER status */}
-          <div className="hidden items-center gap-2 text-[12px] text-muted-foreground lg:flex">
-            <span className="h-2 w-2 rounded-full" style={{ background: healthHex, boxShadow: `0 0 6px ${healthHex}` }} />
-            <span className="font-mono">Q{q.question_number}</span>
-            <Dot />
-            <PensDownLabel days={pdDays} compact />
           </div>
 
           {/* SOS — isolated right */}
@@ -938,6 +874,19 @@ function CockpitPage() {
             </div>
           )}
         </div>
+
+        {/* Daily Pulse drawer */}
+        <Sheet open={pulseOpen} onOpenChange={setPulseOpen}>
+          <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle>Daily Pulse</SheetTitle>
+            </SheetHeader>
+            <div className="mt-4">
+              <DailyPulse />
+            </div>
+          </SheetContent>
+        </Sheet>
+
 
         <style>{`
           .iris-pulse-dot {
