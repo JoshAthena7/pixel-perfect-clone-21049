@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiIrisVoiceRouteImport } from './routes/api/iris-voice'
 import { Route as AuthenticatedPipelineHorizonRouteImport } from './routes/_authenticated/pipeline-horizon'
 import { Route as AuthenticatedPathfinderRouteImport } from './routes/_authenticated/pathfinder'
 import { Route as AuthenticatedOlympusRouteImport } from './routes/_authenticated/olympus'
@@ -92,6 +93,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiIrisVoiceRoute = ApiIrisVoiceRouteImport.update({
+  id: '/api/iris-voice',
+  path: '/api/iris-voice',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedPipelineHorizonRoute =
@@ -503,6 +509,7 @@ export interface FileRoutesByFullPath {
   '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/pathfinder': typeof AuthenticatedPathfinderRoute
   '/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
+  '/api/iris-voice': typeof ApiIrisVoiceRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/command/attention': typeof AuthenticatedCommandAttentionRoute
@@ -573,6 +580,7 @@ export interface FileRoutesByTo {
   '/iris-demo': typeof AuthenticatedIrisDemoRoute
   '/pathfinder': typeof AuthenticatedPathfinderRoute
   '/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
+  '/api/iris-voice': typeof ApiIrisVoiceRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/command/attention': typeof AuthenticatedCommandAttentionRoute
@@ -645,6 +653,7 @@ export interface FileRoutesById {
   '/_authenticated/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/_authenticated/pathfinder': typeof AuthenticatedPathfinderRoute
   '/_authenticated/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
+  '/api/iris-voice': typeof ApiIrisVoiceRoute
   '/_authenticated/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/_authenticated/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/_authenticated/command/attention': typeof AuthenticatedCommandAttentionRoute
@@ -718,6 +727,7 @@ export interface FileRouteTypes {
     | '/olympus'
     | '/pathfinder'
     | '/pipeline-horizon'
+    | '/api/iris-voice'
     | '/command/alignment'
     | '/command/alignment-conflicts'
     | '/command/attention'
@@ -788,6 +798,7 @@ export interface FileRouteTypes {
     | '/iris-demo'
     | '/pathfinder'
     | '/pipeline-horizon'
+    | '/api/iris-voice'
     | '/command/alignment'
     | '/command/alignment-conflicts'
     | '/command/attention'
@@ -859,6 +870,7 @@ export interface FileRouteTypes {
     | '/_authenticated/olympus'
     | '/_authenticated/pathfinder'
     | '/_authenticated/pipeline-horizon'
+    | '/api/iris-voice'
     | '/_authenticated/command/alignment'
     | '/_authenticated/command/alignment-conflicts'
     | '/_authenticated/command/attention'
@@ -923,6 +935,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
+  ApiIrisVoiceRoute: typeof ApiIrisVoiceRoute
   ApiPublicHooksBackfillAtlasEmbeddingsRoute: typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
   ApiPublicHooksBackfillQuestionEmbeddingsRoute: typeof ApiPublicHooksBackfillQuestionEmbeddingsRoute
   ApiPublicHooksIngestIntelRoute: typeof ApiPublicHooksIngestIntelRoute
@@ -950,6 +963,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/iris-voice': {
+      id: '/api/iris-voice'
+      path: '/api/iris-voice'
+      fullPath: '/api/iris-voice'
+      preLoaderRoute: typeof ApiIrisVoiceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/pipeline-horizon': {
@@ -1608,6 +1628,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
+  ApiIrisVoiceRoute: ApiIrisVoiceRoute,
   ApiPublicHooksBackfillAtlasEmbeddingsRoute:
     ApiPublicHooksBackfillAtlasEmbeddingsRoute,
   ApiPublicHooksBackfillQuestionEmbeddingsRoute:
@@ -1619,13 +1640,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
