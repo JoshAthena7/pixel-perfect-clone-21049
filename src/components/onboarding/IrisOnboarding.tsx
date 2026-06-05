@@ -16,6 +16,11 @@ const MUTE_STORAGE_KEY = "iris.voice.muted";
 const SILENT_WAV =
   "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQQAAAAAAA==";
 
+type IrisVoiceWindow = Window & {
+  __irisVoiceAudio?: HTMLAudioElement;
+  __irisVoicePrimed?: boolean;
+};
+
 type SessionRow = {
   id: string;
   user_id: string;
@@ -153,13 +158,21 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
 
   function primePlayback() {
     if (playbackPrimed.current) return Promise.resolve(true);
-    const audio = audioRef.current ?? new Audio(SILENT_WAV);
+    const win = typeof window !== "undefined" ? (window as IrisVoiceWindow) : null;
+    if (win?.__irisVoicePrimed && win.__irisVoiceAudio) {
+      audioRef.current = win.__irisVoiceAudio;
+      playbackPrimed.current = true;
+      return Promise.resolve(true);
+    }
+    const audio = audioRef.current ?? win?.__irisVoiceAudio ?? new Audio(SILENT_WAV);
     audio.preload = "auto";
     audio.loop = true;
     audioRef.current = audio;
+    if (win) win.__irisVoiceAudio = audio;
     return audio.play().then(
       () => {
         playbackPrimed.current = true;
+        if (win) win.__irisVoicePrimed = true;
         return true;
       },
       () => false,
@@ -200,7 +213,13 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
       audio.onerror = () => URL.revokeObjectURL(audioUrl);
       audio.loop = false;
       audio.preload = "auto";
+      audio.volume = 1;
       audio.src = audioUrl;
+      if (typeof window !== "undefined") {
+        const win = window as IrisVoiceWindow;
+        win.__irisVoiceAudio = audio;
+        win.__irisVoicePrimed = true;
+      }
       audioRef.current = audio;
       await audio.play();
       return true;
