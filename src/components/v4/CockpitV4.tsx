@@ -552,6 +552,7 @@ export function CockpitV4({ missionId, me, myQuestions, allQuestions, updateStat
   const [scoreOpen, setScoreOpen] = useState(false);
   const [phoneOpen, setPhoneOpen] = useState(false);
   const [pulseOpen, setPulseOpen] = useState(false);
+  const [threadOpen, setThreadOpen] = useState(false);
 
   const { data: mission } = useQuery({
     queryKey: ["cockpit-v4-mission", missionId],
