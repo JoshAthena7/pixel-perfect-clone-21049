@@ -2,9 +2,10 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { BookOpen, ExternalLink, Check, X } from "lucide-react";
+import { BookOpen, ExternalLink, Check, X, Sparkles } from "lucide-react";
 import { listAtlasSources } from "@/lib/atlas-sources.functions";
 import { setSourceStatus } from "@/lib/atlas-onboarding.functions";
+import { seedStarterCanon } from "@/lib/canon-seed.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/olympus/canon-library")({
@@ -27,8 +28,10 @@ const CATEGORIES = [
 function CanonLibraryPage() {
   const qc = useQueryClient();
   const [category, setCategory] = useState<string | null>(null);
+  const [seeding, setSeeding] = useState(false);
   const list = useServerFn(listAtlasSources);
   const setFn = useServerFn(setSourceStatus);
+  const seedFn = useServerFn(seedStarterCanon);
 
   const { data } = useQuery({
     queryKey: ["canon-lib"],
@@ -58,16 +61,44 @@ function CanonLibraryPage() {
     }
   }
 
+  async function handleSeed() {
+    setSeeding(true);
+    try {
+      const r = await seedFn({});
+      toast.success(
+        r.inserted > 0
+          ? `Seeded ${r.inserted} starter Canon entries (${r.skipped} already existed).`
+          : `All ${r.skipped} starter entries already present.`,
+      );
+      qc.invalidateQueries({ queryKey: ["canon-lib"] });
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setSeeding(false);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-6xl px-8 py-8">
-      <header className="mb-6">
-        <div className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "#C49A22" }}>⊕ Canon</div>
-        <h1 className="mt-1 flex items-center gap-2 text-2xl font-light tracking-wide">
-          <BookOpen size={22} /> Canon Library
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground max-w-2xl">
-          The foundation every mission is built on. Federal regulations, CMS authorities, and Athena institutional knowledge.
-        </p>
+      <header className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "#C49A22" }}>⊕ Canon</div>
+          <h1 className="mt-1 flex items-center gap-2 text-2xl font-light tracking-wide">
+            <BookOpen size={22} /> Canon Library
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground max-w-2xl">
+            The foundation every mission is built on. Federal regulations, CMS authorities, and Athena institutional knowledge.
+          </p>
+        </div>
+        <button
+          onClick={handleSeed}
+          disabled={seeding}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium disabled:opacity-50"
+          style={{ background: "#C49A22", color: "#0b0b0b" }}
+          title="Insert a starter pack of Athena Canon entries (voice, methodology, federal authorities). Idempotent."
+        >
+          <Sparkles size={12} /> {seeding ? "Seeding…" : "Seed Starter Canon"}
+        </button>
       </header>
 
       {pending.length > 0 && (
