@@ -86,8 +86,12 @@ export const matchExperts = createServerFn({ method: "POST" })
     if (!q || !m) return { primary: null, alternatives: [], iris_line: null };
 
     // Source of truth for Phone-a-Friend = the Collective roster (Talentdesk
-    // import). Skill tags drive the match.
-    const { data: members = [] } = await supabase
+    // import). Skill tags drive the match. Read via admin client because the
+    // collective_members PII (email/phone) is admin-restricted at the RLS
+    // layer; expert matching is an authenticated server-side use that needs
+    // contact details to populate the Phone-a-Friend overlay.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: members = [] } = await supabaseAdmin
       .from("collective_members")
       .select("id,full_name,email,title,location,skill_tags,notes")
       .eq("is_active", true);
