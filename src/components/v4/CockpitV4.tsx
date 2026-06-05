@@ -718,22 +718,22 @@ export function CockpitV4({ missionId, me, myQuestions, allQuestions, updateStat
         missionId={missionId}
         lockedQuestionId={suggestedQ?.id}
       />
-      {phoneOpen && suggestedQ && (
+      {phoneOpen && (suggestedQ ?? allQuestions[0]) && (
         <PhoneAFriendOverlay
           missionId={missionId}
-          questionId={suggestedQ.id}
-          questionNumber={suggestedQ.question_number}
+          questionId={(suggestedQ ?? allQuestions[0])!.id}
+          questionNumber={(suggestedQ ?? allQuestions[0])!.question_number}
           meId={me}
           meName=""
           onClose={() => setPhoneOpen(false)}
         />
       )}
-      {suggestedQ && (
+      {(suggestedQ ?? allQuestions[0]) && (
         <ThreadPanel
           open={threadOpen}
           onClose={() => setThreadOpen(false)}
           objectType="question_record"
-          objectId={suggestedQ.id}
+          objectId={(suggestedQ ?? allQuestions[0])!.id}
         />
       )}
     </div>
