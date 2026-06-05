@@ -3,6 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { IRIS_BASE_PROMPT } from "./iris-prompts";
 import { withAICircuit } from "@/lib/ai-circuit-breaker";
+import { loadLayeredContext } from "./iris-layered-context";
 
 const CACHE_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours
 
