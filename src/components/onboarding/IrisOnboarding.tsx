@@ -12,13 +12,9 @@ import {
   FALLBACK_ANSWER,
   type QuickReply,
 } from "@/lib/iris-onboarding-scripts";
-import { Check, Lock, Volume2, VolumeX, Send } from "lucide-react";
+import { Volume2, VolumeX, ArrowRight, X, MessageSquare } from "lucide-react";
 
 const MUTE_STORAGE_KEY = "iris.voice.muted";
-
-type ChatMessage =
-  | { id: string; from: "iris"; text: string; module?: number; card?: { title: string; body: string } | null }
-  | { id: string; from: "user"; text: string };
 
 type SessionRow = {
   id: string;
@@ -27,9 +23,7 @@ type SessionRow = {
   is_complete: boolean;
 };
 
-function uid() {
-  return Math.random().toString(36).slice(2, 11);
-}
+type IrisAnswer = { question: string; answer: string };
 
 function isReplayRequested() {
   if (typeof window === "undefined") return false;
@@ -59,7 +53,6 @@ function useOnboardingGate() {
 
       const firstName = (profile.display_name || "").split(" ")[0] || "operator";
 
-      // In replay mode always start a fresh session so the demo runs from Module 1.
       let session: SessionRow | null = null;
       if (!replayRequested) {
         const { data: existing } = await supabase
@@ -82,12 +75,11 @@ function useOnboardingGate() {
         session = created as SessionRow;
       }
 
-      return { show: true as const, userId: user.id, firstName, session, replay: replayRequested };
+      return { show: true as const, userId: user.id, firstName, session, replayRequested };
     },
     staleTime: Infinity,
   });
 }
-
 
 export function IrisOnboardingMount() {
   const { data, isLoading } = useOnboardingGate();
@@ -116,19 +108,37 @@ type Props = {
 function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplete }: Props) {
   const navigate = useNavigate();
   const [currentModule, setCurrentModule] = useState(startAtModule);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [answers, setAnswers] = useState<Record<number, IrisAnswer[]>>({});
   const [questionsAsked, setQuestionsAsked] = useState<Record<number, string[]>>({});
   const [input, setInput] = useState("");
+  const [askOpen, setAskOpen] = useState(false);
   const [muted, setMuted] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
     return window.localStorage.getItem(MUTE_STORAGE_KEY) === "1";
   });
   const [busy, setBusy] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [transitionKey, setTransitionKey] = useState(0);
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const spokenIdsRef = useRef<Set<string>>(new Set());
+  const spokenForModule = useRef<number | null>(null);
   const speakLine = useServerFn(synthesizeIrisLine);
 
+  const script = IRIS_SCRIPTS[currentModule];
+  const card = MODULE_CARDS[currentModule];
+  const moduleName = MODULE_NAMES[currentModule];
+  const replies = QUICK_REPLIES[currentModule] || [];
+  const advanceReply = replies.find((r) => r.kind === "advance");
+  const questionReplies = useMemo(() => replies.filter((r) => r.kind === "question"), [replies]);
+  const moduleAnswers = answers[currentModule] || [];
+
+  const greetedScript = useMemo(() => {
+    if (currentModule === 1) {
+      return script.replace("Welcome to ATLAS.", `Welcome to ATLAS, ${firstName}.`);
+    }
+    return script;
+  }, [currentModule, script, firstName]);
+
+  // Persist mute
   useEffect(() => {
     if (typeof window !== "undefined") {
       window.localStorage.setItem(MUTE_STORAGE_KEY, muted ? "1" : "0");
@@ -139,67 +149,33 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
     }
   }, [muted]);
 
-  // Narrate the latest IRIS message
+  // Narrate current module
   useEffect(() => {
     if (muted) return;
-    const last = messages[messages.length - 1];
-    if (!last || last.from !== "iris") return;
-    if (spokenIdsRef.current.has(last.id)) return;
-    spokenIdsRef.current.add(last.id);
+    if (spokenForModule.current === currentModule) return;
+    spokenForModule.current = currentModule;
 
     let cancelled = false;
     (async () => {
       try {
-        const { audioBase64, mimeType } = await speakLine({ data: { text: last.text } });
-        if (cancelled || muted) return;
-        if (!audioBase64) return;
-        // Stop any previous line
+        const { audioBase64, mimeType } = await speakLine({ data: { text: greetedScript } });
+        if (cancelled || muted || !audioBase64) return;
         if (audioRef.current) {
           audioRef.current.pause();
           audioRef.current = null;
         }
         const audio = new Audio(`data:${mimeType};base64,${audioBase64}`);
         audioRef.current = audio;
-        audio.play().catch(() => {
-          // Autoplay blocked — user can click Unmute / interact to enable
-        });
-      } catch (err) {
-        // Silent fallback per spec — text still renders
-        console.warn("IRIS voice unavailable", err);
+        audio.play().catch(() => {});
+      } catch {
+        // Silent fallback — text still renders
       }
     })();
 
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [messages, muted]);
-
-  // Seed initial IRIS message for current module
-  useEffect(() => {
-    if (messages.length === 0) {
-      if (startAtModule > 1) {
-        setMessages([
-          { id: uid(), from: "iris", text: `Resuming your briefing at Module ${startAtModule}.` },
-          buildModuleMessage(startAtModule),
-        ]);
-      } else {
-        const greet = IRIS_SCRIPTS[1].replace("Welcome to ATLAS.", `Welcome to ATLAS, ${firstName}.`);
-        setMessages([
-          { id: uid(), from: "iris", text: greet, module: 1, card: MODULE_CARDS[1] },
-        ]);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages]);
-
-  function buildModuleMessage(n: number): ChatMessage {
-    return { id: uid(), from: "iris", text: IRIS_SCRIPTS[n], module: n, card: MODULE_CARDS[n] };
-  }
+  }, [currentModule, greetedScript, muted, speakLine]);
 
   async function logModuleCleared(n: number) {
     const qs = questionsAsked[n] || [];
@@ -221,7 +197,6 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
     await logModuleCleared(cleared);
 
     if (cleared >= 7) {
-      // Mark complete
       const hash = await sha256(`${userId}:${sessionId}:${Date.now()}`);
       await supabase
         .from("iris_onboarding_sessions")
@@ -236,215 +211,399 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
       return;
     }
 
-    const next = cleared + 1;
-    setMessages((m) => [...m, { id: uid(), from: "user", text: QUICK_REPLIES[cleared][0].label }]);
-    setTimeout(() => {
-      setMessages((m) => [...m, buildModuleMessage(next)]);
-      setCurrentModule(next);
-      setBusy(false);
-    }, 350);
+    setAskOpen(false);
+    setInput("");
+    setTransitionKey((k) => k + 1);
+    setCurrentModule(cleared + 1);
+    setBusy(false);
   }
 
   function askQuickQuestion(q: QuickReply) {
     if (busy || q.kind !== "question" || !q.answer) return;
-    setQuestionsAsked((prev) => ({ ...prev, [currentModule]: [...(prev[currentModule] || []), q.label] }));
-    setMessages((m) => [
-      ...m,
-      { id: uid(), from: "user", text: q.label },
-      { id: uid(), from: "iris", text: q.answer! },
-    ]);
+    setQuestionsAsked((prev) => ({
+      ...prev,
+      [currentModule]: [...(prev[currentModule] || []), q.label],
+    }));
+    setAnswers((prev) => ({
+      ...prev,
+      [currentModule]: [...(prev[currentModule] || []), { question: q.label, answer: q.answer! }],
+    }));
   }
 
   function submitFreeText() {
     const text = input.trim();
     if (!text || busy) return;
     setInput("");
-    setQuestionsAsked((prev) => ({ ...prev, [currentModule]: [...(prev[currentModule] || []), text] }));
-    setMessages((m) => [
-      ...m,
-      { id: uid(), from: "user", text },
-      { id: uid(), from: "iris", text: matchAnswer(currentModule, text) },
-    ]);
+    setAskOpen(false);
+    const reply = matchAnswer(currentModule, text);
+    setQuestionsAsked((prev) => ({
+      ...prev,
+      [currentModule]: [...(prev[currentModule] || []), text],
+    }));
+    setAnswers((prev) => ({
+      ...prev,
+      [currentModule]: [...(prev[currentModule] || []), { question: text, answer: reply }],
+    }));
   }
 
-  const replies = QUICK_REPLIES[currentModule] || [];
+  async function skipBriefing() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await supabase
+        .from("iris_onboarding_sessions")
+        .update({ is_complete: true, completed_at: new Date().toISOString() })
+        .eq("id", sessionId);
+      await supabase
+        .from("profiles")
+        .update({ has_onboarded: true, onboarded_at: new Date().toISOString() })
+        .eq("id", userId);
+    } finally {
+      onComplete();
+      navigate({ to: "/home" });
+    }
+  }
+
+  const isFinal = currentModule >= 7;
 
   return (
-    <div className="fixed inset-0 z-[200] flex" style={{ background: "#0b1220" }}>
-      {/* Left rail */}
-      <aside className="hidden md:flex flex-col" style={{ width: 200, background: "#0a0f1a", borderRight: "1px solid rgba(255,255,255,0.08)" }}>
-        <div className="px-4 py-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-          <div style={{ color: "#d4af37", fontSize: 11, fontWeight: 700, letterSpacing: 2 }}>ATLAS</div>
-          <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, letterSpacing: 2, marginTop: 2 }}>ONBOARDING</div>
+    <div
+      className="fixed inset-0 z-[200] flex flex-col atlas-stage"
+      style={{ color: "var(--foreground)" }}
+    >
+      {/* Header */}
+      <header className="flex items-center justify-between px-8 py-5">
+        <div className="flex items-center gap-3">
+          <div
+            className="flex items-center justify-center"
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              background: "rgba(8,145,178,0.10)",
+              border: "1px solid rgba(8,145,178,0.4)",
+            }}
+            aria-hidden
+          >
+            <span style={{ color: "var(--iris)", fontSize: 10, fontWeight: 700, letterSpacing: 1.5 }}>
+              IRIS
+            </span>
+          </div>
+          <div className="leading-tight">
+            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: 2, color: "var(--athena-gold)" }}>
+              ATLAS
+            </div>
+            <div style={{ fontSize: 10, color: "var(--muted-foreground)", letterSpacing: 1.5 }}>
+              OPERATOR BRIEFING
+            </div>
+          </div>
         </div>
-        <nav className="flex-1 py-3">
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setMuted((m) => !m)}
+            aria-label={muted ? "Unmute IRIS" : "Mute IRIS"}
+            title={muted ? "Unmute IRIS" : "Mute IRIS"}
+            className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 transition-colors"
+            style={{
+              color: "var(--muted-foreground)",
+              fontSize: 11,
+              border: "1px solid rgba(255,255,255,0.08)",
+              background: "rgba(255,255,255,0.02)",
+            }}
+          >
+            {muted ? <VolumeX size={13} /> : <Volume2 size={13} />}
+            <span className="hidden sm:inline">{muted ? "Voice off" : "Voice on"}</span>
+          </button>
+          <button
+            type="button"
+            onClick={skipBriefing}
+            disabled={busy}
+            className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 transition-colors"
+            style={{
+              color: "var(--muted-foreground)",
+              fontSize: 11,
+              border: "1px solid rgba(255,255,255,0.08)",
+              background: "rgba(255,255,255,0.02)",
+            }}
+            aria-label="Skip briefing"
+          >
+            <X size={13} />
+            <span className="hidden sm:inline">Skip briefing</span>
+          </button>
+        </div>
+      </header>
+
+      {/* Step indicator */}
+      <div className="px-8 pb-6">
+        <div className="mx-auto flex w-full max-w-3xl items-center gap-1.5">
           {[1, 2, 3, 4, 5, 6, 7].map((n) => {
-            const state = n < currentModule ? "complete" : n === currentModule ? "active" : "locked";
+            const state = n < currentModule ? "complete" : n === currentModule ? "active" : "upcoming";
             return (
               <div
                 key={n}
-                className="flex items-center gap-2 px-4 py-2.5"
+                className="h-[3px] flex-1 rounded-full transition-all duration-500"
                 style={{
-                  borderLeft: state === "active" ? "3px solid #d4af37" : "3px solid transparent",
-                  background: state === "active" ? "rgba(212,175,55,0.06)" : "transparent",
-                  color: state === "locked" ? "rgba(255,255,255,0.3)" : state === "active" ? "#fff" : "rgba(255,255,255,0.65)",
-                  fontSize: 13,
+                  background:
+                    state === "active"
+                      ? "var(--athena-gold)"
+                      : state === "complete"
+                      ? "rgba(196,154,34,0.55)"
+                      : "rgba(255,255,255,0.08)",
+                  boxShadow: state === "active" ? "0 0 12px rgba(196,154,34,0.45)" : "none",
                 }}
-              >
-                <span style={{ width: 16, display: "inline-flex", justifyContent: "center" }}>
-                  {state === "complete" ? <Check size={14} color="#10b981" /> : state === "locked" ? <Lock size={11} /> : <span style={{ color: "#d4af37" }}>›</span>}
-                </span>
-                <span style={{ flex: 1 }}>{MODULE_NAMES[n]}</span>
-              </div>
+              />
             );
           })}
-        </nav>
-      </aside>
-
-      {/* Main column */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <header
-          className="flex items-center justify-between px-6 py-3"
-          style={{ background: "#0a0f1a", borderBottom: "1px solid rgba(255,255,255,0.08)" }}
-        >
-          <div>
-            <div style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}>
-              IRIS — Intelligence &amp; Readiness Integration System
-            </div>
-            <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, marginTop: 2 }}>
-              Onboarding — Module {currentModule} of 7
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 12 }}>{currentModule} / 7</span>
-            <button
-              onClick={() => setMuted((m) => !m)}
-              className="flex items-center gap-1.5 px-2 py-1 rounded"
-              style={{ color: "rgba(255,255,255,0.6)", fontSize: 11 }}
-              aria-label={muted ? "Unmute IRIS" : "Mute IRIS"}
-              title={muted ? "Unmute IRIS" : "Mute IRIS"}
-            >
-              {muted ? <VolumeX size={14} /> : <Volume2 size={14} />}
-              <span>{muted ? "Unmute" : "Mute"}</span>
-            </button>
-          </div>
-        </header>
-
-        {/* Progress bar */}
-        <div style={{ height: 2, background: "rgba(255,255,255,0.06)" }}>
-          <div style={{ height: "100%", width: `${(currentModule / 7) * 100}%`, background: "#d4af37", transition: "width 300ms" }} />
         </div>
-
-        {/* Thread */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6" style={{ background: "#0b1220" }}>
-          <div className="max-w-3xl mx-auto space-y-4">
-            {messages.map((m) =>
-              m.from === "iris" ? (
-                <IrisBubble key={m.id} text={m.text} card={"card" in m ? m.card ?? undefined : undefined} module={"module" in m ? m.module : undefined} />
-              ) : (
-                <UserBubble key={m.id} text={m.text} />
-              )
-            )}
-          </div>
-        </div>
-
-        {/* Input */}
-        <div style={{ background: "#0a0f1a", borderTop: "1px solid rgba(255,255,255,0.08)" }} className="px-6 py-4">
-          <div className="max-w-3xl mx-auto">
-            <div className="flex flex-wrap gap-2 mb-3">
-              {replies.map((r, i) =>
-                r.kind === "advance" ? (
-                  <button
-                    key={i}
-                    onClick={advance}
-                    disabled={busy}
-                    className="px-4 py-2 rounded font-medium"
-                    style={{ background: "#1e3a5f", color: "#fff", border: "1px solid #d4af37", fontSize: 13 }}
-                  >
-                    {r.label}
-                  </button>
-                ) : (
-                  <button
-                    key={i}
-                    onClick={() => askQuickQuestion(r)}
-                    disabled={busy}
-                    className="px-3 py-2 rounded"
-                    style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.85)", border: "1px solid rgba(255,255,255,0.12)", fontSize: 12 }}
-                  >
-                    {r.label}
-                  </button>
-                )
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && submitFreeText()}
-                placeholder="Ask IRIS a question..."
-                className="flex-1 px-3 py-2 rounded"
-                style={{ background: "rgba(255,255,255,0.04)", color: "#fff", border: "1px solid rgba(255,255,255,0.1)", fontSize: 13 }}
-              />
-              <button
-                onClick={submitFreeText}
-                className="px-3 py-2 rounded flex items-center gap-1"
-                style={{ background: "rgba(212,175,55,0.15)", color: "#d4af37", border: "1px solid rgba(212,175,55,0.4)", fontSize: 13 }}
-              >
-                <Send size={14} /> Send
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function IrisBubble({ text, card, module }: { text: string; card?: { title: string; body: string }; module?: number }) {
-  return (
-    <div className="flex gap-3">
-      <div
-        className="flex items-center justify-center shrink-0"
-        style={{ width: 36, height: 36, borderRadius: "50%", background: "#0a0f1a", border: "1px solid #d4af37", color: "#d4af37", fontWeight: 700, fontSize: 11, letterSpacing: 1 }}
-      >
-        IRIS
-      </div>
-      <div className="flex-1 min-w-0">
-        {module ? (
-          <div style={{ color: "rgba(212,175,55,0.8)", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, marginBottom: 4 }}>
-            MODULE {module} — {MODULE_NAMES[module]?.toUpperCase()}
-          </div>
-        ) : null}
         <div
-          className="rounded-lg px-4 py-3"
-          style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.92)", fontSize: 14, lineHeight: 1.6, border: "1px solid rgba(255,255,255,0.06)" }}
+          className="mx-auto mt-3 flex w-full max-w-3xl items-center justify-between"
+          style={{ fontSize: 11, color: "var(--muted-foreground)", letterSpacing: 1.5 }}
         >
-          {text}
+          <span>MODULE {String(currentModule).padStart(2, "0")} / 07</span>
+          <span>{moduleName.toUpperCase()}</span>
         </div>
-        {card ? (
-          <div
-            className="mt-3 rounded-lg px-4 py-3"
-            style={{ background: "rgba(212,175,55,0.04)", border: "1px solid rgba(212,175,55,0.25)" }}
-          >
-            <div style={{ color: "#d4af37", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>{card.title}</div>
-            <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 12, lineHeight: 1.5 }}>{card.body}</div>
-          </div>
-        ) : null}
       </div>
-    </div>
-  );
-}
 
-function UserBubble({ text }: { text: string }) {
-  return (
-    <div className="flex justify-end">
-      <div
-        className="rounded-lg px-4 py-2 max-w-[75%]"
-        style={{ background: "#1e3a5f", color: "#fff", fontSize: 13, border: "1px solid rgba(255,255,255,0.08)" }}
-      >
-        {text}
+      {/* Scrollable briefing body */}
+      <div className="flex-1 overflow-y-auto px-8 pb-10">
+        <div
+          key={transitionKey}
+          className="mx-auto w-full max-w-3xl"
+          style={{ animation: "briefing-rise 380ms ease-out both" }}
+        >
+          {/* Module heading */}
+          <h1
+            className="display-tight"
+            style={{
+              fontSize: "clamp(2rem, 4vw, 3rem)",
+              fontWeight: 300,
+              color: "var(--foreground)",
+              marginTop: "1.5rem",
+            }}
+          >
+            {moduleName}
+          </h1>
+          <div
+            style={{
+              marginTop: 14,
+              height: 1,
+              width: 64,
+              background: "linear-gradient(90deg, var(--athena-gold), transparent)",
+            }}
+          />
+
+          {/* Script */}
+          <p
+            className="mt-8"
+            style={{
+              fontSize: 18,
+              lineHeight: 1.7,
+              color: "color-mix(in oklab, var(--foreground) 88%, transparent)",
+              maxWidth: "62ch",
+            }}
+          >
+            {greetedScript}
+          </p>
+
+          {/* Reference card */}
+          {card ? (
+            <div
+              className="mt-8 rounded-lg"
+              style={{
+                background: "rgba(196,154,34,0.04)",
+                border: "1px solid rgba(196,154,34,0.22)",
+                padding: "18px 20px",
+              }}
+            >
+              <div
+                style={{
+                  color: "var(--athena-gold)",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: 2,
+                  marginBottom: 8,
+                }}
+              >
+                AT A GLANCE — {card.title.toUpperCase()}
+              </div>
+              <div style={{ color: "rgba(232,237,245,0.82)", fontSize: 14, lineHeight: 1.6 }}>
+                {card.body}
+              </div>
+            </div>
+          ) : null}
+
+          {/* IRIS answers (inline, calm — no chat bubbles) */}
+          {moduleAnswers.length > 0 ? (
+            <div className="mt-8 space-y-5">
+              {moduleAnswers.map((a, i) => (
+                <div
+                  key={i}
+                  style={{
+                    borderLeft: "2px solid var(--iris)",
+                    paddingLeft: 16,
+                    animation: "briefing-rise 280ms ease-out both",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 11,
+                      letterSpacing: 1.5,
+                      color: "color-mix(in oklab, var(--iris) 80%, white)",
+                      marginBottom: 6,
+                      textTransform: "uppercase",
+                      fontWeight: 600,
+                    }}
+                  >
+                    You asked — {a.question}
+                  </div>
+                  <div style={{ color: "rgba(232,237,245,0.88)", fontSize: 14, lineHeight: 1.65 }}>
+                    {a.answer}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          {/* Quick questions */}
+          {questionReplies.length > 0 ? (
+            <div className="mt-10">
+              <div
+                style={{
+                  fontSize: 10,
+                  letterSpacing: 2,
+                  color: "var(--muted-foreground)",
+                  marginBottom: 10,
+                  fontWeight: 600,
+                }}
+              >
+                ASK IRIS
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {questionReplies.map((q, i) => {
+                  const asked = (questionsAsked[currentModule] || []).includes(q.label);
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => askQuickQuestion(q)}
+                      disabled={busy || asked}
+                      className="rounded-full px-3.5 py-1.5 transition-all"
+                      style={{
+                        fontSize: 12,
+                        background: asked ? "rgba(8,145,178,0.08)" : "rgba(255,255,255,0.03)",
+                        color: asked ? "color-mix(in oklab, var(--iris) 70%, white)" : "rgba(232,237,245,0.85)",
+                        border: asked
+                          ? "1px solid rgba(8,145,178,0.35)"
+                          : "1px solid rgba(255,255,255,0.10)",
+                        cursor: asked ? "default" : "pointer",
+                      }}
+                    >
+                      {q.label}
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={() => setAskOpen((v) => !v)}
+                  className="flex items-center gap-1.5 rounded-full px-3.5 py-1.5 transition-all"
+                  style={{
+                    fontSize: 12,
+                    background: askOpen ? "rgba(8,145,178,0.10)" : "rgba(255,255,255,0.03)",
+                    color: askOpen ? "var(--iris)" : "rgba(232,237,245,0.7)",
+                    border: askOpen
+                      ? "1px solid rgba(8,145,178,0.4)"
+                      : "1px solid rgba(255,255,255,0.10)",
+                  }}
+                  aria-expanded={askOpen}
+                >
+                  <MessageSquare size={12} />
+                  Ask something else
+                </button>
+              </div>
+
+              {askOpen ? (
+                <div className="mt-4 flex items-center gap-2">
+                  <input
+                    autoFocus
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") submitFreeText();
+                      if (e.key === "Escape") setAskOpen(false);
+                    }}
+                    placeholder="Type a question for IRIS…"
+                    className="iris-input flex-1 rounded-md px-3 py-2"
+                    style={{
+                      background: "rgba(255,255,255,0.03)",
+                      color: "var(--foreground)",
+                      border: "1px solid rgba(255,255,255,0.10)",
+                      fontSize: 14,
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={submitFreeText}
+                    className="rounded-md px-3 py-2 transition-colors"
+                    style={{
+                      background: "rgba(8,145,178,0.15)",
+                      color: "var(--iris)",
+                      border: "1px solid rgba(8,145,178,0.4)",
+                      fontSize: 13,
+                    }}
+                  >
+                    Ask
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
       </div>
+
+      {/* Footer / advance */}
+      <footer
+        className="px-8 py-5"
+        style={{
+          borderTop: "1px solid rgba(255,255,255,0.06)",
+          background: "linear-gradient(to top, rgba(0,0,0,0.35), transparent)",
+        }}
+      >
+        <div className="mx-auto flex w-full max-w-3xl items-center justify-between">
+          <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
+            {isFinal ? "Briefing complete. You're cleared to operate." : `Step ${currentModule} of 7`}
+          </div>
+          <button
+            type="button"
+            onClick={advance}
+            disabled={busy}
+            className="group inline-flex items-center gap-2 rounded-md px-5 py-2.5 transition-all"
+            style={{
+              background: "var(--athena-gold)",
+              color: "var(--primary-foreground)",
+              fontWeight: 600,
+              fontSize: 13,
+              letterSpacing: 0.5,
+              boxShadow: "0 0 24px rgba(196,154,34,0.35)",
+              opacity: busy ? 0.6 : 1,
+            }}
+          >
+            {advanceReply ? advanceReply.label : "Continue"}
+            <ArrowRight
+              size={15}
+              className="transition-transform group-hover:translate-x-0.5"
+            />
+          </button>
+        </div>
+      </footer>
+
+      <style>{`
+        @keyframes briefing-rise {
+          from { opacity: 0; transform: translateY(10px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }
@@ -453,7 +612,11 @@ function matchAnswer(moduleNum: number, text: string): string {
   const replies = QUICK_REPLIES[moduleNum] || [];
   const norm = text.toLowerCase();
   for (const r of replies) {
-    if (r.kind === "question" && r.answer && norm.includes(r.label.toLowerCase().replace(/[?.]/g, "").slice(0, 10))) {
+    if (
+      r.kind === "question" &&
+      r.answer &&
+      norm.includes(r.label.toLowerCase().replace(/[?.]/g, "").slice(0, 10))
+    ) {
       return r.answer;
     }
   }
