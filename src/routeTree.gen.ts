@@ -29,6 +29,7 @@ import { Route as DemoAppIndexRouteImport } from './routes/demo._app.index'
 import { Route as AuthenticatedOlympusIndexRouteImport } from './routes/_authenticated/olympus/index'
 import { Route as DemoAppQueueRouteImport } from './routes/demo._app.queue'
 import { Route as DemoAppCommunicationsRouteImport } from './routes/demo._app.communications'
+import { Route as DemoAppAssignmentRouteImport } from './routes/demo._app.assignment'
 import { Route as AuthenticatedProfileExpertiseRouteImport } from './routes/_authenticated/profile/expertise'
 import { Route as AuthenticatedOlympusWriterDeletionRouteImport } from './routes/_authenticated/olympus/writer-deletion'
 import { Route as AuthenticatedOlympusWinThemesRouteImport } from './routes/_authenticated/olympus/win-themes'
@@ -187,6 +188,11 @@ const DemoAppQueueRoute = DemoAppQueueRouteImport.update({
 const DemoAppCommunicationsRoute = DemoAppCommunicationsRouteImport.update({
   id: '/communications',
   path: '/communications',
+  getParentRoute: () => DemoAppRoute,
+} as any)
+const DemoAppAssignmentRoute = DemoAppAssignmentRouteImport.update({
+  id: '/assignment',
+  path: '/assignment',
   getParentRoute: () => DemoAppRoute,
 } as any)
 const AuthenticatedProfileExpertiseRoute =
@@ -584,6 +590,7 @@ export interface FileRoutesByFullPath {
   '/olympus/win-themes': typeof AuthenticatedOlympusWinThemesRoute
   '/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
+  '/demo/assignment': typeof DemoAppAssignmentRoute
   '/demo/communications': typeof DemoAppCommunicationsRoute
   '/demo/queue': typeof DemoAppQueueRoute
   '/olympus/': typeof AuthenticatedOlympusIndexRoute
@@ -659,6 +666,7 @@ export interface FileRoutesByTo {
   '/olympus/win-themes': typeof AuthenticatedOlympusWinThemesRoute
   '/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
+  '/demo/assignment': typeof DemoAppAssignmentRoute
   '/demo/communications': typeof DemoAppCommunicationsRoute
   '/demo/queue': typeof DemoAppQueueRoute
   '/olympus': typeof AuthenticatedOlympusIndexRoute
@@ -738,6 +746,7 @@ export interface FileRoutesById {
   '/_authenticated/olympus/win-themes': typeof AuthenticatedOlympusWinThemesRoute
   '/_authenticated/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
   '/_authenticated/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
+  '/demo/_app/assignment': typeof DemoAppAssignmentRoute
   '/demo/_app/communications': typeof DemoAppCommunicationsRoute
   '/demo/_app/queue': typeof DemoAppQueueRoute
   '/_authenticated/olympus/': typeof AuthenticatedOlympusIndexRoute
@@ -817,6 +826,7 @@ export interface FileRouteTypes {
     | '/olympus/win-themes'
     | '/olympus/writer-deletion'
     | '/profile/expertise'
+    | '/demo/assignment'
     | '/demo/communications'
     | '/demo/queue'
     | '/olympus/'
@@ -892,6 +902,7 @@ export interface FileRouteTypes {
     | '/olympus/win-themes'
     | '/olympus/writer-deletion'
     | '/profile/expertise'
+    | '/demo/assignment'
     | '/demo/communications'
     | '/demo/queue'
     | '/olympus'
@@ -970,6 +981,7 @@ export interface FileRouteTypes {
     | '/_authenticated/olympus/win-themes'
     | '/_authenticated/olympus/writer-deletion'
     | '/_authenticated/profile/expertise'
+    | '/demo/_app/assignment'
     | '/demo/_app/communications'
     | '/demo/_app/queue'
     | '/_authenticated/olympus/'
@@ -1148,6 +1160,13 @@ declare module '@tanstack/react-router' {
       path: '/communications'
       fullPath: '/demo/communications'
       preLoaderRoute: typeof DemoAppCommunicationsRouteImport
+      parentRoute: typeof DemoAppRoute
+    }
+    '/demo/_app/assignment': {
+      id: '/demo/_app/assignment'
+      path: '/assignment'
+      fullPath: '/demo/assignment'
+      preLoaderRoute: typeof DemoAppAssignmentRouteImport
       parentRoute: typeof DemoAppRoute
     }
     '/_authenticated/profile/expertise': {
@@ -1733,12 +1752,14 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 )
 
 interface DemoAppRouteChildren {
+  DemoAppAssignmentRoute: typeof DemoAppAssignmentRoute
   DemoAppCommunicationsRoute: typeof DemoAppCommunicationsRoute
   DemoAppQueueRoute: typeof DemoAppQueueRoute
   DemoAppIndexRoute: typeof DemoAppIndexRoute
 }
 
 const DemoAppRouteChildren: DemoAppRouteChildren = {
+  DemoAppAssignmentRoute: DemoAppAssignmentRoute,
   DemoAppCommunicationsRoute: DemoAppCommunicationsRoute,
   DemoAppQueueRoute: DemoAppQueueRoute,
   DemoAppIndexRoute: DemoAppIndexRoute,
