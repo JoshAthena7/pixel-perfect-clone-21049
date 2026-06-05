@@ -1674,15 +1674,25 @@ function StatusPill({ current, onPick }: { current: StatusLabel; onPick: (s: Sta
   );
 }
 
-function ThreadsLauncher({ questionId }: { questionId: string }) {
-  const [open, setOpen] = useState(false);
+function ThreadsLauncher({ onOpen }: { onOpen: () => void }) {
   return (
-    <>
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+      <div
+        className="rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] shadow-2xl"
+        style={{
+          background: "rgba(20,184,166,0.18)",
+          borderColor: "rgba(94,234,212,0.7)",
+          color: "#ccfbf1",
+          boxShadow: "0 0 28px rgba(20,184,166,0.55)",
+        }}
+      >
+        Thread function lives here
+      </div>
       <button
-        onClick={() => setOpen(true)}
+        onClick={onOpen}
         title="Open internal threads (Athena-only)"
-        aria-label="Threads"
-        className="fixed right-6 bottom-6 z-40 inline-flex items-center gap-2.5 rounded-full px-5 py-3.5 text-[13px] font-semibold uppercase tracking-[0.14em] shadow-2xl transition hover:-translate-y-0.5 hover:shadow-[0_10px_40px_-5px_rgba(94,234,212,0.6)]"
+        aria-label="Open thread function"
+        className="inline-flex items-center gap-3 rounded-full px-6 py-4 text-[14px] font-black uppercase tracking-[0.14em] shadow-2xl transition hover:-translate-y-0.5 hover:shadow-[0_10px_40px_-5px_rgba(94,234,212,0.6)]"
         style={{
           background: "linear-gradient(135deg, #0d9488, #14b8a6)",
           border: "1px solid rgba(94,234,212,0.7)",
@@ -1690,16 +1700,10 @@ function ThreadsLauncher({ questionId }: { questionId: string }) {
           boxShadow: "0 8px 32px -4px rgba(20,184,166,0.55), 0 0 0 4px rgba(94,234,212,0.12)",
         }}
       >
-        <MessageSquare className="h-4 w-4" />
-        Threads
+        <MessageSquare className="h-5 w-5" />
+        Open Thread
       </button>
-      <ThreadPanel
-        open={open}
-        onClose={() => setOpen(false)}
-        objectType="question_record"
-        objectId={questionId}
-      />
-    </>
+    </div>
   );
 }
 
