@@ -1,8 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-// IRIS voice — "George" (authoritative narrator). Change here to swap voices.
-const IRIS_VOICE_ID = "JBFqnCBsd6RMkjVDRZzb";
+// IRIS voice — connected ElevenLabs voice selected for IRIS.
+const IRIS_VOICE_ID = "tnVKC6NjwhdRxoQIfKue";
 const MODEL_ID = "eleven_turbo_v2_5";
 
 export const synthesizeIrisLine = createServerFn({ method: "POST" })
