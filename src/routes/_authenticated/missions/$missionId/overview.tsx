@@ -665,10 +665,18 @@ function MissionOverviewPage() {
           />
         </section>
 
-        <section className="mt-8">
-          <h2 className="mr-section-label">Win Themes</h2>
-          <WinThemesPills themes={winThemes} questions={questions} isLeader={isLeader} />
-        </section>
+        {isLeader && (
+          <section className="mt-8">
+            <h2 className="mr-section-label">Administrative</h2>
+            <Link
+              to="/olympus/missions/$missionId/setup"
+              params={{ missionId }}
+              className="inline-flex items-center gap-2 text-xs text-primary hover:underline"
+            >
+              Open Setup in Olympus →
+            </Link>
+          </section>
+        )}
 
         <section className="mt-8">
           <h2 className="mr-section-label">Leadership Notes</h2>
