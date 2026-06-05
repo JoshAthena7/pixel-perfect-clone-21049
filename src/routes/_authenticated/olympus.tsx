@@ -8,8 +8,9 @@ import {
   ArrowLeft, ChevronDown, Zap,
   LayoutGrid, Users, FileText, ClipboardCheck, Trophy,
   FolderOpen, Settings as SettingsIcon, UserCog, History, Brain,
-  Bell, LifeBuoy, UserPlus, Activity,
+  UserPlus, Activity,
   ShieldAlert, UserMinus, ExternalLink, AlertTriangle, Megaphone,
+  Globe, Inbox, TrendingUp, Gauge, Compass,
 } from "lucide-react";
 
 import { useIsAdmin } from "@/hooks/useAccess";
@@ -179,6 +180,11 @@ function OlympusSidebar({ isAdmin }: { isAdmin: boolean }) {
 
         <IntelligenceSectionHeader />
         <IrisSidebarItem to="/olympus/intel-engine" path={path} icon={<Brain size={15} strokeWidth={1.5} />} pulse>Intel Engine</IrisSidebarItem>
+        <SidebarItem to="/olympus/comparables" path={path} icon={<Globe size={15} strokeWidth={1.5} />}>State Comparables</SidebarItem>
+        <SidebarItem to="/olympus/intel-drift" path={path} icon={<TrendingUp size={15} strokeWidth={1.5} />}>Intel Drift</SidebarItem>
+        <SidebarItem to="/olympus/discovery-history" path={path} icon={<Compass size={15} strokeWidth={1.5} />}>Discovery History</SidebarItem>
+        <SidebarItem to="/olympus/review-queue" path={path} icon={<Inbox size={15} strokeWidth={1.5} />}>Review Queue</SidebarItem>
+        <SidebarItem to="/olympus/score-me" path={path} icon={<Gauge size={15} strokeWidth={1.5} />}>Score-Me Lab</SidebarItem>
 
         {isAdmin && (
           <>
@@ -188,9 +194,6 @@ function OlympusSidebar({ isAdmin }: { isAdmin: boolean }) {
             <SidebarItem to="/olympus/invites" path={path} icon={<UserPlus size={15} strokeWidth={1.5} />}>Invites</SidebarItem>
 
             <SidebarItem to="/olympus/users" path={path} icon={<UserCog size={15} strokeWidth={1.5} />}>Users</SidebarItem>
-            <SidebarItem to="/olympus/support" path={path} icon={<LifeBuoy size={15} strokeWidth={1.5} />}>Support Config</SidebarItem>
-            <SidebarItem to="/olympus/talent" path={path} icon={<UserPlus size={15} strokeWidth={1.5} />}>Talent Desk</SidebarItem>
-            <SidebarItem to="/olympus/notifications" path={path} icon={<Bell size={15} strokeWidth={1.5} />}>Notifications</SidebarItem>
             <SidebarItem to="/olympus/brief-room" path={path} icon={<Megaphone size={15} strokeWidth={1.5} />}>Brief Room</SidebarItem>
 
             {/* H3: Security section — audit + PHI + IRP link */}
