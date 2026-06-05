@@ -66,6 +66,7 @@ function AtriumPage() {
       <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-8 px-8 py-10 lg:grid-cols-[1fr_320px_320px]">
         <main className="space-y-10">
           <GlobalBriefing />
+          <DirectBriefing />
           {isLoading ? (
             <div className="rounded-[12px] border border-border bg-surface p-12 text-center text-sm text-muted-foreground">
               Loading the Atrium…
