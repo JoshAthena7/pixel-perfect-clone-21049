@@ -28,6 +28,24 @@ const collectiveMemberSchema = z.object({
   role: missionRoleSchema,
 });
 
+// Look up an existing auth.users row by email. Supabase's admin API doesn't
+// expose a direct getUserByEmail, so we page through listUsers (capped) and
+// match case-insensitively. Returns null if not found.
+async function findAuthUserByEmail(
+  admin: { auth: { admin: { listUsers: (opts: { page: number; perPage: number }) => Promise<{ data: { users: Array<{ id: string; email?: string | null }> }; error: unknown }> } } },
+  email: string,
+): Promise<{ id: string } | null> {
+  const target = email.toLowerCase();
+  for (let page = 1; page <= 20; page++) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 });
+    if (error) return null;
+    const hit = data.users.find((u) => (u.email ?? "").toLowerCase() === target);
+    if (hit) return { id: hit.id };
+    if (data.users.length < 200) break;
+  }
+  return null;
+}
+
 export const inviteMissionMember = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => inviteSchema.parse(input))
@@ -53,14 +71,34 @@ export const inviteMissionMember = createServerFn({ method: "POST" })
       .maybeSingle();
     if (existing?.id) inviteeId = existing.id;
 
-    // If no profile exists, send a magic-link invite to create the account
+    // User may exist in auth.users without a profile row — look them up first.
+    if (!inviteeId) {
+      const authUser = await findAuthUserByEmail(supabaseAdmin, data.email);
+      if (authUser) inviteeId = authUser.id;
+    }
+
+    // Still no user: send a magic-link invite to create the account.
     if (!inviteeId) {
       const { data: invited, error: inviteErr } =
         await supabaseAdmin.auth.admin.inviteUserByEmail(data.email);
-      if (inviteErr) throw new Error(inviteErr.message);
-      inviteeId = invited.user?.id ?? null;
+      if (inviteErr) {
+        // Race: someone created the account between checks — find and continue.
+        const fallback = await findAuthUserByEmail(supabaseAdmin, data.email);
+        if (!fallback) throw new Error(inviteErr.message);
+        inviteeId = fallback.id;
+      } else {
+        inviteeId = invited.user?.id ?? null;
+      }
       if (!inviteeId) throw new Error("Invite did not produce a user.");
     }
+    const resolvedId: string = inviteeId!;
+
+    // Ensure a profile row exists for the invitee so future lookups are fast.
+    // Only create a profile row if one doesn't exist yet — don't clobber names.
+    await supabaseAdmin.from("profiles").upsert(
+      { id: resolvedId, email: data.email, display_name: data.displayName ?? data.email.split("@")[0] },
+      { onConflict: "id", ignoreDuplicates: true },
+    );
 
     // Add to mission_members (idempotent on (mission_id,user_id))
     const { error: memberErr } = await supabaseAdmin
@@ -68,7 +106,7 @@ export const inviteMissionMember = createServerFn({ method: "POST" })
       .upsert(
         {
           mission_id: data.missionId,
-          user_id: inviteeId,
+          user_id: resolvedId,
           role: data.role,
           display_name: data.displayName ?? null,
         },
@@ -76,7 +114,7 @@ export const inviteMissionMember = createServerFn({ method: "POST" })
       );
     if (memberErr) throw new Error(memberErr.message);
 
-    return { ok: true, userId: inviteeId };
+    return { ok: true, userId: resolvedId };
   });
 
 export const addCollectiveMemberToMission = createServerFn({ method: "POST" })
@@ -116,12 +154,22 @@ export const addCollectiveMemberToMission = createServerFn({ method: "POST" })
     }
 
     if (!inviteeId && collectiveMember.email) {
+      const authUser = await findAuthUserByEmail(supabaseAdmin, collectiveMember.email);
+      if (authUser) inviteeId = authUser.id;
+    }
+
+    if (!inviteeId && collectiveMember.email) {
       const { data: invited, error: inviteErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(
         collectiveMember.email,
       );
-      if (inviteErr) throw new Error(inviteErr.message);
-      inviteeId = invited.user?.id ?? null;
-      sentInvite = true;
+      if (inviteErr) {
+        const fallback = await findAuthUserByEmail(supabaseAdmin, collectiveMember.email);
+        if (!fallback) throw new Error(inviteErr.message);
+        inviteeId = fallback.id;
+      } else {
+        inviteeId = invited.user?.id ?? null;
+        sentInvite = true;
+      }
     }
 
     if (!inviteeId) {
