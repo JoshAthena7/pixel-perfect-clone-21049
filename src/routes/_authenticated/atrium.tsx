@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getAtrium, type AtriumPayload } from "@/lib/atrium.functions";
-import { Trophy, DollarSign, Users, MapPin, Flame, Sparkles, Circle } from "lucide-react";
+import { Trophy, DollarSign, Users, MapPin, Flame, Sparkles, Circle, MessageSquare, Send, AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/atrium")({
   component: AtriumPage,
@@ -63,7 +63,7 @@ function AtriumPage() {
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-8 px-8 py-10 lg:grid-cols-[1fr_360px]">
+      <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-8 px-8 py-10 lg:grid-cols-[1fr_320px_320px]">
         <main className="space-y-10">
           {isLoading ? (
             <div className="rounded-[12px] border border-border bg-surface p-12 text-center text-sm text-muted-foreground">
@@ -81,7 +81,84 @@ function AtriumPage() {
           <ViewerProfileCard viewer={data?.viewer ?? null} />
           <LiveWritersCard writers={data?.liveWriters ?? []} />
         </aside>
+
+        <aside className="space-y-6">
+          <ThreadPanel />
+        </aside>
       </div>
+    </div>
+  );
+}
+
+function ThreadPanel() {
+  return (
+    <div className="rounded-[12px] border border-border bg-surface">
+      <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
+        <div className="flex items-center gap-2">
+          <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={2} />
+          <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Thread · 2
+          </div>
+        </div>
+        <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-amber-400">
+          Open
+        </span>
+      </div>
+
+      <ul className="divide-y divide-border">
+        <li className="px-5 py-4">
+          <div className="flex items-center gap-2.5">
+            <Avatar name="Josh Bernstein" size={28} />
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium">Josh B.</div>
+              <div className="text-[10px] text-muted-foreground">2h ago · flagged</div>
+            </div>
+            <AlertTriangle className="h-3.5 w-3.5 text-amber-400" strokeWidth={2} />
+          </div>
+          <p className="mt-2.5 text-sm leading-relaxed text-foreground/90">
+            The ICC framing here reads as advocacy — we're positioning ICC as the solution rather than describing the
+            member population. Reviewers will flag this. Can we rework to lead with the population's clinical and social
+            needs, then bring ICC in as the delivery model?
+          </p>
+        </li>
+
+        <li className="px-5 py-4">
+          <div className="flex items-center gap-2.5">
+            <Avatar name="Sarah Chen" size={28} />
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium">Sarah Chen</div>
+              <div className="text-[10px] text-muted-foreground">38m ago · replied</div>
+            </div>
+          </div>
+          <p className="mt-2.5 text-sm leading-relaxed text-foreground/90">
+            Good catch. Reframing now — leading with SDoH burden and care-gap data from the state's 1115 waiver, then
+            ICC as the operational answer. Will push a revision before noon and tag you for re-review.
+          </p>
+        </li>
+      </ul>
+
+      <form
+        className="border-t border-border p-3"
+        onSubmit={(e) => e.preventDefault()}
+      >
+        <div className="flex items-end gap-2 rounded-[10px] border border-border bg-background px-3 py-2 focus-within:border-primary/60">
+          <textarea
+            rows={2}
+            placeholder="Reply to thread…"
+            className="flex-1 resize-none bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
+          />
+          <button
+            type="submit"
+            className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/15 text-primary hover:bg-primary/25"
+            aria-label="Send"
+          >
+            <Send className="h-3.5 w-3.5" strokeWidth={2} />
+          </button>
+        </div>
+        <div className="mt-1.5 px-1 text-[10px] text-muted-foreground">
+          ⌘↵ to send · @ to mention
+        </div>
+      </form>
     </div>
   );
 }
