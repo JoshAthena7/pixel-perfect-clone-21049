@@ -48,12 +48,21 @@ export function inferCategory(item: { title?: string | null; summary?: string | 
 const FILTER_KEYWORDS: Record<string, string[]> = {
   CMS: CATEGORY_KEYWORDS.CMS,
   Medicaid: CATEGORY_KEYWORDS.Medicaid,
-  Procurement: CATEGORY_KEYWORDS.Procurement,
-  MCO: [...CATEGORY_KEYWORDS.MCO, "managed care", "medicaid managed care"],
+  Procurement: [
+    ...CATEGORY_KEYWORDS.Procurement,
+    "contract", "award", "vendor", "rfi", "rfq", "procure", "bid", "purchasing",
+    "request for proposal", "request for information",
+  ],
+  MCO: [
+    ...CATEGORY_KEYWORDS.MCO,
+    "managed care", "medicaid managed care", "health plan", "plan rate", "capitation",
+    "medicare advantage", "ma plan", "d-snp", "dual eligible",
+  ],
   State: [
     "state of ", "state medicaid", "state agency", "governor", "state legislature",
-    "state plan amendment", " spa ", "1115 waiver", "1915", "department of health",
-    "department of human services", "medicaid director",
+    "state plan amendment", " spa ", "1115", "1915", "waiver",
+    "department of health", "department of human services", "medicaid director",
+    "work requirement", "reconciliation law", "state-level", "agency",
   ],
 };
 
