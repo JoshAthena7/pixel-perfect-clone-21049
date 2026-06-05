@@ -116,6 +116,18 @@ export const generateQuestionCoaching = createServerFn({ method: "POST" })
       .eq("mission_id", q.mission_id)
       .eq("status", "active");
 
+    // Pull unified IRIS context (vault, library, atlas, perplexity, decisions, signals…)
+    // scoped to this question — semantic match on the question text + requirements.
+    const topic = [q.title, q.question_text, (q.requirements ?? []).join("; ")]
+      .filter(Boolean)
+      .join("\n")
+      .slice(0, 3000);
+    const layered = await loadLayeredContext(supabase, {
+      missionId: q.mission_id,
+      questionId: q.id,
+      topic,
+    });
+
     const userMsg = `MISSION: ${mission?.name} · ${mission?.client} · ${mission?.state ?? "—"}
 Win themes: ${(mission?.win_themes ?? []).join("; ") || "(none)"}
 Priority topics: ${(mission?.priority_topics ?? []).join("; ") || "(none)"}
