@@ -768,9 +768,9 @@ function CockpitPage() {
       </div>
 
 
-      {/* FIXED ACTION BAR */}
+      {/* FIXED ACTION BAR (top) */}
       <div
-        className={`fixed inset-x-0 bottom-[58px] md:bottom-0 z-40 border-t ${tipStage === 1 && !isReadOnlyView ? "ring-2 ring-primary/40" : ""}`}
+        className={`fixed inset-x-0 top-14 z-40 border-b ${tipStage === 1 && !isReadOnlyView ? "ring-2 ring-primary/40" : ""}`}
         style={{ background: "rgba(6,11,20,0.95)", backdropFilter: "blur(12px)", borderColor: "rgba(255,255,255,0.06)" }}
       >
         {/* Micro-label — tells the writer why the bar looks the way it does */}
