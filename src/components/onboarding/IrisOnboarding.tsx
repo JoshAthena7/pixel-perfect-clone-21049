@@ -61,7 +61,7 @@ function useOnboardingGate() {
 
       // In replay mode always start a fresh session so the demo runs from Module 1.
       let session: SessionRow | null = null;
-      if (!replay) {
+      if (!replayRequested) {
         const { data: existing } = await supabase
           .from("iris_onboarding_sessions")
           .select("id, user_id, last_module, is_complete")
