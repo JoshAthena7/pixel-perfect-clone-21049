@@ -123,6 +123,7 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
   const spokenForModule = useRef<number | null>(null);
   const playbackPrimed = useRef(false);
   const preparedAudio = useRef<{ module: number; text: string; promise: Promise<string | null> } | null>(null);
+  const voicePlaybackInFlight = useRef(false);
 
   const script = IRIS_SCRIPTS[currentModule];
   const card = MODULE_CARDS[currentModule];
@@ -151,14 +152,19 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
   }, [muted]);
 
   function primePlayback() {
-    if (playbackPrimed.current) return Promise.resolve();
+    if (playbackPrimed.current) return Promise.resolve(true);
     const audio = audioRef.current ?? new Audio(SILENT_WAV);
     audio.preload = "auto";
     audioRef.current = audio;
-    return audio.play().catch(() => undefined).finally(() => {
+    return audio.play().then(
+      () => {
+        playbackPrimed.current = true;
+        return true;
+      },
+      () => false,
+    ).finally(() => {
       audio.pause();
       audio.currentTime = 0;
-      playbackPrimed.current = true;
     });
   }
 
@@ -192,8 +198,11 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
       audio.src = audioUrl;
       audioRef.current = audio;
       await audio.play();
+      return true;
     } catch {
       // Silent fallback — text still renders
+      URL.revokeObjectURL(audioUrl);
+      return false;
     }
   }
 
@@ -201,6 +210,26 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
     if (muted && !options?.force) return;
     const audioUrl = await createIrisAudioUrl(text);
     if (audioUrl) await playPreparedAudioUrl(audioUrl);
+  }
+
+  async function playModuleLine(moduleNumber: number, text: string, options?: { force?: boolean }) {
+    if (voicePlaybackInFlight.current) return;
+    if (muted && !options?.force) return;
+    const queuedAudio =
+      preparedAudio.current?.module === moduleNumber && preparedAudio.current.text === text
+        ? preparedAudio.current.promise
+        : createIrisAudioUrl(text);
+    preparedAudio.current = { module: moduleNumber, text, promise: queuedAudio };
+    voicePlaybackInFlight.current = true;
+    try {
+      await primePlayback();
+      const audioUrl = await queuedAudio;
+      if (!audioUrl) return;
+      const played = await playPreparedAudioUrl(audioUrl);
+      if (played) spokenForModule.current = moduleNumber;
+    } finally {
+      voicePlaybackInFlight.current = false;
+    }
   }
 
   // Narrate current module (browsers block autoplay until first user gesture,
@@ -218,10 +247,7 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
 
     const speak = async () => {
       if (cancelled) return;
-      spokenForModule.current = currentModule;
-      await primePlayback();
-      const audioUrl = await queuedAudio;
-      if (audioUrl) await playPreparedAudioUrl(audioUrl);
+      await playModuleLine(currentModule, greetedScript);
       if (cancelled && audioRef.current) audioRef.current.pause();
     };
 
@@ -238,11 +264,13 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
       speak();
     };
     window.addEventListener("pointerdown", onFirstGesture, { once: true });
+    window.addEventListener("click", onFirstGesture, { once: true });
     window.addEventListener("keydown", onFirstGesture, { once: true });
 
     return () => {
       cancelled = true;
       window.removeEventListener("pointerdown", onFirstGesture);
+      window.removeEventListener("click", onFirstGesture);
       window.removeEventListener("keydown", onFirstGesture);
     };
   }, [currentModule, greetedScript, muted]);
