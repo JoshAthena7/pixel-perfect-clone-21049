@@ -853,19 +853,7 @@ function MissionBrief() {
           </div>
         </section>
 
-        {/* SECTION 7: LEADERSHIP NOTES */}
-        <section>
-          <SectionHeader
-            title="Leadership Notes"
-            action={
-              <button
-                onClick={() => setAddNoteOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] font-medium hover:bg-white/[0.06]"
-              >
-                <Plus className="h-3 w-3" /> Add Note
-              </button>
-            }
-          />
+        {/* SECTION 7: WIN THEMES */}
         <section>
           <SectionHeader
             title="Win Themes"
