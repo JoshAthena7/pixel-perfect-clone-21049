@@ -12,6 +12,7 @@ import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
 import { PhoneAFriendOverlay } from "@/components/v2/PhoneAFriendOverlay";
 import { LegacyRecord } from "@/components/v4/LegacyRecord";
 import { DailyPulse } from "@/components/v4/DailyPulse";
+import { ThreadPanel } from "@/components/threads/ThreadPanel";
 import {
   Sparkles,
   Target,
@@ -385,6 +386,7 @@ function AssistsRow({
   openScore,
   openPhone,
   openPulse,
+  openThread,
 }: {
   missionId: string;
   suggestedId: string | null;
@@ -392,19 +394,22 @@ function AssistsRow({
   openScore: () => void;
   openPhone: () => void;
   openPulse: () => void;
+  openThread: () => void;
 }) {
   return (
     <section className="rounded-[12px] border border-border bg-surface overflow-hidden">
       <AssistsBar
         onUpdateReality={() => openUpdateReality(suggestedId)}
         onScoreMe={openScore}
-        onPhone={openPhone}
+        onPhone={() => {
+          if (!suggestedId) { toast("Pick a question first to use Phone a Friend"); return; }
+          openPhone();
+        }}
         onPulse={openPulse}
-        onThread={() =>
-          suggestedId
-            ? window.dispatchEvent(new CustomEvent("atlas:open-thread", { detail: { questionId: suggestedId } }))
-            : toast("Open a question to use Thread")
-        }
+        onThread={() => {
+          if (!suggestedId) { toast("Open a question to use Thread"); return; }
+          openThread();
+        }}
         sosSlot={<SOSButton missionId={missionId} questionId={suggestedId ?? undefined} />}
       />
     </section>
@@ -548,6 +553,7 @@ export function CockpitV4({ missionId, me, myQuestions, allQuestions, updateStat
   const [scoreOpen, setScoreOpen] = useState(false);
   const [phoneOpen, setPhoneOpen] = useState(false);
   const [pulseOpen, setPulseOpen] = useState(false);
+  const [threadOpen, setThreadOpen] = useState(false);
 
   const { data: mission } = useQuery({
     queryKey: ["cockpit-v4-mission", missionId],
@@ -684,6 +690,7 @@ export function CockpitV4({ missionId, me, myQuestions, allQuestions, updateStat
           openScore={() => setScoreOpen(true)}
           openPhone={() => setPhoneOpen(true)}
           openPulse={() => setPulseOpen(true)}
+          openThread={() => setThreadOpen(true)}
         />
 
         <Sheet open={pulseOpen} onOpenChange={setPulseOpen}>
@@ -715,6 +722,14 @@ export function CockpitV4({ missionId, me, myQuestions, allQuestions, updateStat
           meId={me}
           meName=""
           onClose={() => setPhoneOpen(false)}
+        />
+      )}
+      {suggestedQ && (
+        <ThreadPanel
+          open={threadOpen}
+          onClose={() => setThreadOpen(false)}
+          objectType="question_record"
+          objectId={suggestedQ.id}
         />
       )}
     </div>
