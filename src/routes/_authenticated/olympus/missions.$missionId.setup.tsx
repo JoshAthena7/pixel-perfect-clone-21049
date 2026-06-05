@@ -1071,27 +1071,115 @@ function SectionFinancials({ missionId, financials, refetch }: any) {
 }
 
 /* ────────────────────────────────────────────────────────────
-   Launch confirmation
+   04B — Evaluation Criteria Map
    ──────────────────────────────────────────────────────────── */
-function LaunchConfirmModal({ missionId, onClose, onView }: { missionId: string; onClose: () => void; onView: () => void }) {
+type EvalRow = {
+  id?: string;
+  category: string;
+  points: number;
+  sections_covered: string[];
+  competitive_risk: "low" | "medium" | "high";
+};
+function SectionEvaluation({ missionId, criteria, questions, refetch }: any) {
+  const saveFn = useServerFn(saveEvaluationCriteria);
+  const [rows, setRows] = useState<EvalRow[]>([]);
+  useEffect(() => {
+    setRows((criteria ?? []).map((c: any) => ({
+      id: c.id,
+      category: c.category,
+      points: c.points,
+      sections_covered: Array.isArray(c.sections_covered) ? c.sections_covered.map(String) : [],
+      competitive_risk: (c.competitive_risk ?? "medium") as "low" | "medium" | "high",
+    })));
+  }, [criteria]);
+
+  const totalPts = rows.reduce((sum, r) => sum + (Number(r.points) || 0), 0);
+
+  function update(i: number, patch: Partial<EvalRow>) {
+    setRows((rs) => rs.map((r, idx) => idx === i ? { ...r, ...patch } : r));
+  }
+  function add() {
+    setRows((rs) => [...rs, { category: "", points: 0, sections_covered: [], competitive_risk: "medium" }]);
+  }
+  function remove(i: number) { setRows((rs) => rs.filter((_, idx) => idx !== i)); }
+  async function save() {
+    await saveFn({ data: { missionId, criteria: rows.filter((r) => r.category.trim()) } });
+    toast.success("Evaluation map saved");
+    refetch();
+  }
+
+  // Count questions covered by each row for the preview column
+  function coveredCount(sections: string[]): number {
+    if (sections.length === 0) return 0;
+    return (questions ?? []).filter((q: any) =>
+      sections.some((s) => String(s) === String(q.section_number) || String(q.question_number ?? "").startsWith(String(s))),
+    ).length;
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
-      <div onClick={(e) => e.stopPropagation()} className="relative z-10 w-full max-w-md rounded-xl border border-border bg-background p-8 text-center shadow-2xl">
-        <div className="mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/15">
-          <Rocket className="h-6 w-6 text-primary" />
-        </div>
-        <h2 className="text-xl font-light">Mission Ready</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Mission Home, The Vault, The Oracle, the Studio, the team permissions, the calendar, and the initial IRIS briefing have all been generated from this setup record.
-        </p>
-        <div className="mt-6 flex items-center justify-center gap-2">
-          <button onClick={onClose} className="rounded-md border border-border bg-background px-4 py-2 text-sm hover:bg-surface-hover">Stay in Olympus</button>
-          <button onClick={onView} className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
-            View Mission Home <ArrowRight className="h-3.5 w-3.5" />
-          </button>
-        </div>
+    <Section id="evaluation" n="4B" label="Evaluation Criteria Map" sublabel="RFP scoring matrix. Drives competitive risk on every question and IRIS priority flags.">
+      <div className="overflow-x-auto rounded-md border border-border">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground bg-surface/30">
+              <th className="px-3 py-2 text-left">Category</th>
+              <th className="px-3 py-2 text-right w-20">Points</th>
+              <th className="px-3 py-2 text-left">Sections / Q Numbers</th>
+              <th className="px-3 py-2 text-center w-32">Questions Covered</th>
+              <th className="px-3 py-2 text-left w-32">Competitive Risk</th>
+              <th className="px-3 py-2 w-10"></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {rows.length === 0 && (
+              <tr><td colSpan={6} className="px-3 py-6 text-center text-xs text-muted-foreground italic">No criteria yet. Add one below.</td></tr>
+            )}
+            {rows.map((r, i) => (
+              <tr key={i} className="align-top">
+                <td className="px-3 py-2">
+                  <TextInput value={r.category} onChange={(e) => update(i, { category: e.target.value })} placeholder="e.g. Technical Approach" />
+                </td>
+                <td className="px-3 py-2 text-right">
+                  <TextInput type="number" value={String(r.points)} onChange={(e) => update(i, { points: Number(e.target.value) || 0 })} className="text-right" />
+                </td>
+                <td className="px-3 py-2">
+                  <TextInput
+                    value={r.sections_covered.join(", ")}
+                    onChange={(e) => update(i, { sections_covered: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
+                    placeholder="2, 3.1, 3.2"
+                  />
+                </td>
+                <td className="px-3 py-2 text-center text-xs tabular-nums text-muted-foreground">{coveredCount(r.sections_covered)}</td>
+                <td className="px-3 py-2">
+                  <select value={r.competitive_risk} onChange={(e) => update(i, { competitive_risk: e.target.value as any })}
+                    className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs">
+                    <option value="low">low</option>
+                    <option value="medium">medium</option>
+                    <option value="high">high</option>
+                  </select>
+                </td>
+                <td className="px-3 py-2 text-center">
+                  <button onClick={() => remove(i)} className="opacity-50 hover:opacity-100"><X className="h-3.5 w-3.5" /></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr className="border-t border-border bg-surface/20 text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
+              <td className="px-3 py-2 text-right">Total</td>
+              <td className="px-3 py-2 text-right tabular-nums">{totalPts}</td>
+              <td colSpan={4}></td>
+            </tr>
+          </tfoot>
+        </table>
       </div>
-    </div>
+      <div className="mt-3 flex items-center justify-between">
+        <button onClick={add} className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+          <Plus className="h-3 w-3" /> Add criterion
+        </button>
+        <button onClick={save} className="rounded-md border border-border bg-background px-4 py-2 text-sm hover:bg-surface-hover">Save Evaluation Map</button>
+      </div>
+    </Section>
   );
 }
+
