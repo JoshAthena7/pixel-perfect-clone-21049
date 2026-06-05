@@ -366,13 +366,6 @@ function CockpitListActionBar({ missionId, question }: { missionId: string; ques
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setOverflowOpen(false); toast("Phone a Friend — coming soon", { description: "Open the question workspace to collaborate." }); }}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-surface-hover"
-                  >
-                    <Phone className="h-3.5 w-3.5" /> Phone a Friend
-                  </button>
-                  <button
-                    type="button"
                     onClick={() => { setOverflowOpen(false); openUpdateReality(question.id); }}
                     className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-surface-hover"
                   >
