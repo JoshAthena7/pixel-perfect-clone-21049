@@ -140,9 +140,10 @@ function MissionSetupRecord() {
           </header>
 
           <SectionIdentity missionId={missionId} mission={setup.mission} refetch={setup.refetch} />
-          <SectionTeam missionId={missionId} members={setup.members} refetch={setup.refetch} />
-          <SectionInputs missionId={missionId} docs={setup.docs} refetch={setup.refetch} />
+          <SectionTeam missionId={missionId} members={setup.members} expertise={setup.expertise} refetch={setup.refetch} />
+          <SectionInputs missionId={missionId} mission={setup.mission} docs={setup.docs} monitoring={setup.monitoring} refetch={setup.refetch} />
           <SectionStrategy missionId={missionId} mission={setup.mission} strategy={setup.strategy} sensitivities={setup.sensitivities} refetch={setup.refetch} />
+          <SectionEvaluation missionId={missionId} criteria={setup.evaluation} questions={setup.questions} refetch={setup.refetch} />
           <SectionClientIntel missionId={missionId} intel={setup.clientIntel} refetch={setup.refetch} />
           <SectionTimeline missionId={missionId} timeline={setup.timeline} refetch={setup.refetch} />
           <SectionQuestions missionId={missionId} questions={setup.questions} volumes={setup.volumes} refetch={setup.refetch} />
@@ -164,11 +165,11 @@ function MissionSetupRecord() {
               </div>
               <button
                 onClick={handleLaunch}
-                disabled={launching}
+                disabled={confirm}
                 className="inline-flex items-center gap-2 rounded-md bg-[#C49A22] px-6 py-3 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50 transition"
               >
                 <Rocket className="h-4 w-4" />
-                {launching ? "Launching…" : "Launch Mission"}
+                Launch Mission
               </button>
             </div>
           </div>
@@ -176,7 +177,7 @@ function MissionSetupRecord() {
       </div>
 
       {confirm && (
-        <LaunchConfirmModal
+        <LaunchSequence
           missionId={missionId}
           onClose={() => setConfirm(false)}
           onView={() => navigate({ to: "/missions/$missionId/overview", params: { missionId } })}
