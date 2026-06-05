@@ -81,17 +81,25 @@ export function LaunchSequence({ missionId, onClose, onView }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
-      <div className="relative z-10 w-full max-w-xl rounded-xl border border-border bg-background shadow-2xl">
+      <div
+        className="relative z-10 w-full max-w-xl rounded-xl border bg-background shadow-2xl transition-all duration-500"
+        style={{
+          borderColor: ready ? "rgba(196,154,34,0.55)" : "var(--border)",
+          boxShadow: ready
+            ? "0 30px 80px -10px rgba(0,0,0,0.6), 0 0 0 1px rgba(196,154,34,0.25), 0 0 60px -10px rgba(196,154,34,0.35)"
+            : undefined,
+        }}
+      >
         <div className="p-8">
           <div className="flex items-center gap-3">
-            <div className={`inline-flex h-10 w-10 items-center justify-center rounded-full ${ready ? "bg-emerald-500/15" : "bg-[#C49A22]/15"}`}>
-              {ready ? <CheckCircle2 className="h-5 w-5 text-emerald-400" /> : <Rocket className="h-5 w-5 text-[#C49A22] animate-pulse" />}
+            <div className={`inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors ${ready ? "bg-[#C49A22]/20" : "bg-[#C49A22]/15"}`}>
+              {ready ? <CheckCircle2 className="h-5 w-5 text-[#C49A22]" /> : <Rocket className="h-5 w-5 text-[#C49A22] animate-pulse" />}
             </div>
             <div>
               <div className="text-[10px] uppercase tracking-[0.28em] font-mono text-muted-foreground">
                 {ready ? "Mission Ready" : "Intelligence Engine Activating"}
               </div>
-              <div className="text-lg font-light">{ready ? "All systems online." : "Generating mission surfaces…"}</div>
+              <div className="text-lg font-light">{ready ? "All systems online. Handing off to Mission Home." : "Generating mission surfaces…"}</div>
             </div>
           </div>
 
@@ -124,9 +132,14 @@ export function LaunchSequence({ missionId, onClose, onView }: Props) {
             <button
               onClick={onView}
               disabled={!ready}
-              className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40"
+              className="inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold disabled:opacity-40 transition-all"
+              style={{
+                background: ready ? "#C49A22" : "var(--primary)",
+                color: ready ? "#0a0a0a" : "var(--primary-foreground)",
+                boxShadow: ready ? "0 0 24px -4px rgba(196,154,34,0.55)" : undefined,
+              }}
             >
-              View Mission Home <ArrowRight className="h-3.5 w-3.5" />
+              Enter Mission Home <ArrowRight className="h-3.5 w-3.5" />
             </button>
           </div>
         </div>

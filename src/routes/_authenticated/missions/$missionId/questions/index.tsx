@@ -867,10 +867,14 @@ function ResponsesList() {
 
 
       <StudioHealthStrip missionId={missionId} />
-      <div className="h-4" />
-      <StudioVaultOraclePeek missionId={missionId} />
 
-      {isWriter && <WriterBriefPanel missionId={missionId} myQuestions={myQuestions} collabsByQ={collabsByQ} />}
+      {isWriter && (
+        <>
+          <div className="h-4" />
+          <WriterBriefPanel missionId={missionId} myQuestions={myQuestions} collabsByQ={collabsByQ} />
+        </>
+      )}
+
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         {isWriter && (
@@ -1003,6 +1007,14 @@ function ResponsesList() {
           )}
         </>
       )}
+
+      <div className="mt-10">
+        <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+          Reference
+        </div>
+        <StudioVaultOraclePeek missionId={missionId} />
+      </div>
+
       {actionQuestion && <CockpitListActionBar missionId={missionId} question={actionQuestion} />}
       {drawerQ && (
         <ReadOnlyQuestionDrawer
