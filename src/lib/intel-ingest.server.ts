@@ -17,10 +17,31 @@ type IntelRow = {
 };
 
 const RSS_FEEDS: Array<{ url: string; source: string; category: string }> = [
+  // Industry / CMS / Medicare / Medicaid
   { url: "https://www.kff.org/feed/", source: "KFF Health News", category: "Medicaid" },
   { url: "https://www.healthaffairs.org/action/showFeed?type=etoc&feed=rss&jc=hlthaff", source: "Health Affairs", category: "Medicare" },
   { url: "https://www.fiercehealthcare.com/rss/xml", source: "Fierce Healthcare", category: "CMS" },
   { url: "https://www.healthcaredive.com/feeds/news/", source: "Healthcare Dive", category: "CMS" },
+  { url: "https://www.cms.gov/about-cms/contact/newsroom/rss-feeds/news/feed", source: "CMS Newsroom", category: "CMS" },
+  { url: "https://www.cms.gov/about-cms/contact/newsroom/rss-feeds/press-releases/feed", source: "CMS Press Releases", category: "CMS" },
+  { url: "https://www.medicaid.gov/about-us/contact-us/rss-feeds/index.xml", source: "Medicaid.gov", category: "Medicaid" },
+
+  // State Medicaid bulletins / policy
+  { url: "https://www.nashp.org/feed/", source: "NASHP", category: "State" },
+  { url: "https://medicaiddirectors.org/feed/", source: "NAMD", category: "State" },
+  { url: "https://www.macpac.gov/feed/", source: "MACPAC", category: "State" },
+  { url: "https://www.shvs.org/feed/", source: "State Health & Value Strategies", category: "State" },
+  { url: "https://ccf.georgetown.edu/feed/", source: "Georgetown CCF", category: "State" },
+
+  // Managed Care Organizations / health plans
+  { url: "https://www.ahip.org/news/feed", source: "AHIP", category: "MCO" },
+  { url: "https://www.fiercehealthcare.com/payer/rss.xml", source: "Fierce Healthcare Payer", category: "MCO" },
+  { url: "https://www.modernhealthcare.com/section/insurance?template=rss", source: "Modern Healthcare Insurance", category: "MCO" },
+
+  // Procurement / RFP / contracting
+  { url: "https://sam.gov/api/prod/sgs/v1/search/feed/opportunities?index=opp&q=medicaid&page=0&size=25&sort=-modifiedDate", source: "SAM.gov Opportunities", category: "Procurement" },
+  { url: "https://bidnetdirect.com/rss/health-and-medical", source: "BidNet Direct Health", category: "Procurement" },
+  { url: "https://www.healthmanagement.com/feed/", source: "Health Management Associates", category: "Procurement" },
 ];
 
 async function fetchFederalRegister(): Promise<IntelRow[]> {
