@@ -2,10 +2,12 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { BookOpen, ExternalLink, Check, X, Sparkles, ShieldCheck } from "lucide-react";
+import { BookOpen, ExternalLink, Check, X, Sparkles, ShieldCheck, Plus, FileUp } from "lucide-react";
 import { listAtlasSources } from "@/lib/atlas-sources.functions";
 import { setSourceStatus } from "@/lib/atlas-onboarding.functions";
 import { seedStarterCanon, verifyCanon } from "@/lib/canon-seed.functions";
+import { AddCanonModal } from "@/components/canon/AddCanonModal";
+import { ExtractCanonModal } from "@/components/canon/ExtractCanonModal";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/olympus/canon-library")({
@@ -31,6 +33,8 @@ function CanonLibraryPage() {
   const [seeding, setSeeding] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [verifyResult, setVerifyResult] = useState<any>(null);
+  const [showAdd, setShowAdd] = useState(false);
+  const [showExtract, setShowExtract] = useState(false);
   const list = useServerFn(listAtlasSources);
   const setFn = useServerFn(setSourceStatus);
   const seedFn = useServerFn(seedStarterCanon);
@@ -113,7 +117,7 @@ function CanonLibraryPage() {
             The foundation every mission is built on. Federal regulations, CMS authorities, and Athena institutional knowledge.
           </p>
         </div>
-        <div className="flex shrink-0 gap-2">
+        <div className="flex shrink-0 flex-wrap gap-2">
           <button
             onClick={handleVerify}
             disabled={verifying}
@@ -125,14 +129,30 @@ function CanonLibraryPage() {
           <button
             onClick={handleSeed}
             disabled={seeding}
-            className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium disabled:opacity-50"
-            style={{ background: "#C49A22", color: "#0b0b0b" }}
-            title="Insert a starter pack of Athena Canon entries (voice, methodology, federal authorities). Idempotent."
+            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-xs font-medium hover:bg-surface-hover disabled:opacity-50"
+            title="Insert a starter pack of Athena Canon entries. Idempotent."
           >
-            <Sparkles size={12} /> {seeding ? "Seeding…" : "Seed Starter Canon"}
+            <Sparkles size={12} /> {seeding ? "Seeding…" : "Seed Starter"}
+          </button>
+          <button
+            onClick={() => setShowExtract(true)}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-xs font-medium hover:bg-surface-hover"
+            title="Upload a PDF/DOCX. IRIS extracts and proposes Canon entries you can review and save."
+          >
+            <FileUp size={12} /> Extract from Doc
+          </button>
+          <button
+            onClick={() => setShowAdd(true)}
+            className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium"
+            style={{ background: "#C49A22", color: "#0b0b0b" }}
+          >
+            <Plus size={12} /> Add Entry
           </button>
         </div>
       </header>
+
+      {showAdd && <AddCanonModal onClose={() => setShowAdd(false)} />}
+      {showExtract && <ExtractCanonModal onClose={() => setShowExtract(false)} />}
 
       {verifyResult && (
         <div

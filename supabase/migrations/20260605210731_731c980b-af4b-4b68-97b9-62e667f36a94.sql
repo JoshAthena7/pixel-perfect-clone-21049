@@ -1,0 +1,1 @@
+CREATE POLICY "canon_uploads_admin_all" ON storage.objects FOR ALL TO authenticated USING (bucket_id = 'canon-uploads' AND has_role(auth.uid(), 'admin'::app_role)) WITH CHECK (bucket_id = 'canon-uploads' AND has_role(auth.uid(), 'admin'::app_role));
