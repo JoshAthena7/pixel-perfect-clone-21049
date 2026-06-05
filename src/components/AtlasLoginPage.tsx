@@ -126,6 +126,17 @@ export function AtlasLoginPage() {
                   <svg className="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                 )}
               </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  window.localStorage.setItem("demo_mode", "1");
+                  navigate({ to: "/atrium", replace: true });
+                }}
+                className="mt-2 w-full rounded-md border border-amber-400/40 bg-transparent py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-amber-300/90 transition hover:bg-amber-400/10"
+              >
+                Demo Mode — Skip Login
+              </button>
             </form>
           </div>
         </div>
