@@ -402,11 +402,15 @@ function Step2Uploads({
         }
       }
 
-      // IRIS extraction
-      try {
-        await extractFn({ data: { documentId } });
-      } catch (e: any) {
-        console.warn("IRIS extraction failed", e?.message);
+      // IRIS RFP extraction — only run on the RFP itself. Other vault docs
+      // (style guides, research, crosswalks) don't need full RFP config
+      // extraction and would block the upload row in "indexing" for ~60s.
+      if (isRfp) {
+        try {
+          await extractFn({ data: { documentId } });
+        } catch (e: any) {
+          console.warn("IRIS extraction failed", e?.message);
+        }
       }
 
       setFiles((prev) =>
