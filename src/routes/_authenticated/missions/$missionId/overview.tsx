@@ -223,17 +223,6 @@ function MissionOverviewPage() {
     },
   });
 
-  const { data: winThemes = [] } = useQuery<WinTheme[]>({
-    queryKey: ["overview-win-themes", missionId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("win_themes")
-        .select("id,title,description,key_message,question_ids,status")
-        .eq("mission_id", missionId)
-        .neq("status", "archived");
-      return (data ?? []) as WinTheme[];
-    },
-  });
 
   const since24h = useMemo(() => new Date(Date.now() - 86400000).toISOString(), []);
 
