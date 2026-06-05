@@ -762,8 +762,8 @@ function SensitivitiesTab({ missionId }: { missionId: string }) {
     mutationFn: async () => {
       const { error } = await supabase.from("mission_sensitivities").insert({
         mission_id: missionId,
-        category: form.category || null,
-        subject: form.subject || null,
+        category: form.category || undefined,
+        subject: form.subject || undefined,
         note: form.note,
         severity: form.severity,
       });
