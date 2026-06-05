@@ -117,10 +117,12 @@ export function BriefingAckModal({
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent
-        className="max-w-xl border-0 p-0 overflow-hidden"
+        className="max-w-[640px] border-0 p-0 overflow-hidden"
         style={{
           background: "#0d1320",
           borderTop: "3px solid var(--athena-gold, #f59e0b)",
+          boxShadow:
+            "0 30px 80px -10px rgba(0,0,0,0.6), 0 0 0 1px rgba(245,158,11,0.10)",
         }}
       >
         <button
@@ -131,46 +133,78 @@ export function BriefingAckModal({
           <X size={14} />
         </button>
 
-        <div className="px-7 pt-7 pb-2">
+        {/* Document letterhead */}
+        <div className="px-10 pt-10 pb-5">
           <div
-            className="text-[10px] font-bold uppercase tracking-[0.28em]"
+            className="text-[10px] font-bold uppercase tracking-[0.32em]"
             style={{ color: "var(--athena-gold, #f59e0b)" }}
           >
-            {isGlobal ? "Briefing from Athena Leadership" : "Direct Briefing"}
+            {isGlobal ? "Briefing · Athena Leadership" : "Briefing · Direct"}
           </div>
-          {isGlobal ? (
-            <h2 className="mt-3 text-xl font-semibold tracking-tight text-foreground">
-              {briefing.subject}
-            </h2>
-          ) : (
-            <div className="mt-3">
-              <div className="text-[12px] text-muted-foreground">
-                From: <span className="text-foreground font-medium">{briefing.sender_name}</span>
-                <span className="mx-1.5">·</span>
-                {dateStr}
-              </div>
-              <h2 className="mt-2 text-xl font-semibold tracking-tight text-foreground">
-                {briefing.subject}
-              </h2>
-            </div>
-          )}
+          <h2
+            className="mt-4 text-[26px] leading-[1.2] tracking-tight text-foreground"
+            style={{
+              fontFamily:
+                "'Cormorant Garamond', 'Instrument Serif', Georgia, serif",
+              fontWeight: 500,
+            }}
+          >
+            {briefing.subject}
+          </h2>
+          <div className="mt-3 flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span>
+              From <span className="text-foreground font-medium">{briefing.sender_name}</span>
+            </span>
+            <span>·</span>
+            <span>{dateStr}</span>
+          </div>
         </div>
 
-        <div className="px-7 py-4">
-          <p className="text-[14px] leading-relaxed whitespace-pre-wrap text-foreground/90">
+        <div
+          className="mx-10 border-t"
+          style={{ borderColor: "rgba(245,158,11,0.18)" }}
+        />
+
+        {/* Document body */}
+        <div className="px-10 py-6">
+          <p
+            className="text-[14.5px] whitespace-pre-wrap text-foreground/90"
+            style={{ lineHeight: 1.75 }}
+          >
             {briefing.body}
           </p>
         </div>
 
-        <div className="mx-7 my-2 border-t border-white/10" />
+        {/* Signature block */}
+        <div className="px-10 pb-2">
+          <div
+            className="text-[10px] font-bold uppercase tracking-[0.28em] mb-1"
+            style={{ color: "rgba(245,158,11,0.7)" }}
+          >
+            Signed
+          </div>
+          <div
+            className="text-[15px]"
+            style={{
+              fontFamily:
+                "'Cormorant Garamond', 'Instrument Serif', Georgia, serif",
+              fontStyle: "italic",
+              color: "#e5e7eb",
+            }}
+          >
+            {briefing.sender_name}
+          </div>
+        </div>
 
-        <div className="px-7 pb-2 text-[11px] leading-relaxed text-muted-foreground">
+        <div className="mx-10 mt-5 border-t border-white/10" />
+
+        <div className="px-10 pt-3 text-[11px] leading-relaxed text-muted-foreground">
           {isGlobal
             ? "This is an official communication from Athena Strategy Group. By selecting Acknowledged, you confirm you have read this Briefing. It will remain accessible in your Brief Room inbox."
             : "This message is intended solely for you. It is private and may not be forwarded or shared. By selecting Acknowledged, you confirm receipt."}
         </div>
 
-        <DialogFooter className="px-7 py-5">
+        <DialogFooter className="px-10 py-6">
           <Button
             onClick={() => ack.mutate()}
             disabled={ack.isPending}
