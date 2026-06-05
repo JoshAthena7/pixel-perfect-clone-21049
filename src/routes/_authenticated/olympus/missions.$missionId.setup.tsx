@@ -1,30 +1,35 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   CheckCircle2, Circle, Plus, Trash2, Upload, Rocket, ChevronDown, ChevronRight,
-  Lock, ArrowRight, X,
+  Lock, X, Radar, Tag,
 } from "lucide-react";
 import { launchMission } from "@/lib/mission-setup.functions";
+import { seedMonitoringWatchlist, saveMonitoringSource, deleteMonitoringSource } from "@/lib/mission-monitoring.functions";
+import { saveEvaluationCriteria, saveExpertiseTag, removeExpertiseTag } from "@/lib/mission-evaluation.functions";
+import { LaunchSequence } from "@/components/olympus/LaunchSequence";
 import { useIsAdmin } from "@/hooks/useAccess";
 
 export const Route = createFileRoute("/_authenticated/olympus/missions/$missionId/setup")({
   component: MissionSetupRecord,
 });
 
+
 /* ────────────────────────────────────────────────────────────
    Section spec — order matters; ids are anchor targets.
    ──────────────────────────────────────────────────────────── */
-type SectionId = "identity" | "team" | "inputs" | "strategy" | "client" | "timeline" | "questions" | "governance" | "financials";
+type SectionId = "identity" | "team" | "inputs" | "strategy" | "evaluation" | "client" | "timeline" | "questions" | "governance" | "financials";
 
 const SECTIONS: Array<{ id: SectionId; n: string; label: string; admin?: boolean }> = [
   { id: "identity", n: "01", label: "Mission Identity" },
   { id: "team", n: "02", label: "Team Assignment" },
   { id: "inputs", n: "03", label: "Mission Inputs" },
   { id: "strategy", n: "04", label: "Strategic Foundation" },
+  { id: "evaluation", n: "4B", label: "Evaluation Criteria Map" },
   { id: "client", n: "05", label: "Client Intelligence" },
   { id: "timeline", n: "06", label: "Timeline & Gates" },
   { id: "questions", n: "07", label: "Question Setup" },
@@ -41,17 +46,19 @@ function MissionSetupRecord() {
   const qc = useQueryClient();
   const { isAdmin } = useIsAdmin();
   const launchFn = useServerFn(launchMission);
-  const [launching, setLaunching] = useState(false);
   const [confirm, setConfirm] = useState(false);
+  const [preLaunchError, setPreLaunchError] = useState<string | null>(null);
 
   const setup = useSetupData(missionId);
   const completion = useCompletion(setup);
 
   async function handleLaunch() {
-    setLaunching(true);
+    setPreLaunchError(null);
     try {
+      // Validate readiness server-side before kicking off the animated sequence.
       const res = await launchFn({ data: { missionId } });
       if (!res.ok) {
+        setPreLaunchError(`Complete first: ${res.missing.join(", ")}`);
         toast.error(`Complete first: ${res.missing.join(", ")}`);
         return;
       }
@@ -59,10 +66,9 @@ function MissionSetupRecord() {
       qc.invalidateQueries({ queryKey: ["olympus-missions"] });
     } catch (e: any) {
       toast.error(e?.message ?? "Launch failed");
-    } finally {
-      setLaunching(false);
     }
   }
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -107,12 +113,13 @@ function MissionSetupRecord() {
               <CompletionMeter completion={completion} isAdmin={isAdmin} />
               <button
                 onClick={handleLaunch}
-                disabled={launching}
+                disabled={confirm}
                 className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#C49A22] px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50 transition"
               >
                 <Rocket className="h-4 w-4" />
-                {launching ? "Launching…" : "Launch Mission"}
+                Launch Mission
               </button>
+              {preLaunchError && <p className="mt-2 text-[11px] text-destructive">{preLaunchError}</p>}
             </div>
           </div>
         </aside>
@@ -133,9 +140,10 @@ function MissionSetupRecord() {
           </header>
 
           <SectionIdentity missionId={missionId} mission={setup.mission} refetch={setup.refetch} />
-          <SectionTeam missionId={missionId} members={setup.members} refetch={setup.refetch} />
-          <SectionInputs missionId={missionId} docs={setup.docs} refetch={setup.refetch} />
+          <SectionTeam missionId={missionId} members={setup.members} expertise={setup.expertise} refetch={setup.refetch} />
+          <SectionInputs missionId={missionId} mission={setup.mission} docs={setup.docs} monitoring={setup.monitoring} refetch={setup.refetch} />
           <SectionStrategy missionId={missionId} mission={setup.mission} strategy={setup.strategy} sensitivities={setup.sensitivities} refetch={setup.refetch} />
+          <SectionEvaluation missionId={missionId} criteria={setup.evaluation} questions={setup.questions} refetch={setup.refetch} />
           <SectionClientIntel missionId={missionId} intel={setup.clientIntel} refetch={setup.refetch} />
           <SectionTimeline missionId={missionId} timeline={setup.timeline} refetch={setup.refetch} />
           <SectionQuestions missionId={missionId} questions={setup.questions} volumes={setup.volumes} refetch={setup.refetch} />
@@ -157,11 +165,11 @@ function MissionSetupRecord() {
               </div>
               <button
                 onClick={handleLaunch}
-                disabled={launching}
+                disabled={confirm}
                 className="inline-flex items-center gap-2 rounded-md bg-[#C49A22] px-6 py-3 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50 transition"
               >
                 <Rocket className="h-4 w-4" />
-                {launching ? "Launching…" : "Launch Mission"}
+                Launch Mission
               </button>
             </div>
           </div>
@@ -169,7 +177,7 @@ function MissionSetupRecord() {
       </div>
 
       {confirm && (
-        <LaunchConfirmModal
+        <LaunchSequence
           missionId={missionId}
           onClose={() => setConfirm(false)}
           onView={() => navigate({ to: "/missions/$missionId/overview", params: { missionId } })}
@@ -186,7 +194,10 @@ function useSetupData(missionId: string) {
   const q = useQuery({
     queryKey: ["mission-setup", missionId],
     queryFn: async () => {
-      const [mission, members, docs, strategy, sensitivities, clientIntel, timeline, questions, volumes, governance, financials] = await Promise.all([
+      const [
+        mission, members, docs, strategy, sensitivities, clientIntel, timeline,
+        questions, volumes, governance, financials, monitoring, evaluation, expertise,
+      ] = await Promise.all([
         supabase.from("missions").select("*").eq("id", missionId).maybeSingle(),
         supabase.from("mission_members").select("*").eq("mission_id", missionId),
         supabase.from("mission_vault_documents").select("id,title,category,uploaded_by_name,created_at,file_path").eq("mission_id", missionId).order("created_at", { ascending: false }),
@@ -194,10 +205,13 @@ function useSetupData(missionId: string) {
         supabase.from("mission_sensitivities").select("*").eq("mission_id", missionId),
         supabase.from("mission_client_intel").select("*").eq("mission_id", missionId).maybeSingle(),
         supabase.from("mission_timeline").select("*").eq("mission_id", missionId).maybeSingle(),
-        supabase.from("question_records").select("id,question_number,title,assigned_writer_id,reviewer_id,pens_down_date,review_path,volume_id").eq("mission_id", missionId).order("sort_order"),
+        supabase.from("question_records").select("id,question_number,title,section_number,assigned_writer_id,reviewer_id,pens_down_date,review_path,volume_id,point_value,competitive_risk").eq("mission_id", missionId).order("sort_order"),
         supabase.from("mission_volumes").select("*").eq("mission_id", missionId).order("sort_order"),
         supabase.from("mission_governance").select("*").eq("mission_id", missionId).maybeSingle(),
         supabase.from("mission_financials").select("*").eq("mission_id", missionId).maybeSingle(),
+        supabase.from("mission_monitoring_sources").select("*").eq("mission_id", missionId).order("source_type"),
+        supabase.from("mission_evaluation_criteria").select("*").eq("mission_id", missionId).order("display_order"),
+        supabase.from("mission_member_expertise").select("*").eq("mission_id", missionId),
       ]);
       return {
         mission: mission.data,
@@ -211,6 +225,9 @@ function useSetupData(missionId: string) {
         volumes: volumes.data ?? [],
         governance: governance.data,
         financials: financials.data,
+        monitoring: monitoring.data ?? [],
+        evaluation: evaluation.data ?? [],
+        expertise: expertise.data ?? [],
       };
     },
   });
@@ -218,6 +235,7 @@ function useSetupData(missionId: string) {
     ...(q.data ?? {
       mission: null, members: [], docs: [], strategy: [], sensitivities: [],
       clientIntel: null, timeline: null, questions: [], volumes: [], governance: null, financials: null,
+      monitoring: [], evaluation: [], expertise: [],
     }),
     refetch: q.refetch,
     isLoading: q.isLoading,
@@ -228,8 +246,9 @@ function useCompletion(setup: any): Record<SectionId, boolean> {
   return useMemo(() => ({
     identity: !!(setup.mission?.name && setup.mission?.client && setup.mission?.status),
     team: (setup.members?.length ?? 0) > 0,
-    inputs: (setup.docs?.length ?? 0) > 0,
+    inputs: (setup.docs?.length ?? 0) > 0 || (setup.monitoring?.length ?? 0) > 0,
     strategy: (setup.strategy?.length ?? 0) > 0 || (setup.mission?.win_themes?.length ?? 0) > 0,
+    evaluation: (setup.evaluation?.length ?? 0) > 0,
     client: !!setup.clientIntel,
     timeline: !!(setup.timeline?.submission),
     questions: (setup.questions?.length ?? 0) > 0,
@@ -365,11 +384,13 @@ const TEAM_ROLES = [
   { key: "reviewer", label: "Reviewers", multi: true },
   { key: "executive_reviewer", label: "Executive Review Team", multi: true },
 ];
-function SectionTeam({ missionId, members, refetch }: any) {
+function SectionTeam({ missionId, members, expertise, refetch }: any) {
   const { data: profiles = [] } = useQuery({
     queryKey: ["profiles-min"],
     queryFn: async () => (await supabase.from("profiles").select("id,display_name,email").limit(500)).data ?? [],
   });
+  const addTagFn = useServerFn(saveExpertiseTag);
+  const removeTagFn = useServerFn(removeExpertiseTag);
 
   async function addMember(role: string, userId: string, displayName: string) {
     if (!userId) return;
@@ -384,9 +405,18 @@ function SectionTeam({ missionId, members, refetch }: any) {
     if (error) return toast.error(error.message);
     refetch();
   }
+  async function addTag(userId: string, tag: string) {
+    if (!tag.trim()) return;
+    await addTagFn({ data: { missionId, userId, tag: tag.trim() } });
+    refetch();
+  }
+  async function removeTag(id: string) {
+    await removeTagFn({ data: { id } });
+    refetch();
+  }
 
   return (
-    <Section id="team" n="02" label="Team Assignment" sublabel="Drives mission permissions when launched.">
+    <Section id="team" n="02" label="Team Assignment" sublabel="Drives mission permissions and IRIS expert routing when launched.">
       <div className="space-y-5">
         {TEAM_ROLES.map((r) => {
           const assigned = members.filter((m: any) => m.role === r.key);
@@ -395,18 +425,32 @@ function SectionTeam({ missionId, members, refetch }: any) {
               <div className="col-span-3 pt-2">
                 <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">{r.label}</div>
               </div>
-              <div className="col-span-9">
-                <div className="flex flex-wrap gap-1.5 mb-2">
-                  {assigned.length === 0 && <span className="text-xs text-muted-foreground italic">None assigned</span>}
-                  {assigned.map((m: any) => (
-                    <span key={m.id} className="inline-flex items-center gap-1.5 rounded-full bg-surface border border-border px-2.5 py-1 text-xs">
-                      {m.display_name ?? m.user_id.slice(0, 6)}
-                      <button onClick={() => removeMember(m.id)} className="opacity-50 hover:opacity-100">
-                        <X className="h-3 w-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
+              <div className="col-span-9 space-y-2">
+                {assigned.length === 0 && <span className="text-xs text-muted-foreground italic">None assigned</span>}
+                {assigned.map((m: any) => {
+                  const tags = expertise.filter((e: any) => e.user_id === m.user_id);
+                  return (
+                    <div key={m.id} className="rounded-md border border-border bg-background p-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm">{m.display_name ?? m.user_id.slice(0, 6)}</span>
+                        <button onClick={() => removeMember(m.id)} className="opacity-50 hover:opacity-100">
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                      <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                        <Tag className="h-3 w-3 text-muted-foreground" />
+                        {tags.length === 0 && <span className="text-[11px] text-muted-foreground italic">No expertise tags</span>}
+                        {tags.map((t: any) => (
+                          <span key={t.id} className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/30 px-2 py-0.5 text-[11px] text-primary">
+                            {t.tag}
+                            <button onClick={() => removeTag(t.id)} className="opacity-60 hover:opacity-100"><X className="h-2.5 w-2.5" /></button>
+                          </span>
+                        ))}
+                        <ExpertiseTagInput onAdd={(tag) => addTag(m.user_id, tag)} />
+                      </div>
+                    </div>
+                  );
+                })}
                 {(r.multi || assigned.length === 0) && (
                   <select
                     value=""
@@ -430,12 +474,24 @@ function SectionTeam({ missionId, members, refetch }: any) {
     </Section>
   );
 }
+function ExpertiseTagInput({ onAdd }: { onAdd: (tag: string) => void }) {
+  const [v, setV] = useState("");
+  return (
+    <input
+      placeholder="+ tag"
+      value={v}
+      onChange={(e) => setV(e.target.value)}
+      onKeyDown={(e) => { if (e.key === "Enter" && v.trim()) { onAdd(v); setV(""); } }}
+      className="w-20 rounded-full border border-dashed border-border bg-transparent px-2 py-0.5 text-[11px] focus:outline-none focus:border-primary"
+    />
+  );
+}
 
 /* ────────────────────────────────────────────────────────────
-   03 — Inputs (upload zones)
+   03 — Inputs (upload zones) + IRIS Monitoring Watchlist
    ──────────────────────────────────────────────────────────── */
 const INPUT_CATEGORIES = ["RFP", "Amendments", "Q&A", "Client Documents", "Research", "Prior Responses", "Supporting Materials"];
-function SectionInputs({ missionId, docs, refetch }: any) {
+function SectionInputs({ missionId, mission, docs, monitoring, refetch }: any) {
   async function attachUrl(category: string, title: string, url: string) {
     const { data: auth } = await supabase.auth.getUser();
     const { data: prof } = await supabase.from("profiles").select("display_name,email").eq("id", auth.user!.id).maybeSingle();
@@ -464,9 +520,115 @@ function SectionInputs({ missionId, docs, refetch }: any) {
           }} />;
         })}
       </div>
+      <MonitoringWatchlist missionId={missionId} mission={mission} sources={monitoring} refetch={refetch} />
     </Section>
   );
 }
+
+function MonitoringWatchlist({ missionId, mission, sources, refetch }: any) {
+  const seedFn = useServerFn(seedMonitoringWatchlist);
+  const saveFn = useServerFn(saveMonitoringSource);
+  const delFn = useServerFn(deleteMonitoringSource);
+  const [adding, setAdding] = useState(false);
+  const [draft, setDraft] = useState({ source_type: "custom", label: "", url: "", frequency: "daily" as "daily" | "weekly" });
+  const [seeding, setSeeding] = useState(false);
+
+  async function seed() {
+    setSeeding(true);
+    try {
+      const { seeded } = await seedFn({ data: { missionId } });
+      toast.success(seeded > 0 ? `Seeded ${seeded} sources for ${mission?.state ?? "this mission"}` : "Watchlist already seeded");
+      refetch();
+    } finally { setSeeding(false); }
+  }
+  async function add() {
+    if (!draft.label.trim()) return;
+    await saveFn({ data: {
+      missionId,
+      source_type: draft.source_type,
+      label: draft.label,
+      url: draft.url || null,
+      frequency: draft.frequency,
+      enabled: true,
+    }});
+    setDraft({ source_type: "custom", label: "", url: "", frequency: "daily" });
+    setAdding(false);
+    refetch();
+  }
+  async function toggle(s: any, patch: Partial<{ enabled: boolean; frequency: "daily" | "weekly" }>) {
+    await saveFn({ data: {
+      missionId, id: s.id,
+      source_type: s.source_type, label: s.label, url: s.url,
+      frequency: patch.frequency ?? s.frequency,
+      enabled: patch.enabled ?? s.enabled,
+    }});
+    refetch();
+  }
+
+  return (
+    <div className="mt-8 rounded-md border border-border bg-surface/30 p-5">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Radar className="h-4 w-4 text-[#22d3ee]" />
+          <span className="text-[11px] font-mono uppercase tracking-[0.18em] text-muted-foreground">IRIS Monitoring Watchlist</span>
+        </div>
+        <div className="flex items-center gap-2">
+          {sources.length === 0 && (
+            <button onClick={seed} disabled={seeding} className="rounded-md border border-border bg-background px-3 py-1.5 text-xs hover:bg-surface-hover disabled:opacity-50">
+              {seeding ? "Seeding…" : `Seed ${mission?.state ?? ""} defaults`}
+            </button>
+          )}
+          <button onClick={() => setAdding(!adding)} className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+            <Plus className="h-3 w-3" /> Add source
+          </button>
+        </div>
+      </div>
+      <p className="mt-1 text-[11px] text-muted-foreground">
+        Sources IRIS watches automatically on launch. Read-only for writers.
+      </p>
+
+      {adding && (
+        <div className="mt-3 grid grid-cols-1 sm:grid-cols-6 gap-2 rounded border border-border p-3 bg-background">
+          <TextInput placeholder="Label" value={draft.label} onChange={(e) => setDraft({ ...draft, label: e.target.value })} className="sm:col-span-2" />
+          <TextInput placeholder="https://… (optional)" value={draft.url} onChange={(e) => setDraft({ ...draft, url: e.target.value })} className="sm:col-span-2" />
+          <select value={draft.frequency} onChange={(e) => setDraft({ ...draft, frequency: e.target.value as any })} className="rounded-md border border-border bg-background px-2 py-1.5 text-xs">
+            <option value="daily">daily</option>
+            <option value="weekly">weekly</option>
+          </select>
+          <button onClick={add} className="rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground">Add</button>
+        </div>
+      )}
+
+      {sources.length === 0 ? (
+        <div className="mt-4 text-xs text-muted-foreground italic">No sources configured yet.</div>
+      ) : (
+        <ul className="mt-3 divide-y divide-border">
+          {sources.map((s: any) => (
+            <li key={s.id} className="flex items-center gap-3 py-2 text-sm">
+              <span className="inline-block w-16 text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{s.source_type}</span>
+              <div className="flex-1 min-w-0">
+                <div className="truncate">{s.label}</div>
+                {s.url && <a href={s.url} target="_blank" rel="noreferrer" className="text-[11px] text-primary hover:underline truncate block">{s.url}</a>}
+              </div>
+              <select value={s.frequency} onChange={(e) => toggle(s, { frequency: e.target.value as any })} className="rounded border border-border bg-background px-1.5 py-0.5 text-[11px]">
+                <option value="daily">daily</option>
+                <option value="weekly">weekly</option>
+              </select>
+              <label className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                <input type="checkbox" checked={s.enabled} onChange={(e) => toggle(s, { enabled: e.target.checked })} />
+                on
+              </label>
+              <button onClick={async () => { await delFn({ data: { id: s.id } }); refetch(); }} className="opacity-50 hover:opacity-100">
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function UploadZone({ category, items, onAttach, onRemove }: any) {
   const [adding, setAdding] = useState(false);
   const [title, setTitle] = useState("");
@@ -909,27 +1071,115 @@ function SectionFinancials({ missionId, financials, refetch }: any) {
 }
 
 /* ────────────────────────────────────────────────────────────
-   Launch confirmation
+   04B — Evaluation Criteria Map
    ──────────────────────────────────────────────────────────── */
-function LaunchConfirmModal({ missionId, onClose, onView }: { missionId: string; onClose: () => void; onView: () => void }) {
+type EvalRow = {
+  id?: string;
+  category: string;
+  points: number;
+  sections_covered: string[];
+  competitive_risk: "low" | "medium" | "high";
+};
+function SectionEvaluation({ missionId, criteria, questions, refetch }: any) {
+  const saveFn = useServerFn(saveEvaluationCriteria);
+  const [rows, setRows] = useState<EvalRow[]>([]);
+  useEffect(() => {
+    setRows((criteria ?? []).map((c: any) => ({
+      id: c.id,
+      category: c.category,
+      points: c.points,
+      sections_covered: Array.isArray(c.sections_covered) ? c.sections_covered.map(String) : [],
+      competitive_risk: (c.competitive_risk ?? "medium") as "low" | "medium" | "high",
+    })));
+  }, [criteria]);
+
+  const totalPts = rows.reduce((sum, r) => sum + (Number(r.points) || 0), 0);
+
+  function update(i: number, patch: Partial<EvalRow>) {
+    setRows((rs) => rs.map((r, idx) => idx === i ? { ...r, ...patch } : r));
+  }
+  function add() {
+    setRows((rs) => [...rs, { category: "", points: 0, sections_covered: [], competitive_risk: "medium" }]);
+  }
+  function remove(i: number) { setRows((rs) => rs.filter((_, idx) => idx !== i)); }
+  async function save() {
+    await saveFn({ data: { missionId, criteria: rows.filter((r) => r.category.trim()) } });
+    toast.success("Evaluation map saved");
+    refetch();
+  }
+
+  // Count questions covered by each row for the preview column
+  function coveredCount(sections: string[]): number {
+    if (sections.length === 0) return 0;
+    return (questions ?? []).filter((q: any) =>
+      sections.some((s) => String(s) === String(q.section_number) || String(q.question_number ?? "").startsWith(String(s))),
+    ).length;
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
-      <div onClick={(e) => e.stopPropagation()} className="relative z-10 w-full max-w-md rounded-xl border border-border bg-background p-8 text-center shadow-2xl">
-        <div className="mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/15">
-          <Rocket className="h-6 w-6 text-primary" />
-        </div>
-        <h2 className="text-xl font-light">Mission Ready</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Mission Home, The Vault, The Oracle, the Studio, the team permissions, the calendar, and the initial IRIS briefing have all been generated from this setup record.
-        </p>
-        <div className="mt-6 flex items-center justify-center gap-2">
-          <button onClick={onClose} className="rounded-md border border-border bg-background px-4 py-2 text-sm hover:bg-surface-hover">Stay in Olympus</button>
-          <button onClick={onView} className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
-            View Mission Home <ArrowRight className="h-3.5 w-3.5" />
-          </button>
-        </div>
+    <Section id="evaluation" n="4B" label="Evaluation Criteria Map" sublabel="RFP scoring matrix. Drives competitive risk on every question and IRIS priority flags.">
+      <div className="overflow-x-auto rounded-md border border-border">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground bg-surface/30">
+              <th className="px-3 py-2 text-left">Category</th>
+              <th className="px-3 py-2 text-right w-20">Points</th>
+              <th className="px-3 py-2 text-left">Sections / Q Numbers</th>
+              <th className="px-3 py-2 text-center w-32">Questions Covered</th>
+              <th className="px-3 py-2 text-left w-32">Competitive Risk</th>
+              <th className="px-3 py-2 w-10"></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {rows.length === 0 && (
+              <tr><td colSpan={6} className="px-3 py-6 text-center text-xs text-muted-foreground italic">No criteria yet. Add one below.</td></tr>
+            )}
+            {rows.map((r, i) => (
+              <tr key={i} className="align-top">
+                <td className="px-3 py-2">
+                  <TextInput value={r.category} onChange={(e) => update(i, { category: e.target.value })} placeholder="e.g. Technical Approach" />
+                </td>
+                <td className="px-3 py-2 text-right">
+                  <TextInput type="number" value={String(r.points)} onChange={(e) => update(i, { points: Number(e.target.value) || 0 })} className="text-right" />
+                </td>
+                <td className="px-3 py-2">
+                  <TextInput
+                    value={r.sections_covered.join(", ")}
+                    onChange={(e) => update(i, { sections_covered: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
+                    placeholder="2, 3.1, 3.2"
+                  />
+                </td>
+                <td className="px-3 py-2 text-center text-xs tabular-nums text-muted-foreground">{coveredCount(r.sections_covered)}</td>
+                <td className="px-3 py-2">
+                  <select value={r.competitive_risk} onChange={(e) => update(i, { competitive_risk: e.target.value as any })}
+                    className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs">
+                    <option value="low">low</option>
+                    <option value="medium">medium</option>
+                    <option value="high">high</option>
+                  </select>
+                </td>
+                <td className="px-3 py-2 text-center">
+                  <button onClick={() => remove(i)} className="opacity-50 hover:opacity-100"><X className="h-3.5 w-3.5" /></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr className="border-t border-border bg-surface/20 text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
+              <td className="px-3 py-2 text-right">Total</td>
+              <td className="px-3 py-2 text-right tabular-nums">{totalPts}</td>
+              <td colSpan={4}></td>
+            </tr>
+          </tfoot>
+        </table>
       </div>
-    </div>
+      <div className="mt-3 flex items-center justify-between">
+        <button onClick={add} className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+          <Plus className="h-3 w-3" /> Add criterion
+        </button>
+        <button onClick={save} className="rounded-md border border-border bg-background px-4 py-2 text-sm hover:bg-surface-hover">Save Evaluation Map</button>
+      </div>
+    </Section>
   );
 }
+

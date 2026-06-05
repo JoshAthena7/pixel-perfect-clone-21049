@@ -1299,6 +1299,63 @@ export type Database = {
           },
         ]
       }
+      canon_suggestions: {
+        Row: {
+          body: string
+          category: string | null
+          created_at: string
+          debrief_id: string | null
+          id: string
+          mission_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          category?: string | null
+          created_at?: string
+          debrief_id?: string | null
+          id?: string
+          mission_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          category?: string | null
+          created_at?: string
+          debrief_id?: string | null
+          id?: string
+          mission_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "canon_suggestions_debrief_id_fkey"
+            columns: ["debrief_id"]
+            isOneToOne: false
+            referencedRelation: "mission_debriefs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "canon_suggestions_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collective_members: {
         Row: {
           created_at: string
@@ -2752,6 +2809,53 @@ export type Database = {
           },
         ]
       }
+      mission_debriefs: {
+        Row: {
+          captured_by: string | null
+          created_at: string
+          evaluator_feedback: string | null
+          id: string
+          lessons_learned: string | null
+          missed: string | null
+          mission_id: string
+          outcome: string
+          scored_well: string | null
+          updated_at: string
+        }
+        Insert: {
+          captured_by?: string | null
+          created_at?: string
+          evaluator_feedback?: string | null
+          id?: string
+          lessons_learned?: string | null
+          missed?: string | null
+          mission_id: string
+          outcome: string
+          scored_well?: string | null
+          updated_at?: string
+        }
+        Update: {
+          captured_by?: string | null
+          created_at?: string
+          evaluator_feedback?: string | null
+          id?: string
+          lessons_learned?: string | null
+          missed?: string | null
+          mission_id?: string
+          outcome?: string
+          scored_well?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_debriefs_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_decisions: {
         Row: {
           created_at: string | null
@@ -2799,6 +2903,50 @@ export type Database = {
             columns: ["question_id"]
             isOneToOne: false
             referencedRelation: "question_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_evaluation_criteria: {
+        Row: {
+          category: string
+          competitive_risk: string
+          created_at: string
+          display_order: number
+          id: string
+          mission_id: string
+          points: number
+          sections_covered: Json
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          competitive_risk?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          mission_id: string
+          points?: number
+          sections_covered?: Json
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          competitive_risk?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          mission_id?: string
+          points?: number
+          sections_covered?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_evaluation_criteria_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
             referencedColumns: ["id"]
           },
         ]
@@ -3018,6 +3166,38 @@ export type Database = {
           },
         ]
       }
+      mission_member_expertise: {
+        Row: {
+          created_at: string
+          id: string
+          mission_id: string
+          tag: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mission_id: string
+          tag: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mission_id?: string
+          tag?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_member_expertise_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_members: {
         Row: {
           display_name: string | null
@@ -3046,6 +3226,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "mission_members_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_monitoring_sources: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          frequency: string
+          id: string
+          label: string
+          last_checked_at: string | null
+          mission_id: string
+          source_type: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          frequency?: string
+          id?: string
+          label: string
+          last_checked_at?: string | null
+          mission_id: string
+          source_type: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          frequency?: string
+          id?: string
+          label?: string
+          last_checked_at?: string | null
+          mission_id?: string
+          source_type?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_monitoring_sources_mission_id_fkey"
             columns: ["mission_id"]
             isOneToOne: false
             referencedRelation: "missions"
@@ -3332,6 +3559,8 @@ export type Database = {
           doc_type: Database["public"]["Enums"]["vault_doc_type"]
           external_url: string | null
           extracted_at: string | null
+          extracted_requirements: Json | null
+          extracted_terms: string[] | null
           extracted_text: string | null
           extraction_error: string | null
           extraction_status: string | null
@@ -3353,6 +3582,8 @@ export type Database = {
           doc_type: Database["public"]["Enums"]["vault_doc_type"]
           external_url?: string | null
           extracted_at?: string | null
+          extracted_requirements?: Json | null
+          extracted_terms?: string[] | null
           extracted_text?: string | null
           extraction_error?: string | null
           extraction_status?: string | null
@@ -3374,6 +3605,8 @@ export type Database = {
           doc_type?: Database["public"]["Enums"]["vault_doc_type"]
           external_url?: string | null
           extracted_at?: string | null
+          extracted_requirements?: Json | null
+          extracted_terms?: string[] | null
           extracted_text?: string | null
           extraction_error?: string | null
           extraction_status?: string | null
@@ -4248,6 +4481,7 @@ export type Database = {
         Row: {
           assigned_sme_id: string | null
           assigned_writer_id: string | null
+          competitive_risk: string | null
           confidence_updated_at: string | null
           created_at: string | null
           current_focus: string | null
@@ -4259,12 +4493,14 @@ export type Database = {
           health: string | null
           health_drivers: Json | null
           id: string
+          iris_pre_brief: Json | null
           mandatory_language: string[] | null
           mission_id: string
           next_step: string | null
           page_limit: number | null
           parent_question_id: string | null
           pens_down_date: string | null
+          point_value: number | null
           question_number: string
           question_text: string
           requirements: string[] | null
@@ -4285,6 +4521,7 @@ export type Database = {
         Insert: {
           assigned_sme_id?: string | null
           assigned_writer_id?: string | null
+          competitive_risk?: string | null
           confidence_updated_at?: string | null
           created_at?: string | null
           current_focus?: string | null
@@ -4296,12 +4533,14 @@ export type Database = {
           health?: string | null
           health_drivers?: Json | null
           id?: string
+          iris_pre_brief?: Json | null
           mandatory_language?: string[] | null
           mission_id: string
           next_step?: string | null
           page_limit?: number | null
           parent_question_id?: string | null
           pens_down_date?: string | null
+          point_value?: number | null
           question_number: string
           question_text: string
           requirements?: string[] | null
@@ -4322,6 +4561,7 @@ export type Database = {
         Update: {
           assigned_sme_id?: string | null
           assigned_writer_id?: string | null
+          competitive_risk?: string | null
           confidence_updated_at?: string | null
           created_at?: string | null
           current_focus?: string | null
@@ -4333,12 +4573,14 @@ export type Database = {
           health?: string | null
           health_drivers?: Json | null
           id?: string
+          iris_pre_brief?: Json | null
           mandatory_language?: string[] | null
           mission_id?: string
           next_step?: string | null
           page_limit?: number | null
           parent_question_id?: string | null
           pens_down_date?: string | null
+          point_value?: number | null
           question_number?: string
           question_text?: string
           requirements?: string[] | null
@@ -4918,6 +5160,45 @@ export type Database = {
           tags?: string[] | null
           user_id?: string | null
           user_role?: string | null
+        }
+        Relationships: []
+      }
+      state_comparables: {
+        Row: {
+          approach: string
+          created_at: string
+          id: string
+          outcome: string | null
+          program_name: string
+          source_url: string | null
+          state: string
+          tags: string[]
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          approach: string
+          created_at?: string
+          id?: string
+          outcome?: string | null
+          program_name: string
+          source_url?: string | null
+          state: string
+          tags?: string[]
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          approach?: string
+          created_at?: string
+          id?: string
+          outcome?: string | null
+          program_name?: string
+          source_url?: string | null
+          state?: string
+          tags?: string[]
+          topic?: string
+          updated_at?: string
         }
         Relationships: []
       }

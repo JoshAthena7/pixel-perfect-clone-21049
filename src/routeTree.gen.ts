@@ -46,6 +46,7 @@ import { Route as AuthenticatedOlympusGatesRouteImport } from './routes/_authent
 import { Route as AuthenticatedOlympusExpertiseRouteImport } from './routes/_authenticated/olympus/expertise'
 import { Route as AuthenticatedOlympusDiscoveryHistoryRouteImport } from './routes/_authenticated/olympus/discovery-history'
 import { Route as AuthenticatedOlympusConflictsRouteImport } from './routes/_authenticated/olympus/conflicts'
+import { Route as AuthenticatedOlympusComparablesRouteImport } from './routes/_authenticated/olympus/comparables'
 import { Route as AuthenticatedOlympusCanonLibraryRouteImport } from './routes/_authenticated/olympus/canon-library'
 import { Route as AuthenticatedOlympusBriefRoomRouteImport } from './routes/_authenticated/olympus/brief-room'
 import { Route as AuthenticatedOlympusAuditRouteImport } from './routes/_authenticated/olympus/audit'
@@ -63,6 +64,7 @@ import { Route as AuthenticatedCommandAlignmentConflictsRouteImport } from './ro
 import { Route as AuthenticatedCommandAlignmentRouteImport } from './routes/_authenticated/command/alignment'
 import { Route as AuthenticatedMissionsMissionIdIndexRouteImport } from './routes/_authenticated/missions/$missionId/index'
 import { Route as ApiPublicHooksRefreshIntelligenceRouteImport } from './routes/api/public/hooks/refresh-intelligence'
+import { Route as ApiPublicHooksIrisMonitorRouteImport } from './routes/api/public/hooks/iris-monitor'
 import { Route as ApiPublicHooksIngestIntelRouteImport } from './routes/api/public/hooks/ingest-intel'
 import { Route as ApiPublicHooksBackfillVaultExtractionsRouteImport } from './routes/api/public/hooks/backfill-vault-extractions'
 import { Route as ApiPublicHooksBackfillResearchEmbeddingsRouteImport } from './routes/api/public/hooks/backfill-research-embeddings'
@@ -83,6 +85,7 @@ import { Route as AuthenticatedMissionsMissionIdBriefRouteImport } from './route
 import { Route as AuthenticatedMissionsMissionIdActivityRouteImport } from './routes/_authenticated/missions/$missionId/activity'
 import { Route as AuthenticatedMissionsMissionIdQuestionsIndexRouteImport } from './routes/_authenticated/missions/$missionId/questions/index'
 import { Route as AuthenticatedOlympusMissionsMissionIdSetupRouteImport } from './routes/_authenticated/olympus/missions.$missionId.setup'
+import { Route as AuthenticatedOlympusMissionsMissionIdDebriefRouteImport } from './routes/_authenticated/olympus/missions.$missionId.debrief'
 import { Route as AuthenticatedMissionsMissionIdQuestionsQuestionIdRouteImport } from './routes/_authenticated/missions/$missionId/questions/$questionId'
 
 const LoginRoute = LoginRouteImport.update({
@@ -296,6 +299,12 @@ const AuthenticatedOlympusConflictsRoute =
     path: '/conflicts',
     getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
+const AuthenticatedOlympusComparablesRoute =
+  AuthenticatedOlympusComparablesRouteImport.update({
+    id: '/comparables',
+    path: '/comparables',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
 const AuthenticatedOlympusCanonLibraryRoute =
   AuthenticatedOlympusCanonLibraryRouteImport.update({
     id: '/canon-library',
@@ -396,6 +405,12 @@ const ApiPublicHooksRefreshIntelligenceRoute =
   ApiPublicHooksRefreshIntelligenceRouteImport.update({
     id: '/api/public/hooks/refresh-intelligence',
     path: '/api/public/hooks/refresh-intelligence',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksIrisMonitorRoute =
+  ApiPublicHooksIrisMonitorRouteImport.update({
+    id: '/api/public/hooks/iris-monitor',
+    path: '/api/public/hooks/iris-monitor',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicHooksIngestIntelRoute =
@@ -518,6 +533,12 @@ const AuthenticatedOlympusMissionsMissionIdSetupRoute =
     path: '/missions/$missionId/setup',
     getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
+const AuthenticatedOlympusMissionsMissionIdDebriefRoute =
+  AuthenticatedOlympusMissionsMissionIdDebriefRouteImport.update({
+    id: '/missions/$missionId/debrief',
+    path: '/missions/$missionId/debrief',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
 const AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute =
   AuthenticatedMissionsMissionIdQuestionsQuestionIdRouteImport.update({
     id: '/questions/$questionId',
@@ -553,6 +574,7 @@ export interface FileRoutesByFullPath {
   '/olympus/audit': typeof AuthenticatedOlympusAuditRoute
   '/olympus/brief-room': typeof AuthenticatedOlympusBriefRoomRoute
   '/olympus/canon-library': typeof AuthenticatedOlympusCanonLibraryRoute
+  '/olympus/comparables': typeof AuthenticatedOlympusComparablesRoute
   '/olympus/conflicts': typeof AuthenticatedOlympusConflictsRoute
   '/olympus/discovery-history': typeof AuthenticatedOlympusDiscoveryHistoryRoute
   '/olympus/expertise': typeof AuthenticatedOlympusExpertiseRoute
@@ -595,9 +617,11 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/backfill-research-embeddings': typeof ApiPublicHooksBackfillResearchEmbeddingsRoute
   '/api/public/hooks/backfill-vault-extractions': typeof ApiPublicHooksBackfillVaultExtractionsRoute
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
+  '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
+  '/olympus/missions/$missionId/debrief': typeof AuthenticatedOlympusMissionsMissionIdDebriefRoute
   '/olympus/missions/$missionId/setup': typeof AuthenticatedOlympusMissionsMissionIdSetupRoute
   '/missions/$missionId/questions/': typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
 }
@@ -627,6 +651,7 @@ export interface FileRoutesByTo {
   '/olympus/audit': typeof AuthenticatedOlympusAuditRoute
   '/olympus/brief-room': typeof AuthenticatedOlympusBriefRoomRoute
   '/olympus/canon-library': typeof AuthenticatedOlympusCanonLibraryRoute
+  '/olympus/comparables': typeof AuthenticatedOlympusComparablesRoute
   '/olympus/conflicts': typeof AuthenticatedOlympusConflictsRoute
   '/olympus/discovery-history': typeof AuthenticatedOlympusDiscoveryHistoryRoute
   '/olympus/expertise': typeof AuthenticatedOlympusExpertiseRoute
@@ -669,9 +694,11 @@ export interface FileRoutesByTo {
   '/api/public/hooks/backfill-research-embeddings': typeof ApiPublicHooksBackfillResearchEmbeddingsRoute
   '/api/public/hooks/backfill-vault-extractions': typeof ApiPublicHooksBackfillVaultExtractionsRoute
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
+  '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
+  '/olympus/missions/$missionId/debrief': typeof AuthenticatedOlympusMissionsMissionIdDebriefRoute
   '/olympus/missions/$missionId/setup': typeof AuthenticatedOlympusMissionsMissionIdSetupRoute
   '/missions/$missionId/questions': typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
 }
@@ -705,6 +732,7 @@ export interface FileRoutesById {
   '/_authenticated/olympus/audit': typeof AuthenticatedOlympusAuditRoute
   '/_authenticated/olympus/brief-room': typeof AuthenticatedOlympusBriefRoomRoute
   '/_authenticated/olympus/canon-library': typeof AuthenticatedOlympusCanonLibraryRoute
+  '/_authenticated/olympus/comparables': typeof AuthenticatedOlympusComparablesRoute
   '/_authenticated/olympus/conflicts': typeof AuthenticatedOlympusConflictsRoute
   '/_authenticated/olympus/discovery-history': typeof AuthenticatedOlympusDiscoveryHistoryRoute
   '/_authenticated/olympus/expertise': typeof AuthenticatedOlympusExpertiseRoute
@@ -747,9 +775,11 @@ export interface FileRoutesById {
   '/api/public/hooks/backfill-research-embeddings': typeof ApiPublicHooksBackfillResearchEmbeddingsRoute
   '/api/public/hooks/backfill-vault-extractions': typeof ApiPublicHooksBackfillVaultExtractionsRoute
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
+  '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/_authenticated/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/_authenticated/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
+  '/_authenticated/olympus/missions/$missionId/debrief': typeof AuthenticatedOlympusMissionsMissionIdDebriefRoute
   '/_authenticated/olympus/missions/$missionId/setup': typeof AuthenticatedOlympusMissionsMissionIdSetupRoute
   '/_authenticated/missions/$missionId/questions/': typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
 }
@@ -783,6 +813,7 @@ export interface FileRouteTypes {
     | '/olympus/audit'
     | '/olympus/brief-room'
     | '/olympus/canon-library'
+    | '/olympus/comparables'
     | '/olympus/conflicts'
     | '/olympus/discovery-history'
     | '/olympus/expertise'
@@ -825,9 +856,11 @@ export interface FileRouteTypes {
     | '/api/public/hooks/backfill-research-embeddings'
     | '/api/public/hooks/backfill-vault-extractions'
     | '/api/public/hooks/ingest-intel'
+    | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/refresh-intelligence'
     | '/missions/$missionId/'
     | '/missions/$missionId/questions/$questionId'
+    | '/olympus/missions/$missionId/debrief'
     | '/olympus/missions/$missionId/setup'
     | '/missions/$missionId/questions/'
   fileRoutesByTo: FileRoutesByTo
@@ -857,6 +890,7 @@ export interface FileRouteTypes {
     | '/olympus/audit'
     | '/olympus/brief-room'
     | '/olympus/canon-library'
+    | '/olympus/comparables'
     | '/olympus/conflicts'
     | '/olympus/discovery-history'
     | '/olympus/expertise'
@@ -899,9 +933,11 @@ export interface FileRouteTypes {
     | '/api/public/hooks/backfill-research-embeddings'
     | '/api/public/hooks/backfill-vault-extractions'
     | '/api/public/hooks/ingest-intel'
+    | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/refresh-intelligence'
     | '/missions/$missionId'
     | '/missions/$missionId/questions/$questionId'
+    | '/olympus/missions/$missionId/debrief'
     | '/olympus/missions/$missionId/setup'
     | '/missions/$missionId/questions'
   id:
@@ -934,6 +970,7 @@ export interface FileRouteTypes {
     | '/_authenticated/olympus/audit'
     | '/_authenticated/olympus/brief-room'
     | '/_authenticated/olympus/canon-library'
+    | '/_authenticated/olympus/comparables'
     | '/_authenticated/olympus/conflicts'
     | '/_authenticated/olympus/discovery-history'
     | '/_authenticated/olympus/expertise'
@@ -976,9 +1013,11 @@ export interface FileRouteTypes {
     | '/api/public/hooks/backfill-research-embeddings'
     | '/api/public/hooks/backfill-vault-extractions'
     | '/api/public/hooks/ingest-intel'
+    | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/refresh-intelligence'
     | '/_authenticated/missions/$missionId/'
     | '/_authenticated/missions/$missionId/questions/$questionId'
+    | '/_authenticated/olympus/missions/$missionId/debrief'
     | '/_authenticated/olympus/missions/$missionId/setup'
     | '/_authenticated/missions/$missionId/questions/'
   fileRoutesById: FileRoutesById
@@ -993,6 +1032,7 @@ export interface RootRouteChildren {
   ApiPublicHooksBackfillResearchEmbeddingsRoute: typeof ApiPublicHooksBackfillResearchEmbeddingsRoute
   ApiPublicHooksBackfillVaultExtractionsRoute: typeof ApiPublicHooksBackfillVaultExtractionsRoute
   ApiPublicHooksIngestIntelRoute: typeof ApiPublicHooksIngestIntelRoute
+  ApiPublicHooksIrisMonitorRoute: typeof ApiPublicHooksIrisMonitorRoute
   ApiPublicHooksRefreshIntelligenceRoute: typeof ApiPublicHooksRefreshIntelligenceRoute
 }
 
@@ -1257,6 +1297,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOlympusConflictsRouteImport
       parentRoute: typeof AuthenticatedOlympusRoute
     }
+    '/_authenticated/olympus/comparables': {
+      id: '/_authenticated/olympus/comparables'
+      path: '/comparables'
+      fullPath: '/olympus/comparables'
+      preLoaderRoute: typeof AuthenticatedOlympusComparablesRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
     '/_authenticated/olympus/canon-library': {
       id: '/_authenticated/olympus/canon-library'
       path: '/canon-library'
@@ -1374,6 +1421,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/hooks/refresh-intelligence'
       fullPath: '/api/public/hooks/refresh-intelligence'
       preLoaderRoute: typeof ApiPublicHooksRefreshIntelligenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/iris-monitor': {
+      id: '/api/public/hooks/iris-monitor'
+      path: '/api/public/hooks/iris-monitor'
+      fullPath: '/api/public/hooks/iris-monitor'
+      preLoaderRoute: typeof ApiPublicHooksIrisMonitorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/ingest-intel': {
@@ -1516,6 +1570,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOlympusMissionsMissionIdSetupRouteImport
       parentRoute: typeof AuthenticatedOlympusRoute
     }
+    '/_authenticated/olympus/missions/$missionId/debrief': {
+      id: '/_authenticated/olympus/missions/$missionId/debrief'
+      path: '/missions/$missionId/debrief'
+      fullPath: '/olympus/missions/$missionId/debrief'
+      preLoaderRoute: typeof AuthenticatedOlympusMissionsMissionIdDebriefRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
     '/_authenticated/missions/$missionId/questions/$questionId': {
       id: '/_authenticated/missions/$missionId/questions/$questionId'
       path: '/questions/$questionId'
@@ -1532,6 +1593,7 @@ interface AuthenticatedOlympusRouteChildren {
   AuthenticatedOlympusAuditRoute: typeof AuthenticatedOlympusAuditRoute
   AuthenticatedOlympusBriefRoomRoute: typeof AuthenticatedOlympusBriefRoomRoute
   AuthenticatedOlympusCanonLibraryRoute: typeof AuthenticatedOlympusCanonLibraryRoute
+  AuthenticatedOlympusComparablesRoute: typeof AuthenticatedOlympusComparablesRoute
   AuthenticatedOlympusConflictsRoute: typeof AuthenticatedOlympusConflictsRoute
   AuthenticatedOlympusDiscoveryHistoryRoute: typeof AuthenticatedOlympusDiscoveryHistoryRoute
   AuthenticatedOlympusExpertiseRoute: typeof AuthenticatedOlympusExpertiseRoute
@@ -1555,6 +1617,7 @@ interface AuthenticatedOlympusRouteChildren {
   AuthenticatedOlympusWinThemesRoute: typeof AuthenticatedOlympusWinThemesRoute
   AuthenticatedOlympusWriterDeletionRoute: typeof AuthenticatedOlympusWriterDeletionRoute
   AuthenticatedOlympusIndexRoute: typeof AuthenticatedOlympusIndexRoute
+  AuthenticatedOlympusMissionsMissionIdDebriefRoute: typeof AuthenticatedOlympusMissionsMissionIdDebriefRoute
   AuthenticatedOlympusMissionsMissionIdSetupRoute: typeof AuthenticatedOlympusMissionsMissionIdSetupRoute
 }
 
@@ -1564,6 +1627,7 @@ const AuthenticatedOlympusRouteChildren: AuthenticatedOlympusRouteChildren = {
   AuthenticatedOlympusAuditRoute: AuthenticatedOlympusAuditRoute,
   AuthenticatedOlympusBriefRoomRoute: AuthenticatedOlympusBriefRoomRoute,
   AuthenticatedOlympusCanonLibraryRoute: AuthenticatedOlympusCanonLibraryRoute,
+  AuthenticatedOlympusComparablesRoute: AuthenticatedOlympusComparablesRoute,
   AuthenticatedOlympusConflictsRoute: AuthenticatedOlympusConflictsRoute,
   AuthenticatedOlympusDiscoveryHistoryRoute:
     AuthenticatedOlympusDiscoveryHistoryRoute,
@@ -1591,6 +1655,8 @@ const AuthenticatedOlympusRouteChildren: AuthenticatedOlympusRouteChildren = {
   AuthenticatedOlympusWriterDeletionRoute:
     AuthenticatedOlympusWriterDeletionRoute,
   AuthenticatedOlympusIndexRoute: AuthenticatedOlympusIndexRoute,
+  AuthenticatedOlympusMissionsMissionIdDebriefRoute:
+    AuthenticatedOlympusMissionsMissionIdDebriefRoute,
   AuthenticatedOlympusMissionsMissionIdSetupRoute:
     AuthenticatedOlympusMissionsMissionIdSetupRoute,
 }
@@ -1725,6 +1791,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksBackfillVaultExtractionsRoute:
     ApiPublicHooksBackfillVaultExtractionsRoute,
   ApiPublicHooksIngestIntelRoute: ApiPublicHooksIngestIntelRoute,
+  ApiPublicHooksIrisMonitorRoute: ApiPublicHooksIrisMonitorRoute,
   ApiPublicHooksRefreshIntelligenceRoute:
     ApiPublicHooksRefreshIntelligenceRoute,
 }
