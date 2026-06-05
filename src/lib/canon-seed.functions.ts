@@ -186,3 +186,45 @@ export const seedStarterCanon = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { inserted: toInsert.length, skipped: STARTER.length - toInsert.length };
   });
+
+import { loadLayeredContext } from "./iris-layered-context";
+
+export const verifyCanon = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase } = context;
+
+    const { data: rows, error } = await supabase
+      .from("intelligence_canon")
+      .select("topic,category,priority,is_active")
+      .eq("is_active", true)
+      .order("priority", { ascending: true });
+    if (error) throw new Error(error.message);
+
+    const total = rows?.length ?? 0;
+    const byCategory: Record<string, number> = {};
+    for (const r of rows ?? []) {
+      byCategory[r.category] = (byCategory[r.category] ?? 0) + 1;
+    }
+
+    // Run the exact same context loader IRIS uses on every prompt (no mission scope)
+    const block = await loadLayeredContext(supabase, { missionId: null, questionId: null, topic: null });
+    const hasCanonHeader = block.includes("LAYER 1 · ATHENA CANON");
+    const canonSection = hasCanonHeader
+      ? block.split("— LAYER 1 · ATHENA CANON —")[1]?.split("\n— LAYER")[0] ?? ""
+      : "";
+    const linesInPrompt = canonSection.split("\n").filter((l) => l.trim().startsWith("•")).length;
+
+    const sampleTopics = (rows ?? []).slice(0, 5).map((r: any) => r.topic);
+    const allSampleInPrompt = sampleTopics.every((t) => canonSection.includes(t));
+
+    return {
+      activeCount: total,
+      byCategory,
+      sampleTopics,
+      irisIncludesCanon: hasCanonHeader && linesInPrompt > 0,
+      irisCanonLineCount: linesInPrompt,
+      allSampleTopicsInPrompt: allSampleInPrompt,
+      promptCharsForCanon: canonSection.length,
+    };
+  });
