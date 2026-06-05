@@ -12,7 +12,7 @@ export const synthesizeIrisLine = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const apiKey = process.env.ELEVENLABS_API_KEY;
     if (!apiKey) {
-      return { audioBase64: null, mimeType: "audio/mpeg" as const, ok: false as const };
+      return { audioBase64: null, mimeType: "audio/mpeg" as const, ok: false as const, error: "ElevenLabs is not connected." };
     }
 
     try {
@@ -41,14 +41,19 @@ export const synthesizeIrisLine = createServerFn({ method: "POST" })
       if (!res.ok) {
         const err = await res.text();
         console.warn(`IRIS TTS unavailable: ${res.status} ${err}`);
-        return { audioBase64: null, mimeType: "audio/mpeg" as const, ok: false as const };
+        let message = `TTS failed (${res.status})`;
+        try {
+          const parsed = JSON.parse(err);
+          if (parsed?.detail?.message) message = parsed.detail.message;
+        } catch {}
+        return { audioBase64: null, mimeType: "audio/mpeg" as const, ok: false as const, error: message };
       }
 
       const buf = await res.arrayBuffer();
       const audioBase64 = Buffer.from(buf).toString("base64");
-      return { audioBase64, mimeType: "audio/mpeg" as const, ok: true as const };
+      return { audioBase64, mimeType: "audio/mpeg" as const, ok: true as const, error: null };
     } catch (err) {
       console.warn("IRIS TTS request failed", err);
-      return { audioBase64: null, mimeType: "audio/mpeg" as const, ok: false as const };
+      return { audioBase64: null, mimeType: "audio/mpeg" as const, ok: false as const, error: err instanceof Error ? err.message : "Network error" };
     }
   });
