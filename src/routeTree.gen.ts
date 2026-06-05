@@ -63,6 +63,8 @@ import { Route as AuthenticatedCommandAlignmentRouteImport } from './routes/_aut
 import { Route as AuthenticatedMissionsMissionIdIndexRouteImport } from './routes/_authenticated/missions/$missionId/index'
 import { Route as ApiPublicHooksRefreshIntelligenceRouteImport } from './routes/api/public/hooks/refresh-intelligence'
 import { Route as ApiPublicHooksIngestIntelRouteImport } from './routes/api/public/hooks/ingest-intel'
+import { Route as ApiPublicHooksBackfillVaultExtractionsRouteImport } from './routes/api/public/hooks/backfill-vault-extractions'
+import { Route as ApiPublicHooksBackfillResearchEmbeddingsRouteImport } from './routes/api/public/hooks/backfill-research-embeddings'
 import { Route as ApiPublicHooksBackfillQuestionEmbeddingsRouteImport } from './routes/api/public/hooks/backfill-question-embeddings'
 import { Route as ApiPublicHooksBackfillAtlasEmbeddingsRouteImport } from './routes/api/public/hooks/backfill-atlas-embeddings'
 import { Route as AuthenticatedMissionsMissionIdVaultRouteImport } from './routes/_authenticated/missions/$missionId/vault'
@@ -394,6 +396,18 @@ const ApiPublicHooksIngestIntelRoute =
     path: '/api/public/hooks/ingest-intel',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksBackfillVaultExtractionsRoute =
+  ApiPublicHooksBackfillVaultExtractionsRouteImport.update({
+    id: '/api/public/hooks/backfill-vault-extractions',
+    path: '/api/public/hooks/backfill-vault-extractions',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksBackfillResearchEmbeddingsRoute =
+  ApiPublicHooksBackfillResearchEmbeddingsRouteImport.update({
+    id: '/api/public/hooks/backfill-research-embeddings',
+    path: '/api/public/hooks/backfill-research-embeddings',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksBackfillQuestionEmbeddingsRoute =
   ApiPublicHooksBackfillQuestionEmbeddingsRouteImport.update({
     id: '/api/public/hooks/backfill-question-embeddings',
@@ -563,6 +577,8 @@ export interface FileRoutesByFullPath {
   '/missions/$missionId/vault': typeof AuthenticatedMissionsMissionIdVaultRoute
   '/api/public/hooks/backfill-atlas-embeddings': typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
   '/api/public/hooks/backfill-question-embeddings': typeof ApiPublicHooksBackfillQuestionEmbeddingsRoute
+  '/api/public/hooks/backfill-research-embeddings': typeof ApiPublicHooksBackfillResearchEmbeddingsRoute
+  '/api/public/hooks/backfill-vault-extractions': typeof ApiPublicHooksBackfillVaultExtractionsRoute
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
@@ -633,6 +649,8 @@ export interface FileRoutesByTo {
   '/missions/$missionId/vault': typeof AuthenticatedMissionsMissionIdVaultRoute
   '/api/public/hooks/backfill-atlas-embeddings': typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
   '/api/public/hooks/backfill-question-embeddings': typeof ApiPublicHooksBackfillQuestionEmbeddingsRoute
+  '/api/public/hooks/backfill-research-embeddings': typeof ApiPublicHooksBackfillResearchEmbeddingsRoute
+  '/api/public/hooks/backfill-vault-extractions': typeof ApiPublicHooksBackfillVaultExtractionsRoute
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdIndexRoute
@@ -707,6 +725,8 @@ export interface FileRoutesById {
   '/_authenticated/missions/$missionId/vault': typeof AuthenticatedMissionsMissionIdVaultRoute
   '/api/public/hooks/backfill-atlas-embeddings': typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
   '/api/public/hooks/backfill-question-embeddings': typeof ApiPublicHooksBackfillQuestionEmbeddingsRoute
+  '/api/public/hooks/backfill-research-embeddings': typeof ApiPublicHooksBackfillResearchEmbeddingsRoute
+  '/api/public/hooks/backfill-vault-extractions': typeof ApiPublicHooksBackfillVaultExtractionsRoute
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/_authenticated/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
@@ -781,6 +801,8 @@ export interface FileRouteTypes {
     | '/missions/$missionId/vault'
     | '/api/public/hooks/backfill-atlas-embeddings'
     | '/api/public/hooks/backfill-question-embeddings'
+    | '/api/public/hooks/backfill-research-embeddings'
+    | '/api/public/hooks/backfill-vault-extractions'
     | '/api/public/hooks/ingest-intel'
     | '/api/public/hooks/refresh-intelligence'
     | '/missions/$missionId/'
@@ -851,6 +873,8 @@ export interface FileRouteTypes {
     | '/missions/$missionId/vault'
     | '/api/public/hooks/backfill-atlas-embeddings'
     | '/api/public/hooks/backfill-question-embeddings'
+    | '/api/public/hooks/backfill-research-embeddings'
+    | '/api/public/hooks/backfill-vault-extractions'
     | '/api/public/hooks/ingest-intel'
     | '/api/public/hooks/refresh-intelligence'
     | '/missions/$missionId'
@@ -924,6 +948,8 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/$missionId/vault'
     | '/api/public/hooks/backfill-atlas-embeddings'
     | '/api/public/hooks/backfill-question-embeddings'
+    | '/api/public/hooks/backfill-research-embeddings'
+    | '/api/public/hooks/backfill-vault-extractions'
     | '/api/public/hooks/ingest-intel'
     | '/api/public/hooks/refresh-intelligence'
     | '/_authenticated/missions/$missionId/'
@@ -938,6 +964,8 @@ export interface RootRouteChildren {
   ApiIrisVoiceRoute: typeof ApiIrisVoiceRoute
   ApiPublicHooksBackfillAtlasEmbeddingsRoute: typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
   ApiPublicHooksBackfillQuestionEmbeddingsRoute: typeof ApiPublicHooksBackfillQuestionEmbeddingsRoute
+  ApiPublicHooksBackfillResearchEmbeddingsRoute: typeof ApiPublicHooksBackfillResearchEmbeddingsRoute
+  ApiPublicHooksBackfillVaultExtractionsRoute: typeof ApiPublicHooksBackfillVaultExtractionsRoute
   ApiPublicHooksIngestIntelRoute: typeof ApiPublicHooksIngestIntelRoute
   ApiPublicHooksRefreshIntelligenceRoute: typeof ApiPublicHooksRefreshIntelligenceRoute
 }
@@ -1322,6 +1350,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksIngestIntelRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/backfill-vault-extractions': {
+      id: '/api/public/hooks/backfill-vault-extractions'
+      path: '/api/public/hooks/backfill-vault-extractions'
+      fullPath: '/api/public/hooks/backfill-vault-extractions'
+      preLoaderRoute: typeof ApiPublicHooksBackfillVaultExtractionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/backfill-research-embeddings': {
+      id: '/api/public/hooks/backfill-research-embeddings'
+      path: '/api/public/hooks/backfill-research-embeddings'
+      fullPath: '/api/public/hooks/backfill-research-embeddings'
+      preLoaderRoute: typeof ApiPublicHooksBackfillResearchEmbeddingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/backfill-question-embeddings': {
       id: '/api/public/hooks/backfill-question-embeddings'
       path: '/api/public/hooks/backfill-question-embeddings'
@@ -1633,6 +1675,10 @@ const rootRouteChildren: RootRouteChildren = {
     ApiPublicHooksBackfillAtlasEmbeddingsRoute,
   ApiPublicHooksBackfillQuestionEmbeddingsRoute:
     ApiPublicHooksBackfillQuestionEmbeddingsRoute,
+  ApiPublicHooksBackfillResearchEmbeddingsRoute:
+    ApiPublicHooksBackfillResearchEmbeddingsRoute,
+  ApiPublicHooksBackfillVaultExtractionsRoute:
+    ApiPublicHooksBackfillVaultExtractionsRoute,
   ApiPublicHooksIngestIntelRoute: ApiPublicHooksIngestIntelRoute,
   ApiPublicHooksRefreshIntelligenceRoute:
     ApiPublicHooksRefreshIntelligenceRoute,
