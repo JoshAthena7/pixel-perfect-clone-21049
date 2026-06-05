@@ -2,10 +2,12 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { BookOpen, ExternalLink, Check, X, Sparkles, ShieldCheck } from "lucide-react";
+import { BookOpen, ExternalLink, Check, X, Sparkles, ShieldCheck, Plus, FileUp } from "lucide-react";
 import { listAtlasSources } from "@/lib/atlas-sources.functions";
 import { setSourceStatus } from "@/lib/atlas-onboarding.functions";
 import { seedStarterCanon, verifyCanon } from "@/lib/canon-seed.functions";
+import { AddCanonModal } from "@/components/canon/AddCanonModal";
+import { ExtractCanonModal } from "@/components/canon/ExtractCanonModal";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/olympus/canon-library")({
@@ -31,6 +33,8 @@ function CanonLibraryPage() {
   const [seeding, setSeeding] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [verifyResult, setVerifyResult] = useState<any>(null);
+  const [showAdd, setShowAdd] = useState(false);
+  const [showExtract, setShowExtract] = useState(false);
   const list = useServerFn(listAtlasSources);
   const setFn = useServerFn(setSourceStatus);
   const seedFn = useServerFn(seedStarterCanon);
