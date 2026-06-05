@@ -37,15 +37,17 @@ const RE_MRN =
 const RE_MEMBER =
   /(member id|subscriber id|policy #|beneficiary)[:\s]+[A-Z0-9\-]{6,20}/i;
 
-const RE_STREET =
-  /\b\d+\s+[A-Z][a-z]+\s+(Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Lane|Ln|Blvd|Court|Ct)\b/;
+// Street + ZIP only count as PHI when they appear NEAR a clinical term
+// (within ~120 chars). Without proximity, a healthcare RFP that mentions
+// "patient outcomes" on page 3 and a vendor mailing address on page 90
+// would always trip — useless signal, blocks legitimate intake.
+const RE_STREET_NEAR_CLINICAL =
+  /(\b\d+\s+[A-Z][a-z]+\s+(?:Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Lane|Ln|Blvd|Court|Ct)\b[\s\S]{0,120}\b(?:patient|diagnosis|treatment|prescription|medical record|health condition)\b)|(\b(?:patient|diagnosis|treatment|prescription|medical record|health condition)\b[\s\S]{0,120}\b\d+\s+[A-Z][a-z]+\s+(?:Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Lane|Ln|Blvd|Court|Ct)\b)/;
 
-const RE_ZIP = /\b\d{5}(-\d{4})?\b/;
+const RE_ZIP_NEAR_CLINICAL =
+  /(\b\d{5}(?:-\d{4})?\b[\s\S]{0,120}\b(?:patient|diagnosis|treatment|prescription|medical record|health condition)\b)|(\b(?:patient|diagnosis|treatment|prescription|medical record|health condition)\b[\s\S]{0,120}\b\d{5}(?:-\d{4})?\b)/;
 
 // --- MEDIUM CONFIDENCE — contextual ---
-
-const CLINICAL_TERMS_RE =
-  /\b(patient|diagnosis|treatment|prescription|clinical|medical record|health condition)\b/i;
 
 // "patient name", "patient dob", etc.
 const RE_EXPLICIT_PHI =
@@ -97,16 +99,17 @@ export function detectPHI(text: string): PHIDetectionResult {
     found.add("MemberID");
     highConfidence = true;
   }
-  if (RE_STREET.test(plain)) {
+  if (RE_STREET_NEAR_CLINICAL.test(plain)) {
     found.add("StreetAddress");
     highConfidence = true;
   }
 
-  // Zip codes are only PHI in clinical context.
-  if (RE_ZIP.test(plain) && CLINICAL_TERMS_RE.test(plain)) {
+  // Zip codes only count when adjacent to a clinical term — not co-present
+  // anywhere in a long document.
+  if (RE_ZIP_NEAR_CLINICAL.test(plain)) {
     found.add("ZipInClinicalContext");
-    // medium confidence — many proposals discuss zip codes innocuously
   }
+
 
   // Medium-confidence contextual signals
   if (RE_EXPLICIT_PHI.test(plain)) {
