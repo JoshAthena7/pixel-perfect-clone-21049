@@ -123,7 +123,12 @@ function VaultPage() {
           }
         }
         const hash = await sha256(file);
-        const path = `${missionId}/${Date.now()}-${file.name}`;
+        const safeName = file.name
+          .normalize("NFKD")
+          .replace(/[^\w.\-]+/g, "_")
+          .replace(/_+/g, "_")
+          .replace(/^_+|_+$/g, "");
+        const path = `${missionId}/${Date.now()}-${safeName || "upload"}`;
         const { error: upErr } = await supabase.storage.from("mission-library").upload(path, file);
         if (upErr) throw upErr;
         const { data: row, error } = await supabase.from("mission_library").insert({
