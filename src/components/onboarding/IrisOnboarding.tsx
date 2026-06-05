@@ -13,6 +13,8 @@ import {
 import { Volume2, VolumeX, ArrowRight, X, MessageSquare } from "lucide-react";
 
 const MUTE_STORAGE_KEY = "iris.voice.muted";
+const SILENT_WAV =
+  "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQQAAAAAAA==";
 
 type SessionRow = {
   id: string;
@@ -174,9 +176,10 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
           audioRef.current = null;
         }
         const audioUrl = URL.createObjectURL(await response.blob());
-        const audio = new Audio(audioUrl);
+        const audio = audioRef.current ?? new Audio(SILENT_WAV);
         audio.onended = () => URL.revokeObjectURL(audioUrl);
         audio.onerror = () => URL.revokeObjectURL(audioUrl);
+        audio.src = audioUrl;
         audioRef.current = audio;
         audio.play().catch(() => {});
       } catch {
