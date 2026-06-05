@@ -561,7 +561,7 @@ function CockpitPage() {
         )}
       </Link>
 
-      <div className="mx-auto max-w-[960px] px-10 pt-8 pb-40">
+      <div className="mx-auto max-w-[960px] px-10 pt-32 pb-16">
         {/* 2. IRIS MORNING BRIEF — 3 sentences max */}
         <section
           className="relative mb-6 rounded-[12px] border px-6 py-5"
