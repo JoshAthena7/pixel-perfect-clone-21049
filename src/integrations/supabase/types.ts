@@ -2666,6 +2666,50 @@ export type Database = {
         }
         Relationships: []
       }
+      mission_client_intel: {
+        Row: {
+          contacts: Json
+          decision_makers: Json
+          meeting_cadence: string | null
+          mission_id: string
+          notes: string | null
+          political_considerations: string | null
+          relationship_owners: Json
+          stakeholders: Json
+          updated_at: string
+        }
+        Insert: {
+          contacts?: Json
+          decision_makers?: Json
+          meeting_cadence?: string | null
+          mission_id: string
+          notes?: string | null
+          political_considerations?: string | null
+          relationship_owners?: Json
+          stakeholders?: Json
+          updated_at?: string
+        }
+        Update: {
+          contacts?: Json
+          decision_makers?: Json
+          meeting_cadence?: string | null
+          mission_id?: string
+          notes?: string | null
+          political_considerations?: string | null
+          relationship_owners?: Json
+          stakeholders?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_client_intel_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_conflict_ack: {
         Row: {
           acknowledged_by: string
@@ -2755,6 +2799,82 @@ export type Database = {
             columns: ["question_id"]
             isOneToOne: false
             referencedRelation: "question_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_financials: {
+        Row: {
+          budget: number | null
+          consultants: Json
+          hours: number | null
+          mission_id: string
+          sow: string | null
+          tracking: Json
+          updated_at: string
+        }
+        Insert: {
+          budget?: number | null
+          consultants?: Json
+          hours?: number | null
+          mission_id: string
+          sow?: string | null
+          tracking?: Json
+          updated_at?: string
+        }
+        Update: {
+          budget?: number | null
+          consultants?: Json
+          hours?: number | null
+          mission_id?: string
+          sow?: string | null
+          tracking?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_financials_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_governance: {
+        Row: {
+          approval_workflow: Json
+          escalation_path: Json
+          leadership_gates: Json
+          mission_id: string
+          quality_gates: Json
+          submission_authority: string | null
+          updated_at: string
+        }
+        Insert: {
+          approval_workflow?: Json
+          escalation_path?: Json
+          leadership_gates?: Json
+          mission_id: string
+          quality_gates?: Json
+          submission_authority?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approval_workflow?: Json
+          escalation_path?: Json
+          leadership_gates?: Json
+          mission_id?: string
+          quality_gates?: Json
+          submission_authority?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_governance_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
+            referencedRelation: "missions"
             referencedColumns: ["id"]
           },
         ]
@@ -3110,8 +3230,103 @@ export type Database = {
           },
         ]
       }
+      mission_strategy: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: string
+          label: string
+          mission_id: string
+          notes: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind: string
+          label: string
+          mission_id: string
+          notes?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          label?: string
+          mission_id?: string
+          notes?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_strategy_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_timeline: {
+        Row: {
+          award: string | null
+          draft_deadlines: Json
+          exec_review: string | null
+          gold_team: string | null
+          mission_id: string
+          orals: string | null
+          pink_team: string | null
+          question_deadline: string | null
+          red_team: string | null
+          submission: string | null
+          updated_at: string
+        }
+        Insert: {
+          award?: string | null
+          draft_deadlines?: Json
+          exec_review?: string | null
+          gold_team?: string | null
+          mission_id: string
+          orals?: string | null
+          pink_team?: string | null
+          question_deadline?: string | null
+          red_team?: string | null
+          submission?: string | null
+          updated_at?: string
+        }
+        Update: {
+          award?: string | null
+          draft_deadlines?: Json
+          exec_review?: string | null
+          gold_team?: string | null
+          mission_id?: string
+          orals?: string | null
+          pink_team?: string | null
+          question_deadline?: string | null
+          red_team?: string | null
+          submission?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_timeline_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_vault_documents: {
         Row: {
+          category: string | null
           created_at: string
           description: string | null
           doc_type: Database["public"]["Enums"]["vault_doc_type"]
@@ -3132,6 +3347,7 @@ export type Database = {
           version: string | null
         }
         Insert: {
+          category?: string | null
           created_at?: string
           description?: string | null
           doc_type: Database["public"]["Enums"]["vault_doc_type"]
@@ -3152,6 +3368,7 @@ export type Database = {
           version?: string | null
         }
         Update: {
+          category?: string | null
           created_at?: string
           description?: string | null
           doc_type?: Database["public"]["Enums"]["vault_doc_type"]
@@ -3174,6 +3391,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "mission_vault_documents_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_volumes: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          mission_id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          mission_id: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          mission_id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_volumes_mission_id_fkey"
             columns: ["mission_id"]
             isOneToOne: false
             referencedRelation: "missions"
@@ -4016,6 +4268,8 @@ export type Database = {
           question_number: string
           question_text: string
           requirements: string[] | null
+          review_path: string | null
+          reviewer_id: string | null
           scoring_criteria: string | null
           section_number: string | null
           sort_order: number | null
@@ -4023,6 +4277,7 @@ export type Database = {
           target_score: number | null
           title: string
           updated_at: string | null
+          volume_id: string | null
           waiting_on: string | null
           word_limit: number | null
           writer_confidence: string | null
@@ -4050,6 +4305,8 @@ export type Database = {
           question_number: string
           question_text: string
           requirements?: string[] | null
+          review_path?: string | null
+          reviewer_id?: string | null
           scoring_criteria?: string | null
           section_number?: string | null
           sort_order?: number | null
@@ -4057,6 +4314,7 @@ export type Database = {
           target_score?: number | null
           title: string
           updated_at?: string | null
+          volume_id?: string | null
           waiting_on?: string | null
           word_limit?: number | null
           writer_confidence?: string | null
@@ -4084,6 +4342,8 @@ export type Database = {
           question_number?: string
           question_text?: string
           requirements?: string[] | null
+          review_path?: string | null
+          reviewer_id?: string | null
           scoring_criteria?: string | null
           section_number?: string | null
           sort_order?: number | null
@@ -4091,6 +4351,7 @@ export type Database = {
           target_score?: number | null
           title?: string
           updated_at?: string | null
+          volume_id?: string | null
           waiting_on?: string | null
           word_limit?: number | null
           writer_confidence?: string | null
@@ -4136,6 +4397,13 @@ export type Database = {
             columns: ["parent_question_id"]
             isOneToOne: false
             referencedRelation: "question_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_records_volume_id_fkey"
+            columns: ["volume_id"]
+            isOneToOne: false
+            referencedRelation: "mission_volumes"
             referencedColumns: ["id"]
           },
         ]
