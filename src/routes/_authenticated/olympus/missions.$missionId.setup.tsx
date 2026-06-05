@@ -194,7 +194,10 @@ function useSetupData(missionId: string) {
   const q = useQuery({
     queryKey: ["mission-setup", missionId],
     queryFn: async () => {
-      const [mission, members, docs, strategy, sensitivities, clientIntel, timeline, questions, volumes, governance, financials] = await Promise.all([
+      const [
+        mission, members, docs, strategy, sensitivities, clientIntel, timeline,
+        questions, volumes, governance, financials, monitoring, evaluation, expertise,
+      ] = await Promise.all([
         supabase.from("missions").select("*").eq("id", missionId).maybeSingle(),
         supabase.from("mission_members").select("*").eq("mission_id", missionId),
         supabase.from("mission_vault_documents").select("id,title,category,uploaded_by_name,created_at,file_path").eq("mission_id", missionId).order("created_at", { ascending: false }),
@@ -202,10 +205,13 @@ function useSetupData(missionId: string) {
         supabase.from("mission_sensitivities").select("*").eq("mission_id", missionId),
         supabase.from("mission_client_intel").select("*").eq("mission_id", missionId).maybeSingle(),
         supabase.from("mission_timeline").select("*").eq("mission_id", missionId).maybeSingle(),
-        supabase.from("question_records").select("id,question_number,title,assigned_writer_id,reviewer_id,pens_down_date,review_path,volume_id").eq("mission_id", missionId).order("sort_order"),
+        supabase.from("question_records").select("id,question_number,title,section_number,assigned_writer_id,reviewer_id,pens_down_date,review_path,volume_id,point_value,competitive_risk").eq("mission_id", missionId).order("sort_order"),
         supabase.from("mission_volumes").select("*").eq("mission_id", missionId).order("sort_order"),
         supabase.from("mission_governance").select("*").eq("mission_id", missionId).maybeSingle(),
         supabase.from("mission_financials").select("*").eq("mission_id", missionId).maybeSingle(),
+        supabase.from("mission_monitoring_sources").select("*").eq("mission_id", missionId).order("source_type"),
+        supabase.from("mission_evaluation_criteria").select("*").eq("mission_id", missionId).order("display_order"),
+        supabase.from("mission_member_expertise").select("*").eq("mission_id", missionId),
       ]);
       return {
         mission: mission.data,
@@ -219,6 +225,9 @@ function useSetupData(missionId: string) {
         volumes: volumes.data ?? [],
         governance: governance.data,
         financials: financials.data,
+        monitoring: monitoring.data ?? [],
+        evaluation: evaluation.data ?? [],
+        expertise: expertise.data ?? [],
       };
     },
   });
@@ -226,6 +235,7 @@ function useSetupData(missionId: string) {
     ...(q.data ?? {
       mission: null, members: [], docs: [], strategy: [], sensitivities: [],
       clientIntel: null, timeline: null, questions: [], volumes: [], governance: null, financials: null,
+      monitoring: [], evaluation: [], expertise: [],
     }),
     refetch: q.refetch,
     isLoading: q.isLoading,
@@ -236,8 +246,9 @@ function useCompletion(setup: any): Record<SectionId, boolean> {
   return useMemo(() => ({
     identity: !!(setup.mission?.name && setup.mission?.client && setup.mission?.status),
     team: (setup.members?.length ?? 0) > 0,
-    inputs: (setup.docs?.length ?? 0) > 0,
+    inputs: (setup.docs?.length ?? 0) > 0 || (setup.monitoring?.length ?? 0) > 0,
     strategy: (setup.strategy?.length ?? 0) > 0 || (setup.mission?.win_themes?.length ?? 0) > 0,
+    evaluation: (setup.evaluation?.length ?? 0) > 0,
     client: !!setup.clientIntel,
     timeline: !!(setup.timeline?.submission),
     questions: (setup.questions?.length ?? 0) > 0,
