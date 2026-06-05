@@ -154,8 +154,25 @@ export const sendAtlasInvite = createServerFn({ method: "POST" })
     if (!acceptedUserId) {
       const { data: invited, error: inviteErr } =
         await supabaseAdmin.auth.admin.inviteUserByEmail(invite.email);
-      if (inviteErr) throw new Error(inviteErr.message);
-      acceptedUserId = invited.user?.id ?? null;
+      if (inviteErr) {
+        // User already exists in auth.users without a profile row — find them.
+        const target = invite.email.toLowerCase();
+        let found: string | null = null;
+        for (let page = 1; page <= 20 && !found; page++) {
+          const { data: list, error: listErr } = await supabaseAdmin.auth.admin.listUsers({
+            page,
+            perPage: 200,
+          });
+          if (listErr) break;
+          const hit = list.users.find((u) => (u.email ?? "").toLowerCase() === target);
+          if (hit) found = hit.id;
+          if (list.users.length < 200) break;
+        }
+        if (!found) throw new Error(inviteErr.message);
+        acceptedUserId = found;
+      } else {
+        acceptedUserId = invited.user?.id ?? null;
+      }
     }
 
     const { error } = await supabaseAdmin
