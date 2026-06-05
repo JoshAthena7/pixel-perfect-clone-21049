@@ -47,7 +47,7 @@ export function Breadcrumbs() {
     : isOperations ? "Operations"
     : isTeam ? "Team"
     : isActivity ? "Activity"
-    : isSettings ? "Settings"
+    : isSettings ? "Setup"
     : "";
 
   const crumbs: Array<{ label: string; to?: string; params?: any }> = [
