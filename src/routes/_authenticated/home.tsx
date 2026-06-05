@@ -19,6 +19,7 @@ import { DailyPulse } from "@/components/v4/DailyPulse";
 import { IrisTrustIntro } from "@/components/v4/IrisTrustIntro";
 import { useIsAdmin } from "@/hooks/useAccess";
 import type { ReactNode } from "react";
+import { TestIrisVoiceButton } from "@/components/iris/TestIrisVoiceButton";
 
 
 
@@ -332,6 +333,7 @@ function AthenaHQ() {
             
           </div>
           <div className="flex items-center gap-4">
+            <TestIrisVoiceButton />
             <a
               href="/home?iris-demo=1"
               className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-[13px] font-medium text-background hover:opacity-90"
