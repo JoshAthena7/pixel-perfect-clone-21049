@@ -154,12 +154,22 @@ export const addCollectiveMemberToMission = createServerFn({ method: "POST" })
     }
 
     if (!inviteeId && collectiveMember.email) {
+      const authUser = await findAuthUserByEmail(supabaseAdmin, collectiveMember.email);
+      if (authUser) inviteeId = authUser.id;
+    }
+
+    if (!inviteeId && collectiveMember.email) {
       const { data: invited, error: inviteErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(
         collectiveMember.email,
       );
-      if (inviteErr) throw new Error(inviteErr.message);
-      inviteeId = invited.user?.id ?? null;
-      sentInvite = true;
+      if (inviteErr) {
+        const fallback = await findAuthUserByEmail(supabaseAdmin, collectiveMember.email);
+        if (!fallback) throw new Error(inviteErr.message);
+        inviteeId = fallback.id;
+      } else {
+        inviteeId = invited.user?.id ?? null;
+        sentInvite = true;
+      }
     }
 
     if (!inviteeId) {
