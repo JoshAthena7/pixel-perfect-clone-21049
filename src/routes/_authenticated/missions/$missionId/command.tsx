@@ -82,14 +82,14 @@ function MissionBrief() {
     queryFn: async () => {
       const { data } = await supabase
         .from("missions")
-        .select("id,name,client,state,state_agency,program_type,submission_date,rfp_number,contract_value,contract_term")
+        .select("id,name,client,state,state_agency,program_type,submission_date,rfp_number")
         .eq("id", missionId)
         .maybeSingle();
       return data as {
         id: string; name: string; client: string;
         state: string | null; state_agency: string | null; program_type: string | null;
         submission_date: string | null;
-        rfp_number: string | null; contract_value: string | null; contract_term: string | null;
+        rfp_number: string | null;
       } | null;
     },
   });
