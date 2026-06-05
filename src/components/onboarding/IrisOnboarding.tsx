@@ -122,6 +122,7 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const spokenForModule = useRef<number | null>(null);
   const playbackPrimed = useRef(false);
+  const preparedAudio = useRef<{ module: number; text: string; promise: Promise<string | null> } | null>(null);
 
   const script = IRIS_SCRIPTS[currentModule];
   const card = MODULE_CARDS[currentModule];
@@ -161,12 +162,11 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
     });
   }
 
-  async function playIrisLine(text: string, options?: { force?: boolean }) {
-    if (muted && !options?.force) return;
+  async function createIrisAudioUrl(text: string) {
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
-      if (!token) return;
+      if (!token) return null;
 
       const response = await fetch("/api/iris-voice", {
         method: "POST",
@@ -177,8 +177,15 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
         body: JSON.stringify({ text }),
       });
 
-      if (!response.ok) return;
-      const audioUrl = URL.createObjectURL(await response.blob());
+      if (!response.ok) return null;
+      return URL.createObjectURL(await response.blob());
+    } catch {
+      return null;
+    }
+  }
+
+  async function playPreparedAudioUrl(audioUrl: string) {
+    try {
       const audio = audioRef.current ?? new Audio(SILENT_WAV);
       audio.onended = () => URL.revokeObjectURL(audioUrl);
       audio.onerror = () => URL.revokeObjectURL(audioUrl);
@@ -190,6 +197,12 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
     }
   }
 
+  async function playIrisLine(text: string, options?: { force?: boolean }) {
+    if (muted && !options?.force) return;
+    const audioUrl = await createIrisAudioUrl(text);
+    if (audioUrl) await playPreparedAudioUrl(audioUrl);
+  }
+
   // Narrate current module (browsers block autoplay until first user gesture,
   // so module 1 waits for the first pointerdown to prime + play).
   useEffect(() => {
@@ -197,12 +210,18 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
     if (spokenForModule.current === currentModule) return;
 
     let cancelled = false;
+    const queuedAudio =
+      preparedAudio.current?.module === currentModule && preparedAudio.current.text === greetedScript
+        ? preparedAudio.current.promise
+        : createIrisAudioUrl(greetedScript);
+    preparedAudio.current = { module: currentModule, text: greetedScript, promise: queuedAudio };
 
     const speak = async () => {
       if (cancelled) return;
       spokenForModule.current = currentModule;
       await primePlayback();
-      await playIrisLine(greetedScript);
+      const audioUrl = await queuedAudio;
+      if (audioUrl) await playPreparedAudioUrl(audioUrl);
       if (cancelled && audioRef.current) audioRef.current.pause();
     };
 
