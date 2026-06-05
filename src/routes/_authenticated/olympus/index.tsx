@@ -171,11 +171,11 @@ function MissionsIndex() {
                         Open <ArrowRight className="h-3 w-3" />
                       </Link>
                       <Link
-                        to="/missions/$missionId/settings" params={{ missionId: m.id }}
+                        to="/olympus/missions/$missionId/setup" params={{ missionId: m.id }}
                         className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[12px] text-muted-foreground hover:bg-surface-hover hover:text-foreground"
-                        title="Edit"
+                        title="Setup"
                       >
-                        <Pencil className="h-3 w-3" /> Edit
+                        <Pencil className="h-3 w-3" /> Setup
                       </Link>
                       {isDraft && (
                         <button
