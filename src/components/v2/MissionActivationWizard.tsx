@@ -317,8 +317,38 @@ function Step2Uploads({
   const extractFn = useServerFn(extractDocumentIntelligence);
   const parseRfpFn = useServerFn(parseRfpDocument);
 
+  // Hydrate from existing mission_library rows so reopening the wizard
+  // (or resuming a Draft) shows previously uploaded documents instead of an empty list.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("mission_library")
+        .select("id, name, category, is_rfp")
+        .eq("mission_id", missionId)
+        .order("created_at", { ascending: false });
+      if (cancelled || !data) return;
+      setFiles((prev) => {
+        const existingDocIds = new Set(prev.map((f) => f.documentId).filter(Boolean));
+        const hydrated: UploadedFile[] = data
+          .filter((d: any) => !existingDocIds.has(d.id))
+          .map((d: any) => ({
+            id: d.id,
+            documentId: d.id,
+            filename: d.name,
+            category: (d.category as WizardCategory) ?? "Other",
+            isRfp: !!d.is_rfp,
+            status: "ready",
+          }));
+        return [...prev, ...hydrated];
+      });
+    })();
+    return () => { cancelled = true; };
+  }, [missionId]);
+
   // Categories already represented by at least one ready/indexing upload
   const fulfilledCategories = new Set(files.filter((f) => f.status !== "failed").map((f) => f.category));
+
 
   const processFile = useCallback(async (file: File, category: WizardCategory) => {
     const localId = crypto.randomUUID();
