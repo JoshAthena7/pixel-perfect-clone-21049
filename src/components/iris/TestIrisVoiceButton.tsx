@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { Volume2, Loader2, Check, AlertCircle } from "lucide-react";
-import { synthesizeIrisLine } from "@/lib/iris-voice.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 const SAMPLE_LINE =
   "IRIS voice check confirmed. All systems are online and ready for briefing.";
@@ -11,20 +10,40 @@ type Status = "idle" | "loading" | "ok" | "error";
 export function TestIrisVoiceButton() {
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
-  const speak = useServerFn(synthesizeIrisLine);
 
   const handleClick = async () => {
     setStatus("loading");
     setError(null);
     try {
-      const res = await speak({ data: { text: SAMPLE_LINE } });
-      if (!res.ok || !res.audioBase64) {
-        setStatus("error");
-        setError(res.error ?? "TTS unavailable — check ElevenLabs connection.");
-        return;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) throw new Error("Sign in to use IRIS voice.");
+
+      const response = await fetch("/api/iris-voice", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ text: SAMPLE_LINE }),
+      });
+
+      if (!response.ok) {
+        const detail = await response.json().catch(() => null);
+        throw new Error(detail?.error ?? `TTS failed (${response.status})`);
       }
-      const audio = new Audio(`data:${res.mimeType};base64,${res.audioBase64}`);
-      audio.onended = () => setStatus("idle");
+
+      const audioUrl = URL.createObjectURL(await response.blob());
+      const audio = new Audio(audioUrl);
+      audio.onended = () => {
+        URL.revokeObjectURL(audioUrl);
+        setStatus("idle");
+      };
+      audio.onerror = () => {
+        URL.revokeObjectURL(audioUrl);
+        setStatus("error");
+        setError("Audio playback failed.");
+      };
       await audio.play();
       setStatus("ok");
     } catch (e) {

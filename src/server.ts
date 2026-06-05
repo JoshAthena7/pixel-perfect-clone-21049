@@ -25,6 +25,7 @@ const CSP = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' data: https://fonts.gstatic.com",
   "img-src 'self' data: blob: https:",
+  "media-src 'self' data: blob:",
   "connect-src 'self' https://ai.gateway.lovable.dev https://*.supabase.co wss://*.supabase.co https://*.lovable.app https://*.lovable.dev",
   "frame-ancestors 'none'",
   "form-action 'self'",
