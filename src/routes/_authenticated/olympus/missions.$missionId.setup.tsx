@@ -22,13 +22,14 @@ export const Route = createFileRoute("/_authenticated/olympus/missions/$missionI
 /* ────────────────────────────────────────────────────────────
    Section spec — order matters; ids are anchor targets.
    ──────────────────────────────────────────────────────────── */
-type SectionId = "identity" | "team" | "inputs" | "strategy" | "client" | "timeline" | "questions" | "governance" | "financials";
+type SectionId = "identity" | "team" | "inputs" | "strategy" | "evaluation" | "client" | "timeline" | "questions" | "governance" | "financials";
 
 const SECTIONS: Array<{ id: SectionId; n: string; label: string; admin?: boolean }> = [
   { id: "identity", n: "01", label: "Mission Identity" },
   { id: "team", n: "02", label: "Team Assignment" },
   { id: "inputs", n: "03", label: "Mission Inputs" },
   { id: "strategy", n: "04", label: "Strategic Foundation" },
+  { id: "evaluation", n: "4B", label: "Evaluation Criteria Map" },
   { id: "client", n: "05", label: "Client Intelligence" },
   { id: "timeline", n: "06", label: "Timeline & Gates" },
   { id: "questions", n: "07", label: "Question Setup" },
