@@ -16,6 +16,11 @@ const MUTE_STORAGE_KEY = "iris.voice.muted";
 const SILENT_WAV =
   "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQQAAAAAAA==";
 
+type IrisVoiceWindow = Window & {
+  __irisVoiceAudio?: HTMLAudioElement;
+  __irisVoicePrimed?: boolean;
+};
+
 type SessionRow = {
   id: string;
   user_id: string;
@@ -124,6 +129,7 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
   const playbackPrimed = useRef(false);
   const preparedAudio = useRef<{ module: number; text: string; promise: Promise<string | null> } | null>(null);
   const voicePlaybackInFlight = useRef(false);
+  const fallbackUtterance = useRef<SpeechSynthesisUtterance | null>(null);
 
   const script = IRIS_SCRIPTS[currentModule];
   const card = MODULE_CARDS[currentModule];
@@ -149,17 +155,29 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
       audioRef.current.pause();
       audioRef.current = null;
     }
+    if (muted && typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      fallbackUtterance.current = null;
+    }
   }, [muted]);
 
   function primePlayback() {
     if (playbackPrimed.current) return Promise.resolve(true);
-    const audio = audioRef.current ?? new Audio(SILENT_WAV);
+    const win = typeof window !== "undefined" ? (window as IrisVoiceWindow) : null;
+    if (win?.__irisVoicePrimed && win.__irisVoiceAudio) {
+      audioRef.current = win.__irisVoiceAudio;
+      playbackPrimed.current = true;
+      return Promise.resolve(true);
+    }
+    const audio = audioRef.current ?? win?.__irisVoiceAudio ?? new Audio(SILENT_WAV);
     audio.preload = "auto";
     audio.loop = true;
     audioRef.current = audio;
+    if (win) win.__irisVoiceAudio = audio;
     return audio.play().then(
       () => {
         playbackPrimed.current = true;
+        if (win) win.__irisVoicePrimed = true;
         return true;
       },
       () => false,
@@ -200,7 +218,13 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
       audio.onerror = () => URL.revokeObjectURL(audioUrl);
       audio.loop = false;
       audio.preload = "auto";
+      audio.volume = 1;
       audio.src = audioUrl;
+      if (typeof window !== "undefined") {
+        const win = window as IrisVoiceWindow;
+        win.__irisVoiceAudio = audio;
+        win.__irisVoicePrimed = true;
+      }
       audioRef.current = audio;
       await audio.play();
       return true;
@@ -209,6 +233,21 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
       URL.revokeObjectURL(audioUrl);
       return false;
     }
+  }
+
+  function playBrowserVoiceFallback(moduleNumber: number, text: string) {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return false;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.08;
+    utterance.pitch = 0.92;
+    utterance.volume = 1;
+    utterance.onstart = () => {
+      spokenForModule.current = moduleNumber;
+    };
+    fallbackUtterance.current = utterance;
+    window.speechSynthesis.speak(utterance);
+    return true;
   }
 
   async function playModuleLine(moduleNumber: number, text: string, options?: { force?: boolean }) {
@@ -225,10 +264,12 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
       const audioUrl = await queuedAudio;
       if (!audioUrl) {
         audioRef.current?.pause();
+        playBrowserVoiceFallback(moduleNumber, text);
         return;
       }
       const played = await playPreparedAudioUrl(audioUrl);
       if (played) spokenForModule.current = moduleNumber;
+      if (!played) playBrowserVoiceFallback(moduleNumber, text);
     } finally {
       voicePlaybackInFlight.current = false;
     }
@@ -315,6 +356,8 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
 
     setAskOpen(false);
     setInput("");
+    if (audioRef.current) audioRef.current.pause();
+    if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
     setTransitionKey((k) => k + 1);
     setCurrentModule(cleared + 1);
     setBusy(false);

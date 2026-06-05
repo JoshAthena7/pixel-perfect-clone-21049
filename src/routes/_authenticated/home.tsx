@@ -21,6 +21,24 @@ import { useIsAdmin } from "@/hooks/useAccess";
 import type { ReactNode } from "react";
 import { TestIrisVoiceButton } from "@/components/iris/TestIrisVoiceButton";
 
+const IRIS_SILENT_WAV =
+  "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQQAAAAAAA==";
+
+function primeIrisVoiceBeforeOnboarding() {
+  const win = window as Window & { __irisVoiceAudio?: HTMLAudioElement; __irisVoicePrimed?: boolean };
+  if (win.__irisVoicePrimed) return;
+  const audio = win.__irisVoiceAudio ?? new Audio(IRIS_SILENT_WAV);
+  audio.preload = "auto";
+  audio.loop = true;
+  win.__irisVoiceAudio = audio;
+  void audio.play().then(
+    () => {
+      win.__irisVoicePrimed = true;
+    },
+    () => undefined,
+  );
+}
+
 
 
 export const Route = createFileRoute("/_authenticated/home")({
@@ -334,13 +352,17 @@ function AthenaHQ() {
           </div>
           <div className="flex items-center gap-4">
             <TestIrisVoiceButton />
-            <a
-              href="/home?iris-demo=1"
+            <button
+              type="button"
+              onClick={() => {
+                primeIrisVoiceBeforeOnboarding();
+                navigate({ to: "/home", search: { "iris-demo": "1" } as never });
+              }}
               className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-[13px] font-medium text-background hover:opacity-90"
             >
               <Sparkles className="h-3.5 w-3.5" />
               Launch IRIS Demo
-            </a>
+            </button>
             <div className="text-right">
               <div className="h2-label">Firm Status</div>
               <div className={`mt-1.5 flex items-center justify-end gap-2 text-sm font-medium ${totalAttention === 0 ? "text-[color:var(--green)]" : totalAttention >= 50 ? "text-destructive" : "text-amber-400"}`}>
