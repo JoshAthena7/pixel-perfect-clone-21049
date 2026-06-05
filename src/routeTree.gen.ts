@@ -28,6 +28,7 @@ import { Route as AuthenticatedAtriumRouteImport } from './routes/_authenticated
 import { Route as DemoAppIndexRouteImport } from './routes/demo._app.index'
 import { Route as AuthenticatedOlympusIndexRouteImport } from './routes/_authenticated/olympus/index'
 import { Route as DemoAppQueueRouteImport } from './routes/demo._app.queue'
+import { Route as DemoAppIntelligenceRouteImport } from './routes/demo._app.intelligence'
 import { Route as DemoAppCommunicationsRouteImport } from './routes/demo._app.communications'
 import { Route as DemoAppAssignmentRouteImport } from './routes/demo._app.assignment'
 import { Route as AuthenticatedProfileExpertiseRouteImport } from './routes/_authenticated/profile/expertise'
@@ -183,6 +184,11 @@ const AuthenticatedOlympusIndexRoute =
 const DemoAppQueueRoute = DemoAppQueueRouteImport.update({
   id: '/queue',
   path: '/queue',
+  getParentRoute: () => DemoAppRoute,
+} as any)
+const DemoAppIntelligenceRoute = DemoAppIntelligenceRouteImport.update({
+  id: '/intelligence',
+  path: '/intelligence',
   getParentRoute: () => DemoAppRoute,
 } as any)
 const DemoAppCommunicationsRoute = DemoAppCommunicationsRouteImport.update({
@@ -592,6 +598,7 @@ export interface FileRoutesByFullPath {
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/demo/assignment': typeof DemoAppAssignmentRoute
   '/demo/communications': typeof DemoAppCommunicationsRoute
+  '/demo/intelligence': typeof DemoAppIntelligenceRoute
   '/demo/queue': typeof DemoAppQueueRoute
   '/olympus/': typeof AuthenticatedOlympusIndexRoute
   '/demo/': typeof DemoAppIndexRoute
@@ -668,6 +675,7 @@ export interface FileRoutesByTo {
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/demo/assignment': typeof DemoAppAssignmentRoute
   '/demo/communications': typeof DemoAppCommunicationsRoute
+  '/demo/intelligence': typeof DemoAppIntelligenceRoute
   '/demo/queue': typeof DemoAppQueueRoute
   '/olympus': typeof AuthenticatedOlympusIndexRoute
   '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
@@ -748,6 +756,7 @@ export interface FileRoutesById {
   '/_authenticated/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/demo/_app/assignment': typeof DemoAppAssignmentRoute
   '/demo/_app/communications': typeof DemoAppCommunicationsRoute
+  '/demo/_app/intelligence': typeof DemoAppIntelligenceRoute
   '/demo/_app/queue': typeof DemoAppQueueRoute
   '/_authenticated/olympus/': typeof AuthenticatedOlympusIndexRoute
   '/demo/_app/': typeof DemoAppIndexRoute
@@ -828,6 +837,7 @@ export interface FileRouteTypes {
     | '/profile/expertise'
     | '/demo/assignment'
     | '/demo/communications'
+    | '/demo/intelligence'
     | '/demo/queue'
     | '/olympus/'
     | '/demo/'
@@ -904,6 +914,7 @@ export interface FileRouteTypes {
     | '/profile/expertise'
     | '/demo/assignment'
     | '/demo/communications'
+    | '/demo/intelligence'
     | '/demo/queue'
     | '/olympus'
     | '/missions/$missionId/activity'
@@ -983,6 +994,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile/expertise'
     | '/demo/_app/assignment'
     | '/demo/_app/communications'
+    | '/demo/_app/intelligence'
     | '/demo/_app/queue'
     | '/_authenticated/olympus/'
     | '/demo/_app/'
@@ -1153,6 +1165,13 @@ declare module '@tanstack/react-router' {
       path: '/queue'
       fullPath: '/demo/queue'
       preLoaderRoute: typeof DemoAppQueueRouteImport
+      parentRoute: typeof DemoAppRoute
+    }
+    '/demo/_app/intelligence': {
+      id: '/demo/_app/intelligence'
+      path: '/intelligence'
+      fullPath: '/demo/intelligence'
+      preLoaderRoute: typeof DemoAppIntelligenceRouteImport
       parentRoute: typeof DemoAppRoute
     }
     '/demo/_app/communications': {
@@ -1754,6 +1773,7 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 interface DemoAppRouteChildren {
   DemoAppAssignmentRoute: typeof DemoAppAssignmentRoute
   DemoAppCommunicationsRoute: typeof DemoAppCommunicationsRoute
+  DemoAppIntelligenceRoute: typeof DemoAppIntelligenceRoute
   DemoAppQueueRoute: typeof DemoAppQueueRoute
   DemoAppIndexRoute: typeof DemoAppIndexRoute
 }
@@ -1761,6 +1781,7 @@ interface DemoAppRouteChildren {
 const DemoAppRouteChildren: DemoAppRouteChildren = {
   DemoAppAssignmentRoute: DemoAppAssignmentRoute,
   DemoAppCommunicationsRoute: DemoAppCommunicationsRoute,
+  DemoAppIntelligenceRoute: DemoAppIntelligenceRoute,
   DemoAppQueueRoute: DemoAppQueueRoute,
   DemoAppIndexRoute: DemoAppIndexRoute,
 }
