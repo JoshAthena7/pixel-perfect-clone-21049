@@ -62,6 +62,7 @@ function QuestionsPage() {
   const [editing, setEditing] = useState<QRow | null>(null);
   const [renameSection, setRenameSection] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"sections" | "flat">("sections");
+  const [matrixOpen, setMatrixOpen] = useState(false);
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["olympus-questions", missionId],
