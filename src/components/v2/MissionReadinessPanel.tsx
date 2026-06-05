@@ -120,7 +120,7 @@ export function MissionReadinessPanel({
         status: (totalQ > 0 ? "pass" : "fail") as Status,
         detail: totalQ > 0 ? `${totalQ} questions from RFP` : "No questions exist",
         actionLabel: totalQ > 0 ? undefined : "Parse RFP with IRIS",
-        actionHref: "/olympus/questions",
+        actionHref: "/olympus/missions/$missionId/setup", actionParams: { missionId },
       },
       {
         key: "writers",
@@ -139,7 +139,7 @@ export function MissionReadinessPanel({
             ? `All ${totalQ} assigned`
             : `${withWriters} of ${totalQ} questions have writers assigned`,
         actionLabel: withWriters === totalQ && totalQ > 0 ? undefined : "Assign Writers",
-        actionHref: "/olympus/questions",
+        actionHref: "/olympus/missions/$missionId/setup", actionParams: { missionId },
       },
       {
         key: "pens-down",
@@ -158,7 +158,7 @@ export function MissionReadinessPanel({
             ? `All ${totalQ} dated`
             : `${withDates} of ${totalQ} have pens-down dates`,
         actionLabel: withDates === totalQ && totalQ > 0 ? undefined : "Set Dates",
-        actionHref: "/olympus/questions",
+        actionHref: "/olympus/missions/$missionId/setup", actionParams: { missionId },
       },
       {
         key: "gates",
@@ -169,7 +169,7 @@ export function MissionReadinessPanel({
             ? `${gates[0].gate_name}${gates[0].target_date ? " · " + new Date(gates[0].target_date).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : ""}${gates.length > 1 ? ` (+${gates.length - 1})` : ""}`
             : "No gates configured",
         actionLabel: gates.length > 0 ? undefined : "Create Gate",
-        actionHref: "/olympus/gates",
+        actionHref: "/olympus/missions/$missionId/setup", actionParams: { missionId },
       },
       {
         key: "themes",
@@ -191,7 +191,7 @@ export function MissionReadinessPanel({
             : linkedThemeQs.size === 0
             ? "Link Questions"
             : undefined,
-        actionHref: "/olympus/win-themes",
+        actionHref: "/olympus/missions/$missionId/setup", actionParams: { missionId },
       },
       {
         key: "intel",
