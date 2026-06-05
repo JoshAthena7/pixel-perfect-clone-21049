@@ -27,6 +27,7 @@ import { Route as AuthenticatedBriefRoomRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAtriumRouteImport } from './routes/_authenticated/atrium'
 import { Route as DemoAppIndexRouteImport } from './routes/demo._app.index'
 import { Route as AuthenticatedOlympusIndexRouteImport } from './routes/_authenticated/olympus/index'
+import { Route as DemoAppWorkspaceRouteImport } from './routes/demo._app.workspace'
 import { Route as DemoAppQueueRouteImport } from './routes/demo._app.queue'
 import { Route as DemoAppIntelligenceRouteImport } from './routes/demo._app.intelligence'
 import { Route as DemoAppCommunicationsRouteImport } from './routes/demo._app.communications'
@@ -182,6 +183,11 @@ const AuthenticatedOlympusIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
+const DemoAppWorkspaceRoute = DemoAppWorkspaceRouteImport.update({
+  id: '/workspace',
+  path: '/workspace',
+  getParentRoute: () => DemoAppRoute,
+} as any)
 const DemoAppQueueRoute = DemoAppQueueRouteImport.update({
   id: '/queue',
   path: '/queue',
@@ -607,6 +613,7 @@ export interface FileRoutesByFullPath {
   '/demo/communications': typeof DemoAppCommunicationsRoute
   '/demo/intelligence': typeof DemoAppIntelligenceRoute
   '/demo/queue': typeof DemoAppQueueRoute
+  '/demo/workspace': typeof DemoAppWorkspaceRoute
   '/olympus/': typeof AuthenticatedOlympusIndexRoute
   '/demo/': typeof DemoAppIndexRoute
   '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
@@ -685,6 +692,7 @@ export interface FileRoutesByTo {
   '/demo/communications': typeof DemoAppCommunicationsRoute
   '/demo/intelligence': typeof DemoAppIntelligenceRoute
   '/demo/queue': typeof DemoAppQueueRoute
+  '/demo/workspace': typeof DemoAppWorkspaceRoute
   '/olympus': typeof AuthenticatedOlympusIndexRoute
   '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
@@ -767,6 +775,7 @@ export interface FileRoutesById {
   '/demo/_app/communications': typeof DemoAppCommunicationsRoute
   '/demo/_app/intelligence': typeof DemoAppIntelligenceRoute
   '/demo/_app/queue': typeof DemoAppQueueRoute
+  '/demo/_app/workspace': typeof DemoAppWorkspaceRoute
   '/_authenticated/olympus/': typeof AuthenticatedOlympusIndexRoute
   '/demo/_app/': typeof DemoAppIndexRoute
   '/_authenticated/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
@@ -849,6 +858,7 @@ export interface FileRouteTypes {
     | '/demo/communications'
     | '/demo/intelligence'
     | '/demo/queue'
+    | '/demo/workspace'
     | '/olympus/'
     | '/demo/'
     | '/missions/$missionId/activity'
@@ -927,6 +937,7 @@ export interface FileRouteTypes {
     | '/demo/communications'
     | '/demo/intelligence'
     | '/demo/queue'
+    | '/demo/workspace'
     | '/olympus'
     | '/missions/$missionId/activity'
     | '/missions/$missionId/brief'
@@ -1008,6 +1019,7 @@ export interface FileRouteTypes {
     | '/demo/_app/communications'
     | '/demo/_app/intelligence'
     | '/demo/_app/queue'
+    | '/demo/_app/workspace'
     | '/_authenticated/olympus/'
     | '/demo/_app/'
     | '/_authenticated/missions/$missionId/activity'
@@ -1171,6 +1183,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/olympus/'
       preLoaderRoute: typeof AuthenticatedOlympusIndexRouteImport
       parentRoute: typeof AuthenticatedOlympusRoute
+    }
+    '/demo/_app/workspace': {
+      id: '/demo/_app/workspace'
+      path: '/workspace'
+      fullPath: '/demo/workspace'
+      preLoaderRoute: typeof DemoAppWorkspaceRouteImport
+      parentRoute: typeof DemoAppRoute
     }
     '/demo/_app/queue': {
       id: '/demo/_app/queue'
@@ -1795,6 +1814,7 @@ interface DemoAppRouteChildren {
   DemoAppCommunicationsRoute: typeof DemoAppCommunicationsRoute
   DemoAppIntelligenceRoute: typeof DemoAppIntelligenceRoute
   DemoAppQueueRoute: typeof DemoAppQueueRoute
+  DemoAppWorkspaceRoute: typeof DemoAppWorkspaceRoute
   DemoAppIndexRoute: typeof DemoAppIndexRoute
 }
 
@@ -1804,6 +1824,7 @@ const DemoAppRouteChildren: DemoAppRouteChildren = {
   DemoAppCommunicationsRoute: DemoAppCommunicationsRoute,
   DemoAppIntelligenceRoute: DemoAppIntelligenceRoute,
   DemoAppQueueRoute: DemoAppQueueRoute,
+  DemoAppWorkspaceRoute: DemoAppWorkspaceRoute,
   DemoAppIndexRoute: DemoAppIndexRoute,
 }
 
