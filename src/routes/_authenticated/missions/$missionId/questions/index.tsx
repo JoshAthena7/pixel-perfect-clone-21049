@@ -867,10 +867,14 @@ function ResponsesList() {
 
 
       <StudioHealthStrip missionId={missionId} />
-      <div className="h-4" />
-      <StudioVaultOraclePeek missionId={missionId} />
 
-      {isWriter && <WriterBriefPanel missionId={missionId} myQuestions={myQuestions} collabsByQ={collabsByQ} />}
+      {isWriter && (
+        <>
+          <div className="h-4" />
+          <WriterBriefPanel missionId={missionId} myQuestions={myQuestions} collabsByQ={collabsByQ} />
+        </>
+      )}
+
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         {isWriter && (
