@@ -131,7 +131,7 @@ export function AtlasLoginPage() {
                 type="button"
                 onClick={() => {
                   window.localStorage.setItem("demo_mode", "1");
-                  navigate({ to: "/atrium", replace: true });
+                  navigate({ to: "/demo-mission", replace: true });
                 }}
                 className="mt-2 w-full rounded-md border border-amber-400/40 bg-transparent py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-amber-300/90 transition hover:bg-amber-400/10"
               >
