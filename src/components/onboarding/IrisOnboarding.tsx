@@ -160,6 +160,8 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages, muted]);
 
+  // Seed initial IRIS message for current module
+  useEffect(() => {
     if (messages.length === 0) {
       if (startAtModule > 1) {
         setMessages([
