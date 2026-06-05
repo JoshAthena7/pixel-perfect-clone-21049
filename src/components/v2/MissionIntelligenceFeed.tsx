@@ -126,8 +126,24 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
     toast.loading("IRIS is executing research via Perplexity…", { id: "iris-research" });
     try {
       const { executeResearchAgenda } = await import("@/lib/iris-research.functions");
-      const out = await executeResearchAgenda({ data: { missionId, limit: 12 } });
-      toast.success(`Research complete — ${out.succeeded}/${out.executed} answered`, { id: "iris-research" });
+      let totalOk = 0;
+      let totalFail = 0;
+      let safety = 24; // hard cap so a bug can't infinite-loop the UI
+      // Process one task per request so each call stays under the worker
+      // timeout. Loop client-side until the queue is empty.
+      while (safety-- > 0) {
+        const out = await executeResearchAgenda({ data: { missionId, limit: 1 } });
+        totalOk += out.succeeded;
+        totalFail += out.failed;
+        if (out.executed === 0) break;
+        const done = totalOk + totalFail;
+        const total = done + (out.remaining ?? 0);
+        toast.loading(`Researching ${done}/${total}…`, { id: "iris-research" });
+        qc.invalidateQueries({ queryKey: ["iris-research-feed", missionId] });
+        if ((out.remaining ?? 0) === 0) break;
+        await new Promise((r) => setTimeout(r, 400));
+      }
+      toast.success(`Research complete — ${totalOk} answered${totalFail ? `, ${totalFail} failed` : ""}`, { id: "iris-research" });
       qc.invalidateQueries({ queryKey: ["iris-research-feed", missionId] });
     } catch (e) {
       toast.error(`Research execution failed: ${e instanceof Error ? e.message : "unknown"}`, { id: "iris-research" });
