@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { synthesizeIrisLine } from "@/lib/iris-voice.functions";
 import {
   IRIS_SCRIPTS,
   MODULE_NAMES,
@@ -11,6 +13,8 @@ import {
   type QuickReply,
 } from "@/lib/iris-onboarding-scripts";
 import { Check, Lock, Volume2, VolumeX, Send } from "lucide-react";
+
+const MUTE_STORAGE_KEY = "iris.voice.muted";
 
 type ChatMessage =
   | { id: string; from: "iris"; text: string; module?: number; card?: { title: string; body: string } | null }
