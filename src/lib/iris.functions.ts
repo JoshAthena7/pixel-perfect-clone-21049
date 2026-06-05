@@ -269,9 +269,40 @@ export const irisGenerateBriefingSection = createServerFn({ method: "POST" })
     const apiKey = process.env.LOVABLE_API_KEY;
     const firecrawlKey = process.env.FIRECRAWL_API_KEY;
     let content = "";
-    type SourceRef = { type: "web"; url: string; title?: string; source?: string; date?: string };
+    type SourceRef =
+      | { type: "web"; url: string; title?: string; source?: string; date?: string }
+      | { type: "vault_document"; name: string; document_id: string };
     const grounded: SourceRef[] = [];
     let groundingText = "";
+
+    // ── Vault grounding: pull extracted text from this mission's vault docs ──
+    let vaultText = "";
+    try {
+      const { data: vaultRows } = await supabase
+        .from("document_extractions")
+        .select("document_id,extracted_text,summary,mission_library!inner(name,category,mission_id)")
+        .eq("mission_id", data.missionId)
+        .eq("status", "ready")
+        .limit(20);
+      const rows = (vaultRows ?? []) as Array<{
+        document_id: string;
+        extracted_text: string | null;
+        summary: string | null;
+        mission_library: { name: string; category: string | null; mission_id: string } | null;
+      }>;
+      // Per-doc budget so one giant RFP doesn't crowd everything else
+      const PER_DOC = 6000;
+      const parts: string[] = [];
+      for (const r of rows) {
+        const name = r.mission_library?.name ?? "Vault document";
+        const cat = r.mission_library?.category ?? "";
+        const body = (r.extracted_text ?? r.summary ?? "").slice(0, PER_DOC);
+        if (!body.trim()) continue;
+        parts.push(`### ${name}${cat ? ` (${cat})` : ""}\n${body}`);
+        grounded.push({ type: "vault_document", name, document_id: r.document_id });
+      }
+      vaultText = parts.join("\n\n---\n\n");
+    } catch { /* non-fatal */ }
 
     if (firecrawlKey) {
       try {
@@ -296,8 +327,22 @@ export const irisGenerateBriefingSection = createServerFn({ method: "POST" })
     }
 
     if (apiKey) {
-      const sys = `You are IRIS, an intelligence analyst for Medicaid procurement consultants. Generate concise, specific, defensible external intelligence for one briefing book section. Use markdown bullets. Do not hedge. Do not preface with "Here is" — output the content directly.${groundingText ? " When you use a fact from the provided SOURCES, cite it inline like [1], [2]." : ""}`;
-      const user = `Mission: ${m.name}\nClient: ${m.client}\nState: ${m.state ?? "Unknown"}\nSubmission: ${m.submission_date ?? "TBD"}\n${m.description ? `Context: ${m.description}\n` : ""}\nSection: ${cfg.title}\n\nTask: ${cfg.prompt}${groundingText ? `\n\nSOURCES:\n${groundingText}` : ""}`;
+      const sysExtras: string[] = [];
+      if (vaultText) sysExtras.push("PRIORITIZE facts and language from VAULT documents (the client's own RFP, style guide, research, crosswalks) over generic web context. Quote specific requirements when relevant.");
+      if (groundingText) sysExtras.push("When you use a fact from the provided WEB SOURCES, cite it inline like [1], [2].");
+      const sys = `You are IRIS, an intelligence analyst for Medicaid procurement consultants. Generate concise, specific, defensible external intelligence for one briefing book section. Use markdown bullets. Do not hedge. Do not preface with "Here is" — output the content directly.${sysExtras.length ? " " + sysExtras.join(" ") : ""}`;
+      const userParts: string[] = [
+        `Mission: ${m.name}`,
+        `Client: ${m.client}`,
+        `State: ${m.state ?? "Unknown"}`,
+        `Submission: ${m.submission_date ?? "TBD"}`,
+      ];
+      if (m.description) userParts.push(`Context: ${m.description}`);
+      userParts.push(`\nSection: ${cfg.title}\n\nTask: ${cfg.prompt}`);
+      if (vaultText) userParts.push(`\n\nVAULT DOCUMENTS (authoritative — derived from the client's own materials):\n${vaultText}`);
+      if (groundingText) userParts.push(`\n\nWEB SOURCES:\n${groundingText}`);
+      const user = userParts.join("\n");
+
       try {
         const res = await withAICircuit(async () => {
           const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
