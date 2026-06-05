@@ -113,12 +113,13 @@ function MissionSetupRecord() {
               <CompletionMeter completion={completion} isAdmin={isAdmin} />
               <button
                 onClick={handleLaunch}
-                disabled={launching}
+                disabled={confirm}
                 className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#C49A22] px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50 transition"
               >
                 <Rocket className="h-4 w-4" />
-                {launching ? "Launching…" : "Launch Mission"}
+                Launch Mission
               </button>
+              {preLaunchError && <p className="mt-2 text-[11px] text-destructive">{preLaunchError}</p>}
             </div>
           </div>
         </aside>
