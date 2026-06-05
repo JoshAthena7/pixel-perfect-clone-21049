@@ -365,10 +365,8 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
   }
 
   async function handleVoiceClick() {
-    await primePlayback();
     if (muted) setMuted(false);
-    spokenForModule.current = currentModule;
-    await playIrisLine(greetedScript, { force: true });
+    await playModuleLine(currentModule, greetedScript, { force: true });
   }
 
   const isFinal = currentModule >= 7;
