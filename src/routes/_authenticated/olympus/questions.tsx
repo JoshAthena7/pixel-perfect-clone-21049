@@ -5,8 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Plus, Trash2, Search, FileText, X, CheckSquare, Square, Sparkles, Download,
-  Pencil, GripVertical, FolderTree, List, CornerDownRight,
+  Pencil, GripVertical, FolderTree, List, CornerDownRight, Upload,
 } from "lucide-react";
+import { UploadMatrixModal } from "@/components/questions/UploadMatrixModal";
 import { useSelectedOlympusMission } from "../olympus";
 import { logOlympusAction } from "@/lib/audit";
 import { PensDownCountdown } from "@/lib/countdowns";
