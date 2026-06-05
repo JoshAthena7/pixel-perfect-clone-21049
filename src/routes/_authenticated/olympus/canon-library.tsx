@@ -2,10 +2,10 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { BookOpen, ExternalLink, Check, X, Sparkles } from "lucide-react";
+import { BookOpen, ExternalLink, Check, X, Sparkles, ShieldCheck } from "lucide-react";
 import { listAtlasSources } from "@/lib/atlas-sources.functions";
 import { setSourceStatus } from "@/lib/atlas-onboarding.functions";
-import { seedStarterCanon } from "@/lib/canon-seed.functions";
+import { seedStarterCanon, verifyCanon } from "@/lib/canon-seed.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/olympus/canon-library")({
@@ -29,9 +29,12 @@ function CanonLibraryPage() {
   const qc = useQueryClient();
   const [category, setCategory] = useState<string | null>(null);
   const [seeding, setSeeding] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyResult, setVerifyResult] = useState<any>(null);
   const list = useServerFn(listAtlasSources);
   const setFn = useServerFn(setSourceStatus);
   const seedFn = useServerFn(seedStarterCanon);
+  const verifyFn = useServerFn(verifyCanon);
 
   const { data } = useQuery({
     queryKey: ["canon-lib"],
@@ -78,6 +81,26 @@ function CanonLibraryPage() {
     }
   }
 
+  async function handleVerify() {
+    setVerifying(true);
+    setVerifyResult(null);
+    try {
+      const r = await verifyFn({});
+      setVerifyResult(r);
+      if (r.activeCount === 0) {
+        toast.error("No active Canon entries found. Click Seed Starter Canon first.");
+      } else if (!r.irisIncludesCanon) {
+        toast.error("Canon entries exist but IRIS prompt is missing them.");
+      } else {
+        toast.success(`Verified — ${r.irisCanonLineCount} Canon entries injected into IRIS prompt.`);
+      }
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setVerifying(false);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-6xl px-8 py-8">
       <header className="mb-6 flex items-start justify-between gap-4">
@@ -90,16 +113,49 @@ function CanonLibraryPage() {
             The foundation every mission is built on. Federal regulations, CMS authorities, and Athena institutional knowledge.
           </p>
         </div>
-        <button
-          onClick={handleSeed}
-          disabled={seeding}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium disabled:opacity-50"
-          style={{ background: "#C49A22", color: "#0b0b0b" }}
-          title="Insert a starter pack of Athena Canon entries (voice, methodology, federal authorities). Idempotent."
-        >
-          <Sparkles size={12} /> {seeding ? "Seeding…" : "Seed Starter Canon"}
-        </button>
+        <div className="flex shrink-0 gap-2">
+          <button
+            onClick={handleVerify}
+            disabled={verifying}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-xs font-medium hover:bg-surface-hover disabled:opacity-50"
+            title="Confirm Canon entries exist AND are being injected into IRIS prompts."
+          >
+            <ShieldCheck size={12} /> {verifying ? "Checking…" : "Verify Canon"}
+          </button>
+          <button
+            onClick={handleSeed}
+            disabled={seeding}
+            className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium disabled:opacity-50"
+            style={{ background: "#C49A22", color: "#0b0b0b" }}
+            title="Insert a starter pack of Athena Canon entries (voice, methodology, federal authorities). Idempotent."
+          >
+            <Sparkles size={12} /> {seeding ? "Seeding…" : "Seed Starter Canon"}
+          </button>
+        </div>
       </header>
+
+      {verifyResult && (
+        <div
+          className="mb-5 rounded-md border px-4 py-3 text-xs"
+          style={{
+            borderColor: verifyResult.irisIncludesCanon ? "rgba(34,197,94,0.4)" : "rgba(239,68,68,0.4)",
+            background: verifyResult.irisIncludesCanon ? "rgba(34,197,94,0.06)" : "rgba(239,68,68,0.06)",
+            color: verifyResult.irisIncludesCanon ? "#86efac" : "#fca5a5",
+          }}
+        >
+          <div className="font-medium">
+            {verifyResult.irisIncludesCanon ? "✓ Canon is live in IRIS prompts" : "✗ Canon not reaching IRIS"}
+          </div>
+          <div className="mt-1 text-muted-foreground">
+            {verifyResult.activeCount} active entries · {verifyResult.irisCanonLineCount} injected into next prompt · {verifyResult.promptCharsForCanon.toLocaleString()} chars
+          </div>
+          {verifyResult.sampleTopics?.length > 0 && (
+            <div className="mt-1 text-muted-foreground">
+              Sample topics: {verifyResult.sampleTopics.join(" · ")} {verifyResult.allSampleTopicsInPrompt ? "✓ all present" : "⚠ some missing from prompt"}
+            </div>
+          )}
+        </div>
+      )}
 
       {pending.length > 0 && (
         <div
