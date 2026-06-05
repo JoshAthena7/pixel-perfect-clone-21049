@@ -94,6 +94,15 @@ function MissionsIndex() {
         </div>
         <div className="flex items-center gap-2">
           <button
+            onClick={handleRefreshIris}
+            disabled={refreshing}
+            title="Clear IRIS brief caches and reset the AI circuit breaker"
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-sm hover:bg-surface-hover disabled:opacity-50"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+            Refresh IRIS
+          </button>
+          <button
             onClick={() => toast.message("Import from Template — coming soon")}
             className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-sm hover:bg-surface-hover"
           >
