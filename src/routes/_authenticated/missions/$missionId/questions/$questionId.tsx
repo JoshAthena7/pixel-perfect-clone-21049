@@ -349,6 +349,7 @@ function CockpitPage() {
   const [scoreMeOpen, setScoreMeOpen] = useState(false);
   const [overflowOpen, setOverflowOpen] = useState(false);
   const [phoneOpen, setPhoneOpen] = useState(false);
+  const [pulseOpen, setPulseOpen] = useState(false);
   useEffect(() => {
     const onOpen = () => setPhoneOpen(true);
     window.addEventListener("atlas:open-phone-a-friend", onOpen);
