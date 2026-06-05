@@ -864,16 +864,29 @@ function CockpitPage() {
                     >
                       <Heart className="h-4 w-4" /> Daily Pulse
                     </button>
+
+                    {/* Thread */}
+                    <button
+                      onClick={() => setThreadOpen(true)}
+                      className="inline-flex items-center justify-center gap-2 font-semibold transition"
+                      style={{
+                        height: 44, padding: "0 16px",
+                        background: "rgba(20,184,166,0.12)",
+                        border: "1.5px solid rgba(20,184,166,0.35)",
+                        borderRadius: 9, color: "#14b8a6",
+                        fontSize: 13, fontWeight: 600,
+                      }}
+                    >
+                      <MessageSquare className="h-4 w-4" /> Thread
+                    </button>
+
+                    {/* SOS — inline */}
+                    <SOSButton missionId={missionId} questionId={questionId} />
                   </>
                 )}
               </>
             )}
           </div>
-
-          {/* SOS — isolated right */}
-          {!isSME && !isReadOnlyView && (
-            <SOSButton missionId={missionId} questionId={questionId} />
-          )}
 
           {/* First-visit tooltip pointing at the action bar */}
           {tipStage === 1 && !isReadOnlyView && (
