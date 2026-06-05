@@ -340,9 +340,9 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setMuted((m) => !m)}
+            onClick={handleVoiceClick}
             aria-label={muted ? "Unmute IRIS" : "Mute IRIS"}
-            title={muted ? "Unmute IRIS" : "Mute IRIS"}
+            title={muted ? "Turn on and play IRIS" : "Replay IRIS voice"}
             className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 transition-colors"
             style={{
               color: "var(--muted-foreground)",
@@ -352,7 +352,7 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
             }}
           >
             {muted ? <VolumeX size={13} /> : <Volume2 size={13} />}
-            <span className="hidden sm:inline">{muted ? "Voice off" : "Voice on"}</span>
+            <span className="hidden sm:inline">{muted ? "Voice off" : "Play voice"}</span>
           </button>
           <button
             type="button"
