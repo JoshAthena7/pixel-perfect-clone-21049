@@ -198,14 +198,7 @@ function TopBar({
         </button>
         <IrisStatusIndicator />
         <NotificationBell />
-        <button
-          onClick={() => window.dispatchEvent(new CustomEvent("atlas:open-search"))}
-          title="Search Atlas (⌘K)"
-          aria-label="Search Atlas"
-          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
-        >
-          <Search size={16} strokeWidth={1.5} />
-        </button>
+        <BriefRoomNavButton />
         <button
           onClick={() => window.dispatchEvent(new CustomEvent("atlas:open-support"))}
           title="Get Help"
@@ -214,8 +207,8 @@ function TopBar({
         >
           <HelpCircle size={16} strokeWidth={1.5} />
         </button>
-        
-        
+
+
         <SignOutButton />
         <UserAvatarMenu />
         {isAdmin && (
