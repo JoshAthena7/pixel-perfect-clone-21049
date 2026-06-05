@@ -196,6 +196,10 @@ function VaultPage() {
         </div>
       </header>
 
+      <IntelligenceHighlights />
+
+
+
       {/* Beta: sensitive-data warning. Vault content is visible to every signed-in Atlas user on this mission. */}
       <div className="rounded-[10px] border border-rose-500/30 bg-rose-500/[0.06] px-4 py-3 text-[12px] leading-relaxed text-rose-100">
         <div className="font-semibold text-rose-200 mb-0.5">Do not upload PHI, PII, or client-confidential material.</div>
