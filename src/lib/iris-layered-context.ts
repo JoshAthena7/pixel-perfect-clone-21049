@@ -1,6 +1,18 @@
-// Helper to assemble + format the 5-layer Athena intelligence context for IRIS prompts.
+// Helper to assemble + format the full IRIS context for every prompt.
+// Combines:
+//   • Layered curated intel  (Canon, State, Program, Collective Memory)
+//   • Unified semantic retrieval across every embedded source
+//     (Vault, Library, Atlas, Market Intel, Perplexity Research, etc.)
+//   • Structured mission state (decisions, assumptions, risks, signals,
+//     unresolved team input).
+// Every IRIS entry point calls this — no per-function SELECT sprawl.
 
-export async function loadLayeredContext(supabase: any, opts: { missionId?: string | null }) {
+import { retrieveIrisContext } from "./iris-retriever.server";
+
+export async function loadLayeredContext(
+  supabase: any,
+  opts: { missionId?: string | null; questionId?: string | null; topic?: string | null },
+) {
   let state: string | null = null;
   let program: string | null = null;
   let missionName: string | null = null;
@@ -15,7 +27,7 @@ export async function loadLayeredContext(supabase: any, opts: { missionId?: stri
     missionName = m?.name ?? null;
   }
 
-  const [canon, stateIntel, programIntel, collective] = await Promise.all([
+  const [canon, stateIntel, programIntel, collective, retrieved] = await Promise.all([
     supabase.from("intelligence_canon")
       .select("topic,category,citation,content,priority")
       .eq("is_active", true)
@@ -36,7 +48,6 @@ export async function loadLayeredContext(supabase: any, opts: { missionId?: stri
           .limit(4)
       : Promise.resolve({ data: [] }),
     // C4: Read from sanitized view — strips source_mission_id, source_mission_name, evidence.
-    // View already filters is_active=true AND reviewed_at IS NOT NULL.
     supabase.from("collective_memory_sanitized")
       .select("kind,summary,detail,program_name,state_code,outcome")
       .or([
@@ -46,6 +57,12 @@ export async function loadLayeredContext(supabase: any, opts: { missionId?: stri
       ].filter(Boolean).join(","))
       .order("promoted_at", { ascending: false })
       .limit(15),
+    retrieveIrisContext(supabase, {
+      missionId: opts.missionId ?? null,
+      questionId: opts.questionId ?? null,
+      topic: opts.topic ?? null,
+      k: 10,
+    }),
   ]);
 
   return formatLayeredBlock({
@@ -54,6 +71,7 @@ export async function loadLayeredContext(supabase: any, opts: { missionId?: stri
     stateIntel: stateIntel.data ?? [],
     programIntel: programIntel.data ?? [],
     collective: collective.data ?? [],
+    retrieved: retrieved.block ?? "",
   });
 }
 
@@ -90,7 +108,10 @@ function formatLayeredBlock(d: any): string {
       out.push(`• [${m.kind}${tag ? ` · ${tag}` : ""}] ${m.summary}${m.detail ? ` — ${m.detail}` : ""}`);
     }
   }
-  out.push("\nPrioritize Layer 1 for compliance, Layer 2 for state-specific facts, Layer 3 for program fit, Layer 5 for what has won before. Cite the layer when relevant.");
+  if (d.retrieved) {
+    out.push("\n" + d.retrieved);
+  }
+  out.push("\nPriority order: Canon → Vault/Library (mission RFP source-of-truth) → State/Program → Perplexity Research → Collective Memory. Cite the source when relevant. Never contradict a logged Final decision without flagging the conflict.");
   out.push("=== END LAYERED INTELLIGENCE ===");
   return out.join("\n");
 }
