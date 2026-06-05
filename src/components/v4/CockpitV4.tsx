@@ -12,6 +12,7 @@ import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
 import { PhoneAFriendOverlay } from "@/components/v2/PhoneAFriendOverlay";
 import { LegacyRecord } from "@/components/v4/LegacyRecord";
 import { DailyPulse } from "@/components/v4/DailyPulse";
+import { ThreadPanel } from "@/components/threads/ThreadPanel";
 import {
   Sparkles,
   Target,
