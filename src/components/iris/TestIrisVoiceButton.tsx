@@ -5,6 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 const SAMPLE_LINE =
   "IRIS voice check confirmed. All systems are online and ready for briefing.";
 
+const SILENT_WAV =
+  "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQQAAAAAAA==";
+
 type Status = "idle" | "loading" | "ok" | "error";
 
 export function TestIrisVoiceButton() {
@@ -14,6 +17,9 @@ export function TestIrisVoiceButton() {
   const handleClick = async () => {
     setStatus("loading");
     setError(null);
+    const audio = new Audio(SILENT_WAV);
+    audio.preload = "auto";
+    const unlockPlayback = audio.play().catch(() => undefined);
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
@@ -33,8 +39,10 @@ export function TestIrisVoiceButton() {
         throw new Error(detail?.error ?? `TTS failed (${response.status})`);
       }
 
-      const audioUrl = URL.createObjectURL(await response.blob());
-      const audio = new Audio(audioUrl);
+      const blob = await response.blob();
+      const audioUrl = URL.createObjectURL(blob);
+      await unlockPlayback;
+      audio.src = audioUrl;
       audio.onended = () => {
         URL.revokeObjectURL(audioUrl);
         setStatus("idle");
