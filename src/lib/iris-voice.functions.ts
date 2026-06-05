@@ -32,7 +32,7 @@ export const synthesizeIrisLine = createServerFn({ method: "POST" })
               similarity_boost: 0.8,
               style: 0.25,
               use_speaker_boost: true,
-              speed: 1.0,
+              speed: 1.15,
             },
           }),
         }
