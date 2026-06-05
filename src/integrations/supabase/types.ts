@@ -4011,6 +4011,7 @@ export type Database = {
           mission_id: string
           next_step: string | null
           page_limit: number | null
+          parent_question_id: string | null
           pens_down_date: string | null
           question_number: string
           question_text: string
@@ -4044,6 +4045,7 @@ export type Database = {
           mission_id: string
           next_step?: string | null
           page_limit?: number | null
+          parent_question_id?: string | null
           pens_down_date?: string | null
           question_number: string
           question_text: string
@@ -4077,6 +4079,7 @@ export type Database = {
           mission_id?: string
           next_step?: string | null
           page_limit?: number | null
+          parent_question_id?: string | null
           pens_down_date?: string | null
           question_number?: string
           question_text?: string
@@ -4126,6 +4129,13 @@ export type Database = {
             columns: ["mission_id"]
             isOneToOne: false
             referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_records_parent_question_id_fkey"
+            columns: ["parent_question_id"]
+            isOneToOne: false
+            referencedRelation: "question_records"
             referencedColumns: ["id"]
           },
         ]
