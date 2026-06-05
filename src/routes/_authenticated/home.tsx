@@ -333,6 +333,7 @@ function AthenaHQ() {
             
           </div>
           <div className="flex items-center gap-4">
+            <TestIrisVoiceButton />
             <a
               href="/home?iris-demo=1"
               className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-[13px] font-medium text-background hover:opacity-90"
