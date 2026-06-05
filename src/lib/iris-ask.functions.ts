@@ -138,7 +138,7 @@ export const irisAskMission = createServerFn({ method: "POST" })
         .eq("id", data.missionId)
         .maybeSingle(),
       fetchIrisMemoryContext(supabase, { missionId: data.missionId }),
-      loadLayeredContext(supabase, { missionId: data.missionId }),
+      loadLayeredContext(supabase, { missionId: data.missionId, topic: data.prompt }),
     ]);
     if (!m) throw new Error("Mission not found");
 
