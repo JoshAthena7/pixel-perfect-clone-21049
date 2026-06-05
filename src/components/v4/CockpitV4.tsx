@@ -385,6 +385,7 @@ function AssistsRow({
   openScore,
   openPhone,
   openPulse,
+  openThread,
 }: {
   missionId: string;
   suggestedId: string | null;
@@ -392,19 +393,22 @@ function AssistsRow({
   openScore: () => void;
   openPhone: () => void;
   openPulse: () => void;
+  openThread: () => void;
 }) {
   return (
     <section className="rounded-[12px] border border-border bg-surface overflow-hidden">
       <AssistsBar
         onUpdateReality={() => openUpdateReality(suggestedId)}
         onScoreMe={openScore}
-        onPhone={openPhone}
+        onPhone={() => {
+          if (!suggestedId) { toast("Pick a question first to use Phone a Friend"); return; }
+          openPhone();
+        }}
         onPulse={openPulse}
-        onThread={() =>
-          suggestedId
-            ? window.dispatchEvent(new CustomEvent("atlas:open-thread", { detail: { questionId: suggestedId } }))
-            : toast("Open a question to use Thread")
-        }
+        onThread={() => {
+          if (!suggestedId) { toast("Open a question to use Thread"); return; }
+          openThread();
+        }}
         sosSlot={<SOSButton missionId={missionId} questionId={suggestedId ?? undefined} />}
       />
     </section>
