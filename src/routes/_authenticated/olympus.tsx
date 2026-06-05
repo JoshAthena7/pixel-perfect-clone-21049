@@ -8,12 +8,10 @@ import {
   ArrowLeft, ChevronDown, Zap,
   LayoutGrid, Users, FileText, ClipboardCheck, Trophy,
   FolderOpen, Settings as SettingsIcon, UserCog, History, Brain,
-  Search, Inbox, Library, BookOpen, Bell, LifeBuoy, UserPlus, Activity,
+  Bell, LifeBuoy, UserPlus, Activity,
   ShieldAlert, UserMinus, ExternalLink, AlertTriangle, Megaphone,
 } from "lucide-react";
 
-import { useServerFn } from "@tanstack/react-start";
-import { listReviewQueue } from "@/lib/atlas-onboarding.functions";
 import { useIsAdmin } from "@/hooks/useAccess";
 import { NotAvailable } from "@/components/access/NotAvailable";
 import { TestIrisVoiceButton } from "@/components/iris/TestIrisVoiceButton";
@@ -180,13 +178,7 @@ function OlympusSidebar({ isAdmin }: { isAdmin: boolean }) {
         <SidebarItem to="/olympus/settings" path={path} icon={<SettingsIcon size={15} strokeWidth={1.5} />}>Settings</SidebarItem>
 
         <IntelligenceSectionHeader />
-        <IrisSidebarItem to="/olympus/source-finder" path={path} icon={<Search size={15} strokeWidth={1.5} />} pulse>Source Finder</IrisSidebarItem>
-        <ReviewQueueItem path={path} />
-        <IrisSidebarItem to="/olympus/source-library" path={path} icon={<Library size={15} strokeWidth={1.5} />}>Source Library</IrisSidebarItem>
-        <IrisSidebarItem to="/olympus/canon-library" path={path} icon={<BookOpen size={15} strokeWidth={1.5} />}>Canon Library</IrisSidebarItem>
-        <IrisSidebarItem to="/olympus/iris-memory" path={path} icon={<Brain size={15} strokeWidth={1.5} />}>IRIS Memory</IrisSidebarItem>
-        <IrisSidebarItem to="/olympus/discovery-history" path={path} icon={<History size={15} strokeWidth={1.5} />}>Discovery History</IrisSidebarItem>
-        <IrisSidebarItem to="/olympus/intel-drift" path={path} icon={<AlertTriangle size={15} strokeWidth={1.5} />}>Intel Drift</IrisSidebarItem>
+        <IrisSidebarItem to="/olympus/intel-engine" path={path} icon={<Brain size={15} strokeWidth={1.5} />} pulse>Intel Engine</IrisSidebarItem>
 
         {isAdmin && (
           <>
@@ -300,32 +292,6 @@ function IrisSidebarItem({ to, path, icon, children, pulse, badge }: {
   );
 }
 
-function ReviewQueueItem({ path }: { path: string }) {
-  const listFn = useServerFn(listReviewQueue);
-  const { data } = useQuery({
-    queryKey: ["olympus-review-queue-count"],
-    queryFn: () => listFn({ data: {} as any }),
-    refetchInterval: 30_000,
-  });
-  const count = data?.sources?.length ?? 0;
-  return (
-    <IrisSidebarItem
-      to="/olympus/review-queue"
-      path={path}
-      icon={<Inbox size={15} strokeWidth={1.5} />}
-      badge={count > 0 ? (
-        <span
-          className="rounded px-1.5 py-0.5 text-[10px] font-semibold"
-          style={{ background: "rgba(245,158,11,0.18)", color: "#f59e0b" }}
-        >
-          {count}
-        </span>
-      ) : null}
-    >
-      Review Queue
-    </IrisSidebarItem>
-  );
-}
 
 /** Hook for child routes to read the currently selected mission. */
 export function useSelectedOlympusMission() {
