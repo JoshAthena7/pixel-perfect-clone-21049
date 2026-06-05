@@ -223,17 +223,6 @@ function MissionOverviewPage() {
     },
   });
 
-  const { data: winThemes = [] } = useQuery<WinTheme[]>({
-    queryKey: ["overview-win-themes", missionId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("win_themes")
-        .select("id,title,description,key_message,question_ids,status")
-        .eq("mission_id", missionId)
-        .neq("status", "archived");
-      return (data ?? []) as WinTheme[];
-    },
-  });
 
   const since24h = useMemo(() => new Date(Date.now() - 86400000).toISOString(), []);
 
@@ -665,10 +654,18 @@ function MissionOverviewPage() {
           />
         </section>
 
-        <section className="mt-8">
-          <h2 className="mr-section-label">Win Themes</h2>
-          <WinThemesPills themes={winThemes} questions={questions} isLeader={isLeader} />
-        </section>
+        {isLeader && (
+          <section className="mt-8">
+            <h2 className="mr-section-label">Administrative</h2>
+            <Link
+              to="/olympus/missions/$missionId/setup"
+              params={{ missionId }}
+              className="inline-flex items-center gap-2 text-xs text-primary hover:underline"
+            >
+              Open Setup in Olympus →
+            </Link>
+          </section>
+        )}
 
         <section className="mt-8">
           <h2 className="mr-section-label">Leadership Notes</h2>
@@ -1985,67 +1982,6 @@ function DecisionsRisksTabs({
   );
 }
 
-// ── Win Themes Pills (horizontal row) ───────────────────
-function WinThemesPills({ themes, questions, isLeader }: { themes: WinTheme[]; questions: Question[]; isLeader: boolean }) {
-  if (themes.length === 0) {
-    return (
-      <div className="rounded-[10px] border border-dashed border-border p-6 text-sm text-muted-foreground text-center">
-        No win themes defined yet.{" "}
-        {isLeader && (
-          <Link to="/olympus" className="text-primary hover:underline">Manage in Olympus →</Link>
-        )}
-      </div>
-    );
-  }
-  const qById = new Map(questions.map((q) => [q.id, q]));
-  const total = questions.length || 1;
-  const uncovered = themes.filter((t) => {
-    const linked = (t.question_ids ?? []).filter((id) => qById.has(id));
-    return (linked.length / total) * 100 < 40;
-  });
-
-  return (
-    <div>
-      <div className="flex gap-3 overflow-x-auto pb-2">
-        {themes.map((t) => {
-          const linked = (t.question_ids ?? []).filter((id) => qById.has(id));
-          const coverage = (linked.length / total) * 100;
-          const tone = coverage > 80 ? "emerald" : coverage >= 40 ? "amber" : "red";
-          const toneCls = tone === "emerald" ? "bg-emerald-400" : tone === "amber" ? "bg-amber-400" : "bg-destructive";
-          return (
-            <div
-              key={t.id}
-              className="shrink-0 w-56 rounded-[12px] border border-border bg-card p-4"
-            >
-              <div className="text-sm font-semibold truncate">{t.title}</div>
-              <div className="mt-1 text-xs text-muted-foreground">{linked.length} question{linked.length === 1 ? "" : "s"}</div>
-              <div className="mt-3 h-1.5 rounded-full bg-muted overflow-hidden">
-                <div className={`h-full ${toneCls}`} style={{ width: `${Math.min(100, coverage)}%` }} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      {uncovered.length > 0 && (
-        <div className="mt-3 space-y-1">
-          {uncovered.slice(0, 3).map((t) => {
-            const linked = (t.question_ids ?? []).filter((id) => qById.has(id));
-            return (
-              <p key={t.id} className="text-xs" style={{ color: "var(--iris, #22d3ee)" }}>
-                ● IRIS — <strong>{t.title}</strong> is reflected in only {linked.length} question{linked.length === 1 ? "" : "s"}.
-              </p>
-            );
-          })}
-        </div>
-      )}
-      {isLeader && (
-        <div className="mt-3">
-          <Link to="/olympus" className="text-xs text-primary hover:underline">Manage Win Themes →</Link>
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ── Team Tabs (Mission Team / SMEs) ─────────────────────
 function TeamTabs({
