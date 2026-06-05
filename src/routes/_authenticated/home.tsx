@@ -175,7 +175,7 @@ function AthenaHQ() {
   // ARCH-1: Writer/SME assignments across all missions
   const { data: myAssignments = [], isLoading: assignmentsLoading } = useQuery({
     queryKey: ["hq-my-assignments", myRole],
-    enabled: myRole !== null && !isLeader,
+    enabled: myRole !== null,
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
@@ -390,6 +390,52 @@ function AthenaHQ() {
 
 
 
+
+        {isLeader && myAssignments.length > 0 && (
+          <section>
+            <div className="mb-5">
+              <h2 className="h2-label">Your assignments</h2>
+              <p className="mt-1.5 text-2xl font-semibold tracking-tight">
+                {myAssignments.length} {myAssignments.length === 1 ? "question" : "questions"} assigned to you
+              </p>
+            </div>
+            <ul className="divide-y divide-border rounded-[12px] border border-border bg-surface">
+              {myAssignments.map((q) => {
+                const days = q.pens_down_date
+                  ? Math.ceil((new Date(q.pens_down_date).getTime() - Date.now()) / 86400000)
+                  : null;
+                const tone = days === null ? "text-muted-foreground"
+                  : days < 0 ? "text-destructive"
+                  : days <= 3 ? "text-destructive"
+                  : days <= 7 ? "text-amber-400"
+                  : "text-foreground";
+                const dotCls = q.health === "green" ? "dot dot-green"
+                  : q.health === "red" ? "dot dot-red"
+                  : "dot dot-yellow";
+                return (
+                  <li key={q.id} className="px-5 py-3">
+                    <Link
+                      to="/missions/$missionId/questions/$questionId"
+                      params={{ missionId: q.mission_id, questionId: q.id }}
+                      className="flex items-center gap-3 hover:text-primary"
+                    >
+                      <span className={dotCls} />
+                      <MissionPill name={missionMap.get(q.mission_id) ?? "—"} />
+                      <span className="mono-q text-[11px] font-semibold shrink-0">{q.question_number}</span>
+                      <span className="flex-1 min-w-0 truncate text-sm text-foreground">{q.title}</span>
+                      {q.current_score !== null && (
+                        <span className="shrink-0 text-[11px] mono-score text-muted-foreground">{Number(q.current_score).toFixed(1)}</span>
+                      )}
+                      <span className={`shrink-0 text-xs font-semibold mono-days ${tone}`}>
+                        {days === null ? "—" : days < 0 ? `${Math.abs(days)}d overdue` : `${days}d`}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
 
         {/* ROLE-DIFFERENTIATED: Active Missions (leaders) or Your Assignments (writers/SMEs) */}
         {isLeader ? (
