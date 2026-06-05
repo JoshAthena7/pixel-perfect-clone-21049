@@ -95,7 +95,7 @@ export const inviteMissionMember = createServerFn({ method: "POST" })
 
     // Ensure a profile row exists for the invitee so future lookups are fast.
     await supabaseAdmin.from("profiles").upsert(
-      { id: inviteeId, email: data.email, display_name: data.displayName ?? null },
+      { id: resolvedId, email: data.email, display_name: data.displayName ?? null },
       { onConflict: "id" },
     );
 
@@ -105,7 +105,7 @@ export const inviteMissionMember = createServerFn({ method: "POST" })
       .upsert(
         {
           mission_id: data.missionId,
-          user_id: inviteeId,
+          user_id: resolvedId,
           role: data.role,
           display_name: data.displayName ?? null,
         },
@@ -113,7 +113,7 @@ export const inviteMissionMember = createServerFn({ method: "POST" })
       );
     if (memberErr) throw new Error(memberErr.message);
 
-    return { ok: true, userId: inviteeId };
+    return { ok: true, userId: resolvedId };
   });
 
 export const addCollectiveMemberToMission = createServerFn({ method: "POST" })
