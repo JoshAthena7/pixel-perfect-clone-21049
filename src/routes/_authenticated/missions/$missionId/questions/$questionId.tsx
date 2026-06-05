@@ -857,17 +857,15 @@ function CockpitPage() {
               <>
                 <button
                   onClick={() => { setPhoneOpen(true); markOverflowUsed(); }}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-transparent px-3 py-2 text-xs font-semibold text-muted-foreground transition hover:border-white/20 hover:text-foreground"
+                  className="inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-xs font-bold uppercase tracking-wide text-white shadow-lg shadow-cyan-500/30 transition hover:-translate-y-0.5 hover:shadow-cyan-400/50"
+                  style={{ background: "linear-gradient(135deg, #06b6d4, #3b82f6)" }}
                 >
                   <Phone className="h-3.5 w-3.5" /> Phone a Friend
                 </button>
                 <button
                   onClick={() => { setGetHelpOpen(true); markOverflowUsed(); }}
-                  className={`inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold transition ${
-                    primaryAction === "get_help"
-                      ? "border border-amber-500/50 bg-amber-500/15 text-amber-200 hover:bg-amber-500/25"
-                      : "border border-white/10 bg-transparent text-muted-foreground hover:border-white/20 hover:text-foreground"
-                  }`}
+                  className="inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-xs font-bold uppercase tracking-wide text-white shadow-lg shadow-amber-500/40 transition hover:-translate-y-0.5 hover:shadow-amber-400/60"
+                  style={{ background: "linear-gradient(135deg, #f59e0b, #ef4444)" }}
                 >
                   <Lightbulb className="h-3.5 w-3.5" /> Get Help
                 </button>
