@@ -91,7 +91,7 @@ export function IrisOnboardingMount() {
       userId={data.userId}
       firstName={data.firstName}
       sessionId={data.session.id}
-      startAtModule={Math.min(7, Math.max(1, data.session.last_module + 1))}
+      startAtModule={1}
       onComplete={() => setDismissed(true)}
     />
   );
