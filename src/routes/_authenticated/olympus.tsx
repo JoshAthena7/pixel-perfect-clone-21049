@@ -180,13 +180,7 @@ function OlympusSidebar({ isAdmin }: { isAdmin: boolean }) {
         <SidebarItem to="/olympus/settings" path={path} icon={<SettingsIcon size={15} strokeWidth={1.5} />}>Settings</SidebarItem>
 
         <IntelligenceSectionHeader />
-        <IrisSidebarItem to="/olympus/source-finder" path={path} icon={<Search size={15} strokeWidth={1.5} />} pulse>Source Finder</IrisSidebarItem>
-        <ReviewQueueItem path={path} />
-        <IrisSidebarItem to="/olympus/source-library" path={path} icon={<Library size={15} strokeWidth={1.5} />}>Source Library</IrisSidebarItem>
-        <IrisSidebarItem to="/olympus/canon-library" path={path} icon={<BookOpen size={15} strokeWidth={1.5} />}>Canon Library</IrisSidebarItem>
-        <IrisSidebarItem to="/olympus/iris-memory" path={path} icon={<Brain size={15} strokeWidth={1.5} />}>IRIS Memory</IrisSidebarItem>
-        <IrisSidebarItem to="/olympus/discovery-history" path={path} icon={<History size={15} strokeWidth={1.5} />}>Discovery History</IrisSidebarItem>
-        <IrisSidebarItem to="/olympus/intel-drift" path={path} icon={<AlertTriangle size={15} strokeWidth={1.5} />}>Intel Drift</IrisSidebarItem>
+        <IrisSidebarItem to="/olympus/intel-engine" path={path} icon={<Brain size={15} strokeWidth={1.5} />} pulse>Intel Engine</IrisSidebarItem>
 
         {isAdmin && (
           <>
