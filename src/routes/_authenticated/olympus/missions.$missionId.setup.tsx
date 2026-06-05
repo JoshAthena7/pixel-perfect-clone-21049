@@ -554,7 +554,7 @@ function SectionStrategy({ missionId, mission, strategy, refetch }: any) {
             label={k.label}
             hasNotes={k.hasNotes}
             items={strategy.filter((s: any) => s.kind === k.key)}
-            onAdd={(label, notes) => addItem(k.key, label, notes)}
+            onAdd={(label: string, notes: string) => addItem(k.key, label, notes)}
             onDelete={delItem}
           />
         ))}
