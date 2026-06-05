@@ -55,7 +55,7 @@ export const irisAskGlobal = createServerFn({ method: "POST" })
       supabase.from("signals").select("signal_title,signal_summary,severity,status,created_at").eq("status", "open").order("created_at", { ascending: false }).limit(12),
       supabase.from("market_intelligence").select("title,summary,published_at").order("created_at", { ascending: false }).limit(6),
       fetchIrisMemoryContext(supabase, { missionId: null }),
-      loadLayeredContext(supabase, { missionId: null }),
+      loadLayeredContext(supabase, { missionId: null, topic: data.prompt }),
     ]);
 
     const missionLines = (missions ?? []).map((m) => `- ${m.name} (${m.client}${m.state ? `, ${m.state}` : ""}): ${m.health}, due ${m.submission_date ?? "TBD"}`).join("\n");
