@@ -1,58 +1,90 @@
-## Goal
+# Athena Command — Intelligence & Mission Architecture
 
-Replace the scattered mission-setup surfaces with **one** Olympus-only "Mission Setup Record" — a long-scroll page with a sticky progress sidebar — and keep `Mission Home` strictly user-facing. Olympus = factory. Mission Home = cockpit. Studio = work.
+Building on the existing Mission Setup Record. Adding the missing pieces: monitoring watchlist, evaluation criteria map, Launch Mission animated sequence, IRIS three-wave activation, expert routing, state comparables, and win/loss learning loop.
 
-## What I'll build
+## 1. Mission Setup Record — additions to existing page
 
-### 1. New route: `olympus/missions/$missionId/setup.tsx`
-Single page, 9 stacked sections, sticky left sidebar with section list + completion dots (auto-derived: section is "complete" when its required fields are populated / has ≥1 row / has ≥1 upload). Smooth scroll on sidebar click. NASA-mission-planning aesthetic — mono labels, thin rules, dense but calm; no card-soup, no CRM chrome.
+The 9-section long-scroll already exists at `/olympus/missions/$missionId/setup`. Adding:
 
-Sections (each renders inline, no tabs):
-1. **Mission Identity** — name, client, opportunity type, state, prime, submission date, status (Setup/Active/Review/Submitted/Won/Lost) → `missions`
-2. **Team Assignment** — Engagement Lead, PM, Lead Writer, Writers[], SMEs[], Reviewers[], Exec Review[] → `mission_members` (role column)
-3. **Mission Inputs** — 7 upload zones (RFP, Amendments, Q&A, Client Docs, Research, Prior Responses, Supporting). Each row: filename · date · uploader. Writes to `mission_vault_documents` with a `category` tag → auto-visible in Vault.
-4. **Strategic Foundation** — repeating rows: Win Themes, Discriminators, Proof Points, Client Priorities, Competitors (name+notes), Risks; textareas: Sensitivities, Language Guidance, Avoid, Reinforce → `win_themes`, `mission_sensitivities`, plus new `mission_strategy` rows. Feeds Oracle.
-5. **Client Intelligence** — Contacts, Stakeholders, Decision Makers, Relationship Owners, Political Considerations, Meeting Cadence, Notes → new `mission_client_intel`.
-6. **Timeline & Gates** — date pickers: Question Deadline, Draft Deadlines, Pink, Red, Gold, Exec Review, Submission, Orals, Award → new `mission_timeline` (one row per mission, dated columns). Feeds Mission Calendar.
-7. **Question Setup** — import (upload/paste) → reuses existing matrix import; volumes (name+desc); per-question owner/reviewer/due/review path (sequential|parallel) → `question_records` + new `mission_volumes`.
-8. **Governance** — Approval Workflow, Escalation Path, Leadership Gates, Quality Gates, Submission Authority → new `mission_governance` (JSON blob fields).
-9. **Financial Setup** — collapsed by default, gated to platform admins via `useAccess`. SOW, Budget, Hours, Consultants, Tracking → new `mission_financials`. Hidden everywhere outside this section.
+- **Section 2 extension** — expertise-tag picker per team member (Collective tag chips on each row)
+- **Section 3 extension** — new "IRIS Monitoring Watchlist" sub-panel: pre-seeded sources based on state + opportunity type, custom-URL adder, daily/weekly frequency toggle
+- **Section 4B (new)** — Evaluation Criteria Map table: Category · Points · Questions Covered · Competitive Risk
 
-**Footer**: single `[ Launch Mission ]` button (disabled until sections 1, 2, 6, 7 are complete). On click: server fn `launchMission` flips `missions.status` → `Active`, ensures vault/oracle/studio derivations exist, triggers IRIS briefing job, returns mission id. Confirmation modal: "Mission Ready" → [View Mission Home].
+## 2. Launch Mission — animated activation sequence
 
-### 2. Mission Home — keep clean
-- Audit `routes/_authenticated/missions/$missionId/overview.tsx` (Mission Home) and strip any admin/budget/governance/setup references.
-- Mission Home shows ONLY: Health, My Assignments, Upcoming Deadlines, Latest IRIS Briefing, Open Risks, Recent Updates, Team Directory, Key Mission Info.
-- Add an "Open Setup in Olympus" link visible only to admins/leads.
+Replace the current static confirmation with an 8-step animated sequence (4-5s total). Each step shows a spinner → checkmark with the live count from the DB. Then a "Mission Ready" screen with all checkmarks and `[View Mission Home]`.
 
-### 3. Olympus index update
-- Mission row "Edit" → routes to new `olympus/missions/$missionId/setup` instead of the old `settings`.
-- Old `settings` / `vault` / `questions` mission routes stay as redirects into the matching anchor on the new setup page (`#team`, `#inputs`, `#questions`) so nothing 404s.
+```text
+Mission Context Locked          ✓
+Vault Populated (N docs)        ✓
+Oracle Seeded (N intel cards)   ✓
+Evaluation Priority Map Built   ✓
+Studio Generated (N questions)  ✓
+IRIS Briefing → Brief Room      ✓
+Monitoring Active (N sources)   ✓
+Team Notified                   ✓
+```
 
-### 4. Database (one migration)
-New tables (all with grants + RLS scoped to mission members; financials policy gated to platform admins):
-- `mission_strategy` (mission_id, kind enum [discriminator|proof_point|client_priority|competitor|risk], label, notes, sort)
-- `mission_client_intel` (mission_id, contacts jsonb, stakeholders jsonb, decision_makers jsonb, relationship_owners jsonb, political text, cadence text, notes text)
-- `mission_timeline` (mission_id PK, question_deadline, draft_deadlines jsonb, pink, red, gold, exec_review, submission, orals, award — all timestamptz)
-- `mission_volumes` (mission_id, name, description, sort)
-- `mission_governance` (mission_id PK, approval_workflow jsonb, escalation_path jsonb, leadership_gates jsonb, quality_gates jsonb, submission_authority text)
-- `mission_financials` (mission_id PK, sow text, budget numeric, hours numeric, consultants jsonb, tracking jsonb) — RLS admin-only.
-- Extend `mission_vault_documents` with `category text` (RFP/Amendments/etc.) if missing.
-- Extend `question_records` with `volume_id`, `reviewer_id`, `review_path` if missing.
+`launchMission()` becomes orchestrated: each step is a server fn that returns its count, the UI streams them as they resolve.
 
-### 5. Server functions
-- `getMissionSetup({missionId})` — fetches all 9 sections in one call.
-- `saveMissionSection({missionId, section, payload})` — generic upsert per section.
-- `launchMission({missionId})` — validates required sections, flips status, kicks IRIS briefing.
+## 3. IRIS three-wave activation
 
-## Notes
-- Aesthetic: monospace section eyebrows, hairline rules between sections, generous vertical rhythm, no shadows, status pills only where status is meaningful. Sticky sidebar uses small filled/empty circles for complete/incomplete.
-- I will reuse existing components (Vault upload, matrix import, date picker) instead of forking them.
-- Old per-tab routes become redirects so deep links keep working.
+- **Wave 1 (immediate, on launch)** — generate Initial IRIS Briefing from Sections 1+4, post to Brief Room as `briefings` row.
+- **Wave 2 (background)** — `iris.indexMissionInputs` server fn: parses vault docs, extracts RFP requirements, tags questions with vault refs + win themes + competitive risk + IRIS pre-brief card. Drift baseline = Things to Avoid list.
+- **Wave 3 (ongoing)** — cron'd `iris.monitor` route (`/api/public/hooks/iris-monitor`) polling watchlist sources daily/weekly per mission config; routes findings to Brief Room or Oracle inbox.
 
-## Out of scope
-- Reworking the Studio itself.
-- Building the IRIS briefing generator (will stub the trigger and rely on existing `iris-mission-brief.functions`).
-- Rebuilding Atlas/Intel surfaces.
+## 4. Advanced intel features
 
-Reply **go** and I'll ship it.
+- **Evaluation Priority Map** — Studio question rows show points badge + risk pill. New "Mission Priority" sort. Top-5 get Priority badge.
+- **Collective Expert Routing** — in Studio question detail, IRIS panel matches question topic vs member expertise tags; offers `[Route to Expert]` button that opens a thread.
+- **State Comparables** — Oracle gets a "State Comparables" tab. New `state_comparables` table seeded for PA/MA/CT/TX/IL/OH/CO/WA × common CSA/ASO topics. IRIS can pull cards into `@mention` responses.
+- **Win/Loss Learning Loop** — on mission status → Won/Lost, Olympus shows a "Mission Debrief" prompt. Captures scored well / missed / feedback / lessons. IRIS generates 3-5 Canon suggestions; admin approves → enters `intelligence_canon` as universal items.
+
+## 5. Mission Home — generated view
+
+Mission Home already cleaned (Win Themes removed, Olympus link is admin-only). Adding: priority flags on My Assignments, Latest IRIS Briefing card sourcing from `briefings` table.
+
+## Technical
+
+**New tables (migration):**
+- `mission_monitoring_sources` — mission_id, source_type, url, label, frequency, enabled, last_checked_at
+- `mission_evaluation_criteria` — mission_id, category, points, sections_covered (jsonb), competitive_risk
+- `mission_expertise_tags` — mission_member rowid, tag (or store tags[] on `mission_members`)
+- `state_comparables` — state, program_name, topic, approach, outcome, source_url
+- `mission_debriefs` — mission_id, scored_well, missed, evaluator_feedback, lessons_learned
+- Extend `question_records`: `point_value int`, `competitive_risk text`, `iris_pre_brief jsonb`
+- Extend `mission_vault_documents`: `extracted_requirements jsonb`, `extracted_terms text[]`
+
+**New server functions (`src/lib/`):**
+- `mission-setup.functions.ts` — extend with `saveMonitoringSources`, `saveEvaluationCriteria`, `saveExpertiseTags`
+- `iris.functions.ts` — `generateInitialBriefing`, `indexMissionInputs`, `tagQuestionsWithIntel`, `matchExpertForQuestion`
+- `launch.functions.ts` — split `launchMission` into 8 callable steps for the animated sequence
+- `debrief.functions.ts` — `saveDebrief`, `generateCanonSuggestions`, `approveCanonItem`
+
+**New routes:**
+- `/api/public/hooks/iris-monitor` — cron-callable, polls all enabled monitoring sources
+- `/olympus/missions/$missionId/debrief` — debrief capture + Canon approval
+
+**Studio integration:**
+- Add Priority badge + points/risk pills to existing question list
+- Add IRIS Expert Routing panel to question detail
+- Add "State Comparables" tab to Oracle
+
+**LLM:** Lovable AI Gateway with `google/gemini-2.5-pro` for briefing + Canon synthesis; `google/gemini-2.5-flash-lite` for tagging/classification.
+
+## Out of scope (for this iteration)
+
+- Actual external API calls for monitoring sources (cron job runs but uses stub fetchers for SAM.gov / Federal Register / state portals — real adapters are a follow-up)
+- Real-time streaming of launch steps via SSE (animated sequence runs sequential RPCs)
+- Cross-state intelligence data ingestion pipeline (seed table manually, expand later)
+
+## Build order
+
+1. Migration: new tables + column extensions
+2. Setup Record additions (Section 4B, monitoring panel, expertise tags)
+3. Launch orchestration + animated sequence
+4. IRIS Wave 1 briefing generator + Wave 2 indexer
+5. Studio priority/risk display + expert routing
+6. Oracle State Comparables tab
+7. Debrief flow + Canon approval
+8. Monitoring cron route (stub adapters)
