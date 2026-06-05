@@ -91,3 +91,10 @@ export function getCircuitState(): { state: State; failures: number; openedAt: n
     openedAt: breaker.openedAt,
   };
 }
+
+/** Force-close the breaker (Olympus "Refresh IRIS" button). */
+export function resetCircuit() {
+  breaker.state = "closed";
+  breaker.failures = [];
+  breaker.openedAt = null;
+}
