@@ -20,7 +20,7 @@ export function TestIrisVoiceButton() {
       const res = await speak({ data: { text: SAMPLE_LINE } });
       if (!res.ok || !res.audioBase64) {
         setStatus("error");
-        setError("TTS unavailable — check ElevenLabs connection.");
+        setError(res.error ?? "TTS unavailable — check ElevenLabs connection.");
         return;
       }
       const audio = new Audio(`data:${res.mimeType};base64,${res.audioBase64}`);
