@@ -19,7 +19,7 @@ import { DailyPulse } from "@/components/v4/DailyPulse";
 import { IrisTrustIntro } from "@/components/v4/IrisTrustIntro";
 import { useIsAdmin } from "@/hooks/useAccess";
 import type { ReactNode } from "react";
-import { TestIrisVoiceButton } from "@/components/iris/TestIrisVoiceButton";
+
 
 const IRIS_SILENT_WAV =
   "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQQAAAAAAA==";
