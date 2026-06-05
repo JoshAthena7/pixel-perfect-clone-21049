@@ -117,7 +117,7 @@ function CanonLibraryPage() {
             The foundation every mission is built on. Federal regulations, CMS authorities, and Athena institutional knowledge.
           </p>
         </div>
-        <div className="flex shrink-0 gap-2">
+        <div className="flex shrink-0 flex-wrap gap-2">
           <button
             onClick={handleVerify}
             disabled={verifying}
@@ -129,14 +129,30 @@ function CanonLibraryPage() {
           <button
             onClick={handleSeed}
             disabled={seeding}
-            className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium disabled:opacity-50"
-            style={{ background: "#C49A22", color: "#0b0b0b" }}
-            title="Insert a starter pack of Athena Canon entries (voice, methodology, federal authorities). Idempotent."
+            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-xs font-medium hover:bg-surface-hover disabled:opacity-50"
+            title="Insert a starter pack of Athena Canon entries. Idempotent."
           >
-            <Sparkles size={12} /> {seeding ? "Seeding…" : "Seed Starter Canon"}
+            <Sparkles size={12} /> {seeding ? "Seeding…" : "Seed Starter"}
+          </button>
+          <button
+            onClick={() => setShowExtract(true)}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-xs font-medium hover:bg-surface-hover"
+            title="Upload a PDF/DOCX. IRIS extracts and proposes Canon entries you can review and save."
+          >
+            <FileUp size={12} /> Extract from Doc
+          </button>
+          <button
+            onClick={() => setShowAdd(true)}
+            className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium"
+            style={{ background: "#C49A22", color: "#0b0b0b" }}
+          >
+            <Plus size={12} /> Add Entry
           </button>
         </div>
       </header>
+
+      {showAdd && <AddCanonModal onClose={() => setShowAdd(false)} />}
+      {showExtract && <ExtractCanonModal onClose={() => setShowExtract(false)} />}
 
       {verifyResult && (
         <div
