@@ -13,6 +13,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DemoLoginRouteImport } from './routes/demo.login'
 import { Route as ApiIrisVoiceRouteImport } from './routes/api/iris-voice'
 import { Route as AuthenticatedPipelineHorizonRouteImport } from './routes/_authenticated/pipeline-horizon'
 import { Route as AuthenticatedPathfinderRouteImport } from './routes/_authenticated/pathfinder'
@@ -100,6 +101,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DemoLoginRoute = DemoLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => DemoRoute,
 } as any)
 const ApiIrisVoiceRoute = ApiIrisVoiceRouteImport.update({
   id: '/api/iris-voice',
@@ -505,7 +511,7 @@ const AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/demo': typeof DemoRoute
+  '/demo': typeof DemoRouteWithChildren
   '/login': typeof LoginRoute
   '/atrium': typeof AuthenticatedAtriumRoute
   '/brief-room': typeof AuthenticatedBriefRoomRoute
@@ -517,6 +523,7 @@ export interface FileRoutesByFullPath {
   '/pathfinder': typeof AuthenticatedPathfinderRoute
   '/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
+  '/demo/login': typeof DemoLoginRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/command/attention': typeof AuthenticatedCommandAttentionRoute
@@ -578,7 +585,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/demo': typeof DemoRoute
+  '/demo': typeof DemoRouteWithChildren
   '/login': typeof LoginRoute
   '/atrium': typeof AuthenticatedAtriumRoute
   '/brief-room': typeof AuthenticatedBriefRoomRoute
@@ -589,6 +596,7 @@ export interface FileRoutesByTo {
   '/pathfinder': typeof AuthenticatedPathfinderRoute
   '/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
+  '/demo/login': typeof DemoLoginRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/command/attention': typeof AuthenticatedCommandAttentionRoute
@@ -651,7 +659,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
-  '/demo': typeof DemoRoute
+  '/demo': typeof DemoRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/atrium': typeof AuthenticatedAtriumRoute
   '/_authenticated/brief-room': typeof AuthenticatedBriefRoomRoute
@@ -663,6 +671,7 @@ export interface FileRoutesById {
   '/_authenticated/pathfinder': typeof AuthenticatedPathfinderRoute
   '/_authenticated/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
+  '/demo/login': typeof DemoLoginRoute
   '/_authenticated/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/_authenticated/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/_authenticated/command/attention': typeof AuthenticatedCommandAttentionRoute
@@ -738,6 +747,7 @@ export interface FileRouteTypes {
     | '/pathfinder'
     | '/pipeline-horizon'
     | '/api/iris-voice'
+    | '/demo/login'
     | '/command/alignment'
     | '/command/alignment-conflicts'
     | '/command/attention'
@@ -810,6 +820,7 @@ export interface FileRouteTypes {
     | '/pathfinder'
     | '/pipeline-horizon'
     | '/api/iris-voice'
+    | '/demo/login'
     | '/command/alignment'
     | '/command/alignment-conflicts'
     | '/command/attention'
@@ -883,6 +894,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pathfinder'
     | '/_authenticated/pipeline-horizon'
     | '/api/iris-voice'
+    | '/demo/login'
     | '/_authenticated/command/alignment'
     | '/_authenticated/command/alignment-conflicts'
     | '/_authenticated/command/attention'
@@ -946,7 +958,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
-  DemoRoute: typeof DemoRoute
+  DemoRoute: typeof DemoRouteWithChildren
   LoginRoute: typeof LoginRoute
   ApiIrisVoiceRoute: typeof ApiIrisVoiceRoute
   ApiPublicHooksBackfillAtlasEmbeddingsRoute: typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
@@ -984,6 +996,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/demo/login': {
+      id: '/demo/login'
+      path: '/login'
+      fullPath: '/demo/login'
+      preLoaderRoute: typeof DemoLoginRouteImport
+      parentRoute: typeof DemoRoute
     }
     '/api/iris-voice': {
       id: '/api/iris-voice'
@@ -1644,10 +1663,20 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface DemoRouteChildren {
+  DemoLoginRoute: typeof DemoLoginRoute
+}
+
+const DemoRouteChildren: DemoRouteChildren = {
+  DemoLoginRoute: DemoLoginRoute,
+}
+
+const DemoRouteWithChildren = DemoRoute._addFileChildren(DemoRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
-  DemoRoute: DemoRoute,
+  DemoRoute: DemoRouteWithChildren,
   LoginRoute: LoginRoute,
   ApiIrisVoiceRoute: ApiIrisVoiceRoute,
   ApiPublicHooksBackfillAtlasEmbeddingsRoute:
