@@ -795,101 +795,139 @@ function CockpitPage() {
           </div>
         )}
 
-        <div className="mx-auto flex h-16 max-w-[1100px] items-center justify-between gap-3 px-10 max-md:hidden">
-          {/* LEFT */}
-          <div className="flex items-center gap-2">
+        <div
+          className="mx-auto flex max-w-[1400px] items-center gap-2 max-md:hidden"
+          style={{
+            background: "#0a1628",
+            padding: "12px 24px",
+            justifyContent: "space-between",
+          }}
+        >
+          <div className="flex flex-1 items-center" style={{ gap: 7 }}>
+            <span
+              className="mr-1 shrink-0 text-[9px] font-semibold uppercase"
+              style={{ letterSpacing: "0.2em", color: "rgba(255,255,255,0.18)" }}
+            >
+              Controls
+            </span>
+
             {isReadOnlyView ? (
               <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
                 Read-only — actions disabled
               </span>
-            ) : isSME ? (
-              <button
-                onClick={() => openUpdateReality(questionId)}
-                className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
-              >
-                Submit SME Input
-              </button>
             ) : (
-              <button
-                onClick={() => openUpdateReality(questionId)}
-                className={`rounded-md px-4 py-2 text-sm font-semibold transition ${
-                  primaryAction === "check_in"
-                    ? "bg-primary text-primary-foreground ring-2 ring-primary/40 hover:opacity-90"
-                    : "bg-primary text-primary-foreground hover:opacity-90"
-                }`}
-              >
-                Update Reality
-              </button>
-            )}
-            {!isReadOnlyView && (
-              <button
-                onClick={() => setAskOpen(true)}
-                className={`inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold transition ${
-                  primaryAction === "read_iris"
-                    ? "bg-primary text-primary-foreground ring-2 ring-primary/40 hover:opacity-90"
-                    : "border border-primary/40 bg-transparent text-primary hover:bg-primary/10"
-                }`}
-              >
-                <Sparkles className="h-3.5 w-3.5" /> Ask IRIS
-              </button>
-            )}
-            {!isSME && !isReadOnlyView && (
-              <ConfidenceButton
-                questionId={questionId}
-                questionNumber={q.question_number}
-                currentLevel={q.writer_confidence ?? null}
-                onStuckEscalate={() => setGetHelpOpen(true)}
-              />
+              <>
+                {/* Ask IRIS */}
+                <button
+                  onClick={() => setAskOpen(true)}
+                  className="inline-flex items-center justify-center gap-2 font-semibold transition"
+                  style={{
+                    height: 44, padding: "0 18px",
+                    background: "rgba(8,145,178,0.12)",
+                    border: "1.5px solid rgba(8,145,178,0.4)",
+                    borderRadius: 9, color: "#0891b2",
+                    fontSize: 13, fontWeight: 700,
+                  }}
+                >
+                  <span className="iris-pulse-dot" />
+                  Ask IRIS
+                </button>
+
+                {/* Update Reality (primary) */}
+                <button
+                  onClick={() => openUpdateReality(questionId)}
+                  className="inline-flex items-center justify-center gap-2 font-semibold transition"
+                  style={{
+                    height: 44, padding: "0 18px",
+                    background: "#3b7fff", border: "none", borderRadius: 9,
+                    color: "#fff", fontSize: 13, fontWeight: 700,
+                  }}
+                >
+                  <Zap className="h-4 w-4" /> {isSME ? "Submit SME Input" : "Update Reality"}
+                </button>
+
+                {!isSME && (
+                  <>
+                    {/* Score Me */}
+                    <button
+                      onClick={() => { setScoreMeOpen(true); markOverflowUsed(); }}
+                      className="inline-flex items-center justify-center gap-2 font-semibold transition"
+                      style={{
+                        height: 44, padding: "0 16px",
+                        background: "rgba(255,255,255,0.04)",
+                        border: "1.5px solid rgba(255,255,255,0.09)",
+                        borderRadius: 9, color: "rgba(255,255,255,0.7)",
+                        fontSize: 13, fontWeight: 600,
+                      }}
+                    >
+                      <Target className="h-4 w-4" /> Score Me
+                    </button>
+
+                    {/* Phone a Friend */}
+                    <button
+                      onClick={() => { setPhoneOpen(true); markOverflowUsed(); }}
+                      className="inline-flex items-center justify-center gap-2 font-semibold transition"
+                      style={{
+                        height: 44, padding: "0 16px",
+                        background: "rgba(124,58,237,0.08)",
+                        border: "1.5px solid rgba(124,58,237,0.22)",
+                        borderRadius: 9, color: "#a78bfa",
+                        fontSize: 13, fontWeight: 600,
+                      }}
+                    >
+                      <Phone className="h-4 w-4" /> Phone a Friend
+                    </button>
+
+                    {/* Get Help */}
+                    <button
+                      onClick={() => { setGetHelpOpen(true); markOverflowUsed(); }}
+                      className="inline-flex items-center justify-center gap-2 font-semibold transition"
+                      style={{
+                        height: 44, padding: "0 16px",
+                        background: "rgba(245,158,11,0.10)",
+                        border: "1.5px solid rgba(245,158,11,0.30)",
+                        borderRadius: 9, color: "#f59e0b",
+                        fontSize: 13, fontWeight: 600,
+                      }}
+                    >
+                      <Lightbulb className="h-4 w-4" /> Get Help
+                    </button>
+
+                    {/* Hidden GetHelp dropdown mount */}
+                    <div className="hidden">
+                      <GetHelpDropdown
+                        open={getHelpOpen} setOpen={setGetHelpOpen}
+                        missionId={missionId} questionId={questionId} questionNumber={q.question_number}
+                        meId={me?.id ?? null} meName={firstName(me)}
+                        onSent={() => qc.invalidateQueries({ queryKey: ["question-collabs", questionId] })}
+                      />
+                    </div>
+
+                    {/* Confidence */}
+                    <ConfidenceButton
+                      questionId={questionId}
+                      questionNumber={q.question_number}
+                      currentLevel={q.writer_confidence ?? null}
+                      onStuckEscalate={() => setGetHelpOpen(true)}
+                    />
+                  </>
+                )}
+              </>
             )}
           </div>
 
           {/* CENTER status */}
-          <div className="hidden items-center gap-2 text-[12px] text-muted-foreground md:flex">
+          <div className="hidden items-center gap-2 text-[12px] text-muted-foreground lg:flex">
             <span className="h-2 w-2 rounded-full" style={{ background: healthHex, boxShadow: `0 0 6px ${healthHex}` }} />
             <span className="font-mono">Q{q.question_number}</span>
             <Dot />
             <PensDownLabel days={pdDays} compact />
           </div>
 
-          {/* RIGHT */}
-          <div className="flex items-center gap-2">
-            {!isSME && !isReadOnlyView && (
-              <>
-                <button
-                  onClick={() => { setPhoneOpen(true); markOverflowUsed(); }}
-                  className="inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-xs font-bold uppercase tracking-wide text-white shadow-lg shadow-cyan-500/30 transition hover:-translate-y-0.5 hover:shadow-cyan-400/50"
-                  style={{ background: "linear-gradient(135deg, #06b6d4, #3b82f6)" }}
-                >
-                  <Phone className="h-3.5 w-3.5" /> Phone a Friend
-                </button>
-                <button
-                  onClick={() => { setGetHelpOpen(true); markOverflowUsed(); }}
-                  className="inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-xs font-bold uppercase tracking-wide text-white shadow-lg shadow-amber-500/40 transition hover:-translate-y-0.5 hover:shadow-amber-400/60"
-                  style={{ background: "linear-gradient(135deg, #f59e0b, #ef4444)" }}
-                >
-                  <Lightbulb className="h-3.5 w-3.5" /> Get Help
-                </button>
-                <button
-                  onClick={() => { setScoreMeOpen(true); markOverflowUsed(); }}
-                  className="inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-xs font-bold uppercase tracking-wide text-white shadow-lg shadow-emerald-500/30 transition hover:-translate-y-0.5 hover:shadow-emerald-400/50"
-                  style={{ background: "linear-gradient(135deg, #10b981, #14b8a6)" }}
-                >
-                  <CheckCircle2 className="h-3.5 w-3.5" /> Score Me
-                </button>
-              </>
-            )}
-            {!isSME && !isReadOnlyView && (
-              <div className="[&>div>button]:hidden">
-                <GetHelpDropdown
-                  open={getHelpOpen} setOpen={setGetHelpOpen}
-                  missionId={missionId} questionId={questionId} questionNumber={q.question_number}
-                  meId={me?.id ?? null} meName={firstName(me)}
-                  onSent={() => qc.invalidateQueries({ queryKey: ["question-collabs", questionId] })}
-                />
-              </div>
-            )}
-            {!isSME && !isReadOnlyView && <SOSButton missionId={missionId} questionId={questionId} />}
-          </div>
+          {/* SOS — isolated right */}
+          {!isSME && !isReadOnlyView && (
+            <SOSButton missionId={missionId} questionId={questionId} />
+          )}
 
           {/* First-visit tooltip pointing at the action bar */}
           {tipStage === 1 && !isReadOnlyView && (
@@ -898,6 +936,18 @@ function CockpitPage() {
             </div>
           )}
         </div>
+
+        <style>{`
+          .iris-pulse-dot {
+            width: 7px; height: 7px; border-radius: 50%; background: #0891b2;
+            animation: iris-pulse 2.5s infinite;
+          }
+          @keyframes iris-pulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(8,145,178,0.5); }
+            50% { box-shadow: 0 0 0 5px rgba(8,145,178,0); }
+          }
+        `}</style>
+
 
 
         {/* MOBILE 2×2 ACTION GRID */}
