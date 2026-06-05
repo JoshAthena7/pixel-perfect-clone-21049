@@ -157,7 +157,9 @@ function VaultPage() {
   });
 
   return (
-    <div className="mx-auto max-w-[1280px] px-6 py-10 space-y-8">
+    <>
+      <MissionSetupTabs />
+      <div className="mx-auto max-w-[1280px] px-6 py-10 space-y-8">
       {/* Header */}
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
