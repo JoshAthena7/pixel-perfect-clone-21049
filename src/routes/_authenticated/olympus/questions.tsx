@@ -5,8 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Plus, Trash2, Search, FileText, X, CheckSquare, Square, Sparkles, Download,
-  Pencil, GripVertical, FolderTree, List, CornerDownRight,
+  Pencil, GripVertical, FolderTree, List, CornerDownRight, Upload,
 } from "lucide-react";
+import { UploadMatrixModal } from "@/components/questions/UploadMatrixModal";
 import { useSelectedOlympusMission } from "../olympus";
 import { logOlympusAction } from "@/lib/audit";
 import { PensDownCountdown } from "@/lib/countdowns";
@@ -61,6 +62,7 @@ function QuestionsPage() {
   const [editing, setEditing] = useState<QRow | null>(null);
   const [renameSection, setRenameSection] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"sections" | "flat">("sections");
+  const [matrixOpen, setMatrixOpen] = useState(false);
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["olympus-questions", missionId],
@@ -236,6 +238,10 @@ function QuestionsPage() {
             className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-sm hover:bg-surface-hover">
             <Sparkles className="h-3.5 w-3.5" /> Import from RFP
           </Link>
+          <button onClick={() => setMatrixOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/15">
+            <Upload className="h-3.5 w-3.5" /> Upload Client Matrix
+          </button>
           <button onClick={() => setAddOpen(true)}
             className="inline-flex items-center gap-2 rounded-md bg-[#C49A22] px-4 py-2 text-sm font-semibold text-black hover:bg-[#D4AA32]">
             <Plus className="h-4 w-4" /> Add Question
@@ -356,6 +362,14 @@ function QuestionsPage() {
           parents={rows.filter((r) => !selected.has(r.id))}
           onClose={() => setBulkOpen(false)}
           onDone={() => { qc.invalidateQueries({ queryKey: ["olympus-questions", missionId] }); setSelected(new Set()); setBulkOpen(false); }}
+        />
+      )}
+
+      {matrixOpen && (
+        <UploadMatrixModal
+          missionId={missionId}
+          onClose={() => setMatrixOpen(false)}
+          onCommitted={() => setMatrixOpen(false)}
         />
       )}
     </div>
