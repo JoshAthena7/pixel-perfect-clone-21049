@@ -723,6 +723,14 @@ export function CockpitV4({ missionId, me, myQuestions, allQuestions, updateStat
           onClose={() => setPhoneOpen(false)}
         />
       )}
+      {suggestedQ && (
+        <ThreadPanel
+          open={threadOpen}
+          onClose={() => setThreadOpen(false)}
+          objectType="question_record"
+          objectId={suggestedQ.id}
+        />
+      )}
     </div>
   );
 }
