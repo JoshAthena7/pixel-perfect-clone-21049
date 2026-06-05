@@ -190,22 +190,44 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
     }
   }
 
-  // Narrate current module
+  // Narrate current module (browsers block autoplay until first user gesture,
+  // so module 1 waits for the first pointerdown to prime + play).
   useEffect(() => {
     if (muted) return;
     if (spokenForModule.current === currentModule) return;
-    spokenForModule.current = currentModule;
 
     let cancelled = false;
-    (async () => {
+
+    const speak = async () => {
+      if (cancelled) return;
+      spokenForModule.current = currentModule;
+      await primePlayback();
       await playIrisLine(greetedScript);
       if (cancelled && audioRef.current) audioRef.current.pause();
-    })();
+    };
+
+    if (playbackPrimed.current) {
+      speak();
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const onFirstGesture = () => {
+      window.removeEventListener("pointerdown", onFirstGesture);
+      window.removeEventListener("keydown", onFirstGesture);
+      speak();
+    };
+    window.addEventListener("pointerdown", onFirstGesture, { once: true });
+    window.addEventListener("keydown", onFirstGesture, { once: true });
 
     return () => {
       cancelled = true;
+      window.removeEventListener("pointerdown", onFirstGesture);
+      window.removeEventListener("keydown", onFirstGesture);
     };
   }, [currentModule, greetedScript, muted]);
+
 
   async function logModuleCleared(n: number) {
     const qs = questionsAsked[n] || [];
