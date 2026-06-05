@@ -33,8 +33,16 @@ export function AttentionBadge({ missionId = "all", variant = "header", classNam
   const attentionFn = useServerFn(irisLeadershipAttention);
   const { data } = useQuery({
     queryKey: ["leadership-attention"],
-    queryFn: () => attentionFn(),
+    queryFn: async () => {
+      try {
+        return await attentionFn();
+      } catch {
+        return null;
+      }
+    },
     refetchInterval: 60_000,
+    retry: false,
+    throwOnError: false,
   });
 
   const { score, breakdown, scope } = (() => {
