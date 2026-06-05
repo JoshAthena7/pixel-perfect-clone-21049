@@ -932,7 +932,16 @@ function MissionBrief() {
               />
               <div className="rounded-[12px] border border-white/5 bg-white/[0.02]">
                 {notes.length === 0 ? (
-                  <div className="px-5 py-5 text-sm text-muted-foreground">No leadership notes yet.</div>
+                  <div className="px-5 py-6 text-sm">
+                    <div className="text-foreground font-medium">No leadership notes yet.</div>
+                    <div className="mt-1 text-xs text-muted-foreground">Capture strategic guidance — directives, must-haves, risks to watch — that every writer should see.</div>
+                    <button
+                      onClick={() => setAddNoteOpen(true)}
+                      className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-white/[0.04] px-3 py-1.5 text-[12px] font-medium text-foreground hover:bg-white/[0.08]"
+                    >
+                      <Plus className="h-3 w-3" /> Add the first note
+                    </button>
+                  </div>
                 ) : (
                   <ul className="divide-y divide-white/5">
                     {notes.slice(0, 3).map((n) => (
