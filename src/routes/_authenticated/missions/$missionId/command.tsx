@@ -122,6 +122,23 @@ function MissionBrief() {
     return c;
   }, [questions]);
 
+  /* win themes */
+  const { data: winThemes = [] } = useQuery({
+    queryKey: ["mb-win-themes", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("win_themes")
+        .select("id,title,description,key_message,question_ids,status")
+        .eq("mission_id", missionId)
+        .neq("status", "archived")
+        .order("created_at", { ascending: true });
+      return (data ?? []) as Array<{
+        id: string; title: string; description: string | null;
+        key_message: string | null; question_ids: string[] | null; status: string | null;
+      }>;
+    },
+  });
+
   /* mission leadership */
   const { data: members = [] } = useQuery({
     queryKey: ["mb-members", missionId],
