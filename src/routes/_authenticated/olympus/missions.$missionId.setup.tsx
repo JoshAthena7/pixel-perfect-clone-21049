@@ -441,7 +441,7 @@ function SectionInputs({ missionId, docs, refetch }: any) {
     const { data: prof } = await supabase.from("profiles").select("display_name,email").eq("id", auth.user!.id).maybeSingle();
     const { error } = await supabase.from("mission_vault_documents").insert({
       mission_id: missionId,
-      doc_type: "supporting",
+      doc_type: "other",
       title,
       external_url: url,
       category,
