@@ -869,15 +869,13 @@ function CockpitPage() {
                 >
                   <Lightbulb className="h-3.5 w-3.5" /> Get Help
                 </button>
-                <CockpitOverflow
-                  open={overflowOpen}
-                  setOpen={setOverflowOpen}
-                  showSublabels={showSublabels}
-                  primaryAction={primaryAction}
-                  onScoreMe={() => { setScoreMeOpen(true); setOverflowOpen(false); markOverflowUsed(); }}
-                  onPhoneAFriend={() => { setOverflowOpen(false); markOverflowUsed(); setPhoneOpen(true); }}
-                  onGetHelp={() => { setGetHelpOpen(true); setOverflowOpen(false); markOverflowUsed(); }}
-                />
+                <button
+                  onClick={() => { setScoreMeOpen(true); markOverflowUsed(); }}
+                  className="inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-xs font-bold uppercase tracking-wide text-white shadow-lg shadow-emerald-500/30 transition hover:-translate-y-0.5 hover:shadow-emerald-400/50"
+                  style={{ background: "linear-gradient(135deg, #10b981, #14b8a6)" }}
+                >
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Score Me
+                </button>
               </>
             )}
             {!isSME && !isReadOnlyView && (
