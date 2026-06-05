@@ -155,6 +155,7 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
     if (playbackPrimed.current) return Promise.resolve(true);
     const audio = audioRef.current ?? new Audio(SILENT_WAV);
     audio.preload = "auto";
+    audio.loop = true;
     audioRef.current = audio;
     return audio.play().then(
       () => {
@@ -163,8 +164,10 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
       },
       () => false,
     ).finally(() => {
-      audio.pause();
-      audio.currentTime = 0;
+      if (!playbackPrimed.current) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
     });
   }
 
@@ -195,6 +198,8 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
       const audio = audioRef.current ?? new Audio(SILENT_WAV);
       audio.onended = () => URL.revokeObjectURL(audioUrl);
       audio.onerror = () => URL.revokeObjectURL(audioUrl);
+      audio.loop = false;
+      audio.preload = "auto";
       audio.src = audioUrl;
       audioRef.current = audio;
       await audio.play();
@@ -218,7 +223,10 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
     try {
       await primePlayback();
       const audioUrl = await queuedAudio;
-      if (!audioUrl) return;
+      if (!audioUrl) {
+        audioRef.current?.pause();
+        return;
+      }
       const played = await playPreparedAudioUrl(audioUrl);
       if (played) spokenForModule.current = moduleNumber;
     } finally {
