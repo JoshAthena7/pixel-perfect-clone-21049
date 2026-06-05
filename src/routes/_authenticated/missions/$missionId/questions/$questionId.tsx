@@ -1663,14 +1663,15 @@ function ThreadsLauncher({ questionId }: { questionId: string }) {
         onClick={() => setOpen(true)}
         title="Open internal threads (Athena-only)"
         aria-label="Threads"
-        className="fixed right-5 bottom-5 z-30 inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[12px] font-medium shadow-lg transition hover:-translate-y-0.5"
+        className="fixed right-6 bottom-6 z-40 inline-flex items-center gap-2.5 rounded-full px-5 py-3.5 text-[13px] font-semibold uppercase tracking-[0.14em] shadow-2xl transition hover:-translate-y-0.5 hover:shadow-[0_10px_40px_-5px_rgba(94,234,212,0.6)]"
         style={{
-          background: "#0b1220",
-          border: "1px solid rgba(94,234,212,0.4)",
-          color: "#5eead4",
+          background: "linear-gradient(135deg, #0d9488, #14b8a6)",
+          border: "1px solid rgba(94,234,212,0.7)",
+          color: "#ecfeff",
+          boxShadow: "0 8px 32px -4px rgba(20,184,166,0.55), 0 0 0 4px rgba(94,234,212,0.12)",
         }}
       >
-        <MessageSquare className="h-3.5 w-3.5" />
+        <MessageSquare className="h-4 w-4" />
         Threads
       </button>
       <ThreadPanel
