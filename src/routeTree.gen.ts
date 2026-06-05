@@ -10,11 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as DemoRouteImport } from './routes/demo'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DemoLoginRouteImport } from './routes/demo.login'
-import { Route as DemoAppRouteImport } from './routes/demo._app'
 import { Route as ApiIrisVoiceRouteImport } from './routes/api/iris-voice'
 import { Route as AuthenticatedPipelineHorizonRouteImport } from './routes/_authenticated/pipeline-horizon'
 import { Route as AuthenticatedPathfinderRouteImport } from './routes/_authenticated/pathfinder'
@@ -25,14 +22,7 @@ import { Route as AuthenticatedIntelligenceRouteImport } from './routes/_authent
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedBriefRoomRouteImport } from './routes/_authenticated/brief-room'
 import { Route as AuthenticatedAtriumRouteImport } from './routes/_authenticated/atrium'
-import { Route as DemoAppIndexRouteImport } from './routes/demo._app.index'
 import { Route as AuthenticatedOlympusIndexRouteImport } from './routes/_authenticated/olympus/index'
-import { Route as DemoAppWorkspaceRouteImport } from './routes/demo._app.workspace'
-import { Route as DemoAppQueueRouteImport } from './routes/demo._app.queue'
-import { Route as DemoAppIntelligenceRouteImport } from './routes/demo._app.intelligence'
-import { Route as DemoAppCommunicationsRouteImport } from './routes/demo._app.communications'
-import { Route as DemoAppAssignmentRouteImport } from './routes/demo._app.assignment'
-import { Route as DemoAppArchiveRouteImport } from './routes/demo._app.archive'
 import { Route as AuthenticatedProfileExpertiseRouteImport } from './routes/_authenticated/profile/expertise'
 import { Route as AuthenticatedOlympusWriterDeletionRouteImport } from './routes/_authenticated/olympus/writer-deletion'
 import { Route as AuthenticatedOlympusWinThemesRouteImport } from './routes/_authenticated/olympus/win-themes'
@@ -96,11 +86,6 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DemoRoute = DemoRouteImport.update({
-  id: '/demo',
-  path: '/demo',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -109,15 +94,6 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
-const DemoLoginRoute = DemoLoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoAppRoute = DemoAppRouteImport.update({
-  id: '/_app',
-  getParentRoute: () => DemoRoute,
 } as any)
 const ApiIrisVoiceRoute = ApiIrisVoiceRouteImport.update({
   id: '/api/iris-voice',
@@ -172,47 +148,12 @@ const AuthenticatedAtriumRoute = AuthenticatedAtriumRouteImport.update({
   path: '/atrium',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const DemoAppIndexRoute = DemoAppIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => DemoAppRoute,
-} as any)
 const AuthenticatedOlympusIndexRoute =
   AuthenticatedOlympusIndexRouteImport.update({
     id: '/',
     path: '/',
     getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
-const DemoAppWorkspaceRoute = DemoAppWorkspaceRouteImport.update({
-  id: '/workspace',
-  path: '/workspace',
-  getParentRoute: () => DemoAppRoute,
-} as any)
-const DemoAppQueueRoute = DemoAppQueueRouteImport.update({
-  id: '/queue',
-  path: '/queue',
-  getParentRoute: () => DemoAppRoute,
-} as any)
-const DemoAppIntelligenceRoute = DemoAppIntelligenceRouteImport.update({
-  id: '/intelligence',
-  path: '/intelligence',
-  getParentRoute: () => DemoAppRoute,
-} as any)
-const DemoAppCommunicationsRoute = DemoAppCommunicationsRouteImport.update({
-  id: '/communications',
-  path: '/communications',
-  getParentRoute: () => DemoAppRoute,
-} as any)
-const DemoAppAssignmentRoute = DemoAppAssignmentRouteImport.update({
-  id: '/assignment',
-  path: '/assignment',
-  getParentRoute: () => DemoAppRoute,
-} as any)
-const DemoAppArchiveRoute = DemoAppArchiveRouteImport.update({
-  id: '/archive',
-  path: '/archive',
-  getParentRoute: () => DemoAppRoute,
-} as any)
 const AuthenticatedProfileExpertiseRoute =
   AuthenticatedProfileExpertiseRouteImport.update({
     id: '/profile/expertise',
@@ -558,7 +499,6 @@ const AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/demo': typeof DemoAppRouteWithChildren
   '/login': typeof LoginRoute
   '/atrium': typeof AuthenticatedAtriumRoute
   '/brief-room': typeof AuthenticatedBriefRoomRoute
@@ -570,7 +510,6 @@ export interface FileRoutesByFullPath {
   '/pathfinder': typeof AuthenticatedPathfinderRoute
   '/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
-  '/demo/login': typeof DemoLoginRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/command/attention': typeof AuthenticatedCommandAttentionRoute
@@ -608,14 +547,7 @@ export interface FileRoutesByFullPath {
   '/olympus/win-themes': typeof AuthenticatedOlympusWinThemesRoute
   '/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
-  '/demo/archive': typeof DemoAppArchiveRoute
-  '/demo/assignment': typeof DemoAppAssignmentRoute
-  '/demo/communications': typeof DemoAppCommunicationsRoute
-  '/demo/intelligence': typeof DemoAppIntelligenceRoute
-  '/demo/queue': typeof DemoAppQueueRoute
-  '/demo/workspace': typeof DemoAppWorkspaceRoute
   '/olympus/': typeof AuthenticatedOlympusIndexRoute
-  '/demo/': typeof DemoAppIndexRoute
   '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
@@ -639,7 +571,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/demo': typeof DemoAppIndexRoute
   '/login': typeof LoginRoute
   '/atrium': typeof AuthenticatedAtriumRoute
   '/brief-room': typeof AuthenticatedBriefRoomRoute
@@ -650,7 +581,6 @@ export interface FileRoutesByTo {
   '/pathfinder': typeof AuthenticatedPathfinderRoute
   '/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
-  '/demo/login': typeof DemoLoginRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/command/attention': typeof AuthenticatedCommandAttentionRoute
@@ -687,12 +617,6 @@ export interface FileRoutesByTo {
   '/olympus/win-themes': typeof AuthenticatedOlympusWinThemesRoute
   '/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
-  '/demo/archive': typeof DemoAppArchiveRoute
-  '/demo/assignment': typeof DemoAppAssignmentRoute
-  '/demo/communications': typeof DemoAppCommunicationsRoute
-  '/demo/intelligence': typeof DemoAppIntelligenceRoute
-  '/demo/queue': typeof DemoAppQueueRoute
-  '/demo/workspace': typeof DemoAppWorkspaceRoute
   '/olympus': typeof AuthenticatedOlympusIndexRoute
   '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
@@ -719,7 +643,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
-  '/demo': typeof DemoRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/atrium': typeof AuthenticatedAtriumRoute
   '/_authenticated/brief-room': typeof AuthenticatedBriefRoomRoute
@@ -731,8 +654,6 @@ export interface FileRoutesById {
   '/_authenticated/pathfinder': typeof AuthenticatedPathfinderRoute
   '/_authenticated/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
-  '/demo/_app': typeof DemoAppRouteWithChildren
-  '/demo/login': typeof DemoLoginRoute
   '/_authenticated/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/_authenticated/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/_authenticated/command/attention': typeof AuthenticatedCommandAttentionRoute
@@ -770,14 +691,7 @@ export interface FileRoutesById {
   '/_authenticated/olympus/win-themes': typeof AuthenticatedOlympusWinThemesRoute
   '/_authenticated/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
   '/_authenticated/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
-  '/demo/_app/archive': typeof DemoAppArchiveRoute
-  '/demo/_app/assignment': typeof DemoAppAssignmentRoute
-  '/demo/_app/communications': typeof DemoAppCommunicationsRoute
-  '/demo/_app/intelligence': typeof DemoAppIntelligenceRoute
-  '/demo/_app/queue': typeof DemoAppQueueRoute
-  '/demo/_app/workspace': typeof DemoAppWorkspaceRoute
   '/_authenticated/olympus/': typeof AuthenticatedOlympusIndexRoute
-  '/demo/_app/': typeof DemoAppIndexRoute
   '/_authenticated/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/_authenticated/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/_authenticated/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
@@ -803,7 +717,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/demo'
     | '/login'
     | '/atrium'
     | '/brief-room'
@@ -815,7 +728,6 @@ export interface FileRouteTypes {
     | '/pathfinder'
     | '/pipeline-horizon'
     | '/api/iris-voice'
-    | '/demo/login'
     | '/command/alignment'
     | '/command/alignment-conflicts'
     | '/command/attention'
@@ -853,14 +765,7 @@ export interface FileRouteTypes {
     | '/olympus/win-themes'
     | '/olympus/writer-deletion'
     | '/profile/expertise'
-    | '/demo/archive'
-    | '/demo/assignment'
-    | '/demo/communications'
-    | '/demo/intelligence'
-    | '/demo/queue'
-    | '/demo/workspace'
     | '/olympus/'
-    | '/demo/'
     | '/missions/$missionId/activity'
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
@@ -884,7 +789,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/demo'
     | '/login'
     | '/atrium'
     | '/brief-room'
@@ -895,7 +799,6 @@ export interface FileRouteTypes {
     | '/pathfinder'
     | '/pipeline-horizon'
     | '/api/iris-voice'
-    | '/demo/login'
     | '/command/alignment'
     | '/command/alignment-conflicts'
     | '/command/attention'
@@ -932,12 +835,6 @@ export interface FileRouteTypes {
     | '/olympus/win-themes'
     | '/olympus/writer-deletion'
     | '/profile/expertise'
-    | '/demo/archive'
-    | '/demo/assignment'
-    | '/demo/communications'
-    | '/demo/intelligence'
-    | '/demo/queue'
-    | '/demo/workspace'
     | '/olympus'
     | '/missions/$missionId/activity'
     | '/missions/$missionId/brief'
@@ -963,7 +860,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
-    | '/demo'
     | '/login'
     | '/_authenticated/atrium'
     | '/_authenticated/brief-room'
@@ -975,8 +871,6 @@ export interface FileRouteTypes {
     | '/_authenticated/pathfinder'
     | '/_authenticated/pipeline-horizon'
     | '/api/iris-voice'
-    | '/demo/_app'
-    | '/demo/login'
     | '/_authenticated/command/alignment'
     | '/_authenticated/command/alignment-conflicts'
     | '/_authenticated/command/attention'
@@ -1014,14 +908,7 @@ export interface FileRouteTypes {
     | '/_authenticated/olympus/win-themes'
     | '/_authenticated/olympus/writer-deletion'
     | '/_authenticated/profile/expertise'
-    | '/demo/_app/archive'
-    | '/demo/_app/assignment'
-    | '/demo/_app/communications'
-    | '/demo/_app/intelligence'
-    | '/demo/_app/queue'
-    | '/demo/_app/workspace'
     | '/_authenticated/olympus/'
-    | '/demo/_app/'
     | '/_authenticated/missions/$missionId/activity'
     | '/_authenticated/missions/$missionId/brief'
     | '/_authenticated/missions/$missionId/briefing'
@@ -1047,7 +934,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
-  DemoRoute: typeof DemoRouteWithChildren
   LoginRoute: typeof LoginRoute
   ApiIrisVoiceRoute: typeof ApiIrisVoiceRoute
   ApiPublicHooksBackfillAtlasEmbeddingsRoute: typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
@@ -1065,13 +951,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/demo': {
-      id: '/demo'
-      path: '/demo'
-      fullPath: '/demo'
-      preLoaderRoute: typeof DemoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -1085,20 +964,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/demo/login': {
-      id: '/demo/login'
-      path: '/login'
-      fullPath: '/demo/login'
-      preLoaderRoute: typeof DemoLoginRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/_app': {
-      id: '/demo/_app'
-      path: ''
-      fullPath: '/demo'
-      preLoaderRoute: typeof DemoAppRouteImport
-      parentRoute: typeof DemoRoute
     }
     '/api/iris-voice': {
       id: '/api/iris-voice'
@@ -1170,61 +1035,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAtriumRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/demo/_app/': {
-      id: '/demo/_app/'
-      path: '/'
-      fullPath: '/demo/'
-      preLoaderRoute: typeof DemoAppIndexRouteImport
-      parentRoute: typeof DemoAppRoute
-    }
     '/_authenticated/olympus/': {
       id: '/_authenticated/olympus/'
       path: '/'
       fullPath: '/olympus/'
       preLoaderRoute: typeof AuthenticatedOlympusIndexRouteImport
       parentRoute: typeof AuthenticatedOlympusRoute
-    }
-    '/demo/_app/workspace': {
-      id: '/demo/_app/workspace'
-      path: '/workspace'
-      fullPath: '/demo/workspace'
-      preLoaderRoute: typeof DemoAppWorkspaceRouteImport
-      parentRoute: typeof DemoAppRoute
-    }
-    '/demo/_app/queue': {
-      id: '/demo/_app/queue'
-      path: '/queue'
-      fullPath: '/demo/queue'
-      preLoaderRoute: typeof DemoAppQueueRouteImport
-      parentRoute: typeof DemoAppRoute
-    }
-    '/demo/_app/intelligence': {
-      id: '/demo/_app/intelligence'
-      path: '/intelligence'
-      fullPath: '/demo/intelligence'
-      preLoaderRoute: typeof DemoAppIntelligenceRouteImport
-      parentRoute: typeof DemoAppRoute
-    }
-    '/demo/_app/communications': {
-      id: '/demo/_app/communications'
-      path: '/communications'
-      fullPath: '/demo/communications'
-      preLoaderRoute: typeof DemoAppCommunicationsRouteImport
-      parentRoute: typeof DemoAppRoute
-    }
-    '/demo/_app/assignment': {
-      id: '/demo/_app/assignment'
-      path: '/assignment'
-      fullPath: '/demo/assignment'
-      preLoaderRoute: typeof DemoAppAssignmentRouteImport
-      parentRoute: typeof DemoAppRoute
-    }
-    '/demo/_app/archive': {
-      id: '/demo/_app/archive'
-      path: '/archive'
-      fullPath: '/demo/archive'
-      preLoaderRoute: typeof DemoAppArchiveRouteImport
-      parentRoute: typeof DemoAppRoute
     }
     '/_authenticated/profile/expertise': {
       id: '/_authenticated/profile/expertise'
@@ -1808,45 +1624,9 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
-interface DemoAppRouteChildren {
-  DemoAppArchiveRoute: typeof DemoAppArchiveRoute
-  DemoAppAssignmentRoute: typeof DemoAppAssignmentRoute
-  DemoAppCommunicationsRoute: typeof DemoAppCommunicationsRoute
-  DemoAppIntelligenceRoute: typeof DemoAppIntelligenceRoute
-  DemoAppQueueRoute: typeof DemoAppQueueRoute
-  DemoAppWorkspaceRoute: typeof DemoAppWorkspaceRoute
-  DemoAppIndexRoute: typeof DemoAppIndexRoute
-}
-
-const DemoAppRouteChildren: DemoAppRouteChildren = {
-  DemoAppArchiveRoute: DemoAppArchiveRoute,
-  DemoAppAssignmentRoute: DemoAppAssignmentRoute,
-  DemoAppCommunicationsRoute: DemoAppCommunicationsRoute,
-  DemoAppIntelligenceRoute: DemoAppIntelligenceRoute,
-  DemoAppQueueRoute: DemoAppQueueRoute,
-  DemoAppWorkspaceRoute: DemoAppWorkspaceRoute,
-  DemoAppIndexRoute: DemoAppIndexRoute,
-}
-
-const DemoAppRouteWithChildren =
-  DemoAppRoute._addFileChildren(DemoAppRouteChildren)
-
-interface DemoRouteChildren {
-  DemoAppRoute: typeof DemoAppRouteWithChildren
-  DemoLoginRoute: typeof DemoLoginRoute
-}
-
-const DemoRouteChildren: DemoRouteChildren = {
-  DemoAppRoute: DemoAppRouteWithChildren,
-  DemoLoginRoute: DemoLoginRoute,
-}
-
-const DemoRouteWithChildren = DemoRoute._addFileChildren(DemoRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
-  DemoRoute: DemoRouteWithChildren,
   LoginRoute: LoginRoute,
   ApiIrisVoiceRoute: ApiIrisVoiceRoute,
   ApiPublicHooksBackfillAtlasEmbeddingsRoute:
