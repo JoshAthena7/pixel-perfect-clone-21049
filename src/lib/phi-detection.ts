@@ -52,8 +52,13 @@ const RE_EXPLICIT_PHI =
   /\b(patient name|patient dob|patient address|patient record)\b/i;
 
 // Proper name within 50 chars of a clinical term (either direction).
+// Require an explicit personal-name title (Mr./Mrs./Ms./Dr./Mx.) followed by
+// a capitalized name, within 80 chars of a clinical term. Without the title
+// prefix, "Care Coordination" near "patient" — extremely common in healthcare
+// RFP/strategy content — would false-positive. PHI in real proposals almost
+// always appears as "Mr. Smith / Dr. Jones" patterns, not bare proper nouns.
 const RE_CLINICAL_PROPER_NOUN =
-  /(\b(?:patient|diagnosis|treatment|prescription|clinical|medical record|health condition)\b[\s\S]{0,50}\b[A-Z][a-z]+\s+[A-Z][a-z]+\b)|(\b[A-Z][a-z]+\s+[A-Z][a-z]+\b[\s\S]{0,50}\b(?:patient|diagnosis|treatment|prescription|clinical|medical record|health condition)\b)/;
+  /(\b(?:patient|diagnosis|treatment|prescription|clinical|medical record|health condition)\b[\s\S]{0,80}\b(?:Mr|Mrs|Ms|Mx|Dr)\.\s+[A-Z][a-z]+)|(\b(?:Mr|Mrs|Ms|Mx|Dr)\.\s+[A-Z][a-z]+[\s\S]{0,80}\b(?:patient|diagnosis|treatment|prescription|clinical|medical record|health condition)\b)/;
 
 // Strip HTML tags and simple markdown syntax so the regex runs on plain text.
 function toPlainText(input: string): string {
