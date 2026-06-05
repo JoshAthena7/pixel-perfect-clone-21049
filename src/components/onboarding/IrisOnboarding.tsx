@@ -82,7 +82,7 @@ function useOnboardingGate() {
         session = created as SessionRow;
       }
 
-      return { show: true as const, userId: user.id, firstName, session, replay };
+      return { show: true as const, userId: user.id, firstName, session, replay: replayRequested };
     },
     staleTime: Infinity,
   });
