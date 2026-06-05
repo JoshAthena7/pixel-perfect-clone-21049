@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { MissionSetupTabs } from "@/components/v2/MissionSetupTabs";
 import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -157,7 +158,9 @@ function VaultPage() {
   });
 
   return (
-    <div className="mx-auto max-w-[1280px] px-6 py-10 space-y-8">
+    <>
+      <MissionSetupTabs />
+      <div className="mx-auto max-w-[1280px] px-6 py-10 space-y-8">
       {/* Header */}
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -391,7 +394,8 @@ function VaultPage() {
           }}
         />
       )}
-    </div>
+      </div>
+    </>
   );
 }
 

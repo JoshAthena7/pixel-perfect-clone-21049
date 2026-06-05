@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { MissionSetupTabs } from "@/components/v2/MissionSetupTabs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState, useRef, useEffect } from "react";
 import { ChevronDown, ChevronRight, Filter as FilterIcon, Check, Sparkles, MoreHorizontal, FileText, Phone, LifeBuoy } from "lucide-react";
@@ -862,7 +863,9 @@ function ResponsesList() {
   }
 
   return (
-    <div className="mx-auto max-w-[1200px] px-8 pb-32 pt-10">
+    <>
+      <MissionSetupTabs />
+      <div className="mx-auto max-w-[1200px] px-8 pb-32 pt-10">
       <div className="mb-6">
         <div className="text-[10px] font-semibold uppercase tracking-[0.32em]" style={{ color: "#3b7fff" }}>Questions</div>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">Your Workspace</h1>
@@ -1015,6 +1018,7 @@ function ResponsesList() {
           onClose={() => setDrawerQ(null)}
         />
       )}
-    </div>
+      </div>
+    </>
   );
 }

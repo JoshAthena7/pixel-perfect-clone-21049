@@ -1,59 +1,88 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Save, Plus, Trash2, X, Pencil, Archive, Sparkles } from "lucide-react";
+import { Save, Plus, Trash2, X, Pencil, Archive, Sparkles, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { MissionSetupTabs } from "@/components/v2/MissionSetupTabs";
 
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/settings")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    tab: typeof s.tab === "string" ? (s.tab as string) : undefined,
+  }),
   component: SettingsPage,
 });
 
 const STATUSES = ["Active", "Won", "Lost", "Withdrawn", "On Hold", "Archived"] as const;
 const HEALTHS = ["green", "yellow", "red"] as const;
 
-type Tab = "details" | "intelligence" | "gates" | "team" | "themes";
+type Tab = "details" | "intelligence" | "gates" | "team" | "themes" | "sensitivities";
+
+const VALID_TABS: Tab[] = ["details", "intelligence", "gates", "team", "themes", "sensitivities"];
 
 
 function SettingsPage() {
   const { missionId } = Route.useParams();
-  const [tab, setTab] = useState<Tab>("details");
+  const search = Route.useSearch();
+  const navigate = useNavigate();
+  const initial = (search.tab && (VALID_TABS as string[]).includes(search.tab) ? search.tab : "details") as Tab;
+  const [tab, setTab] = useState<Tab>(initial);
+
+  // Keep local state in sync with the URL when user clicks the unified tab strip.
+  useEffect(() => {
+    const next = (search.tab && (VALID_TABS as string[]).includes(search.tab) ? search.tab : "details") as Tab;
+    if (next !== tab) setTab(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.tab]);
+
+  const setTabAndUrl = (next: Tab) => {
+    setTab(next);
+    navigate({
+      to: "/missions/$missionId/settings",
+      params: { missionId },
+      search: { tab: next },
+      replace: true,
+    });
+  };
 
   return (
-    <div className="px-8 py-8 max-w-4xl">
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold">Mission Settings</h1>
-        <p className="mt-1 text-xs text-muted-foreground">Configure mission details, intelligence profile, review gates, and win themes. Roles and team access are managed in Olympus.</p>
-      </div>
+    <>
+      <MissionSetupTabs />
+      <div className="px-8 py-8 max-w-4xl">
+        <div className="mb-6">
+          <h1 className="text-xl font-semibold">
+            {tab === "details" && "Mission Details"}
+            {tab === "intelligence" && "Intelligence Profile"}
+            {tab === "gates" && "Review Gates"}
+            {tab === "team" && "Team"}
+            {tab === "themes" && "Win Themes"}
+            {tab === "sensitivities" && "Sensitivities"}
+          </h1>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Configure mission details, review gates, win themes, and sensitivities. Team & roles are managed in Olympus.
+          </p>
+        </div>
 
-      <div className="mb-6 flex items-center gap-1 border-b border-border">
-        {([
-          ["details", "Details"],
-          ["intelligence", "Intelligence Profile"],
-          ["gates", "Review Gates"],
-          ["team", "Team"],
-          ["themes", "Win Themes"],
-        ] as const).map(([k, label]) => (
-          <button
-            key={k}
-            onClick={() => setTab(k)}
-            className={`relative px-4 py-2.5 text-sm transition ${
-              tab === k ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {label}
-            {tab === k && <span className="absolute inset-x-0 -bottom-px h-0.5 bg-primary" />}
-          </button>
-        ))}
-      </div>
+        {tab === "intelligence" && (
+          <div className="mb-4">
+            <button
+              onClick={() => setTabAndUrl("details")}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              ← Back to Mission Details
+            </button>
+          </div>
+        )}
 
-      {tab === "details" && <DetailsTab missionId={missionId} />}
-      {tab === "intelligence" && <IntelligenceProfileTab missionId={missionId} />}
-      {tab === "gates" && <GatesTab missionId={missionId} />}
-      {tab === "team" && <TeamTab missionId={missionId} />}
-      {tab === "themes" && <ThemesTab missionId={missionId} />}
-    </div>
+        {tab === "details" && <DetailsTab missionId={missionId} />}
+        {tab === "intelligence" && <IntelligenceProfileTab missionId={missionId} />}
+        {tab === "gates" && <GatesTab missionId={missionId} />}
+        {tab === "team" && <TeamTab missionId={missionId} />}
+        {tab === "themes" && <ThemesTab missionId={missionId} />}
+        {tab === "sensitivities" && <SensitivitiesTab missionId={missionId} />}
+      </div>
+    </>
   );
 }
 
@@ -697,6 +726,146 @@ function ModalShell({ title, onClose, children }: { title: string; onClose: () =
         </div>
         {children}
       </div>
+    </div>
+  );
+}
+
+/* ─── Tab 6: Sensitivities ────────────────────────── */
+
+type Sensitivity = {
+  id: string;
+  category: string | null;
+  subject: string | null;
+  note: string | null;
+  severity: string | null;
+  created_at: string | null;
+};
+
+function SensitivitiesTab({ missionId }: { missionId: string }) {
+  const qc = useQueryClient();
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState({ category: "", subject: "", note: "", severity: "medium" });
+
+  const { data: items = [], isLoading } = useQuery({
+    queryKey: ["mission-sensitivities", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_sensitivities")
+        .select("id,category,subject,note,severity,created_at")
+        .eq("mission_id", missionId)
+        .order("created_at", { ascending: false });
+      return (data ?? []) as unknown as Sensitivity[];
+    },
+  });
+
+  const create = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("mission_sensitivities").insert({
+        mission_id: missionId,
+        category: form.category || undefined,
+        subject: form.subject || undefined,
+        note: form.note,
+        severity: form.severity,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Sensitivity added");
+      setShowModal(false);
+      setForm({ category: "", subject: "", note: "", severity: "medium" });
+      qc.invalidateQueries({ queryKey: ["mission-sensitivities", missionId] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Failed to add sensitivity"),
+  });
+
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("mission_sensitivities").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["mission-sensitivities", missionId] }),
+  });
+
+  return (
+    <div>
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Active Sensitivities</h2>
+        <button
+          onClick={() => setShowModal(true)}
+          className="inline-flex items-center gap-1.5 rounded-[6px] border border-border bg-background px-2.5 py-1.5 text-xs text-foreground hover:bg-surface-hover"
+        >
+          <Plus className="h-3.5 w-3.5" /> Add Sensitivity
+        </button>
+      </div>
+
+      <p className="mb-4 text-xs text-muted-foreground">
+        Flag topics, terminology, or political dynamics IRIS should handle with care for this mission
+        (e.g. "Don't compare to the previous administration's program", "Avoid 'carve-out' framing").
+      </p>
+
+      {isLoading ? (
+        <div className="rounded-[10px] border border-border bg-surface p-8 text-center text-xs text-muted-foreground">Loading…</div>
+      ) : items.length === 0 ? (
+        <div className="rounded-[10px] border border-dashed border-border bg-surface/50 p-10 text-center">
+          <AlertTriangle className="mx-auto h-5 w-5 text-muted-foreground/60" />
+          <p className="mt-3 text-xs text-muted-foreground">No sensitivities flagged yet.</p>
+        </div>
+      ) : (
+        <ul className="space-y-2">
+          {items.map((s) => (
+            <li key={s.id} className="flex items-start justify-between gap-3 rounded-[10px] border border-border bg-surface p-4">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  {s.category && (
+                    <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{s.category}</span>
+                  )}
+                  <span className={`text-[10px] uppercase tracking-[0.14em] ${
+                    s.severity === "high" ? "text-red-500" : s.severity === "low" ? "text-muted-foreground" : "text-amber-500"
+                  }`}>{s.severity ?? "medium"}</span>
+                </div>
+                {s.subject && <p className="mt-1 text-sm font-medium text-foreground">{s.subject}</p>}
+                {s.note && <p className="mt-1 text-sm text-muted-foreground">{s.note}</p>}
+              </div>
+              <button onClick={() => remove.mutate(s.id)} className="text-muted-foreground hover:text-red-500">
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {showModal && (
+        <ModalShell title="Add Sensitivity" onClose={() => setShowModal(false)}>
+          <div className="space-y-3">
+            <Field label="Category (optional)">
+              <input className={inputCls} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="Terminology, Political, Competitive…" />
+            </Field>
+            <Field label="Subject (optional)">
+              <input className={inputCls} value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} placeholder="Short headline" />
+            </Field>
+            <Field label="Note">
+              <textarea className={inputCls} rows={3} value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} placeholder="What should IRIS watch for?" />
+            </Field>
+            <Field label="Severity">
+              <select className={inputCls} value={form.severity} onChange={(e) => setForm({ ...form, severity: e.target.value })}>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </Field>
+            <div className="flex justify-end gap-2 pt-2">
+              <button onClick={() => setShowModal(false)} className="rounded-[6px] border border-border px-3 py-1.5 text-xs hover:bg-surface-hover">Cancel</button>
+              <button
+                disabled={!form.note.trim() || create.isPending}
+                onClick={() => create.mutate()}
+                className="inline-flex items-center gap-1.5 rounded-[6px] bg-primary px-3 py-1.5 text-xs text-primary-foreground hover:opacity-90 disabled:opacity-50"
+              >
+                <Save className="h-3.5 w-3.5" /> Save
+              </button>
+            </div>
+          </div>
+        </ModalShell>
+      )}
     </div>
   );
 }
