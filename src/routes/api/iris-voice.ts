@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
-const IRIS_VOICE_ID = "JBFqnCBsd6RMkjVDRZzb";
-const MODEL_ID = "eleven_turbo_v2_5";
+// IRIS voice — "Elise" (warm, natural, engaging) from connected ElevenLabs account.
+const IRIS_VOICE_ID = "EST9Ui6982FZPSi7gCHi";
+const MODEL_ID = "eleven_multilingual_v2";
 
 const IrisVoiceRequest = z.object({
   text: z.string().min(1).max(5000),
