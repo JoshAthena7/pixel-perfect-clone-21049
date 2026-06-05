@@ -31,6 +31,12 @@ function uid() {
   return Math.random().toString(36).slice(2, 11);
 }
 
+function isReplayRequested() {
+  if (typeof window === "undefined") return false;
+  const url = new URL(window.location.href);
+  return url.searchParams.get("iris-demo") === "1" || url.searchParams.get("replay") === "iris";
+}
+
 function useOnboardingGate() {
   return useQuery({
     queryKey: ["iris-onboarding-gate"],
@@ -46,19 +52,25 @@ function useOnboardingGate() {
         .maybeSingle();
 
       if (!profile) return { show: false as const };
-      if (profile.has_onboarded) return { show: false as const };
+
+      const replay = isReplayRequested();
+      if (profile.has_onboarded && !replay) return { show: false as const };
 
       const firstName = (profile.display_name || "").split(" ")[0] || "operator";
 
-      const { data: existing } = await supabase
-        .from("iris_onboarding_sessions")
-        .select("id, user_id, last_module, is_complete")
-        .eq("user_id", user.id)
-        .order("started_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      // In replay mode always start a fresh session so the demo runs from Module 1.
+      let session: SessionRow | null = null;
+      if (!replay) {
+        const { data: existing } = await supabase
+          .from("iris_onboarding_sessions")
+          .select("id, user_id, last_module, is_complete")
+          .eq("user_id", user.id)
+          .order("started_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        session = existing as SessionRow | null;
+      }
 
-      let session = existing as SessionRow | null;
       if (!session) {
         const { data: created, error } = await supabase
           .from("iris_onboarding_sessions")
@@ -69,11 +81,12 @@ function useOnboardingGate() {
         session = created as SessionRow;
       }
 
-      return { show: true as const, userId: user.id, firstName, session };
+      return { show: true as const, userId: user.id, firstName, session, replay };
     },
     staleTime: Infinity,
   });
 }
+
 
 export function IrisOnboardingMount() {
   const { data, isLoading } = useOnboardingGate();
