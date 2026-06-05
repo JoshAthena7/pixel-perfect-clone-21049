@@ -6,10 +6,9 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, ChevronDown, Zap,
-  LayoutGrid, Users, FileText, ClipboardCheck, Trophy,
-  FolderOpen, Settings as SettingsIcon, UserCog, History, Brain,
+  LayoutGrid, ClipboardCheck, UserCog, History, Brain,
   UserPlus, Activity,
-  ShieldAlert, UserMinus, ExternalLink, AlertTriangle, Megaphone,
+  ShieldAlert, UserMinus, ExternalLink, Megaphone,
   Globe, Inbox, TrendingUp, Gauge, Compass,
 } from "lucide-react";
 
@@ -165,18 +164,34 @@ function MissionSwitcher({ missions, selected, onPick }: {
 
 function OlympusSidebar({ isAdmin }: { isAdmin: boolean }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const selectedMissionId = useSelectedOlympusMission();
   return (
     <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-border bg-surface">
       <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
         <SectionHeader>Mission</SectionHeader>
         <SidebarItem to="/olympus" path={path} icon={<LayoutGrid size={15} strokeWidth={1.5} />} exact>Missions</SidebarItem>
-        <SidebarItem to="/olympus/team" path={path} icon={<Users size={15} strokeWidth={1.5} />}>Team</SidebarItem>
-        <SidebarItem to="/olympus/questions" path={path} icon={<FileText size={15} strokeWidth={1.5} />}>Questions</SidebarItem>
-        <SidebarItem to="/olympus/gates" path={path} icon={<ClipboardCheck size={15} strokeWidth={1.5} />}>Gates</SidebarItem>
-        <SidebarItem to="/olympus/win-themes" path={path} icon={<Trophy size={15} strokeWidth={1.5} />}>Win Themes</SidebarItem>
-        <SidebarItem to="/olympus/sensitivities" path={path} icon={<AlertTriangle size={15} strokeWidth={1.5} />}>Sensitivities</SidebarItem>
-        <SidebarItem to="/olympus/vault" path={path} icon={<FolderOpen size={15} strokeWidth={1.5} />}>Vault</SidebarItem>
-        <SidebarItem to="/olympus/settings" path={path} icon={<SettingsIcon size={15} strokeWidth={1.5} />}>Settings</SidebarItem>
+        {selectedMissionId ? (
+          <Link
+            to="/olympus/missions/$missionId/setup"
+            params={{ missionId: selectedMissionId }}
+            className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors ${
+              path.startsWith("/olympus/missions/") && path.endsWith("/setup")
+                ? "bg-surface-hover text-foreground"
+                : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+            }`}
+          >
+            <ClipboardCheck size={15} strokeWidth={1.5} />
+            <span className="flex-1 truncate">Setup Record</span>
+          </Link>
+        ) : (
+          <div
+            className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-muted-foreground/50 cursor-not-allowed"
+            title="Select a mission above to open its setup record"
+          >
+            <ClipboardCheck size={15} strokeWidth={1.5} />
+            <span className="flex-1 truncate">Setup Record</span>
+          </div>
+        )}
 
         <IntelligenceSectionHeader />
         <IrisSidebarItem to="/olympus/intel-engine" path={path} icon={<Brain size={15} strokeWidth={1.5} />} pulse>Intel Engine</IrisSidebarItem>
