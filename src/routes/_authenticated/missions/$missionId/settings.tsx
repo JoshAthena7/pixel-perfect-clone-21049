@@ -735,7 +735,8 @@ function ModalShell({ title, onClose, children }: { title: string; onClose: () =
 type Sensitivity = {
   id: string;
   category: string | null;
-  description: string;
+  subject: string | null;
+  note: string | null;
   severity: string | null;
   created_at: string | null;
 };
@@ -743,17 +744,17 @@ type Sensitivity = {
 function SensitivitiesTab({ missionId }: { missionId: string }) {
   const qc = useQueryClient();
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ category: "", description: "", severity: "medium" });
+  const [form, setForm] = useState({ category: "", subject: "", note: "", severity: "medium" });
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["mission-sensitivities", missionId],
     queryFn: async () => {
       const { data } = await supabase
         .from("mission_sensitivities")
-        .select("id,category,description,severity,created_at")
+        .select("id,category,subject,note,severity,created_at")
         .eq("mission_id", missionId)
         .order("created_at", { ascending: false });
-      return (data ?? []) as Sensitivity[];
+      return (data ?? []) as unknown as Sensitivity[];
     },
   });
 
@@ -762,7 +763,8 @@ function SensitivitiesTab({ missionId }: { missionId: string }) {
       const { error } = await supabase.from("mission_sensitivities").insert({
         mission_id: missionId,
         category: form.category || null,
-        description: form.description,
+        subject: form.subject || null,
+        note: form.note,
         severity: form.severity,
       });
       if (error) throw error;
@@ -770,7 +772,7 @@ function SensitivitiesTab({ missionId }: { missionId: string }) {
     onSuccess: () => {
       toast.success("Sensitivity added");
       setShowModal(false);
-      setForm({ category: "", description: "", severity: "medium" });
+      setForm({ category: "", subject: "", note: "", severity: "medium" });
       qc.invalidateQueries({ queryKey: ["mission-sensitivities", missionId] });
     },
     onError: (e: any) => toast.error(e?.message ?? "Failed to add sensitivity"),
@@ -821,7 +823,8 @@ function SensitivitiesTab({ missionId }: { missionId: string }) {
                     s.severity === "high" ? "text-red-500" : s.severity === "low" ? "text-muted-foreground" : "text-amber-500"
                   }`}>{s.severity ?? "medium"}</span>
                 </div>
-                <p className="mt-1 text-sm text-foreground">{s.description}</p>
+                {s.subject && <p className="mt-1 text-sm font-medium text-foreground">{s.subject}</p>}
+                {s.note && <p className="mt-1 text-sm text-muted-foreground">{s.note}</p>}
               </div>
               <button onClick={() => remove.mutate(s.id)} className="text-muted-foreground hover:text-red-500">
                 <Trash2 className="h-3.5 w-3.5" />
@@ -832,13 +835,16 @@ function SensitivitiesTab({ missionId }: { missionId: string }) {
       )}
 
       {showModal && (
-        <Modal title="Add Sensitivity" onClose={() => setShowModal(false)}>
+        <ModalShell title="Add Sensitivity" onClose={() => setShowModal(false)}>
           <div className="space-y-3">
             <Field label="Category (optional)">
               <input className={inputCls} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="Terminology, Political, Competitive…" />
             </Field>
-            <Field label="Description">
-              <textarea className={inputCls} rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="What should IRIS watch for?" />
+            <Field label="Subject (optional)">
+              <input className={inputCls} value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} placeholder="Short headline" />
+            </Field>
+            <Field label="Note">
+              <textarea className={inputCls} rows={3} value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} placeholder="What should IRIS watch for?" />
             </Field>
             <Field label="Severity">
               <select className={inputCls} value={form.severity} onChange={(e) => setForm({ ...form, severity: e.target.value })}>
@@ -850,7 +856,7 @@ function SensitivitiesTab({ missionId }: { missionId: string }) {
             <div className="flex justify-end gap-2 pt-2">
               <button onClick={() => setShowModal(false)} className="rounded-[6px] border border-border px-3 py-1.5 text-xs hover:bg-surface-hover">Cancel</button>
               <button
-                disabled={!form.description.trim() || create.isPending}
+                disabled={!form.note.trim() || create.isPending}
                 onClick={() => create.mutate()}
                 className="inline-flex items-center gap-1.5 rounded-[6px] bg-primary px-3 py-1.5 text-xs text-primary-foreground hover:opacity-90 disabled:opacity-50"
               >
@@ -858,7 +864,7 @@ function SensitivitiesTab({ missionId }: { missionId: string }) {
               </button>
             </div>
           </div>
-        </Modal>
+        </ModalShell>
       )}
     </div>
   );
