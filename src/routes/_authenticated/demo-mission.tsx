@@ -212,13 +212,13 @@ function IntelligenceHighlights() {
 }
 
 /* ── Sections ────────────────────────────────────────────────────────────── */
-const SECTIONS = [
+const SECTIONS: Array<{ id: string; title: string; status: string; lead: string; flagged?: boolean }> = [
   { id: "4.1", title: "Population and Needs Assessment", status: "QA Complete", lead: "Sarah Chen" },
   { id: "4.2", title: "Care Coordination Model", status: "In Review", lead: "You", flagged: true },
   { id: "4.3", title: "Provider Network Strategy", status: "Drafting", lead: "Josh Bernstein" },
   { id: "4.4", title: "Quality Management & Outcomes", status: "Drafting", lead: "Maya Patel" },
   { id: "4.5", title: "Information Systems & Data", status: "Not Started", lead: "Unassigned" },
-] as const;
+];
 
 function SectionsList() {
   return (
