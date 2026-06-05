@@ -862,7 +862,9 @@ function ResponsesList() {
   }
 
   return (
-    <div className="mx-auto max-w-[1200px] px-8 pb-32 pt-10">
+    <>
+      <MissionSetupTabs />
+      <div className="mx-auto max-w-[1200px] px-8 pb-32 pt-10">
       <div className="mb-6">
         <div className="text-[10px] font-semibold uppercase tracking-[0.32em]" style={{ color: "#3b7fff" }}>Questions</div>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">Your Workspace</h1>
