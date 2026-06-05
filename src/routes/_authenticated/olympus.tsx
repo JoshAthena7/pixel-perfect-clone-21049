@@ -262,7 +262,7 @@ function IntelligenceSectionHeader() {
         className="iris-pulse-dot"
         style={{ width: 6, height: 6, borderRadius: 999, background: "var(--iris, #22d3ee)" }}
       />
-      Intelligence
+      Oracle
     </div>
   );
 }

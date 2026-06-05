@@ -85,8 +85,8 @@ export function KeyboardShortcuts() {
           <Group title="Navigation">
             <Row keys={["g", "h"]} label="Go to The Atrium · Home" />
             <Row keys={["g", "q"]} label="Go to Questions" />
-            <Row keys={["g", "v"]} label="Go to The Vault · Documents" />
-            <Row keys={["g", "o"]} label="Go to The Oracle · Intelligence" />
+            <Row keys={["g", "v"]} label="Go to The Vault · Archive" />
+            <Row keys={["g", "o"]} label="Go to The Oracle · Live Intelligence" />
             <Row keys={["/"]} label="Focus search" />
           </Group>
           <Group title="Questions list">

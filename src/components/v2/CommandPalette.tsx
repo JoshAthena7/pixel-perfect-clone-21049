@@ -139,7 +139,7 @@ export function CommandPalette() {
     }
     list.push(
       { id: "g-home", group: "Global", label: "Atrium", hint: "Home", icon: <Home size={14} />, onGo: () => navigate({ to: "/home" }) },
-      { id: "g-intel", group: "Global", label: "Intelligence Hub", hint: "All knowledge layers", icon: <Brain size={14} className="text-[color:var(--iris,#22d3ee)]" />,
+      { id: "g-intel", group: "Global", label: "The Oracle", hint: "Live intelligence · all layers", icon: <Brain size={14} className="text-[color:var(--iris,#22d3ee)]" />,
         onGo: () => navigate({ to: "/intelligence" }) },
     );
     for (const m of missions.slice(0, 5)) {

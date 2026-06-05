@@ -194,7 +194,7 @@ function VaultPage() {
             params={{ missionId }}
             className="text-xs text-muted-foreground hover:text-foreground underline"
           >
-            Full Library →
+            Open full Vault →
           </Link>
         </div>
       </header>

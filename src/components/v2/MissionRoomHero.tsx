@@ -125,7 +125,7 @@ export function MissionRoomHero({ missionId }: { missionId: string }) {
             className="absolute right-7 top-7 inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase"
             style={{ letterSpacing: "0.2em", color: "rgba(34,211,238,0.6)" }}
           >
-            <span className="iris-pulse-dot" /> Intelligence
+            <span className="iris-pulse-dot" /> Live · IRIS
           </span>
 
           <OracleIcon size={48} active className="h-12 w-12" />

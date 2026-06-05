@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/intelligence")({
   component: IntelligenceHub,
   head: () => ({
     meta: [
-      { title: "The Oracle (Intelligence Hub) — Athena" },
+      { title: "The Oracle — Athena" },
       { name: "description", content: "Athena's permanent knowledge infrastructure across five layers." },
     ],
   }),
@@ -81,7 +81,7 @@ function IntelligenceHub() {
               className="mt-2 text-white display-tight"
               style={{ fontSize: 32 }}
             >
-              ⚡ The Oracle <span className="text-muted-foreground font-normal">(Intelligence Hub)</span>
+              ⚡ The Oracle <span className="text-muted-foreground font-normal text-[18px]">· Live Intelligence</span>
             </h1>
             <p className="mt-2 max-w-2xl text-[13px] text-muted-foreground">
               Athena's permanent knowledge infrastructure. Every source. Every program. Every lesson learned.
