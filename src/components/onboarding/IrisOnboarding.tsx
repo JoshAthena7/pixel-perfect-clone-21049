@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { synthesizeIrisLine } from "@/lib/iris-voice.functions";
 import {
   IRIS_SCRIPTS,
   MODULE_NAMES,
@@ -121,7 +119,6 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const spokenForModule = useRef<number | null>(null);
-  const speakLine = useServerFn(synthesizeIrisLine);
 
   const script = IRIS_SCRIPTS[currentModule];
   const card = MODULE_CARDS[currentModule];
@@ -158,13 +155,28 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
     let cancelled = false;
     (async () => {
       try {
-        const { audioBase64, mimeType } = await speakLine({ data: { text: greetedScript } });
-        if (cancelled || muted || !audioBase64) return;
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData.session?.access_token;
+        if (!token) return;
+
+        const response = await fetch("/api/iris-voice", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ text: greetedScript }),
+        });
+
+        if (!response.ok || cancelled || muted) return;
         if (audioRef.current) {
           audioRef.current.pause();
           audioRef.current = null;
         }
-        const audio = new Audio(`data:${mimeType};base64,${audioBase64}`);
+        const audioUrl = URL.createObjectURL(await response.blob());
+        const audio = new Audio(audioUrl);
+        audio.onended = () => URL.revokeObjectURL(audioUrl);
+        audio.onerror = () => URL.revokeObjectURL(audioUrl);
         audioRef.current = audio;
         audio.play().catch(() => {});
       } catch {
@@ -175,7 +187,7 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
     return () => {
       cancelled = true;
     };
-  }, [currentModule, greetedScript, muted, speakLine]);
+  }, [currentModule, greetedScript, muted]);
 
   async function logModuleCleared(n: number) {
     const qs = questionsAsked[n] || [];
