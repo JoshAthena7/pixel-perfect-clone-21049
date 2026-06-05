@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedPipelineHorizonRouteImport } from './routes/_authenticated/pipeline-horizon'
 import { Route as AuthenticatedPathfinderRouteImport } from './routes/_authenticated/pathfinder'
 import { Route as AuthenticatedOlympusRouteImport } from './routes/_authenticated/olympus'
+import { Route as AuthenticatedIrisDemoRouteImport } from './routes/_authenticated/iris-demo'
 import { Route as AuthenticatedIntelligenceQueueRouteImport } from './routes/_authenticated/intelligence-queue'
 import { Route as AuthenticatedIntelligenceRouteImport } from './routes/_authenticated/intelligence'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
@@ -107,6 +108,11 @@ const AuthenticatedPathfinderRoute = AuthenticatedPathfinderRouteImport.update({
 const AuthenticatedOlympusRoute = AuthenticatedOlympusRouteImport.update({
   id: '/olympus',
   path: '/olympus',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedIrisDemoRoute = AuthenticatedIrisDemoRouteImport.update({
+  id: '/iris-demo',
+  path: '/iris-demo',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedIntelligenceQueueRoute =
@@ -493,6 +499,7 @@ export interface FileRoutesByFullPath {
   '/home': typeof AuthenticatedHomeRoute
   '/intelligence': typeof AuthenticatedIntelligenceRoute
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
+  '/iris-demo': typeof AuthenticatedIrisDemoRoute
   '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/pathfinder': typeof AuthenticatedPathfinderRoute
   '/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
@@ -563,6 +570,7 @@ export interface FileRoutesByTo {
   '/home': typeof AuthenticatedHomeRoute
   '/intelligence': typeof AuthenticatedIntelligenceRoute
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
+  '/iris-demo': typeof AuthenticatedIrisDemoRoute
   '/pathfinder': typeof AuthenticatedPathfinderRoute
   '/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
@@ -633,6 +641,7 @@ export interface FileRoutesById {
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/intelligence': typeof AuthenticatedIntelligenceRoute
   '/_authenticated/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
+  '/_authenticated/iris-demo': typeof AuthenticatedIrisDemoRoute
   '/_authenticated/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/_authenticated/pathfinder': typeof AuthenticatedPathfinderRoute
   '/_authenticated/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
@@ -705,6 +714,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/intelligence'
     | '/intelligence-queue'
+    | '/iris-demo'
     | '/olympus'
     | '/pathfinder'
     | '/pipeline-horizon'
@@ -775,6 +785,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/intelligence'
     | '/intelligence-queue'
+    | '/iris-demo'
     | '/pathfinder'
     | '/pipeline-horizon'
     | '/command/alignment'
@@ -844,6 +855,7 @@ export interface FileRouteTypes {
     | '/_authenticated/home'
     | '/_authenticated/intelligence'
     | '/_authenticated/intelligence-queue'
+    | '/_authenticated/iris-demo'
     | '/_authenticated/olympus'
     | '/_authenticated/pathfinder'
     | '/_authenticated/pipeline-horizon'
@@ -959,6 +971,13 @@ declare module '@tanstack/react-router' {
       path: '/olympus'
       fullPath: '/olympus'
       preLoaderRoute: typeof AuthenticatedOlympusRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/iris-demo': {
+      id: '/_authenticated/iris-demo'
+      path: '/iris-demo'
+      fullPath: '/iris-demo'
+      preLoaderRoute: typeof AuthenticatedIrisDemoRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/intelligence-queue': {
@@ -1538,6 +1557,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedIntelligenceRoute: typeof AuthenticatedIntelligenceRoute
   AuthenticatedIntelligenceQueueRoute: typeof AuthenticatedIntelligenceQueueRoute
+  AuthenticatedIrisDemoRoute: typeof AuthenticatedIrisDemoRoute
   AuthenticatedOlympusRoute: typeof AuthenticatedOlympusRouteWithChildren
   AuthenticatedPathfinderRoute: typeof AuthenticatedPathfinderRoute
   AuthenticatedPipelineHorizonRoute: typeof AuthenticatedPipelineHorizonRoute
@@ -1560,6 +1580,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedIntelligenceRoute: AuthenticatedIntelligenceRoute,
   AuthenticatedIntelligenceQueueRoute: AuthenticatedIntelligenceQueueRoute,
+  AuthenticatedIrisDemoRoute: AuthenticatedIrisDemoRoute,
   AuthenticatedOlympusRoute: AuthenticatedOlympusRouteWithChildren,
   AuthenticatedPathfinderRoute: AuthenticatedPathfinderRoute,
   AuthenticatedPipelineHorizonRoute: AuthenticatedPipelineHorizonRoute,
