@@ -129,6 +129,7 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
   const playbackPrimed = useRef(false);
   const preparedAudio = useRef<{ module: number; text: string; promise: Promise<string | null> } | null>(null);
   const voicePlaybackInFlight = useRef(false);
+  const fallbackUtterance = useRef<SpeechSynthesisUtterance | null>(null);
 
   const script = IRIS_SCRIPTS[currentModule];
   const card = MODULE_CARDS[currentModule];
@@ -230,6 +231,21 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
     }
   }
 
+  function playBrowserVoiceFallback(moduleNumber: number, text: string) {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return false;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.08;
+    utterance.pitch = 0.92;
+    utterance.volume = 1;
+    utterance.onstart = () => {
+      spokenForModule.current = moduleNumber;
+    };
+    fallbackUtterance.current = utterance;
+    window.speechSynthesis.speak(utterance);
+    return true;
+  }
+
   async function playModuleLine(moduleNumber: number, text: string, options?: { force?: boolean }) {
     if (voicePlaybackInFlight.current) return;
     if (muted && !options?.force) return;
@@ -244,10 +260,12 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
       const audioUrl = await queuedAudio;
       if (!audioUrl) {
         audioRef.current?.pause();
+        playBrowserVoiceFallback(moduleNumber, text);
         return;
       }
       const played = await playPreparedAudioUrl(audioUrl);
       if (played) spokenForModule.current = moduleNumber;
+      if (!played) playBrowserVoiceFallback(moduleNumber, text);
     } finally {
       voicePlaybackInFlight.current = false;
     }
