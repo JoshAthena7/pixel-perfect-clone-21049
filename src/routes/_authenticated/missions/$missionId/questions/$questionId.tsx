@@ -783,118 +783,23 @@ function CockpitPage() {
         className={`fixed inset-x-0 top-14 z-40 border-b ${tipStage === 1 && !isReadOnlyView ? "ring-2 ring-primary/40" : ""}`}
         style={{ background: "rgba(6,11,20,0.95)", backdropFilter: "blur(12px)", borderColor: "rgba(255,255,255,0.06)" }}
       >
-        <div
-          className="mx-auto flex max-w-[1400px] items-center gap-2 max-md:hidden"
-          style={{
-            background: "#0a1628",
-            padding: "12px 24px",
-            justifyContent: "space-between",
-          }}
-        >
-          <div className="flex flex-1 items-center" style={{ gap: 7 }}>
-            <span
-              className="mr-1 shrink-0 text-[9px] font-semibold uppercase"
-              style={{ letterSpacing: "0.2em", color: "rgba(255,255,255,0.18)" }}
-            >
-              Assists
-            </span>
+        <AssistsBar
+          disabled={isReadOnlyView}
+          primaryLabel={isSME ? "Submit SME Input" : "Update Reality"}
+          onUpdateReality={() => openUpdateReality(questionId)}
+          onScoreMe={() => { setScoreMeOpen(true); markOverflowUsed(); }}
+          onPhone={() => { setPhoneOpen(true); markOverflowUsed(); }}
+          onPulse={() => setPulseOpen(true)}
+          onThread={() => setThreadOpen(true)}
+          sosSlot={!isSME && !isReadOnlyView ? <SOSButton missionId={missionId} questionId={questionId} /> : null}
+        />
 
-            {isReadOnlyView ? (
-              <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
-                Read-only — actions disabled
-              </span>
-            ) : (
-              <>
-                {/* Update Reality (primary) */}
-                <button
-                  onClick={() => openUpdateReality(questionId)}
-                  className="inline-flex items-center justify-center gap-2 font-semibold transition"
-                  style={{
-                    height: 44, padding: "0 18px",
-                    background: "#3b7fff", border: "none", borderRadius: 9,
-                    color: "#fff", fontSize: 13, fontWeight: 700,
-                  }}
-                >
-                  <Zap className="h-4 w-4" /> {isSME ? "Submit SME Input" : "Update Reality"}
-                </button>
-
-                {!isSME && (
-                  <>
-                    {/* Score Me */}
-                    <button
-                      onClick={() => { setScoreMeOpen(true); markOverflowUsed(); }}
-                      className="inline-flex items-center justify-center gap-2 font-semibold transition"
-                      style={{
-                        height: 44, padding: "0 16px",
-                        background: "rgba(16,185,129,0.10)",
-                        border: "1.5px solid rgba(16,185,129,0.32)",
-                        borderRadius: 9, color: "#10b981",
-                        fontSize: 13, fontWeight: 600,
-                      }}
-                    >
-                      <Target className="h-4 w-4" /> Score Me
-                    </button>
-
-                    {/* Phone a Friend */}
-                    <button
-                      onClick={() => { setPhoneOpen(true); markOverflowUsed(); }}
-                      className="inline-flex items-center justify-center gap-2 font-semibold transition"
-                      style={{
-                        height: 44, padding: "0 16px",
-                        background: "rgba(124,58,237,0.10)",
-                        border: "1.5px solid rgba(124,58,237,0.30)",
-                        borderRadius: 9, color: "#a78bfa",
-                        fontSize: 13, fontWeight: 600,
-                      }}
-                    >
-                      <Phone className="h-4 w-4" /> Phone a Friend
-                    </button>
-
-                    {/* Daily Pulse */}
-                    <button
-                      onClick={() => setPulseOpen(true)}
-                      className="inline-flex items-center justify-center gap-2 font-semibold transition"
-                      style={{
-                        height: 44, padding: "0 16px",
-                        background: "rgba(236,72,153,0.10)",
-                        border: "1.5px solid rgba(236,72,153,0.30)",
-                        borderRadius: 9, color: "#f472b6",
-                        fontSize: 13, fontWeight: 600,
-                      }}
-                    >
-                      <Heart className="h-4 w-4" /> Daily Pulse
-                    </button>
-
-                    {/* Thread */}
-                    <button
-                      onClick={() => setThreadOpen(true)}
-                      className="inline-flex items-center justify-center gap-2 font-semibold transition"
-                      style={{
-                        height: 44, padding: "0 16px",
-                        background: "rgba(20,184,166,0.12)",
-                        border: "1.5px solid rgba(20,184,166,0.35)",
-                        borderRadius: 9, color: "#14b8a6",
-                        fontSize: 13, fontWeight: 600,
-                      }}
-                    >
-                      <MessageSquare className="h-4 w-4" /> Thread
-                    </button>
-
-                    {/* SOS — inline */}
-                    <SOSButton missionId={missionId} questionId={questionId} />
-                  </>
-                )}
-              </>
-            )}
+        {/* First-visit tooltip pointing at the action bar */}
+        {tipStage === 1 && !isReadOnlyView && (
+          <div className="pointer-events-none absolute left-1/2 top-0 z-50 -translate-x-1/2 -translate-y-[110%]">
+            <FirstVisitTooltip>This is how you talk to your team.</FirstVisitTooltip>
           </div>
-
-          {/* First-visit tooltip pointing at the action bar */}
-          {tipStage === 1 && !isReadOnlyView && (
-            <div className="pointer-events-none absolute left-1/2 top-0 z-50 -translate-x-1/2 -translate-y-[110%]">
-              <FirstVisitTooltip>This is how you talk to your team.</FirstVisitTooltip>
-            </div>
-          )}
-        </div>
+        )}
 
         {/* Daily Pulse drawer */}
         <Sheet open={pulseOpen} onOpenChange={setPulseOpen}>
@@ -907,6 +812,7 @@ function CockpitPage() {
             </div>
           </SheetContent>
         </Sheet>
+
 
 
         <style>{`
