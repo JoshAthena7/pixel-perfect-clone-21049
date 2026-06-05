@@ -46,23 +46,21 @@ export const generateInitialBriefing = createServerFn({ method: "POST" })
       highRiskCategories: (criteria.data ?? []).filter((c) => c.competitive_risk === "high").map((c) => `${c.category} (${c.points} pts)`),
     });
 
-    const { error } = await supabase.from("briefings").insert({
-      mission_id: missionId,
-      briefing_type: "initial",
-      title: `Initial IRIS Briefing — ${m.name}`,
-      body,
+    // Primary surface: iris_brief_cache (structured store).
+    await supabase.from("iris_brief_cache").upsert({
+      scope: "mission",
+      ref_id: missionId,
+      brief_text: body,
       generated_at: new Date().toISOString(),
-    } as any);
-    // Briefings table may have a different shape across environments; if the
-    // insert fails (e.g. RLS or missing columns), don't fail the launch.
-    if (error) {
-      // Fallback: write as a broadcast so the team still sees something.
-      await supabase.from("broadcasts").insert({
-        mission_id: missionId,
-        from_name: "IRIS",
-        text: `Initial Briefing\n\n${body.slice(0, 2000)}`,
-      });
-    }
+    } as any, { onConflict: "scope,ref_id,user_id" }).then(() => null, () => null);
+
+    // Secondary surface: broadcast pinned to the Brief Room feed.
+    await supabase.from("broadcasts").insert({
+      mission_id: missionId,
+      from_name: "IRIS",
+      text: `📋 Initial Briefing\n\n${body.slice(0, 4000)}`,
+    });
+
     return { ok: true };
   });
 
