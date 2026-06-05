@@ -382,6 +382,7 @@ function FocusItem({
 function AssistsRow({
   missionId,
   suggestedId,
+  anyQuestionId,
   openSOS: _openSOS,
   openScore,
   openPhone,
@@ -390,27 +391,29 @@ function AssistsRow({
 }: {
   missionId: string;
   suggestedId: string | null;
+  anyQuestionId: string | null;
   openSOS: () => void;
   openScore: () => void;
   openPhone: () => void;
   openPulse: () => void;
   openThread: () => void;
 }) {
+  const targetId = suggestedId ?? anyQuestionId;
   return (
     <section className="rounded-[12px] border border-border bg-surface overflow-hidden">
       <AssistsBar
-        onUpdateReality={() => openUpdateReality(suggestedId)}
+        onUpdateReality={() => openUpdateReality(targetId)}
         onScoreMe={openScore}
         onPhone={() => {
-          if (!suggestedId) { toast("Pick a question first to use Phone a Friend"); return; }
+          if (!targetId) { toast("Add a question to this mission to use Phone a Friend"); return; }
           openPhone();
         }}
         onPulse={openPulse}
         onThread={() => {
-          if (!suggestedId) { toast("Open a question to use Thread"); return; }
+          if (!targetId) { toast("Add a question to this mission to use Thread"); return; }
           openThread();
         }}
-        sosSlot={<SOSButton missionId={missionId} questionId={suggestedId ?? undefined} />}
+        sosSlot={<SOSButton missionId={missionId} questionId={targetId ?? undefined} />}
       />
     </section>
   );
