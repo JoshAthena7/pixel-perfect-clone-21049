@@ -122,6 +122,23 @@ function MissionBrief() {
     return c;
   }, [questions]);
 
+  /* win themes */
+  const { data: winThemes = [] } = useQuery({
+    queryKey: ["mb-win-themes", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("win_themes")
+        .select("id,title,description,key_message,question_ids,status")
+        .eq("mission_id", missionId)
+        .neq("status", "archived")
+        .order("created_at", { ascending: true });
+      return (data ?? []) as Array<{
+        id: string; title: string; description: string | null;
+        key_message: string | null; question_ids: string[] | null; status: string | null;
+      }>;
+    },
+  });
+
   /* mission leadership */
   const { data: members = [] } = useQuery({
     queryKey: ["mb-members", missionId],
@@ -836,7 +853,50 @@ function MissionBrief() {
           </div>
         </section>
 
-        {/* SECTION 7: LEADERSHIP NOTES */}
+        {/* SECTION 7: WIN THEMES */}
+        <section>
+          <SectionHeader
+            title="Win Themes"
+            action={
+              <Link
+                to="/missions/$missionId/overview"
+                params={{ missionId }}
+                className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] font-medium hover:bg-white/[0.06]"
+              >
+                Manage <ArrowRight className="h-3 w-3" />
+              </Link>
+            }
+          />
+          {winThemes.length === 0 ? (
+            <div className="rounded-[12px] border border-dashed border-white/10 bg-white/[0.02] px-5 py-5 text-sm text-muted-foreground">
+              No win themes defined yet.
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {winThemes.map((t) => {
+                const total = questions.length || 1;
+                const linked = (t.question_ids ?? []).filter((id) => questions.some((q) => q.id === id));
+                const coverage = Math.min(100, (linked.length / total) * 100);
+                const tone = coverage > 80 ? "bg-emerald-400" : coverage >= 40 ? "bg-amber-400" : "bg-destructive";
+                return (
+                  <div key={t.id} className="rounded-[12px] border border-white/5 bg-white/[0.02] p-4">
+                    <div className="text-sm font-semibold">{t.title}</div>
+                    {t.key_message && (
+                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{t.key_message}</p>
+                    )}
+                    <div className="mt-3 flex items-center gap-2">
+                      <div className="h-1.5 flex-1 rounded-full bg-white/5 overflow-hidden">
+                        <div className={`h-full ${tone}`} style={{ width: `${coverage}%` }} />
+                      </div>
+                      <span className="text-[11px] text-muted-foreground">{linked.length}/{questions.length}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
         <section>
           <SectionHeader
             title="Leadership Notes"
