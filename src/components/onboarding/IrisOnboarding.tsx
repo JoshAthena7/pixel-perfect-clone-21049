@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { synthesizeIrisLine } from "@/lib/iris-voice.functions";
 import {
   IRIS_SCRIPTS,
   MODULE_NAMES,
@@ -11,6 +13,8 @@ import {
   type QuickReply,
 } from "@/lib/iris-onboarding-scripts";
 import { Check, Lock, Volume2, VolumeX, Send } from "lucide-react";
+
+const MUTE_STORAGE_KEY = "iris.voice.muted";
 
 type ChatMessage =
   | { id: string; from: "iris"; text: string; module?: number; card?: { title: string; body: string } | null }
@@ -101,9 +105,60 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [questionsAsked, setQuestionsAsked] = useState<Record<number, string[]>>({});
   const [input, setInput] = useState("");
-  const [muted, setMuted] = useState(false);
+  const [muted, setMuted] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem(MUTE_STORAGE_KEY) === "1";
+  });
   const [busy, setBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const spokenIdsRef = useRef<Set<string>>(new Set());
+  const speakLine = useServerFn(synthesizeIrisLine);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(MUTE_STORAGE_KEY, muted ? "1" : "0");
+    }
+    if (muted && audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+  }, [muted]);
+
+  // Narrate the latest IRIS message
+  useEffect(() => {
+    if (muted) return;
+    const last = messages[messages.length - 1];
+    if (!last || last.from !== "iris") return;
+    if (spokenIdsRef.current.has(last.id)) return;
+    spokenIdsRef.current.add(last.id);
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const { audioBase64, mimeType } = await speakLine({ data: { text: last.text } });
+        if (cancelled || muted) return;
+        // Stop any previous line
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current = null;
+        }
+        const audio = new Audio(`data:${mimeType};base64,${audioBase64}`);
+        audioRef.current = audio;
+        audio.play().catch(() => {
+          // Autoplay blocked — user can click Unmute / interact to enable
+        });
+      } catch (err) {
+        // Silent fallback per spec — text still renders
+        console.warn("IRIS voice unavailable", err);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages, muted]);
 
   // Seed initial IRIS message for current module
   useEffect(() => {
