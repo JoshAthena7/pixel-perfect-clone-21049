@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { MissionSetupTabs } from "@/components/v2/MissionSetupTabs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState, useRef, useEffect } from "react";
-import { ChevronDown, ChevronRight, Filter as FilterIcon, Check, Sparkles, MoreHorizontal, FileText, Phone, LifeBuoy } from "lucide-react";
+import { ChevronDown, ChevronRight, Filter as FilterIcon, Check, Sparkles, MoreHorizontal, FileText, LifeBuoy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PensDownCountdown, daysUntil } from "@/lib/countdowns";
 import { toast } from "sonner";
