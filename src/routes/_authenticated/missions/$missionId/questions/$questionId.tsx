@@ -350,6 +350,7 @@ function CockpitPage() {
   const [overflowOpen, setOverflowOpen] = useState(false);
   const [phoneOpen, setPhoneOpen] = useState(false);
   const [pulseOpen, setPulseOpen] = useState(false);
+  const [threadOpen, setThreadOpen] = useState(false);
   useEffect(() => {
     const onOpen = () => setPhoneOpen(true);
     window.addEventListener("atlas:open-phone-a-friend", onOpen);
@@ -507,7 +508,13 @@ function CockpitPage() {
 
   return (
     <div style={{ background: "#0a0e1a", minHeight: "100vh" }} className="text-foreground">
-      <ThreadsLauncher questionId={questionId} />
+      <ThreadsLauncher onOpen={() => setThreadOpen(true)} />
+      <ThreadPanel
+        open={threadOpen}
+        onClose={() => setThreadOpen(false)}
+        objectType="question_record"
+        objectId={questionId}
+      />
       {isReadOnlyView && (
         <div
           className="sticky top-0 z-40 flex h-10 items-center justify-between gap-3 border-b px-10 text-[12px]"
