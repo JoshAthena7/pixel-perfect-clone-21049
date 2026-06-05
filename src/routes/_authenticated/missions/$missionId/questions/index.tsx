@@ -1017,6 +1017,7 @@ function ResponsesList() {
           onClose={() => setDrawerQ(null)}
         />
       )}
-    </div>
+      </div>
+    </>
   );
 }
