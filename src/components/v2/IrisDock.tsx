@@ -207,6 +207,49 @@ export function IrisDock() {
   );
 }
 
+function IngestionBadge({ missionId }: { missionId: string | null }) {
+  const fetchCounts = useServerFn(getIrisIngestionCounts);
+  const { data } = useQuery({
+    queryKey: ["iris-ingestion-counts", missionId],
+    queryFn: () => fetchCounts({ data: { missionId } }),
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
+  });
+
+  const chips: Array<{ label: string; n: number; tone: string }> = [
+    { label: "Canon", n: data?.canon ?? 0, tone: "var(--athena-gold,#f59e0b)" },
+    { label: "Oracle", n: data?.oracle ?? 0, tone: "var(--oracle-active,#22d3ee)" },
+    { label: "Vault", n: data?.vault ?? 0, tone: "#a78bfa" },
+    { label: "Memory", n: data?.memories ?? 0, tone: "#34d399" },
+    { label: "State", n: data?.stateIntel ?? 0, tone: "#60a5fa" },
+    { label: "Program", n: data?.programIntel ?? 0, tone: "#f472b6" },
+  ];
+
+  return (
+    <div
+      className="flex flex-wrap items-center gap-1.5 border-b px-4 py-2"
+      style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(34,211,238,0.02)" }}
+      title="Live count of intelligence layers IRIS is ingesting on every prompt"
+    >
+      <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Ingesting</span>
+      {chips.map((c) => (
+        <span
+          key={c.label}
+          className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold"
+          style={{
+            borderColor: c.n > 0 ? `${c.tone}` : "rgba(255,255,255,0.08)",
+            color: c.n > 0 ? c.tone : "rgba(255,255,255,0.35)",
+            background: c.n > 0 ? `color-mix(in oklab, ${c.tone} 8%, transparent)` : "transparent",
+          }}
+        >
+          <span className="opacity-70">{c.label}</span>
+          <span className="tabular-nums">{c.n}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function AskIrisFeedback({
   text,
   missionId,
