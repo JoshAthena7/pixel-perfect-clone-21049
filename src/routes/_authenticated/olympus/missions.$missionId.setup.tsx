@@ -6,14 +6,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   CheckCircle2, Circle, Plus, Trash2, Upload, Rocket, ChevronDown, ChevronRight,
-  Lock, ArrowRight, X,
+  Lock, ArrowRight, X, Radar, Tag,
 } from "lucide-react";
 import { launchMission } from "@/lib/mission-setup.functions";
+import { seedMonitoringWatchlist, saveMonitoringSource, deleteMonitoringSource } from "@/lib/mission-monitoring.functions";
+import { saveEvaluationCriteria, saveExpertiseTag, removeExpertiseTag } from "@/lib/mission-evaluation.functions";
+import { LaunchSequence } from "@/components/olympus/LaunchSequence";
 import { useIsAdmin } from "@/hooks/useAccess";
 
 export const Route = createFileRoute("/_authenticated/olympus/missions/$missionId/setup")({
   component: MissionSetupRecord,
 });
+
 
 /* ────────────────────────────────────────────────────────────
    Section spec — order matters; ids are anchor targets.

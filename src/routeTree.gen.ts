@@ -63,6 +63,7 @@ import { Route as AuthenticatedCommandAlignmentConflictsRouteImport } from './ro
 import { Route as AuthenticatedCommandAlignmentRouteImport } from './routes/_authenticated/command/alignment'
 import { Route as AuthenticatedMissionsMissionIdIndexRouteImport } from './routes/_authenticated/missions/$missionId/index'
 import { Route as ApiPublicHooksRefreshIntelligenceRouteImport } from './routes/api/public/hooks/refresh-intelligence'
+import { Route as ApiPublicHooksIrisMonitorRouteImport } from './routes/api/public/hooks/iris-monitor'
 import { Route as ApiPublicHooksIngestIntelRouteImport } from './routes/api/public/hooks/ingest-intel'
 import { Route as ApiPublicHooksBackfillVaultExtractionsRouteImport } from './routes/api/public/hooks/backfill-vault-extractions'
 import { Route as ApiPublicHooksBackfillResearchEmbeddingsRouteImport } from './routes/api/public/hooks/backfill-research-embeddings'
@@ -398,6 +399,12 @@ const ApiPublicHooksRefreshIntelligenceRoute =
     path: '/api/public/hooks/refresh-intelligence',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksIrisMonitorRoute =
+  ApiPublicHooksIrisMonitorRouteImport.update({
+    id: '/api/public/hooks/iris-monitor',
+    path: '/api/public/hooks/iris-monitor',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksIngestIntelRoute =
   ApiPublicHooksIngestIntelRouteImport.update({
     id: '/api/public/hooks/ingest-intel',
@@ -595,6 +602,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/backfill-research-embeddings': typeof ApiPublicHooksBackfillResearchEmbeddingsRoute
   '/api/public/hooks/backfill-vault-extractions': typeof ApiPublicHooksBackfillVaultExtractionsRoute
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
+  '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
@@ -669,6 +677,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/backfill-research-embeddings': typeof ApiPublicHooksBackfillResearchEmbeddingsRoute
   '/api/public/hooks/backfill-vault-extractions': typeof ApiPublicHooksBackfillVaultExtractionsRoute
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
+  '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
@@ -747,6 +756,7 @@ export interface FileRoutesById {
   '/api/public/hooks/backfill-research-embeddings': typeof ApiPublicHooksBackfillResearchEmbeddingsRoute
   '/api/public/hooks/backfill-vault-extractions': typeof ApiPublicHooksBackfillVaultExtractionsRoute
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
+  '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/_authenticated/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/_authenticated/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
@@ -825,6 +835,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/backfill-research-embeddings'
     | '/api/public/hooks/backfill-vault-extractions'
     | '/api/public/hooks/ingest-intel'
+    | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/refresh-intelligence'
     | '/missions/$missionId/'
     | '/missions/$missionId/questions/$questionId'
@@ -899,6 +910,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/backfill-research-embeddings'
     | '/api/public/hooks/backfill-vault-extractions'
     | '/api/public/hooks/ingest-intel'
+    | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/refresh-intelligence'
     | '/missions/$missionId'
     | '/missions/$missionId/questions/$questionId'
@@ -976,6 +988,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/backfill-research-embeddings'
     | '/api/public/hooks/backfill-vault-extractions'
     | '/api/public/hooks/ingest-intel'
+    | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/refresh-intelligence'
     | '/_authenticated/missions/$missionId/'
     | '/_authenticated/missions/$missionId/questions/$questionId'
@@ -993,6 +1006,7 @@ export interface RootRouteChildren {
   ApiPublicHooksBackfillResearchEmbeddingsRoute: typeof ApiPublicHooksBackfillResearchEmbeddingsRoute
   ApiPublicHooksBackfillVaultExtractionsRoute: typeof ApiPublicHooksBackfillVaultExtractionsRoute
   ApiPublicHooksIngestIntelRoute: typeof ApiPublicHooksIngestIntelRoute
+  ApiPublicHooksIrisMonitorRoute: typeof ApiPublicHooksIrisMonitorRoute
   ApiPublicHooksRefreshIntelligenceRoute: typeof ApiPublicHooksRefreshIntelligenceRoute
 }
 
@@ -1376,6 +1390,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksRefreshIntelligenceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/iris-monitor': {
+      id: '/api/public/hooks/iris-monitor'
+      path: '/api/public/hooks/iris-monitor'
+      fullPath: '/api/public/hooks/iris-monitor'
+      preLoaderRoute: typeof ApiPublicHooksIrisMonitorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/ingest-intel': {
       id: '/api/public/hooks/ingest-intel'
       path: '/api/public/hooks/ingest-intel'
@@ -1725,6 +1746,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksBackfillVaultExtractionsRoute:
     ApiPublicHooksBackfillVaultExtractionsRoute,
   ApiPublicHooksIngestIntelRoute: ApiPublicHooksIngestIntelRoute,
+  ApiPublicHooksIrisMonitorRoute: ApiPublicHooksIrisMonitorRoute,
   ApiPublicHooksRefreshIntelligenceRoute:
     ApiPublicHooksRefreshIntelligenceRoute,
 }
