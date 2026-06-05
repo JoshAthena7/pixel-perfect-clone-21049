@@ -796,180 +796,195 @@ function MissionBrief() {
           )}
         </section>
 
-        {/* SECTION 6: WHAT CHANGED */}
-        <section>
-          <SectionHeader
-            title="What Changed"
-            hint="Last 24 hours"
-            action={
-              <button
-                onClick={() => setBroadcastOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] font-medium hover:bg-white/[0.06]"
-              >
-                <Radio className="h-3 w-3" /> Broadcast to Team
-              </button>
-            }
-          />
-          <div className="rounded-[12px] border border-white/5 bg-white/[0.02]">
-            {signals.length === 0 ? (
-              <div className="px-5 py-5 text-sm text-muted-foreground">
-                No signals today.
-                <button
-                  onClick={() => setBroadcastOpen(true)}
-                  className="ml-2 text-primary hover:underline"
-                >
-                  Send a check-in reminder →
-                </button>
-              </div>
-            ) : (
-              <ul className="divide-y divide-white/5">
-                {visibleSignals.map((s) => (
-                  <SignalRow
-                    key={s.id}
-                    s={s}
-                    profile={s.user_id ? signalProfById[s.user_id] : undefined}
-                    questionLookup={questions}
-                  />
-                ))}
-                {signals.length > 8 && (
-                  <li className="px-5 py-2 text-center">
-                    <button
-                      onClick={() => setSignalsExpanded((v) => !v)}
-                      className="text-[12px] text-muted-foreground hover:text-foreground"
-                    >
-                      {signalsExpanded ? "Show less ↑" : `View all ${signals.length} →`}
-                    </button>
-                  </li>
-                )}
-              </ul>
-            )}
-          </div>
-        </section>
-
-        {/* SECTION 7: WIN THEMES */}
-        <section>
-          <SectionHeader
-            title="Win Themes"
-            action={
-              <Link
-                to="/missions/$missionId/overview"
-                params={{ missionId }}
-                className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] font-medium hover:bg-white/[0.06]"
-              >
-                Manage <ArrowRight className="h-3 w-3" />
-              </Link>
-            }
-          />
-          {winThemes.length === 0 ? (
-            <div className="rounded-[12px] border border-dashed border-white/10 bg-white/[0.02] px-5 py-5 text-sm text-muted-foreground">
-              No win themes defined yet.
-            </div>
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {winThemes.map((t) => {
-                const total = questions.length || 1;
-                const linked = (t.question_ids ?? []).filter((id) => questions.some((q) => q.id === id));
-                const coverage = Math.min(100, (linked.length / total) * 100);
-                const tone = coverage > 80 ? "bg-emerald-400" : coverage >= 40 ? "bg-amber-400" : "bg-destructive";
-                return (
-                  <div key={t.id} className="rounded-[12px] border border-white/5 bg-white/[0.02] p-4">
-                    <div className="text-sm font-semibold">{t.title}</div>
-                    {t.key_message && (
-                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{t.key_message}</p>
-                    )}
-                    <div className="mt-3 flex items-center gap-2">
-                      <div className="h-1.5 flex-1 rounded-full bg-white/5 overflow-hidden">
-                        <div className={`h-full ${tone}`} style={{ width: `${coverage}%` }} />
-                      </div>
-                      <span className="text-[11px] text-muted-foreground">{linked.length}/{questions.length}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-        <section>
-          <SectionHeader
-            title="Leadership Notes"
-            action={
-              <button
-                onClick={() => setAddNoteOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] font-medium hover:bg-white/[0.06]"
-              >
-                <Plus className="h-3 w-3" /> Add Note
-              </button>
-            }
-          />
-          <div className="rounded-[12px] border border-white/5 bg-white/[0.02]">
-            {notes.length === 0 ? (
-              <div className="px-5 py-5 text-sm text-muted-foreground">No leadership notes yet.</div>
-            ) : (
-              <ul className="divide-y divide-white/5">
-                {notes.slice(0, 3).map((n) => (
-                  <li key={n.id} className="px-5 py-3">
-                    <div className="flex items-center gap-2.5">
-                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-[10px] font-semibold uppercase text-muted-foreground">
-                        {initials(n.author_name)}
-                      </span>
-                      <span className="text-sm font-medium">{firstName(n.author_name)}</span>
-                      <span className="text-border">·</span>
-                      <span className="text-[11px] text-muted-foreground">{timeAgo(n.created_at)}</span>
-                    </div>
-                    <p className="mt-2 ml-9 whitespace-pre-wrap text-sm text-foreground">{n.body}</p>
-                  </li>
-                ))}
-                {notes.length > 3 && (
-                  <li className="px-5 py-2 text-center">
-                    <Link
-                      to="/missions/$missionId/overview"
-                      params={{ missionId }}
-                      className="text-[12px] text-muted-foreground hover:text-foreground"
-                    >
-                      View all {notes.length} →
-                    </Link>
-                  </li>
-                )}
-              </ul>
-            )}
-          </div>
-        </section>
-
-        {/* BOTTOM CTA CARDS */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <Link
-            to="/missions/$missionId/overview"
-            params={{ missionId }}
-            className="group rounded-[12px] border p-5 transition hover:bg-[rgba(245,158,11,0.06)]"
-            style={{ background: "rgba(245,158,11,0.04)", borderColor: "rgba(245,158,11,0.25)" }}
+        {/* COLLAPSED: signals, themes, notes — secondary context, not the leader's focus */}
+        <div className="border-t border-white/5 pt-6">
+          <button
+            type="button"
+            onClick={() => setMoreOpen((v) => !v)}
+            className="flex w-full items-center justify-between text-left text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors"
+            aria-expanded={moreOpen}
           >
-            <div className="text-[12px] font-semibold uppercase tracking-[0.2em]" style={{ color: "#fbbf24" }}>
-              🏛 Mission Room
-            </div>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Documents, intel, full question map, team, timeline.
-            </p>
-            <div className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-semibold" style={{ color: "#fbbf24" }}>
-              Open <ArrowRight className="h-3.5 w-3.5" />
-            </div>
-          </Link>
+            <span className="inline-flex items-center gap-3">
+              <span>More context</span>
+              <span className="text-[10px] tracking-[0.14em] text-muted-foreground/70">
+                Signals · Win Themes · Leadership Notes
+              </span>
+            </span>
+            <span className="text-[12px]">{moreOpen ? "Hide ↑" : "Show ↓"}</span>
+          </button>
+        </div>
+
+        {moreOpen && (
+          <>
+            {/* SECTION 6: WHAT CHANGED */}
+            <section>
+              <SectionHeader
+                title="What Changed"
+                hint="Last 24 hours"
+                action={
+                  <button
+                    onClick={() => setBroadcastOpen(true)}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] font-medium hover:bg-white/[0.06]"
+                  >
+                    <Radio className="h-3 w-3" /> Broadcast to Team
+                  </button>
+                }
+              />
+              <div className="rounded-[12px] border border-white/5 bg-white/[0.02]">
+                {signals.length === 0 ? (
+                  <div className="px-5 py-5 text-sm text-muted-foreground">
+                    No signals today.
+                    <button
+                      onClick={() => setBroadcastOpen(true)}
+                      className="ml-2 text-primary hover:underline"
+                    >
+                      Send a check-in reminder →
+                    </button>
+                  </div>
+                ) : (
+                  <ul className="divide-y divide-white/5">
+                    {visibleSignals.map((s) => (
+                      <SignalRow
+                        key={s.id}
+                        s={s}
+                        profile={s.user_id ? signalProfById[s.user_id] : undefined}
+                        questionLookup={questions}
+                      />
+                    ))}
+                    {signals.length > 8 && (
+                      <li className="px-5 py-2 text-center">
+                        <button
+                          onClick={() => setSignalsExpanded((v) => !v)}
+                          className="text-[12px] text-muted-foreground hover:text-foreground"
+                        >
+                          {signalsExpanded ? "Show less ↑" : `View all ${signals.length} →`}
+                        </button>
+                      </li>
+                    )}
+                  </ul>
+                )}
+              </div>
+            </section>
+
+            {/* SECTION 7: WIN THEMES */}
+            <section>
+              <SectionHeader
+                title="Win Themes"
+                action={
+                  <Link
+                    to="/missions/$missionId/overview"
+                    params={{ missionId }}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] font-medium hover:bg-white/[0.06]"
+                  >
+                    Manage <ArrowRight className="h-3 w-3" />
+                  </Link>
+                }
+              />
+              {winThemes.length === 0 ? (
+                <div className="rounded-[12px] border border-dashed border-white/10 bg-white/[0.02] px-5 py-5 text-sm text-muted-foreground">
+                  No win themes defined yet.
+                </div>
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {winThemes.map((t) => {
+                    const total = questions.length || 1;
+                    const linked = (t.question_ids ?? []).filter((id) => questions.some((q) => q.id === id));
+                    const coverage = Math.min(100, (linked.length / total) * 100);
+                    const tone = coverage > 80 ? "bg-emerald-400" : coverage >= 40 ? "bg-amber-400" : "bg-destructive";
+                    return (
+                      <div key={t.id} className="rounded-[12px] border border-white/5 bg-white/[0.02] p-4">
+                        <div className="text-sm font-semibold">{t.title}</div>
+                        {t.key_message && (
+                          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{t.key_message}</p>
+                        )}
+                        <div className="mt-3 flex items-center gap-2">
+                          <div className="h-1.5 flex-1 rounded-full bg-white/5 overflow-hidden">
+                            <div className={`h-full ${tone}`} style={{ width: `${coverage}%` }} />
+                          </div>
+                          <span className="text-[11px] text-muted-foreground">{linked.length}/{questions.length}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+
+            <section>
+              <SectionHeader
+                title="Leadership Notes"
+                action={
+                  <button
+                    onClick={() => setAddNoteOpen(true)}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] font-medium hover:bg-white/[0.06]"
+                  >
+                    <Plus className="h-3 w-3" /> Add Note
+                  </button>
+                }
+              />
+              <div className="rounded-[12px] border border-white/5 bg-white/[0.02]">
+                {notes.length === 0 ? (
+                  <div className="px-5 py-5 text-sm text-muted-foreground">No leadership notes yet.</div>
+                ) : (
+                  <ul className="divide-y divide-white/5">
+                    {notes.slice(0, 3).map((n) => (
+                      <li key={n.id} className="px-5 py-3">
+                        <div className="flex items-center gap-2.5">
+                          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-[10px] font-semibold uppercase text-muted-foreground">
+                            {initials(n.author_name)}
+                          </span>
+                          <span className="text-sm font-medium">{firstName(n.author_name)}</span>
+                          <span className="text-border">·</span>
+                          <span className="text-[11px] text-muted-foreground">{timeAgo(n.created_at)}</span>
+                        </div>
+                        <p className="mt-2 ml-9 whitespace-pre-wrap text-sm text-foreground">{n.body}</p>
+                      </li>
+                    ))}
+                    {notes.length > 3 && (
+                      <li className="px-5 py-2 text-center">
+                        <Link
+                          to="/missions/$missionId/overview"
+                          params={{ missionId }}
+                          className="text-[12px] text-muted-foreground hover:text-foreground"
+                        >
+                          View all {notes.length} →
+                        </Link>
+                      </li>
+                    )}
+                  </ul>
+                )}
+              </div>
+            </section>
+          </>
+        )}
+
+        {/* PRIMARY CTA — Cockpit. Mission Room is a secondary inline link. */}
+        <div className="space-y-3">
           <Link
             to="/missions/$missionId/questions"
             params={{ missionId }}
-            className="group rounded-[12px] border p-5 transition hover:bg-[rgba(59,127,255,0.08)]"
+            className="group flex items-center justify-between gap-4 rounded-[12px] border p-5 transition hover:bg-[rgba(59,127,255,0.08)]"
             style={{ background: "rgba(59,127,255,0.05)", borderColor: "rgba(59,127,255,0.3)" }}
           >
-            <div className="inline-flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.2em]" style={{ color: "#3b7fff" }}>
-              <Plane size={13} strokeWidth={2} /> Cockpit
+            <div>
+              <div className="inline-flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.2em]" style={{ color: "#3b7fff" }}>
+                <Plane size={13} strokeWidth={2} /> Enter Cockpit
+              </div>
+              <p className="mt-1.5 text-sm text-muted-foreground">
+                Questions, writing, signals, and IRIS coaching — where the work happens.
+              </p>
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Questions, writing, signals, and IRIS coaching.
-            </p>
-            <div className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-semibold" style={{ color: "#3b7fff" }}>
-              Enter <ArrowRight className="h-3.5 w-3.5" />
-            </div>
+            <ArrowRight className="h-5 w-5 shrink-0" style={{ color: "#3b7fff" }} />
           </Link>
+          <div className="text-center">
+            <Link
+              to="/missions/$missionId/overview"
+              params={{ missionId }}
+              className="text-[12px] text-muted-foreground hover:text-foreground"
+            >
+              Or open Mission Room → documents, intel, full question map, team, timeline.
+            </Link>
+          </div>
         </div>
       </div>
 
