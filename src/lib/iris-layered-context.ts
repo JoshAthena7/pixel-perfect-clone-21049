@@ -31,8 +31,7 @@ export async function loadLayeredContext(
     supabase.from("intelligence_canon")
       .select("topic,category,citation,content,priority")
       .eq("is_active", true)
-      .order("priority", { ascending: true })
-      .limit(15),
+      .order("priority", { ascending: true }),
     state
       ? supabase.from("state_intelligence")
           .select("section,title,content,citations")
