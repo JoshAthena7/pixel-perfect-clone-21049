@@ -38,8 +38,9 @@ function isReplayRequested() {
 }
 
 function useOnboardingGate() {
+  const replay = isReplayRequested();
   return useQuery({
-    queryKey: ["iris-onboarding-gate"],
+    queryKey: ["iris-onboarding-gate", replay],
     queryFn: async () => {
       const { data: auth } = await supabase.auth.getUser();
       const user = auth.user;
