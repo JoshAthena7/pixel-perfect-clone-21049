@@ -155,6 +155,10 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
       audioRef.current.pause();
       audioRef.current = null;
     }
+    if (muted && typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      fallbackUtterance.current = null;
+    }
   }, [muted]);
 
   function primePlayback() {
@@ -352,6 +356,8 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
 
     setAskOpen(false);
     setInput("");
+    if (audioRef.current) audioRef.current.pause();
+    if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
     setTransitionKey((k) => k + 1);
     setCurrentModule(cleared + 1);
     setBusy(false);
