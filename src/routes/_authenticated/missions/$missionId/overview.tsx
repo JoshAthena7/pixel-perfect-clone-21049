@@ -559,10 +559,14 @@ function MissionOverviewPage() {
             {blurb}
           </blockquote>
           <p className="text-[11px] text-muted-foreground -mt-2">
-            ● IRIS summary ·{" "}
-            <Link to="/olympus/missions/$missionId" params={{ missionId }} className="hover:underline">
-              Edit in Olympus →
-            </Link>
+            ● IRIS summary{isLeader && (
+              <>
+                {" "}·{" "}
+                <Link to="/olympus/missions/$missionId" params={{ missionId }} className="hover:underline">
+                  Edit in Olympus →
+                </Link>
+              </>
+            )}
           </p>
 
           {/* Dates grid */}

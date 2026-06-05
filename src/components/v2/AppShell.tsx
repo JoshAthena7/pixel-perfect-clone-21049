@@ -2,7 +2,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useParams, useNavigate, useRouter } from "@tanstack/react-router";
 import {
   LogOut, User, Shield, Settings2,
-  Plane, Search, HelpCircle, ArrowLeft, Megaphone,
+  Plane, HelpCircle, ArrowLeft, Megaphone,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -198,14 +198,7 @@ function TopBar({
         </button>
         <IrisStatusIndicator />
         <NotificationBell />
-        <button
-          onClick={() => window.dispatchEvent(new CustomEvent("atlas:open-search"))}
-          title="Search Atlas (⌘K)"
-          aria-label="Search Atlas"
-          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
-        >
-          <Search size={16} strokeWidth={1.5} />
-        </button>
+        <BriefRoomNavButton />
         <button
           onClick={() => window.dispatchEvent(new CustomEvent("atlas:open-support"))}
           title="Get Help"
@@ -214,8 +207,8 @@ function TopBar({
         >
           <HelpCircle size={16} strokeWidth={1.5} />
         </button>
-        
-        
+
+
         <SignOutButton />
         <UserAvatarMenu />
         {isAdmin && (
