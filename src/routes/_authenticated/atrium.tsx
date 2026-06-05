@@ -148,6 +148,71 @@ function DirectBriefing() {
   );
 }
 
+const ARTIFACTS = [
+  {
+    title: "NJ CSOC RFP — Final",
+    kind: "RFP",
+    uploaded: "Uploaded Jun 1, 2026",
+    icon: FileText,
+    tone: "text-amber-400 bg-amber-500/10 border-amber-500/30",
+  },
+  {
+    title: "Amendment 3 — Scope Clarification",
+    kind: "Amendment",
+    uploaded: "Uploaded Jun 12, 2026",
+    icon: FileEdit,
+    tone: "text-rose-400 bg-rose-500/10 border-rose-500/30",
+  },
+  {
+    title: "Athena Style Guide — NJ CSOC",
+    kind: "Style Guide",
+    uploaded: "Uploaded May 28, 2026",
+    icon: BookOpen,
+    tone: "text-violet-400 bg-violet-500/10 border-violet-500/30",
+  },
+  {
+    title: "Prior CSA Contract Reference",
+    kind: "Reference",
+    uploaded: "Uploaded Apr 15, 2026",
+    icon: FileArchive,
+    tone: "text-sky-400 bg-sky-500/10 border-sky-500/30",
+  },
+] as const;
+
+function ArtifactsSection() {
+  return (
+    <section>
+      <SectionHeader label="Artifacts" sub="Documents grounding this engagement" />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {ARTIFACTS.map((a) => {
+          const Icon = a.icon;
+          return (
+            <button
+              key={a.title}
+              className="group flex items-start gap-3 rounded-[12px] border border-border bg-surface p-4 text-left transition hover:border-primary/40 hover:bg-surface-hover"
+            >
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md border ${a.tone}`}>
+                <Icon className="h-4 w-4" strokeWidth={2} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                    {a.kind}
+                  </span>
+                </div>
+                <div className="mt-0.5 truncate text-sm font-medium text-foreground group-hover:text-primary">
+                  {a.title}
+                </div>
+                <div className="mt-1 text-[11px] text-muted-foreground">{a.uploaded}</div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 
 function ThreadPanel() {
   return (
