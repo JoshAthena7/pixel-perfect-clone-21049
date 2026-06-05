@@ -37,8 +37,11 @@ export function StudioVaultOraclePeek({ missionId }: { missionId: string }) {
           <line x1="3" y1="40" x2="45" y2="40" />
         </svg>
         <div className="flex-1 min-w-0">
-          <div className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--vault-gold-dim, #c08418)" }}>Vault</div>
-          <div className="text-xs text-muted-foreground">{counts?.vault ?? 0} document{counts?.vault === 1 ? "" : "s"}</div>
+          <div className="flex items-center gap-2">
+            <div className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--vault-gold-dim, #c08418)" }}>Vault</div>
+            <span className="text-[9px] uppercase tracking-[0.18em] text-muted-foreground">· Archive</span>
+          </div>
+          <div className="text-xs text-muted-foreground">{counts?.vault ?? 0} document{counts?.vault === 1 ? "" : "s"} on file</div>
         </div>
         <ArrowRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
       </Link>
@@ -59,10 +62,13 @@ export function StudioVaultOraclePeek({ missionId }: { missionId: string }) {
           <circle cx="24" cy="24" r="2.5" fill="currentColor" />
         </svg>
         <div className="flex-1 min-w-0">
-          <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--oracle-active, #22d3ee)" }}>
-            <span className="iris-pulse-dot" /> Oracle
+          <div className="flex items-center gap-2">
+            <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--oracle-active, #22d3ee)" }}>
+              <span className="iris-pulse-dot" /> Oracle
+            </div>
+            <span className="text-[9px] uppercase tracking-[0.18em] text-muted-foreground">· Live Intelligence</span>
           </div>
-          <div className="text-xs text-muted-foreground">{counts?.oracle ?? 0} insight{counts?.oracle === 1 ? "" : "s"} · IRIS</div>
+          <div className="text-xs text-muted-foreground">{counts?.oracle ?? 0} insight{counts?.oracle === 1 ? "" : "s"} from IRIS</div>
         </div>
         <ArrowRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
       </Link>

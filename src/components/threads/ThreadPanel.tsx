@@ -258,9 +258,10 @@ function CommentItem({
       <div
         className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold"
         style={{
-          background: c.isIrisReply ? "rgba(245,158,11,0.18)" : c.author.avatarColor,
-          color: c.isIrisReply ? "#f59e0b" : "#fff",
-          border: c.isIrisReply ? "1px solid rgba(245,158,11,0.5)" : "none",
+          background: c.isIrisReply ? "rgba(34,211,238,0.14)" : c.author.avatarColor,
+          color: c.isIrisReply ? "#22d3ee" : "#fff",
+          border: c.isIrisReply ? "1px solid rgba(34,211,238,0.55)" : "none",
+          boxShadow: c.isIrisReply ? "0 0 12px rgba(34,211,238,0.25)" : undefined,
         }}
       >
         {c.isIrisReply ? <Sparkles className="h-3.5 w-3.5" /> : initials || "?"}
@@ -269,13 +270,20 @@ function CommentItem({
         <div className="flex items-baseline gap-2 mb-0.5">
           <span
             className="text-[12px] font-medium"
-            style={{ color: c.isIrisReply ? "#f59e0b" : "#e5e7eb" }}
+            style={{ color: c.isIrisReply ? "#22d3ee" : "#e5e7eb" }}
           >
             {c.author.displayName}
           </span>
           {c.isIrisReply && (
-            <span className="text-[9px] uppercase tracking-[0.18em]" style={{ color: "#f59e0b" }}>
-              IRIS reply
+            <span
+              className="text-[9px] font-bold uppercase tracking-[0.22em] px-1.5 py-0.5 rounded"
+              style={{
+                color: "#22d3ee",
+                background: "rgba(34,211,238,0.10)",
+                border: "1px solid rgba(34,211,238,0.30)",
+              }}
+            >
+              ● IRIS · Intelligence
             </span>
           )}
           <span className="text-[10px]" style={{ color: "#6b7280" }}>
@@ -288,11 +296,24 @@ function CommentItem({
           )}
         </div>
         <div
-          className="text-[12.5px] whitespace-pre-wrap leading-relaxed"
-          style={{
-            color: c.isDeleted ? "#6b7280" : "#e5e7eb",
-            fontStyle: c.isDeleted ? "italic" : "normal",
-          }}
+          className={
+            c.isIrisReply
+              ? "text-[12.5px] whitespace-pre-wrap leading-relaxed rounded-md px-3 py-2 mt-1"
+              : "text-[12.5px] whitespace-pre-wrap leading-relaxed"
+          }
+          style={
+            c.isIrisReply
+              ? {
+                  color: c.isDeleted ? "#6b7280" : "#e5e7eb",
+                  fontStyle: c.isDeleted ? "italic" : "normal",
+                  background: "rgba(34,211,238,0.05)",
+                  borderLeft: "2px solid rgba(34,211,238,0.55)",
+                }
+              : {
+                  color: c.isDeleted ? "#6b7280" : "#e5e7eb",
+                  fontStyle: c.isDeleted ? "italic" : "normal",
+                }
+          }
         >
           {c.body}
         </div>
