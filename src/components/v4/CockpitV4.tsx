@@ -682,7 +682,15 @@ export function CockpitV4({ missionId, me, myQuestions, allQuestions, updateStat
           openSOS={() => setSosOpen(true)}
           openScore={() => setScoreOpen(true)}
           openPhone={() => setPhoneOpen(true)}
+          openPulse={() => setPulseOpen(true)}
         />
+
+        <Sheet open={pulseOpen} onOpenChange={setPulseOpen}>
+          <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+            <SheetHeader><SheetTitle>Daily Pulse</SheetTitle></SheetHeader>
+            <div className="mt-4"><DailyPulse /></div>
+          </SheetContent>
+        </Sheet>
 
         <DailyPulse />
 
