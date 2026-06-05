@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getAtrium, type AtriumPayload } from "@/lib/atrium.functions";
-import { Trophy, DollarSign, Users, MapPin, Flame, Sparkles, Circle, MessageSquare, Send, AlertTriangle, Megaphone } from "lucide-react";
+import { Trophy, DollarSign, Users, MapPin, Flame, Sparkles, Circle, MessageSquare, Send, AlertTriangle, Megaphone, Inbox } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/atrium")({
   component: AtriumPage,
