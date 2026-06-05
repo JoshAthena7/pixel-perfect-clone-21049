@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getAtrium, type AtriumPayload } from "@/lib/atrium.functions";
-import { Trophy, DollarSign, Users, MapPin, Flame, Sparkles, Circle, MessageSquare, Send, AlertTriangle, Megaphone } from "lucide-react";
+import { Trophy, DollarSign, Users, MapPin, Flame, Sparkles, Circle, MessageSquare, Send, AlertTriangle, Megaphone, Inbox } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/atrium")({
   component: AtriumPage,
@@ -66,6 +66,7 @@ function AtriumPage() {
       <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-8 px-8 py-10 lg:grid-cols-[1fr_320px_320px]">
         <main className="space-y-10">
           <GlobalBriefing />
+          <DirectBriefing />
           {isLoading ? (
             <div className="rounded-[12px] border border-border bg-surface p-12 text-center text-sm text-muted-foreground">
               Loading the Atrium…
@@ -110,6 +111,37 @@ function GlobalBriefing() {
           The Division has confirmed the submission deadline remains August 15, 2026. All sections must clear final
           QA gate by August 10. Engage leads are expected to confirm section status by EOD Friday.
         </p>
+      </div>
+    </section>
+  );
+}
+
+function DirectBriefing() {
+  return (
+    <section className="overflow-hidden rounded-[12px] border border-sky-500/30 bg-gradient-to-br from-sky-950/30 via-surface to-surface">
+      <div className="flex items-center justify-between border-b border-sky-500/20 px-5 py-2.5">
+        <div className="flex items-center gap-2">
+          <Inbox className="h-3.5 w-3.5 text-sky-400" strokeWidth={2} />
+          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-sky-400">
+            Direct Briefing · For You
+          </span>
+        </div>
+        <span className="text-[10px] text-muted-foreground">From Maya Patel · Engage Lead · 1h ago</span>
+      </div>
+      <div className="px-5 py-4">
+        <p className="text-sm leading-relaxed text-foreground/90">
+          Please review <span className="font-semibold text-foreground">Section 4.2</span> before it advances to final
+          QA. Specific attention to the <span className="font-semibold text-foreground">ICC framing</span> and{" "}
+          <span className="font-semibold text-foreground">DCF partnership language</span>.
+        </p>
+        <div className="mt-4 flex items-center gap-2">
+          <button className="inline-flex items-center gap-1.5 rounded-md bg-sky-500/15 px-3 py-1.5 text-xs font-medium text-sky-300 hover:bg-sky-500/25">
+            Open Section 4.2
+          </button>
+          <button className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground hover:bg-surface-hover hover:text-foreground">
+            Acknowledge
+          </button>
+        </div>
       </div>
     </section>
   );
