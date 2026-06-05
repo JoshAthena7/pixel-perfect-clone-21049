@@ -400,6 +400,7 @@ function MissionBrief() {
   /* Broadcast & Add Note modals */
   const [broadcastOpen, setBroadcastOpen] = useState(false);
   const [addNoteOpen, setAddNoteOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   /* Suggested action — pick the most urgent thing */
   const suggested = useMemo(() => {
