@@ -335,7 +335,14 @@ function Step2Uploads({
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      const path = `${missionId}/${Date.now()}-${file.name}`;
+      // Supabase storage rejects keys with certain chars (~, spaces, etc).
+      // Sanitize the filename for the storage path; keep original `file.name` in the DB row.
+      const safeName = file.name
+        .normalize("NFKD")
+        .replace(/[^\w.\-]+/g, "_")
+        .replace(/_+/g, "_")
+        .replace(/^_+|_+$/g, "");
+      const path = `${missionId}/${Date.now()}-${safeName || "upload"}`;
       const { error: upErr } = await supabase.storage.from("mission-library").upload(path, file);
       if (upErr) throw upErr;
       const { data: row, error } = await supabase.from("mission_library").insert({
