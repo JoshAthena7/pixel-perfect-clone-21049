@@ -292,32 +292,6 @@ function IrisSidebarItem({ to, path, icon, children, pulse, badge }: {
   );
 }
 
-function ReviewQueueItem({ path }: { path: string }) {
-  const listFn = useServerFn(listReviewQueue);
-  const { data } = useQuery({
-    queryKey: ["olympus-review-queue-count"],
-    queryFn: () => listFn({ data: {} as any }),
-    refetchInterval: 30_000,
-  });
-  const count = data?.sources?.length ?? 0;
-  return (
-    <IrisSidebarItem
-      to="/olympus/review-queue"
-      path={path}
-      icon={<Inbox size={15} strokeWidth={1.5} />}
-      badge={count > 0 ? (
-        <span
-          className="rounded px-1.5 py-0.5 text-[10px] font-semibold"
-          style={{ background: "rgba(245,158,11,0.18)", color: "#f59e0b" }}
-        >
-          {count}
-        </span>
-      ) : null}
-    >
-      Review Queue
-    </IrisSidebarItem>
-  );
-}
 
 /** Hook for child routes to read the currently selected mission. */
 export function useSelectedOlympusMission() {
