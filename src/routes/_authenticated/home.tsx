@@ -21,6 +21,24 @@ import { useIsAdmin } from "@/hooks/useAccess";
 import type { ReactNode } from "react";
 import { TestIrisVoiceButton } from "@/components/iris/TestIrisVoiceButton";
 
+const IRIS_SILENT_WAV =
+  "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQQAAAAAAA==";
+
+function primeIrisVoiceBeforeOnboarding() {
+  const win = window as Window & { __irisVoiceAudio?: HTMLAudioElement; __irisVoicePrimed?: boolean };
+  if (win.__irisVoicePrimed) return;
+  const audio = win.__irisVoiceAudio ?? new Audio(IRIS_SILENT_WAV);
+  audio.preload = "auto";
+  audio.loop = true;
+  win.__irisVoiceAudio = audio;
+  void audio.play().then(
+    () => {
+      win.__irisVoicePrimed = true;
+    },
+    () => undefined,
+  );
+}
+
 
 
 export const Route = createFileRoute("/_authenticated/home")({
@@ -336,6 +354,7 @@ function AthenaHQ() {
             <TestIrisVoiceButton />
             <a
               href="/home?iris-demo=1"
+              onClick={primeIrisVoiceBeforeOnboarding}
               className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-[13px] font-medium text-background hover:opacity-90"
             >
               <Sparkles className="h-3.5 w-3.5" />
