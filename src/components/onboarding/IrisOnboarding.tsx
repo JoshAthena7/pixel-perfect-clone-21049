@@ -121,6 +121,7 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const spokenForModule = useRef<number | null>(null);
+  const playbackPrimed = useRef(false);
 
   const script = IRIS_SCRIPTS[currentModule];
   const card = MODULE_CARDS[currentModule];
@@ -148,6 +149,47 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
     }
   }, [muted]);
 
+  function primePlayback() {
+    if (playbackPrimed.current) return Promise.resolve();
+    const audio = audioRef.current ?? new Audio(SILENT_WAV);
+    audio.preload = "auto";
+    audioRef.current = audio;
+    return audio.play().catch(() => undefined).finally(() => {
+      audio.pause();
+      audio.currentTime = 0;
+      playbackPrimed.current = true;
+    });
+  }
+
+  async function playIrisLine(text: string, options?: { force?: boolean }) {
+    if (muted && !options?.force) return;
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) return;
+
+      const response = await fetch("/api/iris-voice", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ text }),
+      });
+
+      if (!response.ok) return;
+      const audioUrl = URL.createObjectURL(await response.blob());
+      const audio = audioRef.current ?? new Audio(SILENT_WAV);
+      audio.onended = () => URL.revokeObjectURL(audioUrl);
+      audio.onerror = () => URL.revokeObjectURL(audioUrl);
+      audio.src = audioUrl;
+      audioRef.current = audio;
+      await audio.play();
+    } catch {
+      // Silent fallback — text still renders
+    }
+  }
+
   // Narrate current module
   useEffect(() => {
     if (muted) return;
@@ -156,35 +198,8 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
 
     let cancelled = false;
     (async () => {
-      try {
-        const { data: sessionData } = await supabase.auth.getSession();
-        const token = sessionData.session?.access_token;
-        if (!token) return;
-
-        const response = await fetch("/api/iris-voice", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ text: greetedScript }),
-        });
-
-        if (!response.ok || cancelled || muted) return;
-        if (audioRef.current) {
-          audioRef.current.pause();
-          audioRef.current = null;
-        }
-        const audioUrl = URL.createObjectURL(await response.blob());
-        const audio = audioRef.current ?? new Audio(SILENT_WAV);
-        audio.onended = () => URL.revokeObjectURL(audioUrl);
-        audio.onerror = () => URL.revokeObjectURL(audioUrl);
-        audio.src = audioUrl;
-        audioRef.current = audio;
-        audio.play().catch(() => {});
-      } catch {
-        // Silent fallback — text still renders
-      }
+      await playIrisLine(greetedScript);
+      if (cancelled && audioRef.current) audioRef.current.pause();
     })();
 
     return () => {
@@ -207,6 +222,7 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
 
   async function advance() {
     if (busy) return;
+    await primePlayback();
     setBusy(true);
     const cleared = currentModule;
     await logModuleCleared(cleared);
@@ -279,6 +295,13 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
     }
   }
 
+  async function handleVoiceClick() {
+    await primePlayback();
+    if (muted) setMuted(false);
+    spokenForModule.current = currentModule;
+    await playIrisLine(greetedScript, { force: true });
+  }
+
   const isFinal = currentModule >= 7;
 
   return (
@@ -317,9 +340,9 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setMuted((m) => !m)}
+            onClick={handleVoiceClick}
             aria-label={muted ? "Unmute IRIS" : "Mute IRIS"}
-            title={muted ? "Unmute IRIS" : "Mute IRIS"}
+            title={muted ? "Turn on and play IRIS" : "Replay IRIS voice"}
             className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 transition-colors"
             style={{
               color: "var(--muted-foreground)",
@@ -329,7 +352,7 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
             }}
           >
             {muted ? <VolumeX size={13} /> : <Volume2 size={13} />}
-            <span className="hidden sm:inline">{muted ? "Voice off" : "Voice on"}</span>
+            <span className="hidden sm:inline">{muted ? "Voice off" : "Play voice"}</span>
           </button>
           <button
             type="button"
