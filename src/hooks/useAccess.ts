@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyAccess, canAccessMission } from "@/lib/access.functions";
 
-function isDemoMode() {
+export function isDemoMode() {
   return typeof window !== "undefined" && window.localStorage.getItem("demo_mode") === "1";
 }
 
