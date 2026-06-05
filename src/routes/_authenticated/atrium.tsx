@@ -67,6 +67,7 @@ function AtriumPage() {
         <main className="space-y-10">
           <GlobalBriefing />
           <DirectBriefing />
+          <ArtifactsSection />
           {isLoading ? (
             <div className="rounded-[12px] border border-border bg-surface p-12 text-center text-sm text-muted-foreground">
               Loading the Atrium…
