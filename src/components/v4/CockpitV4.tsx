@@ -689,6 +689,7 @@ export function CockpitV4({ missionId, me, myQuestions, allQuestions, updateStat
         <AssistsRow
           missionId={missionId}
           suggestedId={suggestedQ?.id ?? null}
+          anyQuestionId={allQuestions[0]?.id ?? null}
           openSOS={() => setSosOpen(true)}
           openScore={() => setScoreOpen(true)}
           openPhone={() => setPhoneOpen(true)}
