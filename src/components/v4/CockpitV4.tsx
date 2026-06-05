@@ -689,6 +689,7 @@ export function CockpitV4({ missionId, me, myQuestions, allQuestions, updateStat
           openScore={() => setScoreOpen(true)}
           openPhone={() => setPhoneOpen(true)}
           openPulse={() => setPulseOpen(true)}
+          openThread={() => setThreadOpen(true)}
         />
 
         <Sheet open={pulseOpen} onOpenChange={setPulseOpen}>
