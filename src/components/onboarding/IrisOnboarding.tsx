@@ -54,8 +54,8 @@ function useOnboardingGate() {
 
       if (!profile) return { show: false as const };
 
-      const replay = isReplayRequested();
-      if (profile.has_onboarded && !replay) return { show: false as const };
+      const replayRequested = isReplayRequested();
+      if (profile.has_onboarded && !replayRequested) return { show: false as const };
 
       const firstName = (profile.display_name || "").split(" ")[0] || "operator";
 
