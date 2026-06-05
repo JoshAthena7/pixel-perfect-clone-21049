@@ -353,7 +353,7 @@ function AthenaHQ() {
             
           </div>
           <div className="flex items-center gap-4">
-            <TestIrisVoiceButton />
+
             <button
               type="button"
               onClick={() => {
