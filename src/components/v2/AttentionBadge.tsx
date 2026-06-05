@@ -4,7 +4,7 @@ import { Gauge } from "lucide-react";
 import { irisLeadershipAttention } from "@/lib/iris.functions";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CountUp } from "@/components/v2/effects";
-import { isDemoMode } from "@/hooks/useAccess";
+
 
 type Props = {
   missionId?: string | "all";
@@ -32,10 +32,8 @@ type Breakdown = {
 
 export function AttentionBadge({ missionId = "all", variant = "header", className = "" }: Props) {
   const attentionFn = useServerFn(irisLeadershipAttention);
-  const demo = isDemoMode();
   const { data } = useQuery({
-    queryKey: ["leadership-attention", demo],
-    enabled: !demo,
+    queryKey: ["leadership-attention"],
     queryFn: async () => {
       try {
         return await attentionFn();
