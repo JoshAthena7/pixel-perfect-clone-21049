@@ -364,6 +364,14 @@ function QuestionsPage() {
           onDone={() => { qc.invalidateQueries({ queryKey: ["olympus-questions", missionId] }); setSelected(new Set()); setBulkOpen(false); }}
         />
       )}
+
+      {matrixOpen && (
+        <UploadMatrixModal
+          missionId={missionId}
+          onClose={() => setMatrixOpen(false)}
+          onCommitted={() => setMatrixOpen(false)}
+        />
+      )}
     </div>
   );
 }
