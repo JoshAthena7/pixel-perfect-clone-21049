@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getAtrium, type AtriumPayload } from "@/lib/atrium.functions";
-import { Trophy, DollarSign, Users, MapPin, Flame, Sparkles, Circle, MessageSquare, Send, AlertTriangle } from "lucide-react";
+import { Trophy, DollarSign, Users, MapPin, Flame, Sparkles, Circle, MessageSquare, Send, AlertTriangle, Megaphone } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/atrium")({
   component: AtriumPage,
@@ -65,6 +65,7 @@ function AtriumPage() {
 
       <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-8 px-8 py-10 lg:grid-cols-[1fr_320px_320px]">
         <main className="space-y-10">
+          <GlobalBriefing />
           {isLoading ? (
             <div className="rounded-[12px] border border-border bg-surface p-12 text-center text-sm text-muted-foreground">
               Loading the Atrium…
@@ -89,6 +90,31 @@ function AtriumPage() {
     </div>
   );
 }
+
+
+function GlobalBriefing() {
+  return (
+    <section className="overflow-hidden rounded-[12px] border border-amber-500/30 bg-gradient-to-br from-amber-950/30 via-surface to-surface">
+      <div className="flex items-center justify-between border-b border-amber-500/20 px-5 py-2.5">
+        <div className="flex items-center gap-2">
+          <Megaphone className="h-3.5 w-3.5 text-amber-400" strokeWidth={2} />
+          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-400">
+            Global Briefing
+          </span>
+        </div>
+        <span className="text-[10px] text-muted-foreground">Firm-wide · pinned</span>
+      </div>
+      <div className="px-5 py-4">
+        <h3 className="text-base font-semibold tracking-tight">NJ CSOC Submission Timeline Update</h3>
+        <p className="mt-2 text-sm leading-relaxed text-foreground/90">
+          The Division has confirmed the submission deadline remains August 15, 2026. All sections must clear final
+          QA gate by August 10. Engage leads are expected to confirm section status by EOD Friday.
+        </p>
+      </div>
+    </section>
+  );
+}
+
 
 function ThreadPanel() {
   return (
