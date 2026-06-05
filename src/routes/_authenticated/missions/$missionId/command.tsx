@@ -590,13 +590,11 @@ function MissionBrief() {
           )}
 
           {/* RFP reference */}
-          {(mission?.rfp_number || mission?.state_agency || mission?.contract_value || mission?.contract_term) && (
+          {(mission?.rfp_number || mission?.state_agency) && (
             <div className="mt-4 text-[12px] text-muted-foreground">
               {[
                 mission?.rfp_number && `RFP #${mission.rfp_number}`,
                 mission?.state_agency,
-                mission?.contract_value && `Contract: ${mission.contract_value}`,
-                mission?.contract_term,
               ].filter(Boolean).join(" · ")}
             </div>
           )}
