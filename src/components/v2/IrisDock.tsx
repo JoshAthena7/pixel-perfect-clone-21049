@@ -124,6 +124,8 @@ export function IrisDock() {
             </button>
           </header>
 
+          <IngestionBadge missionId={missionId ?? null} />
+
           <div ref={scrollerRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
             {msgs.length === 0 && (
               <div className="space-y-3">
