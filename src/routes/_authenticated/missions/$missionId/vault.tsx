@@ -393,7 +393,8 @@ function VaultPage() {
           }}
         />
       )}
-    </div>
+      </div>
+    </>
   );
 }
 
