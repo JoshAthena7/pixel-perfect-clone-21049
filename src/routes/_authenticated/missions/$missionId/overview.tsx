@@ -505,7 +505,7 @@ function MissionOverviewPage() {
               <span className="text-muted-foreground">· {counts.total} Q</span>
             </div>
             <button
-              onClick={() => navigate({ to: "/missions/$missionId/studio", params: { missionId } })}
+              onClick={() => navigate({ to: "/missions/$missionId/questions", params: { missionId } })}
               className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1 text-xs font-medium text-primary-foreground"
             >
               Enter Cockpit <ArrowRight className="h-3 w-3" />
@@ -722,7 +722,7 @@ function MissionOverviewPage() {
             isLeader={isLeader}
             assignedCount={myAssigned.length}
             attentionCount={myAttention.length}
-            onEnter={() => navigate({ to: "/missions/$missionId/studio", params: { missionId } })}
+            onEnter={() => navigate({ to: "/missions/$missionId/questions", params: { missionId } })}
           />
         </section>
       </div>

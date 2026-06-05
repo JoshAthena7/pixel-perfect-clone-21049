@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { MissionSetupTabs } from "@/components/v2/MissionSetupTabs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState, useRef, useEffect } from "react";
-import { ChevronDown, ChevronRight, Filter as FilterIcon, Check, Sparkles, MoreHorizontal, FileText, Phone, LifeBuoy } from "lucide-react";
+import { ChevronDown, ChevronRight, Filter as FilterIcon, Check, Sparkles, MoreHorizontal, FileText, LifeBuoy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PensDownCountdown, daysUntil } from "@/lib/countdowns";
 import { toast } from "sonner";
@@ -363,13 +363,6 @@ function CockpitListActionBar({ missionId, question }: { missionId: string; ques
                     className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-surface-hover"
                   >
                     <FileText className="h-3.5 w-3.5" /> Score Me
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setOverflowOpen(false); toast("Phone a Friend — coming soon", { description: "Open the question workspace to collaborate." }); }}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-surface-hover"
-                  >
-                    <Phone className="h-3.5 w-3.5" /> Phone a Friend
                   </button>
                   <button
                     type="button"

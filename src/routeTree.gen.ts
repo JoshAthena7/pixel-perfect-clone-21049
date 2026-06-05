@@ -16,7 +16,6 @@ import { Route as ApiIrisVoiceRouteImport } from './routes/api/iris-voice'
 import { Route as AuthenticatedPipelineHorizonRouteImport } from './routes/_authenticated/pipeline-horizon'
 import { Route as AuthenticatedPathfinderRouteImport } from './routes/_authenticated/pathfinder'
 import { Route as AuthenticatedOlympusRouteImport } from './routes/_authenticated/olympus'
-import { Route as AuthenticatedIrisDemoRouteImport } from './routes/_authenticated/iris-demo'
 import { Route as AuthenticatedIntelligenceQueueRouteImport } from './routes/_authenticated/intelligence-queue'
 import { Route as AuthenticatedIntelligenceRouteImport } from './routes/_authenticated/intelligence'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
@@ -72,17 +71,13 @@ import { Route as ApiPublicHooksBackfillQuestionEmbeddingsRouteImport } from './
 import { Route as ApiPublicHooksBackfillAtlasEmbeddingsRouteImport } from './routes/api/public/hooks/backfill-atlas-embeddings'
 import { Route as AuthenticatedMissionsMissionIdVaultRouteImport } from './routes/_authenticated/missions/$missionId/vault'
 import { Route as AuthenticatedMissionsMissionIdTeamRouteImport } from './routes/_authenticated/missions/$missionId/team'
-import { Route as AuthenticatedMissionsMissionIdStudioRouteImport } from './routes/_authenticated/missions/$missionId/studio'
 import { Route as AuthenticatedMissionsMissionIdSettingsRouteImport } from './routes/_authenticated/missions/$missionId/settings'
 import { Route as AuthenticatedMissionsMissionIdOverviewRouteImport } from './routes/_authenticated/missions/$missionId/overview'
-import { Route as AuthenticatedMissionsMissionIdOperationsRouteImport } from './routes/_authenticated/missions/$missionId/operations'
 import { Route as AuthenticatedMissionsMissionIdLibraryRouteImport } from './routes/_authenticated/missions/$missionId/library'
 import { Route as AuthenticatedMissionsMissionIdIrisRouteImport } from './routes/_authenticated/missions/$missionId/iris'
-import { Route as AuthenticatedMissionsMissionIdIntelligenceRouteImport } from './routes/_authenticated/missions/$missionId/intelligence'
 import { Route as AuthenticatedMissionsMissionIdCommandRouteImport } from './routes/_authenticated/missions/$missionId/command'
 import { Route as AuthenticatedMissionsMissionIdBriefingRouteImport } from './routes/_authenticated/missions/$missionId/briefing'
 import { Route as AuthenticatedMissionsMissionIdBriefRouteImport } from './routes/_authenticated/missions/$missionId/brief'
-import { Route as AuthenticatedMissionsMissionIdActivityRouteImport } from './routes/_authenticated/missions/$missionId/activity'
 import { Route as AuthenticatedMissionsMissionIdQuestionsIndexRouteImport } from './routes/_authenticated/missions/$missionId/questions/index'
 import { Route as AuthenticatedOlympusMissionsMissionIdSetupRouteImport } from './routes/_authenticated/olympus/missions.$missionId.setup'
 import { Route as AuthenticatedOlympusMissionsMissionIdDebriefRouteImport } from './routes/_authenticated/olympus/missions.$missionId.debrief'
@@ -121,11 +116,6 @@ const AuthenticatedPathfinderRoute = AuthenticatedPathfinderRouteImport.update({
 const AuthenticatedOlympusRoute = AuthenticatedOlympusRouteImport.update({
   id: '/olympus',
   path: '/olympus',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedIrisDemoRoute = AuthenticatedIrisDemoRouteImport.update({
-  id: '/iris-demo',
-  path: '/iris-demo',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedIntelligenceQueueRoute =
@@ -455,12 +445,6 @@ const AuthenticatedMissionsMissionIdTeamRoute =
     path: '/team',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
-const AuthenticatedMissionsMissionIdStudioRoute =
-  AuthenticatedMissionsMissionIdStudioRouteImport.update({
-    id: '/studio',
-    path: '/studio',
-    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
-  } as any)
 const AuthenticatedMissionsMissionIdSettingsRoute =
   AuthenticatedMissionsMissionIdSettingsRouteImport.update({
     id: '/settings',
@@ -473,12 +457,6 @@ const AuthenticatedMissionsMissionIdOverviewRoute =
     path: '/overview',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
-const AuthenticatedMissionsMissionIdOperationsRoute =
-  AuthenticatedMissionsMissionIdOperationsRouteImport.update({
-    id: '/operations',
-    path: '/operations',
-    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
-  } as any)
 const AuthenticatedMissionsMissionIdLibraryRoute =
   AuthenticatedMissionsMissionIdLibraryRouteImport.update({
     id: '/library',
@@ -489,12 +467,6 @@ const AuthenticatedMissionsMissionIdIrisRoute =
   AuthenticatedMissionsMissionIdIrisRouteImport.update({
     id: '/iris',
     path: '/iris',
-    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
-  } as any)
-const AuthenticatedMissionsMissionIdIntelligenceRoute =
-  AuthenticatedMissionsMissionIdIntelligenceRouteImport.update({
-    id: '/intelligence',
-    path: '/intelligence',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
 const AuthenticatedMissionsMissionIdCommandRoute =
@@ -513,12 +485,6 @@ const AuthenticatedMissionsMissionIdBriefRoute =
   AuthenticatedMissionsMissionIdBriefRouteImport.update({
     id: '/brief',
     path: '/brief',
-    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
-  } as any)
-const AuthenticatedMissionsMissionIdActivityRoute =
-  AuthenticatedMissionsMissionIdActivityRouteImport.update({
-    id: '/activity',
-    path: '/activity',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
 const AuthenticatedMissionsMissionIdQuestionsIndexRoute =
@@ -554,7 +520,6 @@ export interface FileRoutesByFullPath {
   '/home': typeof AuthenticatedHomeRoute
   '/intelligence': typeof AuthenticatedIntelligenceRoute
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
-  '/iris-demo': typeof AuthenticatedIrisDemoRoute
   '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/pathfinder': typeof AuthenticatedPathfinderRoute
   '/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
@@ -599,17 +564,13 @@ export interface FileRoutesByFullPath {
   '/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/olympus/': typeof AuthenticatedOlympusIndexRoute
-  '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
-  '/missions/$missionId/intelligence': typeof AuthenticatedMissionsMissionIdIntelligenceRoute
   '/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
   '/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
-  '/missions/$missionId/operations': typeof AuthenticatedMissionsMissionIdOperationsRoute
   '/missions/$missionId/overview': typeof AuthenticatedMissionsMissionIdOverviewRoute
   '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
-  '/missions/$missionId/studio': typeof AuthenticatedMissionsMissionIdStudioRoute
   '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
   '/missions/$missionId/vault': typeof AuthenticatedMissionsMissionIdVaultRoute
   '/api/public/hooks/backfill-atlas-embeddings': typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
@@ -633,7 +594,6 @@ export interface FileRoutesByTo {
   '/home': typeof AuthenticatedHomeRoute
   '/intelligence': typeof AuthenticatedIntelligenceRoute
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
-  '/iris-demo': typeof AuthenticatedIrisDemoRoute
   '/pathfinder': typeof AuthenticatedPathfinderRoute
   '/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
@@ -676,17 +636,13 @@ export interface FileRoutesByTo {
   '/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/olympus': typeof AuthenticatedOlympusIndexRoute
-  '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
-  '/missions/$missionId/intelligence': typeof AuthenticatedMissionsMissionIdIntelligenceRoute
   '/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
   '/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
-  '/missions/$missionId/operations': typeof AuthenticatedMissionsMissionIdOperationsRoute
   '/missions/$missionId/overview': typeof AuthenticatedMissionsMissionIdOverviewRoute
   '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
-  '/missions/$missionId/studio': typeof AuthenticatedMissionsMissionIdStudioRoute
   '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
   '/missions/$missionId/vault': typeof AuthenticatedMissionsMissionIdVaultRoute
   '/api/public/hooks/backfill-atlas-embeddings': typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
@@ -712,7 +668,6 @@ export interface FileRoutesById {
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/intelligence': typeof AuthenticatedIntelligenceRoute
   '/_authenticated/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
-  '/_authenticated/iris-demo': typeof AuthenticatedIrisDemoRoute
   '/_authenticated/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/_authenticated/pathfinder': typeof AuthenticatedPathfinderRoute
   '/_authenticated/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
@@ -757,17 +712,13 @@ export interface FileRoutesById {
   '/_authenticated/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
   '/_authenticated/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/_authenticated/olympus/': typeof AuthenticatedOlympusIndexRoute
-  '/_authenticated/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/_authenticated/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/_authenticated/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/_authenticated/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
-  '/_authenticated/missions/$missionId/intelligence': typeof AuthenticatedMissionsMissionIdIntelligenceRoute
   '/_authenticated/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
   '/_authenticated/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
-  '/_authenticated/missions/$missionId/operations': typeof AuthenticatedMissionsMissionIdOperationsRoute
   '/_authenticated/missions/$missionId/overview': typeof AuthenticatedMissionsMissionIdOverviewRoute
   '/_authenticated/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
-  '/_authenticated/missions/$missionId/studio': typeof AuthenticatedMissionsMissionIdStudioRoute
   '/_authenticated/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
   '/_authenticated/missions/$missionId/vault': typeof AuthenticatedMissionsMissionIdVaultRoute
   '/api/public/hooks/backfill-atlas-embeddings': typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
@@ -793,7 +744,6 @@ export interface FileRouteTypes {
     | '/home'
     | '/intelligence'
     | '/intelligence-queue'
-    | '/iris-demo'
     | '/olympus'
     | '/pathfinder'
     | '/pipeline-horizon'
@@ -838,17 +788,13 @@ export interface FileRouteTypes {
     | '/olympus/writer-deletion'
     | '/profile/expertise'
     | '/olympus/'
-    | '/missions/$missionId/activity'
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
     | '/missions/$missionId/command'
-    | '/missions/$missionId/intelligence'
     | '/missions/$missionId/iris'
     | '/missions/$missionId/library'
-    | '/missions/$missionId/operations'
     | '/missions/$missionId/overview'
     | '/missions/$missionId/settings'
-    | '/missions/$missionId/studio'
     | '/missions/$missionId/team'
     | '/missions/$missionId/vault'
     | '/api/public/hooks/backfill-atlas-embeddings'
@@ -872,7 +818,6 @@ export interface FileRouteTypes {
     | '/home'
     | '/intelligence'
     | '/intelligence-queue'
-    | '/iris-demo'
     | '/pathfinder'
     | '/pipeline-horizon'
     | '/api/iris-voice'
@@ -915,17 +860,13 @@ export interface FileRouteTypes {
     | '/olympus/writer-deletion'
     | '/profile/expertise'
     | '/olympus'
-    | '/missions/$missionId/activity'
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
     | '/missions/$missionId/command'
-    | '/missions/$missionId/intelligence'
     | '/missions/$missionId/iris'
     | '/missions/$missionId/library'
-    | '/missions/$missionId/operations'
     | '/missions/$missionId/overview'
     | '/missions/$missionId/settings'
-    | '/missions/$missionId/studio'
     | '/missions/$missionId/team'
     | '/missions/$missionId/vault'
     | '/api/public/hooks/backfill-atlas-embeddings'
@@ -950,7 +891,6 @@ export interface FileRouteTypes {
     | '/_authenticated/home'
     | '/_authenticated/intelligence'
     | '/_authenticated/intelligence-queue'
-    | '/_authenticated/iris-demo'
     | '/_authenticated/olympus'
     | '/_authenticated/pathfinder'
     | '/_authenticated/pipeline-horizon'
@@ -995,17 +935,13 @@ export interface FileRouteTypes {
     | '/_authenticated/olympus/writer-deletion'
     | '/_authenticated/profile/expertise'
     | '/_authenticated/olympus/'
-    | '/_authenticated/missions/$missionId/activity'
     | '/_authenticated/missions/$missionId/brief'
     | '/_authenticated/missions/$missionId/briefing'
     | '/_authenticated/missions/$missionId/command'
-    | '/_authenticated/missions/$missionId/intelligence'
     | '/_authenticated/missions/$missionId/iris'
     | '/_authenticated/missions/$missionId/library'
-    | '/_authenticated/missions/$missionId/operations'
     | '/_authenticated/missions/$missionId/overview'
     | '/_authenticated/missions/$missionId/settings'
-    | '/_authenticated/missions/$missionId/studio'
     | '/_authenticated/missions/$missionId/team'
     | '/_authenticated/missions/$missionId/vault'
     | '/api/public/hooks/backfill-atlas-embeddings'
@@ -1085,13 +1021,6 @@ declare module '@tanstack/react-router' {
       path: '/olympus'
       fullPath: '/olympus'
       preLoaderRoute: typeof AuthenticatedOlympusRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/iris-demo': {
-      id: '/_authenticated/iris-demo'
-      path: '/iris-demo'
-      fullPath: '/iris-demo'
-      preLoaderRoute: typeof AuthenticatedIrisDemoRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/intelligence-queue': {
@@ -1479,13 +1408,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdTeamRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
-    '/_authenticated/missions/$missionId/studio': {
-      id: '/_authenticated/missions/$missionId/studio'
-      path: '/studio'
-      fullPath: '/missions/$missionId/studio'
-      preLoaderRoute: typeof AuthenticatedMissionsMissionIdStudioRouteImport
-      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
-    }
     '/_authenticated/missions/$missionId/settings': {
       id: '/_authenticated/missions/$missionId/settings'
       path: '/settings'
@@ -1500,13 +1422,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdOverviewRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
-    '/_authenticated/missions/$missionId/operations': {
-      id: '/_authenticated/missions/$missionId/operations'
-      path: '/operations'
-      fullPath: '/missions/$missionId/operations'
-      preLoaderRoute: typeof AuthenticatedMissionsMissionIdOperationsRouteImport
-      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
-    }
     '/_authenticated/missions/$missionId/library': {
       id: '/_authenticated/missions/$missionId/library'
       path: '/library'
@@ -1519,13 +1434,6 @@ declare module '@tanstack/react-router' {
       path: '/iris'
       fullPath: '/missions/$missionId/iris'
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdIrisRouteImport
-      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
-    }
-    '/_authenticated/missions/$missionId/intelligence': {
-      id: '/_authenticated/missions/$missionId/intelligence'
-      path: '/intelligence'
-      fullPath: '/missions/$missionId/intelligence'
-      preLoaderRoute: typeof AuthenticatedMissionsMissionIdIntelligenceRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
     '/_authenticated/missions/$missionId/command': {
@@ -1547,13 +1455,6 @@ declare module '@tanstack/react-router' {
       path: '/brief'
       fullPath: '/missions/$missionId/brief'
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdBriefRouteImport
-      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
-    }
-    '/_authenticated/missions/$missionId/activity': {
-      id: '/_authenticated/missions/$missionId/activity'
-      path: '/activity'
-      fullPath: '/missions/$missionId/activity'
-      preLoaderRoute: typeof AuthenticatedMissionsMissionIdActivityRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
     '/_authenticated/missions/$missionId/questions/': {
@@ -1665,17 +1566,13 @@ const AuthenticatedOlympusRouteWithChildren =
   AuthenticatedOlympusRoute._addFileChildren(AuthenticatedOlympusRouteChildren)
 
 interface AuthenticatedMissionsMissionIdRouteChildren {
-  AuthenticatedMissionsMissionIdActivityRoute: typeof AuthenticatedMissionsMissionIdActivityRoute
   AuthenticatedMissionsMissionIdBriefRoute: typeof AuthenticatedMissionsMissionIdBriefRoute
   AuthenticatedMissionsMissionIdBriefingRoute: typeof AuthenticatedMissionsMissionIdBriefingRoute
   AuthenticatedMissionsMissionIdCommandRoute: typeof AuthenticatedMissionsMissionIdCommandRoute
-  AuthenticatedMissionsMissionIdIntelligenceRoute: typeof AuthenticatedMissionsMissionIdIntelligenceRoute
   AuthenticatedMissionsMissionIdIrisRoute: typeof AuthenticatedMissionsMissionIdIrisRoute
   AuthenticatedMissionsMissionIdLibraryRoute: typeof AuthenticatedMissionsMissionIdLibraryRoute
-  AuthenticatedMissionsMissionIdOperationsRoute: typeof AuthenticatedMissionsMissionIdOperationsRoute
   AuthenticatedMissionsMissionIdOverviewRoute: typeof AuthenticatedMissionsMissionIdOverviewRoute
   AuthenticatedMissionsMissionIdSettingsRoute: typeof AuthenticatedMissionsMissionIdSettingsRoute
-  AuthenticatedMissionsMissionIdStudioRoute: typeof AuthenticatedMissionsMissionIdStudioRoute
   AuthenticatedMissionsMissionIdTeamRoute: typeof AuthenticatedMissionsMissionIdTeamRoute
   AuthenticatedMissionsMissionIdVaultRoute: typeof AuthenticatedMissionsMissionIdVaultRoute
   AuthenticatedMissionsMissionIdIndexRoute: typeof AuthenticatedMissionsMissionIdIndexRoute
@@ -1685,28 +1582,20 @@ interface AuthenticatedMissionsMissionIdRouteChildren {
 
 const AuthenticatedMissionsMissionIdRouteChildren: AuthenticatedMissionsMissionIdRouteChildren =
   {
-    AuthenticatedMissionsMissionIdActivityRoute:
-      AuthenticatedMissionsMissionIdActivityRoute,
     AuthenticatedMissionsMissionIdBriefRoute:
       AuthenticatedMissionsMissionIdBriefRoute,
     AuthenticatedMissionsMissionIdBriefingRoute:
       AuthenticatedMissionsMissionIdBriefingRoute,
     AuthenticatedMissionsMissionIdCommandRoute:
       AuthenticatedMissionsMissionIdCommandRoute,
-    AuthenticatedMissionsMissionIdIntelligenceRoute:
-      AuthenticatedMissionsMissionIdIntelligenceRoute,
     AuthenticatedMissionsMissionIdIrisRoute:
       AuthenticatedMissionsMissionIdIrisRoute,
     AuthenticatedMissionsMissionIdLibraryRoute:
       AuthenticatedMissionsMissionIdLibraryRoute,
-    AuthenticatedMissionsMissionIdOperationsRoute:
-      AuthenticatedMissionsMissionIdOperationsRoute,
     AuthenticatedMissionsMissionIdOverviewRoute:
       AuthenticatedMissionsMissionIdOverviewRoute,
     AuthenticatedMissionsMissionIdSettingsRoute:
       AuthenticatedMissionsMissionIdSettingsRoute,
-    AuthenticatedMissionsMissionIdStudioRoute:
-      AuthenticatedMissionsMissionIdStudioRoute,
     AuthenticatedMissionsMissionIdTeamRoute:
       AuthenticatedMissionsMissionIdTeamRoute,
     AuthenticatedMissionsMissionIdVaultRoute:
@@ -1730,7 +1619,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedIntelligenceRoute: typeof AuthenticatedIntelligenceRoute
   AuthenticatedIntelligenceQueueRoute: typeof AuthenticatedIntelligenceQueueRoute
-  AuthenticatedIrisDemoRoute: typeof AuthenticatedIrisDemoRoute
   AuthenticatedOlympusRoute: typeof AuthenticatedOlympusRouteWithChildren
   AuthenticatedPathfinderRoute: typeof AuthenticatedPathfinderRoute
   AuthenticatedPipelineHorizonRoute: typeof AuthenticatedPipelineHorizonRoute
@@ -1753,7 +1641,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedIntelligenceRoute: AuthenticatedIntelligenceRoute,
   AuthenticatedIntelligenceQueueRoute: AuthenticatedIntelligenceQueueRoute,
-  AuthenticatedIrisDemoRoute: AuthenticatedIrisDemoRoute,
   AuthenticatedOlympusRoute: AuthenticatedOlympusRouteWithChildren,
   AuthenticatedPathfinderRoute: AuthenticatedPathfinderRoute,
   AuthenticatedPipelineHorizonRoute: AuthenticatedPipelineHorizonRoute,
@@ -1798,3 +1685,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

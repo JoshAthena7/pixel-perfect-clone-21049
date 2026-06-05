@@ -469,11 +469,6 @@ function MissionBrief() {
   const subDays = daysUntil(mission?.submission_date);
   const healthDotHex = counts.red > 0 ? "#ef4444" : counts.yellow > 0 ? "#eab308" : "#22c55e";
 
-  /* compose-to-leader stub */
-  const messageLeader = (userId: string, name: string) => {
-    toast(`Compose to ${firstName(name)} — coming soon`, { description: "Direct messaging to leadership members." });
-    void userId;
-  };
 
   /* refresh helpers after broadcast/add note */
   const onSentNote = () => {
@@ -576,10 +571,9 @@ function MissionBrief() {
           {leadershipCards.length > 0 && (
             <div className="mt-5 grid gap-2 sm:grid-cols-2 md:grid-cols-4">
               {leadershipCards.map((c) => (
-                <button
+                <div
                   key={c.user_id + c.role}
-                  onClick={() => messageLeader(c.user_id, c.name)}
-                  className="flex items-center gap-2.5 rounded-md border border-white/5 bg-white/[0.02] px-3 py-2 text-left hover:bg-white/[0.05] transition"
+                  className="flex items-center gap-2.5 rounded-md border border-white/5 bg-white/[0.02] px-3 py-2"
                 >
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-[10px] font-semibold uppercase text-muted-foreground">
                     {initials(c.name)}
@@ -590,7 +584,7 @@ function MissionBrief() {
                       {ROLE_LABEL[c.role] ?? c.role}
                     </span>
                   </span>
-                </button>
+                </div>
               ))}
             </div>
           )}
