@@ -458,7 +458,7 @@ function SectionInputs({ missionId, docs, refetch }: any) {
       <div className="space-y-3">
         {INPUT_CATEGORIES.map((cat) => {
           const items = docs.filter((d: any) => d.category === cat);
-          return <UploadZone key={cat} category={cat} items={items} onAttach={attachUrl} onRemove={async (id) => {
+          return <UploadZone key={cat} category={cat} items={items} onAttach={attachUrl} onRemove={async (id: string) => {
             await supabase.from("mission_vault_documents").delete().eq("id", id);
             refetch();
           }} />;
