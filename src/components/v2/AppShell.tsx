@@ -214,7 +214,7 @@ function TopBar({
         >
           <HelpCircle size={16} strokeWidth={1.5} />
         </button>
-        <BriefRoomNavButton />
+        
         
         <SignOutButton />
         <UserAvatarMenu />
