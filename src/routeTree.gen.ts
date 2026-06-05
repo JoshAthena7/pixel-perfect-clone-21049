@@ -13,8 +13,6 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiIrisVoiceRouteImport } from './routes/api/iris-voice'
-import { Route as AuthenticatedPipelineHorizonRouteImport } from './routes/_authenticated/pipeline-horizon'
-import { Route as AuthenticatedPathfinderRouteImport } from './routes/_authenticated/pathfinder'
 import { Route as AuthenticatedOlympusRouteImport } from './routes/_authenticated/olympus'
 import { Route as AuthenticatedIntelligenceQueueRouteImport } from './routes/_authenticated/intelligence-queue'
 import { Route as AuthenticatedIntelligenceRouteImport } from './routes/_authenticated/intelligence'
@@ -101,17 +99,6 @@ const ApiIrisVoiceRoute = ApiIrisVoiceRouteImport.update({
   id: '/api/iris-voice',
   path: '/api/iris-voice',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedPipelineHorizonRoute =
-  AuthenticatedPipelineHorizonRouteImport.update({
-    id: '/pipeline-horizon',
-    path: '/pipeline-horizon',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedPathfinderRoute = AuthenticatedPathfinderRouteImport.update({
-  id: '/pathfinder',
-  path: '/pathfinder',
-  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedOlympusRoute = AuthenticatedOlympusRouteImport.update({
   id: '/olympus',
@@ -521,8 +508,6 @@ export interface FileRoutesByFullPath {
   '/intelligence': typeof AuthenticatedIntelligenceRoute
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
   '/olympus': typeof AuthenticatedOlympusRouteWithChildren
-  '/pathfinder': typeof AuthenticatedPathfinderRoute
-  '/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
@@ -594,8 +579,6 @@ export interface FileRoutesByTo {
   '/home': typeof AuthenticatedHomeRoute
   '/intelligence': typeof AuthenticatedIntelligenceRoute
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
-  '/pathfinder': typeof AuthenticatedPathfinderRoute
-  '/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
@@ -669,8 +652,6 @@ export interface FileRoutesById {
   '/_authenticated/intelligence': typeof AuthenticatedIntelligenceRoute
   '/_authenticated/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
   '/_authenticated/olympus': typeof AuthenticatedOlympusRouteWithChildren
-  '/_authenticated/pathfinder': typeof AuthenticatedPathfinderRoute
-  '/_authenticated/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
   '/_authenticated/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/_authenticated/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
@@ -745,8 +726,6 @@ export interface FileRouteTypes {
     | '/intelligence'
     | '/intelligence-queue'
     | '/olympus'
-    | '/pathfinder'
-    | '/pipeline-horizon'
     | '/api/iris-voice'
     | '/command/alignment'
     | '/command/alignment-conflicts'
@@ -818,8 +797,6 @@ export interface FileRouteTypes {
     | '/home'
     | '/intelligence'
     | '/intelligence-queue'
-    | '/pathfinder'
-    | '/pipeline-horizon'
     | '/api/iris-voice'
     | '/command/alignment'
     | '/command/alignment-conflicts'
@@ -892,8 +869,6 @@ export interface FileRouteTypes {
     | '/_authenticated/intelligence'
     | '/_authenticated/intelligence-queue'
     | '/_authenticated/olympus'
-    | '/_authenticated/pathfinder'
-    | '/_authenticated/pipeline-horizon'
     | '/api/iris-voice'
     | '/_authenticated/command/alignment'
     | '/_authenticated/command/alignment-conflicts'
@@ -1001,20 +976,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/iris-voice'
       preLoaderRoute: typeof ApiIrisVoiceRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/pipeline-horizon': {
-      id: '/_authenticated/pipeline-horizon'
-      path: '/pipeline-horizon'
-      fullPath: '/pipeline-horizon'
-      preLoaderRoute: typeof AuthenticatedPipelineHorizonRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/pathfinder': {
-      id: '/_authenticated/pathfinder'
-      path: '/pathfinder'
-      fullPath: '/pathfinder'
-      preLoaderRoute: typeof AuthenticatedPathfinderRouteImport
-      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/olympus': {
       id: '/_authenticated/olympus'
@@ -1620,8 +1581,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedIntelligenceRoute: typeof AuthenticatedIntelligenceRoute
   AuthenticatedIntelligenceQueueRoute: typeof AuthenticatedIntelligenceQueueRoute
   AuthenticatedOlympusRoute: typeof AuthenticatedOlympusRouteWithChildren
-  AuthenticatedPathfinderRoute: typeof AuthenticatedPathfinderRoute
-  AuthenticatedPipelineHorizonRoute: typeof AuthenticatedPipelineHorizonRoute
   AuthenticatedCommandAlignmentRoute: typeof AuthenticatedCommandAlignmentRoute
   AuthenticatedCommandAlignmentConflictsRoute: typeof AuthenticatedCommandAlignmentConflictsRoute
   AuthenticatedCommandAttentionRoute: typeof AuthenticatedCommandAttentionRoute
@@ -1642,8 +1601,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIntelligenceRoute: AuthenticatedIntelligenceRoute,
   AuthenticatedIntelligenceQueueRoute: AuthenticatedIntelligenceQueueRoute,
   AuthenticatedOlympusRoute: AuthenticatedOlympusRouteWithChildren,
-  AuthenticatedPathfinderRoute: AuthenticatedPathfinderRoute,
-  AuthenticatedPipelineHorizonRoute: AuthenticatedPipelineHorizonRoute,
   AuthenticatedCommandAlignmentRoute: AuthenticatedCommandAlignmentRoute,
   AuthenticatedCommandAlignmentConflictsRoute:
     AuthenticatedCommandAlignmentConflictsRoute,
