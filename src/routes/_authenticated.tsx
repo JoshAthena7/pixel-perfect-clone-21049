@@ -8,10 +8,6 @@ export const Route = createFileRoute("/_authenticated")({
   // and a flash of /login for authenticated users.
   ssr: false,
   beforeLoad: async () => {
-    // Demo mode bypass — allows navigating all screens without auth for Storylane recording.
-    if (typeof window !== "undefined" && window.localStorage.getItem("demo_mode") === "1") {
-      return { user: { id: "demo-user", email: "demo@atlas.local" } as any };
-    }
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user) {
       throw redirect({ to: "/login" });

@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { irisLeadershipAttention } from "@/lib/iris.functions";
 import { getUnacknowledgedBriefings } from "@/lib/brief-room.functions";
 
-import { isDemoMode, useIsAdmin } from "@/hooks/useAccess";
+import { useIsAdmin } from "@/hooks/useAccess";
 import { toast } from "sonner";
 
 
@@ -106,13 +106,10 @@ function TopBar({
   // Per the Permissions spec: Olympus is invisible in nav for non-admins.
   // No greyed-out link, no lock icon — absent entirely.
   const { isAdmin } = useIsAdmin();
-  const demo = isDemoMode();
-
 
   const attentionFn = useServerFn(irisLeadershipAttention);
   useQuery({
-    queryKey: ["leadership-attention", demo],
-    enabled: !demo,
+    queryKey: ["leadership-attention"],
     queryFn: () => attentionFn(),
     refetchInterval: 60_000,
     retry: false,
