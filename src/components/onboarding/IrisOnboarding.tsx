@@ -206,12 +206,6 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
     }
   }
 
-  async function playIrisLine(text: string, options?: { force?: boolean }) {
-    if (muted && !options?.force) return;
-    const audioUrl = await createIrisAudioUrl(text);
-    if (audioUrl) await playPreparedAudioUrl(audioUrl);
-  }
-
   async function playModuleLine(moduleNumber: number, text: string, options?: { force?: boolean }) {
     if (voicePlaybackInFlight.current) return;
     if (muted && !options?.force) return;
