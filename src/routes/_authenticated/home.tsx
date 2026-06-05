@@ -17,7 +17,7 @@ import atlasLogo from "@/assets/atlas-logo.png.asset.json";
 import { LegacyRecord } from "@/components/v4/LegacyRecord";
 import { DailyPulse } from "@/components/v4/DailyPulse";
 import { IrisTrustIntro } from "@/components/v4/IrisTrustIntro";
-import { useIsAdmin } from "@/hooks/useAccess";
+import { isDemoMode, useIsAdmin } from "@/hooks/useAccess";
 import type { ReactNode } from "react";
 import { TestIrisVoiceButton } from "@/components/iris/TestIrisVoiceButton";
 
@@ -248,11 +248,15 @@ function AthenaHQ() {
     },
   });
 
+  const demo = isDemoMode();
   const attentionFn = useServerFn(irisLeadershipAttention);
   const { data: attention } = useQuery({
-    queryKey: ["leadership-attention"],
+    queryKey: ["leadership-attention", demo],
+    enabled: !demo,
     queryFn: () => attentionFn(),
     refetchInterval: 60_000,
+    retry: false,
+    throwOnError: false,
   });
   const attMap = new Map((attention?.missions ?? []).map((m) => [m.mission_id, m.attention_score]));
   const totalAttention = (attention?.missions ?? []).reduce((s, m) => s + m.attention_score, 0);
