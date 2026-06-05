@@ -190,13 +190,27 @@ export function IrisRfpReviewModal({
             qc.invalidateQueries({ queryKey: ["research-agenda", missionId] });
 
             // ─── Phase 3: execute research agenda via Perplexity ───
+            // One task per request (worker-timeout safe); loop client-side.
             try {
               const { executeResearchAgenda } = await import("@/lib/iris-research.functions");
-              const res = await executeResearchAgenda({
-                data: { missionId, limit: 12 },
-              });
+              let ok = 0;
+              let fail = 0;
+              let safety = 24;
+              while (safety-- > 0) {
+                const res = await executeResearchAgenda({ data: { missionId, limit: 1 } });
+                ok += res.succeeded;
+                fail += res.failed;
+                if (res.executed === 0) break;
+                const done = ok + fail;
+                const total = done + (res.remaining ?? 0);
+                toast.loading(`IRIS researching ${done}/${total}…`, { id: "iris-research" });
+                qc.invalidateQueries({ queryKey: ["research-agenda", missionId] });
+                qc.invalidateQueries({ queryKey: ["research-results", missionId] });
+                if ((res.remaining ?? 0) === 0) break;
+                await new Promise((r) => setTimeout(r, 400));
+              }
               toast.success(
-                `IRIS research complete — ${res.succeeded}/${res.executed} answered`,
+                `IRIS research complete — ${ok} answered${fail ? `, ${fail} failed` : ""}`,
                 { id: "iris-research", duration: 6000 },
               );
               qc.invalidateQueries({ queryKey: ["research-agenda", missionId] });
