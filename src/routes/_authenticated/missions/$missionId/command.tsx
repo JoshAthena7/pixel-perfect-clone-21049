@@ -881,8 +881,16 @@ function MissionBrief() {
                 }
               />
               {winThemes.length === 0 ? (
-                <div className="rounded-[12px] border border-dashed border-white/10 bg-white/[0.02] px-5 py-5 text-sm text-muted-foreground">
-                  No win themes defined yet.
+                <div className="rounded-[12px] border border-dashed border-white/10 bg-white/[0.02] px-5 py-6 text-sm text-muted-foreground">
+                  <div className="text-foreground font-medium">No win themes defined yet.</div>
+                  <div className="mt-1 text-xs">The 3–5 messages your proposal must land on. Define them so IRIS can score coverage across every question.</div>
+                  <Link
+                    to="/missions/$missionId/overview"
+                    params={{ missionId }}
+                    className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-white/[0.04] px-3 py-1.5 text-[12px] font-medium text-foreground hover:bg-white/[0.08]"
+                  >
+                    Define win themes <ArrowRight className="h-3 w-3" />
+                  </Link>
                 </div>
               ) : (
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
