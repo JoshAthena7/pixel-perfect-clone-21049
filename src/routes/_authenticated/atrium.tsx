@@ -116,6 +116,37 @@ function GlobalBriefing() {
   );
 }
 
+function DirectBriefing() {
+  return (
+    <section className="overflow-hidden rounded-[12px] border border-sky-500/30 bg-gradient-to-br from-sky-950/30 via-surface to-surface">
+      <div className="flex items-center justify-between border-b border-sky-500/20 px-5 py-2.5">
+        <div className="flex items-center gap-2">
+          <Inbox className="h-3.5 w-3.5 text-sky-400" strokeWidth={2} />
+          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-sky-400">
+            Direct Briefing · For You
+          </span>
+        </div>
+        <span className="text-[10px] text-muted-foreground">From Maya Patel · Engage Lead · 1h ago</span>
+      </div>
+      <div className="px-5 py-4">
+        <p className="text-sm leading-relaxed text-foreground/90">
+          Please review <span className="font-semibold text-foreground">Section 4.2</span> before it advances to final
+          QA. Specific attention to the <span className="font-semibold text-foreground">ICC framing</span> and{" "}
+          <span className="font-semibold text-foreground">DCF partnership language</span>.
+        </p>
+        <div className="mt-4 flex items-center gap-2">
+          <button className="inline-flex items-center gap-1.5 rounded-md bg-sky-500/15 px-3 py-1.5 text-xs font-medium text-sky-300 hover:bg-sky-500/25">
+            Open Section 4.2
+          </button>
+          <button className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground hover:bg-surface-hover hover:text-foreground">
+            Acknowledge
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 
 function ThreadPanel() {
   return (
