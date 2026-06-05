@@ -785,14 +785,13 @@ function CockpitPage() {
         style={{ background: "rgba(6,11,20,0.95)", backdropFilter: "blur(12px)", borderColor: "rgba(255,255,255,0.06)" }}
       >
         <AssistsBar
-          disabled={isReadOnlyView}
           primaryLabel={isSME ? "Submit SME Input" : "Update Reality"}
           onUpdateReality={() => openUpdateReality(questionId)}
           onScoreMe={() => { setScoreMeOpen(true); markOverflowUsed(); }}
           onPhone={() => { setPhoneOpen(true); markOverflowUsed(); }}
           onPulse={() => setPulseOpen(true)}
           onThread={() => setThreadOpen(true)}
-          sosSlot={!isSME && !isReadOnlyView ? <SOSButton missionId={missionId} questionId={questionId} /> : null}
+          sosSlot={!isSME ? <SOSButton missionId={missionId} questionId={questionId} /> : null}
         />
 
         {/* First-visit tooltip pointing at the action bar */}
