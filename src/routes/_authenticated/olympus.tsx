@@ -16,6 +16,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { listReviewQueue } from "@/lib/atlas-onboarding.functions";
 import { useIsAdmin } from "@/hooks/useAccess";
 import { NotAvailable } from "@/components/access/NotAvailable";
+import { TestIrisVoiceButton } from "@/components/iris/TestIrisVoiceButton";
 
 export const Route = createFileRoute("/_authenticated/olympus")({
   component: OlympusLayout,
