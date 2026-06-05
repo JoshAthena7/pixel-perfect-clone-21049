@@ -854,19 +854,33 @@ function CockpitPage() {
           {/* RIGHT */}
           <div className="flex items-center gap-2">
             {!isSME && !isReadOnlyView && (
-              <CockpitOverflow
-                open={overflowOpen}
-                setOpen={setOverflowOpen}
-                showSublabels={showSublabels}
-                primaryAction={primaryAction}
-                onScoreMe={() => { setScoreMeOpen(true); setOverflowOpen(false); markOverflowUsed(); }}
-                onPhoneAFriend={() => {
-                  setOverflowOpen(false);
-                  markOverflowUsed();
-                  setPhoneOpen(true);
-                }}
-                onGetHelp={() => { setGetHelpOpen(true); setOverflowOpen(false); markOverflowUsed(); }}
-              />
+              <>
+                <button
+                  onClick={() => { setPhoneOpen(true); markOverflowUsed(); }}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-transparent px-3 py-2 text-xs font-semibold text-muted-foreground transition hover:border-white/20 hover:text-foreground"
+                >
+                  <Phone className="h-3.5 w-3.5" /> Phone a Friend
+                </button>
+                <button
+                  onClick={() => { setGetHelpOpen(true); markOverflowUsed(); }}
+                  className={`inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold transition ${
+                    primaryAction === "get_help"
+                      ? "border border-amber-500/50 bg-amber-500/15 text-amber-200 hover:bg-amber-500/25"
+                      : "border border-white/10 bg-transparent text-muted-foreground hover:border-white/20 hover:text-foreground"
+                  }`}
+                >
+                  <Lightbulb className="h-3.5 w-3.5" /> Get Help
+                </button>
+                <CockpitOverflow
+                  open={overflowOpen}
+                  setOpen={setOverflowOpen}
+                  showSublabels={showSublabels}
+                  primaryAction={primaryAction}
+                  onScoreMe={() => { setScoreMeOpen(true); setOverflowOpen(false); markOverflowUsed(); }}
+                  onPhoneAFriend={() => { setOverflowOpen(false); markOverflowUsed(); setPhoneOpen(true); }}
+                  onGetHelp={() => { setGetHelpOpen(true); setOverflowOpen(false); markOverflowUsed(); }}
+                />
+              </>
             )}
             {!isSME && !isReadOnlyView && (
               <div className="[&>div>button]:hidden">
