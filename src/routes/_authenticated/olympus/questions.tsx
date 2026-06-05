@@ -238,6 +238,10 @@ function QuestionsPage() {
             className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-sm hover:bg-surface-hover">
             <Sparkles className="h-3.5 w-3.5" /> Import from RFP
           </Link>
+          <button onClick={() => setMatrixOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/15">
+            <Upload className="h-3.5 w-3.5" /> Upload Client Matrix
+          </button>
           <button onClick={() => setAddOpen(true)}
             className="inline-flex items-center gap-2 rounded-md bg-[#C49A22] px-4 py-2 text-sm font-semibold text-black hover:bg-[#D4AA32]">
             <Plus className="h-4 w-4" /> Add Question
