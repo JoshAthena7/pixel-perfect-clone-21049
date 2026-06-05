@@ -4,7 +4,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { daysUntil } from "@/lib/countdowns";
 import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
-import { SOSModal } from "@/components/v2/SOSButton";
+import { SOSModal, SOSButton } from "@/components/v2/SOSButton";
+import { AssistsBar } from "@/components/v4/AssistsBar";
+import { toast } from "sonner";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
 import { PhoneAFriendOverlay } from "@/components/v2/PhoneAFriendOverlay";
 import { LegacyRecord } from "@/components/v4/LegacyRecord";
@@ -378,77 +381,32 @@ function FocusItem({
 function AssistsRow({
   missionId,
   suggestedId,
-  openSOS,
+  openSOS: _openSOS,
   openScore,
   openPhone,
+  openPulse,
 }: {
   missionId: string;
   suggestedId: string | null;
   openSOS: () => void;
   openScore: () => void;
   openPhone: () => void;
+  openPulse: () => void;
 }) {
-  const tiles: Array<{
-    label: string;
-    sub: string;
-    icon: React.ComponentType<{ className?: string }>;
-    onClick: () => void;
-    tone: string;
-  }> = [
-    {
-      label: "Score Me",
-      sub: "IRIS rubric check",
-      icon: Target,
-      onClick: openScore,
-      tone: "hover:border-sky-500/40 hover:bg-sky-500/[0.05] text-sky-300",
-    },
-    {
-      label: "Phone a Friend",
-      sub: "Loop in a teammate",
-      icon: Phone,
-      onClick: openPhone,
-      tone: "hover:border-violet-500/40 hover:bg-violet-500/[0.05] text-violet-300",
-    },
-    {
-      label: "Update Reality",
-      sub: "Log what changed",
-      icon: Zap,
-      onClick: () => openUpdateReality(suggestedId),
-      tone: "hover:border-amber-500/40 hover:bg-amber-500/[0.05] text-amber-300",
-    },
-    {
-      label: "SOS",
-      sub: "Escalate to leads",
-      icon: AlertTriangle,
-      onClick: openSOS,
-      tone: "hover:border-red-500/40 hover:bg-red-500/[0.05] text-red-400",
-    },
-  ];
-
   return (
-    <section className="rounded-[12px] border border-border bg-surface px-6 py-5">
-      <div className="mb-4">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          Assists
-        </div>
-        <p className="mt-1 text-sm text-foreground/80">Lean on the team and IRIS without breaking flow.</p>
-      </div>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        {tiles.map((t) => {
-          const Icon = t.icon;
-          return (
-            <button
-              key={t.label}
-              onClick={t.onClick}
-              className={`flex flex-col items-start gap-1.5 rounded-[10px] border border-border bg-background/40 px-3 py-3 text-left transition ${t.tone}`}
-            >
-              <Icon className="h-4 w-4" />
-              <div className="text-[13px] font-medium text-foreground">{t.label}</div>
-              <div className="text-[11px] text-muted-foreground">{t.sub}</div>
-            </button>
-          );
-        })}
-      </div>
+    <section className="rounded-[12px] border border-border bg-surface overflow-hidden">
+      <AssistsBar
+        onUpdateReality={() => openUpdateReality(suggestedId)}
+        onScoreMe={openScore}
+        onPhone={openPhone}
+        onPulse={openPulse}
+        onThread={() =>
+          suggestedId
+            ? window.dispatchEvent(new CustomEvent("atlas:open-thread", { detail: { questionId: suggestedId } }))
+            : toast("Open a question to use Thread")
+        }
+        sosSlot={<SOSButton missionId={missionId} questionId={suggestedId ?? undefined} />}
+      />
     </section>
   );
 }
@@ -589,6 +547,7 @@ export function CockpitV4({ missionId, me, myQuestions, allQuestions, updateStat
   const [sosOpen, setSosOpen] = useState(false);
   const [scoreOpen, setScoreOpen] = useState(false);
   const [phoneOpen, setPhoneOpen] = useState(false);
+  const [pulseOpen, setPulseOpen] = useState(false);
 
   const { data: mission } = useQuery({
     queryKey: ["cockpit-v4-mission", missionId],
@@ -724,7 +683,15 @@ export function CockpitV4({ missionId, me, myQuestions, allQuestions, updateStat
           openSOS={() => setSosOpen(true)}
           openScore={() => setScoreOpen(true)}
           openPhone={() => setPhoneOpen(true)}
+          openPulse={() => setPulseOpen(true)}
         />
+
+        <Sheet open={pulseOpen} onOpenChange={setPulseOpen}>
+          <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+            <SheetHeader><SheetTitle>Daily Pulse</SheetTitle></SheetHeader>
+            <div className="mt-4"><DailyPulse /></div>
+          </SheetContent>
+        </Sheet>
 
         <DailyPulse />
 
