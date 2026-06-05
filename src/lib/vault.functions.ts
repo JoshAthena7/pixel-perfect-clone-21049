@@ -206,11 +206,34 @@ export const createVaultDoc = createServerFn({ method: "POST" })
         external_url: data.externalUrl ?? null,
         uploaded_by: userId,
         uploaded_by_name: uploaderName,
+        extraction_status: data.filePath ? "pending" : "no_file",
       })
       .select("*")
       .single();
     if (error) throw new Error(error.message);
+
+    // Fire-and-forget: extract text + embed for IRIS retrieval.
+    // Failures are recorded on the row itself; never block the upload.
+    if (data.filePath) {
+      try {
+        const { extractAndEmbedVaultDoc } = await import("./vault-extract.server");
+        await extractAndEmbedVaultDoc(supabase, row.id);
+      } catch {
+        /* swallowed — status row already records the failure */
+      }
+    }
+
     return row as VaultDoc;
+  });
+
+// ─── Manual re-extract (retry / Olympus admin) ─────────────────────────────
+export const extractVaultDoc = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabase } = context as { supabase: any };
+    const { extractAndEmbedVaultDoc } = await import("./vault-extract.server");
+    return await extractAndEmbedVaultDoc(supabase, data.id);
   });
 
 /** Exported limit for client-side pre-check UX. */

@@ -3116,6 +3116,10 @@ export type Database = {
           description: string | null
           doc_type: Database["public"]["Enums"]["vault_doc_type"]
           external_url: string | null
+          extracted_at: string | null
+          extracted_text: string | null
+          extraction_error: string | null
+          extraction_status: string | null
           file_path: string | null
           file_size: number | null
           id: string
@@ -3132,6 +3136,10 @@ export type Database = {
           description?: string | null
           doc_type: Database["public"]["Enums"]["vault_doc_type"]
           external_url?: string | null
+          extracted_at?: string | null
+          extracted_text?: string | null
+          extraction_error?: string | null
+          extraction_status?: string | null
           file_path?: string | null
           file_size?: number | null
           id?: string
@@ -3148,6 +3156,10 @@ export type Database = {
           description?: string | null
           doc_type?: Database["public"]["Enums"]["vault_doc_type"]
           external_url?: string | null
+          extracted_at?: string | null
+          extracted_text?: string | null
+          extraction_error?: string | null
+          extraction_status?: string | null
           file_path?: string | null
           file_size?: number | null
           id?: string
@@ -5208,6 +5220,18 @@ export type Database = {
           mission_id: string
           question_id: string
           similarity: number
+        }[]
+      }
+      match_iris_context: {
+        Args: { p_k?: number; p_mission_id: string; p_query: string }
+        Returns: {
+          content_text: string
+          id: string
+          mission_id: string
+          scope: string
+          similarity: number
+          source_id: string
+          source_table: string
         }[]
       }
       move_to_dlq: {

@@ -55,7 +55,7 @@ export const irisAskGlobal = createServerFn({ method: "POST" })
       supabase.from("signals").select("signal_title,signal_summary,severity,status,created_at").eq("status", "open").order("created_at", { ascending: false }).limit(12),
       supabase.from("market_intelligence").select("title,summary,published_at").order("created_at", { ascending: false }).limit(6),
       fetchIrisMemoryContext(supabase, { missionId: null }),
-      loadLayeredContext(supabase, { missionId: null }),
+      loadLayeredContext(supabase, { missionId: null, topic: data.prompt }),
     ]);
 
     const missionLines = (missions ?? []).map((m) => `- ${m.name} (${m.client}${m.state ? `, ${m.state}` : ""}): ${m.health}, due ${m.submission_date ?? "TBD"}`).join("\n");
@@ -94,7 +94,7 @@ export const irisAskQuestion = createServerFn({ method: "POST" })
         .eq("id", q.mission_id)
         .maybeSingle(),
       fetchIrisMemoryContext(supabase, { missionId: q.mission_id }),
-      loadLayeredContext(supabase, { missionId: q.mission_id }),
+      loadLayeredContext(supabase, { missionId: q.mission_id, questionId: data.questionId, topic: data.prompt }),
     ]);
 
     const sys = `${IRIS_SYSTEM}
@@ -138,7 +138,7 @@ export const irisAskMission = createServerFn({ method: "POST" })
         .eq("id", data.missionId)
         .maybeSingle(),
       fetchIrisMemoryContext(supabase, { missionId: data.missionId }),
-      loadLayeredContext(supabase, { missionId: data.missionId }),
+      loadLayeredContext(supabase, { missionId: data.missionId, topic: data.prompt }),
     ]);
     if (!m) throw new Error("Mission not found");
 

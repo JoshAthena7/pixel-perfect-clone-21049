@@ -3,6 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { IRIS_BASE_PROMPT } from "./iris-prompts";
 import { withAICircuit } from "@/lib/ai-circuit-breaker";
+import { loadLayeredContext } from "./iris-layered-context";
 
 const CACHE_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours
 
@@ -115,6 +116,18 @@ export const generateQuestionCoaching = createServerFn({ method: "POST" })
       .eq("mission_id", q.mission_id)
       .eq("status", "active");
 
+    // Pull unified IRIS context (vault, library, atlas, perplexity, decisions, signals…)
+    // scoped to this question — semantic match on the question text + requirements.
+    const topic = [q.title, q.question_text, (q.requirements ?? []).join("; ")]
+      .filter(Boolean)
+      .join("\n")
+      .slice(0, 3000);
+    const layered = await loadLayeredContext(supabase, {
+      missionId: q.mission_id,
+      questionId: q.id,
+      topic,
+    });
+
     const userMsg = `MISSION: ${mission?.name} · ${mission?.client} · ${mission?.state ?? "—"}
 Win themes: ${(mission?.win_themes ?? []).join("; ") || "(none)"}
 Priority topics: ${(mission?.priority_topics ?? []).join("; ") || "(none)"}
@@ -151,7 +164,9 @@ THE THREE INSIGHTS (in order):
 (2) procurement_signal — what have evaluators weighted in similar procurements? Specific metrics, evidence types, language patterns.
 (3) differentiation — the competitive opportunity. Name a competitor's expected move. End with the explicit first-sentence direction.
 
-Be the strategist who knows what wins. Not the consultant who hedges.`;
+Be the strategist who knows what wins. Not the consultant who hedges.
+
+${layered}`;
 
     const coaching = await callForCoaching(sys, userMsg);
     if (!coaching) {
