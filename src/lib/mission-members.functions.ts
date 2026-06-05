@@ -94,9 +94,10 @@ export const inviteMissionMember = createServerFn({ method: "POST" })
     const resolvedId: string = inviteeId!;
 
     // Ensure a profile row exists for the invitee so future lookups are fast.
+    // Only create a profile row if one doesn't exist yet — don't clobber names.
     await supabaseAdmin.from("profiles").upsert(
       { id: resolvedId, email: data.email, display_name: data.displayName ?? data.email.split("@")[0] },
-      { onConflict: "id", ignoreDuplicates: false },
+      { onConflict: "id", ignoreDuplicates: true },
     );
 
     // Add to mission_members (idempotent on (mission_id,user_id))
