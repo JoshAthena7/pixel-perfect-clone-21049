@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/intelligence")({
   component: IntelligenceHub,
   head: () => ({
     meta: [
-      { title: "The Oracle (Intelligence Hub) — Athena" },
+      { title: "The Oracle — Athena" },
       { name: "description", content: "Athena's permanent knowledge infrastructure across five layers." },
     ],
   }),
