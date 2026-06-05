@@ -332,13 +332,13 @@ function AthenaHQ() {
             
           </div>
           <div className="flex items-center gap-4">
-            <Link
-              to="/iris-demo"
+            <a
+              href="/home?iris-demo=1"
               className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-[13px] font-medium text-background hover:opacity-90"
             >
               <Sparkles className="h-3.5 w-3.5" />
               Launch IRIS Demo
-            </Link>
+            </a>
             <div className="text-right">
               <div className="h2-label">Firm Status</div>
               <div className={`mt-1.5 flex items-center justify-end gap-2 text-sm font-medium ${totalAttention === 0 ? "text-[color:var(--green)]" : totalAttention >= 50 ? "text-destructive" : "text-amber-400"}`}>
