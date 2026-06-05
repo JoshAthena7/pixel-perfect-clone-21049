@@ -104,11 +104,11 @@ export function detectPHI(text: string): PHIDetectionResult {
     highConfidence = true;
   }
 
-  // Zip codes only count when adjacent to a clinical term — not co-present
-  // anywhere in a long document.
-  if (RE_ZIP_NEAR_CLINICAL.test(plain)) {
-    found.add("ZipInClinicalContext");
-  }
+  // ZIP-near-clinical alone is NOT a Safe Harbor identifier (no individual
+  // linkage). Detect for telemetry but don't block — it was triggering on
+  // every healthcare RFP that named a service area.
+  // if (RE_ZIP_NEAR_CLINICAL.test(plain)) found.add("ZipInClinicalContext");
+
 
 
   // Medium-confidence contextual signals
