@@ -25,7 +25,9 @@ import { Route as AuthenticatedIntelligenceRouteImport } from './routes/_authent
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedBriefRoomRouteImport } from './routes/_authenticated/brief-room'
 import { Route as AuthenticatedAtriumRouteImport } from './routes/_authenticated/atrium'
+import { Route as DemoAppIndexRouteImport } from './routes/demo._app.index'
 import { Route as AuthenticatedOlympusIndexRouteImport } from './routes/_authenticated/olympus/index'
+import { Route as DemoAppCommunicationsRouteImport } from './routes/demo._app.communications'
 import { Route as AuthenticatedProfileExpertiseRouteImport } from './routes/_authenticated/profile/expertise'
 import { Route as AuthenticatedOlympusWriterDeletionRouteImport } from './routes/_authenticated/olympus/writer-deletion'
 import { Route as AuthenticatedOlympusWinThemesRouteImport } from './routes/_authenticated/olympus/win-themes'
@@ -165,12 +167,22 @@ const AuthenticatedAtriumRoute = AuthenticatedAtriumRouteImport.update({
   path: '/atrium',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const DemoAppIndexRoute = DemoAppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DemoAppRoute,
+} as any)
 const AuthenticatedOlympusIndexRoute =
   AuthenticatedOlympusIndexRouteImport.update({
     id: '/',
     path: '/',
     getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
+const DemoAppCommunicationsRoute = DemoAppCommunicationsRouteImport.update({
+  id: '/communications',
+  path: '/communications',
+  getParentRoute: () => DemoAppRoute,
+} as any)
 const AuthenticatedProfileExpertiseRoute =
   AuthenticatedProfileExpertiseRouteImport.update({
     id: '/profile/expertise',
@@ -516,7 +528,7 @@ const AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/demo': typeof DemoAppRoute
+  '/demo': typeof DemoAppRouteWithChildren
   '/login': typeof LoginRoute
   '/atrium': typeof AuthenticatedAtriumRoute
   '/brief-room': typeof AuthenticatedBriefRoomRoute
@@ -566,7 +578,9 @@ export interface FileRoutesByFullPath {
   '/olympus/win-themes': typeof AuthenticatedOlympusWinThemesRoute
   '/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
+  '/demo/communications': typeof DemoAppCommunicationsRoute
   '/olympus/': typeof AuthenticatedOlympusIndexRoute
+  '/demo/': typeof DemoAppIndexRoute
   '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
@@ -590,7 +604,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/demo': typeof DemoAppRoute
+  '/demo': typeof DemoAppIndexRoute
   '/login': typeof LoginRoute
   '/atrium': typeof AuthenticatedAtriumRoute
   '/brief-room': typeof AuthenticatedBriefRoomRoute
@@ -638,6 +652,7 @@ export interface FileRoutesByTo {
   '/olympus/win-themes': typeof AuthenticatedOlympusWinThemesRoute
   '/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
+  '/demo/communications': typeof DemoAppCommunicationsRoute
   '/olympus': typeof AuthenticatedOlympusIndexRoute
   '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
@@ -676,7 +691,7 @@ export interface FileRoutesById {
   '/_authenticated/pathfinder': typeof AuthenticatedPathfinderRoute
   '/_authenticated/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
-  '/demo/_app': typeof DemoAppRoute
+  '/demo/_app': typeof DemoAppRouteWithChildren
   '/demo/login': typeof DemoLoginRoute
   '/_authenticated/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/_authenticated/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
@@ -715,7 +730,9 @@ export interface FileRoutesById {
   '/_authenticated/olympus/win-themes': typeof AuthenticatedOlympusWinThemesRoute
   '/_authenticated/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
   '/_authenticated/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
+  '/demo/_app/communications': typeof DemoAppCommunicationsRoute
   '/_authenticated/olympus/': typeof AuthenticatedOlympusIndexRoute
+  '/demo/_app/': typeof DemoAppIndexRoute
   '/_authenticated/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/_authenticated/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/_authenticated/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
@@ -791,7 +808,9 @@ export interface FileRouteTypes {
     | '/olympus/win-themes'
     | '/olympus/writer-deletion'
     | '/profile/expertise'
+    | '/demo/communications'
     | '/olympus/'
+    | '/demo/'
     | '/missions/$missionId/activity'
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
@@ -863,6 +882,7 @@ export interface FileRouteTypes {
     | '/olympus/win-themes'
     | '/olympus/writer-deletion'
     | '/profile/expertise'
+    | '/demo/communications'
     | '/olympus'
     | '/missions/$missionId/activity'
     | '/missions/$missionId/brief'
@@ -939,7 +959,9 @@ export interface FileRouteTypes {
     | '/_authenticated/olympus/win-themes'
     | '/_authenticated/olympus/writer-deletion'
     | '/_authenticated/profile/expertise'
+    | '/demo/_app/communications'
     | '/_authenticated/olympus/'
+    | '/demo/_app/'
     | '/_authenticated/missions/$missionId/activity'
     | '/_authenticated/missions/$missionId/brief'
     | '/_authenticated/missions/$missionId/briefing'
@@ -1088,12 +1110,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAtriumRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/demo/_app/': {
+      id: '/demo/_app/'
+      path: '/'
+      fullPath: '/demo/'
+      preLoaderRoute: typeof DemoAppIndexRouteImport
+      parentRoute: typeof DemoAppRoute
+    }
     '/_authenticated/olympus/': {
       id: '/_authenticated/olympus/'
       path: '/'
       fullPath: '/olympus/'
       preLoaderRoute: typeof AuthenticatedOlympusIndexRouteImport
       parentRoute: typeof AuthenticatedOlympusRoute
+    }
+    '/demo/_app/communications': {
+      id: '/demo/_app/communications'
+      path: '/communications'
+      fullPath: '/demo/communications'
+      preLoaderRoute: typeof DemoAppCommunicationsRouteImport
+      parentRoute: typeof DemoAppRoute
     }
     '/_authenticated/profile/expertise': {
       id: '/_authenticated/profile/expertise'
@@ -1677,13 +1713,26 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface DemoAppRouteChildren {
+  DemoAppCommunicationsRoute: typeof DemoAppCommunicationsRoute
+  DemoAppIndexRoute: typeof DemoAppIndexRoute
+}
+
+const DemoAppRouteChildren: DemoAppRouteChildren = {
+  DemoAppCommunicationsRoute: DemoAppCommunicationsRoute,
+  DemoAppIndexRoute: DemoAppIndexRoute,
+}
+
+const DemoAppRouteWithChildren =
+  DemoAppRoute._addFileChildren(DemoAppRouteChildren)
+
 interface DemoRouteChildren {
-  DemoAppRoute: typeof DemoAppRoute
+  DemoAppRoute: typeof DemoAppRouteWithChildren
   DemoLoginRoute: typeof DemoLoginRoute
 }
 
 const DemoRouteChildren: DemoRouteChildren = {
-  DemoAppRoute: DemoAppRoute,
+  DemoAppRoute: DemoAppRouteWithChildren,
   DemoLoginRoute: DemoLoginRoute,
 }
 
@@ -1706,3 +1755,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
