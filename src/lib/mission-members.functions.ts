@@ -91,7 +91,7 @@ export const inviteMissionMember = createServerFn({ method: "POST" })
       }
       if (!inviteeId) throw new Error("Invite did not produce a user.");
     }
-    const resolvedId: string = inviteeId;
+    const resolvedId: string = inviteeId!;
 
     // Ensure a profile row exists for the invitee so future lookups are fast.
     await supabaseAdmin.from("profiles").upsert(
