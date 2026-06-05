@@ -384,11 +384,13 @@ const TEAM_ROLES = [
   { key: "reviewer", label: "Reviewers", multi: true },
   { key: "executive_reviewer", label: "Executive Review Team", multi: true },
 ];
-function SectionTeam({ missionId, members, refetch }: any) {
+function SectionTeam({ missionId, members, expertise, refetch }: any) {
   const { data: profiles = [] } = useQuery({
     queryKey: ["profiles-min"],
     queryFn: async () => (await supabase.from("profiles").select("id,display_name,email").limit(500)).data ?? [],
   });
+  const addTagFn = useServerFn(saveExpertiseTag);
+  const removeTagFn = useServerFn(removeExpertiseTag);
 
   async function addMember(role: string, userId: string, displayName: string) {
     if (!userId) return;
@@ -403,9 +405,18 @@ function SectionTeam({ missionId, members, refetch }: any) {
     if (error) return toast.error(error.message);
     refetch();
   }
+  async function addTag(userId: string, tag: string) {
+    if (!tag.trim()) return;
+    await addTagFn({ data: { missionId, userId, tag: tag.trim() } });
+    refetch();
+  }
+  async function removeTag(id: string) {
+    await removeTagFn({ data: { id } });
+    refetch();
+  }
 
   return (
-    <Section id="team" n="02" label="Team Assignment" sublabel="Drives mission permissions when launched.">
+    <Section id="team" n="02" label="Team Assignment" sublabel="Drives mission permissions and IRIS expert routing when launched.">
       <div className="space-y-5">
         {TEAM_ROLES.map((r) => {
           const assigned = members.filter((m: any) => m.role === r.key);
@@ -414,18 +425,32 @@ function SectionTeam({ missionId, members, refetch }: any) {
               <div className="col-span-3 pt-2">
                 <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">{r.label}</div>
               </div>
-              <div className="col-span-9">
-                <div className="flex flex-wrap gap-1.5 mb-2">
-                  {assigned.length === 0 && <span className="text-xs text-muted-foreground italic">None assigned</span>}
-                  {assigned.map((m: any) => (
-                    <span key={m.id} className="inline-flex items-center gap-1.5 rounded-full bg-surface border border-border px-2.5 py-1 text-xs">
-                      {m.display_name ?? m.user_id.slice(0, 6)}
-                      <button onClick={() => removeMember(m.id)} className="opacity-50 hover:opacity-100">
-                        <X className="h-3 w-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
+              <div className="col-span-9 space-y-2">
+                {assigned.length === 0 && <span className="text-xs text-muted-foreground italic">None assigned</span>}
+                {assigned.map((m: any) => {
+                  const tags = expertise.filter((e: any) => e.user_id === m.user_id);
+                  return (
+                    <div key={m.id} className="rounded-md border border-border bg-background p-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm">{m.display_name ?? m.user_id.slice(0, 6)}</span>
+                        <button onClick={() => removeMember(m.id)} className="opacity-50 hover:opacity-100">
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                      <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                        <Tag className="h-3 w-3 text-muted-foreground" />
+                        {tags.length === 0 && <span className="text-[11px] text-muted-foreground italic">No expertise tags</span>}
+                        {tags.map((t: any) => (
+                          <span key={t.id} className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/30 px-2 py-0.5 text-[11px] text-primary">
+                            {t.tag}
+                            <button onClick={() => removeTag(t.id)} className="opacity-60 hover:opacity-100"><X className="h-2.5 w-2.5" /></button>
+                          </span>
+                        ))}
+                        <ExpertiseTagInput onAdd={(tag) => addTag(m.user_id, tag)} />
+                      </div>
+                    </div>
+                  );
+                })}
                 {(r.multi || assigned.length === 0) && (
                   <select
                     value=""
@@ -449,12 +474,24 @@ function SectionTeam({ missionId, members, refetch }: any) {
     </Section>
   );
 }
+function ExpertiseTagInput({ onAdd }: { onAdd: (tag: string) => void }) {
+  const [v, setV] = useState("");
+  return (
+    <input
+      placeholder="+ tag"
+      value={v}
+      onChange={(e) => setV(e.target.value)}
+      onKeyDown={(e) => { if (e.key === "Enter" && v.trim()) { onAdd(v); setV(""); } }}
+      className="w-20 rounded-full border border-dashed border-border bg-transparent px-2 py-0.5 text-[11px] focus:outline-none focus:border-primary"
+    />
+  );
+}
 
 /* ────────────────────────────────────────────────────────────
-   03 — Inputs (upload zones)
+   03 — Inputs (upload zones) + IRIS Monitoring Watchlist
    ──────────────────────────────────────────────────────────── */
 const INPUT_CATEGORIES = ["RFP", "Amendments", "Q&A", "Client Documents", "Research", "Prior Responses", "Supporting Materials"];
-function SectionInputs({ missionId, docs, refetch }: any) {
+function SectionInputs({ missionId, mission, docs, monitoring, refetch }: any) {
   async function attachUrl(category: string, title: string, url: string) {
     const { data: auth } = await supabase.auth.getUser();
     const { data: prof } = await supabase.from("profiles").select("display_name,email").eq("id", auth.user!.id).maybeSingle();
@@ -483,9 +520,115 @@ function SectionInputs({ missionId, docs, refetch }: any) {
           }} />;
         })}
       </div>
+      <MonitoringWatchlist missionId={missionId} mission={mission} sources={monitoring} refetch={refetch} />
     </Section>
   );
 }
+
+function MonitoringWatchlist({ missionId, mission, sources, refetch }: any) {
+  const seedFn = useServerFn(seedMonitoringWatchlist);
+  const saveFn = useServerFn(saveMonitoringSource);
+  const delFn = useServerFn(deleteMonitoringSource);
+  const [adding, setAdding] = useState(false);
+  const [draft, setDraft] = useState({ source_type: "custom", label: "", url: "", frequency: "daily" as "daily" | "weekly" });
+  const [seeding, setSeeding] = useState(false);
+
+  async function seed() {
+    setSeeding(true);
+    try {
+      const { seeded } = await seedFn({ data: { missionId } });
+      toast.success(seeded > 0 ? `Seeded ${seeded} sources for ${mission?.state ?? "this mission"}` : "Watchlist already seeded");
+      refetch();
+    } finally { setSeeding(false); }
+  }
+  async function add() {
+    if (!draft.label.trim()) return;
+    await saveFn({ data: {
+      missionId,
+      source_type: draft.source_type,
+      label: draft.label,
+      url: draft.url || null,
+      frequency: draft.frequency,
+      enabled: true,
+    }});
+    setDraft({ source_type: "custom", label: "", url: "", frequency: "daily" });
+    setAdding(false);
+    refetch();
+  }
+  async function toggle(s: any, patch: Partial<{ enabled: boolean; frequency: "daily" | "weekly" }>) {
+    await saveFn({ data: {
+      missionId, id: s.id,
+      source_type: s.source_type, label: s.label, url: s.url,
+      frequency: patch.frequency ?? s.frequency,
+      enabled: patch.enabled ?? s.enabled,
+    }});
+    refetch();
+  }
+
+  return (
+    <div className="mt-8 rounded-md border border-border bg-surface/30 p-5">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Radar className="h-4 w-4 text-[#22d3ee]" />
+          <span className="text-[11px] font-mono uppercase tracking-[0.18em] text-muted-foreground">IRIS Monitoring Watchlist</span>
+        </div>
+        <div className="flex items-center gap-2">
+          {sources.length === 0 && (
+            <button onClick={seed} disabled={seeding} className="rounded-md border border-border bg-background px-3 py-1.5 text-xs hover:bg-surface-hover disabled:opacity-50">
+              {seeding ? "Seeding…" : `Seed ${mission?.state ?? ""} defaults`}
+            </button>
+          )}
+          <button onClick={() => setAdding(!adding)} className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+            <Plus className="h-3 w-3" /> Add source
+          </button>
+        </div>
+      </div>
+      <p className="mt-1 text-[11px] text-muted-foreground">
+        Sources IRIS watches automatically on launch. Read-only for writers.
+      </p>
+
+      {adding && (
+        <div className="mt-3 grid grid-cols-1 sm:grid-cols-6 gap-2 rounded border border-border p-3 bg-background">
+          <TextInput placeholder="Label" value={draft.label} onChange={(e) => setDraft({ ...draft, label: e.target.value })} className="sm:col-span-2" />
+          <TextInput placeholder="https://… (optional)" value={draft.url} onChange={(e) => setDraft({ ...draft, url: e.target.value })} className="sm:col-span-2" />
+          <select value={draft.frequency} onChange={(e) => setDraft({ ...draft, frequency: e.target.value as any })} className="rounded-md border border-border bg-background px-2 py-1.5 text-xs">
+            <option value="daily">daily</option>
+            <option value="weekly">weekly</option>
+          </select>
+          <button onClick={add} className="rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground">Add</button>
+        </div>
+      )}
+
+      {sources.length === 0 ? (
+        <div className="mt-4 text-xs text-muted-foreground italic">No sources configured yet.</div>
+      ) : (
+        <ul className="mt-3 divide-y divide-border">
+          {sources.map((s: any) => (
+            <li key={s.id} className="flex items-center gap-3 py-2 text-sm">
+              <span className="inline-block w-16 text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{s.source_type}</span>
+              <div className="flex-1 min-w-0">
+                <div className="truncate">{s.label}</div>
+                {s.url && <a href={s.url} target="_blank" rel="noreferrer" className="text-[11px] text-primary hover:underline truncate block">{s.url}</a>}
+              </div>
+              <select value={s.frequency} onChange={(e) => toggle(s, { frequency: e.target.value as any })} className="rounded border border-border bg-background px-1.5 py-0.5 text-[11px]">
+                <option value="daily">daily</option>
+                <option value="weekly">weekly</option>
+              </select>
+              <label className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                <input type="checkbox" checked={s.enabled} onChange={(e) => toggle(s, { enabled: e.target.checked })} />
+                on
+              </label>
+              <button onClick={async () => { await delFn({ data: { id: s.id } }); refetch(); }} className="opacity-50 hover:opacity-100">
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function UploadZone({ category, items, onAttach, onRemove }: any) {
   const [adding, setAdding] = useState(false);
   const [title, setTitle] = useState("");
