@@ -152,6 +152,7 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
       try {
         const { audioBase64, mimeType } = await speakLine({ data: { text: last.text } });
         if (cancelled || muted) return;
+        if (!audioBase64) return;
         // Stop any previous line
         if (audioRef.current) {
           audioRef.current.pause();
