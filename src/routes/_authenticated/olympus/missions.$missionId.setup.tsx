@@ -46,17 +46,19 @@ function MissionSetupRecord() {
   const qc = useQueryClient();
   const { isAdmin } = useIsAdmin();
   const launchFn = useServerFn(launchMission);
-  const [launching, setLaunching] = useState(false);
   const [confirm, setConfirm] = useState(false);
+  const [preLaunchError, setPreLaunchError] = useState<string | null>(null);
 
   const setup = useSetupData(missionId);
   const completion = useCompletion(setup);
 
   async function handleLaunch() {
-    setLaunching(true);
+    setPreLaunchError(null);
     try {
+      // Validate readiness server-side before kicking off the animated sequence.
       const res = await launchFn({ data: { missionId } });
       if (!res.ok) {
+        setPreLaunchError(`Complete first: ${res.missing.join(", ")}`);
         toast.error(`Complete first: ${res.missing.join(", ")}`);
         return;
       }
@@ -64,10 +66,9 @@ function MissionSetupRecord() {
       qc.invalidateQueries({ queryKey: ["olympus-missions"] });
     } catch (e: any) {
       toast.error(e?.message ?? "Launch failed");
-    } finally {
-      setLaunching(false);
     }
   }
+
 
   return (
     <div className="min-h-screen bg-background">
