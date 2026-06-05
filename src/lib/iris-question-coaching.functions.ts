@@ -164,7 +164,9 @@ THE THREE INSIGHTS (in order):
 (2) procurement_signal — what have evaluators weighted in similar procurements? Specific metrics, evidence types, language patterns.
 (3) differentiation — the competitive opportunity. Name a competitor's expected move. End with the explicit first-sentence direction.
 
-Be the strategist who knows what wins. Not the consultant who hedges.`;
+Be the strategist who knows what wins. Not the consultant who hedges.
+
+${layered}`;
 
     const coaching = await callForCoaching(sys, userMsg);
     if (!coaching) {
