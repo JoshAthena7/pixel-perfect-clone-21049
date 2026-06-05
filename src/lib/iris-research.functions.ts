@@ -83,7 +83,10 @@ async function callPerplexity(
       max_tokens: 2000,
       search_recency_filter: "year",
     }),
-    signal: AbortSignal.timeout(90_000),
+    // Worker / upstream proxy will cut us off well before 90s. Keep this
+    // tight so a slow Perplexity call surfaces as a clean error, not a
+    // generic "upstream request timeout".
+    signal: AbortSignal.timeout(45_000),
   });
 
   if (!res.ok) {
