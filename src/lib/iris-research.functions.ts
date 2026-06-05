@@ -168,15 +168,44 @@ export async function runOneTask(
     );
     const out = await callPerplexity(system, user);
 
-    const { error: insErr } = await (supabase as any).from("research_results").insert({
-      task_id: task.id,
-      mission_id: task.mission_id,
-      answer: out.answer || "(no answer returned)",
-      sources: out.sources as unknown as object,
-      confidence: out.confidence,
-      follow_up_questions: out.follow_up_questions,
-    });
+    const { data: inserted, error: insErr } = await (supabase as any)
+      .from("research_results")
+      .insert({
+        task_id: task.id,
+        mission_id: task.mission_id,
+        answer: out.answer || "(no answer returned)",
+        sources: out.sources as unknown as object,
+        confidence: out.confidence,
+        follow_up_questions: out.follow_up_questions,
+      })
+      .select("id")
+      .single();
     if (insErr) throw new Error(insErr.message);
+
+    // Embed the answer into the unified retriever so IRIS can semantically
+    // surface this research in future Ask / Score / Brief / Coach calls.
+    // Best-effort: a failure here must not fail the task.
+    try {
+      const { embed, storeEmbedding } = await import("./intel-enrich.server");
+      const text = `[Perplexity research]\nQuestion: ${task.question}\n\nAnswer: ${out.answer}`.slice(0, 6000);
+      const vec = await embed(text);
+      if (vec && inserted?.id) {
+        await (supabase as any)
+          .from("research_results")
+          .update({ embedding: vec as unknown as never })
+          .eq("id", inserted.id);
+        await storeEmbedding({
+          source_table: "research_results",
+          source_id: inserted.id,
+          mission_id: task.mission_id,
+          content_text: text,
+          vector: vec,
+          scope: "mission",
+        });
+      }
+    } catch {
+      /* swallow — research is saved; embedding is best-effort */
+    }
 
     await (supabase as any)
       .from("research_tasks")
