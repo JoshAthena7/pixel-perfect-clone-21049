@@ -38,8 +38,9 @@ function isReplayRequested() {
 }
 
 function useOnboardingGate() {
+  const replay = isReplayRequested();
   return useQuery({
-    queryKey: ["iris-onboarding-gate"],
+    queryKey: ["iris-onboarding-gate", replay],
     queryFn: async () => {
       const { data: auth } = await supabase.auth.getUser();
       const user = auth.user;
@@ -53,14 +54,14 @@ function useOnboardingGate() {
 
       if (!profile) return { show: false as const };
 
-      const replay = isReplayRequested();
-      if (profile.has_onboarded && !replay) return { show: false as const };
+      const replayRequested = isReplayRequested();
+      if (profile.has_onboarded && !replayRequested) return { show: false as const };
 
       const firstName = (profile.display_name || "").split(" ")[0] || "operator";
 
       // In replay mode always start a fresh session so the demo runs from Module 1.
       let session: SessionRow | null = null;
-      if (!replay) {
+      if (!replayRequested) {
         const { data: existing } = await supabase
           .from("iris_onboarding_sessions")
           .select("id, user_id, last_module, is_complete")
@@ -81,7 +82,7 @@ function useOnboardingGate() {
         session = created as SessionRow;
       }
 
-      return { show: true as const, userId: user.id, firstName, session, replay };
+      return { show: true as const, userId: user.id, firstName, session, replay: replayRequested };
     },
     staleTime: Infinity,
   });
