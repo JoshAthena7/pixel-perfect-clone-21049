@@ -89,7 +89,30 @@ function AtriumPage() {
       </div>
     </div>
   );
+
+function GlobalBriefing() {
+  return (
+    <section className="overflow-hidden rounded-[12px] border border-amber-500/30 bg-gradient-to-br from-amber-950/30 via-surface to-surface">
+      <div className="flex items-center justify-between border-b border-amber-500/20 px-5 py-2.5">
+        <div className="flex items-center gap-2">
+          <Megaphone className="h-3.5 w-3.5 text-amber-400" strokeWidth={2} />
+          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-400">
+            Global Briefing
+          </span>
+        </div>
+        <span className="text-[10px] text-muted-foreground">Firm-wide · pinned</span>
+      </div>
+      <div className="px-5 py-4">
+        <h3 className="text-base font-semibold tracking-tight">NJ CSOC Submission Timeline Update</h3>
+        <p className="mt-2 text-sm leading-relaxed text-foreground/90">
+          The Division has confirmed the submission deadline remains August 15, 2026. All sections must clear final
+          QA gate by August 10. Engage leads are expected to confirm section status by EOD Friday.
+        </p>
+      </div>
+    </section>
+  );
 }
+
 
 function ThreadPanel() {
   return (
