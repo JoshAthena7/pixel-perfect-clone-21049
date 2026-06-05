@@ -105,12 +105,61 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [questionsAsked, setQuestionsAsked] = useState<Record<number, string[]>>({});
   const [input, setInput] = useState("");
-  const [muted, setMuted] = useState(false);
+  const [muted, setMuted] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem(MUTE_STORAGE_KEY) === "1";
+  });
   const [busy, setBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const spokenIdsRef = useRef<Set<string>>(new Set());
+  const speakLine = useServerFn(synthesizeIrisLine);
 
-  // Seed initial IRIS message for current module
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(MUTE_STORAGE_KEY, muted ? "1" : "0");
+    }
+    if (muted && audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+  }, [muted]);
+
+  // Narrate the latest IRIS message
+  useEffect(() => {
+    if (muted) return;
+    const last = messages[messages.length - 1];
+    if (!last || last.from !== "iris") return;
+    if (spokenIdsRef.current.has(last.id)) return;
+    spokenIdsRef.current.add(last.id);
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const { audioBase64, mimeType } = await speakLine({ data: { text: last.text } });
+        if (cancelled || muted) return;
+        // Stop any previous line
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current = null;
+        }
+        const audio = new Audio(`data:${mimeType};base64,${audioBase64}`);
+        audioRef.current = audio;
+        audio.play().catch(() => {
+          // Autoplay blocked — user can click Unmute / interact to enable
+        });
+      } catch (err) {
+        // Silent fallback per spec — text still renders
+        console.warn("IRIS voice unavailable", err);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages, muted]);
+
     if (messages.length === 0) {
       if (startAtModule > 1) {
         setMessages([
