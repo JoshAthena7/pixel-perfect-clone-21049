@@ -14,6 +14,7 @@ import { Route as DemoRouteImport } from './routes/demo'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoLoginRouteImport } from './routes/demo.login'
+import { Route as DemoAppRouteImport } from './routes/demo._app'
 import { Route as ApiIrisVoiceRouteImport } from './routes/api/iris-voice'
 import { Route as AuthenticatedPipelineHorizonRouteImport } from './routes/_authenticated/pipeline-horizon'
 import { Route as AuthenticatedPathfinderRouteImport } from './routes/_authenticated/pathfinder'
@@ -105,6 +106,10 @@ const IndexRoute = IndexRouteImport.update({
 const DemoLoginRoute = DemoLoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoAppRoute = DemoAppRouteImport.update({
+  id: '/_app',
   getParentRoute: () => DemoRoute,
 } as any)
 const ApiIrisVoiceRoute = ApiIrisVoiceRouteImport.update({
@@ -511,7 +516,7 @@ const AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/demo': typeof DemoRouteWithChildren
+  '/demo': typeof DemoAppRoute
   '/login': typeof LoginRoute
   '/atrium': typeof AuthenticatedAtriumRoute
   '/brief-room': typeof AuthenticatedBriefRoomRoute
@@ -585,7 +590,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/demo': typeof DemoRouteWithChildren
+  '/demo': typeof DemoAppRoute
   '/login': typeof LoginRoute
   '/atrium': typeof AuthenticatedAtriumRoute
   '/brief-room': typeof AuthenticatedBriefRoomRoute
@@ -671,6 +676,7 @@ export interface FileRoutesById {
   '/_authenticated/pathfinder': typeof AuthenticatedPathfinderRoute
   '/_authenticated/pipeline-horizon': typeof AuthenticatedPipelineHorizonRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
+  '/demo/_app': typeof DemoAppRoute
   '/demo/login': typeof DemoLoginRoute
   '/_authenticated/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/_authenticated/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
@@ -894,6 +900,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pathfinder'
     | '/_authenticated/pipeline-horizon'
     | '/api/iris-voice'
+    | '/demo/_app'
     | '/demo/login'
     | '/_authenticated/command/alignment'
     | '/_authenticated/command/alignment-conflicts'
@@ -1002,6 +1009,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/demo/login'
       preLoaderRoute: typeof DemoLoginRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/_app': {
+      id: '/demo/_app'
+      path: ''
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoAppRouteImport
       parentRoute: typeof DemoRoute
     }
     '/api/iris-voice': {
@@ -1664,10 +1678,12 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 )
 
 interface DemoRouteChildren {
+  DemoAppRoute: typeof DemoAppRoute
   DemoLoginRoute: typeof DemoLoginRoute
 }
 
 const DemoRouteChildren: DemoRouteChildren = {
+  DemoAppRoute: DemoAppRoute,
   DemoLoginRoute: DemoLoginRoute,
 }
 
