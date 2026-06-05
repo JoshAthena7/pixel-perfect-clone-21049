@@ -729,3 +729,137 @@ function ModalShell({ title, onClose, children }: { title: string; onClose: () =
     </div>
   );
 }
+
+/* ─── Tab 6: Sensitivities ────────────────────────── */
+
+type Sensitivity = {
+  id: string;
+  category: string | null;
+  description: string;
+  severity: string | null;
+  created_at: string | null;
+};
+
+function SensitivitiesTab({ missionId }: { missionId: string }) {
+  const qc = useQueryClient();
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState({ category: "", description: "", severity: "medium" });
+
+  const { data: items = [], isLoading } = useQuery({
+    queryKey: ["mission-sensitivities", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_sensitivities")
+        .select("id,category,description,severity,created_at")
+        .eq("mission_id", missionId)
+        .order("created_at", { ascending: false });
+      return (data ?? []) as Sensitivity[];
+    },
+  });
+
+  const create = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("mission_sensitivities").insert({
+        mission_id: missionId,
+        category: form.category || null,
+        description: form.description,
+        severity: form.severity,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Sensitivity added");
+      setShowModal(false);
+      setForm({ category: "", description: "", severity: "medium" });
+      qc.invalidateQueries({ queryKey: ["mission-sensitivities", missionId] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Failed to add sensitivity"),
+  });
+
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("mission_sensitivities").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["mission-sensitivities", missionId] }),
+  });
+
+  return (
+    <div>
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Active Sensitivities</h2>
+        <button
+          onClick={() => setShowModal(true)}
+          className="inline-flex items-center gap-1.5 rounded-[6px] border border-border bg-background px-2.5 py-1.5 text-xs text-foreground hover:bg-surface-hover"
+        >
+          <Plus className="h-3.5 w-3.5" /> Add Sensitivity
+        </button>
+      </div>
+
+      <p className="mb-4 text-xs text-muted-foreground">
+        Flag topics, terminology, or political dynamics IRIS should handle with care for this mission
+        (e.g. "Don't compare to the previous administration's program", "Avoid 'carve-out' framing").
+      </p>
+
+      {isLoading ? (
+        <div className="rounded-[10px] border border-border bg-surface p-8 text-center text-xs text-muted-foreground">Loading…</div>
+      ) : items.length === 0 ? (
+        <div className="rounded-[10px] border border-dashed border-border bg-surface/50 p-10 text-center">
+          <AlertTriangle className="mx-auto h-5 w-5 text-muted-foreground/60" />
+          <p className="mt-3 text-xs text-muted-foreground">No sensitivities flagged yet.</p>
+        </div>
+      ) : (
+        <ul className="space-y-2">
+          {items.map((s) => (
+            <li key={s.id} className="flex items-start justify-between gap-3 rounded-[10px] border border-border bg-surface p-4">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  {s.category && (
+                    <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{s.category}</span>
+                  )}
+                  <span className={`text-[10px] uppercase tracking-[0.14em] ${
+                    s.severity === "high" ? "text-red-500" : s.severity === "low" ? "text-muted-foreground" : "text-amber-500"
+                  }`}>{s.severity ?? "medium"}</span>
+                </div>
+                <p className="mt-1 text-sm text-foreground">{s.description}</p>
+              </div>
+              <button onClick={() => remove.mutate(s.id)} className="text-muted-foreground hover:text-red-500">
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {showModal && (
+        <Modal title="Add Sensitivity" onClose={() => setShowModal(false)}>
+          <div className="space-y-3">
+            <Field label="Category (optional)">
+              <input className={inputCls} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="Terminology, Political, Competitive…" />
+            </Field>
+            <Field label="Description">
+              <textarea className={inputCls} rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="What should IRIS watch for?" />
+            </Field>
+            <Field label="Severity">
+              <select className={inputCls} value={form.severity} onChange={(e) => setForm({ ...form, severity: e.target.value })}>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </Field>
+            <div className="flex justify-end gap-2 pt-2">
+              <button onClick={() => setShowModal(false)} className="rounded-[6px] border border-border px-3 py-1.5 text-xs hover:bg-surface-hover">Cancel</button>
+              <button
+                disabled={!form.description.trim() || create.isPending}
+                onClick={() => create.mutate()}
+                className="inline-flex items-center gap-1.5 rounded-[6px] bg-primary px-3 py-1.5 text-xs text-primary-foreground hover:opacity-90 disabled:opacity-50"
+              >
+                <Save className="h-3.5 w-3.5" /> Save
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
