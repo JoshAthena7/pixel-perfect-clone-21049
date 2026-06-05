@@ -106,9 +106,9 @@ export const commitMissionMatrix = createServerFn({ method: "POST" })
     if (allNames.size > 0) {
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("id, full_name, email");
+        .select("id, display_name, email");
       for (const p of (profiles as any[]) ?? []) {
-        const candidates = [p.full_name, p.email].filter(Boolean).map((s) => String(s).toLowerCase());
+        const candidates = [p.display_name, p.email].filter(Boolean).map((s) => String(s).toLowerCase());
         for (const c of candidates) {
           if (allNames.has(c) && !profileMap.has(c)) profileMap.set(c, p.id);
         }
