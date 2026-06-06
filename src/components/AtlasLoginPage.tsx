@@ -125,7 +125,8 @@ export function AtlasLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full inline-flex items-center justify-center rounded-sm bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 px-6 py-2.5 text-[11px] font-bold uppercase tracking-[0.3em] text-black shadow-[0_4px_24px_-8px_rgba(251,191,36,0.6)] transition hover:brightness-110 disabled:opacity-60"
+            className="w-full inline-flex items-center justify-center rounded-sm px-6 py-2.5 text-[11px] font-bold uppercase tracking-[0.3em] text-white shadow-[0_4px_24px_-8px_rgba(201,146,42,0.6)] transition hover:brightness-110 disabled:opacity-60"
+            style={{ background: "#C9922A" }}
           >
             {loading ? "Entering…" : "Enter Atlas"}
           </button>
