@@ -54,7 +54,7 @@ function IrisPage() {
   type StageState = {
     id: string;
     label: string;
-    status: "pending" | "running" | "done" | "error" | "skipped";
+    status: "pending" | "running" | "done" | "error" | "skipped" | "cancelled";
     inserted?: number;
     reason?: string;
     error?: string;
@@ -73,15 +73,26 @@ function IrisPage() {
     STAGE_DEFS.map((s) => ({ id: s.id, label: s.label, status: "pending" as const })),
   );
   const [running, setRunning] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const runningRef = useRef(false);
+  const cancelRef = useRef(false);
+
 
   const handleGenerate = useCallback(async (id: string) => {
     if (runningRef.current) return;
     runningRef.current = true;
+    cancelRef.current = false;
     setRunning(true);
+    setCancelling(false);
     setStages(STAGE_DEFS.map((s) => ({ id: s.id, label: s.label, status: "pending" })));
 
+    let cancelledDuringRun = false;
+
     for (let i = 0; i < STAGE_DEFS.length; i++) {
+      if (cancelRef.current) {
+        cancelledDuringRun = true;
+        break;
+      }
       const def = STAGE_DEFS[i];
       setStages((prev) =>
         prev.map((s, idx) => (idx === i ? { ...s, status: "running" } : s)),
@@ -119,25 +130,39 @@ function IrisPage() {
       }
     }
 
+    if (cancelRef.current) cancelledDuringRun = true;
+
     runningRef.current = false;
+    cancelRef.current = false;
     setRunning(false);
-    const final = stages;
-    void final; // for closure linter; real summary derived from setter snapshot below
+    setCancelling(false);
     setStages((prev) => {
-      const ok = prev.filter((s) => s.status === "done");
-      const failed = prev.filter((s) => s.status === "error");
+      const next = cancelledDuringRun
+        ? prev.map((s) => (s.status === "pending" ? { ...s, status: "cancelled" as const } : s))
+        : prev;
+      const ok = next.filter((s) => s.status === "done");
+      const failed = next.filter((s) => s.status === "error");
       const total = ok.reduce((n, s) => n + (s.inserted ?? 0), 0);
-      if (failed.length) {
+      if (cancelledDuringRun) {
+        toast.message(`IRIS pipeline cancelled · ${total} rows kept from ${ok.length} stage(s)`);
+      } else if (failed.length) {
         toast.error(`IRIS pipeline finished with ${failed.length} failure(s) · ${total} rows`);
       } else {
-        toast.success(`IRIS pipeline complete · ${total} rows across ${ok.length}/${prev.length} stages`);
+        toast.success(`IRIS pipeline complete · ${total} rows across ${ok.length}/${next.length} stages`);
       }
-      return prev;
+      return next;
     });
     void router.invalidate();
   }, [router, runSignals, runRisks, runWinThemes, runStrategy, runClientIntel]);
 
-  const completedCount = stages.filter((s) => s.status === "done" || s.status === "skipped" || s.status === "error").length;
+  const handleCancel = useCallback(() => {
+    if (!runningRef.current) return;
+    cancelRef.current = true;
+    setCancelling(true);
+  }, []);
+
+
+  const completedCount = stages.filter((s) => s.status !== "pending" && s.status !== "running").length;
   const progressPct = Math.round((completedCount / stages.length) * 100);
   const showProgress = running || completedCount > 0;
 
@@ -178,14 +203,26 @@ function IrisPage() {
               </select>
             )}
             {activeMissionId && (
-              <button
-                type="button"
-                onClick={() => handleGenerate(activeMissionId)}
-                disabled={running}
-                className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-300 transition hover:bg-amber-500/15 disabled:opacity-50"
-              >
-                {running ? `Generating… ${progressPct}%` : "Generate Intelligence"}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleGenerate(activeMissionId)}
+                  disabled={running}
+                  className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-300 transition hover:bg-amber-500/15 disabled:opacity-50"
+                >
+                  {running ? `Generating… ${progressPct}%` : "Generate Intelligence"}
+                </button>
+                {running && (
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    disabled={cancelling}
+                    className="rounded-md border border-border bg-background px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground transition hover:border-red-500/40 hover:text-red-300 disabled:opacity-50"
+                  >
+                    {cancelling ? "Cancelling…" : "Cancel"}
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </header>
@@ -246,7 +283,7 @@ function IrisPage() {
 type PipelineStage = {
   id: string;
   label: string;
-  status: "pending" | "running" | "done" | "error" | "skipped";
+  status: "pending" | "running" | "done" | "error" | "skipped" | "cancelled";
   inserted?: number;
   reason?: string;
   error?: string;
@@ -302,6 +339,9 @@ function PipelineProgress({
               )}
               {s.status === "error" && (
                 <span className="text-red-400">failed · {s.error ?? "unknown error"}</span>
+              )}
+              {s.status === "cancelled" && (
+                <span className="text-muted-foreground/70">cancelled</span>
               )}
             </span>
           </li>
