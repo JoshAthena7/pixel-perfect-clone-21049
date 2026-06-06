@@ -1052,6 +1052,117 @@ export function formatMissionContextBlock(ctx: MissionContext): string {
     lines.push(`- Daily pulses (48h): ${ctx.recentPulses.length} (${blocked} blocked)`);
   }
 
+  // ----- Expanded sources (No Data Left Behind) -----
+  if (ctx.missionStrategyItems.length > 0) {
+    lines.push("");
+    lines.push("MISSION STRATEGY (curated):");
+    for (const s of ctx.missionStrategyItems.slice(0, 12)) {
+      lines.push(`- [${s.kind}] ${s.label}${s.notes ? ` — ${s.notes}` : ""}`);
+    }
+  }
+  if (ctx.activeAssumptions.length > 0) {
+    lines.push("");
+    lines.push("ACTIVE ASSUMPTIONS (validate, do not assume true):");
+    for (const a of ctx.activeAssumptions.slice(0, 6)) {
+      lines.push(
+        `- ${a.assumption}${a.confidence !== null ? ` [conf ${Math.round((a.confidence ?? 0) * 100)}%]` : ""}${a.riskIfWrong ? ` — risk: ${a.riskIfWrong}` : ""}`,
+      );
+    }
+  }
+  if (ctx.recentDecisions.length > 0) {
+    lines.push("");
+    lines.push("MISSION DECISIONS:");
+    for (const d of ctx.recentDecisions.slice(0, 6)) {
+      lines.push(
+        `- ${d.title} [${d.status ?? "?"}]${d.rationale ? ` — ${d.rationale}` : ""}`,
+      );
+    }
+  }
+  if (ctx.pendingExecDecisions.length > 0) {
+    lines.push("");
+    lines.push(`PENDING EXEC DECISIONS: ${ctx.pendingExecDecisions.length}`);
+    for (const d of ctx.pendingExecDecisions.slice(0, 4)) {
+      lines.push(`- [${d.urgency}] ${d.description}`);
+    }
+  }
+  if (ctx.rfpAmendments.length > 0) {
+    lines.push("");
+    lines.push("RFP AMENDMENTS:");
+    for (const a of ctx.rfpAmendments.slice(0, 3)) {
+      lines.push(
+        `- ${a.summary ?? "(no summary)"} (${a.totalChanges} changes · ${a.criticalChanges} critical)`,
+      );
+      for (const c of a.changes.slice(0, 3)) {
+        lines.push(`  · [${c.severity}] ${c.description}`);
+      }
+    }
+  }
+  if (ctx.marketIntelligence.length > 0) {
+    lines.push("");
+    lines.push("MARKET INTELLIGENCE:");
+    for (const m of ctx.marketIntelligence.slice(0, 5)) {
+      lines.push(`- ${m.title}${m.summary ? ` — ${m.summary}` : ""}`);
+    }
+  }
+  if (ctx.recentResearch.length > 0) {
+    lines.push("");
+    lines.push("RESEARCH FINDINGS:");
+    for (const r of ctx.recentResearch.slice(0, 3)) {
+      lines.push(`- [${r.confidence}] ${r.answer.slice(0, 240)}`);
+    }
+  }
+  if (ctx.mockScores.length > 0) {
+    lines.push("");
+    lines.push("RECENT MOCK SCORES (red/gold/pink team):");
+    for (const s of ctx.mockScores.slice(0, 5)) {
+      lines.push(
+        `- ${s.stage}: ${s.score}${s.sectionName ? ` · ${s.sectionName}` : ""}${s.evaluatorNote ? ` — ${s.evaluatorNote}` : ""}`,
+      );
+    }
+  }
+  if (ctx.openHealthFlags.length > 0) {
+    lines.push("");
+    lines.push(`OPEN IRIS HEALTH FLAGS: ${ctx.openHealthFlags.length}`);
+    for (const f of ctx.openHealthFlags.slice(0, 5)) {
+      lines.push(`- [${f.severity ?? "?"}] ${f.kind}${f.rationale ? `: ${f.rationale}` : ""}`);
+    }
+  }
+  if (ctx.missionSections.length > 0) {
+    const flagged = ctx.missionSections.filter((s) => s.irisFlagged).length;
+    lines.push("");
+    lines.push(
+      `MISSION SECTIONS: ${ctx.missionSections.length} total${flagged > 0 ? ` · ${flagged} IRIS-flagged` : ""}`,
+    );
+  }
+  if (ctx.broadcasts.length > 0) {
+    lines.push("");
+    lines.push("RECENT LEADERSHIP BROADCASTS:");
+    for (const b of ctx.broadcasts.slice(0, 3)) {
+      lines.push(`- ${b.fromName}: ${b.text.slice(0, 200)}`);
+    }
+  }
+  if (ctx.irisMemories.length > 0) {
+    lines.push("");
+    lines.push("IRIS MEMORIES (apply where relevant):");
+    for (const m of ctx.irisMemories.slice(0, 6)) {
+      lines.push(`- [${m.importance}] ${m.title}${m.summary ? ` — ${m.summary}` : ""}`);
+    }
+  }
+  if (ctx.missionTimeline) {
+    const t = ctx.missionTimeline;
+    const beats: string[] = [];
+    if (t.pinkTeam) beats.push(`Pink ${t.pinkTeam.slice(0, 10)}`);
+    if (t.redTeam) beats.push(`Red ${t.redTeam.slice(0, 10)}`);
+    if (t.goldTeam) beats.push(`Gold ${t.goldTeam.slice(0, 10)}`);
+    if (t.execReview) beats.push(`Exec ${t.execReview.slice(0, 10)}`);
+    if (t.submission) beats.push(`Submit ${t.submission.slice(0, 10)}`);
+    if (beats.length > 0) {
+      lines.push("");
+      lines.push(`TIMELINE: ${beats.join(" · ")}`);
+    }
+  }
+
+
   // Question-scoped
   if (ctx.question) {
     const q = ctx.question;
