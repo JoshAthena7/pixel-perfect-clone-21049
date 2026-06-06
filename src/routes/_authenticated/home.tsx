@@ -445,7 +445,9 @@ function AthenaHQ() {
             <div className="mb-5 flex items-end justify-between gap-4">
               <div>
                 <h2 className="h2-label">Active Missions</h2>
-                <p className="mt-1.5 text-2xl font-semibold tracking-tight">{missions.length} in flight</p>
+                <p className="mt-1.5 text-2xl font-semibold tracking-tight">
+                  <AnimatedNumber value={missions.length} /> in flight
+                </p>
               </div>
             </div>
 
