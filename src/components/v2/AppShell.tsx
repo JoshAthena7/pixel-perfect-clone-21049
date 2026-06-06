@@ -337,7 +337,6 @@ function AtriumNav() {
     { to: "/home", label: "Athena HQ" },
     { to: "/status-report", label: "Status Report" },
     { to: "/profile", label: "Profile" },
-    { to: "/command/security", label: "Data & Privacy" },
   ];
 
 
