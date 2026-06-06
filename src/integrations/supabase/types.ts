@@ -4171,8 +4171,11 @@ export type Database = {
           availability_until: string | null
           avatar_color: string | null
           avatar_url: string | null
+          banned_words: string[]
           created_at: string | null
+          default_mission_role: string | null
           display_name: string
+          domain_depth: Json
           email: string | null
           expert_bio: string | null
           expertise_areas: string[]
@@ -4184,6 +4187,7 @@ export type Database = {
           last_seen_signals_at: string | null
           notable_wins: Json
           onboarded_at: string | null
+          preferred_pov: string
           profile_completed: boolean
           profile_updated_at: string | null
           programs_experience: string[]
@@ -4191,6 +4195,8 @@ export type Database = {
           question_types: string[]
           score_me_disclosure_acknowledged_at: string | null
           states_experience: string[]
+          timezone: string | null
+          writing_voice_sample: string | null
         }
         Insert: {
           availability_note?: string | null
@@ -4198,8 +4204,11 @@ export type Database = {
           availability_until?: string | null
           avatar_color?: string | null
           avatar_url?: string | null
+          banned_words?: string[]
           created_at?: string | null
+          default_mission_role?: string | null
           display_name: string
+          domain_depth?: Json
           email?: string | null
           expert_bio?: string | null
           expertise_areas?: string[]
@@ -4211,6 +4220,7 @@ export type Database = {
           last_seen_signals_at?: string | null
           notable_wins?: Json
           onboarded_at?: string | null
+          preferred_pov?: string
           profile_completed?: boolean
           profile_updated_at?: string | null
           programs_experience?: string[]
@@ -4218,6 +4228,8 @@ export type Database = {
           question_types?: string[]
           score_me_disclosure_acknowledged_at?: string | null
           states_experience?: string[]
+          timezone?: string | null
+          writing_voice_sample?: string | null
         }
         Update: {
           availability_note?: string | null
@@ -4225,8 +4237,11 @@ export type Database = {
           availability_until?: string | null
           avatar_color?: string | null
           avatar_url?: string | null
+          banned_words?: string[]
           created_at?: string | null
+          default_mission_role?: string | null
           display_name?: string
+          domain_depth?: Json
           email?: string | null
           expert_bio?: string | null
           expertise_areas?: string[]
@@ -4238,6 +4253,7 @@ export type Database = {
           last_seen_signals_at?: string | null
           notable_wins?: Json
           onboarded_at?: string | null
+          preferred_pov?: string
           profile_completed?: boolean
           profile_updated_at?: string | null
           programs_experience?: string[]
@@ -4245,6 +4261,8 @@ export type Database = {
           question_types?: string[]
           score_me_disclosure_acknowledged_at?: string | null
           states_experience?: string[]
+          timezone?: string | null
+          writing_voice_sample?: string | null
         }
         Relationships: []
       }

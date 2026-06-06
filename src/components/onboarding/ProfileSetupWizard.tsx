@@ -21,6 +21,21 @@ const ALL_STATES = [
 type Opt = { id: string; kind: "expertise_area" | "question_type"; label: string };
 type Program = { id: string; program_name: string; state_code: string | null };
 type Availability = "available" | "pens_down" | "unavailable" | "pto";
+type Pov = "we" | "third_person" | "brand_name";
+type MissionRole = "writer" | "sme" | "reviewer" | "capture_lead" | "pm";
+type Depth = "expert" | "working" | "familiar" | "none";
+
+const IRIS_DOMAINS: { key: string; label: string }[] = [
+  { key: "mission", label: "Mission" },
+  { key: "policy", label: "Policy" },
+  { key: "political", label: "Political" },
+  { key: "stakeholder", label: "Stakeholder" },
+  { key: "market", label: "Market" },
+  { key: "community", label: "Community" },
+  { key: "research", label: "Research" },
+  { key: "signal", label: "Signal" },
+  { key: "relationship", label: "Relationship" },
+];
 
 type Form = {
   expertise_areas: string[];
@@ -29,6 +44,13 @@ type Form = {
   question_types: string[];
   availability_status: Availability;
   expert_bio: string;
+  // "Make IRIS yours"
+  writing_voice_sample: string;
+  preferred_pov: Pov;
+  banned_words: string[];
+  default_mission_role: MissionRole | "";
+  timezone: string;
+  domain_depth: Record<string, Depth>;
 };
 
 function isReplay() {
@@ -80,13 +102,15 @@ export function ProfileSetupWizardMount() {
 }
 
 const STEPS = [
-  { key: "intro", title: "Welcome", subtitle: "Two minutes to get IRIS pointed at you." },
+  { key: "intro", title: "Welcome", subtitle: "A few minutes to get IRIS pointed at you." },
   { key: "expertise", title: "What do you know?", subtitle: "Pick the areas you can speak to with depth." },
   { key: "states", title: "Where have you worked?", subtitle: "States where you've delivered procurement work." },
   { key: "programs", title: "Which programs?", subtitle: "Specific programs you've supported." },
   { key: "qtypes", title: "What do you write best?", subtitle: "Question types where you're the strongest pen." },
   { key: "availability", title: "Are you available?", subtitle: "We'll respect this when teammates ping you." },
   { key: "bio", title: "One-line bio", subtitle: "Shown when IRIS recommends you on Phone-a-Friend." },
+  { key: "voice", title: "How should IRIS sound like you?", subtitle: "Optional, but it makes every IRIS-drafted suggestion feel like your writing." },
+  { key: "style", title: "How do you work?", subtitle: "Tells IRIS what to show you first and when to ping you." },
 ] as const;
 
 function ProfileSetupWizard({
@@ -127,9 +151,19 @@ function ProfileSetupWizard({
     question_types: [],
     availability_status: "available",
     expert_bio: "",
+    writing_voice_sample: "",
+    preferred_pov: "we",
+    banned_words: [],
+    default_mission_role: "",
+    timezone:
+      typeof window !== "undefined" && Intl?.DateTimeFormat
+        ? Intl.DateTimeFormat().resolvedOptions().timeZone ?? ""
+        : "",
+    domain_depth: {},
   });
   const [customExpertise, setCustomExpertise] = useState("");
   const [customProgram, setCustomProgram] = useState("");
+  const [customBannedWord, setCustomBannedWord] = useState("");
   const [showAllStates, setShowAllStates] = useState(false);
 
   // Pre-fill if user already has anything saved (re-entry).
@@ -137,18 +171,26 @@ function ProfileSetupWizard({
     (async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("expertise_areas,states_experience,programs_experience,question_types,availability_status,expert_bio")
+        .select(
+          "expertise_areas,states_experience,programs_experience,question_types,availability_status,expert_bio,writing_voice_sample,preferred_pov,banned_words,default_mission_role,timezone,domain_depth",
+        )
         .eq("id", profileId)
         .maybeSingle();
       if (data) {
-        setForm({
+        setForm((prev) => ({
           expertise_areas: data.expertise_areas ?? [],
           states_experience: data.states_experience ?? [],
           programs_experience: data.programs_experience ?? [],
           question_types: data.question_types ?? [],
           availability_status: (data.availability_status as Availability) ?? "available",
           expert_bio: data.expert_bio ?? "",
-        });
+          writing_voice_sample: data.writing_voice_sample ?? "",
+          preferred_pov: ((data.preferred_pov as Pov) ?? "we"),
+          banned_words: data.banned_words ?? [],
+          default_mission_role: ((data.default_mission_role as MissionRole) ?? "") as MissionRole | "",
+          timezone: data.timezone ?? prev.timezone,
+          domain_depth: (data.domain_depth as Record<string, Depth>) ?? {},
+        }));
       }
     })();
   }, [profileId]);
@@ -207,6 +249,12 @@ function ProfileSetupWizard({
         question_types: form.question_types,
         availability_status: form.availability_status,
         expert_bio: form.expert_bio || null,
+        writing_voice_sample: form.writing_voice_sample.trim() || null,
+        preferred_pov: form.preferred_pov,
+        banned_words: form.banned_words,
+        default_mission_role: form.default_mission_role || null,
+        timezone: form.timezone || null,
+        domain_depth: form.domain_depth,
         // Only flip the completion flag when the user finishes; deferred
         // saves preserve their progress without dismissing the wizard for good.
         profile_completed: markComplete ? required : false,
@@ -425,6 +473,199 @@ function ProfileSetupWizard({
                 />
                 <div className="mt-1 text-right text-[10px] text-muted-foreground">{form.expert_bio.length}/140</div>
               </>
+            )}
+
+            {step.key === "voice" && (
+              <div className="space-y-5">
+                <div>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Writing voice sample
+                  </label>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Paste 1–2 paragraphs of your best prose. IRIS uses it to mirror tone in Score-Me rewrites and draft suggestions.
+                  </p>
+                  <textarea
+                    value={form.writing_voice_sample}
+                    onChange={(e) =>
+                      setForm({ ...form, writing_voice_sample: e.target.value.slice(0, 2000) })
+                    }
+                    rows={6}
+                    placeholder="Paste a section of a proposal or memo you're proud of…"
+                    className="mt-2 w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm leading-relaxed"
+                  />
+                  <div className="mt-1 text-right text-[10px] text-muted-foreground">
+                    {form.writing_voice_sample.length}/2000
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Preferred point of view
+                  </label>
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                    {(
+                      [
+                        { v: "we", label: "We", hint: "First-person plural" },
+                        { v: "third_person", label: "The Plan", hint: "Third-person" },
+                        { v: "brand_name", label: "Brand name", hint: "Always say the brand" },
+                      ] as { v: Pov; label: string; hint: string }[]
+                    ).map((opt) => {
+                      const active = form.preferred_pov === opt.v;
+                      return (
+                        <button
+                          key={opt.v}
+                          onClick={() => setForm({ ...form, preferred_pov: opt.v })}
+                          className="rounded-md border bg-surface/60 px-3 py-2.5 text-left transition hover:bg-surface"
+                          style={{
+                            borderColor: active ? "rgba(59,127,255,0.5)" : "var(--border)",
+                            background: active ? "rgba(59,127,255,0.08)" : undefined,
+                          }}
+                        >
+                          <div className="text-[12px] font-semibold">{opt.label}</div>
+                          <div className="mt-0.5 text-[10px] text-muted-foreground">{opt.hint}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Banned words & phrases
+                  </label>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    IRIS will avoid these in any draft it generates for you. (e.g. "leverage", "synergy")
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {form.banned_words.map((w) => (
+                      <button
+                        key={w}
+                        onClick={() =>
+                          setForm({ ...form, banned_words: form.banned_words.filter((x) => x !== w) })
+                        }
+                        className="group inline-flex items-center gap-1 rounded-full border border-border bg-surface px-3 py-1 text-[12px] text-foreground"
+                        title="Click to remove"
+                      >
+                        <span>{w}</span>
+                        <span className="text-muted-foreground group-hover:text-foreground">×</span>
+                      </button>
+                    ))}
+                  </div>
+                  <CustomAdder
+                    value={customBannedWord}
+                    setValue={setCustomBannedWord}
+                    placeholder="Add a word or phrase…"
+                    onAdd={(v) => {
+                      const clean = v.trim().slice(0, 60);
+                      if (clean && !form.banned_words.includes(clean))
+                        setForm({ ...form, banned_words: [...form.banned_words, clean] });
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {step.key === "style" && (
+              <div className="space-y-5">
+                <div>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Default role on a mission
+                  </label>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Drives which IRIS Outputs surface first on your home screen.
+                  </p>
+                  <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-5">
+                    {(
+                      [
+                        { v: "writer", label: "Writer" },
+                        { v: "sme", label: "SME" },
+                        { v: "reviewer", label: "Reviewer" },
+                        { v: "capture_lead", label: "Capture Lead" },
+                        { v: "pm", label: "PM" },
+                      ] as { v: MissionRole; label: string }[]
+                    ).map((opt) => {
+                      const active = form.default_mission_role === opt.v;
+                      return (
+                        <button
+                          key={opt.v}
+                          onClick={() => setForm({ ...form, default_mission_role: opt.v })}
+                          className="rounded-md border bg-surface/60 px-3 py-2 text-center text-[12px] font-semibold transition hover:bg-surface"
+                          style={{
+                            borderColor: active ? "rgba(59,127,255,0.5)" : "var(--border)",
+                            background: active ? "rgba(59,127,255,0.08)" : undefined,
+                            color: active ? "var(--accent,#3b7fff)" : undefined,
+                          }}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Depth across the 9 IRIS Intelligence Domains
+                  </label>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Self-rate so IRIS can route the right questions to you and weight your contributions in collective memory.
+                  </p>
+                  <div className="mt-2 space-y-1.5">
+                    {IRIS_DOMAINS.map((d) => {
+                      const cur = (form.domain_depth[d.key] ?? "none") as Depth;
+                      return (
+                        <div
+                          key={d.key}
+                          className="flex items-center justify-between gap-3 rounded-md border border-border bg-surface/40 px-3 py-1.5"
+                        >
+                          <span className="text-[12px] font-medium text-foreground">{d.label}</span>
+                          <div className="flex gap-1">
+                            {(["none", "familiar", "working", "expert"] as Depth[]).map((lvl) => {
+                              const active = cur === lvl;
+                              return (
+                                <button
+                                  key={lvl}
+                                  onClick={() =>
+                                    setForm({
+                                      ...form,
+                                      domain_depth: { ...form.domain_depth, [d.key]: lvl },
+                                    })
+                                  }
+                                  className="rounded px-2 py-0.5 text-[10px] uppercase tracking-wider transition"
+                                  style={{
+                                    background: active ? "rgba(59,127,255,0.15)" : "transparent",
+                                    color: active ? "var(--accent,#3b7fff)" : "var(--muted-foreground)",
+                                    border: active
+                                      ? "1px solid rgba(59,127,255,0.45)"
+                                      : "1px solid var(--border)",
+                                  }}
+                                >
+                                  {lvl === "none" ? "—" : lvl}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Timezone
+                  </label>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    So IRIS schedules nudges during your working hours, not at 3am.
+                  </p>
+                  <input
+                    value={form.timezone}
+                    onChange={(e) => setForm({ ...form, timezone: e.target.value.slice(0, 64) })}
+                    placeholder="America/New_York"
+                    className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                  />
+                </div>
+              </div>
             )}
           </div>
         </div>
