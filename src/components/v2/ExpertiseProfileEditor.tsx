@@ -92,7 +92,25 @@ export function ExpertiseProfileEditor({
   }, [profile]);
 
   const expertiseOpts = useMemo(() => options.filter((o) => o.kind === "expertise_area"), [options]);
-  const qtypeOpts = useMemo(() => options.filter((o) => o.kind === "question_type"), [options]);
+  const qtypeOpts = useMemo(
+    () =>
+      [
+        "Approach & Methodology",
+        "Operations",
+        "Care Management",
+        "Quality",
+        "Provider Network",
+        "Implementation",
+        "IT Systems",
+        "Compliance",
+        "Staffing",
+        "Financial",
+        "Reporting & Analytics",
+        "Member Experience",
+      ].map((label, i) => ({ id: `qt-${i}`, kind: "question_type" as const, label })),
+    [],
+  );
+
 
   const [stateSearch, setStateSearch] = useState("");
   const [showAllStates, setShowAllStates] = useState(false);
