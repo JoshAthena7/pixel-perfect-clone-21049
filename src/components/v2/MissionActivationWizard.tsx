@@ -778,18 +778,14 @@ function Step3Activation({
           })}
         </ul>
 
-        {/* Escape hatch: after 20s, let the user enter the mission even if
-            briefing-book regen is still in flight. Kickoff continues in the
+        {/* Escape hatch: after 20s of Oracle seeding, let the user enter the
+            mission even if regen is still in flight. Kickoff continues in the
             background and the Oracle will populate when ready. */}
-        {showEscape && !summary && (
+        {showEscape && phase === 2 && !summary && (
           <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-muted-foreground">
-            <span>
-              {oracleWarming
-                ? "Oracle is still warming up — you can enter the mission now and it will populate shortly."
-                : "Taking longer than expected. You can enter the mission now; IRIS will keep working in the background."}
-            </span>
+            <span>Still building your Oracle… this can take up to 90 seconds.</span>
             <button
-              onClick={() => setLaunching(true)}
+              onClick={enterAnyway}
               className="shrink-0 inline-flex items-center gap-1.5 rounded-md border border-[#C49A22]/40 bg-[#C49A22]/10 px-2.5 py-1 font-semibold text-[#C49A22] hover:bg-[#C49A22]/20"
             >
               Enter mission anyway <ArrowRight className="h-3 w-3" />
