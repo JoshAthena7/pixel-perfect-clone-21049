@@ -145,7 +145,7 @@ function BriefPage() {
                   </div>
                 </div>
                 <div className="mt-4 grid grid-cols-4 gap-3">
-                  <MiniStat label="Questions" value={stats.total} />
+                  <MiniStat label="Sections" value={stats.total} />
                   <MiniStat label="Avg Score" value={stats.avg ? stats.avg.toFixed(2) : "—"} />
                   <MiniStat label="Below Tgt" value={stats.belowTarget} tone={stats.belowTarget > 0 ? "warn" : undefined} />
                   <MiniStat label="Conflicts" value={conflicts.length} tone={conflicts.length > 0 ? "danger" : undefined} />
