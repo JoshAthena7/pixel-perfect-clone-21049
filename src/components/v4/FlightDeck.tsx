@@ -145,7 +145,7 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
           .from("executive_decisions")
           .select("id, description, urgency, status, submitted_by, created_at")
           .eq("mission_id", missionId)
-          .neq("status", "resolved")
+          .eq("status", "pending")
           .order("created_at", { ascending: false })
           .limit(15),
       ]);
@@ -204,14 +204,8 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
           typeTone: "bg-violet-500/15 text-violet-300 border-violet-500/30",
           question: r.description ?? "Decision needed",
           from: "Leadership",
-          priority:
-            r.urgency === "critical" ? "Critical" : r.urgency === "urgent" ? "High" : "Normal",
-          priorityTone:
-            r.urgency === "critical"
-              ? "text-red-300"
-              : r.urgency === "urgent"
-                ? "text-amber-300"
-                : "text-muted-foreground",
+          priority: r.urgency === "urgent" ? "High" : "Normal",
+          priorityTone: r.urgency === "urgent" ? "text-amber-300" : "text-muted-foreground",
           created_at: r.created_at,
         });
       }
@@ -369,7 +363,7 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
         <ThreadPanel
           open={threadOpen}
           onClose={() => setThreadOpen(false)}
-          objectType="question"
+          objectType="question_record"
           objectId={selected.id}
         />
       )}
