@@ -204,6 +204,7 @@ function MissionsIndex() {
       )}
 
       <IrisHealthCheckCard />
+      <RefreshIrisCard />
       <DeveloperResetCard />
     </div>
   );
