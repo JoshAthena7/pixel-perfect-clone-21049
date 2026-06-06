@@ -19,6 +19,7 @@ import {
   regenerateBriefingBook,
 } from "@/lib/mission-activation.functions";
 import { kickoffMissionIris } from "@/lib/iris-kickoff.functions";
+import { runIrisPipeline } from "@/lib/iris-extractors/run-all.functions";
 import { MissionLaunchMoment } from "@/components/v2/MissionLaunchMoment";
 
 // ─── Categories shown in the activation upload step ────────────────────────
