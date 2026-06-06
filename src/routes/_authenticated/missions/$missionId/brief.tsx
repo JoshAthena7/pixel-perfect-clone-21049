@@ -591,6 +591,34 @@ function MissionOverviewPage() {
           </div>
         </section>
 
+        {/* ══════════════════════════════════════════════════════════ */}
+        {/* (1) IRIS MISSION HEALTH SCORE — above-the-fold answer to:   */}
+        {/*     "Is this mission healthy right now?"                    */}
+        {/* ══════════════════════════════════════════════════════════ */}
+        <MissionHealthCard
+          overall={overallHealth}
+          alignment={counts.total > 0 ? Math.round((counts.green / counts.total) * 100) : 0}
+          completeness={counts.total > 0 ? Math.round((atStandardCount / counts.total) * 100) : 0}
+          riskCount={risks.length}
+        />
+
+        {/* ══════════════════════════════════════════════════════════ */}
+        {/* (2) WIN THEMES + ALIGNMENT                                  */}
+        {/* ══════════════════════════════════════════════════════════ */}
+        <WinThemesCard themes={(mission?.win_themes as string[] | null) ?? []} />
+
+        {/* ══════════════════════════════════════════════════════════ */}
+        {/* (3) Submission countdown + key dates already shown above in */}
+        {/*     the Vitals dates grid.                                  */}
+        {/* (4) CLIENT CLARIFICATIONS                                   */}
+        {/* ══════════════════════════════════════════════════════════ */}
+        <ClientClarificationsCard
+          missionId={missionId}
+          qaDeadline={mission?.qa_deadline ?? null}
+          canManage={isLeader || isPM}
+        />
+
+
         {/* ── MISSION KNOWLEDGE (Vault + Oracle) ──────── */}
         <section>
           <h2 className="mr-section-label" style={{ color: "rgba(255,255,255,0.5)" }}>Mission Knowledge</h2>
