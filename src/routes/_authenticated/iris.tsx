@@ -158,6 +158,7 @@ function IrisPage() {
   const handleCancel = useCallback(() => {
     if (!runningRef.current) return;
     cancelRef.current = true;
+    setCancelling(true);
   }, []);
 
 
