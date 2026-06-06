@@ -365,31 +365,58 @@ function MissionCockpitLanding() {
               className="rounded-xl border overflow-hidden"
               style={{ background: "#0a1628", borderColor: "rgba(255,255,255,0.08)" }}
             >
+              {/* Selected-question header — always visible so the writer knows
+                  which question their instruments are operating on. */}
+              <div
+                className="flex items-center justify-between gap-3 border-b border-white/[0.06] px-6 py-2 text-[11px]"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-[9px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+                    Assists ·
+                  </span>
+                  {targetQ ? (
+                    <span className="min-w-0 truncate text-foreground/90">
+                      <span className="font-mono text-muted-foreground mr-1.5">
+                        Q{targetQ.questionNumber}
+                      </span>
+                      {targetQ.title || "Untitled section"}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      Select a question below to activate your instruments
+                    </span>
+                  )}
+                </div>
+                {targetQ && (
+                  <button
+                    onClick={() => setSelectedQuestion(null)}
+                    className="shrink-0 text-[10px] text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
               <AssistsBar
+                disabled={!targetQ}
                 onUpdateReality={() => {
-                  if (!targetQ) { toast("Open a section first to update reality."); return; }
+                  if (!targetQ) { toast("Select a section first to update reality."); return; }
                   openUpdateReality(targetQ.id);
                 }}
                 onScoreMe={() => {
-                  if (!targetQ) { toast("Open a section first to score it."); return; }
+                  if (!targetQ) { toast("Select a section first to score it."); return; }
                   setScoreOpen(true);
                 }}
                 onPhone={() => {
-                  if (!targetQ) { toast("Open a section first to phone a friend."); return; }
+                  if (!targetQ) { toast("Select a section first to phone a friend."); return; }
                   setPhoneOpen(true);
                 }}
                 onPulse={() => setPulseOpen(true)}
                 onThread={() => {
-                  if (!targetQ) { toast("Open a section first to start a thread."); return; }
+                  if (!targetQ) { toast("Select a section first to start a thread."); return; }
                   setThreadOpen(true);
                 }}
                 sosSlot={<SOSButton missionId={missionId} questionId={targetQ?.id} />}
               />
-              {!targetQ && sections.length > 0 && (
-                <div className="border-t border-white/[0.06] px-6 py-2 text-[11px] text-muted-foreground">
-                  Pick a section below to activate Score Me, Phone a Friend, Update Reality, and Thread.
-                </div>
-              )}
             </section>
 
             {/* Progress strip */}
