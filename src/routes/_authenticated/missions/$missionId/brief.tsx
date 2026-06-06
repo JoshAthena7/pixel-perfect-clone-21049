@@ -180,10 +180,12 @@ function MissionBriefPage() {
       (a, q) => a + (q.win_theme_alignment_score ?? 0),
       0,
     );
-    const scoreSum = questions.reduce((a, q) => a + (q.current_score ?? 0), 0);
     const riskCount = questions.filter((q) => q.health === "red").length;
+    const yellowCount = questions.filter((q) => q.health === "yellow").length;
+    const overall: "Red" | "Yellow" | "Green" =
+      riskCount > 0 ? "Red" : yellowCount > 0 ? "Yellow" : "Green";
     return {
-      overall: Math.round(scoreSum / total),
+      overall,
       alignment: Math.round(alignmentSum / total),
       completeness: Math.round((completed / total) * 100),
       riskCount,
