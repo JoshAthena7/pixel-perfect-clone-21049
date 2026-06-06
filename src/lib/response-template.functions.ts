@@ -343,7 +343,7 @@ export const getMissionTemplateCompliance = createServerFn({ method: "POST" })
 
     const { data: sections } = await supabase
       .from("mission_sections")
-      .select("id, section_number, section_title")
+      .select("id, number, title")
       .eq("mission_id", data.missionId);
 
     const { data: progress } = await supabase
@@ -363,7 +363,7 @@ export const getMissionTemplateCompliance = createServerFn({ method: "POST" })
         return row && row.word_count > e.word_limit;
       });
 
-      const label = `${(s as any).section_number ?? ""} ${(s as any).section_title ?? ""}`.trim();
+      const label = `${(s as any).number ?? ""} ${(s as any).title ?? ""}`.trim();
 
       if (missing.length === 0 && overLimit.length === 0) {
         compliant += 1;
