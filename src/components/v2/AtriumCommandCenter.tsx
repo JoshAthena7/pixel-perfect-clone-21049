@@ -411,7 +411,7 @@ export function AttentionPanel({
   );
 }
 
-function AttentionRow({ item, onDismiss }: { item: AttentionItem; onDismiss: () => void }) {
+function AttentionRow({ item, onDismiss, dim = false }: { item: AttentionItem; onDismiss: () => void; dim?: boolean }) {
   const meta =
     item.type === "critical"
       ? {
