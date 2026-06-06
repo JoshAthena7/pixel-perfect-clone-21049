@@ -186,8 +186,23 @@ function CockpitPage() {
       return d !== null && d < 0 && r.status !== "approved";
     }).length;
     const inReview = rows.filter((r) => r.status === "ready_for_review").length;
-    return { total, red, overdue, inReview };
+    // Review overdue: in_review for >48h
+    const reviewOverdue = rows.filter((r) => {
+      if (r.status !== "ready_for_review") return false;
+      const u = (r as any).updated_at as string | undefined;
+      if (!u) return false;
+      return Date.now() - new Date(u).getTime() > 48 * 60 * 60 * 1000;
+    }).length;
+    return { total, red, overdue, inReview, reviewOverdue };
   }, [rows]);
+
+  const isFiltered = !!status_filter || !!sme_filter;
+  const filterTitle =
+    status_filter === "in_review"
+      ? "Your Review Queue"
+      : sme_filter === "active"
+      ? "Your SME Assignments"
+      : null;
 
   return (
     <div className="mission-room-bg min-h-screen">
@@ -210,30 +225,49 @@ function CockpitPage() {
       <div className="mx-auto max-w-[1100px] px-10 pt-12 pb-16 space-y-10">
         {/* Header */}
         <header className="space-y-3">
-          {filterMissionId && (
+          {(filterMissionId || isFiltered) && (
             <Link
               to="/cockpit"
+              search={{} as never}
               className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="h-3 w-3" />
-              All Missions
+              {isFiltered ? "Show All Sections" : "All Missions"}
             </Link>
           )}
           <div className="flex items-center gap-3">
             <Plane size={20} strokeWidth={1.5} className="text-[#3b7fff]" />
-            <h1 className="text-[28px] font-bold tracking-tight text-white">Cockpit</h1>
+            <h1 className="text-[28px] font-bold tracking-tight text-white">
+              {filterTitle ?? "Cockpit"}
+            </h1>
             {filterMissionId && (
               <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
                 Filtered to one mission
               </span>
             )}
           </div>
-          <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
-            {filterMissionId
-              ? "Your assigned sections for this mission only."
-              : "Everything assigned to you across every mission. One list, one focus — grouped by mission, sorted by deadline."}
-          </p>
+          {status_filter === "in_review" ? (
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
+              {rows.length} section{rows.length === 1 ? "" : "s"} awaiting your review
+              {totals.reviewOverdue > 0 ? ` · ${totals.reviewOverdue} review overdue` : ""}.
+            </p>
+          ) : sme_filter === "active" ? (
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
+              {rows.length} section{rows.length === 1 ? "" : "s"} awaiting your input
+              {totals.overdue > 0 ? ` · ${totals.overdue} overdue` : ""}.
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
+              {filterMissionId
+                ? "Your assigned sections for this mission only."
+                : "Everything assigned to you across every mission. One list, one focus — grouped by mission, sorted by deadline."}
+            </p>
+          )}
         </header>
+
+        <IrisPersonalAlert />
+
+
 
         {/* Summary row */}
         <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
