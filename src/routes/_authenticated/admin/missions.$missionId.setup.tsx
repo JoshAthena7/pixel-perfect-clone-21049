@@ -824,7 +824,12 @@ function StrategicFoundationBlock({ missionId, mission, refetch }: { missionId: 
 
   async function saveText(field: SFTextField, val: string) {
     setValues((v) => ({ ...v, [field]: val }));
-    const { error } = await supabase.from("missions").update({ [field]: val }).eq("id", missionId);
+    const patch =
+      field === "mission_highlights" ? { mission_highlights: val }
+      : field === "client_strengths" ? { client_strengths: val }
+      : field === "client_win_strategy" ? { client_win_strategy: val }
+      : { program_goals: val };
+    const { error } = await supabase.from("missions").update(patch).eq("id", missionId);
     if (error) toast.error(error.message);
   }
 
