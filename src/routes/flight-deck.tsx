@@ -8,7 +8,7 @@ import {
   ExternalLink, ArrowRight, Check,
 } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/flight-deck")({
+export const Route = createFileRoute("/flight-deck")({
   ssr: false,
   component: FlightDeckPage,
 });
