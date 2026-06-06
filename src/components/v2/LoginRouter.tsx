@@ -25,20 +25,8 @@ export function LoginRouter() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const didRunRef = useRef(false);
 
-  // Track last-visited path + last-seen timestamp for session recency.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const { data } = supabase.auth.getSession ? { data: null } : { data: null };
-      void data;
-    } catch { /* noop */ }
-    try {
-      // Don't store landing/auth paths.
-      if (!shouldHonorDeepLink(pathname)) return;
-      window.sessionStorage.setItem(LAST_PATH_KEY, pathname);
-      window.sessionStorage.setItem(LAST_SEEN_KEY, String(Date.now()));
-    } catch { /* noop */ }
-  }, [pathname]);
+  // (last-visited tracking lives in the per-user effect below)
+
 
   useEffect(() => {
     if (didRunRef.current) return;

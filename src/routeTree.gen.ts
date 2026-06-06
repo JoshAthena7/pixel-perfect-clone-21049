@@ -27,6 +27,7 @@ import { Route as AuthenticatedIntelligenceQueueRouteImport } from './routes/_au
 import { Route as AuthenticatedIntelligenceRouteImport } from './routes/_authenticated/intelligence'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedCockpitRouteImport } from './routes/_authenticated/cockpit'
+import { Route as AuthenticatedCheckinHomeRouteImport } from './routes/_authenticated/checkin-home'
 import { Route as AuthenticatedBriefRoomRouteImport } from './routes/_authenticated/brief-room'
 import { Route as AuthenticatedAtriumRouteImport } from './routes/_authenticated/atrium'
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile/index'
@@ -184,6 +185,12 @@ const AuthenticatedCockpitRoute = AuthenticatedCockpitRouteImport.update({
   path: '/cockpit',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedCheckinHomeRoute =
+  AuthenticatedCheckinHomeRouteImport.update({
+    id: '/checkin-home',
+    path: '/checkin-home',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedBriefRoomRoute = AuthenticatedBriefRoomRouteImport.update({
   id: '/brief-room',
   path: '/brief-room',
@@ -567,6 +574,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/atrium': typeof AuthenticatedAtriumRoute
   '/brief-room': typeof AuthenticatedBriefRoomRoute
+  '/checkin-home': typeof AuthenticatedCheckinHomeRoute
   '/cockpit': typeof AuthenticatedCockpitRoute
   '/home': typeof AuthenticatedHomeRoute
   '/intelligence': typeof AuthenticatedIntelligenceRoute
@@ -649,6 +657,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/atrium': typeof AuthenticatedAtriumRoute
   '/brief-room': typeof AuthenticatedBriefRoomRoute
+  '/checkin-home': typeof AuthenticatedCheckinHomeRoute
   '/cockpit': typeof AuthenticatedCockpitRoute
   '/home': typeof AuthenticatedHomeRoute
   '/intelligence': typeof AuthenticatedIntelligenceRoute
@@ -731,6 +740,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authenticated/atrium': typeof AuthenticatedAtriumRoute
   '/_authenticated/brief-room': typeof AuthenticatedBriefRoomRoute
+  '/_authenticated/checkin-home': typeof AuthenticatedCheckinHomeRoute
   '/_authenticated/cockpit': typeof AuthenticatedCockpitRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/intelligence': typeof AuthenticatedIntelligenceRoute
@@ -815,6 +825,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/atrium'
     | '/brief-room'
+    | '/checkin-home'
     | '/cockpit'
     | '/home'
     | '/intelligence'
@@ -897,6 +908,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/atrium'
     | '/brief-room'
+    | '/checkin-home'
     | '/cockpit'
     | '/home'
     | '/intelligence'
@@ -978,6 +990,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authenticated/atrium'
     | '/_authenticated/brief-room'
+    | '/_authenticated/checkin-home'
     | '/_authenticated/cockpit'
     | '/_authenticated/home'
     | '/_authenticated/intelligence'
@@ -1201,6 +1214,13 @@ declare module '@tanstack/react-router' {
       path: '/cockpit'
       fullPath: '/cockpit'
       preLoaderRoute: typeof AuthenticatedCockpitRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/checkin-home': {
+      id: '/_authenticated/checkin-home'
+      path: '/checkin-home'
+      fullPath: '/checkin-home'
+      preLoaderRoute: typeof AuthenticatedCheckinHomeRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/brief-room': {
@@ -1778,6 +1798,7 @@ const AuthenticatedMissionsMissionIdRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedAtriumRoute: typeof AuthenticatedAtriumRoute
   AuthenticatedBriefRoomRoute: typeof AuthenticatedBriefRoomRoute
+  AuthenticatedCheckinHomeRoute: typeof AuthenticatedCheckinHomeRoute
   AuthenticatedCockpitRoute: typeof AuthenticatedCockpitRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedIntelligenceRoute: typeof AuthenticatedIntelligenceRoute
@@ -1803,6 +1824,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAtriumRoute: AuthenticatedAtriumRoute,
   AuthenticatedBriefRoomRoute: AuthenticatedBriefRoomRoute,
+  AuthenticatedCheckinHomeRoute: AuthenticatedCheckinHomeRoute,
   AuthenticatedCockpitRoute: AuthenticatedCockpitRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedIntelligenceRoute: AuthenticatedIntelligenceRoute,
