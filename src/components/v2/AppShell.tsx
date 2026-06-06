@@ -445,6 +445,7 @@ function MissionNav({ missionId }: { missionId: string }) {
 function UserAvatarMenu() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const { isAdmin } = useIsAdmin();
 
   const { data: profile } = useQuery({
     queryKey: ["shell-me"],
@@ -456,6 +457,25 @@ function UserAvatarMenu() {
       return { name, email: data?.email ?? user.email ?? "" };
     },
   });
+
+  // Phase 5 — Olympus link must NOT leak to non-execs/non-admins via the
+  // avatar dropdown. Mirrors the visibility rule used by OlympusNavLink.
+  const { data: isExec } = useQuery({
+    queryKey: ["shell-is-exec"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+      const { data } = await supabase
+        .from("mission_members")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "executive_sponsor")
+        .limit(1);
+      return (data ?? []).length > 0;
+    },
+    staleTime: 60_000,
+  });
+  const canSeeOlympus = isAdmin || !!isExec;
 
   useEffect(() => {
     function onDown(e: MouseEvent) {
@@ -502,13 +522,15 @@ function UserAvatarMenu() {
           >
             <Plane className="h-4 w-4 text-[#3b7fff]" /> Cockpit
           </Link>
-          <Link
-            to="/olympus"
-            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-muted-foreground hover:bg-surface-hover hover:text-foreground"
-            onClick={() => setOpen(false)}
-          >
-            <Shield className="h-4 w-4 text-[color:var(--athena-gold)]" /> Olympus
-          </Link>
+          {canSeeOlympus && (
+            <Link
+              to="/olympus"
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+              onClick={() => setOpen(false)}
+            >
+              <Shield className="h-4 w-4 text-[color:var(--athena-gold)]" /> Olympus
+            </Link>
+          )}
           <button
             className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-muted-foreground hover:bg-surface-hover hover:text-foreground"
             onClick={signOut}
