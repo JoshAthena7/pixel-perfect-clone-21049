@@ -2,14 +2,11 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import loginBg from "@/assets/atlas-login-bg.png.asset.json";
-import { dailyWisdomLine } from "@/lib/wisdom";
 
 export function AtlasLoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function routeAfterAuth(userId: string) {
@@ -26,14 +23,11 @@ export function AtlasLoginPage() {
         return;
       }
     } catch {
-      // Fall through to /atrium — membership lookup is a nicety, not a gate.
+      // fall through
     }
     navigate({ to: "/atrium", replace: true });
   }
 
-  // On mount only: if a session already exists, route the user away from /login.
-  // Do NOT also subscribe to onAuthStateChange here — it would race with the
-  // post-signIn call below and double-navigate.
   useEffect(() => {
     let cancelled = false;
     supabase.auth.getUser().then(({ data }) => {
@@ -58,89 +52,47 @@ export function AtlasLoginPage() {
     }
   }
 
-
   return (
-    <div className="relative grid min-h-svh w-full place-items-center overflow-hidden bg-background text-foreground">
-      <div
-        className="relative w-full [aspect-ratio:1536/1024]"
-        style={{ maxHeight: "100svh", maxWidth: "min(100vw, calc(100svh * 1.5))" }}
-      >
-        <img
-          src={loginBg.url}
-          alt=""
-          aria-hidden
-          className="pointer-events-none absolute inset-0 h-full w-full object-fill"
-        />
+    <div className="grid min-h-svh w-full place-items-center bg-background px-4 text-foreground">
+      <form onSubmit={onSubmit} className="w-full max-w-sm space-y-6">
+        <div className="space-y-1 text-center">
+          <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
+          <p className="text-sm text-muted-foreground">Welcome back to Atlas</p>
+        </div>
 
-        <div className="absolute left-1/2 top-[36%] z-10 w-[clamp(19rem,34%,24rem)] -translate-x-1/2 max-[520px]:top-[31%] max-[520px]:w-[min(22rem,calc(100vw-2rem))]">
-          <div className="relative w-full rounded-xl border border-primary/35 bg-[#071126] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)]">
-            <form onSubmit={onSubmit} className="flex w-full flex-col px-7 py-5 max-[420px]:px-5 max-[420px]:py-4">
-              <h2 className="mb-5 text-center text-[15px] font-semibold uppercase tracking-[0.35em] text-primary max-[420px]:text-[13px] max-[420px]:tracking-[0.25em]">
-                Welcome Back
-              </h2>
-
-              <label className="mb-3 block">
-                <span className="mb-1 block text-[12px] font-medium text-white/85">Email</span>
-                <div className="relative">
-                  <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-amber-400/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    className="w-full rounded-md border border-amber-500/20 bg-[#0a1428] py-2.5 pl-10 pr-3 text-sm text-white placeholder:text-white/35 transition focus:border-amber-400/60 focus:outline-none focus:ring-1 focus:ring-amber-400/40"
-                  />
-                </div>
-              </label>
-
-              <label className="mb-4 block">
-                <span className="mb-1 block text-[12px] font-medium text-white/85">Password</span>
-                <div className="relative">
-                  <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-amber-400/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 11c1.1 0 2 .9 2 2v3a2 2 0 11-4 0v-3c0-1.1.9-2 2-2zm6-3V7a6 6 0 10-12 0v1H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2v-9a2 2 0 00-2-2h-1z" /></svg>
-                  <input
-                    type={showPw ? "text" : "password"}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                    className="w-full rounded-md border border-amber-500/20 bg-[#0a1428] py-2.5 pl-10 pr-10 text-sm text-white placeholder:text-white/35 transition focus:border-amber-400/60 focus:outline-none focus:ring-1 focus:ring-amber-400/40"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPw((s) => !s)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-400/60 hover:text-amber-300"
-                    aria-label={showPw ? "Hide password" : "Show password"}
-                  >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" strokeWidth={1.5} /></svg>
-                  </button>
-                </div>
-              </label>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="group flex w-full items-center justify-center gap-2 rounded-md bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-primary-foreground shadow-[0_8px_24px_-8px_rgba(245,158,11,0.55)] transition hover:from-amber-200 hover:to-amber-500 disabled:opacity-60 max-[420px]:tracking-[0.22em]"
-              >
-                {loading ? "Entering…" : "Enter Atlas"}
-                {!loading && (
-                  <svg className="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                )}
-              </button>
-
-            </form>
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <label htmlFor="email" className="text-sm font-medium">Email</label>
+            <input
+              id="email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label htmlFor="password" className="text-sm font-medium">Password</label>
+            <input
+              id="password"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
           </div>
         </div>
 
-        <div
-          className="pointer-events-none absolute left-0 right-0 text-center text-[12px] italic tracking-wide text-amber-100/45"
-          style={{ bottom: "8%" }}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-md bg-primary py-2.5 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
         >
-          <span className="opacity-50">— </span>
-          {dailyWisdomLine("ambient")}
-          <span className="opacity-50"> —</span>
-        </div>
-      </div>
+          {loading ? "Signing in…" : "Sign in"}
+        </button>
+      </form>
     </div>
   );
 }
