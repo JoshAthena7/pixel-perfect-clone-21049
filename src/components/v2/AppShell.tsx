@@ -153,11 +153,11 @@ function TopBar({
 
         {inMission && mission && (
           <>
-            <span className="hidden sm:block h-5 w-px bg-white/15 mx-2" />
+            <span className="hidden lg:block h-5 w-px bg-white/15 mx-2" />
             <Link
               to="/missions/$missionId/overview"
               params={{ missionId: missionId! }}
-              className="hidden sm:block max-w-[260px] truncate text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className="hidden lg:block max-w-[180px] xl:max-w-[260px] truncate text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors"
               title={mission.name}
             >
               {mission.name}
@@ -191,7 +191,7 @@ function TopBar({
           }}
           title="Search & Jump (⌘K)"
           aria-label="Open command palette"
-          className="hidden md:inline-flex h-8 items-center gap-2 rounded-md border border-white/10 bg-white/[0.03] px-2.5 text-[11px] text-muted-foreground hover:border-[color:var(--iris,#22d3ee)]/30 hover:bg-[color:var(--iris,#22d3ee)]/[0.05] hover:text-foreground transition-colors"
+          className="hidden xl:inline-flex h-8 items-center gap-2 rounded-md border border-white/10 bg-white/[0.03] px-2.5 text-[11px] text-muted-foreground hover:border-[color:var(--iris,#22d3ee)]/30 hover:bg-[color:var(--iris,#22d3ee)]/[0.05] hover:text-foreground transition-colors"
         >
           <span>Jump to…</span>
           <kbd className="rounded border border-white/10 px-1 py-0.5 font-mono text-[9px]">⌘K</kbd>
@@ -397,7 +397,7 @@ function RoomToggle({ missionId, room }: { missionId: string; room: Room }) {
             onClick={s.onGo}
             role="tab"
             aria-selected={active}
-            className="inline-flex items-center gap-2 rounded-lg px-6 py-2 text-[12px] font-bold uppercase tracking-[0.1em] whitespace-nowrap transition-all duration-200"
+            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] whitespace-nowrap transition-all duration-200"
             style={
               active
                 ? {
