@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import {
   AlertTriangle,
   ArrowRight,
@@ -9,11 +10,17 @@ import {
   CheckCircle2,
   Clock,
   Flag,
-  LifeBuoy,
   Pin,
-  Sparkles,
   Target,
 } from "lucide-react";
+import { AssistsBar } from "@/components/v4/AssistsBar";
+import { SOSButton, SOSModal } from "@/components/v2/SOSButton";
+import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
+import { PhoneAFriendOverlay } from "@/components/v2/PhoneAFriendOverlay";
+import { DailyPulse } from "@/components/v4/DailyPulse";
+import { ThreadPanel } from "@/components/threads/ThreadPanel";
+import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/")({
   component: MissionCockpitLanding,
@@ -110,6 +117,28 @@ function healthDotColor(h: Section["health"]) {
 function MissionCockpitLanding() {
   const { missionId } = Route.useParams();
   const qc = useQueryClient();
+
+  /* assist overlay state */
+  const [sosOpen, setSosOpen] = useState(false);
+  const [scoreOpen, setScoreOpen] = useState(false);
+  const [phoneOpen, setPhoneOpen] = useState(false);
+  const [pulseOpen, setPulseOpen] = useState(false);
+  const [threadOpen, setThreadOpen] = useState(false);
+
+  useEffect(() => {
+    const onSOS = () => setSosOpen(true);
+    const onScore = () => setScoreOpen(true);
+    const onPhone = () => setPhoneOpen(true);
+    window.addEventListener("atlas:open-sos", onSOS as EventListener);
+    window.addEventListener("atlas:open-score-me", onScore as EventListener);
+    window.addEventListener("atlas:open-phone-a-friend", onPhone as EventListener);
+    return () => {
+      window.removeEventListener("atlas:open-sos", onSOS as EventListener);
+      window.removeEventListener("atlas:open-score-me", onScore as EventListener);
+      window.removeEventListener("atlas:open-phone-a-friend", onPhone as EventListener);
+    };
+  }, []);
+
 
   /* me + role */
   const { data: me } = useQuery({
@@ -217,6 +246,19 @@ function MissionCockpitLanding() {
     [sections, me],
   );
 
+  /* target question for AssistsBar — prefer writer's most-urgent assigned, else first */
+  const targetQ = useMemo(() => {
+    const rank = (h: Section["health"]) => (h === "red" ? 0 : h === "yellow" ? 1 : 2);
+    const pool = mySections.length > 0 ? mySections : sections;
+    return [...pool].sort((a, b) => {
+      const d = rank(a.health) - rank(b.health);
+      if (d !== 0) return d;
+      const da = a.pens_down_date ? new Date(a.pens_down_date).getTime() : Infinity;
+      const db = b.pens_down_date ? new Date(b.pens_down_date).getTime() : Infinity;
+      return da - db;
+    })[0] ?? null;
+  }, [mySections, sections]);
+
   /* summary */
   const summary = useMemo(() => {
     const total = sections.length;
@@ -293,7 +335,39 @@ function MissionCockpitLanding() {
         {/* 70 / 30 split */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 items-start">
           {/* ───────── LEFT — THE COCKPIT ───────── */}
-          <main className="min-w-0 space-y-6">
+          <main className="min-w-0 space-y-5">
+            {/* AssistsBar — 6 tools, scoped to active question */}
+            <section
+              className="rounded-xl border overflow-hidden"
+              style={{ background: "#0a1628", borderColor: "rgba(255,255,255,0.08)" }}
+            >
+              <AssistsBar
+                onUpdateReality={() => {
+                  if (!targetQ) { toast("Open a section first to update reality."); return; }
+                  openUpdateReality(targetQ.id);
+                }}
+                onScoreMe={() => {
+                  if (!targetQ) { toast("Open a section first to score it."); return; }
+                  setScoreOpen(true);
+                }}
+                onPhone={() => {
+                  if (!targetQ) { toast("Open a section first to phone a friend."); return; }
+                  setPhoneOpen(true);
+                }}
+                onPulse={() => setPulseOpen(true)}
+                onThread={() => {
+                  if (!targetQ) { toast("Open a section first to start a thread."); return; }
+                  setThreadOpen(true);
+                }}
+                sosSlot={<SOSButton missionId={missionId} questionId={targetQ?.id} />}
+              />
+              {!targetQ && sections.length > 0 && (
+                <div className="border-t border-white/[0.06] px-6 py-2 text-[11px] text-muted-foreground">
+                  Pick a section below to activate Score Me, Phone a Friend, Update Reality, and Thread.
+                </div>
+              )}
+            </section>
+
             {/* Progress strip */}
             <div
               className="rounded-xl border px-5 py-4"
@@ -317,6 +391,7 @@ function MissionCockpitLanding() {
                 />
               </div>
             </div>
+
 
             {isLoading ? (
               <div className="rounded-xl border border-border bg-card/30 p-10 text-center text-sm text-muted-foreground">
@@ -387,13 +462,46 @@ function MissionCockpitLanding() {
             />
             <ContextKeyDates dates={keyDates} />
             <ContextFlags missionId={missionId} flags={flags} />
-            <ContextActions missionId={missionId} />
           </aside>
         </div>
       </div>
+
+      {/* ───────── Assist overlays ───────── */}
+      {sosOpen && <SOSModal missionId={missionId} onClose={() => setSosOpen(false)} />}
+      <ScoreMeOverlay
+        open={scoreOpen}
+        onClose={() => setScoreOpen(false)}
+        missionId={missionId}
+        lockedQuestionId={targetQ?.id}
+      />
+      {phoneOpen && targetQ && (
+        <PhoneAFriendOverlay
+          missionId={missionId}
+          questionId={targetQ.id}
+          questionNumber={targetQ.question_number}
+          meId={me ?? null}
+          meName=""
+          onClose={() => setPhoneOpen(false)}
+        />
+      )}
+      {targetQ && (
+        <ThreadPanel
+          open={threadOpen}
+          onClose={() => setThreadOpen(false)}
+          objectType="question_record"
+          objectId={targetQ.id}
+        />
+      )}
+      <Sheet open={pulseOpen} onOpenChange={setPulseOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+          <SheetHeader><SheetTitle>Daily Pulse</SheetTitle></SheetHeader>
+          <div className="mt-4"><DailyPulse /></div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
+
 
 /* ─────────────────────── left: section block ─────────────────────── */
 
@@ -801,26 +909,3 @@ function ContextFlags({
   );
 }
 
-function ContextActions({ missionId: _missionId }: { missionId: string }) {
-  return (
-    <section
-      className="rounded-xl border p-3"
-      style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.08)" }}
-    >
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          onClick={() => window.dispatchEvent(new Event("atlas:open-sos"))}
-          className="inline-flex items-center justify-center gap-1.5 rounded-md border border-red-500/30 bg-red-500/[0.06] px-3 py-2 text-[11px] font-semibold text-red-300 hover:bg-red-500/[0.12] transition-colors"
-        >
-          <LifeBuoy size={12} /> SOS
-        </button>
-        <button
-          onClick={() => window.dispatchEvent(new Event("atlas:open-score-me"))}
-          className="inline-flex items-center justify-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/[0.06] px-3 py-2 text-[11px] font-semibold text-emerald-300 hover:bg-emerald-500/[0.12] transition-colors"
-        >
-          <Sparkles size={12} /> Score Me
-        </button>
-      </div>
-    </section>
-  );
-}
