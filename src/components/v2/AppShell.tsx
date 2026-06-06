@@ -353,96 +353,91 @@ function AtriumNav() {
   );
 }
 
-// ─── Room Toggle: mission / cockpit / (brief if leader) ────────────────────
-function RoomToggle({ missionId, room }: { missionId: string; room: Room }) {
-  const navigate = useNavigate();
+// ─── Mission Nav: 5-item primary nav inside a mission ─────────────────────
+// PR 2a: nav component swap only. Routes still use their current paths
+// (overview, library, vault, top-level /journey-map). PR 2b will rename
+// overview→brief, library→intel, and promote /journey-map per-mission.
+function MissionNav({ missionId }: { missionId: string }) {
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const base = `/missions/${missionId}`;
 
-  const { data: isLeader = false } = useQuery({
-    queryKey: ["shell-is-mission-leader", missionId],
-    enabled: !!missionId,
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
-      const { data } = await supabase
-        .from("mission_members")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("mission_id", missionId);
-      const roles = (data ?? []).map((r: { role: string }) => r.role);
-      return roles.includes("admin") || roles.includes("lead");
+  const items: Array<{
+    key: string;
+    label: string;
+    icon: ReactNode;
+    to: string;
+    active: boolean;
+  }> = [
+    {
+      key: "brief",
+      label: "Mission Brief",
+      icon: <FileText size={13} strokeWidth={1.75} />,
+      to: `${base}/overview`,
+      active: path === `${base}/overview` || path === `${base}` || path === `${base}/brief`,
     },
-  });
-
-  const briefSegment = {
-    key: "brief" as const,
-    label: "Brief",
-    icon: <span className="text-[14px]">📋</span>,
-    activeBg: "rgba(124,58,237,0.12)",
-    activeBorder: "rgba(124,58,237,0.45)",
-    activeColor: "#a78bfa",
-    onGo: () => navigate({ to: "/missions/$missionId/command", params: { missionId } }),
-  };
-  const missionSegment = {
-    key: "mission" as const,
-    label: "Mission",
-    icon: "🏛",
-    activeBg: "rgba(245,158,11,0.12)",
-    activeBorder: "rgba(245,158,11,0.35)",
-    activeColor: "var(--yellow, #f59e0b)",
-    onGo: () => navigate({ to: "/missions/$missionId/overview", params: { missionId } }),
-  };
-  const cockpitSegment = {
-    key: "studio" as const,
-    label: "Cockpit",
-    icon: <Plane size={13} strokeWidth={2} />,
-    activeBg: "rgba(59,127,255,0.12)",
-    activeBorder: "rgba(59,127,255,0.35)",
-    activeColor: "#3b7fff",
-    onGo: () => navigate({ to: "/missions/$missionId/sections", params: { missionId } }),
-  };
-
-  const segments = isLeader
-    ? [briefSegment, missionSegment, cockpitSegment]
-    : [missionSegment, cockpitSegment];
+    {
+      key: "intel",
+      label: "Mission Intel",
+      icon: <Database size={13} strokeWidth={1.75} />,
+      to: `${base}/library`,
+      active: path.startsWith(`${base}/library`) || path.startsWith(`${base}/intel`),
+    },
+    {
+      key: "vault",
+      label: "Mission Vault",
+      icon: <Archive size={13} strokeWidth={1.75} />,
+      to: `${base}/vault`,
+      active: path.startsWith(`${base}/vault`),
+    },
+    {
+      key: "journey",
+      label: "Journey Map",
+      icon: <MapIcon size={13} strokeWidth={1.75} />,
+      to: `/journey-map`,
+      active: path === "/journey-map" || path.startsWith(`${base}/journey-map`),
+    },
+    {
+      key: "sections",
+      label: "Sections",
+      icon: <ListChecks size={13} strokeWidth={1.75} />,
+      to: `${base}/sections`,
+      active: path.startsWith(`${base}/sections`) || path.startsWith(`${base}/scaffold`),
+    },
+  ];
 
   return (
-    <div
+    <nav
       className="flex items-center gap-[2px] rounded-[10px] p-[3px]"
       style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
-      role="tablist"
-      aria-label="Room"
+      aria-label="Mission navigation"
     >
-      {segments.map((s) => {
-        const active = room === s.key;
-        return (
-          <button
-            key={s.key}
-            onClick={s.onGo}
-            role="tab"
-            aria-selected={active}
-            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] whitespace-nowrap transition-all duration-200"
-            style={
-              active
-                ? {
-                    background: s.activeBg,
-                    border: `1px solid ${s.activeBorder}`,
-                    color: s.activeColor,
-                  }
-                : {
-                    background: "transparent",
-                    border: "1px solid transparent",
-                    color: "var(--muted-foreground)",
-                  }
-            }
-          >
-            <span style={{ color: active ? s.activeColor : "var(--muted-foreground)" }}>
-              {typeof s.icon === "string" ? <span className="text-[14px]">{s.icon}</span> : s.icon}
-            </span>
-            <span>{s.label}</span>
-          </button>
-        );
-      })}
-    </div>
+      {items.map((it) => (
+        <Link
+          key={it.key}
+          to={it.to as any}
+          aria-current={it.active ? "page" : undefined}
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] whitespace-nowrap transition-all duration-200"
+          style={
+            it.active
+              ? {
+                  background: "rgba(245,158,11,0.12)",
+                  border: "1px solid rgba(245,158,11,0.35)",
+                  color: "var(--athena-gold, #f59e0b)",
+                }
+              : {
+                  background: "transparent",
+                  border: "1px solid transparent",
+                  color: "var(--muted-foreground)",
+                }
+          }
+        >
+          <span style={{ color: it.active ? "var(--athena-gold, #f59e0b)" : "var(--muted-foreground)" }}>
+            {it.icon}
+          </span>
+          <span>{it.label}</span>
+        </Link>
+      ))}
+    </nav>
   );
 }
 
