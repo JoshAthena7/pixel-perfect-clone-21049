@@ -6,11 +6,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   CheckCircle2, Circle, Plus, Trash2, Upload, Rocket, ChevronDown, ChevronRight,
-  Lock, X, Radar, Tag,
+  Lock, X, Radar, Tag, Zap, Loader2,
 } from "lucide-react";
 import { launchMission } from "@/lib/mission-setup.functions";
 import { seedMonitoringWatchlist, saveMonitoringSource, deleteMonitoringSource } from "@/lib/mission-monitoring.functions";
 import { saveEvaluationCriteria, saveExpertiseTag, removeExpertiseTag } from "@/lib/mission-evaluation.functions";
+import { generateStrategicField, type StrategicFieldKey } from "@/lib/iris-strategic-foundation.functions";
 import { LaunchSequence } from "@/components/olympus/LaunchSequence";
 import { useIsAdmin } from "@/hooks/useAccess";
 
@@ -705,30 +706,319 @@ function SectionStrategy({ missionId, mission, strategy, refetch }: any) {
   }
 
   return (
-    <Section id="strategy" n="04" label="Strategic Foundation" sublabel="Populates The Oracle for this mission.">
-      <div className="space-y-8">
-        {/* Win themes — stored on missions.win_themes */}
-        <RepeatingArray label="Win Themes" items={themes} onChange={setThemes} onSave={saveThemes} />
+    <Section id="strategy" n="04" label="Strategic Foundation" sublabel="The strategic inputs that make IRIS intelligent about this specific mission.">
+      <div className="space-y-10">
+        {/* ── Strategic Foundation: the five IRIS-grounding fields ── */}
+        <StrategicFoundationBlock missionId={missionId} mission={mission} hasRfp={false} refetch={refetch} />
 
-        {STRATEGY_KINDS.map((k) => (
-          <StrategyGroup
-            key={k.key}
-            label={k.label}
-            hasNotes={k.hasNotes}
-            items={strategy.filter((s: any) => s.kind === k.key)}
-            onAdd={(label: string, notes: string) => addItem(k.key, label, notes)}
-            onDelete={delItem}
-          />
-        ))}
+        <div className="pt-6 border-t border-border space-y-8">
+          {/* Win themes — stored on missions.win_themes */}
+          <RepeatingArray label="Win Themes" items={themes} onChange={setThemes} onSave={saveThemes} />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-border">
-          <Field label="Sensitivities"><TextArea rows={3} placeholder="Topics or terms IRIS should treat carefully…" value={textForm.sensitivities} onChange={(e) => setTextForm({ ...textForm, sensitivities: e.target.value })} /></Field>
-          <Field label="Language Guidance"><TextArea rows={3} placeholder="Tone, voice, phrasing rules…" value={textForm.language} onChange={(e) => setTextForm({ ...textForm, language: e.target.value })} /></Field>
-          <Field label="Things to Avoid"><TextArea rows={3} value={textForm.avoid} onChange={(e) => setTextForm({ ...textForm, avoid: e.target.value })} /></Field>
-          <Field label="Things to Reinforce"><TextArea rows={3} value={textForm.reinforce} onChange={(e) => setTextForm({ ...textForm, reinforce: e.target.value })} /></Field>
+          {STRATEGY_KINDS.map((k) => (
+            <StrategyGroup
+              key={k.key}
+              label={k.label}
+              hasNotes={k.hasNotes}
+              items={strategy.filter((s: any) => s.kind === k.key)}
+              onAdd={(label: string, notes: string) => addItem(k.key, label, notes)}
+              onDelete={delItem}
+            />
+          ))}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-border">
+            <Field label="Sensitivities"><TextArea rows={3} placeholder="Topics or terms IRIS should treat carefully…" value={textForm.sensitivities} onChange={(e) => setTextForm({ ...textForm, sensitivities: e.target.value })} /></Field>
+            <Field label="Language Guidance"><TextArea rows={3} placeholder="Tone, voice, phrasing rules…" value={textForm.language} onChange={(e) => setTextForm({ ...textForm, language: e.target.value })} /></Field>
+            <Field label="Things to Avoid"><TextArea rows={3} value={textForm.avoid} onChange={(e) => setTextForm({ ...textForm, avoid: e.target.value })} /></Field>
+            <Field label="Things to Reinforce"><TextArea rows={3} value={textForm.reinforce} onChange={(e) => setTextForm({ ...textForm, reinforce: e.target.value })} /></Field>
+          </div>
         </div>
       </div>
     </Section>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────
+   Strategic Foundation — five IRIS-grounding fields
+   (Highlights / Strengths / Win Strategy / Program Goals / Key Requirements)
+   ──────────────────────────────────────────────────────────── */
+type SFTextField = "mission_highlights" | "client_strengths" | "client_win_strategy" | "program_goals";
+
+const SF_TEXT_FIELDS: Array<{ key: SFTextField; label: string; helper: string; placeholder: string }> = [
+  {
+    key: "mission_highlights",
+    label: "Mission Highlights",
+    helper: "What makes this opportunity significant. Appears at the top of Mission Brief and in the IRIS daily brief.",
+    placeholder: "Describe what makes this mission significant — scope, visibility, strategic importance.",
+  },
+  {
+    key: "client_strengths",
+    label: "Client Strengths",
+    helper: "What the client brings to the table. IRIS uses this to score win-theme alignment across every question.",
+    placeholder: "What does the client do better than anyone else? What will evaluators already believe about them?",
+  },
+  {
+    key: "client_win_strategy",
+    label: "Client Win Strategy",
+    helper: "The core argument we're making. IRIS uses this to score win-theme alignment across every question.",
+    placeholder: "What is the central claim of our proposal? Why should the evaluator choose our client over all others?",
+  },
+  {
+    key: "program_goals",
+    label: "Program Goals / Future State",
+    helper: "Where the client is taking this in 3–5 years. IRIS references this when generating question briefs and coaching.",
+    placeholder: "What outcomes does this program aim to achieve? What does success look like for the people it serves?",
+  },
+];
+
+function StrategicFoundationBlock({ missionId, mission, refetch }: { missionId: string; mission: any; hasRfp?: boolean; refetch: () => void }) {
+  const generateFn = useServerFn(generateStrategicField);
+
+  const [values, setValues] = useState({
+    mission_highlights: mission?.mission_highlights ?? "",
+    client_strengths: mission?.client_strengths ?? "",
+    client_win_strategy: mission?.client_win_strategy ?? "",
+    program_goals: mission?.program_goals ?? "",
+  });
+  const [requirements, setRequirements] = useState<string[]>(mission?.key_requirements ?? []);
+  const [reqDraft, setReqDraft] = useState("");
+  const [loading, setLoading] = useState<Record<StrategicFieldKey, boolean>>({
+    mission_highlights: false, client_strengths: false, client_win_strategy: false,
+    program_goals: false, key_contract_requirements: false,
+  });
+  const [generatingAll, setGeneratingAll] = useState(false);
+  const [docCount, setDocCount] = useState<number>(0);
+
+  useEffect(() => {
+    setValues({
+      mission_highlights: mission?.mission_highlights ?? "",
+      client_strengths: mission?.client_strengths ?? "",
+      client_win_strategy: mission?.client_win_strategy ?? "",
+      program_goals: mission?.program_goals ?? "",
+    });
+    setRequirements(mission?.key_requirements ?? []);
+  }, [mission?.id]);
+
+  // Detect uploaded RFP docs (any vault doc counts as RFP context for IRIS)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { count } = await supabase
+        .from("mission_vault_documents")
+        .select("id", { count: "exact", head: true })
+        .eq("mission_id", missionId);
+      if (!cancelled) setDocCount(count ?? 0);
+    })();
+    return () => { cancelled = true; };
+  }, [missionId]);
+
+  const allEmpty = useMemo(
+    () =>
+      !values.mission_highlights.trim() &&
+      !values.client_strengths.trim() &&
+      !values.client_win_strategy.trim() &&
+      !values.program_goals.trim() &&
+      requirements.length === 0,
+    [values, requirements],
+  );
+
+  async function saveText(field: SFTextField, val: string) {
+    setValues((v) => ({ ...v, [field]: val }));
+    const patch =
+      field === "mission_highlights" ? { mission_highlights: val }
+      : field === "client_strengths" ? { client_strengths: val }
+      : field === "client_win_strategy" ? { client_win_strategy: val }
+      : { program_goals: val };
+    const { error } = await supabase.from("missions").update(patch).eq("id", missionId);
+    if (error) toast.error(error.message);
+  }
+
+  async function saveRequirements(next: string[]) {
+    setRequirements(next);
+    const { error } = await supabase.from("missions").update({ key_requirements: next }).eq("id", missionId);
+    if (error) toast.error(error.message);
+  }
+
+  async function generateOne(field: StrategicFieldKey) {
+    setLoading((l) => ({ ...l, [field]: true }));
+    try {
+      const res = await generateFn({ data: { missionId, field } });
+      if (field === "key_contract_requirements") {
+        const items = Array.isArray(res.value) ? res.value : [];
+        setRequirements(items);
+        await supabase.from("missions").update({ key_requirements: items }).eq("id", missionId);
+      } else {
+        const text = typeof res.value === "string" ? res.value : "";
+        setValues((v) => ({ ...v, [field]: text }));
+        const patch =
+          field === "mission_highlights" ? { mission_highlights: text }
+          : field === "client_strengths" ? { client_strengths: text }
+          : field === "client_win_strategy" ? { client_win_strategy: text }
+          : { program_goals: text };
+        await supabase.from("missions").update(patch).eq("id", missionId);
+      }
+      toast.success("IRIS generated a draft — review and edit before launch.");
+      refetch();
+    } catch (e: any) {
+      toast.error(e?.message ?? "IRIS generation failed");
+    } finally {
+      setLoading((l) => ({ ...l, [field]: false }));
+    }
+  }
+
+  async function generateAll() {
+    setGeneratingAll(true);
+    try {
+      const fields: StrategicFieldKey[] = [
+        "mission_highlights", "client_strengths", "client_win_strategy",
+        "program_goals", "key_contract_requirements",
+      ];
+      for (const f of fields) {
+        // sequential so IRIS can build on prior fields
+        await generateOne(f);
+      }
+    } finally {
+      setGeneratingAll(false);
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      {allEmpty && docCount > 0 && (
+        <div className="flex items-center justify-between gap-4 rounded-md border border-[#C49A22]/40 bg-[#C49A22]/5 px-4 py-3">
+          <div className="flex items-center gap-3 text-sm">
+            <Zap className="h-4 w-4 text-[#C49A22] shrink-0" />
+            <span className="text-foreground">
+              IRIS can generate your Strategic Foundation from {docCount} uploaded RFP document{docCount === 1 ? "" : "s"}.
+            </span>
+          </div>
+          <button
+            onClick={generateAll}
+            disabled={generatingAll}
+            className="inline-flex items-center gap-2 rounded-md bg-[#C49A22] px-4 py-2 text-xs font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50 transition"
+          >
+            {generatingAll ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
+            Generate All Five Fields
+          </button>
+        </div>
+      )}
+
+      {SF_TEXT_FIELDS.map((f) => (
+        <StrategicTextField
+          key={f.key}
+          label={f.label}
+          helper={f.helper}
+          placeholder={f.placeholder}
+          value={values[f.key]}
+          loading={loading[f.key]}
+          onChange={(v) => setValues((vs) => ({ ...vs, [f.key]: v }))}
+          onBlur={(v) => saveText(f.key, v)}
+          onGenerate={() => generateOne(f.key)}
+        />
+      ))}
+
+      <StrategicRequirementsField
+        items={requirements}
+        draft={reqDraft}
+        loading={loading.key_contract_requirements}
+        onDraftChange={setReqDraft}
+        onAdd={() => {
+          if (!reqDraft.trim()) return;
+          saveRequirements([...requirements, reqDraft.trim()]);
+          setReqDraft("");
+        }}
+        onRemove={(i) => saveRequirements(requirements.filter((_, j) => j !== i))}
+        onGenerate={() => generateOne("key_contract_requirements")}
+      />
+    </div>
+  );
+}
+
+function StrategicTextField({ label, helper, placeholder, value, loading, onChange, onBlur, onGenerate }: {
+  label: string; helper: string; placeholder: string; value: string; loading: boolean;
+  onChange: (v: string) => void; onBlur: (v: string) => void; onGenerate: () => void;
+}) {
+  const empty = !value.trim();
+  return (
+    <div>
+      <div className="flex items-start justify-between gap-4 mb-1.5">
+        <div>
+          <span className="block text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">{label}</span>
+          <p className="mt-0.5 text-[11px] text-muted-foreground/80 max-w-xl">{helper}</p>
+        </div>
+        <button
+          onClick={onGenerate}
+          disabled={loading}
+          className={
+            empty
+              ? "inline-flex shrink-0 items-center gap-1.5 rounded-md bg-[#C49A22] px-3 py-1.5 text-[11px] font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50 transition"
+              : "inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1 text-[11px] text-muted-foreground hover:text-foreground hover:bg-surface-hover disabled:opacity-50 transition"
+          }
+        >
+          {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Zap className="h-3 w-3" />}
+          {empty ? "Generate with IRIS" : "Regenerate"}
+        </button>
+      </div>
+      <TextArea
+        rows={5}
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={(e) => onBlur(e.target.value)}
+      />
+    </div>
+  );
+}
+
+function StrategicRequirementsField({ items, draft, loading, onDraftChange, onAdd, onRemove, onGenerate }: {
+  items: string[]; draft: string; loading: boolean;
+  onDraftChange: (v: string) => void; onAdd: () => void; onRemove: (i: number) => void; onGenerate: () => void;
+}) {
+  const empty = items.length === 0;
+  return (
+    <div>
+      <div className="flex items-start justify-between gap-4 mb-1.5">
+        <div>
+          <span className="block text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">Key Contract Requirements</span>
+          <p className="mt-0.5 text-[11px] text-muted-foreground/80 max-w-xl">
+            The non-negotiables. Feeds the Compliance Panel in every question workspace.
+          </p>
+        </div>
+        <button
+          onClick={onGenerate}
+          disabled={loading}
+          className={
+            empty
+              ? "inline-flex shrink-0 items-center gap-1.5 rounded-md bg-[#C49A22] px-3 py-1.5 text-[11px] font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50 transition"
+              : "inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1 text-[11px] text-muted-foreground hover:text-foreground hover:bg-surface-hover disabled:opacity-50 transition"
+          }
+        >
+          {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Zap className="h-3 w-3" />}
+          {empty ? "Generate with IRIS" : "Regenerate"}
+        </button>
+      </div>
+      <ul className="space-y-1.5">
+        {items.map((it, i) => (
+          <li key={i} className="flex items-start gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm">
+            <span className="flex-1 leading-snug">{it}</span>
+            <button onClick={() => onRemove(i)} className="opacity-50 hover:opacity-100 mt-0.5">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-2 flex gap-2">
+        <TextInput
+          placeholder="Add a key requirement (e.g. 'Bidder must be NJ-registered entity')"
+          value={draft}
+          onChange={(e) => onDraftChange(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdd(); } }}
+        />
+        <button onClick={onAdd} className="rounded-md border border-border bg-background px-3 text-sm hover:bg-surface-hover">
+          <Plus className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </div>
   );
 }
 function RepeatingArray({ label, items, onChange, onSave }: { label: string; items: string[]; onChange: (v: string[]) => void; onSave: () => void }) {
