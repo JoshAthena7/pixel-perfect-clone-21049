@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckCircle2, Circle, AlertTriangle, Sparkles, ChevronRight, Users, Target, ListChecks, Layers, Brain, Trophy } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/journey-map")({
