@@ -153,7 +153,7 @@ function TopBar({
 
         {inMission && mission && (
           <>
-            <span className="hidden sm:block h-5 w-px bg-white/15 mx-2" />
+            <span className="hidden lg:block h-5 w-px bg-white/15 mx-2" />
             <Link
               to="/missions/$missionId/overview"
               params={{ missionId: missionId! }}
