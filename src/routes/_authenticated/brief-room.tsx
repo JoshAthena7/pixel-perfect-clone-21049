@@ -289,7 +289,7 @@ function AdminView() {
   if (!data.length) {
     return (
       <div className="rounded-lg border border-dashed border-border bg-surface/40 px-6 py-12 text-center">
-        <Megaphone className="h-7 w-7 mx-auto text-muted-foreground mb-3" />
+        <Inbox className="h-7 w-7 mx-auto text-muted-foreground/70 mb-3" strokeWidth={1.5} />
         <div className="text-sm font-medium text-foreground">No briefings sent yet.</div>
         <div className="text-xs text-muted-foreground mt-1">
           Use the Compose tab to send the first leadership briefing.
