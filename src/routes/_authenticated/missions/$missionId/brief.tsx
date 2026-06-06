@@ -212,7 +212,7 @@ function BriefPage() {
 
       {/* Stats */}
       <div className="mt-6 grid grid-cols-4 gap-4">
-        <Stat label="Questions" value={stats.total} icon={<FileText className="h-4 w-4" />} />
+        <Stat label="Sections" value={stats.total} icon={<FileText className="h-4 w-4" />} />
         <Stat label="Weighted Avg" value={stats.avg ? stats.avg.toFixed(2) : "—"} icon={<TrendingUp className="h-4 w-4" />} />
         <Stat label="Below Target" value={stats.belowTarget} icon={<Target className="h-4 w-4" />} tone={stats.belowTarget > 0 ? "warn" : undefined} />
         <Stat label="Open Conflicts" value={conflicts.length} icon={<AlertTriangle className="h-4 w-4" />} tone={conflicts.length > 0 ? "danger" : undefined} />
