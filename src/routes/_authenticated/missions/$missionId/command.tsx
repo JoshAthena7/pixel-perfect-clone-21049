@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { generateMissionBrief } from "@/lib/iris-mission-brief.functions";
+import { canPmAccessMission } from "@/lib/access.functions";
 import { toast } from "sonner";
 import {
   RefreshCw, Radio, ArrowRight, Plus, MessageSquare, Plane,
@@ -55,6 +56,24 @@ function MissionBrief() {
   const { missionId } = Route.useParams();
   const qc = useQueryClient();
   const navigate = useNavigate();
+
+  /* PM/EL/admin-only gate — writers/SMEs go to the Cockpit instead. */
+  const pmGateFn = useServerFn(canPmAccessMission);
+  const { data: pmGate, isLoading: pmGateLoading } = useQuery({
+    queryKey: ["pm-gate", missionId],
+    queryFn: () => pmGateFn({ data: { missionId } }),
+    staleTime: 60_000,
+  });
+  useEffect(() => {
+    if (pmGateLoading || !pmGate) return;
+    if (!pmGate.allowed) {
+      navigate({
+        to: "/missions/$missionId",
+        params: { missionId },
+        replace: true,
+      });
+    }
+  }, [pmGate, pmGateLoading, missionId, navigate]);
 
   /* sticky mini-bar */
   const [scrolled, setScrolled] = useState(false);
