@@ -14,7 +14,7 @@ import {
 
 import { useIsAdmin } from "@/hooks/useAccess";
 import { NotAvailable } from "@/components/access/NotAvailable";
-import { TestIrisVoiceButton } from "@/components/iris/TestIrisVoiceButton";
+
 
 export const Route = createFileRoute("/_authenticated/olympus")({
   component: OlympusLayout,
@@ -98,7 +98,6 @@ function OlympusHeader() {
       <MissionSwitcher missions={missions} selected={selected} onPick={pick} />
 
       <div className="flex items-center gap-2">
-        <TestIrisVoiceButton />
         <button
           onClick={() => {
             if (selected) navigate({ to: "/missions/$missionId/overview", params: { missionId: selected.id } });
