@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { AlertTriangle, ArrowRight, Calendar, FileText, Sparkles, Users } from "lucide-react";
+import { AlertTriangle, ArrowRight, Calendar, FileText, Sparkles, Users, Zap } from "lucide-react";
 import { MissionHealthCard, WinThemesCard } from "@/components/v2/MissionHealthAndThemes";
 import { ClientClarificationsCard } from "@/components/v2/ClientClarificationsCard";
 

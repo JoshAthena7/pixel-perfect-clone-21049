@@ -96,6 +96,7 @@ import { Route as AuthenticatedMissionsMissionIdIrisCommandRouteImport } from '.
 import { Route as AuthenticatedMissionsMissionIdIrisRouteImport } from './routes/_authenticated/missions/$missionId/iris'
 import { Route as AuthenticatedMissionsMissionIdIntelRouteImport } from './routes/_authenticated/missions/$missionId/intel'
 import { Route as AuthenticatedMissionsMissionIdCommandRouteImport } from './routes/_authenticated/missions/$missionId/command'
+import { Route as AuthenticatedMissionsMissionIdCockpitRouteImport } from './routes/_authenticated/missions/$missionId/cockpit'
 import { Route as AuthenticatedMissionsMissionIdBriefingRouteImport } from './routes/_authenticated/missions/$missionId/briefing'
 import { Route as AuthenticatedMissionsMissionIdBriefRouteImport } from './routes/_authenticated/missions/$missionId/brief'
 import { Route as AuthenticatedMissionsMissionIdSectionsIndexRouteImport } from './routes/_authenticated/missions/$missionId/sections/index'
@@ -600,6 +601,12 @@ const AuthenticatedMissionsMissionIdCommandRoute =
     path: '/command',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
+const AuthenticatedMissionsMissionIdCockpitRoute =
+  AuthenticatedMissionsMissionIdCockpitRouteImport.update({
+    id: '/cockpit',
+    path: '/cockpit',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
+  } as any)
 const AuthenticatedMissionsMissionIdBriefingRoute =
   AuthenticatedMissionsMissionIdBriefingRouteImport.update({
     id: '/briefing',
@@ -723,6 +730,7 @@ export interface FileRoutesByFullPath {
   '/v1/': typeof AuthenticatedV1IndexRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
+  '/missions/$missionId/cockpit': typeof AuthenticatedMissionsMissionIdCockpitRoute
   '/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
   '/missions/$missionId/intel': typeof AuthenticatedMissionsMissionIdIntelRoute
   '/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
@@ -816,6 +824,7 @@ export interface FileRoutesByTo {
   '/v1': typeof AuthenticatedV1IndexRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
+  '/missions/$missionId/cockpit': typeof AuthenticatedMissionsMissionIdCockpitRoute
   '/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
   '/missions/$missionId/intel': typeof AuthenticatedMissionsMissionIdIntelRoute
   '/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
@@ -915,6 +924,7 @@ export interface FileRoutesById {
   '/_authenticated/v1/': typeof AuthenticatedV1IndexRoute
   '/_authenticated/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/_authenticated/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
+  '/_authenticated/missions/$missionId/cockpit': typeof AuthenticatedMissionsMissionIdCockpitRoute
   '/_authenticated/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
   '/_authenticated/missions/$missionId/intel': typeof AuthenticatedMissionsMissionIdIntelRoute
   '/_authenticated/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
@@ -1014,6 +1024,7 @@ export interface FileRouteTypes {
     | '/v1/'
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
+    | '/missions/$missionId/cockpit'
     | '/missions/$missionId/command'
     | '/missions/$missionId/intel'
     | '/missions/$missionId/iris'
@@ -1107,6 +1118,7 @@ export interface FileRouteTypes {
     | '/v1'
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
+    | '/missions/$missionId/cockpit'
     | '/missions/$missionId/command'
     | '/missions/$missionId/intel'
     | '/missions/$missionId/iris'
@@ -1205,6 +1217,7 @@ export interface FileRouteTypes {
     | '/_authenticated/v1/'
     | '/_authenticated/missions/$missionId/brief'
     | '/_authenticated/missions/$missionId/briefing'
+    | '/_authenticated/missions/$missionId/cockpit'
     | '/_authenticated/missions/$missionId/command'
     | '/_authenticated/missions/$missionId/intel'
     | '/_authenticated/missions/$missionId/iris'
@@ -1866,6 +1879,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdCommandRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
+    '/_authenticated/missions/$missionId/cockpit': {
+      id: '/_authenticated/missions/$missionId/cockpit'
+      path: '/cockpit'
+      fullPath: '/missions/$missionId/cockpit'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdCockpitRouteImport
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
     '/_authenticated/missions/$missionId/briefing': {
       id: '/_authenticated/missions/$missionId/briefing'
       path: '/briefing'
@@ -2049,6 +2069,7 @@ const AuthenticatedV1RouteWithChildren = AuthenticatedV1Route._addFileChildren(
 interface AuthenticatedMissionsMissionIdRouteChildren {
   AuthenticatedMissionsMissionIdBriefRoute: typeof AuthenticatedMissionsMissionIdBriefRoute
   AuthenticatedMissionsMissionIdBriefingRoute: typeof AuthenticatedMissionsMissionIdBriefingRoute
+  AuthenticatedMissionsMissionIdCockpitRoute: typeof AuthenticatedMissionsMissionIdCockpitRoute
   AuthenticatedMissionsMissionIdCommandRoute: typeof AuthenticatedMissionsMissionIdCommandRoute
   AuthenticatedMissionsMissionIdIntelRoute: typeof AuthenticatedMissionsMissionIdIntelRoute
   AuthenticatedMissionsMissionIdIrisRoute: typeof AuthenticatedMissionsMissionIdIrisRoute
@@ -2074,6 +2095,8 @@ const AuthenticatedMissionsMissionIdRouteChildren: AuthenticatedMissionsMissionI
       AuthenticatedMissionsMissionIdBriefRoute,
     AuthenticatedMissionsMissionIdBriefingRoute:
       AuthenticatedMissionsMissionIdBriefingRoute,
+    AuthenticatedMissionsMissionIdCockpitRoute:
+      AuthenticatedMissionsMissionIdCockpitRoute,
     AuthenticatedMissionsMissionIdCommandRoute:
       AuthenticatedMissionsMissionIdCommandRoute,
     AuthenticatedMissionsMissionIdIntelRoute:
