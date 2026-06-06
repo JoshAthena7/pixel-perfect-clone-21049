@@ -89,7 +89,7 @@ export const globalSearch = createServerFn({ method: "POST" })
 
     const qHits: SearchHit[] = (questionsRes.data ?? []).map((q: any) => ({
       id: `q-${q.id}`,
-      group: "Questions",
+      group: "Sections",
       title: `Q${q.question_number ?? ""} · ${q.title ?? "Untitled"}`,
       subtitle: q.health ? `${q.health}` : undefined,
       meta: q.pens_down_date ? `pens-down ${q.pens_down_date}` : undefined,
@@ -97,7 +97,7 @@ export const globalSearch = createServerFn({ method: "POST" })
       missionId: q.mission_id,
       questionId: q.id,
     }));
-    if (qHits.length) groups.push({ group: "Questions", total: qHits.length, items: qHits.slice(0, PER_GROUP) });
+    if (qHits.length) groups.push({ group: "Sections", total: qHits.length, items: qHits.slice(0, PER_GROUP) });
 
     const sHits: SearchHit[] = (sourcesRes.data ?? []).map((s: any) => ({
       id: `s-${s.id}`,

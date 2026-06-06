@@ -42,7 +42,7 @@ function saveRecent(r: Recent) {
 
 function iconForGroup(group: SearchHit["group"]) {
   switch (group) {
-    case "Questions": return <PenTool size={14} className="text-[#3b7fff]" />;
+    case "Sections": return <PenTool size={14} className="text-[#3b7fff]" />;
     case "Sources": return <BookOpen size={14} className="text-[color:var(--athena-gold,#d4af37)]" />;
     case "Decisions": return <GitFork size={14} className="text-[color:var(--yellow,#f59e0b)]" />;
     case "Signals": return <RadioTower size={14} className="text-[color:var(--iris,#22d3ee)]" />;
