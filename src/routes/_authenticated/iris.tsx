@@ -243,6 +243,103 @@ function IrisPage() {
   );
 }
 
+type PipelineStage = {
+  id: string;
+  label: string;
+  status: "pending" | "running" | "done" | "error" | "skipped";
+  inserted?: number;
+  reason?: string;
+  error?: string;
+  ms?: number;
+};
+
+function PipelineProgress({
+  stages,
+  pct,
+  running,
+}: {
+  stages: PipelineStage[];
+  pct: number;
+  running: boolean;
+}) {
+  return (
+    <div className="mb-8 rounded-lg border border-border/60 bg-card/40 p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+          {running ? "IRIS pipeline running" : "IRIS pipeline complete"}
+        </div>
+        <div className="text-[11px] tabular-nums text-muted-foreground">{pct}%</div>
+      </div>
+      <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-muted/40">
+        <div
+          className="h-full rounded-full transition-[width] duration-500 ease-out"
+          style={{
+            width: `${pct}%`,
+            background: "linear-gradient(90deg, var(--iris, #5cbdf2), #f59e0b)",
+          }}
+        />
+      </div>
+      <ol className="space-y-1.5 font-mono text-[11px] leading-relaxed">
+        {stages.map((s) => (
+          <li key={s.id} className="flex items-start gap-2.5">
+            <StageGlyph status={s.status} />
+            <span className="min-w-[7.5rem] uppercase tracking-[0.14em] text-muted-foreground">
+              {s.label}
+            </span>
+            <span className="flex-1 text-foreground/80">
+              {s.status === "pending" && <span className="text-muted-foreground/60">queued</span>}
+              {s.status === "running" && <span className="text-amber-300">extracting…</span>}
+              {s.status === "done" && (
+                <span>
+                  <span className="text-emerald-400">✓</span> {s.inserted ?? 0} rows
+                  {typeof s.ms === "number" ? ` · ${(s.ms / 1000).toFixed(1)}s` : ""}
+                </span>
+              )}
+              {s.status === "skipped" && (
+                <span className="text-muted-foreground">
+                  skipped{s.reason ? ` · ${s.reason}` : ""}
+                </span>
+              )}
+              {s.status === "error" && (
+                <span className="text-red-400">failed · {s.error ?? "unknown error"}</span>
+              )}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+function StageGlyph({ status }: { status: PipelineStage["status"] }) {
+  if (status === "running") {
+    return (
+      <span
+        className="mt-[3px] inline-block h-2 w-2 animate-pulse rounded-full"
+        style={{ background: "var(--iris, #5cbdf2)", boxShadow: "0 0 8px var(--iris, #5cbdf2)" }}
+        aria-hidden
+      />
+    );
+  }
+  const color =
+    status === "done"
+      ? "#34d399"
+      : status === "error"
+        ? "#f87171"
+        : status === "skipped"
+          ? "#94a3b8"
+          : "#475569";
+  return (
+    <span
+      className="mt-[3px] inline-block h-2 w-2 rounded-full"
+      style={{ background: color }}
+      aria-hidden
+    />
+  );
+}
+
+
+
 /* ─────────────────────────────────────────────────────────────────────── */
 /* Atoms                                                                   */
 /* ─────────────────────────────────────────────────────────────────────── */
