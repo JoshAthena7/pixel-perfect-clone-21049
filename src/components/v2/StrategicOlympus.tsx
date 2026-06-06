@@ -229,6 +229,11 @@ export function StrategicOlympus({ canSubmitDecisions, canResolveDecisions }: {
           </div>
         </header>
 
+        {/* IRIS CONTEXT HEALTH */}
+        <IrisContextHealthPanel
+          missions={buckets.active.map((m) => ({ id: m.id, name: m.name, client: m.client }))}
+        />
+
         {/* IRIS PORTFOLIO INTELLIGENCE */}
         <section
           className="rounded-[12px] p-5"
