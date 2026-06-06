@@ -104,6 +104,8 @@ function TopBar({
   missionId, isOlympus, isAtrium, room,
 }: { missionId?: string; isOlympus: boolean; isAtrium: boolean; room: Room }) {
   const inMission = !!missionId;
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const isProfile = path === "/profile" || path.startsWith("/profile/");
 
   // Per the Permissions spec: Olympus is invisible in nav for non-admins.
   // No greyed-out link, no lock icon — absent entirely.
