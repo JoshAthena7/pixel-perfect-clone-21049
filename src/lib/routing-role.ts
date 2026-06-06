@@ -75,13 +75,16 @@ export type RoutingDestination = {
 
 export function routeForRole(
   role: RoutingRole,
-  _ctx: { missionCount: number; singleMissionId: string | null },
+  ctx: { missionCount: number; singleMissionId: string | null },
 ): RoutingDestination {
   // ATLAS V1: single-mission build. Executive sponsors land in Olympus;
   // everyone else lands in the V1 mission shell, which internally routes
   // PMs → /v1/command, writers/SMEs → mission Flight Deck, reviewers → /v1/sections.
   if (role === "executive_sponsor") {
     return { to: EXEC_ROUTING_DESTINATION };
+  }
+  if (ctx.singleMissionId) {
+    return { to: "/missions/$missionId/flight-deck", params: { missionId: ctx.singleMissionId } };
   }
   return { to: "/flight-deck" };
 }
