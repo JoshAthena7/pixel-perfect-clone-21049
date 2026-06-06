@@ -472,12 +472,13 @@ function UserAvatarMenu() {
             <div className="truncate text-sm font-medium">{profile?.name}</div>
             <div className="truncate text-xs text-muted-foreground">{profile?.email}</div>
           </div>
-          <button
+          <Link
+            to="/profile"
             className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-muted-foreground hover:bg-surface-hover hover:text-foreground"
             onClick={() => setOpen(false)}
           >
             <User className="h-4 w-4" /> Profile
-          </button>
+          </Link>
           <Link
             to="/olympus"
             className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-muted-foreground hover:bg-surface-hover hover:text-foreground"
