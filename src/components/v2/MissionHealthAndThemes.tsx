@@ -4,8 +4,8 @@ type Health = "Red" | "Yellow" | "Green";
 
 type HealthProps = {
   overall: Health;
-  alignment: number;   // 0-100
-  completeness: number; // 0-100
+  alignment: number | null;   // 0-100, or null when no question has a win-theme alignment score yet (F-6)
+  completeness: number;       // 0-100
   riskCount: number;
 };
 
@@ -23,8 +23,12 @@ function scoreColor(pct: number): string {
 
 export function MissionHealthCard({ overall, alignment, completeness, riskCount }: HealthProps) {
   const tone = TONE[overall];
-  // Composite health score: weighted blend
-  const composite = Math.round(alignment * 0.5 + completeness * 0.4 + Math.max(0, 100 - riskCount * 15) * 0.1);
+  // F-6: alignment is null until the win-theme alignment writer exists. When null,
+  // blend only completeness + risk so we never show a misleading "0% alignment" score.
+  const riskScore = Math.max(0, 100 - riskCount * 15);
+  const composite = alignment === null
+    ? Math.round(completeness * 0.8 + riskScore * 0.2)
+    : Math.round(alignment * 0.5 + completeness * 0.4 + riskScore * 0.1);
 
   return (
     <section
