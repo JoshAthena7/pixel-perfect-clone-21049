@@ -4,7 +4,7 @@ import { Link, useRouterState, useParams, useNavigate, useRouter } from "@tansta
 import {
   LogOut, User, Shield, Settings2,
   Plane, ArrowLeft, Megaphone, Home,
-  FileText, Database, Archive, Map as MapIcon, ListChecks,
+  FileText, Database, Archive, Map as MapIcon,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
