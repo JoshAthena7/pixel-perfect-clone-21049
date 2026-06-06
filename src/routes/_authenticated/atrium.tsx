@@ -5,6 +5,7 @@ import { getAtrium, type AtriumPayload } from "@/lib/atrium.functions";
 import { Trophy, DollarSign, Users, MapPin, Flame, Sparkles, Circle, MessageSquare, Send, AlertTriangle, Megaphone, Inbox, FileText, FileEdit, BookOpen, FileArchive } from "lucide-react";
 import { IrisGreeting } from "@/components/v2/IrisGreeting";
 import { AmbientWisdom } from "@/components/v2/AmbientWisdom";
+import { AnimatedNumber, Constellation, IrisType } from "@/components/v2/polish";
 
 export const Route = createFileRoute("/_authenticated/atrium")({
   component: AtriumPage,
@@ -49,8 +50,9 @@ function AtriumPage() {
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-gradient-to-b from-surface to-background">
+    <div className="relative min-h-screen bg-background">
+      <Constellation opacity={0.06} className="constellation-bg" />
+      <header className="relative border-b border-border bg-gradient-to-b from-surface to-background">
         <div className="mx-auto max-w-[1400px] px-8 py-8">
           <IrisGreeting screen="atrium" />
           <div className="mt-4 text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">
@@ -66,7 +68,7 @@ function AtriumPage() {
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-8 px-8 py-10 lg:grid-cols-[1fr_360px]">
+      <div className="relative mx-auto grid max-w-[1400px] grid-cols-1 gap-8 px-8 py-10 lg:grid-cols-[1fr_360px]">
         <main className="space-y-10">
           <GlobalBriefing />
           <DirectBriefing />
@@ -88,7 +90,7 @@ function AtriumPage() {
         </aside>
       </div>
 
-      <div className="mx-auto mt-16 mb-6 max-w-[640px] px-6">
+      <div className="relative mx-auto mt-16 mb-6 max-w-[640px] px-6">
         <AmbientWisdom />
       </div>
     </div>
@@ -109,7 +111,9 @@ function GlobalBriefing() {
         <span className="text-[10px] text-muted-foreground">Firm-wide · pinned</span>
       </div>
       <div className="px-5 py-4">
-        <h3 className="text-base font-semibold tracking-tight">NJ CSOC Submission Timeline Update</h3>
+        <h3 className="text-base font-semibold tracking-tight">
+          <IrisType text="NJ CSOC Submission Timeline Update" />
+        </h3>
         <p className="mt-2 text-sm leading-relaxed text-foreground/90">
           The Division has confirmed the submission deadline remains August 15, 2026. All sections must clear final
           QA gate by August 10. Engage leads are expected to confirm section status by EOD Friday.
@@ -291,10 +295,10 @@ function ThreadPanel() {
 
 function FirmTotals({ totals }: { totals: AtriumPayload["totals"] }) {
   const items = [
-    { label: "Wins", value: totals.wins, icon: Trophy, tone: "text-emerald-400" },
-    { label: "Awarded", value: fmtUsd(totals.awardedUsd), icon: DollarSign, tone: "text-amber-400" },
-    { label: "States", value: totals.states, icon: MapPin, tone: "text-sky-400" },
-    { label: "People served", value: fmtPeople(totals.peopleServed), icon: Users, tone: "text-violet-400" },
+    { label: "Wins", raw: totals.wins, format: (n: number) => Math.round(n).toLocaleString(), icon: Trophy, tone: "text-emerald-400" },
+    { label: "Awarded", raw: totals.awardedUsd, format: (n: number) => fmtUsd(Math.round(n)), icon: DollarSign, tone: "text-amber-400" },
+    { label: "States", raw: totals.states, format: (n: number) => Math.round(n).toLocaleString(), icon: MapPin, tone: "text-sky-400" },
+    { label: "People served", raw: totals.peopleServed, format: (n: number) => fmtPeople(Math.round(n)), icon: Users, tone: "text-violet-400" },
   ];
   return (
     <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -308,7 +312,9 @@ function FirmTotals({ totals }: { totals: AtriumPayload["totals"] }) {
                 {it.label}
               </span>
             </div>
-            <div className={`mt-1.5 text-2xl font-medium tracking-tight ${it.tone}`}>{it.value}</div>
+            <div className={`mt-1.5 text-2xl font-medium tracking-tight ${it.tone}`}>
+              <AnimatedNumber value={it.raw} format={it.format} />
+            </div>
           </div>
         );
       })}

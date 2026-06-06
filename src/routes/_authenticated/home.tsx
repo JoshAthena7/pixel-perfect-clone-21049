@@ -12,6 +12,7 @@ import { MissionGridSkeleton, QuestionListSkeleton } from "@/components/v2/Skele
 import { ArrowRight, Megaphone, CalendarClock, DoorOpen, ClipboardList, Search, Globe, Sparkles, Mountain, ChevronDown, ChevronRight, RefreshCw, Rocket } from "lucide-react";
 import { HORIZON_FILTERS, inferCategory, matchesHorizonFilter, type IntelItem } from "@/lib/intelligence-feed";
 import { LiveBadge, ScanningBeam, IrisWaveform, TypewriterText } from "@/components/v2/effects";
+import { Constellation, AnimatedNumber } from "@/components/v2/polish";
 import athenaLogo from "@/assets/athena-logo.png";
 import atlasLogo from "@/assets/atlas-logo.png.asset.json";
 // LegacyRecord temporarily removed
@@ -341,9 +342,10 @@ function AthenaHQ() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen bg-background">
+      <Constellation opacity={0.06} />
       {/* DESIGN-14: Atrium executive header */}
-      <header className="border-b border-border bg-gradient-to-b from-surface to-background">
+      <header className="relative border-b border-border bg-gradient-to-b from-surface to-background">
         <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-6 px-8 py-8">
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">The Atrium · Home</div>
@@ -378,7 +380,7 @@ function AthenaHQ() {
       </header>
 
 
-      <div className="mx-auto max-w-[1400px] px-8 py-10 space-y-12">
+      <div className="relative mx-auto max-w-[1400px] px-8 py-10 space-y-12">
         {/* Daily date + inspirational quote */}
         <DailyQuoteBanner today={today} />
 
@@ -443,7 +445,9 @@ function AthenaHQ() {
             <div className="mb-5 flex items-end justify-between gap-4">
               <div>
                 <h2 className="h2-label">Active Missions</h2>
-                <p className="mt-1.5 text-2xl font-semibold tracking-tight">{missions.length} in flight</p>
+                <p className="mt-1.5 text-2xl font-semibold tracking-tight">
+                  <AnimatedNumber value={missions.length} /> in flight
+                </p>
               </div>
             </div>
 
@@ -769,7 +773,7 @@ function MissionCard({
       params={{ missionId: mission.id }}
       data-health={computedHealth}
       onClick={() => { try { sessionStorage.setItem("athena:last-mission", mission.id); } catch {} }}
-      className="mission-card-v7 group relative block rounded-[12px] border border-border bg-surface p-5 transition-all duration-200 ease-out hover:-translate-y-[3px] hover:border-foreground/30"
+      className={`mission-card-v7 group relative block rounded-[12px] border border-border bg-surface p-5 transition-all duration-200 ease-out hover:-translate-y-[3px] hover:border-foreground/30 ${(mission.status ?? "").toLowerCase() === "active" ? "mission-card-active" : ""}`}
       style={{
         minHeight: 140,
         borderLeftWidth: 4,

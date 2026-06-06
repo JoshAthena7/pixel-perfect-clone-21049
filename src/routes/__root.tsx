@@ -16,6 +16,7 @@ import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { supabase } from "@/integrations/supabase/client";
+import { GoldEntryLine } from "@/components/v2/polish";
 
 function NotFoundComponent() {
   return (
@@ -85,6 +86,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthSync />
+      <GoldEntryLine />
       <Outlet />
       <Toaster theme="dark" position="top-right" />
     </QueryClientProvider>

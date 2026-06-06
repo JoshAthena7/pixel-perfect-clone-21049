@@ -545,3 +545,26 @@ html[data-write-mode="on"] .studio-body > .studio-left { border-right: none !imp
   html { font-size: 15px; }
   button, [role="button"], a { min-height: 32px; }
 }
+
+/* ──────────────────────────────────────────────────────────────────────── */
+/* MISSION CARD GOLD PULSE — subtle 4s breath on active mission              */
+/* ──────────────────────────────────────────────────────────────────────── */
+@keyframes mission-gold-breath {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(196, 154, 34, 0.12),
+      0 0 12px 0 rgba(196, 154, 34, 0.06);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(196, 154, 34, 0.30),
+      0 0 22px 2px rgba(196, 154, 34, 0.22);
+  }
+}
+.mission-card-active {
+  animation: mission-gold-breath 4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mission-card-active { animation: none; }
+}
+
