@@ -65,7 +65,8 @@ export const getIrisData = createServerFn({ method: "POST" })
         .from("mission_strategy")
         .select("id,kind,label,notes,sort_order,created_at,created_by_system")
         .eq("mission_id", missionId)
-        .eq("kind", "state_priority")
+        .eq("kind", "client_priority")
+        .eq("created_by_system", true)
         .order("sort_order", { ascending: true }),
       supabase
         .from("mission_client_intel")

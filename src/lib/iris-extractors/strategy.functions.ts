@@ -4,8 +4,7 @@ import { z } from "zod";
 
 /**
  * "What the State Wants" — decoded priorities. Stored in mission_strategy
- * with kind='state_priority' so we never collide with user-authored strategy
- * rows of other kinds.
+ * with the closest existing strategy kind allowed by the database constraint.
  */
 const StrategySchema = z.object({
   priorities: z
@@ -81,7 +80,7 @@ Each priority should explain WHY (the underlying pressure, evidence, or politica
 
     const inserts = result.priorities.map((p, i) => ({
       mission_id: data.missionId,
-      kind: "state_priority",
+      kind: "client_priority",
       label: p.label,
       notes: p.supporting_theme ? `${p.notes}\n\nSupports: ${p.supporting_theme}` : p.notes,
       sort_order: i,
