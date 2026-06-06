@@ -84,6 +84,7 @@ function IrisPage() {
   );
   const [running, setRunning] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
   const runningRef = useRef(false);
   const cancelRef = useRef(false);
 
