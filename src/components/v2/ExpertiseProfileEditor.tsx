@@ -116,8 +116,6 @@ export function ExpertiseProfileEditor({
 
   const [stateSearch, setStateSearch] = useState("");
   const [showAllStates, setShowAllStates] = useState(false);
-  const [customProgramOnly, setCustomExpertiseUnused] = useState("");
-  void customProgramOnly; void setCustomExpertiseUnused;
 
   const [customProgram, setCustomProgram] = useState("");
 
