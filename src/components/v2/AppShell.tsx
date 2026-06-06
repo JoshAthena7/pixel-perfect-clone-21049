@@ -169,11 +169,11 @@ function TopBar({
 
       {/* CENTER — atrium nav / room toggle (hidden on mobile; bottom nav replaces room toggle) */}
       <div className="hidden md:flex flex-1 items-center justify-center min-w-0">
-        {isAtrium ? (
-          <AtriumNav />
-        ) : isOlympus ? null : inMission && missionId ? (
+        {inMission && missionId ? (
           <RoomToggle missionId={missionId} room={room} />
-        ) : null}
+        ) : isOlympus ? null : (
+          <AtriumNav />
+        )}
       </div>
 
       {/* RIGHT */}
