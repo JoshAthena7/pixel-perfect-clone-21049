@@ -101,8 +101,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
 // ─── Top Bar ────────────────────────────────────────────────────────────────
 function TopBar({
-  missionId, isOlympus, isAtrium, room,
-}: { missionId?: string; isOlympus: boolean; isAtrium: boolean; room: Room }) {
+  missionId, isOlympus, isAtrium,
+}: { missionId?: string; isOlympus: boolean; isAtrium: boolean }) {
   const inMission = !!missionId;
   const path = useRouterState({ select: (s) => s.location.pathname });
   const isProfile = path === "/profile" || path.startsWith("/profile/");
