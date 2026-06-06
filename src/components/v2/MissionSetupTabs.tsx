@@ -39,12 +39,12 @@ export function MissionSetupTabs() {
       active: settingsTab === "details",
     },
     {
-      key: "questions",
-      label: "Questions",
+      key: "sections",
+      label: "Sections",
       icon: HelpCircle,
       to: "/missions/$missionId/sections",
       search: undefined as undefined,
-      active: onQuestions,
+      active: onSections,
     },
     {
       key: "gates",
