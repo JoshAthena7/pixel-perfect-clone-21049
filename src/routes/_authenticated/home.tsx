@@ -723,9 +723,93 @@ function AthenaHQ() {
           missions={missions}
         />
       </div>
+
+      <GuidedTour
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        storageKey="atlas:tour:home:v1"
+        steps={HOME_TOUR_STEPS(missions[0]?.id)}
+      />
     </div>
   );
 }
+
+function HOME_TOUR_STEPS(firstMissionId: string | undefined): TourStep[] {
+  return [
+    {
+      title: "Welcome to ATLAS.",
+      body: (
+        <>
+          A 60-second tour of the surfaces you'll live in: <b>Athena HQ</b>, the
+          <b> Atrium</b> destinations, and the <b>Mission interior</b> where IRIS
+          quietly does its work.
+        </>
+      ),
+    },
+    {
+      selector: '[data-tour="athena-hq"]',
+      placement: "bottom",
+      title: "Athena HQ — your command center",
+      body: (
+        <>
+          This is home base. Greeting, firm status, leadership messages, and your
+          active missions all live here. Everything else is one click away.
+        </>
+      ),
+    },
+    {
+      selector: '[data-tour="atrium-nav"]',
+      placement: "bottom",
+      title: "Atrium destinations",
+      body: (
+        <>
+          The five Atrium-level surfaces: <b>Home</b>, <b>Journey Map</b>,
+          <b> Status Report</b>, <b>Profile</b>, and <b>Data & Privacy</b>. These
+          are the only top-level places you navigate to.
+        </>
+      ),
+    },
+    {
+      selector: '[data-tour="cockpit"]',
+      placement: "left",
+      title: "Cockpit — your daily work",
+      body: (
+        <>
+          Cockpit is your cross-mission to-do surface — what's due, what's blocked,
+          what needs a decision today.
+        </>
+      ),
+    },
+    {
+      selector: '[data-tour="missions"]',
+      placement: "top",
+      title: "Mission interior",
+      body: (
+        <>
+          Open any mission to enter its interior: <b>Mission Brief</b>,
+          <b> Environmental Assessment</b>, <b>What the State Wants</b>,
+          <b> Emerging Risks</b>, and <b>Recommended Strategy</b>. These five
+          IRIS outputs are everything you ever see.
+        </>
+      ),
+    },
+    {
+      selector: '[data-tour="iris-launch"]',
+      placement: "bottom",
+      title: "IRIS is a layer, not a stop",
+      body: (
+        <>
+          Notice there's no "IRIS" tab in the nav. IRIS surfaces <i>inline</i> —
+          inside the Mission Brief, on every section panel, and in Atrium
+          Attention. The power view lives at
+          {firstMissionId ? <code className="ml-1 text-foreground"> /missions/{firstMissionId.slice(0, 8)}…/iris-command</code> : <code className="ml-1 text-foreground"> /missions/:id/iris-command</code>}.
+          Launch the demo any time from this button.
+        </>
+      ),
+    },
+  ];
+}
+
 
 const DAILY_QUOTES: { quote: string; author: string }[] = [
   { quote: "The secret of getting ahead is getting started.", author: "Mark Twain" },
