@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import {
   RefreshCw, Radio, ArrowRight, Plus, MessageSquare, Plane,
 } from "lucide-react";
+import { IrisKickoffBadge } from "@/components/v2/IrisKickoffBadge";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/command")({
   component: MissionBrief,
