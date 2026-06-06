@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DebugGoldEntryFallbackRouteImport } from './routes/debug.gold-entry-fallback'
 import { Route as DebugDailyNoteLayoutRouteImport } from './routes/debug.daily-note-layout'
 import { Route as ApiIrisVoiceRouteImport } from './routes/api/iris-voice'
+import { Route as ApiAtriumRouteImport } from './routes/api/atrium'
 import { Route as AuthenticatedOlympusRouteImport } from './routes/_authenticated/olympus'
 import { Route as AuthenticatedIrisConsoleRouteImport } from './routes/_authenticated/iris-console'
 import { Route as AuthenticatedIntelligenceQueueRouteImport } from './routes/_authenticated/intelligence-queue'
@@ -110,6 +111,11 @@ const DebugDailyNoteLayoutRoute = DebugDailyNoteLayoutRouteImport.update({
 const ApiIrisVoiceRoute = ApiIrisVoiceRouteImport.update({
   id: '/api/iris-voice',
   path: '/api/iris-voice',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAtriumRoute = ApiAtriumRouteImport.update({
+  id: '/api/atrium',
+  path: '/api/atrium',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedOlympusRoute = AuthenticatedOlympusRouteImport.update({
@@ -486,6 +492,7 @@ export interface FileRoutesByFullPath {
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
   '/iris-console': typeof AuthenticatedIrisConsoleRoute
   '/olympus': typeof AuthenticatedOlympusRouteWithChildren
+  '/api/atrium': typeof ApiAtriumRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
   '/debug/daily-note-layout': typeof DebugDailyNoteLayoutRoute
   '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
@@ -554,6 +561,7 @@ export interface FileRoutesByTo {
   '/intelligence': typeof AuthenticatedIntelligenceRoute
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
   '/iris-console': typeof AuthenticatedIrisConsoleRoute
+  '/api/atrium': typeof ApiAtriumRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
   '/debug/daily-note-layout': typeof DebugDailyNoteLayoutRoute
   '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
@@ -624,6 +632,7 @@ export interface FileRoutesById {
   '/_authenticated/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
   '/_authenticated/iris-console': typeof AuthenticatedIrisConsoleRoute
   '/_authenticated/olympus': typeof AuthenticatedOlympusRouteWithChildren
+  '/api/atrium': typeof ApiAtriumRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
   '/debug/daily-note-layout': typeof DebugDailyNoteLayoutRoute
   '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
@@ -695,6 +704,7 @@ export interface FileRouteTypes {
     | '/intelligence-queue'
     | '/iris-console'
     | '/olympus'
+    | '/api/atrium'
     | '/api/iris-voice'
     | '/debug/daily-note-layout'
     | '/debug/gold-entry-fallback'
@@ -763,6 +773,7 @@ export interface FileRouteTypes {
     | '/intelligence'
     | '/intelligence-queue'
     | '/iris-console'
+    | '/api/atrium'
     | '/api/iris-voice'
     | '/debug/daily-note-layout'
     | '/debug/gold-entry-fallback'
@@ -832,6 +843,7 @@ export interface FileRouteTypes {
     | '/_authenticated/intelligence-queue'
     | '/_authenticated/iris-console'
     | '/_authenticated/olympus'
+    | '/api/atrium'
     | '/api/iris-voice'
     | '/debug/daily-note-layout'
     | '/debug/gold-entry-fallback'
@@ -896,6 +908,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   IrisRoute: typeof IrisRoute
   LoginRoute: typeof LoginRoute
+  ApiAtriumRoute: typeof ApiAtriumRoute
   ApiIrisVoiceRoute: typeof ApiIrisVoiceRoute
   DebugDailyNoteLayoutRoute: typeof DebugDailyNoteLayoutRoute
   DebugGoldEntryFallbackRoute: typeof DebugGoldEntryFallbackRoute
@@ -957,6 +970,13 @@ declare module '@tanstack/react-router' {
       path: '/api/iris-voice'
       fullPath: '/api/iris-voice'
       preLoaderRoute: typeof ApiIrisVoiceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/atrium': {
+      id: '/api/atrium'
+      path: '/api/atrium'
+      fullPath: '/api/atrium'
+      preLoaderRoute: typeof ApiAtriumRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/olympus': {
@@ -1553,6 +1573,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   IrisRoute: IrisRoute,
   LoginRoute: LoginRoute,
+  ApiAtriumRoute: ApiAtriumRoute,
   ApiIrisVoiceRoute: ApiIrisVoiceRoute,
   DebugDailyNoteLayoutRoute: DebugDailyNoteLayoutRoute,
   DebugGoldEntryFallbackRoute: DebugGoldEntryFallbackRoute,
@@ -1572,13 +1593,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
