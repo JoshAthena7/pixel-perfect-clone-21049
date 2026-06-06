@@ -7,7 +7,7 @@ import { generateMissionBrief } from "@/lib/iris-mission-brief.functions";
 import { canPmAccessMission } from "@/lib/access.functions";
 import { toast } from "sonner";
 import {
-  RefreshCw, Radio, ArrowRight, Plus, MessageSquare, Plane, AlertTriangle, X,
+  RefreshCw, Radio, ArrowRight, Plus, MessageSquare, Plane, AlertTriangle, X, Zap,
 } from "lucide-react";
 import { IrisKickoffBadge } from "@/components/v2/IrisKickoffBadge";
 
