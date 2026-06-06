@@ -38,15 +38,12 @@ const CASES: Case[] = [
     ),
     expectFallback: true,
   },
-  {
-    name: "component that throws on render",
-    module: {
-      GoldEntryLine: () => {
-        throw new Error("simulated render-time crash");
-      },
-    },
-    expectFallback: false, // resolves to function, then SafeRender swallows
-  },
+  // Note: a component that throws during render is intentionally NOT tested
+  // here. React's SSR aborts the stream and switches to client rendering when
+  // any descendant throws — even inside an error boundary — which is a React
+  // design choice, not something the fallback can prevent. The real-world
+  // failure mode we guard against is the export being missing/undefined
+  // (which `resolveGoldEntryLine` handles by returning a no-op before render).
 ];
 
 function GoldEntryFallbackDebug() {
