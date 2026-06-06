@@ -474,6 +474,199 @@ function ProfileSetupWizard({
                 <div className="mt-1 text-right text-[10px] text-muted-foreground">{form.expert_bio.length}/140</div>
               </>
             )}
+
+            {step.key === "voice" && (
+              <div className="space-y-5">
+                <div>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Writing voice sample
+                  </label>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Paste 1–2 paragraphs of your best prose. IRIS uses it to mirror tone in Score-Me rewrites and draft suggestions.
+                  </p>
+                  <textarea
+                    value={form.writing_voice_sample}
+                    onChange={(e) =>
+                      setForm({ ...form, writing_voice_sample: e.target.value.slice(0, 2000) })
+                    }
+                    rows={6}
+                    placeholder="Paste a section of a proposal or memo you're proud of…"
+                    className="mt-2 w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm leading-relaxed"
+                  />
+                  <div className="mt-1 text-right text-[10px] text-muted-foreground">
+                    {form.writing_voice_sample.length}/2000
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Preferred point of view
+                  </label>
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                    {(
+                      [
+                        { v: "we", label: "We", hint: "First-person plural" },
+                        { v: "third_person", label: "The Plan", hint: "Third-person" },
+                        { v: "brand_name", label: "Brand name", hint: "Always say the brand" },
+                      ] as { v: Pov; label: string; hint: string }[]
+                    ).map((opt) => {
+                      const active = form.preferred_pov === opt.v;
+                      return (
+                        <button
+                          key={opt.v}
+                          onClick={() => setForm({ ...form, preferred_pov: opt.v })}
+                          className="rounded-md border bg-surface/60 px-3 py-2.5 text-left transition hover:bg-surface"
+                          style={{
+                            borderColor: active ? "rgba(59,127,255,0.5)" : "var(--border)",
+                            background: active ? "rgba(59,127,255,0.08)" : undefined,
+                          }}
+                        >
+                          <div className="text-[12px] font-semibold">{opt.label}</div>
+                          <div className="mt-0.5 text-[10px] text-muted-foreground">{opt.hint}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Banned words & phrases
+                  </label>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    IRIS will avoid these in any draft it generates for you. (e.g. "leverage", "synergy")
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {form.banned_words.map((w) => (
+                      <button
+                        key={w}
+                        onClick={() =>
+                          setForm({ ...form, banned_words: form.banned_words.filter((x) => x !== w) })
+                        }
+                        className="group inline-flex items-center gap-1 rounded-full border border-border bg-surface px-3 py-1 text-[12px] text-foreground"
+                        title="Click to remove"
+                      >
+                        <span>{w}</span>
+                        <span className="text-muted-foreground group-hover:text-foreground">×</span>
+                      </button>
+                    ))}
+                  </div>
+                  <CustomAdder
+                    value={customBannedWord}
+                    setValue={setCustomBannedWord}
+                    placeholder="Add a word or phrase…"
+                    onAdd={(v) => {
+                      const clean = v.trim().slice(0, 60);
+                      if (clean && !form.banned_words.includes(clean))
+                        setForm({ ...form, banned_words: [...form.banned_words, clean] });
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {step.key === "style" && (
+              <div className="space-y-5">
+                <div>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Default role on a mission
+                  </label>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Drives which IRIS Outputs surface first on your home screen.
+                  </p>
+                  <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-5">
+                    {(
+                      [
+                        { v: "writer", label: "Writer" },
+                        { v: "sme", label: "SME" },
+                        { v: "reviewer", label: "Reviewer" },
+                        { v: "capture_lead", label: "Capture Lead" },
+                        { v: "pm", label: "PM" },
+                      ] as { v: MissionRole; label: string }[]
+                    ).map((opt) => {
+                      const active = form.default_mission_role === opt.v;
+                      return (
+                        <button
+                          key={opt.v}
+                          onClick={() => setForm({ ...form, default_mission_role: opt.v })}
+                          className="rounded-md border bg-surface/60 px-3 py-2 text-center text-[12px] font-semibold transition hover:bg-surface"
+                          style={{
+                            borderColor: active ? "rgba(59,127,255,0.5)" : "var(--border)",
+                            background: active ? "rgba(59,127,255,0.08)" : undefined,
+                            color: active ? "var(--accent,#3b7fff)" : undefined,
+                          }}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Depth across the 9 IRIS Intelligence Domains
+                  </label>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Self-rate so IRIS can route the right questions to you and weight your contributions in collective memory.
+                  </p>
+                  <div className="mt-2 space-y-1.5">
+                    {IRIS_DOMAINS.map((d) => {
+                      const cur = (form.domain_depth[d.key] ?? "none") as Depth;
+                      return (
+                        <div
+                          key={d.key}
+                          className="flex items-center justify-between gap-3 rounded-md border border-border bg-surface/40 px-3 py-1.5"
+                        >
+                          <span className="text-[12px] font-medium text-foreground">{d.label}</span>
+                          <div className="flex gap-1">
+                            {(["none", "familiar", "working", "expert"] as Depth[]).map((lvl) => {
+                              const active = cur === lvl;
+                              return (
+                                <button
+                                  key={lvl}
+                                  onClick={() =>
+                                    setForm({
+                                      ...form,
+                                      domain_depth: { ...form.domain_depth, [d.key]: lvl },
+                                    })
+                                  }
+                                  className="rounded px-2 py-0.5 text-[10px] uppercase tracking-wider transition"
+                                  style={{
+                                    background: active ? "rgba(59,127,255,0.15)" : "transparent",
+                                    color: active ? "var(--accent,#3b7fff)" : "var(--muted-foreground)",
+                                    border: active
+                                      ? "1px solid rgba(59,127,255,0.45)"
+                                      : "1px solid var(--border)",
+                                  }}
+                                >
+                                  {lvl === "none" ? "—" : lvl}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Timezone
+                  </label>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    So IRIS schedules nudges during your working hours, not at 3am.
+                  </p>
+                  <input
+                    value={form.timezone}
+                    onChange={(e) => setForm({ ...form, timezone: e.target.value.slice(0, 64) })}
+                    placeholder="America/New_York"
+                    className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
