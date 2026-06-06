@@ -18,6 +18,7 @@ import {
   extractDocumentIntelligence,
   regenerateBriefingBook,
 } from "@/lib/mission-activation.functions";
+import { MissionLaunchMoment } from "@/components/v2/MissionLaunchMoment";
 
 // ─── Categories shown in the activation upload step ────────────────────────
 type WizardCategory =
@@ -597,6 +598,7 @@ function Step3Activation({
   const navigate = useNavigate();
   const regenFn = useServerFn(regenerateBriefingBook);
   const [phase, setPhase] = useState(0); // 0..4 → 4 = ready
+  const [launching, setLaunching] = useState(false);
   const [summary, setSummary] = useState<{
     questions: number;
     documents: number;
@@ -704,16 +706,23 @@ function Step3Activation({
           <SummaryRow label="IRIS status" value="Active" highlight />
           <div className="pt-2 flex justify-end">
             <button
-              onClick={() => {
-                onClose();
-                navigate({ to: "/missions/$missionId/overview", params: { missionId } });
-              }}
+              onClick={() => setLaunching(true)}
               className="inline-flex items-center gap-2 rounded-lg bg-[#C49A22] px-4 py-2 text-sm font-semibold text-black hover:bg-[#D4AA32]"
             >
               Enter Mission <ArrowRight className="h-4 w-4" />
             </button>
           </div>
         </div>
+      )}
+
+      {launching && (
+        <MissionLaunchMoment
+          missionName={missionName}
+          onComplete={() => {
+            onClose();
+            navigate({ to: "/missions/$missionId/overview", params: { missionId } });
+          }}
+        />
       )}
     </div>
   );
