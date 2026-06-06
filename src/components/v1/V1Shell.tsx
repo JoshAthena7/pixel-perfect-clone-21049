@@ -57,12 +57,6 @@ export function V1Shell({ children }: { children: ReactNode }) {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <Link
-            to="/v1/my-sections"
-            className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--v1-border)] px-3 py-1.5 text-xs font-medium hover:bg-[color:var(--v1-surface-hover)]"
-          >
-            <ListTodo className="h-3.5 w-3.5" /> My Sections
-          </Link>
           <UserMenu name={data?.myName ?? null} />
         </div>
       </header>

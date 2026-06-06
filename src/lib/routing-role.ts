@@ -79,7 +79,7 @@ export function routeForRole(
 ): RoutingDestination {
   // ATLAS V1: single-mission build. Executive sponsors land in Olympus;
   // everyone else lands in the V1 mission shell, which internally routes
-  // PMs → /v1/command, writers/SMEs → /v1/my-sections, reviewers → /v1/sections.
+  // PMs → /v1/command, writers/SMEs → mission Cockpit, reviewers → /v1/sections.
   if (role === "executive_sponsor") {
     return { to: EXEC_ROUTING_DESTINATION };
   }
