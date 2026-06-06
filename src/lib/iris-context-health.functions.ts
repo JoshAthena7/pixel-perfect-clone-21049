@@ -134,7 +134,7 @@ export const getMissionContextHealth = createServerFn({ method: "POST" })
         .eq("mission_id", missionId),
       supabase
         .from("win_themes")
-        .select("id,status,alignment_score,updated_at")
+        .select("id,status,created_at")
         .eq("mission_id", missionId)
         .eq("status", "active"),
       supabase
