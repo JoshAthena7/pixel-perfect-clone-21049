@@ -251,6 +251,10 @@ function VaultPage() {
       </div>
 
       {/* Slot grid */}
+      {/* Response Template — pinned above the slot grid */}
+      <ResponseTemplateVaultCard missionId={missionId} />
+
+      {/* Slot grid */}
       {isLoading ? (
         <div className="text-sm text-muted-foreground">Loading vault…</div>
       ) : (
