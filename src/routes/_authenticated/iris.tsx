@@ -199,14 +199,26 @@ function IrisPage() {
               </select>
             )}
             {activeMissionId && (
-              <button
-                type="button"
-                onClick={() => handleGenerate(activeMissionId)}
-                disabled={running}
-                className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-300 transition hover:bg-amber-500/15 disabled:opacity-50"
-              >
-                {running ? `Generating… ${progressPct}%` : "Generate Intelligence"}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleGenerate(activeMissionId)}
+                  disabled={running}
+                  className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-300 transition hover:bg-amber-500/15 disabled:opacity-50"
+                >
+                  {running ? `Generating… ${progressPct}%` : "Generate Intelligence"}
+                </button>
+                {running && (
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    disabled={cancelRef.current}
+                    className="rounded-md border border-border bg-background px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground transition hover:border-red-500/40 hover:text-red-300 disabled:opacity-50"
+                  >
+                    {cancelRef.current ? "Cancelling…" : "Cancel"}
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </header>
