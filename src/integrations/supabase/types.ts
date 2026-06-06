@@ -3571,6 +3571,7 @@ export type Database = {
           mission_id: string
           name: string
           notes: string | null
+          source: string
           url: string | null
         }
         Insert: {
@@ -3586,6 +3587,7 @@ export type Database = {
           mission_id: string
           name: string
           notes?: string | null
+          source?: string
           url?: string | null
         }
         Update: {
@@ -3601,6 +3603,7 @@ export type Database = {
           mission_id?: string
           name?: string
           notes?: string | null
+          source?: string
           url?: string | null
         }
         Relationships: [
@@ -5232,6 +5235,8 @@ export type Database = {
           health_drivers: Json | null
           id: string
           iris_pre_brief: Json | null
+          iris_risk_flag: string | null
+          iris_risk_flag_text: string | null
           mandatory_language: string[] | null
           mission_id: string
           next_step: string | null
@@ -5253,6 +5258,7 @@ export type Database = {
           updated_at: string | null
           volume_id: string | null
           waiting_on: string | null
+          win_theme_alignment_score: number | null
           word_limit: number | null
           writer_confidence: string | null
         }
@@ -5272,6 +5278,8 @@ export type Database = {
           health_drivers?: Json | null
           id?: string
           iris_pre_brief?: Json | null
+          iris_risk_flag?: string | null
+          iris_risk_flag_text?: string | null
           mandatory_language?: string[] | null
           mission_id: string
           next_step?: string | null
@@ -5293,6 +5301,7 @@ export type Database = {
           updated_at?: string | null
           volume_id?: string | null
           waiting_on?: string | null
+          win_theme_alignment_score?: number | null
           word_limit?: number | null
           writer_confidence?: string | null
         }
@@ -5312,6 +5321,8 @@ export type Database = {
           health_drivers?: Json | null
           id?: string
           iris_pre_brief?: Json | null
+          iris_risk_flag?: string | null
+          iris_risk_flag_text?: string | null
           mandatory_language?: string[] | null
           mission_id?: string
           next_step?: string | null
@@ -5333,6 +5344,7 @@ export type Database = {
           updated_at?: string | null
           volume_id?: string | null
           waiting_on?: string | null
+          win_theme_alignment_score?: number | null
           word_limit?: number | null
           writer_confidence?: string | null
         }
