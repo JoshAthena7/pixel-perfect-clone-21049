@@ -119,11 +119,14 @@ function ChipItem({
   const color = chip.category ? CATEGORY_META[chip.category].color : CUSTOM_COLOR;
   const isCustom = !chip.category;
 
-  const style = {
+  const baseStyle: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.4 : 1,
   };
+  const chipStyle: React.CSSProperties = chip.isPrimary
+    ? { ...baseStyle, backgroundColor: color, borderColor: color }
+    : { ...baseStyle, borderColor: color };
 
   function handleDotClick(e: React.MouseEvent) {
     e.stopPropagation();
@@ -138,7 +141,7 @@ function ChipItem({
   return (
     <span
       ref={setNodeRef}
-      style={style}
+      style={chipStyle}
       {...attributes}
       {...listeners}
       className={`group relative inline-flex cursor-grab items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-shadow ${
@@ -149,10 +152,8 @@ function ChipItem({
             : "border bg-background text-foreground"
       } ${isDragging ? "z-10 shadow-lg" : ""}`}
       title={chip.isPrimary ? "Primary expertise" : "Click the dot to mark as primary"}
-      {...(chip.isPrimary
-        ? { style: { ...style, backgroundColor: color, borderColor: color } }
-        : { style: { ...style, borderColor: color } })}
     >
+
       <button
         type="button"
         onClick={handleDotClick}
