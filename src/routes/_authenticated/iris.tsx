@@ -336,6 +336,9 @@ function PipelineProgress({
               {s.status === "error" && (
                 <span className="text-red-400">failed · {s.error ?? "unknown error"}</span>
               )}
+              {s.status === "cancelled" && (
+                <span className="text-muted-foreground/70">cancelled</span>
+              )}
             </span>
           </li>
         ))}
