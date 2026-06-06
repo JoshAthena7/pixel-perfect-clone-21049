@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { callIris } from "./iris-prompts";
+import { loadMissionContext, formatMissionContextPreamble } from "./iris-mission-context.server";
 
 const CACHE_TTL_MS = 30 * 60 * 1000; // 30 min
 
