@@ -3,12 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 import { useIsAdmin } from "@/hooks/useAccess";
-import { NotAvailable } from "@/components/access/NotAvailable";
+import { useRedirectIfBlocked } from "@/hooks/useRedirectIfBlocked";
 import { StrategicOlympus } from "@/components/v2/StrategicOlympus";
 
 // Phase 5 — Olympus is the executive intelligence view.
-// All platform administration moved to /admin. /olympus now renders only
-// the StrategicOlympus shell for executives and admins.
+// Admin + executive_sponsor only. Writers/SMEs/reviewers get redirected to
+// their mission Cockpit; they never see the admin control room.
 export const Route = createFileRoute("/_authenticated/olympus")({
   component: OlympusStrategic,
 });
@@ -37,17 +37,16 @@ function OlympusStrategic() {
     },
   });
 
-  if (isLoading || execLoading) {
+  const loading = isLoading || execLoading;
+  const canSeeStrategic = loading ? undefined : isAdmin || !!execAccess?.isExec;
+  useRedirectIfBlocked(canSeeStrategic);
+
+  if (loading || canSeeStrategic === false) {
     return (
       <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
         Loading…
       </div>
     );
-  }
-
-  const canSeeStrategic = isAdmin || !!execAccess?.isExec;
-  if (!canSeeStrategic) {
-    return <NotAvailable kind="olympus" />;
   }
 
   return (
