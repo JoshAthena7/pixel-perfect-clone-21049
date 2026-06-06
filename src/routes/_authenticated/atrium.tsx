@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { getAtrium, type AtriumPayload } from "@/lib/atrium.functions";
 import { Trophy, DollarSign, Users, MapPin, Flame, Sparkles, Circle, MessageSquare, Send, AlertTriangle, Megaphone, Inbox, FileText, FileEdit, BookOpen, FileArchive } from "lucide-react";
 import { IrisGreeting } from "@/components/v2/IrisGreeting";
+import { AmbientWisdom } from "@/components/v2/AmbientWisdom";
 
 export const Route = createFileRoute("/_authenticated/atrium")({
   component: AtriumPage,
@@ -85,6 +86,10 @@ function AtriumPage() {
           <ViewerProfileCard viewer={data?.viewer ?? null} />
           <LiveWritersCard writers={data?.liveWriters ?? []} />
         </aside>
+      </div>
+
+      <div className="mx-auto mt-16 mb-6 max-w-[640px] px-6">
+        <AmbientWisdom />
       </div>
     </div>
   );
