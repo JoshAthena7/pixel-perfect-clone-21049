@@ -64,9 +64,6 @@ function AtriumPage() {
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             Cross-engagement common space. Every writer. Every win. One legacy.
           </p>
-          {data && (
-            <FirmTotals totals={data.totals} />
-          )}
         </div>
       </header>
 
