@@ -63,15 +63,16 @@ export function ExpertiseProfileEditor({
   });
 
   const { data: options = [] } = useQuery({
-    queryKey: ["expertise-options"],
+    queryKey: ["expertise-library-opts"],
     queryFn: async () => {
       const { data } = await supabase
-        .from("expertise_options")
-        .select("id,kind,label")
+        .from("expertise_library")
+        .select("id,label,category,sort_order")
         .order("sort_order", { ascending: true });
-      return (data ?? []) as Opt[];
+      return (data ?? []).map((r) => ({ id: r.id, kind: "expertise_area" as const, label: r.label })) as Opt[];
     },
   });
+
 
   const { data: programs = [] } = useQuery({
     queryKey: ["atlas-programs-list"],
