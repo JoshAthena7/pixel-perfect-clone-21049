@@ -75,38 +75,20 @@ export type RoutingDestination = {
 
 export function routeForRole(
   role: RoutingRole,
-  ctx: { missionCount: number; singleMissionId: string | null },
+  _ctx: { missionCount: number; singleMissionId: string | null },
 ): RoutingDestination {
-  switch (role) {
-    case "executive_sponsor":
-      return { to: EXEC_ROUTING_DESTINATION };
-    case "engagement_lead":
-      if (ctx.missionCount === 1 && ctx.singleMissionId) {
-        return {
-          to: "/missions/$missionId/brief",
-          params: { missionId: ctx.singleMissionId },
-        };
-      }
-      return { to: "/home" };
-    case "pm":
-      return { to: "/home" };
-    case "reviewer":
-      return { to: "/cockpit", search: { status_filter: "in_review" } };
-    case "writer":
-      return { to: "/cockpit" };
-    case "sme":
-      return { to: "/cockpit", search: { sme_filter: "active" } };
-    case "checkin_only":
-      return { to: "/checkin-home" };
-    case "none":
-    default:
-      return { to: "/home" };
+  // ATLAS V1: single-mission build. Executive sponsors land in Olympus;
+  // everyone else lands in the V1 mission shell, which internally routes
+  // PMs → /v1/command, writers/SMEs → /v1/my-sections, reviewers → /v1/sections.
+  if (role === "executive_sponsor") {
+    return { to: EXEC_ROUTING_DESTINATION };
   }
+  return { to: "/v1" };
 }
 
 // Paths that count as "the default landing" — LoginRouter will only reroute
 // from these. Anything else is treated as a deep link.
-export const DEFAULT_LANDING_PATHS = new Set(["/", "/atrium", "/home"]);
+export const DEFAULT_LANDING_PATHS = new Set(["/", "/atrium", "/home", "/v1"]);
 
 export function shouldHonorDeepLink(pathname: string): boolean {
   return !DEFAULT_LANDING_PATHS.has(pathname);
