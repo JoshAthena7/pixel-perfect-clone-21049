@@ -196,13 +196,14 @@ export const getMissionContextHealth = createServerFn({ method: "POST" })
         .eq("mission_id", missionId),
       supabase
         .from("alignment_conflicts")
-        .select("id,created_at,updated_at")
+        .select("id,detected_at,resolved_at")
         .eq("mission_id", missionId)
-        .order("updated_at", { ascending: false })
+        .order("detected_at", { ascending: false })
         .limit(1),
       supabase
         .from("expertise_library")
-        .select("id"),
+        .select("id")
+        .eq("active", true),
     ]);
 
     const settled = <T>(r: PromiseSettledResult<{ data: T | null }>): T | null =>
