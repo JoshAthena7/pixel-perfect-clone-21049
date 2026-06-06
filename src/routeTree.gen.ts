@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiIrisVoiceRouteImport } from './routes/api/iris-voice'
 import { Route as AuthenticatedOlympusRouteImport } from './routes/_authenticated/olympus'
+import { Route as AuthenticatedIrisRouteImport } from './routes/_authenticated/iris'
 import { Route as AuthenticatedIntelligenceQueueRouteImport } from './routes/_authenticated/intelligence-queue'
 import { Route as AuthenticatedIntelligenceRouteImport } from './routes/_authenticated/intelligence'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
@@ -96,6 +97,11 @@ const ApiIrisVoiceRoute = ApiIrisVoiceRouteImport.update({
 const AuthenticatedOlympusRoute = AuthenticatedOlympusRouteImport.update({
   id: '/olympus',
   path: '/olympus',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedIrisRoute = AuthenticatedIrisRouteImport.update({
+  id: '/iris',
+  path: '/iris',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedIntelligenceQueueRoute =
@@ -458,6 +464,7 @@ export interface FileRoutesByFullPath {
   '/home': typeof AuthenticatedHomeRoute
   '/intelligence': typeof AuthenticatedIntelligenceRoute
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
+  '/iris': typeof AuthenticatedIrisRoute
   '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/api/iris-voice': typeof ApiIrisVoiceRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
@@ -523,6 +530,7 @@ export interface FileRoutesByTo {
   '/home': typeof AuthenticatedHomeRoute
   '/intelligence': typeof AuthenticatedIntelligenceRoute
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
+  '/iris': typeof AuthenticatedIrisRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
@@ -588,6 +596,7 @@ export interface FileRoutesById {
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/intelligence': typeof AuthenticatedIntelligenceRoute
   '/_authenticated/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
+  '/_authenticated/iris': typeof AuthenticatedIrisRoute
   '/_authenticated/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/api/iris-voice': typeof ApiIrisVoiceRoute
   '/_authenticated/command/alignment': typeof AuthenticatedCommandAlignmentRoute
@@ -655,6 +664,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/intelligence'
     | '/intelligence-queue'
+    | '/iris'
     | '/olympus'
     | '/api/iris-voice'
     | '/command/alignment'
@@ -720,6 +730,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/intelligence'
     | '/intelligence-queue'
+    | '/iris'
     | '/api/iris-voice'
     | '/command/alignment'
     | '/command/alignment-conflicts'
@@ -784,6 +795,7 @@ export interface FileRouteTypes {
     | '/_authenticated/home'
     | '/_authenticated/intelligence'
     | '/_authenticated/intelligence-queue'
+    | '/_authenticated/iris'
     | '/_authenticated/olympus'
     | '/api/iris-voice'
     | '/_authenticated/command/alignment'
@@ -891,6 +903,13 @@ declare module '@tanstack/react-router' {
       path: '/olympus'
       fullPath: '/olympus'
       preLoaderRoute: typeof AuthenticatedOlympusRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/iris': {
+      id: '/_authenticated/iris'
+      path: '/iris'
+      fullPath: '/iris'
+      preLoaderRoute: typeof AuthenticatedIrisRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/intelligence-queue': {
@@ -1425,6 +1444,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedIntelligenceRoute: typeof AuthenticatedIntelligenceRoute
   AuthenticatedIntelligenceQueueRoute: typeof AuthenticatedIntelligenceQueueRoute
+  AuthenticatedIrisRoute: typeof AuthenticatedIrisRoute
   AuthenticatedOlympusRoute: typeof AuthenticatedOlympusRouteWithChildren
   AuthenticatedCommandAlignmentRoute: typeof AuthenticatedCommandAlignmentRoute
   AuthenticatedCommandAlignmentConflictsRoute: typeof AuthenticatedCommandAlignmentConflictsRoute
@@ -1445,6 +1465,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedIntelligenceRoute: AuthenticatedIntelligenceRoute,
   AuthenticatedIntelligenceQueueRoute: AuthenticatedIntelligenceQueueRoute,
+  AuthenticatedIrisRoute: AuthenticatedIrisRoute,
   AuthenticatedOlympusRoute: AuthenticatedOlympusRouteWithChildren,
   AuthenticatedCommandAlignmentRoute: AuthenticatedCommandAlignmentRoute,
   AuthenticatedCommandAlignmentConflictsRoute:
