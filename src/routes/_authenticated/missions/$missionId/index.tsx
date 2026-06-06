@@ -21,6 +21,7 @@ import { DailyPulse } from "@/components/v4/DailyPulse";
 import { ThreadPanel } from "@/components/threads/ThreadPanel";
 import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { IrisKickoffBadge } from "@/components/v2/IrisKickoffBadge";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/")({
   component: MissionCockpitLanding,
