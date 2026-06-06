@@ -226,7 +226,11 @@ function IrisPage() {
                 </button>
                 {running && (
                   <button
+                    ref={cancelButtonRef}
                     type="button"
+                    aria-label="Cancel intelligence generation"
+                    aria-haspopup="dialog"
+                    aria-expanded={confirmCancelOpen}
                     onClick={() => setConfirmCancelOpen(true)}
                     disabled={cancelling}
                     className="rounded-md border border-border bg-background px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground transition hover:border-red-500/40 hover:text-red-300 disabled:opacity-50"
