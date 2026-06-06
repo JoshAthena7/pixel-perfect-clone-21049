@@ -135,6 +135,7 @@ function IrisPage() {
     runningRef.current = false;
     cancelRef.current = false;
     setRunning(false);
+    setCancelling(false);
     setStages((prev) => {
       const next = cancelledDuringRun
         ? prev.map((s) => (s.status === "pending" ? { ...s, status: "cancelled" as const } : s))
