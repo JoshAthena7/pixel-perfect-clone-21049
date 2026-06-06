@@ -12,6 +12,8 @@ import { launchMission } from "@/lib/mission-setup.functions";
 import { seedMonitoringWatchlist, saveMonitoringSource, deleteMonitoringSource } from "@/lib/mission-monitoring.functions";
 import { saveEvaluationCriteria, saveExpertiseTag, removeExpertiseTag } from "@/lib/mission-evaluation.functions";
 import { generateStrategicField, type StrategicFieldKey } from "@/lib/iris-strategic-foundation.functions";
+import { irisPopulateSetupRecord } from "@/lib/iris-setup-autofill.functions";
+import { IrisAutofillBanner } from "@/components/admin/IrisAutofillBanner";
 import { LaunchSequence } from "@/components/olympus/LaunchSequence";
 import { useIsAdmin } from "@/hooks/useAccess";
 
@@ -47,11 +49,37 @@ function MissionSetupRecord() {
   const qc = useQueryClient();
   const { isAdmin } = useIsAdmin();
   const launchFn = useServerFn(launchMission);
+  const autofillFn = useServerFn(irisPopulateSetupRecord);
   const [confirm, setConfirm] = useState(false);
   const [preLaunchError, setPreLaunchError] = useState<string | null>(null);
+  const [autofillWritten, setAutofillWritten] = useState<number | undefined>(undefined);
 
   const setup = useSetupData(missionId);
   const completion = useCompletion(setup);
+
+  // First-open auto-population from IRIS
+  useEffect(() => {
+    if (!setup.mission) return;
+    const status = setup.mission.iris_setup_autofill_status as string | null;
+    const kickoff = setup.mission.iris_kickoff_status as string | undefined;
+    if (status) return; // already ran (suggested/approved/reviewing/pending)
+    if (kickoff && kickoff !== "complete") return; // wait for kickoff
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await autofillFn({ data: { missionId } });
+        if (cancelled) return;
+        setAutofillWritten(res.written);
+        setup.refetch();
+      } catch {
+        // silent — banner just won't appear
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setup.mission?.id, setup.mission?.iris_setup_autofill_status, setup.mission?.iris_kickoff_status]);
 
   async function handleLaunch() {
     setPreLaunchError(null);
@@ -139,6 +167,13 @@ function MissionSetupRecord() {
               the Vault, Oracle, Studio, Calendar, team permissions, and the first IRIS briefing.
             </p>
           </header>
+
+          <IrisAutofillBanner
+            missionId={missionId}
+            status={setup.mission?.iris_setup_autofill_status}
+            written={autofillWritten}
+            onChange={() => setup.refetch()}
+          />
 
           <SectionIdentity missionId={missionId} mission={setup.mission} refetch={setup.refetch} />
           <SectionTeam missionId={missionId} members={setup.members} expertise={setup.expertise} refetch={setup.refetch} />
