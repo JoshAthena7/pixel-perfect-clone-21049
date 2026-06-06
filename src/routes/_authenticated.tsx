@@ -4,6 +4,7 @@ import { AppShell } from "@/components/v2/AppShell";
 import { ClosingFrame } from "@/components/v2/ClosingFrame";
 import { IdleCurtain } from "@/components/v2/IdleCurtain";
 import { FirstLight } from "@/components/v2/FirstLight";
+import { DailyBell } from "@/components/v2/DailyBell";
 
 export const Route = createFileRoute("/_authenticated")({
   // Client-only gate. Supabase stores the session in localStorage, which the
@@ -27,6 +28,7 @@ function AuthenticatedLayout() {
       <ClosingFrame />
       <IdleCurtain />
       <FirstLight />
+      <DailyBell />
     </AppShell>
   );
 }
