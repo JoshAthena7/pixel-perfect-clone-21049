@@ -16,7 +16,7 @@ import {
 } from "@/lib/checkin.functions";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/status-report")({
+export const Route = createFileRoute("/_authenticated/admin/status-report")({
   component: StatusReportPage,
 });
 
