@@ -654,6 +654,11 @@ function Step3Activation({
     if (escapedRef.current) return;
     escapedRef.current = true;
     setOracleWarming(true);
+    // Persist a flag the Mission layout can pick up so it shows the
+    // "IRIS is finishing your Oracle" banner until kickoff completes.
+    try {
+      sessionStorage.setItem(`iris-warming:${missionId}`, "1");
+    } catch {}
     setPhase(3);
     const c = countsRef.current;
     setSummary({
