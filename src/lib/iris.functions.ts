@@ -53,8 +53,9 @@ export const irisLeadershipAttention = createServerFn({ method: "GET" })
       return { missions: [], totals: { escalations: 0, criticalSignals: 0, lowScores: 0, conflicts: 0, atRiskAssumptions: 0, highRisks: 0 } };
     }
 
-    const [escRes, sigRes, qRes, confRes, asmRes, riskRes] = await Promise.all([
-      supabase.from("escalations").select("id,mission_id,severity,status").eq("status", "Open"),
+    // F-7: escalations table dropped — its weight now rolls into critical signals
+    // (which is where real escalations land via SOS).
+    const [sigRes, qRes, confRes, asmRes, riskRes] = await Promise.all([
       supabase.from("signals").select("id,mission_id,severity").eq("severity", "critical").eq("status", "open"),
       supabase.from("question_records").select("id,mission_id,current_score").lt("current_score", 3.0),
       supabase.from("alignment_conflicts").select("id,mission_id").is("resolved_at", null),
@@ -66,19 +67,18 @@ export const irisLeadershipAttention = createServerFn({ method: "GET" })
       (rows ?? []).filter((r) => r.mission_id === mid).length;
 
     const perMission = (missions ?? []).map((m) => {
-      const esc = count(escRes.data as { mission_id: string }[] | null, m.id);
       const crit = count(sigRes.data as { mission_id: string }[] | null, m.id);
       const low = count(qRes.data as { mission_id: string }[] | null, m.id);
       const conf = count(confRes.data as { mission_id: string }[] | null, m.id);
       const atRisk = count(asmRes.data as { mission_id: string }[] | null, m.id);
       const highRisk = count(riskRes.data as { mission_id: string }[] | null, m.id);
-      const score = esc * 25 + crit * 10 + low * 5 + conf * 8 + atRisk * 6 + highRisk * 7;
+      const score = crit * 10 + low * 5 + conf * 8 + atRisk * 6 + highRisk * 7;
       return {
         mission_id: m.id,
         name: m.name,
         client: m.client,
         attention_score: score,
-        breakdown: { escalations: esc, criticalSignals: crit, lowScores: low, conflicts: conf, atRiskAssumptions: atRisk, highRisks: highRisk },
+        breakdown: { escalations: 0, criticalSignals: crit, lowScores: low, conflicts: conf, atRiskAssumptions: atRisk, highRisks: highRisk },
       };
     });
 
@@ -87,7 +87,7 @@ export const irisLeadershipAttention = createServerFn({ method: "GET" })
     return {
       missions: perMission,
       totals: {
-        escalations: escRes.data?.length ?? 0,
+        escalations: 0,
         criticalSignals: sigRes.data?.length ?? 0,
         lowScores: qRes.data?.length ?? 0,
         conflicts: confRes.data?.length ?? 0,
