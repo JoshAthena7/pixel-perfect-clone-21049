@@ -13,11 +13,11 @@ import {
 } from "lucide-react";
 
 import { useIsAdmin } from "@/hooks/useAccess";
-import { NotAvailable } from "@/components/access/NotAvailable";
+import { useRedirectIfBlocked } from "@/hooks/useRedirectIfBlocked";
 
 // Platform Administration layout — formerly /olympus/*.
-// /olympus is now reserved for the Phase 5 executive view (StrategicOlympus).
-// This file owns every admin tool: missions, users, invites, audit, intel engine, etc.
+// Admin only. Non-admins are redirected to their mission Cockpit so the
+// admin control room is never visible to writers/SMEs/reviewers.
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
@@ -29,13 +29,11 @@ const SELECTED_KEY = "admin:mission";
 
 function AdminLayout() {
   const { isAdmin, isLoading } = useIsAdmin();
+  const gate = isLoading ? undefined : isAdmin;
+  useRedirectIfBlocked(gate);
 
-  if (isLoading) {
+  if (isLoading || gate === false) {
     return <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">Loading…</div>;
-  }
-
-  if (!isAdmin) {
-    return <NotAvailable kind="olympus" />;
   }
 
   return (
