@@ -4,12 +4,53 @@ import { useQuery } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { getIrisData } from "@/lib/iris-read.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { extractSignals } from "@/lib/iris-extractors/signals.functions";
 import { extractRisks } from "@/lib/iris-extractors/risks.functions";
 import { extractWinThemes } from "@/lib/iris-extractors/win-themes.functions";
 import { extractStrategy } from "@/lib/iris-extractors/strategy.functions";
 import { extractClientIntel } from "@/lib/iris-extractors/client-intel.functions";
+
+type IrisMission = {
+  id: string;
+  name: string | null;
+  client?: string | null;
+  state?: string | null;
+  state_agency?: string | null;
+  procurement_name?: string | null;
+  program_type?: string | null;
+  description?: string | null;
+  submission_date?: string | null;
+  health?: string | null;
+  status?: string | null;
+  win_themes?: unknown;
+  key_requirements?: unknown;
+};
+
+type IrisData = {
+  mission: IrisMission | null;
+  missions: IrisMission[];
+  signals: any[];
+  risks: any[];
+  winThemes: any[];
+  strategy: any[];
+  clientIntel: any | null;
+};
+
+async function fetchIrisData(missionId?: string): Promise<IrisData> {
+  const { data: sess } = await supabase.auth.getSession();
+  const token = sess.session?.access_token;
+  if (!token) throw new Error("Sign in to view IRIS.");
+  const qs = missionId ? `?missionId=${encodeURIComponent(missionId)}` : "";
+  const res = await fetch(`/api/iris${qs}`, {
+    headers: { authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(body.error ?? "Failed to load IRIS");
+  }
+  return res.json();
+}
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,7 +73,6 @@ import {
 
 export const Route = createFileRoute("/_authenticated/iris-console")({
   beforeLoad: () => {
-    void getIrisData;
     void extractSignals;
     void extractRisks;
     void extractWinThemes;
