@@ -308,7 +308,7 @@ function IrisPage() {
           {!isLoading && !isError && data && (
             <>
               {tab === "brief" && <MissionBriefView data={data} />}
-              {tab === "environment" && <EnvironmentalView signals={data.signals} />}
+              {tab === "environment" && <EnvironmentalView signals={data.signals} missionId={activeMissionId ?? ""} />}
               {tab === "wants" && <WantsView priorities={data.strategy} />}
               {tab === "risks" && <RisksView risks={data.risks} />}
               {tab === "strategy" && <StrategyView themes={data.winThemes} />}
