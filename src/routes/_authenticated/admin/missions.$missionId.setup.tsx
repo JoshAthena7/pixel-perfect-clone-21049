@@ -850,7 +850,12 @@ function StrategicFoundationBlock({ missionId, mission, refetch }: { missionId: 
       } else {
         const text = typeof res.value === "string" ? res.value : "";
         setValues((v) => ({ ...v, [field]: text }));
-        await supabase.from("missions").update({ [field]: text }).eq("id", missionId);
+        const patch =
+          field === "mission_highlights" ? { mission_highlights: text }
+          : field === "client_strengths" ? { client_strengths: text }
+          : field === "client_win_strategy" ? { client_win_strategy: text }
+          : { program_goals: text };
+        await supabase.from("missions").update(patch).eq("id", missionId);
       }
       toast.success("IRIS generated a draft — review and edit before launch.");
       refetch();
