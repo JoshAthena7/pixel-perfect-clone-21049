@@ -346,8 +346,7 @@ export const getMissionContextHealth = createServerFn({ method: "POST" })
       lastEventAt: intelLast,
     };
 
-    const conflictLast =
-      conflict[0]?.updated_at ?? conflict[0]?.created_at ?? null;
+    const conflictLast = conflict[0]?.detected_at ?? null;
     const conflictStale = staleRow({
       lastAt: conflictLast,
       amberAfterMs: 7 * DAY,
