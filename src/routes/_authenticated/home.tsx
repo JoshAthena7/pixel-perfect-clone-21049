@@ -19,6 +19,7 @@ import atlasLogo from "@/assets/atlas-logo.png.asset.json";
 import { DailyPulse } from "@/components/v4/DailyPulse";
 import { IrisTrustIntro } from "@/components/v4/IrisTrustIntro";
 import { RecentChangesCard } from "@/components/v4/RecentChangesCard";
+import { ExpertiseTagsCard } from "@/components/v4/ExpertiseTagsCard";
 import { useIsAdmin } from "@/hooks/useAccess";
 import type { ReactNode } from "react";
 
