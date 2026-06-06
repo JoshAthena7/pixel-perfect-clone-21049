@@ -248,7 +248,7 @@ function IrisPage() {
 type PipelineStage = {
   id: string;
   label: string;
-  status: "pending" | "running" | "done" | "error" | "skipped";
+  status: "pending" | "running" | "done" | "error" | "skipped" | "cancelled";
   inserted?: number;
   reason?: string;
   error?: string;
