@@ -862,9 +862,9 @@ function ResponsesList() {
       <div className="mx-auto max-w-[1200px] px-8 pb-32 pt-10">
       <div className="mb-6">
         <IrisGreeting screen="studio" />
-        <div className="text-[10px] font-semibold uppercase tracking-[0.32em]" style={{ color: "#3b7fff" }}>Questions</div>
+        <div className="text-[10px] font-semibold uppercase tracking-[0.32em]" style={{ color: "#3b7fff" }}>Sections</div>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">Your Workspace</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Your questions. Your deadline. Help one click away.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Your sections. Your deadline. Help one click away.</p>
       </div>
 
 
