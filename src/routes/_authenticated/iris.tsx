@@ -1,11 +1,15 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { getIrisData } from "@/lib/iris-read.functions";
-import { runIrisPipeline } from "@/lib/iris-extractors/run-all.functions";
+import { extractSignals } from "@/lib/iris-extractors/signals.functions";
+import { extractRisks } from "@/lib/iris-extractors/risks.functions";
+import { extractWinThemes } from "@/lib/iris-extractors/win-themes.functions";
+import { extractStrategy } from "@/lib/iris-extractors/strategy.functions";
+import { extractClientIntel } from "@/lib/iris-extractors/client-intel.functions";
 
 /**
  * IRIS — the intelligence experience layer.
