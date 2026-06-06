@@ -13,6 +13,7 @@ const StrategySchema = z.object({
         label: z.string().min(10).max(280),
         notes: z.string().min(20).max(900),
         supporting_theme: z.string().max(120).optional(),
+        source_label: z.string().max(180).optional(),
       }),
     )
     .max(10),
