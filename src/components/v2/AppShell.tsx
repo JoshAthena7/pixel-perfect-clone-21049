@@ -520,3 +520,40 @@ function UserAvatarMenu() {
     </div>
   );
 }
+
+// Olympus nav link — visible to admins and to users with `executive_sponsor` mission role (Phase 5).
+function OlympusNavLink({ isOlympus }: { isOlympus: boolean }) {
+  const { isAdmin } = useIsAdmin();
+  const { data: isExec } = useQuery({
+    queryKey: ["shell-is-exec"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+      const { data } = await supabase
+        .from("mission_members")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "executive_sponsor")
+        .limit(1);
+      return (data ?? []).length > 0;
+    },
+    staleTime: 60_000,
+  });
+
+  if (!isAdmin && !isExec) return null;
+
+  return (
+    <Link
+      to="/olympus"
+      aria-label="Olympus"
+      title="Olympus · Strategic Portfolio View"
+      className={`inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors ${
+        isOlympus ? "bg-white/5 text-foreground" : ""
+      }`}
+    >
+      <Settings2 size={14} strokeWidth={1.5} className="text-[color:var(--athena-gold)]" />
+      Olympus
+    </Link>
+  );
+}
+
