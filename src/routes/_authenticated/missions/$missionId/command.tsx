@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { generateMissionBrief } from "@/lib/iris-mission-brief.functions";
 import { canPmAccessMission } from "@/lib/access.functions";
 import { toast } from "sonner";
+import { createSignal } from "@/lib/signals";
 import {
   RefreshCw, Radio, ArrowRight, Plus, MessageSquare, Plane, AlertTriangle, X, Zap,
 } from "lucide-react";
@@ -1655,6 +1656,16 @@ function BroadcastModal({ missionId, onClose, onSent }: { missionId: string; onC
         mission_id: missionId,
       });
       if (error) throw error;
+      // GAP 1 — emit broadcast_sent so all assigned writers see it on Flight Deck.
+      void createSignal({
+        mission_id: missionId,
+        source_module: "leadership_broadcast",
+        signal_type: "broadcast_sent",
+        signal_title: `Broadcast from ${fromName}`,
+        signal_summary: text.trim().slice(0, 240),
+        severity: "info",
+        tags: ["broadcast"],
+      });
       toast.success("Broadcast sent");
       onSent();
       onClose();

@@ -85,6 +85,7 @@ export const SIGNAL_TYPE_LABELS: Record<string, string> = {
   leadership_guidance_added: "Guidance Added",
   question_completed: "Question Completed",
   question_assigned: "Question Assigned",
+  question_reassigned: "Question Reassigned",
   question_ready_for_review: "Ready for Review",
   question_approved: "Question Approved",
   score_logged: "Score Logged",
@@ -96,6 +97,9 @@ export const SIGNAL_TYPE_LABELS: Record<string, string> = {
   assumption_created: "Assumption Created",
   assumption_changed: "Assumption Changed",
   document_uploaded: "Document Uploaded",
+  broadcast_sent: "Leadership Broadcast",
+  clarification_deadline: "Clarification Deadline",
+  iris_health_drop: "IRIS Health Drop",
 };
 
 export function signalTypeLabel(t: string): string {

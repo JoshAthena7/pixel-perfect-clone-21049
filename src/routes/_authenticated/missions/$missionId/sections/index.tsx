@@ -3,6 +3,7 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { createSignal } from "@/lib/signals";
 import {
   ChevronDown,
   AlertTriangle,
@@ -264,12 +265,33 @@ function SectionsTrackerPage() {
   async function bulkAssign(userId: string | null) {
     const ids = Array.from(selected);
     if (ids.length === 0) return;
+    // GAP 1 — detect new-assign vs reassign by reading prior values.
+    const { data: prior } = await supabase
+      .from("question_records")
+      .select("id,question_number,title,assigned_writer_id,mission_id")
+      .in("id", ids);
     const { error } = await supabase
       .from("question_records")
       .update({ assigned_writer_id: userId })
       .in("id", ids);
     if (error) return toast.error(error.message);
     toast.success(`${ids.length} sections ${userId ? "assigned" : "unassigned"}`);
+    // GAP 1 — emit in-app signals so the new assignee sees it on Flight Deck.
+    if (userId && prior) {
+      for (const row of prior as Array<{ id: string; question_number: string | null; title: string | null; assigned_writer_id: string | null; mission_id: string }>) {
+        const isReassign = !!row.assigned_writer_id && row.assigned_writer_id !== userId;
+        void createSignal({
+          mission_id: row.mission_id,
+          source_module: "sections_tracker",
+          signal_type: isReassign ? "question_reassigned" : "question_assigned",
+          signal_title: `${isReassign ? "Reassigned" : "Assigned"} · ${row.question_number ?? "?"} — ${row.title ?? "Untitled"}`,
+          severity: "info",
+          owner_id: userId,
+          related_question_id: row.id,
+          tags: ["assignment"],
+        });
+      }
+    }
     qc.invalidateQueries({ queryKey: ["sections-tracker", missionId] });
     clearSelection();
   }
