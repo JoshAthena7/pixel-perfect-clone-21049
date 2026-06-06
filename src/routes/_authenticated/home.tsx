@@ -33,6 +33,7 @@ import {
   type BriefItem,
 } from "@/components/v2/AtriumCommandCenter";
 import { IrisPersonalAlert } from "@/components/v2/IrisPersonalAlert";
+import { GuidedTour, type TourStep } from "@/components/v2/GuidedTour";
 import { getLoginRouting } from "@/lib/routing.functions";
 import { DEFAULT_SORT_BY_ROLE, type RoutingRole } from "@/lib/routing-role";
 
@@ -333,6 +334,21 @@ function AthenaHQ() {
   }, [routing, role, sortInitialized]);
   const [missionHealthFilter, setMissionHealthFilter] = useState<"all" | "red" | "yellow" | "green">("all");
   const [missionSearch, setMissionSearch] = useState("");
+  const [tourOpen, setTourOpen] = useState(false);
+
+  // Auto-open the tour on first visit (once per user-agent).
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem("atlas:tour:home:v1")) {
+        const t = setTimeout(() => setTourOpen(true), 800);
+        return () => clearTimeout(t);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+
 
 
   const filteredMissions = useMemo(
@@ -417,7 +433,7 @@ function AthenaHQ() {
     <div className="relative min-h-screen bg-background">
       <Constellation opacity={0.06} />
       {/* Athena HQ executive header — Atrium as command center */}
-      <header className="relative border-b border-border bg-gradient-to-b from-surface to-background">
+      <header className="relative border-b border-border bg-gradient-to-b from-surface to-background" data-tour="athena-hq">
         <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-6 px-8 py-8">
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">
@@ -430,9 +446,17 @@ function AthenaHQ() {
               Intelligence · Alignment · Execution
             </p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button
               type="button"
+              onClick={() => setTourOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:border-[color:var(--athena-gold,#f59e0b)]/40 hover:text-foreground transition-colors"
+            >
+              Take the tour
+            </button>
+            <button
+              type="button"
+              data-tour="iris-launch"
               onClick={() => {
                 primeIrisVoiceBeforeOnboarding();
                 navigate({ to: "/home", search: { "iris-demo": "1" } as never });
@@ -548,7 +572,8 @@ function AthenaHQ() {
 
         {/* ROLE-DIFFERENTIATED: Active Missions (leaders) or Your Assignments (writers/SMEs) */}
         {isLeader ? (
-          <section>
+          <section data-tour="missions">
+
             <div className="mb-3 flex items-end justify-between gap-4">
               <div>
                 <h2 className="h2-label">Active Missions</h2>
@@ -698,9 +723,93 @@ function AthenaHQ() {
           missions={missions}
         />
       </div>
+
+      <GuidedTour
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        storageKey="atlas:tour:home:v1"
+        steps={HOME_TOUR_STEPS(missions[0]?.id)}
+      />
     </div>
   );
 }
+
+function HOME_TOUR_STEPS(firstMissionId: string | undefined): TourStep[] {
+  return [
+    {
+      title: "Welcome to ATLAS.",
+      body: (
+        <>
+          A 60-second tour of the surfaces you'll live in: <b>Athena HQ</b>, the
+          <b> Atrium</b> destinations, and the <b>Mission interior</b> where IRIS
+          quietly does its work.
+        </>
+      ),
+    },
+    {
+      selector: '[data-tour="athena-hq"]',
+      placement: "bottom",
+      title: "Athena HQ — your command center",
+      body: (
+        <>
+          This is home base. Greeting, firm status, leadership messages, and your
+          active missions all live here. Everything else is one click away.
+        </>
+      ),
+    },
+    {
+      selector: '[data-tour="atrium-nav"]',
+      placement: "bottom",
+      title: "Atrium destinations",
+      body: (
+        <>
+          The five Atrium-level surfaces: <b>Home</b>, <b>Journey Map</b>,
+          <b> Status Report</b>, <b>Profile</b>, and <b>Data & Privacy</b>. These
+          are the only top-level places you navigate to.
+        </>
+      ),
+    },
+    {
+      selector: '[data-tour="cockpit"]',
+      placement: "left",
+      title: "Cockpit — your daily work",
+      body: (
+        <>
+          Cockpit is your cross-mission to-do surface — what's due, what's blocked,
+          what needs a decision today.
+        </>
+      ),
+    },
+    {
+      selector: '[data-tour="missions"]',
+      placement: "top",
+      title: "Mission interior",
+      body: (
+        <>
+          Open any mission to enter its interior: <b>Mission Brief</b>,
+          <b> Environmental Assessment</b>, <b>What the State Wants</b>,
+          <b> Emerging Risks</b>, and <b>Recommended Strategy</b>. These five
+          IRIS outputs are everything you ever see.
+        </>
+      ),
+    },
+    {
+      selector: '[data-tour="iris-launch"]',
+      placement: "bottom",
+      title: "IRIS is a layer, not a stop",
+      body: (
+        <>
+          Notice there's no "IRIS" tab in the nav. IRIS surfaces <i>inline</i> —
+          inside the Mission Brief, on every section panel, and in Atrium
+          Attention. The power view lives at
+          {firstMissionId ? <code className="ml-1 text-foreground"> /missions/{firstMissionId.slice(0, 8)}…/iris-command</code> : <code className="ml-1 text-foreground"> /missions/:id/iris-command</code>}.
+          Launch the demo any time from this button.
+        </>
+      ),
+    },
+  ];
+}
+
 
 const DAILY_QUOTES: { quote: string; author: string }[] = [
   { quote: "The secret of getting ahead is getting started.", author: "Mark Twain" },
