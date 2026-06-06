@@ -9,6 +9,7 @@ const ThemeSchema = z.object({
         title: z.string().min(6).max(120),
         key_message: z.string().min(20).max(500),
         description: z.string().min(20).max(900),
+        source_label: z.string().max(180).optional(),
       }),
     )
     .max(8),
@@ -52,6 +53,7 @@ Never invent specific statistics or organizations not present in the inputs. If 
                 title: { type: "string" },
                 key_message: { type: "string" },
                 description: { type: "string" },
+                source_label: { type: "string" },
               },
               required: ["title", "key_message", "description"],
               additionalProperties: false,
@@ -68,11 +70,16 @@ Never invent specific statistics or organizations not present in the inputs. If 
       return { stage: "win_themes", inserted: 0, skipped: true, reason: "ai unavailable", ms: Date.now() - started };
     }
 
+    const { upsertNode, recordEdges, clearMissionOutputGraph, upsertFeedNodes, matchFeedRows } =
+      await import("@/lib/iris-graph.server");
+
     await supabaseAdmin
       .from("win_themes")
       .delete()
       .eq("mission_id", data.missionId)
       .eq("created_by_system", true);
+
+    await clearMissionOutputGraph(supabaseAdmin, data.missionId, "win_theme");
 
     if (result.themes.length === 0) return { stage: "win_themes", inserted: 0, ms: Date.now() - started };
 
@@ -85,7 +92,47 @@ Never invent specific statistics or organizations not present in the inputs. If 
       created_by_system: true,
     }));
 
-    const { error } = await supabaseAdmin.from("win_themes").insert(inserts);
+    const { data: inserted, error } = await supabaseAdmin
+      .from("win_themes")
+      .insert(inserts)
+      .select("id,title");
     if (error) throw new Error(`insert win_themes: ${error.message}`);
+
+    const rowNodeIds = await upsertFeedNodes(supabaseAdmin, data.missionId, rows);
+    const edges: Parameters<typeof recordEdges>[1] = [];
+    for (let i = 0; i < (inserted ?? []).length; i++) {
+      const row = inserted![i];
+      const ai = result.themes[i];
+      const nodeId = await upsertNode(supabaseAdmin, {
+        mission_id: data.missionId,
+        kind: "win_theme",
+        ref_table: "win_themes",
+        ref_id: row.id,
+        label: row.title,
+        domain: "signal",
+        metadata: { key_message: ai.key_message },
+      });
+      const { matched, cited } = matchFeedRows(rows, ai.source_label);
+      for (const r of cited) {
+        const srcId = rowNodeIds.get(r.id);
+        if (!srcId) continue;
+        edges.push({
+          mission_id: data.missionId,
+          src_node_id: srcId,
+          dst_node_id: nodeId,
+          edge_type: matched.length > 0 ? "supports" : "derived_from",
+          weight: matched.length > 0 ? 1.0 : 0.4,
+          provenance: {
+            extractor: "win_themes",
+            source_label: ai.source_label ?? null,
+            row_source: r.source,
+            row_url: r.url,
+            row_published_at: r.published_at,
+          },
+        });
+      }
+    }
+    await recordEdges(supabaseAdmin, edges);
+
     return { stage: "win_themes", inserted: inserts.length, ms: Date.now() - started };
   });

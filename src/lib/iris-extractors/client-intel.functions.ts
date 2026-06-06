@@ -83,6 +83,9 @@ If a field has no supporting evidence, leave the array empty or write "No public
       };
     }
 
+    const { upsertNode, recordEdges, clearMissionOutputGraph, upsertFeedNodes } =
+      await import("@/lib/iris-graph.server");
+
     // Upsert (one row per mission). Delete then insert to keep idempotent.
     await supabaseAdmin
       .from("mission_client_intel")
@@ -90,17 +93,58 @@ If a field has no supporting evidence, leave the array empty or write "No public
       .eq("mission_id", data.missionId)
       .eq("created_by_system", true);
 
-    const { error } = await supabaseAdmin.from("mission_client_intel").insert({
-      mission_id: data.missionId,
-      contacts: [],
-      stakeholders: result.stakeholders,
-      decision_makers: result.decision_makers,
-      relationship_owners: [],
-      political_considerations: result.political_considerations,
-      meeting_cadence: result.meeting_cadence ?? null,
-      notes: result.notes,
-      created_by_system: true,
-    });
+    await clearMissionOutputGraph(supabaseAdmin, data.missionId, "client_intel");
+
+    const { error } = await supabaseAdmin
+      .from("mission_client_intel")
+      .insert({
+        mission_id: data.missionId,
+        contacts: [],
+        stakeholders: result.stakeholders,
+        decision_makers: result.decision_makers,
+        relationship_owners: [],
+        political_considerations: result.political_considerations,
+        meeting_cadence: result.meeting_cadence ?? null,
+        notes: result.notes,
+        created_by_system: true,
+      });
     if (error) throw new Error(`insert client_intel: ${error.message}`);
+
+    if (rows.length > 0) {
+      const nodeId = await upsertNode(supabaseAdmin, {
+        mission_id: data.missionId,
+        kind: "client_intel",
+        ref_table: "mission_client_intel",
+        ref_id: data.missionId,
+        label: "Client Intel",
+        domain: "stakeholder",
+        metadata: {
+          decision_makers: result.decision_makers.length,
+          stakeholders: result.stakeholders.length,
+        },
+      });
+      const rowNodeIds = await upsertFeedNodes(supabaseAdmin, data.missionId, rows);
+      const cited = rows.slice(0, 5); // top contextual rows
+      const edges: Parameters<typeof recordEdges>[1] = [];
+      for (const r of cited) {
+        const srcId = rowNodeIds.get(r.id);
+        if (!srcId) continue;
+        edges.push({
+          mission_id: data.missionId,
+          src_node_id: srcId,
+          dst_node_id: nodeId,
+          edge_type: "derived_from",
+          weight: 0.4,
+          provenance: {
+            extractor: "client_intel",
+            row_source: r.source,
+            row_url: r.url,
+            row_published_at: r.published_at,
+          },
+        });
+      }
+      await recordEdges(supabaseAdmin, edges);
+    }
+
     return { stage: "client_intel", inserted: 1, ms: Date.now() - started };
   });

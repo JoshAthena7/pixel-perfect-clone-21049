@@ -10,6 +10,7 @@ const RiskSchema = z.object({
         description: z.string().min(20).max(900),
         severity: z.enum(["watch", "medium", "high", "critical"]),
         category: z.enum(["regulatory", "competitive", "political", "operational", "financial"]),
+        source_label: z.string().max(180).optional(),
       }),
     )
     .max(15),
@@ -53,6 +54,7 @@ Sort by severity (most serious first). Make titles concrete and specific, not ge
                   type: "string",
                   enum: ["regulatory", "competitive", "political", "operational", "financial"],
                 },
+                source_label: { type: "string" },
               },
               required: ["title", "description", "severity", "category"],
               additionalProperties: false,
@@ -69,11 +71,16 @@ Sort by severity (most serious first). Make titles concrete and specific, not ge
       return { stage: "risks", inserted: 0, skipped: true, reason: "ai unavailable", ms: Date.now() - started };
     }
 
+    const { upsertNode, recordEdges, clearMissionOutputGraph, upsertFeedNodes, matchFeedRows } =
+      await import("@/lib/iris-graph.server");
+
     await supabaseAdmin
       .from("mission_risks")
       .delete()
       .eq("mission_id", data.missionId)
       .eq("created_by_system", true);
+
+    await clearMissionOutputGraph(supabaseAdmin, data.missionId, "risk");
 
     if (result.risks.length === 0) return { stage: "risks", inserted: 0, ms: Date.now() - started };
 
@@ -93,7 +100,47 @@ Sort by severity (most serious first). Make titles concrete and specific, not ge
       created_by_system: true,
     }));
 
-    const { error } = await supabaseAdmin.from("mission_risks").insert(inserts);
+    const { data: inserted, error } = await supabaseAdmin
+      .from("mission_risks")
+      .insert(inserts)
+      .select("id,title");
     if (error) throw new Error(`insert risks: ${error.message}`);
+
+    const rowNodeIds = await upsertFeedNodes(supabaseAdmin, data.missionId, rows);
+    const edges: Parameters<typeof recordEdges>[1] = [];
+    for (let i = 0; i < (inserted ?? []).length; i++) {
+      const row = inserted![i];
+      const ai = result.risks[i];
+      const nodeId = await upsertNode(supabaseAdmin, {
+        mission_id: data.missionId,
+        kind: "risk",
+        ref_table: "mission_risks",
+        ref_id: row.id,
+        label: row.title,
+        domain: "signal",
+        metadata: { category: ai.category, severity: ai.severity },
+      });
+      const { matched, cited } = matchFeedRows(rows, ai.source_label);
+      for (const r of cited) {
+        const srcId = rowNodeIds.get(r.id);
+        if (!srcId) continue;
+        edges.push({
+          mission_id: data.missionId,
+          src_node_id: srcId,
+          dst_node_id: nodeId,
+          edge_type: matched.length > 0 ? "cites" : "derived_from",
+          weight: matched.length > 0 ? 1.0 : 0.4,
+          provenance: {
+            extractor: "risks",
+            source_label: ai.source_label ?? null,
+            row_source: r.source,
+            row_url: r.url,
+            row_published_at: r.published_at,
+          },
+        });
+      }
+    }
+    await recordEdges(supabaseAdmin, edges);
+
     return { stage: "risks", inserted: inserts.length, ms: Date.now() - started };
   });

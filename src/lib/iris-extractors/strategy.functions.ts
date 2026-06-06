@@ -13,6 +13,7 @@ const StrategySchema = z.object({
         label: z.string().min(10).max(280),
         notes: z.string().min(20).max(900),
         supporting_theme: z.string().max(120).optional(),
+        source_label: z.string().max(180).optional(),
       }),
     )
     .max(10),
@@ -59,6 +60,7 @@ Each priority should explain WHY (the underlying pressure, evidence, or politica
                 label: { type: "string" },
                 notes: { type: "string" },
                 supporting_theme: { type: "string" },
+                source_label: { type: "string" },
               },
               required: ["label", "notes"],
               additionalProperties: false,
@@ -81,11 +83,16 @@ Each priority should explain WHY (the underlying pressure, evidence, or politica
       };
     }
 
+    const { upsertNode, recordEdges, clearMissionOutputGraph, upsertFeedNodes, matchFeedRows } =
+      await import("@/lib/iris-graph.server");
+
     await supabaseAdmin
       .from("mission_strategy")
       .delete()
       .eq("mission_id", data.missionId)
       .eq("created_by_system", true);
+
+    await clearMissionOutputGraph(supabaseAdmin, data.missionId, "state_priority");
 
     if (result.priorities.length === 0) {
       return { stage: "strategy", inserted: 0, ms: Date.now() - started };
@@ -100,7 +107,47 @@ Each priority should explain WHY (the underlying pressure, evidence, or politica
       created_by_system: true,
     }));
 
-    const { error } = await supabaseAdmin.from("mission_strategy").insert(inserts);
+    const { data: inserted, error } = await supabaseAdmin
+      .from("mission_strategy")
+      .insert(inserts)
+      .select("id,label");
     if (error) throw new Error(`insert strategy: ${error.message}`);
+
+    const rowNodeIds = await upsertFeedNodes(supabaseAdmin, data.missionId, rows);
+    const edges: Parameters<typeof recordEdges>[1] = [];
+    for (let i = 0; i < (inserted ?? []).length; i++) {
+      const row = inserted![i];
+      const ai = result.priorities[i];
+      const nodeId = await upsertNode(supabaseAdmin, {
+        mission_id: data.missionId,
+        kind: "state_priority",
+        ref_table: "mission_strategy",
+        ref_id: row.id,
+        label: row.label,
+        domain: "policy",
+        metadata: { supporting_theme: ai.supporting_theme ?? null },
+      });
+      const { matched, cited } = matchFeedRows(rows, ai.source_label);
+      for (const r of cited) {
+        const srcId = rowNodeIds.get(r.id);
+        if (!srcId) continue;
+        edges.push({
+          mission_id: data.missionId,
+          src_node_id: srcId,
+          dst_node_id: nodeId,
+          edge_type: matched.length > 0 ? "cites" : "derived_from",
+          weight: matched.length > 0 ? 1.0 : 0.4,
+          provenance: {
+            extractor: "strategy",
+            source_label: ai.source_label ?? null,
+            row_source: r.source,
+            row_url: r.url,
+            row_published_at: r.published_at,
+          },
+        });
+      }
+    }
+    await recordEdges(supabaseAdmin, edges);
+
     return { stage: "strategy", inserted: inserts.length, ms: Date.now() - started };
   });

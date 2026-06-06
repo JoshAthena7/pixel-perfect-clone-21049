@@ -155,3 +155,49 @@ export async function clearMissionOutputGraph(
   await supabase.from("graph_edges").delete().in("src_node_id", ids);
   await supabase.from("graph_nodes").delete().in("id", ids);
 }
+
+/**
+ * Pre-upsert every market_intelligence row as a graph node. Returns a map
+ * keyed by market row id → graph node id, so extractors can cheaply attach
+ * edges from their outputs to the source rows.
+ */
+export async function upsertFeedNodes(
+  supabase: SupabaseClient,
+  missionId: string,
+  rows: Array<{ id: string; title: string; source: string; url?: string | null; published_at?: string | null }>,
+): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  for (const r of rows) {
+    const id = await upsertNode(supabase, {
+      mission_id: missionId,
+      kind: "market_row",
+      ref_table: "market_intelligence",
+      ref_id: r.id,
+      label: r.title,
+      domain: "market",
+      metadata: { source: r.source, url: r.url, published_at: r.published_at },
+    });
+    map.set(r.id, id);
+  }
+  return map;
+}
+
+/**
+ * Best-effort fuzzy match of a citation label back to the feed rows.
+ * Mirrors the matcher used in the signals extractor so behavior stays
+ * consistent across all five extractors.
+ */
+export function matchFeedRows<
+  R extends { id: string; title: string; source: string; url?: string | null; published_at?: string | null },
+>(rows: R[], label: string | null | undefined): { matched: R[]; cited: R[] } {
+  const needle = (label ?? "").toLowerCase();
+  const matched = needle
+    ? rows.filter(
+        (r) =>
+          needle.includes(r.source.toLowerCase()) ||
+          (r.title && needle.includes(r.title.toLowerCase().slice(0, 40))),
+      )
+    : [];
+  const cited = matched.length > 0 ? matched : rows.slice(0, 3);
+  return { matched, cited };
+}
