@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { AmendmentDashboardBanner } from "@/components/AmendmentDashboardBanner";
 import { MissionRoomHero } from "@/components/v2/MissionRoomHero";
 import { ResponseTemplateStatusRow } from "@/components/v2/ResponseTemplateStatusRow";
+import { SubmissionChecklist } from "@/components/v2/SubmissionChecklist";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/overview")({
   component: MissionOverviewPage,
