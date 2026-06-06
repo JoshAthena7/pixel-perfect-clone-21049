@@ -36,7 +36,14 @@ function isReplay() {
   return new URL(window.location.href).searchParams.get("profile-setup") === "1";
 }
 
+const DEFER_KEY = "iris.profile-setup.deferred";
+
 export function ProfileSetupWizardMount() {
+  // Re-render when the wizard defers itself for the session.
+  const [deferred, setDeferred] = useState(
+    typeof window !== "undefined" && sessionStorage.getItem(DEFER_KEY) === "1",
+  );
+
   const { data: gate } = useQuery({
     queryKey: ["profile-setup-gate"],
     queryFn: async () => {
@@ -57,8 +64,19 @@ export function ProfileSetupWizardMount() {
   // Only show after the IRIS briefing is done; don't double-stack on top of it.
   if (!gate.has_onboarded && !replay) return null;
   if (gate.profile_completed && !replay) return null;
+  // User chose "Save and continue later" — honor it for the rest of this session.
+  if (deferred && !replay) return null;
 
-  return <ProfileSetupWizard profileId={gate.id} displayName={gate.display_name ?? "operator"} />;
+  return (
+    <ProfileSetupWizard
+      profileId={gate.id}
+      displayName={gate.display_name ?? "operator"}
+      onDefer={() => {
+        sessionStorage.setItem(DEFER_KEY, "1");
+        setDeferred(true);
+      }}
+    />
+  );
 }
 
 const STEPS = [
