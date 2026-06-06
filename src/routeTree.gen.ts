@@ -19,6 +19,7 @@ import { Route as ApiIrisVoiceRouteImport } from './routes/api/iris-voice'
 import { Route as ApiIrisRouteImport } from './routes/api/iris'
 import { Route as ApiAtriumRouteImport } from './routes/api/atrium'
 import { Route as AuthenticatedOlympusRouteImport } from './routes/_authenticated/olympus'
+import { Route as AuthenticatedJourneyMapRouteImport } from './routes/_authenticated/journey-map'
 import { Route as AuthenticatedIrisConsoleRouteImport } from './routes/_authenticated/iris-console'
 import { Route as AuthenticatedIntelligenceQueueRouteImport } from './routes/_authenticated/intelligence-queue'
 import { Route as AuthenticatedIntelligenceRouteImport } from './routes/_authenticated/intelligence'
@@ -128,6 +129,11 @@ const ApiAtriumRoute = ApiAtriumRouteImport.update({
 const AuthenticatedOlympusRoute = AuthenticatedOlympusRouteImport.update({
   id: '/olympus',
   path: '/olympus',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedJourneyMapRoute = AuthenticatedJourneyMapRouteImport.update({
+  id: '/journey-map',
+  path: '/journey-map',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedIrisConsoleRoute =
@@ -504,6 +510,7 @@ export interface FileRoutesByFullPath {
   '/intelligence': typeof AuthenticatedIntelligenceRoute
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
   '/iris-console': typeof AuthenticatedIrisConsoleRoute
+  '/journey-map': typeof AuthenticatedJourneyMapRoute
   '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/api/atrium': typeof ApiAtriumRoute
   '/api/iris': typeof ApiIrisRoute
@@ -576,6 +583,7 @@ export interface FileRoutesByTo {
   '/intelligence': typeof AuthenticatedIntelligenceRoute
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
   '/iris-console': typeof AuthenticatedIrisConsoleRoute
+  '/journey-map': typeof AuthenticatedJourneyMapRoute
   '/api/atrium': typeof ApiAtriumRoute
   '/api/iris': typeof ApiIrisRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
@@ -648,6 +656,7 @@ export interface FileRoutesById {
   '/_authenticated/intelligence': typeof AuthenticatedIntelligenceRoute
   '/_authenticated/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
   '/_authenticated/iris-console': typeof AuthenticatedIrisConsoleRoute
+  '/_authenticated/journey-map': typeof AuthenticatedJourneyMapRoute
   '/_authenticated/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/api/atrium': typeof ApiAtriumRoute
   '/api/iris': typeof ApiIrisRoute
@@ -722,6 +731,7 @@ export interface FileRouteTypes {
     | '/intelligence'
     | '/intelligence-queue'
     | '/iris-console'
+    | '/journey-map'
     | '/olympus'
     | '/api/atrium'
     | '/api/iris'
@@ -794,6 +804,7 @@ export interface FileRouteTypes {
     | '/intelligence'
     | '/intelligence-queue'
     | '/iris-console'
+    | '/journey-map'
     | '/api/atrium'
     | '/api/iris'
     | '/api/iris-voice'
@@ -865,6 +876,7 @@ export interface FileRouteTypes {
     | '/_authenticated/intelligence'
     | '/_authenticated/intelligence-queue'
     | '/_authenticated/iris-console'
+    | '/_authenticated/journey-map'
     | '/_authenticated/olympus'
     | '/api/atrium'
     | '/api/iris'
@@ -1017,6 +1029,13 @@ declare module '@tanstack/react-router' {
       path: '/olympus'
       fullPath: '/olympus'
       preLoaderRoute: typeof AuthenticatedOlympusRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/journey-map': {
+      id: '/_authenticated/journey-map'
+      path: '/journey-map'
+      fullPath: '/journey-map'
+      preLoaderRoute: typeof AuthenticatedJourneyMapRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/iris-console': {
@@ -1566,6 +1585,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedIntelligenceRoute: typeof AuthenticatedIntelligenceRoute
   AuthenticatedIntelligenceQueueRoute: typeof AuthenticatedIntelligenceQueueRoute
   AuthenticatedIrisConsoleRoute: typeof AuthenticatedIrisConsoleRoute
+  AuthenticatedJourneyMapRoute: typeof AuthenticatedJourneyMapRoute
   AuthenticatedOlympusRoute: typeof AuthenticatedOlympusRouteWithChildren
   AuthenticatedCommandAlignmentRoute: typeof AuthenticatedCommandAlignmentRoute
   AuthenticatedCommandAlignmentConflictsRoute: typeof AuthenticatedCommandAlignmentConflictsRoute
@@ -1588,6 +1608,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIntelligenceRoute: AuthenticatedIntelligenceRoute,
   AuthenticatedIntelligenceQueueRoute: AuthenticatedIntelligenceQueueRoute,
   AuthenticatedIrisConsoleRoute: AuthenticatedIrisConsoleRoute,
+  AuthenticatedJourneyMapRoute: AuthenticatedJourneyMapRoute,
   AuthenticatedOlympusRoute: AuthenticatedOlympusRouteWithChildren,
   AuthenticatedCommandAlignmentRoute: AuthenticatedCommandAlignmentRoute,
   AuthenticatedCommandAlignmentConflictsRoute:

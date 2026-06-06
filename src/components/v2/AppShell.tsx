@@ -323,6 +323,7 @@ function AtriumNav() {
   const items: { to: string; label: string }[] = [
     { to: "/home", label: "Home" },
     { to: "/iris-console", label: "IRIS" },
+    { to: "/journey-map", label: "Journey Map" },
     { to: "/profile", label: "Profile" },
     { to: "/command/security", label: "Data & Privacy" },
   ];
