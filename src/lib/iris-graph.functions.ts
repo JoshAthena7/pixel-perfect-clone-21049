@@ -59,6 +59,7 @@ export const explainOutput = createServerFn({ method: "POST" })
       .eq("kind", data.kind)
       .eq("ref_table", data.refTable)
       .eq("ref_id", data.refId)
+      .is("valid_to", null)
       .maybeSingle();
 
     if (!node) return { node: null, sources: [], edges: [] };
