@@ -29,7 +29,10 @@ function firstName(raw: string): string {
 }
 
 function todayKey(): string {
-  return String(Math.floor(Date.now() / 86_400_000));
+  // Local calendar date — resets at each user's local midnight (DST-safe;
+  // getFullYear/getMonth/getDate operate on wall-clock time).
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 }
 
 export function FirstLight() {
