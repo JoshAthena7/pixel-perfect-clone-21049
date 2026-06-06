@@ -6,11 +6,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   CheckCircle2, Circle, Plus, Trash2, Upload, Rocket, ChevronDown, ChevronRight,
-  Lock, X, Radar, Tag,
+  Lock, X, Radar, Tag, Zap, Loader2,
 } from "lucide-react";
 import { launchMission } from "@/lib/mission-setup.functions";
 import { seedMonitoringWatchlist, saveMonitoringSource, deleteMonitoringSource } from "@/lib/mission-monitoring.functions";
 import { saveEvaluationCriteria, saveExpertiseTag, removeExpertiseTag } from "@/lib/mission-evaluation.functions";
+import { generateStrategicField, type StrategicFieldKey } from "@/lib/iris-strategic-foundation.functions";
 import { LaunchSequence } from "@/components/olympus/LaunchSequence";
 import { useIsAdmin } from "@/hooks/useAccess";
 
