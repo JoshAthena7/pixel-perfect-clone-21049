@@ -10,6 +10,16 @@ import { extractRisks } from "@/lib/iris-extractors/risks.functions";
 import { extractWinThemes } from "@/lib/iris-extractors/win-themes.functions";
 import { extractStrategy } from "@/lib/iris-extractors/strategy.functions";
 import { extractClientIntel } from "@/lib/iris-extractors/client-intel.functions";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 /**
  * IRIS — the intelligence experience layer.
