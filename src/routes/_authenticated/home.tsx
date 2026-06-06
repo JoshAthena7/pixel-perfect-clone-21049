@@ -392,6 +392,9 @@ function AthenaHQ() {
         {/* "What changed since you last looked" — powered by the Mission Intelligence Graph */}
         {missions[0]?.id && <RecentChangesCard missionId={missions[0].id} />}
 
+        {/* Self-tag expertise prompt (workaround until Talentdesk auto-tags) */}
+        <ExpertiseTagsCard />
+
 
 
 
