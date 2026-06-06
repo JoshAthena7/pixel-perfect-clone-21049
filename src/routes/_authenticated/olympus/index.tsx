@@ -1,14 +1,12 @@
-import React, { Component, useState, type ErrorInfo, type ReactNode } from "react";
+import { Component, useState, type ErrorInfo, type ReactNode } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, X, ArrowRight, Archive, Pencil, RefreshCw } from "lucide-react";
+import { Plus, X, ArrowRight, Archive } from "lucide-react";
 import { toast } from "sonner";
 import { logOlympusAction } from "@/lib/audit";
 import { MissionActivationWizard } from "@/components/v2/MissionActivationWizard";
 import { MissionReadinessPanel, ReadinessChip } from "@/components/v2/MissionReadinessPanel";
-import { refreshIris } from "@/lib/iris-refresh.functions";
 
 
 export const Route = createFileRoute("/_authenticated/olympus/")({
@@ -33,27 +31,6 @@ function MissionsIndex() {
   const [createOpen, setCreateOpen] = useState(false);
   const [activateFor, setActivateFor] = useState<MissionRow | null>(null);
   const [readinessFor, setReadinessFor] = useState<MissionRow | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
-  const refreshIrisFn = useServerFn(refreshIris);
-
-  async function handleRefreshIris() {
-    if (refreshing) return;
-    setRefreshing(true);
-    const t = toast.loading("Refreshing IRIS…");
-    try {
-      const res = await refreshIrisFn();
-      qc.invalidateQueries();
-      toast.success(`IRIS refreshed — cleared ${res.cleared_cache_rows} cached briefs`, { id: t });
-      await logOlympusAction({
-        action_type: "iris.refresh",
-        action_summary: `Refreshed IRIS (cleared ${res.cleared_cache_rows} cached briefs, reset circuit)`,
-      });
-    } catch (e: any) {
-      toast.error(e?.message ?? "Failed to refresh IRIS", { id: t });
-    } finally {
-      setRefreshing(false);
-    }
-  }
 
 
   const { data: missions = [], isLoading } = useQuery({
@@ -94,15 +71,6 @@ function MissionsIndex() {
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <button
-            onClick={handleRefreshIris}
-            disabled={refreshing}
-            title="Clear IRIS brief caches and reset the AI circuit breaker"
-            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-background px-3 py-2 text-sm hover:bg-surface-hover disabled:opacity-50"
-          >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-            Refresh IRIS
-          </button>
-          <button
             onClick={() => setCreateOpen(true)}
             className="inline-flex items-center gap-2 whitespace-nowrap rounded-md bg-[#C49A22] px-4 py-2 text-sm font-semibold text-black hover:bg-[#D4AA32] transition"
           >
@@ -140,8 +108,14 @@ function MissionsIndex() {
                 return (
                   <tr key={m.id} className="hover:bg-surface-hover">
                     <td className="px-4 py-3">
-                      <div className="font-medium text-foreground">{m.name}</div>
-                      <div className="text-[11px] text-muted-foreground">{m.client}</div>
+                      <Link
+                        to="/olympus/missions/$missionId/setup" params={{ missionId: m.id }}
+                        className="block group"
+                        title="Open Setup Record"
+                      >
+                        <div className="font-medium text-foreground group-hover:text-primary">{m.name}</div>
+                        <div className="text-[11px] text-muted-foreground">{m.client}</div>
+                      </Link>
                     </td>
                     <td className="px-4 py-3">
                       <StatusChip status={m.status} />
@@ -163,13 +137,6 @@ function MissionsIndex() {
                         className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[12px] font-medium text-primary hover:bg-primary/10"
                       >
                         Open <ArrowRight className="h-3 w-3" />
-                      </Link>
-                      <Link
-                        to="/olympus/missions/$missionId/setup" params={{ missionId: m.id }}
-                        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[12px] text-muted-foreground hover:bg-surface-hover hover:text-foreground"
-                        title="Setup"
-                      >
-                        <Pencil className="h-3 w-3" /> Setup
                       </Link>
                       {isDraft && (
                         <button
