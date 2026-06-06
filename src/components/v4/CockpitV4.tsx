@@ -276,13 +276,13 @@ function FocusStack({
       {top3.length === 0 ? (
         <div className="rounded-[10px] border border-dashed border-border bg-background/40 px-5 py-8 text-center">
           <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            No questions assigned to you yet
+            No sections assigned to you yet
           </div>
           <p className="mt-2 text-sm text-foreground/70 max-w-md mx-auto">
-            When a mission lead assigns you a question, it will appear here at the top of your Cockpit — and in the <span className="text-foreground font-medium">All Questions</span> list below with a “Mine” badge.
+            When a mission lead assigns you a section, it will appear here at the top of your Cockpit — and in the <span className="text-foreground font-medium">All Sections</span> list below with a “Mine” badge.
           </p>
           <p className="mt-2 text-[11px] text-muted-foreground">
-            Browse open questions below to volunteer for one.
+            Browse open sections below to volunteer for one.
           </p>
         </div>
       ) : (
