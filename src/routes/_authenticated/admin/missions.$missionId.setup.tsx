@@ -14,6 +14,7 @@ import { saveEvaluationCriteria, saveExpertiseTag, removeExpertiseTag } from "@/
 import { generateStrategicField, type StrategicFieldKey } from "@/lib/iris-strategic-foundation.functions";
 import { irisPopulateSetupRecord } from "@/lib/iris-setup-autofill.functions";
 import { IrisAutofillBanner } from "@/components/admin/IrisAutofillBanner";
+import { SetupCompletenessMeter } from "@/components/admin/SetupCompletenessMeter";
 import { LaunchSequence } from "@/components/olympus/LaunchSequence";
 import { useIsAdmin } from "@/hooks/useAccess";
 
