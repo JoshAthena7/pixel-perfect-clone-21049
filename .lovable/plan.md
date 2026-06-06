@@ -1,71 +1,111 @@
+## ATLAS V1 — Single Mission Build (NJ CSOC)
 
-# ATLAS Expertise Profile Redesign — Build Plan
+A focused rebuild around one mission. No portfolio, no Olympus, no Atrium. Login → straight into NJ CSOC. Three screens carry the product: Mission Command, Sections Tracker, Section Workspace.
 
-## Scope confirmed
-- Full vertical slice (UI + persistence + IRIS schema stubs) in one pass.
-- Replace `expertise_options` and `mission_member_expertise` tables.
-- Profile editor lives at the existing `/profile/expertise` route (replaces just the expertise UI inside `ExpertiseProfileEditor`; states/programs/wins/availability untouched).
+---
 
-## Database changes (single migration)
+### Scope decisions (please confirm before I start)
 
-**New tables**
-- `expertise_library` — seeded master list (id, label, category, sort_order). 4 categories, ~58 items per spec.
-- `user_expertise` — per-user rows: `(user_id, expertise_id NULL, custom_label NULL, is_primary, display_order, added_at)`. Either `expertise_id` OR `custom_label` set, never both. Unique on `(user_id, expertise_id)` and `(user_id, lower(custom_label))`.
-- `mission_expertise_signals` — `(mission_id, expertise_id, source text, weight)`. Replaces `mission_member_expertise`.
-- `iris_staffing_recommendations` — schema-only stub per spec 8C.
-- `iris_expertise_coverage` — daily snapshot per spec 8D.
+This is a large, opinionated reshape of the app. Before I touch routes, I need to lock 4 things:
 
-**Replaced**
-- DROP `expertise_options`, `mission_member_expertise` (user chose Replace).
-- DROP `profiles.expertise_areas`, `profiles.question_types` columns (free-text arrays now superseded). Keep `expert_bio`, `expertise_embedding`.
+1. **Coexistence vs. replacement.** The repo currently has Atrium, Olympus, Admin, multi-mission lists, Cockpit, check-in, etc. Two options:
+   - **(A) V1 mode toggle** — keep all existing routes intact, add a new `/v1` (or root redirect for non-admins) experience that delivers the 7 screens against the NJ CSOC mission. Lowest risk. Easiest to back out. *Recommended.*
+   - **(B) Hard cutover** — make `/` land in NJ CSOC for every non-admin, hide AtriumNav, demote `/missions`, `/journey-map`, `/cockpit`. Admin still reachable at `/admin`. Closer to spec, but irreversible without a revert.
+2. **Data source.** Spec gives concrete sample data (18 sections, 7 people, 4 themes, dates). Two options:
+   - **(A) Seed the real DB** — insert one mission row + members + sections + clarifications via migration so IRIS/scoring/threads work against real tables. *Recommended.*
+   - **(B) Hard-code a fixture** — render all 7 screens off a static TS module. Faster, but breaks the moment you click into anything that writes.
+3. **The "NJ CSOC mission id."** Do you want me to (a) create a brand-new mission with the exact name/client/dates and pin its UUID in an env-style constant, or (b) point V1 at an *existing* mission already in your DB? If (b), paste the mission id.
+4. **Editor.** Section Workspace shows a "full text editing area." Is a plain textarea + autosave enough for V1, or do you want the existing rich editor (if one exists in `src/components/v2/`)?
 
-**Search index**
-- A real Postgres view `expertise_user_index` over `user_expertise` (queryable as `SELECT user_id FROM expertise_user_index WHERE expertise_id IN (...)`). Simpler and always-fresh vs. maintaining an index table via triggers.
+Default assumptions if you say "go": **1A, 2A, new mission (3a), plain textarea editor (4)**.
 
-**Seed**
-- All 58 library items inserted with stable string IDs matching the spec (`ltss`, `mltss`, etc.).
+---
 
-**RLS**
-- `expertise_library`: readable by all authenticated. Admin-only writes.
-- `user_expertise`: user can CRUD their own rows; everyone authenticated can read (powers expertise discovery).
-- `mission_expertise_signals`: mission members read; mission admin/lead writes.
-- IRIS stub tables: service_role only for now.
+### What gets built (assuming defaults above)
 
-## Server functions (`src/lib/expertise.functions.ts` — replace)
+**Routing**
+- New `/v1` route tree under `_authenticated/v1/` — leaves the current app untouched.
+  - `/v1` → role-based redirect (PM/EL → `/v1/command`, Writer/SME → `/v1/my-sections`, Reviewer → `/v1/sections?filter=in-review`).
+  - `/v1/command` — Mission Command
+  - `/v1/sections` — Sections Tracker
+  - `/v1/sections/$sectionId` — Section Workspace
+  - `/v1/my-sections` — Writer/SME personal list
+  - `/v1/intel` — Mission Intel (IRIS Brief + library tabs)
+  - `/v1/vault` — Mission Vault
+  - `/v1/journey` — Journey Map (reuse existing `JourneyMapPage` bound to NJ CSOC)
+- New thin shell `V1Shell` with: ATLAS logo, mission header strip (name + days-to-submission), left nav (Command / Intel / Vault / Sections / Journey), top-right "My Sections" + user menu. No AtriumNav. No mission switcher.
+- Role visibility rules per spec (PM/EL see Command; Writer/SME see Sections read-only + My Sections prominent; Reviewer sees filtered tracker).
 
-- `getExpertiseLibrary()` — returns full library grouped by category.
-- `getUserExpertise(userId)` — returns structured + custom arrays, primary list, ordered.
-- `setUserExpertise({ structuredIds, customLabels, primary, order })` — single upsert/delete to reconcile state. Enforces max 5 primary.
-- `searchUsersByExpertise(ids[])` — intersection query for future discovery view.
-- `getMissionExpertiseSignals(missionId)` — for future IRIS staffing.
+**Data layer**
+- Single migration:
+  - Insert NJ CSOC mission (idempotent on a known slug) with all the spec fields (client, program, submission_date 2026-06-28, status Active, contract_value).
+  - Insert 7 team members linked to existing users where emails match, otherwise create placeholder profile rows + mission_members entries with the right roles.
+  - Insert 4 win themes + alignment scores.
+  - Insert 18 sections with owner, due date, status, alignment %, theme links.
+  - Insert 3 client clarifications.
+  - Insert ~5 mission intel rows + a pinned response template vault entry.
+- Constant `NJ_CSOC_MISSION_ID` exported from `src/lib/v1/mission.ts`, resolved at build time from the migration.
 
-## UI components (`src/components/expertise/`)
+**Components (all new, under `src/components/v1/`)**
+- `V1Shell.tsx` — layout + nav
+- `MissionCommand.tsx` — header, IRIS Health block, WinThemes 2×2 grid, KeyDates strip, ClientClarifications table, RecentActivity
+- `SectionsTracker.tsx` — filterable table, status pills, alignment column, ⚠ flags, bulk actions for PM/EL
+- `SectionWorkspace.tsx` — two-column: `SectionEditor` (textarea + autosave + status dropdown + notes thread) | `IrisPanel` (alignment, brief, intel, requirements checklist), collapsible
+- `MySections.tsx` — writer-scoped list, at-risk pinned to top
+- `MissionIntel.tsx` — tabs: IRIS Brief / All Intelligence / By Category
+- `MissionVault.tsx` — category groups with IRIS-Active badge on Response Template
+- `IrisBadge.tsx` — shared ⚡ + indigo wrapper used everywhere IRIS speaks
 
-1. `ExpertiseLibraryProvider` — caches library via React Query.
-2. `ExpertiseSelector` — searchable dropdown with browse/search states, category collapse, full library per spec Section 1.
-3. `ExpertiseChips` — chip row with category dot, primary toggle (click dot), ×, drag-reorder via `@dnd-kit/sortable` (already in deps? will check; if not, add).
-4. `CustomExpertiseInput` — Enter/comma to add, duplicate detection against library.
-5. `ExpertiseCompletenessBar` — Section 9 indicator.
-6. `ExpertiseSection` — assembles the above; this is what gets dropped into `ExpertiseProfileEditor` replacing the current expertise-areas + question-types blocks.
+**Server functions (new, in `src/lib/v1/*.functions.ts`)**
+- `getMissionCommand` — health, win themes, dates, clarifications, recent activity in one round trip
+- `listSections` / `getSection` / `updateSection` (status, body) / `bulkUpdateSections`
+- `listMySections`
+- `listMissionIntel` / `getIrisBrief` (reuse existing `iris-mission-brief.functions.ts`)
+- `listVault`
+- All gated by `requireSupabaseAuth` + a `requireMissionMember(NJ_CSOC_MISSION_ID)` check.
 
-## Read-only view
-- `ExpertiseChipsReadOnly` — used on other users' profiles. Clicking a chip navigates to `/profile/discover?expertise=<id>` (route stub — search results page is out of scope, but the link target is reserved).
+**Design system**
+- Add the spec's tokens to `src/styles.css` under `@theme` as `--color-v1-bg`, `--color-v1-surface`, `--color-v1-border`, `--color-iris`, plus reuses for primary/success/warning/danger. Keep them additive — existing dark theme stays.
+- `IrisBadge` and every IRIS surface use `text-iris` / `bg-iris/10` — no raw hex in components.
 
-## What I am NOT building this pass (called out so you know)
-- The actual "find others with this expertise" search results page (only the click target / nav).
-- IRIS recommendation generator logic (schema only, per spec).
-- Nightly job to recompute `iris_expertise_coverage` (table + manual refresh fn only).
-- Mobile bottom sheet variant — desktop dropdown is responsive; explicit mobile sheet can be a follow-up.
-- First-time onboarding empty state copy block (small follow-up if you want it).
+**Login routing**
+- Update `src/components/v2/LoginRouter.tsx` (or add a sibling V1 router) so that after auth, role lookup sends user into `/v1/command` or `/v1/my-sections`. Admins keep their existing destination.
 
-## Migration risk
-- Existing `profiles.expertise_areas` free-text values will be **lost** on column drop. If anyone has data in there today and you want it preserved as custom tags, say so and I'll add a pre-drop migration step. Otherwise I'll proceed with a clean cut.
+---
 
-## File deltas (estimate)
-- 1 migration
-- 1 server-fn file rewritten
-- 6 new components
-- 1 component edited (`ExpertiseProfileEditor`) — only the expertise/question-type blocks replaced
-- Possibly 1 dep add (`@dnd-kit/sortable`)
+### What is explicitly NOT touched
+- `/admin/*` (untouched)
+- `/olympus` (untouched — still the Phase 5 placeholder)
+- `/atrium`, `/cockpit`, `/missions`, `/missions/$id/*`, `/status-report`, `/journey-map` (untouched — still reachable, just not the default landing)
+- Existing IRIS, Atlas, vault, canon, expertise infrastructure (reused, not rewritten)
 
-After you approve I'll run the migration, then build the components in one pass.
+If you want option **(B) hard cutover** instead, I'll additionally: redirect `/` → `/v1`, remove AtriumNav items, and add legacy splat redirects from old mission routes into `/v1/sections/...`. Say the word.
+
+---
+
+### Technical notes (for the dev-minded)
+- Mission id resolution: migration inserts with `ON CONFLICT (name, client) DO UPDATE` and returns the id; a small `getNjCsocMissionId()` serverFn caches it in memory so we don't hardcode UUIDs in client bundles.
+- Sections table: if the existing `sections` schema doesn't have `alignment_pct` or `theme_ids[]`, the migration adds nullable columns + grants. No destructive changes.
+- Autosave: debounced 800ms via `useMutation` against `updateSection`.
+- IRIS panel reuses `generateMissionBrief` (already in `iris-mission-brief.functions.ts`) and a new `generateSectionBrief` that wraps the same gateway pattern.
+- All new tables/columns get explicit `GRANT` + RLS policies scoped through `has_role` + `is_mission_member`.
+
+---
+
+### Build order (matches your spec)
+1. Tokens + `V1Shell` + `/v1` route tree skeleton
+2. Migration: NJ CSOC mission + members + themes + sections + clarifications + intel + vault
+3. Login routing → `/v1`
+4. Mission Command
+5. Sections Tracker
+6. Section Workspace
+7. My Sections
+8. Mission Intel
+9. Mission Vault
+10. Journey Map binding + nav QA pass
+
+Each step ends with a manual smoke check in the preview before moving on.
+
+---
+
+**Reply with (1A or 1B), (2A or 2B), (3a-new or 3b-existing + id), and (4 textarea or rich) — or just "go with defaults" and I'll start.**
