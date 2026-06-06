@@ -103,12 +103,15 @@ function ProfileSetupWizard({
   // Per-user resume key. Survives across logout/login on the same browser so
   // returning users land on the exact step they deferred at.
   const resumeKey = `iris.profile-setup.step:${profileId}`;
-  const [stepIdx, setStepIdx] = useState(() => {
+  const initialStep = (() => {
     if (typeof window === "undefined") return 0;
     const raw = localStorage.getItem(resumeKey);
     const n = raw ? Number.parseInt(raw, 10) : 0;
     return Number.isFinite(n) && n >= 0 && n < STEPS.length ? n : 0;
-  });
+  })();
+  const [stepIdx, setStepIdx] = useState(initialStep);
+  // Track where we resumed so the banner only shows until they navigate.
+  const [resumedFrom, setResumedFrom] = useState<number | null>(initialStep > 0 ? initialStep : null);
   const [saving, setSaving] = useState(false);
 
   // Persist step on every change so a hard refresh also resumes correctly.
