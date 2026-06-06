@@ -181,18 +181,11 @@ function MissionsIndex() {
 
       {createOpen && (
         <ModalErrorBoundary onClose={() => setCreateOpen(false)}>
-          <MissionActivationWizard onClose={() => setCreateOpen(false)} />
+          <CreateMissionModal onClose={() => setCreateOpen(false)} />
         </ModalErrorBoundary>
       )}
       {activateFor && (
-        <ModalErrorBoundary onClose={() => setActivateFor(null)}>
-          <MissionActivationWizard
-            onClose={() => setActivateFor(null)}
-            resumeMissionId={activateFor.id}
-            initialName={activateFor.name}
-            initialClient={activateFor.client}
-          />
-        </ModalErrorBoundary>
+        <ActivateRedirect missionId={activateFor.id} onDone={() => setActivateFor(null)} />
       )}
       {readinessFor && (
         <MissionReadinessPanel
