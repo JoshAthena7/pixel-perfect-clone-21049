@@ -6,6 +6,7 @@ import { Trophy, DollarSign, Users, MapPin, Flame, Sparkles, Circle, MessageSqua
 import { IrisGreeting } from "@/components/v2/IrisGreeting";
 import { AmbientWisdom } from "@/components/v2/AmbientWisdom";
 import { AnimatedNumber, Constellation, IrisType } from "@/components/v2/polish";
+import { MissionIntelligenceGraph } from "@/components/v2/MissionIntelligenceGraph";
 
 export const Route = createFileRoute("/_authenticated/atrium")({
   component: AtriumPage,
