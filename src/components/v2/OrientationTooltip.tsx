@@ -1,10 +1,8 @@
 // Phase 3 — first-login orientation tooltip. Bottom-left, non-blocking,
 // auto-dismiss after 10s, persists has_seen_orientation=true.
 import { useEffect, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { getLoginRouting, markOrientationSeen } from "@/lib/routing.functions";
 import type { RoutingRole } from "@/lib/routing-role";
 
 const TEXT_BY_ROLE: Record<string, string> = {
@@ -25,8 +23,6 @@ const TEXT_BY_ROLE: Record<string, string> = {
 };
 
 export function OrientationTooltip() {
-  const getRouting = useServerFn(getLoginRouting);
-  const markSeen = useServerFn(markOrientationSeen);
   const [text, setText] = useState<string | null>(null);
 
   useEffect(() => {
@@ -35,24 +31,28 @@ export function OrientationTooltip() {
       const { data } = await supabase.auth.getUser();
       if (!data.user) return;
       try {
-        const r = await getRouting();
-        if (r.hasSeenOrientation) return;
-        let key: string = r.role;
-        if (r.role === "engagement_lead" && r.missionCount === 1) {
-          key = "engagement_lead_single";
-        }
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("has_seen_orientation")
+          .eq("id", data.user.id)
+          .maybeSingle();
+        if (profile?.has_seen_orientation) return;
+        const key = "engagement_lead";
         const msg = TEXT_BY_ROLE[key];
         if (!msg) return;
         setText(msg);
         // Persist immediately so it never re-appears even if user closes tab.
-        await markSeen();
+        await supabase
+          .from("profiles")
+          .update({ has_seen_orientation: true })
+          .eq("id", data.user.id);
         timer = window.setTimeout(() => setText(null), 10_000);
       } catch { /* noop */ }
     })();
     return () => {
       if (timer) window.clearTimeout(timer);
     };
-  }, [getRouting, markSeen]);
+  }, []);
 
   if (!text) return null;
   return (
