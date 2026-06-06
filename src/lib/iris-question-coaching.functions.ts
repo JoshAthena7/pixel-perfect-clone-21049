@@ -15,7 +15,7 @@ type Coaching = {
   compliance_note?: string;
 };
 
-async function callForCoaching(system: string, user: string): Promise<Coaching | null> {
+async function callForCoaching(system: string, user: string, preamble: string): Promise<Coaching | null> {
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) return null;
   try {
