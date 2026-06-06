@@ -242,7 +242,7 @@ function ScoresPage() {
                   <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{q.question_number}</td>
                   <td className="px-4 py-3">
                     <Link
-                      to="/missions/$missionId/questions/$questionId"
+                      to="/missions/$missionId/sections/$questionId"
                       params={{ missionId: q.mission_id, questionId: q.id }}
                       className="hover:underline text-foreground"
                     >
@@ -427,7 +427,7 @@ function BatchScoresModal({
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground sticky top-0">
               <tr>
-                <th className="px-3 py-2">Question</th>
+                <th className="px-3 py-2">Section</th>
                 <th className="px-3 py-2 text-right">Score (0–5)</th>
               </tr>
             </thead>

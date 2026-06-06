@@ -42,7 +42,7 @@ function saveRecent(r: Recent) {
 
 function iconForGroup(group: SearchHit["group"]) {
   switch (group) {
-    case "Questions": return <PenTool size={14} className="text-[#3b7fff]" />;
+    case "Sections": return <PenTool size={14} className="text-[#3b7fff]" />;
     case "Sources": return <BookOpen size={14} className="text-[color:var(--athena-gold,#d4af37)]" />;
     case "Decisions": return <GitFork size={14} className="text-[color:var(--yellow,#f59e0b)]" />;
     case "Signals": return <RadioTower size={14} className="text-[color:var(--iris,#22d3ee)]" />;
@@ -130,7 +130,7 @@ export function CommandPalette() {
         { id: "j-mission", group: "This mission", label: "Mission Room", hint: "Full mission reference", icon: <Sparkles size={14} className="text-[color:var(--yellow,#f59e0b)]" />,
           onGo: () => navigate({ to: "/missions/$missionId/overview", params: { missionId } }) },
         { id: "j-studio", group: "This mission", label: "Cockpit", hint: "Your work", icon: <PenTool size={14} className="text-[#3b7fff]" />,
-          onGo: () => navigate({ to: "/missions/$missionId/questions", params: { missionId } }) },
+          onGo: () => navigate({ to: "/missions/$missionId/sections", params: { missionId } }) },
         { id: "j-vault", group: "This mission", label: "Vault", hint: "Source documents", icon: <BookOpen size={14} className="text-[color:var(--athena-gold,#d4af37)]" />,
           onGo: () => navigate({ to: "/missions/$missionId/library", params: { missionId } }) },
         { id: "j-oracle", group: "This mission", label: "Oracle", hint: "IRIS intelligence", icon: <Eye size={14} className="text-[color:var(--iris,#22d3ee)]" />,
@@ -237,8 +237,8 @@ export function CommandPalette() {
     if (hit.href) {
       to = hit.href;
     } else if (hit.questionId && hit.missionId) {
-      navigate({ to: "/missions/$missionId/questions/$questionId", params: { missionId: hit.missionId, questionId: hit.questionId } });
-      saveRecent({ id: hit.id, label: hit.title, hint: hit.subtitle, group: hit.group, to: `/missions/${hit.missionId}/questions/${hit.questionId}` });
+      navigate({ to: "/missions/$missionId/sections/$questionId", params: { missionId: hit.missionId, questionId: hit.questionId } });
+      saveRecent({ id: hit.id, label: hit.title, hint: hit.subtitle, group: hit.group, to: `/missions/${hit.missionId}/sections/${hit.questionId}` });
       return;
     } else if (hit.missionId) {
       navigate({ to: "/missions/$missionId/overview", params: { missionId: hit.missionId } });

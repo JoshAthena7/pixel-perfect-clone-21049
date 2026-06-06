@@ -40,7 +40,7 @@ export function MissionSectionsList({ missionId }: { missionId: string }) {
           return (
             <Link
               key={s.id}
-              to="/missions/$missionId/sections/$sectionId"
+              to="/missions/$missionId/scaffold/$sectionId"
               params={{ missionId, sectionId: s.id }}
               className="group flex items-center gap-4 px-5 py-3 hover:bg-white/[0.03] transition"
             >

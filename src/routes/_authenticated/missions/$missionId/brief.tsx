@@ -145,7 +145,7 @@ function BriefPage() {
                   </div>
                 </div>
                 <div className="mt-4 grid grid-cols-4 gap-3">
-                  <MiniStat label="Questions" value={stats.total} />
+                  <MiniStat label="Sections" value={stats.total} />
                   <MiniStat label="Avg Score" value={stats.avg ? stats.avg.toFixed(2) : "—"} />
                   <MiniStat label="Below Tgt" value={stats.belowTarget} tone={stats.belowTarget > 0 ? "warn" : undefined} />
                   <MiniStat label="Conflicts" value={conflicts.length} tone={conflicts.length > 0 ? "danger" : undefined} />
@@ -212,16 +212,16 @@ function BriefPage() {
 
       {/* Stats */}
       <div className="mt-6 grid grid-cols-4 gap-4">
-        <Stat label="Questions" value={stats.total} icon={<FileText className="h-4 w-4" />} />
+        <Stat label="Sections" value={stats.total} icon={<FileText className="h-4 w-4" />} />
         <Stat label="Weighted Avg" value={stats.avg ? stats.avg.toFixed(2) : "—"} icon={<TrendingUp className="h-4 w-4" />} />
         <Stat label="Below Target" value={stats.belowTarget} icon={<Target className="h-4 w-4" />} tone={stats.belowTarget > 0 ? "warn" : undefined} />
         <Stat label="Open Conflicts" value={conflicts.length} icon={<AlertTriangle className="h-4 w-4" />} tone={conflicts.length > 0 ? "danger" : undefined} />
       </div>
 
       {/* Health */}
-      <Section title="Question Health">
+      <Section title="Section Health">
         {stats.total === 0 ? (
-          <Empty title="No questions yet." sub="Upload the RFP from the library to auto-create question records." />
+          <Empty title="No sections yet." sub="Upload the RFP from the library to auto-create section records." />
         ) : (
           <div className="flex items-center gap-2 px-6 py-5">
             <HealthChip color="green" count={stats.green} label="Green" />
@@ -234,7 +234,7 @@ function BriefPage() {
       {/* IRIS Risk Synthesis */}
       <Section title="Top Risks — IRIS Synthesis">
         {topRisks.length === 0 ? (
-          <Empty title="No risk signals." sub="Health is clean across all questions. Keep monitoring." />
+          <Empty title="No risk signals." sub="Health is clean across all sections. Keep monitoring." />
         ) : (
           <ul className="divide-y divide-border">
             {topRisks.map((q: any) => (
@@ -242,7 +242,7 @@ function BriefPage() {
                 <span className={`dot dot-${q.health}`} />
                 <span className="font-mono text-xs text-muted-foreground w-12">{q.question_number}</span>
                 <Link
-                  to="/missions/$missionId/questions/$questionId"
+                  to="/missions/$missionId/sections/$questionId"
                   params={{ missionId, questionId: q.id }}
                   className="flex-1 text-sm hover:text-primary"
                 >

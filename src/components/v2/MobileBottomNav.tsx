@@ -16,7 +16,7 @@ export function MobileBottomNav() {
   if (isAuthRoute) return null;
 
   const inMission = !!missionId;
-  const inCockpit = path.startsWith("/missions/") && (path.includes("/questions") || path.includes("/iris"));
+  const inCockpit = path.startsWith("/missions/") && (path.includes("/sections") || path.includes("/iris"));
 
   const items = [
     {

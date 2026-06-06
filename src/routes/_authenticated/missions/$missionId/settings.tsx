@@ -629,7 +629,7 @@ function ThemesTab({ missionId }: { missionId: string }) {
                   <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{t.description}</p>
                 )}
                 <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
-                  <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Connected Questions</span>
+                  <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Connected Sections</span>
                   <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-foreground">{count}</span>
                 </div>
               </div>

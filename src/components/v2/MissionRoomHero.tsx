@@ -215,7 +215,7 @@ export function EnterStudioCTA({
 }: { missionId: string; assignedCount: number; attentionCount: number }) {
   return (
     <Link
-      to="/missions/$missionId/questions"
+      to="/missions/$missionId/sections"
       params={{ missionId }}
       className="group relative flex items-center justify-between gap-4 rounded-[12px] px-7 py-6 transition-all duration-200 hover:-translate-y-0.5"
       style={{
@@ -234,7 +234,7 @@ export function EnterStudioCTA({
           <div className="mt-1 text-xl font-semibold tracking-tight text-foreground display-tight">Enter Cockpit</div>
           <div className="mt-1 text-xs text-muted-foreground">
             {assignedCount > 0
-              ? <>{assignedCount} question{assignedCount === 1 ? "" : "s"} assigned to you{attentionCount > 0 ? ` · ${attentionCount} need attention today` : ""}</>
+              ? <>{assignedCount} section{assignedCount === 1 ? "" : "s"} assigned to you{attentionCount > 0 ? ` · ${attentionCount} need attention today` : ""}</>
               : <>Open your workspace</>}
           </div>
         </div>

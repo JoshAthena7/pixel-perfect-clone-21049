@@ -38,7 +38,7 @@ function detectRoom(path: string, missionId?: string): Room {
   const tail = path.replace(`/missions/${missionId}`, "");
   if (tail.startsWith("/command")) return "brief";
   // Studio = writer workspace (questions list + question workspace + ask iris)
-  if (tail.startsWith("/questions") || tail.startsWith("/iris")) return "studio";
+  if (tail.startsWith("/sections") || tail.startsWith("/iris")) return "studio";
   // Everything else inside a mission is Mission Room
   return "mission";
 }
@@ -397,7 +397,7 @@ function RoomToggle({ missionId, room }: { missionId: string; room: Room }) {
     activeBg: "rgba(59,127,255,0.12)",
     activeBorder: "rgba(59,127,255,0.35)",
     activeColor: "#3b7fff",
-    onGo: () => navigate({ to: "/missions/$missionId/questions", params: { missionId } }),
+    onGo: () => navigate({ to: "/missions/$missionId/sections", params: { missionId } }),
   };
 
   const segments = isLeader

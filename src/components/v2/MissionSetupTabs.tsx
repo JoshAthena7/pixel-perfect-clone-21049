@@ -24,7 +24,7 @@ export function MissionSetupTabs() {
   if (!missionId) return null;
 
   const onSettings = path.endsWith("/settings");
-  const onQuestions = path.includes("/questions");
+  const onSections = path.includes("/sections");
   const onVault = path.endsWith("/vault");
 
   const settingsTab = onSettings ? (search.tab ?? "details") : null;
@@ -39,12 +39,12 @@ export function MissionSetupTabs() {
       active: settingsTab === "details",
     },
     {
-      key: "questions",
-      label: "Questions",
+      key: "sections",
+      label: "Sections",
       icon: HelpCircle,
-      to: "/missions/$missionId/questions",
+      to: "/missions/$missionId/sections",
       search: undefined as undefined,
-      active: onQuestions,
+      active: onSections,
     },
     {
       key: "gates",

@@ -322,7 +322,7 @@ function SeverityBadge({ severity }: { severity: string | null }) {
 function OpenLink({ missionId, questionId, compact, label }: { missionId: string; questionId: string; compact?: boolean; label?: string }) {
   return (
     <Link
-      to="/missions/$missionId/questions/$questionId"
+      to="/missions/$missionId/sections/$questionId"
       params={{ missionId, questionId }}
       className={`inline-flex items-center gap-1 rounded-md border border-border bg-surface-hover px-3 py-1.5 text-xs font-medium hover:bg-surface ${compact ? "" : "shrink-0"}`}
     >

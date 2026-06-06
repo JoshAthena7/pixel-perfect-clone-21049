@@ -90,7 +90,7 @@ function PensDownPage() {
         <table className="w-full text-sm">
           <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
             <tr>
-              <th className="px-4 py-3">Question</th>
+              <th className="px-4 py-3">Section</th>
               <th className="px-4 py-3">Pens Down</th>
               <th className="px-4 py-3">Days Left</th>
               <th className="px-4 py-3">Health</th>
@@ -122,7 +122,7 @@ function PensDownPage() {
                 >
                   <td className="px-4 py-3">
                     <Link
-                      to="/missions/$missionId/questions/$questionId"
+                      to="/missions/$missionId/sections/$questionId"
                       params={{ missionId: r.mission_id, questionId: r.id }}
                       className="text-foreground hover:underline"
                     >

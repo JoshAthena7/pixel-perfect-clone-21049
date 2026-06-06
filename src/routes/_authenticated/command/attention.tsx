@@ -367,7 +367,7 @@ export function CommandCenter({ missionId }: { missionId?: string } = {}) {
       {/* Section 1: Health bar */}
       <div className="rounded-[12px] border border-border bg-surface px-5 py-3 flex items-center gap-6 text-sm">
         <span className="font-semibold tabular-nums">{healthCounts.total}</span>
-        <span className="text-muted-foreground">Questions</span>
+        <span className="text-muted-foreground">Sections</span>
         <span className="text-border">·</span>
         <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-emerald-400" /> <span className="font-medium tabular-nums">{healthCounts.green}</span> <span className="text-muted-foreground">Green</span></span>
         <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-amber-400" /> <span className="font-medium tabular-nums">{healthCounts.yellow}</span> <span className="text-muted-foreground">Yellow</span></span>
@@ -419,7 +419,7 @@ export function CommandCenter({ missionId }: { missionId?: string } = {}) {
                   <span className={`text-xs tabular-nums shrink-0 ${q.days < 7 ? "text-red-400" : "text-muted-foreground"}`}>{q.days}d</span>
                 )}
                 <Link
-                  to="/missions/$missionId/questions/$questionId"
+                  to="/missions/$missionId/sections/$questionId"
                   params={{ missionId: q.mission_id, questionId: q.id }}
                   className="text-xs text-primary hover:underline shrink-0"
                 >
@@ -621,7 +621,7 @@ function NeedRow({ need, q, onResolved }: { need: any; q?: { question_number: st
         <span className="text-border">·</span>
         {q ? (
           <Link
-            to="/missions/$missionId/questions/$questionId"
+            to="/missions/$missionId/sections/$questionId"
             params={{ missionId: need.mission_id, questionId: need.question_id }}
             className="text-sm hover:text-primary truncate min-w-0 flex-1"
           >

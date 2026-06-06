@@ -508,7 +508,7 @@ function MissionOverviewPage() {
               <span className="text-muted-foreground">· {counts.total} Q</span>
             </div>
             <button
-              onClick={() => navigate({ to: "/missions/$missionId/questions", params: { missionId } })}
+              onClick={() => navigate({ to: "/missions/$missionId/sections", params: { missionId } })}
               className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1 text-xs font-medium text-primary-foreground"
             >
               Enter Cockpit <ArrowRight className="h-3 w-3" />
@@ -663,7 +663,7 @@ function MissionOverviewPage() {
             questions={questions}
             members={members}
             meId={me?.id ?? null}
-            onOpenMine={(qid) => navigate({ to: "/missions/$missionId/questions/$questionId", params: { missionId, questionId: qid } })}
+            onOpenMine={(qid) => navigate({ to: "/missions/$missionId/sections/$questionId", params: { missionId, questionId: qid } })}
             onPeek={(qid) => setDrawerQid(qid)}
           />
         </section>
@@ -736,7 +736,7 @@ function MissionOverviewPage() {
             isLeader={isLeader}
             assignedCount={myAssigned.length}
             attentionCount={myAttention.length}
-            onEnter={() => navigate({ to: "/missions/$missionId/questions", params: { missionId } })}
+            onEnter={() => navigate({ to: "/missions/$missionId/sections", params: { missionId } })}
           />
         </section>
       </div>
@@ -998,7 +998,7 @@ function QuestionDrawer({
           )}
           {isMine && (
             <button
-              onClick={() => navigate({ to: "/missions/$missionId/questions/$questionId", params: { missionId, questionId: q.id } })}
+              onClick={() => navigate({ to: "/missions/$missionId/sections/$questionId", params: { missionId, questionId: q.id } })}
               className="w-full mt-2 inline-flex items-center justify-center gap-1 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground"
             >
               Open in Cockpit <ArrowRight className="h-3.5 w-3.5" />

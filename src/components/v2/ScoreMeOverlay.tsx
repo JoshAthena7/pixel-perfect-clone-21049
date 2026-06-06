@@ -396,7 +396,7 @@ function InputStage(props: {
       )}
 
       <div className="mt-8 space-y-3">
-        <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Question</div>
+        <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Section</div>
         {props.lockedQuestionId ? (
           props.selectedQ ? (
             <div className="rounded-[10px] border border-white/10 bg-white/[0.02] px-4 py-3">

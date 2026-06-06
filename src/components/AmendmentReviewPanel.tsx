@@ -138,7 +138,7 @@ export function AmendmentReviewPanel({
           <SummaryStat label="Critical" value={counts.critical} tone="destructive" />
           <SummaryStat label="Significant" value={counts.significant} tone="amber" />
           <SummaryStat label="Administrative" value={counts.administrative} tone="muted" />
-          <SummaryStat label="Questions affected" value={counts.questions} tone="iris" />
+          <SummaryStat label="Sections affected" value={counts.questions} tone="iris" />
         </div>
 
         <div className="space-y-3">
@@ -184,7 +184,7 @@ export function AmendmentReviewPanel({
                         {affected.map((q) => (
                           <Link
                             key={q.id}
-                            to="/missions/$missionId/questions/$questionId"
+                            to="/missions/$missionId/sections/$questionId"
                             params={{ missionId, questionId: q.id }}
                             className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs hover:border-[color:var(--iris,#22d3ee)]"
                             onClick={onClose}

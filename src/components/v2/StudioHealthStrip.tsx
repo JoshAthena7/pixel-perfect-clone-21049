@@ -33,7 +33,7 @@ function daysUntil(dateStr: string | null): number | null {
 
 export function StudioHealthStrip({ missionId }: { missionId: string }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const isQuestionWorkspace = path.includes("/questions/") && path.split("/").length > 5;
+  const isSectionWorkspace = path.includes("/sections/") && path.split("/").length > 5;
 
   const { data: role } = useQuery({
     queryKey: ["studio-strip-role", missionId],
@@ -117,7 +117,7 @@ export function StudioHealthStrip({ missionId }: { missionId: string }) {
     : gateDays !== null && gateDays <= 7 ? "var(--yellow, #eab308)"
     : undefined;
 
-  const target = isQuestionWorkspace
+  const target = isSectionWorkspace
     ? { to: "/missions/$missionId/overview" as const, params: { missionId } }
     : { to: "/missions/$missionId/overview" as const, params: { missionId } };
 

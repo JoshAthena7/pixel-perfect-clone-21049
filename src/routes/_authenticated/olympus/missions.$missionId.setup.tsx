@@ -949,7 +949,7 @@ function SectionQuestions({ missionId, questions, volumes, refetch }: any) {
 
         {/* Paste import */}
         <div>
-          <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-2">Import Questions</div>
+          <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-2">Import Sections</div>
           <TextArea rows={4} placeholder="Paste one question per line. Format: '1.1 Question text here'" value={paste} onChange={(e) => setPaste(e.target.value)} />
           <div className="mt-2 flex justify-end">
             <button onClick={pasteQuestions} className="rounded-md border border-border bg-background px-3 py-1.5 text-xs hover:bg-surface-hover">Import {paste.split("\n").filter(Boolean).length || ""} questions</button>

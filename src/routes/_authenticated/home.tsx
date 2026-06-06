@@ -150,7 +150,7 @@ function AthenaHQ() {
   useEffect(() => {
     if (myRole === "writer" && writerMissions && writerMissions.length === 1) {
       navigate({
-        to: "/missions/$missionId/questions",
+        to: "/missions/$missionId/sections",
         params: { missionId: writerMissions[0] },
         replace: true,
       });
@@ -426,7 +426,7 @@ function AthenaHQ() {
                 return (
                   <li key={q.id} className="px-5 py-3">
                     <Link
-                      to="/missions/$missionId/questions/$questionId"
+                      to="/missions/$missionId/sections/$questionId"
                       params={{ missionId: q.mission_id, questionId: q.id }}
                       className="flex items-center gap-3 hover:text-primary"
                     >
@@ -551,7 +551,7 @@ function AthenaHQ() {
                     return (
                       <li key={q.id} className="px-5 py-3">
                         <Link
-                          to="/missions/$missionId/questions/$questionId"
+                          to="/missions/$missionId/sections/$questionId"
                           params={{ missionId: q.mission_id, questionId: q.id }}
                           className="flex items-center gap-3 hover:text-primary"
                         >

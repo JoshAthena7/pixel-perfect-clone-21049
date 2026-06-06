@@ -152,7 +152,7 @@ export function NotificationBell() {
                   return (
                     <Link
                       key={s.id}
-                      to={s.related_question_id ? "/missions/$missionId/questions/$questionId" : "/missions/$missionId/questions"}
+                      to={s.related_question_id ? "/missions/$missionId/sections/$questionId" : "/missions/$missionId/sections"}
                       params={s.related_question_id ? { missionId: s.mission_id, questionId: s.related_question_id } : { missionId: s.mission_id }}
                       onClick={() => setOpen(false)}
                       className="block rounded-md border border-border bg-background/50 px-3 py-2.5 transition-colors hover:bg-surface-hover"

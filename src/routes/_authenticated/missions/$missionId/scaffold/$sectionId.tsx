@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ScaffoldEditor, TemplateCompliancePanel } from "@/components/v2/ScaffoldEditor";
 
 export const Route = createFileRoute(
-  "/_authenticated/missions/$missionId/sections/$sectionId",
+  "/_authenticated/missions/$missionId/scaffold/$sectionId",
 )({
   component: SectionWorkspace,
 });
