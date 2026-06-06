@@ -1,6 +1,7 @@
 // SSR Worker entry. Wraps the TanStack server entry to apply L1 security
 // headers (CSP, Permissions-Policy, X-Frame-Options, X-Content-Type-Options)
 // to every response.
+import "./lib/server-functions.preload";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
