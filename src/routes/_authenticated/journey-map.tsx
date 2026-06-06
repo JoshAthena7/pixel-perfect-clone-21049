@@ -535,20 +535,73 @@ function JourneyMapPage() {
               </div>
             </div>
 
+            {persona !== "All Roles" && (
+              hasTouchpoint(persona, stage.num) ? (
+                <div
+                  className="mb-4 flex items-center gap-2 rounded-lg border px-3 py-2 text-[12px]"
+                  style={{ borderColor: "rgba(99,102,241,0.4)", background: "rgba(99,102,241,0.08)", color: "#C7D2FE" }}
+                >
+                  <span
+                    className="flex h-5 min-w-[20px] items-center justify-center rounded-full px-1 text-[9px] font-bold text-white"
+                    style={{ background: "#6366F1" }}
+                  >
+                    {personaInitials(persona)}
+                  </span>
+                  <span>
+                    <span className="font-semibold text-foreground">{persona}</span> is active at this stage — touchpoints highlighted below.
+                  </span>
+                </div>
+              ) : (
+                <div
+                  className="mb-4 flex items-center gap-2 rounded-lg border border-border bg-background/40 px-3 py-2 text-[12px] text-muted-foreground"
+                >
+                  <Users size={14} />
+                  <span>
+                    <span className="font-semibold text-foreground">{persona}</span> has no direct touchpoint at this stage. Stay informed; the team is operating on your behalf.
+                  </span>
+                </div>
+              )
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-4">
               <DetailCard icon={<Target size={14} />} title="User Objective">
                 <p className="text-[12px] leading-relaxed text-muted-foreground">{stage.objective}</p>
               </DetailCard>
               <DetailCard icon={<ListChecks size={14} />} title="Key Actions">
                 <ul className="space-y-1.5">
-                  {stage.actions.map((a) => (
-                    <li key={a} className="flex items-start gap-1.5 text-[12px] text-muted-foreground">
-                      <ChevronRight size={12} className="mt-0.5 shrink-0 text-foreground/60" />
-                      <span>{a}</span>
-                    </li>
-                  ))}
+                  {stage.actions.map((a, idx) => {
+                    const tps = touchpointActions(persona, stage.num);
+                    const isYours = tps !== null && tps.includes(idx);
+                    return (
+                      <li
+                        key={a}
+                        className="flex items-start gap-1.5 rounded px-1.5 py-1 text-[12px] transition"
+                        style={{
+                          background: isYours ? "rgba(99,102,241,0.1)" : "transparent",
+                          color: isYours ? "#E0E7FF" : "var(--muted-foreground)",
+                          opacity: persona !== "All Roles" && tps !== null && tps.length > 0 && !isYours ? 0.55 : 1,
+                        }}
+                      >
+                        <ChevronRight
+                          size={12}
+                          className="mt-0.5 shrink-0"
+                          style={{ color: isYours ? "#A5B4FC" : "var(--foreground)" }}
+                        />
+                        <span>{a}</span>
+                        {isYours && (
+                          <span
+                            className="ml-auto rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em]"
+                            style={{ background: "rgba(99,102,241,0.2)", color: "#A5B4FC" }}
+                          >
+                            You
+                          </span>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               </DetailCard>
+
               <DetailCard icon={<Users size={14} />} title="Key Decisions">
                 <ul className="space-y-1.5">
                   {stage.decisions.map((d) => (
