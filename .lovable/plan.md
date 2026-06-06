@@ -1,151 +1,44 @@
-# ATLAS Check-In — Build Plan
+# Response Template Feature — Build Plan
 
-Adds two new surfaces to ATLAS:
+This is a large, multi-surface feature (setup wizard step, vault, studio scaffold editor, IRIS compliance, submission gating, mission overview). I'll deliver it in the build order you specified, but want to confirm scope and a few decisions before writing ~2k lines across 10+ files.
 
-1. **`/checkin/:token`** — a public, no-login, mobile-first page reached via emailed magic link, where a writer updates the status of their assigned sections in ~30 seconds.
-2. **`/_authenticated/status-report`** — a PM dashboard inside ATLAS that aggregates Check-In submissions + Studio activity, flags risk, and generates a copy/export-ready weekly client status report.
+## Data model (1 migration)
 
-Build is staged so each step ships a working slice.
+New tables:
+- `mission_response_templates` — one row per mission. Columns: `mission_id` (unique), `status` ('active' | 'skipped'), `source` ('upload' | 'manual'), `source_file_path` (Vault doc ref, nullable), `iris_confidence`, `iris_source_citation`, `confirmed_by`, `confirmed_at`, `version` (int, bumped on edit).
+- `mission_response_template_elements` — ordered elements. Columns: `template_id`, `parent_id` (nullable, for sub-sections under headers), `order_index`, `element_type` ('header' | 'subsection' | 'field' | 'table' | 'word_limit'), `label`, `word_limit` (int, nullable), `table_columns` (jsonb, nullable).
+- `mission_section_template_progress` — per-section compliance state. Columns: `section_id`, `element_id`, `content` (text), `word_count`, `is_complete` (bool). Drives the Studio scaffold + compliance panel + submission checklist.
+- `mission_response_template_versions` — snapshot of elements at each version, used for the post-edit diff and to flag affected sections.
 
----
+RLS: mission members read; PM role writes. Standard public-schema GRANTs.
 
-## Data model (new tables)
+## Server functions (`src/lib/response-template.functions.ts`)
 
-Created via migration with RLS + grants.
+- `getResponseTemplate({ missionId })` — template + ordered elements.
+- `parseTemplateFile({ missionId, vaultDocId })` — **stub IRIS parser** that returns a plausible structure from the filename/text. Real LLM parsing is out of scope for this turn; I'll wire a `// TODO: replace with Lovable AI call` and use a heuristic parser so the UX is fully functional end-to-end.
+- `saveResponseTemplate({ missionId, elements, source, sourceFilePath })` — upsert + version bump + diff vs previous version (returned to caller).
+- `skipResponseTemplate({ missionId })`.
+- `updateSectionTemplateProgress({ sectionId, elementId, content })` — recomputes word_count + is_complete.
+- `getMissionTemplateCompliance({ missionId })` — aggregate for submission checklist + overview indicator.
 
-```text
-mission_sections
-  id uuid pk
-  mission_id uuid -> missions.id
-  number text          -- e.g. "4.2"
-  title text
-  rfp_page_ref text null
-  assigned_user_id uuid null -> profiles.id   -- writer
-  internal_due_date date null
-  studio_status text null                     -- last Studio status (for blend)
-  studio_progress_pct int null
-  studio_updated_at timestamptz null
-  created_at, updated_at
+## UI surfaces
 
-checkin_cycles
-  id uuid pk
-  mission_id uuid
-  cycle_start date            -- Monday of the week, or milestone label
-  trigger_type text           -- 'weekly' | 'milestone_14' | 'milestone_7' | 'milestone_48h'
-  expires_at timestamptz
-  created_at
+1. **Mission Setup Step 5** — new step inserted into `MissionActivationWizard.tsx` between Key Dates and Review. Upload path (drops into Vault → calls parser), Manual builder (inline element list with type dropdown), skip option. IRIS parser output rendered inline (no modal) with editable element list (drag-reorder, rename, delete, add).
+2. **Step 6 summary row** — Response Template row in the existing Review & Activate summary in the same wizard.
+3. **Vault category** — pinned "Response Template" category at the top of `vault.tsx` sidebar with indigo treatment, read-only entry.
+4. **Studio Scaffold Editor** — new `<ScaffoldEditor>` component used wherever the section editor renders. Locked headers with indigo left border + lock icon, content zones per element, live word counters, ✓/○ indicators, optional free-form zone at the bottom. Will replace the editor in the existing section workspace (need to confirm which file — see questions).
+5. **IRIS Template Compliance panel** — new section in the Studio right rail.
+6. **Status advancement gate** — disable "In Review" / "Approved" transitions when any required element is empty; inline IRIS warning dialog.
+7. **Reviewer view** — same scaffold rendered read-only.
+8. **Submission checklist** — Template Compliance row added to the existing checklist; blocks "Mark as Ready to Submit" unless Engagement Lead overrides with a reason (stored on the override).
+9. **IRIS pre-submission report** — new Template Compliance Summary section.
+10. **Mission Overview indicator** — Response Template health row in `overview.tsx`.
+11. **Post-activation edit flow** — edit from Mission Overview, diff modal, flag affected approved/draft-done sections for re-review, in-Studio notice.
 
-checkin_tokens
-  id uuid pk
-  cycle_id uuid -> checkin_cycles.id
-  mission_id uuid
-  writer_user_id uuid -> profiles.id
-  token text unique           -- 32-byte url-safe random
-  expires_at timestamptz
-  consumed_at timestamptz null
-  created_at
+## Questions before I build
 
-checkin_submissions
-  id uuid pk
-  cycle_id, mission_id, writer_user_id
-  submitted_at timestamptz
-  unique (cycle_id, writer_user_id)
+1. **Which file is "the Studio section workspace" editor?** I see `src/routes/_authenticated/missions/$missionId/questions/index.tsx` and several v2 components. I'll grep and pick the section editor, but if you have a specific file in mind, name it.
+2. **Real IRIS parsing vs stub.** Wiring Lovable AI (`google/gemini-2.5-flash`) to parse uploaded .docx/.pdf adds a server-side document parse step. OK to ship a deterministic heuristic stub now (returns a sensible default structure + lets the PM edit it inline) and add real AI parsing in a follow-up?
+3. **.pdf/.docx text extraction on the Worker runtime is constrained.** I'll accept the upload, store it in the Vault, and run the stub parser on filename + any extracted text we already have. Confirm that's acceptable for v1.
 
-checkin_section_updates
-  id uuid pk
-  submission_id uuid -> checkin_submissions.id
-  section_id uuid -> mission_sections.id
-  status text         -- 'not_started' | 'in_progress' | 'draft_done' | 'blocked'
-  progress_pct int null   -- 25/50/75/90 when in_progress
-  notes text null         -- max 140
-  source text default 'checkin'  -- 'checkin' | 'studio'
-```
-
-RLS: tokens/submissions readable only via server fn (no anon select policy). PMs (mission_members with PM role) can read submissions for their mission. Writers can read their own.
-
----
-
-## Server surface
-
-All in `src/lib/checkin.functions.ts` + one public route.
-
-- `getCheckinByToken({ token })` — public serverFn (no auth middleware). Validates token, not expired, not consumed; returns mission name, writer first name, countdown, cycle trigger_type, assigned sections, and any prior submission for the cycle (for "already submitted" state).
-- `submitCheckin({ token, updates[] })` — public serverFn. Re-validates token, upserts `checkin_submissions` + `checkin_section_updates`, marks token consumed, and on any `blocked` status inserts a row into existing `escalations` table for the PM.
-- `listMissionCheckins({ missionId, cycleId? })` — `requireSupabaseAuth`. Returns per-writer submission status + section updates for the PM feed.
-- `getSectionStatusBoard({ missionId })` — `requireSupabaseAuth`. Blends `mission_sections.studio_*` with latest `checkin_section_updates`, returns rows with `source`, IRIS risk flags computed server-side (rules below).
-- `sendCheckinReminders({ missionId, cycleId })` — `requireSupabaseAuth`, PM only. Re-enqueues the check-in email to writers without a submission.
-- `generateStatusReport({ missionId })` — `requireSupabaseAuth`, PM only. Returns the structured report object that the modal renders.
-
-**Public route** `src/routes/api/public/checkin/email-trigger.ts` — HMAC-verified POST used by pg_cron to mint tokens + enqueue emails for a mission's cycle.
-
-### IRIS risk rules (server-computed)
-- `not_started` AND `internal_due_date` ≤ 5 days → 🔴 "Not Started — due in N days"
-- `blocked` with no follow-up update in 48h → 🟡 "Blocked — no resolution logged"
-- No update of any kind in 5 days → 🟡 "No update in 5 days"
-
-### Overall status (status report)
-- Behind: any 🔴, or >20% sections blocked
-- At Risk: any 🟡, or >30% not started with <14 days to submission
-- On Track: otherwise
-
----
-
-## Email (Lovable Emails)
-
-Uses existing email infrastructure. New template `src/lib/email-templates/checkin-request.tsx` with props `{ firstName, missionName, daysToSubmission, sections[], magicLinkUrl, triggerType }`. Subject is dynamic based on trigger. pg_cron job runs hourly to fire the public route for any mission whose cycle is due.
-
----
-
-## Frontend
-
-### Check-In page — `src/routes/checkin.$token.tsx`
-Public route (no `_authenticated` prefix), SSR on, light theme by default.
-- Loader calls `getCheckinByToken`; on `expired`/`not_found` → notFound, on `already_submitted` → success-style "You're all set" state.
-- Components (new, scoped to this route):
-  - `CheckinHeader` — wordmark, mission name, countdown chip (amber ≤7d, red ≤48h), writer name
-  - `CheckinSectionCard` — number/title, 4 pill status buttons (44px tap target), progress chips (25/50/75/90) when In Progress, 140-char notes input
-  - `CheckinSubmit` — disabled until ≥1 status chosen; on success swaps to `CheckinSuccess`
-- Local state only; one submit POST. Max-width 680px, mobile-first, large touch targets.
-
-### Status Report — `src/routes/_authenticated/status-report.tsx`
-Dark theme, matches ATLAS. Two-panel layout (stacks on mobile).
-- Left: `CheckinFeed` — completion bar `N of M submitted`, per-writer rows with expand, "Send Reminder" button (confirm dialog).
-- Right: `SectionStatusBoard` — sortable table (status/writer/due/last updated), source icon (`⚡ Studio` / `✉ Check-In`), inline IRIS risk chips in indigo `#6366F1`.
-- Header: `Generate Client Status Report` button → `StatusReportModal`.
-
-### `StatusReportModal`
-Renders the formatted report. Actions: Copy to clipboard, Export .docx (via `docx` lib server-rendered + download), Export PDF (print stylesheet → `window.print()` to keep it simple), Send via email (PM confirm → reuses transactional send).
-
-### Navigation
-Adds "Status Report" entry to `src/components/v2/AppShell.tsx` sidebar, visible when the user is a mission member with PM role.
-
----
-
-## Accessibility
-
-- All status pills are radiogroups with arrow-key navigation + roving tabIndex (same pattern as the Motion control on Journey Map).
-- Countdown chip has `aria-label` with full text ("14 days until submission").
-- Source icons paired with visible text, not icon-only.
-- Reduced-motion respected; no decorative animations on Check-In page.
-
----
-
-## Build order (matches request)
-
-1. Migration: `mission_sections`, `checkin_cycles`, `checkin_tokens`, `checkin_submissions`, `checkin_section_updates` + RLS + grants.
-2. Server fns: `getCheckinByToken`, `submitCheckin` + blocked → `escalations` insert.
-3. `/checkin/$token` page: header, section cards, status pills, progress chips, notes, submit, success.
-4. Already-submitted state + expired/notFound boundary.
-5. Status Report view: feed + section status board (server fns + UI).
-6. Generate Status Report modal (copy + print-to-PDF first; .docx + email send second).
-7. IRIS risk flags wired into board + report.
-8. Email template + public `/api/public/checkin/email-trigger` route + pg_cron schedule (weekly Mon 8am + milestone checks hourly).
-
----
-
-## Open questions before coding
-
-1. **Sections data**: the current schema has no `mission_sections`-like table. OK to create it as designed above, or should sections derive from `mission_volumes` / `briefing_book_sections` you already have?
-2. **PM role**: should "PM" be `mission_members.role = 'pm'` (existing column) or a new `user_roles` entry?
-3. **Studio status source**: which existing table represents "Studio activity last status update" for a section so the blend logic can read it? If none yet, I'll just store it on `mission_sections.studio_*` and leave wiring for later.
-4. **Email**: confirm Lovable Emails is set up for this project (custom domain `athenacommandcenter.com`). If not, I'll run the infra + auth/transactional scaffold as part of step 8.
+If you say "go", I'll proceed with the plan above and implement build steps 1–11 in order across roughly: 1 migration, 1 server-functions file, edits to `MissionActivationWizard.tsx`, `vault.tsx`, `overview.tsx`, the section workspace, and ~4 new components (`ScaffoldEditor`, `TemplateComplianceP anel`, `TemplateBuilder`, `TemplateDiffModal`).

@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MissionSetupTabs } from "@/components/v2/MissionSetupTabs";
+import { ResponseTemplateVaultCard } from "@/components/v2/ResponseTemplateVaultCard";
 import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -248,6 +249,10 @@ function VaultPage() {
           <span className="shrink-0 text-[11px] text-muted-foreground">Lead-only</span>
         )}
       </div>
+
+      {/* Slot grid */}
+      {/* Response Template — pinned above the slot grid */}
+      <ResponseTemplateVaultCard missionId={missionId} />
 
       {/* Slot grid */}
       {isLoading ? (

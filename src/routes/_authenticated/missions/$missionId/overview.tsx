@@ -10,6 +10,7 @@ import {
 import { toast } from "sonner";
 import { AmendmentDashboardBanner } from "@/components/AmendmentDashboardBanner";
 import { MissionRoomHero } from "@/components/v2/MissionRoomHero";
+import { ResponseTemplateStatusRow } from "@/components/v2/ResponseTemplateStatusRow";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/overview")({
   component: MissionOverviewPage,
@@ -592,7 +593,10 @@ function MissionOverviewPage() {
           <MissionRoomHero missionId={missionId} />
         </section>
 
+        <ResponseTemplateStatusRow missionId={missionId} />
+
         <div className="mr-divider" />
+
 
         {/* ══════════════════════════════════════════════════════════ */}
         {/* ZONE 1 · RIGHT NOW                                         */}
