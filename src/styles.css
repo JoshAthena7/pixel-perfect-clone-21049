@@ -84,6 +84,19 @@
   --oracle-glow-edge: rgba(8, 145, 178, 0.06);
   --oracle-active: #0891b2;
 
+  /* ATLAS V1 — single-mission build tokens */
+  --v1-bg: #0A0C10;
+  --v1-surface: #13161D;
+  --v1-surface-hover: #1a1f2a;
+  --v1-border: #1F2432;
+  --v1-text: #E2E8F0;
+  --v1-muted: #64748B;
+  --v1-primary: #3B82F6;
+  --v1-iris: #6366F1;
+  --v1-green: #10B981;
+  --v1-amber: #F59E0B;
+  --v1-red: #EF4444;
+
   /* Premium dark stage — replaces classified grid + scanlines.
      A subtle dot pattern gives depth without tactical-display feel. */
   --stage-bg: #060b14;
@@ -92,6 +105,18 @@
   /* Back-compat alias for any remaining references */
   --classified-surface: var(--stage-surface);
 }
+
+/* ATLAS V1 layout primitives */
+.v1-root {
+  background: var(--v1-bg);
+  color: var(--v1-text);
+}
+.v1-card {
+  background: var(--v1-surface);
+  border: 1px solid var(--v1-border);
+  border-radius: 10px;
+}
+.num-tab { font-variant-numeric: tabular-nums; }
 
 .atlas-stage {
   background-color: var(--stage-bg);
