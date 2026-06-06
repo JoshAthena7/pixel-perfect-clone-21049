@@ -21,6 +21,7 @@ import { DailyPulse } from "@/components/v4/DailyPulse";
 import { ThreadPanel } from "@/components/threads/ThreadPanel";
 import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { IrisKickoffBadge } from "@/components/v2/IrisKickoffBadge";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/")({
   component: MissionCockpitLanding,
@@ -311,9 +312,12 @@ function MissionCockpitLanding() {
             <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
               Cockpit
             </div>
-            <h1 className="mt-1 text-[26px] font-bold tracking-tight text-white">
-              {mission?.name ?? "Mission"}
-            </h1>
+            <div className="mt-1 flex flex-wrap items-center gap-3">
+              <h1 className="text-[26px] font-bold tracking-tight text-white">
+                {mission?.name ?? "Mission"}
+              </h1>
+              <IrisKickoffBadge missionId={missionId} />
+            </div>
             <p className="mt-1 text-[13px] text-muted-foreground">
               {isLead
                 ? "Every section in this mission — assign, track, intervene."

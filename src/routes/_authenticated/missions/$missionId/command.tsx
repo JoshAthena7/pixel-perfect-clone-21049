@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import {
   RefreshCw, Radio, ArrowRight, Plus, MessageSquare, Plane,
 } from "lucide-react";
+import { IrisKickoffBadge } from "@/components/v2/IrisKickoffBadge";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/command")({
   component: MissionBrief,
@@ -552,9 +553,12 @@ function MissionBrief() {
             <div className="text-[10px] font-semibold uppercase tracking-[0.32em]" style={{ color: "#a78bfa" }}>
               Mission Brief
             </div>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-              {mission?.name ?? "Mission"}
-            </h1>
+            <div className="mt-2 flex flex-wrap items-center gap-3">
+              <h1 className="text-2xl font-semibold tracking-tight">
+                {mission?.name ?? "Mission"}
+              </h1>
+              <IrisKickoffBadge missionId={missionId} />
+            </div>
           </div>
           <Link
             to="/missions/$missionId"
