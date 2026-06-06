@@ -92,19 +92,19 @@ function MissionsIndex() {
             Every procurement Athena is working on. Create, activate, edit, or archive from here.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <button
             onClick={handleRefreshIris}
             disabled={refreshing}
             title="Clear IRIS brief caches and reset the AI circuit breaker"
-            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-sm hover:bg-surface-hover disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-background px-3 py-2 text-sm hover:bg-surface-hover disabled:opacity-50"
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
             Refresh IRIS
           </button>
           <button
             onClick={() => setCreateOpen(true)}
-            className="inline-flex items-center gap-2 rounded-md bg-[#C49A22] px-4 py-2 text-sm font-semibold text-black hover:bg-[#D4AA32] transition"
+            className="inline-flex items-center gap-2 whitespace-nowrap rounded-md bg-[#C49A22] px-4 py-2 text-sm font-semibold text-black hover:bg-[#D4AA32] transition"
           >
             <Plus className="h-4 w-4" /> Create New Mission
           </button>

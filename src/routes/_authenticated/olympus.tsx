@@ -134,11 +134,13 @@ function MissionSwitcher({ missions, selected, onPick }: {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-sm hover:bg-surface-hover"
+        className="inline-flex max-w-[360px] items-center gap-2 whitespace-nowrap rounded-md border border-border bg-background px-3 py-1.5 text-sm hover:bg-surface-hover"
       >
-        <span className="font-medium">{selected?.name ?? "Select mission"}</span>
-        {selected?.client && <span className="text-[11px] text-muted-foreground">· {selected.client}</span>}
-        <ChevronDown className="h-3 w-3 opacity-60" />
+        <span className="truncate font-medium">{selected?.name ?? "Select mission"}</span>
+        {selected?.client && (
+          <span className="hidden truncate text-[11px] text-muted-foreground lg:inline">· {selected.client}</span>
+        )}
+        <ChevronDown className="h-3 w-3 shrink-0 opacity-60" />
       </button>
       {open && (
         <div className="modal-surface absolute left-1/2 top-9 z-50 w-72 -translate-x-1/2 p-1 text-sm">
