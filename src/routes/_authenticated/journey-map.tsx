@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckCircle2, Circle, AlertTriangle, Sparkles, ChevronRight, Users, Target, ListChecks, Layers, Brain, Trophy } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/journey-map")({
@@ -339,12 +339,53 @@ function emotionColor(c: "green" | "yellow" | "blue") {
 }
 
 
+type MotionPref = "auto" | "on" | "off";
+const MOTION_KEY = "atlas.journeyMap.motionPref";
+
+function useMotionPreference() {
+  const [pref, setPref] = useState<MotionPref>("auto");
+  const [systemReduced, setSystemReduced] = useState(false);
+
+  // Load persisted preference
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem(MOTION_KEY);
+      if (v === "auto" || v === "on" || v === "off") setPref(v);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  // Watch system reduced-motion
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setSystemReduced(mq.matches);
+    update();
+    mq.addEventListener?.("change", update);
+    return () => mq.removeEventListener?.("change", update);
+  }, []);
+
+  function update(next: MotionPref) {
+    setPref(next);
+    try {
+      localStorage.setItem(MOTION_KEY, next);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const animate = pref === "on" ? true : pref === "off" ? false : !systemReduced;
+  return { pref, setPref: update, animate, systemReduced };
+}
+
 function JourneyMapPage() {
   const activeIdx = STAGES.findIndex((s) => s.status === "active");
   const [selected, setSelected] = useState<number>(activeIdx >= 0 ? activeIdx : 0);
   const [persona, setPersona] = useState<Persona>("All Roles");
   const [insightsOpen, setInsightsOpen] = useState(true);
   const [openTransition, setOpenTransition] = useState<number | null>(null);
+  const { pref: motionPref, setPref: setMotionPref, animate, systemReduced } = useMotionPreference();
 
   const stage = STAGES[selected];
 
@@ -380,7 +421,41 @@ function JourneyMapPage() {
               <span className="text-sm font-semibold">78</span>
             </div>
           </div>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-3">
+            <div
+              role="radiogroup"
+              aria-label="Persona switching animations"
+              className="flex items-center rounded-md border border-border bg-surface p-0.5"
+              title={
+                motionPref === "auto"
+                  ? `Auto — following system preference (${systemReduced ? "reduced" : "full motion"})`
+                  : motionPref === "on"
+                    ? "Animated — overrides system reduced motion"
+                    : "Instant — no transitions"
+              }
+            >
+              <span className="px-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Motion
+              </span>
+              {(["auto", "on", "off"] as MotionPref[]).map((opt) => {
+                const active = motionPref === opt;
+                return (
+                  <button
+                    key={opt}
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setMotionPref(opt)}
+                    className="rounded px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] transition-colors"
+                    style={{
+                      background: active ? "rgba(59,130,246,0.15)" : "transparent",
+                      color: active ? "#93C5FD" : "var(--muted-foreground)",
+                    }}
+                  >
+                    {opt === "auto" ? "Auto" : opt === "on" ? "On" : "Off"}
+                  </button>
+                );
+              })}
+            </div>
             <button
               onClick={() => setInsightsOpen((o) => !o)}
               className="rounded-md border border-border bg-surface px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground"
@@ -431,7 +506,7 @@ function JourneyMapPage() {
                   <div key={s.num} className="flex-1 flex flex-col items-stretch min-w-0">
                     <button
                       onClick={() => setSelected(i)}
-                      className="group relative flex flex-col items-center text-center rounded-lg p-3 transition-all duration-500 ease-out motion-reduce:transition-none motion-reduce:duration-0"
+                      className={`group relative flex flex-col items-center text-center rounded-lg p-3 ${animate ? "transition-all duration-500 ease-out" : ""}`}
                       style={{
                         background: isSelected ? "rgba(59,130,246,0.08)" : "transparent",
                         border: `1px solid ${isSelected ? "rgba(59,130,246,0.4)" : "transparent"}`,
@@ -464,7 +539,7 @@ function JourneyMapPage() {
                         {persona !== "All Roles" && involved && (
                           <span
                             key={persona}
-                            className="absolute -bottom-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1 text-[9px] font-bold text-white shadow animate-scale-in motion-reduce:animate-none"
+                            className={`absolute -bottom-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1 text-[9px] font-bold text-white shadow ${animate ? "animate-scale-in" : ""}`}
                             style={{ background: "#6366F1", border: "2px solid var(--background)" }}
                             title={`${persona} touchpoint`}
                           >
@@ -539,7 +614,7 @@ function JourneyMapPage() {
             {persona !== "All Roles" && (
               hasTouchpoint(persona, stage.num) ? (
                 <div
-                  className="mb-4 flex items-center gap-2 rounded-lg border px-3 py-2 text-[12px] animate-fade-in motion-reduce:animate-none"
+                  className={`mb-4 flex items-center gap-2 rounded-lg border px-3 py-2 text-[12px] ${animate ? "animate-fade-in" : ""}`}
                   style={{ borderColor: "rgba(99,102,241,0.4)", background: "rgba(99,102,241,0.08)", color: "#C7D2FE" }}
                 >
                   <span
@@ -554,7 +629,7 @@ function JourneyMapPage() {
                 </div>
               ) : (
                 <div
-                  className="mb-4 flex items-center gap-2 rounded-lg border border-border bg-background/40 px-3 py-2 text-[12px] text-muted-foreground animate-fade-in motion-reduce:animate-none"
+                  className={`mb-4 flex items-center gap-2 rounded-lg border border-border bg-background/40 px-3 py-2 text-[12px] text-muted-foreground ${animate ? "animate-fade-in" : ""}`}
                 >
                   <Users size={14} />
                   <span>
@@ -576,7 +651,7 @@ function JourneyMapPage() {
                     return (
                       <li
                         key={a}
-                        className="flex items-start gap-1.5 rounded px-1.5 py-1 text-[12px] transition-all duration-500 ease-out motion-reduce:transition-none motion-reduce:duration-0"
+                        className={`flex items-start gap-1.5 rounded px-1.5 py-1 text-[12px] ${animate ? "transition-all duration-500 ease-out" : ""}`}
                         style={{
                           background: isYours ? "rgba(99,102,241,0.1)" : "transparent",
                           color: isYours ? "#E0E7FF" : "var(--muted-foreground)",
