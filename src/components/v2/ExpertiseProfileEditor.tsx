@@ -3,6 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { X, Plus, Trash2, Check, Plane, Pause, Circle } from "lucide-react";
+import { ExpertiseSection } from "@/components/expertise/ExpertiseSection";
+
 
 const COMMON_STATES = ["NJ", "IN", "OH", "TX", "IL", "PA", "FL", "TN", "KY", "MO", "GA", "NC"];
 const ALL_STATES = [
