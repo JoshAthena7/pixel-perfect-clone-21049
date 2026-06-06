@@ -81,10 +81,12 @@ import { Route as AuthenticatedMissionsMissionIdCommandRouteImport } from './rou
 import { Route as AuthenticatedMissionsMissionIdBriefingRouteImport } from './routes/_authenticated/missions/$missionId/briefing'
 import { Route as AuthenticatedMissionsMissionIdBriefRouteImport } from './routes/_authenticated/missions/$missionId/brief'
 import { Route as AuthenticatedMissionsMissionIdSectionsIndexRouteImport } from './routes/_authenticated/missions/$missionId/sections/index'
+import { Route as AuthenticatedMissionsMissionIdQuestionsIndexRouteImport } from './routes/_authenticated/missions/$missionId/questions/index'
 import { Route as AuthenticatedOlympusMissionsMissionIdSetupRouteImport } from './routes/_authenticated/olympus/missions.$missionId.setup'
 import { Route as AuthenticatedOlympusMissionsMissionIdDebriefRouteImport } from './routes/_authenticated/olympus/missions.$missionId.debrief'
 import { Route as AuthenticatedMissionsMissionIdSectionsQuestionIdRouteImport } from './routes/_authenticated/missions/$missionId/sections/$questionId'
 import { Route as AuthenticatedMissionsMissionIdScaffoldSectionIdRouteImport } from './routes/_authenticated/missions/$missionId/scaffold/$sectionId'
+import { Route as AuthenticatedMissionsMissionIdQuestionsQuestionIdRouteImport } from './routes/_authenticated/missions/$missionId/questions/$questionId'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -502,6 +504,12 @@ const AuthenticatedMissionsMissionIdSectionsIndexRoute =
     path: '/sections/',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
+const AuthenticatedMissionsMissionIdQuestionsIndexRoute =
+  AuthenticatedMissionsMissionIdQuestionsIndexRouteImport.update({
+    id: '/questions/',
+    path: '/questions/',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
+  } as any)
 const AuthenticatedOlympusMissionsMissionIdSetupRoute =
   AuthenticatedOlympusMissionsMissionIdSetupRouteImport.update({
     id: '/missions/$missionId/setup',
@@ -524,6 +532,12 @@ const AuthenticatedMissionsMissionIdScaffoldSectionIdRoute =
   AuthenticatedMissionsMissionIdScaffoldSectionIdRouteImport.update({
     id: '/scaffold/$sectionId',
     path: '/scaffold/$sectionId',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
+  } as any)
+const AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute =
+  AuthenticatedMissionsMissionIdQuestionsQuestionIdRouteImport.update({
+    id: '/questions/$questionId',
+    path: '/questions/$questionId',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
 
@@ -598,10 +612,12 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
+  '/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
   '/missions/$missionId/scaffold/$sectionId': typeof AuthenticatedMissionsMissionIdScaffoldSectionIdRoute
   '/missions/$missionId/sections/$questionId': typeof AuthenticatedMissionsMissionIdSectionsQuestionIdRoute
   '/olympus/missions/$missionId/debrief': typeof AuthenticatedOlympusMissionsMissionIdDebriefRoute
   '/olympus/missions/$missionId/setup': typeof AuthenticatedOlympusMissionsMissionIdSetupRoute
+  '/missions/$missionId/questions/': typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
   '/missions/$missionId/sections/': typeof AuthenticatedMissionsMissionIdSectionsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -673,10 +689,12 @@ export interface FileRoutesByTo {
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdIndexRoute
+  '/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
   '/missions/$missionId/scaffold/$sectionId': typeof AuthenticatedMissionsMissionIdScaffoldSectionIdRoute
   '/missions/$missionId/sections/$questionId': typeof AuthenticatedMissionsMissionIdSectionsQuestionIdRoute
   '/olympus/missions/$missionId/debrief': typeof AuthenticatedOlympusMissionsMissionIdDebriefRoute
   '/olympus/missions/$missionId/setup': typeof AuthenticatedOlympusMissionsMissionIdSetupRoute
+  '/missions/$missionId/questions': typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
   '/missions/$missionId/sections': typeof AuthenticatedMissionsMissionIdSectionsIndexRoute
 }
 export interface FileRoutesById {
@@ -752,10 +770,12 @@ export interface FileRoutesById {
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/_authenticated/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
+  '/_authenticated/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
   '/_authenticated/missions/$missionId/scaffold/$sectionId': typeof AuthenticatedMissionsMissionIdScaffoldSectionIdRoute
   '/_authenticated/missions/$missionId/sections/$questionId': typeof AuthenticatedMissionsMissionIdSectionsQuestionIdRoute
   '/_authenticated/olympus/missions/$missionId/debrief': typeof AuthenticatedOlympusMissionsMissionIdDebriefRoute
   '/_authenticated/olympus/missions/$missionId/setup': typeof AuthenticatedOlympusMissionsMissionIdSetupRoute
+  '/_authenticated/missions/$missionId/questions/': typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
   '/_authenticated/missions/$missionId/sections/': typeof AuthenticatedMissionsMissionIdSectionsIndexRoute
 }
 export interface FileRouteTypes {
@@ -831,10 +851,12 @@ export interface FileRouteTypes {
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/refresh-intelligence'
     | '/missions/$missionId/'
+    | '/missions/$missionId/questions/$questionId'
     | '/missions/$missionId/scaffold/$sectionId'
     | '/missions/$missionId/sections/$questionId'
     | '/olympus/missions/$missionId/debrief'
     | '/olympus/missions/$missionId/setup'
+    | '/missions/$missionId/questions/'
     | '/missions/$missionId/sections/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -906,10 +928,12 @@ export interface FileRouteTypes {
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/refresh-intelligence'
     | '/missions/$missionId'
+    | '/missions/$missionId/questions/$questionId'
     | '/missions/$missionId/scaffold/$sectionId'
     | '/missions/$missionId/sections/$questionId'
     | '/olympus/missions/$missionId/debrief'
     | '/olympus/missions/$missionId/setup'
+    | '/missions/$missionId/questions'
     | '/missions/$missionId/sections'
   id:
     | '__root__'
@@ -984,10 +1008,12 @@ export interface FileRouteTypes {
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/refresh-intelligence'
     | '/_authenticated/missions/$missionId/'
+    | '/_authenticated/missions/$missionId/questions/$questionId'
     | '/_authenticated/missions/$missionId/scaffold/$sectionId'
     | '/_authenticated/missions/$missionId/sections/$questionId'
     | '/_authenticated/olympus/missions/$missionId/debrief'
     | '/_authenticated/olympus/missions/$missionId/setup'
+    | '/_authenticated/missions/$missionId/questions/'
     | '/_authenticated/missions/$missionId/sections/'
   fileRoutesById: FileRoutesById
 }
@@ -1517,6 +1543,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdSectionsIndexRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
+    '/_authenticated/missions/$missionId/questions/': {
+      id: '/_authenticated/missions/$missionId/questions/'
+      path: '/questions'
+      fullPath: '/missions/$missionId/questions/'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdQuestionsIndexRouteImport
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
     '/_authenticated/olympus/missions/$missionId/setup': {
       id: '/_authenticated/olympus/missions/$missionId/setup'
       path: '/missions/$missionId/setup'
@@ -1543,6 +1576,13 @@ declare module '@tanstack/react-router' {
       path: '/scaffold/$sectionId'
       fullPath: '/missions/$missionId/scaffold/$sectionId'
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdScaffoldSectionIdRouteImport
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
+    '/_authenticated/missions/$missionId/questions/$questionId': {
+      id: '/_authenticated/missions/$missionId/questions/$questionId'
+      path: '/questions/$questionId'
+      fullPath: '/missions/$missionId/questions/$questionId'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
   }
@@ -1622,8 +1662,10 @@ interface AuthenticatedMissionsMissionIdRouteChildren {
   AuthenticatedMissionsMissionIdTeamRoute: typeof AuthenticatedMissionsMissionIdTeamRoute
   AuthenticatedMissionsMissionIdVaultRoute: typeof AuthenticatedMissionsMissionIdVaultRoute
   AuthenticatedMissionsMissionIdIndexRoute: typeof AuthenticatedMissionsMissionIdIndexRoute
+  AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute: typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
   AuthenticatedMissionsMissionIdScaffoldSectionIdRoute: typeof AuthenticatedMissionsMissionIdScaffoldSectionIdRoute
   AuthenticatedMissionsMissionIdSectionsQuestionIdRoute: typeof AuthenticatedMissionsMissionIdSectionsQuestionIdRoute
+  AuthenticatedMissionsMissionIdQuestionsIndexRoute: typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
   AuthenticatedMissionsMissionIdSectionsIndexRoute: typeof AuthenticatedMissionsMissionIdSectionsIndexRoute
 }
 
@@ -1651,10 +1693,14 @@ const AuthenticatedMissionsMissionIdRouteChildren: AuthenticatedMissionsMissionI
       AuthenticatedMissionsMissionIdVaultRoute,
     AuthenticatedMissionsMissionIdIndexRoute:
       AuthenticatedMissionsMissionIdIndexRoute,
+    AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute:
+      AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute,
     AuthenticatedMissionsMissionIdScaffoldSectionIdRoute:
       AuthenticatedMissionsMissionIdScaffoldSectionIdRoute,
     AuthenticatedMissionsMissionIdSectionsQuestionIdRoute:
       AuthenticatedMissionsMissionIdSectionsQuestionIdRoute,
+    AuthenticatedMissionsMissionIdQuestionsIndexRoute:
+      AuthenticatedMissionsMissionIdQuestionsIndexRoute,
     AuthenticatedMissionsMissionIdSectionsIndexRoute:
       AuthenticatedMissionsMissionIdSectionsIndexRoute,
   }
