@@ -421,7 +421,41 @@ function JourneyMapPage() {
               <span className="text-sm font-semibold">78</span>
             </div>
           </div>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-3">
+            <div
+              role="radiogroup"
+              aria-label="Persona switching animations"
+              className="flex items-center rounded-md border border-border bg-surface p-0.5"
+              title={
+                motionPref === "auto"
+                  ? `Auto — following system preference (${systemReduced ? "reduced" : "full motion"})`
+                  : motionPref === "on"
+                    ? "Animated — overrides system reduced motion"
+                    : "Instant — no transitions"
+              }
+            >
+              <span className="px-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Motion
+              </span>
+              {(["auto", "on", "off"] as MotionPref[]).map((opt) => {
+                const active = motionPref === opt;
+                return (
+                  <button
+                    key={opt}
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setMotionPref(opt)}
+                    className="rounded px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] transition-colors"
+                    style={{
+                      background: active ? "rgba(59,130,246,0.15)" : "transparent",
+                      color: active ? "#93C5FD" : "var(--muted-foreground)",
+                    }}
+                  >
+                    {opt === "auto" ? "Auto" : opt === "on" ? "On" : "Off"}
+                  </button>
+                );
+              })}
+            </div>
             <button
               onClick={() => setInsightsOpen((o) => !o)}
               className="rounded-md border border-border bg-surface px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground"
