@@ -36,7 +36,14 @@ function isReplay() {
   return new URL(window.location.href).searchParams.get("profile-setup") === "1";
 }
 
+const DEFER_KEY = "iris.profile-setup.deferred";
+
 export function ProfileSetupWizardMount() {
+  // Re-render when the wizard defers itself for the session.
+  const [deferred, setDeferred] = useState(
+    typeof window !== "undefined" && sessionStorage.getItem(DEFER_KEY) === "1",
+  );
+
   const { data: gate } = useQuery({
     queryKey: ["profile-setup-gate"],
     queryFn: async () => {
@@ -57,8 +64,19 @@ export function ProfileSetupWizardMount() {
   // Only show after the IRIS briefing is done; don't double-stack on top of it.
   if (!gate.has_onboarded && !replay) return null;
   if (gate.profile_completed && !replay) return null;
+  // User chose "Save and continue later" — honor it for the rest of this session.
+  if (deferred && !replay) return null;
 
-  return <ProfileSetupWizard profileId={gate.id} displayName={gate.display_name ?? "operator"} />;
+  return (
+    <ProfileSetupWizard
+      profileId={gate.id}
+      displayName={gate.display_name ?? "operator"}
+      onDefer={() => {
+        sessionStorage.setItem(DEFER_KEY, "1");
+        setDeferred(true);
+      }}
+    />
+  );
 }
 
 const STEPS = [
@@ -71,7 +89,15 @@ const STEPS = [
   { key: "bio", title: "One-line bio", subtitle: "Shown when IRIS recommends you on Phone-a-Friend." },
 ] as const;
 
-function ProfileSetupWizard({ profileId, displayName }: { profileId: string; displayName: string }) {
+function ProfileSetupWizard({
+  profileId,
+  displayName,
+  onDefer,
+}: {
+  profileId: string;
+  displayName: string;
+  onDefer: () => void;
+}) {
   const qc = useQueryClient();
   const [stepIdx, setStepIdx] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -152,8 +178,7 @@ function ProfileSetupWizard({ profileId, displayName }: { profileId: string; dis
     setForm({ ...form, [field]: next });
   }
 
-  async function finish() {
-    setSaving(true);
+  async function persist({ markComplete }: { markComplete: boolean }) {
     const required = form.expertise_areas.length > 0 && form.states_experience.length > 0;
     const { error } = await supabase
       .from("profiles")
@@ -164,25 +189,42 @@ function ProfileSetupWizard({ profileId, displayName }: { profileId: string; dis
         question_types: form.question_types,
         availability_status: form.availability_status,
         expert_bio: form.expert_bio || null,
-        profile_completed: required,
+        // Only flip the completion flag when the user finishes; deferred
+        // saves preserve their progress without dismissing the wizard for good.
+        profile_completed: markComplete ? required : false,
         profile_updated_at: new Date().toISOString(),
       })
       .eq("id", profileId);
-    setSaving(false);
     if (error) {
       toast.error(error.message);
-      return;
+      return false;
     }
-    toast.success("You're set up. IRIS will point teammates to you when they need your expertise.");
     qc.invalidateQueries({ queryKey: ["profile-setup-gate"] });
     qc.invalidateQueries({ queryKey: ["me-expertise-status"] });
     qc.invalidateQueries({ queryKey: ["editable-profile", profileId] });
-    // Clear replay flag if present.
+    return true;
+  }
+
+  async function finish() {
+    setSaving(true);
+    const ok = await persist({ markComplete: true });
+    setSaving(false);
+    if (!ok) return;
+    toast.success("You're set up. IRIS will point teammates to you when they need your expertise.");
     if (typeof window !== "undefined" && isReplay()) {
       const url = new URL(window.location.href);
       url.searchParams.delete("profile-setup");
       window.history.replaceState({}, "", url.toString());
     }
+  }
+
+  async function saveAndDefer() {
+    setSaving(true);
+    const ok = await persist({ markComplete: false });
+    setSaving(false);
+    if (!ok) return;
+    toast.success("Progress saved. We'll pick this back up next time you log in.");
+    onDefer();
   }
 
   const firstName = displayName.split(/\s+/)[0];
@@ -358,6 +400,17 @@ function ProfileSetupWizard({ profileId, displayName }: { profileId: string; dis
             <ArrowLeft className="h-3.5 w-3.5" /> Back
           </button>
           <div className="flex items-center gap-2">
+            {/* Always available after the intro step — preserves progress without
+                marking the profile complete, so the wizard re-fires next login. */}
+            {stepIdx > 0 && (
+              <button
+                onClick={saveAndDefer}
+                disabled={saving}
+                className="rounded-md border border-border px-3 py-2 text-xs text-muted-foreground hover:bg-surface-hover hover:text-foreground disabled:opacity-40"
+              >
+                Save & continue later
+              </button>
+            )}
             {isLast ? (
               <button
                 onClick={finish}
@@ -369,7 +422,7 @@ function ProfileSetupWizard({ profileId, displayName }: { profileId: string; dis
             ) : (
               <button
                 onClick={() => setStepIdx((i) => Math.min(STEPS.length - 1, i + 1))}
-                disabled={!canAdvance}
+                disabled={!canAdvance || saving}
                 className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-40"
               >
                 Continue <ArrowRight className="h-4 w-4" />
