@@ -1,14 +1,12 @@
-import React, { Component, useState, type ErrorInfo, type ReactNode } from "react";
+import { Component, useState, type ErrorInfo, type ReactNode } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, X, ArrowRight, Archive, Pencil, RefreshCw } from "lucide-react";
+import { Plus, X, ArrowRight, Archive } from "lucide-react";
 import { toast } from "sonner";
 import { logOlympusAction } from "@/lib/audit";
 import { MissionActivationWizard } from "@/components/v2/MissionActivationWizard";
 import { MissionReadinessPanel, ReadinessChip } from "@/components/v2/MissionReadinessPanel";
-import { refreshIris } from "@/lib/iris-refresh.functions";
 
 
 export const Route = createFileRoute("/_authenticated/olympus/")({
