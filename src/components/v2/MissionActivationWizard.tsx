@@ -644,6 +644,26 @@ function Step3Activation({
     briefingReady: boolean;
   } | null>(null);
   const startedRef = useRef(false);
+  const escapedRef = useRef(false);
+  const countsRef = useRef<{ q: number; docs: number; indexed: number }>({ q: 0, docs: 0, indexed: 0 });
+
+  // User clicked "Enter mission anyway" — jump straight to the summary with
+  // oracleWarming=true. The background regen continues server-side; we just
+  // stop blocking the wizard on it.
+  const enterAnyway = () => {
+    if (escapedRef.current) return;
+    escapedRef.current = true;
+    setOracleWarming(true);
+    setPhase(3);
+    const c = countsRef.current;
+    setSummary({
+      questions: c.q,
+      documents: c.docs,
+      indexed: c.indexed,
+      briefingReady: false,
+    });
+    setPhase(4);
+  };
 
   useEffect(() => {
     if (startedRef.current) return;
@@ -659,7 +679,8 @@ function Step3Activation({
     async function run() {
       // Phase 0 → 1 small delay so the user sees the animation.
       await delay(700);
-      if (!cancelled) setPhase(1);
+      if (cancelled || escapedRef.current) return;
+      setPhase(1);
 
       // Counts (questions + documents + indexed)
       const [{ count: qCount }, { count: docCount }, { count: indexedCount }] = await Promise.all([
@@ -668,8 +689,10 @@ function Step3Activation({
         supabase.from("document_extractions").select("document_id", { count: "exact", head: true }).eq("mission_id", missionId),
       ]);
       const docs = docCount ?? 0;
+      countsRef.current = { q: qCount ?? 0, docs, indexed: indexedCount ?? 0 };
       await delay(700);
-      if (!cancelled) setPhase(2);
+      if (cancelled || escapedRef.current) return;
+      setPhase(2);
 
       // Briefing book regen (best-effort). Hard 45s timeout so a slow gateway
       // or stuck section never traps the wizard. On timeout we mark Oracle as
@@ -689,25 +712,26 @@ function Step3Activation({
         const msg = (err as Error)?.message ?? "";
         if (msg === "timeout") {
           timedOut = true;
-          if (!cancelled) setOracleWarming(true);
+          if (!cancelled && !escapedRef.current) setOracleWarming(true);
         }
         briefingReady = false;
       }
+      if (cancelled || escapedRef.current) return;
       await delay(800);
-      if (!cancelled) setPhase(3);
+      if (cancelled || escapedRef.current) return;
+      setPhase(3);
 
       await delay(600);
-      if (!cancelled) {
-        setSummary({
-          questions: qCount ?? 0,
-          documents: docs,
-          indexed: indexedCount ?? 0,
-          // If we timed out, Oracle is still warming server-side — don't
-          // falsely report "ready".
-          briefingReady: timedOut ? false : (briefingReady || docs === 0),
-        });
-        setPhase(4);
-      }
+      if (cancelled || escapedRef.current) return;
+      setSummary({
+        questions: qCount ?? 0,
+        documents: docs,
+        indexed: indexedCount ?? 0,
+        // If we timed out, Oracle is still warming server-side — don't
+        // falsely report "ready".
+        briefingReady: timedOut ? false : (briefingReady || docs === 0),
+      });
+      setPhase(4);
     }
     run();
     return () => {
@@ -715,6 +739,7 @@ function Step3Activation({
       clearTimeout(escapeTimer);
     };
   }, [missionId, regenFn]);
+
 
   const lines = [
     "IRIS is reading your documents…",
@@ -753,18 +778,14 @@ function Step3Activation({
           })}
         </ul>
 
-        {/* Escape hatch: after 20s, let the user enter the mission even if
-            briefing-book regen is still in flight. Kickoff continues in the
+        {/* Escape hatch: after 20s of Oracle seeding, let the user enter the
+            mission even if regen is still in flight. Kickoff continues in the
             background and the Oracle will populate when ready. */}
-        {showEscape && !summary && (
+        {showEscape && phase === 2 && !summary && (
           <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-muted-foreground">
-            <span>
-              {oracleWarming
-                ? "Oracle is still warming up — you can enter the mission now and it will populate shortly."
-                : "Taking longer than expected. You can enter the mission now; IRIS will keep working in the background."}
-            </span>
+            <span>Still building your Oracle… this can take up to 90 seconds.</span>
             <button
-              onClick={() => setLaunching(true)}
+              onClick={enterAnyway}
               className="shrink-0 inline-flex items-center gap-1.5 rounded-md border border-[#C49A22]/40 bg-[#C49A22]/10 px-2.5 py-1 font-semibold text-[#C49A22] hover:bg-[#C49A22]/20"
             >
               Enter mission anyway <ArrowRight className="h-3 w-3" />
