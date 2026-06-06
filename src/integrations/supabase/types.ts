@@ -2094,6 +2094,114 @@ export type Database = {
         }
         Relationships: []
       }
+      graph_edges: {
+        Row: {
+          confidence: number | null
+          created_at: string
+          dst_node_id: string
+          edge_type: string
+          id: string
+          mission_id: string
+          provenance: Json | null
+          src_node_id: string
+          valid_from: string
+          valid_to: string | null
+          weight: number
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string
+          dst_node_id: string
+          edge_type: string
+          id?: string
+          mission_id: string
+          provenance?: Json | null
+          src_node_id: string
+          valid_from?: string
+          valid_to?: string | null
+          weight?: number
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string
+          dst_node_id?: string
+          edge_type?: string
+          id?: string
+          mission_id?: string
+          provenance?: Json | null
+          src_node_id?: string
+          valid_from?: string
+          valid_to?: string | null
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "graph_edges_dst_node_id_fkey"
+            columns: ["dst_node_id"]
+            isOneToOne: false
+            referencedRelation: "graph_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "graph_edges_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "graph_edges_src_node_id_fkey"
+            columns: ["src_node_id"]
+            isOneToOne: false
+            referencedRelation: "graph_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      graph_nodes: {
+        Row: {
+          created_at: string
+          domain: string | null
+          id: string
+          kind: string
+          label: string
+          metadata: Json | null
+          mission_id: string
+          ref_id: string | null
+          ref_table: string | null
+        }
+        Insert: {
+          created_at?: string
+          domain?: string | null
+          id?: string
+          kind: string
+          label: string
+          metadata?: Json | null
+          mission_id: string
+          ref_id?: string | null
+          ref_table?: string | null
+        }
+        Update: {
+          created_at?: string
+          domain?: string | null
+          id?: string
+          kind?: string
+          label?: string
+          metadata?: Json | null
+          mission_id?: string
+          ref_id?: string | null
+          ref_table?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "graph_nodes_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hook_failures: {
         Row: {
           acknowledged_at: string | null
