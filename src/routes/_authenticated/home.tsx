@@ -22,6 +22,16 @@ import { RecentChangesCard } from "@/components/v4/RecentChangesCard";
 import { ExpertiseTagsCard } from "@/components/v4/ExpertiseTagsCard";
 import { useIsAdmin } from "@/hooks/useAccess";
 import type { ReactNode } from "react";
+import {
+  PortfolioStatusStrip,
+  AttentionPanel,
+  DueThisWeek,
+  MorningBriefing,
+  MissionFilterBar,
+  sortAndFilterMissions,
+  type MissionSort,
+  type BriefItem,
+} from "@/components/v2/AtriumCommandCenter";
 
 
 const IRIS_SILENT_WAV =
