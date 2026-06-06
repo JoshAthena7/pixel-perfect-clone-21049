@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
+type JsonValue = string | number | boolean | null | JsonValue[] | { [k: string]: JsonValue };
+
 export type GraphNode = {
   id: string;
   kind: string;
@@ -9,7 +11,7 @@ export type GraphNode = {
   domain: string | null;
   ref_table: string | null;
   ref_id: string | null;
-  metadata: Record<string, unknown> | null;
+  metadata: JsonValue | null;
 };
 
 export type GraphEdge = {
@@ -19,7 +21,7 @@ export type GraphEdge = {
   edge_type: string;
   weight: number;
   confidence: number | null;
-  provenance: Record<string, unknown> | null;
+  provenance: JsonValue | null;
   valid_from: string;
   valid_to: string | null;
 };
