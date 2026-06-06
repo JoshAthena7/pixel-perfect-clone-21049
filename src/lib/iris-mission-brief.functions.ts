@@ -35,17 +35,19 @@ export const generateMissionBrief = createServerFn({ method: "POST" })
       }
     }
 
-    const { data: mission } = await supabase
+    const { data: mission, error: missionError } = await supabase
       .from("missions")
       .select("id,name,client,state,submission_date,health,win_themes,rfp_parsed")
       .eq("id", data.missionId)
       .maybeSingle();
-    if (!mission) {
+    if (missionError || !mission) {
       return {
-        brief: "Mission brief is unavailable. You may not have access to this mission, or it no longer exists.",
+        brief: missionError
+          ? "Mission brief is unavailable because IRIS could not read this mission right now."
+          : "Mission brief is unavailable. You may not have access to this mission, or it no longer exists.",
         generated_at: new Date().toISOString(),
         cached: false,
-        error: "mission_not_found" as const,
+        error: missionError ? "mission_read_failed" as const : "mission_not_found" as const,
       };
     }
 
