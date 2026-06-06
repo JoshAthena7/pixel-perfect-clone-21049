@@ -16,7 +16,8 @@ export function MobileBottomNav() {
   if (isAuthRoute) return null;
 
   const inMission = !!missionId;
-  const inCockpit = path.startsWith("/missions/") && (path.includes("/sections") || path.includes("/iris"));
+  const inSections = path.startsWith("/missions/") && (path.includes("/sections") || path.includes("/scaffold") || path.includes("/iris"));
+  const inCockpit = path.startsWith("/cockpit");
 
   const items = [
     {
@@ -24,13 +25,20 @@ export function MobileBottomNav() {
       label: "Mission",
       icon: <Building2 size={18} strokeWidth={1.75} />,
       to: inMission ? `/missions/${missionId}/overview` : "/home",
-      active: inMission && !inCockpit,
+      active: inMission && !inSections,
+    },
+    {
+      key: "sections",
+      label: "Sections",
+      icon: <Plane size={18} strokeWidth={1.75} />,
+      to: inMission ? `/missions/${missionId}/sections` : "/cockpit",
+      active: inSections,
     },
     {
       key: "cockpit",
       label: "Cockpit",
       icon: <Plane size={18} strokeWidth={1.75} />,
-      to: inMission ? `/missions/${missionId}/questions` : "/home",
+      to: "/cockpit",
       active: inCockpit,
     },
     {
