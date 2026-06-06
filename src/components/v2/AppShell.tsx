@@ -397,7 +397,7 @@ function RoomToggle({ missionId, room }: { missionId: string; room: Room }) {
             onClick={s.onGo}
             role="tab"
             aria-selected={active}
-            className="inline-flex items-center gap-2 rounded-lg px-6 py-2 text-[12px] font-bold uppercase tracking-[0.1em] whitespace-nowrap transition-all duration-200"
+            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] whitespace-nowrap transition-all duration-200"
             style={
               active
                 ? {
