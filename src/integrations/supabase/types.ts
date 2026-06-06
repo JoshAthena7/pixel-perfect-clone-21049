@@ -2726,6 +2726,7 @@ export type Database = {
       mission_client_intel: {
         Row: {
           contacts: Json
+          created_by_system: boolean
           decision_makers: Json
           meeting_cadence: string | null
           mission_id: string
@@ -2737,6 +2738,7 @@ export type Database = {
         }
         Insert: {
           contacts?: Json
+          created_by_system?: boolean
           decision_makers?: Json
           meeting_cadence?: string | null
           mission_id: string
@@ -2748,6 +2750,7 @@ export type Database = {
         }
         Update: {
           contacts?: Json
+          created_by_system?: boolean
           decision_makers?: Json
           meeting_cadence?: string | null
           mission_id?: string
@@ -3365,6 +3368,7 @@ export type Database = {
       mission_risks: {
         Row: {
           created_at: string | null
+          created_by_system: boolean
           description: string | null
           id: string
           mission_id: string
@@ -3376,6 +3380,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          created_by_system?: boolean
           description?: string | null
           id?: string
           mission_id: string
@@ -3387,6 +3392,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          created_by_system?: boolean
           description?: string | null
           id?: string
           mission_id?: string
@@ -3461,6 +3467,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string | null
+          created_by_system: boolean
           id: string
           kind: string
           label: string
@@ -3472,6 +3479,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by?: string | null
+          created_by_system?: boolean
           id?: string
           kind: string
           label: string
@@ -3483,6 +3491,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string | null
+          created_by_system?: boolean
           id?: string
           kind?: string
           label?: string
@@ -5441,6 +5450,7 @@ export type Database = {
         Row: {
           created_at: string | null
           created_by: string | null
+          created_by_system: boolean
           description: string | null
           id: string
           key_message: string | null
@@ -5452,6 +5462,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           created_by?: string | null
+          created_by_system?: boolean
           description?: string | null
           id?: string
           key_message?: string | null
@@ -5463,6 +5474,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           created_by?: string | null
+          created_by_system?: boolean
           description?: string | null
           id?: string
           key_message?: string | null

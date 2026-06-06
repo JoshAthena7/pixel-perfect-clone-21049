@@ -1,55 +1,113 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import { getIrisData } from "@/lib/iris-read.functions";
+import { runIrisPipeline } from "@/lib/iris-extractors/run-all.functions";
 
 /**
  * IRIS — the intelligence experience layer.
  *
- * Five canonical outputs the user ever sees: Mission Brief, Environmental
- * Assessment, What the State Wants, Emerging Risks, Recommended Strategy.
- * This route is the UI surface only — every backing fact below is static
- * NJ CSOC demo content. The real backend pipeline will replace these
- * arrays one slice at a time.
- *
- * North Star: docs/specs/iris-north-star.md
+ * Wired to the live extractor pipeline. Each tab reads from its backing
+ * table (signals · mission_risks · win_themes · mission_strategy ·
+ * mission_client_intel). The "Generate Intelligence" action runs all 5
+ * extractors for the selected mission and refreshes the page.
  */
 
 export const Route = createFileRoute("/_authenticated/iris")({
   component: IrisPage,
 });
 
-const MISSION_NAME = "NJ DCF — Children's System of Care (CSOC) Recompete";
-const GENERATED_AT = "June 5, 2026 · 06:42 ET";
-
 type TabId = "brief" | "environment" | "wants" | "risks" | "strategy";
 
 const TABS: { id: TabId; label: string }[] = [
-  { id: "brief",       label: "Mission Brief" },
+  { id: "brief", label: "Mission Brief" },
   { id: "environment", label: "Environmental Assessment" },
-  { id: "wants",       label: "What the State Wants" },
-  { id: "risks",       label: "Emerging Risks" },
-  { id: "strategy",    label: "Recommended Strategy" },
+  { id: "wants", label: "What the State Wants" },
+  { id: "risks", label: "Emerging Risks" },
+  { id: "strategy", label: "Recommended Strategy" },
 ];
 
 function IrisPage() {
+  const router = useRouter();
   const [tab, setTab] = useState<TabId>("brief");
+  const [missionId, setMissionId] = useState<string | undefined>(undefined);
+
+  const fetchIris = useServerFn(getIrisData);
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["iris", missionId ?? "default"],
+    queryFn: () => fetchIris({ data: { missionId } }),
+  });
+
+  const runPipeline = useServerFn(runIrisPipeline);
+  const mutation = useMutation({
+    mutationFn: (id: string) => runPipeline({ data: { missionId: id } }),
+    onSuccess: (res) => {
+      const ok = res.results.filter((r) => r.ok && !r.skipped);
+      const skipped = res.results.filter((r) => r.skipped);
+      const failed = res.results.filter((r) => !r.ok);
+      const total = ok.reduce((n, r) => n + r.inserted, 0);
+      toast.success(
+        `IRIS pipeline complete · ${total} rows generated across ${ok.length}/${res.results.length} stages` +
+          (skipped.length ? ` · ${skipped.length} skipped` : "") +
+          (failed.length ? ` · ${failed.length} failed` : ""),
+      );
+      void router.invalidate();
+    },
+    onError: (e) => toast.error(`Pipeline failed: ${(e as Error).message}`),
+  });
+
+  const activeMissionId = data?.mission?.id;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-6xl px-6 py-10">
-        {/* Header */}
         <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-amber-400/80">
               IRIS · Intelligence
             </div>
             <h1 className="mt-1 font-serif text-3xl tracking-tight text-foreground">
-              {MISSION_NAME}
+              {data?.mission?.name ?? (isLoading ? "Loading…" : "No mission selected")}
             </h1>
+            {data?.mission?.client && (
+              <div className="mt-1 text-sm text-muted-foreground">
+                {data.mission.client}
+                {data.mission.state ? ` · ${data.mission.state}` : ""}
+                {data.mission.procurement_name ? ` · ${data.mission.procurement_name}` : ""}
+              </div>
+            )}
           </div>
-          <IrisAttribution />
+          <div className="flex flex-col items-end gap-2">
+            <IrisAttribution />
+            {(data?.missions?.length ?? 0) > 1 && (
+              <select
+                className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
+                value={activeMissionId ?? ""}
+                onChange={(e) => setMissionId(e.target.value)}
+              >
+                {data!.missions.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+            )}
+            {activeMissionId && (
+              <button
+                type="button"
+                onClick={() => mutation.mutate(activeMissionId)}
+                disabled={mutation.isPending}
+                className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-300 transition hover:bg-amber-500/15 disabled:opacity-50"
+              >
+                {mutation.isPending ? "Generating…" : "Generate Intelligence"}
+              </button>
+            )}
+          </div>
         </header>
 
-        {/* Tabs */}
         <nav className="mb-8 flex flex-wrap gap-1 border-b border-border/60">
           {TABS.map((t) => {
             const active = tab === t.id;
@@ -75,13 +133,23 @@ function IrisPage() {
           })}
         </nav>
 
-        {/* Content */}
         <section>
-          {tab === "brief" && <MissionBrief />}
-          {tab === "environment" && <EnvironmentalAssessment />}
-          {tab === "wants" && <WhatTheStateWants />}
-          {tab === "risks" && <EmergingRisks />}
-          {tab === "strategy" && <RecommendedStrategy />}
+          {isLoading && <PanelSkeleton />}
+          {isError && (
+            <EmptyState
+              title="Couldn't load IRIS"
+              body={(error as Error).message}
+            />
+          )}
+          {!isLoading && !isError && data && (
+            <>
+              {tab === "brief" && <MissionBriefView data={data} />}
+              {tab === "environment" && <EnvironmentalView signals={data.signals} />}
+              {tab === "wants" && <WantsView priorities={data.strategy} />}
+              {tab === "risks" && <RisksView risks={data.risks} />}
+              {tab === "strategy" && <StrategyView themes={data.winThemes} />}
+            </>
+          )}
         </section>
       </div>
     </div>
@@ -89,10 +157,16 @@ function IrisPage() {
 }
 
 /* ─────────────────────────────────────────────────────────────────────── */
-/* Shared atoms                                                            */
+/* Atoms                                                                   */
 /* ─────────────────────────────────────────────────────────────────────── */
 
 function IrisAttribution() {
+  const ts = new Date().toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
   return (
     <div className="flex items-center gap-2 text-[10px] tracking-[0.18em] text-muted-foreground/70">
       <span
@@ -102,7 +176,7 @@ function IrisAttribution() {
       />
       <span className="uppercase">Generated by IRIS</span>
       <span aria-hidden>·</span>
-      <span>{GENERATED_AT}</span>
+      <span>{ts}</span>
     </div>
   );
 }
@@ -115,280 +189,212 @@ function SourceBadge({ children }: { children: React.ReactNode }) {
   );
 }
 
-function SeverityChip({ level }: { level: "High" | "Medium" | "Watch" }) {
-  const style =
-    level === "High"
-      ? { color: "#fca5a5", bg: "rgba(220, 38, 38, 0.12)", border: "rgba(220, 38, 38, 0.35)" }
-      : level === "Medium"
-      ? { color: "#fcd34d", bg: "rgba(245, 158, 11, 0.12)", border: "rgba(245, 158, 11, 0.35)" }
-      : { color: "#a7f3d0", bg: "rgba(16, 185, 129, 0.12)", border: "rgba(16, 185, 129, 0.35)" };
+function PanelSkeleton() {
+  return (
+    <div className="space-y-3">
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="h-24 animate-pulse rounded-lg border border-border/40 bg-muted/20" />
+      ))}
+    </div>
+  );
+}
+
+function EmptyState({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-lg border border-dashed border-border/70 bg-surface/30 p-8 text-center">
+      <div className="text-sm font-semibold text-foreground">{title}</div>
+      <div className="mt-2 max-w-xl mx-auto text-[13px] leading-relaxed text-muted-foreground">{body}</div>
+    </div>
+  );
+}
+
+function severityChip(level: string) {
+  const map: Record<string, { color: string; bg: string; border: string; label: string }> = {
+    critical: { color: "#fca5a5", bg: "rgba(220,38,38,0.14)", border: "rgba(220,38,38,0.40)", label: "Critical" },
+    high: { color: "#fca5a5", bg: "rgba(220,38,38,0.12)", border: "rgba(220,38,38,0.35)", label: "High" },
+    elevated: { color: "#fcd34d", bg: "rgba(245,158,11,0.14)", border: "rgba(245,158,11,0.40)", label: "Elevated" },
+    medium: { color: "#fcd34d", bg: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.35)", label: "Medium" },
+    watch: { color: "#a7f3d0", bg: "rgba(16,185,129,0.12)", border: "rgba(16,185,129,0.35)", label: "Watch" },
+    info: { color: "#a7f3d0", bg: "rgba(16,185,129,0.10)", border: "rgba(16,185,129,0.30)", label: "Info" },
+  };
+  const s = map[level] ?? map.info;
   return (
     <span
       className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em]"
-      style={{ color: style.color, background: style.bg, border: `1px solid ${style.border}` }}
+      style={{ color: s.color, background: s.bg, border: `1px solid ${s.border}` }}
     >
-      {level}
+      {s.label}
     </span>
   );
 }
 
 /* ─────────────────────────────────────────────────────────────────────── */
-/* 1 · Mission Brief — reads like a briefing document                       */
+/* Tabs                                                                    */
 /* ─────────────────────────────────────────────────────────────────────── */
 
-const BRIEF_SECTIONS: { heading: string; body: string[] }[] = [
-  {
-    heading: "What This Procurement Is",
-    body: [
-      "The New Jersey Department of Children and Families (DCF) is recompeting the statewide Contracted System Administrator (CSA) for the Children's System of Care (CSOC). The CSA operates the single statewide access point for behavioral health, intellectual and developmental disability, and substance use treatment services for children, youth, and young adults up to age 21. The current contract is held by PerformCare (an AmeriHealth Caritas subsidiary) and has been continuously held since CSOC's redesign in 2012.",
-      "The procurement is structured as a five-year base with three one-year options. Estimated annual contract value is $58–72M depending on call volume and service mix. Award is expected Q1 2027 with a six-month transition window before go-live.",
-    ],
-  },
-  {
-    heading: "Who The Client Is",
-    body: [
-      "DCF Commissioner Christine Norbut Beyer reports directly to Governor Murphy. CSOC sits within DCF as a distinct division led by Assistant Commissioner Mollie Greene. The procurement evaluation will be led by DCF Contract Administration with technical scoring by CSOC clinical leadership and the State's external clinical advisors.",
-      "The Governor's office is unusually engaged on this procurement. Children's behavioral health is a stated administration priority and the 2025 State of the State address named CSOC modernization explicitly. Expect political attention on every milestone.",
-    ],
-  },
-  {
-    heading: "What The Program Does",
-    body: [
-      "CSOC is the access point, care management entity, and utilization management authority for all publicly funded children's behavioral health, IDD, and SUD services in NJ. It operates a 24/7 access line, conducts standardized assessments (CANS, NJ-IME-A), authorizes services, coordinates with Care Management Organizations (CMOs) and Mobile Response and Stabilization Services (MRSS), and manages the Family Support Organization (FSO) network.",
-      "The CSA is operationally responsible for ~135,000 unique youth annually, ~$1.1B in downstream service spend, and a workforce of roughly 4,800 contracted providers. The CSA does not deliver direct services — it is the brain of the system.",
-    ],
-  },
-  {
-    heading: "Who It Serves",
-    body: [
-      "Children, youth, and young adults up to age 21 (up to 25 for IDD continuity) and their families across all 21 NJ counties. Median age at first contact is 13. ~62% Medicaid-eligible at intake; ~38% commercial or uninsured at intake but routed to appropriate funding source. Disproportionate representation of youth in DCP&P involvement, juvenile justice diversion, and unstably housed families.",
-      "The program is explicitly family-driven and youth-guided — the FSO network and Youth Partner roles are written into statute, not contract. Family voice is not a checkbox; it is a structural requirement evaluators will test.",
-    ],
-  },
-  {
-    heading: "What The Contract Requires",
-    body: [
-      "Operate the statewide 24/7 access line with sub-90-second answer time and 100% bilingual capability. Deploy and maintain the CSOC IT platform (currently CYBER) with required upgrades to integrate NJ Health Information Network and the federal CCBHC reporting standard. Maintain MRSS dispatch within 60 minutes for active crisis statewide. Manage utilization within the State's actuarial corridor with shared-risk provisions in years 4–8.",
-      "Workforce, equity, and outcomes reporting are weighted heavily in evaluation. Expect substantial points on workforce stabilization plans (NJ providers are in active crisis), on the Family/Youth Partner model, and on health equity outcomes by race, language, and county.",
-    ],
-  },
-];
+type IrisData = Awaited<ReturnType<typeof getIrisData>>;
 
-function MissionBrief() {
+function MissionBriefView({ data }: { data: IrisData }) {
+  const m = data.mission;
+  const intel = data.clientIntel;
+  if (!m) {
+    return <EmptyState title="No mission" body="Create or select a mission to see its brief." />;
+  }
+
   return (
     <article className="prose prose-invert max-w-none">
       <div className="mb-6 border-l-2 border-amber-500/40 pl-4 text-sm italic text-muted-foreground">
-        Read this first. Every team member, every role. The brief sets the orientation
-        before any drafting begins.
+        Read this first. The brief sets the orientation before any drafting begins.
       </div>
-      {BRIEF_SECTIONS.map((s) => (
-        <section key={s.heading} className="mb-7">
-          <h2 className="font-serif text-xl tracking-tight text-foreground">
-            {s.heading}
-          </h2>
-          <div className="mt-2 space-y-3 text-[15px] leading-relaxed text-muted-foreground">
-            {s.body.map((p, i) => (
-              <p key={i}>{p}</p>
+
+      <section className="mb-7">
+        <h2 className="font-serif text-xl tracking-tight text-foreground">What This Procurement Is</h2>
+        <div className="mt-2 space-y-3 text-[15px] leading-relaxed text-muted-foreground">
+          <p>
+            {m.description ??
+              `${m.procurement_name ?? m.name} — ${m.client ?? "client"} ${m.state ? `· ${m.state}` : ""}.`}
+          </p>
+          {m.submission_date && <p>Submission target: {m.submission_date}. Status: {m.status ?? "active"}.</p>}
+        </div>
+      </section>
+
+      {m.key_requirements?.length ? (
+        <section className="mb-7">
+          <h2 className="font-serif text-xl tracking-tight text-foreground">Key Requirements</h2>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-[15px] leading-relaxed text-muted-foreground">
+            {m.key_requirements.map((k, i) => (
+              <li key={i}>{k}</li>
             ))}
-          </div>
+          </ul>
         </section>
-      ))}
+      ) : null}
+
+      <section className="mb-7">
+        <h2 className="font-serif text-xl tracking-tight text-foreground">Who The Client Is</h2>
+        <div className="mt-2 space-y-3 text-[15px] leading-relaxed text-muted-foreground">
+          {intel ? (
+            <>
+              {Array.isArray(intel.decision_makers) && intel.decision_makers.length > 0 ? (
+                <p>
+                  <strong className="text-foreground">Decision-makers:</strong>{" "}
+                  {(intel.decision_makers as Array<{ name: string; role: string }>)
+                    .map((d) => `${d.name} (${d.role})`)
+                    .join("; ")}
+                </p>
+              ) : null}
+              {intel.political_considerations && <p>{intel.political_considerations}</p>}
+              {intel.notes && <p className="text-[13px] text-muted-foreground/80">{intel.notes}</p>}
+            </>
+          ) : (
+            <p className="italic text-muted-foreground/70">
+              No client intel generated yet. Click <strong>Generate Intelligence</strong> to populate.
+            </p>
+          )}
+        </div>
+      </section>
     </article>
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────────── */
-/* 2 · Environmental Assessment — three columns of signal cards            */
-/* ─────────────────────────────────────────────────────────────────────── */
+function EnvironmentalView({ signals }: { signals: IrisData["signals"] }) {
+  if (!signals.length) {
+    return (
+      <EmptyState
+        title="No environmental signals yet"
+        body="Click Generate Intelligence to extract political, regulatory, and competitive signals from your market intelligence feed."
+      />
+    );
+  }
+  const groups: Record<string, typeof signals> = { political: [], regulatory: [], competitive: [], operational: [] };
+  for (const s of signals) (groups[s.signal_type] ?? (groups[s.signal_type] = [])).push(s);
 
-type EnvSignal = { signal: string; source: string; relevance: string };
+  const COLS: { key: keyof typeof groups; title: string }[] = [
+    { key: "political", title: "Political Context" },
+    { key: "regulatory", title: "Regulatory Landscape" },
+    { key: "competitive", title: "Competitive Situation" },
+  ];
 
-const ENV_COLUMNS: { title: string; subtitle: string; items: EnvSignal[] }[] = [
-  {
-    title: "Political Context",
-    subtitle: "Murphy administration · DCF leadership · legislature",
-    items: [
-      {
-        signal: "Governor's 2025 State of the State named CSOC modernization as a second-term priority.",
-        source: "NJ Office of the Governor, Jan 14 2025",
-        relevance: "Raises political stakes; evaluators will look for modernization narrative.",
-      },
-      {
-        signal: "Assembly Human Services Committee held two oversight hearings on CSOC wait times in Q4 2025.",
-        source: "NJ Legislature transcripts",
-        relevance: "Access-line performance and MRSS response will be politically scrutinized.",
-      },
-      {
-        signal: "Commissioner Beyer signaled openness to a non-incumbent in October 2025 NJ Spotlight interview.",
-        source: "NJ Spotlight News, Oct 22 2025",
-        relevance: "Window is open. Incumbent is not protected by State preference.",
-      },
-      {
-        signal: "FY27 Governor's Budget proposes 8% increase to CSOC service spend — first real increase since FY22.",
-        source: "Governor's FY27 Budget Address",
-        relevance: "Resourcing supports an ambitious workforce and equity proposal.",
-      },
-    ],
-  },
-  {
-    title: "Regulatory Landscape",
-    subtitle: "CMS · 1915(i) · CCBHC · HIPAA / 42 CFR Part 2",
-    items: [
-      {
-        signal: "CMS finalized 42 CFR Part 2 alignment with HIPAA, effective Feb 2026.",
-        source: "Federal Register, Feb 8 2024 (final rule)",
-        relevance: "SUD data flows into the CSA platform change materially. Re-architect required.",
-      },
-      {
-        signal: "NJ 1915(i) state plan amendment for intensive in-community services pending CMS approval.",
-        source: "Medicaid.gov SPA tracker",
-        relevance: "Service mix and authorization workflows will shift mid-contract.",
-      },
-      {
-        signal: "CMS Children's Behavioral Health Initiative guidance published Mar 2025.",
-        source: "CMS Informational Bulletin, Mar 6 2025",
-        relevance: "National benchmark for what an ambitious CSA should look like.",
-      },
-      {
-        signal: "DCF issued draft Health Equity Reporting Standard for public comment Nov 2025.",
-        source: "NJ DCF Public Notices",
-        relevance: "Equity outcomes will be a scored evaluation criterion, not a narrative ask.",
-      },
-    ],
-  },
-  {
-    title: "Competitive Situation",
-    subtitle: "Incumbent · likely bidders · prior awards",
-    items: [
-      {
-        signal: "PerformCare (incumbent) parent AmeriHealth Caritas had two large state losses in 2025 (KY, IA).",
-        source: "Industry trade press composite",
-        relevance: "Incumbent corporate is distracted and weakened. Real competitive opening.",
-      },
-      {
-        signal: "Carelon Behavioral Health hired three former NJ DCF clinical leaders in 2025.",
-        source: "LinkedIn signal scan",
-        relevance: "Carelon is positioning seriously. Expect a credible challenge.",
-      },
-      {
-        signal: "Beacon Health Options / Carelon won MA CBHI recompete in 2024 with a workforce-centered bid.",
-        source: "MA EOHHS award notice",
-        relevance: "Workforce stabilization narrative is the proven winning frame in this market.",
-      },
-      {
-        signal: "Magellan exited public-sector children's BH in 2024 — will not bid.",
-        source: "Magellan investor briefing",
-        relevance: "Reduces field to 3–4 credible bidders. Higher probability per qualified bid.",
-      },
-    ],
-  },
-];
-
-function EnvironmentalAssessment() {
   return (
     <div>
       <p className="mb-6 max-w-3xl text-sm text-muted-foreground">
-        Not a research dump. A picture of the room we are walking into — political,
-        regulatory, competitive. Each signal carries its source and why it matters to
-        this mission.
+        Not a research dump. A picture of the room we are walking into — political, regulatory, competitive.
+        Each signal carries its source and recommended action.
       </p>
       <div className="grid gap-5 md:grid-cols-3">
-        {ENV_COLUMNS.map((col) => (
-          <div
-            key={col.title}
-            className="rounded-lg border border-border/70 bg-surface/40 p-4"
-          >
-            <div className="mb-1 text-[11px] font-bold uppercase tracking-[0.22em] text-amber-400/80">
+        {COLS.map((col) => (
+          <div key={col.key} className="rounded-lg border border-border/70 bg-surface/40 p-4">
+            <div className="mb-3 text-[11px] font-bold uppercase tracking-[0.22em] text-amber-400/80">
               {col.title}
             </div>
-            <div className="mb-4 text-[11px] text-muted-foreground">{col.subtitle}</div>
             <div className="space-y-3">
-              {col.items.map((item, i) => (
-                <div
-                  key={i}
-                  className="rounded-md border border-border/60 bg-background/60 p-3"
-                >
-                  <div className="text-[13px] leading-snug text-foreground">{item.signal}</div>
-                  <div className="mt-2 flex items-center gap-2">
-                    <SourceBadge>{item.source}</SourceBadge>
+              {(groups[col.key] ?? []).length === 0 && (
+                <div className="text-[12px] italic text-muted-foreground/70">No signals in this category.</div>
+              )}
+              {(groups[col.key] ?? []).map((s) => (
+                <div key={s.id} className="rounded-md border border-border/60 bg-background/60 p-3">
+                  <div className="mb-1 flex items-center gap-2">
+                    {severityChip(s.severity)}
+                    {typeof s.confidence === "number" && (
+                      <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/60">
+                        {Math.round(s.confidence * 100)}% conf
+                      </span>
+                    )}
                   </div>
-                  <div className="mt-2 text-[11px] italic text-muted-foreground">
-                    Why it matters: {item.relevance}
-                  </div>
+                  <div className="text-[13px] font-medium leading-snug text-foreground">{s.signal_title}</div>
+                  <div className="mt-1 text-[12px] leading-snug text-muted-foreground">{s.signal_summary}</div>
+                  {s.tags?.[0] && (
+                    <div className="mt-2">
+                      <SourceBadge>{s.tags[0]}</SourceBadge>
+                    </div>
+                  )}
+                  {s.recommended_action && (
+                    <div className="mt-2 text-[11px] italic text-muted-foreground/80">
+                      → {s.recommended_action}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           </div>
         ))}
       </div>
+      {groups.operational.length > 0 && (
+        <div className="mt-5 rounded-lg border border-border/70 bg-surface/40 p-4">
+          <div className="mb-3 text-[11px] font-bold uppercase tracking-[0.22em] text-amber-400/80">
+            Operational
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            {groups.operational.map((s) => (
+              <div key={s.id} className="rounded-md border border-border/60 bg-background/60 p-3">
+                <div className="mb-1">{severityChip(s.severity)}</div>
+                <div className="text-[13px] font-medium text-foreground">{s.signal_title}</div>
+                <div className="mt-1 text-[12px] text-muted-foreground">{s.signal_summary}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────────── */
-/* 3 · What the State Wants                                                 */
-/* ─────────────────────────────────────────────────────────────────────── */
-
-type StatePriority = {
-  priority: string;
-  why: string;
-  source: string;
-  winTheme: string;
-};
-
-const STATE_PRIORITIES: StatePriority[] = [
-  {
-    priority: "Stabilize the children's behavioral health workforce in New Jersey.",
-    why: "NJ providers report 22% vacancy in licensed clinicians. State leadership has named workforce as the single biggest threat to system performance.",
-    source: "DCF FY27 Strategic Plan · Beyer testimony Mar 2026",
-    winTheme: "Workforce as Infrastructure",
-  },
-  {
-    priority: "Close racial and geographic equity gaps in access and outcomes.",
-    why: "Black and Hispanic youth are 2.1× more likely to enter CSOC through crisis vs. routine intake. Six rural counties have MRSS response times >90 minutes.",
-    source: "DCF Equity Dashboard 2025 · Health Equity Reporting Standard draft",
-    winTheme: "Equity is the Outcome",
-  },
-  {
-    priority: "Modernize the CSA technology platform — CYBER is past end of life.",
-    why: "CYBER is on a 2008 architecture, cannot natively integrate with NJ HIN, and blocks CCBHC reporting. Modernization is the Governor's named priority.",
-    source: "State of the State Jan 2025 · DCF IT roadmap leak",
-    winTheme: "A Platform Built for the Next Decade",
-  },
-  {
-    priority: "Honor family voice and youth voice as structural, not decorative.",
-    why: "FSO and Youth Partner roles are statute. Family Advisory Council has board-level oversight. Evaluators will test whether bidders treat this as compliance or as design.",
-    source: "NJSA 30:4-181 · Family Advisory Council 2025 letter",
-    winTheme: "Family-Driven by Design",
-  },
-  {
-    priority: "Strengthen the MRSS crisis response statewide, including rural counties.",
-    why: "Crisis is where families lose trust in the system. The State has named 60-minute response statewide as the bar — including Sussex, Warren, Salem, Cumberland.",
-    source: "CSOC Operations Report Q3 2025 · legislative oversight Q4 2025",
-    winTheme: "No County Left in Crisis",
-  },
-  {
-    priority: "Demonstrate the CSA can be a real partner — not just a vendor.",
-    why: "Beyer has publicly said the prior contract felt transactional. She wants a CSA that brings ideas, surfaces problems early, and shares risk.",
-    source: "NJ Spotlight interview Oct 2025 · DCF leadership offsite notes",
-    winTheme: "A Partner, Not a Vendor",
-  },
-];
-
-function WhatTheStateWants() {
+function WantsView({ priorities }: { priorities: IrisData["strategy"] }) {
+  if (!priorities.length) {
+    return (
+      <EmptyState
+        title="No state priorities decoded yet"
+        body="Click Generate Intelligence to decode what the state actually wants — beyond what the RFP says."
+      />
+    );
+  }
   return (
     <div>
       <p className="mb-6 max-w-3xl text-sm text-muted-foreground">
-        Decoded priorities — not what the RFP says, what the State actually cares
-        about. Built from the Governor, the legislature, agency leadership, stakeholder
-        testimony, and program history.
+        Decoded priorities — not what the RFP says, what the State actually cares about.
       </p>
       <ol className="space-y-3">
-        {STATE_PRIORITIES.map((p, i) => (
-          <li
-            key={i}
-            className="rounded-lg border border-border/70 bg-surface/40 p-4"
-          >
+        {priorities.map((p, i) => (
+          <li key={p.id} className="rounded-lg border border-border/70 bg-surface/40 p-4">
             <div className="flex items-start gap-4">
               <div
                 className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold"
@@ -401,25 +407,12 @@ function WhatTheStateWants() {
                 {i + 1}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-[15px] font-medium text-foreground">{p.priority}</div>
-                <div className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
-                  {p.why}
-                </div>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <SourceBadge>{p.source}</SourceBadge>
-                  <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70">
-                    Supports
-                  </span>
-                  <span
-                    className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                    style={{
-                      color: "var(--athena-gold, #f59e0b)",
-                      background: "rgba(245,158,11,0.10)",
-                    }}
-                  >
-                    {p.winTheme}
-                  </span>
-                </div>
+                <div className="text-[15px] font-medium text-foreground">{p.label}</div>
+                {p.notes && (
+                  <div className="mt-1.5 whitespace-pre-line text-[13px] leading-relaxed text-muted-foreground">
+                    {p.notes}
+                  </div>
+                )}
               </div>
             </div>
           </li>
@@ -429,141 +422,76 @@ function WhatTheStateWants() {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────────── */
-/* 4 · Emerging Risks — a live feed                                         */
-/* ─────────────────────────────────────────────────────────────────────── */
-
-type RiskItem = {
-  risk: string;
-  severity: "High" | "Medium" | "Watch";
-  category: "Regulatory" | "Competitive" | "Political" | "Operational";
-  identifiedAt: string;
-};
-
-const RISKS: RiskItem[] = [
-  {
-    risk: "Carelon Behavioral Health hired three ex-DCF clinical leaders in 2025 — they will bring institutional knowledge to a competing bid.",
-    severity: "High",
-    category: "Competitive",
-    identifiedAt: "Identified May 28 2026",
-  },
-  {
-    risk: "42 CFR Part 2 alignment with HIPAA effective Feb 2026 forces SUD data architecture changes mid-bid. Bidders who under-scope will be exposed.",
-    severity: "High",
-    category: "Regulatory",
-    identifiedAt: "Identified May 22 2026",
-  },
-  {
-    risk: "NJ 1915(i) State Plan Amendment is pending CMS approval — if it lands during evaluation, scoring criteria may shift for in-community services.",
-    severity: "Medium",
-    category: "Regulatory",
-    identifiedAt: "Identified May 19 2026",
-  },
-  {
-    risk: "Assembly Human Services Committee Chair has signaled she may request bidder hearings as a transparency condition. Would compress timeline and surface proposals publicly.",
-    severity: "Medium",
-    category: "Political",
-    identifiedAt: "Identified May 14 2026",
-  },
-  {
-    risk: "Workforce vacancy rate in NJ children's BH ticked from 19% (Q4 2025) to 22% (Q1 2026). Any workforce commitments in the proposal must be defensible against worsening conditions.",
-    severity: "Watch",
-    category: "Operational",
-    identifiedAt: "Identified Jun 02 2026",
-  },
-];
-
-function EmergingRisks() {
+function RisksView({ risks }: { risks: IrisData["risks"] }) {
+  if (!risks.length) {
+    return (
+      <EmptyState
+        title="No risks identified yet"
+        body="Click Generate Intelligence to surface emerging risks from your market intelligence feed."
+      />
+    );
+  }
   return (
     <div>
       <p className="mb-6 max-w-3xl text-sm text-muted-foreground">
         Live feed, not a one-time register. These shift as the environment shifts.
-        Read top to bottom — the order is recency-weighted by severity.
       </p>
       <div className="space-y-3">
-        {RISKS.map((r, i) => (
-          <div
-            key={i}
-            className="flex items-start gap-4 rounded-lg border border-border/70 bg-surface/40 p-4"
-          >
-            <div className="flex flex-col items-start gap-2">
-              <SeverityChip level={r.severity} />
-              <SourceBadge>{r.category}</SourceBadge>
-            </div>
-            <div className="flex-1">
-              <div className="text-[14px] leading-snug text-foreground">{r.risk}</div>
-              <div className="mt-2 text-[11px] uppercase tracking-[0.16em] text-muted-foreground/70">
-                {r.identifiedAt}
+        {risks.map((r) => {
+          const category = r.owner?.startsWith("iris_extractor:") ? r.owner.slice("iris_extractor:".length) : null;
+          return (
+            <div key={r.id} className="flex items-start gap-4 rounded-lg border border-border/70 bg-surface/40 p-4">
+              <div className="flex flex-col items-start gap-2">
+                {severityChip(r.severity ?? "watch")}
+                {category && <SourceBadge>{category}</SourceBadge>}
+              </div>
+              <div className="flex-1">
+                <div className="text-[14px] font-medium leading-snug text-foreground">{r.title}</div>
+                {r.description && (
+                  <div className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">{r.description}</div>
+                )}
+                <div className="mt-2 text-[10px] uppercase tracking-[0.16em] text-muted-foreground/60">
+                  Identified {new Date(r.created_at ?? Date.now()).toLocaleDateString()}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────────── */
-/* 5 · Recommended Strategy — win themes                                    */
-/* ─────────────────────────────────────────────────────────────────────── */
-
-type WinTheme = {
-  name: string;
-  summary: string;
-  proof: string;
-};
-
-const WIN_THEMES: WinTheme[] = [
-  {
-    name: "Workforce as Infrastructure",
-    summary: "Treat the NJ children's BH workforce as the primary system asset — recruit, retain, and grow it as Year 1 deliverable, not a downstream program.",
-    proof: "Athena partner network includes 4 NJ-licensed workforce intermediaries already placing 60+ clinicians/quarter into community-based BH roles.",
-  },
-  {
-    name: "Equity is the Outcome",
-    summary: "Equity is not a section of the proposal — it is the measurement frame for every operational commitment, scored at the county and demographic level.",
-    proof: "Comparable equity dashboard implementation in MA CBHI cut Black/white crisis-entry disparity 31% over 18 months.",
-  },
-  {
-    name: "A Platform Built for the Next Decade",
-    summary: "Replace CYBER with a modern, interoperable platform that natively connects to NJ HIN and meets the CCBHC standard out of the box — not a CYBER patch.",
-    proof: "Reference implementation already live in two state CSA environments; 11-month migration playbook, not a 36-month rebuild.",
-  },
-  {
-    name: "No County Left in Crisis",
-    summary: "60-minute MRSS response across all 21 counties — including Sussex, Warren, Salem, Cumberland — through a hub-and-spoke crisis model, not a hiring blitz.",
-    proof: "Hub-and-spoke crisis model deployed in rural PA reduced 90+ minute response events by 78% in 9 months.",
-  },
-];
-
-function RecommendedStrategy() {
+function StrategyView({ themes }: { themes: IrisData["winThemes"] }) {
+  if (!themes.length) {
+    return (
+      <EmptyState
+        title="No win themes generated yet"
+        body="Click Generate Intelligence to recommend mission-specific win themes built from the brief, signals, and risk picture."
+      />
+    );
+  }
   return (
     <div>
       <p className="mb-6 max-w-3xl text-sm text-muted-foreground">
-        Mission-specific. Built from the brief, the assessment, the State's
-        priorities, and the risk picture. Each theme is ready to carry into Studio.
+        Mission-specific. Each theme is ready to carry into Studio.
       </p>
       <div className="grid gap-4 md:grid-cols-2">
-        {WIN_THEMES.map((t) => (
-          <article
-            key={t.name}
-            className="flex flex-col rounded-lg border border-border/70 bg-surface/40 p-5"
-          >
-            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-400/80">
-              Win Theme
-            </div>
-            <h3 className="mt-1 font-serif text-xl tracking-tight text-foreground">
-              {t.name}
-            </h3>
-            <p className="mt-2 text-[14px] leading-relaxed text-muted-foreground">
-              {t.summary}
-            </p>
-            <div className="mt-4 rounded-md border border-border/60 bg-background/60 p-3">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70">
-                Key proof point
+        {themes.map((t) => (
+          <article key={t.id} className="flex flex-col rounded-lg border border-border/70 bg-surface/40 p-5">
+            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-400/80">Win Theme</div>
+            <h3 className="mt-1 font-serif text-xl tracking-tight text-foreground">{t.title}</h3>
+            {t.key_message && (
+              <p className="mt-2 text-[14px] leading-relaxed text-muted-foreground">{t.key_message}</p>
+            )}
+            {t.description && (
+              <div className="mt-4 rounded-md border border-border/60 bg-background/60 p-3">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70">
+                  Detail
+                </div>
+                <div className="mt-1 text-[13px] leading-snug text-foreground">{t.description}</div>
               </div>
-              <div className="mt-1 text-[13px] leading-snug text-foreground">{t.proof}</div>
-            </div>
+            )}
             <button
               type="button"
               className="mt-4 self-start rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-300 transition hover:bg-amber-500/15"
