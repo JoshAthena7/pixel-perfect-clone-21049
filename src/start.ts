@@ -20,10 +20,23 @@ function withSecurityHeaders(response: Response): Response {
   }
 }
 
-const securityHeadersMiddleware = createMiddleware().server(async ({ next }) => {
+const securityHeadersMiddleware = createMiddleware().server(async ({ next, request }) => {
   const result = await next();
-  if (result instanceof Response) return withSecurityHeaders(result);
-  return result;
+  if (!(result instanceof Response)) return result;
+  // Don't rewrap serverFn responses — recreating the Response can drop the
+  // content-type the TanStack serverFn client requires.
+  try {
+    const url = new URL(request.url);
+    if (url.pathname.startsWith("/_serverFn")) {
+      for (const [k, v] of Object.entries(SECURITY_HEADERS)) {
+        if (!result.headers.has(k)) {
+          try { result.headers.set(k, v); } catch { /* immutable, skip */ }
+        }
+      }
+      return result;
+    }
+  } catch { /* fall through to wrap */ }
+  return withSecurityHeaders(result);
 });
 
 export const startInstance = createStart(() => ({
