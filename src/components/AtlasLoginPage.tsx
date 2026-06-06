@@ -54,72 +54,78 @@ export function AtlasLoginPage() {
   }
 
   return (
-    <div className="min-h-svh w-full bg-black text-foreground flex items-center justify-center overflow-hidden">
-      <div
-        className="relative w-full max-w-[1536px]"
-        style={{ aspectRatio: "1536 / 1024" }}
-      >
-        {/* Full-bleed branded backdrop */}
-        <img
-          src={atlasLoginBg.url}
-          alt="ATLAS — Athena Strategy Group"
-          className="absolute inset-0 h-full w-full object-cover select-none pointer-events-none"
-          draggable={false}
-        />
+    <div
+      className="min-h-svh w-full flex items-center justify-center px-4 py-12 bg-[#05070d] text-foreground"
+      style={{
+        backgroundImage: `linear-gradient(rgba(5,7,13,0.78), rgba(5,7,13,0.92)), url(${atlasLoginBg.url})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <div className="w-full max-w-md">
+        {/* Brand */}
+        <div className="text-center mb-8">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.32em] text-amber-200/70 mb-3">
+            Athena Strategy Group
+          </div>
+          <h1 className="text-5xl font-serif tracking-[0.4em] text-amber-300 mb-2">
+            ATLAS
+          </h1>
+          <div className="text-[10px] uppercase tracking-[0.3em] text-amber-100/60">
+            Intelligence · Alignment · Execution
+          </div>
+        </div>
 
-        {/* Form overlay — sits over the WELCOME BACK panel in the artwork */}
-        <div
-          className="absolute"
-          style={{ left: "33%", right: "33%", top: "36%", bottom: "27%" }}
+        {/* Form card */}
+        <form
+          onSubmit={onSubmit}
+          className="rounded-md border border-amber-200/20 bg-black/60 backdrop-blur p-6 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)] space-y-5"
         >
-          <form
-            onSubmit={onSubmit}
-            className="flex h-full w-full flex-col justify-center gap-4"
+          <div className="text-center text-[10px] font-semibold uppercase tracking-[0.32em] text-amber-200/80">
+            Welcome Back
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="email" className="block text-[10px] font-semibold uppercase tracking-[0.28em] text-amber-200/70">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              required
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-sm border border-amber-200/25 bg-black/40 px-3 py-2 text-sm text-amber-50 placeholder:text-amber-100/30 focus:border-amber-300/70 focus:outline-none focus:ring-2 focus:ring-amber-400/30"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="password" className="block text-[10px] font-semibold uppercase tracking-[0.28em] text-amber-200/70">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              required
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-sm border border-amber-200/25 bg-black/40 px-3 py-2 text-sm text-amber-50 placeholder:text-amber-100/30 focus:border-amber-300/70 focus:outline-none focus:ring-2 focus:ring-amber-400/30"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full inline-flex items-center justify-center rounded-sm bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 px-6 py-2.5 text-[11px] font-bold uppercase tracking-[0.3em] text-black shadow-[0_4px_24px_-8px_rgba(251,191,36,0.6)] transition hover:brightness-110 disabled:opacity-60"
           >
-            <div className="space-y-1.5">
-              <label
-                htmlFor="email"
-                className="block text-[10px] font-semibold uppercase tracking-[0.32em] text-amber-200/80"
-              >
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-sm border border-amber-200/30 bg-black/40 px-3 py-2 text-sm text-amber-50 placeholder:text-amber-100/30 focus:border-amber-300/70 focus:outline-none focus:ring-2 focus:ring-amber-400/30"
-              />
-            </div>
+            {loading ? "Entering…" : "Enter Atlas"}
+          </button>
+        </form>
 
-            <div className="space-y-1.5">
-              <label
-                htmlFor="password"
-                className="block text-[10px] font-semibold uppercase tracking-[0.32em] text-amber-200/80"
-              >
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                required
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-sm border border-amber-200/30 bg-black/40 px-3 py-2 text-sm text-amber-50 placeholder:text-amber-100/30 focus:border-amber-300/70 focus:outline-none focus:ring-2 focus:ring-amber-400/30"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="mt-2 inline-flex items-center justify-center rounded-sm bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 px-6 py-2.5 text-[11px] font-bold uppercase tracking-[0.3em] text-black shadow-[0_4px_24px_-8px_rgba(251,191,36,0.6)] transition hover:brightness-110 disabled:opacity-60"
-            >
-              {loading ? "Entering…" : "Enter Atlas"}
-            </button>
-          </form>
+        <div className="text-center mt-6 text-[10px] uppercase tracking-[0.28em] text-amber-100/40">
+          The operating environment for high stakes work
         </div>
       </div>
     </div>
