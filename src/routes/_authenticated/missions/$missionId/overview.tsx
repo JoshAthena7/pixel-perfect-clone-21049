@@ -596,6 +596,8 @@ function MissionOverviewPage() {
 
         <ResponseTemplateStatusRow missionId={missionId} />
 
+        <SubmissionChecklist missionId={missionId} />
+
         <div className="mr-divider" />
 
 
