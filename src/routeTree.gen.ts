@@ -26,6 +26,7 @@ import { Route as AuthenticatedIrisConsoleRouteImport } from './routes/_authenti
 import { Route as AuthenticatedIntelligenceQueueRouteImport } from './routes/_authenticated/intelligence-queue'
 import { Route as AuthenticatedIntelligenceRouteImport } from './routes/_authenticated/intelligence'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
+import { Route as AuthenticatedCockpitRouteImport } from './routes/_authenticated/cockpit'
 import { Route as AuthenticatedBriefRoomRouteImport } from './routes/_authenticated/brief-room'
 import { Route as AuthenticatedAtriumRouteImport } from './routes/_authenticated/atrium'
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile/index'
@@ -174,6 +175,11 @@ const AuthenticatedIntelligenceRoute =
 const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   id: '/home',
   path: '/home',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedCockpitRoute = AuthenticatedCockpitRouteImport.update({
+  id: '/cockpit',
+  path: '/cockpit',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedBriefRoomRoute = AuthenticatedBriefRoomRouteImport.update({
@@ -547,6 +553,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/atrium': typeof AuthenticatedAtriumRoute
   '/brief-room': typeof AuthenticatedBriefRoomRoute
+  '/cockpit': typeof AuthenticatedCockpitRoute
   '/home': typeof AuthenticatedHomeRoute
   '/intelligence': typeof AuthenticatedIntelligenceRoute
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
@@ -626,6 +633,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/atrium': typeof AuthenticatedAtriumRoute
   '/brief-room': typeof AuthenticatedBriefRoomRoute
+  '/cockpit': typeof AuthenticatedCockpitRoute
   '/home': typeof AuthenticatedHomeRoute
   '/intelligence': typeof AuthenticatedIntelligenceRoute
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
@@ -705,6 +713,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authenticated/atrium': typeof AuthenticatedAtriumRoute
   '/_authenticated/brief-room': typeof AuthenticatedBriefRoomRoute
+  '/_authenticated/cockpit': typeof AuthenticatedCockpitRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/intelligence': typeof AuthenticatedIntelligenceRoute
   '/_authenticated/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
@@ -786,6 +795,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/atrium'
     | '/brief-room'
+    | '/cockpit'
     | '/home'
     | '/intelligence'
     | '/intelligence-queue'
@@ -865,6 +875,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/atrium'
     | '/brief-room'
+    | '/cockpit'
     | '/home'
     | '/intelligence'
     | '/intelligence-queue'
@@ -943,6 +954,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authenticated/atrium'
     | '/_authenticated/brief-room'
+    | '/_authenticated/cockpit'
     | '/_authenticated/home'
     | '/_authenticated/intelligence'
     | '/_authenticated/intelligence-queue'
@@ -1156,6 +1168,13 @@ declare module '@tanstack/react-router' {
       path: '/home'
       fullPath: '/home'
       preLoaderRoute: typeof AuthenticatedHomeRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/cockpit': {
+      id: '/_authenticated/cockpit'
+      path: '/cockpit'
+      fullPath: '/cockpit'
+      preLoaderRoute: typeof AuthenticatedCockpitRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/brief-room': {
@@ -1713,6 +1732,7 @@ const AuthenticatedMissionsMissionIdRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedAtriumRoute: typeof AuthenticatedAtriumRoute
   AuthenticatedBriefRoomRoute: typeof AuthenticatedBriefRoomRoute
+  AuthenticatedCockpitRoute: typeof AuthenticatedCockpitRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedIntelligenceRoute: typeof AuthenticatedIntelligenceRoute
   AuthenticatedIntelligenceQueueRoute: typeof AuthenticatedIntelligenceQueueRoute
@@ -1737,6 +1757,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAtriumRoute: AuthenticatedAtriumRoute,
   AuthenticatedBriefRoomRoute: AuthenticatedBriefRoomRoute,
+  AuthenticatedCockpitRoute: AuthenticatedCockpitRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedIntelligenceRoute: AuthenticatedIntelligenceRoute,
   AuthenticatedIntelligenceQueueRoute: AuthenticatedIntelligenceQueueRoute,
