@@ -25,6 +25,7 @@ import { Route as AuthenticatedIntelligenceRouteImport } from './routes/_authent
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedBriefRoomRouteImport } from './routes/_authenticated/brief-room'
 import { Route as AuthenticatedAtriumRouteImport } from './routes/_authenticated/atrium'
+import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile/index'
 import { Route as AuthenticatedOlympusIndexRouteImport } from './routes/_authenticated/olympus/index'
 import { Route as AuthenticatedProfileExpertiseRouteImport } from './routes/_authenticated/profile/expertise'
 import { Route as AuthenticatedOlympusWriterDeletionRouteImport } from './routes/_authenticated/olympus/writer-deletion'
@@ -162,6 +163,12 @@ const AuthenticatedAtriumRoute = AuthenticatedAtriumRouteImport.update({
   path: '/atrium',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedProfileIndexRoute =
+  AuthenticatedProfileIndexRouteImport.update({
+    id: '/profile/',
+    path: '/profile/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedOlympusIndexRoute =
   AuthenticatedOlympusIndexRouteImport.update({
     id: '/',
@@ -536,6 +543,7 @@ export interface FileRoutesByFullPath {
   '/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/olympus/': typeof AuthenticatedOlympusIndexRoute
+  '/profile/': typeof AuthenticatedProfileIndexRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
@@ -605,6 +613,7 @@ export interface FileRoutesByTo {
   '/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/olympus': typeof AuthenticatedOlympusIndexRoute
+  '/profile': typeof AuthenticatedProfileIndexRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
@@ -678,6 +687,7 @@ export interface FileRoutesById {
   '/_authenticated/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
   '/_authenticated/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/_authenticated/olympus/': typeof AuthenticatedOlympusIndexRoute
+  '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/_authenticated/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/_authenticated/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/_authenticated/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
@@ -751,6 +761,7 @@ export interface FileRouteTypes {
     | '/olympus/writer-deletion'
     | '/profile/expertise'
     | '/olympus/'
+    | '/profile/'
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
     | '/missions/$missionId/command'
@@ -820,6 +831,7 @@ export interface FileRouteTypes {
     | '/olympus/writer-deletion'
     | '/profile/expertise'
     | '/olympus'
+    | '/profile'
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
     | '/missions/$missionId/command'
@@ -892,6 +904,7 @@ export interface FileRouteTypes {
     | '/_authenticated/olympus/writer-deletion'
     | '/_authenticated/profile/expertise'
     | '/_authenticated/olympus/'
+    | '/_authenticated/profile/'
     | '/_authenticated/missions/$missionId/brief'
     | '/_authenticated/missions/$missionId/briefing'
     | '/_authenticated/missions/$missionId/command'
@@ -1046,6 +1059,13 @@ declare module '@tanstack/react-router' {
       path: '/atrium'
       fullPath: '/atrium'
       preLoaderRoute: typeof AuthenticatedAtriumRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/profile/': {
+      id: '/_authenticated/profile/'
+      path: '/profile'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof AuthenticatedProfileIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/olympus/': {
@@ -1558,6 +1578,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCommandSecurityRoute: typeof AuthenticatedCommandSecurityRoute
   AuthenticatedMissionsMissionIdRoute: typeof AuthenticatedMissionsMissionIdRouteWithChildren
   AuthenticatedProfileExpertiseRoute: typeof AuthenticatedProfileExpertiseRoute
+  AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -1582,6 +1603,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMissionsMissionIdRoute:
     AuthenticatedMissionsMissionIdRouteWithChildren,
   AuthenticatedProfileExpertiseRoute: AuthenticatedProfileExpertiseRoute,
+  AuthenticatedProfileIndexRoute: AuthenticatedProfileIndexRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
