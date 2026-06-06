@@ -610,7 +610,7 @@ function MissionBriefView({ data }: { data: IrisData }) {
   );
 }
 
-function EnvironmentalView({ signals }: { signals: IrisData["signals"] }) {
+function EnvironmentalView({ signals, missionId }: { signals: IrisData["signals"]; missionId: string }) {
   if (!signals.length) {
     return (
       <EmptyState
