@@ -242,7 +242,7 @@ function ScoresPage() {
                   <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{q.question_number}</td>
                   <td className="px-4 py-3">
                     <Link
-                      to="/missions/$missionId/questions/$questionId"
+                      to="/missions/$missionId/sections/$questionId"
                       params={{ missionId: q.mission_id, questionId: q.id }}
                       className="hover:underline text-foreground"
                     >

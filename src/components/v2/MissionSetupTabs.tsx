@@ -42,7 +42,7 @@ export function MissionSetupTabs() {
       key: "questions",
       label: "Questions",
       icon: HelpCircle,
-      to: "/missions/$missionId/questions",
+      to: "/missions/$missionId/sections",
       search: undefined as undefined,
       active: onQuestions,
     },

@@ -242,7 +242,7 @@ function BriefPage() {
                 <span className={`dot dot-${q.health}`} />
                 <span className="font-mono text-xs text-muted-foreground w-12">{q.question_number}</span>
                 <Link
-                  to="/missions/$missionId/questions/$questionId"
+                  to="/missions/$missionId/sections/$questionId"
                   params={{ missionId, questionId: q.id }}
                   className="flex-1 text-sm hover:text-primary"
                 >

@@ -215,7 +215,7 @@ export function EnterStudioCTA({
 }: { missionId: string; assignedCount: number; attentionCount: number }) {
   return (
     <Link
-      to="/missions/$missionId/questions"
+      to="/missions/$missionId/sections"
       params={{ missionId }}
       className="group relative flex items-center justify-between gap-4 rounded-[12px] px-7 py-6 transition-all duration-200 hover:-translate-y-0.5"
       style={{

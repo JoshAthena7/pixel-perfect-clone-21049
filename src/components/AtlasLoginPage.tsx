@@ -20,7 +20,7 @@ export function AtlasLoginPage() {
       const roles = active.map((m: any) => m.role);
       const isLeader = roles.includes("admin") || roles.includes("lead");
       if (!isLeader && active.length === 1) {
-        navigate({ to: "/missions/$missionId/questions", params: { missionId: active[0].mission_id }, replace: true });
+        navigate({ to: "/missions/$missionId/sections", params: { missionId: active[0].mission_id }, replace: true });
         return;
       }
     } catch {

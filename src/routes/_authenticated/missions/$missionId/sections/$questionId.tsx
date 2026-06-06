@@ -497,7 +497,7 @@ function CockpitPage() {
     return (
       <div className="px-8 py-12 text-sm">
         Response not found.{" "}
-        <Link to="/missions/$missionId/questions" params={{ missionId }} className="text-primary hover:underline">Back</Link>
+        <Link to="/missions/$missionId/sections" params={{ missionId }} className="text-primary hover:underline">Back</Link>
       </div>
     );
   }
@@ -631,7 +631,7 @@ function CockpitPage() {
               <span className="iris-dot mr-1.5" /> IRIS suggests starting with:
             </div>
             <Link
-              to="/missions/$missionId/questions/$questionId"
+              to="/missions/$missionId/sections/$questionId"
               params={{ missionId, questionId: suggestedQuestion.id }}
               className="flex h-[52px] w-full items-center justify-between rounded-[10px] border px-5 transition hover:-translate-y-px"
               style={{ background: "rgba(59,127,255,0.08)", borderColor: "rgba(59,127,255,0.25)" }}
@@ -1535,7 +1535,7 @@ function MyAssignments({
             >
               <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: dotColor, boxShadow: `0 0 4px ${dotColor}` }} />
               <Link
-                to="/missions/$missionId/questions/$questionId"
+                to="/missions/$missionId/sections/$questionId"
                 params={{ missionId, questionId: mq.id }}
                 className="flex flex-1 items-center gap-3 truncate"
               >

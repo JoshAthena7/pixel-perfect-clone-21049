@@ -397,7 +397,7 @@ function RoomToggle({ missionId, room }: { missionId: string; room: Room }) {
     activeBg: "rgba(59,127,255,0.12)",
     activeBorder: "rgba(59,127,255,0.35)",
     activeColor: "#3b7fff",
-    onGo: () => navigate({ to: "/missions/$missionId/questions", params: { missionId } }),
+    onGo: () => navigate({ to: "/missions/$missionId/sections", params: { missionId } }),
   };
 
   const segments = isLeader

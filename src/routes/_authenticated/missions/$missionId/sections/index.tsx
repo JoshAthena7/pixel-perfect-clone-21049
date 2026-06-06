@@ -317,14 +317,14 @@ function CockpitListActionBar({ missionId, question }: { missionId: string; ques
         <div className="mx-auto flex h-14 max-w-[1100px] items-center justify-between gap-3 px-6">
           <div className="flex items-center gap-2">
             <Link
-              to="/missions/$missionId/questions/$questionId"
+              to="/missions/$missionId/sections/$questionId"
               params={{ missionId, questionId: question.id }}
               className="inline-flex items-center gap-1.5 rounded-md bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
             >
               Open Question →
             </Link>
             <Link
-              to="/missions/$missionId/questions/$questionId"
+              to="/missions/$missionId/sections/$questionId"
               params={{ missionId, questionId: question.id }}
               className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/10"
             >
@@ -481,7 +481,7 @@ function QuestionRow({
     <li className="relative" style={ownStyle}>
       {isMine || !showYouBadge ? (
         <Link
-          to="/missions/$missionId/questions/$questionId"
+          to="/missions/$missionId/sections/$questionId"
           params={{ missionId, questionId: q.id }}
           className="block px-5 py-4 hover:bg-surface-hover"
         >

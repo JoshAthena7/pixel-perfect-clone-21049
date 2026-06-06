@@ -184,7 +184,7 @@ export function AmendmentReviewPanel({
                         {affected.map((q) => (
                           <Link
                             key={q.id}
-                            to="/missions/$missionId/questions/$questionId"
+                            to="/missions/$missionId/sections/$questionId"
                             params={{ missionId, questionId: q.id }}
                             className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs hover:border-[color:var(--iris,#22d3ee)]"
                             onClick={onClose}

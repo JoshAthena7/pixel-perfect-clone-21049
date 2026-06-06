@@ -419,7 +419,7 @@ export function CommandCenter({ missionId }: { missionId?: string } = {}) {
                   <span className={`text-xs tabular-nums shrink-0 ${q.days < 7 ? "text-red-400" : "text-muted-foreground"}`}>{q.days}d</span>
                 )}
                 <Link
-                  to="/missions/$missionId/questions/$questionId"
+                  to="/missions/$missionId/sections/$questionId"
                   params={{ missionId: q.mission_id, questionId: q.id }}
                   className="text-xs text-primary hover:underline shrink-0"
                 >
@@ -621,7 +621,7 @@ function NeedRow({ need, q, onResolved }: { need: any; q?: { question_number: st
         <span className="text-border">·</span>
         {q ? (
           <Link
-            to="/missions/$missionId/questions/$questionId"
+            to="/missions/$missionId/sections/$questionId"
             params={{ missionId: need.mission_id, questionId: need.question_id }}
             className="text-sm hover:text-primary truncate min-w-0 flex-1"
           >

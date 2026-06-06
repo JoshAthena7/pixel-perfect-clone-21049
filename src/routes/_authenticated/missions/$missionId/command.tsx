@@ -424,7 +424,7 @@ function MissionBrief() {
         label: `Review Q${topRisk.question_number} — ${topRisk.health === "red" ? "Red" : "At Risk"}${topRisk.days !== null ? `, ${topRisk.days} days left` : ""}`,
         sub: topRisk.reason,
         onClick: () => navigate({
-          to: "/missions/$missionId/questions/$questionId",
+          to: "/missions/$missionId/sections/$questionId",
           params: { missionId, questionId: topRisk.id },
         }),
       };
@@ -733,7 +733,7 @@ function MissionBrief() {
                       </span>
                     )}
                     <Link
-                      to="/missions/$missionId/questions/$questionId"
+                      to="/missions/$missionId/sections/$questionId"
                       params={{ missionId, questionId: r.id }}
                       className="shrink-0 text-[11px] text-primary hover:underline"
                     >
@@ -978,7 +978,7 @@ function MissionBrief() {
         {/* PRIMARY CTA — Cockpit. Mission Room is a secondary inline link. */}
         <div className="space-y-3">
           <Link
-            to="/missions/$missionId/questions"
+            to="/missions/$missionId/sections"
             params={{ missionId }}
             className="group flex items-center justify-between gap-4 rounded-[12px] border p-5 transition hover:bg-[rgba(59,127,255,0.08)]"
             style={{ background: "rgba(59,127,255,0.05)", borderColor: "rgba(59,127,255,0.3)" }}

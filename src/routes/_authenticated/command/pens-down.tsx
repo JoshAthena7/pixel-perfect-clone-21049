@@ -122,7 +122,7 @@ function PensDownPage() {
                 >
                   <td className="px-4 py-3">
                     <Link
-                      to="/missions/$missionId/questions/$questionId"
+                      to="/missions/$missionId/sections/$questionId"
                       params={{ missionId: r.mission_id, questionId: r.id }}
                       className="text-foreground hover:underline"
                     >

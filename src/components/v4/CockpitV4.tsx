@@ -365,7 +365,7 @@ function FocusItem({
             </button>
           )}
           <Link
-            to="/missions/$missionId/questions/$questionId"
+            to="/missions/$missionId/sections/$questionId"
             params={{ missionId, questionId: q.id }}
             className={`inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-[12px] font-semibold ${primary ? "bg-foreground text-background hover:opacity-90" : "border border-border text-foreground hover:bg-surface-hover"}`}
           >
@@ -471,7 +471,7 @@ function AllQuestionsDrawer({
             return (
               <li key={q.id}>
                 <Link
-                  to="/missions/$missionId/questions/$questionId"
+                  to="/missions/$missionId/sections/$questionId"
                   params={{ missionId, questionId: q.id }}
                   className="flex items-center gap-3 px-6 py-3 text-sm hover:bg-surface-hover"
                 >

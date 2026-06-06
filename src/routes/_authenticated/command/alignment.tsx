@@ -166,7 +166,7 @@ function AlignmentPage() {
                 <div className="mt-3 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
                   {a && (
                     <Link
-                      to="/missions/$missionId/questions/$questionId"
+                      to="/missions/$missionId/sections/$questionId"
                       params={{ missionId: a.mission_id, questionId: a.id }}
                       className="rounded border border-border bg-background px-3 py-2 hover:border-primary/50"
                     >
@@ -176,7 +176,7 @@ function AlignmentPage() {
                   )}
                   {b && (
                     <Link
-                      to="/missions/$missionId/questions/$questionId"
+                      to="/missions/$missionId/sections/$questionId"
                       params={{ missionId: b.mission_id, questionId: b.id }}
                       className="rounded border border-border bg-background px-3 py-2 hover:border-primary/50"
                     >
