@@ -73,6 +73,7 @@ function IrisPage() {
     STAGE_DEFS.map((s) => ({ id: s.id, label: s.label, status: "pending" as const })),
   );
   const [running, setRunning] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const runningRef = useRef(false);
   const cancelRef = useRef(false);
 
