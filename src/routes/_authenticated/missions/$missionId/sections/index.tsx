@@ -14,7 +14,7 @@ import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
 import { CockpitV4 } from "@/components/v4/CockpitV4";
 import { IrisGreeting } from "@/components/v2/IrisGreeting";
 
-export const Route = createFileRoute("/_authenticated/missions/$missionId/questions/")({
+export const Route = createFileRoute("/_authenticated/missions/$missionId/sections/")({
   component: ResponsesList,
 });
 
