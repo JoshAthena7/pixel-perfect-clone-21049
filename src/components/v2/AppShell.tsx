@@ -3,7 +3,7 @@ import { triggerClosingFrame } from "@/components/v2/ClosingFrame";
 import { Link, useRouterState, useParams, useNavigate, useRouter } from "@tanstack/react-router";
 import {
   LogOut, User, Shield, Settings2,
-  Plane, HelpCircle, ArrowLeft, Megaphone,
+  Plane, HelpCircle, ArrowLeft, Megaphone, Home,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -188,6 +188,17 @@ function TopBar({
           <kbd className="rounded border border-white/10 px-1 py-0.5 font-mono text-[9px]">⌘K</kbd>
         </button>
         <IrisStatusIndicator />
+        {!isAtrium && (
+          <Link
+            to="/atrium"
+            title="Atrium · Home"
+            aria-label="Atrium"
+            className="inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
+          >
+            <Home size={14} strokeWidth={1.5} />
+            <span className="hidden sm:inline">Atrium</span>
+          </Link>
+        )}
         <NotificationBell />
         <BriefRoomNavButton />
         <button
