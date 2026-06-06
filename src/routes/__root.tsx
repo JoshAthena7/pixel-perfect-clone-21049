@@ -85,6 +85,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthSync />
+      <GoldEntryLine />
       <Outlet />
       <Toaster theme="dark" position="top-right" />
     </QueryClientProvider>
