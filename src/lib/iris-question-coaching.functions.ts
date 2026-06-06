@@ -26,7 +26,7 @@ async function callForCoaching(system: string, user: string, preamble: string): 
         body: JSON.stringify({
           model: "google/gemini-2.5-flash",
           messages: [
-            { role: "system", content: `${IRIS_BASE_PROMPT}\n\n${system}` },
+            { role: "system", content: `${preamble}\n\n${IRIS_BASE_PROMPT}\n\n${system}` },
             { role: "user", content: user },
           ],
           tools: [
