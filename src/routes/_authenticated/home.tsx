@@ -19,6 +19,7 @@ import atlasLogo from "@/assets/atlas-logo.png.asset.json";
 import { DailyPulse } from "@/components/v4/DailyPulse";
 import { IrisTrustIntro } from "@/components/v4/IrisTrustIntro";
 import { RecentChangesCard } from "@/components/v4/RecentChangesCard";
+import { ExpertiseTagsCard } from "@/components/v4/ExpertiseTagsCard";
 import { useIsAdmin } from "@/hooks/useAccess";
 import type { ReactNode } from "react";
 
@@ -390,6 +391,9 @@ function AthenaHQ() {
 
         {/* "What changed since you last looked" — powered by the Mission Intelligence Graph */}
         {missions[0]?.id && <RecentChangesCard missionId={missions[0].id} />}
+
+        {/* Self-tag expertise prompt (workaround until Talentdesk auto-tags) */}
+        <ExpertiseTagsCard />
 
 
 

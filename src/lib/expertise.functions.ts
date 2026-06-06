@@ -91,10 +91,19 @@ export const matchExperts = createServerFn({ method: "POST" })
     // layer; expert matching is an authenticated server-side use that needs
     // contact details to populate the Phone-a-Friend overlay.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: members = [] } = await supabaseAdmin
-      .from("collective_members")
-      .select("id,full_name,email,title,location,skill_tags,notes")
-      .eq("is_active", true);
+    const [{ data: members = [] }, { data: selfTagged = [] }] = await Promise.all([
+      supabaseAdmin
+        .from("collective_members")
+        .select("id,full_name,email,title,location,skill_tags,notes")
+        .eq("is_active", true),
+      // Workaround until Talentdesk auto-tags on import: self-tagged staff
+      // profiles also feed Phone-a-Friend. Only include profiles with at
+      // least one tag so we don't surface blank users.
+      supabaseAdmin
+        .from("profiles")
+        .select("id,display_name,email,avatar_color,avatar_url,expertise_areas,states_experience,programs_experience,question_types,expert_bio,availability_status,availability_until,availability_note")
+        .or("expertise_areas.neq.{},states_experience.neq.{},programs_experience.neq.{}"),
+    ]);
 
     const qText = `${q.title ?? ""} ${q.question_text ?? ""}`;
     const qTokens = tokens(qText);
@@ -169,8 +178,65 @@ export const matchExperts = createServerFn({ method: "POST" })
       return match;
     });
 
+    // Score self-tagged staff profiles the same way.
+    const scoredProfiles: ExpertMatch[] = (selfTagged as any[]).map((p) => {
+      const reasons: string[] = [];
+      let score = 0;
+      const tags: string[] = [
+        ...(p.expertise_areas ?? []),
+        ...(p.programs_experience ?? []),
+        ...(p.question_types ?? []),
+      ];
+
+      const tagTokens = tokens(tags.join(" "));
+      const hits = overlap(qTokens, tagTokens);
+      if (hits > 0) {
+        score += Math.min(1, hits / 3) * 0.6;
+        const matched = tags.filter((t) => qText.toLowerCase().includes(t.toLowerCase())).slice(0, 2);
+        if (matched.length) reasons.push(`tagged ${matched.join(" & ")}`);
+      }
+      if (programText && tags.some((t) => t.toLowerCase().includes(programText) || programText.includes(t.toLowerCase()))) {
+        score += 0.25;
+        reasons.push(`${m.program_type} experience`);
+      }
+      if (stateText && (p.states_experience ?? []).map((s: string) => s.toUpperCase()).includes(stateText)) {
+        score += 0.15;
+        reasons.push(`worked in ${m.state}`);
+      }
+
+      return {
+        id: p.id,
+        display_name: p.display_name,
+        email: p.email,
+        avatar_color: p.avatar_color ?? colorFor(p.id),
+        avatar_url: p.avatar_url,
+        expertise_areas: p.expertise_areas ?? [],
+        states_experience: p.states_experience ?? [],
+        programs_experience: p.programs_experience ?? [],
+        question_types: p.question_types ?? [],
+        notable_wins: [],
+        availability_status: p.availability_status ?? "available",
+        availability_until: p.availability_until,
+        availability_note: p.availability_note,
+        expert_bio: p.expert_bio,
+        profile_completed: true,
+        score,
+        reasons,
+      } as ExpertMatch;
+    });
+
+    // De-dupe by email (a profile and a collective row for the same person
+    // shouldn't both appear); keep the higher score.
+    const merged = new Map<string, ExpertMatch>();
+    for (const e of [...scored, ...scoredProfiles]) {
+      const key = (e.email ?? e.id).toLowerCase();
+      const prev = merged.get(key);
+      if (!prev || e.score > prev.score) merged.set(key, e);
+    }
+    const allScored = Array.from(merged.values());
+
     // Keep only members with at least one signal; sort by score desc.
-    const ranked = scored.filter((s) => s.score > 0).sort((a, b) => b.score - a.score);
+    const ranked = allScored.filter((s) => s.score > 0).sort((a, b) => b.score - a.score);
     const top = ranked.slice(0, 4);
     const primary = top[0] ?? null;
     const alternatives = top.slice(1);
