@@ -388,109 +388,111 @@ export const listMissionCheckins = createServerFn({ method: "GET" })
 // ===== Section status board (blend) =====
 type RiskFlag = { level: "red" | "yellow"; label: string };
 
+async function buildSectionStatusBoard(missionId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+  const { data: mission } = await supabaseAdmin
+    .from("missions")
+    .select("id, name, submission_date")
+    .eq("id", missionId)
+    .maybeSingle();
+
+  const { data: sections } = await supabaseAdmin
+    .from("mission_sections")
+    .select(
+      "id, number, title, internal_due_date, studio_status, studio_progress_pct, studio_updated_at, assigned_user_id",
+    )
+    .eq("mission_id", missionId)
+    .order("number");
+
+  const writerIds = Array.from(
+    new Set((sections ?? []).map((s: any) => s.assigned_user_id).filter(Boolean)),
+  );
+  const { data: writerProfiles } = writerIds.length
+    ? await supabaseAdmin
+        .from("profiles")
+        .select("id, display_name, full_name")
+        .in("id", writerIds)
+    : { data: [] as any[] };
+  const writerById = new Map<string, any>();
+  (writerProfiles ?? []).forEach((p: any) => writerById.set(p.id, p));
+
+  const sectionIds = (sections ?? []).map((s: any) => s.id);
+  let csu: any[] = [];
+  if (sectionIds.length) {
+    const { data } = await supabaseAdmin
+      .from("checkin_section_updates")
+      .select(
+        "section_id, status, progress_pct, notes, created_at, submission:checkin_submissions(submitted_at, writer_user_id)",
+      )
+      .in("section_id", sectionIds)
+      .order("created_at", { ascending: false });
+    csu = data ?? [];
+  }
+  const latestBySection = new Map<string, any>();
+  csu.forEach((u) => {
+    if (!latestBySection.has(u.section_id)) latestBySection.set(u.section_id, u);
+  });
+
+  const now = Date.now();
+  const rows = (sections ?? []).map((s: any) => {
+    const ci = latestBySection.get(s.id);
+    const studioUpdated = s.studio_updated_at ? new Date(s.studio_updated_at).getTime() : 0;
+    const checkinUpdated = ci ? new Date(ci.submission?.submitted_at ?? ci.created_at).getTime() : 0;
+    const useStudio = studioUpdated > checkinUpdated;
+    const source: "studio" | "checkin" | "none" =
+      studioUpdated > 0 || checkinUpdated > 0 ? (useStudio ? "studio" : "checkin") : "none";
+
+    const status = useStudio ? s.studio_status : ci?.status ?? null;
+    const progress = useStudio ? s.studio_progress_pct : ci?.progress_pct ?? null;
+    const notes = useStudio ? null : ci?.notes ?? null;
+    const lastUpdated = useStudio ? s.studio_updated_at : ci?.submission?.submitted_at ?? ci?.created_at ?? null;
+
+    const risks: RiskFlag[] = [];
+    const daysToDue = s.internal_due_date
+      ? Math.ceil((new Date(s.internal_due_date).getTime() - now) / (1000 * 60 * 60 * 24))
+      : null;
+    if (status === "not_started" && daysToDue !== null && daysToDue <= 5) {
+      risks.push({ level: "red", label: `Not Started — due in ${daysToDue} day${daysToDue === 1 ? "" : "s"}` });
+    }
+    if (status === "blocked") {
+      risks.push({ level: "yellow", label: "Blocked — no resolution logged" });
+    }
+    const daysSinceUpdate = lastUpdated
+      ? Math.floor((now - new Date(lastUpdated).getTime()) / (1000 * 60 * 60 * 24))
+      : null;
+    if ((daysSinceUpdate ?? 0) >= 5 && status !== "draft_done") {
+      risks.push({ level: "yellow", label: `No update in ${daysSinceUpdate} days` });
+    }
+
+    const p = s.assigned_user_id ? writerById.get(s.assigned_user_id) : null;
+    const writerName = p?.display_name ?? p?.full_name ?? "Unassigned";
+    return {
+      id: s.id,
+      number: s.number,
+      title: s.title,
+      writer: writerName,
+      writer_user_id: s.assigned_user_id,
+      internal_due_date: s.internal_due_date,
+      status,
+      progress_pct: progress,
+      notes,
+      source,
+      last_updated: lastUpdated,
+      risks,
+    };
+  });
+
+  return { mission, rows };
+}
+
 export const getSectionStatusBoard = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ missionId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as any;
     await assertPMOnMission(supabase, data.missionId, userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-    const { data: mission } = await supabaseAdmin
-      .from("missions")
-      .select("id, name, submission_date")
-      .eq("id", data.missionId)
-      .maybeSingle();
-
-    const { data: sections } = await supabaseAdmin
-      .from("mission_sections")
-      .select(
-        "id, number, title, internal_due_date, studio_status, studio_progress_pct, studio_updated_at, assigned_user_id",
-      )
-      .eq("mission_id", data.missionId)
-      .order("number");
-
-    const writerIds = Array.from(
-      new Set((sections ?? []).map((s: any) => s.assigned_user_id).filter(Boolean)),
-    );
-    const { data: writerProfiles } = writerIds.length
-      ? await supabaseAdmin
-          .from("profiles")
-          .select("id, display_name, full_name")
-          .in("id", writerIds)
-      : { data: [] as any[] };
-    const writerById = new Map<string, any>();
-    (writerProfiles ?? []).forEach((p: any) => writerById.set(p.id, p));
-
-    // Latest check-in update per section
-    const sectionIds = (sections ?? []).map((s: any) => s.id);
-    let csu: any[] = [];
-    if (sectionIds.length) {
-      const { data } = await supabaseAdmin
-        .from("checkin_section_updates")
-        .select(
-          "section_id, status, progress_pct, notes, created_at, submission:checkin_submissions(submitted_at, writer_user_id)",
-        )
-        .in("section_id", sectionIds)
-        .order("created_at", { ascending: false });
-      csu = data ?? [];
-    }
-    const latestBySection = new Map<string, any>();
-    csu.forEach((u) => {
-      if (!latestBySection.has(u.section_id)) latestBySection.set(u.section_id, u);
-    });
-
-    const now = Date.now();
-    const rows = (sections ?? []).map((s: any) => {
-      const ci = latestBySection.get(s.id);
-      const studioUpdated = s.studio_updated_at ? new Date(s.studio_updated_at).getTime() : 0;
-      const checkinUpdated = ci ? new Date(ci.submission?.submitted_at ?? ci.created_at).getTime() : 0;
-      const useStudio = studioUpdated > checkinUpdated;
-      const source: "studio" | "checkin" | "none" =
-        studioUpdated > 0 || checkinUpdated > 0 ? (useStudio ? "studio" : "checkin") : "none";
-
-      const status = useStudio ? s.studio_status : ci?.status ?? null;
-      const progress = useStudio ? s.studio_progress_pct : ci?.progress_pct ?? null;
-      const notes = useStudio ? null : ci?.notes ?? null;
-      const lastUpdated = useStudio ? s.studio_updated_at : ci?.submission?.submitted_at ?? ci?.created_at ?? null;
-
-      // Risk rules
-      const risks: RiskFlag[] = [];
-      const daysToDue = s.internal_due_date
-        ? Math.ceil((new Date(s.internal_due_date).getTime() - now) / (1000 * 60 * 60 * 24))
-        : null;
-      if (status === "not_started" && daysToDue !== null && daysToDue <= 5) {
-        risks.push({ level: "red", label: `Not Started — due in ${daysToDue} day${daysToDue === 1 ? "" : "s"}` });
-      }
-      if (status === "blocked") {
-        risks.push({ level: "yellow", label: "Blocked — no resolution logged" });
-      }
-      const daysSinceUpdate = lastUpdated
-        ? Math.floor((now - new Date(lastUpdated).getTime()) / (1000 * 60 * 60 * 24))
-        : null;
-      if ((daysSinceUpdate ?? 0) >= 5 && status !== "draft_done") {
-        risks.push({ level: "yellow", label: `No update in ${daysSinceUpdate} days` });
-      }
-
-      const p = s.assigned_user_id ? writerById.get(s.assigned_user_id) : null;
-      const writerName = p?.display_name ?? p?.full_name ?? "Unassigned";
-      return {
-        id: s.id,
-        number: s.number,
-        title: s.title,
-        writer: writerName,
-        writer_user_id: s.assigned_user_id,
-        internal_due_date: s.internal_due_date,
-        status,
-        progress_pct: progress,
-        notes,
-        source,
-        last_updated: lastUpdated,
-        risks,
-      };
-    });
-
-    return { mission, rows };
+    return buildSectionStatusBoard(data.missionId);
   });
 
 // ===== Generate Client Status Report =====
