@@ -124,24 +124,13 @@ function MissionFlightDeckPage() {
         </Link>
       </div>
 
-      {meId && myQuestions.length === 0 ? (
-        <div className="mx-auto max-w-xl px-6 py-16 text-center">
-          <h2 className="text-lg font-semibold text-foreground">
-            No questions assigned to you yet.
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Contact your Project Manager to get your assignments.
-          </p>
-        </div>
-      ) : (
-        <FlightDeck
-          missionId={missionId}
-          me={meId ?? ""}
-          myQuestions={myQuestions}
-          allQuestions={allQuestions}
-          updateStatus={updateStatus}
-        />
-      )}
+      <FlightDeck
+        missionId={missionId}
+        me={meId ?? ""}
+        myQuestions={myQuestions}
+        allQuestions={allQuestions}
+        updateStatus={updateStatus}
+      />
     </div>
   );
 }
