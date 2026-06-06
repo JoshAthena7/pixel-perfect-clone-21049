@@ -278,6 +278,20 @@ export async function buildMissionContext(
     clarificationsR,
     realityR,
     pulsesR,
+    broadcastsR,
+    mockScoresR,
+    execDecisionsR,
+    irisMemoriesR,
+    assumptionsR,
+    decisionsR,
+    amendmentsR,
+    amendmentChangesR,
+    marketIntelR,
+    strategyR,
+    healthFlagsR,
+    sectionsR,
+    researchR,
+    timelineR,
   ] = await Promise.allSettled([
     supabase
       .from("missions")
