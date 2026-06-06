@@ -24,7 +24,7 @@ export function MissionSetupTabs() {
   if (!missionId) return null;
 
   const onSettings = path.endsWith("/settings");
-  const onQuestions = path.includes("/questions");
+  const onSections = path.includes("/sections");
   const onVault = path.endsWith("/vault");
 
   const settingsTab = onSettings ? (search.tab ?? "details") : null;
