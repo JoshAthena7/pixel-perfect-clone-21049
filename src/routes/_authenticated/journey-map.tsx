@@ -339,12 +339,53 @@ function emotionColor(c: "green" | "yellow" | "blue") {
 }
 
 
+type MotionPref = "auto" | "on" | "off";
+const MOTION_KEY = "atlas.journeyMap.motionPref";
+
+function useMotionPreference() {
+  const [pref, setPref] = useState<MotionPref>("auto");
+  const [systemReduced, setSystemReduced] = useState(false);
+
+  // Load persisted preference
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem(MOTION_KEY);
+      if (v === "auto" || v === "on" || v === "off") setPref(v);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  // Watch system reduced-motion
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setSystemReduced(mq.matches);
+    update();
+    mq.addEventListener?.("change", update);
+    return () => mq.removeEventListener?.("change", update);
+  }, []);
+
+  function update(next: MotionPref) {
+    setPref(next);
+    try {
+      localStorage.setItem(MOTION_KEY, next);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const animate = pref === "on" ? true : pref === "off" ? false : !systemReduced;
+  return { pref, setPref: update, animate, systemReduced };
+}
+
 function JourneyMapPage() {
   const activeIdx = STAGES.findIndex((s) => s.status === "active");
   const [selected, setSelected] = useState<number>(activeIdx >= 0 ? activeIdx : 0);
   const [persona, setPersona] = useState<Persona>("All Roles");
   const [insightsOpen, setInsightsOpen] = useState(true);
   const [openTransition, setOpenTransition] = useState<number | null>(null);
+  const { pref: motionPref, setPref: setMotionPref, animate, systemReduced } = useMotionPreference();
 
   const stage = STAGES[selected];
 
