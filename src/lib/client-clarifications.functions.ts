@@ -73,7 +73,13 @@ export const updateClarification = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => UpdateInput.parse(d))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      question?: string;
+      client_response?: string | null;
+      status?: ClarificationStatus;
+      submitted_at?: string;
+      answered_at?: string;
+    } = {};
     if (data.question !== undefined) patch.question = data.question.trim();
     if (data.client_response !== undefined) patch.client_response = data.client_response;
     if (data.status !== undefined) {
