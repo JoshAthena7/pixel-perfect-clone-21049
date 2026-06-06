@@ -539,7 +539,7 @@ function JourneyMapPage() {
             {persona !== "All Roles" && (
               hasTouchpoint(persona, stage.num) ? (
                 <div
-                  className="mb-4 flex items-center gap-2 rounded-lg border px-3 py-2 text-[12px]"
+                  className="mb-4 flex items-center gap-2 rounded-lg border px-3 py-2 text-[12px] animate-fade-in"
                   style={{ borderColor: "rgba(99,102,241,0.4)", background: "rgba(99,102,241,0.08)", color: "#C7D2FE" }}
                 >
                   <span
