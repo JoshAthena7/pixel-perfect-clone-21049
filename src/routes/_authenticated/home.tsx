@@ -356,18 +356,21 @@ function AthenaHQ() {
   return (
     <div className="relative min-h-screen bg-background">
       <Constellation opacity={0.06} />
-      {/* DESIGN-14: Atrium executive header */}
+      {/* Athena HQ executive header — Atrium as command center */}
       <header className="relative border-b border-border bg-gradient-to-b from-surface to-background">
         <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-6 px-8 py-8">
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">The Atrium · Home</div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">
+              ATHENA HQ
+            </div>
             <h1 className="h1-display mt-2">
               {greeting}, {profile?.name ?? "…"}.
             </h1>
-            
+            <p className="mt-1 text-[12px] uppercase tracking-[0.18em] text-muted-foreground">
+              Intelligence · Alignment · Execution
+            </p>
           </div>
           <div className="flex items-center gap-4">
-
             <button
               type="button"
               onClick={() => {
@@ -385,8 +388,8 @@ function AthenaHQ() {
                 {totalAttention === 0 && <span className="pulse-dot" />}
                 {statusLabel}
               </div>
+              <div className="mt-0.5 text-[10px] text-muted-foreground">Last updated: just now</div>
             </div>
-            
           </div>
         </div>
       </header>
