@@ -2,9 +2,14 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Plane, ArrowRight, AlertTriangle, Clock } from "lucide-react";
+import { Plane, ArrowRight, AlertTriangle, Clock, ArrowLeft } from "lucide-react";
+
+type CockpitSearch = { missionId?: string };
 
 export const Route = createFileRoute("/_authenticated/cockpit")({
+  validateSearch: (search: Record<string, unknown>): CockpitSearch => ({
+    missionId: typeof search.missionId === "string" ? search.missionId : undefined,
+  }),
   component: CockpitPage,
 });
 
