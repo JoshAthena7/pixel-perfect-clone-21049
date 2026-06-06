@@ -71,6 +71,7 @@ export const explainOutput = createServerFn({ method: "POST" })
       )
       .eq("mission_id", data.missionId)
       .eq("dst_node_id", node.id)
+      .is("valid_to", null)
       .order("weight", { ascending: false });
 
     const sourceIds = Array.from(new Set((edges ?? []).map((e) => e.src_node_id)));
