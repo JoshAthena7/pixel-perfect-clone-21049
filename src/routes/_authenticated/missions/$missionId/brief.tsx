@@ -13,6 +13,7 @@ import { MissionRoomHero } from "@/components/v2/MissionRoomHero";
 import { ResponseTemplateStatusRow } from "@/components/v2/ResponseTemplateStatusRow";
 import { SubmissionChecklist } from "@/components/v2/SubmissionChecklist";
 import { MissionSectionsList } from "@/components/v2/MissionSectionsList";
+import { ClientClarificationsCard } from "@/components/v2/ClientClarificationsCard";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/brief")({
   component: MissionOverviewPage,
