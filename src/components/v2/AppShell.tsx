@@ -230,7 +230,7 @@ function TopBar({
         )}
         {/* Cockpit removed from Atrium header in V1 — writers land directly on /v1/my-sections */}
         <NotificationBell />
-        <BriefRoomNavButton />
+        {/* Brief Room megaphone removed from Atrium header — reach via /brief-room directly */}
         {/* Help moved to /profile?tab=help */}
 
 
