@@ -27,7 +27,6 @@ import { Route as AuthenticatedIrisConsoleRouteImport } from './routes/_authenti
 import { Route as AuthenticatedIntelligenceQueueRouteImport } from './routes/_authenticated/intelligence-queue'
 import { Route as AuthenticatedIntelligenceRouteImport } from './routes/_authenticated/intelligence'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
-import { Route as AuthenticatedFlightDeckRouteImport } from './routes/_authenticated/flight-deck'
 import { Route as AuthenticatedCockpitRouteImport } from './routes/_authenticated/cockpit'
 import { Route as AuthenticatedCheckinHomeRouteImport } from './routes/_authenticated/checkin-home'
 import { Route as AuthenticatedBriefRoomRouteImport } from './routes/_authenticated/brief-room'
@@ -200,11 +199,6 @@ const AuthenticatedIntelligenceRoute =
 const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   id: '/home',
   path: '/home',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedFlightDeckRoute = AuthenticatedFlightDeckRouteImport.update({
-  id: '/flight-deck',
-  path: '/flight-deck',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedCockpitRoute = AuthenticatedCockpitRouteImport.update({
@@ -684,7 +678,6 @@ export interface FileRoutesByFullPath {
   '/brief-room': typeof AuthenticatedBriefRoomRoute
   '/checkin-home': typeof AuthenticatedCheckinHomeRoute
   '/cockpit': typeof AuthenticatedCockpitRoute
-  '/flight-deck': typeof AuthenticatedFlightDeckRoute
   '/home': typeof AuthenticatedHomeRoute
   '/intelligence': typeof AuthenticatedIntelligenceRoute
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
@@ -783,7 +776,6 @@ export interface FileRoutesByTo {
   '/brief-room': typeof AuthenticatedBriefRoomRoute
   '/checkin-home': typeof AuthenticatedCheckinHomeRoute
   '/cockpit': typeof AuthenticatedCockpitRoute
-  '/flight-deck': typeof AuthenticatedFlightDeckRoute
   '/home': typeof AuthenticatedHomeRoute
   '/intelligence': typeof AuthenticatedIntelligenceRoute
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
@@ -882,7 +874,6 @@ export interface FileRoutesById {
   '/_authenticated/brief-room': typeof AuthenticatedBriefRoomRoute
   '/_authenticated/checkin-home': typeof AuthenticatedCheckinHomeRoute
   '/_authenticated/cockpit': typeof AuthenticatedCockpitRoute
-  '/_authenticated/flight-deck': typeof AuthenticatedFlightDeckRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/intelligence': typeof AuthenticatedIntelligenceRoute
   '/_authenticated/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
@@ -984,7 +975,6 @@ export interface FileRouteTypes {
     | '/brief-room'
     | '/checkin-home'
     | '/cockpit'
-    | '/flight-deck'
     | '/home'
     | '/intelligence'
     | '/intelligence-queue'
@@ -1083,7 +1073,6 @@ export interface FileRouteTypes {
     | '/brief-room'
     | '/checkin-home'
     | '/cockpit'
-    | '/flight-deck'
     | '/home'
     | '/intelligence'
     | '/intelligence-queue'
@@ -1181,7 +1170,6 @@ export interface FileRouteTypes {
     | '/_authenticated/brief-room'
     | '/_authenticated/checkin-home'
     | '/_authenticated/cockpit'
-    | '/_authenticated/flight-deck'
     | '/_authenticated/home'
     | '/_authenticated/intelligence'
     | '/_authenticated/intelligence-queue'
@@ -1419,13 +1407,6 @@ declare module '@tanstack/react-router' {
       path: '/home'
       fullPath: '/home'
       preLoaderRoute: typeof AuthenticatedHomeRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/flight-deck': {
-      id: '/_authenticated/flight-deck'
-      path: '/flight-deck'
-      fullPath: '/flight-deck'
-      preLoaderRoute: typeof AuthenticatedFlightDeckRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/cockpit': {
@@ -2186,7 +2167,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedBriefRoomRoute: typeof AuthenticatedBriefRoomRoute
   AuthenticatedCheckinHomeRoute: typeof AuthenticatedCheckinHomeRoute
   AuthenticatedCockpitRoute: typeof AuthenticatedCockpitRoute
-  AuthenticatedFlightDeckRoute: typeof AuthenticatedFlightDeckRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedIntelligenceRoute: typeof AuthenticatedIntelligenceRoute
   AuthenticatedIntelligenceQueueRoute: typeof AuthenticatedIntelligenceQueueRoute
@@ -2215,7 +2195,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedBriefRoomRoute: AuthenticatedBriefRoomRoute,
   AuthenticatedCheckinHomeRoute: AuthenticatedCheckinHomeRoute,
   AuthenticatedCockpitRoute: AuthenticatedCockpitRoute,
-  AuthenticatedFlightDeckRoute: AuthenticatedFlightDeckRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedIntelligenceRoute: AuthenticatedIntelligenceRoute,
   AuthenticatedIntelligenceQueueRoute: AuthenticatedIntelligenceQueueRoute,
@@ -2272,13 +2251,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
