@@ -13,7 +13,7 @@ import {
   approveGlobalMemory,
   rejectGlobalMemory,
 } from "@/lib/iris-memory.functions";
-import { useSelectedOlympusMission } from "../olympus";
+import { useSelectedAdminMission } from "../admin";
 
 export const Route = createFileRoute("/_authenticated/admin/iris-memory")({
   component: IrisMemoryPage,
@@ -505,7 +505,7 @@ function TeachIrisModal({
   onSaved: () => void;
   editing?: Memory;
 }) {
-  const selectedMissionId = useSelectedOlympusMission();
+  const selectedMissionId = useSelectedAdminMission();
   const [step, setStep] = useState<"input" | "review">(editing ? "review" : "input");
   const [content, setContent] = useState(editing?.content ?? "");
   const [source, setSource] = useState(editing?.source ?? "");

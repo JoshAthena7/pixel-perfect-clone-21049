@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { History, Search, Filter, Download } from "lucide-react";
 import { toast } from "sonner";
-import { useSelectedOlympusMission } from "../olympus";
+import { useSelectedAdminMission } from "../admin";
 
 export const Route = createFileRoute("/_authenticated/admin/audit")({
   component: AuditPage,
@@ -23,7 +23,7 @@ type Entry = {
 };
 
 function AuditPage() {
-  const missionId = useSelectedOlympusMission();
+  const missionId = useSelectedAdminMission();
   const [scope, setScope] = useState<"mission" | "all">("mission");
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
