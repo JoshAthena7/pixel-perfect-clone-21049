@@ -274,7 +274,7 @@ function MissionBriefView({ data }: { data: IrisData }) {
         <div className="mt-2 space-y-3 text-[15px] leading-relaxed text-muted-foreground">
           {intel ? (
             <>
-              {intel.decision_makers?.length ? (
+              {Array.isArray(intel.decision_makers) && intel.decision_makers.length > 0 ? (
                 <p>
                   <strong className="text-foreground">Decision-makers:</strong>{" "}
                   {(intel.decision_makers as Array<{ name: string; role: string }>)
