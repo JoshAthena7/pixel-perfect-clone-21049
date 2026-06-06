@@ -55,6 +55,7 @@ import { Route as AuthenticatedCommandAlignmentConflictsRouteImport } from './ro
 import { Route as AuthenticatedCommandAlignmentRouteImport } from './routes/_authenticated/command/alignment'
 import { Route as AuthenticatedAdminWriterDeletionRouteImport } from './routes/_authenticated/admin/writer-deletion'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
+import { Route as AuthenticatedAdminStatusReportRouteImport } from './routes/_authenticated/admin/status-report'
 import { Route as AuthenticatedAdminSourceLibraryRouteImport } from './routes/_authenticated/admin/source-library'
 import { Route as AuthenticatedAdminSourceFinderRouteImport } from './routes/_authenticated/admin/source-finder'
 import { Route as AuthenticatedAdminScoreMeRouteImport } from './routes/_authenticated/admin/score-me'
@@ -354,6 +355,12 @@ const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminStatusReportRoute =
+  AuthenticatedAdminStatusReportRouteImport.update({
+    id: '/status-report',
+    path: '/status-report',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminSourceLibraryRoute =
   AuthenticatedAdminSourceLibraryRouteImport.update({
     id: '/source-library',
@@ -690,6 +697,7 @@ export interface FileRoutesByFullPath {
   '/admin/score-me': typeof AuthenticatedAdminScoreMeRoute
   '/admin/source-finder': typeof AuthenticatedAdminSourceFinderRoute
   '/admin/source-library': typeof AuthenticatedAdminSourceLibraryRoute
+  '/admin/status-report': typeof AuthenticatedAdminStatusReportRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/writer-deletion': typeof AuthenticatedAdminWriterDeletionRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
@@ -784,6 +792,7 @@ export interface FileRoutesByTo {
   '/admin/score-me': typeof AuthenticatedAdminScoreMeRoute
   '/admin/source-finder': typeof AuthenticatedAdminSourceFinderRoute
   '/admin/source-library': typeof AuthenticatedAdminSourceLibraryRoute
+  '/admin/status-report': typeof AuthenticatedAdminStatusReportRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/writer-deletion': typeof AuthenticatedAdminWriterDeletionRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
@@ -880,6 +889,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/score-me': typeof AuthenticatedAdminScoreMeRoute
   '/_authenticated/admin/source-finder': typeof AuthenticatedAdminSourceFinderRoute
   '/_authenticated/admin/source-library': typeof AuthenticatedAdminSourceLibraryRoute
+  '/_authenticated/admin/status-report': typeof AuthenticatedAdminStatusReportRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/writer-deletion': typeof AuthenticatedAdminWriterDeletionRoute
   '/_authenticated/command/alignment': typeof AuthenticatedCommandAlignmentRoute
@@ -978,6 +988,7 @@ export interface FileRouteTypes {
     | '/admin/score-me'
     | '/admin/source-finder'
     | '/admin/source-library'
+    | '/admin/status-report'
     | '/admin/users'
     | '/admin/writer-deletion'
     | '/command/alignment'
@@ -1072,6 +1083,7 @@ export interface FileRouteTypes {
     | '/admin/score-me'
     | '/admin/source-finder'
     | '/admin/source-library'
+    | '/admin/status-report'
     | '/admin/users'
     | '/admin/writer-deletion'
     | '/command/alignment'
@@ -1167,6 +1179,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/score-me'
     | '/_authenticated/admin/source-finder'
     | '/_authenticated/admin/source-library'
+    | '/_authenticated/admin/status-report'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/writer-deletion'
     | '/_authenticated/command/alignment'
@@ -1566,6 +1579,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/status-report': {
+      id: '/_authenticated/admin/status-report'
+      path: '/status-report'
+      fullPath: '/admin/status-report'
+      preLoaderRoute: typeof AuthenticatedAdminStatusReportRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/source-library': {
       id: '/_authenticated/admin/source-library'
       path: '/source-library'
@@ -1932,6 +1952,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminScoreMeRoute: typeof AuthenticatedAdminScoreMeRoute
   AuthenticatedAdminSourceFinderRoute: typeof AuthenticatedAdminSourceFinderRoute
   AuthenticatedAdminSourceLibraryRoute: typeof AuthenticatedAdminSourceLibraryRoute
+  AuthenticatedAdminStatusReportRoute: typeof AuthenticatedAdminStatusReportRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminWriterDeletionRoute: typeof AuthenticatedAdminWriterDeletionRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
@@ -1960,6 +1981,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminScoreMeRoute: AuthenticatedAdminScoreMeRoute,
   AuthenticatedAdminSourceFinderRoute: AuthenticatedAdminSourceFinderRoute,
   AuthenticatedAdminSourceLibraryRoute: AuthenticatedAdminSourceLibraryRoute,
+  AuthenticatedAdminStatusReportRoute: AuthenticatedAdminStatusReportRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedAdminWriterDeletionRoute: AuthenticatedAdminWriterDeletionRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,

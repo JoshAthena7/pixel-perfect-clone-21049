@@ -199,6 +199,7 @@ function AdminSidebar() {
         <SidebarItem to="/admin/intel-drift" path={path} icon={<TrendingUp size={15} strokeWidth={1.5} />}>Intel Drift</SidebarItem>
         <SidebarItem to="/admin/discovery-history" path={path} icon={<Compass size={15} strokeWidth={1.5} />}>Discovery History</SidebarItem>
         <SidebarItem to="/admin/review-queue" path={path} icon={<Inbox size={15} strokeWidth={1.5} />}>Review Queue</SidebarItem>
+        <SidebarItem to="/admin/status-report" path={path} icon={<ClipboardCheck size={15} strokeWidth={1.5} />}>Status Report</SidebarItem>
         <SidebarItem to="/admin/score-me" path={path} icon={<Gauge size={15} strokeWidth={1.5} />}>Score-Me Lab</SidebarItem>
 
         <SectionHeader>Platform</SectionHeader>
