@@ -120,7 +120,7 @@ export function MissionReadinessPanel({
         status: (totalQ > 0 ? "pass" : "fail") as Status,
         detail: totalQ > 0 ? `${totalQ} questions from RFP` : "No questions exist",
         actionLabel: totalQ > 0 ? undefined : "Parse RFP with IRIS",
-        actionHref: "/olympus/missions/$missionId/setup", actionParams: { missionId },
+        actionHref: "/admin/missions/$missionId/setup", actionParams: { missionId },
       },
       {
         key: "writers",
@@ -139,7 +139,7 @@ export function MissionReadinessPanel({
             ? `All ${totalQ} assigned`
             : `${withWriters} of ${totalQ} questions have writers assigned`,
         actionLabel: withWriters === totalQ && totalQ > 0 ? undefined : "Assign Writers",
-        actionHref: "/olympus/missions/$missionId/setup", actionParams: { missionId },
+        actionHref: "/admin/missions/$missionId/setup", actionParams: { missionId },
       },
       {
         key: "pens-down",
@@ -158,7 +158,7 @@ export function MissionReadinessPanel({
             ? `All ${totalQ} dated`
             : `${withDates} of ${totalQ} have pens-down dates`,
         actionLabel: withDates === totalQ && totalQ > 0 ? undefined : "Set Dates",
-        actionHref: "/olympus/missions/$missionId/setup", actionParams: { missionId },
+        actionHref: "/admin/missions/$missionId/setup", actionParams: { missionId },
       },
       {
         key: "gates",
@@ -169,7 +169,7 @@ export function MissionReadinessPanel({
             ? `${gates[0].gate_name}${gates[0].target_date ? " · " + new Date(gates[0].target_date).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : ""}${gates.length > 1 ? ` (+${gates.length - 1})` : ""}`
             : "No gates configured",
         actionLabel: gates.length > 0 ? undefined : "Create Gate",
-        actionHref: "/olympus/missions/$missionId/setup", actionParams: { missionId },
+        actionHref: "/admin/missions/$missionId/setup", actionParams: { missionId },
       },
       {
         key: "themes",
@@ -191,7 +191,7 @@ export function MissionReadinessPanel({
             : linkedThemeQs.size === 0
             ? "Link Questions"
             : undefined,
-        actionHref: "/olympus/missions/$missionId/setup", actionParams: { missionId },
+        actionHref: "/admin/missions/$missionId/setup", actionParams: { missionId },
       },
       {
         key: "intel",
@@ -202,7 +202,7 @@ export function MissionReadinessPanel({
             ? "No sources ingested"
             : `${sourceCount} source${sourceCount > 1 ? "s" : ""} ingested`,
         actionLabel: sourceCount >= 5 ? undefined : "Find Sources with IRIS",
-        actionHref: "/olympus/source-finder",
+        actionHref: "/admin/source-finder",
       },
     ];
   }, [data, missionId]);

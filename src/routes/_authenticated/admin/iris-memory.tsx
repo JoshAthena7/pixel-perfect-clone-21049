@@ -15,7 +15,7 @@ import {
 } from "@/lib/iris-memory.functions";
 import { useSelectedOlympusMission } from "../olympus";
 
-export const Route = createFileRoute("/_authenticated/olympus/iris-memory")({
+export const Route = createFileRoute("/_authenticated/admin/iris-memory")({
   component: IrisMemoryPage,
 });
 

@@ -12,7 +12,7 @@ import {
   listDeletionRequests,
 } from "@/lib/writer-deletion.functions";
 
-export const Route = createFileRoute("/_authenticated/olympus/writer-deletion")({
+export const Route = createFileRoute("/_authenticated/admin/writer-deletion")({
   component: WriterDeletionPage,
 });
 

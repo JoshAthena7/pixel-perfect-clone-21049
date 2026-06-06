@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
 import { Sparkles } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/olympus/score-me")({
+export const Route = createFileRoute("/_authenticated/admin/score-me")({
   component: OlympusScoreMePage,
 });
 

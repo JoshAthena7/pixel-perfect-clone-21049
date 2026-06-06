@@ -6,7 +6,7 @@ import { Check, X, Loader2, Inbox } from "lucide-react";
 import { listReviewQueue, setSourceStatus } from "@/lib/atlas-onboarding.functions";
 import { EmptyState, EmptyIcon } from "@/components/v2/EmptyState";
 
-export const Route = createFileRoute("/_authenticated/olympus/review-queue")({
+export const Route = createFileRoute("/_authenticated/admin/review-queue")({
   component: OlympusReviewQueue,
 });
 

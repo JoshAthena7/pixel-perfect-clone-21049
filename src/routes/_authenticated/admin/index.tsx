@@ -10,7 +10,7 @@ import { MissionReadinessPanel, ReadinessChip } from "@/components/v2/MissionRea
 import { IrisGreeting } from "@/components/v2/IrisGreeting";
 
 
-export const Route = createFileRoute("/_authenticated/olympus/")({
+export const Route = createFileRoute("/_authenticated/admin/")({
   component: MissionsIndex,
 });
 
@@ -112,7 +112,7 @@ function MissionsIndex() {
                   <tr key={m.id} className="hover:bg-surface-hover">
                     <td className="px-4 py-3">
                       <Link
-                        to="/olympus/missions/$missionId/setup" params={{ missionId: m.id }}
+                        to="/admin/missions/$missionId/setup" params={{ missionId: m.id }}
                         className="block group"
                         title="Open Setup Record"
                       >
@@ -151,7 +151,7 @@ function MissionsIndex() {
                       )}
                       {(m.status === "Won" || m.status === "Lost") && (
                         <Link
-                          to="/olympus/missions/$missionId/debrief" params={{ missionId: m.id }}
+                          to="/admin/missions/$missionId/debrief" params={{ missionId: m.id }}
                           className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-1 text-[12px] font-medium text-amber-400 hover:bg-amber-500/25"
                         >
                           Debrief

@@ -13,7 +13,7 @@ import {
   type ConflictPair,
 } from "@/lib/conflict-detection.functions";
 
-export const Route = createFileRoute("/_authenticated/olympus/conflicts")({
+export const Route = createFileRoute("/_authenticated/admin/conflicts")({
   component: ConflictsPage,
 });
 

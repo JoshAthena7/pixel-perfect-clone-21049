@@ -10,7 +10,7 @@ import { AddCanonModal } from "@/components/canon/AddCanonModal";
 import { ExtractCanonModal } from "@/components/canon/ExtractCanonModal";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/olympus/canon-library")({
+export const Route = createFileRoute("/_authenticated/admin/canon-library")({
   component: CanonLibraryPage,
 });
 

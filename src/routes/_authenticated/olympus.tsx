@@ -28,7 +28,7 @@ const SELECTED_KEY = "olympus:mission";
 function OlympusLayout() {
   const { isAdmin, isLoading } = useIsAdmin();
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const isStrategicPath = path === "/olympus" || path === "/olympus/";
+  const isStrategicPath = path === "/olympus" || path === "/admin/";
 
   // Detect executive_sponsor mission role (Phase 5).
   const { data: execAccess, isLoading: execLoading } = useQuery({
@@ -205,10 +205,10 @@ function OlympusSidebar({ isAdmin }: { isAdmin: boolean }) {
         <SidebarItem to="/olympus" path={path} icon={<LayoutGrid size={15} strokeWidth={1.5} />} exact>Missions</SidebarItem>
         {selectedMissionId ? (
           <Link
-            to="/olympus/missions/$missionId/setup"
+            to="/admin/missions/$missionId/setup"
             params={{ missionId: selectedMissionId }}
             className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors ${
-              path.startsWith("/olympus/missions/") && path.endsWith("/setup")
+              path.startsWith("/admin/missions/") && path.endsWith("/setup")
                 ? "bg-surface-hover text-foreground"
                 : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
             }`}
@@ -227,29 +227,29 @@ function OlympusSidebar({ isAdmin }: { isAdmin: boolean }) {
         )}
 
         <IntelligenceSectionHeader />
-        <IrisSidebarItem to="/olympus/intel-engine" path={path} icon={<Brain size={15} strokeWidth={1.5} />} pulse>Intel Engine</IrisSidebarItem>
-        <SidebarItem to="/olympus/comparables" path={path} icon={<Globe size={15} strokeWidth={1.5} />}>State Comparables</SidebarItem>
-        <SidebarItem to="/olympus/intel-drift" path={path} icon={<TrendingUp size={15} strokeWidth={1.5} />}>Intel Drift</SidebarItem>
-        <SidebarItem to="/olympus/discovery-history" path={path} icon={<Compass size={15} strokeWidth={1.5} />}>Discovery History</SidebarItem>
-        <SidebarItem to="/olympus/review-queue" path={path} icon={<Inbox size={15} strokeWidth={1.5} />}>Review Queue</SidebarItem>
-        <SidebarItem to="/olympus/score-me" path={path} icon={<Gauge size={15} strokeWidth={1.5} />}>Score-Me Lab</SidebarItem>
+        <IrisSidebarItem to="/admin/intel-engine" path={path} icon={<Brain size={15} strokeWidth={1.5} />} pulse>Intel Engine</IrisSidebarItem>
+        <SidebarItem to="/admin/comparables" path={path} icon={<Globe size={15} strokeWidth={1.5} />}>State Comparables</SidebarItem>
+        <SidebarItem to="/admin/intel-drift" path={path} icon={<TrendingUp size={15} strokeWidth={1.5} />}>Intel Drift</SidebarItem>
+        <SidebarItem to="/admin/discovery-history" path={path} icon={<Compass size={15} strokeWidth={1.5} />}>Discovery History</SidebarItem>
+        <SidebarItem to="/admin/review-queue" path={path} icon={<Inbox size={15} strokeWidth={1.5} />}>Review Queue</SidebarItem>
+        <SidebarItem to="/admin/score-me" path={path} icon={<Gauge size={15} strokeWidth={1.5} />}>Score-Me Lab</SidebarItem>
 
         {isAdmin && (
           <>
             <SectionHeader>Platform</SectionHeader>
             <SidebarItem to="/command/health" path={path} icon={<Activity size={15} strokeWidth={1.5} />}>Firm Health</SidebarItem>
-            <SidebarItem to="/olympus/admins" path={path} icon={<UserCog size={15} strokeWidth={1.5} />}>Admins</SidebarItem>
-            <SidebarItem to="/olympus/invites" path={path} icon={<UserPlus size={15} strokeWidth={1.5} />}>Invites</SidebarItem>
+            <SidebarItem to="/admin/admins" path={path} icon={<UserCog size={15} strokeWidth={1.5} />}>Admins</SidebarItem>
+            <SidebarItem to="/admin/invites" path={path} icon={<UserPlus size={15} strokeWidth={1.5} />}>Invites</SidebarItem>
 
-            <SidebarItem to="/olympus/users" path={path} icon={<UserCog size={15} strokeWidth={1.5} />}>Users</SidebarItem>
-            <SidebarItem to="/olympus/brief-room" path={path} icon={<Megaphone size={15} strokeWidth={1.5} />}>Send Briefing</SidebarItem>
+            <SidebarItem to="/admin/users" path={path} icon={<UserCog size={15} strokeWidth={1.5} />}>Users</SidebarItem>
+            <SidebarItem to="/admin/brief-room" path={path} icon={<Megaphone size={15} strokeWidth={1.5} />}>Send Briefing</SidebarItem>
 
             {/* H3: Security section — audit + PHI + IRP link */}
             <SectionHeader>Security</SectionHeader>
-            <SidebarItem to="/olympus/audit" path={path} icon={<History size={15} strokeWidth={1.5} />}>Audit Log</SidebarItem>
-            <SidebarItem to="/olympus/conflicts" path={path} icon={<ShieldAlert size={15} strokeWidth={1.5} />}>Conflicts</SidebarItem>
-            <SidebarItem to="/olympus/phi-log" path={path} icon={<ShieldAlert size={15} strokeWidth={1.5} />}>PHI Rejection Log</SidebarItem>
-            <SidebarItem to="/olympus/writer-deletion" path={path} icon={<UserMinus size={15} strokeWidth={1.5} />}>Right-to-Deletion</SidebarItem>
+            <SidebarItem to="/admin/audit" path={path} icon={<History size={15} strokeWidth={1.5} />}>Audit Log</SidebarItem>
+            <SidebarItem to="/admin/conflicts" path={path} icon={<ShieldAlert size={15} strokeWidth={1.5} />}>Conflicts</SidebarItem>
+            <SidebarItem to="/admin/phi-log" path={path} icon={<ShieldAlert size={15} strokeWidth={1.5} />}>PHI Rejection Log</SidebarItem>
+            <SidebarItem to="/admin/writer-deletion" path={path} icon={<UserMinus size={15} strokeWidth={1.5} />}>Right-to-Deletion</SidebarItem>
             <a
               href="https://athenacommandcenter.com/security/incident-response"
               target="_blank"

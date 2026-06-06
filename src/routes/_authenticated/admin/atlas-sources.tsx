@@ -10,7 +10,7 @@ import {
   Layers, Plus, Search, ExternalLink, ArrowUp, Trash2, X, Sparkles,
 } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/olympus/atlas-sources")({
+export const Route = createFileRoute("/_authenticated/admin/atlas-sources")({
   component: AtlasSourcesPage,
 });
 

@@ -5,7 +5,7 @@ import {
   AlertTriangle, ChevronDown, ChevronRight, Search, Link as LinkIcon,
 } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/olympus/intel-engine")({
+export const Route = createFileRoute("/_authenticated/admin/intel-engine")({
   component: IntelEnginePage,
 });
 

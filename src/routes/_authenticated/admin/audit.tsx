@@ -6,7 +6,7 @@ import { History, Search, Filter, Download } from "lucide-react";
 import { toast } from "sonner";
 import { useSelectedOlympusMission } from "../olympus";
 
-export const Route = createFileRoute("/_authenticated/olympus/audit")({
+export const Route = createFileRoute("/_authenticated/admin/audit")({
   component: AuditPage,
 });
 

@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { History } from "lucide-react";
 import { listAtlasSources } from "@/lib/atlas-sources.functions";
 
-export const Route = createFileRoute("/_authenticated/olympus/discovery-history")({
+export const Route = createFileRoute("/_authenticated/admin/discovery-history")({
   component: DiscoveryHistoryPage,
 });
 

@@ -10,7 +10,7 @@ import {
   revokePlatformAdmin,
 } from "@/lib/platform-admins.functions";
 
-export const Route = createFileRoute("/_authenticated/olympus/admins")({
+export const Route = createFileRoute("/_authenticated/admin/admins")({
   component: AdminsPage,
 });
 
