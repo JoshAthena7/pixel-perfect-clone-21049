@@ -138,7 +138,7 @@ export function AmendmentReviewPanel({
           <SummaryStat label="Critical" value={counts.critical} tone="destructive" />
           <SummaryStat label="Significant" value={counts.significant} tone="amber" />
           <SummaryStat label="Administrative" value={counts.administrative} tone="muted" />
-          <SummaryStat label="Questions affected" value={counts.questions} tone="iris" />
+          <SummaryStat label="Sections affected" value={counts.questions} tone="iris" />
         </div>
 
         <div className="space-y-3">
