@@ -72,11 +72,19 @@ function IrisCommandPage() {
   const { data: intel } = useQuery({
     queryKey: ["iris-command-intel", missionId],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("mission_intel")
         .select("iris_brief,state_priorities,procurement_priorities,competitor_signals,compliance_flags,relevant_research,generated_at")
         .eq("mission_id", missionId).maybeSingle();
-      return data;
+      return data as {
+        iris_brief: string | null;
+        state_priorities: string | null;
+        procurement_priorities: string | null;
+        competitor_signals: string | null;
+        compliance_flags: string[] | null;
+        relevant_research: string[] | null;
+        generated_at: string | null;
+      } | null;
     },
     enabled: allowed,
   });
@@ -84,7 +92,7 @@ function IrisCommandPage() {
   const { data: questions = [] } = useQuery({
     queryKey: ["iris-command-questions", missionId],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("questions")
         .select("id,mission_id,question_number,title,status,health,pens_down_date,assigned_writer_id")
         .eq("mission_id", missionId)
