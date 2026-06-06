@@ -316,9 +316,24 @@ function AthenaHQ() {
     : missions[0]?.id;
 
   // Atrium command-center: filter/sort state
+  // Phase 3: role-aware sort default (set once on first mount).
+  const getRouting = useServerFn(getLoginRouting);
+  const { data: routing } = useQuery({
+    queryKey: ["login-routing"],
+    queryFn: () => getRouting(),
+    staleTime: 5 * 60_000,
+  });
+  const role: RoutingRole = (routing?.role ?? "none") as RoutingRole;
   const [missionSort, setMissionSort] = useState<MissionSort>("submission");
+  const [sortInitialized, setSortInitialized] = useState(false);
+  useEffect(() => {
+    if (sortInitialized || !routing) return;
+    setMissionSort(DEFAULT_SORT_BY_ROLE[role] as MissionSort);
+    setSortInitialized(true);
+  }, [routing, role, sortInitialized]);
   const [missionHealthFilter, setMissionHealthFilter] = useState<"all" | "red" | "yellow" | "green">("all");
   const [missionSearch, setMissionSearch] = useState("");
+
 
   const filteredMissions = useMemo(
     () =>
