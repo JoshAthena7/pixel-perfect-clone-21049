@@ -6,6 +6,7 @@ import { Trophy, DollarSign, Users, MapPin, Flame, Sparkles, Circle, MessageSqua
 import { IrisGreeting } from "@/components/v2/IrisGreeting";
 import { AmbientWisdom } from "@/components/v2/AmbientWisdom";
 import { AnimatedNumber, Constellation, IrisType } from "@/components/v2/polish";
+import { MissionIntelligenceGraph } from "@/components/v2/MissionIntelligenceGraph";
 
 export const Route = createFileRoute("/_authenticated/atrium")({
   component: AtriumPage,
@@ -67,6 +68,8 @@ function AtriumPage() {
           )}
         </div>
       </header>
+
+      <MissionIntelligenceGraph />
 
       <div className="relative mx-auto grid max-w-[1400px] grid-cols-1 gap-8 px-8 py-10 lg:grid-cols-[1fr_360px]">
         <main className="space-y-10">
