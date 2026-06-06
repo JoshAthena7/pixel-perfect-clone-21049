@@ -1516,7 +1516,7 @@ function MyAssignments({
         {loadingAll ? (
           <div className="px-4 py-6 text-[12px] text-muted-foreground">Loading…</div>
         ) : list.length === 0 ? (
-          <div className="px-4 py-6 text-[12px] text-muted-foreground">No assigned questions.</div>
+          <div className="px-4 py-6 text-[12px] text-muted-foreground">No assigned sections.</div>
         ) : list.map((mq, i) => {
           const active = mq.id === activeQuestionId;
           const d = daysUntil(mq.pens_down_date);
