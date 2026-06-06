@@ -951,9 +951,9 @@ function MissionCardActions({ missionId }: { missionId: string }) {
       <button
         type="button"
         className={btn}
-        onClick={(e) => go(e, () => nav({ to: "/missions/$missionId/brief", params: { missionId } }))}
+        onClick={(e) => go(e, () => nav({ to: "/missions/$missionId", params: { missionId } }))}
       >
-        Mission Brief
+        Cockpit
       </button>
       <button
         type="button"
@@ -965,9 +965,9 @@ function MissionCardActions({ missionId }: { missionId: string }) {
       <button
         type="button"
         className={btn}
-        onClick={(e) => go(e, () => nav({ to: "/cockpit", search: { missionId } as never }))}
+        onClick={(e) => go(e, () => nav({ to: "/missions/$missionId/brief", params: { missionId } }))}
       >
-        Cockpit
+        Mission Brief
       </button>
     </div>
   );
@@ -1037,7 +1037,7 @@ function MissionCard({
 
   return (
     <Link
-      to="/missions/$missionId/brief"
+      to="/missions/$missionId"
       params={{ missionId: mission.id }}
       data-health={computedHealth}
       onClick={() => { try { sessionStorage.setItem("athena:last-mission", mission.id); } catch {} }}

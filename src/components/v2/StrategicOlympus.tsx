@@ -279,13 +279,14 @@ export function StrategicOlympus({ canSubmitDecisions, canResolveDecisions }: {
 
           {/* MISSION MATRIX */}
           <div className="rounded-[10px] overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
-            <div className="grid grid-cols-[1fr_180px_100px_100px_100px] gap-3 px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground"
+            <div className="grid grid-cols-[1fr_180px_100px_100px_100px_110px] gap-3 px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground"
               style={{ background: "rgba(255,255,255,0.03)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               <div>Mission</div>
               <div>Client</div>
               <div>Health</div>
               <div>Due</div>
               <div>Status</div>
+              <div>Cockpit</div>
             </div>
             {visibleMissions.length === 0 ? (
               <div className="px-4 py-6 text-sm text-muted-foreground">
@@ -469,9 +470,9 @@ function MatrixRow({ m, muted }: { m: Mission; muted?: boolean }) {
   return (
     <li>
       <Link
-        to="/missions/$missionId/brief"
+        to="/missions/$missionId"
         params={{ missionId: m.id }}
-        className={`grid grid-cols-[1fr_180px_100px_100px_100px] gap-3 px-4 py-3 text-sm hover:bg-white/[0.03] border-t border-white/[0.04] ${
+        className={`grid grid-cols-[1fr_180px_100px_100px_100px_110px] gap-3 px-4 py-3 text-sm hover:bg-white/[0.03] border-t border-white/[0.04] ${
           muted ? "opacity-70" : ""
         }`}
       >
@@ -483,6 +484,9 @@ function MatrixRow({ m, muted }: { m: Mission; muted?: boolean }) {
         </div>
         <div className={dueColor}>{fmtDueDate(m.submission_date)}</div>
         <div className="text-muted-foreground capitalize">{m.status ?? "Active"}</div>
+        <div className="inline-flex items-center gap-1 text-[11px] font-semibold" style={{ color: "var(--athena-gold, #f59e0b)" }}>
+          Open <ArrowRight className="h-3 w-3" />
+        </div>
       </Link>
     </li>
   );
