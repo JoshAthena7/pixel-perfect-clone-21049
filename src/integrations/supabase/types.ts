@@ -4169,12 +4169,17 @@ export type Database = {
       mission_sections: {
         Row: {
           assigned_user_id: string | null
+          body: string | null
           created_at: string
           id: string
           internal_due_date: string | null
+          iris_alignment_pct: number | null
+          iris_flag_reason: string | null
+          iris_flagged: boolean
           mission_id: string
           number: string
           rfp_page_ref: string | null
+          rfp_requirement: string | null
           studio_progress_pct: number | null
           studio_status: string | null
           studio_updated_at: string | null
@@ -4183,12 +4188,17 @@ export type Database = {
         }
         Insert: {
           assigned_user_id?: string | null
+          body?: string | null
           created_at?: string
           id?: string
           internal_due_date?: string | null
+          iris_alignment_pct?: number | null
+          iris_flag_reason?: string | null
+          iris_flagged?: boolean
           mission_id: string
           number: string
           rfp_page_ref?: string | null
+          rfp_requirement?: string | null
           studio_progress_pct?: number | null
           studio_status?: string | null
           studio_updated_at?: string | null
@@ -4197,12 +4207,17 @@ export type Database = {
         }
         Update: {
           assigned_user_id?: string | null
+          body?: string | null
           created_at?: string
           id?: string
           internal_due_date?: string | null
+          iris_alignment_pct?: number | null
+          iris_flag_reason?: string | null
+          iris_flagged?: boolean
           mission_id?: string
           number?: string
           rfp_page_ref?: string | null
+          rfp_requirement?: string | null
           studio_progress_pct?: number | null
           studio_status?: string | null
           studio_updated_at?: string | null
