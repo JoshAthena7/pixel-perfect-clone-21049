@@ -11,6 +11,7 @@ import { IrisGreeting } from "@/components/v2/IrisGreeting";
 import { DeveloperResetCard } from "@/components/admin/DeveloperResetCard";
 import { IrisHealthCheckCard } from "@/components/admin/IrisHealthCheckCard";
 import { RefreshIrisCard } from "@/components/admin/RefreshIrisCard";
+import { BackfillEmbeddingsCard } from "@/components/admin/BackfillEmbeddingsCard";
 
 
 export const Route = createFileRoute("/_authenticated/admin/")({
@@ -205,6 +206,7 @@ function MissionsIndex() {
 
       <IrisHealthCheckCard />
       <RefreshIrisCard />
+      <BackfillEmbeddingsCard />
       <DeveloperResetCard />
     </div>
   );
