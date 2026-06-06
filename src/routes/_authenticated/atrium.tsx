@@ -68,7 +68,7 @@ function AtriumPage() {
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-8 px-8 py-10 lg:grid-cols-[1fr_360px]">
+      <div className="relative mx-auto grid max-w-[1400px] grid-cols-1 gap-8 px-8 py-10 lg:grid-cols-[1fr_360px]">
         <main className="space-y-10">
           <GlobalBriefing />
           <DirectBriefing />
@@ -90,7 +90,7 @@ function AtriumPage() {
         </aside>
       </div>
 
-      <div className="mx-auto mt-16 mb-6 max-w-[640px] px-6">
+      <div className="relative mx-auto mt-16 mb-6 max-w-[640px] px-6">
         <AmbientWisdom />
       </div>
     </div>
