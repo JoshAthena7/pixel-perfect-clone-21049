@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { logOlympusAction } from "@/lib/audit";
 import { MissionActivationWizard } from "@/components/v2/MissionActivationWizard";
 import { MissionReadinessPanel, ReadinessChip } from "@/components/v2/MissionReadinessPanel";
+import { IrisGreeting } from "@/components/v2/IrisGreeting";
 
 
 export const Route = createFileRoute("/_authenticated/olympus/")({
@@ -63,7 +64,8 @@ function MissionsIndex() {
     <div className="mx-auto max-w-7xl px-8 py-8">
       <header className="mb-6 flex items-start justify-between gap-4">
         <div>
-          <div className="h2-label" style={{ letterSpacing: "0.32em" }}>Missions</div>
+          <IrisGreeting screen="olympus" />
+          <div className="mt-4 h2-label" style={{ letterSpacing: "0.32em" }}>Missions</div>
           <h1 className="h1-display mt-1">All Missions</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Every procurement Athena is working on. Create, activate, edit, or archive from here.

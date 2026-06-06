@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getAtrium, type AtriumPayload } from "@/lib/atrium.functions";
 import { Trophy, DollarSign, Users, MapPin, Flame, Sparkles, Circle, MessageSquare, Send, AlertTriangle, Megaphone, Inbox, FileText, FileEdit, BookOpen, FileArchive } from "lucide-react";
+import { IrisGreeting } from "@/components/v2/IrisGreeting";
 
 export const Route = createFileRoute("/_authenticated/atrium")({
   component: AtriumPage,
@@ -50,7 +51,8 @@ function AtriumPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-gradient-to-b from-surface to-background">
         <div className="mx-auto max-w-[1400px] px-8 py-8">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">
+          <IrisGreeting screen="atrium" />
+          <div className="mt-4 text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">
             The Atrium
           </div>
           <h1 className="h1-display mt-2">Where every win lives.</h1>
