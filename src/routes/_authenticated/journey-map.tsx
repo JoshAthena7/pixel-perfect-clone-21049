@@ -554,7 +554,7 @@ function JourneyMapPage() {
                 </div>
               ) : (
                 <div
-                  className="mb-4 flex items-center gap-2 rounded-lg border border-border bg-background/40 px-3 py-2 text-[12px] text-muted-foreground"
+                  className="mb-4 flex items-center gap-2 rounded-lg border border-border bg-background/40 px-3 py-2 text-[12px] text-muted-foreground animate-fade-in"
                 >
                   <Users size={14} />
                   <span>
