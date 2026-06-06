@@ -34,6 +34,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile/index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedProfileExpertiseRouteImport } from './routes/_authenticated/profile/expertise'
+import { Route as AuthenticatedOlympusSplatRouteImport } from './routes/_authenticated/olympus.$'
 import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_authenticated/missions/$missionId'
 import { Route as AuthenticatedCommandSecurityRouteImport } from './routes/_authenticated/command/security'
 import { Route as AuthenticatedCommandScoresRouteImport } from './routes/_authenticated/command/scores'
@@ -224,6 +225,12 @@ const AuthenticatedProfileExpertiseRoute =
     id: '/profile/expertise',
     path: '/profile/expertise',
     getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedOlympusSplatRoute =
+  AuthenticatedOlympusSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
+    getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
 const AuthenticatedMissionsMissionIdRoute =
   AuthenticatedMissionsMissionIdRouteImport.update({
@@ -592,7 +599,7 @@ export interface FileRoutesByFullPath {
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
   '/iris-console': typeof AuthenticatedIrisConsoleRoute
   '/journey-map': typeof AuthenticatedJourneyMapRoute
-  '/olympus': typeof AuthenticatedOlympusRoute
+  '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/status-report': typeof AuthenticatedStatusReportRoute
   '/api/atrium': typeof ApiAtriumRoute
   '/api/iris': typeof ApiIrisRoute
@@ -631,6 +638,7 @@ export interface FileRoutesByFullPath {
   '/command/scores': typeof AuthenticatedCommandScoresRoute
   '/command/security': typeof AuthenticatedCommandSecurityRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
+  '/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
@@ -676,7 +684,7 @@ export interface FileRoutesByTo {
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
   '/iris-console': typeof AuthenticatedIrisConsoleRoute
   '/journey-map': typeof AuthenticatedJourneyMapRoute
-  '/olympus': typeof AuthenticatedOlympusRoute
+  '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/status-report': typeof AuthenticatedStatusReportRoute
   '/api/atrium': typeof ApiAtriumRoute
   '/api/iris': typeof ApiIrisRoute
@@ -714,6 +722,7 @@ export interface FileRoutesByTo {
   '/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
   '/command/scores': typeof AuthenticatedCommandScoresRoute
   '/command/security': typeof AuthenticatedCommandSecurityRoute
+  '/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
@@ -762,7 +771,7 @@ export interface FileRoutesById {
   '/_authenticated/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
   '/_authenticated/iris-console': typeof AuthenticatedIrisConsoleRoute
   '/_authenticated/journey-map': typeof AuthenticatedJourneyMapRoute
-  '/_authenticated/olympus': typeof AuthenticatedOlympusRoute
+  '/_authenticated/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/_authenticated/status-report': typeof AuthenticatedStatusReportRoute
   '/api/atrium': typeof ApiAtriumRoute
   '/api/iris': typeof ApiIrisRoute
@@ -801,6 +810,7 @@ export interface FileRoutesById {
   '/_authenticated/command/scores': typeof AuthenticatedCommandScoresRoute
   '/_authenticated/command/security': typeof AuthenticatedCommandSecurityRoute
   '/_authenticated/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
+  '/_authenticated/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/_authenticated/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
@@ -888,6 +898,7 @@ export interface FileRouteTypes {
     | '/command/scores'
     | '/command/security'
     | '/missions/$missionId'
+    | '/olympus/$'
     | '/profile/expertise'
     | '/admin/'
     | '/profile/'
@@ -971,6 +982,7 @@ export interface FileRouteTypes {
     | '/command/question-health'
     | '/command/scores'
     | '/command/security'
+    | '/olympus/$'
     | '/profile/expertise'
     | '/admin'
     | '/profile'
@@ -1057,6 +1069,7 @@ export interface FileRouteTypes {
     | '/_authenticated/command/scores'
     | '/_authenticated/command/security'
     | '/_authenticated/missions/$missionId'
+    | '/_authenticated/olympus/$'
     | '/_authenticated/profile/expertise'
     | '/_authenticated/admin/'
     | '/_authenticated/profile/'
@@ -1286,6 +1299,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/profile/expertise'
       preLoaderRoute: typeof AuthenticatedProfileExpertiseRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/olympus/$': {
+      id: '/_authenticated/olympus/$'
+      path: '/$'
+      fullPath: '/olympus/$'
+      preLoaderRoute: typeof AuthenticatedOlympusSplatRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
     }
     '/_authenticated/missions/$missionId': {
       id: '/_authenticated/missions/$missionId'
@@ -1763,6 +1783,17 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
+interface AuthenticatedOlympusRouteChildren {
+  AuthenticatedOlympusSplatRoute: typeof AuthenticatedOlympusSplatRoute
+}
+
+const AuthenticatedOlympusRouteChildren: AuthenticatedOlympusRouteChildren = {
+  AuthenticatedOlympusSplatRoute: AuthenticatedOlympusSplatRoute,
+}
+
+const AuthenticatedOlympusRouteWithChildren =
+  AuthenticatedOlympusRoute._addFileChildren(AuthenticatedOlympusRouteChildren)
+
 interface AuthenticatedMissionsMissionIdRouteChildren {
   AuthenticatedMissionsMissionIdBriefRoute: typeof AuthenticatedMissionsMissionIdBriefRoute
   AuthenticatedMissionsMissionIdBriefingRoute: typeof AuthenticatedMissionsMissionIdBriefingRoute
@@ -1843,7 +1874,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedIntelligenceQueueRoute: typeof AuthenticatedIntelligenceQueueRoute
   AuthenticatedIrisConsoleRoute: typeof AuthenticatedIrisConsoleRoute
   AuthenticatedJourneyMapRoute: typeof AuthenticatedJourneyMapRoute
-  AuthenticatedOlympusRoute: typeof AuthenticatedOlympusRoute
+  AuthenticatedOlympusRoute: typeof AuthenticatedOlympusRouteWithChildren
   AuthenticatedStatusReportRoute: typeof AuthenticatedStatusReportRoute
   AuthenticatedCommandAlignmentRoute: typeof AuthenticatedCommandAlignmentRoute
   AuthenticatedCommandAlignmentConflictsRoute: typeof AuthenticatedCommandAlignmentConflictsRoute
@@ -1870,7 +1901,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIntelligenceQueueRoute: AuthenticatedIntelligenceQueueRoute,
   AuthenticatedIrisConsoleRoute: AuthenticatedIrisConsoleRoute,
   AuthenticatedJourneyMapRoute: AuthenticatedJourneyMapRoute,
-  AuthenticatedOlympusRoute: AuthenticatedOlympusRoute,
+  AuthenticatedOlympusRoute: AuthenticatedOlympusRouteWithChildren,
   AuthenticatedStatusReportRoute: AuthenticatedStatusReportRoute,
   AuthenticatedCommandAlignmentRoute: AuthenticatedCommandAlignmentRoute,
   AuthenticatedCommandAlignmentConflictsRoute:
