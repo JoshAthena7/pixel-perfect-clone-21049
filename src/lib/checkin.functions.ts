@@ -405,10 +405,22 @@ export const getSectionStatusBoard = createServerFn({ method: "GET" })
     const { data: sections } = await supabaseAdmin
       .from("mission_sections")
       .select(
-        "id, number, title, internal_due_date, studio_status, studio_progress_pct, studio_updated_at, assigned_user_id, profile:profiles!mission_sections_assigned_user_id_fkey(display_name, full_name)",
+        "id, number, title, internal_due_date, studio_status, studio_progress_pct, studio_updated_at, assigned_user_id",
       )
       .eq("mission_id", data.missionId)
       .order("number");
+
+    const writerIds = Array.from(
+      new Set((sections ?? []).map((s: any) => s.assigned_user_id).filter(Boolean)),
+    );
+    const { data: writerProfiles } = writerIds.length
+      ? await supabaseAdmin
+          .from("profiles")
+          .select("id, display_name, full_name")
+          .in("id", writerIds)
+      : { data: [] as any[] };
+    const writerById = new Map<string, any>();
+    (writerProfiles ?? []).forEach((p: any) => writerById.set(p.id, p));
 
     // Latest check-in update per section
     const sectionIds = (sections ?? []).map((s: any) => s.id);
