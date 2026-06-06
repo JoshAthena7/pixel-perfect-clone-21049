@@ -20,7 +20,7 @@ function FlightDeckResolver() {
         .from("mission_members")
         .select("mission_id, missions:mission_id(status)")
         .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
+        .order("joined_at", { ascending: false })
         .limit(20);
       if (memberError) throw memberError;
 
