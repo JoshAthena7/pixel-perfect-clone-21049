@@ -595,12 +595,12 @@ function MissionBriefView({ data }: { data: IrisData }) {
         </div>
       </section>
 
-      {m.key_requirements?.length ? (
+      {Array.isArray(m.key_requirements) && m.key_requirements.length ? (
         <section className="mb-7">
           <h2 className="font-serif text-xl tracking-tight text-foreground">Key Requirements</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-[15px] leading-relaxed text-muted-foreground">
-            {m.key_requirements.map((k, i) => (
-              <li key={i}>{k}</li>
+            {(m.key_requirements as unknown[]).map((k, i) => (
+              <li key={i}>{String(k)}</li>
             ))}
           </ul>
         </section>
