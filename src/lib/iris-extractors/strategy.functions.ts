@@ -24,12 +24,20 @@ export const extractStrategy = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ missionId: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
     const started = Date.now();
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
     const { loadMissionAndFeed, renderContext, callJsonExtractor } = await import("./shared.server");
 
     const { mission, rows } = await loadMissionAndFeed(supabaseAdmin, data.missionId);
     if (rows.length === 0) {
-      return { stage: "strategy", inserted: 0, skipped: true, reason: "no feed rows", ms: Date.now() - started };
+      return {
+        stage: "strategy",
+        inserted: 0,
+        skipped: true,
+        reason: "no feed rows",
+        ms: Date.now() - started,
+      };
     }
 
     const system = `You produce the "What the State Wants" section of a procurement strategy brief.
@@ -65,7 +73,13 @@ Each priority should explain WHY (the underlying pressure, evidence, or politica
     });
 
     if (!result) {
-      return { stage: "strategy", inserted: 0, skipped: true, reason: "ai unavailable", ms: Date.now() - started };
+      return {
+        stage: "strategy",
+        inserted: 0,
+        skipped: true,
+        reason: "ai unavailable",
+        ms: Date.now() - started,
+      };
     }
 
     await supabaseAdmin
