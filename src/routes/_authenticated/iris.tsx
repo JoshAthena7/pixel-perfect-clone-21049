@@ -158,7 +158,7 @@ function IrisPage() {
   }, []);
 
 
-  const completedCount = stages.filter((s) => s.status === "done" || s.status === "skipped" || s.status === "error").length;
+  const completedCount = stages.filter((s) => s.status !== "pending" && s.status !== "running").length;
   const progressPct = Math.round((completedCount / stages.length) * 100);
   const showProgress = running || completedCount > 0;
 
