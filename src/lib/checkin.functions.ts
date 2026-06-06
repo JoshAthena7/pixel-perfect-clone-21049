@@ -504,10 +504,7 @@ export const generateStatusReport = createServerFn({ method: "GET" })
     await assertPMOnMission(supabase, data.missionId, userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const board = await (getSectionStatusBoard as any).handler({
-      data: { missionId: data.missionId },
-      context,
-    });
+    const board = await buildSectionStatusBoard(data.missionId);
 
     const rows = board.rows as Array<any>;
     const total = rows.length || 1;
