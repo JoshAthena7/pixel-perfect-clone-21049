@@ -441,7 +441,7 @@ function Step2Uploads({
       );
       toast.error(`${file.name}: ${e?.message ?? "Failed"}`);
     }
-  }, [missionId, extractFn, parseRfpFn]);
+  }, [missionId, extractFn, parseRfpFn, kickoffIrisFn]);
 
   function handleFiles(list: FileList | null) {
     if (!list) return;
