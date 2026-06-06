@@ -12,6 +12,7 @@ import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
 import { SOSButton } from "@/components/v2/SOSButton";
 import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
 import { CockpitV4 } from "@/components/v4/CockpitV4";
+import { IrisGreeting } from "@/components/v2/IrisGreeting";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/questions/")({
   component: ResponsesList,
@@ -860,6 +861,7 @@ function ResponsesList() {
       <MissionSetupTabs />
       <div className="mx-auto max-w-[1200px] px-8 pb-32 pt-10">
       <div className="mb-6">
+        <IrisGreeting screen="studio" />
         <div className="text-[10px] font-semibold uppercase tracking-[0.32em]" style={{ color: "#3b7fff" }}>Questions</div>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">Your Workspace</h1>
         <p className="mt-1 text-sm text-muted-foreground">Your questions. Your deadline. Help one click away.</p>
