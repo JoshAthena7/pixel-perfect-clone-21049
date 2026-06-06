@@ -4493,6 +4493,8 @@ export type Database = {
       missions: {
         Row: {
           client: string
+          client_strengths: string | null
+          client_win_strategy: string | null
           competitors: string[] | null
           contract_start_date: string | null
           contract_term: string | null
@@ -4511,12 +4513,14 @@ export type Database = {
           iris_search_terms: string[] | null
           is_fedramp_scope: boolean
           key_requirements: string[] | null
+          mission_highlights: string | null
           name: string
           page_limit: number | null
           pens_down_date: string | null
           priority_topics: string[] | null
           procurement_id: string | null
           procurement_name: string | null
+          program_goals: string | null
           program_type: string | null
           qa_deadline: string | null
           question_count: number | null
@@ -4534,6 +4538,8 @@ export type Database = {
         }
         Insert: {
           client: string
+          client_strengths?: string | null
+          client_win_strategy?: string | null
           competitors?: string[] | null
           contract_start_date?: string | null
           contract_term?: string | null
@@ -4552,12 +4558,14 @@ export type Database = {
           iris_search_terms?: string[] | null
           is_fedramp_scope?: boolean
           key_requirements?: string[] | null
+          mission_highlights?: string | null
           name: string
           page_limit?: number | null
           pens_down_date?: string | null
           priority_topics?: string[] | null
           procurement_id?: string | null
           procurement_name?: string | null
+          program_goals?: string | null
           program_type?: string | null
           qa_deadline?: string | null
           question_count?: number | null
@@ -4575,6 +4583,8 @@ export type Database = {
         }
         Update: {
           client?: string
+          client_strengths?: string | null
+          client_win_strategy?: string | null
           competitors?: string[] | null
           contract_start_date?: string | null
           contract_term?: string | null
@@ -4593,12 +4603,14 @@ export type Database = {
           iris_search_terms?: string[] | null
           is_fedramp_scope?: boolean
           key_requirements?: string[] | null
+          mission_highlights?: string | null
           name?: string
           page_limit?: number | null
           pens_down_date?: string | null
           priority_topics?: string[] | null
           procurement_id?: string | null
           procurement_name?: string | null
+          program_goals?: string | null
           program_type?: string | null
           qa_deadline?: string | null
           question_count?: number | null
