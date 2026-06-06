@@ -11,6 +11,9 @@ import { MissionIntelligenceGraph } from "@/components/v2/MissionIntelligenceGra
 import { IrisDailyNote } from "@/components/v2/IrisDailyNote";
 
 export const Route = createFileRoute("/_authenticated/atrium")({
+  beforeLoad: () => {
+    void getAtrium;
+  },
   component: AtriumPage,
 });
 

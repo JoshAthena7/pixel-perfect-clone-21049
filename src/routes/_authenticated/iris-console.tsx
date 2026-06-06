@@ -31,6 +31,14 @@ import {
  */
 
 export const Route = createFileRoute("/_authenticated/iris-console")({
+  beforeLoad: () => {
+    void getIrisData;
+    void extractSignals;
+    void extractRisks;
+    void extractWinThemes;
+    void extractStrategy;
+    void extractClientIntel;
+  },
   component: IrisPage,
 });
 
