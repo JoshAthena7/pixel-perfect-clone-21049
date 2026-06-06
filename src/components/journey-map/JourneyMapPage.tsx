@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2, Circle, AlertTriangle, Sparkles, ChevronRight, Users, Target, ListChecks, Layers, Brain, Trophy } from "lucide-react";
 
+type Status = "complete" | "active" | "upcoming" | "at_risk";
+
 
 type Stage = {
   num: number;
