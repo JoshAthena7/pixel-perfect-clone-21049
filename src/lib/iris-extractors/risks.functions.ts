@@ -88,7 +88,7 @@ Sort by severity (most serious first). Make titles concrete and specific, not ge
       title: r.title,
       description: r.description,
       severity: sevMap[r.severity] ?? "Medium",
-      status: "open",
+      status: "Open",
       owner: `iris_extractor:${r.category}`,
       created_by_system: true,
     }));
