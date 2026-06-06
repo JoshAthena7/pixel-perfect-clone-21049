@@ -721,7 +721,8 @@ function MissionBrief() {
           <Zap className="h-5 w-5" />
           Enter Cockpit
         </Link>
-        </div>
+
+
 
         {/* ── F-3: ACTIVE SOS — top-of-page red banner. If leaders can't see SOS, the escalation chain is broken. */}
         {sosSignals.length > 0 && (
