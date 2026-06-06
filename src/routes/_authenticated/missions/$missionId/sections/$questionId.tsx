@@ -30,7 +30,7 @@ import { AssistsBar } from "@/components/v4/AssistsBar";
 export const Route = createFileRoute(
   "/_authenticated/missions/$missionId/sections/$questionId",
 )({
-  component: Flight DeckPage,
+  component: FlightDeckPage,
 });
 
 /* ──────────────────────────── types ──────────────────────────── */
@@ -87,7 +87,7 @@ function firstName(p?: Profile | null): string {
 
 /* ──────────────────────────── page ──────────────────────────── */
 
-function Flight DeckPage() {
+function FlightDeckPage() {
   const { missionId, questionId } = Route.useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -1256,7 +1256,7 @@ function FirstVisitTooltip({ children }: { children: React.ReactNode }) {
 }
 
 /* ──────────── Flight Deck overflow menu (Score Me · Phone a Friend · Get Help) ──────────── */
-function Flight DeckOverflow({
+function FlightDeckOverflow({
   open, setOpen, showSublabels, primaryAction,
   onScoreMe, onPhoneAFriend, onGetHelp,
 }: {
