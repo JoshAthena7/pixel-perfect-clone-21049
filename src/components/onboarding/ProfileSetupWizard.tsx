@@ -275,8 +275,11 @@ function ProfileSetupWizard({
               </span>
               <button
                 onClick={() => {
-                  setStepIdx(0);
+                  // Drop the stored cursor explicitly so the next mount /
+                  // re-open doesn't snap back to the previous step.
+                  if (typeof window !== "undefined") localStorage.removeItem(resumeKey);
                   setResumedFrom(null);
+                  setStepIdx(0);
                 }}
                 className="text-[11px] text-muted-foreground hover:text-foreground"
               >
