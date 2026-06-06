@@ -20,6 +20,7 @@ import { Route as ApiIrisVoiceRouteImport } from './routes/api/iris-voice'
 import { Route as ApiIrisRouteImport } from './routes/api/iris'
 import { Route as ApiAtriumRouteImport } from './routes/api/atrium'
 import { Route as AuthenticatedV1RouteImport } from './routes/_authenticated/v1'
+import { Route as AuthenticatedStatusReportRouteImport } from './routes/_authenticated/status-report'
 import { Route as AuthenticatedOlympusRouteImport } from './routes/_authenticated/olympus'
 import { Route as AuthenticatedJourneyMapRouteImport } from './routes/_authenticated/journey-map'
 import { Route as AuthenticatedIrisConsoleRouteImport } from './routes/_authenticated/iris-console'
@@ -159,6 +160,12 @@ const AuthenticatedV1Route = AuthenticatedV1RouteImport.update({
   path: '/v1',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedStatusReportRoute =
+  AuthenticatedStatusReportRouteImport.update({
+    id: '/status-report',
+    path: '/status-report',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedOlympusRoute = AuthenticatedOlympusRouteImport.update({
   id: '/olympus',
   path: '/olympus',
@@ -663,6 +670,7 @@ export interface FileRoutesByFullPath {
   '/iris-console': typeof AuthenticatedIrisConsoleRoute
   '/journey-map': typeof AuthenticatedJourneyMapRoute
   '/olympus': typeof AuthenticatedOlympusRouteWithChildren
+  '/status-report': typeof AuthenticatedStatusReportRoute
   '/v1': typeof AuthenticatedV1RouteWithChildren
   '/api/atrium': typeof ApiAtriumRoute
   '/api/iris': typeof ApiIrisRoute
@@ -758,6 +766,7 @@ export interface FileRoutesByTo {
   '/iris-console': typeof AuthenticatedIrisConsoleRoute
   '/journey-map': typeof AuthenticatedJourneyMapRoute
   '/olympus': typeof AuthenticatedOlympusRouteWithChildren
+  '/status-report': typeof AuthenticatedStatusReportRoute
   '/api/atrium': typeof ApiAtriumRoute
   '/api/iris': typeof ApiIrisRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
@@ -853,6 +862,7 @@ export interface FileRoutesById {
   '/_authenticated/iris-console': typeof AuthenticatedIrisConsoleRoute
   '/_authenticated/journey-map': typeof AuthenticatedJourneyMapRoute
   '/_authenticated/olympus': typeof AuthenticatedOlympusRouteWithChildren
+  '/_authenticated/status-report': typeof AuthenticatedStatusReportRoute
   '/_authenticated/v1': typeof AuthenticatedV1RouteWithChildren
   '/api/atrium': typeof ApiAtriumRoute
   '/api/iris': typeof ApiIrisRoute
@@ -951,6 +961,7 @@ export interface FileRouteTypes {
     | '/iris-console'
     | '/journey-map'
     | '/olympus'
+    | '/status-report'
     | '/v1'
     | '/api/atrium'
     | '/api/iris'
@@ -1046,6 +1057,7 @@ export interface FileRouteTypes {
     | '/iris-console'
     | '/journey-map'
     | '/olympus'
+    | '/status-report'
     | '/api/atrium'
     | '/api/iris'
     | '/api/iris-voice'
@@ -1140,6 +1152,7 @@ export interface FileRouteTypes {
     | '/_authenticated/iris-console'
     | '/_authenticated/journey-map'
     | '/_authenticated/olympus'
+    | '/_authenticated/status-report'
     | '/_authenticated/v1'
     | '/api/atrium'
     | '/api/iris'
@@ -1319,6 +1332,13 @@ declare module '@tanstack/react-router' {
       path: '/v1'
       fullPath: '/v1'
       preLoaderRoute: typeof AuthenticatedV1RouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/status-report': {
+      id: '/_authenticated/status-report'
+      path: '/status-report'
+      fullPath: '/status-report'
+      preLoaderRoute: typeof AuthenticatedStatusReportRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/olympus': {
@@ -2107,6 +2127,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedIrisConsoleRoute: typeof AuthenticatedIrisConsoleRoute
   AuthenticatedJourneyMapRoute: typeof AuthenticatedJourneyMapRoute
   AuthenticatedOlympusRoute: typeof AuthenticatedOlympusRouteWithChildren
+  AuthenticatedStatusReportRoute: typeof AuthenticatedStatusReportRoute
   AuthenticatedV1Route: typeof AuthenticatedV1RouteWithChildren
   AuthenticatedCommandAlignmentRoute: typeof AuthenticatedCommandAlignmentRoute
   AuthenticatedCommandAlignmentConflictsRoute: typeof AuthenticatedCommandAlignmentConflictsRoute
@@ -2134,6 +2155,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIrisConsoleRoute: AuthenticatedIrisConsoleRoute,
   AuthenticatedJourneyMapRoute: AuthenticatedJourneyMapRoute,
   AuthenticatedOlympusRoute: AuthenticatedOlympusRouteWithChildren,
+  AuthenticatedStatusReportRoute: AuthenticatedStatusReportRoute,
   AuthenticatedV1Route: AuthenticatedV1RouteWithChildren,
   AuthenticatedCommandAlignmentRoute: AuthenticatedCommandAlignmentRoute,
   AuthenticatedCommandAlignmentConflictsRoute:
@@ -2183,13 +2205,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
