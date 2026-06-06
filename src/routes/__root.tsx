@@ -21,9 +21,9 @@ import * as PolishModule from "@/components/v2/polish";
 // Safe fallback: if the polish module fails to load, or GoldEntryLine is
 // missing/undefined (stale SSR bundle, transform error, future refactor),
 // render nothing instead of crashing the entire app.
-const SafeGoldEntryLine: React.ComponentType = (() => {
+const SafeGoldEntryLine: ComponentType = (() => {
   try {
-    const Cmp = (PolishModule as { GoldEntryLine?: React.ComponentType })
+    const Cmp = (PolishModule as { GoldEntryLine?: ComponentType })
       ?.GoldEntryLine;
     if (typeof Cmp === "function") return Cmp;
   } catch {
