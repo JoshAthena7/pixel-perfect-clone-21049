@@ -525,7 +525,7 @@ function AthenaHQ() {
         {/* ROLE-DIFFERENTIATED: Active Missions (leaders) or Your Assignments (writers/SMEs) */}
         {isLeader ? (
           <section>
-            <div className="mb-5 flex items-end justify-between gap-4">
+            <div className="mb-3 flex items-end justify-between gap-4">
               <div>
                 <h2 className="h2-label">Active Missions</h2>
                 <p className="mt-1.5 text-2xl font-semibold tracking-tight">
@@ -539,40 +539,56 @@ function AthenaHQ() {
             ) : missions.length === 0 ? (
               <EmptyState
                 icon={<Rocket className="h-10 w-10" strokeWidth={1.5} />}
-                title="Atlas is ready."
-                subtitle={isAdmin ? "Create your first mission in Olympus to get started." : "No active missions yet. An admin will set things up shortly."}
+                title="Welcome to Athena HQ."
+                subtitle={isAdmin ? "No active missions yet. When a mission is activated, it will appear here with IRIS monitoring its health in real time." : "No active missions yet. An admin will set things up shortly."}
                 cta={
                   isAdmin ? (
                     <Link
                       to="/olympus"
                       className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-[13px] font-medium text-background hover:opacity-90"
                     >
-                      Go to Olympus
+                      Activate Your First Mission
                       <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                   ) : null
                 }
               />
-
-
-
             ) : (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {missions.map((m) => {
-                  const qs = missionQuestions.filter((q) => q.mission_id === m.id);
-                  return (
-                    <MissionCard
-                      key={m.id}
-                      mission={m}
-                      attention={attMap.get(m.id) ?? 0}
-                      questions={qs}
-                      lastSignalAt={lastSignalByMission[m.id] ?? null}
-                      needsCount={needsByMission[m.id] ?? 0}
-                      showNeedsBadge={isLeader}
-                    />
-                  );
-                })}
-              </div>
+              <>
+                <div className="mb-4">
+                  <MissionFilterBar
+                    total={filteredMissions.length}
+                    search={missionSearch}
+                    onSearchChange={setMissionSearch}
+                    sort={missionSort}
+                    onSortChange={setMissionSort}
+                    healthFilter={missionHealthFilter}
+                    onHealthChange={setMissionHealthFilter}
+                  />
+                </div>
+                {filteredMissions.length === 0 ? (
+                  <div className="rounded-[12px] border border-dashed border-border bg-surface/40 px-6 py-10 text-center text-sm text-muted-foreground">
+                    No missions match the current filters.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    {filteredMissions.map((m) => {
+                      const qs = missionQuestions.filter((q) => q.mission_id === m.id);
+                      return (
+                        <MissionCard
+                          key={m.id}
+                          mission={m as Mission}
+                          attention={attMap.get(m.id) ?? 0}
+                          questions={qs}
+                          lastSignalAt={lastSignalByMission[m.id] ?? null}
+                          needsCount={needsByMission[m.id] ?? 0}
+                          showNeedsBadge={isLeader}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+              </>
             )}
           </section>
         ) : (
