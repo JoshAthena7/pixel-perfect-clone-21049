@@ -200,6 +200,8 @@ function MissionsIndex() {
           onClose={() => setReadinessFor(null)}
         />
       )}
+
+      <DeveloperResetCard />
     </div>
   );
 }
