@@ -26,7 +26,7 @@ type StageResult = {
 export const runIrisPipeline = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ missionId: z.string().uuid() }).parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const stages = [
       { name: "signals", fn: extractSignals },
       { name: "risks", fn: extractRisks },
@@ -57,5 +57,30 @@ export const runIrisPipeline = createServerFn({ method: "POST" })
       }
     }
 
-    return { ranAt: new Date().toISOString(), results };
+    // Conflict-of-interest scan: surface other active missions on the same
+    // state + procurement_id. Non-fatal — logged into results so the caller
+    // (Olympus dashboard, etc.) can render an alert.
+    let conflicts: Array<{ id: string; name: string; client: string }> = [];
+    try {
+      const { supabase } = context;
+      const { data: m } = await supabase
+        .from("missions")
+        .select("state,procurement_id")
+        .eq("id", data.missionId)
+        .maybeSingle();
+      if (m?.state && m?.procurement_id) {
+        const { data: others } = await supabase
+          .from("missions")
+          .select("id,name,client,status")
+          .eq("state", m.state)
+          .eq("procurement_id", m.procurement_id)
+          .neq("id", data.missionId)
+          .in("status", ["Active", "active", "Open", "open", "in_progress"]);
+        conflicts = (others ?? []).map((o) => ({ id: o.id, name: o.name, client: o.client }));
+      }
+    } catch (e) {
+      console.warn("conflict scan failed", (e as Error).message);
+    }
+
+    return { ranAt: new Date().toISOString(), results, conflicts };
   });
