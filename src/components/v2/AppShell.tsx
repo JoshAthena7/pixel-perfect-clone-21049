@@ -343,6 +343,7 @@ function MissionNav({ missionId }: { missionId: string }) {
     label: string;
     icon: ReactNode;
     to: string;
+    search?: Record<string, string>;
     active: boolean;
   }> = [
     {
