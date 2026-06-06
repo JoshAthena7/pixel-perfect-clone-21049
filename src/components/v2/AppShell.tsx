@@ -70,7 +70,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         missionId={missionId}
         isOlympus={isOlympus}
         isAtrium={isAtrium}
-        room={room}
       />
 
       {showBetaBanner && (
