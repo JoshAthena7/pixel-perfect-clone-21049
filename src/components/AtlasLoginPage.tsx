@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import loginBg from "@/assets/atlas-login-bg.png.asset.json";
+import { dailyWisdomLine } from "@/lib/wisdom";
 
 export function AtlasLoginPage() {
   const navigate = useNavigate();
@@ -129,6 +130,15 @@ export function AtlasLoginPage() {
 
             </form>
           </div>
+        </div>
+
+        <div
+          className="pointer-events-none absolute left-0 right-0 text-center text-[12px] italic tracking-wide text-amber-100/45"
+          style={{ bottom: "8%" }}
+        >
+          <span className="opacity-50">— </span>
+          {dailyWisdomLine("ambient")}
+          <span className="opacity-50"> —</span>
         </div>
       </div>
     </div>
