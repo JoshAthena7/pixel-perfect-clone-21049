@@ -49,11 +49,37 @@ function MissionSetupRecord() {
   const qc = useQueryClient();
   const { isAdmin } = useIsAdmin();
   const launchFn = useServerFn(launchMission);
+  const autofillFn = useServerFn(irisPopulateSetupRecord);
   const [confirm, setConfirm] = useState(false);
   const [preLaunchError, setPreLaunchError] = useState<string | null>(null);
+  const [autofillWritten, setAutofillWritten] = useState<number | undefined>(undefined);
 
   const setup = useSetupData(missionId);
   const completion = useCompletion(setup);
+
+  // First-open auto-population from IRIS
+  useEffect(() => {
+    if (!setup.mission) return;
+    const status = setup.mission.iris_setup_autofill_status as string | null;
+    const kickoff = setup.mission.iris_kickoff_status as string | undefined;
+    if (status) return; // already ran (suggested/approved/reviewing/pending)
+    if (kickoff && kickoff !== "complete") return; // wait for kickoff
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await autofillFn({ data: { missionId } });
+        if (cancelled) return;
+        setAutofillWritten(res.written);
+        setup.refetch();
+      } catch {
+        // silent — banner just won't appear
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setup.mission?.id, setup.mission?.iris_setup_autofill_status, setup.mission?.iris_kickoff_status]);
 
   async function handleLaunch() {
     setPreLaunchError(null);
