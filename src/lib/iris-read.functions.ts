@@ -10,9 +10,7 @@ import { z } from "zod";
  */
 export const getIrisData = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) =>
-    z.object({ missionId: z.string().uuid().optional() }).parse(d ?? {}),
-  )
+  .inputValidator((d) => z.object({ missionId: z.string().uuid().optional() }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
 
@@ -28,7 +26,15 @@ export const getIrisData = createServerFn({ method: "POST" })
       missionId = first?.id ?? null;
     }
     if (!missionId) {
-      return { mission: null, signals: [], risks: [], winThemes: [], strategy: [], clientIntel: null, missions: [] };
+      return {
+        mission: null,
+        signals: [],
+        risks: [],
+        winThemes: [],
+        strategy: [],
+        clientIntel: null,
+        missions: [],
+      };
     }
 
     const { data: missions } = await supabase
@@ -47,7 +53,9 @@ export const getIrisData = createServerFn({ method: "POST" })
     const [signalsRes, risksRes, themesRes, strategyRes, intelRes] = await Promise.all([
       supabase
         .from("signals")
-        .select("id,signal_type,signal_title,signal_summary,severity,confidence,tags,recommended_action,created_at,created_by_system")
+        .select(
+          "id,signal_type,signal_title,signal_summary,severity,confidence,tags,recommended_action,created_at,created_by_system",
+        )
         .eq("mission_id", missionId)
         .order("created_at", { ascending: false }),
       supabase
@@ -70,7 +78,9 @@ export const getIrisData = createServerFn({ method: "POST" })
         .order("sort_order", { ascending: true }),
       supabase
         .from("mission_client_intel")
-        .select("decision_makers,stakeholders,political_considerations,meeting_cadence,notes,updated_at,created_by_system")
+        .select(
+          "decision_makers,stakeholders,political_considerations,meeting_cadence,notes,updated_at,created_by_system",
+        )
         .eq("mission_id", missionId)
         .order("updated_at", { ascending: false })
         .limit(1)
