@@ -86,14 +86,16 @@ export function SOSModal({ missionId, questionId, onClose }: { missionId: string
         if (error) throw error;
       }
 
+      // GAP 1 — emit canonical `sos_raised` signal so EL + PM Mission Command surfaces it.
       await supabase.from("signals").insert({
         mission_id: missionId,
         source_module: "studio_sos",
-        signal_type: kind === "air_cover" ? "air_cover" : kind === "decision" ? "decision_needed" : "sme_request",
+        signal_type: "sos_raised",
         signal_title: `SOS · ${KINDS.find((k) => k.key === kind)!.title} — ${name}`,
         signal_summary: headline.trim(),
         severity: "high",
         related_question_id: questionId ?? null,
+        tags: ["sos", kind, TYPE_MAP[kind]],
         user_id: user.id,
       });
 
