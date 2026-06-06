@@ -4,7 +4,7 @@ import { Link, useRouterState, useParams, useNavigate, useRouter } from "@tansta
 import {
   LogOut, User, Shield, Settings2,
   Plane, ArrowLeft, Megaphone, Home,
-  FileText, Database, Archive, Map as MapIcon, ListChecks,
+  FileText, Database, Archive, Map as MapIcon,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -347,11 +347,23 @@ function MissionNav({ missionId }: { missionId: string }) {
     active: boolean;
   }> = [
     {
+      key: "cockpit",
+      label: "Cockpit",
+      icon: <Plane size={13} strokeWidth={1.75} />,
+      to: base,
+      active:
+        path === base ||
+        path === `${base}/` ||
+        path === `${base}/overview` ||
+        path.startsWith(`${base}/sections`) ||
+        path.startsWith(`${base}/scaffold`),
+    },
+    {
       key: "brief",
       label: "Mission Brief",
       icon: <FileText size={13} strokeWidth={1.75} />,
       to: `${base}/brief`,
-      active: path === `${base}/brief` || path === `${base}` || path === `${base}/overview`,
+      active: path === `${base}/brief`,
     },
     {
       key: "intel",
@@ -373,21 +385,6 @@ function MissionNav({ missionId }: { missionId: string }) {
       icon: <MapIcon size={13} strokeWidth={1.75} />,
       to: `${base}/journey-map`,
       active: path.startsWith(`${base}/journey-map`),
-    },
-    {
-      key: "sections",
-      label: "Sections",
-      icon: <ListChecks size={13} strokeWidth={1.75} />,
-      to: `${base}/sections`,
-      active: path.startsWith(`${base}/sections`) || path.startsWith(`${base}/scaffold`),
-    },
-    {
-      key: "cockpit",
-      label: "Cockpit",
-      icon: <Plane size={13} strokeWidth={1.75} />,
-      to: `/cockpit`,
-      search: { missionId },
-      active: path.startsWith(`/cockpit`),
     },
   ];
 
