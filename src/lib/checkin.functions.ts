@@ -472,7 +472,8 @@ export const getSectionStatusBoard = createServerFn({ method: "GET" })
         risks.push({ level: "yellow", label: `No update in ${daysSinceUpdate} days` });
       }
 
-      const writerName = s.profile?.display_name ?? s.profile?.full_name ?? "Unassigned";
+      const p = s.assigned_user_id ? writerById.get(s.assigned_user_id) : null;
+      const writerName = p?.display_name ?? p?.full_name ?? "Unassigned";
       return {
         id: s.id,
         number: s.number,
