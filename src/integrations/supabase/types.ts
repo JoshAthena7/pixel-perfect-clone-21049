@@ -6598,9 +6598,10 @@ export type Database = {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
       }
-      developer_reset_all_mission_data:
-        | { Args: never; Returns: Json }
-        | { Args: { p_caller?: string }; Returns: Json }
+      developer_reset_all_mission_data: {
+        Args: { p_caller: string }
+        Returns: Json
+      }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
