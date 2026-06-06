@@ -7,7 +7,7 @@ import { generateMissionBrief } from "@/lib/iris-mission-brief.functions";
 import { canPmAccessMission } from "@/lib/access.functions";
 import { toast } from "sonner";
 import {
-  RefreshCw, Radio, ArrowRight, Plus, MessageSquare, Plane, AlertTriangle, X,
+  RefreshCw, Radio, ArrowRight, Plus, MessageSquare, Plane, AlertTriangle, X, Zap,
 } from "lucide-react";
 import { IrisKickoffBadge } from "@/components/v2/IrisKickoffBadge";
 
@@ -695,19 +695,34 @@ function MissionBrief() {
             </div>
           </div>
           <Link
-            to="/missions/$missionId"
+            to="/missions/$missionId/cockpit"
             params={{ missionId }}
-            className="inline-flex items-center gap-2 rounded-md border px-5 py-3 text-[12px] font-black uppercase tracking-[0.18em] shadow-2xl transition hover:-translate-y-0.5"
+            className="group inline-flex items-center gap-2 rounded-xl px-6 py-4 text-[14px] font-bold tracking-wide text-white shadow-2xl transition hover:-translate-y-0.5"
             style={{
-              background: "var(--athena-gold, #f59e0b)",
-              borderColor: "rgba(255,255,255,0.28)",
-              color: "#060b14",
-              boxShadow: "0 16px 48px rgba(245,158,11,0.28)",
+              background: "#6366F1",
+              boxShadow: "0 18px 50px rgba(99,102,241,0.35)",
             }}
           >
-            <Plane className="h-4 w-4" /> Cockpit
+            <Zap className="h-5 w-5" />
+            Enter Cockpit
           </Link>
         </div>
+
+        {/* Full-width prominent CTA below the title for maximum visibility */}
+        <Link
+          to="/missions/$missionId/cockpit"
+          params={{ missionId }}
+          className="group flex w-full items-center justify-center gap-3 rounded-xl px-6 py-5 text-base font-bold tracking-wide text-white shadow-2xl transition hover:-translate-y-0.5"
+          style={{
+            background: "#6366F1",
+            boxShadow: "0 18px 50px rgba(99,102,241,0.35)",
+          }}
+        >
+          <Zap className="h-5 w-5" />
+          Enter Cockpit
+        </Link>
+
+
 
         {/* ── F-3: ACTIVE SOS — top-of-page red banner. If leaders can't see SOS, the escalation chain is broken. */}
         {sosSignals.length > 0 && (
