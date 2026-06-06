@@ -295,21 +295,39 @@ function saveDismissed(s: Set<string>) {
 export function AttentionPanel({
   missions,
   missionQuestions,
+  forceExpanded = false,
+  criticalOnly = false,
+  dimMissionIds,
 }: {
   missions: AcMission[];
   missionQuestions: AcQuestion[];
+  forceExpanded?: boolean;
+  criticalOnly?: boolean;
+  dimMissionIds?: Set<string>;
 }) {
   const all = useMemo(
     () => buildAttentionItems(missions, missionQuestions),
     [missions, missionQuestions],
   );
+  const [showAll, setShowAll] = useState(!criticalOnly);
   const [dismissed, setDismissed] = useState<Set<string>>(() => loadDismissed());
-  const visible = useMemo(() => all.filter((i) => !dismissed.has(i.id)), [all, dismissed]);
+  const visible = useMemo(
+    () =>
+      all.filter((i) => {
+        if (dismissed.has(i.id)) return false;
+        if (criticalOnly && !showAll && !(i.type === "critical" || i.type === "atrisk")) return false;
+        return true;
+      }),
+    [all, dismissed, criticalOnly, showAll],
+  );
+  const hiddenCount = criticalOnly && !showAll
+    ? all.filter((i) => !dismissed.has(i.id) && !(i.type === "critical" || i.type === "atrisk")).length
+    : 0;
   const hasCritical = visible.some((i) => i.type === "critical");
-  const [open, setOpen] = useState(hasCritical);
+  const [open, setOpen] = useState(forceExpanded || hasCritical);
   useEffect(() => {
-    setOpen(hasCritical);
-  }, [hasCritical]);
+    setOpen(forceExpanded || hasCritical);
+  }, [forceExpanded, hasCritical]);
 
   const dismiss = (id: string) => {
     const next = new Set(dismissed);
@@ -339,6 +357,7 @@ export function AttentionPanel({
     );
   }
 
+
   return (
     <section className="overflow-hidden rounded-[12px] border border-border bg-surface">
       <button
@@ -364,8 +383,20 @@ export function AttentionPanel({
       {open && (
         <ul className="divide-y divide-border">
           {visible.map((it) => (
-            <AttentionRow key={it.id} item={it} onDismiss={() => dismiss(it.id)} />
+            <AttentionRow
+              key={it.id}
+              item={it}
+              onDismiss={() => dismiss(it.id)}
+              dim={dimMissionIds?.has(it.missionId) ?? false}
+            />
           ))}
+          {hiddenCount > 0 && (
+            <li className="px-4 py-2 text-right">
+              <button onClick={() => setShowAll(true)} className="text-[11px] text-primary hover:underline">
+                Show {hiddenCount} more (At Risk · Intel · Recommendations)
+              </button>
+            </li>
+          )}
           {dismissed.size > 0 && (
             <li className="px-4 py-2 text-right">
               <button onClick={resetAll} className="text-[11px] text-primary hover:underline">
@@ -375,11 +406,12 @@ export function AttentionPanel({
           )}
         </ul>
       )}
+
     </section>
   );
 }
 
-function AttentionRow({ item, onDismiss }: { item: AttentionItem; onDismiss: () => void }) {
+function AttentionRow({ item, onDismiss, dim = false }: { item: AttentionItem; onDismiss: () => void; dim?: boolean }) {
   const meta =
     item.type === "critical"
       ? {
@@ -412,7 +444,7 @@ function AttentionRow({ item, onDismiss }: { item: AttentionItem; onDismiss: () 
         };
 
   return (
-    <li className="group px-4 py-3">
+    <li className={`group px-4 py-3 ${dim ? "opacity-50" : ""}`}>
       <div className="flex items-start gap-3">
         <div className="mt-0.5">{meta.icon}</div>
         <div className="min-w-0 flex-1">

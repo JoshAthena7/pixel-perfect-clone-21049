@@ -2,16 +2,24 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { IrisPersonalAlert } from "@/components/v2/IrisPersonalAlert";
 import { Plane, ArrowRight, AlertTriangle, Clock, ArrowLeft } from "lucide-react";
 
-type CockpitSearch = { missionId?: string };
+type CockpitSearch = {
+  missionId?: string;
+  status_filter?: "in_review" | undefined;
+  sme_filter?: "active" | undefined;
+};
 
 export const Route = createFileRoute("/_authenticated/cockpit")({
   validateSearch: (search: Record<string, unknown>): CockpitSearch => ({
     missionId: typeof search.missionId === "string" ? search.missionId : undefined,
+    status_filter: search.status_filter === "in_review" ? "in_review" : undefined,
+    sme_filter: search.sme_filter === "active" ? "active" : undefined,
   }),
   component: CockpitPage,
 });
+
 
 // ── TYPES ────────────────────────────────────────────────
 type AssignedRow = {
@@ -74,7 +82,7 @@ function fmtDate(date: string | null): string {
 
 // ── COMPONENT ────────────────────────────────────────────
 function CockpitPage() {
-  const { missionId: filterMissionId } = Route.useSearch();
+  const { missionId: filterMissionId, status_filter, sme_filter } = Route.useSearch();
   const { data: me } = useQuery({
     queryKey: ["cockpit-me"],
     queryFn: async () => {
@@ -92,24 +100,39 @@ function CockpitPage() {
       const { data, error } = await supabase
         .from("question_records")
         .select(
-          "id,mission_id,question_number,section_number,title,status,health,current_score,pens_down_date,assigned_writer_id,assigned_sme_id"
+          "id,mission_id,question_number,section_number,title,status,health,current_score,pens_down_date,assigned_writer_id,assigned_sme_id,updated_at"
         )
         .or(`assigned_writer_id.eq.${meId},assigned_sme_id.eq.${meId}`)
         .order("pens_down_date", { ascending: true, nullsFirst: false });
       if (error) throw error;
-      return (data ?? []) as AssignedRow[];
+      return (data ?? []) as (AssignedRow & { updated_at?: string | null })[];
     },
   });
 
-  const rows = useMemo(
-    () => (filterMissionId ? allRows.filter((r) => r.mission_id === filterMissionId) : allRows),
-    [allRows, filterMissionId],
-  );
+  const rows = useMemo(() => {
+    let r = allRows as (AssignedRow & { updated_at?: string | null })[];
+    if (filterMissionId) r = r.filter((x) => x.mission_id === filterMissionId);
+    if (status_filter === "in_review") {
+      r = r.filter((x) => x.status === "ready_for_review");
+    }
+    if (sme_filter === "active") {
+      // Sections where I'm the assigned SME AND status is in_progress or blocked
+      const filtered = r.filter(
+        (x) =>
+          x.assigned_sme_id === meId &&
+          (x.status === "in_progress" || x.status === "blocked"),
+      );
+      // Fallback: if filter empties, show all (no SME-filtered empty state)
+      if (filtered.length > 0) r = filtered;
+    }
+    return r;
+  }, [allRows, filterMissionId, status_filter, sme_filter, meId]);
 
   const missionIds = useMemo(
     () => Array.from(new Set(rows.map((r) => r.mission_id))),
     [rows]
   );
+
 
   const { data: missions = [] } = useQuery({
     queryKey: ["cockpit-missions", missionIds.join(",")],
@@ -163,8 +186,23 @@ function CockpitPage() {
       return d !== null && d < 0 && r.status !== "approved";
     }).length;
     const inReview = rows.filter((r) => r.status === "ready_for_review").length;
-    return { total, red, overdue, inReview };
+    // Review overdue: in_review for >48h
+    const reviewOverdue = rows.filter((r) => {
+      if (r.status !== "ready_for_review") return false;
+      const u = (r as any).updated_at as string | undefined;
+      if (!u) return false;
+      return Date.now() - new Date(u).getTime() > 48 * 60 * 60 * 1000;
+    }).length;
+    return { total, red, overdue, inReview, reviewOverdue };
   }, [rows]);
+
+  const isFiltered = !!status_filter || !!sme_filter;
+  const filterTitle =
+    status_filter === "in_review"
+      ? "Your Review Queue"
+      : sme_filter === "active"
+      ? "Your SME Assignments"
+      : null;
 
   return (
     <div className="mission-room-bg min-h-screen">
@@ -187,30 +225,49 @@ function CockpitPage() {
       <div className="mx-auto max-w-[1100px] px-10 pt-12 pb-16 space-y-10">
         {/* Header */}
         <header className="space-y-3">
-          {filterMissionId && (
+          {(filterMissionId || isFiltered) && (
             <Link
               to="/cockpit"
+              search={{} as never}
               className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="h-3 w-3" />
-              All Missions
+              {isFiltered ? "Show All Sections" : "All Missions"}
             </Link>
           )}
           <div className="flex items-center gap-3">
             <Plane size={20} strokeWidth={1.5} className="text-[#3b7fff]" />
-            <h1 className="text-[28px] font-bold tracking-tight text-white">Cockpit</h1>
+            <h1 className="text-[28px] font-bold tracking-tight text-white">
+              {filterTitle ?? "Cockpit"}
+            </h1>
             {filterMissionId && (
               <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
                 Filtered to one mission
               </span>
             )}
           </div>
-          <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
-            {filterMissionId
-              ? "Your assigned sections for this mission only."
-              : "Everything assigned to you across every mission. One list, one focus — grouped by mission, sorted by deadline."}
-          </p>
+          {status_filter === "in_review" ? (
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
+              {rows.length} section{rows.length === 1 ? "" : "s"} awaiting your review
+              {totals.reviewOverdue > 0 ? ` · ${totals.reviewOverdue} review overdue` : ""}.
+            </p>
+          ) : sme_filter === "active" ? (
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
+              {rows.length} section{rows.length === 1 ? "" : "s"} awaiting your input
+              {totals.overdue > 0 ? ` · ${totals.overdue} overdue` : ""}.
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
+              {filterMissionId
+                ? "Your assigned sections for this mission only."
+                : "Everything assigned to you across every mission. One list, one focus — grouped by mission, sorted by deadline."}
+            </p>
+          )}
         </header>
+
+        <IrisPersonalAlert />
+
+
 
         {/* Summary row */}
         <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
