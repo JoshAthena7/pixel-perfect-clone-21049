@@ -496,6 +496,16 @@ function MissionBrief() {
     qc.invalidateQueries({ queryKey: ["mb-signals", missionId] });
   };
 
+  // Hide the PM aggregate while the gate is loading or while we redirect a
+  // writer to their Cockpit — they should never glimpse this surface.
+  if (pmGateLoading || (pmGate && !pmGate.allowed)) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+        Loading…
+      </div>
+    );
+  }
+
   return (
     <div
       style={{
