@@ -666,7 +666,7 @@ function EnvironmentalView({ signals, missionId }: { signals: IrisData["signals"
                       → {s.recommended_action}
                     </div>
                   )}
-                  <WhyButton missionId={s.mission_id ?? ""} kind="signal" refTable="signals" refId={s.id} />
+                  <WhyButton missionId={missionId} kind="signal" refTable="signals" refId={s.id} />
                 </div>
               ))}
             </div>
