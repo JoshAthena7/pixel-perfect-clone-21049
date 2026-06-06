@@ -12,6 +12,8 @@ import { launchMission } from "@/lib/mission-setup.functions";
 import { seedMonitoringWatchlist, saveMonitoringSource, deleteMonitoringSource } from "@/lib/mission-monitoring.functions";
 import { saveEvaluationCriteria, saveExpertiseTag, removeExpertiseTag } from "@/lib/mission-evaluation.functions";
 import { generateStrategicField, type StrategicFieldKey } from "@/lib/iris-strategic-foundation.functions";
+import { irisPopulateSetupRecord } from "@/lib/iris-setup-autofill.functions";
+import { IrisAutofillBanner } from "@/components/admin/IrisAutofillBanner";
 import { LaunchSequence } from "@/components/olympus/LaunchSequence";
 import { useIsAdmin } from "@/hooks/useAccess";
 
