@@ -296,6 +296,8 @@ function MissionBrief() {
   /* Responses at risk */
   const { data: criticalConflicts = [] } = useQuery({
     queryKey: ["mb-conflicts", missionId],
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const { data } = await supabase
         .from("alignment_conflicts")
