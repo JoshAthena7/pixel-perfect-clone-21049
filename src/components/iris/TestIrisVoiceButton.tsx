@@ -85,7 +85,7 @@ export function TestIrisVoiceButton() {
         type="button"
         onClick={handleClick}
         disabled={status === "loading"}
-        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[13px] font-medium text-foreground hover:bg-surface/70 disabled:opacity-60"
+        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-surface px-3 py-1.5 text-[13px] font-medium text-foreground hover:bg-surface/70 disabled:opacity-60"
       >
         <Icon className={`h-3.5 w-3.5 ${status === "loading" ? "animate-spin" : ""}`} />
         {label}
