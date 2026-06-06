@@ -26,9 +26,9 @@ export function AtlasLoginPage() {
         return;
       }
     } catch {
-      // Fall through to /home — membership lookup is a nicety, not a gate.
+      // Fall through to /atrium — membership lookup is a nicety, not a gate.
     }
-    navigate({ to: "/home", replace: true });
+    navigate({ to: "/atrium", replace: true });
   }
 
   // On mount only: if a session already exists, route the user away from /login.

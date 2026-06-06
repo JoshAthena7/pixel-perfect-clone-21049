@@ -141,7 +141,7 @@ function TopBar({
       <div className="flex min-w-0 items-center gap-3">
         <BackButton isAtrium={isAtrium} />
 
-        <Link to="/home" className="flex items-center gap-2.5 shrink-0" title="Atrium">
+        <Link to="/atrium" className="flex items-center gap-2.5 shrink-0" title="Atrium">
           <img
             src={atlasLogo.url}
             alt="Atlas"
