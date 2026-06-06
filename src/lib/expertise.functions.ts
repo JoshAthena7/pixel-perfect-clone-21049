@@ -236,7 +236,7 @@ export const matchExperts = createServerFn({ method: "POST" })
     const allScored = Array.from(merged.values());
 
     // Keep only members with at least one signal; sort by score desc.
-    const ranked = scored.filter((s) => s.score > 0).sort((a, b) => b.score - a.score);
+    const ranked = allScored.filter((s) => s.score > 0).sort((a, b) => b.score - a.score);
     const top = ranked.slice(0, 4);
     const primary = top[0] ?? null;
     const alternatives = top.slice(1);
