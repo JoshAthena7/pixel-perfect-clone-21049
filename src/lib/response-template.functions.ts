@@ -363,7 +363,7 @@ export const getMissionTemplateCompliance = createServerFn({ method: "POST" })
         return row && row.word_count > e.word_limit;
       });
 
-      const label = `${(s as any).section_number ?? ""} ${(s as any).section_title ?? ""}`.trim();
+      const label = `${(s as any).number ?? ""} ${(s as any).title ?? ""}`.trim();
 
       if (missing.length === 0 && overLimit.length === 0) {
         compliant += 1;
