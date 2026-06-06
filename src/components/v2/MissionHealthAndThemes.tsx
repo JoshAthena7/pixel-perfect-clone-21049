@@ -4,8 +4,8 @@ type Health = "Red" | "Yellow" | "Green";
 
 type HealthProps = {
   overall: Health;
-  alignment: number;   // 0-100
-  completeness: number; // 0-100
+  alignment: number | null;   // 0-100, or null when no question has a win-theme alignment score yet (F-6)
+  completeness: number;       // 0-100
   riskCount: number;
 };
 
@@ -23,8 +23,12 @@ function scoreColor(pct: number): string {
 
 export function MissionHealthCard({ overall, alignment, completeness, riskCount }: HealthProps) {
   const tone = TONE[overall];
-  // Composite health score: weighted blend
-  const composite = Math.round(alignment * 0.5 + completeness * 0.4 + Math.max(0, 100 - riskCount * 15) * 0.1);
+  // F-6: alignment is null until the win-theme alignment writer exists. When null,
+  // blend only completeness + risk so we never show a misleading "0% alignment" score.
+  const riskScore = Math.max(0, 100 - riskCount * 15);
+  const composite = alignment === null
+    ? Math.round(completeness * 0.8 + riskScore * 0.2)
+    : Math.round(alignment * 0.5 + completeness * 0.4 + riskScore * 0.1);
 
   return (
     <section
@@ -72,12 +76,17 @@ export function MissionHealthCard({ overall, alignment, completeness, riskCount 
 
 function SubScore({
   label, value, suffix, icon, invertTone,
-}: { label: string; value: number; suffix: string; icon: React.ReactNode; invertTone?: boolean }) {
+}: { label: string; value: number | null; suffix: string; icon: React.ReactNode; invertTone?: boolean }) {
+  // F-6: when alignment writer doesn't exist yet, value is null — render an honest "—".
+  const isMissing = value === null;
+  const numeric = value ?? 0;
   let color: string;
-  if (invertTone) {
-    color = value === 0 ? "#86efac" : value <= 2 ? "#fcd34d" : "#fca5a5";
+  if (isMissing) {
+    color = "rgba(255,255,255,0.35)";
+  } else if (invertTone) {
+    color = numeric === 0 ? "#86efac" : numeric <= 2 ? "#fcd34d" : "#fca5a5";
   } else {
-    color = scoreColor(value);
+    color = scoreColor(numeric);
   }
   return (
     <div className="rounded-lg border p-3" style={{ borderColor: "rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}>
@@ -86,12 +95,14 @@ function SubScore({
         {label}
       </div>
       <div className="mt-1.5 flex items-baseline gap-1">
-        <span className="text-[22px] font-bold leading-none" style={{ color }}>{value}</span>
-        <span className="text-[11px] text-muted-foreground">{suffix}</span>
+        <span className="text-[22px] font-bold leading-none" style={{ color }}>
+          {isMissing ? "—" : numeric}
+        </span>
+        <span className="text-[11px] text-muted-foreground">{isMissing ? "not scored yet" : suffix}</span>
       </div>
-      {!invertTone && (
+      {!invertTone && !isMissing && (
         <div className="mt-2 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-          <div className="h-full transition-all" style={{ width: `${Math.min(100, Math.max(0, value))}%`, background: color }} />
+          <div className="h-full transition-all" style={{ width: `${Math.min(100, Math.max(0, numeric))}%`, background: color }} />
         </div>
       )}
     </div>
