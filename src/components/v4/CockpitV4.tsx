@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
 import { PhoneAFriendOverlay } from "@/components/v2/PhoneAFriendOverlay";
-import { LegacyRecord } from "@/components/v4/LegacyRecord";
+// LegacyRecord temporarily removed
 import { DailyPulse } from "@/components/v4/DailyPulse";
 import { ThreadPanel } from "@/components/threads/ThreadPanel";
 import {
@@ -706,7 +706,7 @@ export function CockpitV4({ missionId, me, myQuestions, allQuestions, updateStat
 
         <DailyPulse />
 
-        <LegacyRecord />
+        {/* LegacyRecord temporarily removed */}
 
         <AllQuestionsDrawer missionId={missionId} allQuestions={allQuestions} me={me} />
       </div>
