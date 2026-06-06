@@ -10,6 +10,16 @@ import { extractRisks } from "@/lib/iris-extractors/risks.functions";
 import { extractWinThemes } from "@/lib/iris-extractors/win-themes.functions";
 import { extractStrategy } from "@/lib/iris-extractors/strategy.functions";
 import { extractClientIntel } from "@/lib/iris-extractors/client-intel.functions";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 /**
  * IRIS — the intelligence experience layer.
@@ -74,6 +84,7 @@ function IrisPage() {
   );
   const [running, setRunning] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
   const runningRef = useRef(false);
   const cancelRef = useRef(false);
 
@@ -215,7 +226,7 @@ function IrisPage() {
                 {running && (
                   <button
                     type="button"
-                    onClick={handleCancel}
+                    onClick={() => setConfirmCancelOpen(true)}
                     disabled={cancelling}
                     className="rounded-md border border-border bg-background px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground transition hover:border-red-500/40 hover:text-red-300 disabled:opacity-50"
                   >
@@ -276,6 +287,26 @@ function IrisPage() {
           )}
         </section>
       </div>
+      <AlertDialog open={confirmCancelOpen} onOpenChange={setConfirmCancelOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel intelligence generation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The current extractor will finish, then remaining stages will stop. Results
+              already generated will be kept.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep running</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancel}
+              className="bg-red-500/90 text-white hover:bg-red-500"
+            >
+              Cancel run
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
