@@ -1,19 +1,32 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 import { IrisDailyNote } from "@/components/v2/IrisDailyNote";
 
+const Search = z.object({
+  /** Optional YYYY-MM-DD override; lets tests pin the rotation deterministically. */
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+});
+
 export const Route = createFileRoute("/debug/daily-note-layout")({
+  validateSearch: (s) => Search.parse(s),
   component: DailyNoteLayoutDebug,
 });
+
+function parseLocalDate(d: string): Date {
+  const [y, m, day] = d.split("-").map(Number);
+  return new Date(y, m - 1, day);
+}
 
 /**
  * Public debug route that mirrors the Atrium's vertical stack:
  *   greeting header  →  IrisDailyNote banner  →  mission cards grid
  *
- * Used by tests/iris-daily-note-layout.spec.ts to verify the daily-note
- * banner is full width, sits between greeting and mission cards, and renders
- * its three-zone layout (left date / center note / right label).
+ * Optional ?date=YYYY-MM-DD pins the daily-note rotation for tests.
  */
 function DailyNoteLayoutDebug() {
+  const { date } = Route.useSearch();
+  const now = date ? parseLocalDate(date) : undefined;
+
   return (
     <div className="min-h-screen bg-background">
       <header
@@ -28,7 +41,7 @@ function DailyNoteLayoutDebug() {
         </div>
       </header>
 
-      <IrisDailyNote />
+      <IrisDailyNote now={now} />
 
       <section
         data-testid="mission-cards"

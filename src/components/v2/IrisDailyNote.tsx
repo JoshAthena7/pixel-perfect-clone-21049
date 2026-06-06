@@ -59,11 +59,12 @@ function pickNote(d: Date): string {
   return NOTES[idx];
 }
 
-export function IrisDailyNote() {
-  const today = useMemo(() => new Date(), []);
+export function IrisDailyNote({ now }: { now?: Date } = {}) {
+  const today = useMemo(() => now ?? new Date(), [now]);
   const note = useMemo(() => pickNote(today), [today]);
   const dayName = DAYS[today.getDay()];
   const dateLine = `${MONTHS[today.getMonth()]} ${today.getDate()}, ${today.getFullYear()}`;
+
 
   return (
     <section
