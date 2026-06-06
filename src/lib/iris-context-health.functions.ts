@@ -124,13 +124,13 @@ export const getMissionContextHealth = createServerFn({ method: "POST" })
       supabase
         .from("missions")
         .select(
-          "id,name,client,state_agency,key_requirements,win_themes,mission_highlights,client_strengths,client_win_strategy,program_goals,incumbent_name,contract_value,submission_date,program_type,iris_setup_suggested_fields,iris_setup_autofill_status,iris_setup_autofill_at,iris_kickoff_status,iris_kickoff_at,health_updated_at,health_score",
+          "id,name,client,state_agency,key_requirements,win_themes,mission_highlights,client_strengths,client_win_strategy,program_goals,incumbent_name,contract_value,submission_date,program_type,iris_setup_suggested_fields,iris_setup_autofill_status,iris_setup_autofill_at,iris_kickoff_status,iris_kickoff_at",
         )
         .eq("id", missionId)
         .maybeSingle(),
       supabase
         .from("mission_evaluation_criteria")
-        .select("id,updated_at")
+        .select("id")
         .eq("mission_id", missionId),
       supabase
         .from("win_themes")
