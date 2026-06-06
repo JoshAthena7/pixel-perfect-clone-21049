@@ -187,13 +187,28 @@ function CockpitPage() {
       <div className="mx-auto max-w-[1100px] px-10 pt-12 pb-16 space-y-10">
         {/* Header */}
         <header className="space-y-3">
+          {filterMissionId && (
+            <Link
+              to="/cockpit"
+              className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="h-3 w-3" />
+              All Missions
+            </Link>
+          )}
           <div className="flex items-center gap-3">
             <Plane size={20} strokeWidth={1.5} className="text-[#3b7fff]" />
             <h1 className="text-[28px] font-bold tracking-tight text-white">Cockpit</h1>
+            {filterMissionId && (
+              <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                Filtered to one mission
+              </span>
+            )}
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
-            Everything assigned to you across every mission. One list, one focus —
-            grouped by mission, sorted by deadline.
+            {filterMissionId
+              ? "Your assigned sections for this mission only."
+              : "Everything assigned to you across every mission. One list, one focus — grouped by mission, sorted by deadline."}
           </p>
         </header>
 
