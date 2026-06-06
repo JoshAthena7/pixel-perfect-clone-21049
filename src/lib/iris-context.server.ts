@@ -205,6 +205,30 @@ export type MissionContext = {
   recentWriterUpdates: RealityUpdateCtx[];
   recentPulses: PulseCtx[];
 
+  // Expanded intelligence sources (No Data Left Behind)
+  broadcasts: Array<{ id: string; fromName: string; text: string; createdAt: string }>;
+  mockScores: Array<{ id: string; stage: string; score: number; sectionName: string | null; questionId: string | null; evaluatorNote: string | null; scoredAt: string }>;
+  pendingExecDecisions: Array<{ id: string; description: string; urgency: string; status: string; createdAt: string }>;
+  irisMemories: Array<{ id: string; title: string; summary: string | null; category: string; importance: string; scope: string }>;
+  activeAssumptions: Array<{ id: string; assumption: string; confidence: number | null; status: string; riskIfWrong: string | null }>;
+  recentDecisions: Array<{ id: string; title: string; status: string | null; owner: string | null; rationale: string | null; decidedAt: string | null }>;
+  rfpAmendments: Array<{ id: string; summary: string | null; totalChanges: number; criticalChanges: number; analyzedAt: string | null; changes: Array<{ id: string; severity: string; description: string; writerAction: string | null; affectedSections: string[] }> }>;
+  marketIntelligence: Array<{ id: string; type: string; title: string; summary: string | null; url: string | null; publishedAt: string | null }>;
+  missionStrategyItems: Array<{ id: string; kind: string; label: string; notes: string | null }>;
+  openHealthFlags: Array<{ id: string; kind: string; severity: string | null; rationale: string | null; questionId: string | null }>;
+  missionSections: Array<{ id: string; number: string; title: string; status: string | null; progressPct: number | null; irisAlignmentPct: number | null; irisFlagged: boolean; assignedUserId: string | null; dueDate: string | null }>;
+  recentResearch: Array<{ id: string; answer: string; confidence: string; generatedAt: string }>;
+  missionTimeline: {
+    questionDeadline: string | null;
+    pinkTeam: string | null;
+    redTeam: string | null;
+    goldTeam: string | null;
+    execReview: string | null;
+    submission: string | null;
+    orals: string | null;
+    award: string | null;
+  } | null;
+
   // Question-scoped (optional)
   question?: QuestionContextCtx;
 };
