@@ -464,7 +464,7 @@ function JourneyMapPage() {
                         {persona !== "All Roles" && involved && (
                           <span
                             key={persona}
-                            className="absolute -bottom-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1 text-[9px] font-bold text-white shadow animate-scale-in"
+                            className="absolute -bottom-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1 text-[9px] font-bold text-white shadow animate-scale-in motion-reduce:animate-none"
                             style={{ background: "#6366F1", border: "2px solid var(--background)" }}
                             title={`${persona} touchpoint`}
                           >
