@@ -617,17 +617,30 @@ function SectionRow({
   profileById: Map<string, Profile>;
   missionId: string;
 }) {
+  const { selectedQuestion, setSelectedQuestion } = useQuestion();
   const owner = s.assigned_writer_id ? profileById.get(s.assigned_writer_id) ?? null : null;
   const pd = daysUntil(s.pens_down_date);
   const overdue = pd !== null && pd < 0 && !isComplete(s.status);
   const align = s.win_theme_alignment_score;
+  const isSelected = selectedQuestion?.id === s.id;
 
   return (
-    <li className="group relative border-b border-white/[0.04] last:border-b-0">
-      <Link
-        to="/missions/$missionId/sections/$questionId"
-        params={{ missionId, questionId: s.id }}
-        className="grid grid-cols-[14px_56px_1fr_160px_100px_120px_70px_22px] items-center gap-3 px-5 py-3 hover:bg-white/[0.025] transition-colors"
+    <li
+      className="group relative border-b border-white/[0.04] last:border-b-0"
+      style={isSelected ? { background: "rgba(59,127,255,0.08)" } : undefined}
+    >
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setSelectedQuestion(sectionToSelected(s))}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setSelectedQuestion(sectionToSelected(s));
+          }
+        }}
+        className="grid grid-cols-[14px_56px_1fr_160px_100px_120px_70px_22px] items-center gap-3 px-5 py-3 hover:bg-white/[0.025] transition-colors cursor-pointer"
+        aria-pressed={isSelected}
       >
         {/* health dot */}
         <span
@@ -709,12 +722,20 @@ function SectionRow({
             </span>
           )}
         </span>
-        {/* arrow */}
-        <ArrowRight
-          size={14}
-          className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-        />
-      </Link>
+        {/* open workspace */}
+        <Link
+          to="/missions/$missionId/sections/$questionId"
+          params={{ missionId, questionId: s.id }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setSelectedQuestion(sectionToSelected(s));
+          }}
+          title="Open section workspace"
+          className="inline-flex items-center justify-center text-muted-foreground hover:text-foreground"
+        >
+          <ArrowRight size={14} />
+        </Link>
+      </div>
     </li>
   );
 }
