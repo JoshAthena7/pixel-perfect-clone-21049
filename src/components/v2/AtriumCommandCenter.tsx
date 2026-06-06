@@ -383,8 +383,20 @@ export function AttentionPanel({
       {open && (
         <ul className="divide-y divide-border">
           {visible.map((it) => (
-            <AttentionRow key={it.id} item={it} onDismiss={() => dismiss(it.id)} />
+            <AttentionRow
+              key={it.id}
+              item={it}
+              onDismiss={() => dismiss(it.id)}
+              dim={dimMissionIds?.has(it.missionId) ?? false}
+            />
           ))}
+          {hiddenCount > 0 && (
+            <li className="px-4 py-2 text-right">
+              <button onClick={() => setShowAll(true)} className="text-[11px] text-primary hover:underline">
+                Show {hiddenCount} more (At Risk · Intel · Recommendations)
+              </button>
+            </li>
+          )}
           {dismissed.size > 0 && (
             <li className="px-4 py-2 text-right">
               <button onClick={resetAll} className="text-[11px] text-primary hover:underline">
@@ -394,6 +406,7 @@ export function AttentionPanel({
           )}
         </ul>
       )}
+
     </section>
   );
 }
