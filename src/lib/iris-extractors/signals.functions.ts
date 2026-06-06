@@ -27,14 +27,24 @@ export const extractSignals = createServerFn({ method: "POST" })
     const started = Date.now();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { loadMissionAndFeed, renderContext, callJsonExtractor } = await import("./shared.server");
+    const { buildMissionContext, formatMissionContextBlock } = await import(
+      "@/lib/iris-context.server"
+    );
 
-    const { mission, rows } = await loadMissionAndFeed(supabaseAdmin, data.missionId);
+    const [{ mission, rows }, missionCtx] = await Promise.all([
+      loadMissionAndFeed(supabaseAdmin, data.missionId),
+      buildMissionContext(supabaseAdmin, data.missionId),
+    ]);
     if (rows.length === 0) {
       return { stage: "signals", inserted: 0, skipped: true, reason: "no feed rows", ms: Date.now() - started };
     }
 
-    const system = `You are an intelligence analyst producing the "Environmental Assessment" section of a procurement strategy brief.
+    const preamble = formatMissionContextBlock(missionCtx);
+    const system = `${preamble}
+
+You are an intelligence analyst producing the "Environmental Assessment" section of a procurement strategy brief.
 From the mission context and recent market intelligence rows, extract 6-12 distinct environmental SIGNALS that materially affect this specific procurement.
+Prioritise signals relevant to the population served, program goals, and win strategy stated above.
 Each signal must be drawn from the provided rows — never invent. Cite the row source in source_label.
 Distribute across political, regulatory, and competitive when supported by the rows.
 Skip any row that is not relevant. If fewer than 6 signals are clearly supported, return only what is supported.`;
