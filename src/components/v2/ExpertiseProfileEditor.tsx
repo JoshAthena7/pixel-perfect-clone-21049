@@ -206,34 +206,10 @@ export function ExpertiseProfileEditor({
       </div>
 
       <div className="space-y-8 px-6 py-6">
-        {/* SECTION 1 — EXPERTISE */}
-        <Section title="What do you know?" subtitle="The areas you can speak to with depth.">
-          <ChipPicker
-            values={form.expertise_areas}
-            options={expertiseOpts.map((o) => o.label)}
-            onToggle={(v) => toggle("expertise_areas", v)}
-          />
-          <div className="mt-3 flex gap-2">
-            <input
-              value={customExpertise}
-              onChange={(e) => setCustomExpertise(e.target.value)}
-              placeholder="Add custom expertise…"
-              className="flex-1 rounded-md border border-border bg-background px-3 py-1.5 text-xs"
-            />
-            <button
-              onClick={() => {
-                const v = customExpertise.trim();
-                if (!v) return;
-                if (!form.expertise_areas.includes(v))
-                  setField("expertise_areas", [...form.expertise_areas, v]);
-                setCustomExpertise("");
-              }}
-              className="rounded-md border border-border bg-surface px-3 py-1.5 text-xs hover:bg-surface-hover"
-            >
-              <Plus className="inline h-3 w-3" /> Add
-            </button>
-          </div>
-        </Section>
+        {/* SECTION 1 — EXPERTISE (new structured system) */}
+        <ExpertiseSection userId={form.id} />
+
+
 
         {/* SECTION 2 — STATES */}
         <Section title="Which states have you worked in?">
