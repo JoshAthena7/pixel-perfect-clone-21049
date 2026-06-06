@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
-import { getAtrium, type AtriumPayload } from "@/lib/atrium.functions";
+import { supabase } from "@/integrations/supabase/client";
+import type { AtriumPayload } from "@/lib/atrium.types";
 import { Trophy, DollarSign, Users, MapPin, Flame, Sparkles, Circle, MessageSquare, Send, AlertTriangle, Megaphone, Inbox, FileText, FileEdit, BookOpen, FileArchive } from "lucide-react";
 import { IrisGreeting } from "@/components/v2/IrisGreeting";
 import { AmbientWisdom } from "@/components/v2/AmbientWisdom";
@@ -11,11 +11,20 @@ import { MissionIntelligenceGraph } from "@/components/v2/MissionIntelligenceGra
 import { IrisDailyNote } from "@/components/v2/IrisDailyNote";
 
 export const Route = createFileRoute("/_authenticated/atrium")({
-  beforeLoad: () => {
-    void getAtrium;
-  },
   component: AtriumPage,
 });
+
+async function fetchAtrium(): Promise<AtriumPayload> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) throw new Error("Sign in to view the Atrium.");
+
+  const response = await fetch("/api/atrium", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) throw new Error(await response.text());
+  return response.json();
+}
 
 function fmtUsd(n: number): string {
   if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(1)}B`;
@@ -49,14 +58,13 @@ const EVENT_VERB: Record<string, string> = {
 
 function AtriumPage() {
   const [canFetchAtrium, setCanFetchAtrium] = useState(false);
-  const fn = useServerFn(getAtrium);
   useEffect(() => {
     const timer = window.setTimeout(() => setCanFetchAtrium(true), 300);
     return () => window.clearTimeout(timer);
   }, []);
   const { data, isLoading } = useQuery({
     queryKey: ["atrium"],
-    queryFn: () => fn(),
+    queryFn: fetchAtrium,
     enabled: canFetchAtrium,
     refetchInterval: 60_000,
   });
