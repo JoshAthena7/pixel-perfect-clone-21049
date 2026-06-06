@@ -7,13 +7,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { getMissionOverview } from "@/lib/v1/mission.functions";
 import { isPmRole } from "@/lib/v1/mission";
 
-const NAV = [
+type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; pmOnly?: boolean };
+const NAV: NavItem[] = [
   { to: "/v1/command", label: "Mission Command", icon: LayoutDashboard, pmOnly: true },
   { to: "/v1/sections", label: "Sections", icon: ListChecks },
   { to: "/v1/intel", label: "Mission Intel", icon: Brain },
   { to: "/v1/vault", label: "Mission Vault", icon: Archive },
   { to: "/v1/journey", label: "Journey Map", icon: MapIcon },
-] as const;
+];
 
 export function V1Shell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });

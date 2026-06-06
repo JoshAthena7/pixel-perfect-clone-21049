@@ -148,7 +148,12 @@ export const updateSection = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    const patch: {
+      updated_at: string;
+      body?: string;
+      studio_status?: string;
+      studio_updated_at?: string;
+    } = { updated_at: new Date().toISOString() };
     if (data.body !== undefined) patch.body = data.body;
     if (data.studio_status !== undefined) {
       patch.studio_status = data.studio_status;

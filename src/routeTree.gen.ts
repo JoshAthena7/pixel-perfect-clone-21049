@@ -19,6 +19,7 @@ import { Route as CheckinTokenRouteImport } from './routes/checkin.$token'
 import { Route as ApiIrisVoiceRouteImport } from './routes/api/iris-voice'
 import { Route as ApiIrisRouteImport } from './routes/api/iris'
 import { Route as ApiAtriumRouteImport } from './routes/api/atrium'
+import { Route as AuthenticatedV1RouteImport } from './routes/_authenticated/v1'
 import { Route as AuthenticatedStatusReportRouteImport } from './routes/_authenticated/status-report'
 import { Route as AuthenticatedOlympusRouteImport } from './routes/_authenticated/olympus'
 import { Route as AuthenticatedJourneyMapRouteImport } from './routes/_authenticated/journey-map'
@@ -31,8 +32,15 @@ import { Route as AuthenticatedCheckinHomeRouteImport } from './routes/_authenti
 import { Route as AuthenticatedBriefRoomRouteImport } from './routes/_authenticated/brief-room'
 import { Route as AuthenticatedAtriumRouteImport } from './routes/_authenticated/atrium'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedV1IndexRouteImport } from './routes/_authenticated/v1/index'
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile/index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as AuthenticatedV1VaultRouteImport } from './routes/_authenticated/v1/vault'
+import { Route as AuthenticatedV1SectionsRouteImport } from './routes/_authenticated/v1/sections'
+import { Route as AuthenticatedV1MySectionsRouteImport } from './routes/_authenticated/v1/my-sections'
+import { Route as AuthenticatedV1JourneyRouteImport } from './routes/_authenticated/v1/journey'
+import { Route as AuthenticatedV1IntelRouteImport } from './routes/_authenticated/v1/intel'
+import { Route as AuthenticatedV1CommandRouteImport } from './routes/_authenticated/v1/command'
 import { Route as AuthenticatedProfileExpertiseRouteImport } from './routes/_authenticated/profile/expertise'
 import { Route as AuthenticatedOlympusSplatRouteImport } from './routes/_authenticated/olympus.$'
 import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_authenticated/missions/$missionId'
@@ -74,6 +82,7 @@ import { Route as ApiPublicHooksBackfillVaultExtractionsRouteImport } from './ro
 import { Route as ApiPublicHooksBackfillResearchEmbeddingsRouteImport } from './routes/api/public/hooks/backfill-research-embeddings'
 import { Route as ApiPublicHooksBackfillQuestionEmbeddingsRouteImport } from './routes/api/public/hooks/backfill-question-embeddings'
 import { Route as ApiPublicHooksBackfillAtlasEmbeddingsRouteImport } from './routes/api/public/hooks/backfill-atlas-embeddings'
+import { Route as AuthenticatedV1SectionsSectionIdRouteImport } from './routes/_authenticated/v1/sections.$sectionId'
 import { Route as AuthenticatedMissionsMissionIdVaultRouteImport } from './routes/_authenticated/missions/$missionId/vault'
 import { Route as AuthenticatedMissionsMissionIdTeamRouteImport } from './routes/_authenticated/missions/$missionId/team'
 import { Route as AuthenticatedMissionsMissionIdSettingsRouteImport } from './routes/_authenticated/missions/$missionId/settings'
@@ -144,6 +153,11 @@ const ApiAtriumRoute = ApiAtriumRouteImport.update({
   path: '/api/atrium',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedV1Route = AuthenticatedV1RouteImport.update({
+  id: '/v1',
+  path: '/v1',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedStatusReportRoute =
   AuthenticatedStatusReportRouteImport.update({
     id: '/status-report',
@@ -209,6 +223,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedV1IndexRoute = AuthenticatedV1IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedV1Route,
+} as any)
 const AuthenticatedProfileIndexRoute =
   AuthenticatedProfileIndexRouteImport.update({
     id: '/profile/',
@@ -219,6 +238,37 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedV1VaultRoute = AuthenticatedV1VaultRouteImport.update({
+  id: '/vault',
+  path: '/vault',
+  getParentRoute: () => AuthenticatedV1Route,
+} as any)
+const AuthenticatedV1SectionsRoute = AuthenticatedV1SectionsRouteImport.update({
+  id: '/sections',
+  path: '/sections',
+  getParentRoute: () => AuthenticatedV1Route,
+} as any)
+const AuthenticatedV1MySectionsRoute =
+  AuthenticatedV1MySectionsRouteImport.update({
+    id: '/my-sections',
+    path: '/my-sections',
+    getParentRoute: () => AuthenticatedV1Route,
+  } as any)
+const AuthenticatedV1JourneyRoute = AuthenticatedV1JourneyRouteImport.update({
+  id: '/journey',
+  path: '/journey',
+  getParentRoute: () => AuthenticatedV1Route,
+} as any)
+const AuthenticatedV1IntelRoute = AuthenticatedV1IntelRouteImport.update({
+  id: '/intel',
+  path: '/intel',
+  getParentRoute: () => AuthenticatedV1Route,
+} as any)
+const AuthenticatedV1CommandRoute = AuthenticatedV1CommandRouteImport.update({
+  id: '/command',
+  path: '/command',
+  getParentRoute: () => AuthenticatedV1Route,
 } as any)
 const AuthenticatedProfileExpertiseRoute =
   AuthenticatedProfileExpertiseRouteImport.update({
@@ -464,6 +514,12 @@ const ApiPublicHooksBackfillAtlasEmbeddingsRoute =
     path: '/api/public/hooks/backfill-atlas-embeddings',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedV1SectionsSectionIdRoute =
+  AuthenticatedV1SectionsSectionIdRouteImport.update({
+    id: '/$sectionId',
+    path: '/$sectionId',
+    getParentRoute: () => AuthenticatedV1SectionsRoute,
+  } as any)
 const AuthenticatedMissionsMissionIdVaultRoute =
   AuthenticatedMissionsMissionIdVaultRouteImport.update({
     id: '/vault',
@@ -601,6 +657,7 @@ export interface FileRoutesByFullPath {
   '/journey-map': typeof AuthenticatedJourneyMapRoute
   '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/status-report': typeof AuthenticatedStatusReportRoute
+  '/v1': typeof AuthenticatedV1RouteWithChildren
   '/api/atrium': typeof ApiAtriumRoute
   '/api/iris': typeof ApiIrisRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
@@ -640,8 +697,15 @@ export interface FileRoutesByFullPath {
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
   '/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
+  '/v1/command': typeof AuthenticatedV1CommandRoute
+  '/v1/intel': typeof AuthenticatedV1IntelRoute
+  '/v1/journey': typeof AuthenticatedV1JourneyRoute
+  '/v1/my-sections': typeof AuthenticatedV1MySectionsRoute
+  '/v1/sections': typeof AuthenticatedV1SectionsRouteWithChildren
+  '/v1/vault': typeof AuthenticatedV1VaultRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
+  '/v1/': typeof AuthenticatedV1IndexRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
@@ -655,6 +719,7 @@ export interface FileRoutesByFullPath {
   '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
   '/missions/$missionId/vault': typeof AuthenticatedMissionsMissionIdVaultRoute
+  '/v1/sections/$sectionId': typeof AuthenticatedV1SectionsSectionIdRoute
   '/api/public/hooks/backfill-atlas-embeddings': typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
   '/api/public/hooks/backfill-question-embeddings': typeof ApiPublicHooksBackfillQuestionEmbeddingsRoute
   '/api/public/hooks/backfill-research-embeddings': typeof ApiPublicHooksBackfillResearchEmbeddingsRoute
@@ -724,8 +789,15 @@ export interface FileRoutesByTo {
   '/command/security': typeof AuthenticatedCommandSecurityRoute
   '/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
+  '/v1/command': typeof AuthenticatedV1CommandRoute
+  '/v1/intel': typeof AuthenticatedV1IntelRoute
+  '/v1/journey': typeof AuthenticatedV1JourneyRoute
+  '/v1/my-sections': typeof AuthenticatedV1MySectionsRoute
+  '/v1/sections': typeof AuthenticatedV1SectionsRouteWithChildren
+  '/v1/vault': typeof AuthenticatedV1VaultRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
+  '/v1': typeof AuthenticatedV1IndexRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
@@ -739,6 +811,7 @@ export interface FileRoutesByTo {
   '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
   '/missions/$missionId/vault': typeof AuthenticatedMissionsMissionIdVaultRoute
+  '/v1/sections/$sectionId': typeof AuthenticatedV1SectionsSectionIdRoute
   '/api/public/hooks/backfill-atlas-embeddings': typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
   '/api/public/hooks/backfill-question-embeddings': typeof ApiPublicHooksBackfillQuestionEmbeddingsRoute
   '/api/public/hooks/backfill-research-embeddings': typeof ApiPublicHooksBackfillResearchEmbeddingsRoute
@@ -773,6 +846,7 @@ export interface FileRoutesById {
   '/_authenticated/journey-map': typeof AuthenticatedJourneyMapRoute
   '/_authenticated/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/_authenticated/status-report': typeof AuthenticatedStatusReportRoute
+  '/_authenticated/v1': typeof AuthenticatedV1RouteWithChildren
   '/api/atrium': typeof ApiAtriumRoute
   '/api/iris': typeof ApiIrisRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
@@ -812,8 +886,15 @@ export interface FileRoutesById {
   '/_authenticated/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
   '/_authenticated/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/_authenticated/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
+  '/_authenticated/v1/command': typeof AuthenticatedV1CommandRoute
+  '/_authenticated/v1/intel': typeof AuthenticatedV1IntelRoute
+  '/_authenticated/v1/journey': typeof AuthenticatedV1JourneyRoute
+  '/_authenticated/v1/my-sections': typeof AuthenticatedV1MySectionsRoute
+  '/_authenticated/v1/sections': typeof AuthenticatedV1SectionsRouteWithChildren
+  '/_authenticated/v1/vault': typeof AuthenticatedV1VaultRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
+  '/_authenticated/v1/': typeof AuthenticatedV1IndexRoute
   '/_authenticated/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/_authenticated/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/_authenticated/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
@@ -827,6 +908,7 @@ export interface FileRoutesById {
   '/_authenticated/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/_authenticated/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
   '/_authenticated/missions/$missionId/vault': typeof AuthenticatedMissionsMissionIdVaultRoute
+  '/_authenticated/v1/sections/$sectionId': typeof AuthenticatedV1SectionsSectionIdRoute
   '/api/public/hooks/backfill-atlas-embeddings': typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
   '/api/public/hooks/backfill-question-embeddings': typeof ApiPublicHooksBackfillQuestionEmbeddingsRoute
   '/api/public/hooks/backfill-research-embeddings': typeof ApiPublicHooksBackfillResearchEmbeddingsRoute
@@ -861,6 +943,7 @@ export interface FileRouteTypes {
     | '/journey-map'
     | '/olympus'
     | '/status-report'
+    | '/v1'
     | '/api/atrium'
     | '/api/iris'
     | '/api/iris-voice'
@@ -900,8 +983,15 @@ export interface FileRouteTypes {
     | '/missions/$missionId'
     | '/olympus/$'
     | '/profile/expertise'
+    | '/v1/command'
+    | '/v1/intel'
+    | '/v1/journey'
+    | '/v1/my-sections'
+    | '/v1/sections'
+    | '/v1/vault'
     | '/admin/'
     | '/profile/'
+    | '/v1/'
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
     | '/missions/$missionId/command'
@@ -915,6 +1005,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/settings'
     | '/missions/$missionId/team'
     | '/missions/$missionId/vault'
+    | '/v1/sections/$sectionId'
     | '/api/public/hooks/backfill-atlas-embeddings'
     | '/api/public/hooks/backfill-question-embeddings'
     | '/api/public/hooks/backfill-research-embeddings'
@@ -984,8 +1075,15 @@ export interface FileRouteTypes {
     | '/command/security'
     | '/olympus/$'
     | '/profile/expertise'
+    | '/v1/command'
+    | '/v1/intel'
+    | '/v1/journey'
+    | '/v1/my-sections'
+    | '/v1/sections'
+    | '/v1/vault'
     | '/admin'
     | '/profile'
+    | '/v1'
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
     | '/missions/$missionId/command'
@@ -999,6 +1097,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/settings'
     | '/missions/$missionId/team'
     | '/missions/$missionId/vault'
+    | '/v1/sections/$sectionId'
     | '/api/public/hooks/backfill-atlas-embeddings'
     | '/api/public/hooks/backfill-question-embeddings'
     | '/api/public/hooks/backfill-research-embeddings'
@@ -1032,6 +1131,7 @@ export interface FileRouteTypes {
     | '/_authenticated/journey-map'
     | '/_authenticated/olympus'
     | '/_authenticated/status-report'
+    | '/_authenticated/v1'
     | '/api/atrium'
     | '/api/iris'
     | '/api/iris-voice'
@@ -1071,8 +1171,15 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/$missionId'
     | '/_authenticated/olympus/$'
     | '/_authenticated/profile/expertise'
+    | '/_authenticated/v1/command'
+    | '/_authenticated/v1/intel'
+    | '/_authenticated/v1/journey'
+    | '/_authenticated/v1/my-sections'
+    | '/_authenticated/v1/sections'
+    | '/_authenticated/v1/vault'
     | '/_authenticated/admin/'
     | '/_authenticated/profile/'
+    | '/_authenticated/v1/'
     | '/_authenticated/missions/$missionId/brief'
     | '/_authenticated/missions/$missionId/briefing'
     | '/_authenticated/missions/$missionId/command'
@@ -1086,6 +1193,7 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/$missionId/settings'
     | '/_authenticated/missions/$missionId/team'
     | '/_authenticated/missions/$missionId/vault'
+    | '/_authenticated/v1/sections/$sectionId'
     | '/api/public/hooks/backfill-atlas-embeddings'
     | '/api/public/hooks/backfill-question-embeddings'
     | '/api/public/hooks/backfill-research-embeddings'
@@ -1195,6 +1303,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAtriumRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/v1': {
+      id: '/_authenticated/v1'
+      path: '/v1'
+      fullPath: '/v1'
+      preLoaderRoute: typeof AuthenticatedV1RouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/status-report': {
       id: '/_authenticated/status-report'
       path: '/status-report'
@@ -1279,6 +1394,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/v1/': {
+      id: '/_authenticated/v1/'
+      path: '/'
+      fullPath: '/v1/'
+      preLoaderRoute: typeof AuthenticatedV1IndexRouteImport
+      parentRoute: typeof AuthenticatedV1Route
+    }
     '/_authenticated/profile/': {
       id: '/_authenticated/profile/'
       path: '/profile'
@@ -1292,6 +1414,48 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/v1/vault': {
+      id: '/_authenticated/v1/vault'
+      path: '/vault'
+      fullPath: '/v1/vault'
+      preLoaderRoute: typeof AuthenticatedV1VaultRouteImport
+      parentRoute: typeof AuthenticatedV1Route
+    }
+    '/_authenticated/v1/sections': {
+      id: '/_authenticated/v1/sections'
+      path: '/sections'
+      fullPath: '/v1/sections'
+      preLoaderRoute: typeof AuthenticatedV1SectionsRouteImport
+      parentRoute: typeof AuthenticatedV1Route
+    }
+    '/_authenticated/v1/my-sections': {
+      id: '/_authenticated/v1/my-sections'
+      path: '/my-sections'
+      fullPath: '/v1/my-sections'
+      preLoaderRoute: typeof AuthenticatedV1MySectionsRouteImport
+      parentRoute: typeof AuthenticatedV1Route
+    }
+    '/_authenticated/v1/journey': {
+      id: '/_authenticated/v1/journey'
+      path: '/journey'
+      fullPath: '/v1/journey'
+      preLoaderRoute: typeof AuthenticatedV1JourneyRouteImport
+      parentRoute: typeof AuthenticatedV1Route
+    }
+    '/_authenticated/v1/intel': {
+      id: '/_authenticated/v1/intel'
+      path: '/intel'
+      fullPath: '/v1/intel'
+      preLoaderRoute: typeof AuthenticatedV1IntelRouteImport
+      parentRoute: typeof AuthenticatedV1Route
+    }
+    '/_authenticated/v1/command': {
+      id: '/_authenticated/v1/command'
+      path: '/command'
+      fullPath: '/v1/command'
+      preLoaderRoute: typeof AuthenticatedV1CommandRouteImport
+      parentRoute: typeof AuthenticatedV1Route
     }
     '/_authenticated/profile/expertise': {
       id: '/_authenticated/profile/expertise'
@@ -1580,6 +1744,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksBackfillAtlasEmbeddingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/v1/sections/$sectionId': {
+      id: '/_authenticated/v1/sections/$sectionId'
+      path: '/$sectionId'
+      fullPath: '/v1/sections/$sectionId'
+      preLoaderRoute: typeof AuthenticatedV1SectionsSectionIdRouteImport
+      parentRoute: typeof AuthenticatedV1SectionsRoute
+    }
     '/_authenticated/missions/$missionId/vault': {
       id: '/_authenticated/missions/$missionId/vault'
       path: '/vault'
@@ -1794,6 +1965,45 @@ const AuthenticatedOlympusRouteChildren: AuthenticatedOlympusRouteChildren = {
 const AuthenticatedOlympusRouteWithChildren =
   AuthenticatedOlympusRoute._addFileChildren(AuthenticatedOlympusRouteChildren)
 
+interface AuthenticatedV1SectionsRouteChildren {
+  AuthenticatedV1SectionsSectionIdRoute: typeof AuthenticatedV1SectionsSectionIdRoute
+}
+
+const AuthenticatedV1SectionsRouteChildren: AuthenticatedV1SectionsRouteChildren =
+  {
+    AuthenticatedV1SectionsSectionIdRoute:
+      AuthenticatedV1SectionsSectionIdRoute,
+  }
+
+const AuthenticatedV1SectionsRouteWithChildren =
+  AuthenticatedV1SectionsRoute._addFileChildren(
+    AuthenticatedV1SectionsRouteChildren,
+  )
+
+interface AuthenticatedV1RouteChildren {
+  AuthenticatedV1CommandRoute: typeof AuthenticatedV1CommandRoute
+  AuthenticatedV1IntelRoute: typeof AuthenticatedV1IntelRoute
+  AuthenticatedV1JourneyRoute: typeof AuthenticatedV1JourneyRoute
+  AuthenticatedV1MySectionsRoute: typeof AuthenticatedV1MySectionsRoute
+  AuthenticatedV1SectionsRoute: typeof AuthenticatedV1SectionsRouteWithChildren
+  AuthenticatedV1VaultRoute: typeof AuthenticatedV1VaultRoute
+  AuthenticatedV1IndexRoute: typeof AuthenticatedV1IndexRoute
+}
+
+const AuthenticatedV1RouteChildren: AuthenticatedV1RouteChildren = {
+  AuthenticatedV1CommandRoute: AuthenticatedV1CommandRoute,
+  AuthenticatedV1IntelRoute: AuthenticatedV1IntelRoute,
+  AuthenticatedV1JourneyRoute: AuthenticatedV1JourneyRoute,
+  AuthenticatedV1MySectionsRoute: AuthenticatedV1MySectionsRoute,
+  AuthenticatedV1SectionsRoute: AuthenticatedV1SectionsRouteWithChildren,
+  AuthenticatedV1VaultRoute: AuthenticatedV1VaultRoute,
+  AuthenticatedV1IndexRoute: AuthenticatedV1IndexRoute,
+}
+
+const AuthenticatedV1RouteWithChildren = AuthenticatedV1Route._addFileChildren(
+  AuthenticatedV1RouteChildren,
+)
+
 interface AuthenticatedMissionsMissionIdRouteChildren {
   AuthenticatedMissionsMissionIdBriefRoute: typeof AuthenticatedMissionsMissionIdBriefRoute
   AuthenticatedMissionsMissionIdBriefingRoute: typeof AuthenticatedMissionsMissionIdBriefingRoute
@@ -1876,6 +2086,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedJourneyMapRoute: typeof AuthenticatedJourneyMapRoute
   AuthenticatedOlympusRoute: typeof AuthenticatedOlympusRouteWithChildren
   AuthenticatedStatusReportRoute: typeof AuthenticatedStatusReportRoute
+  AuthenticatedV1Route: typeof AuthenticatedV1RouteWithChildren
   AuthenticatedCommandAlignmentRoute: typeof AuthenticatedCommandAlignmentRoute
   AuthenticatedCommandAlignmentConflictsRoute: typeof AuthenticatedCommandAlignmentConflictsRoute
   AuthenticatedCommandAttentionRoute: typeof AuthenticatedCommandAttentionRoute
@@ -1903,6 +2114,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedJourneyMapRoute: AuthenticatedJourneyMapRoute,
   AuthenticatedOlympusRoute: AuthenticatedOlympusRouteWithChildren,
   AuthenticatedStatusReportRoute: AuthenticatedStatusReportRoute,
+  AuthenticatedV1Route: AuthenticatedV1RouteWithChildren,
   AuthenticatedCommandAlignmentRoute: AuthenticatedCommandAlignmentRoute,
   AuthenticatedCommandAlignmentConflictsRoute:
     AuthenticatedCommandAlignmentConflictsRoute,

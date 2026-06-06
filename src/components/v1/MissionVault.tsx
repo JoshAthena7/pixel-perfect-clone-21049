@@ -38,7 +38,7 @@ export function MissionVault() {
             </h2>
             <div className="space-y-2">
               {items.map((d) => {
-                const isTemplate = d.doc_type === "response_template" || /template/i.test(d.title);
+                const isTemplate = d.doc_type === "outline_template" || /template/i.test(d.title);
                 return (
                   <div key={d.id} className="v1-card p-4 flex items-start gap-3">
                     <FileText className="h-5 w-5 text-[color:var(--v1-muted)] shrink-0 mt-0.5" />
