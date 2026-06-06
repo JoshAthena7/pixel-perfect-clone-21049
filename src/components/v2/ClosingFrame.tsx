@@ -18,6 +18,17 @@ export function ClosingFrame() {
       setActive(true);
       // Let the frame breathe, then sign out. Auth redirect takes over.
       window.setTimeout(() => {
+        // Phase 3 hygiene: drop per-user routing/session keys so the next
+        // user logging in on the same tab does not inherit prior state.
+        try {
+          const ss = window.sessionStorage;
+          const doomed: string[] = [];
+          for (let i = 0; i < ss.length; i++) {
+            const k = ss.key(i);
+            if (k && k.startsWith("atlas.")) doomed.push(k);
+          }
+          for (const k of doomed) ss.removeItem(k);
+        } catch { /* noop */ }
         supabase.auth.signOut();
       }, 2400);
     }

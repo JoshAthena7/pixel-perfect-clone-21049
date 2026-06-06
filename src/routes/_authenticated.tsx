@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/v2/AppShell";
 import { ClosingFrame } from "@/components/v2/ClosingFrame";
@@ -24,6 +24,17 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function AuthenticatedLayout() {
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  // Phase 3 — checkin_only users get a minimalist landing with no app shell.
+  // The full nav / mission cards / IRIS dock are intentionally hidden.
+  if (path === "/checkin-home" || path.startsWith("/checkin-home/")) {
+    return (
+      <>
+        <Outlet />
+        <ClosingFrame />
+      </>
+    );
+  }
   return (
     <AppShell>
       <LoginRouter />
