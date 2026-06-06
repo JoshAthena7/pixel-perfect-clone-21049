@@ -1455,13 +1455,17 @@ type StatusLabel = typeof STATUS_OPTIONS[number];
 
 function statusLabel(raw: string | null | undefined): StatusLabel {
   const s = (raw ?? "").toLowerCase();
-  if (s.includes("complete") || s === "approved") return "Complete";
-  if (s.includes("review")) return "In Review";
-  if (s.includes("progress") || s === "drafting" || s === "draft") return "In Progress";
+  if (s === "approved" || s === "complete" || s.includes("complete")) return "Complete";
+  if (s === "ready_for_review" || s === "in_review" || s.includes("review")) return "In Review";
+  if (s.includes("progress") || s === "drafting" || s === "draft" || s === "draft_done") return "In Progress";
   return "Not Started";
 }
 function statusToDb(s: StatusLabel): string {
-  return s === "Not Started" ? "not_started" : s === "In Progress" ? "in_progress" : s === "In Review" ? "in_review" : "complete";
+  // Canonical DB values — Mission Command roll-up reads these exact strings.
+  return s === "Not Started" ? "not_started"
+    : s === "In Progress" ? "in_progress"
+    : s === "In Review" ? "ready_for_review"
+    : "approved";
 }
 
 function MyAssignments({
