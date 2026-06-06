@@ -5,6 +5,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { assertNoPHI } from "@/lib/phi-detection";
+import { loadMissionContext, formatMissionContextPreamble } from "@/lib/iris-mission-context.server";
 
 // ---------- Types ----------
 
