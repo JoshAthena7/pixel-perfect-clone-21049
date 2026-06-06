@@ -168,6 +168,13 @@ function MissionSetupRecord() {
             </p>
           </header>
 
+          <IrisAutofillBanner
+            missionId={missionId}
+            status={setup.mission?.iris_setup_autofill_status}
+            written={autofillWritten}
+            onChange={() => setup.refetch()}
+          />
+
           <SectionIdentity missionId={missionId} mission={setup.mission} refetch={setup.refetch} />
           <SectionTeam missionId={missionId} members={setup.members} expertise={setup.expertise} refetch={setup.refetch} />
           <SectionInputs missionId={missionId} mission={setup.mission} docs={setup.docs} monitoring={setup.monitoring} refetch={setup.refetch} />
