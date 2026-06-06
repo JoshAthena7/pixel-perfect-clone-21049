@@ -335,7 +335,7 @@ export const listMissionCheckins = createServerFn({ method: "GET" })
     if (!cycle) {
       return {
         cycle: null,
-        writers: (members ?? []).map((m: any) => ({
+        writers: enrichedMembers.map((m: any) => ({
           user_id: m.user_id,
           name: m.profile?.display_name ?? m.profile?.full_name ?? m.display_name ?? "Unknown",
           avatar_url: m.profile?.avatar_url ?? null,
@@ -344,7 +344,7 @@ export const listMissionCheckins = createServerFn({ method: "GET" })
           status: "not_yet" as const,
           updates: [] as any[],
         })),
-        completion: { submitted: 0, total: (members ?? []).length, pct: 0 },
+        completion: { submitted: 0, total: enrichedMembers.length, pct: 0 },
       };
     }
 
@@ -360,7 +360,7 @@ export const listMissionCheckins = createServerFn({ method: "GET" })
 
     const overdueCutoff = new Date(cycle.expires_at).getTime() < Date.now();
 
-    const writers = (members ?? []).map((m: any) => {
+    const writers = enrichedMembers.map((m: any) => {
       const sub = subByUser.get(m.user_id);
       let status: "submitted" | "not_yet" | "overdue" = "not_yet";
       if (sub) status = "submitted";
