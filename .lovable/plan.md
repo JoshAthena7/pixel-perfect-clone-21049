@@ -1,86 +1,151 @@
-## Goal
+# ATLAS Check-In — Build Plan
 
-Today: `market_intelligence` has 37 rows, `missions` has 1 row (NJ CSOC), the other 5 tables are empty. After this build, running one server function per mission populates `signals`, `mission_risks`, `win_themes`, `mission_strategy`, and `mission_client_intel` with real, source-cited intelligence derived from the market feed + mission metadata, and the `/iris` page reads from those tables.
+Adds two new surfaces to ATLAS:
 
-Scope is **the extractor pipeline + UI wiring**, not the full ingestion/web-monitoring stack. We use what's already in the DB.
+1. **`/checkin/:token`** — a public, no-login, mobile-first page reached via emailed magic link, where a writer updates the status of their assigned sections in ~30 seconds.
+2. **`/_authenticated/status-report`** — a PM dashboard inside ATLAS that aggregates Check-In submissions + Studio activity, flags risk, and generates a copy/export-ready weekly client status report.
 
-## Architecture
+Build is staged so each step ships a working slice.
+
+---
+
+## Data model (new tables)
+
+Created via migration with RLS + grants.
 
 ```text
-market_intelligence (37 rows, multi-tenant feed)
-        │
-        ├── filter: relevance to mission (state, agency, program_type, search terms)
-        ▼
-   relevantSignals[]
-        │
-        ▼
-   Lovable AI Gateway (google/gemini-2.5-flash, JSON mode)
-        │   one structured prompt per output type
-        ▼
-   signals + mission_risks + win_themes + mission_strategy + mission_client_intel
-        │
-        ▼
-   /iris reads via server fns
+mission_sections
+  id uuid pk
+  mission_id uuid -> missions.id
+  number text          -- e.g. "4.2"
+  title text
+  rfp_page_ref text null
+  assigned_user_id uuid null -> profiles.id   -- writer
+  internal_due_date date null
+  studio_status text null                     -- last Studio status (for blend)
+  studio_progress_pct int null
+  studio_updated_at timestamptz null
+  created_at, updated_at
+
+checkin_cycles
+  id uuid pk
+  mission_id uuid
+  cycle_start date            -- Monday of the week, or milestone label
+  trigger_type text           -- 'weekly' | 'milestone_14' | 'milestone_7' | 'milestone_48h'
+  expires_at timestamptz
+  created_at
+
+checkin_tokens
+  id uuid pk
+  cycle_id uuid -> checkin_cycles.id
+  mission_id uuid
+  writer_user_id uuid -> profiles.id
+  token text unique           -- 32-byte url-safe random
+  expires_at timestamptz
+  consumed_at timestamptz null
+  created_at
+
+checkin_submissions
+  id uuid pk
+  cycle_id, mission_id, writer_user_id
+  submitted_at timestamptz
+  unique (cycle_id, writer_user_id)
+
+checkin_section_updates
+  id uuid pk
+  submission_id uuid -> checkin_submissions.id
+  section_id uuid -> mission_sections.id
+  status text         -- 'not_started' | 'in_progress' | 'draft_done' | 'blocked'
+  progress_pct int null   -- 25/50/75/90 when in_progress
+  notes text null         -- max 140
+  source text default 'checkin'  -- 'checkin' | 'studio'
 ```
 
-One server function per extractor; one orchestrator that runs all five and stamps `iris_brief_cache`. Each extractor is idempotent: deletes prior system-generated rows for that mission, re-inserts fresh.
+RLS: tokens/submissions readable only via server fn (no anon select policy). PMs (mission_members with PM role) can read submissions for their mission. Writers can read their own.
 
-## Files
+---
 
-### New server functions (`src/lib/iris-extractors/`)
-- `shared.server.ts` — relevance filter, AI call helper (uses LOVABLE_API_KEY + Lovable AI Gateway), Zod schemas for each output, common types.
-- `signals.functions.ts` — `extractSignals({ missionId })`. Filters market rows, asks AI to produce environmental signals categorized as `political | regulatory | competitive`, inserts into `signals` with `created_by_system=true`, `source_module='iris_extractor'`.
-- `risks.functions.ts` — `extractRisks({ missionId })`. Produces risk items with severity + description.
-- `win-themes.functions.ts` — `extractWinThemes({ missionId })`. Produces win themes + proof-point notes.
-- `strategy.functions.ts` — `extractStrategy({ missionId })`. Produces strategic priorities ("what the state wants" maps here).
-- `client-intel.functions.ts` — `extractClientIntel({ missionId })`. Synthesizes contacts/stakeholders/decision-makers (best-effort from public sources in the feed; empty arrays are fine).
-- `run-all.functions.ts` — `runIrisPipeline({ missionId })`. Calls all five sequentially with `Promise.allSettled`, returns per-stage status, stamps `iris_brief_cache`.
+## Server surface
 
-### New read-side server functions (`src/lib/iris-read.functions.ts`)
-- `getIrisData({ missionId })` — single fetch that returns `{ mission, signals, risks, winThemes, strategy, clientIntel, lastGeneratedAt }` for the page. Auth-protected.
+All in `src/lib/checkin.functions.ts` + one public route.
 
-### UI changes (`src/routes/_authenticated/iris.tsx`)
-- Replace hardcoded NJ CSOC arrays with `useSuspenseQuery` against `getIrisData`.
-- Mission selector: for now, default to the first mission (only one exists). Add a small `?missionId=` search param so it's swappable later.
-- Header "Generate Intelligence" button calls `runIrisPipeline`, shows toast per-stage status, then `router.invalidate()`.
-- Each tab renders real rows; show a contextual empty state ("No risks generated yet — click Generate Intelligence") when a table returns zero.
-- Mission Brief tab keeps the existing prose-section layout but is sourced from `iris_brief_cache` (which `generateMissionBrief` already populates) — out of scope to rebuild; reads cache and falls back to "Not generated yet".
+- `getCheckinByToken({ token })` — public serverFn (no auth middleware). Validates token, not expired, not consumed; returns mission name, writer first name, countdown, cycle trigger_type, assigned sections, and any prior submission for the cycle (for "already submitted" state).
+- `submitCheckin({ token, updates[] })` — public serverFn. Re-validates token, upserts `checkin_submissions` + `checkin_section_updates`, marks token consumed, and on any `blocked` status inserts a row into existing `escalations` table for the PM.
+- `listMissionCheckins({ missionId, cycleId? })` — `requireSupabaseAuth`. Returns per-writer submission status + section updates for the PM feed.
+- `getSectionStatusBoard({ missionId })` — `requireSupabaseAuth`. Blends `mission_sections.studio_*` with latest `checkin_section_updates`, returns rows with `source`, IRIS risk flags computed server-side (rules below).
+- `sendCheckinReminders({ missionId, cycleId })` — `requireSupabaseAuth`, PM only. Re-enqueues the check-in email to writers without a submission.
+- `generateStatusReport({ missionId })` — `requireSupabaseAuth`, PM only. Returns the structured report object that the modal renders.
 
-## Extractor contract (per stage)
+**Public route** `src/routes/api/public/checkin/email-trigger.ts` — HMAC-verified POST used by pg_cron to mint tokens + enqueue emails for a mission's cycle.
 
-Each extractor:
-1. Loads mission row + filters relevant market_intelligence rows (mission.state in title/summary OR mission.program_type/category match OR matched_mission_ids contains missionId).
-2. If fewer than N relevant rows, broadens to last 60 days of the whole feed (graceful for tenants with no matches yet).
-3. Calls AI Gateway with a typed JSON schema prompt that includes:
-   - Mission metadata block (name, client, state_agency, procurement_name, program_type, key_requirements, win_themes seed).
-   - Up to ~25 condensed market rows ({title, source, published_at, summary truncated to 400 chars, url}).
-   - Strict output schema (Zod-validated server-side).
-4. Deletes existing rows for that mission where `created_by_system=true` (or `owner='iris_extractor'` for tables without that flag — we add the flag for risks/themes/strategy/client_intel via a migration so we never stomp human edits).
-5. Bulk-inserts the new rows using `supabaseAdmin` (bypasses RLS for trusted server context).
-6. Returns `{ inserted: number, model: string, ms: number }`.
+### IRIS risk rules (server-computed)
+- `not_started` AND `internal_due_date` ≤ 5 days → 🔴 "Not Started — due in N days"
+- `blocked` with no follow-up update in 48h → 🟡 "Blocked — no resolution logged"
+- No update of any kind in 5 days → 🟡 "No update in 5 days"
 
-## Migration (one)
+### Overall status (status report)
+- Behind: any 🔴, or >20% sections blocked
+- At Risk: any 🟡, or >30% not started with <14 days to submission
+- On Track: otherwise
 
-Add a `created_by_system boolean not null default false` column to: `mission_risks`, `win_themes`, `mission_strategy`, `mission_client_intel`. `signals` already has it. This is the only schema change; nothing else is altered.
+---
 
-## Out of scope (explicit)
+## Email (Lovable Emails)
 
-- Web monitoring / Firecrawl ingestion (the market_intelligence feed already exists).
-- Document chunking + pgvector retrieval (separate workstream).
-- The Mission Intelligence Graph (Layer 3) — flagged in memory as the real differentiator but a much larger build.
-- Anthropic / Voyage / LlamaIndex — we use Lovable AI Gateway with Gemini 2.5 Flash. The North Star names other vendors aspirationally; calling those requires API keys you haven't provided.
-- Auto-running the pipeline on a schedule. V1 is manual via the button.
+Uses existing email infrastructure. New template `src/lib/email-templates/checkin-request.tsx` with props `{ firstName, missionName, daysToSubmission, sections[], magicLinkUrl, triggerType }`. Subject is dynamic based on trigger. pg_cron job runs hourly to fire the public route for any mission whose cycle is due.
 
-## Risks / honest caveats
+---
 
-- With 37 generic market rows (Medicaid/Medicare news, not NJ-CSOC-specific), early outputs will be thin and broad. Quality scales with feed quality, not with the extractor.
-- `mission_client_intel` will be mostly empty — the public market feed doesn't carry contacts. Tagged as "no data" rather than hallucinated.
-- AI cost: ~5 calls per `runIrisPipeline` × ~5K tokens each. Cheap on Gemini 2.5 Flash; still budget-aware.
+## Frontend
 
-## Order of work
+### Check-In page — `src/routes/checkin.$token.tsx`
+Public route (no `_authenticated` prefix), SSR on, light theme by default.
+- Loader calls `getCheckinByToken`; on `expired`/`not_found` → notFound, on `already_submitted` → success-style "You're all set" state.
+- Components (new, scoped to this route):
+  - `CheckinHeader` — wordmark, mission name, countdown chip (amber ≤7d, red ≤48h), writer name
+  - `CheckinSectionCard` — number/title, 4 pill status buttons (44px tap target), progress chips (25/50/75/90) when In Progress, 140-char notes input
+  - `CheckinSubmit` — disabled until ≥1 status chosen; on success swaps to `CheckinSuccess`
+- Local state only; one submit POST. Max-width 680px, mobile-first, large touch targets.
 
-1. Migration: add `created_by_system` to four tables. Wait for approval.
-2. `shared.server.ts` + the 5 extractor functions + orchestrator.
-3. `iris-read.functions.ts`.
-4. Rewrite `/iris` to consume real data with a Generate button.
-5. Run pipeline once against the NJ CSOC mission, verify each tab renders.
+### Status Report — `src/routes/_authenticated/status-report.tsx`
+Dark theme, matches ATLAS. Two-panel layout (stacks on mobile).
+- Left: `CheckinFeed` — completion bar `N of M submitted`, per-writer rows with expand, "Send Reminder" button (confirm dialog).
+- Right: `SectionStatusBoard` — sortable table (status/writer/due/last updated), source icon (`⚡ Studio` / `✉ Check-In`), inline IRIS risk chips in indigo `#6366F1`.
+- Header: `Generate Client Status Report` button → `StatusReportModal`.
+
+### `StatusReportModal`
+Renders the formatted report. Actions: Copy to clipboard, Export .docx (via `docx` lib server-rendered + download), Export PDF (print stylesheet → `window.print()` to keep it simple), Send via email (PM confirm → reuses transactional send).
+
+### Navigation
+Adds "Status Report" entry to `src/components/v2/AppShell.tsx` sidebar, visible when the user is a mission member with PM role.
+
+---
+
+## Accessibility
+
+- All status pills are radiogroups with arrow-key navigation + roving tabIndex (same pattern as the Motion control on Journey Map).
+- Countdown chip has `aria-label` with full text ("14 days until submission").
+- Source icons paired with visible text, not icon-only.
+- Reduced-motion respected; no decorative animations on Check-In page.
+
+---
+
+## Build order (matches request)
+
+1. Migration: `mission_sections`, `checkin_cycles`, `checkin_tokens`, `checkin_submissions`, `checkin_section_updates` + RLS + grants.
+2. Server fns: `getCheckinByToken`, `submitCheckin` + blocked → `escalations` insert.
+3. `/checkin/$token` page: header, section cards, status pills, progress chips, notes, submit, success.
+4. Already-submitted state + expired/notFound boundary.
+5. Status Report view: feed + section status board (server fns + UI).
+6. Generate Status Report modal (copy + print-to-PDF first; .docx + email send second).
+7. IRIS risk flags wired into board + report.
+8. Email template + public `/api/public/checkin/email-trigger` route + pg_cron schedule (weekly Mon 8am + milestone checks hourly).
+
+---
+
+## Open questions before coding
+
+1. **Sections data**: the current schema has no `mission_sections`-like table. OK to create it as designed above, or should sections derive from `mission_volumes` / `briefing_book_sections` you already have?
+2. **PM role**: should "PM" be `mission_members.role = 'pm'` (existing column) or a new `user_roles` entry?
+3. **Studio status source**: which existing table represents "Studio activity last status update" for a section so the blend logic can read it? If none yet, I'll just store it on `mission_sections.studio_*` and leave wiring for later.
+4. **Email**: confirm Lovable Emails is set up for this project (custom domain `athenacommandcenter.com`). If not, I'll run the infra + auth/transactional scaffold as part of step 8.

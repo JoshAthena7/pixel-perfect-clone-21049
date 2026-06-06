@@ -324,6 +324,7 @@ function AtriumNav() {
     { to: "/home", label: "Home" },
     { to: "/iris-console", label: "IRIS" },
     { to: "/journey-map", label: "Journey Map" },
+    { to: "/status-report", label: "Status Report" },
     { to: "/profile", label: "Profile" },
     { to: "/command/security", label: "Data & Privacy" },
   ];
