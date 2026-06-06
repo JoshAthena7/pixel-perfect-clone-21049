@@ -18,16 +18,13 @@ function FlightDeckResolver() {
 
       const { data: memberships, error: memberError } = await supabase
         .from("mission_members")
-        .select("mission_id, missions:mission_id(status)")
+        .select("mission_id")
         .eq("user_id", user.id)
         .order("joined_at", { ascending: false })
         .limit(20);
       if (memberError) throw memberError;
 
-      const first = (memberships ?? []).find((row: any) => {
-        const status = (row.missions?.status ?? "").toLowerCase();
-        return !["closed", "archived", "won", "lost", "submitted"].includes(status);
-      }) ?? memberships?.[0];
+      const first = memberships?.[0];
 
       return first?.mission_id as string | undefined;
     },
