@@ -366,9 +366,8 @@ function AtriumNav() {
 }
 
 // ─── Mission Nav: 5-item primary nav inside a mission ─────────────────────
-// PR 2a: nav component swap only. Routes still use their current paths
-// (overview, library, vault, top-level /journey-map). PR 2b will rename
-// overview→brief, library→intel, and promote /journey-map per-mission.
+// PR 2b: routes have been renamed (overview→brief, library→intel) and
+// /journey-map has been promoted into the mission interior.
 function MissionNav({ missionId }: { missionId: string }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const base = `/missions/${missionId}`;
@@ -384,15 +383,15 @@ function MissionNav({ missionId }: { missionId: string }) {
       key: "brief",
       label: "Mission Brief",
       icon: <FileText size={13} strokeWidth={1.75} />,
-      to: `${base}/overview`,
-      active: path === `${base}/overview` || path === `${base}` || path === `${base}/brief`,
+      to: `${base}/brief`,
+      active: path === `${base}/brief` || path === `${base}` || path === `${base}/overview`,
     },
     {
       key: "intel",
       label: "Mission Intel",
       icon: <Database size={13} strokeWidth={1.75} />,
-      to: `${base}/library`,
-      active: path.startsWith(`${base}/library`) || path.startsWith(`${base}/intel`),
+      to: `${base}/intel`,
+      active: path.startsWith(`${base}/intel`) || path.startsWith(`${base}/library`),
     },
     {
       key: "vault",
@@ -405,8 +404,8 @@ function MissionNav({ missionId }: { missionId: string }) {
       key: "journey",
       label: "Journey Map",
       icon: <MapIcon size={13} strokeWidth={1.75} />,
-      to: `/journey-map`,
-      active: path === "/journey-map" || path.startsWith(`${base}/journey-map`),
+      to: `${base}/journey-map`,
+      active: path.startsWith(`${base}/journey-map`),
     },
     {
       key: "sections",
