@@ -67,7 +67,8 @@ function GoldEntryFallbackDebug() {
     // SafeRender swallows render errors; we render it inside the page below.
     // Pre-flight call here just to record whether a *direct* call would throw.
     try {
-      const out = Cmp();
+      const fn = Cmp as unknown as () => unknown;
+      const out = fn();
       void out;
     } catch {
       renderThrew = true;

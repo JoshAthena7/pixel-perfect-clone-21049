@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DebugGoldEntryFallbackRouteImport } from './routes/debug.gold-entry-fallback'
 import { Route as ApiIrisVoiceRouteImport } from './routes/api/iris-voice'
 import { Route as AuthenticatedOlympusRouteImport } from './routes/_authenticated/olympus'
 import { Route as AuthenticatedIrisRouteImport } from './routes/_authenticated/iris'
@@ -87,6 +88,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DebugGoldEntryFallbackRoute = DebugGoldEntryFallbackRouteImport.update({
+  id: '/debug/gold-entry-fallback',
+  path: '/debug/gold-entry-fallback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiIrisVoiceRoute = ApiIrisVoiceRouteImport.update({
@@ -467,6 +473,7 @@ export interface FileRoutesByFullPath {
   '/iris': typeof AuthenticatedIrisRoute
   '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/api/iris-voice': typeof ApiIrisVoiceRoute
+  '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/command/attention': typeof AuthenticatedCommandAttentionRoute
@@ -532,6 +539,7 @@ export interface FileRoutesByTo {
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
   '/iris': typeof AuthenticatedIrisRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
+  '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/command/attention': typeof AuthenticatedCommandAttentionRoute
@@ -599,6 +607,7 @@ export interface FileRoutesById {
   '/_authenticated/iris': typeof AuthenticatedIrisRoute
   '/_authenticated/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/api/iris-voice': typeof ApiIrisVoiceRoute
+  '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
   '/_authenticated/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/_authenticated/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/_authenticated/command/attention': typeof AuthenticatedCommandAttentionRoute
@@ -667,6 +676,7 @@ export interface FileRouteTypes {
     | '/iris'
     | '/olympus'
     | '/api/iris-voice'
+    | '/debug/gold-entry-fallback'
     | '/command/alignment'
     | '/command/alignment-conflicts'
     | '/command/attention'
@@ -732,6 +742,7 @@ export interface FileRouteTypes {
     | '/intelligence-queue'
     | '/iris'
     | '/api/iris-voice'
+    | '/debug/gold-entry-fallback'
     | '/command/alignment'
     | '/command/alignment-conflicts'
     | '/command/attention'
@@ -798,6 +809,7 @@ export interface FileRouteTypes {
     | '/_authenticated/iris'
     | '/_authenticated/olympus'
     | '/api/iris-voice'
+    | '/debug/gold-entry-fallback'
     | '/_authenticated/command/alignment'
     | '/_authenticated/command/alignment-conflicts'
     | '/_authenticated/command/attention'
@@ -859,6 +871,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
   ApiIrisVoiceRoute: typeof ApiIrisVoiceRoute
+  DebugGoldEntryFallbackRoute: typeof DebugGoldEntryFallbackRoute
   ApiPublicHooksBackfillAtlasEmbeddingsRoute: typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
   ApiPublicHooksBackfillQuestionEmbeddingsRoute: typeof ApiPublicHooksBackfillQuestionEmbeddingsRoute
   ApiPublicHooksBackfillResearchEmbeddingsRoute: typeof ApiPublicHooksBackfillResearchEmbeddingsRoute
@@ -889,6 +902,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/debug/gold-entry-fallback': {
+      id: '/debug/gold-entry-fallback'
+      path: '/debug/gold-entry-fallback'
+      fullPath: '/debug/gold-entry-fallback'
+      preLoaderRoute: typeof DebugGoldEntryFallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/iris-voice': {
@@ -1492,6 +1512,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
   ApiIrisVoiceRoute: ApiIrisVoiceRoute,
+  DebugGoldEntryFallbackRoute: DebugGoldEntryFallbackRoute,
   ApiPublicHooksBackfillAtlasEmbeddingsRoute:
     ApiPublicHooksBackfillAtlasEmbeddingsRoute,
   ApiPublicHooksBackfillQuestionEmbeddingsRoute:
