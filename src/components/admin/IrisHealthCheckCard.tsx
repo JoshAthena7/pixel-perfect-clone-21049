@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { runIrisHealthCheck, type HealthCheckReport, type CheckResult } from "@/lib/iris-health-check.functions";
-import { Activity, CheckCircle2, AlertTriangle, XCircle, Loader2, ChevronDown } from "lucide-react";
+import { backfillStaticEmbeddings } from "@/lib/iris-backfill-embeddings.functions";
+import { refreshIris } from "@/lib/iris-refresh.functions";
+import { Activity, CheckCircle2, AlertTriangle, XCircle, Loader2, ChevronDown, Wrench } from "lucide-react";
 import { toast } from "sonner";
 
 function StatusIcon({ status }: { status: CheckResult["status"] }) {
@@ -18,7 +20,20 @@ function verdictMeta(v: HealthCheckReport["verdict"]) {
   return { dot: "🔴", label: "RED", line: "Critical checks failed. Do not activate a mission until resolved.", cls: "border-red-500/30 bg-red-500/[0.04]" };
 }
 
+// Check-id → auto-fix mapping.
+// `kind` selects the server fn to call. `label` is the button text.
+type AutoFixKind = "backfill_embeddings" | "reset_iris";
+const AUTO_FIX: Record<string, { kind: AutoFixKind; label: string }> = {
+  semantic_retrieval: { kind: "backfill_embeddings", label: "Backfill embeddings" },
+  intel_enrich:       { kind: "reset_iris",          label: "Reset AI circuit" },
+  mission_brief:      { kind: "reset_iris",          label: "Reset AI circuit + cache" },
+  question_brief:     { kind: "reset_iris",          label: "Reset AI circuit + cache" },
+  iris_ask:           { kind: "reset_iris",          label: "Reset AI circuit" },
+  score_me:           { kind: "reset_iris",          label: "Reset AI circuit" },
+};
+
 export function IrisHealthCheckCard() {
+  const qc = useQueryClient();
   const { data: isAdmin } = useQuery({
     queryKey: ["iris-hc-is-admin"],
     queryFn: async () => {
@@ -35,8 +50,12 @@ export function IrisHealthCheckCard() {
 
   const [report, setReport] = useState<HealthCheckReport | null>(null);
   const [showFixes, setShowFixes] = useState(false);
+  const [fixingId, setFixingId] = useState<string | null>(null);
 
   const runFn = useServerFn(runIrisHealthCheck);
+  const backfillFn = useServerFn(backfillStaticEmbeddings);
+  const refreshFn = useServerFn(refreshIris);
+
   const mutation = useMutation({
     mutationFn: () => runFn(),
     onSuccess: (res) => {
@@ -50,6 +69,30 @@ export function IrisHealthCheckCard() {
     },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Health check failed"),
   });
+
+  async function runAutoFix(check: CheckResult) {
+    const cfg = AUTO_FIX[check.id];
+    if (!cfg) return;
+    setFixingId(check.id);
+    try {
+      if (cfg.kind === "backfill_embeddings") {
+        const res = await backfillFn();
+        const embedded = res.results.reduce((s, r) => s + r.embedded, 0);
+        toast.success(`Backfilled ${embedded} embeddings — re-running check…`);
+      } else {
+        const res = await refreshFn();
+        toast.success(`IRIS reset — cleared ${res.cleared_cache_rows} cached briefs. Re-running check…`);
+      }
+      qc.invalidateQueries();
+      // Re-run the full health check so the row updates in place.
+      const next = await runFn();
+      setReport(next);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Auto-fix failed");
+    } finally {
+      setFixingId(null);
+    }
+  }
 
   if (!isAdmin) return null;
 
@@ -80,7 +123,7 @@ export function IrisHealthCheckCard() {
         </div>
         <button
           onClick={() => mutation.mutate()}
-          disabled={mutation.isPending}
+          disabled={mutation.isPending || fixingId !== null}
           className="inline-flex shrink-0 items-center gap-2 rounded-md border border-primary/40 bg-primary/15 px-3 py-2 text-[12px] font-semibold text-primary hover:bg-primary/25 disabled:opacity-50"
         >
           {mutation.isPending ? (
@@ -93,8 +136,8 @@ export function IrisHealthCheckCard() {
 
       {report && v && (
         <div className="mt-5 space-y-4">
-          <Group title="Internal Pipeline" checks={internal} />
-          <Group title="External Sources" checks={external} />
+          <Group title="Internal Pipeline" checks={internal} fixingId={fixingId} onFix={runAutoFix} />
+          <Group title="External Sources" checks={external} fixingId={fixingId} onFix={runAutoFix} />
 
           <div className={`rounded-md border p-4 ${v.cls}`}>
             <div className="text-sm font-semibold">
@@ -138,23 +181,52 @@ export function IrisHealthCheckCard() {
   );
 }
 
-function Group({ title, checks }: { title: string; checks: CheckResult[] }) {
+function Group({
+  title,
+  checks,
+  fixingId,
+  onFix,
+}: {
+  title: string;
+  checks: CheckResult[];
+  fixingId: string | null;
+  onFix: (c: CheckResult) => void;
+}) {
   return (
     <div>
       <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
         {title}
       </div>
       <ul className="mt-2 divide-y divide-border rounded-md border border-border bg-background/30">
-        {checks.map((c) => (
-          <li key={c.id} className="flex items-center justify-between gap-3 px-3 py-2 text-[13px]">
-            <div className="flex items-center gap-2 min-w-0">
-              <StatusIcon status={c.status} />
-              <span className="font-medium text-foreground">{c.label}</span>
-              <span className="truncate text-muted-foreground">— {c.note}</span>
-            </div>
-            <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground">{c.ms}ms</span>
-          </li>
-        ))}
+        {checks.map((c) => {
+          const fix = c.status !== "green" ? AUTO_FIX[c.id] : undefined;
+          const isFixing = fixingId === c.id;
+          return (
+            <li key={c.id} className="flex items-center justify-between gap-3 px-3 py-2 text-[13px]">
+              <div className="flex items-center gap-2 min-w-0">
+                <StatusIcon status={c.status} />
+                <span className="font-medium text-foreground">{c.label}</span>
+                <span className="truncate text-muted-foreground">— {c.note}</span>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                {fix && (
+                  <button
+                    onClick={() => onFix(c)}
+                    disabled={fixingId !== null}
+                    className="inline-flex items-center gap-1 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-200 hover:bg-amber-500/20 disabled:opacity-50"
+                  >
+                    {isFixing ? (
+                      <><Loader2 className="h-3 w-3 animate-spin" /> Fixing…</>
+                    ) : (
+                      <><Wrench className="h-3 w-3" /> {fix.label}</>
+                    )}
+                  </button>
+                )}
+                <span className="text-[10px] tabular-nums text-muted-foreground">{c.ms}ms</span>
+              </div>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
