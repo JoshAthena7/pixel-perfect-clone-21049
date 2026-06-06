@@ -201,6 +201,17 @@ function TopBar({
             <span className="hidden sm:inline">Atrium</span>
           </Link>
         )}
+        {inMission && (
+          <Link
+            to="/profile"
+            title="Profile"
+            aria-label="Profile"
+            className="inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
+          >
+            <User size={14} strokeWidth={1.5} />
+            <span className="hidden sm:inline">Profile</span>
+          </Link>
+        )}
         <NotificationBell />
         <BriefRoomNavButton />
         <button
