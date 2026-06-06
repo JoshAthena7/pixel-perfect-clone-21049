@@ -25,9 +25,8 @@ export const extractStrategy = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const started = Date.now();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { loadMissionAndFeed, renderContext, callJsonExtractor } = await import(
-      "./shared.server"
-    );
+    const { loadMissionAndFeed, renderContext, callJsonExtractor } =
+      await import("./shared.server");
 
     const { mission, rows } = await loadMissionAndFeed(supabaseAdmin, data.missionId);
     if (rows.length === 0) {
