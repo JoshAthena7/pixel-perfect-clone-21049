@@ -4505,6 +4505,9 @@ export type Database = {
           health: string | null
           id: string
           incumbent_name: string | null
+          iris_kickoff_at: string | null
+          iris_kickoff_status: string
+          iris_kickoff_summary: Json | null
           iris_search_terms: string[] | null
           is_fedramp_scope: boolean
           key_requirements: string[] | null
@@ -4543,6 +4546,9 @@ export type Database = {
           health?: string | null
           id?: string
           incumbent_name?: string | null
+          iris_kickoff_at?: string | null
+          iris_kickoff_status?: string
+          iris_kickoff_summary?: Json | null
           iris_search_terms?: string[] | null
           is_fedramp_scope?: boolean
           key_requirements?: string[] | null
@@ -4581,6 +4587,9 @@ export type Database = {
           health?: string | null
           id?: string
           incumbent_name?: string | null
+          iris_kickoff_at?: string | null
+          iris_kickoff_status?: string
+          iris_kickoff_summary?: Json | null
           iris_search_terms?: string[] | null
           is_fedramp_scope?: boolean
           key_requirements?: string[] | null

@@ -18,6 +18,7 @@ import {
   extractDocumentIntelligence,
   regenerateBriefingBook,
 } from "@/lib/mission-activation.functions";
+import { kickoffMissionIris } from "@/lib/iris-kickoff.functions";
 import { MissionLaunchMoment } from "@/components/v2/MissionLaunchMoment";
 
 // ─── Categories shown in the activation upload step ────────────────────────
@@ -317,6 +318,10 @@ function Step2Uploads({
   const qc = useQueryClient();
   const extractFn = useServerFn(extractDocumentIntelligence);
   const parseRfpFn = useServerFn(parseRfpDocument);
+  const kickoffIrisFn = useServerFn(kickoffMissionIris);
+  // Ensure the auto-IRIS kickoff only fires once per wizard session — even if
+  // multiple RFPs are uploaded — to avoid stacking long-running brief loops.
+  const irisKickedOffRef = useRef(false);
 
   // Hydrate from existing mission_library rows so reopening the wizard
   // (or resuming a Draft) shows previously uploaded documents instead of an empty list.
@@ -397,6 +402,19 @@ function Step2Uploads({
         try {
           const res: any = await parseRfpFn({ data: { documentId } });
           questionsCreated = res?.inserted ?? 0;
+
+          // Auto-IRIS: the moment we have questions, kick off the IRIS pipeline
+          // (morning briefs across every question). Fire-and-forget so the
+          // wizard UI stays responsive; the kickoff fn tracks its own state on
+          // `missions.iris_kickoff_status`. Guarded so only the first RFP in
+          // this session triggers it.
+          if ((questionsCreated ?? 0) > 0 && !irisKickedOffRef.current) {
+            irisKickedOffRef.current = true;
+            void kickoffIrisFn({ data: { missionId } }).catch((e) => {
+              console.warn("IRIS kickoff failed", e?.message);
+              irisKickedOffRef.current = false; // allow a retry on activate()
+            });
+          }
         } catch (e: any) {
           // non-fatal — still index for IRIS
           console.warn("RFP parsing failed", e?.message);
@@ -423,7 +441,7 @@ function Step2Uploads({
       );
       toast.error(`${file.name}: ${e?.message ?? "Failed"}`);
     }
-  }, [missionId, extractFn, parseRfpFn]);
+  }, [missionId, extractFn, parseRfpFn, kickoffIrisFn]);
 
   function handleFiles(list: FileList | null) {
     if (!list) return;
@@ -441,6 +459,15 @@ function Step2Uploads({
       target_table: "missions",
       target_id: missionId,
     });
+
+    // Safety-net kickoff: if RFP parsing didn't fire IRIS yet (e.g. the user
+    // skipped the RFP, or the parse happened in a previous session), kick it
+    // off now. The server fn is idempotent — it skips if a run is already in
+    // flight and won't re-brief questions that already have one.
+    void kickoffIrisFn({ data: { missionId } }).catch((e) => {
+      console.warn("IRIS kickoff failed", e?.message);
+    });
+
     qc.invalidateQueries({ queryKey: ["olympus-missions"] });
     qc.invalidateQueries({ queryKey: ["hq-missions"] });
     onActivate();
