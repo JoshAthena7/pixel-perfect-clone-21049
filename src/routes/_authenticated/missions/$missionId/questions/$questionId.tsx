@@ -785,7 +785,7 @@ function CockpitPage() {
         style={{ background: "rgba(6,11,20,0.95)", backdropFilter: "blur(12px)", borderColor: "rgba(255,255,255,0.06)" }}
       >
         <AssistsBar
-          primaryLabel={isSME ? "Submit SME Input" : "Update Reality"}
+          primaryLabel={isSME ? "Send SME Input" : "Update Reality"}
           onUpdateReality={() => openUpdateReality(questionId)}
           onScoreMe={() => { setScoreMeOpen(true); markOverflowUsed(); }}
           onPhone={() => { setPhoneOpen(true); markOverflowUsed(); }}
@@ -840,7 +840,7 @@ function CockpitPage() {
                 onClick={() => openUpdateReality(questionId)}
                 className="h-14 rounded-md bg-primary text-sm font-semibold text-primary-foreground hover:opacity-90 active:opacity-80"
               >
-                {isSME ? "Submit SME Input" : "Update Reality"}
+                {isSME ? "Send SME Input" : "Update Reality"}
               </button>
               {!isSME ? (
                 <SOSButton missionId={missionId} questionId={questionId} />
