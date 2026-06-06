@@ -216,10 +216,10 @@ function IrisPage() {
                   <button
                     type="button"
                     onClick={handleCancel}
-                    disabled={cancelRef.current}
+                    disabled={cancelling}
                     className="rounded-md border border-border bg-background px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground transition hover:border-red-500/40 hover:text-red-300 disabled:opacity-50"
                   >
-                    {cancelRef.current ? "Cancelling…" : "Cancel"}
+                    {cancelling ? "Cancelling…" : "Cancel"}
                   </button>
                 )}
               </div>
