@@ -25,13 +25,13 @@ import { IrisKickoffBadge } from "@/components/v2/IrisKickoffBadge";
 import { QuestionProvider, useQuestion, type SelectedQuestion } from "@/contexts/QuestionContext";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/")({
-  component: MissionFlight DeckLandingWrapper,
+  component: MissionFlightDeckLandingWrapper,
 });
 
-function MissionFlight DeckLandingWrapper() {
+function MissionFlightDeckLandingWrapper() {
   return (
     <QuestionProvider>
-      <MissionFlight DeckLanding />
+      <MissionFlightDeckLanding />
     </QuestionProvider>
   );
 }
@@ -136,7 +136,7 @@ function healthDotColor(h: Section["health"]) {
 
 /* ─────────────────────────── page ─────────────────────────── */
 
-function MissionFlight DeckLanding() {
+function MissionFlightDeckLanding() {
   const { missionId } = Route.useParams();
   const qc = useQueryClient();
 
