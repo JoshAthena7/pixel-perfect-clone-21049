@@ -83,13 +83,6 @@ export type Database = {
             foreignKeyName: "alignment_conflicts_resolved_by_fkey"
             columns: ["resolved_by"]
             isOneToOne: false
-            referencedRelation: "profile_basics"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "alignment_conflicts_resolved_by_fkey"
-            columns: ["resolved_by"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1294,13 +1287,6 @@ export type Database = {
             foreignKeyName: "broadcasts_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "profile_basics"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "broadcasts_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1596,13 +1582,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "collective_members_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profile_basics"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "collective_members_profile_id_fkey"
             columns: ["profile_id"]
@@ -2204,13 +2183,6 @@ export type Database = {
             foreignKeyName: "escalations_submitted_by_id_fkey"
             columns: ["submitted_by_id"]
             isOneToOne: false
-            referencedRelation: "profile_basics"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "escalations_submitted_by_id_fkey"
-            columns: ["submitted_by_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -2535,13 +2507,6 @@ export type Database = {
             foreignKeyName: "iris_brief_cache_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "profile_basics"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "iris_brief_cache_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -2777,13 +2742,6 @@ export type Database = {
           usage_count?: number
         }
         Relationships: [
-          {
-            foreignKeyName: "iris_memories_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profile_basics"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "iris_memories_created_by_fkey"
             columns: ["created_by"]
@@ -3596,13 +3554,6 @@ export type Database = {
           url?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "mission_library_added_by_id_fkey"
-            columns: ["added_by_id"]
-            isOneToOne: false
-            referencedRelation: "profile_basics"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "mission_library_added_by_id_fkey"
             columns: ["added_by_id"]
@@ -4720,13 +4671,6 @@ export type Database = {
             foreignKeyName: "pilot_copilot_messages_from_user_id_fkey"
             columns: ["from_user_id"]
             isOneToOne: false
-            referencedRelation: "profile_basics"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pilot_copilot_messages_from_user_id_fkey"
-            columns: ["from_user_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -4749,13 +4693,6 @@ export type Database = {
             columns: ["question_id"]
             isOneToOne: false
             referencedRelation: "question_records"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pilot_copilot_messages_to_user_id_fkey"
-            columns: ["to_user_id"]
-            isOneToOne: false
-            referencedRelation: "profile_basics"
             referencedColumns: ["id"]
           },
           {
@@ -4978,13 +4915,6 @@ export type Database = {
             foreignKeyName: "question_collaboration_author_id_fkey"
             columns: ["author_id"]
             isOneToOne: false
-            referencedRelation: "profile_basics"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "question_collaboration_author_id_fkey"
-            columns: ["author_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -5007,13 +4937,6 @@ export type Database = {
             columns: ["question_id"]
             isOneToOne: false
             referencedRelation: "question_records"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "question_collaboration_resolved_by_fkey"
-            columns: ["resolved_by"]
-            isOneToOne: false
-            referencedRelation: "profile_basics"
             referencedColumns: ["id"]
           },
           {
@@ -5368,13 +5291,6 @@ export type Database = {
             foreignKeyName: "question_records_assigned_sme_id_fkey"
             columns: ["assigned_sme_id"]
             isOneToOne: false
-            referencedRelation: "profile_basics"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "question_records_assigned_sme_id_fkey"
-            columns: ["assigned_sme_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -5383,13 +5299,6 @@ export type Database = {
             columns: ["assigned_sme_id"]
             isOneToOne: false
             referencedRelation: "profiles_directory"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "question_records_assigned_writer_id_fkey"
-            columns: ["assigned_writer_id"]
-            isOneToOne: false
-            referencedRelation: "profile_basics"
             referencedColumns: ["id"]
           },
           {
@@ -5495,13 +5404,6 @@ export type Database = {
             foreignKeyName: "question_relationships_resolved_by_fkey"
             columns: ["resolved_by"]
             isOneToOne: false
-            referencedRelation: "profile_basics"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "question_relationships_resolved_by_fkey"
-            columns: ["resolved_by"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -5551,13 +5453,6 @@ export type Database = {
             columns: ["question_id"]
             isOneToOne: false
             referencedRelation: "question_records"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "question_scores_reviewer_id_fkey"
-            columns: ["reviewer_id"]
-            isOneToOne: false
-            referencedRelation: "profile_basics"
             referencedColumns: ["id"]
           },
           {
@@ -5638,13 +5533,6 @@ export type Database = {
             foreignKeyName: "reality_updates_resolved_by_fkey"
             columns: ["resolved_by"]
             isOneToOne: false
-            referencedRelation: "profile_basics"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reality_updates_resolved_by_fkey"
-            columns: ["resolved_by"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -5653,13 +5541,6 @@ export type Database = {
             columns: ["resolved_by"]
             isOneToOne: false
             referencedRelation: "profiles_directory"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reality_updates_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profile_basics"
             referencedColumns: ["id"]
           },
           {
@@ -6324,13 +6205,6 @@ export type Database = {
             foreignKeyName: "win_themes_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
-            referencedRelation: "profile_basics"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "win_themes_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -6551,60 +6425,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      profile_basics: {
-        Row: {
-          availability_note: string | null
-          availability_status: string | null
-          availability_until: string | null
-          avatar_color: string | null
-          avatar_url: string | null
-          created_at: string | null
-          default_mission_role: string | null
-          display_name: string | null
-          expert_bio: string | null
-          expertise_areas: string[] | null
-          id: string | null
-          programs_experience: string[] | null
-          question_types: string[] | null
-          states_experience: string[] | null
-          timezone: string | null
-        }
-        Insert: {
-          availability_note?: string | null
-          availability_status?: string | null
-          availability_until?: string | null
-          avatar_color?: string | null
-          avatar_url?: string | null
-          created_at?: string | null
-          default_mission_role?: string | null
-          display_name?: string | null
-          expert_bio?: string | null
-          expertise_areas?: string[] | null
-          id?: string | null
-          programs_experience?: string[] | null
-          question_types?: string[] | null
-          states_experience?: string[] | null
-          timezone?: string | null
-        }
-        Update: {
-          availability_note?: string | null
-          availability_status?: string | null
-          availability_until?: string | null
-          avatar_color?: string | null
-          avatar_url?: string | null
-          created_at?: string | null
-          default_mission_role?: string | null
-          display_name?: string | null
-          expert_bio?: string | null
-          expertise_areas?: string[] | null
-          id?: string | null
-          programs_experience?: string[] | null
-          question_types?: string[] | null
-          states_experience?: string[] | null
-          timezone?: string | null
-        }
-        Relationships: []
       }
       profiles_directory: {
         Row: {
