@@ -18,6 +18,7 @@ import {
   extractDocumentIntelligence,
   regenerateBriefingBook,
 } from "@/lib/mission-activation.functions";
+import { kickoffMissionIris } from "@/lib/iris-kickoff.functions";
 import { MissionLaunchMoment } from "@/components/v2/MissionLaunchMoment";
 
 // ─── Categories shown in the activation upload step ────────────────────────
@@ -317,6 +318,10 @@ function Step2Uploads({
   const qc = useQueryClient();
   const extractFn = useServerFn(extractDocumentIntelligence);
   const parseRfpFn = useServerFn(parseRfpDocument);
+  const kickoffIrisFn = useServerFn(kickoffMissionIris);
+  // Ensure the auto-IRIS kickoff only fires once per wizard session — even if
+  // multiple RFPs are uploaded — to avoid stacking long-running brief loops.
+  const irisKickedOffRef = useRef(false);
 
   // Hydrate from existing mission_library rows so reopening the wizard
   // (or resuming a Draft) shows previously uploaded documents instead of an empty list.
