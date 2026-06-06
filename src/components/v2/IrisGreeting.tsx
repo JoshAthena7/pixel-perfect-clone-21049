@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { IrisType } from "@/components/v2/polish";
 
 type Screen = "atrium" | "studio" | "brief-room" | "olympus";
 
