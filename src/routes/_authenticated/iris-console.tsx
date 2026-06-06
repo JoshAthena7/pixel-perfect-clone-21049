@@ -10,6 +10,7 @@ import { extractRisks } from "@/lib/iris-extractors/risks.functions";
 import { extractWinThemes } from "@/lib/iris-extractors/win-themes.functions";
 import { extractStrategy } from "@/lib/iris-extractors/strategy.functions";
 import { extractClientIntel } from "@/lib/iris-extractors/client-intel.functions";
+import { explainOutput, type ExplainResult } from "@/lib/iris-graph.functions";
 
 import type { IrisData, IrisMission } from "@/lib/iris-types";
 
