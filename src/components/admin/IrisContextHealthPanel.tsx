@@ -14,6 +14,7 @@ import {
   type HealthRow,
   type RowStatus,
 } from "@/lib/iris-context-health.functions";
+import { auditContextCoverage } from "@/lib/iris-context-coverage.functions";
 
 const IRIS_INDIGO = "#6366F1";
 
