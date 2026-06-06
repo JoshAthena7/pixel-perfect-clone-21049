@@ -64,7 +64,8 @@ export function IrisGreeting({ screen }: { screen: Screen }) {
           display: "inline-block",
         }}
       />
-      <span style={{ fontStyle: "italic", opacity: 0.92 }}>{line}</span>
+      <IrisType text={line} speed={18} className="" as="span" />
+      <style>{`.iris-greeting span:nth-of-type(2) { font-style: italic; opacity: 0.92; }`}</style>
       <style>{`
         .iris-greeting { animation: iris-greeting-fade 900ms ease-out both; }
         .iris-greeting-dot { animation: iris-greeting-pulse 2.8s ease-in-out infinite; }
