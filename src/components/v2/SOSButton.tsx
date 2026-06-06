@@ -115,6 +115,7 @@ export function SOSModal({ missionId, questionId, onClose }: { missionId: string
         <div className="text-[10px] font-bold uppercase tracking-[0.24em]" style={{ color: "var(--red, #ef4444)" }}>● SOS</div>
         <h2 className="mt-2 text-xl font-semibold">You're not alone.</h2>
         <p className="mt-1 text-sm text-muted-foreground">Tell us what's happening.</p>
+        <p className="mt-3 text-xs italic text-muted-foreground/70">— {supportiveLine}</p>
 
         {!kind ? (
           <div className="mt-5 grid grid-cols-1 gap-2">
