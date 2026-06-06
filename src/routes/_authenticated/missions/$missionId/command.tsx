@@ -698,10 +698,34 @@ function MissionBrief() {
                 const q = s.related_question_id
                   ? questions.find((x) => x.id === s.related_question_id)
                   : null;
+                // F-4: Cockpit-level (no questionId) escalations must be visible & labeled,
+                // otherwise the PM has no idea a mission-level SOS even fired.
+                const isMissionLevel = !s.related_question_id;
+                const kindLabel =
+                  s.signal_type === "air_cover" ? "Air Cover"
+                  : s.signal_type === "decision_needed" ? "Decision"
+                  : s.signal_type === "sme_request" ? "Help / Direction"
+                  : s.signal_type.replace(/_/g, " ");
                 return (
                   <li key={s.id} className="flex flex-wrap items-start gap-3 py-2.5">
                     <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-baseline gap-2 text-[13px] font-semibold text-red-100">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className="inline-flex items-center rounded-sm px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em]"
+                          style={
+                            isMissionLevel
+                              ? { background: "rgba(248,113,113,0.20)", color: "#fecaca", border: "1px solid rgba(248,113,113,0.45)" }
+                              : { background: "rgba(255,255,255,0.06)", color: "#fecaca", border: "1px solid rgba(255,255,255,0.12)" }
+                          }
+                          title={isMissionLevel ? "Cockpit-level — no question linked. PM must triage." : "Linked to a specific question"}
+                        >
+                          {isMissionLevel ? "Mission-level" : (q?.question_number ?? "Question")}
+                        </span>
+                        <span className="inline-flex items-center rounded-sm border border-red-400/30 bg-red-500/5 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-red-200/90">
+                          {kindLabel}
+                        </span>
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-baseline gap-2 text-[13px] font-semibold text-red-100">
                         <span>{s.signal_title}</span>
                         <span className="text-[11px] font-normal text-red-200/70">
                           {who} · {timeAgo(s.created_at)}
@@ -712,15 +736,29 @@ function MissionBrief() {
                           {s.signal_summary}
                         </div>
                       )}
+                      {isMissionLevel && (
+                        <div className="mt-1 text-[11px] italic text-red-200/70">
+                          No question linked — this is a Cockpit-level escalation. Triage directly with {who}.
+                        </div>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      {q && (
+                      {q ? (
                         <Link
                           to="/missions/$missionId/sections/$questionId"
                           params={{ missionId, questionId: q.id }}
                           className="inline-flex items-center gap-1 rounded-md border border-red-400/40 bg-red-500/10 px-2.5 py-1 text-[11px] font-semibold text-red-100 hover:bg-red-500/20"
                         >
                           Open {q.question_number} <ArrowRight className="h-3 w-3" />
+                        </Link>
+                      ) : (
+                        <Link
+                          to="/missions/$missionId/team"
+                          params={{ missionId }}
+                          className="inline-flex items-center gap-1 rounded-md border border-red-400/40 bg-red-500/10 px-2.5 py-1 text-[11px] font-semibold text-red-100 hover:bg-red-500/20"
+                          title="Reach the team to triage this Cockpit-level SOS"
+                        >
+                          Reach {firstName(profile?.display_name ?? who)} <ArrowRight className="h-3 w-3" />
                         </Link>
                       )}
                       <button
