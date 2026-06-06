@@ -574,21 +574,6 @@ function MissionOverviewPage() {
             )}
           </p>
 
-          {/* Dates grid */}
-          <div className="grid grid-cols-3 gap-3 mt-6">
-            <DateCell label="Submission" date={mission?.submission_date ?? null} sub="" />
-            <DateCell label="Contract Term" customValue="—" sub="" />
-            <DateCell label="Pens Down" customValue="—" sub="" />
-            <DateCell label="Q&A Deadline" date={mission?.qa_deadline ?? null} sub="" />
-            <DateCell label="Contract Start" customValue="—" sub="" />
-          </div>
-
-          {/* Leadership row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
-            {leadershipRow.map((slot) => (
-              <LeaderCard key={slot.label} label={slot.label} person={slot.person} onMessage={openCompose} />
-            ))}
-          </div>
         </section>
 
         {/* ══════════════════════════════════════════════════════════ */}
