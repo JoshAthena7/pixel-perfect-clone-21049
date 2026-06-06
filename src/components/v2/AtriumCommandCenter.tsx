@@ -444,7 +444,7 @@ function AttentionRow({ item, onDismiss, dim = false }: { item: AttentionItem; o
         };
 
   return (
-    <li className="group px-4 py-3">
+    <li className={`group px-4 py-3 ${dim ? "opacity-50" : ""}`}>
       <div className="flex items-start gap-3">
         <div className="mt-0.5">{meta.icon}</div>
         <div className="min-w-0 flex-1">
