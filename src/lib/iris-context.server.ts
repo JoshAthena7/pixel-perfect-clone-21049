@@ -205,6 +205,30 @@ export type MissionContext = {
   recentWriterUpdates: RealityUpdateCtx[];
   recentPulses: PulseCtx[];
 
+  // Expanded intelligence sources (No Data Left Behind)
+  broadcasts: Array<{ id: string; fromName: string; text: string; createdAt: string }>;
+  mockScores: Array<{ id: string; stage: string; score: number; sectionName: string | null; questionId: string | null; evaluatorNote: string | null; scoredAt: string }>;
+  pendingExecDecisions: Array<{ id: string; description: string; urgency: string; status: string; createdAt: string }>;
+  irisMemories: Array<{ id: string; title: string; summary: string | null; category: string; importance: string; scope: string }>;
+  activeAssumptions: Array<{ id: string; assumption: string; confidence: number | null; status: string; riskIfWrong: string | null }>;
+  recentDecisions: Array<{ id: string; title: string; status: string | null; owner: string | null; rationale: string | null; decidedAt: string | null }>;
+  rfpAmendments: Array<{ id: string; summary: string | null; totalChanges: number; criticalChanges: number; analyzedAt: string | null; changes: Array<{ id: string; severity: string; description: string; writerAction: string | null; affectedSections: string[] }> }>;
+  marketIntelligence: Array<{ id: string; type: string; title: string; summary: string | null; url: string | null; publishedAt: string | null }>;
+  missionStrategyItems: Array<{ id: string; kind: string; label: string; notes: string | null }>;
+  openHealthFlags: Array<{ id: string; kind: string; severity: string | null; rationale: string | null; questionId: string | null }>;
+  missionSections: Array<{ id: string; number: string; title: string; status: string | null; progressPct: number | null; irisAlignmentPct: number | null; irisFlagged: boolean; assignedUserId: string | null; dueDate: string | null }>;
+  recentResearch: Array<{ id: string; answer: string; confidence: string; generatedAt: string }>;
+  missionTimeline: {
+    questionDeadline: string | null;
+    pinkTeam: string | null;
+    redTeam: string | null;
+    goldTeam: string | null;
+    execReview: string | null;
+    submission: string | null;
+    orals: string | null;
+    award: string | null;
+  } | null;
+
   // Question-scoped (optional)
   question?: QuestionContextCtx;
 };
@@ -254,6 +278,20 @@ export async function buildMissionContext(
     clarificationsR,
     realityR,
     pulsesR,
+    broadcastsR,
+    mockScoresR,
+    execDecisionsR,
+    irisMemoriesR,
+    assumptionsR,
+    decisionsR,
+    amendmentsR,
+    amendmentChangesR,
+    marketIntelR,
+    strategyR,
+    healthFlagsR,
+    sectionsR,
+    researchR,
+    timelineR,
   ] = await Promise.allSettled([
     supabase
       .from("missions")
@@ -362,6 +400,100 @@ export async function buildMissionContext(
       .gte("submitted_at", since48h)
       .order("submitted_at", { ascending: false })
       .limit(20),
+    // ----- Expanded sources (No Data Left Behind) -----
+    supabase
+      .from("broadcasts")
+      .select("id,from_name,text,created_at")
+      .eq("mission_id", missionId)
+      .order("created_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("mock_scores")
+      .select("id,stage,score,section_name,question_id,evaluator_note,scored_at")
+      .eq("mission_id", missionId)
+      .order("scored_at", { ascending: false })
+      .limit(8),
+    supabase
+      .from("executive_decisions")
+      .select("id,description,urgency,status,created_at")
+      .eq("mission_id", missionId)
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(10),
+    supabase
+      .from("iris_memories")
+      .select("id,title,summary,category,importance,scope,mission_id")
+      .or(`mission_id.eq.${missionId},and(scope.eq.global,importance.neq.reference)`)
+      .is("archived_at", null)
+      .order("importance", { ascending: true })
+      .limit(10),
+    supabase
+      .from("mission_assumptions")
+      .select("id,assumption,confidence_score,status,risk_if_wrong")
+      .eq("mission_id", missionId)
+      .eq("status", "active")
+      .order("confidence_score", { ascending: true })
+      .limit(10),
+    supabase
+      .from("mission_decisions")
+      .select("id,title,status,owner,rationale,decided_at,created_at")
+      .eq("mission_id", missionId)
+      .order("created_at", { ascending: false })
+      .limit(10),
+    supabase
+      .from("rfp_amendments")
+      .select("id,summary,total_changes,critical_changes,analyzed_at,status")
+      .eq("mission_id", missionId)
+      .order("created_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("amendment_changes")
+      .select(
+        "id,amendment_id,severity,description,writer_action_required,affected_sections,acknowledged",
+      )
+      .eq("mission_id", missionId)
+      .order("created_at", { ascending: false })
+      .limit(20),
+    supabase
+      .from("market_intelligence")
+      .select("id,type,title,summary,url,published_at,created_at")
+      .or(`mission_id.eq.${missionId},matched_mission_ids.cs.{${missionId}}`)
+      .order("published_at", { ascending: false, nullsFirst: false })
+      .limit(8),
+    supabase
+      .from("mission_strategy")
+      .select("id,kind,label,notes,sort_order")
+      .eq("mission_id", missionId)
+      .order("sort_order", { ascending: true })
+      .limit(30),
+    supabase
+      .from("iris_health_flags")
+      .select("id,kind,severity,rationale,question_id,resolved_at")
+      .eq("mission_id", missionId)
+      .is("resolved_at", null)
+      .order("created_at", { ascending: false })
+      .limit(15),
+    supabase
+      .from("mission_sections")
+      .select(
+        "id,number,title,studio_status,studio_progress_pct,iris_alignment_pct,iris_flagged,assigned_user_id,internal_due_date",
+      )
+      .eq("mission_id", missionId)
+      .order("number", { ascending: true })
+      .limit(50),
+    supabase
+      .from("research_results")
+      .select("id,answer,confidence,generated_at")
+      .eq("mission_id", missionId)
+      .order("generated_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("mission_timeline")
+      .select(
+        "question_deadline,pink_team,red_team,gold_team,exec_review,submission,orals,award",
+      )
+      .eq("mission_id", missionId)
+      .maybeSingle(),
   ]);
 
   const mission = settled(missionR)?.data ?? null;
@@ -379,6 +511,20 @@ export async function buildMissionContext(
   const clarificationsRaw = settled(clarificationsR)?.data ?? [];
   const realityRaw = settled(realityR)?.data ?? [];
   const pulsesRaw = settled(pulsesR)?.data ?? [];
+  const broadcastsRaw = settled(broadcastsR)?.data ?? [];
+  const mockScoresRaw = settled(mockScoresR)?.data ?? [];
+  const execDecisionsRaw = settled(execDecisionsR)?.data ?? [];
+  const irisMemoriesRaw = settled(irisMemoriesR)?.data ?? [];
+  const assumptionsRaw = settled(assumptionsR)?.data ?? [];
+  const decisionsRaw = settled(decisionsR)?.data ?? [];
+  const amendmentsRaw = settled(amendmentsR)?.data ?? [];
+  const amendmentChangesRaw = settled(amendmentChangesR)?.data ?? [];
+  const marketIntelRaw = settled(marketIntelR)?.data ?? [];
+  const strategyRaw = settled(strategyR)?.data ?? [];
+  const healthFlagsRaw = settled(healthFlagsR)?.data ?? [];
+  const sectionsRaw = settled(sectionsR)?.data ?? [];
+  const researchRaw = settled(researchR)?.data ?? [];
+  const timelineRaw = settled(timelineR)?.data ?? null;
 
   const suggested = (mission?.iris_setup_suggested_fields ?? {}) as Record<
     string,
@@ -552,6 +698,125 @@ export async function buildMissionContext(
       note: p.note ?? null,
       submittedAt: p.submitted_at,
     })),
+
+    broadcasts: (broadcastsRaw as any[]).map((b) => ({
+      id: b.id,
+      fromName: b.from_name,
+      text: String(b.text ?? "").slice(0, 400),
+      createdAt: b.created_at,
+    })),
+    mockScores: (mockScoresRaw as any[]).map((s) => ({
+      id: s.id,
+      stage: s.stage,
+      score: Number(s.score),
+      sectionName: s.section_name ?? null,
+      questionId: s.question_id ?? null,
+      evaluatorNote: s.evaluator_note ? String(s.evaluator_note).slice(0, 240) : null,
+      scoredAt: s.scored_at,
+    })),
+    pendingExecDecisions: (execDecisionsRaw as any[]).map((d) => ({
+      id: d.id,
+      description: String(d.description ?? "").slice(0, 280),
+      urgency: d.urgency,
+      status: d.status,
+      createdAt: d.created_at,
+    })),
+    irisMemories: (irisMemoriesRaw as any[]).map((m) => ({
+      id: m.id,
+      title: m.title,
+      summary: m.summary ? String(m.summary).slice(0, 240) : null,
+      category: m.category,
+      importance: m.importance,
+      scope: m.scope,
+    })),
+    activeAssumptions: (assumptionsRaw as any[]).map((a) => ({
+      id: a.id,
+      assumption: String(a.assumption ?? "").slice(0, 280),
+      confidence: typeof a.confidence_score === "number" ? a.confidence_score : null,
+      status: a.status,
+      riskIfWrong: a.risk_if_wrong ? String(a.risk_if_wrong).slice(0, 200) : null,
+    })),
+    recentDecisions: (decisionsRaw as any[]).map((d) => ({
+      id: d.id,
+      title: String(d.title ?? "").slice(0, 200),
+      status: d.status ?? null,
+      owner: d.owner ?? null,
+      rationale: d.rationale ? String(d.rationale).slice(0, 240) : null,
+      decidedAt: d.decided_at ?? null,
+    })),
+    rfpAmendments: (amendmentsRaw as any[]).map((a) => {
+      const changes = (amendmentChangesRaw as any[])
+        .filter((c) => c.amendment_id === a.id)
+        .slice(0, 8)
+        .map((c) => ({
+          id: c.id,
+          severity: c.severity,
+          description: String(c.description ?? "").slice(0, 240),
+          writerAction: c.writer_action_required
+            ? String(c.writer_action_required).slice(0, 200)
+            : null,
+          affectedSections: (c.affected_sections ?? []) as string[],
+        }));
+      return {
+        id: a.id,
+        summary: a.summary ? String(a.summary).slice(0, 280) : null,
+        totalChanges: a.total_changes ?? 0,
+        criticalChanges: a.critical_changes ?? 0,
+        analyzedAt: a.analyzed_at ?? null,
+        changes,
+      };
+    }),
+    marketIntelligence: (marketIntelRaw as any[]).map((m) => ({
+      id: m.id,
+      type: m.type,
+      title: String(m.title ?? "").slice(0, 200),
+      summary: m.summary ? String(m.summary).slice(0, 240) : null,
+      url: m.url ?? null,
+      publishedAt: m.published_at ?? null,
+    })),
+    missionStrategyItems: (strategyRaw as any[]).map((s) => ({
+      id: s.id,
+      kind: s.kind,
+      label: String(s.label ?? "").slice(0, 200),
+      notes: s.notes ? String(s.notes).slice(0, 240) : null,
+    })),
+    openHealthFlags: (healthFlagsRaw as any[]).map((f) => ({
+      id: f.id,
+      kind: f.kind,
+      severity: f.severity ?? null,
+      rationale: f.rationale ? String(f.rationale).slice(0, 240) : null,
+      questionId: f.question_id ?? null,
+    })),
+    missionSections: (sectionsRaw as any[]).map((s) => ({
+      id: s.id,
+      number: s.number,
+      title: s.title,
+      status: s.studio_status ?? null,
+      progressPct: typeof s.studio_progress_pct === "number" ? s.studio_progress_pct : null,
+      irisAlignmentPct:
+        typeof s.iris_alignment_pct === "number" ? s.iris_alignment_pct : null,
+      irisFlagged: !!s.iris_flagged,
+      assignedUserId: s.assigned_user_id ?? null,
+      dueDate: s.internal_due_date ?? null,
+    })),
+    recentResearch: (researchRaw as any[]).map((r) => ({
+      id: r.id,
+      answer: String(r.answer ?? "").slice(0, 400),
+      confidence: r.confidence,
+      generatedAt: r.generated_at,
+    })),
+    missionTimeline: timelineRaw
+      ? {
+          questionDeadline: (timelineRaw as any).question_deadline ?? null,
+          pinkTeam: (timelineRaw as any).pink_team ?? null,
+          redTeam: (timelineRaw as any).red_team ?? null,
+          goldTeam: (timelineRaw as any).gold_team ?? null,
+          execReview: (timelineRaw as any).exec_review ?? null,
+          submission: (timelineRaw as any).submission ?? null,
+          orals: (timelineRaw as any).orals ?? null,
+          award: (timelineRaw as any).award ?? null,
+        }
+      : null,
 
     question,
   };
@@ -786,6 +1051,117 @@ export function formatMissionContextBlock(ctx: MissionContext): string {
     const blocked = ctx.recentPulses.filter((p) => p.blocked).length;
     lines.push(`- Daily pulses (48h): ${ctx.recentPulses.length} (${blocked} blocked)`);
   }
+
+  // ----- Expanded sources (No Data Left Behind) -----
+  if (ctx.missionStrategyItems.length > 0) {
+    lines.push("");
+    lines.push("MISSION STRATEGY (curated):");
+    for (const s of ctx.missionStrategyItems.slice(0, 12)) {
+      lines.push(`- [${s.kind}] ${s.label}${s.notes ? ` — ${s.notes}` : ""}`);
+    }
+  }
+  if (ctx.activeAssumptions.length > 0) {
+    lines.push("");
+    lines.push("ACTIVE ASSUMPTIONS (validate, do not assume true):");
+    for (const a of ctx.activeAssumptions.slice(0, 6)) {
+      lines.push(
+        `- ${a.assumption}${a.confidence !== null ? ` [conf ${Math.round((a.confidence ?? 0) * 100)}%]` : ""}${a.riskIfWrong ? ` — risk: ${a.riskIfWrong}` : ""}`,
+      );
+    }
+  }
+  if (ctx.recentDecisions.length > 0) {
+    lines.push("");
+    lines.push("MISSION DECISIONS:");
+    for (const d of ctx.recentDecisions.slice(0, 6)) {
+      lines.push(
+        `- ${d.title} [${d.status ?? "?"}]${d.rationale ? ` — ${d.rationale}` : ""}`,
+      );
+    }
+  }
+  if (ctx.pendingExecDecisions.length > 0) {
+    lines.push("");
+    lines.push(`PENDING EXEC DECISIONS: ${ctx.pendingExecDecisions.length}`);
+    for (const d of ctx.pendingExecDecisions.slice(0, 4)) {
+      lines.push(`- [${d.urgency}] ${d.description}`);
+    }
+  }
+  if (ctx.rfpAmendments.length > 0) {
+    lines.push("");
+    lines.push("RFP AMENDMENTS:");
+    for (const a of ctx.rfpAmendments.slice(0, 3)) {
+      lines.push(
+        `- ${a.summary ?? "(no summary)"} (${a.totalChanges} changes · ${a.criticalChanges} critical)`,
+      );
+      for (const c of a.changes.slice(0, 3)) {
+        lines.push(`  · [${c.severity}] ${c.description}`);
+      }
+    }
+  }
+  if (ctx.marketIntelligence.length > 0) {
+    lines.push("");
+    lines.push("MARKET INTELLIGENCE:");
+    for (const m of ctx.marketIntelligence.slice(0, 5)) {
+      lines.push(`- ${m.title}${m.summary ? ` — ${m.summary}` : ""}`);
+    }
+  }
+  if (ctx.recentResearch.length > 0) {
+    lines.push("");
+    lines.push("RESEARCH FINDINGS:");
+    for (const r of ctx.recentResearch.slice(0, 3)) {
+      lines.push(`- [${r.confidence}] ${r.answer.slice(0, 240)}`);
+    }
+  }
+  if (ctx.mockScores.length > 0) {
+    lines.push("");
+    lines.push("RECENT MOCK SCORES (red/gold/pink team):");
+    for (const s of ctx.mockScores.slice(0, 5)) {
+      lines.push(
+        `- ${s.stage}: ${s.score}${s.sectionName ? ` · ${s.sectionName}` : ""}${s.evaluatorNote ? ` — ${s.evaluatorNote}` : ""}`,
+      );
+    }
+  }
+  if (ctx.openHealthFlags.length > 0) {
+    lines.push("");
+    lines.push(`OPEN IRIS HEALTH FLAGS: ${ctx.openHealthFlags.length}`);
+    for (const f of ctx.openHealthFlags.slice(0, 5)) {
+      lines.push(`- [${f.severity ?? "?"}] ${f.kind}${f.rationale ? `: ${f.rationale}` : ""}`);
+    }
+  }
+  if (ctx.missionSections.length > 0) {
+    const flagged = ctx.missionSections.filter((s) => s.irisFlagged).length;
+    lines.push("");
+    lines.push(
+      `MISSION SECTIONS: ${ctx.missionSections.length} total${flagged > 0 ? ` · ${flagged} IRIS-flagged` : ""}`,
+    );
+  }
+  if (ctx.broadcasts.length > 0) {
+    lines.push("");
+    lines.push("RECENT LEADERSHIP BROADCASTS:");
+    for (const b of ctx.broadcasts.slice(0, 3)) {
+      lines.push(`- ${b.fromName}: ${b.text.slice(0, 200)}`);
+    }
+  }
+  if (ctx.irisMemories.length > 0) {
+    lines.push("");
+    lines.push("IRIS MEMORIES (apply where relevant):");
+    for (const m of ctx.irisMemories.slice(0, 6)) {
+      lines.push(`- [${m.importance}] ${m.title}${m.summary ? ` — ${m.summary}` : ""}`);
+    }
+  }
+  if (ctx.missionTimeline) {
+    const t = ctx.missionTimeline;
+    const beats: string[] = [];
+    if (t.pinkTeam) beats.push(`Pink ${t.pinkTeam.slice(0, 10)}`);
+    if (t.redTeam) beats.push(`Red ${t.redTeam.slice(0, 10)}`);
+    if (t.goldTeam) beats.push(`Gold ${t.goldTeam.slice(0, 10)}`);
+    if (t.execReview) beats.push(`Exec ${t.execReview.slice(0, 10)}`);
+    if (t.submission) beats.push(`Submit ${t.submission.slice(0, 10)}`);
+    if (beats.length > 0) {
+      lines.push("");
+      lines.push(`TIMELINE: ${beats.join(" · ")}`);
+    }
+  }
+
 
   // Question-scoped
   if (ctx.question) {

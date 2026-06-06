@@ -14,6 +14,7 @@ import {
   type HealthRow,
   type RowStatus,
 } from "@/lib/iris-context-health.functions";
+import { auditContextCoverage } from "@/lib/iris-context-coverage.functions";
 
 const IRIS_INDIGO = "#6366F1";
 
@@ -97,13 +98,22 @@ function HealthPanelBody({ missionId }: { missionId: string }) {
   const qc = useQueryClient();
   const getHealth = useServerFn(getMissionContextHealth);
   const forceRefresh = useServerFn(forceRefreshMissionContext);
+  const auditCoverage = useServerFn(auditContextCoverage);
   const [lastBuiltAt, setLastBuiltAt] = useState<string | null>(null);
+  const [showMissing, setShowMissing] = useState(false);
 
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ["iris-context-health", missionId],
     queryFn: () => getHealth({ data: { missionId } }),
     refetchInterval: 60_000,
     refetchOnWindowFocus: true,
+  });
+
+  const { data: coverage } = useQuery({
+    queryKey: ["iris-context-coverage"],
+    queryFn: () => auditCoverage({ data: undefined as any }),
+    refetchInterval: 5 * 60_000,
+    staleTime: 60_000,
   });
 
   useEffect(() => {
@@ -162,6 +172,64 @@ function HealthPanelBody({ missionId }: { missionId: string }) {
           {data.overallScore}%
         </div>
       </div>
+
+      {coverage && (
+        <div
+          className="rounded-[8px] px-3 py-2 text-[11px]"
+          style={{
+            background:
+              coverage.coveragePercent >= 100
+                ? "rgba(16,185,129,0.06)"
+                : "rgba(245,158,11,0.06)",
+            border:
+              coverage.coveragePercent >= 100
+                ? "1px solid rgba(16,185,129,0.25)"
+                : "1px solid rgba(245,158,11,0.3)",
+          }}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span>{coverage.coveragePercent >= 100 ? "✓" : "⚠"}</span>
+              <span className="font-semibold text-foreground/90">
+                Context Coverage: {coverage.coveragePercent}%
+              </span>
+              <span className="text-muted-foreground">
+                · {coverage.coveredByContext}/
+                {coverage.totalMissionTables - coverage.excludedByDesign} mission-scoped tables wired
+                {coverage.excludedByDesign > 0
+                  ? ` (${coverage.excludedByDesign} excluded by design)`
+                  : ""}
+              </span>
+            </div>
+            {coverage.missing.length > 0 && (
+              <button
+                onClick={() => setShowMissing((s) => !s)}
+                className="text-[11px] font-medium underline-offset-2 hover:underline"
+                style={{ color: IRIS_INDIGO }}
+              >
+                {showMissing ? "Hide" : "View"} missing sources ({coverage.missing.length})
+              </button>
+            )}
+          </div>
+          {showMissing && coverage.missing.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {coverage.missing.map((t) => (
+                <span
+                  key={t}
+                  className="rounded px-1.5 py-0.5 text-[10px] font-mono"
+                  style={{
+                    background: "rgba(245,158,11,0.12)",
+                    color: "#fbbf24",
+                    border: "1px solid rgba(245,158,11,0.25)",
+                  }}
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="space-y-4">
         {data.groups.map((g) => (
