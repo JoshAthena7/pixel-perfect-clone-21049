@@ -97,10 +97,9 @@ function IrisPage() {
   const [tab, setTab] = useState<TabId>("brief");
   const [missionId, setMissionId] = useState<string | undefined>(undefined);
 
-  const fetchIris = useServerFn(getIrisData);
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["iris", missionId ?? "default"],
-    queryFn: () => fetchIris({ data: { missionId } }),
+    queryFn: () => fetchIrisData(missionId),
   });
 
   const runSignals = useServerFn(extractSignals);
@@ -570,7 +569,7 @@ function severityChip(level: string) {
 /* Tabs                                                                    */
 /* ─────────────────────────────────────────────────────────────────────── */
 
-type IrisData = Awaited<ReturnType<typeof getIrisData>>;
+// IrisData type is declared near the top of the file.
 
 function MissionBriefView({ data }: { data: IrisData }) {
   const m = data.mission;
