@@ -45,23 +45,101 @@ function IrisPage() {
     queryFn: () => fetchIris({ data: { missionId } }),
   });
 
-  const runPipeline = useServerFn(runIrisPipeline);
-  const mutation = useMutation({
-    mutationFn: (id: string) => runPipeline({ data: { missionId: id } }),
-    onSuccess: (res) => {
-      const ok = res.results.filter((r) => r.ok && !r.skipped);
-      const skipped = res.results.filter((r) => r.skipped);
-      const failed = res.results.filter((r) => !r.ok);
-      const total = ok.reduce((n, r) => n + r.inserted, 0);
-      toast.success(
-        `IRIS pipeline complete · ${total} rows generated across ${ok.length}/${res.results.length} stages` +
-          (skipped.length ? ` · ${skipped.length} skipped` : "") +
-          (failed.length ? ` · ${failed.length} failed` : ""),
+  const runSignals = useServerFn(extractSignals);
+  const runRisks = useServerFn(extractRisks);
+  const runWinThemes = useServerFn(extractWinThemes);
+  const runStrategy = useServerFn(extractStrategy);
+  const runClientIntel = useServerFn(extractClientIntel);
+
+  type StageState = {
+    id: string;
+    label: string;
+    status: "pending" | "running" | "done" | "error" | "skipped";
+    inserted?: number;
+    reason?: string;
+    error?: string;
+    ms?: number;
+  };
+
+  const STAGE_DEFS = [
+    { id: "signals", label: "Signals", fn: runSignals },
+    { id: "risks", label: "Emerging risks", fn: runRisks },
+    { id: "win_themes", label: "Win themes", fn: runWinThemes },
+    { id: "strategy", label: "State priorities", fn: runStrategy },
+    { id: "client_intel", label: "Client intel", fn: runClientIntel },
+  ] as const;
+
+  const [stages, setStages] = useState<StageState[]>(() =>
+    STAGE_DEFS.map((s) => ({ id: s.id, label: s.label, status: "pending" as const })),
+  );
+  const [running, setRunning] = useState(false);
+  const runningRef = useRef(false);
+
+  const handleGenerate = useCallback(async (id: string) => {
+    if (runningRef.current) return;
+    runningRef.current = true;
+    setRunning(true);
+    setStages(STAGE_DEFS.map((s) => ({ id: s.id, label: s.label, status: "pending" })));
+
+    for (let i = 0; i < STAGE_DEFS.length; i++) {
+      const def = STAGE_DEFS[i];
+      setStages((prev) =>
+        prev.map((s, idx) => (idx === i ? { ...s, status: "running" } : s)),
       );
-      void router.invalidate();
-    },
-    onError: (e) => toast.error(`Pipeline failed: ${(e as Error).message}`),
-  });
+      const t0 = performance.now();
+      try {
+        const r = (await def.fn({ data: { missionId: id } })) as {
+          inserted?: number;
+          skipped?: boolean;
+          reason?: string;
+        };
+        const ms = Math.round(performance.now() - t0);
+        setStages((prev) =>
+          prev.map((s, idx) =>
+            idx === i
+              ? {
+                  ...s,
+                  status: r.skipped ? "skipped" : "done",
+                  inserted: r.inserted ?? 0,
+                  reason: r.reason,
+                  ms,
+                }
+              : s,
+          ),
+        );
+      } catch (e) {
+        const ms = Math.round(performance.now() - t0);
+        setStages((prev) =>
+          prev.map((s, idx) =>
+            idx === i
+              ? { ...s, status: "error", error: (e as Error).message.slice(0, 200), ms }
+              : s,
+          ),
+        );
+      }
+    }
+
+    runningRef.current = false;
+    setRunning(false);
+    const final = stages;
+    void final; // for closure linter; real summary derived from setter snapshot below
+    setStages((prev) => {
+      const ok = prev.filter((s) => s.status === "done");
+      const failed = prev.filter((s) => s.status === "error");
+      const total = ok.reduce((n, s) => n + (s.inserted ?? 0), 0);
+      if (failed.length) {
+        toast.error(`IRIS pipeline finished with ${failed.length} failure(s) · ${total} rows`);
+      } else {
+        toast.success(`IRIS pipeline complete · ${total} rows across ${ok.length}/${prev.length} stages`);
+      }
+      return prev;
+    });
+    void router.invalidate();
+  }, [router, runSignals, runRisks, runWinThemes, runStrategy, runClientIntel]);
+
+  const completedCount = stages.filter((s) => s.status === "done" || s.status === "skipped" || s.status === "error").length;
+  const progressPct = Math.round((completedCount / stages.length) * 100);
+  const showProgress = running || completedCount > 0;
 
   const activeMissionId = data?.mission?.id;
 
@@ -102,15 +180,20 @@ function IrisPage() {
             {activeMissionId && (
               <button
                 type="button"
-                onClick={() => mutation.mutate(activeMissionId)}
-                disabled={mutation.isPending}
+                onClick={() => handleGenerate(activeMissionId)}
+                disabled={running}
                 className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-300 transition hover:bg-amber-500/15 disabled:opacity-50"
               >
-                {mutation.isPending ? "Generating…" : "Generate Intelligence"}
+                {running ? `Generating… ${progressPct}%` : "Generate Intelligence"}
               </button>
             )}
           </div>
         </header>
+
+        {showProgress && (
+          <PipelineProgress stages={stages} pct={progressPct} running={running} />
+        )}
+
 
         <nav className="mb-8 flex flex-wrap gap-1 border-b border-border/60">
           {TABS.map((t) => {
