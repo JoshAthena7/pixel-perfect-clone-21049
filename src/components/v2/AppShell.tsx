@@ -343,6 +343,7 @@ function MissionNav({ missionId }: { missionId: string }) {
     label: string;
     icon: ReactNode;
     to: string;
+    search?: Record<string, string>;
     active: boolean;
   }> = [
     {
@@ -380,6 +381,14 @@ function MissionNav({ missionId }: { missionId: string }) {
       to: `${base}/sections`,
       active: path.startsWith(`${base}/sections`) || path.startsWith(`${base}/scaffold`),
     },
+    {
+      key: "cockpit",
+      label: "Cockpit",
+      icon: <Plane size={13} strokeWidth={1.75} />,
+      to: `/cockpit`,
+      search: { missionId },
+      active: path.startsWith(`/cockpit`),
+    },
   ];
 
   return (
@@ -392,6 +401,7 @@ function MissionNav({ missionId }: { missionId: string }) {
         <Link
           key={it.key}
           to={it.to as any}
+          search={it.search as any}
           aria-current={it.active ? "page" : undefined}
           className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] whitespace-nowrap transition-all duration-200"
           style={
