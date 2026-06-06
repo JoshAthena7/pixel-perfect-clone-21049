@@ -343,7 +343,7 @@ export const getMissionTemplateCompliance = createServerFn({ method: "POST" })
 
     const { data: sections } = await supabase
       .from("mission_sections")
-      .select("id, section_number, section_title")
+      .select("id, number, title")
       .eq("mission_id", data.missionId);
 
     const { data: progress } = await supabase
