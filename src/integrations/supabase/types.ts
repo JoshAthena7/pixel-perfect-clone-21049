@@ -1356,6 +1356,176 @@ export type Database = {
           },
         ]
       }
+      checkin_cycles: {
+        Row: {
+          created_at: string
+          cycle_start: string
+          expires_at: string
+          id: string
+          mission_id: string
+          trigger_type: string
+        }
+        Insert: {
+          created_at?: string
+          cycle_start: string
+          expires_at: string
+          id?: string
+          mission_id: string
+          trigger_type: string
+        }
+        Update: {
+          created_at?: string
+          cycle_start?: string
+          expires_at?: string
+          id?: string
+          mission_id?: string
+          trigger_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkin_cycles_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checkin_section_updates: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          progress_pct: number | null
+          section_id: string
+          source: string
+          status: string
+          submission_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          progress_pct?: number | null
+          section_id: string
+          source?: string
+          status: string
+          submission_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          progress_pct?: number | null
+          section_id?: string
+          source?: string
+          status?: string
+          submission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkin_section_updates_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "mission_sections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checkin_section_updates_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "checkin_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checkin_submissions: {
+        Row: {
+          cycle_id: string
+          id: string
+          mission_id: string
+          submitted_at: string
+          writer_user_id: string
+        }
+        Insert: {
+          cycle_id: string
+          id?: string
+          mission_id: string
+          submitted_at?: string
+          writer_user_id: string
+        }
+        Update: {
+          cycle_id?: string
+          id?: string
+          mission_id?: string
+          submitted_at?: string
+          writer_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkin_submissions_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "checkin_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checkin_submissions_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checkin_tokens: {
+        Row: {
+          consumed_at: string | null
+          created_at: string
+          cycle_id: string
+          expires_at: string
+          id: string
+          mission_id: string
+          token: string
+          writer_user_id: string
+        }
+        Insert: {
+          consumed_at?: string | null
+          created_at?: string
+          cycle_id: string
+          expires_at: string
+          id?: string
+          mission_id: string
+          token: string
+          writer_user_id: string
+        }
+        Update: {
+          consumed_at?: string | null
+          created_at?: string
+          cycle_id?: string
+          expires_at?: string
+          id?: string
+          mission_id?: string
+          token?: string
+          writer_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkin_tokens_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "checkin_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checkin_tokens_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collective_members: {
         Row: {
           created_at: string
@@ -3529,6 +3699,59 @@ export type Database = {
             columns: ["question_id"]
             isOneToOne: false
             referencedRelation: "question_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_sections: {
+        Row: {
+          assigned_user_id: string | null
+          created_at: string
+          id: string
+          internal_due_date: string | null
+          mission_id: string
+          number: string
+          rfp_page_ref: string | null
+          studio_progress_pct: number | null
+          studio_status: string | null
+          studio_updated_at: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_user_id?: string | null
+          created_at?: string
+          id?: string
+          internal_due_date?: string | null
+          mission_id: string
+          number: string
+          rfp_page_ref?: string | null
+          studio_progress_pct?: number | null
+          studio_status?: string | null
+          studio_updated_at?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_user_id?: string | null
+          created_at?: string
+          id?: string
+          internal_due_date?: string | null
+          mission_id?: string
+          number?: string
+          rfp_page_ref?: string | null
+          studio_progress_pct?: number | null
+          studio_status?: string | null
+          studio_updated_at?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_sections_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
             referencedColumns: ["id"]
           },
         ]
