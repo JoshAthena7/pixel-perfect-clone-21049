@@ -551,7 +551,7 @@ function CoPilotBanner({ missionId, me }: { missionId: string; me: string }) {
 
 // ---------- Main ----------
 
-export function CockpitV4({ missionId, me, myQuestions, allQuestions, updateStatus }: Props) {
+export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateStatus }: Props) {
   const [sosOpen, setSosOpen] = useState(false);
   const [scoreOpen, setScoreOpen] = useState(false);
   const [phoneOpen, setPhoneOpen] = useState(false);

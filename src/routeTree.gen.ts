@@ -96,6 +96,7 @@ import { Route as AuthenticatedMissionsMissionIdJourneyMapRouteImport } from './
 import { Route as AuthenticatedMissionsMissionIdIrisCommandRouteImport } from './routes/_authenticated/missions/$missionId/iris-command'
 import { Route as AuthenticatedMissionsMissionIdIrisRouteImport } from './routes/_authenticated/missions/$missionId/iris'
 import { Route as AuthenticatedMissionsMissionIdIntelRouteImport } from './routes/_authenticated/missions/$missionId/intel'
+import { Route as AuthenticatedMissionsMissionIdFlightDeckRouteImport } from './routes/_authenticated/missions/$missionId/flight-deck'
 import { Route as AuthenticatedMissionsMissionIdCommandRouteImport } from './routes/_authenticated/missions/$missionId/command'
 import { Route as AuthenticatedMissionsMissionIdCockpitRouteImport } from './routes/_authenticated/missions/$missionId/cockpit'
 import { Route as AuthenticatedMissionsMissionIdBriefingRouteImport } from './routes/_authenticated/missions/$missionId/briefing'
@@ -601,6 +602,12 @@ const AuthenticatedMissionsMissionIdIntelRoute =
     path: '/intel',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
+const AuthenticatedMissionsMissionIdFlightDeckRoute =
+  AuthenticatedMissionsMissionIdFlightDeckRouteImport.update({
+    id: '/flight-deck',
+    path: '/flight-deck',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
+  } as any)
 const AuthenticatedMissionsMissionIdCommandRoute =
   AuthenticatedMissionsMissionIdCommandRouteImport.update({
     id: '/command',
@@ -739,6 +746,7 @@ export interface FileRoutesByFullPath {
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/missions/$missionId/cockpit': typeof AuthenticatedMissionsMissionIdCockpitRoute
   '/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
+  '/missions/$missionId/flight-deck': typeof AuthenticatedMissionsMissionIdFlightDeckRoute
   '/missions/$missionId/intel': typeof AuthenticatedMissionsMissionIdIntelRoute
   '/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
   '/missions/$missionId/iris-command': typeof AuthenticatedMissionsMissionIdIrisCommandRoute
@@ -834,6 +842,7 @@ export interface FileRoutesByTo {
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/missions/$missionId/cockpit': typeof AuthenticatedMissionsMissionIdCockpitRoute
   '/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
+  '/missions/$missionId/flight-deck': typeof AuthenticatedMissionsMissionIdFlightDeckRoute
   '/missions/$missionId/intel': typeof AuthenticatedMissionsMissionIdIntelRoute
   '/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
   '/missions/$missionId/iris-command': typeof AuthenticatedMissionsMissionIdIrisCommandRoute
@@ -935,6 +944,7 @@ export interface FileRoutesById {
   '/_authenticated/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/_authenticated/missions/$missionId/cockpit': typeof AuthenticatedMissionsMissionIdCockpitRoute
   '/_authenticated/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
+  '/_authenticated/missions/$missionId/flight-deck': typeof AuthenticatedMissionsMissionIdFlightDeckRoute
   '/_authenticated/missions/$missionId/intel': typeof AuthenticatedMissionsMissionIdIntelRoute
   '/_authenticated/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
   '/_authenticated/missions/$missionId/iris-command': typeof AuthenticatedMissionsMissionIdIrisCommandRoute
@@ -1036,6 +1046,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/briefing'
     | '/missions/$missionId/cockpit'
     | '/missions/$missionId/command'
+    | '/missions/$missionId/flight-deck'
     | '/missions/$missionId/intel'
     | '/missions/$missionId/iris'
     | '/missions/$missionId/iris-command'
@@ -1131,6 +1142,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/briefing'
     | '/missions/$missionId/cockpit'
     | '/missions/$missionId/command'
+    | '/missions/$missionId/flight-deck'
     | '/missions/$missionId/intel'
     | '/missions/$missionId/iris'
     | '/missions/$missionId/iris-command'
@@ -1231,6 +1243,7 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/$missionId/briefing'
     | '/_authenticated/missions/$missionId/cockpit'
     | '/_authenticated/missions/$missionId/command'
+    | '/_authenticated/missions/$missionId/flight-deck'
     | '/_authenticated/missions/$missionId/intel'
     | '/_authenticated/missions/$missionId/iris'
     | '/_authenticated/missions/$missionId/iris-command'
@@ -1891,6 +1904,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdIntelRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
+    '/_authenticated/missions/$missionId/flight-deck': {
+      id: '/_authenticated/missions/$missionId/flight-deck'
+      path: '/flight-deck'
+      fullPath: '/missions/$missionId/flight-deck'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdFlightDeckRouteImport
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
     '/_authenticated/missions/$missionId/command': {
       id: '/_authenticated/missions/$missionId/command'
       path: '/command'
@@ -2090,6 +2110,7 @@ interface AuthenticatedMissionsMissionIdRouteChildren {
   AuthenticatedMissionsMissionIdBriefingRoute: typeof AuthenticatedMissionsMissionIdBriefingRoute
   AuthenticatedMissionsMissionIdCockpitRoute: typeof AuthenticatedMissionsMissionIdCockpitRoute
   AuthenticatedMissionsMissionIdCommandRoute: typeof AuthenticatedMissionsMissionIdCommandRoute
+  AuthenticatedMissionsMissionIdFlightDeckRoute: typeof AuthenticatedMissionsMissionIdFlightDeckRoute
   AuthenticatedMissionsMissionIdIntelRoute: typeof AuthenticatedMissionsMissionIdIntelRoute
   AuthenticatedMissionsMissionIdIrisRoute: typeof AuthenticatedMissionsMissionIdIrisRoute
   AuthenticatedMissionsMissionIdIrisCommandRoute: typeof AuthenticatedMissionsMissionIdIrisCommandRoute
@@ -2118,6 +2139,8 @@ const AuthenticatedMissionsMissionIdRouteChildren: AuthenticatedMissionsMissionI
       AuthenticatedMissionsMissionIdCockpitRoute,
     AuthenticatedMissionsMissionIdCommandRoute:
       AuthenticatedMissionsMissionIdCommandRoute,
+    AuthenticatedMissionsMissionIdFlightDeckRoute:
+      AuthenticatedMissionsMissionIdFlightDeckRoute,
     AuthenticatedMissionsMissionIdIntelRoute:
       AuthenticatedMissionsMissionIdIntelRoute,
     AuthenticatedMissionsMissionIdIrisRoute:
@@ -2249,13 +2272,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
