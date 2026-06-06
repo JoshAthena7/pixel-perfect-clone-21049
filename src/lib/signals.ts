@@ -85,6 +85,8 @@ export const SIGNAL_TYPE_LABELS: Record<string, string> = {
   leadership_guidance_added: "Guidance Added",
   question_completed: "Question Completed",
   question_assigned: "Question Assigned",
+  question_ready_for_review: "Ready for Review",
+  question_approved: "Question Approved",
   score_logged: "Score Logged",
   alignment_conflict_detected: "Alignment Conflict",
   sos_raised: "SOS Raised",

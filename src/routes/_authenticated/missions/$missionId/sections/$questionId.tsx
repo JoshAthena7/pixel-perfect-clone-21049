@@ -1499,6 +1499,19 @@ function MyAssignments({
     qc.invalidateQueries({ queryKey: ["cockpit-my-questions"] });
     qc.invalidateQueries({ queryKey: ["question", id] });
     if (filter === "all") setAllQs(null);
+    // GAP 2 — emit in-app notification on review-bound transitions.
+    if (dbVal === "ready_for_review" || dbVal === "approved") {
+      const row = (list as any[]).find((x) => x.id === id) ?? (allQs as any[] | null)?.find?.((x) => x.id === id);
+      void createSignal({
+        mission_id: missionId,
+        source_module: "section_workspace",
+        signal_type: dbVal === "ready_for_review" ? "question_ready_for_review" : "question_approved",
+        signal_title: `Q${row?.question_number ?? ""} ${dbVal === "ready_for_review" ? "ready for review" : "approved"}`.trim(),
+        signal_summary: row?.title ?? null,
+        severity: "info",
+        related_question_id: id,
+      }, qc);
+    }
   };
 
   return (
