@@ -188,6 +188,17 @@ function TopBar({
           <kbd className="rounded border border-white/10 px-1 py-0.5 font-mono text-[9px]">⌘K</kbd>
         </button>
         <IrisStatusIndicator />
+        {!isAtrium && (
+          <Link
+            to="/atrium"
+            title="Atrium · Home"
+            aria-label="Atrium"
+            className="inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
+          >
+            <Home size={14} strokeWidth={1.5} />
+            <span className="hidden sm:inline">Atrium</span>
+          </Link>
+        )}
         <NotificationBell />
         <BriefRoomNavButton />
         <button
