@@ -4,8 +4,7 @@ import { z } from "zod";
 
 /**
  * "What the State Wants" — decoded priorities. Stored in mission_strategy
- * with kind='state_priority' so we never collide with user-authored strategy
- * rows of other kinds.
+ * with the closest existing strategy kind allowed by the database constraint.
  */
 const StrategySchema = z.object({
   priorities: z
@@ -26,11 +25,18 @@ export const extractStrategy = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const started = Date.now();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { loadMissionAndFeed, renderContext, callJsonExtractor } = await import("./shared.server");
+    const { loadMissionAndFeed, renderContext, callJsonExtractor } =
+      await import("./shared.server");
 
     const { mission, rows } = await loadMissionAndFeed(supabaseAdmin, data.missionId);
     if (rows.length === 0) {
-      return { stage: "strategy", inserted: 0, skipped: true, reason: "no feed rows", ms: Date.now() - started };
+      return {
+        stage: "strategy",
+        inserted: 0,
+        skipped: true,
+        reason: "no feed rows",
+        ms: Date.now() - started,
+      };
     }
 
     const system = `You produce the "What the State Wants" section of a procurement strategy brief.
@@ -66,7 +72,13 @@ Each priority should explain WHY (the underlying pressure, evidence, or politica
     });
 
     if (!result) {
-      return { stage: "strategy", inserted: 0, skipped: true, reason: "ai unavailable", ms: Date.now() - started };
+      return {
+        stage: "strategy",
+        inserted: 0,
+        skipped: true,
+        reason: "ai unavailable",
+        ms: Date.now() - started,
+      };
     }
 
     await supabaseAdmin
@@ -81,7 +93,7 @@ Each priority should explain WHY (the underlying pressure, evidence, or politica
 
     const inserts = result.priorities.map((p, i) => ({
       mission_id: data.missionId,
-      kind: "state_priority",
+      kind: "client_priority",
       label: p.label,
       notes: p.supporting_theme ? `${p.notes}\n\nSupports: ${p.supporting_theme}` : p.notes,
       sort_order: i,
