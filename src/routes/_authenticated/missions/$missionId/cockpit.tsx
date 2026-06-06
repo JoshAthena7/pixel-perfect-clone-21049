@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CockpitV4 } from "@/components/v4/CockpitV4";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
+import { createSignal } from "@/lib/signals";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/cockpit")({
   component: MissionCockpitPage,
