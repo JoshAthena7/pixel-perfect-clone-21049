@@ -293,10 +293,10 @@ function ThreadPanel() {
 
 function FirmTotals({ totals }: { totals: AtriumPayload["totals"] }) {
   const items = [
-    { label: "Wins", value: totals.wins, icon: Trophy, tone: "text-emerald-400" },
-    { label: "Awarded", value: fmtUsd(totals.awardedUsd), icon: DollarSign, tone: "text-amber-400" },
-    { label: "States", value: totals.states, icon: MapPin, tone: "text-sky-400" },
-    { label: "People served", value: fmtPeople(totals.peopleServed), icon: Users, tone: "text-violet-400" },
+    { label: "Wins", raw: totals.wins, format: (n: number) => Math.round(n).toLocaleString(), icon: Trophy, tone: "text-emerald-400" },
+    { label: "Awarded", raw: totals.awardedUsd, format: (n: number) => fmtUsd(Math.round(n)), icon: DollarSign, tone: "text-amber-400" },
+    { label: "States", raw: totals.states, format: (n: number) => Math.round(n).toLocaleString(), icon: MapPin, tone: "text-sky-400" },
+    { label: "People served", raw: totals.peopleServed, format: (n: number) => fmtPeople(Math.round(n)), icon: Users, tone: "text-violet-400" },
   ];
   return (
     <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -310,7 +310,9 @@ function FirmTotals({ totals }: { totals: AtriumPayload["totals"] }) {
                 {it.label}
               </span>
             </div>
-            <div className={`mt-1.5 text-2xl font-medium tracking-tight ${it.tone}`}>{it.value}</div>
+            <div className={`mt-1.5 text-2xl font-medium tracking-tight ${it.tone}`}>
+              <AnimatedNumber value={it.raw} format={it.format} />
+            </div>
           </div>
         );
       })}
