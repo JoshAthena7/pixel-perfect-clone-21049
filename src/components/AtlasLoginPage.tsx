@@ -60,22 +60,21 @@ export function AtlasLoginPage() {
 
 
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[#040814] text-white">
+    <div className="relative grid min-h-svh w-full place-items-center overflow-hidden bg-background text-foreground">
       <div
-        className="relative w-full"
-        style={{ aspectRatio: "1536 / 1024", maxHeight: "100vh", maxWidth: "calc(100vh * 1536 / 1024)" }}
+        className="relative w-full max-w-[min(100vw,calc(100svh*1.5))] [aspect-ratio:1536/1024] max-[900px]:h-svh max-[900px]:w-[max(100vw,calc(100svh*1.5))] max-[900px]:max-w-none"
       >
         <img
           src={loginBg.url}
           alt=""
           aria-hidden
-          className="pointer-events-none absolute inset-0 h-full w-full object-fill"
+          className="pointer-events-none absolute inset-0 h-full w-full object-fill max-[900px]:object-cover"
         />
 
-        <div className="absolute" style={{ left: "33%", right: "33%", top: "36%", bottom: "27%" }}>
-          <div className="relative h-full w-full overflow-hidden rounded-xl border border-amber-500/30 bg-gradient-to-b from-[#0b1733] to-[#050b1a] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)]">
-            <form onSubmit={onSubmit} className="flex h-full w-full flex-col px-7 py-5">
-              <h2 className="mb-4 text-center text-[15px] font-semibold uppercase tracking-[0.35em] text-amber-400">
+        <div className="absolute left-1/2 top-[36%] z-10 w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2 max-[900px]:top-[31%]">
+          <div className="relative w-full rounded-xl border border-primary/35 bg-gradient-to-b from-[#0b1733]/95 to-[#050b1a]/95 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)]">
+            <form onSubmit={onSubmit} className="flex w-full flex-col px-7 py-5 max-[420px]:px-5 max-[420px]:py-4">
+              <h2 className="mb-5 text-center text-[15px] font-semibold uppercase tracking-[0.35em] text-primary max-[420px]:text-[13px] max-[420px]:tracking-[0.25em]">
                 Welcome Back
               </h2>
 
@@ -120,7 +119,7 @@ export function AtlasLoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="group mt-auto flex w-full items-center justify-center gap-2 rounded-md bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-[#1a1206] shadow-[0_8px_24px_-8px_rgba(245,158,11,0.55)] transition hover:from-amber-200 hover:to-amber-500 disabled:opacity-60"
+                className="group flex w-full items-center justify-center gap-2 rounded-md bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-primary-foreground shadow-[0_8px_24px_-8px_rgba(245,158,11,0.55)] transition hover:from-amber-200 hover:to-amber-500 disabled:opacity-60 max-[420px]:tracking-[0.22em]"
               >
                 {loading ? "Entering…" : "Enter Atlas"}
                 {!loading && (
