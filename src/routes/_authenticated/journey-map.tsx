@@ -258,6 +258,72 @@ const PERSONAS = [
   "SME",
   "Reviewer",
 ] as const;
+type Persona = (typeof PERSONAS)[number];
+
+// Per-stage touchpoints: which action indices belong to each persona.
+// Empty array = no touchpoint at that stage.
+const PERSONA_TOUCHPOINTS: Record<Exclude<Persona, "All Roles">, Record<number, number[]>> = {
+  "Executive Sponsor": {
+    1: [0],                // approves mission, team, deadline
+    3: [1],                // acknowledges Mission Briefing
+    6: [],                 // sign-off via Engagement Lead, but visibility here
+    7: [0],                // post-submission debrief
+  },
+  "Engagement Lead": {
+    1: [0, 2, 3],
+    2: [2, 3],
+    3: [0, 1, 2],
+    4: [4],
+    5: [4],
+    6: [5],
+    7: [0, 2],
+  },
+  "PM": {
+    1: [0, 3],
+    2: [1],
+    3: [2, 3],
+    4: [4],
+    5: [0, 2],
+    6: [0, 1, 2, 3],
+    7: [0, 3],
+  },
+  "Writer": {
+    3: [3],
+    4: [0, 1, 2, 4],
+    5: [3],
+    6: [],
+    7: [1],
+  },
+  "SME": {
+    2: [3],
+    4: [3],
+    5: [1],
+  },
+  "Reviewer": {
+    5: [1, 2],
+    6: [4],
+  },
+};
+
+function touchpointActions(p: Persona, stageNum: number): number[] | null {
+  if (p === "All Roles") return null;
+  return PERSONA_TOUCHPOINTS[p]?.[stageNum] ?? [];
+}
+
+function hasTouchpoint(p: Persona, stageNum: number): boolean {
+  if (p === "All Roles") return true;
+  return (PERSONA_TOUCHPOINTS[p]?.[stageNum]?.length ?? 0) > 0;
+}
+
+function personaInitials(p: Persona): string {
+  if (p === "All Roles") return "ALL";
+  return p
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
 
 function statusColor(s: Status) {
   if (s === "complete") return "#22C55E";
@@ -271,6 +337,7 @@ function emotionColor(c: "green" | "yellow" | "blue") {
   if (c === "yellow") return "#F59E0B";
   return "#3B82F6";
 }
+
 
 function JourneyMapPage() {
   const activeIdx = STAGES.findIndex((s) => s.status === "active");
