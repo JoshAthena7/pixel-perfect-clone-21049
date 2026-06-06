@@ -425,6 +425,8 @@ function JourneyMapPage() {
                 const isSelected = i === selected;
                 const isActive = s.status === "active";
                 const color = statusColor(s.status);
+                const involved = hasTouchpoint(persona, s.num);
+                const dim = persona !== "All Roles" && !involved;
                 return (
                   <div key={s.num} className="flex-1 flex flex-col items-stretch min-w-0">
                     <button
@@ -433,6 +435,7 @@ function JourneyMapPage() {
                       style={{
                         background: isSelected ? "rgba(59,130,246,0.08)" : "transparent",
                         border: `1px solid ${isSelected ? "rgba(59,130,246,0.4)" : "transparent"}`,
+                        opacity: dim ? 0.35 : 1,
                       }}
                     >
                       <div className="relative mb-2">
@@ -458,6 +461,15 @@ function JourneyMapPage() {
                         {isActive && (
                           <span className="absolute inset-0 rounded-full border-2 animate-ping" style={{ borderColor: "#3B82F6" }} />
                         )}
+                        {persona !== "All Roles" && involved && (
+                          <span
+                            className="absolute -bottom-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1 text-[9px] font-bold text-white shadow"
+                            style={{ background: "#6366F1", border: "2px solid var(--background)" }}
+                            title={`${persona} touchpoint`}
+                          >
+                            {personaInitials(persona)}
+                          </span>
+                        )}
                       </div>
                       <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Stage {s.num}</div>
                       <div className="text-[12px] font-semibold text-foreground leading-tight">{s.name}</div>
@@ -465,6 +477,7 @@ function JourneyMapPage() {
                         {s.status === "complete" ? "Complete" : s.status === "active" ? "Active" : s.status === "at_risk" ? "At Risk" : "Upcoming"}
                       </div>
                     </button>
+
 
                     {/* Transition indicator */}
                     {i < STAGES.length - 1 && (
