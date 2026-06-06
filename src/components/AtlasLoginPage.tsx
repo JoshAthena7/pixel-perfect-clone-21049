@@ -72,7 +72,7 @@ export function AtlasLoginPage() {
         />
 
         <div className="absolute left-1/2 top-[36%] z-10 w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2 max-[900px]:top-[31%]">
-          <div className="relative w-full rounded-xl border border-primary/35 bg-gradient-to-b from-[#0b1733]/95 to-[#050b1a]/95 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)]">
+          <div className="relative w-full rounded-xl border border-primary/35 bg-[#071126] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)]">
             <form onSubmit={onSubmit} className="flex w-full flex-col px-7 py-5 max-[420px]:px-5 max-[420px]:py-4">
               <h2 className="mb-5 text-center text-[15px] font-semibold uppercase tracking-[0.35em] text-primary max-[420px]:text-[13px] max-[420px]:tracking-[0.25em]">
                 Welcome Back
