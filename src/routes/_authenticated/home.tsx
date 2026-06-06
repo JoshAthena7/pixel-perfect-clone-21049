@@ -778,7 +778,7 @@ function MissionCard({
 
   return (
     <Link
-      to="/missions/$missionId/overview"
+      to="/missions/$missionId/brief"
       params={{ missionId: mission.id }}
       data-health={computedHealth}
       onClick={() => { try { sessionStorage.setItem("athena:last-mission", mission.id); } catch {} }}

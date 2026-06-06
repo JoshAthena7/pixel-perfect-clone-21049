@@ -191,7 +191,7 @@ function VaultPage() {
             {requiredCount} of {requiredTotal} required documents loaded
           </div>
           <Link
-            to="/missions/$missionId/library"
+            to="/missions/$missionId/intel"
             params={{ missionId }}
             className="text-xs text-muted-foreground hover:text-foreground underline"
           >

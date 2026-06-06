@@ -136,7 +136,7 @@ function MissionsIndex() {
                     </td>
                     <td className="px-4 py-3 text-right space-x-1">
                       <Link
-                        to="/missions/$missionId/overview" params={{ missionId: m.id }}
+                        to="/missions/$missionId/brief" params={{ missionId: m.id }}
                         className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[12px] font-medium text-primary hover:bg-primary/10"
                       >
                         Open <ArrowRight className="h-3 w-3" />

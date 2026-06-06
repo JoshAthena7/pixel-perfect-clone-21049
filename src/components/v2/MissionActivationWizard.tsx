@@ -720,7 +720,7 @@ function Step3Activation({
           missionName={missionName}
           onComplete={() => {
             onClose();
-            navigate({ to: "/missions/$missionId/overview", params: { missionId } });
+            navigate({ to: "/missions/$missionId/brief", params: { missionId } });
           }}
         />
       )}

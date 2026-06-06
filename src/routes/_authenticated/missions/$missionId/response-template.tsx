@@ -12,7 +12,7 @@ function ResponseTemplatePage() {
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-4xl px-6 py-8">
         <Link
-          to="/missions/$missionId/overview"
+          to="/missions/$missionId/brief"
           params={{ missionId }}
           className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground mb-6"
         >

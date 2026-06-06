@@ -118,8 +118,8 @@ export function StudioHealthStrip({ missionId }: { missionId: string }) {
     : undefined;
 
   const target = isSectionWorkspace
-    ? { to: "/missions/$missionId/overview" as const, params: { missionId } }
-    : { to: "/missions/$missionId/overview" as const, params: { missionId } };
+    ? { to: "/missions/$missionId/brief" as const, params: { missionId } }
+    : { to: "/missions/$missionId/brief" as const, params: { missionId } };
 
   return (
     <Link

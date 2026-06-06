@@ -128,11 +128,11 @@ export function CommandPalette() {
         { id: "j-brief", group: "This mission", label: "Mission Brief", hint: "Leadership view", icon: <ClipboardList size={14} className="text-[#7c3aed]" />,
           onGo: () => navigate({ to: "/missions/$missionId/command", params: { missionId } }) },
         { id: "j-mission", group: "This mission", label: "Mission Room", hint: "Full mission reference", icon: <Sparkles size={14} className="text-[color:var(--yellow,#f59e0b)]" />,
-          onGo: () => navigate({ to: "/missions/$missionId/overview", params: { missionId } }) },
+          onGo: () => navigate({ to: "/missions/$missionId/brief", params: { missionId } }) },
         { id: "j-studio", group: "This mission", label: "Cockpit", hint: "Your work", icon: <PenTool size={14} className="text-[#3b7fff]" />,
           onGo: () => navigate({ to: "/missions/$missionId/sections", params: { missionId } }) },
         { id: "j-vault", group: "This mission", label: "Vault", hint: "Source documents", icon: <BookOpen size={14} className="text-[color:var(--athena-gold,#d4af37)]" />,
-          onGo: () => navigate({ to: "/missions/$missionId/library", params: { missionId } }) },
+          onGo: () => navigate({ to: "/missions/$missionId/intel", params: { missionId } }) },
         { id: "j-oracle", group: "This mission", label: "Oracle", hint: "IRIS intelligence", icon: <Eye size={14} className="text-[color:var(--iris,#22d3ee)]" />,
           onGo: () => navigate({ to: "/missions/$missionId/briefing", params: { missionId } }) },
       );
@@ -150,7 +150,7 @@ export function CommandPalette() {
         hint: [m.client, m.state].filter(Boolean).join(" · "),
         icon: <Plane size={14} className="text-[color:var(--yellow,#f59e0b)]" />,
         keywords: `${m.client ?? ""} ${m.state ?? ""}`,
-        onGo: () => navigate({ to: "/missions/$missionId/overview", params: { missionId: m.id } }),
+        onGo: () => navigate({ to: "/missions/$missionId/brief", params: { missionId: m.id } }),
       });
     }
     return list;
@@ -241,7 +241,7 @@ export function CommandPalette() {
       saveRecent({ id: hit.id, label: hit.title, hint: hit.subtitle, group: hit.group, to: `/missions/${hit.missionId}/sections/${hit.questionId}` });
       return;
     } else if (hit.missionId) {
-      navigate({ to: "/missions/$missionId/overview", params: { missionId: hit.missionId } });
+      navigate({ to: "/missions/$missionId/brief", params: { missionId: hit.missionId } });
       saveRecent({ id: hit.id, label: hit.title, hint: hit.subtitle, group: hit.group, to: `/missions/${hit.missionId}/overview` });
       return;
     }

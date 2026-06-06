@@ -22,6 +22,6 @@ export const Route = createFileRoute("/_authenticated/missions/$missionId/")({
       // If this is a redirect, rethrow; otherwise fall through to default
       if (e?.isRedirect || e?.to) throw e;
     }
-    throw redirect({ to: "/missions/$missionId/overview", params: { missionId } });
+    throw redirect({ to: "/missions/$missionId/brief", params: { missionId } });
   },
 });

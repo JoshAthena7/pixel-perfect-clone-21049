@@ -662,7 +662,7 @@ function MissionCard({ m, active }: { m: any; active: boolean }) {
   const won = (m.status === "Closed" && m.health === "Green") || m.status === "Won";
   return (
     <Link
-      to="/missions/$missionId/overview"
+      to="/missions/$missionId/brief"
       params={{ missionId: m.id }}
       className="block rounded-lg border border-white/10 bg-white/[0.02] p-4 hover:bg-white/[0.05] transition-colors"
     >
