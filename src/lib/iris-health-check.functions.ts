@@ -273,10 +273,13 @@ export const runIrisHealthCheck = createServerFn({ method: "POST" })
               body: JSON.stringify({
                 model: "sonar",
                 messages: [{ role: "user", content: "ping" }],
-                max_tokens: 4,
+                max_tokens: 16,
               }),
             });
-            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            if (!r.ok) {
+              const body = await r.text().catch(() => "");
+              throw new Error(`HTTP ${r.status}${body ? ` — ${body.slice(0, 160)}` : ""}`);
+            }
             return { status: "green", note: "API responding" };
           },
         },
