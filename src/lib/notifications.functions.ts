@@ -10,9 +10,10 @@ const HEALTH_DROP_THRESHOLD = 60;
 const MissionInput = z.object({ missionId: z.string().uuid() });
 
 /**
- * Scan open client clarifications across a mission. For any unresolved item
- * whose due_date is within 48 hours, emit a `clarification_deadline` signal.
- * Dedupes against existing signals fired in the last 24 hours per item.
+ * Scan submitted client clarifications. For any unanswered item whose 48-hour
+ * response window from `submitted_at` is about to elapse (within 48h or
+ * overdue), emit a `clarification_deadline` signal. Dedupes against signals
+ * fired in the last 24 hours per item.
  */
 export const notifyClarificationDeadlines = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -20,26 +21,30 @@ export const notifyClarificationDeadlines = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase } = context;
     const now = Date.now();
-    const horizon = new Date(now + 48 * 60 * 60 * 1000).toISOString();
-
+    // Items submitted >0h ago and still unanswered are in flight.
     const { data: items } = await supabase
       .from("client_clarifications")
-      .select("id,number,question,due_date,status")
+      .select("id,number,question,submitted_at,answered_at,status")
       .eq("mission_id", data.missionId)
-      .not("status", "in", "(answered,closed,withdrawn)")
-      .not("due_date", "is", null)
-      .lt("due_date", horizon);
+      .is("answered_at", null)
+      .not("submitted_at", "is", null);
 
-    const due = (items ?? []) as Array<{
+    const due = ((items ?? []) as unknown as Array<{
       id: string;
       number: number | null;
       question: string | null;
-      due_date: string;
+      submitted_at: string;
+      answered_at: string | null;
       status: string | null;
-    }>;
+    }>).filter((it) => {
+      const submitted = new Date(it.submitted_at).getTime();
+      const elapsed = (now - submitted) / (60 * 60 * 1000);
+      // Fire when within 48h of the implicit 96h SLA, i.e. >=48h elapsed.
+      return elapsed >= 48;
+    });
+
     if (due.length === 0) return { fired: 0 };
 
-    // Dedupe — skip items we already alerted on in the last 24h.
     const sinceIso = new Date(now - 24 * 60 * 60 * 1000).toISOString();
     const { data: recent } = await supabase
       .from("signals")
@@ -54,14 +59,14 @@ export const notifyClarificationDeadlines = createServerFn({ method: "POST" })
     let fired = 0;
     for (const item of due) {
       if (alreadyAlerted.has(item.id)) continue;
-      const hours = Math.max(0, Math.round((new Date(item.due_date).getTime() - now) / (60 * 60 * 1000)));
+      const elapsedHours = Math.round((now - new Date(item.submitted_at).getTime()) / (60 * 60 * 1000));
       const { error } = await supabase.from("signals").insert({
         mission_id: data.missionId,
         source_module: "clarifications",
         signal_type: "clarification_deadline",
-        signal_title: `Clarification #${item.number ?? "?"} due in ${hours}h`,
+        signal_title: `Clarification #${item.number ?? "?"} awaiting response (${elapsedHours}h)`,
         signal_summary: `${item.id}::${(item.question ?? "").slice(0, 200)}`,
-        severity: hours <= 24 ? "high" : "warning",
+        severity: elapsedHours >= 72 ? "high" : "warning",
         tags: ["clarification", "deadline"],
         created_by_system: true,
       });
