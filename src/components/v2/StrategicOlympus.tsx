@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, ArrowRight, Zap, AlertTriangle, Users, Plus, Check } from "lucide-react";
 import { toast } from "sonner";
+import { IrisContextHealthPanel } from "@/components/admin/IrisContextHealthPanel";
 
 const IRIS_INDIGO = "#6366F1";
 
