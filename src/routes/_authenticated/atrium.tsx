@@ -468,7 +468,10 @@ function ViewerProfileCard({ viewer }: { viewer: AtriumPayload["viewer"] }) {
     { label: "Day streak", value: viewer.streakDays, icon: Flame, tone: "text-orange-400" },
   ];
   return (
-    <div className="rounded-[12px] border border-border bg-gradient-to-br from-surface via-surface/80 to-background p-6">
+    <Link
+      to="/profile"
+      className="block rounded-[12px] border border-border bg-gradient-to-br from-surface via-surface/80 to-background p-6 transition-colors hover:border-primary/40 hover:bg-surface-hover"
+    >
       <div className="flex items-center gap-3">
         <Avatar name={viewer.displayName} size={40} />
         <div>
@@ -491,9 +494,9 @@ function ViewerProfileCard({ viewer }: { viewer: AtriumPayload["viewer"] }) {
         })}
       </ul>
       <p className="mt-5 border-t border-border pt-4 text-[11px] leading-relaxed text-muted-foreground">
-        Yours. Always. Travels with you across every engagement.
+        Yours. Always. Travels with you across every engagement. <span className="text-primary">Open profile →</span>
       </p>
-    </div>
+    </Link>
   );
 }
 
