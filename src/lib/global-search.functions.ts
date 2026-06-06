@@ -4,7 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export type SearchHit = {
   id: string;
   group:
-    | "Questions"
+    | "Sections"
     | "Sources"
     | "Decisions"
     | "Signals"
