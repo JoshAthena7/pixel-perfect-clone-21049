@@ -293,7 +293,14 @@ function IrisPage() {
         </section>
       </div>
       <AlertDialog open={confirmCancelOpen} onOpenChange={setConfirmCancelOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent
+          onCloseAutoFocus={(event) => {
+            if (cancelButtonRef.current) {
+              event.preventDefault();
+              cancelButtonRef.current.focus();
+            }
+          }}
+        >
           <AlertDialogHeader>
             <AlertDialogTitle>Stop after the current stage?</AlertDialogTitle>
             <AlertDialogDescription asChild>
