@@ -74,6 +74,7 @@ function fmtDate(date: string | null): string {
 
 // ── COMPONENT ────────────────────────────────────────────
 function CockpitPage() {
+  const { missionId: filterMissionId } = Route.useSearch();
   const { data: me } = useQuery({
     queryKey: ["cockpit-me"],
     queryFn: async () => {
@@ -84,7 +85,7 @@ function CockpitPage() {
 
   const meId = me?.id ?? null;
 
-  const { data: rows = [], isLoading } = useQuery({
+  const { data: allRows = [], isLoading } = useQuery({
     queryKey: ["cockpit-assigned", meId],
     enabled: !!meId,
     queryFn: async () => {
@@ -99,6 +100,11 @@ function CockpitPage() {
       return (data ?? []) as AssignedRow[];
     },
   });
+
+  const rows = useMemo(
+    () => (filterMissionId ? allRows.filter((r) => r.mission_id === filterMissionId) : allRows),
+    [allRows, filterMissionId],
+  );
 
   const missionIds = useMemo(
     () => Array.from(new Set(rows.map((r) => r.mission_id))),
