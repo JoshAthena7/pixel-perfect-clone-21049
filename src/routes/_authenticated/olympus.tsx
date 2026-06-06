@@ -14,6 +14,7 @@ import {
 
 import { useIsAdmin } from "@/hooks/useAccess";
 import { NotAvailable } from "@/components/access/NotAvailable";
+import { StrategicOlympus } from "@/components/v2/StrategicOlympus";
 
 
 export const Route = createFileRoute("/_authenticated/olympus")({
@@ -25,14 +26,45 @@ type Mission = { id: string; name: string; client: string };
 const SELECTED_KEY = "olympus:mission";
 
 function OlympusLayout() {
-  // Per the Permissions spec: Olympus is admin-only. Non-admins see "not available"
-  // — no greyed-out content, no error page, no role hints.
   const { isAdmin, isLoading } = useIsAdmin();
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const isStrategicPath = path === "/olympus" || path === "/olympus/";
 
-  if (isLoading) {
+  // Detect executive_sponsor mission role (Phase 5).
+  const { data: execAccess, isLoading: execLoading } = useQuery({
+    queryKey: ["olympus-exec-access"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return { isExec: false, isLead: false };
+      const { data } = await supabase
+        .from("mission_members")
+        .select("role")
+        .eq("user_id", user.id);
+      const roles = new Set((data ?? []).map((r: any) => r.role as string));
+      return {
+        isExec: roles.has("executive_sponsor"),
+        isLead: roles.has("admin") || roles.has("lead") || roles.has("engagement_lead") || roles.has("project_manager"),
+      };
+    },
+  });
+
+  if (isLoading || execLoading) {
     return <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">Loading…</div>;
   }
 
+  const canSeeStrategic = isAdmin || !!execAccess?.isExec;
+
+  // Strategic view (Phase 5): execs and admins land here on /olympus. No sidebar — full-bleed.
+  if (isStrategicPath && canSeeStrategic) {
+    return (
+      <StrategicOlympus
+        canSubmitDecisions={isAdmin || !!execAccess?.isLead}
+        canResolveDecisions={isAdmin || !!execAccess?.isExec}
+      />
+    );
+  }
+
+  // Admin tooling (sub-routes under /olympus/*) stays admin-only.
   if (!isAdmin) {
     return <NotAvailable kind="olympus" />;
   }
