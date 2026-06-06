@@ -21,6 +21,21 @@ const ALL_STATES = [
 type Opt = { id: string; kind: "expertise_area" | "question_type"; label: string };
 type Program = { id: string; program_name: string; state_code: string | null };
 type Availability = "available" | "pens_down" | "unavailable" | "pto";
+type Pov = "we" | "third_person" | "brand_name";
+type MissionRole = "writer" | "sme" | "reviewer" | "capture_lead" | "pm";
+type Depth = "expert" | "working" | "familiar" | "none";
+
+const IRIS_DOMAINS: { key: string; label: string }[] = [
+  { key: "mission", label: "Mission" },
+  { key: "policy", label: "Policy" },
+  { key: "political", label: "Political" },
+  { key: "stakeholder", label: "Stakeholder" },
+  { key: "market", label: "Market" },
+  { key: "community", label: "Community" },
+  { key: "research", label: "Research" },
+  { key: "signal", label: "Signal" },
+  { key: "relationship", label: "Relationship" },
+];
 
 type Form = {
   expertise_areas: string[];
@@ -29,6 +44,13 @@ type Form = {
   question_types: string[];
   availability_status: Availability;
   expert_bio: string;
+  // "Make IRIS yours"
+  writing_voice_sample: string;
+  preferred_pov: Pov;
+  banned_words: string[];
+  default_mission_role: MissionRole | "";
+  timezone: string;
+  domain_depth: Record<string, Depth>;
 };
 
 function isReplay() {
@@ -80,13 +102,15 @@ export function ProfileSetupWizardMount() {
 }
 
 const STEPS = [
-  { key: "intro", title: "Welcome", subtitle: "Two minutes to get IRIS pointed at you." },
+  { key: "intro", title: "Welcome", subtitle: "A few minutes to get IRIS pointed at you." },
   { key: "expertise", title: "What do you know?", subtitle: "Pick the areas you can speak to with depth." },
   { key: "states", title: "Where have you worked?", subtitle: "States where you've delivered procurement work." },
   { key: "programs", title: "Which programs?", subtitle: "Specific programs you've supported." },
   { key: "qtypes", title: "What do you write best?", subtitle: "Question types where you're the strongest pen." },
   { key: "availability", title: "Are you available?", subtitle: "We'll respect this when teammates ping you." },
   { key: "bio", title: "One-line bio", subtitle: "Shown when IRIS recommends you on Phone-a-Friend." },
+  { key: "voice", title: "How should IRIS sound like you?", subtitle: "Optional, but it makes every IRIS-drafted suggestion feel like your writing." },
+  { key: "style", title: "How do you work?", subtitle: "Tells IRIS what to show you first and when to ping you." },
 ] as const;
 
 function ProfileSetupWizard({
@@ -127,9 +151,19 @@ function ProfileSetupWizard({
     question_types: [],
     availability_status: "available",
     expert_bio: "",
+    writing_voice_sample: "",
+    preferred_pov: "we",
+    banned_words: [],
+    default_mission_role: "",
+    timezone:
+      typeof window !== "undefined" && Intl?.DateTimeFormat
+        ? Intl.DateTimeFormat().resolvedOptions().timeZone ?? ""
+        : "",
+    domain_depth: {},
   });
   const [customExpertise, setCustomExpertise] = useState("");
   const [customProgram, setCustomProgram] = useState("");
+  const [customBannedWord, setCustomBannedWord] = useState("");
   const [showAllStates, setShowAllStates] = useState(false);
 
   // Pre-fill if user already has anything saved (re-entry).
@@ -137,18 +171,26 @@ function ProfileSetupWizard({
     (async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("expertise_areas,states_experience,programs_experience,question_types,availability_status,expert_bio")
+        .select(
+          "expertise_areas,states_experience,programs_experience,question_types,availability_status,expert_bio,writing_voice_sample,preferred_pov,banned_words,default_mission_role,timezone,domain_depth",
+        )
         .eq("id", profileId)
         .maybeSingle();
       if (data) {
-        setForm({
+        setForm((prev) => ({
           expertise_areas: data.expertise_areas ?? [],
           states_experience: data.states_experience ?? [],
           programs_experience: data.programs_experience ?? [],
           question_types: data.question_types ?? [],
           availability_status: (data.availability_status as Availability) ?? "available",
           expert_bio: data.expert_bio ?? "",
-        });
+          writing_voice_sample: data.writing_voice_sample ?? "",
+          preferred_pov: ((data.preferred_pov as Pov) ?? "we"),
+          banned_words: data.banned_words ?? [],
+          default_mission_role: ((data.default_mission_role as MissionRole) ?? "") as MissionRole | "",
+          timezone: data.timezone ?? prev.timezone,
+          domain_depth: (data.domain_depth as Record<string, Depth>) ?? {},
+        }));
       }
     })();
   }, [profileId]);
@@ -207,6 +249,12 @@ function ProfileSetupWizard({
         question_types: form.question_types,
         availability_status: form.availability_status,
         expert_bio: form.expert_bio || null,
+        writing_voice_sample: form.writing_voice_sample.trim() || null,
+        preferred_pov: form.preferred_pov,
+        banned_words: form.banned_words,
+        default_mission_role: form.default_mission_role || null,
+        timezone: form.timezone || null,
+        domain_depth: form.domain_depth,
         // Only flip the completion flag when the user finishes; deferred
         // saves preserve their progress without dismissing the wizard for good.
         profile_completed: markComplete ? required : false,
