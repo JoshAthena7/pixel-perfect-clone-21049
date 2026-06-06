@@ -14,6 +14,7 @@ import { ResponseTemplateStatusRow } from "@/components/v2/ResponseTemplateStatu
 import { SubmissionChecklist } from "@/components/v2/SubmissionChecklist";
 import { MissionSectionsList } from "@/components/v2/MissionSectionsList";
 import { ClientClarificationsCard } from "@/components/v2/ClientClarificationsCard";
+import { MissionHealthCard, WinThemesCard } from "@/components/v2/MissionHealthAndThemes";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/brief")({
   component: MissionOverviewPage,
@@ -135,7 +136,7 @@ function MissionOverviewPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("missions")
-        .select("id,name,client,state,health,status,description,submission_date,rfp_number,state_agency,procurement_name,qa_deadline,priority_topics,competitors")
+        .select("id,name,client,state,health,status,description,submission_date,rfp_number,state_agency,procurement_name,qa_deadline,priority_topics,competitors,win_themes")
         .eq("id", missionId).maybeSingle();
       return data;
     },
@@ -590,6 +591,34 @@ function MissionOverviewPage() {
           </div>
         </section>
 
+        {/* ══════════════════════════════════════════════════════════ */}
+        {/* (1) IRIS MISSION HEALTH SCORE — above-the-fold answer to:   */}
+        {/*     "Is this mission healthy right now?"                    */}
+        {/* ══════════════════════════════════════════════════════════ */}
+        <MissionHealthCard
+          overall={overallHealth}
+          alignment={counts.total > 0 ? Math.round((counts.green / counts.total) * 100) : 0}
+          completeness={counts.total > 0 ? Math.round((atStandardCount / counts.total) * 100) : 0}
+          riskCount={risks.length}
+        />
+
+        {/* ══════════════════════════════════════════════════════════ */}
+        {/* (2) WIN THEMES + ALIGNMENT                                  */}
+        {/* ══════════════════════════════════════════════════════════ */}
+        <WinThemesCard themes={(mission?.win_themes as string[] | null) ?? []} />
+
+        {/* ══════════════════════════════════════════════════════════ */}
+        {/* (3) Submission countdown + key dates already shown above in */}
+        {/*     the Vitals dates grid.                                  */}
+        {/* (4) CLIENT CLARIFICATIONS                                   */}
+        {/* ══════════════════════════════════════════════════════════ */}
+        <ClientClarificationsCard
+          missionId={missionId}
+          qaDeadline={mission?.qa_deadline ?? null}
+          canManage={isLeader || isPM}
+        />
+
+
         {/* ── MISSION KNOWLEDGE (Vault + Oracle) ──────── */}
         <section>
           <h2 className="mr-section-label" style={{ color: "rgba(255,255,255,0.5)" }}>Mission Knowledge</h2>
@@ -646,18 +675,8 @@ function MissionOverviewPage() {
 
         <div className="mr-divider" />
 
-        {/* ══════════════════════════════════════════════════════════ */}
-        {/* CLIENT CLARIFICATIONS                                      */}
-        {/* ══════════════════════════════════════════════════════════ */}
-        <section id="client-clarifications">
-          <ClientClarificationsCard
-            missionId={missionId}
-            qaDeadline={mission?.qa_deadline ?? null}
-            canManage={isLeader || isPM}
-          />
-        </section>
 
-        <div className="mr-divider" />
+
 
 
 
