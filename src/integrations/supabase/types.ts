@@ -4443,6 +4443,9 @@ export type Database = {
           iris_kickoff_status: string
           iris_kickoff_summary: Json | null
           iris_search_terms: string[] | null
+          iris_setup_autofill_at: string | null
+          iris_setup_autofill_status: string | null
+          iris_setup_suggested_fields: Json
           is_fedramp_scope: boolean
           key_requirements: string[] | null
           mission_highlights: string | null
@@ -4488,6 +4491,9 @@ export type Database = {
           iris_kickoff_status?: string
           iris_kickoff_summary?: Json | null
           iris_search_terms?: string[] | null
+          iris_setup_autofill_at?: string | null
+          iris_setup_autofill_status?: string | null
+          iris_setup_suggested_fields?: Json
           is_fedramp_scope?: boolean
           key_requirements?: string[] | null
           mission_highlights?: string | null
@@ -4533,6 +4539,9 @@ export type Database = {
           iris_kickoff_status?: string
           iris_kickoff_summary?: Json | null
           iris_search_terms?: string[] | null
+          iris_setup_autofill_at?: string | null
+          iris_setup_autofill_status?: string | null
+          iris_setup_suggested_fields?: Json
           is_fedramp_scope?: boolean
           key_requirements?: string[] | null
           mission_highlights?: string | null
