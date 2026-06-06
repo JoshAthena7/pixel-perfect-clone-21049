@@ -237,29 +237,27 @@ export const submitCheckin = createServerFn({ method: "POST" })
       .update({ consumed_at: new Date().toISOString() })
       .eq("id", tokenRow.id);
 
-    // Blocked sections → PM escalation
+    // Blocked sections → PM-visible SOS signal (F-7: escalations table dropped;
+    // signals is the canonical escalation surface read by Mission Command).
     const blocked = rows.filter((r) => r.status === "blocked");
     if (blocked.length > 0) {
-      const blockedSectionInfo = (validSections ?? []).filter((s: any) =>
-        blocked.some((b) => b.section_id === s.id),
-      );
-      const desc = `Writer reported BLOCKED on ${blocked.length} section(s) in check-in. ${
-        blocked
-          .map((b) => b.notes)
-          .filter(Boolean)
-          .join(" · ") || "No notes provided."
-      }`;
-      await supabaseAdmin.from("escalations").insert({
+      const summary = blocked
+        .map((b) => b.notes)
+        .filter(Boolean)
+        .join(" · ") || "No notes provided.";
+      await supabaseAdmin.from("signals").insert({
         mission_id: tokenRow.mission_id,
-        category: "checkin_blocked",
+        source_module: "studio_sos",
+        signal_type: "sme_request",
+        signal_title: `Writer reported BLOCKED on ${blocked.length} section(s) in check-in`,
+        signal_summary: summary,
         severity: "high",
-        description: desc,
-        submitted_by: "writer",
-        submitted_by_id: tokenRow.writer_user_id,
         status: "open",
+        user_id: tokenRow.writer_user_id,
+        created_by_system: true,
       });
-      void blockedSectionInfo;
     }
+
 
     return { ok: true };
   });
