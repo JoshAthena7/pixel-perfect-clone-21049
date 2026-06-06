@@ -400,6 +400,17 @@ function ProfileSetupWizard({
             <ArrowLeft className="h-3.5 w-3.5" /> Back
           </button>
           <div className="flex items-center gap-2">
+            {/* Always available after the intro step — preserves progress without
+                marking the profile complete, so the wizard re-fires next login. */}
+            {stepIdx > 0 && (
+              <button
+                onClick={saveAndDefer}
+                disabled={saving}
+                className="rounded-md border border-border px-3 py-2 text-xs text-muted-foreground hover:bg-surface-hover hover:text-foreground disabled:opacity-40"
+              >
+                Save & continue later
+              </button>
+            )}
             {isLast ? (
               <button
                 onClick={finish}
@@ -411,7 +422,7 @@ function ProfileSetupWizard({
             ) : (
               <button
                 onClick={() => setStepIdx((i) => Math.min(STEPS.length - 1, i + 1))}
-                disabled={!canAdvance}
+                disabled={!canAdvance || saving}
                 className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-40"
               >
                 Continue <ArrowRight className="h-4 w-4" />
