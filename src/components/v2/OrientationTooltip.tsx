@@ -21,7 +21,7 @@ const TEXT_BY_ROLE: Record<string, string> = {
   engagement_lead:
     "You're at Athena HQ. Your missions are sorted by IRIS health score — the most at-risk mission surfaces first. Click any card to enter the mission.",
   executive_sponsor:
-    "You're seeing the full portfolio. The status strip shows mission health across all engagements. Critical items are surfaced above the mission cards.",
+    "You're in Olympus — the strategic portfolio view. IRIS surfaces cross-mission patterns here that aren't visible from inside any single mission. Use the Atrium for operational detail.",
 };
 
 export function OrientationTooltip() {

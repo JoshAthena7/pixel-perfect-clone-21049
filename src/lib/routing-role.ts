@@ -23,8 +23,8 @@ export const ROLE_PRIORITY: Record<RoutingRole, number> = {
   none: 99,
 };
 
-// Config: Phase 5 will swap this to "/olympus".
-export const EXEC_ROUTING_DESTINATION = "/home" as const;
+// Phase 5: Olympus is shipped. Executive Sponsors land here on login.
+export const EXEC_ROUTING_DESTINATION = "/olympus" as const;
 
 export const SESSION_RECENCY_HOURS = 4;
 
