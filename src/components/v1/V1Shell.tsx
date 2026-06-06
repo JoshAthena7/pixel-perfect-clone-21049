@@ -1,7 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { LogOut, User as UserIcon, LayoutDashboard, Brain, Archive, ListChecks, Map as MapIcon, ListTodo } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { LogOut, User as UserIcon, LayoutDashboard, Brain, Archive, ListChecks, Map as MapIcon, ListTodo, ChevronDown, LifeBuoy, ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMissionOverview } from "@/lib/v1/mission.functions";
@@ -99,25 +100,105 @@ export function V1Shell({ children }: { children: ReactNode }) {
 }
 
 function UserMenu({ name }: { name: string | null }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     window.location.href = "/login";
   };
+
+  const initials = (name ?? "U")
+    .split(/\s+/)
+    .map((s) => s[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
   return (
-    <div className="flex items-center gap-2">
-      {name && (
-        <span className="text-xs text-[color:var(--v1-muted)] hidden sm:inline">
-          <UserIcon className="inline h-3 w-3 mr-1" />
-          {name}
-        </span>
-      )}
+    <div className="relative" ref={ref}>
       <button
-        onClick={handleSignOut}
-        className="inline-flex items-center gap-1 rounded-md border border-[color:var(--v1-border)] px-2 py-1.5 text-xs hover:bg-[color:var(--v1-surface-hover)]"
-        title="Sign out"
+        onClick={() => setOpen((o) => !o)}
+        className="inline-flex items-center gap-2 rounded-md border border-[color:var(--v1-border)] px-2 py-1.5 text-xs hover:bg-[color:var(--v1-surface-hover)]"
+        aria-haspopup="menu"
+        aria-expanded={open}
       >
-        <LogOut className="h-3.5 w-3.5" />
+        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[color:var(--v1-primary)]/20 text-[10px] font-semibold text-[color:var(--v1-primary)]">
+          {initials}
+        </span>
+        {name && (
+          <span className="hidden sm:inline text-[color:var(--v1-text)]">{name}</span>
+        )}
+        <ChevronDown className="h-3 w-3 text-[color:var(--v1-muted)]" />
       </button>
+
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 mt-1 w-56 rounded-md border border-[color:var(--v1-border)] bg-[color:var(--v1-surface)] py-1 shadow-lg z-50"
+        >
+          <MenuLink to="/profile" icon={UserIcon} label="Profile" onClick={() => setOpen(false)} />
+          <MenuLink
+            to="/profile"
+            search={{ tab: "privacy" as const }}
+            icon={ShieldCheck}
+            label="Data & Privacy"
+            onClick={() => setOpen(false)}
+          />
+          <MenuLink
+            to="/profile"
+            search={{ tab: "help" as const }}
+            icon={LifeBuoy}
+            label="Help & Support"
+            onClick={() => setOpen(false)}
+          />
+          <div className="my-1 h-px bg-[color:var(--v1-border)]" />
+          <button
+            type="button"
+            role="menuitem"
+            onClick={handleSignOut}
+            className="flex w-full items-center gap-2 px-3 py-2 text-xs text-[color:var(--v1-text)] hover:bg-[color:var(--v1-surface-hover)]"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            Sign out
+          </button>
+        </div>
+      )}
     </div>
+  );
+}
+
+function MenuLink({
+  to,
+  search,
+  icon: Icon,
+  label,
+  onClick,
+}: {
+  to: string;
+  search?: Record<string, string>;
+  icon: typeof UserIcon;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <Link
+      to={to as any}
+      search={search as any}
+      role="menuitem"
+      onClick={onClick}
+      className="flex items-center gap-2 px-3 py-2 text-xs text-[color:var(--v1-text)] hover:bg-[color:var(--v1-surface-hover)]"
+    >
+      <Icon className="h-3.5 w-3.5 text-[color:var(--v1-muted)]" />
+      {label}
+    </Link>
   );
 }

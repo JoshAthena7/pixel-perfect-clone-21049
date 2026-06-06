@@ -313,10 +313,9 @@ function SignOutButton() {
 // ─── Atrium top-bar nav ───────────────────────────────────────────────────
 function AtriumNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const items: { to: string; label: string }[] = [
-    { to: "/home", label: "Athena HQ" },
-    { to: "/profile", label: "Profile" },
-  ];
+  // V1 collapse: Athena HQ + Status Report dropped; Profile lives in the
+  // avatar menu. Admins still see the Olympus / Admin entry on the right.
+  const items: { to: string; label: string }[] = [];
 
 
   return (
