@@ -415,26 +415,25 @@ export const getMissionContextHealth = createServerFn({ method: "POST" })
       else if (q.health === "yellow") healthBuckets.yellow++;
       else if (q.health === "red") healthBuckets.red++;
     }
+    const totalQ = questions.length;
+    const greenPct =
+      totalQ > 0 ? Math.round((healthBuckets.green / totalQ) * 100) : null;
     const healthRow: HealthRow = {
       id: "health-rollup",
       label: "Health Rollup",
-      status: (() => {
-        const updatedAt = mission?.health_updated_at ?? null;
-        const a = ageMs(updatedAt);
-        if (mission?.health_score == null && questions.length === 0) return "amber";
-        if (a !== null && a > 6 * HOUR) return "red";
-        if (a !== null && a > HOUR) return "amber";
-        return "green";
-      })(),
+      status:
+        totalQ === 0
+          ? "amber"
+          : greenPct! >= 70
+            ? "green"
+            : greenPct! >= 40
+              ? "amber"
+              : "red",
       detail:
-        mission?.health_score != null
-          ? `${mission.health_score}%${
-              mission?.health_updated_at
-                ? ` · recalculated ${describeAge(ageMs(mission.health_updated_at)!)}`
-                : ""
-            }`
-          : `${questions.length} questions tracked`,
-      lastEventAt: mission?.health_updated_at ?? null,
+        totalQ === 0
+          ? "No questions tracked yet"
+          : `${greenPct}% on track · ${healthBuckets.green}🟢 ${healthBuckets.yellow}🟡 ${healthBuckets.red}🔴`,
+      lastEventAt: null,
     };
 
     const realityLast = maxIso(reality, "created_at");
