@@ -117,6 +117,8 @@ function MissionBrief() {
   /* questions for health summary + risk */
   const { data: questions = [] } = useQuery({
     queryKey: ["mb-questions", missionId],
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const { data } = await supabase
         .from("question_records")
