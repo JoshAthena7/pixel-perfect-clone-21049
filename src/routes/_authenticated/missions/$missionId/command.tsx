@@ -408,6 +408,71 @@ function MissionBrief() {
   const [signalsExpanded, setSignalsExpanded] = useState(false);
   const visibleSignals = signalsExpanded ? signals : signals.slice(0, 8);
 
+  /* ── F-3: Active SOS — surfaced at top of page, NOT inside the "More context" accordion. */
+  type SosSignal = {
+    id: string; signal_title: string; signal_summary: string | null;
+    severity: string; signal_type: string; source_module: string;
+    user_id: string | null; related_question_id: string | null; created_at: string;
+  };
+  const { data: sosSignals = [] } = useQuery({
+    queryKey: ["mb-sos", missionId],
+    refetchInterval: 20_000,
+    refetchOnWindowFocus: true,
+    queryFn: async () => {
+      const since = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
+      const { data } = await supabase
+        .from("signals")
+        .select("id,signal_title,signal_summary,severity,signal_type,source_module,user_id,related_question_id,created_at,status")
+        .eq("mission_id", missionId)
+        .eq("status", "open")
+        .gte("created_at", since)
+        .or("source_module.eq.studio_sos,severity.in.(critical,high)")
+        .order("created_at", { ascending: false })
+        .limit(20);
+      return (data ?? []) as SosSignal[];
+    },
+  });
+
+  async function resolveSos(id: string) {
+    const { error } = await supabase
+      .from("signals")
+      .update({ status: "resolved" })
+      .eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("SOS marked resolved");
+    qc.invalidateQueries({ queryKey: ["mb-sos", missionId] });
+    qc.invalidateQueries({ queryKey: ["mb-signals", missionId] });
+  }
+
+  /* ── F-1: Realtime — when writers touch question_records / fire signals / log needs,
+        Mission Command sees it without a manual reload. */
+  useEffect(() => {
+    if (!missionId) return;
+    const channel = supabase
+      .channel(`mb-realtime-${missionId}`)
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "question_records", filter: `mission_id=eq.${missionId}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["mb-questions", missionId] });
+          qc.invalidateQueries({ queryKey: ["mb-conflicts", missionId] });
+        })
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "signals", filter: `mission_id=eq.${missionId}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["mb-sos", missionId] });
+          qc.invalidateQueries({ queryKey: ["mb-signals", missionId] });
+        })
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "question_collaboration", filter: `mission_id=eq.${missionId}` },
+        () => qc.invalidateQueries({ queryKey: ["mb-collab-needs", missionId] }))
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "reality_updates", filter: `mission_id=eq.${missionId}` },
+        () => qc.invalidateQueries({ queryKey: ["mb-reality-needs", missionId] }))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [missionId, qc]);
+
+
   /* Leadership notes (collab entries of entry_type = leadership_note) */
   const { data: notes = [] } = useQuery({
     queryKey: ["mb-leadership-notes", missionId],
