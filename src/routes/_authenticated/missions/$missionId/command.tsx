@@ -347,6 +347,8 @@ function MissionBrief() {
   /* Next gate */
   const { data: gates = [] } = useQuery({
     queryKey: ["mb-gates", missionId],
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const today = new Date().toISOString().slice(0, 10);
       const { data } = await supabase
