@@ -367,7 +367,7 @@ export function CommandCenter({ missionId }: { missionId?: string } = {}) {
       {/* Section 1: Health bar */}
       <div className="rounded-[12px] border border-border bg-surface px-5 py-3 flex items-center gap-6 text-sm">
         <span className="font-semibold tabular-nums">{healthCounts.total}</span>
-        <span className="text-muted-foreground">Questions</span>
+        <span className="text-muted-foreground">Sections</span>
         <span className="text-border">·</span>
         <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-emerald-400" /> <span className="font-medium tabular-nums">{healthCounts.green}</span> <span className="text-muted-foreground">Green</span></span>
         <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-amber-400" /> <span className="font-medium tabular-nums">{healthCounts.yellow}</span> <span className="text-muted-foreground">Yellow</span></span>
