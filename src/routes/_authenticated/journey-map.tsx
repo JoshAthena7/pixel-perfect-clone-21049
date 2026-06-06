@@ -434,24 +434,60 @@ function JourneyMapPage() {
                     : "Instant — no transitions"
               }
             >
-              <span className="px-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              <span id="motion-group-label" className="px-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 Motion
               </span>
-              {(["auto", "on", "off"] as MotionPref[]).map((opt) => {
+              {(["auto", "on", "off"] as MotionPref[]).map((opt, idx, arr) => {
                 const active = motionPref === opt;
+                const label = opt === "auto" ? "Auto" : opt === "on" ? "On" : "Off";
+                const description =
+                  opt === "auto"
+                    ? "Auto — follow system preference"
+                    : opt === "on"
+                      ? "On — always animate"
+                      : "Off — instant, no transitions";
                 return (
                   <button
                     key={opt}
+                    type="button"
                     role="radio"
                     aria-checked={active}
+                    aria-label={description}
+                    tabIndex={active ? 0 : -1}
                     onClick={() => setMotionPref(opt)}
-                    className="rounded px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] transition-colors"
+                    onKeyDown={(e) => {
+                      const key = e.key;
+                      if (key === " " || key === "Enter") {
+                        e.preventDefault();
+                        setMotionPref(opt);
+                        return;
+                      }
+                      let nextIdx: number | null = null;
+                      if (key === "ArrowRight" || key === "ArrowDown") {
+                        nextIdx = (idx + 1) % arr.length;
+                      } else if (key === "ArrowLeft" || key === "ArrowUp") {
+                        nextIdx = (idx - 1 + arr.length) % arr.length;
+                      } else if (key === "Home") {
+                        nextIdx = 0;
+                      } else if (key === "End") {
+                        nextIdx = arr.length - 1;
+                      }
+                      if (nextIdx !== null) {
+                        e.preventDefault();
+                        const next = arr[nextIdx];
+                        setMotionPref(next);
+                        const group = e.currentTarget.parentElement;
+                        const buttons = group?.querySelectorAll<HTMLButtonElement>('[role="radio"]');
+                        buttons?.[nextIdx]?.focus();
+                      }
+                    }}
+                    className="rounded px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-surface"
                     style={{
                       background: active ? "rgba(59,130,246,0.15)" : "transparent",
                       color: active ? "#93C5FD" : "var(--muted-foreground)",
                     }}
                   >
-                    {opt === "auto" ? "Auto" : opt === "on" ? "On" : "Off"}
+                    {label}
                   </button>
                 );
               })}
