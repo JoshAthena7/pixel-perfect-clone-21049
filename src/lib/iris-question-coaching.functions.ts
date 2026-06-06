@@ -169,7 +169,10 @@ Be the strategist who knows what wins. Not the consultant who hedges.
 
 ${layered}`;
 
-    const coaching = await callForCoaching(sys, userMsg);
+    const missionCtx = await loadMissionContext(supabase, q.mission_id);
+    const preamble = formatMissionContextPreamble(missionCtx);
+
+    const coaching = await callForCoaching(sys, userMsg, preamble);
     if (!coaching) {
       return { cached: false, intel: null, error: "IRIS could not generate coaching (check LOVABLE_API_KEY)." };
     }
