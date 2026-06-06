@@ -2,9 +2,14 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Plane, ArrowRight, AlertTriangle, Clock } from "lucide-react";
+import { Plane, ArrowRight, AlertTriangle, Clock, ArrowLeft } from "lucide-react";
+
+type CockpitSearch = { missionId?: string };
 
 export const Route = createFileRoute("/_authenticated/cockpit")({
+  validateSearch: (search: Record<string, unknown>): CockpitSearch => ({
+    missionId: typeof search.missionId === "string" ? search.missionId : undefined,
+  }),
   component: CockpitPage,
 });
 
@@ -69,6 +74,7 @@ function fmtDate(date: string | null): string {
 
 // ── COMPONENT ────────────────────────────────────────────
 function CockpitPage() {
+  const { missionId: filterMissionId } = Route.useSearch();
   const { data: me } = useQuery({
     queryKey: ["cockpit-me"],
     queryFn: async () => {
@@ -79,7 +85,7 @@ function CockpitPage() {
 
   const meId = me?.id ?? null;
 
-  const { data: rows = [], isLoading } = useQuery({
+  const { data: allRows = [], isLoading } = useQuery({
     queryKey: ["cockpit-assigned", meId],
     enabled: !!meId,
     queryFn: async () => {
@@ -94,6 +100,11 @@ function CockpitPage() {
       return (data ?? []) as AssignedRow[];
     },
   });
+
+  const rows = useMemo(
+    () => (filterMissionId ? allRows.filter((r) => r.mission_id === filterMissionId) : allRows),
+    [allRows, filterMissionId],
+  );
 
   const missionIds = useMemo(
     () => Array.from(new Set(rows.map((r) => r.mission_id))),
@@ -176,13 +187,28 @@ function CockpitPage() {
       <div className="mx-auto max-w-[1100px] px-10 pt-12 pb-16 space-y-10">
         {/* Header */}
         <header className="space-y-3">
+          {filterMissionId && (
+            <Link
+              to="/cockpit"
+              className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="h-3 w-3" />
+              All Missions
+            </Link>
+          )}
           <div className="flex items-center gap-3">
             <Plane size={20} strokeWidth={1.5} className="text-[#3b7fff]" />
             <h1 className="text-[28px] font-bold tracking-tight text-white">Cockpit</h1>
+            {filterMissionId && (
+              <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                Filtered to one mission
+              </span>
+            )}
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
-            Everything assigned to you across every mission. One list, one focus —
-            grouped by mission, sorted by deadline.
+            {filterMissionId
+              ? "Your assigned sections for this mission only."
+              : "Everything assigned to you across every mission. One list, one focus — grouped by mission, sorted by deadline."}
           </p>
         </header>
 

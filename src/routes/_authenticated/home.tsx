@@ -22,6 +22,16 @@ import { RecentChangesCard } from "@/components/v4/RecentChangesCard";
 import { ExpertiseTagsCard } from "@/components/v4/ExpertiseTagsCard";
 import { useIsAdmin } from "@/hooks/useAccess";
 import type { ReactNode } from "react";
+import {
+  PortfolioStatusStrip,
+  AttentionPanel,
+  DueThisWeek,
+  MorningBriefing,
+  MissionFilterBar,
+  sortAndFilterMissions,
+  type MissionSort,
+  type BriefItem,
+} from "@/components/v2/AtriumCommandCenter";
 
 
 const IRIS_SILENT_WAV =
@@ -300,6 +310,46 @@ function AthenaHQ() {
     ? lastViewedMissionId
     : missions[0]?.id;
 
+  // Atrium command-center: filter/sort state
+  const [missionSort, setMissionSort] = useState<MissionSort>("submission");
+  const [missionHealthFilter, setMissionHealthFilter] = useState<"all" | "red" | "yellow" | "green">("all");
+  const [missionSearch, setMissionSearch] = useState("");
+
+  const filteredMissions = useMemo(
+    () =>
+      sortAndFilterMissions(
+        missions as any,
+        missionQuestions as any,
+        lastSignalByMission as Record<string, string | null>,
+        { sort: missionSort, health: missionHealthFilter, search: missionSearch },
+      ),
+    [missions, missionQuestions, lastSignalByMission, missionSort, missionHealthFilter, missionSearch],
+  );
+
+  // Morning briefing from recent signals
+  const briefItems: BriefItem[] = useMemo(() => {
+    const items: BriefItem[] = [];
+    const seen = new Set<string>();
+    const entries = Object.entries(lastSignalByMission as Record<string, string | null>)
+      .filter(([, t]) => !!t)
+      .sort(([, a], [, b]) => new Date(b!).getTime() - new Date(a!).getTime());
+    for (const [mid, t] of entries) {
+      if (seen.has(mid)) continue;
+      const m = missions.find((x) => x.id === mid);
+      if (!m) continue;
+      const ageH = (Date.now() - new Date(t!).getTime()) / 3600000;
+      if (ageH > 24) continue;
+      items.push({
+        id: mid,
+        missionName: m.name,
+        text: `Activity update ${ageH < 1 ? "in the last hour" : `${Math.floor(ageH)}h ago`}`,
+      });
+      seen.add(mid);
+      if (items.length >= 4) break;
+    }
+    return items;
+  }, [lastSignalByMission, missions]);
+
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
@@ -346,18 +396,21 @@ function AthenaHQ() {
   return (
     <div className="relative min-h-screen bg-background">
       <Constellation opacity={0.06} />
-      {/* DESIGN-14: Atrium executive header */}
+      {/* Athena HQ executive header — Atrium as command center */}
       <header className="relative border-b border-border bg-gradient-to-b from-surface to-background">
         <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-6 px-8 py-8">
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">The Atrium · Home</div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">
+              ATHENA HQ
+            </div>
             <h1 className="h1-display mt-2">
               {greeting}, {profile?.name ?? "…"}.
             </h1>
-            
+            <p className="mt-1 text-[12px] uppercase tracking-[0.18em] text-muted-foreground">
+              Intelligence · Alignment · Execution
+            </p>
           </div>
           <div className="flex items-center gap-4">
-
             <button
               type="button"
               onClick={() => {
@@ -375,8 +428,8 @@ function AthenaHQ() {
                 {totalAttention === 0 && <span className="pulse-dot" />}
                 {statusLabel}
               </div>
+              <div className="mt-0.5 text-[10px] text-muted-foreground">Last updated: just now</div>
             </div>
-            
           </div>
         </div>
       </header>
@@ -448,10 +501,31 @@ function AthenaHQ() {
           </section>
         )}
 
+        {/* Atrium command-center intelligence layer (leaders only) */}
+        {isLeader && missions.length > 0 && (
+          <div className="space-y-3">
+            <PortfolioStatusStrip
+              missions={missions as any}
+              missionQuestions={missionQuestions as any}
+              activeFilter={missionHealthFilter}
+              onFilterChange={setMissionHealthFilter}
+            />
+            <AttentionPanel
+              missions={missions as any}
+              missionQuestions={missionQuestions as any}
+            />
+            <DueThisWeek
+              missions={missions as any}
+              missionQuestions={missionQuestions as any}
+            />
+            <MorningBriefing items={briefItems} />
+          </div>
+        )}
+
         {/* ROLE-DIFFERENTIATED: Active Missions (leaders) or Your Assignments (writers/SMEs) */}
         {isLeader ? (
           <section>
-            <div className="mb-5 flex items-end justify-between gap-4">
+            <div className="mb-3 flex items-end justify-between gap-4">
               <div>
                 <h2 className="h2-label">Active Missions</h2>
                 <p className="mt-1.5 text-2xl font-semibold tracking-tight">
@@ -465,40 +539,56 @@ function AthenaHQ() {
             ) : missions.length === 0 ? (
               <EmptyState
                 icon={<Rocket className="h-10 w-10" strokeWidth={1.5} />}
-                title="Atlas is ready."
-                subtitle={isAdmin ? "Create your first mission in Olympus to get started." : "No active missions yet. An admin will set things up shortly."}
+                title="Welcome to Athena HQ."
+                subtitle={isAdmin ? "No active missions yet. When a mission is activated, it will appear here with IRIS monitoring its health in real time." : "No active missions yet. An admin will set things up shortly."}
                 cta={
                   isAdmin ? (
                     <Link
                       to="/olympus"
                       className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-[13px] font-medium text-background hover:opacity-90"
                     >
-                      Go to Olympus
+                      Activate Your First Mission
                       <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                   ) : null
                 }
               />
-
-
-
             ) : (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {missions.map((m) => {
-                  const qs = missionQuestions.filter((q) => q.mission_id === m.id);
-                  return (
-                    <MissionCard
-                      key={m.id}
-                      mission={m}
-                      attention={attMap.get(m.id) ?? 0}
-                      questions={qs}
-                      lastSignalAt={lastSignalByMission[m.id] ?? null}
-                      needsCount={needsByMission[m.id] ?? 0}
-                      showNeedsBadge={isLeader}
-                    />
-                  );
-                })}
-              </div>
+              <>
+                <div className="mb-4">
+                  <MissionFilterBar
+                    total={filteredMissions.length}
+                    search={missionSearch}
+                    onSearchChange={setMissionSearch}
+                    sort={missionSort}
+                    onSortChange={setMissionSort}
+                    healthFilter={missionHealthFilter}
+                    onHealthChange={setMissionHealthFilter}
+                  />
+                </div>
+                {filteredMissions.length === 0 ? (
+                  <div className="rounded-[12px] border border-dashed border-border bg-surface/40 px-6 py-10 text-center text-sm text-muted-foreground">
+                    No missions match the current filters.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    {filteredMissions.map((m) => {
+                      const qs = missionQuestions.filter((q) => q.mission_id === m.id);
+                      return (
+                        <MissionCard
+                          key={m.id}
+                          mission={m as Mission}
+                          attention={attMap.get(m.id) ?? 0}
+                          questions={qs}
+                          lastSignalAt={lastSignalByMission[m.id] ?? null}
+                          needsCount={needsByMission[m.id] ?? 0}
+                          showNeedsBadge={isLeader}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+              </>
             )}
           </section>
         ) : (
@@ -714,6 +804,42 @@ function FirmIntel({
 
 type MissionCardQ = { id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null };
 
+function MissionCardActions({ missionId }: { missionId: string }) {
+  const nav = useNavigate();
+  const go = (e: React.MouseEvent, fn: () => void) => {
+    e.preventDefault();
+    e.stopPropagation();
+    fn();
+  };
+  const btn =
+    "flex-1 rounded-md border border-border bg-background/60 px-2 py-1.5 text-[11px] font-medium text-foreground/80 hover:bg-foreground/10 hover:text-foreground transition";
+  return (
+    <div className="mt-3 flex items-center gap-1.5 border-t border-border pt-3">
+      <button
+        type="button"
+        className={btn}
+        onClick={(e) => go(e, () => nav({ to: "/missions/$missionId/brief", params: { missionId } }))}
+      >
+        Mission Brief
+      </button>
+      <button
+        type="button"
+        className={btn}
+        onClick={(e) => go(e, () => nav({ to: "/missions/$missionId/sections", params: { missionId } }))}
+      >
+        Sections
+      </button>
+      <button
+        type="button"
+        className={btn}
+        onClick={(e) => go(e, () => nav({ to: "/cockpit", search: { missionId } as never }))}
+      >
+        Cockpit
+      </button>
+    </div>
+  );
+}
+
 function MissionCard({
   mission,
   attention,
@@ -848,6 +974,7 @@ function MissionCard({
           <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
         </span>
       </div>
+      <MissionCardActions missionId={mission.id} />
     </Link>
   );
 }
