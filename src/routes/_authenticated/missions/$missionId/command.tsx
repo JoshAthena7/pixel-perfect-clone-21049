@@ -7,7 +7,7 @@ import { generateMissionBrief } from "@/lib/iris-mission-brief.functions";
 import { canPmAccessMission } from "@/lib/access.functions";
 import { toast } from "sonner";
 import {
-  RefreshCw, Radio, ArrowRight, Plus, MessageSquare, Plane,
+  RefreshCw, Radio, ArrowRight, Plus, MessageSquare, Plane, AlertTriangle, X,
 } from "lucide-react";
 import { IrisKickoffBadge } from "@/components/v2/IrisKickoffBadge";
 
@@ -117,6 +117,8 @@ function MissionBrief() {
   /* questions for health summary + risk */
   const { data: questions = [] } = useQuery({
     queryKey: ["mb-questions", missionId],
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const { data } = await supabase
         .from("question_records")
@@ -294,6 +296,8 @@ function MissionBrief() {
   /* Responses at risk */
   const { data: criticalConflicts = [] } = useQuery({
     queryKey: ["mb-conflicts", missionId],
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const { data } = await supabase
         .from("alignment_conflicts")
@@ -343,6 +347,8 @@ function MissionBrief() {
   /* Next gate */
   const { data: gates = [] } = useQuery({
     queryKey: ["mb-gates", missionId],
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const today = new Date().toISOString().slice(0, 10);
       const { data } = await supabase
@@ -401,6 +407,71 @@ function MissionBrief() {
   const signalProfById = Object.fromEntries(signalProfiles.map((p) => [p.id, p]));
   const [signalsExpanded, setSignalsExpanded] = useState(false);
   const visibleSignals = signalsExpanded ? signals : signals.slice(0, 8);
+
+  /* ── F-3: Active SOS — surfaced at top of page, NOT inside the "More context" accordion. */
+  type SosSignal = {
+    id: string; signal_title: string; signal_summary: string | null;
+    severity: string; signal_type: string; source_module: string;
+    user_id: string | null; related_question_id: string | null; created_at: string;
+  };
+  const { data: sosSignals = [] } = useQuery({
+    queryKey: ["mb-sos", missionId],
+    refetchInterval: 20_000,
+    refetchOnWindowFocus: true,
+    queryFn: async () => {
+      const since = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
+      const { data } = await supabase
+        .from("signals")
+        .select("id,signal_title,signal_summary,severity,signal_type,source_module,user_id,related_question_id,created_at,status")
+        .eq("mission_id", missionId)
+        .eq("status", "open")
+        .gte("created_at", since)
+        .or("source_module.eq.studio_sos,severity.in.(critical,high)")
+        .order("created_at", { ascending: false })
+        .limit(20);
+      return (data ?? []) as SosSignal[];
+    },
+  });
+
+  async function resolveSos(id: string) {
+    const { error } = await supabase
+      .from("signals")
+      .update({ status: "resolved" })
+      .eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("SOS marked resolved");
+    qc.invalidateQueries({ queryKey: ["mb-sos", missionId] });
+    qc.invalidateQueries({ queryKey: ["mb-signals", missionId] });
+  }
+
+  /* ── F-1: Realtime — when writers touch question_records / fire signals / log needs,
+        Mission Command sees it without a manual reload. */
+  useEffect(() => {
+    if (!missionId) return;
+    const channel = supabase
+      .channel(`mb-realtime-${missionId}`)
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "question_records", filter: `mission_id=eq.${missionId}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["mb-questions", missionId] });
+          qc.invalidateQueries({ queryKey: ["mb-conflicts", missionId] });
+        })
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "signals", filter: `mission_id=eq.${missionId}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["mb-sos", missionId] });
+          qc.invalidateQueries({ queryKey: ["mb-signals", missionId] });
+        })
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "question_collaboration", filter: `mission_id=eq.${missionId}` },
+        () => qc.invalidateQueries({ queryKey: ["mb-collab-needs", missionId] }))
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "reality_updates", filter: `mission_id=eq.${missionId}` },
+        () => qc.invalidateQueries({ queryKey: ["mb-reality-needs", missionId] }))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [missionId, qc]);
+
 
   /* Leadership notes (collab entries of entry_type = leadership_note) */
   const { data: notes = [] } = useQuery({
@@ -601,6 +672,71 @@ function MissionBrief() {
             <Plane className="h-4 w-4" /> Cockpit
           </Link>
         </div>
+
+        {/* ── F-3: ACTIVE SOS — top-of-page red banner. If leaders can't see SOS, the escalation chain is broken. */}
+        {sosSignals.length > 0 && (
+          <section
+            className="rounded-[12px] border p-4"
+            style={{
+              background: "rgba(220, 38, 38, 0.08)",
+              borderColor: "rgba(248, 113, 113, 0.45)",
+              boxShadow: "0 0 0 1px rgba(248,113,113,0.15), 0 12px 36px rgba(220,38,38,0.18)",
+            }}
+            aria-live="polite"
+          >
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.28em] text-red-300">
+              <AlertTriangle className="h-3.5 w-3.5" />
+              Active SOS · {sosSignals.length} unresolved
+              <span className="ml-2 text-[10px] tracking-[0.14em] text-red-300/70 normal-case">
+                live · auto-refreshing
+              </span>
+            </div>
+            <ul className="mt-3 divide-y divide-red-400/15">
+              {sosSignals.map((s) => {
+                const profile = s.user_id ? signalProfById[s.user_id] : undefined;
+                const who = profile?.display_name || profile?.email?.split("@")[0] || "Writer";
+                const q = s.related_question_id
+                  ? questions.find((x) => x.id === s.related_question_id)
+                  : null;
+                return (
+                  <li key={s.id} className="flex flex-wrap items-start gap-3 py-2.5">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-baseline gap-2 text-[13px] font-semibold text-red-100">
+                        <span>{s.signal_title}</span>
+                        <span className="text-[11px] font-normal text-red-200/70">
+                          {who} · {timeAgo(s.created_at)}
+                        </span>
+                      </div>
+                      {s.signal_summary && (
+                        <div className="mt-1 text-[12px] text-red-100/80 line-clamp-2">
+                          {s.signal_summary}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {q && (
+                        <Link
+                          to="/missions/$missionId/sections/$questionId"
+                          params={{ missionId, questionId: q.id }}
+                          className="inline-flex items-center gap-1 rounded-md border border-red-400/40 bg-red-500/10 px-2.5 py-1 text-[11px] font-semibold text-red-100 hover:bg-red-500/20"
+                        >
+                          Open {q.question_number} <ArrowRight className="h-3 w-3" />
+                        </Link>
+                      )}
+                      <button
+                        onClick={() => resolveSos(s.id)}
+                        className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] text-red-100/90 hover:bg-white/[0.08]"
+                        title="Mark resolved"
+                      >
+                        <X className="h-3 w-3" /> Resolve
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
 
         {/* SECTION 1: MISSION VITALS */}
         <section
