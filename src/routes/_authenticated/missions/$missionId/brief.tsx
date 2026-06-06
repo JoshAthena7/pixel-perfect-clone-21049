@@ -135,7 +135,7 @@ function MissionOverviewPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("missions")
-        .select("id,name,client,state,health,status,description,submission_date,rfp_number,state_agency,procurement_name,qa_deadline,priority_topics,competitors")
+        .select("id,name,client,state,health,status,description,submission_date,rfp_number,state_agency,procurement_name,qa_deadline,priority_topics,competitors,win_themes")
         .eq("id", missionId).maybeSingle();
       return data;
     },
