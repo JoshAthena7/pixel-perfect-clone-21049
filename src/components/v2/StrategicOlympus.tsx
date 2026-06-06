@@ -292,7 +292,7 @@ export function StrategicOlympus({ canSubmitDecisions, canResolveDecisions }: {
               <div>Health</div>
               <div>Due</div>
               <div>Status</div>
-              <div>Cockpit</div>
+              <div>Flight Deck</div>
             </div>
             {visibleMissions.length === 0 ? (
               <div className="px-4 py-6 text-sm text-muted-foreground">

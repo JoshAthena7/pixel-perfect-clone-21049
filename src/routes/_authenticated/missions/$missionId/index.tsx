@@ -25,13 +25,13 @@ import { IrisKickoffBadge } from "@/components/v2/IrisKickoffBadge";
 import { QuestionProvider, useQuestion, type SelectedQuestion } from "@/contexts/QuestionContext";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/")({
-  component: MissionCockpitLandingWrapper,
+  component: MissionFlight DeckLandingWrapper,
 });
 
-function MissionCockpitLandingWrapper() {
+function MissionFlight DeckLandingWrapper() {
   return (
     <QuestionProvider>
-      <MissionCockpitLanding />
+      <MissionFlight DeckLanding />
     </QuestionProvider>
   );
 }
@@ -136,7 +136,7 @@ function healthDotColor(h: Section["health"]) {
 
 /* ─────────────────────────── page ─────────────────────────── */
 
-function MissionCockpitLanding() {
+function MissionFlight DeckLanding() {
   const { missionId } = Route.useParams();
   const qc = useQueryClient();
 
@@ -167,11 +167,11 @@ function MissionCockpitLanding() {
 
   /* me + role */
   const { data: me } = useQuery({
-    queryKey: ["cockpit-landing-me"],
+    queryKey: ["flight deck-landing-me"],
     queryFn: async () => (await supabase.auth.getUser()).data.user?.id ?? null,
   });
   const { data: myRole } = useQuery({
-    queryKey: ["cockpit-landing-role", missionId, me],
+    queryKey: ["flight deck-landing-role", missionId, me],
     enabled: !!me,
     queryFn: async () => {
       const { data } = await supabase
@@ -191,7 +191,7 @@ function MissionCockpitLanding() {
 
   /* mission */
   const { data: mission } = useQuery<Mission | null>({
-    queryKey: ["cockpit-landing-mission", missionId],
+    queryKey: ["flight deck-landing-mission", missionId],
     queryFn: async () => {
       const { data } = await supabase
         .from("missions")
@@ -204,7 +204,7 @@ function MissionCockpitLanding() {
 
   /* sections */
   const { data: sections = [], isLoading } = useQuery({
-    queryKey: ["cockpit-landing-sections", missionId],
+    queryKey: ["flight deck-landing-sections", missionId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("question_records")
@@ -220,7 +220,7 @@ function MissionCockpitLanding() {
 
   /* members + profiles for owner display */
   const { data: members = [] } = useQuery({
-    queryKey: ["cockpit-landing-members", missionId],
+    queryKey: ["flight deck-landing-members", missionId],
     queryFn: async () => {
       const { data } = await supabase
         .from("mission_members")
@@ -236,7 +236,7 @@ function MissionCockpitLanding() {
     return Array.from(ids);
   }, [sections, members]);
   const { data: profiles = [] } = useQuery({
-    queryKey: ["cockpit-landing-profiles", ownerIds.join(",")],
+    queryKey: ["flight deck-landing-profiles", ownerIds.join(",")],
     enabled: ownerIds.length > 0,
     queryFn: async () => {
       const { data } = await supabase
@@ -250,7 +250,7 @@ function MissionCockpitLanding() {
 
   /* review gates for the key-dates strip */
   const { data: gates = [] } = useQuery<Gate[]>({
-    queryKey: ["cockpit-landing-gates", missionId],
+    queryKey: ["flight deck-landing-gates", missionId],
     queryFn: async () => {
       const { data } = await supabase
         .from("mission_review_gates")
@@ -330,7 +330,7 @@ function MissionCockpitLanding() {
         <header className="mb-6 flex items-end justify-between gap-6 flex-wrap">
           <div>
             <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
-              Cockpit
+              Flight Deck
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-3">
               <h1 className="text-[26px] font-bold tracking-tight text-white">
@@ -358,7 +358,7 @@ function MissionCockpitLanding() {
 
         {/* 70 / 30 split */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 items-start">
-          {/* ───────── LEFT — THE COCKPIT ───────── */}
+          {/* ───────── LEFT — THE FLIGHT DECK ───────── */}
           <main className="min-w-0 space-y-5">
             {/* AssistsBar — 6 tools, scoped to active question */}
             <section

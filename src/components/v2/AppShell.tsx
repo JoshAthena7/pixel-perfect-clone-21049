@@ -218,7 +218,7 @@ function TopBar({
             <span className="hidden sm:inline">Profile</span>
           </Link>
         )}
-        {/* Cockpit removed from Atrium header in V1 — writers land directly on /v1/my-sections */}
+        {/* Flight Deck removed from Atrium header in V1 — writers land directly on /v1/my-sections */}
         <NotificationBell />
         {/* Brief Room megaphone removed from Atrium header — reach via /brief-room directly */}
         {/* Help moved to /profile?tab=help */}
@@ -347,8 +347,8 @@ function MissionNav({ missionId }: { missionId: string }) {
     active: boolean;
   }> = [
     {
-      key: "cockpit",
-      label: "Cockpit",
+      key: "flight deck",
+      label: "Flight Deck",
       icon: <Plane size={13} strokeWidth={1.75} />,
       to: base,
       active:
@@ -500,11 +500,11 @@ function UserAvatarMenu() {
             <User className="h-4 w-4" /> Profile
           </Link>
           <Link
-            to="/cockpit"
+            to="/flight-deck"
             className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-muted-foreground hover:bg-surface-hover hover:text-foreground"
             onClick={() => setOpen(false)}
           >
-            <Plane className="h-4 w-4 text-[#3b7fff]" /> Cockpit
+            <Plane className="h-4 w-4 text-[#3b7fff]" /> Flight Deck
           </Link>
           {canSeeOlympus && (
             <Link

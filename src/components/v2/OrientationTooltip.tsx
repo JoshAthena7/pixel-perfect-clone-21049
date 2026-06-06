@@ -9,9 +9,9 @@ import type { RoutingRole } from "@/lib/routing-role";
 
 const TEXT_BY_ROLE: Record<string, string> = {
   writer:
-    "This is your Cockpit — your personal workspace showing only the sections assigned to you. When your PM assigns sections, they'll appear here automatically.",
+    "This is your Flight Deck — your personal workspace showing only the sections assigned to you. When your PM assigns sections, they'll appear here automatically.",
   sme:
-    "This is your Cockpit, filtered to sections where your input is needed. Open any section to see what the writing team is waiting on from you.",
+    "This is your Flight Deck, filtered to sections where your input is needed. Open any section to see what the writing team is waiting on from you.",
   reviewer:
     "This is your review queue — sections that are ready for your approval. Open any section to review the draft and leave feedback or approve.",
   pm:

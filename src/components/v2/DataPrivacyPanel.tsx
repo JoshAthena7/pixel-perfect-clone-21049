@@ -339,7 +339,7 @@ function StatusBadge({ status }: { status: "live" | "next" | "planned" }) {
 
 /* content */
 const PROCESSING_STEPS = [
-  "Writer initiates Score Me in the Atlas Cockpit.",
+  "Writer initiates Score Me in the Atlas Flight Deck.",
   "Draft content is submitted over a TLS 1.3 encrypted connection.",
   "A stateless ephemeral processing service receives the content — no write access to any persistent database.",
   "The service calls the IRIS scoring model with the draft and the RFP question context.",

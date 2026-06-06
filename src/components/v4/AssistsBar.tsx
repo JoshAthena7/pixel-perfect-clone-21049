@@ -2,7 +2,7 @@ import { Zap, Target, Phone, Heart, MessageSquare } from "lucide-react";
 import type { ReactNode } from "react";
 
 /**
- * Shared Assists bar — used on the main Cockpit page AND the writer's studio
+ * Shared Assists bar — used on the main Flight Deck page AND the writer's studio
  * (question page) so the controls feel identical in both places.
  *
  * Pass the SOS trigger as a slot so each page can wire its own modal/button.

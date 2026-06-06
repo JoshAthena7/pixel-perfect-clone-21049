@@ -58,7 +58,7 @@ function MissionBrief() {
   const qc = useQueryClient();
   const navigate = useNavigate();
 
-  /* PM/EL/admin-only gate — writers/SMEs go to the Cockpit instead. */
+  /* PM/EL/admin-only gate — writers/SMEs go to the Flight Deck instead. */
   const pmGateFn = useServerFn(canPmAccessMission);
   const { data: pmGate, isLoading: pmGateLoading } = useQuery({
     queryKey: ["pm-gate", missionId],
@@ -614,7 +614,7 @@ function MissionBrief() {
   };
 
   // Hide the PM aggregate while the gate is loading or while we redirect a
-  // writer to their Cockpit — they should never glimpse this surface.
+  // writer to their Flight Deck — they should never glimpse this surface.
   if (pmGateLoading || (pmGate && !pmGate.allowed)) {
     return (
       <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
@@ -642,9 +642,9 @@ function MissionBrief() {
           color: "#060b14",
           boxShadow: "0 16px 48px rgba(245,158,11,0.32)",
         }}
-        aria-label="Go to Cockpit"
+        aria-label="Go to Flight Deck"
       >
-        <Plane className="h-4 w-4" /> Cockpit
+        <Plane className="h-4 w-4" /> Flight Deck
       </Link>
 
       {/* Sticky mini-bar */}
@@ -672,7 +672,7 @@ function MissionBrief() {
               color: "#060b14",
             }}
           >
-            <Plane className="h-3 w-3" /> Cockpit
+            <Plane className="h-3 w-3" /> Flight Deck
           </Link>
           <span className="text-muted-foreground">·</span>
           <span className={needs.length > 0 ? "text-amber-300" : "text-muted-foreground"}>
@@ -704,7 +704,7 @@ function MissionBrief() {
             </div>
           </div>
           <Link
-            to="/missions/$missionId/cockpit"
+            to="/missions/$missionId/flight-deck"
             params={{ missionId }}
             className="group inline-flex items-center gap-2 rounded-xl px-6 py-4 text-[14px] font-bold tracking-wide text-white shadow-2xl transition hover:-translate-y-0.5"
             style={{
@@ -713,13 +713,13 @@ function MissionBrief() {
             }}
           >
             <Zap className="h-5 w-5" />
-            Enter Cockpit
+            Enter Flight Deck
           </Link>
         </div>
 
         {/* Full-width prominent CTA below the title for maximum visibility */}
         <Link
-          to="/missions/$missionId/cockpit"
+          to="/missions/$missionId/flight-deck"
           params={{ missionId }}
           className="group flex w-full items-center justify-center gap-3 rounded-xl px-6 py-5 text-base font-bold tracking-wide text-white shadow-2xl transition hover:-translate-y-0.5"
           style={{
@@ -728,7 +728,7 @@ function MissionBrief() {
           }}
         >
           <Zap className="h-5 w-5" />
-          Enter Cockpit
+          Enter Flight Deck
         </Link>
 
 
@@ -758,7 +758,7 @@ function MissionBrief() {
                 const q = s.related_question_id
                   ? questions.find((x) => x.id === s.related_question_id)
                   : null;
-                // F-4: Cockpit-level (no questionId) escalations must be visible & labeled,
+                // F-4: Flight Deck-level (no questionId) escalations must be visible & labeled,
                 // otherwise the PM has no idea a mission-level SOS even fired.
                 const isMissionLevel = !s.related_question_id;
                 const kindLabel =
@@ -777,7 +777,7 @@ function MissionBrief() {
                               ? { background: "rgba(248,113,113,0.20)", color: "#fecaca", border: "1px solid rgba(248,113,113,0.45)" }
                               : { background: "rgba(255,255,255,0.06)", color: "#fecaca", border: "1px solid rgba(255,255,255,0.12)" }
                           }
-                          title={isMissionLevel ? "Cockpit-level — no question linked. PM must triage." : "Linked to a specific question"}
+                          title={isMissionLevel ? "Flight Deck-level — no question linked. PM must triage." : "Linked to a specific question"}
                         >
                           {isMissionLevel ? "Mission-level" : (q?.question_number ?? "Question")}
                         </span>
@@ -798,7 +798,7 @@ function MissionBrief() {
                       )}
                       {isMissionLevel && (
                         <div className="mt-1 text-[11px] italic text-red-200/70">
-                          No question linked — this is a Cockpit-level escalation. Triage directly with {who}.
+                          No question linked — this is a Flight Deck-level escalation. Triage directly with {who}.
                         </div>
                       )}
                     </div>
@@ -816,7 +816,7 @@ function MissionBrief() {
                           to="/missions/$missionId/team"
                           params={{ missionId }}
                           className="inline-flex items-center gap-1 rounded-md border border-red-400/40 bg-red-500/10 px-2.5 py-1 text-[11px] font-semibold text-red-100 hover:bg-red-500/20"
-                          title="Reach the team to triage this Cockpit-level SOS"
+                          title="Reach the team to triage this Flight Deck-level SOS"
                         >
                           Reach {firstName(profile?.display_name ?? who)} <ArrowRight className="h-3 w-3" />
                         </Link>
@@ -1046,7 +1046,7 @@ function MissionBrief() {
                       params={{ missionId, questionId: r.id }}
                       className="shrink-0 text-[11px] text-primary hover:underline"
                     >
-                      Open in Cockpit →
+                      Open in Flight Deck →
                     </Link>
                   </li>
                 ))}
@@ -1395,7 +1395,7 @@ function MissionBrief() {
           </>
         )}
 
-        {/* PRIMARY CTA — Cockpit. Mission Room is a secondary inline link. */}
+        {/* PRIMARY CTA — Flight Deck. Mission Room is a secondary inline link. */}
         <div className="space-y-3">
           <Link
             to="/missions/$missionId/sections"
@@ -1405,7 +1405,7 @@ function MissionBrief() {
           >
             <div>
               <div className="inline-flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.2em]" style={{ color: "#3b7fff" }}>
-                <Plane size={13} strokeWidth={2} /> Enter Cockpit
+                <Plane size={13} strokeWidth={2} /> Enter Flight Deck
               </div>
               <p className="mt-1.5 text-sm text-muted-foreground">
                 Questions, writing, signals, and IRIS coaching — where the work happens.

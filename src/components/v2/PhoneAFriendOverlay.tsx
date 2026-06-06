@@ -215,7 +215,7 @@ function Chips({ items }: { items: string[] }) {
 
 /* ───────────────────────── global event listener ───────────────────────── */
 /**
- * Mount once near the cockpit to handle ⌘K "Phone a Friend" launches.
+ * Mount once near the flight deck to handle ⌘K "Phone a Friend" launches.
  */
 export function PhoneAFriendListener({
   missionId,

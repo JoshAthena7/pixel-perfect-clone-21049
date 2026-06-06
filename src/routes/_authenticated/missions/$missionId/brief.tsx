@@ -259,9 +259,9 @@ function MissionBriefPage() {
         <WinThemesCard themes={mission?.win_themes ?? []} />
       </div>
 
-      {/* ── ENTER COCKPIT — primary CTA, visible to all users ── */}
+      {/* ── ENTER FLIGHT DECK — primary CTA, visible to all users ── */}
       <Link
-        to="/missions/$missionId/cockpit"
+        to="/missions/$missionId/flight-deck"
         params={{ missionId }}
         className="group flex w-full items-center justify-center gap-3 rounded-xl px-6 py-5 text-base font-bold tracking-wide text-white shadow-2xl transition hover:-translate-y-0.5"
         style={{
@@ -270,7 +270,7 @@ function MissionBriefPage() {
         }}
       >
         <Zap className="h-5 w-5" />
-        Enter Cockpit
+        Enter Flight Deck
         <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
       </Link>
 
