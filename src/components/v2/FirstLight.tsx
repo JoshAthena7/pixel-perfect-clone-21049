@@ -44,13 +44,16 @@ export function FirstLight() {
       const seen = window.localStorage.getItem(STORAGE_KEY);
       if (seen === todayKey()) return;
 
+      // Reserve the slot up front so a fast refresh/navigation during the
+      // 2.8s window can't cause a second play.
+      try { window.localStorage.setItem(STORAGE_KEY, todayKey()); } catch { /* noop */ }
+
       supabase.auth.getUser().then(({ data }) => {
         if (!alive || !data.user) return;
         const meta = (data.user.user_metadata ?? {}) as { full_name?: string; name?: string };
         const src = meta.full_name || meta.name || data.user.email || "";
         setName(firstName(src));
         setActive(true);
-        try { window.localStorage.setItem(STORAGE_KEY, todayKey()); } catch { /* noop */ }
         window.setTimeout(() => { if (alive) setActive(false); }, 2800);
       });
     } catch { /* noop */ }
