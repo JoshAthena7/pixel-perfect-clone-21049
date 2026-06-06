@@ -90,6 +90,18 @@ function MissionCockpitPage() {
     }
     toast.success("Status updated");
     qc.invalidateQueries({ queryKey: ["mc-cockpit-questions", missionId] });
+    // GAP 2 — emit in-app notification for reviewer/writer on key transitions.
+    if (db === "ready_for_review" || db === "approved") {
+      void createSignal({
+        mission_id: q.mission_id,
+        source_module: "cockpit",
+        signal_type: db === "ready_for_review" ? "question_ready_for_review" : "question_approved",
+        signal_title: `Q${q.question_number} ${db === "ready_for_review" ? "ready for review" : "approved"}`,
+        signal_summary: q.title ?? null,
+        severity: "info",
+        related_question_id: q.id,
+      }, qc);
+    }
   };
 
   if (meLoading || qLoading) {
