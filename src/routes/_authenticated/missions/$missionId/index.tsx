@@ -140,6 +140,9 @@ function MissionCockpitLanding() {
   const { missionId } = Route.useParams();
   const qc = useQueryClient();
 
+  /* selected question — the source of truth for every instrument on this page */
+  const { selectedQuestion, setSelectedQuestion } = useQuestion();
+
   /* assist overlay state */
   const [sosOpen, setSosOpen] = useState(false);
   const [scoreOpen, setScoreOpen] = useState(false);
