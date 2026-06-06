@@ -9,7 +9,7 @@ import { getLibraryIndexStatus, reindexMissionDocuments } from "@/lib/mission-ac
 import { toast } from "sonner";
 
 
-export const Route = createFileRoute("/_authenticated/missions/$missionId/library")({
+export const Route = createFileRoute("/_authenticated/missions/$missionId/intel")({
   component: LibraryPage,
 });
 
