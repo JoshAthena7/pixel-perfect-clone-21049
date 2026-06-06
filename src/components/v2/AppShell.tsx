@@ -3,7 +3,7 @@ import { triggerClosingFrame } from "@/components/v2/ClosingFrame";
 import { Link, useRouterState, useParams, useNavigate, useRouter } from "@tanstack/react-router";
 import {
   LogOut, User, Shield, Settings2,
-  Plane, HelpCircle, ArrowLeft, Megaphone,
+  Plane, HelpCircle, ArrowLeft, Megaphone, Home,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
