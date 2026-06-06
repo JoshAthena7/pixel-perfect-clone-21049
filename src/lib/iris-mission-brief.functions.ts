@@ -118,8 +118,14 @@ ${(gates ?? []).map((g) => `  - ${g.gate_name} on ${g.target_date}`).join("\n") 
 Active win themes:
 ${(themes ?? []).map((t) => `  - ${t.title}${t.key_message ? `: ${t.key_message.slice(0, 100)}` : ""}`).join("\n") || "  (none)"}`;
 
-    const sys = `Write a 2-to-4 sentence mission brief for ${mission.name}.
+    const missionCtx = await loadMissionContext(supabase, data.missionId);
+    const preamble = formatMissionContextPreamble(missionCtx);
+
+    const sys = `${preamble}
+
+Write a 2-to-4 sentence mission brief for ${mission.name}.
 Cover: overall health, the most urgent issue, and any team needs requiring leadership attention.
+Lead with the win strategy and program goals from the Setup Record above when relevant.
 Use question numbers (Q4.3 etc.) and writer names when available. Be specific and direct.
 Plain prose. No headers, no bullets.`;
 
