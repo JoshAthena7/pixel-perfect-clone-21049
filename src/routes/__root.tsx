@@ -11,12 +11,36 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, type ComponentType, type ReactNode } from "react";
 import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { supabase } from "@/integrations/supabase/client";
-import { GoldEntryLine } from "@/components/v2/polish";
+import * as PolishModule from "@/components/v2/polish";
+
+// Safe fallback: if the polish module fails to load, or GoldEntryLine is
+// missing/undefined (stale SSR bundle, transform error, future refactor),
+// render nothing instead of crashing the entire app.
+const SafeGoldEntryLine: ComponentType = (() => {
+  try {
+    const Cmp = (PolishModule as { GoldEntryLine?: ComponentType })
+      ?.GoldEntryLine;
+    if (typeof Cmp === "function") return Cmp;
+  } catch {
+    /* swallow — fall through to no-op */
+  }
+  return function GoldEntryLineFallback() {
+    return null;
+  };
+})();
+
+function GoldEntryLineBoundary() {
+  try {
+    return <SafeGoldEntryLine />;
+  } catch {
+    return null;
+  }
+}
 
 function NotFoundComponent() {
   return (
@@ -86,7 +110,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthSync />
-      <GoldEntryLine />
+      <GoldEntryLineBoundary />
       <Outlet />
       <Toaster theme="dark" position="top-right" />
     </QueryClientProvider>
