@@ -468,9 +468,45 @@ function MissionBrief() {
       .on("postgres_changes",
         { event: "*", schema: "public", table: "reality_updates", filter: `mission_id=eq.${missionId}` },
         () => qc.invalidateQueries({ queryKey: ["mb-reality-needs", missionId] }))
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "mission_risks", filter: `mission_id=eq.${missionId}` },
+        () => qc.invalidateQueries({ queryKey: ["mb-iris-risks", missionId] }))
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [missionId, qc]);
+
+  /* ── F-5: IRIS-written strategic risks. They were being stored in mission_risks
+        but never surfaced on Mission Command, so nobody read them. Triage here. */
+  type IrisRisk = {
+    id: string; title: string; description: string | null;
+    severity: string | null; status: string | null; owner: string | null;
+    created_by_system: boolean; created_at: string;
+  };
+  const { data: irisRisks = [] } = useQuery<IrisRisk[]>({
+    queryKey: ["mb-iris-risks", missionId],
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_risks")
+        .select("id,title,description,severity,status,owner,created_by_system,created_at")
+        .eq("mission_id", missionId)
+        .not("status", "ilike", "closed")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      return (data ?? []) as IrisRisk[];
+    },
+  });
+  const [expandedRisk, setExpandedRisk] = useState<string | null>(null);
+  async function setRiskStatus(id: string, status: "Acknowledged" | "closed") {
+    const { error } = await supabase.from("mission_risks").update({ status }).eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success(status === "closed" ? "Risk dismissed" : "Risk acknowledged");
+    qc.invalidateQueries({ queryKey: ["mb-iris-risks", missionId] });
+  }
+  const unreadIrisRiskCount = irisRisks.filter(
+    (r) => (r.status ?? "").toLowerCase() === "open",
+  ).length;
 
 
   /* Leadership notes (collab entries of entry_type = leadership_note) */
