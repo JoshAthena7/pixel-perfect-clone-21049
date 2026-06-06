@@ -142,7 +142,7 @@ function TopBar({
             className="h-8 w-8 object-contain"
             style={{ filter: "drop-shadow(0 0 6px rgba(125,211,252,0.35))" }}
           />
-          <span className="text-[13px] font-extrabold tracking-[0.22em] text-white">ATLAS</span>
+          <span className="text-[13px] font-extrabold tracking-[0.22em] text-white">{path === "/home" ? "ATHENA HQ" : "ATLAS"}</span>
           <img src={athenaSgLogo.url} alt="" className="hidden md:block ml-2 h-5 w-auto object-contain opacity-30 mix-blend-luminosity" style={{ filter: "brightness(0.6) contrast(0.9)" }} />
         </Link>
 
