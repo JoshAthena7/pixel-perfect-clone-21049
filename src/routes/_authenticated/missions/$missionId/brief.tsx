@@ -176,17 +176,21 @@ function MissionBriefPage() {
   const health = useMemo(() => {
     const total = questions.length || 1;
     const completed = questions.filter((q) => q.status === "approved").length;
-    const alignmentSum = questions.reduce(
-      (a, q) => a + (q.win_theme_alignment_score ?? 0),
-      0,
-    );
+    // F-6: win_theme_alignment_score has no writer yet — treat as null instead of
+    // averaging missing values to 0 (which painted a misleading "0% alignment").
+    const alignScores = questions
+      .map((q) => q.win_theme_alignment_score)
+      .filter((n): n is number => typeof n === "number");
+    const alignment = alignScores.length
+      ? Math.round(alignScores.reduce((a, b) => a + b, 0) / alignScores.length)
+      : null;
     const riskCount = questions.filter((q) => q.health === "red").length;
     const yellowCount = questions.filter((q) => q.health === "yellow").length;
     const overall: "Red" | "Yellow" | "Green" =
       riskCount > 0 ? "Red" : yellowCount > 0 ? "Yellow" : "Green";
     return {
       overall,
-      alignment: Math.round(alignmentSum / total),
+      alignment,
       completeness: Math.round((completed / total) * 100),
       riskCount,
     };
