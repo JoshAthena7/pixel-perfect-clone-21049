@@ -31,27 +31,6 @@ function MissionsIndex() {
   const [createOpen, setCreateOpen] = useState(false);
   const [activateFor, setActivateFor] = useState<MissionRow | null>(null);
   const [readinessFor, setReadinessFor] = useState<MissionRow | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
-  const refreshIrisFn = useServerFn(refreshIris);
-
-  async function handleRefreshIris() {
-    if (refreshing) return;
-    setRefreshing(true);
-    const t = toast.loading("Refreshing IRIS…");
-    try {
-      const res = await refreshIrisFn();
-      qc.invalidateQueries();
-      toast.success(`IRIS refreshed — cleared ${res.cleared_cache_rows} cached briefs`, { id: t });
-      await logOlympusAction({
-        action_type: "iris.refresh",
-        action_summary: `Refreshed IRIS (cleared ${res.cleared_cache_rows} cached briefs, reset circuit)`,
-      });
-    } catch (e: any) {
-      toast.error(e?.message ?? "Failed to refresh IRIS", { id: t });
-    } finally {
-      setRefreshing(false);
-    }
-  }
 
 
   const { data: missions = [], isLoading } = useQuery({
