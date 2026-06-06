@@ -3611,6 +3611,155 @@ export type Database = {
           },
         ]
       }
+      mission_response_template_elements: {
+        Row: {
+          created_at: string
+          element_type: Database["public"]["Enums"]["response_template_element_type"]
+          id: string
+          label: string
+          order_index: number
+          parent_id: string | null
+          table_columns: Json | null
+          template_id: string
+          updated_at: string
+          word_limit: number | null
+        }
+        Insert: {
+          created_at?: string
+          element_type: Database["public"]["Enums"]["response_template_element_type"]
+          id?: string
+          label: string
+          order_index?: number
+          parent_id?: string | null
+          table_columns?: Json | null
+          template_id: string
+          updated_at?: string
+          word_limit?: number | null
+        }
+        Update: {
+          created_at?: string
+          element_type?: Database["public"]["Enums"]["response_template_element_type"]
+          id?: string
+          label?: string
+          order_index?: number
+          parent_id?: string | null
+          table_columns?: Json | null
+          template_id?: string
+          updated_at?: string
+          word_limit?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_response_template_elements_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "mission_response_template_elements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_response_template_elements_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "mission_response_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_response_template_versions: {
+        Row: {
+          created_at: string
+          id: string
+          saved_by: string | null
+          snapshot: Json
+          template_id: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          saved_by?: string | null
+          snapshot: Json
+          template_id: string
+          version: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          saved_by?: string | null
+          snapshot?: Json
+          template_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_response_template_versions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "mission_response_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_response_templates: {
+        Row: {
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          id: string
+          iris_confidence: string | null
+          iris_source_citation: string | null
+          mission_id: string
+          source: Database["public"]["Enums"]["response_template_source"] | null
+          source_file_name: string | null
+          source_file_path: string | null
+          status: Database["public"]["Enums"]["response_template_status"]
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          id?: string
+          iris_confidence?: string | null
+          iris_source_citation?: string | null
+          mission_id: string
+          source?:
+            | Database["public"]["Enums"]["response_template_source"]
+            | null
+          source_file_name?: string | null
+          source_file_path?: string | null
+          status?: Database["public"]["Enums"]["response_template_status"]
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          id?: string
+          iris_confidence?: string | null
+          iris_source_citation?: string | null
+          mission_id?: string
+          source?:
+            | Database["public"]["Enums"]["response_template_source"]
+            | null
+          source_file_name?: string | null
+          source_file_path?: string | null
+          status?: Database["public"]["Enums"]["response_template_status"]
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_response_templates_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_review_gates: {
         Row: {
           created_at: string | null
@@ -3699,6 +3848,57 @@ export type Database = {
             columns: ["question_id"]
             isOneToOne: false
             referencedRelation: "question_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_section_template_progress: {
+        Row: {
+          content: string
+          created_at: string
+          element_id: string
+          id: string
+          is_complete: boolean
+          section_id: string
+          updated_at: string
+          updated_by: string | null
+          word_count: number
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          element_id: string
+          id?: string
+          is_complete?: boolean
+          section_id: string
+          updated_at?: string
+          updated_by?: string | null
+          word_count?: number
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          element_id?: string
+          id?: string
+          is_complete?: boolean
+          section_id?: string
+          updated_at?: string
+          updated_by?: string | null
+          word_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_section_template_progress_element_id_fkey"
+            columns: ["element_id"]
+            isOneToOne: false
+            referencedRelation: "mission_response_template_elements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_section_template_progress_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "mission_sections"
             referencedColumns: ["id"]
           },
         ]
@@ -6245,6 +6445,14 @@ export type Database = {
     Enums: {
       app_role: "admin" | "lead" | "writer" | "sme"
       briefing_type: "global" | "direct"
+      response_template_element_type:
+        | "header"
+        | "subsection"
+        | "field"
+        | "table"
+        | "word_limit"
+      response_template_source: "upload" | "manual"
+      response_template_status: "active" | "skipped"
       thread_object_type:
         | "question_record"
         | "deliverable"
@@ -6387,6 +6595,15 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "lead", "writer", "sme"],
       briefing_type: ["global", "direct"],
+      response_template_element_type: [
+        "header",
+        "subsection",
+        "field",
+        "table",
+        "word_limit",
+      ],
+      response_template_source: ["upload", "manual"],
+      response_template_status: ["active", "skipped"],
       thread_object_type: [
         "question_record",
         "deliverable",
