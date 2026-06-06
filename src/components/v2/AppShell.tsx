@@ -385,7 +385,8 @@ function MissionNav({ missionId }: { missionId: string }) {
       key: "cockpit",
       label: "Cockpit",
       icon: <Plane size={13} strokeWidth={1.75} />,
-      to: `/cockpit?missionId=${missionId}`,
+      to: `/cockpit`,
+      search: { missionId },
       active: path.startsWith(`/cockpit`),
     },
   ];
