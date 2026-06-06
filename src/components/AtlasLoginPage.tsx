@@ -2,6 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import atlasLoginBg from "@/assets/atlas-login-bg.png.asset.json";
 
 export function AtlasLoginPage() {
   const navigate = useNavigate();
@@ -53,46 +54,74 @@ export function AtlasLoginPage() {
   }
 
   return (
-    <div className="grid min-h-svh w-full place-items-center bg-background px-4 text-foreground">
-      <form onSubmit={onSubmit} className="w-full max-w-sm space-y-6">
-        <div className="space-y-1 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
-          <p className="text-sm text-muted-foreground">Welcome back to Atlas</p>
-        </div>
+    <div className="min-h-svh w-full bg-black text-foreground flex items-center justify-center overflow-hidden">
+      <div
+        className="relative w-full max-w-[1536px]"
+        style={{ aspectRatio: "1536 / 1024" }}
+      >
+        {/* Full-bleed branded backdrop */}
+        <img
+          src={atlasLoginBg.url}
+          alt="ATLAS — Athena Strategy Group"
+          className="absolute inset-0 h-full w-full object-cover select-none pointer-events-none"
+          draggable={false}
+        />
 
-        <div className="space-y-3">
-          <div className="space-y-1.5">
-            <label htmlFor="email" className="text-sm font-medium">Email</label>
-            <input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label htmlFor="password" className="text-sm font-medium">Password</label>
-            <input
-              id="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-md bg-primary py-2.5 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
+        {/* Form overlay — sits over the WELCOME BACK panel in the artwork */}
+        <div
+          className="absolute"
+          style={{ left: "33%", right: "33%", top: "36%", bottom: "27%" }}
         >
-          {loading ? "Signing in…" : "Sign in"}
-        </button>
-      </form>
+          <form
+            onSubmit={onSubmit}
+            className="flex h-full w-full flex-col justify-center gap-4"
+          >
+            <div className="space-y-1.5">
+              <label
+                htmlFor="email"
+                className="block text-[10px] font-semibold uppercase tracking-[0.32em] text-amber-200/80"
+              >
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full rounded-sm border border-amber-200/30 bg-black/40 px-3 py-2 text-sm text-amber-50 placeholder:text-amber-100/30 focus:border-amber-300/70 focus:outline-none focus:ring-2 focus:ring-amber-400/30"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label
+                htmlFor="password"
+                className="block text-[10px] font-semibold uppercase tracking-[0.32em] text-amber-200/80"
+              >
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                required
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-sm border border-amber-200/30 bg-black/40 px-3 py-2 text-sm text-amber-50 placeholder:text-amber-100/30 focus:border-amber-300/70 focus:outline-none focus:ring-2 focus:ring-amber-400/30"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-2 inline-flex items-center justify-center rounded-sm bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 px-6 py-2.5 text-[11px] font-bold uppercase tracking-[0.3em] text-black shadow-[0_4px_24px_-8px_rgba(251,191,36,0.6)] transition hover:brightness-110 disabled:opacity-60"
+            >
+              {loading ? "Entering…" : "Enter Atlas"}
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }
