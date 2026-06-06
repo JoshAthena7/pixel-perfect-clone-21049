@@ -2169,6 +2169,8 @@ export type Database = {
           mission_id: string
           ref_id: string | null
           ref_table: string | null
+          valid_from: string
+          valid_to: string | null
         }
         Insert: {
           created_at?: string
@@ -2180,6 +2182,8 @@ export type Database = {
           mission_id: string
           ref_id?: string | null
           ref_table?: string | null
+          valid_from?: string
+          valid_to?: string | null
         }
         Update: {
           created_at?: string
@@ -2191,6 +2195,8 @@ export type Database = {
           mission_id?: string
           ref_id?: string | null
           ref_table?: string | null
+          valid_from?: string
+          valid_to?: string | null
         }
         Relationships: [
           {
