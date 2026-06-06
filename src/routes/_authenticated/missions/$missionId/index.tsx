@@ -246,6 +246,19 @@ function MissionCockpitLanding() {
     [sections, me],
   );
 
+  /* target question for AssistsBar — prefer writer's most-urgent assigned, else first */
+  const targetQ = useMemo(() => {
+    const rank = (h: Section["health"]) => (h === "red" ? 0 : h === "yellow" ? 1 : 2);
+    const pool = mySections.length > 0 ? mySections : sections;
+    return [...pool].sort((a, b) => {
+      const d = rank(a.health) - rank(b.health);
+      if (d !== 0) return d;
+      const da = a.pens_down_date ? new Date(a.pens_down_date).getTime() : Infinity;
+      const db = b.pens_down_date ? new Date(b.pens_down_date).getTime() : Infinity;
+      return da - db;
+    })[0] ?? null;
+  }, [mySections, sections]);
+
   /* summary */
   const summary = useMemo(() => {
     const total = sections.length;
