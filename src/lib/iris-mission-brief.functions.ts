@@ -40,7 +40,14 @@ export const generateMissionBrief = createServerFn({ method: "POST" })
       .select("id,name,client,state,submission_date,health,win_themes,rfp_parsed")
       .eq("id", data.missionId)
       .maybeSingle();
-    if (!mission) throw new Error("Mission not found");
+    if (!mission) {
+      return {
+        brief: "Mission brief is unavailable. You may not have access to this mission, or it no longer exists.",
+        generated_at: new Date().toISOString(),
+        cached: false,
+        error: "mission_not_found" as const,
+      };
+    }
 
     const [{ data: questions }, { data: conflicts }, { data: collab }, { data: gates }, { data: scores }, { data: themes }] = await Promise.all([
       supabase
