@@ -89,12 +89,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         <MobileBottomNavSpacer />
       </main>
 
-      {inMission && missionId && <UpdateRealityMount missionId={missionId} />}
+      {inMission && missionId && !path.includes("/flight-deck") && <UpdateRealityMount missionId={missionId} />}
       {inMission && missionId && <MissionQuickActionsMount missionId={missionId} />}
       <AtlasWelcomeMount />
       <IrisOnboardingMount />
       <ProfileSetupWizardMount />
-      <IrisDock />
+      {!path.includes("/flight-deck") && <IrisDock />}
       <MobileBottomNav />
       <SupportCenterMount />
     </div>
