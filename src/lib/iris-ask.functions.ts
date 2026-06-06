@@ -6,6 +6,7 @@ import { fetchIrisMemoryContext, logIrisMemoryUsage } from "./iris-memory.functi
 import { loadLayeredContext } from "./iris-layered-context";
 import { withAICircuit } from "@/lib/ai-circuit-breaker";
 import { loadMissionContext, formatMissionContextPreamble } from "./iris-mission-context.server";
+import { buildMissionContext, formatMissionContextBlock } from "./iris-context.server";
 
 async function callIris(system: string, user: string) {
   const apiKey = process.env.LOVABLE_API_KEY;
