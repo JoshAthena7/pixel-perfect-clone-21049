@@ -253,13 +253,6 @@ export const getMissionContextHealth = createServerFn({ method: "POST" })
       lastEventAt: mission?.iris_setup_autofill_at ?? null,
     };
 
-    const wtAlignScores = winThemes
-      .map((t) => (typeof t.alignment_score === "number" ? t.alignment_score : null))
-      .filter((n): n is number => n !== null);
-    const wtAvg =
-      wtAlignScores.length > 0
-        ? Math.round(wtAlignScores.reduce((a, b) => a + b, 0) / wtAlignScores.length)
-        : null;
     const winThemesRow: HealthRow = {
       id: "win-themes",
       label: "Win Themes",
@@ -267,7 +260,7 @@ export const getMissionContextHealth = createServerFn({ method: "POST" })
       detail:
         winThemes.length === 0
           ? "None defined"
-          : `${winThemes.length} defined${wtAvg !== null ? ` · avg alignment ${wtAvg}%` : ""}`,
+          : `${winThemes.length} defined`,
     };
 
     const keyReqs = Array.isArray(mission?.key_requirements) ? mission!.key_requirements : [];
