@@ -131,8 +131,14 @@ function MissionsIndex() {
                 return (
                   <tr key={m.id} className="hover:bg-surface-hover">
                     <td className="px-4 py-3">
-                      <div className="font-medium text-foreground">{m.name}</div>
-                      <div className="text-[11px] text-muted-foreground">{m.client}</div>
+                      <Link
+                        to="/olympus/missions/$missionId/setup" params={{ missionId: m.id }}
+                        className="block group"
+                        title="Open Setup Record"
+                      >
+                        <div className="font-medium text-foreground group-hover:text-primary">{m.name}</div>
+                        <div className="text-[11px] text-muted-foreground">{m.client}</div>
+                      </Link>
                     </td>
                     <td className="px-4 py-3">
                       <StatusChip status={m.status} />
