@@ -3,7 +3,7 @@ import { triggerClosingFrame } from "@/components/v2/ClosingFrame";
 import { Link, useRouterState, useParams, useNavigate, useRouter } from "@tanstack/react-router";
 import {
   LogOut, User, Shield, Settings2,
-  Plane, HelpCircle, ArrowLeft, Megaphone, Home,
+  Plane, ArrowLeft, Megaphone, Home,
   FileText, Database, Archive, Map as MapIcon, ListChecks,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -244,14 +244,7 @@ function TopBar({
         </Link>
         <NotificationBell />
         <BriefRoomNavButton />
-        <button
-          onClick={() => window.dispatchEvent(new CustomEvent("atlas:open-support"))}
-          title="Get Help"
-          aria-label="Get Help"
-          className="inline-flex h-8 items-center justify-center rounded-md px-1.5 text-muted-foreground hover:bg-white/[0.06] hover:text-foreground transition-colors"
-        >
-          <HelpCircle size={16} strokeWidth={1.5} />
-        </button>
+        {/* Help moved to /profile?tab=help */}
 
 
         <SignOutButton />
