@@ -62,16 +62,17 @@ export function AtlasLoginPage() {
   return (
     <div className="relative grid min-h-svh w-full place-items-center overflow-hidden bg-background text-foreground">
       <div
-        className="relative w-full max-w-[min(100vw,calc(100svh*1.5))] [aspect-ratio:1536/1024] max-[900px]:h-svh max-[900px]:w-[max(100vw,calc(100svh*1.5))] max-[900px]:max-w-none"
+        className="relative w-full [aspect-ratio:1536/1024]"
+        style={{ maxHeight: "100svh", maxWidth: "min(100vw, calc(100svh * 1.5))" }}
       >
         <img
           src={loginBg.url}
           alt=""
           aria-hidden
-          className="pointer-events-none absolute inset-0 h-full w-full object-fill max-[900px]:object-cover"
+          className="pointer-events-none absolute inset-0 h-full w-full object-fill"
         />
 
-        <div className="absolute left-1/2 top-[36%] z-10 w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2 max-[900px]:top-[31%]">
+        <div className="absolute left-1/2 top-[36%] z-10 w-[clamp(19rem,34%,24rem)] -translate-x-1/2 max-[520px]:top-[31%] max-[520px]:w-[min(22rem,calc(100vw-2rem))]">
           <div className="relative w-full rounded-xl border border-primary/35 bg-[#071126] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)]">
             <form onSubmit={onSubmit} className="flex w-full flex-col px-7 py-5 max-[420px]:px-5 max-[420px]:py-4">
               <h2 className="mb-5 text-center text-[15px] font-semibold uppercase tracking-[0.35em] text-primary max-[420px]:text-[13px] max-[420px]:tracking-[0.25em]">
