@@ -89,7 +89,8 @@ function MissionsIndex() {
             No missions yet. Click <span className="text-foreground font-medium">Create New Mission</span> to begin.
           </div>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[900px] text-sm">
             <thead className="border-b border-border bg-surface-hover text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
               <tr>
                 <th className="px-4 py-3 text-left">Mission</th>
@@ -171,6 +172,7 @@ function MissionsIndex() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 
