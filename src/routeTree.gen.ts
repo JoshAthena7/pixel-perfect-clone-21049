@@ -77,7 +77,9 @@ import { Route as AuthenticatedMissionsMissionIdSettingsRouteImport } from './ro
 import { Route as AuthenticatedMissionsMissionIdResponseTemplateRouteImport } from './routes/_authenticated/missions/$missionId/response-template'
 import { Route as AuthenticatedMissionsMissionIdOverviewRouteImport } from './routes/_authenticated/missions/$missionId/overview'
 import { Route as AuthenticatedMissionsMissionIdLibraryRouteImport } from './routes/_authenticated/missions/$missionId/library'
+import { Route as AuthenticatedMissionsMissionIdJourneyMapRouteImport } from './routes/_authenticated/missions/$missionId/journey-map'
 import { Route as AuthenticatedMissionsMissionIdIrisRouteImport } from './routes/_authenticated/missions/$missionId/iris'
+import { Route as AuthenticatedMissionsMissionIdIntelRouteImport } from './routes/_authenticated/missions/$missionId/intel'
 import { Route as AuthenticatedMissionsMissionIdCommandRouteImport } from './routes/_authenticated/missions/$missionId/command'
 import { Route as AuthenticatedMissionsMissionIdBriefingRouteImport } from './routes/_authenticated/missions/$missionId/briefing'
 import { Route as AuthenticatedMissionsMissionIdBriefRouteImport } from './routes/_authenticated/missions/$missionId/brief'
@@ -480,10 +482,22 @@ const AuthenticatedMissionsMissionIdLibraryRoute =
     path: '/library',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
+const AuthenticatedMissionsMissionIdJourneyMapRoute =
+  AuthenticatedMissionsMissionIdJourneyMapRouteImport.update({
+    id: '/journey-map',
+    path: '/journey-map',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
+  } as any)
 const AuthenticatedMissionsMissionIdIrisRoute =
   AuthenticatedMissionsMissionIdIrisRouteImport.update({
     id: '/iris',
     path: '/iris',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
+  } as any)
+const AuthenticatedMissionsMissionIdIntelRoute =
+  AuthenticatedMissionsMissionIdIntelRouteImport.update({
+    id: '/intel',
+    path: '/intel',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
 const AuthenticatedMissionsMissionIdCommandRoute =
@@ -604,7 +618,9 @@ export interface FileRoutesByFullPath {
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
+  '/missions/$missionId/intel': typeof AuthenticatedMissionsMissionIdIntelRoute
   '/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
+  '/missions/$missionId/journey-map': typeof AuthenticatedMissionsMissionIdJourneyMapRoute
   '/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
   '/missions/$missionId/overview': typeof AuthenticatedMissionsMissionIdOverviewRoute
   '/missions/$missionId/response-template': typeof AuthenticatedMissionsMissionIdResponseTemplateRoute
@@ -682,7 +698,9 @@ export interface FileRoutesByTo {
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
+  '/missions/$missionId/intel': typeof AuthenticatedMissionsMissionIdIntelRoute
   '/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
+  '/missions/$missionId/journey-map': typeof AuthenticatedMissionsMissionIdJourneyMapRoute
   '/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
   '/missions/$missionId/overview': typeof AuthenticatedMissionsMissionIdOverviewRoute
   '/missions/$missionId/response-template': typeof AuthenticatedMissionsMissionIdResponseTemplateRoute
@@ -764,7 +782,9 @@ export interface FileRoutesById {
   '/_authenticated/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/_authenticated/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/_authenticated/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
+  '/_authenticated/missions/$missionId/intel': typeof AuthenticatedMissionsMissionIdIntelRoute
   '/_authenticated/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
+  '/_authenticated/missions/$missionId/journey-map': typeof AuthenticatedMissionsMissionIdJourneyMapRoute
   '/_authenticated/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
   '/_authenticated/missions/$missionId/overview': typeof AuthenticatedMissionsMissionIdOverviewRoute
   '/_authenticated/missions/$missionId/response-template': typeof AuthenticatedMissionsMissionIdResponseTemplateRoute
@@ -846,7 +866,9 @@ export interface FileRouteTypes {
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
     | '/missions/$missionId/command'
+    | '/missions/$missionId/intel'
     | '/missions/$missionId/iris'
+    | '/missions/$missionId/journey-map'
     | '/missions/$missionId/library'
     | '/missions/$missionId/overview'
     | '/missions/$missionId/response-template'
@@ -924,7 +946,9 @@ export interface FileRouteTypes {
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
     | '/missions/$missionId/command'
+    | '/missions/$missionId/intel'
     | '/missions/$missionId/iris'
+    | '/missions/$missionId/journey-map'
     | '/missions/$missionId/library'
     | '/missions/$missionId/overview'
     | '/missions/$missionId/response-template'
@@ -1005,7 +1029,9 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/$missionId/brief'
     | '/_authenticated/missions/$missionId/briefing'
     | '/_authenticated/missions/$missionId/command'
+    | '/_authenticated/missions/$missionId/intel'
     | '/_authenticated/missions/$missionId/iris'
+    | '/_authenticated/missions/$missionId/journey-map'
     | '/_authenticated/missions/$missionId/library'
     | '/_authenticated/missions/$missionId/overview'
     | '/_authenticated/missions/$missionId/response-template'
@@ -1527,11 +1553,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdLibraryRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
+    '/_authenticated/missions/$missionId/journey-map': {
+      id: '/_authenticated/missions/$missionId/journey-map'
+      path: '/journey-map'
+      fullPath: '/missions/$missionId/journey-map'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdJourneyMapRouteImport
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
     '/_authenticated/missions/$missionId/iris': {
       id: '/_authenticated/missions/$missionId/iris'
       path: '/iris'
       fullPath: '/missions/$missionId/iris'
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdIrisRouteImport
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
+    '/_authenticated/missions/$missionId/intel': {
+      id: '/_authenticated/missions/$missionId/intel'
+      path: '/intel'
+      fullPath: '/missions/$missionId/intel'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdIntelRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
     '/_authenticated/missions/$missionId/command': {
@@ -1673,7 +1713,9 @@ interface AuthenticatedMissionsMissionIdRouteChildren {
   AuthenticatedMissionsMissionIdBriefRoute: typeof AuthenticatedMissionsMissionIdBriefRoute
   AuthenticatedMissionsMissionIdBriefingRoute: typeof AuthenticatedMissionsMissionIdBriefingRoute
   AuthenticatedMissionsMissionIdCommandRoute: typeof AuthenticatedMissionsMissionIdCommandRoute
+  AuthenticatedMissionsMissionIdIntelRoute: typeof AuthenticatedMissionsMissionIdIntelRoute
   AuthenticatedMissionsMissionIdIrisRoute: typeof AuthenticatedMissionsMissionIdIrisRoute
+  AuthenticatedMissionsMissionIdJourneyMapRoute: typeof AuthenticatedMissionsMissionIdJourneyMapRoute
   AuthenticatedMissionsMissionIdLibraryRoute: typeof AuthenticatedMissionsMissionIdLibraryRoute
   AuthenticatedMissionsMissionIdOverviewRoute: typeof AuthenticatedMissionsMissionIdOverviewRoute
   AuthenticatedMissionsMissionIdResponseTemplateRoute: typeof AuthenticatedMissionsMissionIdResponseTemplateRoute
@@ -1696,8 +1738,12 @@ const AuthenticatedMissionsMissionIdRouteChildren: AuthenticatedMissionsMissionI
       AuthenticatedMissionsMissionIdBriefingRoute,
     AuthenticatedMissionsMissionIdCommandRoute:
       AuthenticatedMissionsMissionIdCommandRoute,
+    AuthenticatedMissionsMissionIdIntelRoute:
+      AuthenticatedMissionsMissionIdIntelRoute,
     AuthenticatedMissionsMissionIdIrisRoute:
       AuthenticatedMissionsMissionIdIrisRoute,
+    AuthenticatedMissionsMissionIdJourneyMapRoute:
+      AuthenticatedMissionsMissionIdJourneyMapRoute,
     AuthenticatedMissionsMissionIdLibraryRoute:
       AuthenticatedMissionsMissionIdLibraryRoute,
     AuthenticatedMissionsMissionIdOverviewRoute:

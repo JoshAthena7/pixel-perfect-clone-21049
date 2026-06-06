@@ -45,7 +45,7 @@ export function KeyboardShortcuts() {
         const k = e.key.toLowerCase();
         if (k === "h") navigate({ to: "/home" });
         else if (k === "q" && params.missionId) navigate({ to: "/missions/$missionId/sections", params: { missionId: params.missionId } });
-        else if (k === "v" && params.missionId) navigate({ to: "/missions/$missionId/library", params: { missionId: params.missionId } });
+        else if (k === "v" && params.missionId) navigate({ to: "/missions/$missionId/intel", params: { missionId: params.missionId } });
         else if (k === "o" && params.missionId) navigate({ to: "/missions/$missionId/briefing", params: { missionId: params.missionId } });
         return;
       }

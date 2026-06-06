@@ -294,7 +294,7 @@ function SourceBadge({ source, missionId }: { source: SourceRef; missionId: stri
   if (source.type === "vault_document" && source.document_id) {
     return (
       <Link
-        to="/missions/$missionId/library"
+        to="/missions/$missionId/intel"
         params={{ missionId }}
         className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary px-2 py-0.5 text-[10px] hover:bg-primary/15"
       >

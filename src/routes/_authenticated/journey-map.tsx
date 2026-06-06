@@ -379,7 +379,7 @@ function useMotionPreference() {
   return { pref, setPref: update, animate, systemReduced };
 }
 
-function JourneyMapPage() {
+export function JourneyMapPage() {
   const activeIdx = STAGES.findIndex((s) => s.status === "active");
   const [selected, setSelected] = useState<number>(activeIdx >= 0 ? activeIdx : 0);
   const [persona, setPersona] = useState<Persona>("All Roles");

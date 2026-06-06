@@ -434,14 +434,14 @@ function MissionBrief() {
       return {
         label: `Prepare for ${nextGate.gate_name} — ${nextGateDays} days`,
         sub: `${gateReady.belowStandard} question${gateReady.belowStandard === 1 ? "" : "s"} below standard`,
-        onClick: () => navigate({ to: "/missions/$missionId/overview", params: { missionId } }),
+        onClick: () => navigate({ to: "/missions/$missionId/brief", params: { missionId } }),
       };
     }
     // 4. Default — overview link
     return {
       label: "Review question health",
       sub: "All systems look stable.",
-      onClick: () => navigate({ to: "/missions/$missionId/overview", params: { missionId } }),
+      onClick: () => navigate({ to: "/missions/$missionId/brief", params: { missionId } }),
     };
   }, [needs, risks, nextGate, nextGateDays, gateReady, questions, missionId, navigate]);
 
@@ -782,7 +782,7 @@ function MissionBrief() {
                 <li><span className="font-semibold tabular-nums text-foreground">{gateReady.ready}</span> sections ready</li>
               </ul>
               <Link
-                to="/missions/$missionId/overview"
+                to="/missions/$missionId/brief"
                 params={{ missionId }}
                 className="mt-4 inline-flex items-center gap-1.5 text-[12px] font-semibold text-primary hover:underline"
               >
@@ -872,7 +872,7 @@ function MissionBrief() {
                 title="Win Themes"
                 action={
                   <Link
-                    to="/missions/$missionId/overview"
+                    to="/missions/$missionId/brief"
                     params={{ missionId }}
                     className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] font-medium hover:bg-white/[0.06]"
                   >
@@ -885,7 +885,7 @@ function MissionBrief() {
                   <div className="text-foreground font-medium">No win themes defined yet.</div>
                   <div className="mt-1 text-xs">The 3–5 messages your proposal must land on. Define them so IRIS can score coverage across every question.</div>
                   <Link
-                    to="/missions/$missionId/overview"
+                    to="/missions/$missionId/brief"
                     params={{ missionId }}
                     className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-white/[0.04] px-3 py-1.5 text-[12px] font-medium text-foreground hover:bg-white/[0.08]"
                   >
@@ -960,7 +960,7 @@ function MissionBrief() {
                     {notes.length > 3 && (
                       <li className="px-5 py-2 text-center">
                         <Link
-                          to="/missions/$missionId/overview"
+                          to="/missions/$missionId/brief"
                           params={{ missionId }}
                           className="text-[12px] text-muted-foreground hover:text-foreground"
                         >
@@ -995,7 +995,7 @@ function MissionBrief() {
           </Link>
           <div className="text-center">
             <Link
-              to="/missions/$missionId/overview"
+              to="/missions/$missionId/brief"
               params={{ missionId }}
               className="text-[12px] text-muted-foreground hover:text-foreground"
             >

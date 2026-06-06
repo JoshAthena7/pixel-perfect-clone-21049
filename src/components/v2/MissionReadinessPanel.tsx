@@ -111,7 +111,7 @@ export function MissionReadinessPanel({
           ? rfpDocs[0].name + (rfpDocs.length > 1 ? ` + ${rfpDocs.length - 1} more` : "")
           : "No RFP in Vault",
         actionLabel: rfpDocs.length > 0 ? undefined : "Upload RFP",
-        actionHref: "/missions/$missionId/overview",
+        actionHref: "/missions/$missionId/brief",
         actionParams: { missionId },
       },
       {

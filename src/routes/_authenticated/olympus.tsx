@@ -100,7 +100,7 @@ function OlympusHeader() {
       <div className="flex items-center gap-2">
         <button
           onClick={() => {
-            if (selected) navigate({ to: "/missions/$missionId/overview", params: { missionId: selected.id } });
+            if (selected) navigate({ to: "/missions/$missionId/brief", params: { missionId: selected.id } });
             else navigate({ to: "/home" });
           }}
           className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-surface-hover"

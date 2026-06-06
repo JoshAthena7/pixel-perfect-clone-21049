@@ -527,7 +527,7 @@ function CockpitPage() {
             <span className="opacity-80">· Read-only · {firstName(writer)} cannot see you here</span>
           </div>
           <Link
-            to="/missions/$missionId/overview"
+            to="/missions/$missionId/brief"
             params={{ missionId }}
             className="text-[11px] underline-offset-2 hover:underline"
           >
@@ -537,7 +537,7 @@ function CockpitPage() {
       )}
       {/* 1. HEALTH STRIP — sticky */}
       <Link
-        to="/missions/$missionId/overview"
+        to="/missions/$missionId/brief"
         params={{ missionId }}
         className={`sticky top-0 z-30 flex h-9 items-center gap-3 border-b px-10 text-[12px] backdrop-blur transition-colors hover:bg-[#0a1426]/95 ${
           primaryAction === "urgent_write" ? "animate-pulse" : ""
@@ -724,7 +724,7 @@ function CockpitPage() {
 
             <div className="text-[12px] text-muted-foreground">
               <Link
-                to="/missions/$missionId/overview"
+                to="/missions/$missionId/brief"
                 params={{ missionId }}
                 className="hover:text-foreground"
               >
@@ -767,10 +767,10 @@ function CockpitPage() {
               </div>
             )}
             <div className="pt-2 text-[12px] text-muted-foreground space-y-1">
-              <Link to="/missions/$missionId/overview" params={{ missionId }} className="block hover:text-foreground">
+              <Link to="/missions/$missionId/brief" params={{ missionId }} className="block hover:text-foreground">
                 Source documents →
               </Link>
-              <Link to="/missions/$missionId/overview" params={{ missionId }} className="block hover:text-foreground">
+              <Link to="/missions/$missionId/brief" params={{ missionId }} className="block hover:text-foreground">
                 Full intelligence →
               </Link>
             </div>

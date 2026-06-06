@@ -180,7 +180,7 @@ function MissionSetupRecord() {
         <LaunchSequence
           missionId={missionId}
           onClose={() => setConfirm(false)}
-          onView={() => navigate({ to: "/missions/$missionId/overview", params: { missionId } })}
+          onView={() => navigate({ to: "/missions/$missionId/brief", params: { missionId } })}
         />
       )}
     </div>

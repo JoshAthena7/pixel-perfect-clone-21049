@@ -58,7 +58,7 @@ export function MissionRoomHero({ missionId }: { missionId: string }) {
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         {/* VAULT */}
         <Link
-          to="/missions/$missionId/library"
+          to="/missions/$missionId/intel"
           params={{ missionId }}
           className="group relative flex min-h-[280px] flex-col overflow-hidden rounded-[16px] p-8 transition-all duration-300 hover:-translate-y-1"
           style={{
