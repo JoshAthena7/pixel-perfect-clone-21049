@@ -211,7 +211,16 @@ function MissionBrief() {
   const { data: brief, refetch: refetchBrief } = useQuery({
     queryKey: ["mb-brief", missionId],
     queryFn: async () => {
-      return briefFn({ data: { missionId } });
+      try {
+        return await briefFn({ data: { missionId } });
+      } catch {
+        return {
+          brief: "Mission brief is unavailable. You may not have access to this mission, or it no longer exists.",
+          generated_at: new Date().toISOString(),
+          cached: false,
+          error: "mission_not_found" as const,
+        };
+      }
     },
   });
   const refreshBrief = async () => {

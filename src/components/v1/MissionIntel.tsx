@@ -21,7 +21,18 @@ export function MissionIntel() {
 
   const { data: brief, isLoading: briefLoading } = useQuery({
     queryKey: ["v1-iris-brief"],
-    queryFn: () => generate({ data: { missionId: NJ_CSOC_MISSION_ID, force: false } }),
+    queryFn: async () => {
+      try {
+        return await generate({ data: { missionId: NJ_CSOC_MISSION_ID, force: false } });
+      } catch {
+        return {
+          brief: "Mission brief is unavailable. You may not have access to this mission, or it no longer exists.",
+          generated_at: new Date().toISOString(),
+          cached: false,
+          error: "mission_not_found" as const,
+        };
+      }
+    },
     staleTime: 15 * 60 * 1000,
   });
 
