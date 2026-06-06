@@ -651,7 +651,7 @@ function JourneyMapPage() {
                     return (
                       <li
                         key={a}
-                        className="flex items-start gap-1.5 rounded px-1.5 py-1 text-[12px] transition-all duration-500 ease-out motion-reduce:transition-none motion-reduce:duration-0"
+                        className={`flex items-start gap-1.5 rounded px-1.5 py-1 text-[12px] ${animate ? "transition-all duration-500 ease-out" : ""}`}
                         style={{
                           background: isYours ? "rgba(99,102,241,0.1)" : "transparent",
                           color: isYours ? "#E0E7FF" : "var(--muted-foreground)",
