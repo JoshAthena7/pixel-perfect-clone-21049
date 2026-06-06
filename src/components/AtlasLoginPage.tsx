@@ -2,7 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import atlasLoginBg from "@/assets/atlas-login-bg.png.asset.json";
+
 
 export function AtlasLoginPage() {
   const navigate = useNavigate();
@@ -55,11 +55,10 @@ export function AtlasLoginPage() {
 
   return (
     <div
-      className="min-h-svh w-full flex items-center justify-center px-4 py-12 bg-[#05070d] text-foreground"
+      className="min-h-svh w-full flex items-center justify-center px-4 py-12 text-foreground"
       style={{
-        backgroundImage: `linear-gradient(rgba(5,7,13,0.78), rgba(5,7,13,0.92)), url(${atlasLoginBg.url})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
+        background:
+          "radial-gradient(ellipse at top, #0a1228 0%, #05070d 55%, #000 100%)",
       }}
     >
       <div className="w-full max-w-md">
