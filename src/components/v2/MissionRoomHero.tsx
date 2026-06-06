@@ -234,7 +234,7 @@ export function EnterStudioCTA({
           <div className="mt-1 text-xl font-semibold tracking-tight text-foreground display-tight">Enter Cockpit</div>
           <div className="mt-1 text-xs text-muted-foreground">
             {assignedCount > 0
-              ? <>{assignedCount} question{assignedCount === 1 ? "" : "s"} assigned to you{attentionCount > 0 ? ` · ${attentionCount} need attention today` : ""}</>
+              ? <>{assignedCount} section{assignedCount === 1 ? "" : "s"} assigned to you{attentionCount > 0 ? ` · ${attentionCount} need attention today` : ""}</>
               : <>Open your workspace</>}
           </div>
         </div>
