@@ -87,6 +87,7 @@ function IrisPage() {
   const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
   const runningRef = useRef(false);
   const cancelRef = useRef(false);
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
 
 
   const handleGenerate = useCallback(async (id: string) => {
