@@ -191,7 +191,7 @@ function WriterView({ writers }: { writers: any[] }) {
         <thead className="bg-background/40 text-[11px] uppercase tracking-wider text-muted-foreground">
           <tr>
             <th className="px-4 py-2 text-left">Writer</th>
-            <th className="px-4 py-2 text-right">Questions</th>
+            <th className="px-4 py-2 text-right">Sections</th>
             <th className="px-4 py-2 text-right">Last seen</th>
             <th className="px-4 py-2 text-right">Flags</th>
             <th className="px-4 py-2 text-right">Health</th>
