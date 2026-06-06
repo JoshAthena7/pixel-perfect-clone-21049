@@ -40,9 +40,65 @@ function MissionLayout() {
 
   return (
     <div className="flex flex-col min-h-full">
+      <OracleWarmingBanner missionId={missionId} />
       {!hideStrip && <IrisBriefStrip missionId={missionId} />}
       <div className="flex-1 min-w-0">
         <Outlet />
+      </div>
+    </div>
+  );
+}
+
+function OracleWarmingBanner({ missionId }: { missionId: string }) {
+  const storageKey = `iris-warming:${missionId}`;
+  const [active, setActive] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem(storageKey) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const [dismissed, setDismissed] = useState(false);
+
+  const { data } = useQuery({
+    queryKey: ["mission-kickoff-status", missionId],
+    enabled: active && !dismissed,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("missions")
+        .select("iris_kickoff_status")
+        .eq("id", missionId)
+        .maybeSingle();
+      return (data?.iris_kickoff_status ?? null) as string | null;
+    },
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
+  });
+
+  // Auto-dismiss once kickoff completes (or hard-fails — no point polling forever).
+  useEffect(() => {
+    if (data === "complete" || data === "failed") {
+      try { sessionStorage.removeItem(storageKey); } catch {}
+      setActive(false);
+    }
+  }, [data, storageKey]);
+
+  if (!active || dismissed) return null;
+
+  return (
+    <div className="border-b border-[color:var(--iris,#22d3ee)]/20 bg-[color:var(--iris,#22d3ee)]/[0.05]">
+      <div className="mx-auto max-w-[1400px] px-8 py-2 flex items-center gap-2 text-xs text-[color:var(--iris,#22d3ee)]">
+        <Zap className="h-3.5 w-3.5 shrink-0" />
+        <span className="flex-1">
+          IRIS is finishing your Oracle — check back in a few minutes.
+        </span>
+        <button
+          onClick={() => setDismissed(true)}
+          aria-label="Dismiss"
+          className="shrink-0 inline-flex h-5 w-5 items-center justify-center rounded text-[color:var(--iris,#22d3ee)]/70 hover:bg-[color:var(--iris,#22d3ee)]/10 hover:text-[color:var(--iris,#22d3ee)]"
+        >
+          <X className="h-3 w-3" />
+        </button>
       </div>
     </div>
   );
