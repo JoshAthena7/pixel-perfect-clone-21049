@@ -14,7 +14,7 @@ import { HORIZON_FILTERS, inferCategory, matchesHorizonFilter, type IntelItem } 
 import { LiveBadge, ScanningBeam, IrisWaveform, TypewriterText } from "@/components/v2/effects";
 import athenaLogo from "@/assets/athena-logo.png";
 import atlasLogo from "@/assets/atlas-logo.png.asset.json";
-import { LegacyRecord } from "@/components/v4/LegacyRecord";
+// LegacyRecord temporarily removed
 import { DailyPulse } from "@/components/v4/DailyPulse";
 import { IrisTrustIntro } from "@/components/v4/IrisTrustIntro";
 import { useIsAdmin } from "@/hooks/useAccess";
@@ -560,8 +560,7 @@ function AthenaHQ() {
               )}
             </section>
 
-            {/* Cockpit V4 — persistent cross-engagement legacy strip */}
-            <LegacyRecord />
+            {/* LegacyRecord temporarily removed */}
           </>
         )}
 
