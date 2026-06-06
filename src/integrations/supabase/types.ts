@@ -4782,6 +4782,7 @@ export type Database = {
           expertise_embedding: string | null
           has_acked_threads_internal_at: string | null
           has_onboarded: boolean
+          has_seen_orientation: boolean
           id: string
           is_platform_admin: boolean
           last_seen_signals_at: string | null
@@ -4815,6 +4816,7 @@ export type Database = {
           expertise_embedding?: string | null
           has_acked_threads_internal_at?: string | null
           has_onboarded?: boolean
+          has_seen_orientation?: boolean
           id: string
           is_platform_admin?: boolean
           last_seen_signals_at?: string | null
@@ -4848,6 +4850,7 @@ export type Database = {
           expertise_embedding?: string | null
           has_acked_threads_internal_at?: string | null
           has_onboarded?: boolean
+          has_seen_orientation?: boolean
           id?: string
           is_platform_admin?: boolean
           last_seen_signals_at?: string | null
