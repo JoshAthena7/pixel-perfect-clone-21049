@@ -752,6 +752,25 @@ function Step3Activation({
             );
           })}
         </ul>
+
+        {/* Escape hatch: after 20s, let the user enter the mission even if
+            briefing-book regen is still in flight. Kickoff continues in the
+            background and the Oracle will populate when ready. */}
+        {showEscape && !summary && (
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-muted-foreground">
+            <span>
+              {oracleWarming
+                ? "Oracle is still warming up — you can enter the mission now and it will populate shortly."
+                : "Taking longer than expected. You can enter the mission now; IRIS will keep working in the background."}
+            </span>
+            <button
+              onClick={() => setLaunching(true)}
+              className="shrink-0 inline-flex items-center gap-1.5 rounded-md border border-[#C49A22]/40 bg-[#C49A22]/10 px-2.5 py-1 font-semibold text-[#C49A22] hover:bg-[#C49A22]/20"
+            >
+              Enter mission anyway <ArrowRight className="h-3 w-3" />
+            </button>
+          </div>
+        )}
       </div>
 
       {summary && (
@@ -763,7 +782,7 @@ function Step3Activation({
           <SummaryRow label="Documents indexed" value={`${summary.indexed} of ${summary.documents}`} highlight={summary.indexed > 0} />
           <SummaryRow
             label="Oracle"
-            value={summary.briefingReady ? "ready" : "pending"}
+            value={summary.briefingReady ? "ready" : oracleWarming ? "warming up" : "pending"}
             highlight={summary.briefingReady}
           />
           <SummaryRow label="IRIS status" value="Active" highlight />
