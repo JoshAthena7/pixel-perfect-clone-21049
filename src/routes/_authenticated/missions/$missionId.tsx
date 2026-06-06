@@ -112,12 +112,18 @@ function IrisBriefStrip({ missionId }: { missionId: string }) {
 
   const { data, isLoading, isFetching } = useQuery({
     queryKey: ["iris-mission-brief", missionId],
-    queryFn: () => generate({ data: { missionId, force: false } }),
+    queryFn: async () => {
+      try {
+        return await generate({ data: { missionId, force: false } });
+      } catch {
+        return missingMissionBrief();
+      }
+    },
     staleTime: 15 * 60 * 1000,
   });
 
   const refresh = async () => {
-    const fresh = await generate({ data: { missionId, force: true } });
+    const fresh = await generate({ data: { missionId, force: true } }).catch(() => missingMissionBrief());
     qc.setQueryData(["iris-mission-brief", missionId], fresh);
   };
 
@@ -184,4 +190,13 @@ function relativeStamp(iso: string): string {
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
   return new Date(iso).toLocaleDateString();
+}
+
+function missingMissionBrief() {
+  return {
+    brief: "Mission brief is unavailable. You may not have access to this mission, or it no longer exists.",
+    generated_at: new Date().toISOString(),
+    cached: false,
+    error: "mission_not_found" as const,
+  };
 }
