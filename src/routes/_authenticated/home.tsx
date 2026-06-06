@@ -310,6 +310,46 @@ function AthenaHQ() {
     ? lastViewedMissionId
     : missions[0]?.id;
 
+  // Atrium command-center: filter/sort state
+  const [missionSort, setMissionSort] = useState<MissionSort>("submission");
+  const [missionHealthFilter, setMissionHealthFilter] = useState<"all" | "red" | "yellow" | "green">("all");
+  const [missionSearch, setMissionSearch] = useState("");
+
+  const filteredMissions = useMemo(
+    () =>
+      sortAndFilterMissions(
+        missions as any,
+        missionQuestions as any,
+        lastSignalByMission as Record<string, string | null>,
+        { sort: missionSort, health: missionHealthFilter, search: missionSearch },
+      ),
+    [missions, missionQuestions, lastSignalByMission, missionSort, missionHealthFilter, missionSearch],
+  );
+
+  // Morning briefing from recent signals
+  const briefItems: BriefItem[] = useMemo(() => {
+    const items: BriefItem[] = [];
+    const seen = new Set<string>();
+    const entries = Object.entries(lastSignalByMission as Record<string, string | null>)
+      .filter(([, t]) => !!t)
+      .sort(([, a], [, b]) => new Date(b!).getTime() - new Date(a!).getTime());
+    for (const [mid, t] of entries) {
+      if (seen.has(mid)) continue;
+      const m = missions.find((x) => x.id === mid);
+      if (!m) continue;
+      const ageH = (Date.now() - new Date(t!).getTime()) / 3600000;
+      if (ageH > 24) continue;
+      items.push({
+        id: mid,
+        missionName: m.name,
+        text: `Activity update ${ageH < 1 ? "in the last hour" : `${Math.floor(ageH)}h ago`}`,
+      });
+      seen.add(mid);
+      if (items.length >= 4) break;
+    }
+    return items;
+  }, [lastSignalByMission, missions]);
+
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
