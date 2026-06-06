@@ -117,7 +117,7 @@ export function StudioHealthStrip({ missionId }: { missionId: string }) {
     : gateDays !== null && gateDays <= 7 ? "var(--yellow, #eab308)"
     : undefined;
 
-  const target = isQuestionWorkspace
+  const target = isSectionWorkspace
     ? { to: "/missions/$missionId/overview" as const, params: { missionId } }
     : { to: "/missions/$missionId/overview" as const, params: { missionId } };
 
