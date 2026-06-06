@@ -51,7 +51,7 @@ export const checkMissionConflict = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase } = context;
     if (!data.state || !data.procurementId) {
-      return { conflicts: [] as ConflictMission[] };
+      return { conflicts: [] as ConflictMission[], missionContext: null };
     }
     let q = supabase
       .from("missions")
@@ -62,7 +62,21 @@ export const checkMissionConflict = createServerFn({ method: "POST" })
     if (data.excludeMissionId) q = q.neq("id", data.excludeMissionId);
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
-    return { conflicts: (rows ?? []) as ConflictMission[] };
+
+    // When called for an existing mission, enrich the response with the full
+    // mission context so the caller can show "why this conflict matters for
+    // the current win strategy" without a second round-trip.
+    let missionContext: any = null;
+    if (data.excludeMissionId && (rows ?? []).length > 0) {
+      try {
+        const { buildMissionContext } = await import("./iris-context.server");
+        missionContext = await buildMissionContext(supabase, data.excludeMissionId);
+      } catch {
+        missionContext = null;
+      }
+    }
+
+    return { conflicts: (rows ?? []) as ConflictMission[], missionContext };
   });
 
 // ─── List unreviewed conflicts for the Olympus dashboard ──────────────────

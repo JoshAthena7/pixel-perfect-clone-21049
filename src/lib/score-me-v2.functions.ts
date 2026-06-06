@@ -5,7 +5,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { assertNoPHI } from "@/lib/phi-detection";
-import { loadMissionContext, formatMissionContextPreamble } from "@/lib/iris-mission-context.server";
+import { buildMissionContext, formatMissionContextBlock } from "@/lib/iris-context.server";
 
 // ---------- Types ----------
 
@@ -253,8 +253,8 @@ export const runScoreMe = createServerFn({ method: "POST" })
       proof_points: true,
     };
 
-    const missionCtx = await loadMissionContext(supabase, q.mission_id);
-    const preamble = formatMissionContextPreamble(missionCtx);
+    const missionCtx = await buildMissionContext(supabase, q.mission_id, { questionId: q.id });
+    const preamble = formatMissionContextBlock(missionCtx);
 
     // ---- Build prompt ----
     const sys = `${preamble}

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { IRIS_BASE_PROMPT } from "./iris-prompts";
 import { withAICircuit } from "@/lib/ai-circuit-breaker";
 import { loadLayeredContext } from "./iris-layered-context";
-import { loadMissionContext, formatMissionContextPreamble } from "./iris-mission-context.server";
+import { buildMissionContext, formatMissionContextBlock } from "./iris-context.server";
 
 const CACHE_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours
 
@@ -169,8 +169,8 @@ Be the strategist who knows what wins. Not the consultant who hedges.
 
 ${layered}`;
 
-    const missionCtx = await loadMissionContext(supabase, q.mission_id);
-    const preamble = formatMissionContextPreamble(missionCtx);
+    const missionCtx = await buildMissionContext(supabase, q.mission_id, { questionId: q.id });
+    const preamble = formatMissionContextBlock(missionCtx);
 
     const coaching = await callForCoaching(sys, userMsg, preamble);
     if (!coaching) {
