@@ -98,13 +98,22 @@ function HealthPanelBody({ missionId }: { missionId: string }) {
   const qc = useQueryClient();
   const getHealth = useServerFn(getMissionContextHealth);
   const forceRefresh = useServerFn(forceRefreshMissionContext);
+  const auditCoverage = useServerFn(auditContextCoverage);
   const [lastBuiltAt, setLastBuiltAt] = useState<string | null>(null);
+  const [showMissing, setShowMissing] = useState(false);
 
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ["iris-context-health", missionId],
     queryFn: () => getHealth({ data: { missionId } }),
     refetchInterval: 60_000,
     refetchOnWindowFocus: true,
+  });
+
+  const { data: coverage } = useQuery({
+    queryKey: ["iris-context-coverage"],
+    queryFn: () => auditCoverage({ data: undefined as any }),
+    refetchInterval: 5 * 60_000,
+    staleTime: 60_000,
   });
 
   useEffect(() => {
