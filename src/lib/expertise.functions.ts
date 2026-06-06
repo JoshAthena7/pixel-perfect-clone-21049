@@ -91,10 +91,19 @@ export const matchExperts = createServerFn({ method: "POST" })
     // layer; expert matching is an authenticated server-side use that needs
     // contact details to populate the Phone-a-Friend overlay.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: members = [] } = await supabaseAdmin
-      .from("collective_members")
-      .select("id,full_name,email,title,location,skill_tags,notes")
-      .eq("is_active", true);
+    const [{ data: members = [] }, { data: selfTagged = [] }] = await Promise.all([
+      supabaseAdmin
+        .from("collective_members")
+        .select("id,full_name,email,title,location,skill_tags,notes")
+        .eq("is_active", true),
+      // Workaround until Talentdesk auto-tags on import: self-tagged staff
+      // profiles also feed Phone-a-Friend. Only include profiles with at
+      // least one tag so we don't surface blank users.
+      supabaseAdmin
+        .from("profiles")
+        .select("id,display_name,email,avatar_color,avatar_url,expertise_areas,states_experience,programs_experience,question_types,expert_bio,availability_status,availability_until,availability_note")
+        .or("expertise_areas.neq.{},states_experience.neq.{},programs_experience.neq.{}"),
+    ]);
 
     const qText = `${q.title ?? ""} ${q.question_text ?? ""}`;
     const qTokens = tokens(qText);
