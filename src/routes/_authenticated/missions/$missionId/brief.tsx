@@ -628,11 +628,8 @@ function MissionOverviewPage() {
 
         <SubmissionChecklist missionId={missionId} />
 
-        <div className="mr-divider" />
-
-
         {/* ══════════════════════════════════════════════════════════ */}
-        {/* ZONE 1 · RIGHT NOW                                         */}
+        {/* OPERATIONAL · RIGHT NOW                                    */}
         {/* ══════════════════════════════════════════════════════════ */}
         <ZoneLabel num="01" label="RIGHT NOW" />
         <section>
@@ -649,38 +646,14 @@ function MissionOverviewPage() {
         <div className="mr-divider" />
 
         {/* ══════════════════════════════════════════════════════════ */}
-        {/* ZONE 2 · PULSE                                             */}
+        {/* OPERATIONAL · TIMELINE + QUESTION MAP                      */}
         {/* ══════════════════════════════════════════════════════════ */}
-        <ZoneLabel num="02" label="PULSE" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <section>
-            <h2 className="mr-section-label">Timeline</h2>
-            <Timeline mission={mission ?? null} gates={gates} />
-          </section>
-          <section id="decisions-risks">
-            <h2 className="mr-section-label">Decisions + Risks</h2>
-            <DecisionsRisksTabs
-              decisions={decisions}
-              risks={risks}
-              isLeader={isLeader}
-              canLogRisk={isLeader || isPM}
-              missionId={missionId}
-              qc={qc}
-            />
-          </section>
-        </div>
+        <ZoneLabel num="02" label="THE MISSION" />
+        <section>
+          <h2 className="mr-section-label">Timeline</h2>
+          <Timeline mission={mission ?? null} gates={gates} />
+        </section>
 
-        <div className="mr-divider" />
-
-
-
-
-
-
-        {/* ══════════════════════════════════════════════════════════ */}
-        {/* ZONE 3 · THE MISSION                                       */}
-        {/* ══════════════════════════════════════════════════════════ */}
-        <ZoneLabel num="03" label="THE MISSION" />
         <section>
           <h2 className="mr-section-label">Question Map</h2>
           <div className="mb-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
@@ -713,6 +686,50 @@ function MissionOverviewPage() {
           </section>
         )}
 
+        <div className="mr-divider" />
+
+        {/* ══════════════════════════════════════════════════════════ */}
+        {/* (5) DECISIONS LOG                                           */}
+        {/* ══════════════════════════════════════════════════════════ */}
+        <ZoneLabel num="05" label="DECISIONS" />
+        <section id="decisions-risks">
+          <h2 className="mr-section-label">Decisions + Risks</h2>
+          <DecisionsRisksTabs
+            decisions={decisions}
+            risks={risks}
+            isLeader={isLeader}
+            canLogRisk={isLeader || isPM}
+            missionId={missionId}
+            qc={qc}
+          />
+        </section>
+
+        <div className="mr-divider" />
+
+        {/* ══════════════════════════════════════════════════════════ */}
+        {/* (6) STAKEHOLDERS                                            */}
+        {/* ══════════════════════════════════════════════════════════ */}
+        <ZoneLabel num="06" label="STAKEHOLDERS" />
+        <section>
+          <h2 className="mr-section-label">Team</h2>
+          <TeamTabs members={members} questions={questions} onMessage={openCompose} />
+        </section>
+
+        <div className="mr-divider" />
+
+        {/* ══════════════════════════════════════════════════════════ */}
+        {/* (7) LEADERSHIP UPDATES                                      */}
+        {/* ══════════════════════════════════════════════════════════ */}
+        <ZoneLabel num="07" label="LEADERSHIP" />
+        <section>
+          <h2 className="mr-section-label">Leadership</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {leadershipRow.map((slot) => (
+              <LeaderCard key={slot.label} label={slot.label} person={slot.person} onMessage={openCompose} />
+            ))}
+          </div>
+        </section>
+
         <section className="mt-8">
           <h2 className="mr-section-label">Leadership Notes</h2>
           <LeadershipNotesBlock
@@ -733,20 +750,9 @@ function MissionOverviewPage() {
         <div className="mr-divider" />
 
         {/* ══════════════════════════════════════════════════════════ */}
-        {/* ZONE 4 · PEOPLE                                            */}
+        {/* (8) ACTIVITY FEED                                           */}
         {/* ══════════════════════════════════════════════════════════ */}
-        <ZoneLabel num="04" label="PEOPLE" />
-        <section>
-          <h2 className="mr-section-label">Team</h2>
-          <TeamTabs members={members} questions={questions} onMessage={openCompose} />
-        </section>
-
-        <div className="mr-divider" />
-
-        {/* ══════════════════════════════════════════════════════════ */}
-        {/* ZONE 5 · ACTIVITY                                          */}
-        {/* ══════════════════════════════════════════════════════════ */}
-        <ZoneLabel num="05" label="ACTIVITY" />
+        <ZoneLabel num="08" label="ACTIVITY" />
         <section>
           <h2 className="mr-section-label">What Changed</h2>
           <p className="-mt-5 mb-4 text-[11px] text-muted-foreground">Last 24 hours</p>
