@@ -178,8 +178,7 @@ function ProfileSetupWizard({
     setForm({ ...form, [field]: next });
   }
 
-  async function finish() {
-    setSaving(true);
+  async function persist({ markComplete }: { markComplete: boolean }) {
     const required = form.expertise_areas.length > 0 && form.states_experience.length > 0;
     const { error } = await supabase
       .from("profiles")
@@ -190,22 +189,44 @@ function ProfileSetupWizard({
         question_types: form.question_types,
         availability_status: form.availability_status,
         expert_bio: form.expert_bio || null,
-        profile_completed: required,
+        // Only flip the completion flag when the user finishes; deferred
+        // saves preserve their progress without dismissing the wizard for good.
+        profile_completed: markComplete ? required : false,
         profile_updated_at: new Date().toISOString(),
       })
       .eq("id", profileId);
-    setSaving(false);
     if (error) {
       toast.error(error.message);
-      return;
+      return false;
     }
-    toast.success("You're set up. IRIS will point teammates to you when they need your expertise.");
     qc.invalidateQueries({ queryKey: ["profile-setup-gate"] });
     qc.invalidateQueries({ queryKey: ["me-expertise-status"] });
     qc.invalidateQueries({ queryKey: ["editable-profile", profileId] });
-    // Clear replay flag if present.
+    return true;
+  }
+
+  async function finish() {
+    setSaving(true);
+    const ok = await persist({ markComplete: true });
+    setSaving(false);
+    if (!ok) return;
+    toast.success("You're set up. IRIS will point teammates to you when they need your expertise.");
     if (typeof window !== "undefined" && isReplay()) {
       const url = new URL(window.location.href);
+      url.searchParams.delete("profile-setup");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }
+
+  async function saveAndDefer() {
+    setSaving(true);
+    const ok = await persist({ markComplete: false });
+    setSaving(false);
+    if (!ok) return;
+    toast.success("Progress saved. We'll pick this back up next time you log in.");
+    onDefer();
+  }
+
       url.searchParams.delete("profile-setup");
       window.history.replaceState({}, "", url.toString());
     }
