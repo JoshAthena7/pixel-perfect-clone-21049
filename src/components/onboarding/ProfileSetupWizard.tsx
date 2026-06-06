@@ -99,8 +99,26 @@ function ProfileSetupWizard({
   onDefer: () => void;
 }) {
   const qc = useQueryClient();
-  const [stepIdx, setStepIdx] = useState(0);
+
+  // Per-user resume key. Survives across logout/login on the same browser so
+  // returning users land on the exact step they deferred at.
+  const resumeKey = `iris.profile-setup.step:${profileId}`;
+  const initialStep = (() => {
+    if (typeof window === "undefined") return 0;
+    const raw = localStorage.getItem(resumeKey);
+    const n = raw ? Number.parseInt(raw, 10) : 0;
+    return Number.isFinite(n) && n >= 0 && n < STEPS.length ? n : 0;
+  })();
+  const [stepIdx, setStepIdx] = useState(initialStep);
+  // Track where we resumed so the banner only shows until they navigate.
+  const [resumedFrom, setResumedFrom] = useState<number | null>(initialStep > 0 ? initialStep : null);
   const [saving, setSaving] = useState(false);
+
+  // Persist step on every change so a hard refresh also resumes correctly.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem(resumeKey, String(stepIdx));
+  }, [stepIdx, resumeKey]);
 
   const [form, setForm] = useState<Form>({
     expertise_areas: [],
@@ -211,6 +229,7 @@ function ProfileSetupWizard({
     setSaving(false);
     if (!ok) return;
     toast.success("You're set up. IRIS will point teammates to you when they need your expertise.");
+    if (typeof window !== "undefined") localStorage.removeItem(resumeKey);
     if (typeof window !== "undefined" && isReplay()) {
       const url = new URL(window.location.href);
       url.searchParams.delete("profile-setup");
@@ -248,6 +267,23 @@ function ProfileSetupWizard({
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-8 py-8">
+          {/* Auto-resume banner — only on initial mount when we landed past step 0. */}
+          {resumedFrom !== null && stepIdx === resumedFrom && resumedFrom > 0 && (
+            <div className="mb-4 flex items-center justify-between gap-3 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-[12px]">
+              <span className="text-foreground/80">
+                Picking up where you left off — step {resumedFrom + 1} of {STEPS.length}.
+              </span>
+              <button
+                onClick={() => {
+                  setStepIdx(0);
+                  setResumedFrom(null);
+                }}
+                className="text-[11px] text-muted-foreground hover:text-foreground"
+              >
+                Start over
+              </button>
+            </div>
+          )}
           <h2 className="text-2xl font-semibold tracking-tight">{step.title}</h2>
           {step.subtitle && <p className="mt-1 text-sm text-muted-foreground">{step.subtitle}</p>}
 
