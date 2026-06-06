@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MissionSetupTabs } from "@/components/v2/MissionSetupTabs";
+import { ResponseTemplateVaultCard } from "@/components/v2/ResponseTemplateVaultCard";
 import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
