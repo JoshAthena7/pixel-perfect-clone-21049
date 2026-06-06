@@ -38,7 +38,7 @@ function detectRoom(path: string, missionId?: string): Room {
   const tail = path.replace(`/missions/${missionId}`, "");
   if (tail.startsWith("/command")) return "brief";
   // Studio = writer workspace (questions list + question workspace + ask iris)
-  if (tail.startsWith("/questions") || tail.startsWith("/iris")) return "studio";
+  if (tail.startsWith("/sections") || tail.startsWith("/iris")) return "studio";
   // Everything else inside a mission is Mission Room
   return "mission";
 }
