@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, ArrowRight, Zap, AlertTriangle, Users, Plus, Check } from "lucide-react";
 import { toast } from "sonner";
+import { IrisContextHealthPanel } from "@/components/admin/IrisContextHealthPanel";
 
 const IRIS_INDIGO = "#6366F1";
 
@@ -227,6 +228,11 @@ export function StrategicOlympus({ canSubmitDecisions, canResolveDecisions }: {
             </Link>
           </div>
         </header>
+
+        {/* IRIS CONTEXT HEALTH */}
+        <IrisContextHealthPanel
+          missions={buckets.active.map((m) => ({ id: m.id, name: m.name, client: m.client }))}
+        />
 
         {/* IRIS PORTFOLIO INTELLIGENCE */}
         <section
