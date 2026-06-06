@@ -64,7 +64,7 @@ export async function upsertNode(supabase: SupabaseClient, n: NodeRef): Promise<
   const refTable = n.ref_table ?? "";
   const refId = n.ref_id ?? "";
 
-  // Try read first — cheap and avoids racing on the partial unique index.
+  // Only match ACTIVE nodes (valid_to IS NULL). Expired nodes are kept for history.
   const { data: existing } = await supabase
     .from("graph_nodes")
     .select("id")
@@ -72,6 +72,7 @@ export async function upsertNode(supabase: SupabaseClient, n: NodeRef): Promise<
     .eq("kind", n.kind)
     .eq("ref_table", refTable)
     .eq("ref_id", refId)
+    .is("valid_to", null)
     .maybeSingle();
   if (existing?.id) return existing.id as string;
 
@@ -89,7 +90,7 @@ export async function upsertNode(supabase: SupabaseClient, n: NodeRef): Promise<
     .select("id")
     .single();
   if (error) {
-    // Lost the race — re-read.
+    // Lost the race — re-read the active row.
     const { data: again } = await supabase
       .from("graph_nodes")
       .select("id")
@@ -97,6 +98,7 @@ export async function upsertNode(supabase: SupabaseClient, n: NodeRef): Promise<
       .eq("kind", n.kind)
       .eq("ref_table", refTable)
       .eq("ref_id", refId)
+      .is("valid_to", null)
       .maybeSingle();
     if (again?.id) return again.id as string;
     throw new Error(`upsertNode: ${error.message}`);
@@ -133,27 +135,30 @@ export async function recordEdges(supabase: SupabaseClient, edges: EdgeInput[]):
 }
 
 /**
- * Wipe edges (and their derived_from source nodes that nothing else points
- * to) for a given output node. Used by extractors that re-run and replace
- * their outputs — keeps the graph from accumulating stale provenance.
+ * Soft-expire active output nodes of a given kind for a mission, plus any
+ * edges incident on them. Sets valid_to = now() rather than deleting, so the
+ * "what changed in the last 7 days" feed can diff against history.
  */
 export async function clearMissionOutputGraph(
   supabase: SupabaseClient,
   missionId: string,
   kind: NodeKind,
 ): Promise<void> {
-  // Find output nodes of this kind for this mission.
+  const now = new Date().toISOString();
   const { data: outputs } = await supabase
     .from("graph_nodes")
     .select("id")
     .eq("mission_id", missionId)
-    .eq("kind", kind);
+    .eq("kind", kind)
+    .is("valid_to", null);
   const ids = (outputs ?? []).map((r: { id: string }) => r.id);
   if (ids.length === 0) return;
-  // Delete edges first (cascades from node delete would also work).
-  await supabase.from("graph_edges").delete().in("dst_node_id", ids);
-  await supabase.from("graph_edges").delete().in("src_node_id", ids);
-  await supabase.from("graph_nodes").delete().in("id", ids);
+  await supabase
+    .from("graph_edges")
+    .update({ valid_to: now })
+    .is("valid_to", null)
+    .or(`src_node_id.in.(${ids.join(",")}),dst_node_id.in.(${ids.join(",")})`);
+  await supabase.from("graph_nodes").update({ valid_to: now }).in("id", ids);
 }
 
 /**
