@@ -2,6 +2,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import athenaMark from "@/assets/athena-mark-brand.png.asset.json";
+
 
 
 export function AtlasLoginPage() {
@@ -64,10 +66,16 @@ export function AtlasLoginPage() {
       <div className="w-full max-w-md">
         {/* Brand */}
         <div className="text-center mb-8">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.32em] text-amber-200/70 mb-3">
+          <img
+            src={athenaMark.url}
+            alt="Athena Strategy Group"
+            className="mx-auto h-20 w-20 object-contain mb-5"
+            style={{ filter: "drop-shadow(0 0 24px rgba(201,146,42,0.25))" }}
+          />
+          <div className="text-[11px] font-semibold uppercase tracking-[0.32em] mb-4" style={{ color: "#C9922A" }}>
             Athena Strategy Group
           </div>
-          <h1 className="text-5xl font-serif tracking-[0.4em] text-amber-300 mb-2">
+          <h1 className="text-5xl font-bold tracking-[0.18em] mb-2" style={{ color: "#C9922A", letterSpacing: "0.18em" }}>
             ATLAS
           </h1>
           <div className="text-[10px] uppercase tracking-[0.3em] text-amber-100/60">
@@ -117,7 +125,8 @@ export function AtlasLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full inline-flex items-center justify-center rounded-sm bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 px-6 py-2.5 text-[11px] font-bold uppercase tracking-[0.3em] text-black shadow-[0_4px_24px_-8px_rgba(251,191,36,0.6)] transition hover:brightness-110 disabled:opacity-60"
+            className="w-full inline-flex items-center justify-center rounded-sm px-6 py-2.5 text-[11px] font-bold uppercase tracking-[0.3em] text-white shadow-[0_4px_24px_-8px_rgba(201,146,42,0.6)] transition hover:brightness-110 disabled:opacity-60"
+            style={{ background: "#C9922A" }}
           >
             {loading ? "Entering…" : "Enter Atlas"}
           </button>
