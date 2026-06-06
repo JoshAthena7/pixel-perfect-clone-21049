@@ -227,11 +227,6 @@ function ProfileSetupWizard({
     onDefer();
   }
 
-      url.searchParams.delete("profile-setup");
-      window.history.replaceState({}, "", url.toString());
-    }
-  }
-
   const firstName = displayName.split(/\s+/)[0];
 
   return (
