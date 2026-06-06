@@ -6656,6 +6656,12 @@ export type Database = {
       is_olympus_user: { Args: { _user_id: string }; Returns: boolean }
       is_platform_admin: { Args: { _user_id: string }; Returns: boolean }
       leadership_count: { Args: { _engagement_id: string }; Returns: number }
+      list_mission_scoped_tables: {
+        Args: never
+        Returns: {
+          table_name: string
+        }[]
+      }
       match_intel_to_questions: {
         Args: {
           max_questions?: number
