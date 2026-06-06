@@ -82,7 +82,7 @@ function fmtDate(date: string | null): string {
 
 // ── COMPONENT ────────────────────────────────────────────
 function CockpitPage() {
-  const { missionId: filterMissionId } = Route.useSearch();
+  const { missionId: filterMissionId, status_filter, sme_filter } = Route.useSearch();
   const { data: me } = useQuery({
     queryKey: ["cockpit-me"],
     queryFn: async () => {
@@ -100,24 +100,39 @@ function CockpitPage() {
       const { data, error } = await supabase
         .from("question_records")
         .select(
-          "id,mission_id,question_number,section_number,title,status,health,current_score,pens_down_date,assigned_writer_id,assigned_sme_id"
+          "id,mission_id,question_number,section_number,title,status,health,current_score,pens_down_date,assigned_writer_id,assigned_sme_id,updated_at"
         )
         .or(`assigned_writer_id.eq.${meId},assigned_sme_id.eq.${meId}`)
         .order("pens_down_date", { ascending: true, nullsFirst: false });
       if (error) throw error;
-      return (data ?? []) as AssignedRow[];
+      return (data ?? []) as (AssignedRow & { updated_at?: string | null })[];
     },
   });
 
-  const rows = useMemo(
-    () => (filterMissionId ? allRows.filter((r) => r.mission_id === filterMissionId) : allRows),
-    [allRows, filterMissionId],
-  );
+  const rows = useMemo(() => {
+    let r = allRows as (AssignedRow & { updated_at?: string | null })[];
+    if (filterMissionId) r = r.filter((x) => x.mission_id === filterMissionId);
+    if (status_filter === "in_review") {
+      r = r.filter((x) => x.status === "ready_for_review");
+    }
+    if (sme_filter === "active") {
+      // Sections where I'm the assigned SME AND status is in_progress or blocked
+      const filtered = r.filter(
+        (x) =>
+          x.assigned_sme_id === meId &&
+          (x.status === "in_progress" || x.status === "blocked"),
+      );
+      // Fallback: if filter empties, show all (no SME-filtered empty state)
+      if (filtered.length > 0) r = filtered;
+    }
+    return r;
+  }, [allRows, filterMissionId, status_filter, sme_filter, meId]);
 
   const missionIds = useMemo(
     () => Array.from(new Set(rows.map((r) => r.mission_id))),
     [rows]
   );
+
 
   const { data: missions = [] } = useQuery({
     queryKey: ["cockpit-missions", missionIds.join(",")],
