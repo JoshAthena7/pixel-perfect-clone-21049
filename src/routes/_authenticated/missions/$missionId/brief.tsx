@@ -14,6 +14,7 @@ import { ResponseTemplateStatusRow } from "@/components/v2/ResponseTemplateStatu
 import { SubmissionChecklist } from "@/components/v2/SubmissionChecklist";
 import { MissionSectionsList } from "@/components/v2/MissionSectionsList";
 import { ClientClarificationsCard } from "@/components/v2/ClientClarificationsCard";
+import { MissionHealthCard, WinThemesCard } from "@/components/v2/MissionHealthAndThemes";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/brief")({
   component: MissionOverviewPage,
