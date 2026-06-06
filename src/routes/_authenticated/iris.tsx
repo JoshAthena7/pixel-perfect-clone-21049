@@ -287,6 +287,26 @@ function IrisPage() {
           )}
         </section>
       </div>
+      <AlertDialog open={confirmCancelOpen} onOpenChange={setConfirmCancelOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel intelligence generation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The current extractor will finish, then remaining stages will stop. Results
+              already generated will be kept.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep running</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancel}
+              className="bg-red-500/90 text-white hover:bg-red-500"
+            >
+              Cancel run
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
