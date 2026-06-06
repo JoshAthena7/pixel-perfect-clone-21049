@@ -64,7 +64,7 @@ export async function upsertNode(supabase: SupabaseClient, n: NodeRef): Promise<
   const refTable = n.ref_table ?? "";
   const refId = n.ref_id ?? "";
 
-  // Try read first — cheap and avoids racing on the partial unique index.
+  // Only match ACTIVE nodes (valid_to IS NULL). Expired nodes are kept for history.
   const { data: existing } = await supabase
     .from("graph_nodes")
     .select("id")
@@ -72,6 +72,7 @@ export async function upsertNode(supabase: SupabaseClient, n: NodeRef): Promise<
     .eq("kind", n.kind)
     .eq("ref_table", refTable)
     .eq("ref_id", refId)
+    .is("valid_to", null)
     .maybeSingle();
   if (existing?.id) return existing.id as string;
 
@@ -89,7 +90,7 @@ export async function upsertNode(supabase: SupabaseClient, n: NodeRef): Promise<
     .select("id")
     .single();
   if (error) {
-    // Lost the race — re-read.
+    // Lost the race — re-read the active row.
     const { data: again } = await supabase
       .from("graph_nodes")
       .select("id")
@@ -97,6 +98,7 @@ export async function upsertNode(supabase: SupabaseClient, n: NodeRef): Promise<
       .eq("kind", n.kind)
       .eq("ref_table", refTable)
       .eq("ref_id", refId)
+      .is("valid_to", null)
       .maybeSingle();
     if (again?.id) return again.id as string;
     throw new Error(`upsertNode: ${error.message}`);
