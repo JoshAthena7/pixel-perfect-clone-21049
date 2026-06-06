@@ -320,6 +320,7 @@ function Step2Uploads({
   const extractFn = useServerFn(extractDocumentIntelligence);
   const parseRfpFn = useServerFn(parseRfpDocument);
   const kickoffIrisFn = useServerFn(kickoffMissionIris);
+  const runPipelineFn = useServerFn(runIrisPipeline);
   // Ensure the auto-IRIS kickoff only fires once per wizard session — even if
   // multiple RFPs are uploaded — to avoid stacking long-running brief loops.
   const irisKickedOffRef = useRef(false);
