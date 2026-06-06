@@ -1,8 +1,9 @@
 import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
-import { ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ChevronDown, ChevronUp, RefreshCw, Zap, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { generateMissionBrief } from "@/lib/iris-mission-brief.functions";
 import { useMissionAccess } from "@/hooks/useAccess";
 import { NotAvailable } from "@/components/access/NotAvailable";
