@@ -4,7 +4,6 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { withAICircuit } from "@/lib/ai-circuit-breaker";
 import { loadMissionContext, formatMissionContextPreamble } from "./iris-mission-context.server";
-import { buildMissionContext, formatMissionContextBlock } from "./iris-context.server";
 
 type Brief = { current_focus: string; next_step: string; waiting_on: string };
 
