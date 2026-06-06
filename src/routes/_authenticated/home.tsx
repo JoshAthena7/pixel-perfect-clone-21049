@@ -388,6 +388,10 @@ function AthenaHQ() {
         {/* Leadership Messages — pinned to top */}
         <LeadershipMessages messages={leadershipMessages as any[]} />
 
+        {/* "What changed since you last looked" — powered by the Mission Intelligence Graph */}
+        {missions[0]?.id && <RecentChangesCard missionId={missions[0].id} />}
+
+
 
 
 
