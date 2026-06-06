@@ -518,13 +518,27 @@ function MissionBrief() {
 
       <div className="mx-auto max-w-[1200px] px-8 py-10 space-y-8">
         {/* Header — page label */}
-        <div>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.32em]" style={{ color: "#a78bfa" }}>
-            Mission Brief
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.32em]" style={{ color: "#a78bfa" }}>
+              Mission Brief
+            </div>
+            <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+              {mission?.name ?? "Mission"}
+            </h1>
           </div>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-            {mission?.name ?? "Mission"}
-          </h1>
+          <Link
+            to="/missions/$missionId"
+            params={{ missionId }}
+            className="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-[12px] font-bold uppercase tracking-[0.14em] transition hover:-translate-y-0.5"
+            style={{
+              background: "rgba(245,158,11,0.12)",
+              borderColor: "rgba(245,158,11,0.35)",
+              color: "var(--athena-gold, #f59e0b)",
+            }}
+          >
+            <Plane className="h-4 w-4" /> Open Cockpit
+          </Link>
         </div>
 
         {/* SECTION 1: MISSION VITALS */}
