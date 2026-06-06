@@ -70,6 +70,8 @@ function AtriumPage() {
         </div>
       </header>
 
+      <IrisDailyNote />
+
       <MissionIntelligenceGraph />
 
       <div className="relative mx-auto grid max-w-[1400px] grid-cols-1 gap-8 px-8 py-10 lg:grid-cols-[1fr_360px]">
