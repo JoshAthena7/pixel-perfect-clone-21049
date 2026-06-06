@@ -593,7 +593,10 @@ function MissionOverviewPage() {
           <MissionRoomHero missionId={missionId} />
         </section>
 
+        <ResponseTemplateStatusRow missionId={missionId} />
+
         <div className="mr-divider" />
+
 
         {/* ══════════════════════════════════════════════════════════ */}
         {/* ZONE 1 · RIGHT NOW                                         */}
