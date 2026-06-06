@@ -8,6 +8,7 @@ import { logOlympusAction } from "@/lib/audit";
 import { MissionActivationWizard } from "@/components/v2/MissionActivationWizard";
 import { MissionReadinessPanel, ReadinessChip } from "@/components/v2/MissionReadinessPanel";
 import { IrisGreeting } from "@/components/v2/IrisGreeting";
+import { DeveloperResetCard } from "@/components/admin/DeveloperResetCard";
 
 
 export const Route = createFileRoute("/_authenticated/admin/")({
@@ -199,6 +200,8 @@ function MissionsIndex() {
           onClose={() => setReadinessFor(null)}
         />
       )}
+
+      <DeveloperResetCard />
     </div>
   );
 }
