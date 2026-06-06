@@ -228,20 +228,7 @@ function TopBar({
             <span className="hidden sm:inline">Profile</span>
           </Link>
         )}
-        <Link
-          to="/cockpit"
-          title="Cockpit — your work across every mission"
-          aria-label="Cockpit"
-          data-tour="cockpit"
-          className={`inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-[11px] font-semibold uppercase tracking-[0.18em] transition-colors hover:bg-white/5 hover:text-foreground ${
-            path.startsWith("/cockpit")
-              ? "bg-[#3b7fff]/10 text-[#3b7fff]"
-              : "text-muted-foreground"
-          }`}
-        >
-          <Plane size={14} strokeWidth={1.5} />
-          <span className="hidden sm:inline">Cockpit</span>
-        </Link>
+        {/* Cockpit removed from Atrium header in V1 — writers land directly on /v1/my-sections */}
         <NotificationBell />
         <BriefRoomNavButton />
         {/* Help moved to /profile?tab=help */}
