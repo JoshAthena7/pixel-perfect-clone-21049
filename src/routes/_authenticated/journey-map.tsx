@@ -506,7 +506,7 @@ function JourneyMapPage() {
                   <div key={s.num} className="flex-1 flex flex-col items-stretch min-w-0">
                     <button
                       onClick={() => setSelected(i)}
-                      className="group relative flex flex-col items-center text-center rounded-lg p-3 transition-all duration-500 ease-out motion-reduce:transition-none motion-reduce:duration-0"
+                      className={`group relative flex flex-col items-center text-center rounded-lg p-3 ${animate ? "transition-all duration-500 ease-out" : ""}`}
                       style={{
                         background: isSelected ? "rgba(59,130,246,0.08)" : "transparent",
                         border: `1px solid ${isSelected ? "rgba(59,130,246,0.4)" : "transparent"}`,
