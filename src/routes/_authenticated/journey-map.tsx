@@ -342,7 +342,7 @@ function emotionColor(c: "green" | "yellow" | "blue") {
 function JourneyMapPage() {
   const activeIdx = STAGES.findIndex((s) => s.status === "active");
   const [selected, setSelected] = useState<number>(activeIdx >= 0 ? activeIdx : 0);
-  const [persona, setPersona] = useState<(typeof PERSONAS)[number]>("All Roles");
+  const [persona, setPersona] = useState<Persona>("All Roles");
   const [insightsOpen, setInsightsOpen] = useState(true);
   const [openTransition, setOpenTransition] = useState<number | null>(null);
 
