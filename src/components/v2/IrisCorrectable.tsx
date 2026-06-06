@@ -249,7 +249,7 @@ function CorrectionPanel({
             IRIS is processing your correction…
           </span>
         ) : (
-          "Submit Correction"
+          "Send Correction"
         )}
       </button>
     </div>

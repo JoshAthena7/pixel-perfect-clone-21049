@@ -35,7 +35,7 @@ type Request = {
 
 const DEFAULT_QUICK_LINKS = [
   { label: "New SOW", url: "" },
-  { label: "Submit Invoice", url: "" },
+  { label: "Send Invoice", url: "" },
   { label: "View Contract", url: "" },
   { label: "Onboarding Documents", url: "" },
   { label: "Expense Report", url: "" },
