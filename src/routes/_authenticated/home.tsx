@@ -33,6 +33,7 @@ import {
   type BriefItem,
 } from "@/components/v2/AtriumCommandCenter";
 import { IrisPersonalAlert } from "@/components/v2/IrisPersonalAlert";
+import { GuidedTour, type TourStep } from "@/components/v2/GuidedTour";
 import { getLoginRouting } from "@/lib/routing.functions";
 import { DEFAULT_SORT_BY_ROLE, type RoutingRole } from "@/lib/routing-role";
 
@@ -333,6 +334,21 @@ function AthenaHQ() {
   }, [routing, role, sortInitialized]);
   const [missionHealthFilter, setMissionHealthFilter] = useState<"all" | "red" | "yellow" | "green">("all");
   const [missionSearch, setMissionSearch] = useState("");
+  const [tourOpen, setTourOpen] = useState(false);
+
+  // Auto-open the tour on first visit (once per user-agent).
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem("atlas:tour:home:v1")) {
+        const t = setTimeout(() => setTourOpen(true), 800);
+        return () => clearTimeout(t);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+
 
 
   const filteredMissions = useMemo(
