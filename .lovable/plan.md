@@ -1,44 +1,71 @@
-# Response Template Feature — Build Plan
 
-This is a large, multi-surface feature (setup wizard step, vault, studio scaffold editor, IRIS compliance, submission gating, mission overview). I'll deliver it in the build order you specified, but want to confirm scope and a few decisions before writing ~2k lines across 10+ files.
+# ATLAS Expertise Profile Redesign — Build Plan
 
-## Data model (1 migration)
+## Scope confirmed
+- Full vertical slice (UI + persistence + IRIS schema stubs) in one pass.
+- Replace `expertise_options` and `mission_member_expertise` tables.
+- Profile editor lives at the existing `/profile/expertise` route (replaces just the expertise UI inside `ExpertiseProfileEditor`; states/programs/wins/availability untouched).
 
-New tables:
-- `mission_response_templates` — one row per mission. Columns: `mission_id` (unique), `status` ('active' | 'skipped'), `source` ('upload' | 'manual'), `source_file_path` (Vault doc ref, nullable), `iris_confidence`, `iris_source_citation`, `confirmed_by`, `confirmed_at`, `version` (int, bumped on edit).
-- `mission_response_template_elements` — ordered elements. Columns: `template_id`, `parent_id` (nullable, for sub-sections under headers), `order_index`, `element_type` ('header' | 'subsection' | 'field' | 'table' | 'word_limit'), `label`, `word_limit` (int, nullable), `table_columns` (jsonb, nullable).
-- `mission_section_template_progress` — per-section compliance state. Columns: `section_id`, `element_id`, `content` (text), `word_count`, `is_complete` (bool). Drives the Studio scaffold + compliance panel + submission checklist.
-- `mission_response_template_versions` — snapshot of elements at each version, used for the post-edit diff and to flag affected sections.
+## Database changes (single migration)
 
-RLS: mission members read; PM role writes. Standard public-schema GRANTs.
+**New tables**
+- `expertise_library` — seeded master list (id, label, category, sort_order). 4 categories, ~58 items per spec.
+- `user_expertise` — per-user rows: `(user_id, expertise_id NULL, custom_label NULL, is_primary, display_order, added_at)`. Either `expertise_id` OR `custom_label` set, never both. Unique on `(user_id, expertise_id)` and `(user_id, lower(custom_label))`.
+- `mission_expertise_signals` — `(mission_id, expertise_id, source text, weight)`. Replaces `mission_member_expertise`.
+- `iris_staffing_recommendations` — schema-only stub per spec 8C.
+- `iris_expertise_coverage` — daily snapshot per spec 8D.
 
-## Server functions (`src/lib/response-template.functions.ts`)
+**Replaced**
+- DROP `expertise_options`, `mission_member_expertise` (user chose Replace).
+- DROP `profiles.expertise_areas`, `profiles.question_types` columns (free-text arrays now superseded). Keep `expert_bio`, `expertise_embedding`.
 
-- `getResponseTemplate({ missionId })` — template + ordered elements.
-- `parseTemplateFile({ missionId, vaultDocId })` — **stub IRIS parser** that returns a plausible structure from the filename/text. Real LLM parsing is out of scope for this turn; I'll wire a `// TODO: replace with Lovable AI call` and use a heuristic parser so the UX is fully functional end-to-end.
-- `saveResponseTemplate({ missionId, elements, source, sourceFilePath })` — upsert + version bump + diff vs previous version (returned to caller).
-- `skipResponseTemplate({ missionId })`.
-- `updateSectionTemplateProgress({ sectionId, elementId, content })` — recomputes word_count + is_complete.
-- `getMissionTemplateCompliance({ missionId })` — aggregate for submission checklist + overview indicator.
+**Search index**
+- A real Postgres view `expertise_user_index` over `user_expertise` (queryable as `SELECT user_id FROM expertise_user_index WHERE expertise_id IN (...)`). Simpler and always-fresh vs. maintaining an index table via triggers.
 
-## UI surfaces
+**Seed**
+- All 58 library items inserted with stable string IDs matching the spec (`ltss`, `mltss`, etc.).
 
-1. **Mission Setup Step 5** — new step inserted into `MissionActivationWizard.tsx` between Key Dates and Review. Upload path (drops into Vault → calls parser), Manual builder (inline element list with type dropdown), skip option. IRIS parser output rendered inline (no modal) with editable element list (drag-reorder, rename, delete, add).
-2. **Step 6 summary row** — Response Template row in the existing Review & Activate summary in the same wizard.
-3. **Vault category** — pinned "Response Template" category at the top of `vault.tsx` sidebar with indigo treatment, read-only entry.
-4. **Studio Scaffold Editor** — new `<ScaffoldEditor>` component used wherever the section editor renders. Locked headers with indigo left border + lock icon, content zones per element, live word counters, ✓/○ indicators, optional free-form zone at the bottom. Will replace the editor in the existing section workspace (need to confirm which file — see questions).
-5. **IRIS Template Compliance panel** — new section in the Studio right rail.
-6. **Status advancement gate** — disable "In Review" / "Approved" transitions when any required element is empty; inline IRIS warning dialog.
-7. **Reviewer view** — same scaffold rendered read-only.
-8. **Submission checklist** — Template Compliance row added to the existing checklist; blocks "Mark as Ready to Submit" unless Engagement Lead overrides with a reason (stored on the override).
-9. **IRIS pre-submission report** — new Template Compliance Summary section.
-10. **Mission Overview indicator** — Response Template health row in `overview.tsx`.
-11. **Post-activation edit flow** — edit from Mission Overview, diff modal, flag affected approved/draft-done sections for re-review, in-Studio notice.
+**RLS**
+- `expertise_library`: readable by all authenticated. Admin-only writes.
+- `user_expertise`: user can CRUD their own rows; everyone authenticated can read (powers expertise discovery).
+- `mission_expertise_signals`: mission members read; mission admin/lead writes.
+- IRIS stub tables: service_role only for now.
 
-## Questions before I build
+## Server functions (`src/lib/expertise.functions.ts` — replace)
 
-1. **Which file is "the Studio section workspace" editor?** I see `src/routes/_authenticated/missions/$missionId/questions/index.tsx` and several v2 components. I'll grep and pick the section editor, but if you have a specific file in mind, name it.
-2. **Real IRIS parsing vs stub.** Wiring Lovable AI (`google/gemini-2.5-flash`) to parse uploaded .docx/.pdf adds a server-side document parse step. OK to ship a deterministic heuristic stub now (returns a sensible default structure + lets the PM edit it inline) and add real AI parsing in a follow-up?
-3. **.pdf/.docx text extraction on the Worker runtime is constrained.** I'll accept the upload, store it in the Vault, and run the stub parser on filename + any extracted text we already have. Confirm that's acceptable for v1.
+- `getExpertiseLibrary()` — returns full library grouped by category.
+- `getUserExpertise(userId)` — returns structured + custom arrays, primary list, ordered.
+- `setUserExpertise({ structuredIds, customLabels, primary, order })` — single upsert/delete to reconcile state. Enforces max 5 primary.
+- `searchUsersByExpertise(ids[])` — intersection query for future discovery view.
+- `getMissionExpertiseSignals(missionId)` — for future IRIS staffing.
 
-If you say "go", I'll proceed with the plan above and implement build steps 1–11 in order across roughly: 1 migration, 1 server-functions file, edits to `MissionActivationWizard.tsx`, `vault.tsx`, `overview.tsx`, the section workspace, and ~4 new components (`ScaffoldEditor`, `TemplateComplianceP anel`, `TemplateBuilder`, `TemplateDiffModal`).
+## UI components (`src/components/expertise/`)
+
+1. `ExpertiseLibraryProvider` — caches library via React Query.
+2. `ExpertiseSelector` — searchable dropdown with browse/search states, category collapse, full library per spec Section 1.
+3. `ExpertiseChips` — chip row with category dot, primary toggle (click dot), ×, drag-reorder via `@dnd-kit/sortable` (already in deps? will check; if not, add).
+4. `CustomExpertiseInput` — Enter/comma to add, duplicate detection against library.
+5. `ExpertiseCompletenessBar` — Section 9 indicator.
+6. `ExpertiseSection` — assembles the above; this is what gets dropped into `ExpertiseProfileEditor` replacing the current expertise-areas + question-types blocks.
+
+## Read-only view
+- `ExpertiseChipsReadOnly` — used on other users' profiles. Clicking a chip navigates to `/profile/discover?expertise=<id>` (route stub — search results page is out of scope, but the link target is reserved).
+
+## What I am NOT building this pass (called out so you know)
+- The actual "find others with this expertise" search results page (only the click target / nav).
+- IRIS recommendation generator logic (schema only, per spec).
+- Nightly job to recompute `iris_expertise_coverage` (table + manual refresh fn only).
+- Mobile bottom sheet variant — desktop dropdown is responsive; explicit mobile sheet can be a follow-up.
+- First-time onboarding empty state copy block (small follow-up if you want it).
+
+## Migration risk
+- Existing `profiles.expertise_areas` free-text values will be **lost** on column drop. If anyone has data in there today and you want it preserved as custom tags, say so and I'll add a pre-drop migration step. Otherwise I'll proceed with a clean cut.
+
+## File deltas (estimate)
+- 1 migration
+- 1 server-fn file rewritten
+- 6 new components
+- 1 component edited (`ExpertiseProfileEditor`) — only the expertise/question-type blocks replaced
+- Possibly 1 dep add (`@dnd-kit/sortable`)
+
+After you approve I'll run the migration, then build the components in one pass.

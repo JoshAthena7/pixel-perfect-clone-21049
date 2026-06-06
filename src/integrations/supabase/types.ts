@@ -2195,25 +2195,28 @@ export type Database = {
           },
         ]
       }
-      expertise_options: {
+      expertise_library: {
         Row: {
+          active: boolean
+          category: string
           created_at: string
           id: string
-          kind: string
           label: string
           sort_order: number
         }
         Insert: {
+          active?: boolean
+          category: string
           created_at?: string
-          id?: string
-          kind: string
+          id: string
           label: string
           sort_order?: number
         }
         Update: {
+          active?: boolean
+          category?: string
           created_at?: string
           id?: string
-          kind?: string
           label?: string
           sort_order?: number
         }
@@ -2567,6 +2570,41 @@ export type Database = {
         }
         Relationships: []
       }
+      iris_expertise_coverage: {
+        Row: {
+          calculated_at: string
+          expertise_id: string
+          id: string
+          is_coverage_gap: boolean
+          primary_users: number
+          total_users: number
+        }
+        Insert: {
+          calculated_at?: string
+          expertise_id: string
+          id?: string
+          is_coverage_gap?: boolean
+          primary_users?: number
+          total_users?: number
+        }
+        Update: {
+          calculated_at?: string
+          expertise_id?: string
+          id?: string
+          is_coverage_gap?: boolean
+          primary_users?: number
+          total_users?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iris_expertise_coverage_expertise_id_fkey"
+            columns: ["expertise_id"]
+            isOneToOne: false
+            referencedRelation: "expertise_library"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       iris_health_flags: {
         Row: {
           created_at: string
@@ -2864,6 +2902,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      iris_staffing_recommendations: {
+        Row: {
+          expertise_signals_used: string[]
+          generated_at: string
+          id: string
+          match_score: number
+          matched_expertise: string[]
+          mission_id: string
+          primary_match: boolean
+          recommendation_reason: string | null
+          user_id: string
+        }
+        Insert: {
+          expertise_signals_used?: string[]
+          generated_at?: string
+          id?: string
+          match_score?: number
+          matched_expertise?: string[]
+          mission_id: string
+          primary_match?: boolean
+          recommendation_reason?: string | null
+          user_id: string
+        }
+        Update: {
+          expertise_signals_used?: string[]
+          generated_at?: string
+          id?: string
+          match_score?: number
+          matched_expertise?: string[]
+          mission_id?: string
+          primary_match?: boolean
+          recommendation_reason?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iris_staffing_recommendations_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       market_intelligence: {
         Row: {
@@ -3231,6 +3313,48 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "mission_evaluation_criteria_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_expertise_signals: {
+        Row: {
+          created_at: string
+          expertise_id: string
+          id: string
+          mission_id: string
+          source: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          expertise_id: string
+          id?: string
+          mission_id: string
+          source: string
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          expertise_id?: string
+          id?: string
+          mission_id?: string
+          source?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_expertise_signals_expertise_id_fkey"
+            columns: ["expertise_id"]
+            isOneToOne: false
+            referencedRelation: "expertise_library"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_expertise_signals_mission_id_fkey"
             columns: ["mission_id"]
             isOneToOne: false
             referencedRelation: "missions"
@@ -5944,6 +6068,44 @@ export type Database = {
           },
         ]
       }
+      user_expertise: {
+        Row: {
+          added_at: string
+          custom_label: string | null
+          display_order: number
+          expertise_id: string | null
+          id: string
+          is_primary: boolean
+          user_id: string
+        }
+        Insert: {
+          added_at?: string
+          custom_label?: string | null
+          display_order?: number
+          expertise_id?: string | null
+          id?: string
+          is_primary?: boolean
+          user_id: string
+        }
+        Update: {
+          added_at?: string
+          custom_label?: string | null
+          display_order?: number
+          expertise_id?: string | null
+          id?: string
+          is_primary?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_expertise_expertise_id_fkey"
+            columns: ["expertise_id"]
+            isOneToOne: false
+            referencedRelation: "expertise_library"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           granted_at: string
@@ -6238,6 +6400,32 @@ export type Database = {
         }
         Relationships: []
       }
+      expertise_user_index: {
+        Row: {
+          expertise_id: string | null
+          is_primary: boolean | null
+          user_id: string | null
+        }
+        Insert: {
+          expertise_id?: string | null
+          is_primary?: boolean | null
+          user_id?: string | null
+        }
+        Update: {
+          expertise_id?: string | null
+          is_primary?: boolean | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_expertise_expertise_id_fkey"
+            columns: ["expertise_id"]
+            isOneToOne: false
+            referencedRelation: "expertise_library"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles_directory: {
         Row: {
           avatar_url: string | null
@@ -6389,6 +6577,7 @@ export type Database = {
         }
         Returns: string
       }
+      refresh_iris_expertise_coverage: { Args: never; Returns: undefined }
       resolve_writer_identity: {
         Args: { _auth_user_id: string; _display_name?: string; _email?: string }
         Returns: string

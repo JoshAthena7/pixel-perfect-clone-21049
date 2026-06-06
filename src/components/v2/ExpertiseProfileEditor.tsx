@@ -3,6 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { X, Plus, Trash2, Check, Plane, Pause, Circle } from "lucide-react";
+import { ExpertiseSection } from "@/components/expertise/ExpertiseSection";
+
 
 const COMMON_STATES = ["NJ", "IN", "OH", "TX", "IL", "PA", "FL", "TN", "KY", "MO", "GA", "NC"];
 const ALL_STATES = [
@@ -63,15 +65,16 @@ export function ExpertiseProfileEditor({
   });
 
   const { data: options = [] } = useQuery({
-    queryKey: ["expertise-options"],
+    queryKey: ["expertise-library-opts"],
     queryFn: async () => {
       const { data } = await supabase
-        .from("expertise_options")
-        .select("id,kind,label")
+        .from("expertise_library")
+        .select("id,label,category,sort_order")
         .order("sort_order", { ascending: true });
-      return (data ?? []) as Opt[];
+      return (data ?? []).map((r) => ({ id: r.id, kind: "expertise_area" as const, label: r.label })) as Opt[];
     },
   });
+
 
   const { data: programs = [] } = useQuery({
     queryKey: ["atlas-programs-list"],
@@ -91,11 +94,29 @@ export function ExpertiseProfileEditor({
   }, [profile]);
 
   const expertiseOpts = useMemo(() => options.filter((o) => o.kind === "expertise_area"), [options]);
-  const qtypeOpts = useMemo(() => options.filter((o) => o.kind === "question_type"), [options]);
+  const qtypeOpts = useMemo(
+    () =>
+      [
+        "Approach & Methodology",
+        "Operations",
+        "Care Management",
+        "Quality",
+        "Provider Network",
+        "Implementation",
+        "IT Systems",
+        "Compliance",
+        "Staffing",
+        "Financial",
+        "Reporting & Analytics",
+        "Member Experience",
+      ].map((label, i) => ({ id: `qt-${i}`, kind: "question_type" as const, label })),
+    [],
+  );
+
 
   const [stateSearch, setStateSearch] = useState("");
   const [showAllStates, setShowAllStates] = useState(false);
-  const [customExpertise, setCustomExpertise] = useState("");
+
   const [customProgram, setCustomProgram] = useState("");
 
   if (isLoading || !form) {
@@ -187,34 +208,10 @@ export function ExpertiseProfileEditor({
       </div>
 
       <div className="space-y-8 px-6 py-6">
-        {/* SECTION 1 — EXPERTISE */}
-        <Section title="What do you know?" subtitle="The areas you can speak to with depth.">
-          <ChipPicker
-            values={form.expertise_areas}
-            options={expertiseOpts.map((o) => o.label)}
-            onToggle={(v) => toggle("expertise_areas", v)}
-          />
-          <div className="mt-3 flex gap-2">
-            <input
-              value={customExpertise}
-              onChange={(e) => setCustomExpertise(e.target.value)}
-              placeholder="Add custom expertise…"
-              className="flex-1 rounded-md border border-border bg-background px-3 py-1.5 text-xs"
-            />
-            <button
-              onClick={() => {
-                const v = customExpertise.trim();
-                if (!v) return;
-                if (!form.expertise_areas.includes(v))
-                  setField("expertise_areas", [...form.expertise_areas, v]);
-                setCustomExpertise("");
-              }}
-              className="rounded-md border border-border bg-surface px-3 py-1.5 text-xs hover:bg-surface-hover"
-            >
-              <Plus className="inline h-3 w-3" /> Add
-            </button>
-          </div>
-        </Section>
+        {/* SECTION 1 — EXPERTISE (new structured system) */}
+        <ExpertiseSection userId={form.id} />
+
+
 
         {/* SECTION 2 — STATES */}
         <Section title="Which states have you worked in?">

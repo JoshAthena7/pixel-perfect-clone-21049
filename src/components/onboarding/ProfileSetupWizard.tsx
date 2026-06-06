@@ -195,18 +195,39 @@ function ProfileSetupWizard({
     })();
   }, [profileId]);
 
-  const { data: options = [] } = useQuery({
-    queryKey: ["expertise-options"],
+  const { data: libraryRows = [] } = useQuery({
+    queryKey: ["expertise-library-labels"],
     queryFn: async () => {
       const { data } = await supabase
-        .from("expertise_options")
-        .select("id,kind,label")
+        .from("expertise_library")
+        .select("id,label,category,sort_order")
         .order("sort_order", { ascending: true });
-      return (data ?? []) as Opt[];
+      return (data ?? []) as { id: string; label: string; category: string; sort_order: number }[];
     },
   });
-  const expertiseOpts = useMemo(() => options.filter((o) => o.kind === "expertise_area"), [options]);
-  const qtypeOpts = useMemo(() => options.filter((o) => o.kind === "question_type"), [options]);
+  const expertiseOpts = useMemo(
+    () => libraryRows.map((r) => ({ id: r.id, kind: "expertise_area" as const, label: r.label })),
+    [libraryRows],
+  );
+  const QUESTION_TYPE_LABELS = [
+    "Approach & Methodology",
+    "Operations",
+    "Care Management",
+    "Quality",
+    "Provider Network",
+    "Implementation",
+    "IT Systems",
+    "Compliance",
+    "Staffing",
+    "Financial",
+    "Reporting & Analytics",
+    "Member Experience",
+  ];
+  const qtypeOpts = useMemo(
+    () => QUESTION_TYPE_LABELS.map((label, i) => ({ id: `qt-${i}`, kind: "question_type" as const, label })),
+    [],
+  );
+
 
   const { data: programs = [] } = useQuery({
     queryKey: ["atlas-programs-list"],

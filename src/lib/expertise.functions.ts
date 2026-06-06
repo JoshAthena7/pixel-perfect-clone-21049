@@ -291,3 +291,163 @@ export const matchExperts = createServerFn({ method: "POST" })
     return { primary, alternatives, iris_line };
   });
 
+
+/* ───────────────────────── Structured expertise library + per-user tags ───────────────────────── */
+
+export type ExpertiseCategory = "programs-populations" | "functional" | "procurement-market" | "leadership";
+
+export type LibraryItem = {
+  id: string;
+  label: string;
+  category: ExpertiseCategory;
+  sort_order: number;
+};
+
+export type UserExpertiseStructured = {
+  id: string;          // user_expertise row id
+  expertise_id: string;
+  label: string;
+  category: ExpertiseCategory;
+  is_primary: boolean;
+  display_order: number;
+  added_at: string;
+};
+
+export type UserExpertiseCustom = {
+  id: string;
+  custom_label: string;
+  is_primary: boolean;
+  display_order: number;
+  added_at: string;
+};
+
+export type UserExpertise = {
+  structured: UserExpertiseStructured[];
+  custom: UserExpertiseCustom[];
+};
+
+export const getExpertiseLibrary = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<LibraryItem[]> => {
+    const { data, error } = await context.supabase
+      .from("expertise_library")
+      .select("id,label,category,sort_order")
+      .eq("active", true)
+      .order("category")
+      .order("sort_order");
+    if (error) throw error;
+    return (data ?? []) as LibraryItem[];
+  });
+
+export const getUserExpertise = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ userId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }): Promise<UserExpertise> => {
+    const { data: rows, error } = await context.supabase
+      .from("user_expertise")
+      .select("id,expertise_id,custom_label,is_primary,display_order,added_at,expertise_library(label,category)")
+      .eq("user_id", data.userId)
+      .order("display_order");
+    if (error) throw error;
+
+    const structured: UserExpertiseStructured[] = [];
+    const custom: UserExpertiseCustom[] = [];
+    for (const r of (rows ?? []) as any[]) {
+      if (r.expertise_id) {
+        structured.push({
+          id: r.id,
+          expertise_id: r.expertise_id,
+          label: r.expertise_library?.label ?? r.expertise_id,
+          category: (r.expertise_library?.category ?? "functional") as ExpertiseCategory,
+          is_primary: r.is_primary,
+          display_order: r.display_order,
+          added_at: r.added_at,
+        });
+      } else if (r.custom_label) {
+        custom.push({
+          id: r.id,
+          custom_label: r.custom_label,
+          is_primary: r.is_primary,
+          display_order: r.display_order,
+          added_at: r.added_at,
+        });
+      }
+    }
+    return { structured, custom };
+  });
+
+const SetUserExpertiseInput = z.object({
+  items: z
+    .array(
+      z.object({
+        expertise_id: z.string().nullable(),
+        custom_label: z.string().min(2).max(40).nullable(),
+        is_primary: z.boolean(),
+        display_order: z.number().int().min(0),
+      }),
+    )
+    .max(200),
+});
+
+export const setUserExpertise = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => SetUserExpertiseInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    const primaryCount = data.items.filter((i) => i.is_primary).length;
+    if (primaryCount > 5) {
+      throw new Error("Maximum of 5 primary expertise areas allowed");
+    }
+
+    // Replace-all strategy: delete existing then insert. Simple + correct.
+    const { error: delErr } = await supabase.from("user_expertise").delete().eq("user_id", userId);
+    if (delErr) throw delErr;
+
+    if (data.items.length === 0) return { ok: true };
+
+    const rows = data.items.map((i) => ({
+      user_id: userId,
+      expertise_id: i.expertise_id,
+      custom_label: i.custom_label,
+      is_primary: i.is_primary,
+      display_order: i.display_order,
+    }));
+
+    // Insert non-primary first to avoid the primary-limit trigger seeing partial state.
+    const nonPrimary = rows.filter((r) => !r.is_primary);
+    const primary = rows.filter((r) => r.is_primary);
+    if (nonPrimary.length) {
+      const { error } = await supabase.from("user_expertise").insert(nonPrimary);
+      if (error) throw error;
+    }
+    if (primary.length) {
+      const { error } = await supabase.from("user_expertise").insert(primary);
+      if (error) throw error;
+    }
+    return { ok: true };
+  });
+
+export const searchUsersByExpertise = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ expertiseIds: z.array(z.string()).min(1).max(20) }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase
+      .from("expertise_user_index")
+      .select("user_id, expertise_id, is_primary")
+      .in("expertise_id", data.expertiseIds);
+    if (error) throw error;
+
+    const byUser = new Map<string, { matched: string[]; primaryMatches: number }>();
+    for (const r of (rows ?? []) as any[]) {
+      const entry = byUser.get(r.user_id) ?? { matched: [], primaryMatches: 0 };
+      entry.matched.push(r.expertise_id);
+      if (r.is_primary) entry.primaryMatches += 1;
+      byUser.set(r.user_id, entry);
+    }
+    // Intersection: only users matching ALL requested
+    const matchAll = Array.from(byUser.entries())
+      .filter(([_, v]) => v.matched.length === data.expertiseIds.length)
+      .map(([userId, v]) => ({ userId, matched: v.matched, primaryMatches: v.primaryMatches }));
+    return { users: matchAll };
+  });
