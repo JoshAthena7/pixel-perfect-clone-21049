@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -44,10 +45,16 @@ const EVENT_VERB: Record<string, string> = {
 };
 
 function AtriumPage() {
+  const [canFetchAtrium, setCanFetchAtrium] = useState(false);
   const fn = useServerFn(getAtrium);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setCanFetchAtrium(true), 300);
+    return () => window.clearTimeout(timer);
+  }, []);
   const { data, isLoading } = useQuery({
     queryKey: ["atrium"],
     queryFn: () => fn(),
+    enabled: canFetchAtrium,
     refetchInterval: 60_000,
   });
 

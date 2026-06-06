@@ -8,7 +8,6 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { irisLeadershipAttention } from "@/lib/iris.functions";
 import { getUnacknowledgedBriefings } from "@/lib/brief-room.functions";
 
 import { useIsAdmin } from "@/hooks/useAccess";
@@ -107,15 +106,6 @@ function TopBar({
   // Per the Permissions spec: Olympus is invisible in nav for non-admins.
   // No greyed-out link, no lock icon — absent entirely.
   const { isAdmin } = useIsAdmin();
-
-  const attentionFn = useServerFn(irisLeadershipAttention);
-  useQuery({
-    queryKey: ["leadership-attention"],
-    queryFn: () => attentionFn(),
-    refetchInterval: 60_000,
-    retry: false,
-    throwOnError: false,
-  });
 
   const { data: mission } = useQuery({
     queryKey: ["shell-mission-name", missionId],
