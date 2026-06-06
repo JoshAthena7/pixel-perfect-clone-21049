@@ -427,7 +427,7 @@ function BatchScoresModal({
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground sticky top-0">
               <tr>
-                <th className="px-3 py-2">Question</th>
+                <th className="px-3 py-2">Section</th>
                 <th className="px-3 py-2 text-right">Score (0–5)</th>
               </tr>
             </thead>

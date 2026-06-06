@@ -174,7 +174,7 @@ export function UploadMatrixModal({
                 <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
                 Heads up — replace mode
               </div>
-              This upload will become the new source of truth and will <strong>replace every existing question</strong>{" "}
+              This upload will become the new source of truth and will <strong>replace every existing section</strong>{" "}
               on this mission. You'll review the parsed rows before committing.
             </div>
 
@@ -354,7 +354,7 @@ export function UploadMatrixModal({
                 className="mt-0.5"
               />
               <span>
-                <strong>Replace all existing questions</strong> on this mission with these {questions.length} rows. This
+                <strong>Replace all existing sections</strong> on this mission with these {questions.length} rows. This
                 cannot be undone. Existing assignments, scores, and progress tied to the old questions will be removed.
               </span>
             </label>

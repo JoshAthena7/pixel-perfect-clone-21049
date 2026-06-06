@@ -84,7 +84,7 @@ export function KeyboardShortcuts() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 p-5 text-sm">
           <Group title="Navigation">
             <Row keys={["g", "h"]} label="Go to The Atrium · Home" />
-            <Row keys={["g", "q"]} label="Go to Questions" />
+            <Row keys={["g", "q"]} label="Go to Sections" />
             <Row keys={["g", "v"]} label="Go to The Vault · Archive" />
             <Row keys={["g", "o"]} label="Go to The Oracle · Live Intelligence" />
             <Row keys={["/"]} label="Focus search" />
@@ -97,7 +97,7 @@ export function KeyboardShortcuts() {
           <Group title="The Cockpit">
             <Row keys={["N"]} label="New note" />
             <Row keys={["R"]} label="Raise risk / flag" />
-            <Row keys={["Esc"]} label="Back to Questions" />
+            <Row keys={["Esc"]} label="Back to Sections" />
           </Group>
           <Group title="Global">
             <Row keys={["?"]} label="Show this dialog" />

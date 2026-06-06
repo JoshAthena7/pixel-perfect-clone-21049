@@ -510,7 +510,7 @@ function ResearchFeedItem({ row, missionId, idx = 0 }: { row: ResearchFeedRow; m
               Save to Vault
             </ActionBtn>
             <ActionBtn icon={<Link2 className="h-3 w-3" />} onClick={() => setAttachOpen(true)}>
-              Attach to Question
+              Attach to Section
             </ActionBtn>
             <ActionBtn icon={<Users className="h-3 w-3" />} onClick={() => { shareWithTeam.mutate(); fireFlash("TRANSMITTED ✓", "teal"); }} disabled={shareWithTeam.isPending}>
               Share with Team
@@ -595,7 +595,7 @@ function AttachToQuestionDialog({ missionId, item, insight, onClose }: { mission
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-md">
-        <DialogHeader><DialogTitle>Attach to Question</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>Attach to Section</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <select
             value={selected ?? ""}

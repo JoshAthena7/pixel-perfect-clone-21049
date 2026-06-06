@@ -704,7 +704,7 @@ function CockpitPage() {
             )}
 
             <div>
-              <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Question</div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Section</div>
               <p className="mt-2 text-[14px] leading-[1.7] text-foreground whitespace-pre-wrap">{q.question_text}</p>
             </div>
 

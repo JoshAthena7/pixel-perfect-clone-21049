@@ -778,8 +778,8 @@ function MissionBrief() {
               </div>
               <ul className="mt-3 space-y-1 text-[13px] text-muted-foreground">
                 <li><span className="font-semibold tabular-nums text-foreground">{gateReady.belowStandard}</span> questions below standard (4.5)</li>
-                <li><span className="font-semibold tabular-nums text-foreground">{gateReady.notSubmitted}</span> questions not yet submitted</li>
-                <li><span className="font-semibold tabular-nums text-foreground">{gateReady.ready}</span> questions ready</li>
+                <li><span className="font-semibold tabular-nums text-foreground">{gateReady.notSubmitted}</span> sections not yet submitted</li>
+                <li><span className="font-semibold tabular-nums text-foreground">{gateReady.ready}</span> sections ready</li>
               </ul>
               <Link
                 to="/missions/$missionId/overview"
