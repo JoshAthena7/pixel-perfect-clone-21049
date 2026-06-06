@@ -67,15 +67,19 @@ export function IrisDailyNote() {
 
   return (
     <section
+      data-testid="iris-daily-note"
       aria-label="Today's IRIS note"
       className="relative w-full overflow-hidden border-y border-[color:var(--athena-gold,#C49A22)]/35"
       style={{ background: "#0d1220" }}
     >
       <DotField />
 
-      <div className="relative z-10 mx-auto grid max-w-[1400px] grid-cols-1 items-center gap-4 px-8 py-5 md:grid-cols-[220px_1fr_220px]">
+      <div
+        data-testid="iris-daily-note-grid"
+        className="relative z-10 mx-auto grid max-w-[1400px] grid-cols-1 items-center gap-4 px-8 py-5 md:grid-cols-[220px_1fr_220px]"
+      >
         {/* Left — date + day */}
-        <div className="md:border-r md:border-white/8 md:pr-6">
+        <div data-testid="iris-daily-note-left" className="md:border-r md:border-white/8 md:pr-6">
           <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-[color:var(--athena-gold,#C49A22)]/80">
             {dayName}
           </div>
@@ -83,7 +87,7 @@ export function IrisDailyNote() {
         </div>
 
         {/* Center — the note */}
-        <div className="text-center">
+        <div data-testid="iris-daily-note-center" className="text-center">
           <p
             className="text-balance text-base italic leading-relaxed text-white/85 md:text-[17px]"
             style={{ fontFamily: "'Cormorant Garamond', serif" }}
@@ -93,11 +97,15 @@ export function IrisDailyNote() {
         </div>
 
         {/* Right — label + pulsing dot */}
-        <div className="flex items-center justify-end gap-2 md:border-l md:border-white/8 md:pl-6">
+        <div
+          data-testid="iris-daily-note-right"
+          className="flex items-center justify-end gap-2 md:border-l md:border-white/8 md:pl-6"
+        >
           <span className="text-[10px] font-semibold uppercase tracking-[0.32em] text-white/55">
             Today's Note
           </span>
           <span
+            data-testid="iris-daily-note-pulse"
             aria-hidden
             className="relative inline-flex h-2 w-2"
           >
@@ -124,6 +132,7 @@ export function IrisDailyNote() {
           </span>
         </div>
       </div>
+
 
       <style>{`
         @keyframes iris-note-pulse {
