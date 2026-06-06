@@ -9,6 +9,7 @@ const ThemeSchema = z.object({
         title: z.string().min(6).max(120),
         key_message: z.string().min(20).max(500),
         description: z.string().min(20).max(900),
+        source_label: z.string().max(180).optional(),
       }),
     )
     .max(8),
