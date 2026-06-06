@@ -226,6 +226,7 @@ function ProfileSetupWizard({
     setSaving(false);
     if (!ok) return;
     toast.success("You're set up. IRIS will point teammates to you when they need your expertise.");
+    if (typeof window !== "undefined") localStorage.removeItem(resumeKey);
     if (typeof window !== "undefined" && isReplay()) {
       const url = new URL(window.location.href);
       url.searchParams.delete("profile-setup");
