@@ -83,6 +83,7 @@ function IrisPage() {
     runningRef.current = true;
     cancelRef.current = false;
     setRunning(true);
+    setCancelling(false);
     setStages(STAGE_DEFS.map((s) => ({ id: s.id, label: s.label, status: "pending" })));
 
     let cancelledDuringRun = false;
