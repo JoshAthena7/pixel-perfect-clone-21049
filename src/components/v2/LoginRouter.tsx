@@ -3,7 +3,9 @@
 // visited path when session is < 4h old.
 import { useEffect, useRef } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { getLoginRouting } from "@/lib/routing.functions";
 import {
   SESSION_RECENCY_HOURS,
   shouldHonorDeepLink,
@@ -19,6 +21,7 @@ function key(prefix: string, userId: string) {
 
 export function LoginRouter() {
   const navigate = useNavigate();
+  const fn = useServerFn(getLoginRouting);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const didRunRef = useRef(false);
 
@@ -62,12 +65,25 @@ export function LoginRouter() {
         }
       } catch { /* noop */ }
 
-      // Cold login falls through to the matched authenticated route. Role-aware
-      // defaults are fetched inside the destination page instead of during shell
-      // startup, which prevents server-fn lookup races from blanking the app.
-      try { window.sessionStorage.setItem(routedKey, "1"); } catch { /* noop */ }
+      // Cold login → role-based routing.
+      try {
+        const result = await fn();
+        try { window.sessionStorage.setItem(`atlas.role.${user.id}`, result.role); } catch { /* noop */ }
+        try { window.sessionStorage.setItem(routedKey, "1"); } catch { /* noop */ }
+        const dest = result.destination;
+        await navigate({
+          to: dest.to as never,
+          params: (dest.params ?? {}) as never,
+          search: (dest.search ?? {}) as never,
+          replace: true,
+        });
+      } catch (err) {
+        // Routing must never block the app. Mark as run so we don't loop.
+        try { window.sessionStorage.setItem(routedKey, "1"); } catch { /* noop */ }
+        console.warn("[LoginRouter] failed to compute routing", err);
+      }
     })();
-  }, [navigate]);
+  }, [fn, navigate]);
 
   // Persist per-user lastPath/lastSeen on navigation.
   useEffect(() => {
