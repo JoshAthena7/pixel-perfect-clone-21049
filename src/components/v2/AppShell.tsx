@@ -510,7 +510,7 @@ function UserAvatarMenu() {
             <User className="h-4 w-4" /> Profile
           </Link>
           <Link
-            to="/home"
+            to="/flight-deck"
             className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-muted-foreground hover:bg-surface-hover hover:text-foreground"
             onClick={() => setOpen(false)}
           >
