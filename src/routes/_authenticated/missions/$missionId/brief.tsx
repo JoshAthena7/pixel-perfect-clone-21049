@@ -13,6 +13,7 @@ import { MissionRoomHero } from "@/components/v2/MissionRoomHero";
 import { ResponseTemplateStatusRow } from "@/components/v2/ResponseTemplateStatusRow";
 import { SubmissionChecklist } from "@/components/v2/SubmissionChecklist";
 import { MissionSectionsList } from "@/components/v2/MissionSectionsList";
+import { ClientClarificationsCard } from "@/components/v2/ClientClarificationsCard";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/brief")({
   component: MissionOverviewPage,
@@ -644,6 +645,21 @@ function MissionOverviewPage() {
         </div>
 
         <div className="mr-divider" />
+
+        {/* ══════════════════════════════════════════════════════════ */}
+        {/* CLIENT CLARIFICATIONS                                      */}
+        {/* ══════════════════════════════════════════════════════════ */}
+        <section id="client-clarifications">
+          <ClientClarificationsCard
+            missionId={missionId}
+            qaDeadline={mission?.qa_deadline ?? null}
+            canManage={isLeader || isPM}
+          />
+        </section>
+
+        <div className="mr-divider" />
+
+
 
         {/* ══════════════════════════════════════════════════════════ */}
         {/* ZONE 3 · THE MISSION                                       */}

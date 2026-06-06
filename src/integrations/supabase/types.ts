@@ -1526,6 +1526,56 @@ export type Database = {
           },
         ]
       }
+      client_clarifications: {
+        Row: {
+          answered_at: string | null
+          client_response: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          mission_id: string
+          number: number
+          question: string
+          status: string
+          submitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          answered_at?: string | null
+          client_response?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          mission_id: string
+          number: number
+          question: string
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          answered_at?: string | null
+          client_response?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          mission_id?: string
+          number?: number
+          question?: string
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_clarifications_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collective_members: {
         Row: {
           created_at: string
