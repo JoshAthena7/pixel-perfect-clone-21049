@@ -83,12 +83,12 @@ export function routeForRole(
   if (role === "executive_sponsor") {
     return { to: EXEC_ROUTING_DESTINATION };
   }
-  return { to: "/v1" };
+  return { to: "/flight-deck" };
 }
 
 // Paths that count as "the default landing" — LoginRouter will only reroute
 // from these. Anything else is treated as a deep link.
-export const DEFAULT_LANDING_PATHS = new Set(["/", "/atrium", "/home", "/v1"]);
+export const DEFAULT_LANDING_PATHS = new Set(["/", "/atrium", "/home", "/v1", "/flight-deck"]);
 
 export function shouldHonorDeepLink(pathname: string): boolean {
   return !DEFAULT_LANDING_PATHS.has(pathname);
