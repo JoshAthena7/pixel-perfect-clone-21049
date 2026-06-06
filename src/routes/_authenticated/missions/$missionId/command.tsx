@@ -1031,6 +1031,117 @@ function MissionBrief() {
           </div>
         </section>
 
+        {/* SECTION 4b · F-5: IRIS STRATEGIC RISKS — written by IRIS, surfaced here so PMs actually read them. */}
+        <section>
+          <SectionHeader
+            title="IRIS Strategic Risks"
+            badge={
+              <CountBadge
+                count={irisRisks.length}
+                tone={unreadIrisRiskCount > 0 ? "red" : irisRisks.length > 0 ? "amber" : "green"}
+              />
+            }
+          />
+          <div
+            className="rounded-[12px] border"
+            style={{
+              background: "rgba(255,255,255,0.02)",
+              borderColor:
+                unreadIrisRiskCount > 0
+                  ? "rgba(239,68,68,0.30)"
+                  : "rgba(255,255,255,0.06)",
+            }}
+          >
+            {irisRisks.length === 0 ? (
+              <div className="px-5 py-5 text-sm text-muted-foreground">
+                <span className="iris-dot mr-2" /> IRIS hasn't flagged any open strategic risks.
+              </div>
+            ) : (
+              <ul className="divide-y divide-white/5">
+                {irisRisks.map((r) => {
+                  const sev = (r.severity ?? "").toLowerCase();
+                  const sevColor =
+                    sev === "high" || sev === "critical" ? "#ef4444"
+                    : sev === "medium" ? "#eab308"
+                    : "#22c55e";
+                  const isUnread = (r.status ?? "").toLowerCase() === "open";
+                  const isOpen = expandedRisk === r.id;
+                  return (
+                    <li key={r.id} className="px-5 py-3 text-sm">
+                      <div className="flex items-center gap-3">
+                        <span
+                          className="h-2 w-2 shrink-0 rounded-full"
+                          style={{ background: sevColor, boxShadow: `0 0 8px ${sevColor}` }}
+                          title={`Severity: ${r.severity ?? "—"}`}
+                        />
+                        {isUnread && (
+                          <span
+                            className="shrink-0 rounded-sm px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em]"
+                            style={{
+                              background: "rgba(239,68,68,0.15)",
+                              color: "#fecaca",
+                              border: "1px solid rgba(239,68,68,0.35)",
+                            }}
+                          >
+                            New
+                          </span>
+                        )}
+                        {r.created_by_system && (
+                          <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/80">
+                            IRIS
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setExpandedRisk(isOpen ? null : r.id)}
+                          className="min-w-0 flex-1 truncate text-left hover:underline"
+                          title={isOpen ? "Collapse" : "Read full risk"}
+                        >
+                          {r.title}
+                        </button>
+                        <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
+                          {timeAgo(r.created_at)}
+                        </span>
+                        <div className="flex shrink-0 items-center gap-1">
+                          {isUnread && (
+                            <button
+                              onClick={() => setRiskStatus(r.id, "Acknowledged")}
+                              className="rounded-md border border-white/10 bg-white/[0.04] px-2 py-1 text-[11px] hover:bg-white/[0.08]"
+                              title="Mark that you've read and accepted this risk"
+                            >
+                              Acknowledge
+                            </button>
+                          )}
+                          <button
+                            onClick={() => setRiskStatus(r.id, "closed")}
+                            className="rounded-md border border-white/10 bg-white/[0.04] px-2 py-1 text-[11px] text-muted-foreground hover:bg-white/[0.08] hover:text-foreground"
+                            title="Dismiss — no longer a concern"
+                          >
+                            Dismiss
+                          </button>
+                        </div>
+                      </div>
+                      {isOpen && r.description && (
+                        <p className="mt-2 ml-5 whitespace-pre-wrap text-[12px] text-muted-foreground">
+                          {r.description}
+                        </p>
+                      )}
+                      {isOpen && (
+                        <div className="mt-2 ml-5 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+                          <span>Severity: <span className="text-foreground">{r.severity ?? "—"}</span></span>
+                          <span>·</span>
+                          <span>Status: <span className="text-foreground">{r.status ?? "Open"}</span></span>
+                          {r.owner && (<><span>·</span><span>Owner: <span className="text-foreground">{r.owner}</span></span></>)}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        </section>
+
         {/* SECTION 5: NEXT GATE */}
         <section>
           <SectionHeader title="Next Gate" />
