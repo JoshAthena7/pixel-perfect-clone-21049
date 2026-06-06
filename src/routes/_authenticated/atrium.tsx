@@ -111,7 +111,9 @@ function GlobalBriefing() {
         <span className="text-[10px] text-muted-foreground">Firm-wide · pinned</span>
       </div>
       <div className="px-5 py-4">
-        <h3 className="text-base font-semibold tracking-tight">NJ CSOC Submission Timeline Update</h3>
+        <h3 className="text-base font-semibold tracking-tight">
+          <IrisType text="NJ CSOC Submission Timeline Update" />
+        </h3>
         <p className="mt-2 text-sm leading-relaxed text-foreground/90">
           The Division has confirmed the submission deadline remains August 15, 2026. All sections must clear final
           QA gate by August 10. Engage leads are expected to confirm section status by EOD Friday.
