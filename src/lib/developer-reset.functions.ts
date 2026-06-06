@@ -45,6 +45,7 @@ export const resetAllMissionData = createServerFn({ method: "POST" })
     const { data, error } = await supabaseAdmin.rpc(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       "developer_reset_all_mission_data" as any,
+      { p_caller: userId } as any,
     );
     if (error) throw new Error(`Reset failed: ${error.message}`);
 
