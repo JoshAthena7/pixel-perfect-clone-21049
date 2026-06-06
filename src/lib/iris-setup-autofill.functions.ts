@@ -168,7 +168,7 @@ export const irisPopulateSetupRecord = createServerFn({ method: "POST" })
         .limit(10),
       supabase
         .from("briefing_book_sections")
-        .select("section_key,title,content")
+        .select("section_key,content")
         .eq("mission_id", missionId)
         .limit(20),
       supabase.from("mission_client_intel").select("*").eq("mission_id", missionId).maybeSingle(),
@@ -198,7 +198,7 @@ export const irisPopulateSetupRecord = createServerFn({ method: "POST" })
     const rfpText = parts.join("\n\n---\n\n");
 
     const briefingText = (briefingBook.data ?? [])
-      .map((s) => `## ${s.title}\n${(s.content ?? "").slice(0, 3000)}`)
+      .map((s) => `## ${s.section_key}\n${(s.content ?? "").slice(0, 3000)}`)
       .join("\n\n")
       .slice(0, 15000);
 
@@ -325,8 +325,7 @@ export const irisPopulateSetupRecord = createServerFn({ method: "POST" })
         .map((e, idx) => ({
           mission_id: missionId,
           category: String(e.category ?? "").trim(),
-          points: typeof e.points === "number" ? e.points : null,
-          notes: typeof e.notes === "string" ? e.notes : null,
+          points: typeof e.points === "number" ? Math.round(e.points) : 0,
           display_order: idx,
         }))
         .filter((e) => e.category.length > 0);
@@ -349,7 +348,7 @@ export const irisPopulateSetupRecord = createServerFn({ method: "POST" })
 
     const { error: updErr } = await supabase
       .from("missions")
-      .update(missionPatch)
+      .update(missionPatch as never)
       .eq("id", missionId);
     if (updErr) throw new Error(updErr.message);
 
