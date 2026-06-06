@@ -238,7 +238,7 @@ export function CommandPalette() {
       to = hit.href;
     } else if (hit.questionId && hit.missionId) {
       navigate({ to: "/missions/$missionId/sections/$questionId", params: { missionId: hit.missionId, questionId: hit.questionId } });
-      saveRecent({ id: hit.id, label: hit.title, hint: hit.subtitle, group: hit.group, to: `/missions/${hit.missionId}/questions/${hit.questionId}` });
+      saveRecent({ id: hit.id, label: hit.title, hint: hit.subtitle, group: hit.group, to: `/missions/${hit.missionId}/sections/${hit.questionId}` });
       return;
     } else if (hit.missionId) {
       navigate({ to: "/missions/$missionId/overview", params: { missionId: hit.missionId } });
