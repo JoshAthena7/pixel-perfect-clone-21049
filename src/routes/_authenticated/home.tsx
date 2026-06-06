@@ -501,6 +501,27 @@ function AthenaHQ() {
           </section>
         )}
 
+        {/* Atrium command-center intelligence layer (leaders only) */}
+        {isLeader && missions.length > 0 && (
+          <div className="space-y-3">
+            <PortfolioStatusStrip
+              missions={missions as any}
+              missionQuestions={missionQuestions as any}
+              activeFilter={missionHealthFilter}
+              onFilterChange={setMissionHealthFilter}
+            />
+            <AttentionPanel
+              missions={missions as any}
+              missionQuestions={missionQuestions as any}
+            />
+            <DueThisWeek
+              missions={missions as any}
+              missionQuestions={missionQuestions as any}
+            />
+            <MorningBriefing items={briefItems} />
+          </div>
+        )}
+
         {/* ROLE-DIFFERENTIATED: Active Missions (leaders) or Your Assignments (writers/SMEs) */}
         {isLeader ? (
           <section>
