@@ -169,6 +169,11 @@ function MissionSetupRecord() {
             </p>
           </header>
 
+          <SetupCompletenessMeter
+            mission={setup.mission}
+            evaluationCount={setup.evaluation?.length ?? 0}
+          />
+
           <IrisAutofillBanner
             missionId={missionId}
             status={setup.mission?.iris_setup_autofill_status}
