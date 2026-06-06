@@ -135,27 +135,30 @@ export async function recordEdges(supabase: SupabaseClient, edges: EdgeInput[]):
 }
 
 /**
- * Wipe edges (and their derived_from source nodes that nothing else points
- * to) for a given output node. Used by extractors that re-run and replace
- * their outputs — keeps the graph from accumulating stale provenance.
+ * Soft-expire active output nodes of a given kind for a mission, plus any
+ * edges incident on them. Sets valid_to = now() rather than deleting, so the
+ * "what changed in the last 7 days" feed can diff against history.
  */
 export async function clearMissionOutputGraph(
   supabase: SupabaseClient,
   missionId: string,
   kind: NodeKind,
 ): Promise<void> {
-  // Find output nodes of this kind for this mission.
+  const now = new Date().toISOString();
   const { data: outputs } = await supabase
     .from("graph_nodes")
     .select("id")
     .eq("mission_id", missionId)
-    .eq("kind", kind);
+    .eq("kind", kind)
+    .is("valid_to", null);
   const ids = (outputs ?? []).map((r: { id: string }) => r.id);
   if (ids.length === 0) return;
-  // Delete edges first (cascades from node delete would also work).
-  await supabase.from("graph_edges").delete().in("dst_node_id", ids);
-  await supabase.from("graph_edges").delete().in("src_node_id", ids);
-  await supabase.from("graph_nodes").delete().in("id", ids);
+  await supabase
+    .from("graph_edges")
+    .update({ valid_to: now })
+    .is("valid_to", null)
+    .or(`src_node_id.in.(${ids.join(",")}),dst_node_id.in.(${ids.join(",")})`);
+  await supabase.from("graph_nodes").update({ valid_to: now }).in("id", ids);
 }
 
 /**
