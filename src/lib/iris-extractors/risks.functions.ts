@@ -10,6 +10,7 @@ const RiskSchema = z.object({
         description: z.string().min(20).max(900),
         severity: z.enum(["watch", "medium", "high", "critical"]),
         category: z.enum(["regulatory", "competitive", "political", "operational", "financial"]),
+        source_label: z.string().max(180).optional(),
       }),
     )
     .max(15),
