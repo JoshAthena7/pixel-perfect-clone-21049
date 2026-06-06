@@ -819,3 +819,114 @@ function StrategyView({ themes }: { themes: IrisData["winThemes"] }) {
     </div>
   );
 }
+
+/* ─────────────────────────────────────────────────────────────────────── */
+/* "Why is this here?" — Mission Intelligence Graph explainer              */
+/* ─────────────────────────────────────────────────────────────────────── */
+
+function WhyButton({
+  missionId,
+  kind,
+  refTable,
+  refId,
+}: {
+  missionId: string;
+  kind: "signal" | "risk" | "win_theme" | "state_priority" | "client_intel";
+  refTable: string;
+  refId: string;
+}) {
+  const explain = useServerFn(explainOutput);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<ExplainResult | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  const toggle = async () => {
+    if (open) {
+      setOpen(false);
+      return;
+    }
+    setOpen(true);
+    if (result || loading || !missionId) return;
+    setLoading(true);
+    setErr(null);
+    try {
+      const r = await explain({ data: { missionId, kind, refTable, refId } });
+      setResult(r);
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="mt-2">
+      <button
+        type="button"
+        onClick={toggle}
+        className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70 transition hover:text-amber-300"
+      >
+        {open ? "Hide trace" : "Why is this here?"}
+      </button>
+      {open && (
+        <div className="mt-2 rounded-md border border-amber-500/20 bg-amber-500/[0.04] p-2.5">
+          {loading && <div className="text-[11px] text-muted-foreground">Tracing graph…</div>}
+          {err && <div className="text-[11px] text-red-400">Couldn't load trace: {err}</div>}
+          {!loading && !err && result && result.sources.length === 0 && (
+            <div className="text-[11px] italic text-muted-foreground">
+              No graph trace recorded. Re-run Generate Intelligence to populate.
+            </div>
+          )}
+          {!loading && !err && result && result.sources.length > 0 && (
+            <ol className="space-y-1.5">
+              {result.edges.map((e) => {
+                const src = result.sources.find((n) => n.id === e.src_node_id);
+                if (!src) return null;
+                const prov = (e.provenance ?? {}) as {
+                  row_source?: string;
+                  row_url?: string;
+                  row_published_at?: string;
+                };
+                return (
+                  <li key={e.id} className="text-[11px] leading-snug">
+                    <span className="font-mono uppercase tracking-wider text-amber-400/70">
+                      {e.edge_type.replace("_", " ")}
+                    </span>
+                    <span className="text-muted-foreground/60"> · w {Number(e.weight).toFixed(2)}</span>
+                    {typeof e.confidence === "number" && (
+                      <span className="text-muted-foreground/60">
+                        {" "}
+                        · {Math.round(Number(e.confidence) * 100)}%
+                      </span>
+                    )}
+                    <div className="text-foreground/90">{src.label}</div>
+                    {prov.row_source && (
+                      <div className="text-muted-foreground/70">
+                        {prov.row_source}
+                        {prov.row_published_at ? ` · ${prov.row_published_at.slice(0, 10)}` : ""}
+                        {prov.row_url ? (
+                          <>
+                            {" · "}
+                            <a
+                              href={prov.row_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="underline decoration-dotted underline-offset-2 hover:text-amber-300"
+                            >
+                              source
+                            </a>
+                          </>
+                        ) : null}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
