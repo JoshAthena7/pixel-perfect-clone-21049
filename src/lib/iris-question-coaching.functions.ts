@@ -169,8 +169,8 @@ Be the strategist who knows what wins. Not the consultant who hedges.
 
 ${layered}`;
 
-    const missionCtx = await loadMissionContext(supabase, q.mission_id);
-    const preamble = formatMissionContextPreamble(missionCtx);
+    const missionCtx = await buildMissionContext(supabase, q.mission_id, { questionId: q.id });
+    const preamble = formatMissionContextBlock(missionCtx);
 
     const coaching = await callForCoaching(sys, userMsg, preamble);
     if (!coaching) {
