@@ -9,6 +9,7 @@ import { MissionActivationWizard } from "@/components/v2/MissionActivationWizard
 import { MissionReadinessPanel, ReadinessChip } from "@/components/v2/MissionReadinessPanel";
 import { IrisGreeting } from "@/components/v2/IrisGreeting";
 import { DeveloperResetCard } from "@/components/admin/DeveloperResetCard";
+import { IrisHealthCheckCard } from "@/components/admin/IrisHealthCheckCard";
 
 
 export const Route = createFileRoute("/_authenticated/admin/")({
@@ -201,6 +202,7 @@ function MissionsIndex() {
         />
       )}
 
+      <IrisHealthCheckCard />
       <DeveloperResetCard />
     </div>
   );
