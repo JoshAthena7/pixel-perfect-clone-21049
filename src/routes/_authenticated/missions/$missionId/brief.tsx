@@ -647,6 +647,21 @@ function MissionOverviewPage() {
         <div className="mr-divider" />
 
         {/* ══════════════════════════════════════════════════════════ */}
+        {/* CLIENT CLARIFICATIONS                                      */}
+        {/* ══════════════════════════════════════════════════════════ */}
+        <section id="client-clarifications">
+          <ClientClarificationsCard
+            missionId={missionId}
+            qaDeadline={mission?.qa_deadline ?? null}
+            canManage={isLeader || isPM}
+          />
+        </section>
+
+        <div className="mr-divider" />
+
+
+
+        {/* ══════════════════════════════════════════════════════════ */}
         {/* ZONE 3 · THE MISSION                                       */}
         {/* ══════════════════════════════════════════════════════════ */}
         <ZoneLabel num="03" label="THE MISSION" />
