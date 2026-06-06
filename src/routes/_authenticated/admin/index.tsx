@@ -217,7 +217,95 @@ function StatusChip({ status }: { status: string | null }) {
   return <span className={`rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] ${cls}`}>{s}</span>;
 }
 
-/* Mission creation + activation flows now live in MissionActivationWizard. */
+/* Unified flow: creating or activating a mission goes straight to the Setup Record. */
+
+function CreateMissionModal({ onClose }: { onClose: () => void }) {
+  const navigate = useNavigate();
+  const [name, setName] = useState("");
+  const [client, setClient] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setErr(null);
+    if (!name.trim() || !client.trim()) {
+      setErr("Mission name and client are required.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { data: { user }, error: ue } = await supabase.auth.getUser();
+      if (ue || !user) throw new Error(ue?.message ?? "Not authenticated");
+      await supabase.from("profiles").upsert(
+        { id: user.id, display_name: user.email?.split("@")[0] ?? "User", email: user.email ?? null },
+        { onConflict: "id" },
+      );
+      const { data, error } = await supabase
+        .from("missions")
+        .insert({
+          name: name.trim(),
+          client: client.trim(),
+          status: "Draft",
+          health: "Yellow",
+          created_by: user.id,
+        } as never)
+        .select("id")
+        .single();
+      if (error) throw new Error(error.message);
+      if (!data?.id) throw new Error("Created but no id returned.");
+      await logOlympusAction({
+        action_type: "mission.create",
+        action_summary: `Created mission "${name.trim()}"`,
+        mission_id: data.id,
+        target_table: "missions",
+        target_id: data.id,
+      });
+      window.localStorage.setItem("olympus:mission", data.id);
+      window.dispatchEvent(new CustomEvent("olympus:mission-changed", { detail: data.id }));
+      toast.success("Mission created — opening Setup Record");
+      onClose();
+      navigate({ to: "/admin/missions/$missionId/setup", params: { missionId: data.id } });
+    } catch (e: any) {
+      setErr(e?.message ?? "Failed to create mission");
+      setBusy(false);
+    }
+  }
+
+  return (
+    <ModalShell onClose={onClose} title="Create New Mission" subtitle="Mission Setup">
+      <form onSubmit={submit} className="space-y-4">
+        <TextField label="Mission name *" value={name} onChange={setName} placeholder="Indiana Medicaid RFP" />
+        <TextField label="Client *" value={client} onChange={setClient} placeholder="Indiana FSSA" />
+        <p className="text-[11px] text-muted-foreground">
+          You'll be taken straight to the Setup Record to fill in the rest (timeline, team, intel, vault, gates).
+        </p>
+        {err && <div className="rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300">{err}</div>}
+        <footer className="flex items-center justify-end gap-2 pt-2">
+          <button type="button" onClick={onClose} disabled={busy} className="rounded-lg border border-border px-4 py-2 text-sm hover:bg-surface-hover">
+            Cancel
+          </button>
+          <button type="submit" disabled={busy}
+            className="inline-flex items-center gap-2 rounded-lg bg-[#C49A22] px-4 py-2 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50">
+            {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+            Create & Open Setup <ArrowRight className="h-4 w-4" />
+          </button>
+        </footer>
+      </form>
+    </ModalShell>
+  );
+}
+
+function ActivateRedirect({ missionId, onDone }: { missionId: string; onDone: () => void }) {
+  const navigate = useNavigate();
+  if (typeof window !== "undefined") {
+    setTimeout(() => {
+      onDone();
+      navigate({ to: "/admin/missions/$missionId/setup", params: { missionId } });
+    }, 0);
+  }
+  return null;
+}
 
 
 
