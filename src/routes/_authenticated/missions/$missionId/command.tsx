@@ -673,6 +673,71 @@ function MissionBrief() {
           </Link>
         </div>
 
+        {/* ── F-3: ACTIVE SOS — top-of-page red banner. If leaders can't see SOS, the escalation chain is broken. */}
+        {sosSignals.length > 0 && (
+          <section
+            className="rounded-[12px] border p-4"
+            style={{
+              background: "rgba(220, 38, 38, 0.08)",
+              borderColor: "rgba(248, 113, 113, 0.45)",
+              boxShadow: "0 0 0 1px rgba(248,113,113,0.15), 0 12px 36px rgba(220,38,38,0.18)",
+            }}
+            aria-live="polite"
+          >
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.28em] text-red-300">
+              <AlertTriangle className="h-3.5 w-3.5" />
+              Active SOS · {sosSignals.length} unresolved
+              <span className="ml-2 text-[10px] tracking-[0.14em] text-red-300/70 normal-case">
+                live · auto-refreshing
+              </span>
+            </div>
+            <ul className="mt-3 divide-y divide-red-400/15">
+              {sosSignals.map((s) => {
+                const profile = s.user_id ? signalProfById[s.user_id] : undefined;
+                const who = profile?.display_name || profile?.email?.split("@")[0] || "Writer";
+                const q = s.related_question_id
+                  ? questions.find((x) => x.id === s.related_question_id)
+                  : null;
+                return (
+                  <li key={s.id} className="flex flex-wrap items-start gap-3 py-2.5">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-baseline gap-2 text-[13px] font-semibold text-red-100">
+                        <span>{s.signal_title}</span>
+                        <span className="text-[11px] font-normal text-red-200/70">
+                          {who} · {timeAgo(s.created_at)}
+                        </span>
+                      </div>
+                      {s.signal_summary && (
+                        <div className="mt-1 text-[12px] text-red-100/80 line-clamp-2">
+                          {s.signal_summary}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {q && (
+                        <Link
+                          to="/missions/$missionId/sections/$questionId"
+                          params={{ missionId, questionId: q.id }}
+                          className="inline-flex items-center gap-1 rounded-md border border-red-400/40 bg-red-500/10 px-2.5 py-1 text-[11px] font-semibold text-red-100 hover:bg-red-500/20"
+                        >
+                          Open {q.question_number} <ArrowRight className="h-3 w-3" />
+                        </Link>
+                      )}
+                      <button
+                        onClick={() => resolveSos(s.id)}
+                        className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] text-red-100/90 hover:bg-white/[0.08]"
+                        title="Mark resolved"
+                      >
+                        <X className="h-3 w-3" /> Resolve
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+
         {/* SECTION 1: MISSION VITALS */}
         <section
           className="rounded-[12px] border p-6"
