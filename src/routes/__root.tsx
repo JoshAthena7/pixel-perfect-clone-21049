@@ -16,6 +16,7 @@ import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { supabase } from "@/integrations/supabase/client";
+import { GoldEntryLine } from "@/components/v2/polish";
 
 function NotFoundComponent() {
   return (
