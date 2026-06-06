@@ -524,6 +524,7 @@ function AthenaHQ() {
         {/* Atrium command-center intelligence layer (leaders only) */}
         {isLeader && missions.length > 0 && (
           <div className="space-y-3">
+            <IrisPersonalAlert />
             <PortfolioStatusStrip
               missions={missions as any}
               missionQuestions={missionQuestions as any}
@@ -533,7 +534,10 @@ function AthenaHQ() {
             <AttentionPanel
               missions={missions as any}
               missionQuestions={missionQuestions as any}
+              forceExpanded={role === "pm"}
+              criticalOnly={role === "executive_sponsor"}
             />
+
             <DueThisWeek
               missions={missions as any}
               missionQuestions={missionQuestions as any}
