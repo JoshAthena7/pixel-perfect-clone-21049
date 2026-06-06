@@ -8,22 +8,30 @@ const SECURITY_HEADERS: Record<string, string> = {
   "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
 };
 
-function withSecurityHeaders(response: Response): Response {
+const securityHeadersMiddleware = createMiddleware().server(async ({ next }) => {
+  const result = await next();
+  if (!(result instanceof Response)) return result;
+  // Mutate headers in place when possible. Rewrapping the Response can drop the
+  // content-type that the TanStack serverFn client requires (Invariant failed:
+  // expected content-type header to be set).
   try {
-    const headers = new Headers(response.headers);
+    for (const [k, v] of Object.entries(SECURITY_HEADERS)) {
+      if (!result.headers.has(k)) result.headers.set(k, v);
+    }
+    return result;
+  } catch {
+    const headers = new Headers(result.headers);
     for (const [k, v] of Object.entries(SECURITY_HEADERS)) {
       if (!headers.has(k)) headers.set(k, v);
     }
-    return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
-  } catch {
-    return response;
+    const ct = result.headers.get("content-type");
+    if (ct && !headers.has("content-type")) headers.set("content-type", ct);
+    return new Response(result.body, {
+      status: result.status,
+      statusText: result.statusText,
+      headers,
+    });
   }
-}
-
-const securityHeadersMiddleware = createMiddleware().server(async ({ next }) => {
-  const result = await next();
-  if (result instanceof Response) return withSecurityHeaders(result);
-  return result;
 });
 
 export const startInstance = createStart(() => ({
