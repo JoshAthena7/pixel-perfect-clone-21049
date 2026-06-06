@@ -222,6 +222,7 @@ function TopBar({
           to="/cockpit"
           title="Cockpit — your work across every mission"
           aria-label="Cockpit"
+          data-tour="cockpit"
           className={`inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-[11px] font-semibold uppercase tracking-[0.18em] transition-colors hover:bg-white/5 hover:text-foreground ${
             path.startsWith("/cockpit")
               ? "bg-[#3b7fff]/10 text-[#3b7fff]"
@@ -332,13 +333,14 @@ function AtriumNav() {
 
 
   return (
-    <nav className="flex items-center gap-1">
+    <nav className="flex items-center gap-1" data-tour="atrium-nav">
       {items.map((it) => {
         const active = path === it.to || path.startsWith(it.to + "/");
         return (
           <Link
             key={it.to}
             to={it.to as any}
+            data-tour={`atrium-nav-${it.to.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "")}`}
             className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] rounded-md transition-colors"
             style={{
               color: active ? "var(--athena-gold, #f59e0b)" : "var(--muted-foreground)",

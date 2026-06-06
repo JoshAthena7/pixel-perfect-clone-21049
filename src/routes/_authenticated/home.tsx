@@ -417,7 +417,7 @@ function AthenaHQ() {
     <div className="relative min-h-screen bg-background">
       <Constellation opacity={0.06} />
       {/* Athena HQ executive header — Atrium as command center */}
-      <header className="relative border-b border-border bg-gradient-to-b from-surface to-background">
+      <header className="relative border-b border-border bg-gradient-to-b from-surface to-background" data-tour="athena-hq">
         <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-6 px-8 py-8">
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">
@@ -430,9 +430,17 @@ function AthenaHQ() {
               Intelligence · Alignment · Execution
             </p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button
               type="button"
+              onClick={() => setTourOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:border-[color:var(--athena-gold,#f59e0b)]/40 hover:text-foreground transition-colors"
+            >
+              Take the tour
+            </button>
+            <button
+              type="button"
+              data-tour="iris-launch"
               onClick={() => {
                 primeIrisVoiceBeforeOnboarding();
                 navigate({ to: "/home", search: { "iris-demo": "1" } as never });
@@ -548,7 +556,8 @@ function AthenaHQ() {
 
         {/* ROLE-DIFFERENTIATED: Active Missions (leaders) or Your Assignments (writers/SMEs) */}
         {isLeader ? (
-          <section>
+          <section data-tour="missions">
+
             <div className="mb-3 flex items-end justify-between gap-4">
               <div>
                 <h2 className="h2-label">Active Missions</h2>
