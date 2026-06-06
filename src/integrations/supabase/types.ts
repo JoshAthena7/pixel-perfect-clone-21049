@@ -2245,6 +2245,53 @@ export type Database = {
           },
         ]
       }
+      executive_decisions: {
+        Row: {
+          created_at: string
+          decision_note: string | null
+          description: string
+          id: string
+          mission_id: string | null
+          resolved_at: string | null
+          source: Database["public"]["Enums"]["executive_decision_source"]
+          status: Database["public"]["Enums"]["executive_decision_status"]
+          submitted_by: string | null
+          urgency: Database["public"]["Enums"]["executive_decision_urgency"]
+        }
+        Insert: {
+          created_at?: string
+          decision_note?: string | null
+          description: string
+          id?: string
+          mission_id?: string | null
+          resolved_at?: string | null
+          source?: Database["public"]["Enums"]["executive_decision_source"]
+          status?: Database["public"]["Enums"]["executive_decision_status"]
+          submitted_by?: string | null
+          urgency?: Database["public"]["Enums"]["executive_decision_urgency"]
+        }
+        Update: {
+          created_at?: string
+          decision_note?: string | null
+          description?: string
+          id?: string
+          mission_id?: string | null
+          resolved_at?: string | null
+          source?: Database["public"]["Enums"]["executive_decision_source"]
+          status?: Database["public"]["Enums"]["executive_decision_status"]
+          submitted_by?: string | null
+          urgency?: Database["public"]["Enums"]["executive_decision_urgency"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "executive_decisions_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expertise_library: {
         Row: {
           active: boolean
@@ -2950,6 +2997,45 @@ export type Database = {
           last_module?: number
           started_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      iris_portfolio_intelligence: {
+        Row: {
+          action_filter: string | null
+          action_label: string | null
+          affected_mission_ids: string[]
+          body: string
+          created_at: string
+          dismissed_at: string | null
+          generated_at: string
+          headline: string
+          id: string
+          type: Database["public"]["Enums"]["iris_portfolio_intel_type"]
+        }
+        Insert: {
+          action_filter?: string | null
+          action_label?: string | null
+          affected_mission_ids?: string[]
+          body: string
+          created_at?: string
+          dismissed_at?: string | null
+          generated_at?: string
+          headline: string
+          id?: string
+          type: Database["public"]["Enums"]["iris_portfolio_intel_type"]
+        }
+        Update: {
+          action_filter?: string | null
+          action_label?: string | null
+          affected_mission_ids?: string[]
+          body?: string
+          created_at?: string
+          dismissed_at?: string | null
+          generated_at?: string
+          headline?: string
+          id?: string
+          type?: Database["public"]["Enums"]["iris_portfolio_intel_type"]
         }
         Relationships: []
       }
@@ -6699,6 +6785,18 @@ export type Database = {
     Enums: {
       app_role: "admin" | "lead" | "writer" | "sme"
       briefing_type: "global" | "direct"
+      executive_decision_source: "team" | "iris"
+      executive_decision_status:
+        | "pending"
+        | "decided"
+        | "delegated"
+        | "needs_context"
+      executive_decision_urgency: "urgent" | "standard"
+      iris_portfolio_intel_type:
+        | "org_risk"
+        | "capacity"
+        | "opportunity"
+        | "positive"
       response_template_element_type:
         | "header"
         | "subsection"
@@ -6849,6 +6947,20 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "lead", "writer", "sme"],
       briefing_type: ["global", "direct"],
+      executive_decision_source: ["team", "iris"],
+      executive_decision_status: [
+        "pending",
+        "decided",
+        "delegated",
+        "needs_context",
+      ],
+      executive_decision_urgency: ["urgent", "standard"],
+      iris_portfolio_intel_type: [
+        "org_risk",
+        "capacity",
+        "opportunity",
+        "positive",
+      ],
       response_template_element_type: [
         "header",
         "subsection",
