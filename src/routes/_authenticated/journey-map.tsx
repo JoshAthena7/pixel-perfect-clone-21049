@@ -258,6 +258,72 @@ const PERSONAS = [
   "SME",
   "Reviewer",
 ] as const;
+type Persona = (typeof PERSONAS)[number];
+
+// Per-stage touchpoints: which action indices belong to each persona.
+// Empty array = no touchpoint at that stage.
+const PERSONA_TOUCHPOINTS: Record<Exclude<Persona, "All Roles">, Record<number, number[]>> = {
+  "Executive Sponsor": {
+    1: [0],                // approves mission, team, deadline
+    3: [1],                // acknowledges Mission Briefing
+    6: [],                 // sign-off via Engagement Lead, but visibility here
+    7: [0],                // post-submission debrief
+  },
+  "Engagement Lead": {
+    1: [0, 2, 3],
+    2: [2, 3],
+    3: [0, 1, 2],
+    4: [4],
+    5: [4],
+    6: [5],
+    7: [0, 2],
+  },
+  "PM": {
+    1: [0, 3],
+    2: [1],
+    3: [2, 3],
+    4: [4],
+    5: [0, 2],
+    6: [0, 1, 2, 3],
+    7: [0, 3],
+  },
+  "Writer": {
+    3: [3],
+    4: [0, 1, 2, 4],
+    5: [3],
+    6: [],
+    7: [1],
+  },
+  "SME": {
+    2: [3],
+    4: [3],
+    5: [1],
+  },
+  "Reviewer": {
+    5: [1, 2],
+    6: [4],
+  },
+};
+
+function touchpointActions(p: Persona, stageNum: number): number[] | null {
+  if (p === "All Roles") return null;
+  return PERSONA_TOUCHPOINTS[p]?.[stageNum] ?? [];
+}
+
+function hasTouchpoint(p: Persona, stageNum: number): boolean {
+  if (p === "All Roles") return true;
+  return (PERSONA_TOUCHPOINTS[p]?.[stageNum]?.length ?? 0) > 0;
+}
+
+function personaInitials(p: Persona): string {
+  if (p === "All Roles") return "ALL";
+  return p
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
 
 function statusColor(s: Status) {
   if (s === "complete") return "#22C55E";
@@ -272,10 +338,11 @@ function emotionColor(c: "green" | "yellow" | "blue") {
   return "#3B82F6";
 }
 
+
 function JourneyMapPage() {
   const activeIdx = STAGES.findIndex((s) => s.status === "active");
   const [selected, setSelected] = useState<number>(activeIdx >= 0 ? activeIdx : 0);
-  const [persona, setPersona] = useState<(typeof PERSONAS)[number]>("All Roles");
+  const [persona, setPersona] = useState<Persona>("All Roles");
   const [insightsOpen, setInsightsOpen] = useState(true);
   const [openTransition, setOpenTransition] = useState<number | null>(null);
 
@@ -358,6 +425,8 @@ function JourneyMapPage() {
                 const isSelected = i === selected;
                 const isActive = s.status === "active";
                 const color = statusColor(s.status);
+                const involved = hasTouchpoint(persona, s.num);
+                const dim = persona !== "All Roles" && !involved;
                 return (
                   <div key={s.num} className="flex-1 flex flex-col items-stretch min-w-0">
                     <button
@@ -366,6 +435,7 @@ function JourneyMapPage() {
                       style={{
                         background: isSelected ? "rgba(59,130,246,0.08)" : "transparent",
                         border: `1px solid ${isSelected ? "rgba(59,130,246,0.4)" : "transparent"}`,
+                        opacity: dim ? 0.35 : 1,
                       }}
                     >
                       <div className="relative mb-2">
@@ -391,6 +461,15 @@ function JourneyMapPage() {
                         {isActive && (
                           <span className="absolute inset-0 rounded-full border-2 animate-ping" style={{ borderColor: "#3B82F6" }} />
                         )}
+                        {persona !== "All Roles" && involved && (
+                          <span
+                            className="absolute -bottom-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1 text-[9px] font-bold text-white shadow"
+                            style={{ background: "#6366F1", border: "2px solid var(--background)" }}
+                            title={`${persona} touchpoint`}
+                          >
+                            {personaInitials(persona)}
+                          </span>
+                        )}
                       </div>
                       <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Stage {s.num}</div>
                       <div className="text-[12px] font-semibold text-foreground leading-tight">{s.name}</div>
@@ -398,6 +477,7 @@ function JourneyMapPage() {
                         {s.status === "complete" ? "Complete" : s.status === "active" ? "Active" : s.status === "at_risk" ? "At Risk" : "Upcoming"}
                       </div>
                     </button>
+
 
                     {/* Transition indicator */}
                     {i < STAGES.length - 1 && (
@@ -455,20 +535,73 @@ function JourneyMapPage() {
               </div>
             </div>
 
+            {persona !== "All Roles" && (
+              hasTouchpoint(persona, stage.num) ? (
+                <div
+                  className="mb-4 flex items-center gap-2 rounded-lg border px-3 py-2 text-[12px]"
+                  style={{ borderColor: "rgba(99,102,241,0.4)", background: "rgba(99,102,241,0.08)", color: "#C7D2FE" }}
+                >
+                  <span
+                    className="flex h-5 min-w-[20px] items-center justify-center rounded-full px-1 text-[9px] font-bold text-white"
+                    style={{ background: "#6366F1" }}
+                  >
+                    {personaInitials(persona)}
+                  </span>
+                  <span>
+                    <span className="font-semibold text-foreground">{persona}</span> is active at this stage — touchpoints highlighted below.
+                  </span>
+                </div>
+              ) : (
+                <div
+                  className="mb-4 flex items-center gap-2 rounded-lg border border-border bg-background/40 px-3 py-2 text-[12px] text-muted-foreground"
+                >
+                  <Users size={14} />
+                  <span>
+                    <span className="font-semibold text-foreground">{persona}</span> has no direct touchpoint at this stage. Stay informed; the team is operating on your behalf.
+                  </span>
+                </div>
+              )
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-4">
               <DetailCard icon={<Target size={14} />} title="User Objective">
                 <p className="text-[12px] leading-relaxed text-muted-foreground">{stage.objective}</p>
               </DetailCard>
               <DetailCard icon={<ListChecks size={14} />} title="Key Actions">
                 <ul className="space-y-1.5">
-                  {stage.actions.map((a) => (
-                    <li key={a} className="flex items-start gap-1.5 text-[12px] text-muted-foreground">
-                      <ChevronRight size={12} className="mt-0.5 shrink-0 text-foreground/60" />
-                      <span>{a}</span>
-                    </li>
-                  ))}
+                  {stage.actions.map((a, idx) => {
+                    const tps = touchpointActions(persona, stage.num);
+                    const isYours = tps !== null && tps.includes(idx);
+                    return (
+                      <li
+                        key={a}
+                        className="flex items-start gap-1.5 rounded px-1.5 py-1 text-[12px] transition"
+                        style={{
+                          background: isYours ? "rgba(99,102,241,0.1)" : "transparent",
+                          color: isYours ? "#E0E7FF" : "var(--muted-foreground)",
+                          opacity: persona !== "All Roles" && tps !== null && tps.length > 0 && !isYours ? 0.55 : 1,
+                        }}
+                      >
+                        <ChevronRight
+                          size={12}
+                          className="mt-0.5 shrink-0"
+                          style={{ color: isYours ? "#A5B4FC" : "var(--foreground)" }}
+                        />
+                        <span>{a}</span>
+                        {isYours && (
+                          <span
+                            className="ml-auto rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em]"
+                            style={{ background: "rgba(99,102,241,0.2)", color: "#A5B4FC" }}
+                          >
+                            You
+                          </span>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               </DetailCard>
+
               <DetailCard icon={<Users size={14} />} title="Key Decisions">
                 <ul className="space-y-1.5">
                   {stage.decisions.map((d) => (
