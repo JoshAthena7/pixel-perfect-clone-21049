@@ -57,20 +57,28 @@ export function markQuestionVisited(qid: string) {
 }
 
 // ---------- Status labels (WRITER-3) ----------
+// Canonical DB values: not_started | in_progress | ready_for_review | approved.
+// Legacy values ("in_review", "complete") are accepted at read time for back-compat
+// but are NEVER written. See migration 20260606_fix_question_status_canonical.
 export const STATUS_LABELS: Record<string, string> = {
   not_started: "Not Started",
   in_progress: "In Progress",
+  ready_for_review: "In Review",
+  approved: "Complete",
+  // legacy fallbacks (read-only)
   in_review: "In Review",
   complete: "Complete",
 };
 
-export const STATUS_ORDER = ["not_started", "in_progress", "in_review", "complete"] as const;
+export const STATUS_ORDER = ["not_started", "in_progress", "ready_for_review", "approved"] as const;
 
 export function statusBadgeClass(status: string) {
   switch (status) {
-    case "complete":    return "bg-green/15 text-green border-green/30";
-    case "in_review":   return "bg-primary/15 text-primary border-primary/30";
-    case "in_progress": return "bg-yellow/15 text-yellow border-yellow/30";
-    default:            return "bg-surface-hover text-muted-foreground border-border";
+    case "approved":
+    case "complete":         return "bg-green/15 text-green border-green/30";
+    case "ready_for_review":
+    case "in_review":        return "bg-primary/15 text-primary border-primary/30";
+    case "in_progress":      return "bg-yellow/15 text-yellow border-yellow/30";
+    default:                 return "bg-surface-hover text-muted-foreground border-border";
   }
 }
