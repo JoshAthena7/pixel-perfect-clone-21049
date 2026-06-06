@@ -1,10 +1,20 @@
 // Scaffold Editor — replaces the blank section editor whenever an active
 // Response Template exists on the mission. Locked headers + editable content zones.
+//
+// Autosave contract (GAP 1):
+//   - Local state updates immediately on every keystroke.
+//   - A 30s debounce timer per element flushes to the server.
+//   - On blur, pending changes flush immediately.
+//   - Save state is surfaced via the floating SaveIndicator.
+//   - On save failure, the latest content is persisted to localStorage
+//     under `draft-backup:${sectionId}:${elementId}` and a Retry CTA is
+//     shown. The draft is never lost — writers can copy from localStorage
+//     even after a hard refresh.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Lock, CheckCircle2, Circle, AlertTriangle } from "lucide-react";
+import { Lock, CheckCircle2, Circle, AlertTriangle, RefreshCw, Check } from "lucide-react";
 import {
   getResponseTemplate,
   getSectionTemplateProgress,
@@ -20,6 +30,22 @@ type Props = {
 function countWords(text: string) {
   const t = (text ?? "").trim();
   return t ? t.split(/\s+/).length : 0;
+}
+
+const AUTOSAVE_INTERVAL_MS = 30_000;
+const BACKUP_KEY = (sectionId: string, elementId: string) =>
+  `draft-backup:${sectionId}:${elementId}`;
+
+type SaveStatus = "idle" | "saving" | "saved" | "error";
+
+function timeAgo(ts: number): string {
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 5) return "just now";
+  if (s < 60) return `${s} seconds ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m} min${m === 1 ? "" : "s"} ago`;
+  const h = Math.floor(m / 60);
+  return `${h}h ago`;
 }
 
 export function ScaffoldEditor({ missionId, sectionId, readOnly }: Props) {
@@ -38,7 +64,21 @@ export function ScaffoldEditor({ missionId, sectionId, readOnly }: Props) {
 
   const [drafts, setDrafts] = useState<Record<string, string>>({});
 
-  // Hydrate drafts from server
+  // Autosave bookkeeping. Refs to avoid re-render churn.
+  const timersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const pendingRef = useRef<Record<string, string>>({});
+  const [status, setStatus] = useState<SaveStatus>("idle");
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
+  const [lastError, setLastError] = useState<string | null>(null);
+  const [, setNowTick] = useState(0);
+
+  // Re-render every 15s so the "Saved · X seconds ago" indicator stays fresh.
+  useEffect(() => {
+    const t = setInterval(() => setNowTick((n) => n + 1), 15_000);
+    return () => clearInterval(t);
+  }, []);
+
+  // Hydrate drafts from server (server values take precedence on first load).
   useEffect(() => {
     if (!progData?.rows) return;
     const next: Record<string, string> = {};
@@ -48,10 +88,23 @@ export function ScaffoldEditor({ missionId, sectionId, readOnly }: Props) {
     setDrafts((prev) => ({ ...next, ...prev }));
   }, [progData]);
 
+  // Cleanup pending timers on unmount, flushing any held content best-effort.
+  useEffect(() => {
+    return () => {
+      const pending = pendingRef.current;
+      for (const elementId of Object.keys(pending)) {
+        try {
+          updateProg({ data: { sectionId, elementId, content: pending[elementId] } });
+        } catch { /* best-effort flush */ }
+      }
+      for (const t of Object.values(timersRef.current)) clearTimeout(t);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sectionId]);
+
   const elements = tplData?.elements ?? [];
   const isActive = tplData?.template?.status === "active";
 
-  // Group: top-level + nested subsections under each header
   const grouped = useMemo(() => {
     const headers = elements.filter((e) => !e.parent_id);
     return headers.map((h) => ({
@@ -68,14 +121,60 @@ export function ScaffoldEditor({ missionId, sectionId, readOnly }: Props) {
     );
   }
 
-  async function saveDraft(elementId: string, content: string) {
-    setDrafts((prev) => ({ ...prev, [elementId]: content }));
+  async function commitSave(elementId: string, content: string) {
     if (readOnly) return;
+    setStatus("saving");
+    setLastError(null);
     try {
       await updateProg({ data: { sectionId, elementId, content } });
+      delete pendingRef.current[elementId];
+      try { localStorage.removeItem(BACKUP_KEY(sectionId, elementId)); } catch { /* noop */ }
+      setLastSavedAt(Date.now());
+      setStatus("saved");
       refetch();
-    } catch {
-      /* swallow — non-blocking auto-save */
+    } catch (err: any) {
+      // Preserve draft locally so the writer never loses work.
+      try {
+        localStorage.setItem(
+          BACKUP_KEY(sectionId, elementId),
+          JSON.stringify({ content, ts: Date.now() }),
+        );
+      } catch { /* quota — best-effort */ }
+      setLastError(err?.message ?? "Network error");
+      setStatus("error");
+    }
+  }
+
+  function scheduleAutosave(elementId: string) {
+    if (timersRef.current[elementId]) clearTimeout(timersRef.current[elementId]);
+    timersRef.current[elementId] = setTimeout(() => {
+      const content = pendingRef.current[elementId];
+      if (content === undefined) return;
+      commitSave(elementId, content);
+    }, AUTOSAVE_INTERVAL_MS);
+  }
+
+  function onDraftChange(elementId: string, content: string) {
+    setDrafts((prev) => ({ ...prev, [elementId]: content }));
+    pendingRef.current[elementId] = content;
+    setStatus("idle");
+    scheduleAutosave(elementId);
+  }
+
+  function onFieldBlur(elementId: string) {
+    const content = pendingRef.current[elementId];
+    if (content === undefined) return;
+    if (timersRef.current[elementId]) {
+      clearTimeout(timersRef.current[elementId]);
+      delete timersRef.current[elementId];
+    }
+    commitSave(elementId, content);
+  }
+
+  async function retryAll() {
+    const pending = { ...pendingRef.current };
+    for (const elementId of Object.keys(pending)) {
+      await commitSave(elementId, pending[elementId]);
     }
   }
 
@@ -84,10 +183,16 @@ export function ScaffoldEditor({ missionId, sectionId, readOnly }: Props) {
       <div className="rounded-md border border-[#6366F1]/40 bg-[#6366F1]/10 px-4 py-2.5 text-[11px] uppercase tracking-[0.18em] text-[#6366F1] font-mono flex items-center gap-2">
         <Lock className="h-3 w-3" />
         Response Template · Required by client · Enforced by IRIS
+        <div className="flex-1" />
+        <SaveIndicator
+          status={status}
+          lastSavedAt={lastSavedAt}
+          error={lastError}
+          onRetry={retryAll}
+        />
       </div>
 
       {grouped.map((g, i) => {
-        // word_limit sibling appears in flat list — find one whose order_index is between this header and the next
         const wl = elements.find(
           (e) =>
             !e.parent_id &&
@@ -104,7 +209,8 @@ export function ScaffoldEditor({ missionId, sectionId, readOnly }: Props) {
             children={g.children}
             wordLimit={wl?.word_limit ?? g.header.word_limit ?? null}
             drafts={drafts}
-            onChange={saveDraft}
+            onChange={onDraftChange}
+            onBlur={onFieldBlur}
             readOnly={!!readOnly}
           />
         );
@@ -125,8 +231,55 @@ export function ScaffoldEditor({ missionId, sectionId, readOnly }: Props) {
   );
 }
 
+function SaveIndicator({
+  status, lastSavedAt, error, onRetry,
+}: {
+  status: SaveStatus;
+  lastSavedAt: number | null;
+  error: string | null;
+  onRetry: () => void;
+}) {
+  if (status === "error") {
+    return (
+      <button
+        type="button"
+        onClick={onRetry}
+        className="inline-flex items-center gap-1.5 rounded-md border border-red-500/40 bg-red-500/10 px-2 py-1 text-[10px] font-mono normal-case tracking-normal text-red-300 hover:bg-red-500/20"
+        title={error ?? "Save failed"}
+      >
+        <AlertTriangle className="h-3 w-3" />
+        Save failed — your work is preserved locally. Retry?
+      </button>
+    );
+  }
+  if (status === "saving") {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-[10px] font-mono normal-case tracking-normal text-muted-foreground">
+        <RefreshCw className="h-3 w-3 animate-spin" />
+        Saving…
+      </span>
+    );
+  }
+  if (status === "saved" && lastSavedAt) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-[10px] font-mono normal-case tracking-normal text-emerald-400/80">
+        <Check className="h-3 w-3" />
+        Saved · {timeAgo(lastSavedAt)}
+      </span>
+    );
+  }
+  if (lastSavedAt) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-[10px] font-mono normal-case tracking-normal text-muted-foreground">
+        Last saved {timeAgo(lastSavedAt)}
+      </span>
+    );
+  }
+  return null;
+}
+
 function HeaderBlock({
-  index, header, children, wordLimit, drafts, onChange, readOnly,
+  index, header, children, wordLimit, drafts, onChange, onBlur, readOnly,
 }: {
   index: number;
   header: any;
@@ -134,15 +287,14 @@ function HeaderBlock({
   wordLimit: number | null;
   drafts: Record<string, string>;
   onChange: (id: string, v: string) => void;
+  onBlur: (id: string) => void;
   readOnly: boolean;
 }) {
-  // Header itself is a writable element (unless it has subsection children)
   const hasChildren = children.length > 0;
   const headerContent = drafts[header.id] ?? "";
   const headerWords = countWords(headerContent);
   const headerComplete = headerContent.trim().length > 0;
 
-  // Overall completion at this block
   const childrenComplete = children.every((c) => (drafts[c.id] ?? "").trim().length > 0);
   const blockComplete = hasChildren ? childrenComplete : headerComplete;
 
@@ -169,12 +321,14 @@ function HeaderBlock({
               columns={header.table_columns ?? []}
               value={headerContent}
               onChange={(v) => onChange(header.id, v)}
+              onBlur={() => onBlur(header.id)}
               readOnly={readOnly}
             />
           ) : (
             <textarea
               value={headerContent}
               onChange={(e) => onChange(header.id, e.target.value)}
+              onBlur={() => onBlur(header.id)}
               rows={6}
               placeholder="Write here…"
               readOnly={readOnly}
@@ -210,12 +364,14 @@ function HeaderBlock({
                     columns={c.table_columns ?? []}
                     value={content}
                     onChange={(v) => onChange(c.id, v)}
+                    onBlur={() => onBlur(c.id)}
                     readOnly={readOnly}
                   />
                 ) : (
                   <textarea
                     value={content}
                     onChange={(e) => onChange(c.id, e.target.value)}
+                    onBlur={() => onBlur(c.id)}
                     rows={4}
                     placeholder="Write here…"
                     readOnly={readOnly}
@@ -251,14 +407,14 @@ function WordCounter({ current, limit }: { current: number; limit: number }) {
 }
 
 function TableEditor({
-  columns, value, onChange, readOnly,
+  columns, value, onChange, onBlur, readOnly,
 }: {
   columns: string[];
   value: string;
   onChange: (v: string) => void;
+  onBlur?: () => void;
   readOnly: boolean;
 }) {
-  // Persist table content as JSON in value. Fallback to empty array.
   let rows: string[][] = [];
   try { rows = value ? JSON.parse(value) : []; } catch { rows = []; }
   if (!rows.length) rows = [columns.map(() => "")];
@@ -268,7 +424,7 @@ function TableEditor({
   }
 
   return (
-    <div className="overflow-hidden rounded-md border border-white/10">
+    <div className="overflow-hidden rounded-md border border-white/10" onBlur={onBlur}>
       <table className="w-full text-xs">
         <thead className="bg-[#6366F1]/10">
           <tr>
