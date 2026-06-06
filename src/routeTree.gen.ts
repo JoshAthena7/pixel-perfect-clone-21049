@@ -74,6 +74,7 @@ import { Route as AuthenticatedAdminBriefRoomRouteImport } from './routes/_authe
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
 import { Route as AuthenticatedAdminAtlasSourcesRouteImport } from './routes/_authenticated/admin/atlas-sources'
 import { Route as AuthenticatedAdminAdminsRouteImport } from './routes/_authenticated/admin/admins'
+import { Route as AuthenticatedV1SectionsIndexRouteImport } from './routes/_authenticated/v1/sections.index'
 import { Route as AuthenticatedMissionsMissionIdIndexRouteImport } from './routes/_authenticated/missions/$missionId/index'
 import { Route as ApiPublicHooksRefreshIntelligenceRouteImport } from './routes/api/public/hooks/refresh-intelligence'
 import { Route as ApiPublicHooksIrisMonitorRouteImport } from './routes/api/public/hooks/iris-monitor'
@@ -466,6 +467,12 @@ const AuthenticatedAdminAdminsRoute =
     path: '/admins',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedV1SectionsIndexRoute =
+  AuthenticatedV1SectionsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedV1SectionsRoute,
+  } as any)
 const AuthenticatedMissionsMissionIdIndexRoute =
   AuthenticatedMissionsMissionIdIndexRouteImport.update({
     id: '/',
@@ -728,6 +735,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
+  '/v1/sections/': typeof AuthenticatedV1SectionsIndexRoute
   '/admin/missions/$missionId/debrief': typeof AuthenticatedAdminMissionsMissionIdDebriefRoute
   '/admin/missions/$missionId/setup': typeof AuthenticatedAdminMissionsMissionIdSetupRoute
   '/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
@@ -793,7 +801,6 @@ export interface FileRoutesByTo {
   '/v1/intel': typeof AuthenticatedV1IntelRoute
   '/v1/journey': typeof AuthenticatedV1JourneyRoute
   '/v1/my-sections': typeof AuthenticatedV1MySectionsRoute
-  '/v1/sections': typeof AuthenticatedV1SectionsRouteWithChildren
   '/v1/vault': typeof AuthenticatedV1VaultRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
@@ -820,6 +827,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdIndexRoute
+  '/v1/sections': typeof AuthenticatedV1SectionsIndexRoute
   '/admin/missions/$missionId/debrief': typeof AuthenticatedAdminMissionsMissionIdDebriefRoute
   '/admin/missions/$missionId/setup': typeof AuthenticatedAdminMissionsMissionIdSetupRoute
   '/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
@@ -917,6 +925,7 @@ export interface FileRoutesById {
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/_authenticated/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
+  '/_authenticated/v1/sections/': typeof AuthenticatedV1SectionsIndexRoute
   '/_authenticated/admin/missions/$missionId/debrief': typeof AuthenticatedAdminMissionsMissionIdDebriefRoute
   '/_authenticated/admin/missions/$missionId/setup': typeof AuthenticatedAdminMissionsMissionIdSetupRoute
   '/_authenticated/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
@@ -1014,6 +1023,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/refresh-intelligence'
     | '/missions/$missionId/'
+    | '/v1/sections/'
     | '/admin/missions/$missionId/debrief'
     | '/admin/missions/$missionId/setup'
     | '/missions/$missionId/questions/$questionId'
@@ -1079,7 +1089,6 @@ export interface FileRouteTypes {
     | '/v1/intel'
     | '/v1/journey'
     | '/v1/my-sections'
-    | '/v1/sections'
     | '/v1/vault'
     | '/admin'
     | '/profile'
@@ -1106,6 +1115,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/refresh-intelligence'
     | '/missions/$missionId'
+    | '/v1/sections'
     | '/admin/missions/$missionId/debrief'
     | '/admin/missions/$missionId/setup'
     | '/missions/$missionId/questions/$questionId'
@@ -1202,6 +1212,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/refresh-intelligence'
     | '/_authenticated/missions/$missionId/'
+    | '/_authenticated/v1/sections/'
     | '/_authenticated/admin/missions/$missionId/debrief'
     | '/_authenticated/admin/missions/$missionId/setup'
     | '/_authenticated/missions/$missionId/questions/$questionId'
@@ -1688,6 +1699,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAdminsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/v1/sections/': {
+      id: '/_authenticated/v1/sections/'
+      path: '/'
+      fullPath: '/v1/sections/'
+      preLoaderRoute: typeof AuthenticatedV1SectionsIndexRouteImport
+      parentRoute: typeof AuthenticatedV1SectionsRoute
+    }
     '/_authenticated/missions/$missionId/': {
       id: '/_authenticated/missions/$missionId/'
       path: '/'
@@ -1967,12 +1985,14 @@ const AuthenticatedOlympusRouteWithChildren =
 
 interface AuthenticatedV1SectionsRouteChildren {
   AuthenticatedV1SectionsSectionIdRoute: typeof AuthenticatedV1SectionsSectionIdRoute
+  AuthenticatedV1SectionsIndexRoute: typeof AuthenticatedV1SectionsIndexRoute
 }
 
 const AuthenticatedV1SectionsRouteChildren: AuthenticatedV1SectionsRouteChildren =
   {
     AuthenticatedV1SectionsSectionIdRoute:
       AuthenticatedV1SectionsSectionIdRoute,
+    AuthenticatedV1SectionsIndexRoute: AuthenticatedV1SectionsIndexRoute,
   }
 
 const AuthenticatedV1SectionsRouteWithChildren =
@@ -2163,3 +2183,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
