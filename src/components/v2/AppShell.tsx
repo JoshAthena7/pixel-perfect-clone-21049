@@ -157,7 +157,7 @@ function TopBar({
             <Link
               to="/missions/$missionId/overview"
               params={{ missionId: missionId! }}
-              className="hidden sm:block max-w-[260px] truncate text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className="hidden lg:block max-w-[180px] xl:max-w-[260px] truncate text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors"
               title={mission.name}
             >
               {mission.name}
