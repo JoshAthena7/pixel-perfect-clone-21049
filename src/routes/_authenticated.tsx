@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/v2/AppShell";
+import { ClosingFrame } from "@/components/v2/ClosingFrame";
 
 export const Route = createFileRoute("/_authenticated")({
   // Client-only gate. Supabase stores the session in localStorage, which the
@@ -21,6 +22,7 @@ function AuthenticatedLayout() {
   return (
     <AppShell>
       <Outlet />
+      <ClosingFrame />
     </AppShell>
   );
 }

@@ -285,10 +285,7 @@ function BriefRoomNavButton() {
 function SignOutButton() {
   return (
     <button
-      onClick={async () => {
-        await supabase.auth.signOut();
-        toast.success("Signed out");
-      }}
+      onClick={() => triggerClosingFrame()}
       title="Sign out"
       aria-label="Sign out"
       className="inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
@@ -450,9 +447,9 @@ function UserAvatarMenu() {
   const initials = (profile?.name ?? "?")
     .split(/\s+/).map((s) => s[0]).join("").slice(0, 2).toUpperCase();
 
-  async function signOut() {
-    await supabase.auth.signOut();
-    toast.success("Signed out");
+  function signOut() {
+    setOpen(false);
+    triggerClosingFrame();
   }
 
   return (
