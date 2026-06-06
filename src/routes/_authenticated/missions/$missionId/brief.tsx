@@ -219,9 +219,9 @@ function BriefPage() {
       </div>
 
       {/* Health */}
-      <Section title="Question Health">
+      <Section title="Section Health">
         {stats.total === 0 ? (
-          <Empty title="No questions yet." sub="Upload the RFP from the library to auto-create question records." />
+          <Empty title="No sections yet." sub="Upload the RFP from the library to auto-create section records." />
         ) : (
           <div className="flex items-center gap-2 px-6 py-5">
             <HealthChip color="green" count={stats.green} label="Green" />
@@ -234,7 +234,7 @@ function BriefPage() {
       {/* IRIS Risk Synthesis */}
       <Section title="Top Risks — IRIS Synthesis">
         {topRisks.length === 0 ? (
-          <Empty title="No risk signals." sub="Health is clean across all questions. Keep monitoring." />
+          <Empty title="No risk signals." sub="Health is clean across all sections. Keep monitoring." />
         ) : (
           <ul className="divide-y divide-border">
             {topRisks.map((q: any) => (
