@@ -22,10 +22,31 @@ import { ThreadPanel } from "@/components/threads/ThreadPanel";
 import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { IrisKickoffBadge } from "@/components/v2/IrisKickoffBadge";
+import { QuestionProvider, useQuestion, type SelectedQuestion } from "@/contexts/QuestionContext";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/")({
-  component: MissionCockpitLanding,
+  component: MissionCockpitLandingWrapper,
 });
+
+function MissionCockpitLandingWrapper() {
+  return (
+    <QuestionProvider>
+      <MissionCockpitLanding />
+    </QuestionProvider>
+  );
+}
+
+function sectionToSelected(s: Section): SelectedQuestion {
+  return {
+    id: s.id,
+    questionNumber: s.question_number,
+    sectionNumber: s.section_number,
+    title: s.title,
+    status: s.status,
+    assignedWriterId: s.assigned_writer_id,
+    pensDownDate: s.pens_down_date,
+  };
+}
 
 /* ───────────────────────────── types ───────────────────────────── */
 
