@@ -525,20 +525,6 @@ export async function buildMissionContext(
   const sectionsRaw = settled(sectionsR)?.data ?? [];
   const researchRaw = settled(researchR)?.data ?? [];
   const timelineRaw = settled(timelineR)?.data ?? null;
-  const evaluationRaw = settled(evalR)?.data ?? [];
-  const winThemesRaw = settled(winThemesR)?.data ?? [];
-  const oracleRaw = settled(oracleR)?.data ?? [];
-  const risksRaw = settled(risksR)?.data ?? [];
-  const signalsRaw = settled(signalsR)?.data ?? [];
-  const sosRaw = settled(sosR)?.data ?? [];
-  const clientIntelRaw = settled(clientIntelR)?.data ?? null;
-  const docsRaw = settled(docsR)?.data ?? [];
-  const canonRaw = settled(canonR)?.data ?? [];
-  const complianceRaw = settled(complianceR)?.data ?? [];
-  const questionsRaw = settled(questionsR)?.data ?? [];
-  const clarificationsRaw = settled(clarificationsR)?.data ?? [];
-  const realityRaw = settled(realityR)?.data ?? [];
-  const pulsesRaw = settled(pulsesR)?.data ?? [];
 
   const suggested = (mission?.iris_setup_suggested_fields ?? {}) as Record<
     string,
