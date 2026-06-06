@@ -593,8 +593,20 @@ function MissionOverviewPage() {
         <WinThemesCard themes={(mission?.win_themes as string[] | null) ?? []} />
 
         {/* ══════════════════════════════════════════════════════════ */}
-        {/* (3) Submission countdown + key dates already shown above in */}
-        {/*     the Vitals dates grid.                                  */}
+        {/* (3) SUBMISSION COUNTDOWN + KEY DATES                        */}
+        {/* ══════════════════════════════════════════════════════════ */}
+        <section>
+          <h2 className="mr-section-label">Key Dates</h2>
+          <div className="grid grid-cols-3 gap-3">
+            <DateCell label="Submission" date={mission?.submission_date ?? null} sub="" />
+            <DateCell label="Contract Term" customValue="—" sub="" />
+            <DateCell label="Pens Down" customValue="—" sub="" />
+            <DateCell label="Q&A Deadline" date={mission?.qa_deadline ?? null} sub="" />
+            <DateCell label="Contract Start" customValue="—" sub="" />
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════════════════ */}
         {/* (4) CLIENT CLARIFICATIONS                                   */}
         {/* ══════════════════════════════════════════════════════════ */}
         <ClientClarificationsCard
