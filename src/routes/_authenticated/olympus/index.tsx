@@ -172,6 +172,7 @@ function MissionsIndex() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 
