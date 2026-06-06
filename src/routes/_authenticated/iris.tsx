@@ -1,11 +1,15 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { getIrisData } from "@/lib/iris-read.functions";
-import { runIrisPipeline } from "@/lib/iris-extractors/run-all.functions";
+import { extractSignals } from "@/lib/iris-extractors/signals.functions";
+import { extractRisks } from "@/lib/iris-extractors/risks.functions";
+import { extractWinThemes } from "@/lib/iris-extractors/win-themes.functions";
+import { extractStrategy } from "@/lib/iris-extractors/strategy.functions";
+import { extractClientIntel } from "@/lib/iris-extractors/client-intel.functions";
 
 /**
  * IRIS — the intelligence experience layer.
@@ -41,23 +45,101 @@ function IrisPage() {
     queryFn: () => fetchIris({ data: { missionId } }),
   });
 
-  const runPipeline = useServerFn(runIrisPipeline);
-  const mutation = useMutation({
-    mutationFn: (id: string) => runPipeline({ data: { missionId: id } }),
-    onSuccess: (res) => {
-      const ok = res.results.filter((r) => r.ok && !r.skipped);
-      const skipped = res.results.filter((r) => r.skipped);
-      const failed = res.results.filter((r) => !r.ok);
-      const total = ok.reduce((n, r) => n + r.inserted, 0);
-      toast.success(
-        `IRIS pipeline complete · ${total} rows generated across ${ok.length}/${res.results.length} stages` +
-          (skipped.length ? ` · ${skipped.length} skipped` : "") +
-          (failed.length ? ` · ${failed.length} failed` : ""),
+  const runSignals = useServerFn(extractSignals);
+  const runRisks = useServerFn(extractRisks);
+  const runWinThemes = useServerFn(extractWinThemes);
+  const runStrategy = useServerFn(extractStrategy);
+  const runClientIntel = useServerFn(extractClientIntel);
+
+  type StageState = {
+    id: string;
+    label: string;
+    status: "pending" | "running" | "done" | "error" | "skipped";
+    inserted?: number;
+    reason?: string;
+    error?: string;
+    ms?: number;
+  };
+
+  const STAGE_DEFS = [
+    { id: "signals", label: "Signals", fn: runSignals },
+    { id: "risks", label: "Emerging risks", fn: runRisks },
+    { id: "win_themes", label: "Win themes", fn: runWinThemes },
+    { id: "strategy", label: "State priorities", fn: runStrategy },
+    { id: "client_intel", label: "Client intel", fn: runClientIntel },
+  ] as const;
+
+  const [stages, setStages] = useState<StageState[]>(() =>
+    STAGE_DEFS.map((s) => ({ id: s.id, label: s.label, status: "pending" as const })),
+  );
+  const [running, setRunning] = useState(false);
+  const runningRef = useRef(false);
+
+  const handleGenerate = useCallback(async (id: string) => {
+    if (runningRef.current) return;
+    runningRef.current = true;
+    setRunning(true);
+    setStages(STAGE_DEFS.map((s) => ({ id: s.id, label: s.label, status: "pending" })));
+
+    for (let i = 0; i < STAGE_DEFS.length; i++) {
+      const def = STAGE_DEFS[i];
+      setStages((prev) =>
+        prev.map((s, idx) => (idx === i ? { ...s, status: "running" } : s)),
       );
-      void router.invalidate();
-    },
-    onError: (e) => toast.error(`Pipeline failed: ${(e as Error).message}`),
-  });
+      const t0 = performance.now();
+      try {
+        const r = (await def.fn({ data: { missionId: id } })) as {
+          inserted?: number;
+          skipped?: boolean;
+          reason?: string;
+        };
+        const ms = Math.round(performance.now() - t0);
+        setStages((prev) =>
+          prev.map((s, idx) =>
+            idx === i
+              ? {
+                  ...s,
+                  status: r.skipped ? "skipped" : "done",
+                  inserted: r.inserted ?? 0,
+                  reason: r.reason,
+                  ms,
+                }
+              : s,
+          ),
+        );
+      } catch (e) {
+        const ms = Math.round(performance.now() - t0);
+        setStages((prev) =>
+          prev.map((s, idx) =>
+            idx === i
+              ? { ...s, status: "error", error: (e as Error).message.slice(0, 200), ms }
+              : s,
+          ),
+        );
+      }
+    }
+
+    runningRef.current = false;
+    setRunning(false);
+    const final = stages;
+    void final; // for closure linter; real summary derived from setter snapshot below
+    setStages((prev) => {
+      const ok = prev.filter((s) => s.status === "done");
+      const failed = prev.filter((s) => s.status === "error");
+      const total = ok.reduce((n, s) => n + (s.inserted ?? 0), 0);
+      if (failed.length) {
+        toast.error(`IRIS pipeline finished with ${failed.length} failure(s) · ${total} rows`);
+      } else {
+        toast.success(`IRIS pipeline complete · ${total} rows across ${ok.length}/${prev.length} stages`);
+      }
+      return prev;
+    });
+    void router.invalidate();
+  }, [router, runSignals, runRisks, runWinThemes, runStrategy, runClientIntel]);
+
+  const completedCount = stages.filter((s) => s.status === "done" || s.status === "skipped" || s.status === "error").length;
+  const progressPct = Math.round((completedCount / stages.length) * 100);
+  const showProgress = running || completedCount > 0;
 
   const activeMissionId = data?.mission?.id;
 
@@ -98,15 +180,20 @@ function IrisPage() {
             {activeMissionId && (
               <button
                 type="button"
-                onClick={() => mutation.mutate(activeMissionId)}
-                disabled={mutation.isPending}
+                onClick={() => handleGenerate(activeMissionId)}
+                disabled={running}
                 className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-300 transition hover:bg-amber-500/15 disabled:opacity-50"
               >
-                {mutation.isPending ? "Generating…" : "Generate Intelligence"}
+                {running ? `Generating… ${progressPct}%` : "Generate Intelligence"}
               </button>
             )}
           </div>
         </header>
+
+        {showProgress && (
+          <PipelineProgress stages={stages} pct={progressPct} running={running} />
+        )}
+
 
         <nav className="mb-8 flex flex-wrap gap-1 border-b border-border/60">
           {TABS.map((t) => {
@@ -155,6 +242,103 @@ function IrisPage() {
     </div>
   );
 }
+
+type PipelineStage = {
+  id: string;
+  label: string;
+  status: "pending" | "running" | "done" | "error" | "skipped";
+  inserted?: number;
+  reason?: string;
+  error?: string;
+  ms?: number;
+};
+
+function PipelineProgress({
+  stages,
+  pct,
+  running,
+}: {
+  stages: PipelineStage[];
+  pct: number;
+  running: boolean;
+}) {
+  return (
+    <div className="mb-8 rounded-lg border border-border/60 bg-card/40 p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+          {running ? "IRIS pipeline running" : "IRIS pipeline complete"}
+        </div>
+        <div className="text-[11px] tabular-nums text-muted-foreground">{pct}%</div>
+      </div>
+      <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-muted/40">
+        <div
+          className="h-full rounded-full transition-[width] duration-500 ease-out"
+          style={{
+            width: `${pct}%`,
+            background: "linear-gradient(90deg, var(--iris, #5cbdf2), #f59e0b)",
+          }}
+        />
+      </div>
+      <ol className="space-y-1.5 font-mono text-[11px] leading-relaxed">
+        {stages.map((s) => (
+          <li key={s.id} className="flex items-start gap-2.5">
+            <StageGlyph status={s.status} />
+            <span className="min-w-[7.5rem] uppercase tracking-[0.14em] text-muted-foreground">
+              {s.label}
+            </span>
+            <span className="flex-1 text-foreground/80">
+              {s.status === "pending" && <span className="text-muted-foreground/60">queued</span>}
+              {s.status === "running" && <span className="text-amber-300">extracting…</span>}
+              {s.status === "done" && (
+                <span>
+                  <span className="text-emerald-400">✓</span> {s.inserted ?? 0} rows
+                  {typeof s.ms === "number" ? ` · ${(s.ms / 1000).toFixed(1)}s` : ""}
+                </span>
+              )}
+              {s.status === "skipped" && (
+                <span className="text-muted-foreground">
+                  skipped{s.reason ? ` · ${s.reason}` : ""}
+                </span>
+              )}
+              {s.status === "error" && (
+                <span className="text-red-400">failed · {s.error ?? "unknown error"}</span>
+              )}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+function StageGlyph({ status }: { status: PipelineStage["status"] }) {
+  if (status === "running") {
+    return (
+      <span
+        className="mt-[3px] inline-block h-2 w-2 animate-pulse rounded-full"
+        style={{ background: "var(--iris, #5cbdf2)", boxShadow: "0 0 8px var(--iris, #5cbdf2)" }}
+        aria-hidden
+      />
+    );
+  }
+  const color =
+    status === "done"
+      ? "#34d399"
+      : status === "error"
+        ? "#f87171"
+        : status === "skipped"
+          ? "#94a3b8"
+          : "#475569";
+  return (
+    <span
+      className="mt-[3px] inline-block h-2 w-2 rounded-full"
+      style={{ background: color }}
+      aria-hidden
+    />
+  );
+}
+
+
 
 /* ─────────────────────────────────────────────────────────────────────── */
 /* Atoms                                                                   */
