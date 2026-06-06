@@ -178,6 +178,63 @@ export const matchExperts = createServerFn({ method: "POST" })
       return match;
     });
 
+    // Score self-tagged staff profiles the same way.
+    const scoredProfiles: ExpertMatch[] = (selfTagged as any[]).map((p) => {
+      const reasons: string[] = [];
+      let score = 0;
+      const tags: string[] = [
+        ...(p.expertise_areas ?? []),
+        ...(p.programs_experience ?? []),
+        ...(p.question_types ?? []),
+      ];
+
+      const tagTokens = tokens(tags.join(" "));
+      const hits = overlap(qTokens, tagTokens);
+      if (hits > 0) {
+        score += Math.min(1, hits / 3) * 0.6;
+        const matched = tags.filter((t) => qText.toLowerCase().includes(t.toLowerCase())).slice(0, 2);
+        if (matched.length) reasons.push(`tagged ${matched.join(" & ")}`);
+      }
+      if (programText && tags.some((t) => t.toLowerCase().includes(programText) || programText.includes(t.toLowerCase()))) {
+        score += 0.25;
+        reasons.push(`${m.program_type} experience`);
+      }
+      if (stateText && (p.states_experience ?? []).map((s: string) => s.toUpperCase()).includes(stateText)) {
+        score += 0.15;
+        reasons.push(`worked in ${m.state}`);
+      }
+
+      return {
+        id: p.id,
+        display_name: p.display_name,
+        email: p.email,
+        avatar_color: p.avatar_color ?? colorFor(p.id),
+        avatar_url: p.avatar_url,
+        expertise_areas: p.expertise_areas ?? [],
+        states_experience: p.states_experience ?? [],
+        programs_experience: p.programs_experience ?? [],
+        question_types: p.question_types ?? [],
+        notable_wins: [],
+        availability_status: p.availability_status ?? "available",
+        availability_until: p.availability_until,
+        availability_note: p.availability_note,
+        expert_bio: p.expert_bio,
+        profile_completed: true,
+        score,
+        reasons,
+      } as ExpertMatch;
+    });
+
+    // De-dupe by email (a profile and a collective row for the same person
+    // shouldn't both appear); keep the higher score.
+    const merged = new Map<string, ExpertMatch>();
+    for (const e of [...scored, ...scoredProfiles]) {
+      const key = (e.email ?? e.id).toLowerCase();
+      const prev = merged.get(key);
+      if (!prev || e.score > prev.score) merged.set(key, e);
+    }
+    const allScored = Array.from(merged.values());
+
     // Keep only members with at least one signal; sort by score desc.
     const ranked = scored.filter((s) => s.score > 0).sort((a, b) => b.score - a.score);
     const top = ranked.slice(0, 4);
