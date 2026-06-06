@@ -804,6 +804,42 @@ function FirmIntel({
 
 type MissionCardQ = { id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null };
 
+function MissionCardActions({ missionId }: { missionId: string }) {
+  const nav = useNavigate();
+  const go = (e: React.MouseEvent, fn: () => void) => {
+    e.preventDefault();
+    e.stopPropagation();
+    fn();
+  };
+  const btn =
+    "flex-1 rounded-md border border-border bg-background/60 px-2 py-1.5 text-[11px] font-medium text-foreground/80 hover:bg-foreground/10 hover:text-foreground transition";
+  return (
+    <div className="mt-3 flex items-center gap-1.5 border-t border-border pt-3">
+      <button
+        type="button"
+        className={btn}
+        onClick={(e) => go(e, () => nav({ to: "/missions/$missionId/brief", params: { missionId } }))}
+      >
+        Mission Brief
+      </button>
+      <button
+        type="button"
+        className={btn}
+        onClick={(e) => go(e, () => nav({ to: "/missions/$missionId/sections", params: { missionId } }))}
+      >
+        Sections
+      </button>
+      <button
+        type="button"
+        className={btn}
+        onClick={(e) => go(e, () => nav({ to: "/cockpit", search: { missionId } as never }))}
+      >
+        Cockpit
+      </button>
+    </div>
+  );
+}
+
 function MissionCard({
   mission,
   attention,
