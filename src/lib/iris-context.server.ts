@@ -400,9 +400,131 @@ export async function buildMissionContext(
       .gte("submitted_at", since48h)
       .order("submitted_at", { ascending: false })
       .limit(20),
+    // ----- Expanded sources (No Data Left Behind) -----
+    supabase
+      .from("broadcasts")
+      .select("id,from_name,text,created_at")
+      .eq("mission_id", missionId)
+      .order("created_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("mock_scores")
+      .select("id,stage,score,section_name,question_id,evaluator_note,scored_at")
+      .eq("mission_id", missionId)
+      .order("scored_at", { ascending: false })
+      .limit(8),
+    supabase
+      .from("executive_decisions")
+      .select("id,description,urgency,status,created_at")
+      .eq("mission_id", missionId)
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(10),
+    supabase
+      .from("iris_memories")
+      .select("id,title,summary,category,importance,scope,mission_id")
+      .or(`mission_id.eq.${missionId},and(scope.eq.global,importance.neq.reference)`)
+      .is("archived_at", null)
+      .order("importance", { ascending: true })
+      .limit(10),
+    supabase
+      .from("mission_assumptions")
+      .select("id,assumption,confidence_score,status,risk_if_wrong")
+      .eq("mission_id", missionId)
+      .eq("status", "active")
+      .order("confidence_score", { ascending: true })
+      .limit(10),
+    supabase
+      .from("mission_decisions")
+      .select("id,title,status,owner,rationale,decided_at,created_at")
+      .eq("mission_id", missionId)
+      .order("created_at", { ascending: false })
+      .limit(10),
+    supabase
+      .from("rfp_amendments")
+      .select("id,summary,total_changes,critical_changes,analyzed_at,status")
+      .eq("mission_id", missionId)
+      .order("created_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("amendment_changes")
+      .select(
+        "id,amendment_id,severity,description,writer_action_required,affected_sections,acknowledged",
+      )
+      .eq("mission_id", missionId)
+      .order("created_at", { ascending: false })
+      .limit(20),
+    supabase
+      .from("market_intelligence")
+      .select("id,type,title,summary,url,published_at,created_at")
+      .or(`mission_id.eq.${missionId},matched_mission_ids.cs.{${missionId}}`)
+      .order("published_at", { ascending: false, nullsFirst: false })
+      .limit(8),
+    supabase
+      .from("mission_strategy")
+      .select("id,kind,label,notes,sort_order")
+      .eq("mission_id", missionId)
+      .order("sort_order", { ascending: true })
+      .limit(30),
+    supabase
+      .from("iris_health_flags")
+      .select("id,kind,severity,rationale,question_id,resolved_at")
+      .eq("mission_id", missionId)
+      .is("resolved_at", null)
+      .order("created_at", { ascending: false })
+      .limit(15),
+    supabase
+      .from("mission_sections")
+      .select(
+        "id,number,title,studio_status,studio_progress_pct,iris_alignment_pct,iris_flagged,assigned_user_id,internal_due_date",
+      )
+      .eq("mission_id", missionId)
+      .order("number", { ascending: true })
+      .limit(50),
+    supabase
+      .from("research_results")
+      .select("id,answer,confidence,generated_at")
+      .eq("mission_id", missionId)
+      .order("generated_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("mission_timeline")
+      .select(
+        "question_deadline,pink_team,red_team,gold_team,exec_review,submission,orals,award",
+      )
+      .eq("mission_id", missionId)
+      .maybeSingle(),
   ]);
 
   const mission = settled(missionR)?.data ?? null;
+  const evaluationRaw = settled(evalR)?.data ?? [];
+  const winThemesRaw = settled(winThemesR)?.data ?? [];
+  const oracleRaw = settled(oracleR)?.data ?? [];
+  const risksRaw = settled(risksR)?.data ?? [];
+  const signalsRaw = settled(signalsR)?.data ?? [];
+  const sosRaw = settled(sosR)?.data ?? [];
+  const clientIntelRaw = settled(clientIntelR)?.data ?? null;
+  const docsRaw = settled(docsR)?.data ?? [];
+  const canonRaw = settled(canonR)?.data ?? [];
+  const complianceRaw = settled(complianceR)?.data ?? [];
+  const questionsRaw = settled(questionsR)?.data ?? [];
+  const clarificationsRaw = settled(clarificationsR)?.data ?? [];
+  const realityRaw = settled(realityR)?.data ?? [];
+  const pulsesRaw = settled(pulsesR)?.data ?? [];
+  const broadcastsRaw = settled(broadcastsR)?.data ?? [];
+  const mockScoresRaw = settled(mockScoresR)?.data ?? [];
+  const execDecisionsRaw = settled(execDecisionsR)?.data ?? [];
+  const irisMemoriesRaw = settled(irisMemoriesR)?.data ?? [];
+  const assumptionsRaw = settled(assumptionsR)?.data ?? [];
+  const decisionsRaw = settled(decisionsR)?.data ?? [];
+  const amendmentsRaw = settled(amendmentsR)?.data ?? [];
+  const amendmentChangesRaw = settled(amendmentChangesR)?.data ?? [];
+  const marketIntelRaw = settled(marketIntelR)?.data ?? [];
+  const strategyRaw = settled(strategyR)?.data ?? [];
+  const healthFlagsRaw = settled(healthFlagsR)?.data ?? [];
+  const sectionsRaw = settled(sectionsR)?.data ?? [];
+  const researchRaw = settled(researchR)?.data ?? [];
+  const timelineRaw = settled(timelineR)?.data ?? null;
   const evaluationRaw = settled(evalR)?.data ?? [];
   const winThemesRaw = settled(winThemesR)?.data ?? [];
   const oracleRaw = settled(oracleR)?.data ?? [];
