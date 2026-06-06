@@ -12,23 +12,8 @@ export function AtlasLoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function routeAfterAuth(userId: string) {
-    try {
-      const { data: memberships } = await supabase
-        .from("mission_members")
-        .select("role,mission_id,missions:mission_id(id,status)")
-        .eq("user_id", userId);
-      const active = (memberships ?? []).filter((m: any) => m.missions?.status === "Active");
-      const roles = active.map((m: any) => m.role);
-      const isLeader = roles.includes("admin") || roles.includes("lead");
-      if (!isLeader && active.length === 1) {
-        navigate({ to: "/missions/$missionId/sections", params: { missionId: active[0].mission_id }, replace: true });
-        return;
-      }
-    } catch {
-      // fall through
-    }
-    navigate({ to: "/atrium", replace: true });
+  async function routeAfterAuth(_userId: string) {
+    navigate({ to: "/flight-deck", replace: true });
   }
 
   useEffect(() => {

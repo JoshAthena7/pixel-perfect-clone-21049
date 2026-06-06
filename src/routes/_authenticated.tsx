@@ -24,6 +24,7 @@ export const Route = createFileRoute("/_authenticated")({
 
 // Paths a non-admin is allowed to view outside the V1 shell.
 const NON_ADMIN_ALLOWED_PREFIXES = [
+  "/flight-deck",
   "/v1",
   "/profile",
   "/checkin-home",
@@ -72,10 +73,9 @@ function AuthenticatedLayout() {
     );
   }
 
-  // Non-admins live entirely inside the V1 mission shell.
-  // Anything outside the allow-list redirects to /v1.
+  // Non-admins land on the new Flight Deck instead of the legacy V1 shell.
   if (!isAllowedForNonAdmin(path)) {
-    return <Navigate to="/v1" replace />;
+    return <Navigate to="/flight-deck" replace />;
   }
 
   return (
