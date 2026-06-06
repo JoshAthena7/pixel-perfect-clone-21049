@@ -315,8 +315,22 @@ export const listMissionCheckins = createServerFn({ method: "GET" })
     // All mission writers (members)
     const { data: members } = await supabaseAdmin
       .from("mission_members")
-      .select("user_id, display_name, role, profile:profiles(id, display_name, full_name, avatar_url)")
+      .select("user_id, display_name, role")
       .eq("mission_id", data.missionId);
+
+    const memberIds = (members ?? []).map((m: any) => m.user_id);
+    const { data: memberProfiles } = memberIds.length
+      ? await supabaseAdmin
+          .from("profiles")
+          .select("id, display_name, full_name, avatar_url")
+          .in("id", memberIds)
+      : { data: [] as any[] };
+    const profileById = new Map<string, any>();
+    (memberProfiles ?? []).forEach((p: any) => profileById.set(p.id, p));
+    const enrichedMembers = (members ?? []).map((m: any) => ({
+      ...m,
+      profile: profileById.get(m.user_id) ?? null,
+    }));
 
     if (!cycle) {
       return {
