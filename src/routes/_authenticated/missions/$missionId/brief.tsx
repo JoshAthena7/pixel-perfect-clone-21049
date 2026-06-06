@@ -587,6 +587,31 @@ function MissionOverviewPage() {
           riskCount={risks.length}
         />
 
+        {/* IRIS last-analyzed line + Command power view entry (EL/PM/admin) */}
+        <div
+          className="flex flex-wrap items-center justify-between gap-3 -mt-6 rounded-md px-3 py-2"
+          style={{
+            background: "rgba(99,102,241,0.06)",
+            border: "1px solid rgba(99,102,241,0.18)",
+          }}
+        >
+          <div className="text-[11px]" style={{ color: "#a5b4fc" }}>
+            <span className="font-bold uppercase tracking-[0.22em]">⚡ IRIS</span>
+            <span className="text-muted-foreground"> · last analyzed this mission</span>
+          </div>
+          {isLeader && (
+            <Link
+              to="/missions/$missionId/iris-command"
+              params={{ missionId }}
+              className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-[0.18em] hover:underline"
+              style={{ color: "#6366F1" }}
+            >
+              ⚡ IRIS Command →
+            </Link>
+          )}
+        </div>
+
+
         {/* ══════════════════════════════════════════════════════════ */}
         {/* (2) WIN THEMES + ALIGNMENT                                  */}
         {/* ══════════════════════════════════════════════════════════ */}
