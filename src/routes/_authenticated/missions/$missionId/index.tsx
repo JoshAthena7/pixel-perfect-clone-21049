@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import {
   AlertTriangle,
   ArrowRight,
@@ -9,11 +10,17 @@ import {
   CheckCircle2,
   Clock,
   Flag,
-  LifeBuoy,
   Pin,
-  Sparkles,
   Target,
 } from "lucide-react";
+import { AssistsBar } from "@/components/v4/AssistsBar";
+import { SOSButton, SOSModal } from "@/components/v2/SOSButton";
+import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
+import { PhoneAFriendOverlay } from "@/components/v2/PhoneAFriendOverlay";
+import { DailyPulse } from "@/components/v4/DailyPulse";
+import { ThreadPanel } from "@/components/threads/ThreadPanel";
+import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/")({
   component: MissionCockpitLanding,
