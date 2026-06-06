@@ -12,7 +12,7 @@ import { MissionGridSkeleton, QuestionListSkeleton } from "@/components/v2/Skele
 import { ArrowRight, Megaphone, CalendarClock, DoorOpen, ClipboardList, Search, Globe, Sparkles, Mountain, ChevronDown, ChevronRight, RefreshCw, Rocket } from "lucide-react";
 import { HORIZON_FILTERS, inferCategory, matchesHorizonFilter, type IntelItem } from "@/lib/intelligence-feed";
 import { LiveBadge, ScanningBeam, IrisWaveform, TypewriterText } from "@/components/v2/effects";
-import { Constellation } from "@/components/v2/polish";
+import { Constellation, AnimatedNumber } from "@/components/v2/polish";
 import athenaLogo from "@/assets/athena-logo.png";
 import atlasLogo from "@/assets/atlas-logo.png.asset.json";
 // LegacyRecord temporarily removed
