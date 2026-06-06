@@ -19,6 +19,7 @@ import {
   regenerateBriefingBook,
 } from "@/lib/mission-activation.functions";
 import { kickoffMissionIris } from "@/lib/iris-kickoff.functions";
+import { runIrisPipeline } from "@/lib/iris-extractors/run-all.functions";
 import { MissionLaunchMoment } from "@/components/v2/MissionLaunchMoment";
 
 // ─── Categories shown in the activation upload step ────────────────────────
@@ -319,6 +320,7 @@ function Step2Uploads({
   const extractFn = useServerFn(extractDocumentIntelligence);
   const parseRfpFn = useServerFn(parseRfpDocument);
   const kickoffIrisFn = useServerFn(kickoffMissionIris);
+  const runPipelineFn = useServerFn(runIrisPipeline);
   // Ensure the auto-IRIS kickoff only fires once per wizard session — even if
   // multiple RFPs are uploaded — to avoid stacking long-running brief loops.
   const irisKickedOffRef = useRef(false);
@@ -466,6 +468,13 @@ function Step2Uploads({
     // flight and won't re-brief questions that already have one.
     void kickoffIrisFn({ data: { missionId } }).catch((e) => {
       console.warn("IRIS kickoff failed", e?.message);
+    });
+
+    // Run the full IRIS extractor pipeline (signals, risks, win themes,
+    // strategy, client intel). Fire-and-forget — runs in background so
+    // activation UI stays responsive.
+    void runPipelineFn({ data: { missionId } }).catch((e) => {
+      console.warn("IRIS pipeline failed", e?.message);
     });
 
     qc.invalidateQueries({ queryKey: ["olympus-missions"] });
