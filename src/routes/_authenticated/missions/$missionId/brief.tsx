@@ -259,6 +259,21 @@ function MissionBriefPage() {
         <WinThemesCard themes={mission?.win_themes ?? []} />
       </div>
 
+      {/* ── ENTER COCKPIT — primary CTA, visible to all users ── */}
+      <Link
+        to="/missions/$missionId/cockpit"
+        params={{ missionId }}
+        className="group flex w-full items-center justify-center gap-3 rounded-xl px-6 py-5 text-base font-bold tracking-wide text-white shadow-2xl transition hover:-translate-y-0.5"
+        style={{
+          background: "#6366F1",
+          boxShadow: "0 18px 50px rgba(99,102,241,0.35)",
+        }}
+      >
+        <Zap className="h-5 w-5" />
+        Enter Cockpit
+        <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
+      </Link>
+
       {/* ── KEY DATES ──────────────────── */}
       <section className="rounded-lg border border-border bg-card p-4">
         <div className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
