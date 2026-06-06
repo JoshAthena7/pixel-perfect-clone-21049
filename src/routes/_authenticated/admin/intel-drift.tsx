@@ -7,7 +7,7 @@ import { AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { recalibrateMissionIntel } from "@/lib/intel-drift.functions";
 
-export const Route = createFileRoute("/_authenticated/olympus/intel-drift")({
+export const Route = createFileRoute("/_authenticated/admin/intel-drift")({
   component: IntelDriftPage,
 });
 

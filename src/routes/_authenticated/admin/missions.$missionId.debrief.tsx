@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Trophy, AlertTriangle, BookOpen, CheckCircle2, X, Sparkles, Loader2 } from "lucide-react";
 import { saveDebrief, generateCanonSuggestions, approveCanonItem } from "@/lib/mission-debrief.functions";
 
-export const Route = createFileRoute("/_authenticated/olympus/missions/$missionId/debrief")({
+export const Route = createFileRoute("/_authenticated/admin/missions/$missionId/debrief")({
   component: DebriefPage,
 });
 

@@ -30,30 +30,11 @@ import { Route as AuthenticatedCockpitRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedCheckinHomeRouteImport } from './routes/_authenticated/checkin-home'
 import { Route as AuthenticatedBriefRoomRouteImport } from './routes/_authenticated/brief-room'
 import { Route as AuthenticatedAtriumRouteImport } from './routes/_authenticated/atrium'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile/index'
-import { Route as AuthenticatedOlympusIndexRouteImport } from './routes/_authenticated/olympus/index'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedProfileExpertiseRouteImport } from './routes/_authenticated/profile/expertise'
-import { Route as AuthenticatedOlympusWriterDeletionRouteImport } from './routes/_authenticated/olympus/writer-deletion'
-import { Route as AuthenticatedOlympusUsersRouteImport } from './routes/_authenticated/olympus/users'
-import { Route as AuthenticatedOlympusSourceLibraryRouteImport } from './routes/_authenticated/olympus/source-library'
-import { Route as AuthenticatedOlympusSourceFinderRouteImport } from './routes/_authenticated/olympus/source-finder'
-import { Route as AuthenticatedOlympusScoreMeRouteImport } from './routes/_authenticated/olympus/score-me'
-import { Route as AuthenticatedOlympusReviewQueueRouteImport } from './routes/_authenticated/olympus/review-queue'
-import { Route as AuthenticatedOlympusPhiLogRouteImport } from './routes/_authenticated/olympus/phi-log'
-import { Route as AuthenticatedOlympusIrisMemoryRouteImport } from './routes/_authenticated/olympus/iris-memory'
-import { Route as AuthenticatedOlympusInvitesRouteImport } from './routes/_authenticated/olympus/invites'
-import { Route as AuthenticatedOlympusIntelligenceRouteImport } from './routes/_authenticated/olympus/intelligence'
-import { Route as AuthenticatedOlympusIntelEngineRouteImport } from './routes/_authenticated/olympus/intel-engine'
-import { Route as AuthenticatedOlympusIntelDriftRouteImport } from './routes/_authenticated/olympus/intel-drift'
-import { Route as AuthenticatedOlympusExpertiseRouteImport } from './routes/_authenticated/olympus/expertise'
-import { Route as AuthenticatedOlympusDiscoveryHistoryRouteImport } from './routes/_authenticated/olympus/discovery-history'
-import { Route as AuthenticatedOlympusConflictsRouteImport } from './routes/_authenticated/olympus/conflicts'
-import { Route as AuthenticatedOlympusComparablesRouteImport } from './routes/_authenticated/olympus/comparables'
-import { Route as AuthenticatedOlympusCanonLibraryRouteImport } from './routes/_authenticated/olympus/canon-library'
-import { Route as AuthenticatedOlympusBriefRoomRouteImport } from './routes/_authenticated/olympus/brief-room'
-import { Route as AuthenticatedOlympusAuditRouteImport } from './routes/_authenticated/olympus/audit'
-import { Route as AuthenticatedOlympusAtlasSourcesRouteImport } from './routes/_authenticated/olympus/atlas-sources'
-import { Route as AuthenticatedOlympusAdminsRouteImport } from './routes/_authenticated/olympus/admins'
+import { Route as AuthenticatedOlympusSplatRouteImport } from './routes/_authenticated/olympus.$'
 import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_authenticated/missions/$missionId'
 import { Route as AuthenticatedCommandSecurityRouteImport } from './routes/_authenticated/command/security'
 import { Route as AuthenticatedCommandScoresRouteImport } from './routes/_authenticated/command/scores'
@@ -64,6 +45,27 @@ import { Route as AuthenticatedCommandBroadcastsRouteImport } from './routes/_au
 import { Route as AuthenticatedCommandAttentionRouteImport } from './routes/_authenticated/command/attention'
 import { Route as AuthenticatedCommandAlignmentConflictsRouteImport } from './routes/_authenticated/command/alignment-conflicts'
 import { Route as AuthenticatedCommandAlignmentRouteImport } from './routes/_authenticated/command/alignment'
+import { Route as AuthenticatedAdminWriterDeletionRouteImport } from './routes/_authenticated/admin/writer-deletion'
+import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
+import { Route as AuthenticatedAdminSourceLibraryRouteImport } from './routes/_authenticated/admin/source-library'
+import { Route as AuthenticatedAdminSourceFinderRouteImport } from './routes/_authenticated/admin/source-finder'
+import { Route as AuthenticatedAdminScoreMeRouteImport } from './routes/_authenticated/admin/score-me'
+import { Route as AuthenticatedAdminReviewQueueRouteImport } from './routes/_authenticated/admin/review-queue'
+import { Route as AuthenticatedAdminPhiLogRouteImport } from './routes/_authenticated/admin/phi-log'
+import { Route as AuthenticatedAdminIrisMemoryRouteImport } from './routes/_authenticated/admin/iris-memory'
+import { Route as AuthenticatedAdminInvitesRouteImport } from './routes/_authenticated/admin/invites'
+import { Route as AuthenticatedAdminIntelligenceRouteImport } from './routes/_authenticated/admin/intelligence'
+import { Route as AuthenticatedAdminIntelEngineRouteImport } from './routes/_authenticated/admin/intel-engine'
+import { Route as AuthenticatedAdminIntelDriftRouteImport } from './routes/_authenticated/admin/intel-drift'
+import { Route as AuthenticatedAdminExpertiseRouteImport } from './routes/_authenticated/admin/expertise'
+import { Route as AuthenticatedAdminDiscoveryHistoryRouteImport } from './routes/_authenticated/admin/discovery-history'
+import { Route as AuthenticatedAdminConflictsRouteImport } from './routes/_authenticated/admin/conflicts'
+import { Route as AuthenticatedAdminComparablesRouteImport } from './routes/_authenticated/admin/comparables'
+import { Route as AuthenticatedAdminCanonLibraryRouteImport } from './routes/_authenticated/admin/canon-library'
+import { Route as AuthenticatedAdminBriefRoomRouteImport } from './routes/_authenticated/admin/brief-room'
+import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
+import { Route as AuthenticatedAdminAtlasSourcesRouteImport } from './routes/_authenticated/admin/atlas-sources'
+import { Route as AuthenticatedAdminAdminsRouteImport } from './routes/_authenticated/admin/admins'
 import { Route as AuthenticatedMissionsMissionIdIndexRouteImport } from './routes/_authenticated/missions/$missionId/index'
 import { Route as ApiPublicHooksRefreshIntelligenceRouteImport } from './routes/api/public/hooks/refresh-intelligence'
 import { Route as ApiPublicHooksIrisMonitorRouteImport } from './routes/api/public/hooks/iris-monitor'
@@ -87,11 +89,11 @@ import { Route as AuthenticatedMissionsMissionIdBriefingRouteImport } from './ro
 import { Route as AuthenticatedMissionsMissionIdBriefRouteImport } from './routes/_authenticated/missions/$missionId/brief'
 import { Route as AuthenticatedMissionsMissionIdSectionsIndexRouteImport } from './routes/_authenticated/missions/$missionId/sections/index'
 import { Route as AuthenticatedMissionsMissionIdQuestionsIndexRouteImport } from './routes/_authenticated/missions/$missionId/questions/index'
-import { Route as AuthenticatedOlympusMissionsMissionIdSetupRouteImport } from './routes/_authenticated/olympus/missions.$missionId.setup'
-import { Route as AuthenticatedOlympusMissionsMissionIdDebriefRouteImport } from './routes/_authenticated/olympus/missions.$missionId.debrief'
 import { Route as AuthenticatedMissionsMissionIdSectionsQuestionIdRouteImport } from './routes/_authenticated/missions/$missionId/sections/$questionId'
 import { Route as AuthenticatedMissionsMissionIdScaffoldSectionIdRouteImport } from './routes/_authenticated/missions/$missionId/scaffold/$sectionId'
 import { Route as AuthenticatedMissionsMissionIdQuestionsQuestionIdRouteImport } from './routes/_authenticated/missions/$missionId/questions/$questionId'
+import { Route as AuthenticatedAdminMissionsMissionIdSetupRouteImport } from './routes/_authenticated/admin/missions.$missionId.setup'
+import { Route as AuthenticatedAdminMissionsMissionIdDebriefRouteImport } from './routes/_authenticated/admin/missions.$missionId.debrief'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -202,148 +204,32 @@ const AuthenticatedAtriumRoute = AuthenticatedAtriumRouteImport.update({
   path: '/atrium',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedProfileIndexRoute =
   AuthenticatedProfileIndexRouteImport.update({
     id: '/profile/',
     path: '/profile/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedOlympusIndexRoute =
-  AuthenticatedOlympusIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedOlympusRoute,
-  } as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedProfileExpertiseRoute =
   AuthenticatedProfileExpertiseRouteImport.update({
     id: '/profile/expertise',
     path: '/profile/expertise',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedOlympusWriterDeletionRoute =
-  AuthenticatedOlympusWriterDeletionRouteImport.update({
-    id: '/writer-deletion',
-    path: '/writer-deletion',
-    getParentRoute: () => AuthenticatedOlympusRoute,
-  } as any)
-const AuthenticatedOlympusUsersRoute =
-  AuthenticatedOlympusUsersRouteImport.update({
-    id: '/users',
-    path: '/users',
-    getParentRoute: () => AuthenticatedOlympusRoute,
-  } as any)
-const AuthenticatedOlympusSourceLibraryRoute =
-  AuthenticatedOlympusSourceLibraryRouteImport.update({
-    id: '/source-library',
-    path: '/source-library',
-    getParentRoute: () => AuthenticatedOlympusRoute,
-  } as any)
-const AuthenticatedOlympusSourceFinderRoute =
-  AuthenticatedOlympusSourceFinderRouteImport.update({
-    id: '/source-finder',
-    path: '/source-finder',
-    getParentRoute: () => AuthenticatedOlympusRoute,
-  } as any)
-const AuthenticatedOlympusScoreMeRoute =
-  AuthenticatedOlympusScoreMeRouteImport.update({
-    id: '/score-me',
-    path: '/score-me',
-    getParentRoute: () => AuthenticatedOlympusRoute,
-  } as any)
-const AuthenticatedOlympusReviewQueueRoute =
-  AuthenticatedOlympusReviewQueueRouteImport.update({
-    id: '/review-queue',
-    path: '/review-queue',
-    getParentRoute: () => AuthenticatedOlympusRoute,
-  } as any)
-const AuthenticatedOlympusPhiLogRoute =
-  AuthenticatedOlympusPhiLogRouteImport.update({
-    id: '/phi-log',
-    path: '/phi-log',
-    getParentRoute: () => AuthenticatedOlympusRoute,
-  } as any)
-const AuthenticatedOlympusIrisMemoryRoute =
-  AuthenticatedOlympusIrisMemoryRouteImport.update({
-    id: '/iris-memory',
-    path: '/iris-memory',
-    getParentRoute: () => AuthenticatedOlympusRoute,
-  } as any)
-const AuthenticatedOlympusInvitesRoute =
-  AuthenticatedOlympusInvitesRouteImport.update({
-    id: '/invites',
-    path: '/invites',
-    getParentRoute: () => AuthenticatedOlympusRoute,
-  } as any)
-const AuthenticatedOlympusIntelligenceRoute =
-  AuthenticatedOlympusIntelligenceRouteImport.update({
-    id: '/intelligence',
-    path: '/intelligence',
-    getParentRoute: () => AuthenticatedOlympusRoute,
-  } as any)
-const AuthenticatedOlympusIntelEngineRoute =
-  AuthenticatedOlympusIntelEngineRouteImport.update({
-    id: '/intel-engine',
-    path: '/intel-engine',
-    getParentRoute: () => AuthenticatedOlympusRoute,
-  } as any)
-const AuthenticatedOlympusIntelDriftRoute =
-  AuthenticatedOlympusIntelDriftRouteImport.update({
-    id: '/intel-drift',
-    path: '/intel-drift',
-    getParentRoute: () => AuthenticatedOlympusRoute,
-  } as any)
-const AuthenticatedOlympusExpertiseRoute =
-  AuthenticatedOlympusExpertiseRouteImport.update({
-    id: '/expertise',
-    path: '/expertise',
-    getParentRoute: () => AuthenticatedOlympusRoute,
-  } as any)
-const AuthenticatedOlympusDiscoveryHistoryRoute =
-  AuthenticatedOlympusDiscoveryHistoryRouteImport.update({
-    id: '/discovery-history',
-    path: '/discovery-history',
-    getParentRoute: () => AuthenticatedOlympusRoute,
-  } as any)
-const AuthenticatedOlympusConflictsRoute =
-  AuthenticatedOlympusConflictsRouteImport.update({
-    id: '/conflicts',
-    path: '/conflicts',
-    getParentRoute: () => AuthenticatedOlympusRoute,
-  } as any)
-const AuthenticatedOlympusComparablesRoute =
-  AuthenticatedOlympusComparablesRouteImport.update({
-    id: '/comparables',
-    path: '/comparables',
-    getParentRoute: () => AuthenticatedOlympusRoute,
-  } as any)
-const AuthenticatedOlympusCanonLibraryRoute =
-  AuthenticatedOlympusCanonLibraryRouteImport.update({
-    id: '/canon-library',
-    path: '/canon-library',
-    getParentRoute: () => AuthenticatedOlympusRoute,
-  } as any)
-const AuthenticatedOlympusBriefRoomRoute =
-  AuthenticatedOlympusBriefRoomRouteImport.update({
-    id: '/brief-room',
-    path: '/brief-room',
-    getParentRoute: () => AuthenticatedOlympusRoute,
-  } as any)
-const AuthenticatedOlympusAuditRoute =
-  AuthenticatedOlympusAuditRouteImport.update({
-    id: '/audit',
-    path: '/audit',
-    getParentRoute: () => AuthenticatedOlympusRoute,
-  } as any)
-const AuthenticatedOlympusAtlasSourcesRoute =
-  AuthenticatedOlympusAtlasSourcesRouteImport.update({
-    id: '/atlas-sources',
-    path: '/atlas-sources',
-    getParentRoute: () => AuthenticatedOlympusRoute,
-  } as any)
-const AuthenticatedOlympusAdminsRoute =
-  AuthenticatedOlympusAdminsRouteImport.update({
-    id: '/admins',
-    path: '/admins',
+const AuthenticatedOlympusSplatRoute =
+  AuthenticatedOlympusSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
     getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
 const AuthenticatedMissionsMissionIdRoute =
@@ -405,6 +291,130 @@ const AuthenticatedCommandAlignmentRoute =
     id: '/command/alignment',
     path: '/command/alignment',
     getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedAdminWriterDeletionRoute =
+  AuthenticatedAdminWriterDeletionRouteImport.update({
+    id: '/writer-deletion',
+    path: '/writer-deletion',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminSourceLibraryRoute =
+  AuthenticatedAdminSourceLibraryRouteImport.update({
+    id: '/source-library',
+    path: '/source-library',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminSourceFinderRoute =
+  AuthenticatedAdminSourceFinderRouteImport.update({
+    id: '/source-finder',
+    path: '/source-finder',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminScoreMeRoute =
+  AuthenticatedAdminScoreMeRouteImport.update({
+    id: '/score-me',
+    path: '/score-me',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminReviewQueueRoute =
+  AuthenticatedAdminReviewQueueRouteImport.update({
+    id: '/review-queue',
+    path: '/review-queue',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminPhiLogRoute =
+  AuthenticatedAdminPhiLogRouteImport.update({
+    id: '/phi-log',
+    path: '/phi-log',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminIrisMemoryRoute =
+  AuthenticatedAdminIrisMemoryRouteImport.update({
+    id: '/iris-memory',
+    path: '/iris-memory',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminInvitesRoute =
+  AuthenticatedAdminInvitesRouteImport.update({
+    id: '/invites',
+    path: '/invites',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminIntelligenceRoute =
+  AuthenticatedAdminIntelligenceRouteImport.update({
+    id: '/intelligence',
+    path: '/intelligence',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminIntelEngineRoute =
+  AuthenticatedAdminIntelEngineRouteImport.update({
+    id: '/intel-engine',
+    path: '/intel-engine',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminIntelDriftRoute =
+  AuthenticatedAdminIntelDriftRouteImport.update({
+    id: '/intel-drift',
+    path: '/intel-drift',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminExpertiseRoute =
+  AuthenticatedAdminExpertiseRouteImport.update({
+    id: '/expertise',
+    path: '/expertise',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminDiscoveryHistoryRoute =
+  AuthenticatedAdminDiscoveryHistoryRouteImport.update({
+    id: '/discovery-history',
+    path: '/discovery-history',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminConflictsRoute =
+  AuthenticatedAdminConflictsRouteImport.update({
+    id: '/conflicts',
+    path: '/conflicts',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminComparablesRoute =
+  AuthenticatedAdminComparablesRouteImport.update({
+    id: '/comparables',
+    path: '/comparables',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminCanonLibraryRoute =
+  AuthenticatedAdminCanonLibraryRouteImport.update({
+    id: '/canon-library',
+    path: '/canon-library',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminBriefRoomRoute =
+  AuthenticatedAdminBriefRoomRouteImport.update({
+    id: '/brief-room',
+    path: '/brief-room',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminAuditRoute = AuthenticatedAdminAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminAtlasSourcesRoute =
+  AuthenticatedAdminAtlasSourcesRouteImport.update({
+    id: '/atlas-sources',
+    path: '/atlas-sources',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminAdminsRoute =
+  AuthenticatedAdminAdminsRouteImport.update({
+    id: '/admins',
+    path: '/admins',
+    getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedMissionsMissionIdIndexRoute =
   AuthenticatedMissionsMissionIdIndexRouteImport.update({
@@ -544,18 +554,6 @@ const AuthenticatedMissionsMissionIdQuestionsIndexRoute =
     path: '/questions/',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
-const AuthenticatedOlympusMissionsMissionIdSetupRoute =
-  AuthenticatedOlympusMissionsMissionIdSetupRouteImport.update({
-    id: '/missions/$missionId/setup',
-    path: '/missions/$missionId/setup',
-    getParentRoute: () => AuthenticatedOlympusRoute,
-  } as any)
-const AuthenticatedOlympusMissionsMissionIdDebriefRoute =
-  AuthenticatedOlympusMissionsMissionIdDebriefRouteImport.update({
-    id: '/missions/$missionId/debrief',
-    path: '/missions/$missionId/debrief',
-    getParentRoute: () => AuthenticatedOlympusRoute,
-  } as any)
 const AuthenticatedMissionsMissionIdSectionsQuestionIdRoute =
   AuthenticatedMissionsMissionIdSectionsQuestionIdRouteImport.update({
     id: '/sections/$questionId',
@@ -574,11 +572,24 @@ const AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute =
     path: '/questions/$questionId',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
+const AuthenticatedAdminMissionsMissionIdSetupRoute =
+  AuthenticatedAdminMissionsMissionIdSetupRouteImport.update({
+    id: '/missions/$missionId/setup',
+    path: '/missions/$missionId/setup',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminMissionsMissionIdDebriefRoute =
+  AuthenticatedAdminMissionsMissionIdDebriefRouteImport.update({
+    id: '/missions/$missionId/debrief',
+    path: '/missions/$missionId/debrief',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/iris': typeof IrisRoute
   '/login': typeof LoginRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/atrium': typeof AuthenticatedAtriumRoute
   '/brief-room': typeof AuthenticatedBriefRoomRoute
   '/checkin-home': typeof AuthenticatedCheckinHomeRoute
@@ -596,6 +607,27 @@ export interface FileRoutesByFullPath {
   '/checkin/$token': typeof CheckinTokenRoute
   '/debug/daily-note-layout': typeof DebugDailyNoteLayoutRoute
   '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
+  '/admin/admins': typeof AuthenticatedAdminAdminsRoute
+  '/admin/atlas-sources': typeof AuthenticatedAdminAtlasSourcesRoute
+  '/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/admin/brief-room': typeof AuthenticatedAdminBriefRoomRoute
+  '/admin/canon-library': typeof AuthenticatedAdminCanonLibraryRoute
+  '/admin/comparables': typeof AuthenticatedAdminComparablesRoute
+  '/admin/conflicts': typeof AuthenticatedAdminConflictsRoute
+  '/admin/discovery-history': typeof AuthenticatedAdminDiscoveryHistoryRoute
+  '/admin/expertise': typeof AuthenticatedAdminExpertiseRoute
+  '/admin/intel-drift': typeof AuthenticatedAdminIntelDriftRoute
+  '/admin/intel-engine': typeof AuthenticatedAdminIntelEngineRoute
+  '/admin/intelligence': typeof AuthenticatedAdminIntelligenceRoute
+  '/admin/invites': typeof AuthenticatedAdminInvitesRoute
+  '/admin/iris-memory': typeof AuthenticatedAdminIrisMemoryRoute
+  '/admin/phi-log': typeof AuthenticatedAdminPhiLogRoute
+  '/admin/review-queue': typeof AuthenticatedAdminReviewQueueRoute
+  '/admin/score-me': typeof AuthenticatedAdminScoreMeRoute
+  '/admin/source-finder': typeof AuthenticatedAdminSourceFinderRoute
+  '/admin/source-library': typeof AuthenticatedAdminSourceLibraryRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/admin/writer-deletion': typeof AuthenticatedAdminWriterDeletionRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/command/attention': typeof AuthenticatedCommandAttentionRoute
@@ -606,29 +638,9 @@ export interface FileRoutesByFullPath {
   '/command/scores': typeof AuthenticatedCommandScoresRoute
   '/command/security': typeof AuthenticatedCommandSecurityRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
-  '/olympus/admins': typeof AuthenticatedOlympusAdminsRoute
-  '/olympus/atlas-sources': typeof AuthenticatedOlympusAtlasSourcesRoute
-  '/olympus/audit': typeof AuthenticatedOlympusAuditRoute
-  '/olympus/brief-room': typeof AuthenticatedOlympusBriefRoomRoute
-  '/olympus/canon-library': typeof AuthenticatedOlympusCanonLibraryRoute
-  '/olympus/comparables': typeof AuthenticatedOlympusComparablesRoute
-  '/olympus/conflicts': typeof AuthenticatedOlympusConflictsRoute
-  '/olympus/discovery-history': typeof AuthenticatedOlympusDiscoveryHistoryRoute
-  '/olympus/expertise': typeof AuthenticatedOlympusExpertiseRoute
-  '/olympus/intel-drift': typeof AuthenticatedOlympusIntelDriftRoute
-  '/olympus/intel-engine': typeof AuthenticatedOlympusIntelEngineRoute
-  '/olympus/intelligence': typeof AuthenticatedOlympusIntelligenceRoute
-  '/olympus/invites': typeof AuthenticatedOlympusInvitesRoute
-  '/olympus/iris-memory': typeof AuthenticatedOlympusIrisMemoryRoute
-  '/olympus/phi-log': typeof AuthenticatedOlympusPhiLogRoute
-  '/olympus/review-queue': typeof AuthenticatedOlympusReviewQueueRoute
-  '/olympus/score-me': typeof AuthenticatedOlympusScoreMeRoute
-  '/olympus/source-finder': typeof AuthenticatedOlympusSourceFinderRoute
-  '/olympus/source-library': typeof AuthenticatedOlympusSourceLibraryRoute
-  '/olympus/users': typeof AuthenticatedOlympusUsersRoute
-  '/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
+  '/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
-  '/olympus/': typeof AuthenticatedOlympusIndexRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
@@ -651,11 +663,11 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
+  '/admin/missions/$missionId/debrief': typeof AuthenticatedAdminMissionsMissionIdDebriefRoute
+  '/admin/missions/$missionId/setup': typeof AuthenticatedAdminMissionsMissionIdSetupRoute
   '/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
   '/missions/$missionId/scaffold/$sectionId': typeof AuthenticatedMissionsMissionIdScaffoldSectionIdRoute
   '/missions/$missionId/sections/$questionId': typeof AuthenticatedMissionsMissionIdSectionsQuestionIdRoute
-  '/olympus/missions/$missionId/debrief': typeof AuthenticatedOlympusMissionsMissionIdDebriefRoute
-  '/olympus/missions/$missionId/setup': typeof AuthenticatedOlympusMissionsMissionIdSetupRoute
   '/missions/$missionId/questions/': typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
   '/missions/$missionId/sections/': typeof AuthenticatedMissionsMissionIdSectionsIndexRoute
 }
@@ -672,6 +684,7 @@ export interface FileRoutesByTo {
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
   '/iris-console': typeof AuthenticatedIrisConsoleRoute
   '/journey-map': typeof AuthenticatedJourneyMapRoute
+  '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/status-report': typeof AuthenticatedStatusReportRoute
   '/api/atrium': typeof ApiAtriumRoute
   '/api/iris': typeof ApiIrisRoute
@@ -679,6 +692,27 @@ export interface FileRoutesByTo {
   '/checkin/$token': typeof CheckinTokenRoute
   '/debug/daily-note-layout': typeof DebugDailyNoteLayoutRoute
   '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
+  '/admin/admins': typeof AuthenticatedAdminAdminsRoute
+  '/admin/atlas-sources': typeof AuthenticatedAdminAtlasSourcesRoute
+  '/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/admin/brief-room': typeof AuthenticatedAdminBriefRoomRoute
+  '/admin/canon-library': typeof AuthenticatedAdminCanonLibraryRoute
+  '/admin/comparables': typeof AuthenticatedAdminComparablesRoute
+  '/admin/conflicts': typeof AuthenticatedAdminConflictsRoute
+  '/admin/discovery-history': typeof AuthenticatedAdminDiscoveryHistoryRoute
+  '/admin/expertise': typeof AuthenticatedAdminExpertiseRoute
+  '/admin/intel-drift': typeof AuthenticatedAdminIntelDriftRoute
+  '/admin/intel-engine': typeof AuthenticatedAdminIntelEngineRoute
+  '/admin/intelligence': typeof AuthenticatedAdminIntelligenceRoute
+  '/admin/invites': typeof AuthenticatedAdminInvitesRoute
+  '/admin/iris-memory': typeof AuthenticatedAdminIrisMemoryRoute
+  '/admin/phi-log': typeof AuthenticatedAdminPhiLogRoute
+  '/admin/review-queue': typeof AuthenticatedAdminReviewQueueRoute
+  '/admin/score-me': typeof AuthenticatedAdminScoreMeRoute
+  '/admin/source-finder': typeof AuthenticatedAdminSourceFinderRoute
+  '/admin/source-library': typeof AuthenticatedAdminSourceLibraryRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/admin/writer-deletion': typeof AuthenticatedAdminWriterDeletionRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/command/attention': typeof AuthenticatedCommandAttentionRoute
@@ -688,29 +722,9 @@ export interface FileRoutesByTo {
   '/command/question-health': typeof AuthenticatedCommandQuestionHealthRoute
   '/command/scores': typeof AuthenticatedCommandScoresRoute
   '/command/security': typeof AuthenticatedCommandSecurityRoute
-  '/olympus/admins': typeof AuthenticatedOlympusAdminsRoute
-  '/olympus/atlas-sources': typeof AuthenticatedOlympusAtlasSourcesRoute
-  '/olympus/audit': typeof AuthenticatedOlympusAuditRoute
-  '/olympus/brief-room': typeof AuthenticatedOlympusBriefRoomRoute
-  '/olympus/canon-library': typeof AuthenticatedOlympusCanonLibraryRoute
-  '/olympus/comparables': typeof AuthenticatedOlympusComparablesRoute
-  '/olympus/conflicts': typeof AuthenticatedOlympusConflictsRoute
-  '/olympus/discovery-history': typeof AuthenticatedOlympusDiscoveryHistoryRoute
-  '/olympus/expertise': typeof AuthenticatedOlympusExpertiseRoute
-  '/olympus/intel-drift': typeof AuthenticatedOlympusIntelDriftRoute
-  '/olympus/intel-engine': typeof AuthenticatedOlympusIntelEngineRoute
-  '/olympus/intelligence': typeof AuthenticatedOlympusIntelligenceRoute
-  '/olympus/invites': typeof AuthenticatedOlympusInvitesRoute
-  '/olympus/iris-memory': typeof AuthenticatedOlympusIrisMemoryRoute
-  '/olympus/phi-log': typeof AuthenticatedOlympusPhiLogRoute
-  '/olympus/review-queue': typeof AuthenticatedOlympusReviewQueueRoute
-  '/olympus/score-me': typeof AuthenticatedOlympusScoreMeRoute
-  '/olympus/source-finder': typeof AuthenticatedOlympusSourceFinderRoute
-  '/olympus/source-library': typeof AuthenticatedOlympusSourceLibraryRoute
-  '/olympus/users': typeof AuthenticatedOlympusUsersRoute
-  '/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
+  '/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
-  '/olympus': typeof AuthenticatedOlympusIndexRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
@@ -733,11 +747,11 @@ export interface FileRoutesByTo {
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdIndexRoute
+  '/admin/missions/$missionId/debrief': typeof AuthenticatedAdminMissionsMissionIdDebriefRoute
+  '/admin/missions/$missionId/setup': typeof AuthenticatedAdminMissionsMissionIdSetupRoute
   '/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
   '/missions/$missionId/scaffold/$sectionId': typeof AuthenticatedMissionsMissionIdScaffoldSectionIdRoute
   '/missions/$missionId/sections/$questionId': typeof AuthenticatedMissionsMissionIdSectionsQuestionIdRoute
-  '/olympus/missions/$missionId/debrief': typeof AuthenticatedOlympusMissionsMissionIdDebriefRoute
-  '/olympus/missions/$missionId/setup': typeof AuthenticatedOlympusMissionsMissionIdSetupRoute
   '/missions/$missionId/questions': typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
   '/missions/$missionId/sections': typeof AuthenticatedMissionsMissionIdSectionsIndexRoute
 }
@@ -747,6 +761,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/iris': typeof IrisRoute
   '/login': typeof LoginRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/atrium': typeof AuthenticatedAtriumRoute
   '/_authenticated/brief-room': typeof AuthenticatedBriefRoomRoute
   '/_authenticated/checkin-home': typeof AuthenticatedCheckinHomeRoute
@@ -764,6 +779,27 @@ export interface FileRoutesById {
   '/checkin/$token': typeof CheckinTokenRoute
   '/debug/daily-note-layout': typeof DebugDailyNoteLayoutRoute
   '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
+  '/_authenticated/admin/admins': typeof AuthenticatedAdminAdminsRoute
+  '/_authenticated/admin/atlas-sources': typeof AuthenticatedAdminAtlasSourcesRoute
+  '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/_authenticated/admin/brief-room': typeof AuthenticatedAdminBriefRoomRoute
+  '/_authenticated/admin/canon-library': typeof AuthenticatedAdminCanonLibraryRoute
+  '/_authenticated/admin/comparables': typeof AuthenticatedAdminComparablesRoute
+  '/_authenticated/admin/conflicts': typeof AuthenticatedAdminConflictsRoute
+  '/_authenticated/admin/discovery-history': typeof AuthenticatedAdminDiscoveryHistoryRoute
+  '/_authenticated/admin/expertise': typeof AuthenticatedAdminExpertiseRoute
+  '/_authenticated/admin/intel-drift': typeof AuthenticatedAdminIntelDriftRoute
+  '/_authenticated/admin/intel-engine': typeof AuthenticatedAdminIntelEngineRoute
+  '/_authenticated/admin/intelligence': typeof AuthenticatedAdminIntelligenceRoute
+  '/_authenticated/admin/invites': typeof AuthenticatedAdminInvitesRoute
+  '/_authenticated/admin/iris-memory': typeof AuthenticatedAdminIrisMemoryRoute
+  '/_authenticated/admin/phi-log': typeof AuthenticatedAdminPhiLogRoute
+  '/_authenticated/admin/review-queue': typeof AuthenticatedAdminReviewQueueRoute
+  '/_authenticated/admin/score-me': typeof AuthenticatedAdminScoreMeRoute
+  '/_authenticated/admin/source-finder': typeof AuthenticatedAdminSourceFinderRoute
+  '/_authenticated/admin/source-library': typeof AuthenticatedAdminSourceLibraryRoute
+  '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/_authenticated/admin/writer-deletion': typeof AuthenticatedAdminWriterDeletionRoute
   '/_authenticated/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/_authenticated/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/_authenticated/command/attention': typeof AuthenticatedCommandAttentionRoute
@@ -774,29 +810,9 @@ export interface FileRoutesById {
   '/_authenticated/command/scores': typeof AuthenticatedCommandScoresRoute
   '/_authenticated/command/security': typeof AuthenticatedCommandSecurityRoute
   '/_authenticated/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
-  '/_authenticated/olympus/admins': typeof AuthenticatedOlympusAdminsRoute
-  '/_authenticated/olympus/atlas-sources': typeof AuthenticatedOlympusAtlasSourcesRoute
-  '/_authenticated/olympus/audit': typeof AuthenticatedOlympusAuditRoute
-  '/_authenticated/olympus/brief-room': typeof AuthenticatedOlympusBriefRoomRoute
-  '/_authenticated/olympus/canon-library': typeof AuthenticatedOlympusCanonLibraryRoute
-  '/_authenticated/olympus/comparables': typeof AuthenticatedOlympusComparablesRoute
-  '/_authenticated/olympus/conflicts': typeof AuthenticatedOlympusConflictsRoute
-  '/_authenticated/olympus/discovery-history': typeof AuthenticatedOlympusDiscoveryHistoryRoute
-  '/_authenticated/olympus/expertise': typeof AuthenticatedOlympusExpertiseRoute
-  '/_authenticated/olympus/intel-drift': typeof AuthenticatedOlympusIntelDriftRoute
-  '/_authenticated/olympus/intel-engine': typeof AuthenticatedOlympusIntelEngineRoute
-  '/_authenticated/olympus/intelligence': typeof AuthenticatedOlympusIntelligenceRoute
-  '/_authenticated/olympus/invites': typeof AuthenticatedOlympusInvitesRoute
-  '/_authenticated/olympus/iris-memory': typeof AuthenticatedOlympusIrisMemoryRoute
-  '/_authenticated/olympus/phi-log': typeof AuthenticatedOlympusPhiLogRoute
-  '/_authenticated/olympus/review-queue': typeof AuthenticatedOlympusReviewQueueRoute
-  '/_authenticated/olympus/score-me': typeof AuthenticatedOlympusScoreMeRoute
-  '/_authenticated/olympus/source-finder': typeof AuthenticatedOlympusSourceFinderRoute
-  '/_authenticated/olympus/source-library': typeof AuthenticatedOlympusSourceLibraryRoute
-  '/_authenticated/olympus/users': typeof AuthenticatedOlympusUsersRoute
-  '/_authenticated/olympus/writer-deletion': typeof AuthenticatedOlympusWriterDeletionRoute
+  '/_authenticated/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/_authenticated/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
-  '/_authenticated/olympus/': typeof AuthenticatedOlympusIndexRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/_authenticated/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/_authenticated/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
@@ -819,11 +835,11 @@ export interface FileRoutesById {
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/_authenticated/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
+  '/_authenticated/admin/missions/$missionId/debrief': typeof AuthenticatedAdminMissionsMissionIdDebriefRoute
+  '/_authenticated/admin/missions/$missionId/setup': typeof AuthenticatedAdminMissionsMissionIdSetupRoute
   '/_authenticated/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
   '/_authenticated/missions/$missionId/scaffold/$sectionId': typeof AuthenticatedMissionsMissionIdScaffoldSectionIdRoute
   '/_authenticated/missions/$missionId/sections/$questionId': typeof AuthenticatedMissionsMissionIdSectionsQuestionIdRoute
-  '/_authenticated/olympus/missions/$missionId/debrief': typeof AuthenticatedOlympusMissionsMissionIdDebriefRoute
-  '/_authenticated/olympus/missions/$missionId/setup': typeof AuthenticatedOlympusMissionsMissionIdSetupRoute
   '/_authenticated/missions/$missionId/questions/': typeof AuthenticatedMissionsMissionIdQuestionsIndexRoute
   '/_authenticated/missions/$missionId/sections/': typeof AuthenticatedMissionsMissionIdSectionsIndexRoute
 }
@@ -833,6 +849,7 @@ export interface FileRouteTypes {
     | '/'
     | '/iris'
     | '/login'
+    | '/admin'
     | '/atrium'
     | '/brief-room'
     | '/checkin-home'
@@ -850,6 +867,27 @@ export interface FileRouteTypes {
     | '/checkin/$token'
     | '/debug/daily-note-layout'
     | '/debug/gold-entry-fallback'
+    | '/admin/admins'
+    | '/admin/atlas-sources'
+    | '/admin/audit'
+    | '/admin/brief-room'
+    | '/admin/canon-library'
+    | '/admin/comparables'
+    | '/admin/conflicts'
+    | '/admin/discovery-history'
+    | '/admin/expertise'
+    | '/admin/intel-drift'
+    | '/admin/intel-engine'
+    | '/admin/intelligence'
+    | '/admin/invites'
+    | '/admin/iris-memory'
+    | '/admin/phi-log'
+    | '/admin/review-queue'
+    | '/admin/score-me'
+    | '/admin/source-finder'
+    | '/admin/source-library'
+    | '/admin/users'
+    | '/admin/writer-deletion'
     | '/command/alignment'
     | '/command/alignment-conflicts'
     | '/command/attention'
@@ -860,29 +898,9 @@ export interface FileRouteTypes {
     | '/command/scores'
     | '/command/security'
     | '/missions/$missionId'
-    | '/olympus/admins'
-    | '/olympus/atlas-sources'
-    | '/olympus/audit'
-    | '/olympus/brief-room'
-    | '/olympus/canon-library'
-    | '/olympus/comparables'
-    | '/olympus/conflicts'
-    | '/olympus/discovery-history'
-    | '/olympus/expertise'
-    | '/olympus/intel-drift'
-    | '/olympus/intel-engine'
-    | '/olympus/intelligence'
-    | '/olympus/invites'
-    | '/olympus/iris-memory'
-    | '/olympus/phi-log'
-    | '/olympus/review-queue'
-    | '/olympus/score-me'
-    | '/olympus/source-finder'
-    | '/olympus/source-library'
-    | '/olympus/users'
-    | '/olympus/writer-deletion'
+    | '/olympus/$'
     | '/profile/expertise'
-    | '/olympus/'
+    | '/admin/'
     | '/profile/'
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
@@ -905,11 +923,11 @@ export interface FileRouteTypes {
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/refresh-intelligence'
     | '/missions/$missionId/'
+    | '/admin/missions/$missionId/debrief'
+    | '/admin/missions/$missionId/setup'
     | '/missions/$missionId/questions/$questionId'
     | '/missions/$missionId/scaffold/$sectionId'
     | '/missions/$missionId/sections/$questionId'
-    | '/olympus/missions/$missionId/debrief'
-    | '/olympus/missions/$missionId/setup'
     | '/missions/$missionId/questions/'
     | '/missions/$missionId/sections/'
   fileRoutesByTo: FileRoutesByTo
@@ -926,6 +944,7 @@ export interface FileRouteTypes {
     | '/intelligence-queue'
     | '/iris-console'
     | '/journey-map'
+    | '/olympus'
     | '/status-report'
     | '/api/atrium'
     | '/api/iris'
@@ -933,6 +952,27 @@ export interface FileRouteTypes {
     | '/checkin/$token'
     | '/debug/daily-note-layout'
     | '/debug/gold-entry-fallback'
+    | '/admin/admins'
+    | '/admin/atlas-sources'
+    | '/admin/audit'
+    | '/admin/brief-room'
+    | '/admin/canon-library'
+    | '/admin/comparables'
+    | '/admin/conflicts'
+    | '/admin/discovery-history'
+    | '/admin/expertise'
+    | '/admin/intel-drift'
+    | '/admin/intel-engine'
+    | '/admin/intelligence'
+    | '/admin/invites'
+    | '/admin/iris-memory'
+    | '/admin/phi-log'
+    | '/admin/review-queue'
+    | '/admin/score-me'
+    | '/admin/source-finder'
+    | '/admin/source-library'
+    | '/admin/users'
+    | '/admin/writer-deletion'
     | '/command/alignment'
     | '/command/alignment-conflicts'
     | '/command/attention'
@@ -942,29 +982,9 @@ export interface FileRouteTypes {
     | '/command/question-health'
     | '/command/scores'
     | '/command/security'
-    | '/olympus/admins'
-    | '/olympus/atlas-sources'
-    | '/olympus/audit'
-    | '/olympus/brief-room'
-    | '/olympus/canon-library'
-    | '/olympus/comparables'
-    | '/olympus/conflicts'
-    | '/olympus/discovery-history'
-    | '/olympus/expertise'
-    | '/olympus/intel-drift'
-    | '/olympus/intel-engine'
-    | '/olympus/intelligence'
-    | '/olympus/invites'
-    | '/olympus/iris-memory'
-    | '/olympus/phi-log'
-    | '/olympus/review-queue'
-    | '/olympus/score-me'
-    | '/olympus/source-finder'
-    | '/olympus/source-library'
-    | '/olympus/users'
-    | '/olympus/writer-deletion'
+    | '/olympus/$'
     | '/profile/expertise'
-    | '/olympus'
+    | '/admin'
     | '/profile'
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
@@ -987,11 +1007,11 @@ export interface FileRouteTypes {
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/refresh-intelligence'
     | '/missions/$missionId'
+    | '/admin/missions/$missionId/debrief'
+    | '/admin/missions/$missionId/setup'
     | '/missions/$missionId/questions/$questionId'
     | '/missions/$missionId/scaffold/$sectionId'
     | '/missions/$missionId/sections/$questionId'
-    | '/olympus/missions/$missionId/debrief'
-    | '/olympus/missions/$missionId/setup'
     | '/missions/$missionId/questions'
     | '/missions/$missionId/sections'
   id:
@@ -1000,6 +1020,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/iris'
     | '/login'
+    | '/_authenticated/admin'
     | '/_authenticated/atrium'
     | '/_authenticated/brief-room'
     | '/_authenticated/checkin-home'
@@ -1017,6 +1038,27 @@ export interface FileRouteTypes {
     | '/checkin/$token'
     | '/debug/daily-note-layout'
     | '/debug/gold-entry-fallback'
+    | '/_authenticated/admin/admins'
+    | '/_authenticated/admin/atlas-sources'
+    | '/_authenticated/admin/audit'
+    | '/_authenticated/admin/brief-room'
+    | '/_authenticated/admin/canon-library'
+    | '/_authenticated/admin/comparables'
+    | '/_authenticated/admin/conflicts'
+    | '/_authenticated/admin/discovery-history'
+    | '/_authenticated/admin/expertise'
+    | '/_authenticated/admin/intel-drift'
+    | '/_authenticated/admin/intel-engine'
+    | '/_authenticated/admin/intelligence'
+    | '/_authenticated/admin/invites'
+    | '/_authenticated/admin/iris-memory'
+    | '/_authenticated/admin/phi-log'
+    | '/_authenticated/admin/review-queue'
+    | '/_authenticated/admin/score-me'
+    | '/_authenticated/admin/source-finder'
+    | '/_authenticated/admin/source-library'
+    | '/_authenticated/admin/users'
+    | '/_authenticated/admin/writer-deletion'
     | '/_authenticated/command/alignment'
     | '/_authenticated/command/alignment-conflicts'
     | '/_authenticated/command/attention'
@@ -1027,29 +1069,9 @@ export interface FileRouteTypes {
     | '/_authenticated/command/scores'
     | '/_authenticated/command/security'
     | '/_authenticated/missions/$missionId'
-    | '/_authenticated/olympus/admins'
-    | '/_authenticated/olympus/atlas-sources'
-    | '/_authenticated/olympus/audit'
-    | '/_authenticated/olympus/brief-room'
-    | '/_authenticated/olympus/canon-library'
-    | '/_authenticated/olympus/comparables'
-    | '/_authenticated/olympus/conflicts'
-    | '/_authenticated/olympus/discovery-history'
-    | '/_authenticated/olympus/expertise'
-    | '/_authenticated/olympus/intel-drift'
-    | '/_authenticated/olympus/intel-engine'
-    | '/_authenticated/olympus/intelligence'
-    | '/_authenticated/olympus/invites'
-    | '/_authenticated/olympus/iris-memory'
-    | '/_authenticated/olympus/phi-log'
-    | '/_authenticated/olympus/review-queue'
-    | '/_authenticated/olympus/score-me'
-    | '/_authenticated/olympus/source-finder'
-    | '/_authenticated/olympus/source-library'
-    | '/_authenticated/olympus/users'
-    | '/_authenticated/olympus/writer-deletion'
+    | '/_authenticated/olympus/$'
     | '/_authenticated/profile/expertise'
-    | '/_authenticated/olympus/'
+    | '/_authenticated/admin/'
     | '/_authenticated/profile/'
     | '/_authenticated/missions/$missionId/brief'
     | '/_authenticated/missions/$missionId/briefing'
@@ -1072,11 +1094,11 @@ export interface FileRouteTypes {
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/refresh-intelligence'
     | '/_authenticated/missions/$missionId/'
+    | '/_authenticated/admin/missions/$missionId/debrief'
+    | '/_authenticated/admin/missions/$missionId/setup'
     | '/_authenticated/missions/$missionId/questions/$questionId'
     | '/_authenticated/missions/$missionId/scaffold/$sectionId'
     | '/_authenticated/missions/$missionId/sections/$questionId'
-    | '/_authenticated/olympus/missions/$missionId/debrief'
-    | '/_authenticated/olympus/missions/$missionId/setup'
     | '/_authenticated/missions/$missionId/questions/'
     | '/_authenticated/missions/$missionId/sections/'
   fileRoutesById: FileRoutesById
@@ -1250,6 +1272,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAtriumRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/profile/': {
       id: '/_authenticated/profile/'
       path: '/profile'
@@ -1257,12 +1286,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/olympus/': {
-      id: '/_authenticated/olympus/'
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
       path: '/'
-      fullPath: '/olympus/'
-      preLoaderRoute: typeof AuthenticatedOlympusIndexRouteImport
-      parentRoute: typeof AuthenticatedOlympusRoute
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/profile/expertise': {
       id: '/_authenticated/profile/expertise'
@@ -1271,151 +1300,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileExpertiseRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/olympus/writer-deletion': {
-      id: '/_authenticated/olympus/writer-deletion'
-      path: '/writer-deletion'
-      fullPath: '/olympus/writer-deletion'
-      preLoaderRoute: typeof AuthenticatedOlympusWriterDeletionRouteImport
-      parentRoute: typeof AuthenticatedOlympusRoute
-    }
-    '/_authenticated/olympus/users': {
-      id: '/_authenticated/olympus/users'
-      path: '/users'
-      fullPath: '/olympus/users'
-      preLoaderRoute: typeof AuthenticatedOlympusUsersRouteImport
-      parentRoute: typeof AuthenticatedOlympusRoute
-    }
-    '/_authenticated/olympus/source-library': {
-      id: '/_authenticated/olympus/source-library'
-      path: '/source-library'
-      fullPath: '/olympus/source-library'
-      preLoaderRoute: typeof AuthenticatedOlympusSourceLibraryRouteImport
-      parentRoute: typeof AuthenticatedOlympusRoute
-    }
-    '/_authenticated/olympus/source-finder': {
-      id: '/_authenticated/olympus/source-finder'
-      path: '/source-finder'
-      fullPath: '/olympus/source-finder'
-      preLoaderRoute: typeof AuthenticatedOlympusSourceFinderRouteImport
-      parentRoute: typeof AuthenticatedOlympusRoute
-    }
-    '/_authenticated/olympus/score-me': {
-      id: '/_authenticated/olympus/score-me'
-      path: '/score-me'
-      fullPath: '/olympus/score-me'
-      preLoaderRoute: typeof AuthenticatedOlympusScoreMeRouteImport
-      parentRoute: typeof AuthenticatedOlympusRoute
-    }
-    '/_authenticated/olympus/review-queue': {
-      id: '/_authenticated/olympus/review-queue'
-      path: '/review-queue'
-      fullPath: '/olympus/review-queue'
-      preLoaderRoute: typeof AuthenticatedOlympusReviewQueueRouteImport
-      parentRoute: typeof AuthenticatedOlympusRoute
-    }
-    '/_authenticated/olympus/phi-log': {
-      id: '/_authenticated/olympus/phi-log'
-      path: '/phi-log'
-      fullPath: '/olympus/phi-log'
-      preLoaderRoute: typeof AuthenticatedOlympusPhiLogRouteImport
-      parentRoute: typeof AuthenticatedOlympusRoute
-    }
-    '/_authenticated/olympus/iris-memory': {
-      id: '/_authenticated/olympus/iris-memory'
-      path: '/iris-memory'
-      fullPath: '/olympus/iris-memory'
-      preLoaderRoute: typeof AuthenticatedOlympusIrisMemoryRouteImport
-      parentRoute: typeof AuthenticatedOlympusRoute
-    }
-    '/_authenticated/olympus/invites': {
-      id: '/_authenticated/olympus/invites'
-      path: '/invites'
-      fullPath: '/olympus/invites'
-      preLoaderRoute: typeof AuthenticatedOlympusInvitesRouteImport
-      parentRoute: typeof AuthenticatedOlympusRoute
-    }
-    '/_authenticated/olympus/intelligence': {
-      id: '/_authenticated/olympus/intelligence'
-      path: '/intelligence'
-      fullPath: '/olympus/intelligence'
-      preLoaderRoute: typeof AuthenticatedOlympusIntelligenceRouteImport
-      parentRoute: typeof AuthenticatedOlympusRoute
-    }
-    '/_authenticated/olympus/intel-engine': {
-      id: '/_authenticated/olympus/intel-engine'
-      path: '/intel-engine'
-      fullPath: '/olympus/intel-engine'
-      preLoaderRoute: typeof AuthenticatedOlympusIntelEngineRouteImport
-      parentRoute: typeof AuthenticatedOlympusRoute
-    }
-    '/_authenticated/olympus/intel-drift': {
-      id: '/_authenticated/olympus/intel-drift'
-      path: '/intel-drift'
-      fullPath: '/olympus/intel-drift'
-      preLoaderRoute: typeof AuthenticatedOlympusIntelDriftRouteImport
-      parentRoute: typeof AuthenticatedOlympusRoute
-    }
-    '/_authenticated/olympus/expertise': {
-      id: '/_authenticated/olympus/expertise'
-      path: '/expertise'
-      fullPath: '/olympus/expertise'
-      preLoaderRoute: typeof AuthenticatedOlympusExpertiseRouteImport
-      parentRoute: typeof AuthenticatedOlympusRoute
-    }
-    '/_authenticated/olympus/discovery-history': {
-      id: '/_authenticated/olympus/discovery-history'
-      path: '/discovery-history'
-      fullPath: '/olympus/discovery-history'
-      preLoaderRoute: typeof AuthenticatedOlympusDiscoveryHistoryRouteImport
-      parentRoute: typeof AuthenticatedOlympusRoute
-    }
-    '/_authenticated/olympus/conflicts': {
-      id: '/_authenticated/olympus/conflicts'
-      path: '/conflicts'
-      fullPath: '/olympus/conflicts'
-      preLoaderRoute: typeof AuthenticatedOlympusConflictsRouteImport
-      parentRoute: typeof AuthenticatedOlympusRoute
-    }
-    '/_authenticated/olympus/comparables': {
-      id: '/_authenticated/olympus/comparables'
-      path: '/comparables'
-      fullPath: '/olympus/comparables'
-      preLoaderRoute: typeof AuthenticatedOlympusComparablesRouteImport
-      parentRoute: typeof AuthenticatedOlympusRoute
-    }
-    '/_authenticated/olympus/canon-library': {
-      id: '/_authenticated/olympus/canon-library'
-      path: '/canon-library'
-      fullPath: '/olympus/canon-library'
-      preLoaderRoute: typeof AuthenticatedOlympusCanonLibraryRouteImport
-      parentRoute: typeof AuthenticatedOlympusRoute
-    }
-    '/_authenticated/olympus/brief-room': {
-      id: '/_authenticated/olympus/brief-room'
-      path: '/brief-room'
-      fullPath: '/olympus/brief-room'
-      preLoaderRoute: typeof AuthenticatedOlympusBriefRoomRouteImport
-      parentRoute: typeof AuthenticatedOlympusRoute
-    }
-    '/_authenticated/olympus/audit': {
-      id: '/_authenticated/olympus/audit'
-      path: '/audit'
-      fullPath: '/olympus/audit'
-      preLoaderRoute: typeof AuthenticatedOlympusAuditRouteImport
-      parentRoute: typeof AuthenticatedOlympusRoute
-    }
-    '/_authenticated/olympus/atlas-sources': {
-      id: '/_authenticated/olympus/atlas-sources'
-      path: '/atlas-sources'
-      fullPath: '/olympus/atlas-sources'
-      preLoaderRoute: typeof AuthenticatedOlympusAtlasSourcesRouteImport
-      parentRoute: typeof AuthenticatedOlympusRoute
-    }
-    '/_authenticated/olympus/admins': {
-      id: '/_authenticated/olympus/admins'
-      path: '/admins'
-      fullPath: '/olympus/admins'
-      preLoaderRoute: typeof AuthenticatedOlympusAdminsRouteImport
+    '/_authenticated/olympus/$': {
+      id: '/_authenticated/olympus/$'
+      path: '/$'
+      fullPath: '/olympus/$'
+      preLoaderRoute: typeof AuthenticatedOlympusSplatRouteImport
       parentRoute: typeof AuthenticatedOlympusRoute
     }
     '/_authenticated/missions/$missionId': {
@@ -1487,6 +1376,153 @@ declare module '@tanstack/react-router' {
       fullPath: '/command/alignment'
       preLoaderRoute: typeof AuthenticatedCommandAlignmentRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/writer-deletion': {
+      id: '/_authenticated/admin/writer-deletion'
+      path: '/writer-deletion'
+      fullPath: '/admin/writer-deletion'
+      preLoaderRoute: typeof AuthenticatedAdminWriterDeletionRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/users': {
+      id: '/_authenticated/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/source-library': {
+      id: '/_authenticated/admin/source-library'
+      path: '/source-library'
+      fullPath: '/admin/source-library'
+      preLoaderRoute: typeof AuthenticatedAdminSourceLibraryRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/source-finder': {
+      id: '/_authenticated/admin/source-finder'
+      path: '/source-finder'
+      fullPath: '/admin/source-finder'
+      preLoaderRoute: typeof AuthenticatedAdminSourceFinderRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/score-me': {
+      id: '/_authenticated/admin/score-me'
+      path: '/score-me'
+      fullPath: '/admin/score-me'
+      preLoaderRoute: typeof AuthenticatedAdminScoreMeRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/review-queue': {
+      id: '/_authenticated/admin/review-queue'
+      path: '/review-queue'
+      fullPath: '/admin/review-queue'
+      preLoaderRoute: typeof AuthenticatedAdminReviewQueueRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/phi-log': {
+      id: '/_authenticated/admin/phi-log'
+      path: '/phi-log'
+      fullPath: '/admin/phi-log'
+      preLoaderRoute: typeof AuthenticatedAdminPhiLogRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/iris-memory': {
+      id: '/_authenticated/admin/iris-memory'
+      path: '/iris-memory'
+      fullPath: '/admin/iris-memory'
+      preLoaderRoute: typeof AuthenticatedAdminIrisMemoryRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/invites': {
+      id: '/_authenticated/admin/invites'
+      path: '/invites'
+      fullPath: '/admin/invites'
+      preLoaderRoute: typeof AuthenticatedAdminInvitesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/intelligence': {
+      id: '/_authenticated/admin/intelligence'
+      path: '/intelligence'
+      fullPath: '/admin/intelligence'
+      preLoaderRoute: typeof AuthenticatedAdminIntelligenceRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/intel-engine': {
+      id: '/_authenticated/admin/intel-engine'
+      path: '/intel-engine'
+      fullPath: '/admin/intel-engine'
+      preLoaderRoute: typeof AuthenticatedAdminIntelEngineRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/intel-drift': {
+      id: '/_authenticated/admin/intel-drift'
+      path: '/intel-drift'
+      fullPath: '/admin/intel-drift'
+      preLoaderRoute: typeof AuthenticatedAdminIntelDriftRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/expertise': {
+      id: '/_authenticated/admin/expertise'
+      path: '/expertise'
+      fullPath: '/admin/expertise'
+      preLoaderRoute: typeof AuthenticatedAdminExpertiseRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/discovery-history': {
+      id: '/_authenticated/admin/discovery-history'
+      path: '/discovery-history'
+      fullPath: '/admin/discovery-history'
+      preLoaderRoute: typeof AuthenticatedAdminDiscoveryHistoryRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/conflicts': {
+      id: '/_authenticated/admin/conflicts'
+      path: '/conflicts'
+      fullPath: '/admin/conflicts'
+      preLoaderRoute: typeof AuthenticatedAdminConflictsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/comparables': {
+      id: '/_authenticated/admin/comparables'
+      path: '/comparables'
+      fullPath: '/admin/comparables'
+      preLoaderRoute: typeof AuthenticatedAdminComparablesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/canon-library': {
+      id: '/_authenticated/admin/canon-library'
+      path: '/canon-library'
+      fullPath: '/admin/canon-library'
+      preLoaderRoute: typeof AuthenticatedAdminCanonLibraryRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/brief-room': {
+      id: '/_authenticated/admin/brief-room'
+      path: '/brief-room'
+      fullPath: '/admin/brief-room'
+      preLoaderRoute: typeof AuthenticatedAdminBriefRoomRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/audit': {
+      id: '/_authenticated/admin/audit'
+      path: '/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AuthenticatedAdminAuditRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/atlas-sources': {
+      id: '/_authenticated/admin/atlas-sources'
+      path: '/atlas-sources'
+      fullPath: '/admin/atlas-sources'
+      preLoaderRoute: typeof AuthenticatedAdminAtlasSourcesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/admins': {
+      id: '/_authenticated/admin/admins'
+      path: '/admins'
+      fullPath: '/admin/admins'
+      preLoaderRoute: typeof AuthenticatedAdminAdminsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/missions/$missionId/': {
       id: '/_authenticated/missions/$missionId/'
@@ -1649,20 +1685,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdQuestionsIndexRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
-    '/_authenticated/olympus/missions/$missionId/setup': {
-      id: '/_authenticated/olympus/missions/$missionId/setup'
-      path: '/missions/$missionId/setup'
-      fullPath: '/olympus/missions/$missionId/setup'
-      preLoaderRoute: typeof AuthenticatedOlympusMissionsMissionIdSetupRouteImport
-      parentRoute: typeof AuthenticatedOlympusRoute
-    }
-    '/_authenticated/olympus/missions/$missionId/debrief': {
-      id: '/_authenticated/olympus/missions/$missionId/debrief'
-      path: '/missions/$missionId/debrief'
-      fullPath: '/olympus/missions/$missionId/debrief'
-      preLoaderRoute: typeof AuthenticatedOlympusMissionsMissionIdDebriefRouteImport
-      parentRoute: typeof AuthenticatedOlympusRoute
-    }
     '/_authenticated/missions/$missionId/sections/$questionId': {
       id: '/_authenticated/missions/$missionId/sections/$questionId'
       path: '/sections/$questionId'
@@ -1684,66 +1706,89 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
+    '/_authenticated/admin/missions/$missionId/setup': {
+      id: '/_authenticated/admin/missions/$missionId/setup'
+      path: '/missions/$missionId/setup'
+      fullPath: '/admin/missions/$missionId/setup'
+      preLoaderRoute: typeof AuthenticatedAdminMissionsMissionIdSetupRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/missions/$missionId/debrief': {
+      id: '/_authenticated/admin/missions/$missionId/debrief'
+      path: '/missions/$missionId/debrief'
+      fullPath: '/admin/missions/$missionId/debrief'
+      preLoaderRoute: typeof AuthenticatedAdminMissionsMissionIdDebriefRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminAdminsRoute: typeof AuthenticatedAdminAdminsRoute
+  AuthenticatedAdminAtlasSourcesRoute: typeof AuthenticatedAdminAtlasSourcesRoute
+  AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
+  AuthenticatedAdminBriefRoomRoute: typeof AuthenticatedAdminBriefRoomRoute
+  AuthenticatedAdminCanonLibraryRoute: typeof AuthenticatedAdminCanonLibraryRoute
+  AuthenticatedAdminComparablesRoute: typeof AuthenticatedAdminComparablesRoute
+  AuthenticatedAdminConflictsRoute: typeof AuthenticatedAdminConflictsRoute
+  AuthenticatedAdminDiscoveryHistoryRoute: typeof AuthenticatedAdminDiscoveryHistoryRoute
+  AuthenticatedAdminExpertiseRoute: typeof AuthenticatedAdminExpertiseRoute
+  AuthenticatedAdminIntelDriftRoute: typeof AuthenticatedAdminIntelDriftRoute
+  AuthenticatedAdminIntelEngineRoute: typeof AuthenticatedAdminIntelEngineRoute
+  AuthenticatedAdminIntelligenceRoute: typeof AuthenticatedAdminIntelligenceRoute
+  AuthenticatedAdminInvitesRoute: typeof AuthenticatedAdminInvitesRoute
+  AuthenticatedAdminIrisMemoryRoute: typeof AuthenticatedAdminIrisMemoryRoute
+  AuthenticatedAdminPhiLogRoute: typeof AuthenticatedAdminPhiLogRoute
+  AuthenticatedAdminReviewQueueRoute: typeof AuthenticatedAdminReviewQueueRoute
+  AuthenticatedAdminScoreMeRoute: typeof AuthenticatedAdminScoreMeRoute
+  AuthenticatedAdminSourceFinderRoute: typeof AuthenticatedAdminSourceFinderRoute
+  AuthenticatedAdminSourceLibraryRoute: typeof AuthenticatedAdminSourceLibraryRoute
+  AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
+  AuthenticatedAdminWriterDeletionRoute: typeof AuthenticatedAdminWriterDeletionRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+  AuthenticatedAdminMissionsMissionIdDebriefRoute: typeof AuthenticatedAdminMissionsMissionIdDebriefRoute
+  AuthenticatedAdminMissionsMissionIdSetupRoute: typeof AuthenticatedAdminMissionsMissionIdSetupRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminAdminsRoute: AuthenticatedAdminAdminsRoute,
+  AuthenticatedAdminAtlasSourcesRoute: AuthenticatedAdminAtlasSourcesRoute,
+  AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
+  AuthenticatedAdminBriefRoomRoute: AuthenticatedAdminBriefRoomRoute,
+  AuthenticatedAdminCanonLibraryRoute: AuthenticatedAdminCanonLibraryRoute,
+  AuthenticatedAdminComparablesRoute: AuthenticatedAdminComparablesRoute,
+  AuthenticatedAdminConflictsRoute: AuthenticatedAdminConflictsRoute,
+  AuthenticatedAdminDiscoveryHistoryRoute:
+    AuthenticatedAdminDiscoveryHistoryRoute,
+  AuthenticatedAdminExpertiseRoute: AuthenticatedAdminExpertiseRoute,
+  AuthenticatedAdminIntelDriftRoute: AuthenticatedAdminIntelDriftRoute,
+  AuthenticatedAdminIntelEngineRoute: AuthenticatedAdminIntelEngineRoute,
+  AuthenticatedAdminIntelligenceRoute: AuthenticatedAdminIntelligenceRoute,
+  AuthenticatedAdminInvitesRoute: AuthenticatedAdminInvitesRoute,
+  AuthenticatedAdminIrisMemoryRoute: AuthenticatedAdminIrisMemoryRoute,
+  AuthenticatedAdminPhiLogRoute: AuthenticatedAdminPhiLogRoute,
+  AuthenticatedAdminReviewQueueRoute: AuthenticatedAdminReviewQueueRoute,
+  AuthenticatedAdminScoreMeRoute: AuthenticatedAdminScoreMeRoute,
+  AuthenticatedAdminSourceFinderRoute: AuthenticatedAdminSourceFinderRoute,
+  AuthenticatedAdminSourceLibraryRoute: AuthenticatedAdminSourceLibraryRoute,
+  AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
+  AuthenticatedAdminWriterDeletionRoute: AuthenticatedAdminWriterDeletionRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+  AuthenticatedAdminMissionsMissionIdDebriefRoute:
+    AuthenticatedAdminMissionsMissionIdDebriefRoute,
+  AuthenticatedAdminMissionsMissionIdSetupRoute:
+    AuthenticatedAdminMissionsMissionIdSetupRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedOlympusRouteChildren {
-  AuthenticatedOlympusAdminsRoute: typeof AuthenticatedOlympusAdminsRoute
-  AuthenticatedOlympusAtlasSourcesRoute: typeof AuthenticatedOlympusAtlasSourcesRoute
-  AuthenticatedOlympusAuditRoute: typeof AuthenticatedOlympusAuditRoute
-  AuthenticatedOlympusBriefRoomRoute: typeof AuthenticatedOlympusBriefRoomRoute
-  AuthenticatedOlympusCanonLibraryRoute: typeof AuthenticatedOlympusCanonLibraryRoute
-  AuthenticatedOlympusComparablesRoute: typeof AuthenticatedOlympusComparablesRoute
-  AuthenticatedOlympusConflictsRoute: typeof AuthenticatedOlympusConflictsRoute
-  AuthenticatedOlympusDiscoveryHistoryRoute: typeof AuthenticatedOlympusDiscoveryHistoryRoute
-  AuthenticatedOlympusExpertiseRoute: typeof AuthenticatedOlympusExpertiseRoute
-  AuthenticatedOlympusIntelDriftRoute: typeof AuthenticatedOlympusIntelDriftRoute
-  AuthenticatedOlympusIntelEngineRoute: typeof AuthenticatedOlympusIntelEngineRoute
-  AuthenticatedOlympusIntelligenceRoute: typeof AuthenticatedOlympusIntelligenceRoute
-  AuthenticatedOlympusInvitesRoute: typeof AuthenticatedOlympusInvitesRoute
-  AuthenticatedOlympusIrisMemoryRoute: typeof AuthenticatedOlympusIrisMemoryRoute
-  AuthenticatedOlympusPhiLogRoute: typeof AuthenticatedOlympusPhiLogRoute
-  AuthenticatedOlympusReviewQueueRoute: typeof AuthenticatedOlympusReviewQueueRoute
-  AuthenticatedOlympusScoreMeRoute: typeof AuthenticatedOlympusScoreMeRoute
-  AuthenticatedOlympusSourceFinderRoute: typeof AuthenticatedOlympusSourceFinderRoute
-  AuthenticatedOlympusSourceLibraryRoute: typeof AuthenticatedOlympusSourceLibraryRoute
-  AuthenticatedOlympusUsersRoute: typeof AuthenticatedOlympusUsersRoute
-  AuthenticatedOlympusWriterDeletionRoute: typeof AuthenticatedOlympusWriterDeletionRoute
-  AuthenticatedOlympusIndexRoute: typeof AuthenticatedOlympusIndexRoute
-  AuthenticatedOlympusMissionsMissionIdDebriefRoute: typeof AuthenticatedOlympusMissionsMissionIdDebriefRoute
-  AuthenticatedOlympusMissionsMissionIdSetupRoute: typeof AuthenticatedOlympusMissionsMissionIdSetupRoute
+  AuthenticatedOlympusSplatRoute: typeof AuthenticatedOlympusSplatRoute
 }
 
 const AuthenticatedOlympusRouteChildren: AuthenticatedOlympusRouteChildren = {
-  AuthenticatedOlympusAdminsRoute: AuthenticatedOlympusAdminsRoute,
-  AuthenticatedOlympusAtlasSourcesRoute: AuthenticatedOlympusAtlasSourcesRoute,
-  AuthenticatedOlympusAuditRoute: AuthenticatedOlympusAuditRoute,
-  AuthenticatedOlympusBriefRoomRoute: AuthenticatedOlympusBriefRoomRoute,
-  AuthenticatedOlympusCanonLibraryRoute: AuthenticatedOlympusCanonLibraryRoute,
-  AuthenticatedOlympusComparablesRoute: AuthenticatedOlympusComparablesRoute,
-  AuthenticatedOlympusConflictsRoute: AuthenticatedOlympusConflictsRoute,
-  AuthenticatedOlympusDiscoveryHistoryRoute:
-    AuthenticatedOlympusDiscoveryHistoryRoute,
-  AuthenticatedOlympusExpertiseRoute: AuthenticatedOlympusExpertiseRoute,
-  AuthenticatedOlympusIntelDriftRoute: AuthenticatedOlympusIntelDriftRoute,
-  AuthenticatedOlympusIntelEngineRoute: AuthenticatedOlympusIntelEngineRoute,
-  AuthenticatedOlympusIntelligenceRoute: AuthenticatedOlympusIntelligenceRoute,
-  AuthenticatedOlympusInvitesRoute: AuthenticatedOlympusInvitesRoute,
-  AuthenticatedOlympusIrisMemoryRoute: AuthenticatedOlympusIrisMemoryRoute,
-  AuthenticatedOlympusPhiLogRoute: AuthenticatedOlympusPhiLogRoute,
-  AuthenticatedOlympusReviewQueueRoute: AuthenticatedOlympusReviewQueueRoute,
-  AuthenticatedOlympusScoreMeRoute: AuthenticatedOlympusScoreMeRoute,
-  AuthenticatedOlympusSourceFinderRoute: AuthenticatedOlympusSourceFinderRoute,
-  AuthenticatedOlympusSourceLibraryRoute:
-    AuthenticatedOlympusSourceLibraryRoute,
-  AuthenticatedOlympusUsersRoute: AuthenticatedOlympusUsersRoute,
-  AuthenticatedOlympusWriterDeletionRoute:
-    AuthenticatedOlympusWriterDeletionRoute,
-  AuthenticatedOlympusIndexRoute: AuthenticatedOlympusIndexRoute,
-  AuthenticatedOlympusMissionsMissionIdDebriefRoute:
-    AuthenticatedOlympusMissionsMissionIdDebriefRoute,
-  AuthenticatedOlympusMissionsMissionIdSetupRoute:
-    AuthenticatedOlympusMissionsMissionIdSetupRoute,
+  AuthenticatedOlympusSplatRoute: AuthenticatedOlympusSplatRoute,
 }
 
 const AuthenticatedOlympusRouteWithChildren =
@@ -1819,6 +1864,7 @@ const AuthenticatedMissionsMissionIdRouteWithChildren =
   )
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAtriumRoute: typeof AuthenticatedAtriumRoute
   AuthenticatedBriefRoomRoute: typeof AuthenticatedBriefRoomRoute
   AuthenticatedCheckinHomeRoute: typeof AuthenticatedCheckinHomeRoute
@@ -1845,6 +1891,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedAtriumRoute: AuthenticatedAtriumRoute,
   AuthenticatedBriefRoomRoute: AuthenticatedBriefRoomRoute,
   AuthenticatedCheckinHomeRoute: AuthenticatedCheckinHomeRoute,

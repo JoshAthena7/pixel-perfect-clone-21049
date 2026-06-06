@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Search, Users as UsersIcon, Sparkles } from "lucide-react";
 import { ExpertiseProfileEditor } from "@/components/v2/ExpertiseProfileEditor";
 
-export const Route = createFileRoute("/_authenticated/olympus/expertise")({
+export const Route = createFileRoute("/_authenticated/admin/expertise")({
   component: ExpertisePage,
 });
 
@@ -80,7 +80,7 @@ function ExpertisePage() {
       {/* Toggle */}
       <div className="mb-4 inline-flex items-center gap-0.5 rounded-lg border bg-white/[0.04] p-[3px]" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
         <Link
-          to="/olympus/users"
+          to="/admin/users"
           className="inline-flex h-8 items-center gap-1.5 rounded-md border border-transparent px-4 text-[12px] font-semibold tracking-wide text-muted-foreground hover:text-foreground"
         >
           <UsersIcon className="h-3 w-3" /> Users

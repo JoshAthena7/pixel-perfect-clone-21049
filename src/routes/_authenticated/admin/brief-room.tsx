@@ -4,7 +4,7 @@ import { BriefRoomPage } from "@/routes/_authenticated/brief-room";
 
 // Reuse the same page; sidebar lives in the Olympus shell, and admins see
 // Compose + Delivery tabs automatically because they hold the admin role.
-export const Route = createFileRoute("/_authenticated/olympus/brief-room")({
+export const Route = createFileRoute("/_authenticated/admin/brief-room")({
   component: OlympusBriefRoom,
 });
 

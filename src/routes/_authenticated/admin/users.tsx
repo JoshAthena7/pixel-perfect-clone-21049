@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, UserCog, Users as UsersIcon, Sparkles } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/olympus/users")({
+export const Route = createFileRoute("/_authenticated/admin/users")({
   component: UsersPage,
 });
 
@@ -78,7 +78,7 @@ function UsersPage() {
           <UsersIcon className="h-3 w-3" /> Users
         </span>
         <Link
-          to="/olympus/expertise"
+          to="/admin/expertise"
           className="inline-flex h-8 items-center gap-1.5 rounded-md border border-transparent px-4 text-[12px] font-semibold tracking-wide text-muted-foreground hover:text-foreground"
         >
           <Sparkles className="h-3 w-3" /> Expertise

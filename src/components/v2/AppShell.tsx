@@ -52,6 +52,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const inMission = path.startsWith("/missions/") && !!missionId;
   const room = detectRoom(path, missionId);
   const isOlympus = path.startsWith("/olympus");
+  const isPlatformAdmin = path.startsWith("/admin");
   const isAtrium = path === "/home" || path === "/" || path.startsWith("/atrium");
   const isStudio = room === "studio";
   const { isAdmin, isLoading: adminLoading } = useIsAdmin();
@@ -69,6 +70,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <TopBar
         missionId={missionId}
         isOlympus={isOlympus}
+        isPlatformAdmin={isPlatformAdmin}
         isAtrium={isAtrium}
       />
 
@@ -101,8 +103,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
 // ─── Top Bar ────────────────────────────────────────────────────────────────
 function TopBar({
-  missionId, isOlympus, isAtrium,
-}: { missionId?: string; isOlympus: boolean; isAtrium: boolean }) {
+  missionId, isOlympus, isPlatformAdmin, isAtrium,
+}: { missionId?: string; isOlympus: boolean; isPlatformAdmin: boolean; isAtrium: boolean }) {
   const inMission = !!missionId;
   const path = useRouterState({ select: (s) => s.location.pathname });
   const isProfile = path === "/profile" || path.startsWith("/profile/");
@@ -167,13 +169,21 @@ function TopBar({
             </span>
           </>
         )}
+        {isPlatformAdmin && (
+          <>
+            <span className="hidden sm:block h-5 w-px bg-white/15 mx-2" />
+            <span className="hidden sm:block text-[12px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              ADMIN
+            </span>
+          </>
+        )}
       </div>
 
       {/* CENTER — atrium nav / mission nav (hidden on mobile; bottom nav replaces) */}
       <div className="hidden md:flex flex-1 items-center justify-center min-w-0">
         {inMission && missionId ? (
           <MissionNav missionId={missionId} />
-        ) : isOlympus ? null : (
+        ) : isOlympus || isPlatformAdmin ? null : (
           <AtriumNav />
         )}
       </div>
@@ -530,6 +540,15 @@ function UserAvatarMenu() {
               onClick={() => setOpen(false)}
             >
               <Shield className="h-4 w-4 text-[color:var(--athena-gold)]" /> Olympus
+            </Link>
+          )}
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+              onClick={() => setOpen(false)}
+            >
+              <Shield className="h-4 w-4" /> Admin
             </Link>
           )}
           <button

@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ShieldAlert, Download } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/olympus/phi-log")({
+export const Route = createFileRoute("/_authenticated/admin/phi-log")({
   component: PhiLogPage,
 });
 

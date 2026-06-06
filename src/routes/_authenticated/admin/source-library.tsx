@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Library, Search, ExternalLink, AlertTriangle } from "lucide-react";
 import { listAtlasSources, layerCounts } from "@/lib/atlas-sources.functions";
 
-export const Route = createFileRoute("/_authenticated/olympus/source-library")({
+export const Route = createFileRoute("/_authenticated/admin/source-library")({
   component: SourceLibraryPage,
 });
 
@@ -165,7 +165,7 @@ function SourceLibraryPage() {
 
       <div className="mt-4 text-xs text-muted-foreground">
         Manage sources granularly in{" "}
-        <Link to="/olympus/atlas-sources" className="underline hover:text-foreground">Atlas Sources</Link>.
+        <Link to="/admin/atlas-sources" className="underline hover:text-foreground">Atlas Sources</Link>.
       </div>
     </div>
   );

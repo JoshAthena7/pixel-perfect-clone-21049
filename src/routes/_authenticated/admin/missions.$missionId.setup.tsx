@@ -14,7 +14,7 @@ import { saveEvaluationCriteria, saveExpertiseTag, removeExpertiseTag } from "@/
 import { LaunchSequence } from "@/components/olympus/LaunchSequence";
 import { useIsAdmin } from "@/hooks/useAccess";
 
-export const Route = createFileRoute("/_authenticated/olympus/missions/$missionId/setup")({
+export const Route = createFileRoute("/_authenticated/admin/missions/$missionId/setup")({
   component: MissionSetupRecord,
 });
 

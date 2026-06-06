@@ -13,7 +13,7 @@ import {
 } from "@/lib/atlas-invites.functions";
 import { logOlympusAction } from "@/lib/audit";
 
-export const Route = createFileRoute("/_authenticated/olympus/invites")({
+export const Route = createFileRoute("/_authenticated/admin/invites")({
   component: InvitesPage,
 });
 

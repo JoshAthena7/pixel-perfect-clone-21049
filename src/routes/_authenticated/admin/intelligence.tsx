@@ -8,7 +8,7 @@ import {
 } from "@/lib/intelligence-layers.functions";
 import { Layers, Plus, Trash2, X, Globe, BookOpen, Network, Sparkles } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/olympus/intelligence")({
+export const Route = createFileRoute("/_authenticated/admin/intelligence")({
   component: IntelligenceLayersPage,
 });
 

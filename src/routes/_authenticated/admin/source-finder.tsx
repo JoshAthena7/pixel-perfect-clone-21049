@@ -13,7 +13,7 @@ import { layerCounts } from "@/lib/atlas-sources.functions";
 import { EmptyState } from "@/components/v2/EmptyState";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/olympus/source-finder")({
+export const Route = createFileRoute("/_authenticated/admin/source-finder")({
   component: SourceFinderPage,
 });
 
@@ -103,7 +103,7 @@ function SourceFinderPage() {
           >
             {activating ? <Loader2 className="inline h-4 w-4 animate-spin" /> : canonCount > 0 ? "Re-run Starter Kit" : "Activate Canon"}
           </button>
-          <Link to="/olympus/canon-library" className="text-xs text-muted-foreground hover:text-foreground">
+          <Link to="/admin/canon-library" className="text-xs text-muted-foreground hover:text-foreground">
             Review Canon →
           </Link>
         </div>

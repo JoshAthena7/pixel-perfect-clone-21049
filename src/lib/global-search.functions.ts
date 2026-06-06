@@ -106,7 +106,7 @@ export const globalSearch = createServerFn({ method: "POST" })
       subtitle: [s.knowledge_layer, s.state_code, s.program_code].filter(Boolean).join(" · "),
       meta: s.summary ? String(s.summary).slice(0, 140) : undefined,
       badge: s.authority_score ? `${s.authority_score}/10` : undefined,
-      href: "/olympus/source-library",
+      href: "/admin/source-library",
     }));
     if (sHits.length) groups.push({ group: "Sources", total: sHits.length, items: sHits.slice(0, PER_GROUP) });
 
@@ -139,7 +139,7 @@ export const globalSearch = createServerFn({ method: "POST" })
       subtitle: [m.scope, m.importance, m.category].filter(Boolean).join(" · "),
       meta: m.content ? String(m.content).slice(0, 140) : undefined,
       missionId: m.mission_id,
-      href: "/olympus/iris-memory",
+      href: "/admin/iris-memory",
     }));
     if (mHits.length) groups.push({ group: "IRIS Memory", total: mHits.length, items: mHits.slice(0, PER_GROUP) });
 

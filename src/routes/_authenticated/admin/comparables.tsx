@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Plus, X, MapPin } from "lucide-react";
 import { useIsAdmin } from "@/hooks/useAccess";
 
-export const Route = createFileRoute("/_authenticated/olympus/comparables")({
+export const Route = createFileRoute("/_authenticated/admin/comparables")({
   component: ComparablesPage,
 });
 
