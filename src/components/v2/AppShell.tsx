@@ -350,10 +350,11 @@ function MissionNav({ missionId }: { missionId: string }) {
       key: "flight deck",
       label: "Flight Deck",
       icon: <Plane size={13} strokeWidth={1.75} />,
-      to: base,
+      to: `${base}/flight-deck`,
       active:
         path === base ||
         path === `${base}/` ||
+        path.startsWith(`${base}/flight-deck`) ||
         path === `${base}/overview` ||
         path.startsWith(`${base}/sections`) ||
         path.startsWith(`${base}/scaffold`),
@@ -500,7 +501,7 @@ function UserAvatarMenu() {
             <User className="h-4 w-4" /> Profile
           </Link>
           <Link
-            to="/flight-deck"
+            to="/home"
             className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-muted-foreground hover:bg-surface-hover hover:text-foreground"
             onClick={() => setOpen(false)}
           >
