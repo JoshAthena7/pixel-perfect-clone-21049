@@ -24,14 +24,24 @@ export const extractRisks = createServerFn({ method: "POST" })
     const started = Date.now();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { loadMissionAndFeed, renderContext, callJsonExtractor } = await import("./shared.server");
+    const { buildMissionContext, formatMissionContextBlock } = await import(
+      "@/lib/iris-context.server"
+    );
 
-    const { mission, rows } = await loadMissionAndFeed(supabaseAdmin, data.missionId);
+    const [{ mission, rows }, missionCtx] = await Promise.all([
+      loadMissionAndFeed(supabaseAdmin, data.missionId),
+      buildMissionContext(supabaseAdmin, data.missionId),
+    ]);
     if (rows.length === 0) {
       return { stage: "risks", inserted: 0, skipped: true, reason: "no feed rows", ms: Date.now() - started };
     }
 
-    const system = `You produce the "Emerging Risks" feed for a procurement strategy brief.
-Identify 4-10 risks that could materially damage the win probability or execution. Each must be grounded in the supplied market rows or mission context — never invent.
+    const preamble = formatMissionContextBlock(missionCtx);
+    const system = `${preamble}
+
+You produce the "Emerging Risks" feed for a procurement strategy brief.
+Identify 4-10 risks that could materially damage the win probability or execution of the win strategy stated above. Each must be grounded in the supplied market rows or mission context — never invent.
+Prioritise risks that directly threaten the win strategy, win themes, or evaluation criteria.
 Sort by severity (most serious first). Make titles concrete and specific, not generic.`;
 
     const result = await callJsonExtractor<RiskOut>({
