@@ -28,7 +28,7 @@ import { DailyPulse } from "@/components/v4/DailyPulse";
 import { AssistsBar } from "@/components/v4/AssistsBar";
 
 export const Route = createFileRoute(
-  "/_authenticated/missions/$missionId/questions/$questionId",
+  "/_authenticated/missions/$missionId/sections/$questionId",
 )({
   component: CockpitPage,
 });
