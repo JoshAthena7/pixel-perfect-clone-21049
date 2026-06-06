@@ -529,7 +529,7 @@ function MissionCockpitLanding() {
         <PhoneAFriendOverlay
           missionId={missionId}
           questionId={targetQ.id}
-          questionNumber={targetQ.question_number}
+          questionNumber={targetQ.questionNumber}
           meId={me ?? null}
           meName=""
           onClose={() => setPhoneOpen(false)}
