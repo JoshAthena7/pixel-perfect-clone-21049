@@ -136,7 +136,7 @@ export const irisAskMission = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const [{ data: m }, mem, layered] = await Promise.all([
+    const [{ data: m }, mem, layered, missionCtx] = await Promise.all([
       supabase
         .from("missions")
         .select("name,client,state,description,submission_date")
@@ -144,10 +144,12 @@ export const irisAskMission = createServerFn({ method: "POST" })
         .maybeSingle(),
       fetchIrisMemoryContext(supabase, { missionId: data.missionId }),
       loadLayeredContext(supabase, { missionId: data.missionId, topic: data.prompt }),
+      loadMissionContext(supabase, data.missionId),
     ]);
     if (!m) throw new Error("Mission not found");
 
-    const sys = `${IRIS_SYSTEM}\nAnswer the user's question about this mission with actionable guidance.\n\n${layered}\n\n${mem.block}`;
+    const preamble = formatMissionContextPreamble(missionCtx);
+    const sys = `${preamble}\n\n${IRIS_SYSTEM}\nAnswer the user's question about this mission with actionable guidance.\n\n${layered}\n\n${mem.block}`;
     const user = `Mission: ${m.name} · Client: ${m.client ?? "—"} · State: ${m.state ?? "—"}\nSubmission: ${m.submission_date ?? "—"}\nDescription: ${m.description ?? "(none)"}\n\nUser asks: ${data.prompt}`;
 
     const answer = await callIris(sys, user);
