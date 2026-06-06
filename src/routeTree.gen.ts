@@ -75,6 +75,7 @@ import { Route as AuthenticatedMissionsMissionIdVaultRouteImport } from './route
 import { Route as AuthenticatedMissionsMissionIdTeamRouteImport } from './routes/_authenticated/missions/$missionId/team'
 import { Route as AuthenticatedMissionsMissionIdSettingsRouteImport } from './routes/_authenticated/missions/$missionId/settings'
 import { Route as AuthenticatedMissionsMissionIdResponseTemplateRouteImport } from './routes/_authenticated/missions/$missionId/response-template'
+import { Route as AuthenticatedMissionsMissionIdOverviewRouteImport } from './routes/_authenticated/missions/$missionId/overview'
 import { Route as AuthenticatedMissionsMissionIdIrisRouteImport } from './routes/_authenticated/missions/$missionId/iris'
 import { Route as AuthenticatedMissionsMissionIdIntelRouteImport } from './routes/_authenticated/missions/$missionId/intel'
 import { Route as AuthenticatedMissionsMissionIdCommandRouteImport } from './routes/_authenticated/missions/$missionId/command'
@@ -467,6 +468,12 @@ const AuthenticatedMissionsMissionIdResponseTemplateRoute =
     path: '/response-template',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
+const AuthenticatedMissionsMissionIdOverviewRoute =
+  AuthenticatedMissionsMissionIdOverviewRouteImport.update({
+    id: '/overview',
+    path: '/overview',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
+  } as any)
 const AuthenticatedMissionsMissionIdIrisRoute =
   AuthenticatedMissionsMissionIdIrisRouteImport.update({
     id: '/iris',
@@ -599,6 +606,7 @@ export interface FileRoutesByFullPath {
   '/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
   '/missions/$missionId/intel': typeof AuthenticatedMissionsMissionIdIntelRoute
   '/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
+  '/missions/$missionId/overview': typeof AuthenticatedMissionsMissionIdOverviewRoute
   '/missions/$missionId/response-template': typeof AuthenticatedMissionsMissionIdResponseTemplateRoute
   '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
@@ -676,6 +684,7 @@ export interface FileRoutesByTo {
   '/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
   '/missions/$missionId/intel': typeof AuthenticatedMissionsMissionIdIntelRoute
   '/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
+  '/missions/$missionId/overview': typeof AuthenticatedMissionsMissionIdOverviewRoute
   '/missions/$missionId/response-template': typeof AuthenticatedMissionsMissionIdResponseTemplateRoute
   '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
@@ -757,6 +766,7 @@ export interface FileRoutesById {
   '/_authenticated/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
   '/_authenticated/missions/$missionId/intel': typeof AuthenticatedMissionsMissionIdIntelRoute
   '/_authenticated/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
+  '/_authenticated/missions/$missionId/overview': typeof AuthenticatedMissionsMissionIdOverviewRoute
   '/_authenticated/missions/$missionId/response-template': typeof AuthenticatedMissionsMissionIdResponseTemplateRoute
   '/_authenticated/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/_authenticated/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
@@ -838,6 +848,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/command'
     | '/missions/$missionId/intel'
     | '/missions/$missionId/iris'
+    | '/missions/$missionId/overview'
     | '/missions/$missionId/response-template'
     | '/missions/$missionId/settings'
     | '/missions/$missionId/team'
@@ -915,6 +926,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/command'
     | '/missions/$missionId/intel'
     | '/missions/$missionId/iris'
+    | '/missions/$missionId/overview'
     | '/missions/$missionId/response-template'
     | '/missions/$missionId/settings'
     | '/missions/$missionId/team'
@@ -995,6 +1007,7 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/$missionId/command'
     | '/_authenticated/missions/$missionId/intel'
     | '/_authenticated/missions/$missionId/iris'
+    | '/_authenticated/missions/$missionId/overview'
     | '/_authenticated/missions/$missionId/response-template'
     | '/_authenticated/missions/$missionId/settings'
     | '/_authenticated/missions/$missionId/team'
@@ -1500,6 +1513,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdResponseTemplateRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
+    '/_authenticated/missions/$missionId/overview': {
+      id: '/_authenticated/missions/$missionId/overview'
+      path: '/overview'
+      fullPath: '/missions/$missionId/overview'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdOverviewRouteImport
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
     '/_authenticated/missions/$missionId/iris': {
       id: '/_authenticated/missions/$missionId/iris'
       path: '/iris'
@@ -1655,6 +1675,7 @@ interface AuthenticatedMissionsMissionIdRouteChildren {
   AuthenticatedMissionsMissionIdCommandRoute: typeof AuthenticatedMissionsMissionIdCommandRoute
   AuthenticatedMissionsMissionIdIntelRoute: typeof AuthenticatedMissionsMissionIdIntelRoute
   AuthenticatedMissionsMissionIdIrisRoute: typeof AuthenticatedMissionsMissionIdIrisRoute
+  AuthenticatedMissionsMissionIdOverviewRoute: typeof AuthenticatedMissionsMissionIdOverviewRoute
   AuthenticatedMissionsMissionIdResponseTemplateRoute: typeof AuthenticatedMissionsMissionIdResponseTemplateRoute
   AuthenticatedMissionsMissionIdSettingsRoute: typeof AuthenticatedMissionsMissionIdSettingsRoute
   AuthenticatedMissionsMissionIdTeamRoute: typeof AuthenticatedMissionsMissionIdTeamRoute
@@ -1679,6 +1700,8 @@ const AuthenticatedMissionsMissionIdRouteChildren: AuthenticatedMissionsMissionI
       AuthenticatedMissionsMissionIdIntelRoute,
     AuthenticatedMissionsMissionIdIrisRoute:
       AuthenticatedMissionsMissionIdIrisRoute,
+    AuthenticatedMissionsMissionIdOverviewRoute:
+      AuthenticatedMissionsMissionIdOverviewRoute,
     AuthenticatedMissionsMissionIdResponseTemplateRoute:
       AuthenticatedMissionsMissionIdResponseTemplateRoute,
     AuthenticatedMissionsMissionIdSettingsRoute:
