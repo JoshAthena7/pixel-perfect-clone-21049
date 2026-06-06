@@ -95,7 +95,7 @@ If a field has no supporting evidence, leave the array empty or write "No public
 
     await clearMissionOutputGraph(supabaseAdmin, data.missionId, "client_intel");
 
-    const { data: inserted, error } = await supabaseAdmin
+    const { error } = await supabaseAdmin
       .from("mission_client_intel")
       .insert({
         mission_id: data.missionId,
@@ -107,17 +107,15 @@ If a field has no supporting evidence, leave the array empty or write "No public
         meeting_cadence: result.meeting_cadence ?? null,
         notes: result.notes,
         created_by_system: true,
-      })
-      .select("id")
-      .single();
+      });
     if (error) throw new Error(`insert client_intel: ${error.message}`);
 
-    if (inserted && rows.length > 0) {
+    if (rows.length > 0) {
       const nodeId = await upsertNode(supabaseAdmin, {
         mission_id: data.missionId,
         kind: "client_intel",
         ref_table: "mission_client_intel",
-        ref_id: inserted.id,
+        ref_id: data.missionId,
         label: "Client Intel",
         domain: "stakeholder",
         metadata: {
