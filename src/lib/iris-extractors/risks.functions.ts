@@ -77,11 +77,17 @@ Sort by severity (most serious first). Make titles concrete and specific, not ge
 
     if (result.risks.length === 0) return { stage: "risks", inserted: 0, ms: Date.now() - started };
 
+    const sevMap: Record<string, "Low" | "Medium" | "High"> = {
+      watch: "Low",
+      medium: "Medium",
+      high: "High",
+      critical: "High",
+    };
     const inserts = result.risks.map((r) => ({
       mission_id: data.missionId,
       title: r.title,
       description: r.description,
-      severity: r.severity,
+      severity: sevMap[r.severity] ?? "Medium",
       status: "open",
       owner: `iris_extractor:${r.category}`,
       created_by_system: true,
