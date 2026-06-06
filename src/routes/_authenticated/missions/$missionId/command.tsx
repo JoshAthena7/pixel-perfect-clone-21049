@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { generateMissionBrief } from "@/lib/iris-mission-brief.functions";
 import { canPmAccessMission } from "@/lib/access.functions";
 import { toast } from "sonner";
+import { createSignal } from "@/lib/signals";
 import {
   RefreshCw, Radio, ArrowRight, Plus, MessageSquare, Plane, AlertTriangle, X, Zap,
 } from "lucide-react";
