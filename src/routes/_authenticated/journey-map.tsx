@@ -431,7 +431,7 @@ function JourneyMapPage() {
                   <div key={s.num} className="flex-1 flex flex-col items-stretch min-w-0">
                     <button
                       onClick={() => setSelected(i)}
-                      className="group relative flex flex-col items-center text-center rounded-lg p-3 transition-all duration-500 ease-out"
+                      className="group relative flex flex-col items-center text-center rounded-lg p-3 transition-all duration-500 ease-out motion-reduce:transition-none motion-reduce:duration-0"
                       style={{
                         background: isSelected ? "rgba(59,130,246,0.08)" : "transparent",
                         border: `1px solid ${isSelected ? "rgba(59,130,246,0.4)" : "transparent"}`,
@@ -464,7 +464,7 @@ function JourneyMapPage() {
                         {persona !== "All Roles" && involved && (
                           <span
                             key={persona}
-                            className="absolute -bottom-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1 text-[9px] font-bold text-white shadow animate-scale-in"
+                            className="absolute -bottom-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1 text-[9px] font-bold text-white shadow animate-scale-in motion-reduce:animate-none"
                             style={{ background: "#6366F1", border: "2px solid var(--background)" }}
                             title={`${persona} touchpoint`}
                           >
@@ -539,7 +539,7 @@ function JourneyMapPage() {
             {persona !== "All Roles" && (
               hasTouchpoint(persona, stage.num) ? (
                 <div
-                  className="mb-4 flex items-center gap-2 rounded-lg border px-3 py-2 text-[12px] animate-fade-in"
+                  className="mb-4 flex items-center gap-2 rounded-lg border px-3 py-2 text-[12px] animate-fade-in motion-reduce:animate-none"
                   style={{ borderColor: "rgba(99,102,241,0.4)", background: "rgba(99,102,241,0.08)", color: "#C7D2FE" }}
                 >
                   <span
@@ -554,7 +554,7 @@ function JourneyMapPage() {
                 </div>
               ) : (
                 <div
-                  className="mb-4 flex items-center gap-2 rounded-lg border border-border bg-background/40 px-3 py-2 text-[12px] text-muted-foreground animate-fade-in"
+                  className="mb-4 flex items-center gap-2 rounded-lg border border-border bg-background/40 px-3 py-2 text-[12px] text-muted-foreground animate-fade-in motion-reduce:animate-none"
                 >
                   <Users size={14} />
                   <span>
@@ -576,7 +576,7 @@ function JourneyMapPage() {
                     return (
                       <li
                         key={a}
-                        className="flex items-start gap-1.5 rounded px-1.5 py-1 text-[12px] transition-all duration-500 ease-out"
+                        className="flex items-start gap-1.5 rounded px-1.5 py-1 text-[12px] transition-all duration-500 ease-out motion-reduce:transition-none motion-reduce:duration-0"
                         style={{
                           background: isYours ? "rgba(99,102,241,0.1)" : "transparent",
                           color: isYours ? "#E0E7FF" : "var(--muted-foreground)",
