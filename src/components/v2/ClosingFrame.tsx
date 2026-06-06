@@ -1,14 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-
-// Rotating wisdom lines — IRIS speaking quietly as the room dims.
-const WISDOM = [
-  "The Collective is still here.",
-  "The room stays lit.",
-  "Your work continues, even in your absence.",
-  "Return when you're ready. We'll be here.",
-  "The signal holds.",
-];
+import { wisdomLine } from "@/lib/wisdom";
 
 /**
  * ClosingFrame — atmospheric sign-out moment.
@@ -18,11 +10,11 @@ const WISDOM = [
  */
 export function ClosingFrame() {
   const [active, setActive] = useState(false);
-  const [line, setLine] = useState(WISDOM[0]);
+  const [line, setLine] = useState(wisdomLine("closing"));
 
   useEffect(() => {
     function onClose() {
-      setLine(WISDOM[Math.floor(Math.random() * WISDOM.length)]);
+      setLine(wisdomLine("closing"));
       setActive(true);
       // Let the frame breathe, then sign out. Auth redirect takes over.
       window.setTimeout(() => {
