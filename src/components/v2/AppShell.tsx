@@ -347,11 +347,23 @@ function MissionNav({ missionId }: { missionId: string }) {
     active: boolean;
   }> = [
     {
+      key: "cockpit",
+      label: "Cockpit",
+      icon: <Plane size={13} strokeWidth={1.75} />,
+      to: base,
+      active:
+        path === base ||
+        path === `${base}/` ||
+        path === `${base}/overview` ||
+        path.startsWith(`${base}/sections`) ||
+        path.startsWith(`${base}/scaffold`),
+    },
+    {
       key: "brief",
       label: "Mission Brief",
       icon: <FileText size={13} strokeWidth={1.75} />,
       to: `${base}/brief`,
-      active: path === `${base}/brief` || path === `${base}` || path === `${base}/overview`,
+      active: path === `${base}/brief`,
     },
     {
       key: "intel",
@@ -373,21 +385,6 @@ function MissionNav({ missionId }: { missionId: string }) {
       icon: <MapIcon size={13} strokeWidth={1.75} />,
       to: `${base}/journey-map`,
       active: path.startsWith(`${base}/journey-map`),
-    },
-    {
-      key: "sections",
-      label: "Sections",
-      icon: <ListChecks size={13} strokeWidth={1.75} />,
-      to: `${base}/sections`,
-      active: path.startsWith(`${base}/sections`) || path.startsWith(`${base}/scaffold`),
-    },
-    {
-      key: "cockpit",
-      label: "Cockpit",
-      icon: <Plane size={13} strokeWidth={1.75} />,
-      to: `/cockpit`,
-      search: { missionId },
-      active: path.startsWith(`/cockpit`),
     },
   ];
 
