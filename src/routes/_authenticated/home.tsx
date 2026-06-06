@@ -18,6 +18,7 @@ import atlasLogo from "@/assets/atlas-logo.png.asset.json";
 // LegacyRecord temporarily removed
 import { DailyPulse } from "@/components/v4/DailyPulse";
 import { IrisTrustIntro } from "@/components/v4/IrisTrustIntro";
+import { RecentChangesCard } from "@/components/v4/RecentChangesCard";
 import { useIsAdmin } from "@/hooks/useAccess";
 import type { ReactNode } from "react";
 
@@ -386,6 +387,10 @@ function AthenaHQ() {
 
         {/* Leadership Messages — pinned to top */}
         <LeadershipMessages messages={leadershipMessages as any[]} />
+
+        {/* "What changed since you last looked" — powered by the Mission Intelligence Graph */}
+        {missions[0]?.id && <RecentChangesCard missionId={missions[0].id} />}
+
 
 
 
