@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { PersonFirstHint } from "@/components/v2/PersonFirstHint";
 import { AlertOctagon, X, Compass, Vote, Handshake, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { wisdomLine } from "@/lib/wisdom";
 
 type SosKind = "direction" | "decision" | "help" | "air_cover";
 
@@ -26,16 +27,31 @@ export function SOSButton({ missionId, questionId }: { missionId: string; questi
     <>
       <button
         onClick={() => setOpen(true)}
-        className="rounded-md border px-5 py-2 text-sm font-semibold inline-flex items-center gap-2 transition-colors"
+        className="sos-pulse rounded-md border px-5 py-2 text-sm font-semibold inline-flex items-center gap-2 transition-colors"
         style={{
           background: "rgba(239,68,68,0.10)",
           borderColor: "rgba(239,68,68,0.30)",
           color: "var(--red, #ef4444)",
         }}
-        aria-label="SOS — request help"
+        aria-label="SOS — request help. You're not alone."
+        title="You're not alone. Help is one click away."
       >
         <AlertOctagon className="h-3.5 w-3.5" /> SOS
       </button>
+      <style>{`
+        .sos-pulse {
+          box-shadow: 0 0 0 0 rgba(239,68,68,0.35);
+          animation: sos-breath 3.6s ease-in-out infinite;
+        }
+        .sos-pulse:hover { animation: none; box-shadow: 0 0 0 4px rgba(239,68,68,0.18); }
+        @keyframes sos-breath {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.0); }
+          50%      { box-shadow: 0 0 0 6px rgba(239,68,68,0.12); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .sos-pulse { animation: none; }
+        }
+      `}</style>
       {open && <SOSModal missionId={missionId} questionId={questionId} onClose={() => setOpen(false)} />}
     </>
   );
@@ -46,6 +62,8 @@ export function SOSModal({ missionId, questionId, onClose }: { missionId: string
   const [headline, setHeadline] = useState("");
   const [detail, setDetail] = useState("");
   const [sending, setSending] = useState(false);
+  // One supportive line per modal session — chosen once, doesn't flicker.
+  const supportiveLine = useMemo(() => wisdomLine("support"), []);
 
   async function submit() {
     if (!kind || !headline.trim()) return;
