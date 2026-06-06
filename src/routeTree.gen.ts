@@ -10,13 +10,14 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as IrisRouteImport } from './routes/iris'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DebugGoldEntryFallbackRouteImport } from './routes/debug.gold-entry-fallback'
 import { Route as DebugDailyNoteLayoutRouteImport } from './routes/debug.daily-note-layout'
 import { Route as ApiIrisVoiceRouteImport } from './routes/api/iris-voice'
 import { Route as AuthenticatedOlympusRouteImport } from './routes/_authenticated/olympus'
-import { Route as AuthenticatedIrisRouteImport } from './routes/_authenticated/iris'
+import { Route as AuthenticatedIrisConsoleRouteImport } from './routes/_authenticated/iris-console'
 import { Route as AuthenticatedIntelligenceQueueRouteImport } from './routes/_authenticated/intelligence-queue'
 import { Route as AuthenticatedIntelligenceRouteImport } from './routes/_authenticated/intelligence'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
@@ -82,6 +83,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IrisRoute = IrisRouteImport.update({
+  id: '/iris',
+  path: '/iris',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -111,11 +117,12 @@ const AuthenticatedOlympusRoute = AuthenticatedOlympusRouteImport.update({
   path: '/olympus',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedIrisRoute = AuthenticatedIrisRouteImport.update({
-  id: '/iris',
-  path: '/iris',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
+const AuthenticatedIrisConsoleRoute =
+  AuthenticatedIrisConsoleRouteImport.update({
+    id: '/iris-console',
+    path: '/iris-console',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedIntelligenceQueueRoute =
   AuthenticatedIntelligenceQueueRouteImport.update({
     id: '/intelligence-queue',
@@ -470,13 +477,14 @@ const AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/iris': typeof IrisRoute
   '/login': typeof LoginRoute
   '/atrium': typeof AuthenticatedAtriumRoute
   '/brief-room': typeof AuthenticatedBriefRoomRoute
   '/home': typeof AuthenticatedHomeRoute
   '/intelligence': typeof AuthenticatedIntelligenceRoute
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
-  '/iris': typeof AuthenticatedIrisRoute
+  '/iris-console': typeof AuthenticatedIrisConsoleRoute
   '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/api/iris-voice': typeof ApiIrisVoiceRoute
   '/debug/daily-note-layout': typeof DebugDailyNoteLayoutRoute
@@ -538,13 +546,14 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/iris': typeof IrisRoute
   '/login': typeof LoginRoute
   '/atrium': typeof AuthenticatedAtriumRoute
   '/brief-room': typeof AuthenticatedBriefRoomRoute
   '/home': typeof AuthenticatedHomeRoute
   '/intelligence': typeof AuthenticatedIntelligenceRoute
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
-  '/iris': typeof AuthenticatedIrisRoute
+  '/iris-console': typeof AuthenticatedIrisConsoleRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
   '/debug/daily-note-layout': typeof DebugDailyNoteLayoutRoute
   '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
@@ -606,13 +615,14 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/iris': typeof IrisRoute
   '/login': typeof LoginRoute
   '/_authenticated/atrium': typeof AuthenticatedAtriumRoute
   '/_authenticated/brief-room': typeof AuthenticatedBriefRoomRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/intelligence': typeof AuthenticatedIntelligenceRoute
   '/_authenticated/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
-  '/_authenticated/iris': typeof AuthenticatedIrisRoute
+  '/_authenticated/iris-console': typeof AuthenticatedIrisConsoleRoute
   '/_authenticated/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/api/iris-voice': typeof ApiIrisVoiceRoute
   '/debug/daily-note-layout': typeof DebugDailyNoteLayoutRoute
@@ -676,13 +686,14 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/iris'
     | '/login'
     | '/atrium'
     | '/brief-room'
     | '/home'
     | '/intelligence'
     | '/intelligence-queue'
-    | '/iris'
+    | '/iris-console'
     | '/olympus'
     | '/api/iris-voice'
     | '/debug/daily-note-layout'
@@ -744,13 +755,14 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/iris'
     | '/login'
     | '/atrium'
     | '/brief-room'
     | '/home'
     | '/intelligence'
     | '/intelligence-queue'
-    | '/iris'
+    | '/iris-console'
     | '/api/iris-voice'
     | '/debug/daily-note-layout'
     | '/debug/gold-entry-fallback'
@@ -811,13 +823,14 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/iris'
     | '/login'
     | '/_authenticated/atrium'
     | '/_authenticated/brief-room'
     | '/_authenticated/home'
     | '/_authenticated/intelligence'
     | '/_authenticated/intelligence-queue'
-    | '/_authenticated/iris'
+    | '/_authenticated/iris-console'
     | '/_authenticated/olympus'
     | '/api/iris-voice'
     | '/debug/daily-note-layout'
@@ -881,6 +894,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  IrisRoute: typeof IrisRoute
   LoginRoute: typeof LoginRoute
   ApiIrisVoiceRoute: typeof ApiIrisVoiceRoute
   DebugDailyNoteLayoutRoute: typeof DebugDailyNoteLayoutRoute
@@ -901,6 +915,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/iris': {
+      id: '/iris'
+      path: '/iris'
+      fullPath: '/iris'
+      preLoaderRoute: typeof IrisRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -945,11 +966,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOlympusRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/iris': {
-      id: '/_authenticated/iris'
-      path: '/iris'
-      fullPath: '/iris'
-      preLoaderRoute: typeof AuthenticatedIrisRouteImport
+    '/_authenticated/iris-console': {
+      id: '/_authenticated/iris-console'
+      path: '/iris-console'
+      fullPath: '/iris-console'
+      preLoaderRoute: typeof AuthenticatedIrisConsoleRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/intelligence-queue': {
@@ -1484,7 +1505,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedIntelligenceRoute: typeof AuthenticatedIntelligenceRoute
   AuthenticatedIntelligenceQueueRoute: typeof AuthenticatedIntelligenceQueueRoute
-  AuthenticatedIrisRoute: typeof AuthenticatedIrisRoute
+  AuthenticatedIrisConsoleRoute: typeof AuthenticatedIrisConsoleRoute
   AuthenticatedOlympusRoute: typeof AuthenticatedOlympusRouteWithChildren
   AuthenticatedCommandAlignmentRoute: typeof AuthenticatedCommandAlignmentRoute
   AuthenticatedCommandAlignmentConflictsRoute: typeof AuthenticatedCommandAlignmentConflictsRoute
@@ -1505,7 +1526,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedIntelligenceRoute: AuthenticatedIntelligenceRoute,
   AuthenticatedIntelligenceQueueRoute: AuthenticatedIntelligenceQueueRoute,
-  AuthenticatedIrisRoute: AuthenticatedIrisRoute,
+  AuthenticatedIrisConsoleRoute: AuthenticatedIrisConsoleRoute,
   AuthenticatedOlympusRoute: AuthenticatedOlympusRouteWithChildren,
   AuthenticatedCommandAlignmentRoute: AuthenticatedCommandAlignmentRoute,
   AuthenticatedCommandAlignmentConflictsRoute:
@@ -1530,6 +1551,7 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  IrisRoute: IrisRoute,
   LoginRoute: LoginRoute,
   ApiIrisVoiceRoute: ApiIrisVoiceRoute,
   DebugDailyNoteLayoutRoute: DebugDailyNoteLayoutRoute,

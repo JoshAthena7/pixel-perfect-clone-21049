@@ -30,7 +30,7 @@ import {
  * extractors for the selected mission and refreshes the page.
  */
 
-export const Route = createFileRoute("/_authenticated/iris")({
+export const Route = createFileRoute("/_authenticated/iris-console")({
   component: IrisPage,
 });
 
