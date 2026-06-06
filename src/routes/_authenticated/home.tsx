@@ -541,8 +541,8 @@ function AthenaHQ() {
             <AttentionPanel
               missions={missions as any}
               missionQuestions={missionQuestions as any}
-              forceExpanded={role === "pm"}
-              criticalOnly={role === "executive_sponsor"}
+              forceExpanded={false}
+              criticalOnly={false}
             />
 
             <DueThisWeek
