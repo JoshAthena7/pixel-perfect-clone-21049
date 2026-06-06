@@ -31,9 +31,9 @@ function MissionLayout() {
     return <NotAvailable kind="mission" />;
   }
 
-  // Hide persistent IRIS strip on Studio / question workspace / settings.
+  // Hide persistent IRIS strip on Studio / section workspace / settings.
   const hideStrip =
-    path.includes("/questions") ||
+    path.includes("/sections") ||
     path.endsWith("/studio") ||
     path.endsWith("/settings");
 
