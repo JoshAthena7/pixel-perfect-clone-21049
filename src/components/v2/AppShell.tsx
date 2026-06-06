@@ -380,6 +380,13 @@ function MissionNav({ missionId }: { missionId: string }) {
       to: `${base}/sections`,
       active: path.startsWith(`${base}/sections`) || path.startsWith(`${base}/scaffold`),
     },
+    {
+      key: "cockpit",
+      label: "Cockpit",
+      icon: <Plane size={13} strokeWidth={1.75} />,
+      to: `/cockpit?missionId=${missionId}`,
+      active: path.startsWith(`/cockpit`),
+    },
   ];
 
   return (
