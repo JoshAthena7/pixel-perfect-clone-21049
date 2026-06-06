@@ -254,6 +254,7 @@ export const submitCheckin = createServerFn({ method: "POST" })
         category: "checkin_blocked",
         severity: "high",
         description: desc,
+        submitted_by: "writer",
         submitted_by_id: tokenRow.writer_user_id,
         status: "open",
       });

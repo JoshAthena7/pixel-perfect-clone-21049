@@ -47,13 +47,16 @@ function PageShell({ children }: { children: React.ReactNode }) {
 }
 
 function CheckinPage() {
-  const payload = Route.useLoaderData() as CheckinPagePayload;
+  const payload = Route.useLoaderData() as unknown as CheckinPagePayload;
 
   if (payload.state === "expired") {
     return <ExpiredOrInvalid title="Link expired" message="This check-in link has expired. Ask your PM to send a new one." />;
   }
   if (payload.state === "already_submitted") {
     return <AlreadySubmitted payload={payload} />;
+  }
+  if (payload.state !== "ready") {
+    return <ExpiredOrInvalid title="Link not found" message="This check-in link is invalid." />;
   }
   return <CheckinForm payload={payload} />;
 }

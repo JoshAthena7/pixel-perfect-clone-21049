@@ -15,9 +15,11 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DebugGoldEntryFallbackRouteImport } from './routes/debug.gold-entry-fallback'
 import { Route as DebugDailyNoteLayoutRouteImport } from './routes/debug.daily-note-layout'
+import { Route as CheckinTokenRouteImport } from './routes/checkin.$token'
 import { Route as ApiIrisVoiceRouteImport } from './routes/api/iris-voice'
 import { Route as ApiIrisRouteImport } from './routes/api/iris'
 import { Route as ApiAtriumRouteImport } from './routes/api/atrium'
+import { Route as AuthenticatedStatusReportRouteImport } from './routes/_authenticated/status-report'
 import { Route as AuthenticatedOlympusRouteImport } from './routes/_authenticated/olympus'
 import { Route as AuthenticatedJourneyMapRouteImport } from './routes/_authenticated/journey-map'
 import { Route as AuthenticatedIrisConsoleRouteImport } from './routes/_authenticated/iris-console'
@@ -111,6 +113,11 @@ const DebugDailyNoteLayoutRoute = DebugDailyNoteLayoutRouteImport.update({
   path: '/debug/daily-note-layout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CheckinTokenRoute = CheckinTokenRouteImport.update({
+  id: '/checkin/$token',
+  path: '/checkin/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiIrisVoiceRoute = ApiIrisVoiceRouteImport.update({
   id: '/api/iris-voice',
   path: '/api/iris-voice',
@@ -126,6 +133,12 @@ const ApiAtriumRoute = ApiAtriumRouteImport.update({
   path: '/api/atrium',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedStatusReportRoute =
+  AuthenticatedStatusReportRouteImport.update({
+    id: '/status-report',
+    path: '/status-report',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedOlympusRoute = AuthenticatedOlympusRouteImport.update({
   id: '/olympus',
   path: '/olympus',
@@ -512,9 +525,11 @@ export interface FileRoutesByFullPath {
   '/iris-console': typeof AuthenticatedIrisConsoleRoute
   '/journey-map': typeof AuthenticatedJourneyMapRoute
   '/olympus': typeof AuthenticatedOlympusRouteWithChildren
+  '/status-report': typeof AuthenticatedStatusReportRoute
   '/api/atrium': typeof ApiAtriumRoute
   '/api/iris': typeof ApiIrisRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
+  '/checkin/$token': typeof CheckinTokenRoute
   '/debug/daily-note-layout': typeof DebugDailyNoteLayoutRoute
   '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
@@ -584,9 +599,11 @@ export interface FileRoutesByTo {
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
   '/iris-console': typeof AuthenticatedIrisConsoleRoute
   '/journey-map': typeof AuthenticatedJourneyMapRoute
+  '/status-report': typeof AuthenticatedStatusReportRoute
   '/api/atrium': typeof ApiAtriumRoute
   '/api/iris': typeof ApiIrisRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
+  '/checkin/$token': typeof CheckinTokenRoute
   '/debug/daily-note-layout': typeof DebugDailyNoteLayoutRoute
   '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
@@ -658,9 +675,11 @@ export interface FileRoutesById {
   '/_authenticated/iris-console': typeof AuthenticatedIrisConsoleRoute
   '/_authenticated/journey-map': typeof AuthenticatedJourneyMapRoute
   '/_authenticated/olympus': typeof AuthenticatedOlympusRouteWithChildren
+  '/_authenticated/status-report': typeof AuthenticatedStatusReportRoute
   '/api/atrium': typeof ApiAtriumRoute
   '/api/iris': typeof ApiIrisRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
+  '/checkin/$token': typeof CheckinTokenRoute
   '/debug/daily-note-layout': typeof DebugDailyNoteLayoutRoute
   '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
   '/_authenticated/command/alignment': typeof AuthenticatedCommandAlignmentRoute
@@ -733,9 +752,11 @@ export interface FileRouteTypes {
     | '/iris-console'
     | '/journey-map'
     | '/olympus'
+    | '/status-report'
     | '/api/atrium'
     | '/api/iris'
     | '/api/iris-voice'
+    | '/checkin/$token'
     | '/debug/daily-note-layout'
     | '/debug/gold-entry-fallback'
     | '/command/alignment'
@@ -805,9 +826,11 @@ export interface FileRouteTypes {
     | '/intelligence-queue'
     | '/iris-console'
     | '/journey-map'
+    | '/status-report'
     | '/api/atrium'
     | '/api/iris'
     | '/api/iris-voice'
+    | '/checkin/$token'
     | '/debug/daily-note-layout'
     | '/debug/gold-entry-fallback'
     | '/command/alignment'
@@ -878,9 +901,11 @@ export interface FileRouteTypes {
     | '/_authenticated/iris-console'
     | '/_authenticated/journey-map'
     | '/_authenticated/olympus'
+    | '/_authenticated/status-report'
     | '/api/atrium'
     | '/api/iris'
     | '/api/iris-voice'
+    | '/checkin/$token'
     | '/debug/daily-note-layout'
     | '/debug/gold-entry-fallback'
     | '/_authenticated/command/alignment'
@@ -948,6 +973,7 @@ export interface RootRouteChildren {
   ApiAtriumRoute: typeof ApiAtriumRoute
   ApiIrisRoute: typeof ApiIrisRoute
   ApiIrisVoiceRoute: typeof ApiIrisVoiceRoute
+  CheckinTokenRoute: typeof CheckinTokenRoute
   DebugDailyNoteLayoutRoute: typeof DebugDailyNoteLayoutRoute
   DebugGoldEntryFallbackRoute: typeof DebugGoldEntryFallbackRoute
   ApiPublicHooksBackfillAtlasEmbeddingsRoute: typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
@@ -1003,6 +1029,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DebugDailyNoteLayoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/checkin/$token': {
+      id: '/checkin/$token'
+      path: '/checkin/$token'
+      fullPath: '/checkin/$token'
+      preLoaderRoute: typeof CheckinTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/iris-voice': {
       id: '/api/iris-voice'
       path: '/api/iris-voice'
@@ -1023,6 +1056,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/atrium'
       preLoaderRoute: typeof ApiAtriumRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/status-report': {
+      id: '/_authenticated/status-report'
+      path: '/status-report'
+      fullPath: '/status-report'
+      preLoaderRoute: typeof AuthenticatedStatusReportRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/olympus': {
       id: '/_authenticated/olympus'
@@ -1587,6 +1627,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedIrisConsoleRoute: typeof AuthenticatedIrisConsoleRoute
   AuthenticatedJourneyMapRoute: typeof AuthenticatedJourneyMapRoute
   AuthenticatedOlympusRoute: typeof AuthenticatedOlympusRouteWithChildren
+  AuthenticatedStatusReportRoute: typeof AuthenticatedStatusReportRoute
   AuthenticatedCommandAlignmentRoute: typeof AuthenticatedCommandAlignmentRoute
   AuthenticatedCommandAlignmentConflictsRoute: typeof AuthenticatedCommandAlignmentConflictsRoute
   AuthenticatedCommandAttentionRoute: typeof AuthenticatedCommandAttentionRoute
@@ -1610,6 +1651,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIrisConsoleRoute: AuthenticatedIrisConsoleRoute,
   AuthenticatedJourneyMapRoute: AuthenticatedJourneyMapRoute,
   AuthenticatedOlympusRoute: AuthenticatedOlympusRouteWithChildren,
+  AuthenticatedStatusReportRoute: AuthenticatedStatusReportRoute,
   AuthenticatedCommandAlignmentRoute: AuthenticatedCommandAlignmentRoute,
   AuthenticatedCommandAlignmentConflictsRoute:
     AuthenticatedCommandAlignmentConflictsRoute,
@@ -1639,6 +1681,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAtriumRoute: ApiAtriumRoute,
   ApiIrisRoute: ApiIrisRoute,
   ApiIrisVoiceRoute: ApiIrisVoiceRoute,
+  CheckinTokenRoute: CheckinTokenRoute,
   DebugDailyNoteLayoutRoute: DebugDailyNoteLayoutRoute,
   DebugGoldEntryFallbackRoute: DebugGoldEntryFallbackRoute,
   ApiPublicHooksBackfillAtlasEmbeddingsRoute:
