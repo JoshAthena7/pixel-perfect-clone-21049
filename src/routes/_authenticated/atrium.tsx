@@ -50,8 +50,9 @@ function AtriumPage() {
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-gradient-to-b from-surface to-background">
+    <div className="relative min-h-screen bg-background">
+      <Constellation opacity={0.06} className="constellation-bg" />
+      <header className="relative border-b border-border bg-gradient-to-b from-surface to-background">
         <div className="mx-auto max-w-[1400px] px-8 py-8">
           <IrisGreeting screen="atrium" />
           <div className="mt-4 text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">
