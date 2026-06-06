@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DebugGoldEntryFallbackRouteImport } from './routes/debug.gold-entry-fallback'
 import { Route as DebugDailyNoteLayoutRouteImport } from './routes/debug.daily-note-layout'
 import { Route as ApiIrisVoiceRouteImport } from './routes/api/iris-voice'
+import { Route as ApiIrisRouteImport } from './routes/api/iris'
 import { Route as ApiAtriumRouteImport } from './routes/api/atrium'
 import { Route as AuthenticatedOlympusRouteImport } from './routes/_authenticated/olympus'
 import { Route as AuthenticatedIrisConsoleRouteImport } from './routes/_authenticated/iris-console'
@@ -111,6 +112,11 @@ const DebugDailyNoteLayoutRoute = DebugDailyNoteLayoutRouteImport.update({
 const ApiIrisVoiceRoute = ApiIrisVoiceRouteImport.update({
   id: '/api/iris-voice',
   path: '/api/iris-voice',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiIrisRoute = ApiIrisRouteImport.update({
+  id: '/api/iris',
+  path: '/api/iris',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAtriumRoute = ApiAtriumRouteImport.update({
@@ -493,6 +499,7 @@ export interface FileRoutesByFullPath {
   '/iris-console': typeof AuthenticatedIrisConsoleRoute
   '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/api/atrium': typeof ApiAtriumRoute
+  '/api/iris': typeof ApiIrisRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
   '/debug/daily-note-layout': typeof DebugDailyNoteLayoutRoute
   '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
@@ -562,6 +569,7 @@ export interface FileRoutesByTo {
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
   '/iris-console': typeof AuthenticatedIrisConsoleRoute
   '/api/atrium': typeof ApiAtriumRoute
+  '/api/iris': typeof ApiIrisRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
   '/debug/daily-note-layout': typeof DebugDailyNoteLayoutRoute
   '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
@@ -633,6 +641,7 @@ export interface FileRoutesById {
   '/_authenticated/iris-console': typeof AuthenticatedIrisConsoleRoute
   '/_authenticated/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/api/atrium': typeof ApiAtriumRoute
+  '/api/iris': typeof ApiIrisRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
   '/debug/daily-note-layout': typeof DebugDailyNoteLayoutRoute
   '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
@@ -705,6 +714,7 @@ export interface FileRouteTypes {
     | '/iris-console'
     | '/olympus'
     | '/api/atrium'
+    | '/api/iris'
     | '/api/iris-voice'
     | '/debug/daily-note-layout'
     | '/debug/gold-entry-fallback'
@@ -774,6 +784,7 @@ export interface FileRouteTypes {
     | '/intelligence-queue'
     | '/iris-console'
     | '/api/atrium'
+    | '/api/iris'
     | '/api/iris-voice'
     | '/debug/daily-note-layout'
     | '/debug/gold-entry-fallback'
@@ -844,6 +855,7 @@ export interface FileRouteTypes {
     | '/_authenticated/iris-console'
     | '/_authenticated/olympus'
     | '/api/atrium'
+    | '/api/iris'
     | '/api/iris-voice'
     | '/debug/daily-note-layout'
     | '/debug/gold-entry-fallback'
@@ -909,6 +921,7 @@ export interface RootRouteChildren {
   IrisRoute: typeof IrisRoute
   LoginRoute: typeof LoginRoute
   ApiAtriumRoute: typeof ApiAtriumRoute
+  ApiIrisRoute: typeof ApiIrisRoute
   ApiIrisVoiceRoute: typeof ApiIrisVoiceRoute
   DebugDailyNoteLayoutRoute: typeof DebugDailyNoteLayoutRoute
   DebugGoldEntryFallbackRoute: typeof DebugGoldEntryFallbackRoute
@@ -970,6 +983,13 @@ declare module '@tanstack/react-router' {
       path: '/api/iris-voice'
       fullPath: '/api/iris-voice'
       preLoaderRoute: typeof ApiIrisVoiceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/iris': {
+      id: '/api/iris'
+      path: '/api/iris'
+      fullPath: '/api/iris'
+      preLoaderRoute: typeof ApiIrisRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/atrium': {
@@ -1574,6 +1594,7 @@ const rootRouteChildren: RootRouteChildren = {
   IrisRoute: IrisRoute,
   LoginRoute: LoginRoute,
   ApiAtriumRoute: ApiAtriumRoute,
+  ApiIrisRoute: ApiIrisRoute,
   ApiIrisVoiceRoute: ApiIrisVoiceRoute,
   DebugDailyNoteLayoutRoute: DebugDailyNoteLayoutRoute,
   DebugGoldEntryFallbackRoute: DebugGoldEntryFallbackRoute,

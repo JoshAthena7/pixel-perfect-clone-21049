@@ -4,12 +4,53 @@ import { useQuery } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { getIrisData } from "@/lib/iris-read.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { extractSignals } from "@/lib/iris-extractors/signals.functions";
 import { extractRisks } from "@/lib/iris-extractors/risks.functions";
 import { extractWinThemes } from "@/lib/iris-extractors/win-themes.functions";
 import { extractStrategy } from "@/lib/iris-extractors/strategy.functions";
 import { extractClientIntel } from "@/lib/iris-extractors/client-intel.functions";
+
+type IrisMission = {
+  id: string;
+  name: string | null;
+  client?: string | null;
+  state?: string | null;
+  state_agency?: string | null;
+  procurement_name?: string | null;
+  program_type?: string | null;
+  description?: string | null;
+  submission_date?: string | null;
+  health?: string | null;
+  status?: string | null;
+  win_themes?: unknown;
+  key_requirements?: unknown;
+};
+
+type IrisData = {
+  mission: IrisMission | null;
+  missions: IrisMission[];
+  signals: any[];
+  risks: any[];
+  winThemes: any[];
+  strategy: any[];
+  clientIntel: any | null;
+};
+
+async function fetchIrisData(missionId?: string): Promise<IrisData> {
+  const { data: sess } = await supabase.auth.getSession();
+  const token = sess.session?.access_token;
+  if (!token) throw new Error("Sign in to view IRIS.");
+  const qs = missionId ? `?missionId=${encodeURIComponent(missionId)}` : "";
+  const res = await fetch(`/api/iris${qs}`, {
+    headers: { authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(body.error ?? "Failed to load IRIS");
+  }
+  return res.json();
+}
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,7 +73,6 @@ import {
 
 export const Route = createFileRoute("/_authenticated/iris-console")({
   beforeLoad: () => {
-    void getIrisData;
     void extractSignals;
     void extractRisks;
     void extractWinThemes;
@@ -57,10 +97,9 @@ function IrisPage() {
   const [tab, setTab] = useState<TabId>("brief");
   const [missionId, setMissionId] = useState<string | undefined>(undefined);
 
-  const fetchIris = useServerFn(getIrisData);
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["iris", missionId ?? "default"],
-    queryFn: () => fetchIris({ data: { missionId } }),
+    queryFn: () => fetchIrisData(missionId),
   });
 
   const runSignals = useServerFn(extractSignals);
@@ -530,7 +569,7 @@ function severityChip(level: string) {
 /* Tabs                                                                    */
 /* ─────────────────────────────────────────────────────────────────────── */
 
-type IrisData = Awaited<ReturnType<typeof getIrisData>>;
+// IrisData type is declared near the top of the file.
 
 function MissionBriefView({ data }: { data: IrisData }) {
   const m = data.mission;
@@ -556,12 +595,12 @@ function MissionBriefView({ data }: { data: IrisData }) {
         </div>
       </section>
 
-      {m.key_requirements?.length ? (
+      {Array.isArray(m.key_requirements) && m.key_requirements.length ? (
         <section className="mb-7">
           <h2 className="font-serif text-xl tracking-tight text-foreground">Key Requirements</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-[15px] leading-relaxed text-muted-foreground">
-            {m.key_requirements.map((k, i) => (
-              <li key={i}>{k}</li>
+            {(m.key_requirements as unknown[]).map((k, i) => (
+              <li key={i}>{String(k)}</li>
             ))}
           </ul>
         </section>
