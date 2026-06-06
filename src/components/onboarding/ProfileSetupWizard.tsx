@@ -89,7 +89,15 @@ const STEPS = [
   { key: "bio", title: "One-line bio", subtitle: "Shown when IRIS recommends you on Phone-a-Friend." },
 ] as const;
 
-function ProfileSetupWizard({ profileId, displayName }: { profileId: string; displayName: string }) {
+function ProfileSetupWizard({
+  profileId,
+  displayName,
+  onDefer,
+}: {
+  profileId: string;
+  displayName: string;
+  onDefer: () => void;
+}) {
   const qc = useQueryClient();
   const [stepIdx, setStepIdx] = useState(0);
   const [saving, setSaving] = useState(false);
