@@ -769,7 +769,7 @@ function MissionCard({
       params={{ missionId: mission.id }}
       data-health={computedHealth}
       onClick={() => { try { sessionStorage.setItem("athena:last-mission", mission.id); } catch {} }}
-      className="mission-card-v7 group relative block rounded-[12px] border border-border bg-surface p-5 transition-all duration-200 ease-out hover:-translate-y-[3px] hover:border-foreground/30"
+      className={`mission-card-v7 group relative block rounded-[12px] border border-border bg-surface p-5 transition-all duration-200 ease-out hover:-translate-y-[3px] hover:border-foreground/30 ${(mission.status ?? "").toLowerCase() === "active" ? "mission-card-active" : ""}`}
       style={{
         minHeight: 140,
         borderLeftWidth: 4,
