@@ -22,10 +22,31 @@ import { ThreadPanel } from "@/components/threads/ThreadPanel";
 import { openUpdateReality } from "@/components/v2/UpdateRealityModal";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { IrisKickoffBadge } from "@/components/v2/IrisKickoffBadge";
+import { QuestionProvider, useQuestion, type SelectedQuestion } from "@/contexts/QuestionContext";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/")({
-  component: MissionCockpitLanding,
+  component: MissionCockpitLandingWrapper,
 });
+
+function MissionCockpitLandingWrapper() {
+  return (
+    <QuestionProvider>
+      <MissionCockpitLanding />
+    </QuestionProvider>
+  );
+}
+
+function sectionToSelected(s: Section): SelectedQuestion {
+  return {
+    id: s.id,
+    questionNumber: s.question_number,
+    sectionNumber: s.section_number,
+    title: s.title,
+    status: s.status,
+    assignedWriterId: s.assigned_writer_id,
+    pensDownDate: s.pens_down_date,
+  };
+}
 
 /* ───────────────────────────── types ───────────────────────────── */
 
@@ -118,6 +139,9 @@ function healthDotColor(h: Section["health"]) {
 function MissionCockpitLanding() {
   const { missionId } = Route.useParams();
   const qc = useQueryClient();
+
+  /* selected question — the source of truth for every instrument on this page */
+  const { selectedQuestion, setSelectedQuestion } = useQuestion();
 
   /* assist overlay state */
   const [sosOpen, setSosOpen] = useState(false);
@@ -247,18 +271,14 @@ function MissionCockpitLanding() {
     [sections, me],
   );
 
-  /* target question for AssistsBar — prefer writer's most-urgent assigned, else first */
-  const targetQ = useMemo(() => {
-    const rank = (h: Section["health"]) => (h === "red" ? 0 : h === "yellow" ? 1 : 2);
-    const pool = mySections.length > 0 ? mySections : sections;
-    return [...pool].sort((a, b) => {
-      const d = rank(a.health) - rank(b.health);
-      if (d !== 0) return d;
-      const da = a.pens_down_date ? new Date(a.pens_down_date).getTime() : Infinity;
-      const db = b.pens_down_date ? new Date(b.pens_down_date).getTime() : Infinity;
-      return da - db;
-    })[0] ?? null;
-  }, [mySections, sections]);
+  /* selected question is the source of truth — no auto-pick. */
+  /* keep selection in sync if the selected section disappears from the list  */
+  useEffect(() => {
+    if (selectedQuestion && !sections.some((s) => s.id === selectedQuestion.id)) {
+      setSelectedQuestion(null);
+    }
+  }, [sections, selectedQuestion, setSelectedQuestion]);
+  const targetQ = selectedQuestion;
 
   /* summary */
   const summary = useMemo(() => {
@@ -345,31 +365,58 @@ function MissionCockpitLanding() {
               className="rounded-xl border overflow-hidden"
               style={{ background: "#0a1628", borderColor: "rgba(255,255,255,0.08)" }}
             >
+              {/* Selected-question header — always visible so the writer knows
+                  which question their instruments are operating on. */}
+              <div
+                className="flex items-center justify-between gap-3 border-b border-white/[0.06] px-6 py-2 text-[11px]"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-[9px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+                    Assists ·
+                  </span>
+                  {targetQ ? (
+                    <span className="min-w-0 truncate text-foreground/90">
+                      <span className="font-mono text-muted-foreground mr-1.5">
+                        Q{targetQ.questionNumber}
+                      </span>
+                      {targetQ.title || "Untitled section"}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      Select a question below to activate your instruments
+                    </span>
+                  )}
+                </div>
+                {targetQ && (
+                  <button
+                    onClick={() => setSelectedQuestion(null)}
+                    className="shrink-0 text-[10px] text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
               <AssistsBar
+                disabled={!targetQ}
                 onUpdateReality={() => {
-                  if (!targetQ) { toast("Open a section first to update reality."); return; }
+                  if (!targetQ) { toast("Select a section first to update reality."); return; }
                   openUpdateReality(targetQ.id);
                 }}
                 onScoreMe={() => {
-                  if (!targetQ) { toast("Open a section first to score it."); return; }
+                  if (!targetQ) { toast("Select a section first to score it."); return; }
                   setScoreOpen(true);
                 }}
                 onPhone={() => {
-                  if (!targetQ) { toast("Open a section first to phone a friend."); return; }
+                  if (!targetQ) { toast("Select a section first to phone a friend."); return; }
                   setPhoneOpen(true);
                 }}
                 onPulse={() => setPulseOpen(true)}
                 onThread={() => {
-                  if (!targetQ) { toast("Open a section first to start a thread."); return; }
+                  if (!targetQ) { toast("Select a section first to start a thread."); return; }
                   setThreadOpen(true);
                 }}
                 sosSlot={<SOSButton missionId={missionId} questionId={targetQ?.id} />}
               />
-              {!targetQ && sections.length > 0 && (
-                <div className="border-t border-white/[0.06] px-6 py-2 text-[11px] text-muted-foreground">
-                  Pick a section below to activate Score Me, Phone a Friend, Update Reality, and Thread.
-                </div>
-              )}
             </section>
 
             {/* Progress strip */}
@@ -482,7 +529,7 @@ function MissionCockpitLanding() {
         <PhoneAFriendOverlay
           missionId={missionId}
           questionId={targetQ.id}
-          questionNumber={targetQ.question_number}
+          questionNumber={targetQ.questionNumber}
           meId={me ?? null}
           meName=""
           onClose={() => setPhoneOpen(false)}
@@ -570,17 +617,30 @@ function SectionRow({
   profileById: Map<string, Profile>;
   missionId: string;
 }) {
+  const { selectedQuestion, setSelectedQuestion } = useQuestion();
   const owner = s.assigned_writer_id ? profileById.get(s.assigned_writer_id) ?? null : null;
   const pd = daysUntil(s.pens_down_date);
   const overdue = pd !== null && pd < 0 && !isComplete(s.status);
   const align = s.win_theme_alignment_score;
+  const isSelected = selectedQuestion?.id === s.id;
 
   return (
-    <li className="group relative border-b border-white/[0.04] last:border-b-0">
-      <Link
-        to="/missions/$missionId/sections/$questionId"
-        params={{ missionId, questionId: s.id }}
-        className="grid grid-cols-[14px_56px_1fr_160px_100px_120px_70px_22px] items-center gap-3 px-5 py-3 hover:bg-white/[0.025] transition-colors"
+    <li
+      className="group relative border-b border-white/[0.04] last:border-b-0"
+      style={isSelected ? { background: "rgba(59,127,255,0.08)" } : undefined}
+    >
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setSelectedQuestion(sectionToSelected(s))}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setSelectedQuestion(sectionToSelected(s));
+          }
+        }}
+        className="grid grid-cols-[14px_56px_1fr_160px_100px_120px_70px_22px] items-center gap-3 px-5 py-3 hover:bg-white/[0.025] transition-colors cursor-pointer"
+        aria-pressed={isSelected}
       >
         {/* health dot */}
         <span
@@ -662,12 +722,20 @@ function SectionRow({
             </span>
           )}
         </span>
-        {/* arrow */}
-        <ArrowRight
-          size={14}
-          className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-        />
-      </Link>
+        {/* open workspace */}
+        <Link
+          to="/missions/$missionId/sections/$questionId"
+          params={{ missionId, questionId: s.id }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setSelectedQuestion(sectionToSelected(s));
+          }}
+          title="Open section workspace"
+          className="inline-flex items-center justify-center text-muted-foreground hover:text-foreground"
+        >
+          <ArrowRight size={14} />
+        </Link>
+      </div>
     </li>
   );
 }
