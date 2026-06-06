@@ -1505,7 +1505,7 @@ function MyAssignments({
           <button
             onClick={() => setFilter("mine")}
             className={`rounded-sm px-2 py-0.5 ${filter === "mine" ? "bg-white/10 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-          >My Questions</button>
+          >My Sections</button>
           <button
             onClick={() => setFilter("all")}
             className={`rounded-sm px-2 py-0.5 ${filter === "all" ? "bg-white/10 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
