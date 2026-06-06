@@ -14,7 +14,7 @@ import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
 import { CompliancePanel as ComplianceRequirementsPanel } from "@/components/v2/CompliancePanel";
 import { getLastQuestionVisit, markQuestionVisited } from "@/lib/writer-utils";
 import { CoPilotInbox } from "@/components/v2/CoPilotInbox";
-import { ConfidenceButton, ConfidenceDot } from "@/components/v2/CockpitConfidence";
+import { ConfidenceButton, ConfidenceDot } from "@/components/v2/FlightDeckConfidence";
 import { toast } from "sonner";
 import { Eye } from "lucide-react";
 import { ThreadPanel } from "@/components/threads/ThreadPanel";
