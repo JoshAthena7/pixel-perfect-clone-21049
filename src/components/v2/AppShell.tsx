@@ -104,6 +104,8 @@ function TopBar({
   missionId, isOlympus, isAtrium, room,
 }: { missionId?: string; isOlympus: boolean; isAtrium: boolean; room: Room }) {
   const inMission = !!missionId;
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const isProfile = path === "/profile" || path.startsWith("/profile/");
 
   // Per the Permissions spec: Olympus is invisible in nav for non-admins.
   // No greyed-out link, no lock icon — absent entirely.
@@ -206,7 +208,11 @@ function TopBar({
             to="/profile"
             title="Profile"
             aria-label="Profile"
-            className="inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
+            className={`inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-[11px] font-semibold uppercase tracking-[0.18em] transition-colors hover:bg-white/5 hover:text-foreground ${
+              isProfile
+                ? "bg-[color:var(--athena-gold,#f59e0b)]/10 text-[color:var(--athena-gold,#f59e0b)]"
+                : "text-muted-foreground"
+            }`}
           >
             <User size={14} strokeWidth={1.5} />
             <span className="hidden sm:inline">Profile</span>
