@@ -93,13 +93,19 @@ Skip any row that is not relevant. If fewer than 6 signals are clearly supported
       return { stage: "signals", inserted: 0, ms: Date.now() - started };
     }
 
+    const sevMap: Record<string, "info" | "warning" | "critical"> = {
+      info: "info",
+      watch: "info",
+      elevated: "warning",
+      critical: "critical",
+    };
     const inserts = result.signals.map((s) => ({
       mission_id: data.missionId,
       source_module: "iris_extractor",
       signal_type: s.signal_type,
       signal_title: s.signal_title,
       signal_summary: s.signal_summary,
-      severity: s.severity,
+      severity: sevMap[s.severity] ?? "info",
       confidence: s.confidence,
       status: "open",
       recommended_action: s.recommended_action,
