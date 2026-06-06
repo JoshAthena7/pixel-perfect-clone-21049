@@ -380,7 +380,7 @@ function AthenaHQ() {
       </header>
 
 
-      <div className="mx-auto max-w-[1400px] px-8 py-10 space-y-12">
+      <div className="relative mx-auto max-w-[1400px] px-8 py-10 space-y-12">
         {/* Daily date + inspirational quote */}
         <DailyQuoteBanner today={today} />
 
