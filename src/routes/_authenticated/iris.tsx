@@ -290,19 +290,42 @@ function IrisPage() {
       <AlertDialog open={confirmCancelOpen} onOpenChange={setConfirmCancelOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Cancel intelligence generation?</AlertDialogTitle>
-            <AlertDialogDescription>
-              The current extractor will finish, then remaining stages will stop. Results
-              already generated will be kept.
+            <AlertDialogTitle>Stop after the current stage?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>
+                  {(() => {
+                    const current = stages.find((s) => s.status === "running");
+                    const done = stages.filter((s) => s.status === "done").length;
+                    const remaining = stages.filter((s) => s.status === "pending").length;
+                    return (
+                      <>
+                        {current ? (
+                          <>
+                            <strong className="text-foreground">{current.label}</strong> will
+                            finish, then the {remaining} remaining stage
+                            {remaining === 1 ? "" : "s"} will be skipped.
+                          </>
+                        ) : (
+                          <>The next stage will not start.</>
+                        )}{" "}
+                        Results from {done} completed stage{done === 1 ? "" : "s"} stay in your
+                        intelligence and remain visible across all tabs.
+                      </>
+                    );
+                  })()}
+                </p>
+                <p>You can run Generate Intelligence again at any time to resume.</p>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Keep running</AlertDialogCancel>
+            <AlertDialogCancel>Keep generating</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleCancel}
               className="bg-red-500/90 text-white hover:bg-red-500"
             >
-              Cancel run
+              Stop after current stage
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
