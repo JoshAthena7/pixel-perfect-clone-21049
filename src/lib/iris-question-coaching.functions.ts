@@ -4,6 +4,7 @@ import { z } from "zod";
 import { IRIS_BASE_PROMPT } from "./iris-prompts";
 import { withAICircuit } from "@/lib/ai-circuit-breaker";
 import { loadLayeredContext } from "./iris-layered-context";
+import { loadMissionContext, formatMissionContextPreamble } from "./iris-mission-context.server";
 
 const CACHE_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours
 
@@ -14,7 +15,7 @@ type Coaching = {
   compliance_note?: string;
 };
 
-async function callForCoaching(system: string, user: string): Promise<Coaching | null> {
+async function callForCoaching(system: string, user: string, preamble: string): Promise<Coaching | null> {
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) return null;
   try {
@@ -25,7 +26,7 @@ async function callForCoaching(system: string, user: string): Promise<Coaching |
         body: JSON.stringify({
           model: "google/gemini-2.5-flash",
           messages: [
-            { role: "system", content: `${IRIS_BASE_PROMPT}\n\n${system}` },
+            { role: "system", content: `${preamble}\n\n${IRIS_BASE_PROMPT}\n\n${system}` },
             { role: "user", content: user },
           ],
           tools: [
@@ -168,7 +169,10 @@ Be the strategist who knows what wins. Not the consultant who hedges.
 
 ${layered}`;
 
-    const coaching = await callForCoaching(sys, userMsg);
+    const missionCtx = await loadMissionContext(supabase, q.mission_id);
+    const preamble = formatMissionContextPreamble(missionCtx);
+
+    const coaching = await callForCoaching(sys, userMsg, preamble);
     if (!coaching) {
       return { cached: false, intel: null, error: "IRIS could not generate coaching (check LOVABLE_API_KEY)." };
     }

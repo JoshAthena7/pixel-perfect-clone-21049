@@ -5,6 +5,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { assertNoPHI } from "@/lib/phi-detection";
+import { loadMissionContext, formatMissionContextPreamble } from "@/lib/iris-mission-context.server";
 
 // ---------- Types ----------
 
@@ -252,8 +253,15 @@ export const runScoreMe = createServerFn({ method: "POST" })
       proof_points: true,
     };
 
+    const missionCtx = await loadMissionContext(supabase, q.mission_id);
+    const preamble = formatMissionContextPreamble(missionCtx);
+
     // ---- Build prompt ----
-    const sys = `You are IRIS — a senior proposal evaluator. You are running Score Me, the writer-facing pre-Red Team scorecard for Atlas.
+    const sys = `${preamble}
+
+You are IRIS — a senior proposal evaluator. You are running Score Me, the writer-facing pre-Red Team scorecard for Atlas.
+
+Score alignment against the Setup Record win themes and evaluation criteria above — not generic quality metrics. A "green" rating means the draft demonstrably advances the win strategy.
 
 Score the draft against SEVEN dimensions. Each dimension gets its own status flag and findings. DO NOT produce a single composite score.
 

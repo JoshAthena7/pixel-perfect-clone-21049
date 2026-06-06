@@ -5,6 +5,7 @@ import { z } from "zod";
 import { fetchIrisMemoryContext, logIrisMemoryUsage } from "./iris-memory.functions";
 import { loadLayeredContext } from "./iris-layered-context";
 import { withAICircuit } from "@/lib/ai-circuit-breaker";
+import { loadMissionContext, formatMissionContextPreamble } from "./iris-mission-context.server";
 
 async function callIris(system: string, user: string) {
   const apiKey = process.env.LOVABLE_API_KEY;
@@ -87,7 +88,7 @@ export const irisAskQuestion = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!q) throw new Error("Response not found");
 
-    const [{ data: m }, mem, layered] = await Promise.all([
+    const [{ data: m }, mem, layered, missionCtx] = await Promise.all([
       supabase
         .from("missions")
         .select("name,client,state,description,submission_date")
@@ -95,9 +96,13 @@ export const irisAskQuestion = createServerFn({ method: "POST" })
         .maybeSingle(),
       fetchIrisMemoryContext(supabase, { missionId: q.mission_id }),
       loadLayeredContext(supabase, { missionId: q.mission_id, questionId: data.questionId, topic: data.prompt }),
+      loadMissionContext(supabase, q.mission_id),
     ]);
 
-    const sys = `${IRIS_SYSTEM}
+    const preamble = formatMissionContextPreamble(missionCtx);
+    const sys = `${preamble}
+
+${IRIS_SYSTEM}
 
 ASK IRIS — WRITER RESPONSE DISCIPLINE
 The writer asked a specific question and has minutes, not hours. Answer it directly in 3-5 sentences. No background they didn't ask for. No related topics. No caveats before the answer. Do not end with "Is there anything else…?".
@@ -131,7 +136,7 @@ export const irisAskMission = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const [{ data: m }, mem, layered] = await Promise.all([
+    const [{ data: m }, mem, layered, missionCtx] = await Promise.all([
       supabase
         .from("missions")
         .select("name,client,state,description,submission_date")
@@ -139,10 +144,12 @@ export const irisAskMission = createServerFn({ method: "POST" })
         .maybeSingle(),
       fetchIrisMemoryContext(supabase, { missionId: data.missionId }),
       loadLayeredContext(supabase, { missionId: data.missionId, topic: data.prompt }),
+      loadMissionContext(supabase, data.missionId),
     ]);
     if (!m) throw new Error("Mission not found");
 
-    const sys = `${IRIS_SYSTEM}\nAnswer the user's question about this mission with actionable guidance.\n\n${layered}\n\n${mem.block}`;
+    const preamble = formatMissionContextPreamble(missionCtx);
+    const sys = `${preamble}\n\n${IRIS_SYSTEM}\nAnswer the user's question about this mission with actionable guidance.\n\n${layered}\n\n${mem.block}`;
     const user = `Mission: ${m.name} · Client: ${m.client ?? "—"} · State: ${m.state ?? "—"}\nSubmission: ${m.submission_date ?? "—"}\nDescription: ${m.description ?? "(none)"}\n\nUser asks: ${data.prompt}`;
 
     const answer = await callIris(sys, user);
