@@ -65,13 +65,14 @@
   --iris-pulse: rgba(8, 145, 178, 0.30);
   --iris-border: rgba(8, 145, 178, 0.40);
 
-  /* ATHENA BRAND tokens */
-  --athena-navy: #1E3A6B;
+  /* ATHENA BRAND tokens — official brand palette */
+  --athena-navy: #1B3A6B;
+  --athena-navy-dark: #112850;
   --athena-navy-light: #2A4F8F;
-  --athena-gold: #C49A22;
-  --athena-gold-light: #D4AA32;
-  --athena-gold-subtle: rgba(196, 154, 34, 0.12);
-  --athena-gold-glow: rgba(196, 154, 34, 0.35);
+  --athena-gold: #C9922A;
+  --athena-gold-light: #E8B84B;
+  --athena-gold-subtle: rgba(201, 146, 42, 0.12);
+  --athena-gold-glow: rgba(201, 146, 42, 0.35);
 
   /* Vault + Oracle tokens (premium intelligence aesthetic) */
   --vault-glow: rgba(245, 158, 11, 0.15);
