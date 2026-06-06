@@ -7,6 +7,7 @@ import { IrisGreeting } from "@/components/v2/IrisGreeting";
 import { AmbientWisdom } from "@/components/v2/AmbientWisdom";
 import { AnimatedNumber, Constellation, IrisType } from "@/components/v2/polish";
 import { MissionIntelligenceGraph } from "@/components/v2/MissionIntelligenceGraph";
+import { IrisDailyNote } from "@/components/v2/IrisDailyNote";
 
 export const Route = createFileRoute("/_authenticated/atrium")({
   component: AtriumPage,
@@ -68,6 +69,8 @@ function AtriumPage() {
           )}
         </div>
       </header>
+
+      <IrisDailyNote />
 
       <MissionIntelligenceGraph />
 
