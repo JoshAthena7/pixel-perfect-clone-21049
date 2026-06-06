@@ -470,6 +470,13 @@ function Step2Uploads({
       console.warn("IRIS kickoff failed", e?.message);
     });
 
+    // Run the full IRIS extractor pipeline (signals, risks, win themes,
+    // strategy, client intel). Fire-and-forget — runs in background so
+    // activation UI stays responsive.
+    void runPipelineFn({ data: { missionId } }).catch((e) => {
+      console.warn("IRIS pipeline failed", e?.message);
+    });
+
     qc.invalidateQueries({ queryKey: ["olympus-missions"] });
     qc.invalidateQueries({ queryKey: ["hq-missions"] });
     onActivate();
