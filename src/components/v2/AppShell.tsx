@@ -302,6 +302,7 @@ function AtriumNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const items: { to: string; label: string }[] = [
     { to: "/home", label: "Home" },
+    { to: "/iris", label: "IRIS" },
     { to: "/command/security", label: "Data & Privacy" },
   ];
 
