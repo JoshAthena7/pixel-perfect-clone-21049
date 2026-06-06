@@ -1,11 +1,10 @@
 import { Component, useState, type ErrorInfo, type ReactNode } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, X, ArrowRight, Archive } from "lucide-react";
+import { Plus, X, ArrowRight, Archive, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { logOlympusAction } from "@/lib/audit";
-import { MissionActivationWizard } from "@/components/v2/MissionActivationWizard";
 import { MissionReadinessPanel, ReadinessChip } from "@/components/v2/MissionReadinessPanel";
 import { IrisGreeting } from "@/components/v2/IrisGreeting";
 import { DeveloperResetCard } from "@/components/admin/DeveloperResetCard";
