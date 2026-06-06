@@ -562,7 +562,7 @@ function MissionOverviewPage() {
             ● IRIS summary{isLeader && (
               <>
                 {" "}·{" "}
-                <Link to="/olympus/missions/$missionId" params={{ missionId }} className="hover:underline">
+                <Link to="/olympus/missions/$missionId/setup" params={{ missionId }} className="hover:underline">
                   Edit in Olympus →
                 </Link>
               </>
