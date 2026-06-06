@@ -88,7 +88,7 @@ export const irisAskQuestion = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!q) throw new Error("Response not found");
 
-    const [{ data: m }, mem, layered] = await Promise.all([
+    const [{ data: m }, mem, layered, missionCtx] = await Promise.all([
       supabase
         .from("missions")
         .select("name,client,state,description,submission_date")
@@ -96,9 +96,13 @@ export const irisAskQuestion = createServerFn({ method: "POST" })
         .maybeSingle(),
       fetchIrisMemoryContext(supabase, { missionId: q.mission_id }),
       loadLayeredContext(supabase, { missionId: q.mission_id, questionId: data.questionId, topic: data.prompt }),
+      loadMissionContext(supabase, q.mission_id),
     ]);
 
-    const sys = `${IRIS_SYSTEM}
+    const preamble = formatMissionContextPreamble(missionCtx);
+    const sys = `${preamble}
+
+${IRIS_SYSTEM}
 
 ASK IRIS — WRITER RESPONSE DISCIPLINE
 The writer asked a specific question and has minutes, not hours. Answer it directly in 3-5 sentences. No background they didn't ask for. No related topics. No caveats before the answer. Do not end with "Is there anything else…?".
