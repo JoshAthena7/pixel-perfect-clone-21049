@@ -312,9 +312,12 @@ function MissionCockpitLanding() {
             <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
               Cockpit
             </div>
-            <h1 className="mt-1 text-[26px] font-bold tracking-tight text-white">
-              {mission?.name ?? "Mission"}
-            </h1>
+            <div className="mt-1 flex flex-wrap items-center gap-3">
+              <h1 className="text-[26px] font-bold tracking-tight text-white">
+                {mission?.name ?? "Mission"}
+              </h1>
+              <IrisKickoffBadge missionId={missionId} />
+            </div>
             <p className="mt-1 text-[13px] text-muted-foreground">
               {isLead
                 ? "Every section in this mission — assign, track, intervene."
