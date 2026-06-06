@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IrisRouteImport } from './routes/iris'
+import { Route as FlightDeckRouteImport } from './routes/flight-deck'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DebugGoldEntryFallbackRouteImport } from './routes/debug.gold-entry-fallback'
@@ -115,6 +116,11 @@ const LoginRoute = LoginRouteImport.update({
 const IrisRoute = IrisRouteImport.update({
   id: '/iris',
   path: '/iris',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FlightDeckRoute = FlightDeckRouteImport.update({
+  id: '/flight-deck',
+  path: '/flight-deck',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -664,6 +670,7 @@ const AuthenticatedAdminMissionsMissionIdDebriefRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/flight-deck': typeof FlightDeckRoute
   '/iris': typeof IrisRoute
   '/login': typeof LoginRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -762,6 +769,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/flight-deck': typeof FlightDeckRoute
   '/iris': typeof IrisRoute
   '/login': typeof LoginRoute
   '/atrium': typeof AuthenticatedAtriumRoute
@@ -858,6 +866,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/flight-deck': typeof FlightDeckRoute
   '/iris': typeof IrisRoute
   '/login': typeof LoginRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -958,6 +967,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/flight-deck'
     | '/iris'
     | '/login'
     | '/admin'
@@ -1056,6 +1066,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/flight-deck'
     | '/iris'
     | '/login'
     | '/atrium'
@@ -1151,6 +1162,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/flight-deck'
     | '/iris'
     | '/login'
     | '/_authenticated/admin'
@@ -1251,6 +1263,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  FlightDeckRoute: typeof FlightDeckRoute
   IrisRoute: typeof IrisRoute
   LoginRoute: typeof LoginRoute
   ApiAtriumRoute: typeof ApiAtriumRoute
@@ -1282,6 +1295,13 @@ declare module '@tanstack/react-router' {
       path: '/iris'
       fullPath: '/iris'
       preLoaderRoute: typeof IrisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/flight-deck': {
+      id: '/flight-deck'
+      path: '/flight-deck'
+      fullPath: '/flight-deck'
+      preLoaderRoute: typeof FlightDeckRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -2204,6 +2224,7 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  FlightDeckRoute: FlightDeckRoute,
   IrisRoute: IrisRoute,
   LoginRoute: LoginRoute,
   ApiAtriumRoute: ApiAtriumRoute,
@@ -2228,3 +2249,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
