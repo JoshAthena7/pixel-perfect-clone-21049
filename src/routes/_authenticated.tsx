@@ -5,6 +5,8 @@ import { ClosingFrame } from "@/components/v2/ClosingFrame";
 import { IdleCurtain } from "@/components/v2/IdleCurtain";
 import { FirstLight } from "@/components/v2/FirstLight";
 import { DailyBell } from "@/components/v2/DailyBell";
+import { LoginRouter } from "@/components/v2/LoginRouter";
+import { OrientationTooltip } from "@/components/v2/OrientationTooltip";
 
 export const Route = createFileRoute("/_authenticated")({
   // Client-only gate. Supabase stores the session in localStorage, which the
@@ -24,11 +26,14 @@ export const Route = createFileRoute("/_authenticated")({
 function AuthenticatedLayout() {
   return (
     <AppShell>
+      <LoginRouter />
       <Outlet />
       <ClosingFrame />
       <IdleCurtain />
       <FirstLight />
       <DailyBell />
+      <OrientationTooltip />
     </AppShell>
   );
 }
+
