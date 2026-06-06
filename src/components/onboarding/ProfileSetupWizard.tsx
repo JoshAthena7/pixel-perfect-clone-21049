@@ -99,8 +99,23 @@ function ProfileSetupWizard({
   onDefer: () => void;
 }) {
   const qc = useQueryClient();
-  const [stepIdx, setStepIdx] = useState(0);
+
+  // Per-user resume key. Survives across logout/login on the same browser so
+  // returning users land on the exact step they deferred at.
+  const resumeKey = `iris.profile-setup.step:${profileId}`;
+  const [stepIdx, setStepIdx] = useState(() => {
+    if (typeof window === "undefined") return 0;
+    const raw = localStorage.getItem(resumeKey);
+    const n = raw ? Number.parseInt(raw, 10) : 0;
+    return Number.isFinite(n) && n >= 0 && n < STEPS.length ? n : 0;
+  });
   const [saving, setSaving] = useState(false);
+
+  // Persist step on every change so a hard refresh also resumes correctly.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem(resumeKey, String(stepIdx));
+  }, [stepIdx, resumeKey]);
 
   const [form, setForm] = useState<Form>({
     expertise_areas: [],
