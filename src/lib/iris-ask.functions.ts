@@ -97,10 +97,10 @@ export const irisAskQuestion = createServerFn({ method: "POST" })
         .maybeSingle(),
       fetchIrisMemoryContext(supabase, { missionId: q.mission_id }),
       loadLayeredContext(supabase, { missionId: q.mission_id, questionId: data.questionId, topic: data.prompt }),
-      loadMissionContext(supabase, q.mission_id),
+      buildMissionContext(supabase, q.mission_id, { questionId: data.questionId }),
     ]);
 
-    const preamble = formatMissionContextPreamble(missionCtx);
+    const preamble = formatMissionContextBlock(missionCtx);
     const sys = `${preamble}
 
 ${IRIS_SYSTEM}
