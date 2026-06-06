@@ -27,6 +27,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { BriefingAckModal } from "@/components/brief-room/BriefRoomPinned";
 import { Megaphone, Mail, CheckCircle2, Clock, Inbox } from "lucide-react";
 import { toast } from "sonner";
+import { IrisGreeting } from "@/components/v2/IrisGreeting";
 
 export const Route = createFileRoute("/_authenticated/brief-room")({
   component: BriefRoomPage,
@@ -37,8 +38,9 @@ export function BriefRoomPage() {
   return (
     <div className="max-w-5xl mx-auto px-6 py-8">
       <header className="mb-6">
+        <IrisGreeting screen="brief-room" />
         <div
-          className="text-[10px] font-bold uppercase tracking-[0.28em]"
+          className="mt-4 text-[10px] font-bold uppercase tracking-[0.28em]"
           style={{ color: "var(--athena-gold, #f59e0b)" }}
         >
           The Brief Room
