@@ -1,4 +1,4 @@
-import { createCsrfMiddleware, createStart, createMiddleware } from "@tanstack/react-start";
+import { createStart, createMiddleware } from "@tanstack/react-start";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 
 const SECURITY_HEADERS: Record<string, string> = {
@@ -34,11 +34,7 @@ const securityHeadersMiddleware = createMiddleware().server(async ({ next }) => 
   }
 });
 
-const csrfMiddleware = createCsrfMiddleware({
-  filter: (ctx) => ctx.handlerType === "serverFn",
-});
-
 export const startInstance = createStart(() => ({
-  requestMiddleware: [csrfMiddleware, securityHeadersMiddleware],
+  requestMiddleware: [securityHeadersMiddleware],
   functionMiddleware: [attachSupabaseAuth],
 }));
