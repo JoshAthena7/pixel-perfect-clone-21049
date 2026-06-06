@@ -2,16 +2,24 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { IrisPersonalAlert } from "@/components/v2/IrisPersonalAlert";
 import { Plane, ArrowRight, AlertTriangle, Clock, ArrowLeft } from "lucide-react";
 
-type CockpitSearch = { missionId?: string };
+type CockpitSearch = {
+  missionId?: string;
+  status_filter?: "in_review" | undefined;
+  sme_filter?: "active" | undefined;
+};
 
 export const Route = createFileRoute("/_authenticated/cockpit")({
   validateSearch: (search: Record<string, unknown>): CockpitSearch => ({
     missionId: typeof search.missionId === "string" ? search.missionId : undefined,
+    status_filter: search.status_filter === "in_review" ? "in_review" : undefined,
+    sme_filter: search.sme_filter === "active" ? "active" : undefined,
   }),
   component: CockpitPage,
 });
+
 
 // ── TYPES ────────────────────────────────────────────────
 type AssignedRow = {
