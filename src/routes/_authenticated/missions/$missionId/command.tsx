@@ -516,6 +516,21 @@ function MissionBrief() {
       }}
       className="text-foreground"
     >
+      <Link
+        to="/missions/$missionId"
+        params={{ missionId }}
+        className="fixed right-6 top-20 z-40 inline-flex items-center gap-2 rounded-md border px-5 py-3 text-[12px] font-black uppercase tracking-[0.18em] shadow-2xl transition hover:-translate-y-0.5"
+        style={{
+          background: "var(--athena-gold, #f59e0b)",
+          borderColor: "rgba(255,255,255,0.28)",
+          color: "#060b14",
+          boxShadow: "0 16px 48px rgba(245,158,11,0.32)",
+        }}
+        aria-label="Go to Cockpit"
+      >
+        <Plane className="h-4 w-4" /> Cockpit
+      </Link>
+
       {/* Sticky mini-bar */}
       {scrolled && mission && (
         <div
@@ -531,6 +546,18 @@ function MissionBrief() {
             style={{ background: healthDotHex, boxShadow: `0 0 6px ${healthDotHex}` }}
           />
           <span className="font-medium truncate">{mission.name}</span>
+          <Link
+            to="/missions/$missionId"
+            params={{ missionId }}
+            className="ml-2 inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em]"
+            style={{
+              background: "var(--athena-gold, #f59e0b)",
+              borderColor: "rgba(255,255,255,0.24)",
+              color: "#060b14",
+            }}
+          >
+            <Plane className="h-3 w-3" /> Cockpit
+          </Link>
           <span className="text-muted-foreground">·</span>
           <span className={needs.length > 0 ? "text-amber-300" : "text-muted-foreground"}>
             {needs.length} need{needs.length === 1 ? "" : "s"}
@@ -563,14 +590,15 @@ function MissionBrief() {
           <Link
             to="/missions/$missionId"
             params={{ missionId }}
-            className="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-[12px] font-bold uppercase tracking-[0.14em] transition hover:-translate-y-0.5"
+            className="inline-flex items-center gap-2 rounded-md border px-5 py-3 text-[12px] font-black uppercase tracking-[0.18em] shadow-2xl transition hover:-translate-y-0.5"
             style={{
-              background: "rgba(245,158,11,0.12)",
-              borderColor: "rgba(245,158,11,0.35)",
-              color: "var(--athena-gold, #f59e0b)",
+              background: "var(--athena-gold, #f59e0b)",
+              borderColor: "rgba(255,255,255,0.28)",
+              color: "#060b14",
+              boxShadow: "0 16px 48px rgba(245,158,11,0.28)",
             }}
           >
-            <Plane className="h-4 w-4" /> Open Cockpit
+            <Plane className="h-4 w-4" /> Cockpit
           </Link>
         </div>
 
