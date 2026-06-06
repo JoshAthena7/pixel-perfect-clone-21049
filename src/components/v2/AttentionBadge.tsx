@@ -13,8 +13,8 @@ type Props = {
 };
 
 const FORMULA: { key: keyof Breakdown; label: string; weight: number }[] = [
-  { key: "escalations", label: "Open escalations", weight: 25 },
-  { key: "criticalSignals", label: "Critical signals", weight: 10 },
+  // F-7: `escalations` table dropped — real escalations now arrive as critical signals (SOS).
+  { key: "criticalSignals", label: "Critical signals (SOS)", weight: 25 },
   { key: "lowScores", label: "Questions below 3.0", weight: 5 },
   { key: "conflicts", label: "Unresolved conflicts", weight: 8 },
   { key: "atRiskAssumptions", label: "Assumptions at risk", weight: 6 },
@@ -22,7 +22,7 @@ const FORMULA: { key: keyof Breakdown; label: string; weight: number }[] = [
 ];
 
 type Breakdown = {
-  escalations: number;
+  escalations: number; // deprecated, always 0 — kept for API back-compat
   criticalSignals: number;
   lowScores: number;
   conflicts: number;
