@@ -54,7 +54,7 @@ function IrisPage() {
   type StageState = {
     id: string;
     label: string;
-    status: "pending" | "running" | "done" | "error" | "skipped";
+    status: "pending" | "running" | "done" | "error" | "skipped" | "cancelled";
     inserted?: number;
     reason?: string;
     error?: string;
@@ -74,6 +74,8 @@ function IrisPage() {
   );
   const [running, setRunning] = useState(false);
   const runningRef = useRef(false);
+  const cancelRef = useRef(false);
+
 
   const handleGenerate = useCallback(async (id: string) => {
     if (runningRef.current) return;
