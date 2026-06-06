@@ -11,31 +11,7 @@ import { extractWinThemes } from "@/lib/iris-extractors/win-themes.functions";
 import { extractStrategy } from "@/lib/iris-extractors/strategy.functions";
 import { extractClientIntel } from "@/lib/iris-extractors/client-intel.functions";
 
-type IrisMission = {
-  id: string;
-  name: string | null;
-  client?: string | null;
-  state?: string | null;
-  state_agency?: string | null;
-  procurement_name?: string | null;
-  program_type?: string | null;
-  description?: string | null;
-  submission_date?: string | null;
-  health?: string | null;
-  status?: string | null;
-  win_themes?: unknown;
-  key_requirements?: unknown;
-};
-
-type IrisData = {
-  mission: IrisMission | null;
-  missions: IrisMission[];
-  signals: any[];
-  risks: any[];
-  winThemes: any[];
-  strategy: any[];
-  clientIntel: any | null;
-};
+import type { IrisData, IrisMission } from "@/lib/iris-types";
 
 async function fetchIrisData(missionId?: string): Promise<IrisData> {
   const { data: sess } = await supabase.auth.getSession();
