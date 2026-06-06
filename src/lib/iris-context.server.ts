@@ -699,6 +699,125 @@ export async function buildMissionContext(
       submittedAt: p.submitted_at,
     })),
 
+    broadcasts: (broadcastsRaw as any[]).map((b) => ({
+      id: b.id,
+      fromName: b.from_name,
+      text: String(b.text ?? "").slice(0, 400),
+      createdAt: b.created_at,
+    })),
+    mockScores: (mockScoresRaw as any[]).map((s) => ({
+      id: s.id,
+      stage: s.stage,
+      score: Number(s.score),
+      sectionName: s.section_name ?? null,
+      questionId: s.question_id ?? null,
+      evaluatorNote: s.evaluator_note ? String(s.evaluator_note).slice(0, 240) : null,
+      scoredAt: s.scored_at,
+    })),
+    pendingExecDecisions: (execDecisionsRaw as any[]).map((d) => ({
+      id: d.id,
+      description: String(d.description ?? "").slice(0, 280),
+      urgency: d.urgency,
+      status: d.status,
+      createdAt: d.created_at,
+    })),
+    irisMemories: (irisMemoriesRaw as any[]).map((m) => ({
+      id: m.id,
+      title: m.title,
+      summary: m.summary ? String(m.summary).slice(0, 240) : null,
+      category: m.category,
+      importance: m.importance,
+      scope: m.scope,
+    })),
+    activeAssumptions: (assumptionsRaw as any[]).map((a) => ({
+      id: a.id,
+      assumption: String(a.assumption ?? "").slice(0, 280),
+      confidence: typeof a.confidence_score === "number" ? a.confidence_score : null,
+      status: a.status,
+      riskIfWrong: a.risk_if_wrong ? String(a.risk_if_wrong).slice(0, 200) : null,
+    })),
+    recentDecisions: (decisionsRaw as any[]).map((d) => ({
+      id: d.id,
+      title: String(d.title ?? "").slice(0, 200),
+      status: d.status ?? null,
+      owner: d.owner ?? null,
+      rationale: d.rationale ? String(d.rationale).slice(0, 240) : null,
+      decidedAt: d.decided_at ?? null,
+    })),
+    rfpAmendments: (amendmentsRaw as any[]).map((a) => {
+      const changes = (amendmentChangesRaw as any[])
+        .filter((c) => c.amendment_id === a.id)
+        .slice(0, 8)
+        .map((c) => ({
+          id: c.id,
+          severity: c.severity,
+          description: String(c.description ?? "").slice(0, 240),
+          writerAction: c.writer_action_required
+            ? String(c.writer_action_required).slice(0, 200)
+            : null,
+          affectedSections: (c.affected_sections ?? []) as string[],
+        }));
+      return {
+        id: a.id,
+        summary: a.summary ? String(a.summary).slice(0, 280) : null,
+        totalChanges: a.total_changes ?? 0,
+        criticalChanges: a.critical_changes ?? 0,
+        analyzedAt: a.analyzed_at ?? null,
+        changes,
+      };
+    }),
+    marketIntelligence: (marketIntelRaw as any[]).map((m) => ({
+      id: m.id,
+      type: m.type,
+      title: String(m.title ?? "").slice(0, 200),
+      summary: m.summary ? String(m.summary).slice(0, 240) : null,
+      url: m.url ?? null,
+      publishedAt: m.published_at ?? null,
+    })),
+    missionStrategyItems: (strategyRaw as any[]).map((s) => ({
+      id: s.id,
+      kind: s.kind,
+      label: String(s.label ?? "").slice(0, 200),
+      notes: s.notes ? String(s.notes).slice(0, 240) : null,
+    })),
+    openHealthFlags: (healthFlagsRaw as any[]).map((f) => ({
+      id: f.id,
+      kind: f.kind,
+      severity: f.severity ?? null,
+      rationale: f.rationale ? String(f.rationale).slice(0, 240) : null,
+      questionId: f.question_id ?? null,
+    })),
+    missionSections: (sectionsRaw as any[]).map((s) => ({
+      id: s.id,
+      number: s.number,
+      title: s.title,
+      status: s.studio_status ?? null,
+      progressPct: typeof s.studio_progress_pct === "number" ? s.studio_progress_pct : null,
+      irisAlignmentPct:
+        typeof s.iris_alignment_pct === "number" ? s.iris_alignment_pct : null,
+      irisFlagged: !!s.iris_flagged,
+      assignedUserId: s.assigned_user_id ?? null,
+      dueDate: s.internal_due_date ?? null,
+    })),
+    recentResearch: (researchRaw as any[]).map((r) => ({
+      id: r.id,
+      answer: String(r.answer ?? "").slice(0, 400),
+      confidence: r.confidence,
+      generatedAt: r.generated_at,
+    })),
+    missionTimeline: timelineRaw
+      ? {
+          questionDeadline: (timelineRaw as any).question_deadline ?? null,
+          pinkTeam: (timelineRaw as any).pink_team ?? null,
+          redTeam: (timelineRaw as any).red_team ?? null,
+          goldTeam: (timelineRaw as any).gold_team ?? null,
+          execReview: (timelineRaw as any).exec_review ?? null,
+          submission: (timelineRaw as any).submission ?? null,
+          orals: (timelineRaw as any).orals ?? null,
+          award: (timelineRaw as any).award ?? null,
+        }
+      : null,
+
     question,
   };
 }
