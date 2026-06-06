@@ -8,7 +8,7 @@ export const Route = createFileRoute("/_authenticated/v1/")({
     if (isPmRole(data.myRole)) {
       throw redirect({ to: "/v1/command" });
     }
-    // Writers/SMEs land on the mission Cockpit (which pins their sections).
+    // Writers/SMEs land on the mission Flight Deck (which pins their sections).
     throw redirect({
       to: "/missions/$missionId",
       params: { missionId: NJ_CSOC_MISSION_ID },

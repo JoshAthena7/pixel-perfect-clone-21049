@@ -14,7 +14,7 @@ import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
 import { CompliancePanel as ComplianceRequirementsPanel } from "@/components/v2/CompliancePanel";
 import { getLastQuestionVisit, markQuestionVisited } from "@/lib/writer-utils";
 import { CoPilotInbox } from "@/components/v2/CoPilotInbox";
-import { ConfidenceButton, ConfidenceDot } from "@/components/v2/CockpitConfidence";
+import { ConfidenceButton, ConfidenceDot } from "@/components/v2/FlightDeckConfidence";
 import { toast } from "sonner";
 import { Eye } from "lucide-react";
 import { ThreadPanel } from "@/components/threads/ThreadPanel";
@@ -30,7 +30,7 @@ import { AssistsBar } from "@/components/v4/AssistsBar";
 export const Route = createFileRoute(
   "/_authenticated/missions/$missionId/sections/$questionId",
 )({
-  component: CockpitPage,
+  component: Flight DeckPage,
 });
 
 /* ──────────────────────────── types ──────────────────────────── */
@@ -87,7 +87,7 @@ function firstName(p?: Profile | null): string {
 
 /* ──────────────────────────── page ──────────────────────────── */
 
-function CockpitPage() {
+function Flight DeckPage() {
   const { missionId, questionId } = Route.useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -104,7 +104,7 @@ function CockpitPage() {
     },
   });
   const { data: role } = useQuery({
-    queryKey: ["cockpit-role", missionId, me?.id],
+    queryKey: ["flight deck-role", missionId, me?.id],
     enabled: !!me?.id,
     queryFn: async () => {
       const { data } = await supabase
@@ -172,7 +172,7 @@ function CockpitPage() {
 
   /* writer's other assigned questions in this mission */
   const { data: myQuestions = [] } = useQuery({
-    queryKey: ["cockpit-my-questions", missionId, me?.id, isSME],
+    queryKey: ["flight deck-my-questions", missionId, me?.id, isSME],
     enabled: !!me?.id,
     queryFn: async () => {
       const col = isSME ? "assigned_sme_id" : "assigned_writer_id";
@@ -409,7 +409,7 @@ function CockpitPage() {
   });
 
   // Brief read this session (sessionStorage flag keyed by question)
-  const briefSeenKey = `cockpit:brief-seen:${questionId}`;
+  const briefSeenKey = `flight deck:brief-seen:${questionId}`;
   const [briefSeenThisSession, setBriefSeenThisSession] = useState<boolean>(() => {
     if (typeof window === "undefined") return true;
     return !!sessionStorage.getItem(briefSeenKey);
@@ -469,13 +469,13 @@ function CockpitPage() {
   const [tipStage, setTipStage] = useState<0 | 1 | 2>(0); // 0 = brief, 1 = action bar, 2 = done
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const seen = localStorage.getItem("cockpit:has_used");
+    const seen = localStorage.getItem("flight deck:has_used");
     if (seen) { setTipStage(2); return; }
     setTipStage(0);
     const t1 = setTimeout(() => setTipStage(1), 4000);
     const t2 = setTimeout(() => {
       setTipStage(2);
-      localStorage.setItem("cockpit:has_used", "1");
+      localStorage.setItem("flight deck:has_used", "1");
     }, 7000);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
@@ -483,10 +483,10 @@ function CockpitPage() {
   /* Sublabels for overflow menu — disappear after first use */
   const [showSublabels, setShowSublabels] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
-    return !localStorage.getItem("cockpit:overflow_used");
+    return !localStorage.getItem("flight deck:overflow_used");
   });
   const markOverflowUsed = () => {
-    localStorage.setItem("cockpit:overflow_used", "1");
+    localStorage.setItem("flight deck:overflow_used", "1");
     setShowSublabels(false);
   };
 
@@ -523,7 +523,7 @@ function CockpitPage() {
         >
           <div className="flex items-center gap-2">
             <Eye className="h-3.5 w-3.5" />
-            <span className="font-semibold">VIEWING {firstName(writer).toUpperCase()}'S COCKPIT</span>
+            <span className="font-semibold">VIEWING {firstName(writer).toUpperCase()}'S FLIGHT DECK</span>
             <span className="opacity-80">· Read-only · {firstName(writer)} cannot see you here</span>
           </div>
           <Link
@@ -1006,7 +1006,7 @@ function FeedRow({
   );
 }
 
-/** Hard cap an insight to N sentences for the writer-facing Cockpit. */
+/** Hard cap an insight to N sentences for the writer-facing Flight Deck. */
 function clampSentences(text: string, max: number): { clipped: string; truncated: boolean } {
   if (!text) return { clipped: "", truncated: false };
   const parts = text.match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+$/g) ?? [text];
@@ -1019,7 +1019,7 @@ function IntelPanel({
 }: { label: string; content: string | null | undefined; sourceCount: number; missionId: string; questionId: string }) {
   const [expanded, setExpanded] = useState(false);
   const raw = (content ?? "").trim();
-  // Cockpit discipline: hard cap at 4 sentences per insight at render time.
+  // Flight Deck discipline: hard cap at 4 sentences per insight at render time.
   const { clipped, truncated } = clampSentences(raw, 4);
   const display = expanded ? raw : clipped;
   const confidence: "High" | "Lower" = sourceCount >= 2 ? "High" : "Lower";
@@ -1063,7 +1063,7 @@ function IntelPanel({
 function CompliancePanel({
   flags, missionId, questionId,
 }: { flags: string[] | null; missionId: string; questionId: string }) {
-  // Cockpit discipline: writers see ONE compliance note max — the most critical.
+  // Flight Deck discipline: writers see ONE compliance note max — the most critical.
   // Additional notes live in the Source Library / Compliance Check section below.
   const all = flags ?? [];
   const has = all.length > 0;
@@ -1142,7 +1142,7 @@ function GetHelpDropdown({
       });
       if (error) throw error;
       await createSignal({
-        mission_id: missionId, source_module: "cockpit",
+        mission_id: missionId, source_module: "flight deck",
         signal_type: activeType === "decision" ? "decision_needed" : "comment_added",
         signal_title: `${TYPES[activeType].label} · Q${questionNumber}`,
         signal_summary: body.trim() || TYPES[activeType].desc,
@@ -1255,8 +1255,8 @@ function FirstVisitTooltip({ children }: { children: React.ReactNode }) {
   );
 }
 
-/* ──────────── Cockpit overflow menu (Score Me · Phone a Friend · Get Help) ──────────── */
-function CockpitOverflow({
+/* ──────────── Flight Deck overflow menu (Score Me · Phone a Friend · Get Help) ──────────── */
+function Flight DeckOverflow({
   open, setOpen, showSublabels, primaryAction,
   onScoreMe, onPhoneAFriend, onGetHelp,
 }: {
@@ -1496,7 +1496,7 @@ function MyAssignments({
     const { error } = await supabase.from("question_records").update({ status: dbVal }).eq("id", id);
     if (error) { toast.error("Could not update status"); return; }
     toast.success(`Status: ${next}`);
-    qc.invalidateQueries({ queryKey: ["cockpit-my-questions"] });
+    qc.invalidateQueries({ queryKey: ["flight deck-my-questions"] });
     qc.invalidateQueries({ queryKey: ["question", id] });
     if (filter === "all") setAllQs(null);
     // GAP 2 — emit in-app notification on review-bound transitions.

@@ -6,7 +6,7 @@ import { getDefaultLandingMission } from "@/lib/access.functions";
 
 /**
  * When the gate evaluates to "not allowed", redirect the user to their default
- * landing mission Cockpit. If they have no mission at all, send them to /home.
+ * landing mission Flight Deck. If they have no mission at all, send them to /home.
  *
  * `gate` is a 3-state value: undefined while loading, true if allowed, false if blocked.
  */

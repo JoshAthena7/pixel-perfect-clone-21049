@@ -30,7 +30,7 @@ type Props = {
   open: boolean;
   onClose: () => void;
   missionId: string;
-  /** When provided, pre-selected and locked (Cockpit entry). */
+  /** When provided, pre-selected and locked (Flight Deck entry). */
   lockedQuestionId?: string;
 };
 

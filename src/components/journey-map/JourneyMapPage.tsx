@@ -134,7 +134,7 @@ const STAGES: Stage[] = [
       "How to express win themes within compliance requirements?",
       "When to escalate a section that needs strategic guidance before writing continues?",
     ],
-    atlas: "Studio functions as the cockpit — RFP requirement, source documents, and IRIS guidance visible without leaving the screen. SME communication happens in-thread. Escalations surface immediately to the PM dashboard.",
+    atlas: "Studio functions as the flight deck — RFP requirement, source documents, and IRIS guidance visible without leaving the screen. SME communication happens in-thread. Escalations surface immediately to the PM dashboard.",
     iris: "Runs continuous alignment monitoring across all active responses. Compares drafts against win themes — flags drift in real time. Detects contradictory claims across sections. Flags unanswered questions past input deadline. Surfaces risk signals — phrases or commitments that could create problems at evaluation.",
     success: [
       "80% of sections at \"In Progress\" or better by Day 3 of writing",

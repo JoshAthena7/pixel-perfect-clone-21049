@@ -16,7 +16,7 @@ import { useIsAdmin } from "@/hooks/useAccess";
 import { useRedirectIfBlocked } from "@/hooks/useRedirectIfBlocked";
 
 // Platform Administration layout — formerly /olympus/*.
-// Admin only. Non-admins are redirected to their mission Cockpit so the
+// Admin only. Non-admins are redirected to their mission Flight Deck so the
 // admin control room is never visible to writers/SMEs/reviewers.
 
 export const Route = createFileRoute("/_authenticated/admin")({

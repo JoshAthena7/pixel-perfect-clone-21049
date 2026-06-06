@@ -567,7 +567,7 @@ html[data-write-mode="on"] .studio-body > .studio-left { border-right: none !imp
 }
 .pens-urgent { animation: pens-pulse 2.2s ease-out infinite; }
 
-/* MOBILE COCKPIT — slightly larger base font + tap-friendly hits at < 768px */
+/* MOBILE FLIGHT DECK — slightly larger base font + tap-friendly hits at < 768px */
 @media (max-width: 767px) {
   html { font-size: 15px; }
   button, [role="button"], a { min-height: 32px; }

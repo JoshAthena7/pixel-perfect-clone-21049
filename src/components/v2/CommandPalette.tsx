@@ -129,7 +129,7 @@ export function CommandPalette() {
           onGo: () => navigate({ to: "/missions/$missionId/command", params: { missionId } }) },
         { id: "j-mission", group: "This mission", label: "Mission Room", hint: "Full mission reference", icon: <Sparkles size={14} className="text-[color:var(--yellow,#f59e0b)]" />,
           onGo: () => navigate({ to: "/missions/$missionId/brief", params: { missionId } }) },
-        { id: "j-studio", group: "This mission", label: "Cockpit", hint: "Your work", icon: <PenTool size={14} className="text-[#3b7fff]" />,
+        { id: "j-studio", group: "This mission", label: "Flight Deck", hint: "Your work", icon: <PenTool size={14} className="text-[#3b7fff]" />,
           onGo: () => navigate({ to: "/missions/$missionId/sections", params: { missionId } }) },
         { id: "j-vault", group: "This mission", label: "Vault", hint: "Source documents", icon: <BookOpen size={14} className="text-[color:var(--athena-gold,#d4af37)]" />,
           onGo: () => navigate({ to: "/missions/$missionId/intel", params: { missionId } }) },

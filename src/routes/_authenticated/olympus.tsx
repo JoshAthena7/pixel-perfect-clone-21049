@@ -8,7 +8,7 @@ import { StrategicOlympus } from "@/components/v2/StrategicOlympus";
 
 // Phase 5 — Olympus is the executive intelligence view.
 // Admin + executive_sponsor only. Writers/SMEs/reviewers get redirected to
-// their mission Cockpit; they never see the admin control room.
+// their mission Flight Deck; they never see the admin control room.
 export const Route = createFileRoute("/_authenticated/olympus")({
   component: OlympusStrategic,
 });

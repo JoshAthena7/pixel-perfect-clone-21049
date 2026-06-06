@@ -82,7 +82,7 @@ export function CoPilotInbox({
           <div style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>
             Nothing from your Co-Pilot yet.
           </div>
-          Your Co-Pilot can send you guidance, decisions, and coaching directly to your Cockpit. You'll see it here.
+          Your Co-Pilot can send you guidance, decisions, and coaching directly to your Flight Deck. You'll see it here.
         </div>
       ) : (
         <ul className="space-y-2">

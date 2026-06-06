@@ -645,7 +645,7 @@ function AthenaHQ() {
             {/* Day-one trust intro — dismissible, sets IRIS-as-colleague framing */}
             <IrisTrustIntro />
 
-            {/* Cockpit V4 — personal IRIS briefing leads the writer view */}
+            {/* Flight Deck V4 — personal IRIS briefing leads the writer view */}
             <IrisMorningBrief />
 
             {/* Health Monitoring Phase 1: Daily Pulse */}
@@ -770,12 +770,12 @@ function HOME_TOUR_STEPS(firstMissionId: string | undefined): TourStep[] {
       ),
     },
     {
-      selector: '[data-tour="cockpit"]',
+      selector: '[data-tour="flight deck"]',
       placement: "left",
-      title: "Cockpit — your daily work",
+      title: "Flight Deck — your daily work",
       body: (
         <>
-          Cockpit is your cross-mission to-do surface — what's due, what's blocked,
+          Flight Deck is your cross-mission to-do surface — what's due, what's blocked,
           what needs a decision today.
         </>
       ),
@@ -953,7 +953,7 @@ function MissionCardActions({ missionId }: { missionId: string }) {
         className={btn}
         onClick={(e) => go(e, () => nav({ to: "/missions/$missionId", params: { missionId } }))}
       >
-        Cockpit
+        Flight Deck
       </button>
       <button
         type="button"

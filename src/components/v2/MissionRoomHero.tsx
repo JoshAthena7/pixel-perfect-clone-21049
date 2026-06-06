@@ -206,7 +206,7 @@ export function MissionRoomHero({ missionId }: { missionId: string }) {
 }
 
 /**
- * Enter Cockpit CTA — sticky-feeling banner at the bottom of Mission Room.
+ * Enter Flight Deck CTA — sticky-feeling banner at the bottom of Mission Room.
  */
 export function EnterStudioCTA({
   missionId,
@@ -231,7 +231,7 @@ export function EnterStudioCTA({
         </span>
         <div>
           <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#3b7fff]">Ready to fly?</div>
-          <div className="mt-1 text-xl font-semibold tracking-tight text-foreground display-tight">Enter Cockpit</div>
+          <div className="mt-1 text-xl font-semibold tracking-tight text-foreground display-tight">Enter Flight Deck</div>
           <div className="mt-1 text-xs text-muted-foreground">
             {assignedCount > 0
               ? <>{assignedCount} section{assignedCount === 1 ? "" : "s"} assigned to you{attentionCount > 0 ? ` · ${attentionCount} need attention today` : ""}</>

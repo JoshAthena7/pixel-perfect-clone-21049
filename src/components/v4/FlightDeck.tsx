@@ -279,7 +279,7 @@ function FocusStack({
             No sections assigned to you yet
           </div>
           <p className="mt-2 text-sm text-foreground/70 max-w-md mx-auto">
-            When a mission lead assigns you a section, it will appear here at the top of your Cockpit — and in the <span className="text-foreground font-medium">All Sections</span> list below with a “Mine” badge.
+            When a mission lead assigns you a section, it will appear here at the top of your Flight Deck — and in the <span className="text-foreground font-medium">All Sections</span> list below with a “Mine” badge.
           </p>
           <p className="mt-2 text-[11px] text-muted-foreground">
             Browse open sections below to volunteer for one.
@@ -504,7 +504,7 @@ function AllQuestionsDrawer({
 function CoPilotBanner({ missionId, me }: { missionId: string; me: string }) {
   const qc = useQueryClient();
   const { data: messages = [] } = useQuery({
-    queryKey: ["cockpit-v4-copilot", missionId, me],
+    queryKey: ["flight deck-v4-copilot", missionId, me],
     queryFn: async () => {
       const { data: bs } = await supabase
         .from("broadcasts")
@@ -524,7 +524,7 @@ function CoPilotBanner({ missionId, me }: { missionId: string; me: string }) {
     mutationFn: async (id: string) => {
       await supabase.from("note_reads").insert({ note_id: id, user_id: me, mission_id: missionId });
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["cockpit-v4-copilot", missionId, me] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["flight deck-v4-copilot", missionId, me] }),
   });
 
   if (messages.length === 0) return null;
@@ -551,7 +551,7 @@ function CoPilotBanner({ missionId, me }: { missionId: string; me: string }) {
 
 // ---------- Main ----------
 
-export function CockpitV4({ missionId, me, myQuestions, allQuestions, updateStatus }: Props) {
+export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateStatus }: Props) {
   const [sosOpen, setSosOpen] = useState(false);
   const [scoreOpen, setScoreOpen] = useState(false);
   const [phoneOpen, setPhoneOpen] = useState(false);
@@ -559,7 +559,7 @@ export function CockpitV4({ missionId, me, myQuestions, allQuestions, updateStat
   const [threadOpen, setThreadOpen] = useState(false);
 
   const { data: mission } = useQuery({
-    queryKey: ["cockpit-v4-mission", missionId],
+    queryKey: ["flight deck-v4-mission", missionId],
     queryFn: async () => {
       const { data } = await supabase
         .from("missions")
@@ -571,7 +571,7 @@ export function CockpitV4({ missionId, me, myQuestions, allQuestions, updateStat
   });
 
   const { data: nextGate } = useQuery({
-    queryKey: ["cockpit-v4-gate", missionId],
+    queryKey: ["flight deck-v4-gate", missionId],
     queryFn: async () => {
       const { data } = await supabase
         .from("mission_review_gates")
@@ -583,7 +583,7 @@ export function CockpitV4({ missionId, me, myQuestions, allQuestions, updateStat
   });
 
   const { data: briefRow } = useQuery({
-    queryKey: ["cockpit-v4-brief", missionId],
+    queryKey: ["flight deck-v4-brief", missionId],
     queryFn: async () => {
       const { data } = await supabase
         .from("iris_brief_cache")
@@ -651,7 +651,7 @@ export function CockpitV4({ missionId, me, myQuestions, allQuestions, updateStat
   return (
     <div className="mx-auto max-w-[1200px] px-6 pb-24 pt-6">
       <header className="mb-6">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-sky-400">Cockpit</div>
+        <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-sky-400">Flight Deck</div>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">Your seat for {missionTitle}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           The full picture, the next move, and every assist — in one read.

@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IrisRouteImport } from './routes/iris'
-import { Route as FlightDeckRouteImport } from './routes/flight-deck'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DebugGoldEntryFallbackRouteImport } from './routes/debug.gold-entry-fallback'
@@ -28,6 +27,7 @@ import { Route as AuthenticatedIrisConsoleRouteImport } from './routes/_authenti
 import { Route as AuthenticatedIntelligenceQueueRouteImport } from './routes/_authenticated/intelligence-queue'
 import { Route as AuthenticatedIntelligenceRouteImport } from './routes/_authenticated/intelligence'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
+import { Route as AuthenticatedFlightDeckRouteImport } from './routes/_authenticated/flight-deck'
 import { Route as AuthenticatedCockpitRouteImport } from './routes/_authenticated/cockpit'
 import { Route as AuthenticatedCheckinHomeRouteImport } from './routes/_authenticated/checkin-home'
 import { Route as AuthenticatedBriefRoomRouteImport } from './routes/_authenticated/brief-room'
@@ -96,6 +96,7 @@ import { Route as AuthenticatedMissionsMissionIdJourneyMapRouteImport } from './
 import { Route as AuthenticatedMissionsMissionIdIrisCommandRouteImport } from './routes/_authenticated/missions/$missionId/iris-command'
 import { Route as AuthenticatedMissionsMissionIdIrisRouteImport } from './routes/_authenticated/missions/$missionId/iris'
 import { Route as AuthenticatedMissionsMissionIdIntelRouteImport } from './routes/_authenticated/missions/$missionId/intel'
+import { Route as AuthenticatedMissionsMissionIdFlightDeckRouteImport } from './routes/_authenticated/missions/$missionId/flight-deck'
 import { Route as AuthenticatedMissionsMissionIdCommandRouteImport } from './routes/_authenticated/missions/$missionId/command'
 import { Route as AuthenticatedMissionsMissionIdCockpitRouteImport } from './routes/_authenticated/missions/$missionId/cockpit'
 import { Route as AuthenticatedMissionsMissionIdBriefingRouteImport } from './routes/_authenticated/missions/$missionId/briefing'
@@ -116,11 +117,6 @@ const LoginRoute = LoginRouteImport.update({
 const IrisRoute = IrisRouteImport.update({
   id: '/iris',
   path: '/iris',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FlightDeckRoute = FlightDeckRouteImport.update({
-  id: '/flight-deck',
-  path: '/flight-deck',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -204,6 +200,11 @@ const AuthenticatedIntelligenceRoute =
 const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   id: '/home',
   path: '/home',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedFlightDeckRoute = AuthenticatedFlightDeckRouteImport.update({
+  id: '/flight-deck',
+  path: '/flight-deck',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedCockpitRoute = AuthenticatedCockpitRouteImport.update({
@@ -601,6 +602,12 @@ const AuthenticatedMissionsMissionIdIntelRoute =
     path: '/intel',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
+const AuthenticatedMissionsMissionIdFlightDeckRoute =
+  AuthenticatedMissionsMissionIdFlightDeckRouteImport.update({
+    id: '/flight-deck',
+    path: '/flight-deck',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
+  } as any)
 const AuthenticatedMissionsMissionIdCommandRoute =
   AuthenticatedMissionsMissionIdCommandRouteImport.update({
     id: '/command',
@@ -670,7 +677,6 @@ const AuthenticatedAdminMissionsMissionIdDebriefRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/flight-deck': typeof FlightDeckRoute
   '/iris': typeof IrisRoute
   '/login': typeof LoginRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -678,6 +684,7 @@ export interface FileRoutesByFullPath {
   '/brief-room': typeof AuthenticatedBriefRoomRoute
   '/checkin-home': typeof AuthenticatedCheckinHomeRoute
   '/cockpit': typeof AuthenticatedCockpitRoute
+  '/flight-deck': typeof AuthenticatedFlightDeckRoute
   '/home': typeof AuthenticatedHomeRoute
   '/intelligence': typeof AuthenticatedIntelligenceRoute
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
@@ -739,6 +746,7 @@ export interface FileRoutesByFullPath {
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/missions/$missionId/cockpit': typeof AuthenticatedMissionsMissionIdCockpitRoute
   '/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
+  '/missions/$missionId/flight-deck': typeof AuthenticatedMissionsMissionIdFlightDeckRoute
   '/missions/$missionId/intel': typeof AuthenticatedMissionsMissionIdIntelRoute
   '/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
   '/missions/$missionId/iris-command': typeof AuthenticatedMissionsMissionIdIrisCommandRoute
@@ -769,13 +777,13 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/flight-deck': typeof FlightDeckRoute
   '/iris': typeof IrisRoute
   '/login': typeof LoginRoute
   '/atrium': typeof AuthenticatedAtriumRoute
   '/brief-room': typeof AuthenticatedBriefRoomRoute
   '/checkin-home': typeof AuthenticatedCheckinHomeRoute
   '/cockpit': typeof AuthenticatedCockpitRoute
+  '/flight-deck': typeof AuthenticatedFlightDeckRoute
   '/home': typeof AuthenticatedHomeRoute
   '/intelligence': typeof AuthenticatedIntelligenceRoute
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
@@ -834,6 +842,7 @@ export interface FileRoutesByTo {
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/missions/$missionId/cockpit': typeof AuthenticatedMissionsMissionIdCockpitRoute
   '/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
+  '/missions/$missionId/flight-deck': typeof AuthenticatedMissionsMissionIdFlightDeckRoute
   '/missions/$missionId/intel': typeof AuthenticatedMissionsMissionIdIntelRoute
   '/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
   '/missions/$missionId/iris-command': typeof AuthenticatedMissionsMissionIdIrisCommandRoute
@@ -866,7 +875,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
-  '/flight-deck': typeof FlightDeckRoute
   '/iris': typeof IrisRoute
   '/login': typeof LoginRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -874,6 +882,7 @@ export interface FileRoutesById {
   '/_authenticated/brief-room': typeof AuthenticatedBriefRoomRoute
   '/_authenticated/checkin-home': typeof AuthenticatedCheckinHomeRoute
   '/_authenticated/cockpit': typeof AuthenticatedCockpitRoute
+  '/_authenticated/flight-deck': typeof AuthenticatedFlightDeckRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/intelligence': typeof AuthenticatedIntelligenceRoute
   '/_authenticated/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
@@ -935,6 +944,7 @@ export interface FileRoutesById {
   '/_authenticated/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/_authenticated/missions/$missionId/cockpit': typeof AuthenticatedMissionsMissionIdCockpitRoute
   '/_authenticated/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
+  '/_authenticated/missions/$missionId/flight-deck': typeof AuthenticatedMissionsMissionIdFlightDeckRoute
   '/_authenticated/missions/$missionId/intel': typeof AuthenticatedMissionsMissionIdIntelRoute
   '/_authenticated/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
   '/_authenticated/missions/$missionId/iris-command': typeof AuthenticatedMissionsMissionIdIrisCommandRoute
@@ -967,7 +977,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/flight-deck'
     | '/iris'
     | '/login'
     | '/admin'
@@ -975,6 +984,7 @@ export interface FileRouteTypes {
     | '/brief-room'
     | '/checkin-home'
     | '/cockpit'
+    | '/flight-deck'
     | '/home'
     | '/intelligence'
     | '/intelligence-queue'
@@ -1036,6 +1046,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/briefing'
     | '/missions/$missionId/cockpit'
     | '/missions/$missionId/command'
+    | '/missions/$missionId/flight-deck'
     | '/missions/$missionId/intel'
     | '/missions/$missionId/iris'
     | '/missions/$missionId/iris-command'
@@ -1066,13 +1077,13 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/flight-deck'
     | '/iris'
     | '/login'
     | '/atrium'
     | '/brief-room'
     | '/checkin-home'
     | '/cockpit'
+    | '/flight-deck'
     | '/home'
     | '/intelligence'
     | '/intelligence-queue'
@@ -1131,6 +1142,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/briefing'
     | '/missions/$missionId/cockpit'
     | '/missions/$missionId/command'
+    | '/missions/$missionId/flight-deck'
     | '/missions/$missionId/intel'
     | '/missions/$missionId/iris'
     | '/missions/$missionId/iris-command'
@@ -1162,7 +1174,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
-    | '/flight-deck'
     | '/iris'
     | '/login'
     | '/_authenticated/admin'
@@ -1170,6 +1181,7 @@ export interface FileRouteTypes {
     | '/_authenticated/brief-room'
     | '/_authenticated/checkin-home'
     | '/_authenticated/cockpit'
+    | '/_authenticated/flight-deck'
     | '/_authenticated/home'
     | '/_authenticated/intelligence'
     | '/_authenticated/intelligence-queue'
@@ -1231,6 +1243,7 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/$missionId/briefing'
     | '/_authenticated/missions/$missionId/cockpit'
     | '/_authenticated/missions/$missionId/command'
+    | '/_authenticated/missions/$missionId/flight-deck'
     | '/_authenticated/missions/$missionId/intel'
     | '/_authenticated/missions/$missionId/iris'
     | '/_authenticated/missions/$missionId/iris-command'
@@ -1263,7 +1276,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
-  FlightDeckRoute: typeof FlightDeckRoute
   IrisRoute: typeof IrisRoute
   LoginRoute: typeof LoginRoute
   ApiAtriumRoute: typeof ApiAtriumRoute
@@ -1295,13 +1307,6 @@ declare module '@tanstack/react-router' {
       path: '/iris'
       fullPath: '/iris'
       preLoaderRoute: typeof IrisRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/flight-deck': {
-      id: '/flight-deck'
-      path: '/flight-deck'
-      fullPath: '/flight-deck'
-      preLoaderRoute: typeof FlightDeckRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -1414,6 +1419,13 @@ declare module '@tanstack/react-router' {
       path: '/home'
       fullPath: '/home'
       preLoaderRoute: typeof AuthenticatedHomeRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/flight-deck': {
+      id: '/_authenticated/flight-deck'
+      path: '/flight-deck'
+      fullPath: '/flight-deck'
+      preLoaderRoute: typeof AuthenticatedFlightDeckRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/cockpit': {
@@ -1892,6 +1904,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdIntelRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
+    '/_authenticated/missions/$missionId/flight-deck': {
+      id: '/_authenticated/missions/$missionId/flight-deck'
+      path: '/flight-deck'
+      fullPath: '/missions/$missionId/flight-deck'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdFlightDeckRouteImport
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
     '/_authenticated/missions/$missionId/command': {
       id: '/_authenticated/missions/$missionId/command'
       path: '/command'
@@ -2091,6 +2110,7 @@ interface AuthenticatedMissionsMissionIdRouteChildren {
   AuthenticatedMissionsMissionIdBriefingRoute: typeof AuthenticatedMissionsMissionIdBriefingRoute
   AuthenticatedMissionsMissionIdCockpitRoute: typeof AuthenticatedMissionsMissionIdCockpitRoute
   AuthenticatedMissionsMissionIdCommandRoute: typeof AuthenticatedMissionsMissionIdCommandRoute
+  AuthenticatedMissionsMissionIdFlightDeckRoute: typeof AuthenticatedMissionsMissionIdFlightDeckRoute
   AuthenticatedMissionsMissionIdIntelRoute: typeof AuthenticatedMissionsMissionIdIntelRoute
   AuthenticatedMissionsMissionIdIrisRoute: typeof AuthenticatedMissionsMissionIdIrisRoute
   AuthenticatedMissionsMissionIdIrisCommandRoute: typeof AuthenticatedMissionsMissionIdIrisCommandRoute
@@ -2119,6 +2139,8 @@ const AuthenticatedMissionsMissionIdRouteChildren: AuthenticatedMissionsMissionI
       AuthenticatedMissionsMissionIdCockpitRoute,
     AuthenticatedMissionsMissionIdCommandRoute:
       AuthenticatedMissionsMissionIdCommandRoute,
+    AuthenticatedMissionsMissionIdFlightDeckRoute:
+      AuthenticatedMissionsMissionIdFlightDeckRoute,
     AuthenticatedMissionsMissionIdIntelRoute:
       AuthenticatedMissionsMissionIdIntelRoute,
     AuthenticatedMissionsMissionIdIrisRoute:
@@ -2164,6 +2186,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedBriefRoomRoute: typeof AuthenticatedBriefRoomRoute
   AuthenticatedCheckinHomeRoute: typeof AuthenticatedCheckinHomeRoute
   AuthenticatedCockpitRoute: typeof AuthenticatedCockpitRoute
+  AuthenticatedFlightDeckRoute: typeof AuthenticatedFlightDeckRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedIntelligenceRoute: typeof AuthenticatedIntelligenceRoute
   AuthenticatedIntelligenceQueueRoute: typeof AuthenticatedIntelligenceQueueRoute
@@ -2192,6 +2215,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedBriefRoomRoute: AuthenticatedBriefRoomRoute,
   AuthenticatedCheckinHomeRoute: AuthenticatedCheckinHomeRoute,
   AuthenticatedCockpitRoute: AuthenticatedCockpitRoute,
+  AuthenticatedFlightDeckRoute: AuthenticatedFlightDeckRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedIntelligenceRoute: AuthenticatedIntelligenceRoute,
   AuthenticatedIntelligenceQueueRoute: AuthenticatedIntelligenceQueueRoute,
@@ -2224,7 +2248,6 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
-  FlightDeckRoute: FlightDeckRoute,
   IrisRoute: IrisRoute,
   LoginRoute: LoginRoute,
   ApiAtriumRoute: ApiAtriumRoute,
@@ -2249,3 +2272,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

@@ -28,7 +28,7 @@ export function ConfidenceButton({
     mutationFn: async (confidence: Level) => fn({ data: { questionId, confidence } }),
     onSuccess: (_d, confidence) => {
       qc.invalidateQueries({ queryKey: ["question", questionId] });
-      qc.invalidateQueries({ queryKey: ["cockpit-my-questions"] });
+      qc.invalidateQueries({ queryKey: ["flight deck-my-questions"] });
       qc.invalidateQueries({ queryKey: ["pilot-status"] });
       setOpen(false);
       if (confidence === "stuck") setStuckPrompt(true);
