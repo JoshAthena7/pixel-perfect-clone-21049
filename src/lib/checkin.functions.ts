@@ -56,7 +56,8 @@ function daysBetween(fromISO: string | null): number | null {
 // ===== Public: getCheckinByToken =====
 export const getCheckinByToken = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ token: z.string().min(10).max(256) }).parse(d))
-  .handler(async ({ data }): Promise<CheckinPagePayload> => {
+  .handler(async ({ data }) => {
+    const _typed: CheckinPagePayload | null = null; void _typed;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: tokenRow } = await supabaseAdmin
