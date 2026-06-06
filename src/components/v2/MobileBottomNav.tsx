@@ -17,7 +17,7 @@ export function MobileBottomNav() {
 
   const inMission = !!missionId;
   const inSections = path.startsWith("/missions/") && (path.includes("/sections") || path.includes("/scaffold") || path.includes("/iris"));
-  const inFlightDeck = path.startsWith("/flight-deck");
+  const inFlightDeck = path.startsWith("/flight-deck") || (path.startsWith("/missions/") && path.includes("/flight-deck"));
 
   const items = [
     {
@@ -38,7 +38,7 @@ export function MobileBottomNav() {
       key: "flight deck",
       label: "Flight Deck",
       icon: <Plane size={18} strokeWidth={1.75} />,
-      to: "/flight-deck",
+      to: inMission ? `/missions/${missionId}/flight-deck` : "/flight-deck",
       active: inFlightDeck,
     },
     {

@@ -6,7 +6,6 @@ import { Sparkles, X, Send, ThumbsUp, ThumbsDown, Flag } from "lucide-react";
 import { irisAskGlobal, irisAskMission, irisAskQuestion } from "@/lib/iris-ask.functions";
 import { getIrisIngestionCounts } from "@/lib/iris-ingestion.functions";
 import { IrisCorrectable } from "@/components/v2/IrisCorrectable";
-import irisLogo from "@/assets/iris-logo.png.asset.json";
 import { toast } from "sonner";
 
 type Msg = { role: "user" | "iris"; text: string };
@@ -85,7 +84,9 @@ export function IrisDock() {
             color: "#001218",
           }}
         >
-          <img src={irisLogo.url} alt="" className="h-6 w-6 object-contain -ml-1" style={{ filter: "drop-shadow(0 0 6px rgba(245,158,11,0.5))" }} />
+          <span className="-ml-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-black/20 shadow-[0_0_18px_rgba(245,158,11,0.25)]">
+            <Sparkles className="h-3.5 w-3.5" />
+          </span>
           <span className="text-[11px] font-bold uppercase tracking-[0.12em]">Ask IRIS</span>
           <kbd className="hidden md:inline-flex items-center rounded bg-black/20 px-1.5 py-0.5 text-[9px] font-mono">⌘J</kbd>
         </button>
@@ -107,7 +108,9 @@ export function IrisDock() {
           >
             <div className="flex items-center gap-2">
               <span className="relative inline-flex">
-                <img src={irisLogo.url} alt="" className="h-6 w-6 object-contain" style={{ filter: "drop-shadow(0 0 6px rgba(245,158,11,0.45))" }} />
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[color:var(--iris,#22d3ee)]/12 text-[color:var(--iris,#22d3ee)]">
+                  <Sparkles className="h-3.5 w-3.5" />
+                </span>
                 <span className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 animate-ping rounded-full bg-[color:var(--athena-gold,#f59e0b)]" />
               </span>
               <div>

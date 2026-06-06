@@ -89,12 +89,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         <MobileBottomNavSpacer />
       </main>
 
-      {inMission && missionId && <UpdateRealityMount missionId={missionId} />}
+      {inMission && missionId && !path.includes("/flight-deck") && <UpdateRealityMount missionId={missionId} />}
       {inMission && missionId && <MissionQuickActionsMount missionId={missionId} />}
       <AtlasWelcomeMount />
       <IrisOnboardingMount />
       <ProfileSetupWizardMount />
-      <IrisDock />
+      {!path.includes("/flight-deck") && <IrisDock />}
       <MobileBottomNav />
       <SupportCenterMount />
     </div>
@@ -108,6 +108,7 @@ function TopBar({
   const inMission = !!missionId;
   const path = useRouterState({ select: (s) => s.location.pathname });
   const isProfile = path === "/profile" || path.startsWith("/profile/");
+  const isFlightDeck = path.includes("/flight-deck");
 
   // Per the Permissions spec: Olympus is invisible in nav for non-admins.
   // No greyed-out link, no lock icon — absent entirely.
@@ -138,14 +139,22 @@ function TopBar({
         <BackButton isAtrium={isAtrium} />
 
         <Link to="/atrium" className="flex items-center gap-2.5 shrink-0" title="Atrium">
-          <img
-            src={atlasLogo.url}
-            alt="Atlas"
-            className="h-8 w-8 object-contain"
-            style={{ filter: "drop-shadow(0 0 6px rgba(125,211,252,0.35))" }}
-          />
+          {isFlightDeck ? (
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-white/[0.03] text-[11px] font-black tracking-[0.08em] text-[color:var(--athena-gold,#f59e0b)]">
+              A
+            </span>
+          ) : (
+            <img
+              src={atlasLogo.url}
+              alt="Atlas"
+              className="h-8 w-8 object-contain"
+              style={{ filter: "drop-shadow(0 0 6px rgba(125,211,252,0.35))" }}
+            />
+          )}
           <span className="text-[13px] font-extrabold tracking-[0.22em] text-white">{path === "/home" ? "ATHENA HQ" : "ATLAS"}</span>
-          <img src={athenaSgLogo.url} alt="" className="hidden md:block ml-2 h-5 w-auto object-contain opacity-30 mix-blend-luminosity" style={{ filter: "brightness(0.6) contrast(0.9)" }} />
+          {!isFlightDeck && (
+            <img src={athenaSgLogo.url} alt="" className="hidden md:block ml-2 h-5 w-auto object-contain opacity-30 mix-blend-luminosity" style={{ filter: "brightness(0.6) contrast(0.9)" }} />
+          )}
         </Link>
 
         {inMission && mission && (
@@ -350,10 +359,11 @@ function MissionNav({ missionId }: { missionId: string }) {
       key: "flight deck",
       label: "Flight Deck",
       icon: <Plane size={13} strokeWidth={1.75} />,
-      to: base,
+      to: `${base}/flight-deck`,
       active:
         path === base ||
         path === `${base}/` ||
+        path.startsWith(`${base}/flight-deck`) ||
         path === `${base}/overview` ||
         path.startsWith(`${base}/sections`) ||
         path.startsWith(`${base}/scaffold`),
