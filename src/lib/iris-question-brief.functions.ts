@@ -96,11 +96,16 @@ export const generateMissionQuestionBriefs = createServerFn({ method: "POST" })
     const qs = questions ?? [];
     if (qs.length === 0) return { updated: 0, total: 0, message: "No questions to brief." };
 
-    const system = `MORNING BRIEF DISCIPLINE
+    const missionCtx = await loadMissionContext(supabase, data.missionId);
+    const preamble = formatMissionContextPreamble(missionCtx);
+
+    const system = `${preamble}
+
+MORNING BRIEF DISCIPLINE
 The writer is reading this at 8am before they open their work environment. They have 60 seconds. Three crisp sentences, in order of urgency.
 
 Return JSON only. Three fields (≤140 chars each, one sentence each):
-- current_focus: the most urgent thing they need to know today about this question (what changed overnight, what the score hinges on, or — if nothing changed — where they stand). Use names, numbers, dates. No preamble.
+- current_focus: the most urgent thing they need to know today about this question (what changed overnight, what the score hinges on, or — if nothing changed — where they stand). Frame it through the win themes and evaluation criteria from the Setup Record above. Use names, numbers, dates. No preamble.
 - next_step: ONE concrete verb-led action. "Open with…", "Cite…", "Rewrite the opening to lead with…". Not "consider" or "think about".
 - waiting_on: who or what is blocking progress, named specifically. Or "Nothing outstanding."
 
