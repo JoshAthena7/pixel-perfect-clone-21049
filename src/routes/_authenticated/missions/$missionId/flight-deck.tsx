@@ -139,6 +139,7 @@ function MissionFlightDeckPage() {
       </div>
 
 
+      <IrisAlertBar missionId={missionId} />
       <BriefPrompt missionId={missionId} userId={meId ?? ""} />
 
       <FlightDeck
