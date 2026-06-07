@@ -6,7 +6,8 @@ import { toast } from "sonner";
 import { ArrowLeft, HelpCircle, BookOpen, X } from "lucide-react";
 import { createSignal } from "@/lib/signals";
 import { useEffect, useState } from "react";
-import { hasSeenBrief, markBriefSeen } from "@/lib/brief-seen";
+import { getBriefProgress, markBriefCompleted, type BriefProgress } from "@/lib/brief-seen";
+import { Check } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/flight-deck")({
   component: MissionFlightDeckPage,
@@ -142,19 +143,25 @@ function MissionFlightDeckPage() {
 }
 
 function BriefPrompt({ missionId, userId }: { missionId: string; userId: string }) {
-  const [show, setShow] = useState(false);
+  const [progress, setProgress] = useState<BriefProgress | null>(null);
 
-  // Resolve on the client only — hasSeenBrief reads localStorage.
+  // Resolve on the client only — getBriefProgress reads localStorage.
   useEffect(() => {
     if (!userId) return;
-    setShow(!hasSeenBrief(userId, missionId));
+    setProgress(getBriefProgress(userId, missionId));
+    // Refresh on tab focus so completing the brief in another tab clears the banner.
+    const onFocus = () => setProgress(getBriefProgress(userId, missionId));
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
   }, [userId, missionId]);
 
-  if (!show || !userId) return null;
+  if (!userId || progress === null || progress === "completed") return null;
 
+  const opened = progress === "opened";
   const dismiss = () => {
-    markBriefSeen(userId, missionId);
-    setShow(false);
+    // Dismiss = mark as fully done so the banner never returns for this mission.
+    markBriefCompleted(userId, missionId);
+    setProgress("completed");
   };
 
   return (
@@ -166,17 +173,22 @@ function BriefPrompt({ missionId, userId }: { missionId: string; userId: string 
       >
         <BookOpen className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-300" />
         <div className="flex-1 text-[13px] leading-relaxed">
-          <div className="font-semibold tracking-wide">Start with the Mission Brief</div>
-          <div className="mt-0.5 text-amber-100/75">
-            Read the brief once to orient yourself — every output on this Flight Deck builds on it.
+          <div className="font-semibold tracking-wide">
+            {opened ? "Finish reading the Mission Brief" : "Start with the Mission Brief"}
           </div>
+          <div className="mt-0.5 text-amber-100/75">
+            {opened
+              ? "You've opened the brief — scroll to the end to mark it complete."
+              : "Read the brief once to orient yourself — every output on this Flight Deck builds on it."}
+          </div>
+          <BriefProgressDots opened={opened} />
         </div>
         <Link
           to="/missions/$missionId/brief"
           params={{ missionId }}
           className="inline-flex items-center gap-1.5 rounded-md border border-amber-300/40 bg-amber-300/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-100 hover:bg-amber-300/20"
         >
-          Open brief
+          {opened ? "Resume brief" : "Open brief"}
         </Link>
         <button
           type="button"
@@ -187,6 +199,35 @@ function BriefPrompt({ missionId, userId }: { missionId: string; userId: string 
           <X className="h-3.5 w-3.5" />
         </button>
       </div>
+    </div>
+  );
+}
+
+function BriefProgressDots({ opened }: { opened: boolean }) {
+  const Step = ({ done, label }: { done: boolean; label: string }) => (
+    <span className="inline-flex items-center gap-1.5">
+      <span
+        className={
+          "flex h-3.5 w-3.5 items-center justify-center rounded-full border " +
+          (done
+            ? "border-emerald-300/60 bg-emerald-300/20 text-emerald-200"
+            : "border-amber-200/40 text-amber-100/40")
+        }
+        aria-hidden
+      >
+        {done ? <Check className="h-2.5 w-2.5" strokeWidth={3} /> : null}
+      </span>
+      <span className={done ? "text-emerald-200/90" : "text-amber-100/55"}>{label}</span>
+    </span>
+  );
+  return (
+    <div className="mt-2 flex items-center gap-3 text-[11px] uppercase tracking-[0.16em]">
+      <Step done={opened} label="Opened" />
+      <span className="text-amber-100/25">—</span>
+      <Step done={false} label="Completed" />
+      <span className="ml-1 normal-case tracking-normal text-amber-100/55">
+        ({opened ? 1 : 0} of 2)
+      </span>
     </div>
   );
 }

@@ -1,30 +1,61 @@
-// Tracks whether the current user has ever opened the Mission Brief for a
-// given mission. Used by FlightDeckResolver to send first-time users to the
-// brief (orientation) and returning users to Flight Deck (operational home).
+// Tracks per-user, per-mission progress through the Mission Brief.
 //
-// Client-only, localStorage-backed. Acceptable to lose on storage clear —
-// the worst case is one extra brief view.
+// Two milestones:
+//   - opened    → user has visited the brief page at least once
+//   - completed → user has scrolled to / read the whole brief
+//
+// Client-only, localStorage-backed. Acceptable to lose on storage clear.
 
-const PREFIX = "atlas.briefSeen";
+const OPENED_PREFIX = "atlas.briefSeen";
+const COMPLETED_PREFIX = "atlas.briefCompleted";
 
-function key(userId: string, missionId: string) {
-  return `${PREFIX}.${userId}.${missionId}`;
+function openedKey(userId: string, missionId: string) {
+  return `${OPENED_PREFIX}.${userId}.${missionId}`;
+}
+function completedKey(userId: string, missionId: string) {
+  return `${COMPLETED_PREFIX}.${userId}.${missionId}`;
 }
 
-export function hasSeenBrief(userId: string, missionId: string): boolean {
-  if (typeof window === "undefined") return true; // SSR: assume seen, no redirect
+function read(key: string): boolean {
+  if (typeof window === "undefined") return true;
   try {
-    return window.localStorage.getItem(key(userId, missionId)) === "1";
+    return window.localStorage.getItem(key) === "1";
   } catch {
     return true;
   }
 }
 
-export function markBriefSeen(userId: string, missionId: string): void {
+function write(key: string) {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(key(userId, missionId), "1");
+    window.localStorage.setItem(key, "1");
   } catch {
     /* noop */
   }
+}
+
+export function hasSeenBrief(userId: string, missionId: string): boolean {
+  return read(openedKey(userId, missionId));
+}
+
+export function markBriefSeen(userId: string, missionId: string): void {
+  write(openedKey(userId, missionId));
+}
+
+export function hasCompletedBrief(userId: string, missionId: string): boolean {
+  return read(completedKey(userId, missionId));
+}
+
+export function markBriefCompleted(userId: string, missionId: string): void {
+  // Completing implies opened.
+  write(openedKey(userId, missionId));
+  write(completedKey(userId, missionId));
+}
+
+export type BriefProgress = "not-opened" | "opened" | "completed";
+
+export function getBriefProgress(userId: string, missionId: string): BriefProgress {
+  if (hasCompletedBrief(userId, missionId)) return "completed";
+  if (hasSeenBrief(userId, missionId)) return "opened";
+  return "not-opened";
 }
