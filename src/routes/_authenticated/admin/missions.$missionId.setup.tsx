@@ -18,6 +18,7 @@ import { SetupCompletenessMeter } from "@/components/admin/SetupCompletenessMete
 import { LaunchSequence } from "@/components/olympus/LaunchSequence";
 import { PersonPicker } from "@/components/setup/PersonPicker";
 import { UploadMatrixModal } from "@/components/questions/UploadMatrixModal";
+import { MissionStaffingBanner } from "@/components/admin/MissionStaffingBanner";
 import { useIsAdmin } from "@/hooks/useAccess";
 
 export const Route = createFileRoute("/_authenticated/admin/missions/$missionId/setup")({
