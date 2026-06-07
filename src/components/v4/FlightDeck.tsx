@@ -624,12 +624,14 @@ function QuestionRow({
   selected,
   onSelect,
   updateStatus,
+  onPhoneRow,
 }: {
   q: Q;
   missionId: string;
   selected: boolean;
   onSelect: () => void;
   updateStatus: (q: Q, db: string) => Promise<void>;
+  onPhoneRow: () => void;
 }) {
   const days = daysUntil(q.pens_down_date);
   const [pending, setPending] = useState(false);
