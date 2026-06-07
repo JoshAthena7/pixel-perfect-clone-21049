@@ -29,7 +29,15 @@ export function MissionSetupTabs() {
 
   const settingsTab = onSettings ? (search.tab ?? "details") : null;
 
-  const items = [
+  const items: Array<{
+    key: string;
+    label: string;
+    icon: typeof ClipboardList;
+    to: string;
+    search: { tab: string } | undefined;
+    active: boolean;
+    tooltip?: string;
+  }> = [
     {
       key: "details",
       label: "Mission",
@@ -43,7 +51,7 @@ export function MissionSetupTabs() {
       label: "Sections",
       icon: HelpCircle,
       to: "/missions/$missionId/sections",
-      search: undefined as undefined,
+      search: undefined,
       active: onSections,
     },
     {
@@ -56,7 +64,7 @@ export function MissionSetupTabs() {
     },
     {
       key: "team",
-      label: "Team",
+      label: "Team Assignment",
       icon: Users,
       to: "/missions/$missionId/settings",
       search: { tab: "team" },
@@ -77,13 +85,16 @@ export function MissionSetupTabs() {
       to: "/missions/$missionId/settings",
       search: { tab: "sensitivities" },
       active: settingsTab === "sensitivities",
+      // L-7: disambiguate "sensitivities" in a govcon context.
+      tooltip:
+        "Competitive, regulatory, or political sensitivities IRIS should treat carefully when generating intel or drafts.",
     },
     {
       key: "vault",
       label: "Vault",
       icon: BookOpen,
       to: "/missions/$missionId/vault",
-      search: undefined as undefined,
+      search: undefined,
       active: onVault,
     },
   ];
@@ -105,6 +116,7 @@ export function MissionSetupTabs() {
                 to={item.to}
                 params={{ missionId }}
                 search={item.search as any}
+                title={item.tooltip}
                 className={`group relative inline-flex items-center gap-1.5 whitespace-nowrap px-3.5 py-2.5 text-sm transition ${
                   item.active
                     ? "text-foreground"

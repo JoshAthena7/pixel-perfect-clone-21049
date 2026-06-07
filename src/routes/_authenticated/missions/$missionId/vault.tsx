@@ -174,6 +174,17 @@ function VaultPage() {
     <>
       <MissionSetupTabs />
       <div className="mx-auto max-w-[1280px] px-6 py-10 space-y-8">
+      {/* M-10: Read-only constraint at the very top so writers see it before scanning the vault. */}
+      <div className="flex items-start gap-3 rounded-[10px] border border-amber-500/40 bg-amber-500/[0.08] px-4 py-3 text-[13px] leading-relaxed text-amber-100">
+        <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-amber-300" />
+        <div>
+          <div className="font-semibold text-amber-100 mb-0.5">Vault is read-only here.</div>
+          <div className="text-amber-100/80">
+            All intel and vault documents are ingested through Olympus by a platform admin. Do not upload PHI, PII, or client-confidential material to Atlas.
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -218,13 +229,6 @@ function VaultPage() {
           scoped to the current missionId. */}
 
 
-
-
-      {/* Vault is read-only. All intel and documents are ingested through Olympus (admin only). */}
-      <div className="rounded-[10px] border border-white/10 bg-white/[0.03] px-4 py-3 text-[12px] leading-relaxed text-muted-foreground">
-        <div className="font-semibold text-foreground/90 mb-0.5">Vault is read-only here.</div>
-        All intel and vault documents are ingested through Olympus by a platform admin. Do not upload PHI, PII, or client-confidential material to Atlas.
-      </div>
 
 
 

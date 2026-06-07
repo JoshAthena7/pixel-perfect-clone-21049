@@ -92,7 +92,13 @@ function AdminHeader() {
         <span className="ml-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Platform Administration</span>
       </div>
 
-      <MissionSwitcher missions={missions} selected={selected} onPick={pick} />
+      {/* M-5: Make the mission context selector unmistakably an interactive control. */}
+      <div className="flex items-center gap-3">
+        <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-[0.22em] text-amber-300/90">
+          Active Mission Context:
+        </span>
+        <MissionSwitcher missions={missions} selected={selected} onPick={pick} />
+      </div>
 
       <div className="flex items-center gap-2">
         <button
@@ -100,9 +106,9 @@ function AdminHeader() {
             if (selected) navigate({ to: "/missions/$missionId/brief", params: { missionId: selected.id } });
             else navigate({ to: "/home" });
           }}
-          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-surface-hover"
+          className="inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-200 hover:bg-amber-500/20 hover:text-amber-100"
         >
-          <ArrowLeft className="h-3 w-3" /> Back to Mission
+          <ArrowLeft className="h-3 w-3" /> Exit to Mission
         </button>
       </div>
     </header>
@@ -130,13 +136,15 @@ function MissionSwitcher({ missions, selected, onPick }: {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex max-w-[360px] items-center gap-2 whitespace-nowrap rounded-md border border-border bg-background px-3 py-1.5 text-sm hover:bg-surface-hover"
+        className="inline-flex min-w-[280px] max-w-[480px] items-center gap-2 whitespace-nowrap rounded-md border-2 border-amber-500/40 bg-amber-500/[0.04] px-3 py-2 text-sm hover:border-amber-500/70 hover:bg-amber-500/10"
+        aria-haspopup="listbox"
+        aria-expanded={open}
       >
-        <span className="truncate font-medium">{selected?.name ?? "Select mission"}</span>
+        <span className="truncate font-semibold text-foreground">{selected?.name ?? "Select mission"}</span>
         {selected?.client && (
           <span className="hidden truncate text-[11px] text-muted-foreground lg:inline">· {selected.client}</span>
         )}
-        <ChevronDown className="h-3 w-3 shrink-0 opacity-60" />
+        <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-amber-400" />
       </button>
       {open && (
         <div className="modal-surface absolute left-1/2 top-9 z-50 w-72 -translate-x-1/2 p-1 text-sm">
@@ -201,7 +209,7 @@ function AdminSidebar() {
         <SidebarItem to="/admin/score-me" path={path} icon={<Gauge size={15} strokeWidth={1.5} />}>Score-Me Lab</SidebarItem>
 
         <SectionHeader withDivider>Platform</SectionHeader>
-        <SidebarItem to="/command/health" path={path} icon={<Activity size={15} strokeWidth={1.5} />}>Firm Health</SidebarItem>
+        <SidebarItem to="/admin/firm-health" path={path} icon={<Activity size={15} strokeWidth={1.5} />}>Firm Health</SidebarItem>
         <SidebarItem to="/admin/admins" path={path} icon={<UserCog size={15} strokeWidth={1.5} />}>Admins</SidebarItem>
         <SidebarItem to="/admin/invites" path={path} icon={<UserPlus size={15} strokeWidth={1.5} />}>Invites</SidebarItem>
         <SidebarItem to="/admin/users" path={path} icon={<UserCog size={15} strokeWidth={1.5} />}>Users</SidebarItem>

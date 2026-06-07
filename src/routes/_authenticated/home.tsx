@@ -125,7 +125,9 @@ function AthenaHQ() {
       const { data: { user } } = await supabase.auth.getUser();
       const { data } = await supabase.from("profiles").select("display_name,email").eq("id", user!.id).maybeSingle();
       const raw = data?.display_name?.trim() || data?.email?.split("@")[0] || user?.email?.split("@")[0] || "operator";
-      const firstName = raw.split(/\s+/)[0];
+      // L-3: capitalize first letter of greeting name.
+      const head = raw.split(/\s+/)[0];
+      const firstName = head.charAt(0).toUpperCase() + head.slice(1);
       return { name: firstName };
     },
   });

@@ -110,8 +110,10 @@ function MissionBriefingRoomPage() {
     if (h < 18) return "Good afternoon";
     return "Good evening";
   })();
-  const firstName =
+  // L-3: Always capitalize the first letter of the displayed greeting name.
+  const rawFirst =
     (profile?.display_name ?? "").trim().split(/\s+/)[0] || "Team";
+  const firstName = rawFirst.charAt(0).toUpperCase() + rawFirst.slice(1);
 
   if (isLoading) {
     return (
@@ -334,7 +336,7 @@ function MissionObjective({ brief }: { brief: MissionBrief }) {
     m.program_goals?.trim() ||
     m.mission_highlights?.trim() ||
     (m.description ?? "").split(/\n\n/)[0]?.trim() ||
-    "No mission objective set yet. Add one in Mission Settings.";
+    "No mission objective set yet. Add one in the Setup Record.";
   return (
     <div style={{
       background: C.navy, borderRadius: 8, padding: "20px 24px", color: "#fff",
@@ -381,13 +383,13 @@ function StrategicBrief({ brief }: { brief: MissionBrief }) {
       icon: <Target size={22} style={{ color: C.green }} />,
       heading: "WHAT ARE WE TRYING TO WIN?", sub: "Mission Objective",
       body: objective,
-      emptyHint: "Add a win strategy in Mission Settings.",
+      emptyHint: "Add a win strategy in the Setup Record.",
     },
     {
       icon: <Trophy size={22} style={{ color: C.gold }} />,
       heading: "WHY WILL WE WIN?", sub: "Win Themes",
       bullets: winThemes,
-      emptyHint: "No win themes yet. Add in Settings → Themes.",
+      emptyHint: "No win themes yet. Add them in the Setup Record.",
     },
     {
       icon: <ShieldCheck size={22} style={{ color: C.blue }} />,
@@ -462,7 +464,7 @@ function WinThemesAlignment({ missionId, brief }: { missionId: string; brief: Mi
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
         {themes.length === 0 ? (
-          <div style={empty}>No win themes captured yet. Add them in Settings → Themes.</div>
+          <div style={empty}>No win themes captured yet. Add them in the Setup Record.</div>
         ) : (
           themes.slice(0, 6).map((t) => (
             <div key={t.id}>
@@ -1354,11 +1356,11 @@ function YoureBriefedCard({ missionId }: { missionId: string }) {
           <Plane size={20} style={{ color: C.blue }} />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: C.textPrimary }}>You're briefed.<br />Ready to fly?</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: C.textPrimary }}>You're briefed.<br />Pick your next mission.</div>
           <div style={{ fontSize: 11, color: C.textMuted, lineHeight: 1.5, marginTop: 6 }}>
-            Open the Flight Deck to check your status and manage your assignments.
+            Return to All Missions to switch context, or stay here and dive deeper.
           </div>
-          <Link to="/missions/$missionId/flight-deck" params={{ missionId }} style={{
+          <Link to="/missions" style={{
             display: "inline-flex", alignItems: "center", gap: 6, marginTop: 12,
             padding: "8px 14px", borderRadius: 8,
             background: C.blue, color: "#fff",
@@ -1366,7 +1368,7 @@ function YoureBriefedCard({ missionId }: { missionId: string }) {
             textDecoration: "none",
           }}>
             <Plane size={12} />
-            Go to Flight Deck
+            All Missions
           </Link>
         </div>
       </div>

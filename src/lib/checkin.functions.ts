@@ -265,6 +265,15 @@ export const submitCheckin = createServerFn({ method: "POST" })
 // ===== Authed: PM dashboard data =====
 
 async function assertPMOnMission(supabase: any, missionId: string, userId: string) {
+  // H-10: platform admins bypass the per-mission PM gate.
+  const { data: adminRoles } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .limit(1);
+  if ((adminRoles ?? []).length > 0) return;
+
   const { data } = await supabase
     .from("mission_members")
     .select("role")
@@ -281,6 +290,23 @@ export const listMissionsForPM = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context as any;
+
+    // H-10: Platform admins always see all missions in the Status Report,
+    // regardless of their per-mission role.
+    const { data: adminRoles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "admin")
+      .limit(1);
+    if ((adminRoles ?? []).length > 0) {
+      const { data: all } = await supabase
+        .from("missions")
+        .select("id, name, submission_date")
+        .order("submission_date", { ascending: true, nullsFirst: false });
+      return (all ?? []) as Array<{ id: string; name: string; submission_date: string | null }>;
+    }
+
     const { data } = await supabase
       .from("mission_members")
       .select("mission_id, role, mission:missions(id, name, submission_date)")

@@ -74,6 +74,7 @@ import { Route as AuthenticatedAdminInvitesRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminIntelligenceRouteImport } from './routes/_authenticated/admin/intelligence'
 import { Route as AuthenticatedAdminIntelEngineRouteImport } from './routes/_authenticated/admin/intel-engine'
 import { Route as AuthenticatedAdminIntelDriftRouteImport } from './routes/_authenticated/admin/intel-drift'
+import { Route as AuthenticatedAdminFirmHealthRouteImport } from './routes/_authenticated/admin/firm-health'
 import { Route as AuthenticatedAdminExpertiseRouteImport } from './routes/_authenticated/admin/expertise'
 import { Route as AuthenticatedAdminDiscoveryHistoryRouteImport } from './routes/_authenticated/admin/discovery-history'
 import { Route as AuthenticatedAdminConflictsRouteImport } from './routes/_authenticated/admin/conflicts'
@@ -477,6 +478,12 @@ const AuthenticatedAdminIntelDriftRoute =
     path: '/intel-drift',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminFirmHealthRoute =
+  AuthenticatedAdminFirmHealthRouteImport.update({
+    id: '/firm-health',
+    path: '/firm-health',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminExpertiseRoute =
   AuthenticatedAdminExpertiseRouteImport.update({
     id: '/expertise',
@@ -789,6 +796,7 @@ export interface FileRoutesByFullPath {
   '/admin/conflicts': typeof AuthenticatedAdminConflictsRoute
   '/admin/discovery-history': typeof AuthenticatedAdminDiscoveryHistoryRoute
   '/admin/expertise': typeof AuthenticatedAdminExpertiseRoute
+  '/admin/firm-health': typeof AuthenticatedAdminFirmHealthRoute
   '/admin/intel-drift': typeof AuthenticatedAdminIntelDriftRoute
   '/admin/intel-engine': typeof AuthenticatedAdminIntelEngineRoute
   '/admin/intelligence': typeof AuthenticatedAdminIntelligenceRoute
@@ -899,6 +907,7 @@ export interface FileRoutesByTo {
   '/admin/conflicts': typeof AuthenticatedAdminConflictsRoute
   '/admin/discovery-history': typeof AuthenticatedAdminDiscoveryHistoryRoute
   '/admin/expertise': typeof AuthenticatedAdminExpertiseRoute
+  '/admin/firm-health': typeof AuthenticatedAdminFirmHealthRoute
   '/admin/intel-drift': typeof AuthenticatedAdminIntelDriftRoute
   '/admin/intel-engine': typeof AuthenticatedAdminIntelEngineRoute
   '/admin/intelligence': typeof AuthenticatedAdminIntelligenceRoute
@@ -1011,6 +1020,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/conflicts': typeof AuthenticatedAdminConflictsRoute
   '/_authenticated/admin/discovery-history': typeof AuthenticatedAdminDiscoveryHistoryRoute
   '/_authenticated/admin/expertise': typeof AuthenticatedAdminExpertiseRoute
+  '/_authenticated/admin/firm-health': typeof AuthenticatedAdminFirmHealthRoute
   '/_authenticated/admin/intel-drift': typeof AuthenticatedAdminIntelDriftRoute
   '/_authenticated/admin/intel-engine': typeof AuthenticatedAdminIntelEngineRoute
   '/_authenticated/admin/intelligence': typeof AuthenticatedAdminIntelligenceRoute
@@ -1125,6 +1135,7 @@ export interface FileRouteTypes {
     | '/admin/conflicts'
     | '/admin/discovery-history'
     | '/admin/expertise'
+    | '/admin/firm-health'
     | '/admin/intel-drift'
     | '/admin/intel-engine'
     | '/admin/intelligence'
@@ -1235,6 +1246,7 @@ export interface FileRouteTypes {
     | '/admin/conflicts'
     | '/admin/discovery-history'
     | '/admin/expertise'
+    | '/admin/firm-health'
     | '/admin/intel-drift'
     | '/admin/intel-engine'
     | '/admin/intelligence'
@@ -1346,6 +1358,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/conflicts'
     | '/_authenticated/admin/discovery-history'
     | '/_authenticated/admin/expertise'
+    | '/_authenticated/admin/firm-health'
     | '/_authenticated/admin/intel-drift'
     | '/_authenticated/admin/intel-engine'
     | '/_authenticated/admin/intelligence'
@@ -1907,6 +1920,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIntelDriftRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/firm-health': {
+      id: '/_authenticated/admin/firm-health'
+      path: '/firm-health'
+      fullPath: '/admin/firm-health'
+      preLoaderRoute: typeof AuthenticatedAdminFirmHealthRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/expertise': {
       id: '/_authenticated/admin/expertise'
       path: '/expertise'
@@ -2242,6 +2262,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminConflictsRoute: typeof AuthenticatedAdminConflictsRoute
   AuthenticatedAdminDiscoveryHistoryRoute: typeof AuthenticatedAdminDiscoveryHistoryRoute
   AuthenticatedAdminExpertiseRoute: typeof AuthenticatedAdminExpertiseRoute
+  AuthenticatedAdminFirmHealthRoute: typeof AuthenticatedAdminFirmHealthRoute
   AuthenticatedAdminIntelDriftRoute: typeof AuthenticatedAdminIntelDriftRoute
   AuthenticatedAdminIntelEngineRoute: typeof AuthenticatedAdminIntelEngineRoute
   AuthenticatedAdminIntelligenceRoute: typeof AuthenticatedAdminIntelligenceRoute
@@ -2271,6 +2292,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminDiscoveryHistoryRoute:
     AuthenticatedAdminDiscoveryHistoryRoute,
   AuthenticatedAdminExpertiseRoute: AuthenticatedAdminExpertiseRoute,
+  AuthenticatedAdminFirmHealthRoute: AuthenticatedAdminFirmHealthRoute,
   AuthenticatedAdminIntelDriftRoute: AuthenticatedAdminIntelDriftRoute,
   AuthenticatedAdminIntelEngineRoute: AuthenticatedAdminIntelEngineRoute,
   AuthenticatedAdminIntelligenceRoute: AuthenticatedAdminIntelligenceRoute,

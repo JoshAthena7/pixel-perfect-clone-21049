@@ -30,7 +30,7 @@ import { MobileBottomNav, MobileBottomNavSpacer } from "@/components/v2/MobileBo
 import { SupportCenterMount } from "@/components/v2/SupportCenter";
 import { BriefRoomPinned } from "@/components/brief-room/BriefRoomPinned";
 import athenaSgLogo from "@/assets/athena-sg-lockup-v2.png.asset.json";
-import atlasLogo from "@/assets/athena-mark-v2.png.asset.json";
+
 import atlasWordmark from "@/assets/atlas-wordmark.png.asset.json";
 
 // ─── Room detection (three rooms inside a mission) ─────────────────────────
@@ -141,11 +141,11 @@ function TopBar({
         <BackButton isAtrium={isAtrium} />
 
         {inMission && missionId ? (
+          // M-2: Logo always navigates to /missions (home), not the active mission brief.
           <Link
-            to="/missions/$missionId/brief"
-            params={{ missionId }}
+            to="/missions"
             className="flex items-center shrink-0"
-            title="Mission Brief"
+            title="All Missions"
           >
             <img
               src={atlasWordmark.url}
@@ -156,14 +156,14 @@ function TopBar({
 
           </Link>
         ) : (
+          // H-1: Unified branding — ATLAS wordmark everywhere, including Olympus/Admin/Atrium.
           <Link to="/missions" className="flex items-center gap-2.5 shrink-0" title="All Missions">
             <img
-              src={atlasLogo.url}
-              alt="Atlas"
-              className="h-8 w-8 object-contain"
-              style={{ filter: "drop-shadow(0 0 6px rgba(125,211,252,0.35))" }}
+              src={atlasWordmark.url}
+              alt="ATLAS"
+              className="h-8 w-auto object-contain"
+              style={{ filter: "drop-shadow(0 0 8px rgba(125,211,252,0.4))" }}
             />
-            <span className="text-[13px] font-extrabold tracking-[0.22em] text-white">ATHENA HQ</span>
             <img src={athenaSgLogo.url} alt="" className="hidden md:block ml-2 h-5 w-auto object-contain opacity-30 mix-blend-luminosity" style={{ filter: "brightness(0.6) contrast(0.9)" }} />
           </Link>
         )}

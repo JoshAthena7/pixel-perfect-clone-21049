@@ -198,7 +198,7 @@ export function MissionIntelligenceFeed({ missionId }: { missionId: string }) {
           <div className="px-5 py-4">
             {profileEmpty ? (
               <p className="text-sm text-muted-foreground italic">
-                Configure the Intelligence Profile in Mission Settings or upload an RFP so IRIS can build the mission DNA.
+                Configure the Intelligence Profile in the Setup Record or upload an RFP so IRIS can build the mission DNA.
               </p>
             ) : (
               <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm">
@@ -656,7 +656,7 @@ function AddToThemeDialog({ missionId, item, insight, onClose }: { missionId: st
         <DialogHeader><DialogTitle>Add to Win Theme</DialogTitle></DialogHeader>
         <div className="space-y-3">
           {themes.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No win themes yet. Add them in Mission Settings.</p>
+            <p className="text-sm text-muted-foreground">No win themes yet. Add them in the Setup Record.</p>
           ) : (
             <>
               <select
