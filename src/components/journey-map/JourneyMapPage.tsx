@@ -379,14 +379,33 @@ function useMotionPreference() {
 }
 
 export function JourneyMapPage() {
-  const activeIdx = STAGES.findIndex((s) => s.status === "active");
+  // missionId is present when mounted under /missions/$missionId/journey-map.
+  // strict:false lets the same component render at /v1/journey (no mission) too.
+  const params = useParams({ strict: false }) as { missionId?: string };
+  const missionId = params.missionId;
+  const { data: brief } = useMissionBrief(missionId ?? "");
+
+  // Derive per-stage status, task progress, and active stage from live data.
+  const stages = useMemo<Stage[]>(() => deriveStages(STAGES, brief), [brief]);
+
+  const activeIdx = stages.findIndex((s) => s.status === "active");
   const [selected, setSelected] = useState<number>(activeIdx >= 0 ? activeIdx : 0);
+  // Keep the selected stage aligned with progress when brief loads/changes.
+  useEffect(() => {
+    if (activeIdx >= 0) setSelected(activeIdx);
+  }, [activeIdx]);
   const [persona, setPersona] = useState<Persona>("All Roles");
   const [insightsOpen, setInsightsOpen] = useState(true);
   const [openTransition, setOpenTransition] = useState<number | null>(null);
   const { pref: motionPref, setPref: setMotionPref, animate, systemReduced } = useMotionPreference();
 
-  const stage = STAGES[selected];
+  const stage = stages[selected];
+
+  // Header values — live when we have a mission, fallback labels otherwise.
+  const missionName = brief?.mission.name ?? (missionId ? "Loading mission…" : "No mission selected");
+  const submissionLabel = useMemo(() => formatSubmissionCountdown(brief), [brief]);
+  const irisHealth = useMemo(() => deriveIrisHealthScore(brief), [brief]);
+  const irisHealthColor = irisHealth >= 75 ? "#22C55E" : irisHealth >= 50 ? "#3B82F6" : irisHealth >= 30 ? "#F59E0B" : "#EF4444";
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -395,29 +414,29 @@ export function JourneyMapPage() {
         <div className="mx-auto max-w-[1600px] px-6 py-4 flex flex-wrap items-center gap-6">
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Mission</div>
-            <div className="text-base font-semibold">Ohio Medicaid Managed Care — 2026</div>
+            <div className="text-base font-semibold">{missionName}</div>
           </div>
           <div className="h-8 w-px bg-border" />
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Active Stage</div>
             <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: "#3B82F6" }}>
               <span className="h-2 w-2 rounded-full bg-[#3B82F6] animate-pulse" />
-              {STAGES[activeIdx]?.name ?? "—"}
+              {stages[activeIdx >= 0 ? activeIdx : 0]?.name ?? "—"}
             </div>
           </div>
           <div className="h-8 w-px bg-border" />
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Submission</div>
-            <div className="text-sm font-semibold text-foreground">12d 04h remaining</div>
+            <div className="text-sm font-semibold text-foreground">{submissionLabel}</div>
           </div>
           <div className="h-8 w-px bg-border" />
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">IRIS Mission Health</div>
             <div className="flex items-center gap-2">
               <div className="h-1.5 w-32 rounded-full bg-border overflow-hidden">
-                <div className="h-full rounded-full" style={{ width: "78%", background: "linear-gradient(90deg,#3B82F6,#6366F1)" }} />
+                <div className="h-full rounded-full" style={{ width: `${irisHealth}%`, background: `linear-gradient(90deg, ${irisHealthColor}, #6366F1)` }} />
               </div>
-              <span className="text-sm font-semibold">78</span>
+              <span className="text-sm font-semibold">{irisHealth}</span>
             </div>
           </div>
           <div className="ml-auto flex items-center gap-3">
