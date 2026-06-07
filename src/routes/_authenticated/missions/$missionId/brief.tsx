@@ -14,26 +14,27 @@ export const Route = createFileRoute("/_authenticated/missions/$missionId/brief"
   component: MissionBriefingRoomPage,
 });
 
-/* ════════════════ DESIGN TOKENS ════════════════ */
+/* ════════════════ DESIGN TOKENS — DARK (matches Flight Deck) ════════════════ */
 const C = {
-  bg: "#F8F9FA",
-  card: "#FFFFFF",
-  navy: "#1B3A6B",
-  navyDeep: "#0F2347",
-  gold: "#C9922A",
-  goldLight: "#E8B84B",
-  goldTint: "rgba(201,146,42,0.08)",
-  iris: "#6366F1",
-  green: "#16A34A",
-  orange: "#F59E0B",
-  red: "#DC2626",
-  blue: "#2563EB",
-  border: "#E5E7EB",
-  borderLight: "#F3F4F6",
-  textPrimary: "#111827",
-  textBody: "#374151",
-  textMuted: "#6B7280",
-  textFaint: "#94A3B8",
+  bg: "#060b14",
+  bgSoft: "#0a121d",
+  card: "#0f1722",
+  navy: "#13233d",
+  navyDeep: "#0a1322",
+  gold: "#E0B341",
+  goldLight: "#F0C95A",
+  goldTint: "rgba(224,179,65,0.10)",
+  iris: "#818CF8",
+  green: "#34D399",
+  orange: "#FBBF24",
+  red: "#F87171",
+  blue: "#60A5FA",
+  border: "rgba(255,255,255,0.08)",
+  borderLight: "rgba(255,255,255,0.05)",
+  textPrimary: "#E6EDF7",
+  textBody: "#C0CAD8",
+  textMuted: "#8B95A5",
+  textFaint: "#64748B",
   sidebarText: "#CBD5E1",
   sidebarMuted: "#64748B",
 };
@@ -42,7 +43,7 @@ const card: React.CSSProperties = {
   background: C.card,
   border: `1px solid ${C.border}`,
   borderRadius: 8,
-  boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+  boxShadow: "0 1px 3px rgba(0,0,0,0.4)",
 };
 
 const sectionLabel: React.CSSProperties = {
