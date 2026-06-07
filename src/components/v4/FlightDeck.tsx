@@ -953,15 +953,41 @@ function AirTrafficControl({
     question: string;
     from: string;
     priority: string;
+    priorityLevel: "red" | "yellow" | "green";
     priorityTone: string;
     created_at: string;
+    link: string | null;
   }>;
 }) {
+  const dotClass = (lvl: "red" | "yellow" | "green") =>
+    lvl === "red"
+      ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.7)]"
+      : lvl === "yellow"
+        ? "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.55)]"
+        : "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.55)]";
+
+  const reds = rows.filter((r) => r.priorityLevel === "red").length;
+  const yellows = rows.filter((r) => r.priorityLevel === "yellow").length;
+
   return (
     <section className="rounded-[12px] border border-border bg-surface">
       <div className="border-b border-border/60 px-4 py-3">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          Air Traffic Control
+        <div className="flex items-center justify-between">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Air Traffic Control
+          </div>
+          <div className="flex items-center gap-2 text-[10px]">
+            {reds > 0 && (
+              <span className="inline-flex items-center gap-1 text-red-300">
+                <span className={`h-1.5 w-1.5 rounded-full ${dotClass("red")}`} /> {reds}
+              </span>
+            )}
+            {yellows > 0 && (
+              <span className="inline-flex items-center gap-1 text-amber-300">
+                <span className={`h-1.5 w-1.5 rounded-full ${dotClass("yellow")}`} /> {yellows}
+              </span>
+            )}
+          </div>
         </div>
         <div className="mt-0.5 text-[11px] text-muted-foreground">
           {rows.length} open signals
@@ -976,16 +1002,24 @@ function AirTrafficControl({
           <table className="w-full text-[11px]">
             <thead className="sticky top-0 bg-surface text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
               <tr>
+                <th className="px-3 py-2 text-left font-semibold w-4"></th>
                 <th className="px-3 py-2 text-left font-semibold">Type</th>
-                <th className="px-3 py-2 text-left font-semibold">Question</th>
+                <th className="px-3 py-2 text-left font-semibold">Signal</th>
                 <th className="px-3 py-2 text-left font-semibold">From</th>
-                <th className="px-3 py-2 text-left font-semibold">Priority</th>
                 <th className="px-3 py-2 text-left font-semibold">Age</th>
+                <th className="px-3 py-2 text-left font-semibold"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/40">
               {rows.map((r) => (
                 <tr key={r.id} className="align-top">
+                  <td className="px-3 py-2">
+                    <span
+                      className={`inline-block h-2 w-2 rounded-full ${dotClass(r.priorityLevel)}`}
+                      title={r.priority}
+                      aria-label={`${r.priorityLevel} priority`}
+                    />
+                  </td>
                   <td className="px-3 py-2">
                     <span className={`rounded-full border px-1.5 py-px text-[9px] font-semibold ${r.typeTone}`}>
                       {r.type}
@@ -995,8 +1029,19 @@ function AirTrafficControl({
                     <div className="line-clamp-2">{r.question}</div>
                   </td>
                   <td className="px-3 py-2 text-muted-foreground">{r.from}</td>
-                  <td className={`px-3 py-2 font-medium ${r.priorityTone}`}>{r.priority}</td>
                   <td className="px-3 py-2 text-muted-foreground tabular-nums">{ageOf(r.created_at)}</td>
+                  <td className="px-3 py-2">
+                    {r.link ? (
+                      <Link
+                        to={r.link}
+                        className="text-[11px] font-medium text-sky-300 hover:text-sky-200 whitespace-nowrap"
+                      >
+                        Go →
+                      </Link>
+                    ) : (
+                      <span className="text-[11px] text-muted-foreground/60">—</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
