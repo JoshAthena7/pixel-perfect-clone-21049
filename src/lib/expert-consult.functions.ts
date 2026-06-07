@@ -495,11 +495,18 @@ export const respondToConsult = createServerFn({ method: "POST" })
 
     // Attach response to the question thread (lands in reconciliation row)
     if (row?.question_id) {
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("display_name,email")
+        .eq("id", userId)
+        .maybeSingle();
+      const authorName = prof?.display_name || prof?.email || "Expert";
       await supabase.from("question_collaboration").insert({
         question_id: row.question_id,
         mission_id: row.mission_id,
         author_id: userId,
-        entry_type: "expert_response",
+        author_name: authorName,
+        entry_type: "leadership_guidance",
         body: `Expert response — ${row.ask_subject}\n\n${data.body}`,
       });
     }
