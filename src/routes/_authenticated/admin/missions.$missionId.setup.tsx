@@ -1604,13 +1604,21 @@ function SectionFinancials({ missionId, financials, refetch }: any) {
 type EvalRow = {
   id?: string;
   category: string;
+type EvalRow = {
+  id?: string;
+  category: string;
   points: number;
   sections_covered: string[];
   competitive_risk: "low" | "medium" | "high";
+  notes: string;
 };
 function SectionEvaluation({ missionId, criteria, questions, refetch }: any) {
   const saveFn = useServerFn(saveEvaluationCriteria);
   const [rows, setRows] = useState<EvalRow[]>([]);
+  const [methodology, setMethodology] = useState("");
+  const [methodologyLoaded, setMethodologyLoaded] = useState(false);
+  const [savingMethodology, setSavingMethodology] = useState(false);
+
   useEffect(() => {
     setRows((criteria ?? []).map((c: any) => ({
       id: c.id,
@@ -1618,8 +1626,21 @@ function SectionEvaluation({ missionId, criteria, questions, refetch }: any) {
       points: c.points,
       sections_covered: Array.isArray(c.sections_covered) ? c.sections_covered.map(String) : [],
       competitive_risk: (c.competitive_risk ?? "medium") as "low" | "medium" | "high",
+      notes: c.notes ?? "",
     })));
   }, [criteria]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.from("missions").select("scoring_methodology").eq("id", missionId).maybeSingle();
+      if (!cancelled) {
+        setMethodology((data as any)?.scoring_methodology ?? "");
+        setMethodologyLoaded(true);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [missionId]);
 
   const totalPts = rows.reduce((sum, r) => sum + (Number(r.points) || 0), 0);
 
@@ -1627,13 +1648,26 @@ function SectionEvaluation({ missionId, criteria, questions, refetch }: any) {
     setRows((rs) => rs.map((r, idx) => idx === i ? { ...r, ...patch } : r));
   }
   function add() {
-    setRows((rs) => [...rs, { category: "", points: 0, sections_covered: [], competitive_risk: "medium" }]);
+    setRows((rs) => [...rs, { category: "", points: 0, sections_covered: [], competitive_risk: "medium", notes: "" }]);
   }
   function remove(i: number) { setRows((rs) => rs.filter((_, idx) => idx !== i)); }
   async function save() {
-    await saveFn({ data: { missionId, criteria: rows.filter((r) => r.category.trim()) } });
+    await saveFn({ data: { missionId, criteria: rows.filter((r) => r.category.trim()).map((r) => ({
+      ...r,
+      notes: r.notes?.trim() ? r.notes.trim() : null,
+    })) } });
     toast.success("Evaluation map saved");
     refetch();
+  }
+  async function saveMethodology() {
+    setSavingMethodology(true);
+    try {
+      const { error } = await supabase.from("missions").update({ scoring_methodology: methodology || null }).eq("id", missionId);
+      if (error) throw error;
+      toast.success("Scoring methodology saved");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Save failed");
+    } finally { setSavingMethodology(false); }
   }
 
   // Count questions covered by each row for the preview column
@@ -1646,6 +1680,27 @@ function SectionEvaluation({ missionId, criteria, questions, refetch }: any) {
 
   return (
     <Section id="evaluation" n="4B" label="How We'll Be Scored" sublabel="RFP scoring matrix. Drives competitive risk on every question and IRIS priority flags.">
+      {/* Mission-wide scoring methodology */}
+      <div className="mb-6 rounded-md border border-border bg-surface/30 p-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">Scoring Methodology</span>
+          <button
+            onClick={saveMethodology}
+            disabled={!methodologyLoaded || savingMethodology}
+            className="text-xs rounded-md border border-border bg-background px-3 py-1 hover:bg-surface-hover disabled:opacity-50"
+          >
+            {savingMethodology ? "Saving…" : "Save"}
+          </button>
+        </div>
+        <TextArea
+          rows={4}
+          placeholder="How will this RFP be scored overall? BAFO rules, pass/fail gates, oral presentations, price weighting, evaluator panel composition, scoring rubric notes…"
+          value={methodology}
+          onChange={(e) => setMethodology(e.target.value)}
+          disabled={!methodologyLoaded}
+        />
+      </div>
+
       <div className="overflow-x-auto rounded-md border border-border">
         <table className="w-full text-sm">
           <thead>
@@ -1653,14 +1708,15 @@ function SectionEvaluation({ missionId, criteria, questions, refetch }: any) {
               <th className="px-3 py-2 text-left">Category</th>
               <th className="px-3 py-2 text-right w-20">Points</th>
               <th className="px-3 py-2 text-left">Sections / Q Numbers</th>
-              <th className="px-3 py-2 text-center w-32">Questions Covered</th>
-              <th className="px-3 py-2 text-left w-32">Competitive Risk</th>
+              <th className="px-3 py-2 text-center w-24">Q Covered</th>
+              <th className="px-3 py-2 text-left w-28">Risk</th>
+              <th className="px-3 py-2 text-left">Notes / Detail</th>
               <th className="px-3 py-2 w-10"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {rows.length === 0 && (
-              <tr><td colSpan={6} className="px-3 py-6 text-center text-xs text-muted-foreground italic">No criteria yet. Add one below.</td></tr>
+              <tr><td colSpan={7} className="px-3 py-6 text-center text-xs text-muted-foreground italic">No criteria yet. Add one below.</td></tr>
             )}
             {rows.map((r, i) => (
               <tr key={i} className="align-top">
@@ -1686,6 +1742,14 @@ function SectionEvaluation({ missionId, criteria, questions, refetch }: any) {
                     <option value="high">high</option>
                   </select>
                 </td>
+                <td className="px-3 py-2">
+                  <TextArea
+                    rows={2}
+                    value={r.notes}
+                    onChange={(e) => update(i, { notes: e.target.value })}
+                    placeholder="Rubric, evaluator focus, weighting nuances, things to emphasize…"
+                  />
+                </td>
                 <td className="px-3 py-2 text-center">
                   <button onClick={() => remove(i)} className="opacity-50 hover:opacity-100"><X className="h-3.5 w-3.5" /></button>
                 </td>
@@ -1696,7 +1760,7 @@ function SectionEvaluation({ missionId, criteria, questions, refetch }: any) {
             <tr className="border-t border-border bg-surface/20 text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
               <td className="px-3 py-2 text-right">Total</td>
               <td className="px-3 py-2 text-right tabular-nums">{totalPts}</td>
-              <td colSpan={4}></td>
+              <td colSpan={5}></td>
             </tr>
           </tfoot>
         </table>
@@ -1710,4 +1774,5 @@ function SectionEvaluation({ missionId, criteria, questions, refetch }: any) {
     </Section>
   );
 }
+
 
