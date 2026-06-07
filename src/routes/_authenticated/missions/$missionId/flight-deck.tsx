@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { getBriefProgress, markBriefCompleted, type BriefProgress } from "@/lib/brief-seen";
 import { Check } from "lucide-react";
 import { PhoneAFriendOverlay } from "@/components/v2/PhoneAFriendOverlay";
+import { IrisAlertBar } from "@/components/v4/IrisAlertBar";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/flight-deck")({
   component: MissionFlightDeckPage,
