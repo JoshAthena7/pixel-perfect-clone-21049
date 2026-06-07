@@ -14,7 +14,7 @@ import { HORIZON_FILTERS, inferCategory, matchesHorizonFilter, type IntelItem } 
 import { LiveBadge, ScanningBeam, IrisWaveform, TypewriterText } from "@/components/v2/effects";
 import { Constellation, AnimatedNumber } from "@/components/v2/polish";
 import athenaLogo from "@/assets/athena-logo.png";
-import atlasLogo from "@/assets/atlas-logo.png.asset.json";
+import atlasLogo from "@/assets/atlas-wordmark-v2.png.asset.json";
 // LegacyRecord temporarily removed
 import { DailyPulse } from "@/components/v4/DailyPulse";
 import { IrisTrustIntro } from "@/components/v4/IrisTrustIntro";
