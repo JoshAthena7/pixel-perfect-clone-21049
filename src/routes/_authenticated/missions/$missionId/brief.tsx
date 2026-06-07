@@ -412,12 +412,12 @@ function StrategicBrief() {
 }
 
 /* ════════════════ THREE COLUMN ROW ════════════════ */
-function ThreeColumnRow() {
+function ThreeColumnRow({ missionId }: { missionId: string }) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 16 }}>
-      <WinThemesAlignment />
-      <OracleBriefing />
-      <ClarificationsAndWhatChanged />
+      <WinThemesAlignment missionId={missionId} />
+      <OracleBriefing missionId={missionId} />
+      <ClarificationsAndWhatChanged missionId={missionId} />
     </div>
   );
 }
