@@ -144,22 +144,15 @@ function TopBar({
           <Link
             to="/missions/$missionId/brief"
             params={{ missionId }}
-            className="flex items-center gap-2.5 shrink-0"
+            className="flex items-center shrink-0"
             title="Mission Brief"
           >
-            {isFlightDeck ? (
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-white/[0.03] text-[11px] font-black tracking-[0.08em] text-[color:var(--athena-gold,#f59e0b)]">
-                A
-              </span>
-            ) : (
-              <img
-                src={atlasLogo.url}
-                alt="Atlas"
-                className="h-8 w-8 object-contain"
-                style={{ filter: "drop-shadow(0 0 6px rgba(125,211,252,0.35))" }}
-              />
-            )}
-            <span className="text-[13px] font-extrabold tracking-[0.22em] text-white">ATLAS</span>
+            <img
+              src={atlasWordmark.url}
+              alt="ATLAS"
+              className="h-7 w-auto object-contain"
+              style={{ filter: "brightness(0) invert(1)" }}
+            />
           </Link>
         ) : (
           <Link to="/home" className="flex items-center gap-2.5 shrink-0" title="Home">
