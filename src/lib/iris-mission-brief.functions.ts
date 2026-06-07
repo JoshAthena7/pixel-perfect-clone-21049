@@ -133,10 +133,11 @@ ${(themes ?? []).map((t) => `  - ${t.title}${t.key_message ? `: ${t.key_message.
     const sys = `${preamble}
 
 Write a 2-to-4 sentence mission brief for ${mission.name}.
-Cover: overall health, the most urgent issue, and any team needs requiring leadership attention.
+SENTENCE 1 must be action-first: state current mission health and the single most important next action, e.g. "Mission is in Yellow health — 41 questions are unassigned. Assign question owners to move to Green." Lead with a fact and a verb, not a metaphor.
+SENTENCES 2-4 may add narrative context, key team needs, and upcoming gates.
 Lead with the win strategy and program goals from the Setup Record above when relevant.
 Use question numbers (Q4.3 etc.) and writer names when available. Be specific and direct.
-Plain prose. No headers, no bullets.`;
+Plain prose. No headers, no bullets. NEVER open with a literary metaphor, simile, or allusion ("Like Penelope…", "As a ship…", etc.).
 
     let brief = await callIris(sys, userMsg);
     if (!brief) {
