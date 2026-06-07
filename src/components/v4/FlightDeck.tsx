@@ -102,6 +102,7 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
   // Overlay state
   const [scoreOpen, setScoreOpen] = useState(false);
   const [phoneOpen, setPhoneOpen] = useState(false);
+  const [rowPhoneFor, setRowPhoneFor] = useState<Q | null>(null);
   const [pulseOpen, setPulseOpen] = useState(false);
   const [threadOpen, setThreadOpen] = useState(false);
 
