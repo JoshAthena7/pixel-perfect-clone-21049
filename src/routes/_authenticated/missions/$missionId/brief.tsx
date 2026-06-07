@@ -857,8 +857,19 @@ function MissionLifecycleMap({ brief }: { brief: MissionBrief }) {
         )}
       </div>
 
-      <div style={{ overflowX: "auto", marginTop: 22, paddingBottom: 6 }}>
-        <div style={{ position: "relative", minWidth: phases.length * 110, padding: "0 12px" }}>
+      {/* L-6: Legend pinned above the map so statuses are readable at a glance. */}
+      <div style={{ display: "flex", gap: 14, fontSize: 11, color: C.textMuted, flexWrap: "wrap", marginTop: 14 }}>
+        <Legend dot={C.green} label="Done" check />
+        <Legend dot={C.gold} label="In progress / Active" />
+        <Legend dot={C.orange} label="At risk" tri />
+        <Legend dot={C.red} label="Overdue" />
+        <Legend dot="rgba(255,255,255,0.25)" label="Upcoming" hollow />
+        <Legend dot="rgba(255,255,255,0.10)" label="Not scheduled" hollow />
+      </div>
+
+      <div style={{ overflowX: "auto", marginTop: 14, paddingBottom: 6 }}>
+        {/* M-8: Use a compact per-phase minWidth so all 12 stages fit on common viewports. */}
+        <div style={{ position: "relative", minWidth: phases.length * 72, padding: "0 8px" }}>
           {/* connector line */}
           <div style={{
             position: "absolute", left: 28, right: 28, top: 56, height: 2,
