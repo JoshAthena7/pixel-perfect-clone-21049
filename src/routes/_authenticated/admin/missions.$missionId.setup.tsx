@@ -1347,9 +1347,10 @@ function QuestionAssignmentRow({ question, refetch }: { question: any; refetch: 
   });
 
   async function assign(field: "assigned_writer_id" | "assigned_sme_id" | "reviewer_id", userId: string | null) {
+    const patch = { [field]: userId } as any;
     const { error } = await supabase
       .from("question_records")
-      .update({ [field]: userId })
+      .update(patch)
       .eq("id", question.id);
     if (error) return toast.error(error.message);
     refetch();
