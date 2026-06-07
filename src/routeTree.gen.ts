@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IrisRouteImport } from './routes/iris'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
@@ -116,6 +117,11 @@ import { Route as AuthenticatedMissionsMissionIdQuestionsQuestionIdRouteImport }
 import { Route as AuthenticatedAdminMissionsMissionIdSetupRouteImport } from './routes/_authenticated/admin/missions.$missionId.setup'
 import { Route as AuthenticatedAdminMissionsMissionIdDebriefRouteImport } from './routes/_authenticated/admin/missions.$missionId.debrief'
 
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -724,6 +730,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/iris': typeof IrisRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/atrium': typeof AuthenticatedAtriumRoute
   '/brief-room': typeof AuthenticatedBriefRoomRoute
@@ -831,6 +838,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/iris': typeof IrisRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/atrium': typeof AuthenticatedAtriumRoute
   '/brief-room': typeof AuthenticatedBriefRoomRoute
   '/checkin-home': typeof AuthenticatedCheckinHomeRoute
@@ -936,6 +944,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/iris': typeof IrisRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/atrium': typeof AuthenticatedAtriumRoute
   '/_authenticated/brief-room': typeof AuthenticatedBriefRoomRoute
@@ -1045,6 +1054,7 @@ export interface FileRouteTypes {
     | '/'
     | '/iris'
     | '/login'
+    | '/onboarding'
     | '/admin'
     | '/atrium'
     | '/brief-room'
@@ -1152,6 +1162,7 @@ export interface FileRouteTypes {
     | '/'
     | '/iris'
     | '/login'
+    | '/onboarding'
     | '/atrium'
     | '/brief-room'
     | '/checkin-home'
@@ -1256,6 +1267,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/iris'
     | '/login'
+    | '/onboarding'
     | '/_authenticated/admin'
     | '/_authenticated/atrium'
     | '/_authenticated/brief-room'
@@ -1365,6 +1377,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   IrisRoute: typeof IrisRoute
   LoginRoute: typeof LoginRoute
+  OnboardingRoute: typeof OnboardingRoute
   ApiAtriumRoute: typeof ApiAtriumRoute
   ApiIrisRoute: typeof ApiIrisRoute
   ApiIrisVoiceRoute: typeof ApiIrisVoiceRoute
@@ -1387,6 +1400,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -2395,6 +2415,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   IrisRoute: IrisRoute,
   LoginRoute: LoginRoute,
+  OnboardingRoute: OnboardingRoute,
   ApiAtriumRoute: ApiAtriumRoute,
   ApiIrisRoute: ApiIrisRoute,
   ApiIrisVoiceRoute: ApiIrisVoiceRoute,
