@@ -691,6 +691,17 @@ function QuestionRow({
           <div className="mt-1 truncate text-[14px] font-medium text-foreground">{q.title}</div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          <span
+            role="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onPhoneRow();
+            }}
+            title="Phone a Friend about this question"
+            className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2 py-1 text-[11px] text-primary hover:bg-primary/15"
+          >
+            <Phone className="h-3 w-3" />
+          </span>
           {q.status !== "approved" && (
             <span
               role="button"
