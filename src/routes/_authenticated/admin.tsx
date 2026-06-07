@@ -9,7 +9,7 @@ import {
   LayoutGrid, ClipboardCheck, UserCog, History, Brain,
   UserPlus, Activity,
   ShieldAlert, UserMinus, Megaphone,
-  Globe, Inbox, TrendingUp, Gauge, Compass,
+  Globe, Inbox, TrendingUp, Gauge, Compass, Users,
 } from "lucide-react";
 
 import { useIsAdmin } from "@/hooks/useAccess";
@@ -212,6 +212,7 @@ function AdminSidebar() {
         <SidebarItem to="/admin/admins" path={path} icon={<UserCog size={15} strokeWidth={1.5} />}>Admins</SidebarItem>
         <SidebarItem to="/admin/invites" path={path} icon={<UserPlus size={15} strokeWidth={1.5} />}>Invites</SidebarItem>
         <SidebarItem to="/admin/users" path={path} icon={<UserCog size={15} strokeWidth={1.5} />}>Users</SidebarItem>
+        <SidebarItem to="/admin/sme-directory" path={path} icon={<Users size={15} strokeWidth={1.5} />}>SME Directory</SidebarItem>
         <SidebarItem to="/admin/brief-room" path={path} icon={<Megaphone size={15} strokeWidth={1.5} />}>Send Briefing</SidebarItem>
 
         <SectionHeader withDivider>Security</SectionHeader>

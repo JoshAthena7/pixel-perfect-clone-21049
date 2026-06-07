@@ -202,6 +202,69 @@ export type Database = {
         }
         Relationships: []
       }
+      athena_smes: {
+        Row: {
+          availability: string | null
+          bio: string | null
+          created_at: string
+          display_name: string
+          email: string
+          expertise_areas: string[] | null
+          id: string
+          is_active: boolean | null
+          organization: string | null
+          phone: string | null
+          title: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          availability?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name: string
+          email: string
+          expertise_areas?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          organization?: string | null
+          phone?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          availability?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string
+          email?: string
+          expertise_areas?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          organization?: string | null
+          phone?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "athena_smes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "athena_smes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       atlas_entities: {
         Row: {
           created_at: string | null
