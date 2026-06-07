@@ -9,7 +9,7 @@ import { AssistsBar } from "@/components/v4/AssistsBar";
 import { IrisDock } from "@/components/v2/IrisDock";
 import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
 import { PhoneAFriendOverlay } from "@/components/v2/PhoneAFriendOverlay";
-import { DailyPulse } from "@/components/v4/DailyPulse";
+import { MissionPulse } from "@/components/v4/MissionPulse";
 import { ThreadPanel } from "@/components/threads/ThreadPanel";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "sonner";
