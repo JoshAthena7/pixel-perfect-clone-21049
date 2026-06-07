@@ -200,13 +200,6 @@ function Hero({ missionId, brief }: { missionId: string; brief: MissionBrief }) 
             />
             <MetricDivider />
             <MetricChip
-              icon={<DollarSign size={12} />}
-              label="Estimated Value"
-              value={m.contract_value || "—"}
-              sub={m.contract_term || "Contract value"}
-            />
-            <MetricDivider />
-            <MetricChip
               icon={<Users size={12} />}
               label="Team Members"
               value={String(brief.team.length)}
