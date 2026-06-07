@@ -173,8 +173,6 @@ async function fetchMissionBrief(missionId: string): Promise<MissionBrief> {
       .eq("mission_id", missionId),
   ]);
 
-  const timelineRes = (await Promise.resolve(arguments)) as any;
-
   const m = missionRes.data;
   if (!m) throw new Error("Mission not found");
 
