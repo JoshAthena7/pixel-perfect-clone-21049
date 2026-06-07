@@ -65,23 +65,15 @@ export function LoginRouter() {
         }
       } catch { /* noop */ }
 
-      // Cold login → role-based routing.
+      // Cold login → always land on Flight Deck.
+      try { window.sessionStorage.setItem(routedKey, "1"); } catch { /* noop */ }
       try {
-        const result = await fn();
-        try { window.sessionStorage.setItem(`atlas.role.${user.id}`, result.role); } catch { /* noop */ }
-        try { window.sessionStorage.setItem(routedKey, "1"); } catch { /* noop */ }
-        const dest = result.destination;
-        await navigate({
-          to: dest.to as never,
-          params: (dest.params ?? {}) as never,
-          search: (dest.search ?? {}) as never,
-          replace: true,
-        });
-      } catch (err) {
-        // Routing must never block the app. Mark as run so we don't loop.
-        try { window.sessionStorage.setItem(routedKey, "1"); } catch { /* noop */ }
-        console.warn("[LoginRouter] failed to compute routing", err);
-      }
+        // Cache role in the background; do not block routing.
+        fn().then((result) => {
+          try { window.sessionStorage.setItem(`atlas.role.${user.id}`, result.role); } catch { /* noop */ }
+        }).catch(() => { /* noop */ });
+      } catch { /* noop */ }
+      await navigate({ to: "/flight-deck", replace: true });
     })();
   }, [fn, navigate]);
 
