@@ -201,7 +201,7 @@ function MissionFlightDeckPage() {
         missionId={missionId}
         me={meId ?? ""}
         myQuestions={myQuestions}
-        allQuestions={allQuestions}
+        allQuestions={enrichedAll}
         updateStatus={updateStatus}
       />
       {globalPhoneOpen && (
