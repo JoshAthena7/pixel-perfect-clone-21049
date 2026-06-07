@@ -987,7 +987,7 @@ function MissionHealthCard({ missionId, brief }: { missionId: string; brief: Mis
         ))}
       </div>
 
-      <Link to="/missions/$missionId/overview" params={{ missionId }} style={{ ...linkBlue, marginTop: 14 }}>View Mission Health <ArrowRight size={12} /></Link>
+      <Link to="/missions/$missionId/command" params={{ missionId }} style={{ ...linkBlue, marginTop: 14 }}>View Mission Health <ArrowRight size={12} /></Link>
     </div>
   );
 }
