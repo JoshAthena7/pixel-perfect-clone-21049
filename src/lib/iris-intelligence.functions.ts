@@ -88,7 +88,7 @@ export const generateIrisIntelligence = createServerFn({ method: "POST" })
       const { data: updated, error: updErr } = await supabase
         .from("mission_intelligence")
         .update({
-          content: content as Record<string, unknown>,
+          content: content as never,
           version: nextVersion,
           generated_at: nowIso,
           source_document_ids: data.document_ids,
@@ -110,7 +110,7 @@ export const generateIrisIntelligence = createServerFn({ method: "POST" })
       .insert({
         mission_id: data.mission_id,
         layer: data.layer,
-        content: content as Record<string, unknown>,
+        content: content as never,
         version: 1,
         generated_at: nowIso,
         source_document_ids: data.document_ids,
