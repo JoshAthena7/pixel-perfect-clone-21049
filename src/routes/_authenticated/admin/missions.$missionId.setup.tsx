@@ -1316,25 +1316,117 @@ function SectionQuestions({ missionId, questions, volumes, refetch }: any) {
 
         {/* Question list */}
         <div>
-          <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-2">
-            Questions <span className="tabular-nums">({questions.length})</span>
+          <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-2 flex items-center justify-between">
+            <span>
+              Questions <span className="tabular-nums">({questions.length})</span>
+            </span>
+            <span className="tabular-nums">
+              {questions.filter((q: any) => q.assigned_writer_id).length}/{questions.length} assigned
+            </span>
           </div>
           {questions.length === 0 ? (
             <div className="text-sm text-muted-foreground italic">No questions yet.</div>
           ) : (
             <ul className="divide-y divide-border border border-border rounded-md">
-              {questions.slice(0, 50).map((q: any) => (
-                <li key={q.id} className="px-3 py-2 text-sm flex items-center gap-3">
-                  <span className="font-mono text-[11px] text-muted-foreground w-12 tabular-nums">{q.question_number}</span>
-                  <span className="flex-1 truncate">{q.title}</span>
-                  <span className="text-[11px] text-muted-foreground">{q.pens_down_date ?? "—"}</span>
-                </li>
+              {questions.slice(0, 100).map((q: any) => (
+                <QuestionAssignmentRow key={q.id} question={q} refetch={refetch} />
               ))}
             </ul>
           )}
         </div>
       </div>
     </Section>
+  );
+}
+
+function QuestionAssignmentRow({ question, refetch }: { question: any; refetch: () => void }) {
+  const [open, setOpen] = useState(false);
+  const { data: profiles = [] } = useQuery({
+    queryKey: ["profiles-min"],
+    queryFn: async () => (await supabase.from("profiles").select("id,display_name,email").limit(500)).data ?? [],
+  });
+
+  async function assign(field: "assigned_writer_id" | "assigned_sme_id" | "reviewer_id", userId: string | null) {
+    const { error } = await supabase
+      .from("question_records")
+      .update({ [field]: userId })
+      .eq("id", question.id);
+    if (error) return toast.error(error.message);
+    refetch();
+  }
+
+  const writer = profiles.find((p: any) => p.id === question.assigned_writer_id);
+  const sme = profiles.find((p: any) => p.id === question.assigned_sme_id);
+  const reviewer = profiles.find((p: any) => p.id === question.reviewer_id);
+  const writerLabel = writer ? (writer.display_name ?? writer.email) : "—";
+
+  return (
+    <li className="text-sm">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full px-3 py-2 flex items-center gap-3 text-left hover:bg-surface-hover"
+      >
+        <span className="font-mono text-[11px] text-muted-foreground w-12 tabular-nums">{question.question_number}</span>
+        <span className="flex-1 truncate">{question.title}</span>
+        <span className="text-[11px] text-muted-foreground">{question.pens_down_date ?? "—"}</span>
+        <span className={`text-[11px] w-32 truncate text-right ${writer ? "text-foreground" : "text-muted-foreground italic"}`}>
+          {writerLabel}
+        </span>
+        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="px-3 py-3 bg-surface/30 border-t border-border grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-1.5">Writer</div>
+            <div className="flex items-center gap-2">
+              <PersonPicker
+                options={profiles}
+                selectedId={question.assigned_writer_id}
+                onSelect={(opt) => assign("assigned_writer_id", opt.id)}
+              />
+              {question.assigned_writer_id && (
+                <button onClick={() => assign("assigned_writer_id", null)} className="opacity-50 hover:opacity-100" aria-label="Clear writer">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+          <div>
+            <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-1.5">SME</div>
+            <div className="flex items-center gap-2">
+              <PersonPicker
+                options={profiles}
+                selectedId={question.assigned_sme_id}
+                onSelect={(opt) => assign("assigned_sme_id", opt.id)}
+              />
+              {question.assigned_sme_id && (
+                <button onClick={() => assign("assigned_sme_id", null)} className="opacity-50 hover:opacity-100" aria-label="Clear SME">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+            <div className="mt-1 text-[10px] text-muted-foreground">{sme?.display_name ?? sme?.email ?? ""}</div>
+          </div>
+          <div>
+            <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-1.5">Reviewer</div>
+            <div className="flex items-center gap-2">
+              <PersonPicker
+                options={profiles}
+                selectedId={question.reviewer_id}
+                onSelect={(opt) => assign("reviewer_id", opt.id)}
+              />
+              {question.reviewer_id && (
+                <button onClick={() => assign("reviewer_id", null)} className="opacity-50 hover:opacity-100" aria-label="Clear reviewer">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+            <div className="mt-1 text-[10px] text-muted-foreground">{reviewer?.display_name ?? reviewer?.email ?? ""}</div>
+          </div>
+        </div>
+      )}
+    </li>
   );
 }
 
