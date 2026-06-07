@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  ClipboardList, Plane, Settings as SettingsIcon, HelpCircle, MoreHorizontal,
+  Plane,
   Clock, Activity, DollarSign, Users, Target, Trophy, ShieldCheck, AlertTriangle,
   FileText, Building2, Megaphone, Swords, ArrowRight, ExternalLink, Maximize2,
   Zap, CheckCircle2, AlertCircle, Bell, Gavel, Calendar, XCircle, Sparkles,
