@@ -299,13 +299,13 @@ function Stepper({
 }) {
   const steps = [
     { n: 1 as const, label: "IRIS Brief", unlocked: true },
-    { n: 2 as const, label: "Question Set", unlocked: status !== "not_started" },
+    { n: 2 as const, label: "Flight Questions", unlocked: status !== "not_started" },
     {
       n: 3 as const,
       label: "Your Answers",
       unlocked: status === "answers_submitted" || status === "refined_brief_ready",
     },
-    { n: 4 as const, label: "Refined Brief", unlocked: status === "refined_brief_ready" },
+    { n: 4 as const, label: "Flight Plan", unlocked: status === "refined_brief_ready" },
   ];
   return (
     <div className="flex items-center gap-2 px-6 py-4 border-b" style={{ borderColor: BORDER }}>
