@@ -15,6 +15,10 @@ export function MobileBottomNav() {
   const isAuthRoute = path.startsWith("/login") || path.startsWith("/auth") || path.startsWith("/signup");
   if (isAuthRoute) return null;
 
+  // O-1: Bottom nav is for the Atlas user-facing shell only.
+  // Never render it inside the Olympus admin shell.
+  if (path.startsWith("/admin") || path.startsWith("/olympus")) return null;
+
   // Hide on the Mission Briefing Room and Flight Deck — their layouts cover navigation.
   if (path.startsWith("/missions/") && (path.endsWith("/brief") || path.includes("/flight-deck"))) return null;
   if (path.startsWith("/flight-deck")) return null;
