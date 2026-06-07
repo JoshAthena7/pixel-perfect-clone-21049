@@ -406,7 +406,170 @@ function ProfileSetupWizard({
               </div>
             )}
 
-            {step.key === "expertise" && (
+            {step.key === "resume" && (
+              form.expertise_source === "resume_upload" && form.expertise_areas.length > 0 ? (
+                <div className="space-y-5">
+                  <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-[12px] text-emerald-300">
+                    <Sparkles className="mr-1 inline h-3 w-3" />
+                    IRIS extracted the fields below. Edit anything that needs a tweak, then continue.
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Areas of expertise
+                    </label>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {form.expertise_areas.map((tag) => (
+                        <button
+                          key={tag}
+                          onClick={() =>
+                            setForm({
+                              ...form,
+                              expertise_areas: form.expertise_areas.filter((t) => t !== tag),
+                            })
+                          }
+                          className="group inline-flex items-center gap-1 rounded-full border border-border bg-surface px-3 py-1 text-[12px] text-foreground"
+                          title="Click to remove"
+                        >
+                          <span>{tag}</span>
+                          <span className="text-muted-foreground group-hover:text-foreground">×</span>
+                        </button>
+                      ))}
+                    </div>
+                    <CustomAdder
+                      value={customExpertise}
+                      setValue={setCustomExpertise}
+                      placeholder="Add an expertise tag…"
+                      onAdd={(v) => {
+                        if (!form.expertise_areas.includes(v))
+                          setForm({ ...form, expertise_areas: [...form.expertise_areas, v] });
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Professional summary
+                    </label>
+                    <textarea
+                      value={form.expert_bio}
+                      onChange={(e) => setForm({ ...form, expert_bio: e.target.value.slice(0, 1200) })}
+                      rows={4}
+                      className="mt-2 w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm leading-relaxed"
+                    />
+                    <div className="mt-1 text-right text-[10px] text-muted-foreground">
+                      {form.expert_bio.length}/1200
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Years of experience
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={75}
+                      value={form.years_of_experience ?? ""}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        if (v === "") setForm({ ...form, years_of_experience: null });
+                        else {
+                          const n = Number.parseInt(v, 10);
+                          if (Number.isFinite(n))
+                            setForm({ ...form, years_of_experience: Math.max(0, Math.min(75, n)) });
+                        }
+                      }}
+                      className="mt-2 w-32 rounded-md border border-border bg-background px-3 py-2 text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Certifications & credentials
+                    </label>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {form.certifications.map((cert) => (
+                        <button
+                          key={cert}
+                          onClick={() =>
+                            setForm({
+                              ...form,
+                              certifications: form.certifications.filter((c) => c !== cert),
+                            })
+                          }
+                          className="group inline-flex items-center gap-1 rounded-full border border-border bg-surface px-3 py-1 text-[12px] text-foreground"
+                          title="Click to remove"
+                        >
+                          <span>{cert}</span>
+                          <span className="text-muted-foreground group-hover:text-foreground">×</span>
+                        </button>
+                      ))}
+                      {form.certifications.length === 0 && (
+                        <span className="text-[11px] text-muted-foreground">None found.</span>
+                      )}
+                    </div>
+                    <CustomAdder
+                      value={customCertification}
+                      setValue={setCustomCertification}
+                      placeholder="Add a certification (e.g. PMP, RN, LCSW)…"
+                      onAdd={(v) => {
+                        const clean = v.trim().slice(0, 120);
+                        if (clean && !form.certifications.includes(clean))
+                          setForm({ ...form, certifications: [...form.certifications, clean] });
+                      }}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setForm({
+                          ...form,
+                          expertise_source: null,
+                          // Don't blow away expertise_areas/bio they may already have
+                          // typed; just hide the review and re-show the upload UI.
+                        })
+                      }
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      Re-upload a different resume
+                    </button>
+                    <span className="text-muted-foreground">
+                      Your resume file is never saved — only these fields are.
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <ResumeUploadCard
+                  onParsed={(parsed) => {
+                    setForm((f) => {
+                      const mergedTags = Array.from(
+                        new Set([...(f.expertise_areas ?? []), ...parsed.areas_of_expertise]),
+                      );
+                      const mergedCerts = Array.from(
+                        new Set([...(f.certifications ?? []), ...parsed.certifications]),
+                      );
+                      return {
+                        ...f,
+                        expertise_areas: mergedTags,
+                        certifications: mergedCerts,
+                        expert_bio: f.expert_bio?.trim() ? f.expert_bio : parsed.expertise_summary,
+                        years_of_experience:
+                          f.years_of_experience ?? parsed.years_of_experience ?? null,
+                        expertise_source: "resume_upload",
+                      };
+                    });
+                  }}
+                  onSkip={() => {
+                    setForm((f) => ({ ...f, expertise_source: f.expertise_source ?? "manual" }));
+                    setStepIdx((i) => Math.min(STEPS.length - 1, i + 1));
+                  }}
+                />
+              )
+            )}
+
+
               <>
                 <ChipPicker
                   values={form.expertise_areas}
