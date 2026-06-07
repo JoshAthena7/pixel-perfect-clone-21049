@@ -26,7 +26,7 @@ function AtlasPendingScreen() {
           alt=""
           aria-hidden
           draggable={false}
-          style={{ height: 56, width: 56, objectFit: "contain", userSelect: "none" }}
+          style={{ height: 80, width: 80, objectFit: "contain", userSelect: "none", marginTop: -8, marginBottom: -8 }}
         />
         <img
           src={atlasWordmark.url}

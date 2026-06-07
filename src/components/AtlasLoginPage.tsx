@@ -75,7 +75,7 @@ export function AtlasLoginPage() {
             <img
               src={athenaMark.url}
               alt="Athena"
-              className="h-16 w-16 object-contain"
+              className="h-[5.5rem] w-[5.5rem] object-contain -my-2"
               draggable={false}
             />
             <div
