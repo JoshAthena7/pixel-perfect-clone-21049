@@ -951,11 +951,26 @@ function deriveStages(template: Stage[], brief: MissionBrief | undefined): Stage
     { done: debriefed ? template[6].tasksTotal : submitted ? 1 : 0 },
   ];
 
-  return template.map((t, i) => ({
-    ...t,
-    status: stageStatuses[i] ?? t.status,
-    tasksDone: Math.max(0, Math.min(t.tasksTotal, stageTasks[i]?.done ?? t.tasksDone)),
-  }));
+  // H-8 / H-9: Draft missions with no submission date should not show
+  // "Mission Activated" or fake urgency. Override stage 1 name + emotion.
+  const isDraft = (m.status ?? "").toLowerCase() === "draft";
+  const noDeadline = !m.submission_date;
+
+  return template.map((t, i) => {
+    let name = t.name;
+    let emotion = t.emotion;
+    if (i === 0 && isDraft) {
+      name = "Setup in Progress";
+      if (noDeadline) emotion = { color: "blue", label: "Setup in Progress — no deadline set yet" };
+    }
+    return {
+      ...t,
+      name,
+      emotion,
+      status: stageStatuses[i] ?? t.status,
+      tasksDone: Math.max(0, Math.min(t.tasksTotal, stageTasks[i]?.done ?? t.tasksDone)),
+    };
+  });
 }
 
 function formatSubmissionCountdown(brief: MissionBrief | undefined): string {
