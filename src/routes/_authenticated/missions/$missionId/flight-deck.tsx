@@ -222,11 +222,12 @@ function BriefProgressDots({ opened }: { opened: boolean }) {
   );
   return (
     <div className="mt-2 flex items-center gap-3 text-[11px] uppercase tracking-[0.16em]">
-      <Step done={true} label="Opened" />
+      <Step done={opened} label="Opened" />
       <span className="text-amber-100/25">—</span>
       <Step done={false} label="Completed" />
-      {/* `opened` true means step 1 done, step 2 not. `opened` false means neither. */}
-      {!opened ? <span className="ml-1 text-amber-100/40 normal-case tracking-normal">(0 of 2)</span> : <span className="ml-1 text-amber-100/55 normal-case tracking-normal">(1 of 2)</span>}
+      <span className="ml-1 normal-case tracking-normal text-amber-100/55">
+        ({opened ? 1 : 0} of 2)
+      </span>
     </div>
   );
 }
