@@ -199,7 +199,7 @@ function MissionsIndex() {
       <IrisHealthCheckCard />
       <RefreshIrisCard />
       <BackfillEmbeddingsCard />
-      <DeveloperResetCard />
+      
     </div>
   );
 }
