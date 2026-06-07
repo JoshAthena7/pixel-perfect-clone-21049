@@ -36,6 +36,22 @@ import {
   type VaultDocType,
   type VaultDoc,
 } from "@/lib/vault.functions";
+import { validateVaultMime, validateVaultSize, VAULT_ALLOWED_MIME } from "@/lib/file-validation";
+
+const ACCEPT_ATTR = Array.from(
+  new Set(
+    Object.entries(VAULT_ALLOWED_MIME).flatMap(([mime, exts]) => [mime, ...exts.map((e) => `.${e}`)]),
+  ),
+).join(",");
+
+function friendlyErrorMessage(e: any): string {
+  const raw = e?.message ?? String(e ?? "Upload failed");
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object" && parsed.message) return parsed.message;
+  } catch {}
+  return raw;
+}
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/vault")({
   component: VaultPage,
