@@ -656,7 +656,7 @@ function AddToThemeDialog({ missionId, item, insight, onClose }: { missionId: st
         <DialogHeader><DialogTitle>Add to Win Theme</DialogTitle></DialogHeader>
         <div className="space-y-3">
           {themes.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No win themes yet. Add them in Mission Settings.</p>
+            <p className="text-sm text-muted-foreground">No win themes yet. Add them in the Setup Record.</p>
           ) : (
             <>
               <select
