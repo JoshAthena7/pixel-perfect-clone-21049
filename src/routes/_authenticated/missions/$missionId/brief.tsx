@@ -74,16 +74,33 @@ function MissionBriefingRoomPage() {
 
   useEffect(() => {
     try { localStorage.setItem(`atlas.lastRoom.${missionId}`, "briefing"); } catch {}
-    // Mark brief as seen for this user+mission so FlightDeckResolver routes
-    // subsequent logins straight to Flight Deck.
+    // Mark brief as seen for this user+mission.
+    let userId: string | null = null;
     (async () => {
       try {
         const { supabase } = await import("@/integrations/supabase/client");
         const { markBriefSeen } = await import("@/lib/brief-seen");
         const { data } = await supabase.auth.getUser();
-        if (data.user) markBriefSeen(data.user.id, missionId);
+        if (data.user) {
+          userId = data.user.id;
+          markBriefSeen(data.user.id, missionId);
+        }
       } catch { /* noop */ }
     })();
+
+    // Mark brief completed when user scrolls within 200px of bottom.
+    const onScroll = async () => {
+      const scrolled = window.scrollY + window.innerHeight;
+      const full = document.documentElement.scrollHeight;
+      if (full - scrolled > 200) return;
+      window.removeEventListener("scroll", onScroll);
+      try {
+        const { markBriefCompleted } = await import("@/lib/brief-seen");
+        if (userId) markBriefCompleted(userId, missionId);
+      } catch { /* noop */ }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, [missionId]);
 
   const greeting = (() => {
