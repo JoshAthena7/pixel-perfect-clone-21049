@@ -113,6 +113,8 @@ async function fetchMissionBrief(missionId: string): Promise<MissionBrief> {
     risksRes,
     clarRes,
     signalsRes,
+    timelineRes,
+    debriefRes,
   ] = await Promise.all([
     supabase
       .from("missions")
