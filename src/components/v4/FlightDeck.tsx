@@ -345,12 +345,14 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
             selectedId={selectedId}
             onSelect={setSelectedId}
             updateStatus={updateStatus}
+            onPhoneRow={(q) => setRowPhoneFor(q)}
           />
         </div>
 
-        {/* RIGHT: Air Traffic Control */}
-        <div className="lg:col-span-3">
+        {/* RIGHT: Air Traffic Control + Open Consults */}
+        <div className="lg:col-span-3 space-y-4">
           <AirTrafficControl rows={atcRows as any[]} />
+          <OpenConsultsPanel rows={openConsults} questions={allQuestions} />
         </div>
       </div>
 
