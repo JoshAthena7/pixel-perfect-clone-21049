@@ -26,7 +26,7 @@ export function SetupCompletenessMeter({ mission, evaluationCount }: Props) {
       <div className="flex items-baseline justify-between gap-4">
         <div>
           <div className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground font-mono">
-            IRIS context coverage
+            IRIS Intelligence Readiness
           </div>
           <h2 className="mt-1 text-lg font-light text-foreground">
             Setup Record — <span className="font-medium">{pct}% complete</span>
@@ -44,6 +44,10 @@ export function SetupCompletenessMeter({ mission, evaluationCount }: Props) {
         />
       </div>
 
+      <p className="mt-3 text-xs text-muted-foreground leading-relaxed">
+        IRIS needs these fields to generate accurate intelligence. The more you complete, the sharper your analysis becomes.
+      </p>
+
       {complete ? (
         <p className="mt-3 flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-300">
           <Check className="h-4 w-4" />
@@ -53,7 +57,7 @@ export function SetupCompletenessMeter({ mission, evaluationCount }: Props) {
         <>
           <p className="mt-3 flex items-center gap-2 text-sm text-amber-800 dark:text-amber-200">
             <Zap className="h-4 w-4" />
-            IRIS is operating with partial context. Complete this record for full intelligence.
+            IRIS is working with limited intelligence — complete these fields to sharpen your analysis.
           </p>
           {missing.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1.5">
