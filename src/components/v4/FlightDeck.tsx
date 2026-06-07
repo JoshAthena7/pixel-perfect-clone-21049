@@ -422,14 +422,12 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
           </div>
         </SheetContent>
       </Sheet>
-      {selected && (
-        <ThreadPanel
-          open={threadOpen}
-          onClose={() => setThreadOpen(false)}
-          objectType="question_record"
-          objectId={selected.id}
-        />
-      )}
+      <MissionThreadsPanel
+        open={threadOpen}
+        onClose={() => setThreadOpen(false)}
+        missionId={missionId}
+        initialQuestionId={selected?.id ?? null}
+      />
 
       {/* IRIS Dock — fixed bottom-right with ⌘J */}
       <IrisDock />
