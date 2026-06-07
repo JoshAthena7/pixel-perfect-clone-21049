@@ -1604,9 +1604,6 @@ function SectionFinancials({ missionId, financials, refetch }: any) {
 type EvalRow = {
   id?: string;
   category: string;
-type EvalRow = {
-  id?: string;
-  category: string;
   points: number;
   sections_covered: string[];
   competitive_risk: "low" | "medium" | "high";
