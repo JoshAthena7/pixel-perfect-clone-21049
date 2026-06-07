@@ -5485,6 +5485,7 @@ export type Database = {
           avatar_color: string | null
           avatar_url: string | null
           banned_words: string[]
+          certifications: string[]
           created_at: string | null
           default_mission_role: string | null
           display_name: string
@@ -5493,6 +5494,8 @@ export type Database = {
           expert_bio: string | null
           expertise_areas: string[]
           expertise_embedding: string | null
+          expertise_source: string | null
+          expertise_updated_at: string | null
           has_acked_threads_internal_at: string | null
           has_onboarded: boolean
           has_seen_orientation: boolean
@@ -5512,6 +5515,7 @@ export type Database = {
           states_experience: string[]
           timezone: string | null
           writing_voice_sample: string | null
+          years_of_experience: number | null
         }
         Insert: {
           availability_note?: string | null
@@ -5520,6 +5524,7 @@ export type Database = {
           avatar_color?: string | null
           avatar_url?: string | null
           banned_words?: string[]
+          certifications?: string[]
           created_at?: string | null
           default_mission_role?: string | null
           display_name: string
@@ -5528,6 +5533,8 @@ export type Database = {
           expert_bio?: string | null
           expertise_areas?: string[]
           expertise_embedding?: string | null
+          expertise_source?: string | null
+          expertise_updated_at?: string | null
           has_acked_threads_internal_at?: string | null
           has_onboarded?: boolean
           has_seen_orientation?: boolean
@@ -5547,6 +5554,7 @@ export type Database = {
           states_experience?: string[]
           timezone?: string | null
           writing_voice_sample?: string | null
+          years_of_experience?: number | null
         }
         Update: {
           availability_note?: string | null
@@ -5555,6 +5563,7 @@ export type Database = {
           avatar_color?: string | null
           avatar_url?: string | null
           banned_words?: string[]
+          certifications?: string[]
           created_at?: string | null
           default_mission_role?: string | null
           display_name?: string
@@ -5563,6 +5572,8 @@ export type Database = {
           expert_bio?: string | null
           expertise_areas?: string[]
           expertise_embedding?: string | null
+          expertise_source?: string | null
+          expertise_updated_at?: string | null
           has_acked_threads_internal_at?: string | null
           has_onboarded?: boolean
           has_seen_orientation?: boolean
@@ -5582,6 +5593,7 @@ export type Database = {
           states_experience?: string[]
           timezone?: string | null
           writing_voice_sample?: string | null
+          years_of_experience?: number | null
         }
         Relationships: []
       }
