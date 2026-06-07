@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowRight } from "lucide-react";
+import { MissionProgressRing } from "@/components/MissionProgressRing";
 
 export const Route = createFileRoute("/_authenticated/missions/")({
   ssr: false,
