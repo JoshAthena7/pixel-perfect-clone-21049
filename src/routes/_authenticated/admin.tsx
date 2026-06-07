@@ -92,7 +92,6 @@ function AdminHeader() {
         <span className="ml-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Platform Administration</span>
       </div>
 
-      {/* M-5: Make the mission context selector unmistakably an interactive control. */}
       <div className="flex items-center gap-3">
         <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-[0.22em] text-amber-300/90">
           Active Mission Context:
