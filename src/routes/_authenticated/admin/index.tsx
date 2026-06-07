@@ -277,7 +277,9 @@ function CreateMissionModal({ onClose }: { onClose: () => void }) {
       <form onSubmit={submit} className="space-y-4">
         <TextField label="Mission name *" value={name} onChange={setName} placeholder="Indiana Medicaid RFP" />
         <TextField label="Client *" value={client} onChange={setClient} placeholder="Indiana FSSA" />
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-[11px] text-muted-foreground leading-relaxed">
+          IRIS needs this information to start building your procurement intelligence profile.
+          Creating a mission opens a 9-section Intelligence Setup Record — takes about 20 minutes and activates IRIS.
           You'll be taken straight to the Setup Record to fill in the rest (timeline, team, intel, vault, gates).
         </p>
         {err && <div className="rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300">{err}</div>}
@@ -288,7 +290,7 @@ function CreateMissionModal({ onClose }: { onClose: () => void }) {
           <button type="submit" disabled={busy}
             className="inline-flex items-center gap-2 rounded-lg bg-[#C49A22] px-4 py-2 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50">
             {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-            Create & Open Setup <ArrowRight className="h-4 w-4" />
+            Create Mission & Begin Setup Record <ArrowRight className="h-4 w-4" />
           </button>
         </footer>
       </form>

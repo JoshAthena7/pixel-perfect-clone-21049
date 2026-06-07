@@ -141,14 +141,27 @@ function MissionSetupRecord() {
 
             <div className="mt-8 pt-6 border-t border-border">
               <CompletionMeter completion={completion} isAdmin={isAdmin} />
-              <button
-                onClick={handleLaunch}
-                disabled={confirm}
-                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#C49A22] px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50 transition"
-              >
-                <Rocket className="h-4 w-4" />
-                Launch Mission
-              </button>
+              {(() => {
+                const list = SECTIONS.filter((s) => !s.admin || isAdmin);
+                const done = list.filter((s) => completion[s.id]).length;
+                const total = list.length;
+                const ready = done >= Math.ceil(total * 0.7);
+                return (
+                  <>
+                    <div className="mt-4 text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-mono">
+                      Readiness: {done}/{total}
+                    </div>
+                    <button
+                      onClick={handleLaunch}
+                      disabled={confirm}
+                      className="mt-1.5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#C49A22] px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50 transition"
+                    >
+                      <Rocket className="h-4 w-4" />
+                      {ready ? "Launch Mission" : "Launch with Partial Setup"}
+                    </button>
+                  </>
+                );
+              })()}
               {preLaunchError && <p className="mt-2 text-[11px] text-destructive">{preLaunchError}</p>}
             </div>
           </div>
@@ -158,7 +171,7 @@ function MissionSetupRecord() {
         <main className="flex-1 min-w-0 space-y-16 pb-32">
           <header>
             <div className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground font-mono">
-              Mission Setup Record
+              Mission Intelligence Record
             </div>
             <h1 className="mt-2 text-3xl font-light tracking-tight text-foreground">
               {setup.mission?.name ?? "Untitled mission"}
@@ -166,6 +179,9 @@ function MissionSetupRecord() {
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
               Complete the sections below. When the mission launches, this record generates
               the Vault, Oracle, Studio, Calendar, team permissions, and the first IRIS briefing.
+            </p>
+            <p className="mt-3 text-[11px] text-muted-foreground font-mono uppercase tracking-[0.16em]">
+              Estimated time to complete: 15–20 minutes · IRIS activates at section 5
             </p>
           </header>
 
@@ -402,7 +418,7 @@ function SectionIdentity({ missionId, mission, refetch }: any) {
             options={["Setup", "Active", "Review", "Submitted", "Won", "Lost"]} />
         </Field>
         <Field label="Client"><TextInput value={form.client ?? ""} onChange={(e) => setForm({ ...form, client: e.target.value })} /></Field>
-        <Field label="Opportunity Type"><TextInput value={form.program_type ?? ""} onChange={(e) => setForm({ ...form, program_type: e.target.value })} placeholder="RFP, IDIQ, Sole Source…" /></Field>
+        <Field label="Procurement Vehicle"><TextInput value={form.program_type ?? ""} onChange={(e) => setForm({ ...form, program_type: e.target.value })} placeholder="RFP, IDIQ, Sole Source…" /></Field>
         <Field label="State"><TextInput value={form.state ?? ""} onChange={(e) => setForm({ ...form, state: e.target.value })} /></Field>
         <Field label="Prime Contractor"><TextInput value={form.incumbent_name ?? ""} onChange={(e) => setForm({ ...form, incumbent_name: e.target.value })} /></Field>
         <Field label="Submission Date"><TextInput type="date" value={form.submission_date ?? ""} onChange={(e) => setForm({ ...form, submission_date: e.target.value })} /></Field>
