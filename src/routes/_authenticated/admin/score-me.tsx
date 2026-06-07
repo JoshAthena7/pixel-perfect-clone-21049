@@ -31,10 +31,10 @@ function OlympusScoreMePage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("missions")
-        .select("id,name,client,state")
+        .select("id,name,client,state,status")
         .eq("id", missionId!)
         .maybeSingle();
-      return (data ?? null) as (Mission & { state: string | null }) | null;
+      return (data ?? null) as (Mission & { state: string | null; status: string | null }) | null;
     },
   });
 
