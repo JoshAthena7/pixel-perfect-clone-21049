@@ -52,6 +52,8 @@ type Q = {
   iris_risk_flag: string | null;
   iris_risk_flag_text: string | null;
   point_value: number | null;
+  updated_at?: string | null;
+  writer_name?: string | null;
 };
 
 function MissionFlightDeckPage() {
@@ -75,7 +77,7 @@ function MissionFlightDeckPage() {
       const { data, error } = await supabase
         .from("question_records")
         .select(
-          "id,mission_id,question_number,section_number,title,pens_down_date,assigned_writer_id,health,status,current_score,iris_risk_flag,iris_risk_flag_text,point_value",
+          "id,mission_id,question_number,section_number,title,pens_down_date,assigned_writer_id,health,status,current_score,iris_risk_flag,iris_risk_flag_text,point_value,updated_at",
         )
         .eq("mission_id", missionId)
         .order("question_number", { ascending: true });
@@ -84,8 +86,33 @@ function MissionFlightDeckPage() {
     },
   });
 
+  // UX-5: Resolve writer display names for the assigned_writer_ids on this mission.
+  const writerIds = Array.from(
+    new Set(allQuestions.map((q) => q.assigned_writer_id).filter((id): id is string => !!id)),
+  );
+  const { data: writerMap = {} } = useQuery<Record<string, string>>({
+    queryKey: ["mc-flight-deck-writers", missionId, writerIds.sort().join(",")],
+    enabled: writerIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id,display_name,full_name")
+        .in("id", writerIds);
+      const map: Record<string, string> = {};
+      for (const p of data ?? []) {
+        map[(p as any).id] = (p as any).display_name ?? (p as any).full_name ?? "";
+      }
+      return map;
+    },
+  });
+
+  const enrichedAll = allQuestions.map((q) => ({
+    ...q,
+    writer_name: q.assigned_writer_id ? writerMap[q.assigned_writer_id] ?? null : null,
+  }));
+
   const myQuestions = meId
-    ? allQuestions.filter((q) => q.assigned_writer_id === meId)
+    ? enrichedAll.filter((q) => q.assigned_writer_id === meId)
     : [];
 
   const updateStatus = async (q: Q, db: string) => {
