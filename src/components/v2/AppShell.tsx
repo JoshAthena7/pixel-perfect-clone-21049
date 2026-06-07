@@ -212,28 +212,7 @@ function TopBar({
         </button>
         <IrisStatusIndicator />
         {/* Atrium button removed from header — admins reach it via Olympus/avatar */}
-        {inMission && (
-          <Link
-            to="/profile"
-            title="Profile"
-            aria-label="Profile"
-            className={`inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-[11px] font-semibold uppercase tracking-[0.18em] transition-colors hover:bg-white/5 hover:text-foreground ${
-              isProfile
-                ? "bg-[color:var(--athena-gold,#f59e0b)]/10 text-[color:var(--athena-gold,#f59e0b)]"
-                : "text-muted-foreground"
-            }`}
-          >
-            <User size={14} strokeWidth={1.5} />
-            <span className="hidden sm:inline">Profile</span>
-          </Link>
-        )}
-        {/* Flight Deck removed from Atrium header in V1 — writers land directly on /v1/my-sections */}
         <NotificationBell />
-        {/* Brief Room megaphone removed from Atrium header — reach via /brief-room directly */}
-        {/* Help moved to /profile?tab=help */}
-
-
-        <SignOutButton />
         <UserAvatarMenu />
         <OlympusNavLink isOlympus={isOlympus} />
 
