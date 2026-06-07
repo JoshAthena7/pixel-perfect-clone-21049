@@ -2674,6 +2674,39 @@ export type Database = {
         }
         Relationships: []
       }
+      incident_response_plan: {
+        Row: {
+          classification: string
+          evidence_preservation: string
+          id: string
+          immediate_response: string
+          notification_obligations: string
+          recovery_checklist: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          classification?: string
+          evidence_preservation?: string
+          id?: string
+          immediate_response?: string
+          notification_obligations?: string
+          recovery_checklist?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          classification?: string
+          evidence_preservation?: string
+          id?: string
+          immediate_response?: string
+          notification_obligations?: string
+          recovery_checklist?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       intelligence_canon: {
         Row: {
           category: string
@@ -4922,9 +4955,15 @@ export type Database = {
           actor_user_id: string | null
           confidence: string | null
           created_at: string
+          document_name: string | null
           engagement_id: string | null
           id: string
           patterns_matched: string[]
+          resolution_type: string | null
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
           surface: string
           writer_id: string | null
         }
@@ -4932,9 +4971,15 @@ export type Database = {
           actor_user_id?: string | null
           confidence?: string | null
           created_at?: string
+          document_name?: string | null
           engagement_id?: string | null
           id?: string
           patterns_matched?: string[]
+          resolution_type?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
           surface: string
           writer_id?: string | null
         }
@@ -4942,9 +4987,15 @@ export type Database = {
           actor_user_id?: string | null
           confidence?: string | null
           created_at?: string
+          document_name?: string | null
           engagement_id?: string | null
           id?: string
           patterns_matched?: string[]
+          resolution_type?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
           surface?: string
           writer_id?: string | null
         }
