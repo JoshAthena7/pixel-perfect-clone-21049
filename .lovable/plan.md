@@ -1,102 +1,69 @@
+## Goal
+Add a unified three-state user model (LOADED / INVITED / ACTIVE) surfaced in Olympus, and block all mission access for users who are not ACTIVE. Build on existing tables — do not duplicate infrastructure.
 
-## Phone a Friend — Flight Deck Upgrade
+## What's already in place (reuse, don't rebuild)
+- `atlas_invites` table — already stages people with `email`, `display_name`, `role_hint`, `invite_sent_at`, `accepted_at`, `accepted_user_id`. Today it has an extra "contract signed" gate.
+- `profiles` table — has `has_onboarded` (boolean) and `onboarded_at`. FK'd to `auth.users`.
+- `/admin/invites` page — manages staging.
+- `/admin/users` page — lists everyone in `profiles`.
+- Server fns `createAtlasInvite`, `sendAtlasInvite`, etc. in `src/lib/atlas-invites.functions.ts`.
 
-Phone a Friend already exists as a slim overlay (`PhoneAFriendOverlay`) that picks an expert and logs a `question_collaboration` row. We will turn it into the full 3-step IRIS-drafted consult flow you described, add a contextual entry on each reconciliation row, add status tracking on Flight Deck, and give the expert an Atlas inbox to respond in.
+The three states map cleanly onto existing data — no new table needed.
 
----
+## State derivation (single source of truth)
 
-### 1. Data model (1 migration)
+| State    | Condition                                                                                          |
+|----------|----------------------------------------------------------------------------------------------------|
+| LOADED   | Row in `atlas_invites`, `invite_sent_at IS NULL`, `accepted_user_id IS NULL`                       |
+| INVITED  | `invite_sent_at IS NOT NULL` AND (no linked profile yet OR `profiles.has_onboarded = false`)       |
+| ACTIVE   | Linked `profiles` row with `has_onboarded = true`                                                  |
 
-New table `expert_consults` — one row per Phone a Friend request.
+Users who already exist in `profiles` without an invite row are treated as ACTIVE (legacy). New people always start by being LOADED via the Olympus "Add user" form.
 
-```text
-expert_consults
-  id uuid pk
-  mission_id uuid → missions
-  question_id uuid null → question_records       -- null = global / section-level
-  section_id uuid null → mission_sections
-  requested_by uuid → auth.users
-  expert_user_id uuid null → auth.users          -- internal SME
-  external_expert_id uuid null → expert_directory  -- curated external
-  urgency text  ('urgent' | 'standard' | 'fyi')
-  ask_subject text
-  ask_body text                                  -- IRIS-drafted, user-edited
-  context_snapshot jsonb                         -- PRISIM ctx, point weight, due, draft-so-far
-  status text  ('sent' | 'acknowledged' | 'needs_info' | 'reassigned' | 'responded' | 'closed')
-  response_body text null
-  response_at timestamptz null
-  created_at / updated_at
-```
+## Implementation
 
-New table `expert_directory` — curated external expert network.
+### 1. Migration (small, additive)
+- Drop the "contract signed" precondition from `sendAtlasInvite` to match the new simpler model. Keep the columns for now (backward compat, no data loss).
+- Add `last_login_at timestamptz` to `profiles` (nullable). Updated client-side on successful sign-in.
+- Add DB function `public.get_user_state(_email text) returns text` — returns `'loaded' | 'invited' | 'active'` so the UI and policies share one definition.
 
-```text
-expert_directory
-  id uuid pk
-  name, title, org, email, domain_tags text[], states text[],
-  programs text[], avg_response_hours int, notes, active bool
-```
+### 2. Mission access gate (ACTIVE-only)
+- In `src/routes/_authenticated/route.tsx`: after `supabase.auth.getUser()`, fetch `profiles.has_onboarded`. If false → `redirect({ to: '/onboarding' })` (existing onboarding flow already redirects this way for non-admins; we extend it to apply to everyone except `/onboarding` and `/admin/*` for platform admins).
+- This guarantees no INVITED user reaches `/missions/*` or any mission content.
 
-RLS: mission members read/write consults on missions they belong to; `expert_directory` is admin-managed, readable by all authed users. Both get the standard GRANT block.
+### 3. Server functions (`src/lib/atlas-invites.functions.ts`)
+- `loadUser({ email, displayName, roleHint })` — thin wrapper that creates an `atlas_invites` row with no invite sent (LOADED).
+- `sendOfficialInvite({ id })` — replaces the contract-gated path. Calls `supabaseAdmin.auth.admin.inviteUserByEmail(email, { redirectTo: <origin>/onboarding })`, stamps `invite_sent_at = now()`, status `invite_sent`. Resending re-stamps the timestamp.
+- `listTeamRoster()` — returns the unified roster (atlas_invites LEFT JOIN profiles by email/accepted_user_id) plus active-mission counts and `last_login_at`. One query for the whole Team view.
 
-Realtime publication added for `expert_consults` so the Flight Deck status panel and the expert's inbox both live-update.
+### 4. Olympus UI — `/admin/users` becomes the unified Team view
+- Status badge column: LOADED (gray) / INVITED (amber) / ACTIVE (emerald).
+- Row actions by state:
+  - LOADED → prominent gold "Official Invite" button.
+  - INVITED → "Invitation sent {date}" + secondary "Resend invite" link.
+  - ACTIVE → "Last login {date}" + active mission count with link to memberships.
+- Add a small "Add to roster (LOADED)" form at the top — email + name + role hint.
+- Keep `/admin/invites` route for now, but redirect it to `/admin/users` so there is one place to manage people. Do not delete the file in this build — just change its component to a `Navigate`.
 
-### 2. Server functions (`src/lib/expert-consult.functions.ts`)
+### 5. Login wiring
+- On successful sign-in in `AtlasLoginPage`, write `profiles.last_login_at = now()`.
 
-- `buildConsultDraft({ missionId, questionId? })` — pulls question text, section, point weight, PRISIM signal map data, due date, current draft (latest `question_records.draft_text`), then calls Lovable AI Gateway (`google/gemini-3-flash-preview`, `Output.object` schema) to produce `{ subject, body, suggested_urgency }`. Used to pre-fill Step 3.
-- `matchExpertsRich({ missionId, questionId? })` — extends existing `matchExperts` to also return external directory matches (tag overlap on `domain_tags` / state / program), with availability and response history.
-- `sendConsult({ ...full ask })` — inserts `expert_consults` row (status=`sent`), writes a `signals` + `question_collaboration` entry so it surfaces on ATC and the question thread.
-- `respondToConsult` / `ackConsult` / `requestMoreInfo` / `reassignConsult` — used by the expert from their inbox; on `responded` it also appends the response to the question's `comments` thread so it lands in the reconciliation row.
+## Technical details (for engineering review)
 
-All protected with `requireSupabaseAuth`.
+- New code paths added only; existing Olympus pages (Atlas Sources, Audit, etc.) are untouched.
+- `last_login_at` write happens client-side under the user's own RLS policy (`profiles_self_update`, which already exists).
+- The onboarding redirect in `_authenticated/route.tsx` exempts: the onboarding route itself, `/auth*`, and `/admin/*` for platform admins (so admins can never lock themselves out).
+- `sendOfficialInvite` is idempotent — if `accepted_user_id` already exists, it short-circuits to "already accepted" instead of re-inviting.
 
-### 3. UI — three steps in the upgraded overlay
+## Out of scope
+- Per-user permissions UI beyond what `mission_members` already provides.
+- Removing the contract-signed columns from `atlas_invites` (kept for history).
+- Bulk import / CSV roster upload.
 
-Replace `src/components/v2/PhoneAFriendOverlay.tsx` with a 3-step wizard (keep the component name and existing call sites so nothing breaks):
-
-**Step 1 — Context.** When opened from a row: header shows `Q{number} · {section} · {points} pts · due {date}`, PRISIM signal chips (intent divergence, evaluator-layer notes, CMS alignment), and a "Draft so far" preview. When opened globally: dropdown "Consult about…" lists open questions grouped by section, plus a "General consult" option.
-
-**Step 2 — Expert match.** Two tabs: **Internal SMEs** (existing matcher) and **Expert Network** (new directory). Each card: avatar/initials, name, title, domain chips, availability dot, "avg reply in 4h" badge. IRIS-recommended card pinned on top with the existing "IRIS Recommends" treatment. "Browse full roster" expands the list.
-
-**Step 3 — IRIS-drafted ask.** Auto-populated subject + body from `buildConsultDraft`, editable. Shows the structured ask blocks: what & why · PRISIM context · due/urgency selector · draft-so-far (collapsible) · the specific question. Send button writes the consult.
-
-### 4. Flight Deck wiring
-
-- **Global button:** add a "Phone a Friend" pill in the Flight Deck header next to "Back to Mission Command" — opens the wizard with no `questionId`.
-- **Row button:** in the reconciliation table inside `FlightDeck.tsx`, add a small phone icon per row that opens the wizard pre-bound to that `questionId`.
-- **Active Consults panel:** new section on Flight Deck below ATC titled "Open Consults", driven by a query on `expert_consults` filtered to this mission, status ≠ `closed`. Columns: Q#, Expert, Status pill, Age, "Open". Realtime subscribed.
-
-### 5. Mission Intelligence Graph indicator
-
-`question_records` nodes already render on the graph. The graph card reads `expert_consults` and overlays a small "Pending Expert Input" dot (amber) when a consult is open for that question, switching to green check when the latest consult for that question is `responded`.
-
-### 6. Expert inbox (Atlas)
-
-New route `src/routes/_authenticated/inbox.tsx`:
-- Lists `expert_consults` where `expert_user_id = auth.uid()` grouped by status.
-- Detail view shows the full structured ask, the linked question, a response composer, and three secondary actions: **Need more info**, **Suggest a different expert** (opens a small SME picker), **Close**.
-- Submitting a response writes back to `expert_consults.response_body`, status=`responded`; a trigger (or the server fn) also writes the response into the question's `comments` thread so it lands in the reconciliation row, and into Vault as a Tier-2 record via the existing `mission_vault_documents` path (`source_type='expert_consult'`).
-- Add an unread badge to the global nav for the inbox.
-
-### 7. Notifications
-
-- In-app: a toast + a row in an existing notifications mechanism when a consult lands in someone's inbox (we'll reuse `signals` of type `expert_consult` since there is no dedicated notification table).
-- No email in v1 unless you want it — say the word and I'll add it via the existing email queue.
-
----
-
-### Out of scope for this pass
-
-- Editing the curated `expert_directory` from the UI (seed a few rows in the migration; admin CRUD page can be a follow-up).
-- SLA enforcement / auto-escalation when an expert doesn't reply.
-- SMS / Slack notifications.
-
----
-
-### Open questions before I build
-
-1. **External expert directory** — should this be seeded empty (admins add later) or do you want me to scaffold an admin CRUD page for `expert_directory` in this same pass?
-2. **Expert inbox location** — top-level `/inbox` route, or nested under `/atrium`? (Atrium already exists.)
-3. **Auto-close** — when the requester accepts a response, should the consult auto-close, or do you want an explicit "Mark Resolved" by the requester?
-
-Tell me how to resolve those three and I'll ship it.
+## Files touched
+- New migration (profiles.last_login_at, get_user_state function).
+- `src/lib/atlas-invites.functions.ts` — add `loadUser`, `sendOfficialInvite`, `listTeamRoster`.
+- `src/routes/_authenticated/admin/users.tsx` — rebuild as unified Team view.
+- `src/routes/_authenticated/admin/invites.tsx` — replace component with redirect to `/admin/users`.
+- `src/routes/_authenticated/route.tsx` — add ACTIVE gate.
+- `src/components/AtlasLoginPage.tsx` — stamp `last_login_at` on success.
