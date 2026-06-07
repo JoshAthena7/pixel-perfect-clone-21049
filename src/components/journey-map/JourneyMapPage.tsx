@@ -550,6 +550,11 @@ export function JourneyMapPage() {
       <div className="mx-auto max-w-[1600px] px-6 py-8 flex gap-6">
         {/* MAIN COLUMN */}
         <div className="flex-1 min-w-0">
+          {missionId && (
+            <div className="mb-6">
+              <MissionSetupChecklist missionId={missionId} />
+            </div>
+          )}
           {/* Personas */}
           <div className="mb-6">
             <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground mb-2">Filter by role</div>
