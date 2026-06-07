@@ -928,7 +928,7 @@ function IrisMissionBrief({ greeting, firstName, missionId, brief }: { greeting:
           }}>
             <div style={{ marginTop: 1, flexShrink: 0 }}>{a.icon}</div>
             <div>
-              <Link to={a.to as any} params={{ missionId }} style={{ fontSize: 12, fontWeight: 700, color: a.titleColor, textDecoration: "none" }}>{a.title}</Link>
+              <Link to={a.to as any} params={{ missionId } as any} style={{ fontSize: 12, fontWeight: 700, color: a.titleColor, textDecoration: "none" }}>{a.title}</Link>
               <div style={{ fontSize: 12, color: C.textMuted, lineHeight: 1.5, marginTop: 2 }}>{a.text}</div>
             </div>
           </div>
