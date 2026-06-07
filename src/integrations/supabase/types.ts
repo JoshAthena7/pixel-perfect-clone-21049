@@ -5009,6 +5009,7 @@ export type Database = {
           has_seen_orientation: boolean
           id: string
           is_platform_admin: boolean
+          last_login_at: string | null
           last_seen_signals_at: string | null
           notable_wins: Json
           onboarded_at: string | null
@@ -5043,6 +5044,7 @@ export type Database = {
           has_seen_orientation?: boolean
           id: string
           is_platform_admin?: boolean
+          last_login_at?: string | null
           last_seen_signals_at?: string | null
           notable_wins?: Json
           onboarded_at?: string | null
@@ -5077,6 +5079,7 @@ export type Database = {
           has_seen_orientation?: boolean
           id?: string
           is_platform_admin?: boolean
+          last_login_at?: string | null
           last_seen_signals_at?: string | null
           notable_wins?: Json
           onboarded_at?: string | null
@@ -6795,6 +6798,7 @@ export type Database = {
         Args: { _engagement_id: string }
         Returns: string
       }
+      get_user_state: { Args: { _email: string }; Returns: string }
       has_mission_role: {
         Args: { _mission_id: string; _roles: string[]; _user_id: string }
         Returns: boolean

@@ -12,10 +12,25 @@ import { useIsAdmin } from "@/hooks/useAccess";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
-  beforeLoad: async () => {
+  beforeLoad: async ({ location }) => {
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user) {
       throw redirect({ to: "/login" });
+    }
+    // Three-state gate: anyone not ACTIVE (onboarded) and not a platform admin
+    // is sent to /welcome to finish onboarding. Platform admins bypass so they
+    // can never lock themselves out of Olympus.
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("has_onboarded,is_platform_admin")
+      .eq("id", data.user.id)
+      .maybeSingle();
+    const isAdmin = prof?.is_platform_admin === true;
+    const onboarded = prof?.has_onboarded === true;
+    const path = location.pathname;
+    const onWelcome = path === "/welcome" || path.startsWith("/welcome/");
+    if (!onboarded && !isAdmin && !onWelcome) {
+      throw redirect({ to: "/welcome" });
     }
     return { user: data.user };
   },

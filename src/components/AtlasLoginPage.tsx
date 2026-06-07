@@ -34,7 +34,15 @@ export function AtlasLoginPage() {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       toast.success("Signed in.");
-      if (data.user) await routeAfterAuth(data.user.id);
+      if (data.user) {
+        // Stamp last login (RLS: profiles_self_update allows this).
+        supabase
+          .from("profiles")
+          .update({ last_login_at: new Date().toISOString() })
+          .eq("id", data.user.id)
+          .then(() => undefined);
+        await routeAfterAuth(data.user.id);
+      }
     } catch (err: any) {
       toast.error(err?.message ?? "Could not sign in");
     } finally {
