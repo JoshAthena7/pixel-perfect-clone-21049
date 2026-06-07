@@ -31,7 +31,7 @@ import { SupportCenterMount } from "@/components/v2/SupportCenter";
 import { BriefRoomPinned } from "@/components/brief-room/BriefRoomPinned";
 import athenaSgLogo from "@/assets/athena-sg-lockup-dark.png.asset.json";
 import athenaMark from "@/assets/athena-mark-v3.png.asset.json";
-import atlasWordmark from "@/assets/atlas-wordmark-dark.png.asset.json";
+import atlasWordmark from "@/assets/atlas-wordmark-optical.png";
 
 // ─── Room detection (three rooms inside a mission) ─────────────────────────
 type Room = "mission" | "studio" | "brief" | null;
@@ -156,9 +156,9 @@ function TopBar({
             />
             <span className="atlas-gold-dot" aria-hidden />
             <img
-              src={atlasWordmark.url}
+              src={atlasWordmark}
               alt="ATLAS"
-              className="h-8 w-auto object-contain select-none"
+              className="h-[14px] w-auto object-contain select-none"
               draggable={false}
               style={{ filter: "brightness(1.1) drop-shadow(0 0 6px rgba(201,168,76,0.25))" }}
             />
@@ -175,9 +175,9 @@ function TopBar({
             />
             <span className="atlas-gold-dot" aria-hidden />
             <img
-              src={atlasWordmark.url}
+              src={atlasWordmark}
               alt="ATLAS"
-              className="h-8 w-auto object-contain select-none"
+              className="h-[14px] w-auto object-contain select-none"
               draggable={false}
               style={{ filter: "brightness(1.1) drop-shadow(0 0 6px rgba(201,168,76,0.25))" }}
             />

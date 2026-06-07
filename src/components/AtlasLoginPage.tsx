@@ -3,7 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import athenaMark from "@/assets/athena-mark-v3.png.asset.json";
-import atlasWordmark from "@/assets/atlas-wordmark-dark.png.asset.json";
+import atlasWordmark from "@/assets/atlas-wordmark-optical.png";
 import athenaSgLockup from "@/assets/athena-sg-lockup-dark.png.asset.json";
 
 
@@ -80,9 +80,9 @@ export function AtlasLoginPage() {
             />
             <span className="atlas-gold-dot" aria-hidden style={{ width: 9, height: 9 }} />
             <img
-              src={atlasWordmark.url}
+              src={atlasWordmark}
               alt="ATLAS"
-              className="h-16 w-auto object-contain"
+              className="h-7 w-auto object-contain"
               draggable={false}
               style={{ filter: "brightness(1.08)" }}
             />
