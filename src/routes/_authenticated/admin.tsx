@@ -128,7 +128,7 @@ function MissionSwitcher({ missions, selected, onPick }: {
   }, [open]);
 
   if (missions.length === 0) {
-    return <div className="text-xs text-muted-foreground">No missions yet</div>;
+    return <div className="text-xs text-muted-foreground">No missions selected</div>;
   }
 
   return (
