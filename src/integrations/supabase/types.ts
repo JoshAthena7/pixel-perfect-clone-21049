@@ -6357,6 +6357,78 @@ export type Database = {
           },
         ]
       }
+      section_briefs: {
+        Row: {
+          answers_submitted_at: string | null
+          content: Json | null
+          created_at: string
+          created_by: string | null
+          id: string
+          mission_id: string
+          question_set: Json | null
+          question_status: string
+          questions_generated_at: string | null
+          refined_brief: Json | null
+          refined_brief_generated_at: string | null
+          refined_brief_version: number
+          section_id: string | null
+          section_name: string
+          updated_at: string
+          writer_answers: Json | null
+        }
+        Insert: {
+          answers_submitted_at?: string | null
+          content?: Json | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          mission_id: string
+          question_set?: Json | null
+          question_status?: string
+          questions_generated_at?: string | null
+          refined_brief?: Json | null
+          refined_brief_generated_at?: string | null
+          refined_brief_version?: number
+          section_id?: string | null
+          section_name: string
+          updated_at?: string
+          writer_answers?: Json | null
+        }
+        Update: {
+          answers_submitted_at?: string | null
+          content?: Json | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          mission_id?: string
+          question_set?: Json | null
+          question_status?: string
+          questions_generated_at?: string | null
+          refined_brief?: Json | null
+          refined_brief_generated_at?: string | null
+          refined_brief_version?: number
+          section_id?: string | null
+          section_name?: string
+          updated_at?: string
+          writer_answers?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "section_briefs_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "section_briefs_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "mission_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       signals: {
         Row: {
           confidence: number | null
