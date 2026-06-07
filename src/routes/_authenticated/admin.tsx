@@ -254,9 +254,6 @@ function IntelligenceSectionHeader() {
         style={{ width: 6, height: 6, borderRadius: 999, background: "var(--iris, #22d3ee)" }}
       />
       <span>Oracle</span>
-      <span className="ml-auto text-[9px] font-normal tracking-[0.15em] text-muted-foreground normal-case">
-        Intelligence
-      </span>
     </div>
   );
 }
