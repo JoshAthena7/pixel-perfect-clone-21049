@@ -550,7 +550,7 @@ export function JourneyMapPage() {
           {/* Timeline */}
           <div className="rounded-xl border border-border bg-surface/40 p-6">
             <div className="flex items-stretch gap-2">
-              {STAGES.map((s, i) => {
+              {stages.map((s, i) => {
                 const isSelected = i === selected;
                 const isActive = s.status === "active";
                 const color = statusColor(s.status);
@@ -610,7 +610,7 @@ export function JourneyMapPage() {
 
 
                     {/* Transition indicator */}
-                    {i < STAGES.length - 1 && (
+                    {i < stages.length - 1 && (
                       <div className="relative mt-3 flex items-center justify-center">
                         <div
                           className="absolute left-1/2 right-[-50%] top-1/2 h-px -translate-y-1/2"
@@ -628,9 +628,9 @@ export function JourneyMapPage() {
                       </div>
                     )}
 
-                    {openTransition === i && i < STAGES.length - 1 && (
+                    {openTransition === i && i < stages.length - 1 && (
                       <div className="mt-2 rounded-md border border-border bg-background p-2 text-[10px] text-muted-foreground">
-                        <div className="mb-1 font-semibold uppercase tracking-[0.16em] text-foreground">To unlock {STAGES[i + 1].name}</div>
+                        <div className="mb-1 font-semibold uppercase tracking-[0.16em] text-foreground">To unlock {stages[i + 1].name}</div>
                         <ul className="space-y-1">
                           {s.nextActions.map((a) => (
                             <li key={a} className="flex items-start gap-1.5">
