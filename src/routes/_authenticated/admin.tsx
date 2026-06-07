@@ -8,7 +8,7 @@ import {
   ArrowLeft, ChevronDown, Zap,
   LayoutGrid, ClipboardCheck, UserCog, History, Brain,
   UserPlus, Activity,
-  ShieldAlert, UserMinus, ExternalLink, Megaphone,
+  ShieldAlert, UserMinus, Megaphone,
   Globe, Inbox, TrendingUp, Gauge, Compass,
 } from "lucide-react";
 
