@@ -167,15 +167,20 @@ export function PhoneAFriendOverlay({
             />
           )}
           {step === 2 && (
-            <Step2ExpertMatch
-              internalLoading={internalLoading}
-              internalMatches={internalMatches ?? null}
-              externalLoading={externalLoading}
-              externalMatches={externalMatches}
-              selected={selected}
-              setSelected={setSelected}
-              hasQuestion={!!activeQuestionId}
-            />
+            <>
+              {activeQuestionId && (
+                <PrismContextBanner missionId={missionId} questionId={activeQuestionId} />
+              )}
+              <Step2ExpertMatch
+                internalLoading={internalLoading}
+                internalMatches={internalMatches ?? null}
+                externalLoading={externalLoading}
+                externalMatches={externalMatches}
+                selected={selected}
+                setSelected={setSelected}
+                hasQuestion={!!activeQuestionId}
+              />
+            </>
           )}
           {step === 3 && (
             <Step3Ask
