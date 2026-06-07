@@ -633,20 +633,6 @@ function MissionBrief() {
       }}
       className="text-foreground"
     >
-      <Link
-        to="/missions/$missionId"
-        params={{ missionId }}
-        className="fixed right-6 top-20 z-40 inline-flex items-center gap-2 rounded-md border px-5 py-3 text-[12px] font-black uppercase tracking-[0.18em] shadow-2xl transition hover:-translate-y-0.5"
-        style={{
-          background: "var(--athena-gold, #f59e0b)",
-          borderColor: "rgba(255,255,255,0.28)",
-          color: "#060b14",
-          boxShadow: "0 16px 48px rgba(245,158,11,0.32)",
-        }}
-        aria-label="Go to Flight Deck"
-      >
-        <Plane className="h-4 w-4" /> Flight Deck
-      </Link>
 
       {/* Sticky mini-bar */}
       {scrolled && mission && (
