@@ -190,6 +190,19 @@ function BriefPrompt({ missionId, userId }: { missionId: string; userId: string 
         >
           {opened ? "Resume brief" : "Open brief"}
         </Link>
+        {opened && (
+          <button
+            type="button"
+            onClick={() => {
+              markBriefCompleted(userId, missionId);
+              setProgress("completed");
+            }}
+            className="inline-flex items-center gap-1.5 rounded-md border border-emerald-300/40 bg-emerald-300/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-100 hover:bg-emerald-300/20"
+          >
+            <Check className="h-3 w-3" strokeWidth={3} />
+            I've finished reading
+          </button>
+        )}
         <button
           type="button"
           onClick={dismiss}
