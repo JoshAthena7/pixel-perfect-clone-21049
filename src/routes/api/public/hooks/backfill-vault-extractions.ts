@@ -7,12 +7,18 @@ export const Route = createFileRoute("/api/public/hooks/backfill-vault-extractio
   server: {
     handlers: {
       POST: async ({ request }) => handle(request),
-      GET: async ({ request }) => handle(request),
     },
   },
 });
 
-async function handle(_request: Request) {
+async function handle(request: Request) {
+  const provided =
+    request.headers.get("x-cron-secret") ?? request.headers.get("apikey");
+  const expected = process.env.CRON_HOOK_SECRET;
+  if (!expected || !provided || provided !== expected) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { extractAndEmbedVaultDoc } = await import("@/lib/vault-extract.server");
 
@@ -26,20 +32,21 @@ async function handle(_request: Request) {
     .limit(limit);
 
   if (error) {
-    return new Response(JSON.stringify({ ok: false, error: error.message }), {
+    console.error("[backfill-vault-extractions] query failed", error);
+    return new Response(JSON.stringify({ ok: false }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
   }
 
-  const results: Array<{ id: string; status: string; chunks: number; error?: string }> = [];
+  const results: Array<{ id: string; status: string; chunks: number }> = [];
   for (const row of pending ?? []) {
     const r = await extractAndEmbedVaultDoc(supabaseAdmin as any, row.id);
-    results.push({ id: row.id, status: r.status, chunks: r.chunks, error: r.error });
+    results.push({ id: row.id, status: r.status, chunks: r.chunks });
   }
 
   return new Response(
-    JSON.stringify({ ok: true, processed: results.length, results }),
+    JSON.stringify({ ok: true, processed: results.length }),
     { status: 200, headers: { "Content-Type": "application/json" } },
   );
 }
