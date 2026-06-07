@@ -7,7 +7,7 @@ import {
   Zap, CheckCircle2, AlertCircle, Bell, Gavel, Calendar, XCircle, Sparkles,
   Check, Circle, Link2,
 } from "lucide-react";
-import lighthouse from "@/assets/briefing-lighthouse.jpg";
+
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/brief")({
   ssr: false,
