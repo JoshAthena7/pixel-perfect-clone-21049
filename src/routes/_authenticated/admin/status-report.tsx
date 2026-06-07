@@ -59,7 +59,7 @@ function StatusReportPage() {
         {missionsQuery.isLoading && <div className="text-sm text-slate-500">Loading…</div>}
         {missionsQuery.data && missionsQuery.data.length === 0 && (
           <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-8 text-center text-sm text-slate-400">
-            You're not currently the PM on any mission. The Status Report is available to project managers.
+            No missions to report on yet. The Status Report is available to project managers and platform admins.
           </div>
         )}
 
