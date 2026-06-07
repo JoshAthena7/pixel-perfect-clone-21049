@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { logOlympusAction } from "@/lib/audit";
 import { MissionReadinessPanel, ReadinessChip } from "@/components/v2/MissionReadinessPanel";
 import { IrisGreeting } from "@/components/v2/IrisGreeting";
-import { DeveloperResetCard } from "@/components/admin/DeveloperResetCard";
+
 import { IrisHealthCheckCard } from "@/components/admin/IrisHealthCheckCard";
 import { RefreshIrisCard } from "@/components/admin/RefreshIrisCard";
 import { BackfillEmbeddingsCard } from "@/components/admin/BackfillEmbeddingsCard";
