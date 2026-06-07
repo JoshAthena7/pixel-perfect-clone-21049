@@ -66,6 +66,7 @@ import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminStatusReportRouteImport } from './routes/_authenticated/admin/status-report'
 import { Route as AuthenticatedAdminSourceLibraryRouteImport } from './routes/_authenticated/admin/source-library'
 import { Route as AuthenticatedAdminSourceFinderRouteImport } from './routes/_authenticated/admin/source-finder'
+import { Route as AuthenticatedAdminSmeDirectoryRouteImport } from './routes/_authenticated/admin/sme-directory'
 import { Route as AuthenticatedAdminScoreMeRouteImport } from './routes/_authenticated/admin/score-me'
 import { Route as AuthenticatedAdminRightToDeletionRouteImport } from './routes/_authenticated/admin/right-to-deletion'
 import { Route as AuthenticatedAdminReviewQueueRouteImport } from './routes/_authenticated/admin/review-queue'
@@ -431,6 +432,12 @@ const AuthenticatedAdminSourceFinderRoute =
   AuthenticatedAdminSourceFinderRouteImport.update({
     id: '/source-finder',
     path: '/source-finder',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminSmeDirectoryRoute =
+  AuthenticatedAdminSmeDirectoryRouteImport.update({
+    id: '/sme-directory',
+    path: '/sme-directory',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminScoreMeRoute =
@@ -829,6 +836,7 @@ export interface FileRoutesByFullPath {
   '/admin/review-queue': typeof AuthenticatedAdminReviewQueueRoute
   '/admin/right-to-deletion': typeof AuthenticatedAdminRightToDeletionRoute
   '/admin/score-me': typeof AuthenticatedAdminScoreMeRoute
+  '/admin/sme-directory': typeof AuthenticatedAdminSmeDirectoryRoute
   '/admin/source-finder': typeof AuthenticatedAdminSourceFinderRoute
   '/admin/source-library': typeof AuthenticatedAdminSourceLibraryRoute
   '/admin/status-report': typeof AuthenticatedAdminStatusReportRoute
@@ -943,6 +951,7 @@ export interface FileRoutesByTo {
   '/admin/review-queue': typeof AuthenticatedAdminReviewQueueRoute
   '/admin/right-to-deletion': typeof AuthenticatedAdminRightToDeletionRoute
   '/admin/score-me': typeof AuthenticatedAdminScoreMeRoute
+  '/admin/sme-directory': typeof AuthenticatedAdminSmeDirectoryRoute
   '/admin/source-finder': typeof AuthenticatedAdminSourceFinderRoute
   '/admin/source-library': typeof AuthenticatedAdminSourceLibraryRoute
   '/admin/status-report': typeof AuthenticatedAdminStatusReportRoute
@@ -1059,6 +1068,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/review-queue': typeof AuthenticatedAdminReviewQueueRoute
   '/_authenticated/admin/right-to-deletion': typeof AuthenticatedAdminRightToDeletionRoute
   '/_authenticated/admin/score-me': typeof AuthenticatedAdminScoreMeRoute
+  '/_authenticated/admin/sme-directory': typeof AuthenticatedAdminSmeDirectoryRoute
   '/_authenticated/admin/source-finder': typeof AuthenticatedAdminSourceFinderRoute
   '/_authenticated/admin/source-library': typeof AuthenticatedAdminSourceLibraryRoute
   '/_authenticated/admin/status-report': typeof AuthenticatedAdminStatusReportRoute
@@ -1177,6 +1187,7 @@ export interface FileRouteTypes {
     | '/admin/review-queue'
     | '/admin/right-to-deletion'
     | '/admin/score-me'
+    | '/admin/sme-directory'
     | '/admin/source-finder'
     | '/admin/source-library'
     | '/admin/status-report'
@@ -1291,6 +1302,7 @@ export interface FileRouteTypes {
     | '/admin/review-queue'
     | '/admin/right-to-deletion'
     | '/admin/score-me'
+    | '/admin/sme-directory'
     | '/admin/source-finder'
     | '/admin/source-library'
     | '/admin/status-report'
@@ -1406,6 +1418,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/review-queue'
     | '/_authenticated/admin/right-to-deletion'
     | '/_authenticated/admin/score-me'
+    | '/_authenticated/admin/sme-directory'
     | '/_authenticated/admin/source-finder'
     | '/_authenticated/admin/source-library'
     | '/_authenticated/admin/status-report'
@@ -1903,6 +1916,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminSourceFinderRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/sme-directory': {
+      id: '/_authenticated/admin/sme-directory'
+      path: '/sme-directory'
+      fullPath: '/admin/sme-directory'
+      preLoaderRoute: typeof AuthenticatedAdminSmeDirectoryRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/score-me': {
       id: '/_authenticated/admin/score-me'
       path: '/score-me'
@@ -2334,6 +2354,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminReviewQueueRoute: typeof AuthenticatedAdminReviewQueueRoute
   AuthenticatedAdminRightToDeletionRoute: typeof AuthenticatedAdminRightToDeletionRoute
   AuthenticatedAdminScoreMeRoute: typeof AuthenticatedAdminScoreMeRoute
+  AuthenticatedAdminSmeDirectoryRoute: typeof AuthenticatedAdminSmeDirectoryRoute
   AuthenticatedAdminSourceFinderRoute: typeof AuthenticatedAdminSourceFinderRoute
   AuthenticatedAdminSourceLibraryRoute: typeof AuthenticatedAdminSourceLibraryRoute
   AuthenticatedAdminStatusReportRoute: typeof AuthenticatedAdminStatusReportRoute
@@ -2369,6 +2390,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminRightToDeletionRoute:
     AuthenticatedAdminRightToDeletionRoute,
   AuthenticatedAdminScoreMeRoute: AuthenticatedAdminScoreMeRoute,
+  AuthenticatedAdminSmeDirectoryRoute: AuthenticatedAdminSmeDirectoryRoute,
   AuthenticatedAdminSourceFinderRoute: AuthenticatedAdminSourceFinderRoute,
   AuthenticatedAdminSourceLibraryRoute: AuthenticatedAdminSourceLibraryRoute,
   AuthenticatedAdminStatusReportRoute: AuthenticatedAdminStatusReportRoute,
