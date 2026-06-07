@@ -63,9 +63,30 @@ function OlympusScoreMePage() {
       </p>
 
       <div className="mt-6 rounded-[12px] border border-white/10 bg-card px-6 py-5">
-        <div className="text-xs text-muted-foreground">Active mission</div>
-        <div className="mt-1 text-base font-semibold">{mission?.name ?? "No mission selected"}</div>
-        {mission?.client && <div className="text-xs text-muted-foreground">{mission.client}{mission.state ? ` · ${mission.state}` : ""}</div>}
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          {/* M-6: "Active mission" implied a status — rename to "Selected mission" and show the real status badge. */}
+          <div>
+            <div className="text-xs text-muted-foreground">Selected mission</div>
+            <div className="mt-1 text-base font-semibold">{mission?.name ?? "No mission selected"}</div>
+            {mission?.client && <div className="text-xs text-muted-foreground">{mission.client}{mission.state ? ` · ${mission.state}` : ""}</div>}
+          </div>
+          {mission?.status && (
+            <span
+              className="inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em]"
+              style={{
+                background: mission.status.toLowerCase() === "active" ? "rgba(34,197,94,0.15)" : "rgba(255,255,255,0.06)",
+                color: mission.status.toLowerCase() === "active" ? "rgb(34,197,94)" : "var(--muted-foreground)",
+                border: "1px solid rgba(255,255,255,0.1)",
+              }}
+            >
+              Status: {mission.status}
+            </span>
+          )}
+        </div>
+        {/* M-11: clarify that the list is driven by the Olympus mission switcher, not a filter. */}
+        <div className="mt-3 text-[11px] text-muted-foreground">
+          Score Me always scopes to the mission selected in the Olympus header. Switch the mission context above to score a different one.
+        </div>
         <button
           onClick={() => setOpen(true)}
           disabled={!missionId}
