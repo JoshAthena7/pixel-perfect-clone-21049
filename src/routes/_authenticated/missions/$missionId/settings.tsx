@@ -208,7 +208,7 @@ function IntelligenceProfileTab({ missionId }: { missionId: string }) {
     queryFn: async () => {
       const { data } = await supabase
         .from("missions")
-        .select("id,program_type,win_themes,priority_topics,competitors,state,client")
+        .select("id,program_type,win_themes,priority_topics,competitors,focus_areas,iris_search_terms,state,client")
         .eq("id", missionId)
         .maybeSingle();
       return data;
@@ -220,6 +220,8 @@ function IntelligenceProfileTab({ missionId }: { missionId: string }) {
     win_themes: [] as string[],
     priority_topics: [] as string[],
     competitors: [] as string[],
+    focus_areas: [] as string[],
+    iris_search_terms: [] as string[],
   });
 
   useEffect(() => {
@@ -229,6 +231,8 @@ function IntelligenceProfileTab({ missionId }: { missionId: string }) {
         win_themes: mission.win_themes ?? [],
         priority_topics: mission.priority_topics ?? [],
         competitors: mission.competitors ?? [],
+        focus_areas: (mission as any).focus_areas ?? [],
+        iris_search_terms: (mission as any).iris_search_terms ?? [],
       });
     }
   }, [mission]);
@@ -240,6 +244,8 @@ function IntelligenceProfileTab({ missionId }: { missionId: string }) {
         win_themes: form.win_themes,
         priority_topics: form.priority_topics,
         competitors: form.competitors,
+        focus_areas: form.focus_areas,
+        iris_search_terms: form.iris_search_terms,
       }).eq("id", missionId);
       if (error) throw error;
     },
@@ -282,6 +288,19 @@ function IntelligenceProfileTab({ missionId }: { missionId: string }) {
             placeholder="e.g. SDOH, value-based care, telehealth"
             tags={form.priority_topics}
             onChange={(priority_topics) => setForm({ ...form, priority_topics })}
+          />
+          <TagEditor
+            label="Focus Areas"
+            placeholder="e.g. Care Coordination, Quality Measures, Network Adequacy"
+            tags={form.focus_areas}
+            onChange={(focus_areas) => setForm({ ...form, focus_areas })}
+            tone="primary"
+          />
+          <TagEditor
+            label="IRIS Search Terms"
+            placeholder="Keywords IRIS scans intelligence sources for"
+            tags={form.iris_search_terms}
+            onChange={(iris_search_terms) => setForm({ ...form, iris_search_terms })}
           />
           <TagEditor
             label="Competitors"
