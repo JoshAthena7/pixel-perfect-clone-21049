@@ -117,7 +117,7 @@ async function fetchMissionBrief(missionId: string): Promise<MissionBrief> {
     supabase
       .from("missions")
       .select(
-        "id,name,client,state,state_agency,program_type,procurement_name,rfp_number,submission_date,pens_down_date,health,status,description,contract_value,contract_term,incumbent_name,win_themes,key_requirements,focus_areas,mission_highlights,client_strengths,client_win_strategy,program_goals",
+        "id,name,client,state,state_agency,program_type,procurement_name,rfp_number,submission_date,pens_down_date,health,status,description,contract_value,contract_term,incumbent_name,win_themes,key_requirements,focus_areas,mission_highlights,client_strengths,client_win_strategy,program_goals,created_at,iris_kickoff_at,iris_kickoff_status",
       )
       .eq("id", missionId)
       .maybeSingle(),
