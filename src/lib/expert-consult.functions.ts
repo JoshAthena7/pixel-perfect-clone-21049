@@ -13,7 +13,7 @@ export type ConsultContextSnapshot = {
   pens_down_date?: string | null;
   iris_risk_flag?: string | null;
   iris_risk_flag_text?: string | null;
-  iris_pre_brief?: Record<string, unknown> | null;
+  iris_pre_brief?: Record<string, any> | null;
   draft_so_far?: string | null;
   mission_name?: string | null;
   state?: string | null;
