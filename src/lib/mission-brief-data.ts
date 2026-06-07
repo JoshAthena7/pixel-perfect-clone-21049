@@ -160,7 +160,18 @@ async function fetchMissionBrief(missionId: string): Promise<MissionBrief> {
       .eq("mission_id", missionId)
       .order("created_at", { ascending: false })
       .limit(6),
+    supabase
+      .from("mission_timeline")
+      .select("question_deadline,pink_team,red_team,gold_team,exec_review,submission,orals,award")
+      .eq("mission_id", missionId)
+      .maybeSingle(),
+    supabase
+      .from("mission_debriefs")
+      .select("id", { count: "exact", head: true })
+      .eq("mission_id", missionId),
   ]);
+
+  const timelineRes = (await Promise.resolve(arguments)) as any;
 
   const m = missionRes.data;
   if (!m) throw new Error("Mission not found");
