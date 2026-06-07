@@ -942,7 +942,7 @@ function FirmIntel({
 
 
 
-type MissionCardQ = { id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null };
+type MissionCardQ = { id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null; status: string | null };
 
 function MissionCardActions({ missionId }: { missionId: string }) {
   const nav = useNavigate();
