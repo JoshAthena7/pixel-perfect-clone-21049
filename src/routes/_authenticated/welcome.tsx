@@ -15,6 +15,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { markOnboardingComplete } from "@/lib/atlas-invites.functions";
 import atlasWordmark from "@/assets/atlas-wordmark-dark.png.asset.json";
+import athenaMark from "@/assets/athena-mark-v3.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/welcome")({
   component: WelcomePage,
@@ -142,13 +143,22 @@ function WelcomePage() {
     >
       <div className="w-full max-w-3xl">
         <div className="text-center mb-8 px-2">
-          <img
-            src={atlasWordmark.url}
-            alt="ATLAS"
-            draggable={false}
-            className="mx-auto h-12 w-auto object-contain mb-3 select-none"
-            style={{ filter: "brightness(1.12) drop-shadow(0 0 6px rgba(201,168,76,0.25))" }}
-          />
+          <div className="flex items-center justify-center gap-4 mb-3">
+            <img
+              src={athenaMark.url}
+              alt=""
+              aria-hidden
+              draggable={false}
+              className="h-12 w-12 object-contain select-none"
+            />
+            <img
+              src={atlasWordmark.url}
+              alt="ATLAS"
+              draggable={false}
+              className="h-12 w-auto object-contain select-none"
+              style={{ filter: "brightness(1.12) drop-shadow(0 0 6px rgba(201,168,76,0.25))" }}
+            />
+          </div>
           <div className="text-[10px] uppercase tracking-[0.32em] text-amber-100/55">
             Intelligence · Coordination · Mission Execution
           </div>
