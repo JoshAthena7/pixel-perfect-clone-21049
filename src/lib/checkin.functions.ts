@@ -265,6 +265,15 @@ export const submitCheckin = createServerFn({ method: "POST" })
 // ===== Authed: PM dashboard data =====
 
 async function assertPMOnMission(supabase: any, missionId: string, userId: string) {
+  // H-10: platform admins bypass the per-mission PM gate.
+  const { data: adminRoles } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .limit(1);
+  if ((adminRoles ?? []).length > 0) return;
+
   const { data } = await supabase
     .from("mission_members")
     .select("role")
