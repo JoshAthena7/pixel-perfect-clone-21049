@@ -1,6 +1,7 @@
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { hasSeenBrief } from "@/lib/brief-seen";
 
 export const Route = createFileRoute("/_authenticated/flight-deck")({
   ssr: false,
@@ -26,7 +27,10 @@ function FlightDeckResolver() {
 
       const first = memberships?.[0];
 
-      return first?.mission_id as string | undefined;
+      return {
+        userId: user.id,
+        missionId: first?.mission_id as string | undefined,
+      };
     },
   });
 
@@ -34,7 +38,7 @@ function FlightDeckResolver() {
     return <div className="px-6 py-12 text-sm text-muted-foreground">Opening Flight Deck…</div>;
   }
 
-  if (error || !data) {
+  if (error || !data?.missionId) {
     return (
       <div className="mx-auto max-w-xl px-6 py-16 text-center">
         <h1 className="text-lg font-semibold">No mission Flight Deck available</h1>
@@ -46,5 +50,11 @@ function FlightDeckResolver() {
     );
   }
 
-  return <Navigate to="/missions/$missionId/flight-deck" params={{ missionId: data }} replace />;
+  // First-time visitors to a mission land on the Mission Brief (orientation).
+  // Returning users go straight to Flight Deck (operational home).
+  if (!hasSeenBrief(data.userId, data.missionId)) {
+    return <Navigate to="/missions/$missionId/brief" params={{ missionId: data.missionId }} replace />;
+  }
+
+  return <Navigate to="/missions/$missionId/flight-deck" params={{ missionId: data.missionId }} replace />;
 }

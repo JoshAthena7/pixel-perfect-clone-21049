@@ -74,6 +74,16 @@ function MissionBriefingRoomPage() {
 
   useEffect(() => {
     try { localStorage.setItem(`atlas.lastRoom.${missionId}`, "briefing"); } catch {}
+    // Mark brief as seen for this user+mission so FlightDeckResolver routes
+    // subsequent logins straight to Flight Deck.
+    (async () => {
+      try {
+        const { supabase } = await import("@/integrations/supabase/client");
+        const { markBriefSeen } = await import("@/lib/brief-seen");
+        const { data } = await supabase.auth.getUser();
+        if (data.user) markBriefSeen(data.user.id, missionId);
+      } catch { /* noop */ }
+    })();
   }, [missionId]);
 
   const greeting = (() => {
