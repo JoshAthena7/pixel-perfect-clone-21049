@@ -57,13 +57,22 @@
   --yellow: oklch(0.78 0.16 75);               /* #f59e0b */
   --red: oklch(0.66 0.22 25);                  /* #ef4444 */
 
-  /* DESIGN-1 (BRAND): IRIS visual identity */
-  --iris: #0891b2;
-  --iris-rgb: 8, 145, 178;
-  --iris-hover: #0e7490;
-  --iris-subtle: rgba(8, 145, 178, 0.10);
-  --iris-pulse: rgba(8, 145, 178, 0.30);
-  --iris-border: rgba(8, 145, 178, 0.40);
+  /* IRIS BRAND v2 — mystical eye-and-star identity.
+     Indigo · violet · cyan gradient. Replaces legacy cyan-only palette.
+     All consumers of var(--iris) inherit the shift automatically. */
+  --iris: #8b6dff;                    /* primary violet-indigo */
+  --iris-rgb: 139, 109, 255;
+  --iris-hover: #a78bfa;
+  --iris-indigo: #6366f1;
+  --iris-violet: #a78bfa;
+  --iris-cyan: #67e8f9;
+  --iris-deep: #4338ca;
+  --iris-subtle: rgba(139, 109, 255, 0.10);
+  --iris-pulse: rgba(139, 109, 255, 0.32);
+  --iris-border: rgba(139, 109, 255, 0.42);
+  --iris-gradient: linear-gradient(135deg, #6366f1 0%, #8b6dff 45%, #67e8f9 100%);
+  --iris-gradient-soft: linear-gradient(135deg, rgba(99,102,241,0.18) 0%, rgba(139,109,255,0.16) 45%, rgba(103,232,249,0.18) 100%);
+  --iris-glow: 0 0 24px rgba(139, 109, 255, 0.45), 0 0 60px rgba(103, 232, 249, 0.18);
 
   /* ATHENA BRAND tokens — official brand palette */
   --athena-navy: #1B3A6B;
@@ -80,10 +89,10 @@
   --vault-glow-edge: rgba(245, 158, 11, 0.06);
   --vault-gold: #f59e0b;
   --vault-gold-dim: rgba(245, 158, 11, 0.6);
-  --oracle-glow: rgba(8, 145, 178, 0.15);
-  --oracle-glow-strong: rgba(8, 145, 178, 0.40);
-  --oracle-glow-edge: rgba(8, 145, 178, 0.06);
-  --oracle-active: #0891b2;
+  --oracle-glow: rgba(139, 109, 255, 0.18);
+  --oracle-glow-strong: rgba(139, 109, 255, 0.42);
+  --oracle-glow-edge: rgba(139, 109, 255, 0.06);
+  --oracle-active: #8b6dff;
 
   /* ATLAS V1 — single-mission build tokens */
   --v1-bg: #0A0C10;
@@ -94,7 +103,7 @@
   --v1-muted: #64748B;
   --v1-primary: #C9922A;
   --v1-primary-hover: #E8B84B;
-  --v1-iris: #6366F1;
+  --v1-iris: #8b6dff;
   --v1-green: #10B981;
   --v1-amber: #F59E0B;
   --v1-red: #EF4444;
