@@ -486,7 +486,33 @@ function WinThemesAlignment({ missionId, brief }: { missionId: string; brief: Mi
 }
 
 function OracleBriefing({ missionId, brief }: { missionId: string; brief: MissionBrief }) {
-  const signals = brief.signals;
+  // Pull from the same IRIS data source as the top brief strip.
+  const generate = useServerFn(generateMissionBrief);
+  const { data: iris } = useQuery({
+    queryKey: ["iris-mission-brief", missionId],
+    queryFn: async () => {
+      try {
+        return await generate({ data: { missionId, force: false } });
+      } catch {
+        return null;
+      }
+    },
+    staleTime: 15 * 60 * 1000,
+  });
+
+  // Split the IRIS brief prose into 2–3 short bullet "insights".
+  const bullets = useMemo(() => {
+    const text = (iris?.brief ?? "").trim();
+    if (!text) return [] as string[];
+    return text
+      .split(/(?<=[.!?])\s+/)
+      .map((s) => s.trim())
+      .filter((s) => s.length > 4)
+      .slice(0, 3);
+  }, [iris?.brief]);
+
+  const fallbackSignals = brief.signals.slice(0, 3);
+
   return (
     <div style={{ ...card, padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
       <div>
@@ -498,11 +524,23 @@ function OracleBriefing({ missionId, brief }: { missionId: string; brief: Missio
         <div style={{ fontSize: 10, fontWeight: 600, color: C.iris, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>
           Top Insights
         </div>
-        {signals.length === 0 ? (
-          <div style={empty}>IRIS hasn't surfaced any signals for this mission yet.</div>
-        ) : (
+        {bullets.length > 0 ? (
           <ol style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
-            {signals.slice(0, 3).map((s, i) => (
+            {bullets.map((b, i) => (
+              <li key={i} style={{ display: "flex", gap: 8, fontSize: 12, color: C.textBody, lineHeight: 1.6 }}>
+                <span style={{
+                  flexShrink: 0, width: 18, height: 18, borderRadius: 999,
+                  background: "rgba(99,102,241,0.12)", color: C.iris,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 10, fontWeight: 700, marginTop: 1,
+                }}>{i + 1}</span>
+                <span>{b}</span>
+              </li>
+            ))}
+          </ol>
+        ) : fallbackSignals.length > 0 ? (
+          <ol style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
+            {fallbackSignals.map((s, i) => (
               <li key={s.id} style={{ display: "flex", gap: 8, fontSize: 12, color: C.textBody, lineHeight: 1.6 }}>
                 <span style={{
                   flexShrink: 0, width: 18, height: 18, borderRadius: 999,
@@ -514,10 +552,12 @@ function OracleBriefing({ missionId, brief }: { missionId: string; brief: Missio
               </li>
             ))}
           </ol>
+        ) : (
+          <div style={empty}>IRIS is still preparing this mission's briefing.</div>
         )}
       </div>
 
-      <Link to="/missions/$missionId/briefing" params={{ missionId }} style={linkBlue}>Go to Oracle <ArrowRight size={12} /></Link>
+      <Link to="/missions/$missionId/intel" params={{ missionId }} style={linkBlue}>View full brief <ArrowRight size={12} /></Link>
     </div>
   );
 }
