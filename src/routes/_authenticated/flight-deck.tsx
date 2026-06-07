@@ -1,7 +1,6 @@
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { hasSeenBrief } from "@/lib/brief-seen";
 
 export const Route = createFileRoute("/_authenticated/flight-deck")({
   ssr: false,
@@ -50,11 +49,6 @@ function FlightDeckResolver() {
     );
   }
 
-  // First-time visitors to a mission land on the Mission Brief (orientation).
-  // Returning users go straight to Flight Deck (operational home).
-  if (!hasSeenBrief(data.userId, data.missionId)) {
-    return <Navigate to="/missions/$missionId/brief" params={{ missionId: data.missionId }} replace />;
-  }
-
-  return <Navigate to="/missions/$missionId/flight-deck" params={{ missionId: data.missionId }} replace />;
+  // Always land on the Mission Brief first; users navigate into Flight Deck from there.
+  return <Navigate to="/missions/$missionId/brief" params={{ missionId: data.missionId }} replace />;
 }
