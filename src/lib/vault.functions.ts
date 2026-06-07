@@ -13,6 +13,26 @@ import {
 } from "./file-validation";
 import { assertNoPHI } from "./phi-detection";
 
+// Vault mutations (upload / delete) are admin-only — all setup lives in the
+// Olympus / Admin control room. Mission members can still view + download.
+async function assertAdmin(supabase: any, userId: string) {
+  const { data, error } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) {
+    throw new Error(
+      JSON.stringify({
+        error: "forbidden",
+        message: "Only platform admins can modify the Vault. Ask an admin to add or remove documents from the Olympus control room.",
+      }),
+    );
+  }
+}
+
 export const VAULT_DOC_TYPES = [
   "data_security",
   "contract",
