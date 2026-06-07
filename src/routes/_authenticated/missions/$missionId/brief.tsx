@@ -874,10 +874,7 @@ function MissionHealthCard() {
   );
 }
 
-function YoureBriefedCard({ missionId }: { missionId: string }) {
-  const goFlightDeck = () => {
-    try { localStorage.setItem(`atlas.lastRoom.${missionId}`, "flight-deck"); } catch {}
-  };
+function YoureBriefedCard({ missionId: _missionId }: { missionId: string }) {
   return (
     <div style={{ ...card, padding: 16, background: "#EFF6FF", borderColor: "#DBEAFE" }}>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
@@ -890,22 +887,11 @@ function YoureBriefedCard({ missionId }: { missionId: string }) {
         <div>
           <div style={{ fontSize: 14, fontWeight: 700, color: C.navy }}>You're briefed.<br />Ready to fly?</div>
           <div style={{ fontSize: 11, color: C.textMuted, lineHeight: 1.5, marginTop: 6 }}>
-            Enter the Flight Deck to check your status and manage your assignments.
+            Scroll down and use the Enter Flight Deck button to check your status and manage your assignments.
           </div>
         </div>
       </div>
-      <Link
-        to="/missions/$missionId/flight-deck"
-        params={{ missionId }}
-        onClick={goFlightDeck}
-        style={{
-          marginTop: 12, background: C.navy, color: "#fff", fontSize: 13, fontWeight: 600,
-          padding: "10px 14px", borderRadius: 6, textDecoration: "none",
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-        }}
-      >
-        Enter Flight Deck <ArrowRight size={14} />
-      </Link>
     </div>
   );
 }
+
