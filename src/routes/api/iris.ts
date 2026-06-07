@@ -18,7 +18,11 @@ export const Route = createFileRoute("/api/iris")({
 
         const url = new URL(request.url);
         const missionId = url.searchParams.get("missionId") ?? undefined;
-        return Response.json(await getIrisPayload(missionId));
+        const payload = await getIrisPayload(missionId, auth.user.id);
+        if ((payload as { error?: string }).error) {
+          return jsonError((payload as { error: string }).error, 403);
+        }
+        return Response.json(payload);
       },
     },
   },
