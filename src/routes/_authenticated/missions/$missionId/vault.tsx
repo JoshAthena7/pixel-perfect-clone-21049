@@ -329,10 +329,10 @@ function VaultPage() {
                 <div className="mt-4 space-y-2">
                   {items.length === 0 && (
                     <div className="rounded-md border border-dashed border-white/10 px-4 py-6 text-center text-xs text-muted-foreground">
-                      No document loaded.
-                      {isLead ? " Upload to satisfy this slot." : " Lead will upload shortly."}
+                      No document loaded. Admin will ingest via Olympus.
                     </div>
                   )}
+
                   {items.map((doc) => (
                     <div
                       key={doc.id}
