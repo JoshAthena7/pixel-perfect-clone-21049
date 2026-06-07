@@ -569,8 +569,9 @@ function ProfileSetupWizard({
               )
             )}
 
-
+            {step.key === "expertise" && (
               <>
+
                 <ChipPicker
                   values={form.expertise_areas}
                   options={expertiseOpts.map((o) => o.label)}
