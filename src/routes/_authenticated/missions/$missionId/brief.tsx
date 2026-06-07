@@ -167,47 +167,44 @@ function Hero({ missionId, brief }: { missionId: string; brief: MissionBrief }) 
     m.health === "Green" ? C.green : m.health === "Red" ? C.red : C.orange;
 
   return (
-    <div style={{ ...card, position: "relative", overflow: "hidden", padding: 0 }}>
-      <div style={{ position: "relative", padding: "24px 28px 20px", display: "flex", flexDirection: "column", gap: 14 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 32, flexWrap: "wrap" }}>
-          <div style={{ minWidth: 0, display: "flex", gap: 18, alignItems: "flex-start" }}>
-            <ClientLogoSlot missionId={missionId} />
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: C.iris, letterSpacing: "0.05em", textTransform: "uppercase" }}>
-                Mission Briefing Room
-              </div>
-              <h1 style={{
-                fontSize: 32, fontWeight: 800, color: C.textPrimary, lineHeight: 1.1,
-                margin: "6px 0 10px", letterSpacing: "-0.02em",
-              }}>
-                {m.name}
-              </h1>
-              <div style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.5 }}>
-                {m.client ?? "Unknown client"}
-                {subtitle && <><br />{subtitle}</>}
-              </div>
+    <div style={{ ...card, padding: "20px 24px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 24, flexWrap: "wrap" }}>
+        <div style={{ minWidth: 0, display: "flex", gap: 16, alignItems: "center" }}>
+          <ClientLogoSlot missionId={missionId} />
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: C.iris, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>
+              Mission Briefing Room
+            </div>
+            <h1 style={{
+              fontSize: 24, fontWeight: 700, color: C.textPrimary, lineHeight: 1.2,
+              margin: 0, letterSpacing: "-0.01em",
+            }}>
+              {m.name}
+            </h1>
+            <div style={{ fontSize: 13, color: C.textMuted, marginTop: 4 }}>
+              {[m.client, subtitle].filter(Boolean).join(" · ") || "Unknown client"}
             </div>
           </div>
+        </div>
 
-          <div style={{ display: "flex", gap: 0, alignItems: "stretch", flexShrink: 0 }}>
-            <MetricChip icon={<Clock size={12} />} label="Days to Submission" value={daysValue} sub={daysSub} />
-            <MetricDivider />
-            <MetricChip
-              icon={<Activity size={12} />}
-              label="Mission Status"
-              valueNode={<StatusPill text={statusText} color={healthColor} />}
-              sub={`Health: ${m.health ?? "Unknown"}`}
-            />
-            <MetricDivider />
-            <MetricChip
-              icon={<Users size={12} />}
-              label="Team Members"
-              value={String(brief.team.length)}
-              sub={brief.team.length === 0 ? "No team yet" : `${brief.team.length} assigned`}
-            />
-          </div>
+        <div style={{ display: "flex", gap: 28, alignItems: "center", flexShrink: 0 }}>
+          <HeaderStat label="Days to Submission" value={daysValue} sub={daysSub} />
+          <HeaderStat label="Status" valueNode={<StatusPill text={statusText} color={healthColor} />} sub={`Health: ${m.health ?? "Unknown"}`} />
+          <HeaderStat label="Team" value={String(brief.team.length)} sub={brief.team.length === 0 ? "No team yet" : `${brief.team.length} assigned`} />
         </div>
       </div>
+    </div>
+  );
+}
+
+function HeaderStat({ label, value, valueNode, sub }: { label: string; value?: string; valueNode?: React.ReactNode; sub: string }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+      <div style={{ fontSize: 10, fontWeight: 600, color: C.textMuted, letterSpacing: "0.06em", textTransform: "uppercase" }}>{label}</div>
+      <div style={{ fontSize: 18, fontWeight: 700, color: C.textPrimary, lineHeight: 1.1 }}>
+        {valueNode ?? value}
+      </div>
+      <div style={{ fontSize: 11, color: C.textMuted }}>{sub}</div>
     </div>
   );
 }
