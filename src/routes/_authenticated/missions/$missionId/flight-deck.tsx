@@ -6,7 +6,8 @@ import { toast } from "sonner";
 import { ArrowLeft, HelpCircle, BookOpen, X } from "lucide-react";
 import { createSignal } from "@/lib/signals";
 import { useEffect, useState } from "react";
-import { hasSeenBrief, markBriefSeen } from "@/lib/brief-seen";
+import { getBriefProgress, markBriefCompleted, type BriefProgress } from "@/lib/brief-seen";
+import { Check } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/flight-deck")({
   component: MissionFlightDeckPage,
