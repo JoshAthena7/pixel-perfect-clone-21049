@@ -276,7 +276,7 @@ function VaultPage() {
 
       {/* Slot grid */}
       {isLoading ? (
-        <div className="text-sm text-muted-foreground">Loading vault…</div>
+        <div className="text-sm text-muted-foreground">Scanning the vault…</div>
       ) : (
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           {TYPE_ORDER.map((type) => {

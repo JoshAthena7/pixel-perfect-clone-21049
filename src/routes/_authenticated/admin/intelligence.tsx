@@ -83,7 +83,7 @@ function IntelligenceLayersPage() {
       </div>
 
       <div className="mt-3 space-y-2">
-        {isLoading && <div className="text-sm text-muted-foreground">Loading…</div>}
+        {isLoading && <div className="text-sm text-muted-foreground">One moment…</div>}
         {!isLoading && rows.length === 0 && (
           <div className="rounded-md border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
             No entries yet. Click "New entry" to add one.

@@ -145,7 +145,7 @@ export function ClientClarificationsCard({ missionId, qaDeadline, canManage }: P
       )}
 
       {isLoading ? (
-        <div className="py-6 text-center text-[12px] text-muted-foreground">Loading…</div>
+        <div className="py-6 text-center text-[12px] text-muted-foreground">One moment…</div>
       ) : clarifications.length === 0 && !adding ? (
         <div className="py-6 text-center text-[12px] text-muted-foreground">
           No clarification questions yet.

@@ -136,7 +136,7 @@ function UsersPage() {
             {isLoading && (
               <tr>
                 <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                  Loading…
+                  Loading team roster…
                 </td>
               </tr>
             )}

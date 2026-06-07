@@ -86,7 +86,7 @@ export function MissionIntel() {
 
         {tab === "All Intelligence" && (
           <div className="space-y-2">
-            {isLoading && <div className="text-[color:var(--v1-muted)]">Loading…</div>}
+            {isLoading && <div className="text-[color:var(--v1-muted)]">Reading the room…</div>}
             {!isLoading && intel.length === 0 && (
               <div className="v1-card p-6 text-center text-[color:var(--v1-muted)]">
                 No intelligence items tagged to this mission yet.

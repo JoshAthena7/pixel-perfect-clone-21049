@@ -122,7 +122,7 @@ function SourceLibraryPage() {
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><td colSpan={7} className="px-3 py-8 text-center text-muted-foreground">Loading…</td></tr>
+              <tr><td colSpan={7} className="px-3 py-8 text-center text-muted-foreground">One moment…</td></tr>
             ) : sources.length === 0 ? (
               <tr><td colSpan={7} className="px-3 py-8 text-center text-muted-foreground">No sources match.</td></tr>
             ) : sources.map((s: any) => {

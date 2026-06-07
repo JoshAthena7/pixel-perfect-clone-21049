@@ -44,7 +44,7 @@ export function SectionsTracker() {
         <div className="text-xs text-[color:var(--v1-muted)] mt-1">{pct}% complete</div>
       </div>
 
-      {isLoading && <div className="text-[color:var(--v1-muted)]">Loading…</div>}
+      {isLoading && <div className="text-[color:var(--v1-muted)]">One moment…</div>}
 
       <div className="v1-card overflow-hidden">
         <table className="w-full text-sm">

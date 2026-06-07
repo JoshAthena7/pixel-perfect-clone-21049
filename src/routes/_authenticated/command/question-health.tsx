@@ -160,7 +160,7 @@ function QuestionHealthPage() {
 
       <Section icon={<AlertTriangle className="h-4 w-4 text-red-500" />} title="Requires Leadership Intervention" count={intervention.length}>
         {isLoading ? (
-          <Empty>Loading…</Empty>
+          <Empty>One moment…</Empty>
         ) : intervention.length === 0 ? (
           <Empty>All clear — no questions need intervention.</Empty>
         ) : (

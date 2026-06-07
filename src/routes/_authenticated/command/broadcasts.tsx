@@ -127,7 +127,7 @@ function BroadcastsPage() {
       </div>
 
       {isLoading ? (
-        <div className="text-sm text-muted-foreground">Loading…</div>
+        <div className="text-sm text-muted-foreground">One moment…</div>
       ) : broadcasts.length === 0 ? (
         <div className="rounded-md border border-border bg-surface px-6 py-16 text-center">
           <Megaphone className="h-8 w-8 mx-auto text-muted-foreground mb-3" />

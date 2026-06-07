@@ -22,7 +22,7 @@ export function MissionVault() {
       <h1 className="text-2xl font-bold tracking-tight text-[color:var(--v1-text)]">Mission Vault</h1>
       <p className="mt-2 text-sm text-[color:var(--v1-muted)]">NJ CSOC documents</p>
 
-      {isLoading && <div className="mt-6 text-[color:var(--v1-muted)]">Loading…</div>}
+      {isLoading && <div className="mt-6 text-[color:var(--v1-muted)]">Scanning the vault…</div>}
 
       {!isLoading && docs.length === 0 && (
         <div className="mt-8 v1-card p-10 text-center text-[color:var(--v1-muted)]">

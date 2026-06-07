@@ -228,7 +228,7 @@ function CheckinFeedPanel({
         )}
       </header>
 
-      {loading && <div className="text-sm text-slate-500">Loading…</div>}
+      {loading && <div className="text-sm text-slate-500">Gathering field reports…</div>}
 
       {data && (
         <>
@@ -389,7 +389,7 @@ function SectionStatusBoardPanel({ data, loading }: { data: any; loading: boolea
         </div>
       </header>
 
-      {loading && <div className="text-sm text-slate-500">Loading…</div>}
+      {loading && <div className="text-sm text-slate-500">Gathering field reports…</div>}
 
       {sorted.length === 0 && !loading && (
         <p className="text-sm text-slate-500">No sections defined for this mission yet.</p>

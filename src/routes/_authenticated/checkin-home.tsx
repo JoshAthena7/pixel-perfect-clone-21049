@@ -50,7 +50,7 @@ function CheckInHome() {
             Your current assignments
           </div>
           {isLoading ? (
-            <div className="text-sm text-muted-foreground">Loading…</div>
+            <div className="text-sm text-muted-foreground">One moment…</div>
           ) : rows.length === 0 ? (
             <div className="rounded-[10px] border border-dashed border-border bg-surface/40 px-6 py-10 text-center text-sm text-muted-foreground">
               You have no active assignments. Contact your PM.

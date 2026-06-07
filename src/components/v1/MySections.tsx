@@ -29,7 +29,7 @@ export function MySections() {
         NJ CSOC · {sections.length} assigned · {atRisk} at risk · {overdue} overdue
       </div>
 
-      {isLoading && <div className="mt-6 text-[color:var(--v1-muted)]">Loading…</div>}
+      {isLoading && <div className="mt-6 text-[color:var(--v1-muted)]">One moment…</div>}
 
       <div className="mt-6 v1-card overflow-hidden">
         <table className="w-full text-sm">

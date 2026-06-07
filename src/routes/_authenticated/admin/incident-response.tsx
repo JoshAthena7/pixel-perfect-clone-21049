@@ -95,7 +95,7 @@ function IncidentResponsePage() {
       </header>
 
       {isLoading || !draft ? (
-        <div className="py-12 text-center text-sm text-muted-foreground">Loading…</div>
+        <div className="py-12 text-center text-sm text-muted-foreground">One moment…</div>
       ) : (
         <div className="space-y-6">
           {SECTIONS.map((s) => (

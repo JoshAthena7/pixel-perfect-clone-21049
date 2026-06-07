@@ -439,7 +439,7 @@ function GatesTab({ missionId }: { missionId: string }) {
         </button>
       </div>
       {isLoading ? (
-        <div className="p-8 text-center text-sm text-muted-foreground">Loading…</div>
+        <div className="p-8 text-center text-sm text-muted-foreground">One moment…</div>
       ) : gates.length === 0 ? (
         <div className="p-12 text-center">
           <p className="text-sm text-foreground/90">No review gates configured.</p>
@@ -607,7 +607,7 @@ function ThemesTab({ missionId }: { missionId: string }) {
       </div>
 
       {isLoading ? (
-        <div className="rounded-[10px] border border-border bg-surface p-8 text-center text-sm text-muted-foreground">Loading…</div>
+        <div className="rounded-[10px] border border-border bg-surface p-8 text-center text-sm text-muted-foreground">One moment…</div>
       ) : themes.length === 0 ? (
         <div className="rounded-[10px] border border-border bg-surface p-12 text-center">
           <Sparkles className="mx-auto mb-3 h-6 w-6 text-muted-foreground" />
@@ -823,7 +823,7 @@ function SensitivitiesTab({ missionId }: { missionId: string }) {
       </p>
 
       {isLoading ? (
-        <div className="rounded-[10px] border border-border bg-surface p-8 text-center text-xs text-muted-foreground">Loading…</div>
+        <div className="rounded-[10px] border border-border bg-surface p-8 text-center text-xs text-muted-foreground">One moment…</div>
       ) : items.length === 0 ? (
         <div className="rounded-[10px] border border-dashed border-border bg-surface/50 p-10 text-center">
           <AlertTriangle className="mx-auto h-5 w-5 text-muted-foreground/60" />

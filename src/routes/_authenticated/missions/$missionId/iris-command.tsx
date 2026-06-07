@@ -119,7 +119,7 @@ function IrisCommandPage() {
   const flags = useMemo(() => questions.filter((q) => q.health === "red" || q.health === "yellow"), [questions]);
 
   if (meLoading) {
-    return <div className="mx-auto max-w-[1100px] px-10 py-12 text-sm text-muted-foreground">Loading…</div>;
+    return <div className="mx-auto max-w-[1100px] px-10 py-12 text-sm text-muted-foreground">One moment…</div>;
   }
 
   if (!allowed) {

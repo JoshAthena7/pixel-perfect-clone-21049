@@ -492,7 +492,7 @@ function FlightDeckPage() {
 
 
 
-  if (isLoading) return <div className="px-8 py-12 text-sm text-muted-foreground">Loading…</div>;
+  if (isLoading) return <div className="px-8 py-12 text-sm text-muted-foreground">One moment…</div>;
   if (!q) {
     return (
       <div className="px-8 py-12 text-sm">
@@ -1531,7 +1531,7 @@ function MyAssignments({
       </div>
       <div className="rounded-[10px] border bg-white/[0.02]" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
         {loadingAll ? (
-          <div className="px-4 py-6 text-[12px] text-muted-foreground">Loading…</div>
+          <div className="px-4 py-6 text-[12px] text-muted-foreground">One moment…</div>
         ) : list.length === 0 ? (
           <div className="px-4 py-6 text-[12px] text-muted-foreground">No assigned sections.</div>
         ) : list.map((mq, i) => {

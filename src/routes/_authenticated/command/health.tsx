@@ -92,7 +92,7 @@ export function HealthDashboardPage() {
       </div>
 
       {isLoading || !data ? (
-        <div className="text-sm text-muted-foreground">Loading…</div>
+        <div className="text-sm text-muted-foreground">One moment…</div>
       ) : view === "section" ? (
         <SectionView sections={data.sections} />
       ) : view === "writer" ? (
