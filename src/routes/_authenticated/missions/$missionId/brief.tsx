@@ -35,7 +35,7 @@ const C = {
   textBody: "#C0CAD8",
   textMuted: "#8B95A5",
   textFaint: "#64748B",
-  sidebarText: "#CBD5E1",
+  sidebarText: "rgba(255,255,255,0.18)",
   sidebarMuted: "#64748B",
 };
 
@@ -154,7 +154,7 @@ function Hero() {
       }} />
       <div style={{
         position: "absolute", top: 0, right: 0, bottom: 0, width: "60%",
-        background: "linear-gradient(to right, #FFFFFF 0%, rgba(255,255,255,0.85) 25%, rgba(255,255,255,0.3) 60%, rgba(255,255,255,0.05) 100%)",
+        background: "linear-gradient(to right, '#0f1722' 0%, rgba(15,23,34,0.92) 25%, rgba(15,23,34,0.55) 60%, rgba(15,23,34,0.15) 100%)",
       }} />
 
       <div style={{ position: "relative", padding: "24px 28px 20px", display: "flex", flexDirection: "column", gap: 14 }}>
@@ -498,7 +498,7 @@ function MissionMap({ missionId: _mid }: { missionId: string }) {
   const dot = (s: MapStatus) =>
     s === "completed" || s === "ontrack" ? C.green :
     s === "atrisk" ? C.orange :
-    s === "blocked" ? C.red : "#CBD5E1";
+    s === "blocked" ? C.red : "rgba(255,255,255,0.18)";
 
   return (
     <div style={{ ...card, padding: "20px 24px" }}>
@@ -513,8 +513,8 @@ function MissionMap({ missionId: _mid }: { missionId: string }) {
             {(["sections", "status", "owner"] as const).map((v) => (
               <button key={v} onClick={() => setView(v)} style={{
                 padding: "5px 12px", fontSize: 12, fontWeight: 600, textTransform: "capitalize",
-                background: view === v ? C.navy : "#fff",
-                color: view === v ? "#fff" : C.textMuted,
+                background: view === v ? C.gold : "transparent",
+                color: view === v ? "#0a1220" : C.textMuted,
                 border: "none", cursor: "pointer",
               }}>{v}</button>
             ))}
@@ -540,7 +540,7 @@ function MissionMap({ missionId: _mid }: { missionId: string }) {
               <div style={{
                 marginTop: 8, width: 18, height: 18, borderRadius: 999, background: dot(s.status),
                 display: "flex", alignItems: "center", justifyContent: "center", color: "#fff",
-                border: "3px solid #fff", boxShadow: `0 0 0 2px ${dot(s.status)}`,
+                border: `3px solid ${C.card}`, boxShadow: `0 0 0 2px ${dot(s.status)}`,
               }}>
                 {(s.status === "completed" || s.status === "ontrack") && <Check size={10} strokeWidth={3} />}
                 {s.status === "atrisk" && <AlertTriangle size={10} strokeWidth={3} />}
@@ -560,7 +560,7 @@ function MissionMap({ missionId: _mid }: { missionId: string }) {
           <Legend dot={C.green} label="On Track" />
           <Legend dot={C.orange} label="At Risk" tri />
           <Legend dot={C.red} label="Blocked" />
-          <Legend dot="#CBD5E1" label="Not Started" hollow />
+          <Legend dot="rgba(255,255,255,0.18)" label="Not Started" hollow />
           <Legend dot={C.green} label="Completed" check />
         </div>
         <a href="#" style={linkBlue}>View Full Question List <ArrowRight size={12} /></a>
@@ -592,13 +592,13 @@ function BottomPanels({ missionId }: { missionId: string }) {
           {["#F8B595", "#A29BFE", "#FAB1A0", "#74B9FF", "#FFEAA7"].map((c, i) => (
             <div key={i} style={{
               width: 32, height: 32, borderRadius: "50%", background: c,
-              border: "2px solid #fff", marginLeft: i === 0 ? 0 : -8,
+              border: `2px solid ${C.card}`, marginLeft: i === 0 ? 0 : -8,
               boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
             }} />
           ))}
           <div style={{
-            width: 32, height: 32, borderRadius: "50%", background: "#E5E7EB",
-            border: "2px solid #fff", marginLeft: -8, display: "flex",
+            width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.10)",
+            border: `2px solid ${C.card}`, marginLeft: -8, display: "flex",
             alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: C.textBody,
           }}>+27</div>
         </div>
@@ -713,7 +713,7 @@ function IrisMissionBrief({ greeting, firstName }: { greeting: string; firstName
           Review Care Coordination Approach (3.2.1) — high impact section with tight requirements.
         </div>
         <button style={{
-          marginTop: 10, background: "#fff", color: C.textBody, fontSize: 12,
+          marginTop: 10, background: "transparent", color: C.textBody, fontSize: 12,
           padding: "6px 14px", borderRadius: 6, border: `1px solid ${C.border}`, cursor: "pointer", fontWeight: 500,
         }}>View Details</button>
       </div>
@@ -763,7 +763,7 @@ function MissionHealthCard() {
 
 function YoureBriefedCard({ missionId: _missionId }: { missionId: string }) {
   return (
-    <div style={{ ...card, padding: 16, background: "#EFF6FF", borderColor: "#DBEAFE" }}>
+    <div style={{ ...card, padding: 16, background: "rgba(96,165,250,0.08)", borderColor: "rgba(96,165,250,0.25)" }}>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
         <div style={{
           width: 44, height: 44, borderRadius: 999, background: "rgba(37,99,235,0.12)",
