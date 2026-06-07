@@ -336,7 +336,7 @@ function MissionObjective({ brief }: { brief: MissionBrief }) {
     m.program_goals?.trim() ||
     m.mission_highlights?.trim() ||
     (m.description ?? "").split(/\n\n/)[0]?.trim() ||
-    "No mission objective set yet. Add one in Mission Settings.";
+    "No mission objective set yet. Add one in the Setup Record.";
   return (
     <div style={{
       background: C.navy, borderRadius: 8, padding: "20px 24px", color: "#fff",
@@ -383,13 +383,13 @@ function StrategicBrief({ brief }: { brief: MissionBrief }) {
       icon: <Target size={22} style={{ color: C.green }} />,
       heading: "WHAT ARE WE TRYING TO WIN?", sub: "Mission Objective",
       body: objective,
-      emptyHint: "Add a win strategy in Mission Settings.",
+      emptyHint: "Add a win strategy in the Setup Record.",
     },
     {
       icon: <Trophy size={22} style={{ color: C.gold }} />,
       heading: "WHY WILL WE WIN?", sub: "Win Themes",
       bullets: winThemes,
-      emptyHint: "No win themes yet. Add in Settings → Themes.",
+      emptyHint: "No win themes yet. Add them in the Setup Record.",
     },
     {
       icon: <ShieldCheck size={22} style={{ color: C.blue }} />,
