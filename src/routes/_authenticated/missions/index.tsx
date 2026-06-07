@@ -82,6 +82,7 @@ function AllMissionsPage() {
               <thead className="border-b border-border bg-surface-hover text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                 <tr>
                   <th className="px-4 py-3 text-left">Mission</th>
+                  <th className="px-4 py-3 text-left w-24">Progress</th>
                   <th className="px-4 py-3 text-left w-28">Status</th>
                   <th className="px-4 py-3 text-left w-32">Submission</th>
                   <th className="px-4 py-3 text-left w-20">Health</th>
