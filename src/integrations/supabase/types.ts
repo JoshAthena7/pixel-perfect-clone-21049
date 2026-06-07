@@ -3656,6 +3656,73 @@ export type Database = {
           },
         ]
       }
+      mission_documents: {
+        Row: {
+          created_at: string
+          document_type: string
+          extracted_text: string | null
+          file_name: string
+          file_path: string
+          id: string
+          mission_id: string
+          page_count: number | null
+          processed_at: string | null
+          processing_status: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_type: string
+          extracted_text?: string | null
+          file_name: string
+          file_path: string
+          id?: string
+          mission_id: string
+          page_count?: number | null
+          processed_at?: string | null
+          processing_status?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_type?: string
+          extracted_text?: string | null
+          file_name?: string
+          file_path?: string
+          id?: string
+          mission_id?: string
+          page_count?: number | null
+          processed_at?: string | null
+          processing_status?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_documents_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_evaluation_criteria: {
         Row: {
           category: string
@@ -3813,6 +3880,53 @@ export type Database = {
             foreignKeyName: "mission_governance_mission_id_fkey"
             columns: ["mission_id"]
             isOneToOne: true
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_intelligence: {
+        Row: {
+          content: Json
+          created_at: string
+          generated_at: string
+          id: string
+          iris_notes: string | null
+          layer: string
+          mission_id: string
+          source_document_ids: string[]
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          generated_at?: string
+          id?: string
+          iris_notes?: string | null
+          layer: string
+          mission_id: string
+          source_document_ids?: string[]
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          generated_at?: string
+          id?: string
+          iris_notes?: string | null
+          layer?: string
+          mission_id?: string
+          source_document_ids?: string[]
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_intelligence_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
             referencedRelation: "missions"
             referencedColumns: ["id"]
           },
