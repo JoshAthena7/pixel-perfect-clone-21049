@@ -10,7 +10,7 @@ import { IrisDock } from "@/components/v2/IrisDock";
 import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
 import { PhoneAFriendOverlay } from "@/components/v2/PhoneAFriendOverlay";
 import { MissionPulse } from "@/components/v4/MissionPulse";
-import { ThreadPanel } from "@/components/threads/ThreadPanel";
+import { MissionThreadsPanel } from "@/components/threads/MissionThreadsPanel";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import {
