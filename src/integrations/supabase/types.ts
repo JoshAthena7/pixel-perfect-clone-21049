@@ -253,6 +253,44 @@ export type Database = {
         }
         Relationships: []
       }
+      atlas_invite_tokens: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          invite_id: string
+          token_hash: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at: string
+          id?: string
+          invite_id: string
+          token_hash: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          invite_id?: string
+          token_hash?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atlas_invite_tokens_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "atlas_invites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       atlas_invites: {
         Row: {
           accepted_at: string | null
@@ -263,11 +301,15 @@ export type Database = {
           created_at: string
           display_name: string | null
           email: string
+          engagement_lead_id: string | null
+          expected_start_date: string | null
           id: string
           invite_sent_at: string | null
           invite_sent_by: string | null
           invited_by: string | null
+          mission_id: string | null
           notes: string | null
+          role: string | null
           role_hint: string | null
           status: string
           updated_at: string
@@ -281,11 +323,15 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email: string
+          engagement_lead_id?: string | null
+          expected_start_date?: string | null
           id?: string
           invite_sent_at?: string | null
           invite_sent_by?: string | null
           invited_by?: string | null
+          mission_id?: string | null
           notes?: string | null
+          role?: string | null
           role_hint?: string | null
           status?: string
           updated_at?: string
@@ -299,16 +345,28 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email?: string
+          engagement_lead_id?: string | null
+          expected_start_date?: string | null
           id?: string
           invite_sent_at?: string | null
           invite_sent_by?: string | null
           invited_by?: string | null
+          mission_id?: string | null
           notes?: string | null
+          role?: string | null
           role_hint?: string | null
           status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "atlas_invites_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       atlas_knowledge_objects: {
         Row: {

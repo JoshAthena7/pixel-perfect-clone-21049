@@ -5,16 +5,17 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
   Search,
-  UserCog,
   Users as UsersIcon,
   Sparkles,
   Send,
   Mail,
   CheckCircle2,
   Loader2,
+  X,
 } from "lucide-react";
 import {
   listTeamRoster,
+  listMissionsForRoster,
   loadUser,
   sendOfficialInvite,
 } from "@/lib/atlas-invites.functions";
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/_authenticated/admin/users")({
 
 type Roster = Awaited<ReturnType<typeof listTeamRoster>>;
 type Entry = Roster[number];
+type MissionOpt = { id: string; name: string };
 
 function UsersPage() {
   const qc = useQueryClient();
@@ -32,9 +34,14 @@ function UsersPage() {
   const [filter, setFilter] = useState<"all" | "loaded" | "invited" | "active">("all");
 
   const listFn = useServerFn(listTeamRoster);
+  const missionsFn = useServerFn(listMissionsForRoster);
   const { data: roster = [], isLoading } = useQuery({
     queryKey: ["olympus-team-roster"],
     queryFn: () => listFn() as Promise<Roster>,
+  });
+  const { data: missions = [] } = useQuery({
+    queryKey: ["olympus-missions-list"],
+    queryFn: () => missionsFn() as Promise<MissionOpt[]>,
   });
 
   const visible = useMemo(() => {
@@ -97,52 +104,54 @@ function UsersPage() {
         </Link>
       </div>
 
-      <AddToRosterCard onAdded={refresh} />
+      <AddToRosterCard onAdded={refresh} missions={missions} />
 
-      <div className="mt-6 mb-3 flex items-center gap-1.5">
+      <div className="mt-4 mb-3 flex items-center gap-2">
         {(["all", "loaded", "invited", "active"] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] transition ${
+            className={`rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.18em] ${
               filter === f
-                ? "border-amber-300/60 bg-amber-300/10 text-amber-100"
+                ? "border-primary/40 bg-primary/10 text-foreground"
                 : "border-border text-muted-foreground hover:text-foreground"
             }`}
           >
-            {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)} · {counts[f]}
+            {f} <span className="ml-1 opacity-70">{counts[f]}</span>
           </button>
         ))}
       </div>
 
-      <div className="rounded-[10px] border border-border bg-surface overflow-hidden">
-        {isLoading ? (
-          <div className="p-4 space-y-2">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="skeleton h-12 w-full" />
-            ))}
-          </div>
-        ) : visible.length === 0 ? (
-          <div className="p-10 text-center text-sm text-muted-foreground">
-            <UserCog className="mx-auto mb-2 h-6 w-6 opacity-60" /> No users match.
-          </div>
-        ) : (
-          <table className="w-full text-sm">
-            <thead className="border-b border-border bg-surface-hover text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+      <div className="rounded-[10px] border border-border overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-white/[0.03] text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            <tr>
+              <th className="px-4 py-3 text-left">Person</th>
+              <th className="px-4 py-3 text-left">State</th>
+              <th className="px-4 py-3 text-left">Activity</th>
+              <th className="px-4 py-3 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {isLoading && (
               <tr>
-                <th className="px-4 py-3 text-left">Person</th>
-                <th className="px-4 py-3 text-left w-32">State</th>
-                <th className="px-4 py-3 text-left">Status</th>
-                <th className="px-4 py-3 text-right w-56">Action</th>
+                <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                  Loading…
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {visible.map((e) => (
-                <RosterRow key={e.key} entry={e} onChanged={refresh} />
-              ))}
-            </tbody>
-          </table>
-        )}
+            )}
+            {!isLoading && visible.length === 0 && (
+              <tr>
+                <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                  No users match.
+                </td>
+              </tr>
+            )}
+            {visible.map((e) => (
+              <RosterRow key={e.key} entry={e} onChanged={refresh} />
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -167,15 +176,18 @@ function StateBadge({ state }: { state: Entry["state"] }) {
 function RosterRow({ entry, onChanged }: { entry: Entry; onChanged: () => void }) {
   const sendFn = useServerFn(sendOfficialInvite);
   const [busy, setBusy] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
-  async function onInvite() {
+  async function doSend() {
     if (!entry.invite_id) return;
     setBusy(true);
     try {
-      const redirectTo =
-        typeof window !== "undefined" ? `${window.location.origin}/welcome` : undefined;
-      await sendFn({ data: { id: entry.invite_id, redirectTo } });
-      toast.success("Invitation sent.");
+      const baseUrl = window.location.origin;
+      await sendFn({ data: { id: entry.invite_id, baseUrl } });
+      toast.success(
+        `Invitation sent to ${entry.display_name ?? entry.email}. They will appear as Invited until onboarding is complete.`,
+      );
+      setConfirmOpen(false);
       onChanged();
     } catch (err: any) {
       toast.error(err?.message ?? "Could not send invite");
@@ -187,82 +199,205 @@ function RosterRow({ entry, onChanged }: { entry: Entry; onChanged: () => void }
   const initials = (entry.display_name ?? entry.email ?? "?").slice(0, 2).toUpperCase();
 
   return (
-    <tr className="hover:bg-surface-hover">
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-[10px] font-semibold">
-            {initials}
-          </span>
-          <div className="min-w-0">
-            <div className="truncate font-medium">{entry.display_name ?? "Unnamed"}</div>
-            <div className="truncate text-[11px] text-muted-foreground">{entry.email || "—"}</div>
+    <>
+      <tr className="hover:bg-surface-hover">
+        <td className="px-4 py-3">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-[10px] font-semibold">
+              {initials}
+            </span>
+            <div className="min-w-0">
+              <div className="truncate font-medium">{entry.display_name ?? "Unnamed"}</div>
+              <div className="truncate text-[11px] text-muted-foreground">{entry.email || "—"}</div>
+            </div>
+          </div>
+        </td>
+        <td className="px-4 py-3">
+          <StateBadge state={entry.state} />
+        </td>
+        <td className="px-4 py-3 text-[12px] text-muted-foreground">
+          {entry.state === "loaded" && (
+            <span>
+              {entry.mission_name ? (
+                <>
+                  Assigned to <span className="text-foreground">{entry.mission_name}</span>
+                  {entry.role ? ` · ${entry.role}` : ""} · no email sent
+                </>
+              ) : (
+                "Added to roster · no email sent"
+              )}
+            </span>
+          )}
+          {entry.state === "invited" && (
+            <span className="flex items-center gap-1.5">
+              <Mail className="h-3 w-3 text-amber-300" />
+              Invitation sent {entry.invite_sent_at
+                ? new Date(entry.invite_sent_at).toLocaleDateString()
+                : ""} — awaiting onboarding
+            </span>
+          )}
+          {entry.state === "active" && (
+            <span className="flex items-center gap-3">
+              <span className="flex items-center gap-1.5 text-emerald-300/80">
+                <CheckCircle2 className="h-3 w-3" />
+                Last login {entry.last_login_at
+                  ? new Date(entry.last_login_at).toLocaleDateString()
+                  : "—"}
+              </span>
+              <span className="text-foreground/80">
+                {entry.active_missions} active mission{entry.active_missions === 1 ? "" : "s"}
+              </span>
+            </span>
+          )}
+        </td>
+        <td className="px-4 py-3 text-right">
+          {entry.state === "loaded" && entry.invite_id && (
+            <button
+              onClick={() => setConfirmOpen(true)}
+              disabled={busy}
+              className="inline-flex items-center gap-1.5 rounded-sm px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-white shadow-[0_4px_20px_-8px_rgba(201,146,42,0.6)] transition hover:brightness-110 disabled:opacity-60"
+              style={{ background: "#C9922A" }}
+            >
+              {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
+              Official Invite
+            </button>
+          )}
+          {entry.state === "invited" && entry.invite_id && (
+            <button
+              onClick={() => setConfirmOpen(true)}
+              disabled={busy}
+              className="inline-flex items-center gap-1.5 rounded-sm border border-amber-500/40 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-200 hover:bg-amber-500/10 disabled:opacity-60"
+            >
+              {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
+              Resend
+            </button>
+          )}
+          {entry.state === "active" && (
+            <span className="text-[11px] text-muted-foreground">—</span>
+          )}
+        </td>
+      </tr>
+
+      {confirmOpen && (
+        <ConfirmInviteModal
+          entry={entry}
+          busy={busy}
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={doSend}
+        />
+      )}
+    </>
+  );
+}
+
+function ConfirmInviteModal({
+  entry,
+  busy,
+  onCancel,
+  onConfirm,
+}: {
+  entry: Entry;
+  busy: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const name = entry.display_name ?? entry.email ?? "this user";
+  return (
+    <tr>
+      <td colSpan={4} className="p-0">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+          onClick={onCancel}
+        >
+          <div
+            className="w-full max-w-lg rounded-lg border border-border bg-surface shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between border-b border-border px-6 py-4">
+              <h3 className="text-base font-semibold text-foreground">
+                Activate {name} for Mission Access?
+              </h3>
+              <button
+                onClick={onCancel}
+                className="text-muted-foreground hover:text-foreground"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="space-y-4 px-6 py-5 text-sm text-muted-foreground">
+              <p>
+                This will send an invitation email to{" "}
+                <span className="text-foreground font-medium">{entry.email}</span> and
+                initiate their account creation. They will not have mission access until
+                they complete onboarding.
+              </p>
+              <div className="rounded-md border border-border bg-background/40 p-3 space-y-2 text-[12px]">
+                <Row label="Mission" value={entry.mission_name ?? "— (no mission assigned)"} />
+                <Row label="Role" value={entry.role ?? entry.role_hint ?? "—"} />
+                <Row
+                  label="Expected Start"
+                  value={
+                    entry.expected_start_date
+                      ? new Date(entry.expected_start_date + "T00:00:00").toLocaleDateString()
+                      : "TBD"
+                  }
+                />
+                <Row label="Engagement Lead" value={entry.engagement_lead_name ?? "—"} />
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                The invitation link expires in 72 hours.
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-2 border-t border-border px-6 py-3">
+              <button
+                onClick={onCancel}
+                disabled={busy}
+                className="rounded-md border border-border px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground disabled:opacity-60"
+              >
+                Not Yet
+              </button>
+              <button
+                onClick={onConfirm}
+                disabled={busy}
+                className="inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-[11px] font-bold uppercase tracking-[0.2em] text-white disabled:opacity-60"
+                style={{ background: "#C9922A" }}
+              >
+                {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
+                Send Official Invite
+              </button>
+            </div>
           </div>
         </div>
-      </td>
-      <td className="px-4 py-3">
-        <StateBadge state={entry.state} />
-      </td>
-      <td className="px-4 py-3 text-[12px] text-muted-foreground">
-        {entry.state === "loaded" && (
-          <span>Added to roster · no email sent</span>
-        )}
-        {entry.state === "invited" && (
-          <span className="flex items-center gap-1.5">
-            <Mail className="h-3 w-3 text-amber-300" />
-            Invitation sent {entry.invite_sent_at
-              ? new Date(entry.invite_sent_at).toLocaleDateString()
-              : ""} — awaiting onboarding
-          </span>
-        )}
-        {entry.state === "active" && (
-          <span className="flex items-center gap-3">
-            <span className="flex items-center gap-1.5 text-emerald-300/80">
-              <CheckCircle2 className="h-3 w-3" />
-              Last login {entry.last_login_at
-                ? new Date(entry.last_login_at).toLocaleDateString()
-                : "—"}
-            </span>
-            <span className="text-foreground/80">
-              {entry.active_missions} active mission{entry.active_missions === 1 ? "" : "s"}
-            </span>
-          </span>
-        )}
-      </td>
-      <td className="px-4 py-3 text-right">
-        {entry.state === "loaded" && entry.invite_id && (
-          <button
-            onClick={onInvite}
-            disabled={busy}
-            className="inline-flex items-center gap-1.5 rounded-sm px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-white shadow-[0_4px_20px_-8px_rgba(201,146,42,0.6)] transition hover:brightness-110 disabled:opacity-60"
-            style={{ background: "#C9922A" }}
-          >
-            {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
-            Official Invite
-          </button>
-        )}
-        {entry.state === "invited" && entry.invite_id && (
-          <button
-            onClick={onInvite}
-            disabled={busy}
-            className="inline-flex items-center gap-1.5 rounded-sm border border-amber-500/40 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-200 hover:bg-amber-500/10 disabled:opacity-60"
-          >
-            {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
-            Resend
-          </button>
-        )}
-        {entry.state === "active" && (
-          <span className="text-[11px] text-muted-foreground">—</span>
-        )}
       </td>
     </tr>
   );
 }
 
-function AddToRosterCard({ onAdded }: { onAdded: () => void }) {
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+        {label}
+      </span>
+      <span className="text-foreground text-right">{value}</span>
+    </div>
+  );
+}
+
+function AddToRosterCard({
+  onAdded,
+  missions,
+}: {
+  onAdded: () => void;
+  missions: MissionOpt[];
+}) {
   const loadFn = useServerFn(loadUser);
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [roleHint, setRoleHint] = useState("");
+  const [role, setRole] = useState("");
+  const [missionId, setMissionId] = useState("");
+  const [expectedStartDate, setExpectedStartDate] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
@@ -274,13 +409,18 @@ function AddToRosterCard({ onAdded }: { onAdded: () => void }) {
         data: {
           email: email.trim(),
           displayName: displayName.trim() || undefined,
-          roleHint: roleHint.trim() || undefined,
+          role: role.trim() || undefined,
+          roleHint: role.trim() || undefined,
+          missionId: missionId || undefined,
+          expectedStartDate: expectedStartDate || undefined,
         },
       });
       toast.success(`${email} loaded to roster.`);
       setEmail("");
       setDisplayName("");
-      setRoleHint("");
+      setRole("");
+      setMissionId("");
+      setExpectedStartDate("");
       onAdded();
     } catch (err: any) {
       toast.error(err?.message ?? "Could not add user");
@@ -294,7 +434,7 @@ function AddToRosterCard({ onAdded }: { onAdded: () => void }) {
       onSubmit={onSubmit}
       className="rounded-[10px] border border-border bg-surface p-4 flex flex-wrap items-end gap-3"
     >
-      <div className="flex-1 min-w-[200px]">
+      <div className="flex-1 min-w-[180px]">
         <label className="block text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-1">
           Email
         </label>
@@ -307,7 +447,7 @@ function AddToRosterCard({ onAdded }: { onAdded: () => void }) {
           className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
         />
       </div>
-      <div className="flex-1 min-w-[160px]">
+      <div className="flex-1 min-w-[140px]">
         <label className="block text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-1">
           Display name
         </label>
@@ -318,14 +458,42 @@ function AddToRosterCard({ onAdded }: { onAdded: () => void }) {
           className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
         />
       </div>
-      <div className="flex-1 min-w-[140px]">
+      <div className="flex-1 min-w-[160px]">
         <label className="block text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-1">
-          Role hint
+          Mission
+        </label>
+        <select
+          value={missionId}
+          onChange={(e) => setMissionId(e.target.value)}
+          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+        >
+          <option value="">— Select mission —</option>
+          {missions.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="flex-1 min-w-[120px]">
+        <label className="block text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-1">
+          Role
         </label>
         <input
-          value={roleHint}
-          onChange={(e) => setRoleHint(e.target.value)}
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
           placeholder="Writer, SME…"
+          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+        />
+      </div>
+      <div className="flex-1 min-w-[140px]">
+        <label className="block text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-1">
+          Expected start
+        </label>
+        <input
+          type="date"
+          value={expectedStartDate}
+          onChange={(e) => setExpectedStartDate(e.target.value)}
           className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
         />
       </div>
