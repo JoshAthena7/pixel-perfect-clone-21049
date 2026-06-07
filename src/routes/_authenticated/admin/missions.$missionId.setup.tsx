@@ -16,6 +16,7 @@ import { irisPopulateSetupRecord } from "@/lib/iris-setup-autofill.functions";
 import { IrisAutofillBanner } from "@/components/admin/IrisAutofillBanner";
 import { SetupCompletenessMeter } from "@/components/admin/SetupCompletenessMeter";
 import { LaunchSequence } from "@/components/olympus/LaunchSequence";
+import { PersonPicker } from "@/components/setup/PersonPicker";
 import { useIsAdmin } from "@/hooks/useAccess";
 
 export const Route = createFileRoute("/_authenticated/admin/missions/$missionId/setup")({
