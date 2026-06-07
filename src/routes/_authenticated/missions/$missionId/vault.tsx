@@ -19,10 +19,6 @@ import {
   Loader2,
   Link2,
   Lock,
-  Sparkles,
-  AlertTriangle,
-  Target,
-  Handshake,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useAccess";
@@ -216,7 +212,11 @@ function VaultPage() {
         </div>
       </header>
 
-      <IntelligenceHighlights />
+      {/* Per-mission IRIS intelligence highlights intentionally omitted here:
+          the previous block rendered hardcoded NJ/CSOC cards that appeared on
+          every mission's Vault. Re-add only when sourced from a server fn
+          scoped to the current missionId. */}
+
 
 
 
@@ -638,85 +638,7 @@ function UploadModal({
   );
 }
 
-// ─── Intelligence Highlights ────────────────────────────────────────────────
-const INTEL_CARDS = [
-  {
-    kind: "Win Theme",
-    title: "Family-Driven System of Care",
-    icon: Target,
-    accent: "emerald",
-    body:
-      "NJ's CSOC has prioritized family voice and youth-guided care since the 2011 redesign. Lead every section with how the model amplifies family decision-making — not how Athena delivers services.",
-  },
-  {
-    kind: "Terminology Alert",
-    title: "CSA vs MCO Language",
-    icon: AlertTriangle,
-    accent: "amber",
-    body:
-      "Do not refer to the Contracted System Administrator as an MCO. NJ DCF explicitly rejects managed-care framing. Use 'CSA,' 'care coordination,' and 'system administration' — never 'utilization management' or 'medical necessity gatekeeping.'",
-  },
-  {
-    kind: "Strategic Note",
-    title: "DCF Partnership Framing",
-    icon: Handshake,
-    accent: "sky",
-    body:
-      "DCF sees the CSA as an extension of the Department, not a vendor. Frame every operational decision as collaborative governance with DCF, CMOs, and family partners. Avoid 'we will deliver' — prefer 'we will partner with DCF to...'",
-  },
-] as const;
+// Intelligence Highlights block removed — was hardcoded and not scoped to the
+// current mission. When per-mission IRIS highlights are added back, fetch via
+// a server function keyed on missionId.
 
-const INTEL_TONE: Record<string, { border: string; bg: string; chip: string; icon: string }> = {
-  emerald: {
-    border: "border-emerald-500/30",
-    bg: "from-emerald-950/30",
-    chip: "bg-emerald-500/15 text-emerald-300",
-    icon: "text-emerald-400",
-  },
-  amber: {
-    border: "border-amber-500/30",
-    bg: "from-amber-950/30",
-    chip: "bg-amber-500/15 text-amber-300",
-    icon: "text-amber-400",
-  },
-  sky: {
-    border: "border-sky-500/30",
-    bg: "from-sky-950/30",
-    chip: "bg-sky-500/15 text-sky-300",
-    icon: "text-sky-400",
-  },
-};
-
-function IntelligenceHighlights() {
-  return (
-    <section>
-      <div className="mb-3 flex items-center gap-2">
-        <Sparkles className="h-3.5 w-3.5 text-[color:var(--athena-gold,#f59e0b)]" />
-        <h2 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-          Intelligence · From Iris
-        </h2>
-      </div>
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-        {INTEL_CARDS.map((c) => {
-          const Icon = c.icon;
-          const tone = INTEL_TONE[c.accent];
-          return (
-            <article
-              key={c.title}
-              className={`overflow-hidden rounded-[12px] border ${tone.border} bg-gradient-to-br ${tone.bg} via-card/40 to-card/40 p-4`}
-            >
-              <div className="flex items-center gap-2">
-                <Icon className={`h-3.5 w-3.5 ${tone.icon}`} strokeWidth={2} />
-                <span className={`rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] ${tone.chip}`}>
-                  {c.kind}
-                </span>
-              </div>
-              <h3 className="mt-2.5 text-sm font-semibold tracking-tight">{c.title}</h3>
-              <p className="mt-2 text-[12px] leading-relaxed text-foreground/85">{c.body}</p>
-            </article>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
