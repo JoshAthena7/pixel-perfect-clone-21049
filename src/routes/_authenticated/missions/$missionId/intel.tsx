@@ -270,7 +270,7 @@ function IntelPage() {
               <Shield className="h-5 w-5 text-amber-300 shrink-0" />
               <div className="min-w-0">
                 <div className="text-sm font-medium text-foreground">
-                  Client Reference Vault
+                  Go to Mission Vault →
                 </div>
                 <div className="text-xs text-muted-foreground">
                   Data Security Requirements · Contract · Scope of Work · Style Guide
