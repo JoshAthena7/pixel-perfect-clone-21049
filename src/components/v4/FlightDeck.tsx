@@ -418,7 +418,7 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
             <SheetTitle>Daily Pulse</SheetTitle>
           </SheetHeader>
           <div className="mt-4">
-            <DailyPulse />
+            <MissionPulse missionId={missionId} />
           </div>
         </SheetContent>
       </Sheet>
