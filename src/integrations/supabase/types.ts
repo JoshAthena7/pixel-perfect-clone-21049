@@ -2815,6 +2815,153 @@ export type Database = {
         }
         Relationships: []
       }
+      interview_debriefs: {
+        Row: {
+          analyzed_at: string
+          created_at: string
+          gaps_remaining: Json | null
+          id: string
+          interview_flight_plan_id: string
+          iris_analysis: Json | null
+          recommended_followup: Json | null
+          risk_signals: Json | null
+          stories_extracted: Json | null
+        }
+        Insert: {
+          analyzed_at?: string
+          created_at?: string
+          gaps_remaining?: Json | null
+          id?: string
+          interview_flight_plan_id: string
+          iris_analysis?: Json | null
+          recommended_followup?: Json | null
+          risk_signals?: Json | null
+          stories_extracted?: Json | null
+        }
+        Update: {
+          analyzed_at?: string
+          created_at?: string
+          gaps_remaining?: Json | null
+          id?: string
+          interview_flight_plan_id?: string
+          iris_analysis?: Json | null
+          recommended_followup?: Json | null
+          risk_signals?: Json | null
+          stories_extracted?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_debriefs_interview_flight_plan_id_fkey"
+            columns: ["interview_flight_plan_id"]
+            isOneToOne: false
+            referencedRelation: "interview_flight_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interview_flight_plans: {
+        Row: {
+          additional_context: string | null
+          assigned_to: string | null
+          completed_at: string | null
+          content: Json | null
+          created_at: string
+          created_by: string | null
+          generated_at: string | null
+          id: string
+          mission_id: string
+          scheduled_at: string | null
+          section_brief_id: string | null
+          sme_name: string
+          sme_organization: string | null
+          sme_role: string
+          sme_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          additional_context?: string | null
+          assigned_to?: string | null
+          completed_at?: string | null
+          content?: Json | null
+          created_at?: string
+          created_by?: string | null
+          generated_at?: string | null
+          id?: string
+          mission_id: string
+          scheduled_at?: string | null
+          section_brief_id?: string | null
+          sme_name: string
+          sme_organization?: string | null
+          sme_role: string
+          sme_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          additional_context?: string | null
+          assigned_to?: string | null
+          completed_at?: string | null
+          content?: Json | null
+          created_at?: string
+          created_by?: string | null
+          generated_at?: string | null
+          id?: string
+          mission_id?: string
+          scheduled_at?: string | null
+          section_brief_id?: string | null
+          sme_name?: string
+          sme_organization?: string | null
+          sme_role?: string
+          sme_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_flight_plans_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_flight_plans_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_flight_plans_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_flight_plans_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_flight_plans_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_flight_plans_section_brief_id_fkey"
+            columns: ["section_brief_id"]
+            isOneToOne: false
+            referencedRelation: "section_briefs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       iris_brief_cache: {
         Row: {
           brief_text: string
