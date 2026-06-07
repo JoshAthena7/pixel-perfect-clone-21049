@@ -50,6 +50,7 @@ export type MissionBrief = {
     display_name: string | null;
     avatar_url: string | null;
     avatar_color: string | null;
+    email: string | null;
   }>;
   vaultCount: number;
   winThemes: Array<{
@@ -153,7 +154,7 @@ async function fetchMissionBrief(missionId: string): Promise<MissionBrief> {
   const profilesRes = memberIds.length
     ? await supabase
         .from("profiles")
-        .select("id,display_name,avatar_url,avatar_color")
+        .select("id,display_name,avatar_url,avatar_color,email")
         .in("id", memberIds)
     : { data: [] as any[] };
   const profileById = new Map(
@@ -210,8 +211,10 @@ async function fetchMissionBrief(missionId: string): Promise<MissionBrief> {
       display_name: mm.display_name ?? p?.display_name ?? null,
       avatar_url: p?.avatar_url ?? null,
       avatar_color: p?.avatar_color ?? null,
+      email: p?.email ?? null,
     };
   });
+
 
   let daysToSubmission: number | null = null;
   if (m.submission_date) {

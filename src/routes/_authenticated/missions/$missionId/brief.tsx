@@ -134,6 +134,7 @@ function MissionBriefingRoomPage() {
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0,3fr) minmax(280px,1fr)", gap: 20, alignItems: "start" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
             <Hero missionId={missionId} brief={brief} />
+            <MissionLeaders brief={brief} />
             <MissionObjective brief={brief} />
             <StrategicBrief brief={brief} />
             <ThreeColumnRow missionId={missionId} brief={brief} />
@@ -1044,4 +1045,206 @@ function severityColor(sev: string | null): string {
   if (s === "medium") return C.orange;
   if (s === "low") return C.iris;
   return C.iris;
+}
+
+/* ════════════════ MISSION LEADERS ════════════════ */
+const LEADER_ROLES = new Set([
+  "admin", "lead", "engagement_lead", "project_manager",
+  "lead_writer", "lead_graphics",
+]);
+
+const ROLE_LABEL: Record<string, string> = {
+  admin: "Admin",
+  lead: "Mission Lead",
+  engagement_lead: "Engagement Lead",
+  project_manager: "Project Manager",
+  lead_writer: "Lead Writer",
+  lead_graphics: "Lead Graphics",
+  writer: "Writer",
+  sme: "SME",
+  viewer: "Viewer",
+};
+
+function MissionLeaders({ brief }: { brief: MissionBrief }) {
+  const leaders = brief.team.filter((m) => LEADER_ROLES.has(m.role));
+  const [askTarget, setAskTarget] = useState<MissionBrief["team"][number] | null>(null);
+
+  if (leaders.length === 0) return null;
+
+  return (
+    <div style={{ ...card, padding: "16px 20px" }}>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 14 }}>
+        <div>
+          <div style={sectionLabel}>MISSION LEADERS</div>
+          <div style={subLabel}>Who's leading this mission. Click anyone to ask a question.</div>
+        </div>
+        <div style={{ fontSize: 11, color: C.textMuted }}>
+          {leaders.length} leader{leaders.length === 1 ? "" : "s"}
+        </div>
+      </div>
+
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill,minmax(220px,1fr))",
+        gap: 10,
+      }}>
+        {leaders.map((m, i) => {
+          const initials = (m.display_name || "?")
+            .split(/\s+/).map((s) => s[0]).slice(0, 2).join("").toUpperCase();
+          const bg = m.avatar_color || AVATAR_FALLBACK[i % AVATAR_FALLBACK.length];
+          return (
+            <button
+              key={m.user_id}
+              type="button"
+              onClick={() => setAskTarget(m)}
+              style={{
+                display: "flex", alignItems: "center", gap: 12,
+                padding: "10px 12px",
+                background: C.navyDeep,
+                border: `1px solid ${C.border}`,
+                borderRadius: 8,
+                cursor: "pointer",
+                textAlign: "left",
+                color: "inherit",
+                transition: "border-color 120ms, background 120ms",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = C.gold;
+                e.currentTarget.style.background = "rgba(224,179,65,0.06)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = C.border;
+                e.currentTarget.style.background = C.navyDeep;
+              }}
+              title={`Ask ${m.display_name ?? "this leader"} a question`}
+            >
+              <div style={{
+                width: 36, height: 36, borderRadius: "50%", background: bg,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 13, fontWeight: 700, color: "#0a1220",
+                flexShrink: 0, overflow: "hidden",
+              }}>
+                {m.avatar_url ? (
+                  <img src={m.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : initials}
+              </div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: C.textPrimary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {m.display_name || "Unnamed"}
+                </div>
+                <div style={{ fontSize: 11, color: C.gold, fontWeight: 600, letterSpacing: "0.02em", marginTop: 2 }}>
+                  {ROLE_LABEL[m.role] ?? m.role}
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {askTarget && (
+        <AskLeaderModal
+          leader={askTarget}
+          missionName={brief.mission.name}
+          onClose={() => setAskTarget(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function AskLeaderModal({
+  leader, missionName, onClose,
+}: {
+  leader: MissionBrief["team"][number];
+  missionName: string;
+  onClose: () => void;
+}) {
+  const [question, setQuestion] = useState("");
+  const canSend = question.trim().length > 0 && !!leader.email;
+
+  const handleSend = () => {
+    if (!canSend) return;
+    const subject = encodeURIComponent(`Question about ${missionName}`);
+    const body = encodeURIComponent(question.trim());
+    window.location.href = `mailto:${leader.email}?subject=${subject}&body=${body}`;
+    onClose();
+  };
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        zIndex: 1000, padding: 20,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          ...card, padding: 24, maxWidth: 520, width: "100%",
+          background: C.card,
+        }}
+      >
+        <div style={{ fontSize: 11, fontWeight: 700, color: C.gold, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>
+          Ask a Question
+        </div>
+        <div style={{ fontSize: 18, fontWeight: 700, color: C.textPrimary, marginBottom: 2 }}>
+          {leader.display_name || "Mission Leader"}
+        </div>
+        <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 16 }}>
+          {ROLE_LABEL[leader.role] ?? leader.role}
+          {leader.email ? ` · ${leader.email}` : " · No email on file"}
+        </div>
+
+        <textarea
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          autoFocus
+          placeholder={`Ask ${(leader.display_name ?? "them").split(/\s+/)[0]} anything about this mission…`}
+          rows={6}
+          style={{
+            width: "100%", padding: 12, borderRadius: 6,
+            background: C.navyDeep, border: `1px solid ${C.border}`,
+            color: C.textPrimary, fontSize: 13, fontFamily: "inherit",
+            resize: "vertical", outline: "none",
+          }}
+        />
+
+        {!leader.email && (
+          <div style={{ fontSize: 12, color: C.red, marginTop: 10 }}>
+            This leader doesn't have an email on file. Reach out another way.
+          </div>
+        )}
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 }}>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              padding: "8px 14px", borderRadius: 6,
+              background: "transparent", border: `1px solid ${C.border}`,
+              color: C.textBody, fontSize: 13, fontWeight: 500, cursor: "pointer",
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={!canSend}
+            style={{
+              padding: "8px 14px", borderRadius: 6,
+              background: canSend ? C.gold : "rgba(224,179,65,0.3)",
+              border: "none",
+              color: "#0a1220", fontSize: 13, fontWeight: 700,
+              cursor: canSend ? "pointer" : "not-allowed",
+            }}
+          >
+            Send via Email
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
