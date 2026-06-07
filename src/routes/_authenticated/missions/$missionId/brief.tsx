@@ -164,7 +164,7 @@ function Hero() {
               Mission Briefing Room
             </div>
             <h1 style={{
-              fontSize: 32, fontWeight: 800, color: C.navy, lineHeight: 1.1,
+              fontSize: 32, fontWeight: 800, color: C.textPrimary, lineHeight: 1.1,
               margin: "6px 0 10px", letterSpacing: "-0.02em",
             }}>
               NJ CSOC RFP
@@ -201,7 +201,7 @@ function MetricChip({ icon, label, value, valueNode, sub }: { icon: React.ReactN
       <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, fontWeight: 600, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.04em" }}>
         {icon} {label}
       </div>
-      {valueNode ?? <div style={{ fontSize: 24, fontWeight: 700, color: C.navy, lineHeight: 1.1 }}>{value}</div>}
+      {valueNode ?? <div style={{ fontSize: 24, fontWeight: 700, color: C.textPrimary, lineHeight: 1.1 }}>{value}</div>}
       <div style={{ fontSize: 12, color: C.textMuted }}>{sub}</div>
     </div>
   );
@@ -536,7 +536,7 @@ function MissionMap({ missionId: _mid }: { missionId: string }) {
           {sections.map((s) => (
             <div key={s.num} style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", padding: "0 4px" }}>
               <div style={{ fontSize: 11, color: C.textMuted }}>{s.num}</div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: C.navy, lineHeight: 1.25, minHeight: 30, marginTop: 2 }}>{s.name}</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: C.textPrimary, lineHeight: 1.25, minHeight: 30, marginTop: 2 }}>{s.name}</div>
               <div style={{
                 marginTop: 8, width: 18, height: 18, borderRadius: 999, background: dot(s.status),
                 display: "flex", alignItems: "center", justifyContent: "center", color: "#fff",
@@ -738,7 +738,7 @@ function MissionHealthCard() {
       <div style={{ marginTop: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
           <span style={{ fontSize: 12, color: C.textBody }}>Overall Progress</span>
-          <span style={{ fontSize: 12, fontWeight: 700, color: C.navy }}>67%</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: C.textPrimary }}>67%</span>
         </div>
         <div style={{ height: 7, background: C.borderLight, borderRadius: 999, overflow: "hidden" }}>
           <div style={{ width: "67%", height: "100%", background: C.green, borderRadius: 999 }} />
@@ -772,7 +772,7 @@ function YoureBriefedCard({ missionId: _missionId }: { missionId: string }) {
           <Plane size={20} style={{ color: C.blue }} />
         </div>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: C.navy }}>You're briefed.<br />Ready to fly?</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: C.textPrimary }}>You're briefed.<br />Ready to fly?</div>
           <div style={{ fontSize: 11, color: C.textMuted, lineHeight: 1.5, marginTop: 6 }}>
             Use the Flight Deck link in the sidebar to check your status and manage your assignments.
           </div>
