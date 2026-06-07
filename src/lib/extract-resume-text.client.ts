@@ -21,12 +21,10 @@ export function detectKind(file: File): ResumeFileKind | null {
 }
 
 async function extractPdf(file: File): Promise<string> {
-  // Use the legacy ESM build that ships a worker-less mode via fake workers.
-  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-  // @ts-expect-error - workerSrc is documented but not in the public types we ship.
-  pdfjs.GlobalWorkerOptions.workerSrc = await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs?url").then(
-    (m: { default: string }) => m.default,
-  );
+  // Use the legacy ESM build that works in modern browsers without a CDN worker.
+  const pdfjs: any = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  const workerUrl: string = (await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs?url")).default;
+  pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
 
   const buf = await file.arrayBuffer();
   const doc = await pdfjs.getDocument({ data: buf, disableFontFace: true }).promise;
@@ -42,16 +40,16 @@ async function extractPdf(file: File): Promise<string> {
       .trim();
     if (text) parts.push(text);
   }
-  await doc.destroy();
   return parts.join("\n\n");
 }
 
 async function extractDocx(file: File): Promise<string> {
-  const mammoth = await import("mammoth/mammoth.browser");
+  const mammoth: any = await import("mammoth/mammoth.browser" as string);
   const buf = await file.arrayBuffer();
   const result = await mammoth.extractRawText({ arrayBuffer: buf });
   return (result?.value ?? "").replace(/\r\n?/g, "\n").trim();
 }
+
 
 /** Extract plain text from a resume file. Throws on unsupported/oversized files. */
 export async function extractResumeText(file: File): Promise<string> {
