@@ -144,27 +144,36 @@ function TopBar({
           // M-2: Logo always navigates to /missions (home), not the active mission brief.
           <Link
             to="/missions"
-            className="flex items-center shrink-0"
+            className="flex items-center shrink-0 px-1"
             title="All Missions"
           >
             <img
               src={atlasWordmark.url}
               alt="ATLAS"
-              className="h-8 w-auto object-contain"
-              style={{ filter: "drop-shadow(0 0 8px rgba(125,211,252,0.4))" }}
+              className="h-8 w-auto object-contain select-none"
+              draggable={false}
+              style={{ filter: "brightness(1.1) drop-shadow(0 0 6px rgba(201,168,76,0.25))" }}
             />
 
           </Link>
         ) : (
           // H-1: Unified branding — ATLAS wordmark everywhere, including Olympus/Admin/Atrium.
-          <Link to="/missions" className="flex items-center gap-2.5 shrink-0" title="All Missions">
+          <Link to="/missions" className="flex items-center gap-3 shrink-0 px-1" title="All Missions">
             <img
               src={atlasWordmark.url}
               alt="ATLAS"
-              className="h-8 w-auto object-contain"
-              style={{ filter: "drop-shadow(0 0 8px rgba(125,211,252,0.4))" }}
+              className="h-8 w-auto object-contain select-none"
+              draggable={false}
+              style={{ filter: "brightness(1.1) drop-shadow(0 0 6px rgba(201,168,76,0.25))" }}
             />
-            <img src={athenaSgLogo.url} alt="" className="hidden md:block ml-2 h-5 w-auto object-contain opacity-30 mix-blend-luminosity" style={{ filter: "brightness(0.6) contrast(0.9)" }} />
+            <span className="hidden md:block h-5 w-px bg-white/10" aria-hidden />
+            <img
+              src={athenaSgLogo.url}
+              alt=""
+              className="hidden md:block h-5 w-auto object-contain opacity-70 select-none"
+              draggable={false}
+              style={{ filter: "brightness(1.05)" }}
+            />
           </Link>
         )}
 
