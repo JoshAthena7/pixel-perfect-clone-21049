@@ -121,7 +121,7 @@ function MissionBriefingRoomPage() {
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0,3fr) minmax(280px,1fr)", gap: 20, alignItems: "start" }}>
           {/* ── LEFT (main) column ── */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
-            <Hero />
+            <Hero missionId={missionId} />
             <MissionObjective />
             <StrategicBrief />
             <ThreeColumnRow />
@@ -144,29 +144,26 @@ function MissionBriefingRoomPage() {
 
 
 /* ════════════════ HERO ════════════════ */
-function Hero() {
+function Hero({ missionId }: { missionId: string }) {
   return (
     <div style={{ ...card, position: "relative", overflow: "hidden", padding: 0 }}>
       <div style={{ position: "relative", padding: "24px 28px 20px", display: "flex", flexDirection: "column", gap: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 32, flexWrap: "wrap" }}>
-          <div style={{ minWidth: 0 }}>
-
-            <div style={{ fontSize: 11, fontWeight: 600, color: C.iris, letterSpacing: "0.05em", textTransform: "uppercase" }}>
-              Mission Briefing Room
-            </div>
-            <h1 style={{
-              fontSize: 32, fontWeight: 800, color: C.textPrimary, lineHeight: 1.1,
-              margin: "6px 0 10px", letterSpacing: "-0.02em",
-            }}>
-              NJ CSOC RFP
-            </h1>
-            <div style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.5 }}>
-              State of New Jersey<br />Children's System of Care
-            </div>
-            <div style={{ marginTop: 12, display: "inline-flex", alignItems: "center", gap: 4 }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: C.red, fontStyle: "italic" }}>Ameri</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: C.blue, fontStyle: "italic" }}>Health</span>
-              <span style={{ fontSize: 11, color: C.blue, fontStyle: "italic", marginLeft: 4 }}>Caritas</span>
+          <div style={{ minWidth: 0, display: "flex", gap: 18, alignItems: "flex-start" }}>
+            <ClientLogoSlot missionId={missionId} />
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: C.iris, letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                Mission Briefing Room
+              </div>
+              <h1 style={{
+                fontSize: 32, fontWeight: 800, color: C.textPrimary, lineHeight: 1.1,
+                margin: "6px 0 10px", letterSpacing: "-0.02em",
+              }}>
+                NJ CSOC RFP
+              </h1>
+              <div style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.5 }}>
+                State of New Jersey<br />Children's System of Care
+              </div>
             </div>
           </div>
 
@@ -185,6 +182,115 @@ function Hero() {
     </div>
   );
 }
+
+function ClientLogoSlot({ missionId }: { missionId: string }) {
+  const [logoPath, setLogoPath] = useState<string | null>(null);
+  const [signedUrl, setSignedUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data } = await supabase
+        .from("missions")
+        .select("client_logo_url")
+        .eq("id", missionId)
+        .maybeSingle();
+      if (cancelled) return;
+      const path = (data?.client_logo_url as string | null) ?? null;
+      setLogoPath(path);
+      if (path) {
+        const { data: signed } = await supabase
+          .storage.from("mission-logos")
+          .createSignedUrl(path, 60 * 60);
+        if (!cancelled) setSignedUrl(signed?.signedUrl ?? null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [missionId]);
+
+  const handleFile = async (file: File) => {
+    setError(null);
+    setUploading(true);
+    try {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const ext = (file.name.split(".").pop() || "png").toLowerCase();
+      const path = `${missionId}/logo-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase
+        .storage.from("mission-logos")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { error: dbErr } = await supabase
+        .from("missions")
+        .update({ client_logo_url: path })
+        .eq("id", missionId);
+      if (dbErr) throw dbErr;
+      const { data: signed } = await supabase
+        .storage.from("mission-logos")
+        .createSignedUrl(path, 60 * 60);
+      setLogoPath(path);
+      setSignedUrl(signed?.signedUrl ?? null);
+    } catch (e: any) {
+      setError(e?.message ?? "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const box: React.CSSProperties = {
+    width: 88, height: 88, borderRadius: 10,
+    background: "rgba(255,255,255,0.04)",
+    border: `1px dashed ${C.border}`,
+    display: "flex", alignItems: "center", justifyContent: "center",
+    flexShrink: 0, overflow: "hidden", position: "relative",
+  };
+
+  if (signedUrl) {
+    return (
+      <label style={{ ...box, borderStyle: "solid", background: "#fff", cursor: "pointer" }} title="Replace client logo">
+        <img
+          src={signedUrl}
+          alt="Client logo"
+          style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", padding: 8 }}
+        />
+        <input
+          type="file"
+          accept="image/*"
+          style={{ display: "none" }}
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void handleFile(f);
+          }}
+        />
+      </label>
+    );
+  }
+
+  return (
+    <label style={{ ...box, cursor: uploading ? "wait" : "pointer" }} title="Upload client logo">
+      <div style={{ textAlign: "center", padding: 6 }}>
+        <div style={{ fontSize: 18, color: C.textMuted, lineHeight: 1 }}>+</div>
+        <div style={{ fontSize: 9, color: C.textMuted, marginTop: 4, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+          {uploading ? "Uploading…" : "Client logo"}
+        </div>
+        {error && <div style={{ fontSize: 9, color: C.red, marginTop: 4 }}>{error}</div>}
+      </div>
+      <input
+        type="file"
+        accept="image/*"
+        disabled={uploading}
+        style={{ display: "none" }}
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) void handleFile(f);
+        }}
+      />
+    </label>
+  );
+}
+
 
 function MetricChip({ icon, label, value, valueNode, sub }: { icon: React.ReactNode; label: string; value?: string; valueNode?: React.ReactNode; sub: string }) {
   return (
