@@ -71,6 +71,9 @@ export function HealthDashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          {progress && progress.total > 0 && (
+            <MissionProgressRing size="md" completed={progress.completed} total={progress.total} />
+          )}
           <select
             value={effectiveMissionId ?? ""}
             onChange={(e) => setMissionId(e.target.value)}
