@@ -146,7 +146,7 @@ export function SectionBriefManager({ missionId }: { missionId: string }) {
           style={{ background: PANEL, border: `1px solid ${BORDER}` }}
         >
           <h2 className="text-sm font-semibold tracking-wide uppercase mb-3" style={{ color: GOLD }}>
-            Section Briefs
+            Pre-Flight Status
           </h2>
           <div className="flex gap-2 mb-4">
             <input
@@ -164,13 +164,13 @@ export function SectionBriefManager({ missionId }: { missionId: string }) {
               className="rounded-md px-2 py-1.5 text-sm font-medium"
               style={{ background: NAVY, color: "white" }}
             >
-              Add
+              Request Pre-Flight
             </button>
           </div>
           {isLoading ? (
             <p className="text-xs text-neutral-500">Loading…</p>
           ) : briefs.length === 0 ? (
-            <p className="text-xs text-neutral-500">No section briefs yet.</p>
+            <p className="text-xs text-neutral-500">No Pre-Flights initiated. Select a section and request your Pre-Flight briefing before you write.</p>
           ) : (
             <ul className="space-y-1">
               {briefs.map((b) => (
