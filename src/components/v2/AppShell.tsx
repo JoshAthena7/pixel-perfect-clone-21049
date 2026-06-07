@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { getUnacknowledgedBriefings } from "@/lib/brief-room.functions";
+import { inboxUnreadCount } from "@/lib/expert-consult.functions";
 
 import { useIsAdmin } from "@/hooks/useAccess";
 import { toast } from "sonner";
