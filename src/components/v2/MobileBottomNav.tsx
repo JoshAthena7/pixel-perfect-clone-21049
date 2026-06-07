@@ -2,6 +2,14 @@ import { Link, useRouterState, useParams } from "@tanstack/react-router";
 import { Building2, Plane, Bell, HelpCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 
+function isHiddenPath(path: string): boolean {
+  if (path.startsWith("/login") || path.startsWith("/auth") || path.startsWith("/signup")) return true;
+  if (path.startsWith("/admin") || path.startsWith("/olympus")) return true;
+  if (path.startsWith("/missions/") && (path.endsWith("/brief") || path.includes("/flight-deck"))) return true;
+  if (path.startsWith("/flight-deck")) return true;
+  return false;
+}
+
 /**
  * Mobile-only fixed bottom navigation.
  * Shown only on screens < 768px. Replaces the desktop room toggle.
