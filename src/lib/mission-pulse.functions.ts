@@ -85,11 +85,13 @@ export const submitMissionPulse = createServerFn({ method: "POST" })
       await supabaseAdmin.from("mission_vault_documents").insert({
         mission_id: data.missionId,
         uploaded_by: userId,
+        uploaded_by_name: author,
         title: `Daily Pulse · ${new Date().toLocaleDateString()}`,
         description: headline,
-        tier: 2,
-        document_type: "daily_pulse",
-        content_text: JSON.stringify(summary, null, 2),
+        doc_type: "other",
+        category: "daily_pulse_tier2",
+        extracted_text: JSON.stringify(summary, null, 2),
+        extraction_status: "skipped",
       });
     } catch {
       // Vault schema may differ; do not fail the pulse if archival fails.
