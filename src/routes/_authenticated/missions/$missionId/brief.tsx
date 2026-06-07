@@ -118,7 +118,7 @@ function MissionBriefingRoomPage() {
   if (isLoading) {
     return (
       <div style={{ background: C.bg, minHeight: "100vh", color: C.textPrimary, padding: 40, fontFamily: "Inter, system-ui, sans-serif" }}>
-        <div style={{ color: C.textMuted, fontSize: 13 }}>Loading mission brief…</div>
+        <div style={{ color: C.textMuted, fontSize: 13 }}>Preparing your brief…</div>
       </div>
     );
   }

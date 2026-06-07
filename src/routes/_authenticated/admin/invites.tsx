@@ -84,7 +84,7 @@ function InvitesPage() {
           </thead>
           <tbody className="divide-y divide-border">
             {isLoading && (
-              <tr><td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">Loading…</td></tr>
+              <tr><td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">One moment…</td></tr>
             )}
             {!isLoading && invited.length === 0 && (
               <tr>

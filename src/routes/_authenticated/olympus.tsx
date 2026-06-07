@@ -20,7 +20,7 @@ function OlympusStrategic() {
   if (isLoading || gate === false) {
     return (
       <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
-        Loading…
+        One moment…
       </div>
     );
   }

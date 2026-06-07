@@ -213,7 +213,7 @@ function CommentList({
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center text-[12px]" style={{ color: "#6b7280" }}>
-        Loading…
+        One moment…
       </div>
     );
   }

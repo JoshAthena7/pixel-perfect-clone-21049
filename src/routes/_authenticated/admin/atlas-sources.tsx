@@ -140,7 +140,7 @@ function AtlasSourcesPage() {
 
         {/* Cards */}
         <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {isLoading && <div className="text-sm text-muted-foreground">Loading…</div>}
+          {isLoading && <div className="text-sm text-muted-foreground">One moment…</div>}
           {!isLoading && sources.length === 0 && (
             <div className="rounded-md border border-dashed border-border p-8 text-center text-sm text-muted-foreground sm:col-span-2 xl:col-span-3">
               No sources at this layer yet.

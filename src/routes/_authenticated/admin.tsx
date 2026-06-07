@@ -33,7 +33,7 @@ function AdminLayout() {
   useRedirectIfBlocked(gate);
 
   if (isLoading || gate === false) {
-    return <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">Loading…</div>;
+    return <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">One moment…</div>;
   }
 
   return (

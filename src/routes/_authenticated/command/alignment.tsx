@@ -135,7 +135,7 @@ function AlignmentPage() {
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase text-muted-foreground">
           <AlertTriangle className="h-4 w-4" /> Alignment Conflicts ({conflicts.length})
         </h2>
-        {isLoading && <div className="text-sm text-muted-foreground">Loading…</div>}
+        {isLoading && <div className="text-sm text-muted-foreground">One moment…</div>}
         {!isLoading && conflicts.length === 0 && (
           <div className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
             No alignment conflicts {showResolved ? "found" : "open"}.

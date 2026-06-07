@@ -123,7 +123,7 @@ function AdminsPage() {
       </div>
 
       {isLoading ? (
-        <div className="py-12 text-center text-sm text-muted-foreground">Loading…</div>
+        <div className="py-12 text-center text-sm text-muted-foreground">Loading admin roster…</div>
       ) : (
         <>
           <Section title="Platform admins" count={admins.length} icon={<ShieldCheck className="h-4 w-4" />}>

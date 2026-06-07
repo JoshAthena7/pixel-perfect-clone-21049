@@ -87,7 +87,7 @@ function InboxView() {
   });
   const [active, setActive] = useState<BriefingRow | null>(null);
 
-  if (isLoading) return <div className="text-sm text-muted-foreground">Loading…</div>;
+  if (isLoading) return <div className="text-sm text-muted-foreground">Opening the brief room…</div>;
   if (!data.length) {
     return (
       <div className="rounded-lg border border-border bg-surface px-6 py-16 text-center">
@@ -285,7 +285,7 @@ function AdminView() {
   });
   const [reportId, setReportId] = useState<string | null>(null);
 
-  if (isLoading) return <div className="text-sm text-muted-foreground">Loading…</div>;
+  if (isLoading) return <div className="text-sm text-muted-foreground">Opening the brief room…</div>;
   if (!data.length) {
     return (
       <div className="rounded-lg border border-dashed border-border bg-surface/40 px-6 py-12 text-center">
@@ -382,7 +382,7 @@ function DeliveryReportDialog({
           </DialogTitle>
         </DialogHeader>
         {!data ? (
-          <div className="text-sm text-muted-foreground">Loading…</div>
+          <div className="text-sm text-muted-foreground">Opening the brief room…</div>
         ) : (
           <div className="max-h-[60vh] overflow-auto">
             <table className="w-full text-sm">

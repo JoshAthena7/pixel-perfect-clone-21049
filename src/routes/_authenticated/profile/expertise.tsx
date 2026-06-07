@@ -14,7 +14,7 @@ function MyExpertisePage() {
   }, []);
 
   if (!meId) {
-    return <div className="mx-auto max-w-2xl px-8 py-10 text-sm text-muted-foreground">Loading…</div>;
+    return <div className="mx-auto max-w-2xl px-8 py-10 text-sm text-muted-foreground">One moment…</div>;
   }
   return (
     <ExpertiseProfileEditor

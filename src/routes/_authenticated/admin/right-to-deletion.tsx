@@ -128,7 +128,7 @@ function RightToDeletionPage() {
       </header>
 
       {isLoading ? (
-        <div className="py-12 text-center text-sm text-muted-foreground">Loading…</div>
+        <div className="py-12 text-center text-sm text-muted-foreground">One moment…</div>
       ) : (
         <>
           <Section title="Pending" count={pending.length}>

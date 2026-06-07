@@ -368,7 +368,7 @@ function IntelPage() {
 
             <div>
               {isLoading && (
-                <div className="text-sm text-muted-foreground">Loading…</div>
+                <div className="text-sm text-muted-foreground">Reading the room…</div>
               )}
               {!isLoading && visible.length === 0 && (
                 <div className="rounded-lg border border-dashed border-border p-12 text-center text-sm text-muted-foreground">
@@ -423,7 +423,7 @@ function IntelPage() {
           </div>
 
           {isLoading ? (
-            <div className="text-sm text-muted-foreground">Loading…</div>
+            <div className="text-sm text-muted-foreground">Reading the room…</div>
           ) : grouped.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border p-12 text-center text-sm text-muted-foreground">
               No intelligence yet.

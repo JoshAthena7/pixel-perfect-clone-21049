@@ -79,7 +79,7 @@ function DiscoveryHistoryPage() {
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><td colSpan={7} className="px-3 py-8 text-center text-muted-foreground">Loading…</td></tr>
+              <tr><td colSpan={7} className="px-3 py-8 text-center text-muted-foreground">One moment…</td></tr>
             ) : rows.length === 0 ? (
               <tr><td colSpan={7} className="px-3 py-8 text-center text-muted-foreground">No discovery runs yet.</td></tr>
             ) : rows.map((r) => (

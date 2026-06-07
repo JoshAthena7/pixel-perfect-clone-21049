@@ -115,7 +115,7 @@ function MissionFlightDeckPage() {
   if (meLoading || qLoading) {
     return (
       <div className="mx-auto max-w-[1200px] px-6 py-12 text-sm text-muted-foreground">
-        Loading flight deck…
+        Pulling your deck…
       </div>
     );
   }

@@ -619,7 +619,7 @@ function MissionBrief() {
   if (pmGateLoading || (pmGate && !pmGate.allowed)) {
     return (
       <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
-        Loading…
+        One moment…
       </div>
     );
   }
@@ -942,7 +942,7 @@ function MissionBrief() {
             style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)" }}
           >
             {needsLoading ? (
-              <div className="px-5 py-6 text-center text-sm text-muted-foreground">Loading…</div>
+              <div className="px-5 py-6 text-center text-sm text-muted-foreground">One moment…</div>
             ) : needs.length === 0 ? (
               <div className="px-5 py-5 text-sm" style={{ color: "#86efac" }}>
                 <span className="iris-dot mr-2" /> No open needs. Team is operating independently.
