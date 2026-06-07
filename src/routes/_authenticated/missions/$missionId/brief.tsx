@@ -761,7 +761,7 @@ function MissionHealthCard() {
   );
 }
 
-function YoureBriefedCard({ missionId: _missionId }: { missionId: string }) {
+function YoureBriefedCard({ missionId }: { missionId: string }) {
   return (
     <div style={{ ...card, padding: 16, background: "rgba(96,165,250,0.08)", borderColor: "rgba(96,165,250,0.25)" }}>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
@@ -771,11 +771,25 @@ function YoureBriefedCard({ missionId: _missionId }: { missionId: string }) {
         }}>
           <Plane size={20} style={{ color: C.blue }} />
         </div>
-        <div>
+        <div style={{ flex: 1 }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: C.textPrimary }}>You're briefed.<br />Ready to fly?</div>
           <div style={{ fontSize: 11, color: C.textMuted, lineHeight: 1.5, marginTop: 6 }}>
-            Use the Flight Deck link in the sidebar to check your status and manage your assignments.
+            Open the Flight Deck to check your status and manage your assignments.
           </div>
+          <Link
+            to="/missions/$missionId/flight-deck"
+            params={{ missionId }}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 6, marginTop: 12,
+              padding: "8px 14px", borderRadius: 8,
+              background: C.blue, color: "#fff",
+              fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase",
+              textDecoration: "none",
+            }}
+          >
+            <Plane size={12} />
+            Go to Flight Deck
+          </Link>
         </div>
       </div>
     </div>
