@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Plane,
   Clock, Activity, DollarSign, Users, Target, Trophy, ShieldCheck, AlertTriangle,
-  FileText, Building2, Megaphone, Swords, ArrowRight, ExternalLink, Maximize2,
-  Zap, CheckCircle2, AlertCircle, Bell, Gavel, Calendar, XCircle, Sparkles,
+  FileText, Building2, Megaphone, Swords, ArrowRight, Maximize2,
+  Zap, CheckCircle2, Bell, Gavel, Calendar, XCircle,
   Check, Circle, Link2,
 } from "lucide-react";
+import { useMissionBrief, useCurrentProfile, type MissionBrief } from "@/lib/mission-brief-data";
 
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/brief")({
@@ -14,7 +15,7 @@ export const Route = createFileRoute("/_authenticated/missions/$missionId/brief"
   component: MissionBriefingRoomPage,
 });
 
-/* ════════════════ DESIGN TOKENS — DARK (matches Flight Deck) ════════════════ */
+/* ════════════════ DESIGN TOKENS — DARK ════════════════ */
 const C = {
   bg: "#060b14",
   bgSoft: "#0a121d",
@@ -35,8 +36,6 @@ const C = {
   textBody: "#C0CAD8",
   textMuted: "#8B95A5",
   textFaint: "#64748B",
-  sidebarText: "rgba(255,255,255,0.18)",
-  sidebarMuted: "#64748B",
 };
 
 const card: React.CSSProperties = {
@@ -47,35 +46,33 @@ const card: React.CSSProperties = {
 };
 
 const sectionLabel: React.CSSProperties = {
-  fontSize: 11,
-  fontWeight: 700,
-  letterSpacing: "0.04em",
-  color: C.textPrimary,
-  textTransform: "uppercase",
+  fontSize: 11, fontWeight: 700, letterSpacing: "0.04em",
+  color: C.textPrimary, textTransform: "uppercase",
 };
 
 const subLabel: React.CSSProperties = {
-  fontSize: 12,
-  color: C.textMuted,
-  marginTop: 2,
+  fontSize: 12, color: C.textMuted, marginTop: 2,
 };
 
 const linkBlue: React.CSSProperties = {
-  color: C.blue,
-  fontSize: 12,
-  fontWeight: 500,
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 4,
+  color: C.blue, fontSize: 12, fontWeight: 500,
+  display: "inline-flex", alignItems: "center", gap: 4,
 };
+
+const empty: React.CSSProperties = {
+  fontSize: 12, color: C.textMuted, fontStyle: "italic", lineHeight: 1.5,
+};
+
+const AVATAR_FALLBACK = ["#F8B595", "#A29BFE", "#FAB1A0", "#74B9FF", "#FFEAA7", "#81ECEC", "#FAB7E0"];
 
 /* ════════════════ PAGE ════════════════ */
 function MissionBriefingRoomPage() {
   const { missionId } = Route.useParams();
+  const { data: brief, isLoading, error } = useMissionBrief(missionId);
+  const { data: profile } = useCurrentProfile();
 
   useEffect(() => {
     try { localStorage.setItem(`atlas.lastRoom.${missionId}`, "briefing"); } catch {}
-    // Mark brief as seen for this user+mission.
     let userId: string | null = null;
     (async () => {
       try {
@@ -89,7 +86,6 @@ function MissionBriefingRoomPage() {
       } catch { /* noop */ }
     })();
 
-    // Mark brief completed when user scrolls within 200px of bottom.
     const onScroll = async () => {
       const scrolled = window.scrollY + window.innerHeight;
       const full = document.documentElement.scrollHeight;
@@ -110,7 +106,24 @@ function MissionBriefingRoomPage() {
     if (h < 18) return "Good afternoon";
     return "Good evening";
   })();
-  const firstName = "Sarah";
+  const firstName =
+    (profile?.display_name ?? "").trim().split(/\s+/)[0] || "Team";
+
+  if (isLoading) {
+    return (
+      <div style={{ background: C.bg, minHeight: "100vh", color: C.textPrimary, padding: 40, fontFamily: "Inter, system-ui, sans-serif" }}>
+        <div style={{ color: C.textMuted, fontSize: 13 }}>Loading mission brief…</div>
+      </div>
+    );
+  }
+  if (error || !brief) {
+    return (
+      <div style={{ background: C.bg, minHeight: "100vh", color: C.textPrimary, padding: 40, fontFamily: "Inter, system-ui, sans-serif" }}>
+        <div style={{ color: C.red, fontSize: 14, fontWeight: 600 }}>Couldn't load mission brief.</div>
+        <div style={{ color: C.textMuted, fontSize: 12, marginTop: 6 }}>{(error as Error | undefined)?.message ?? "Mission not found."}</div>
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -119,21 +132,18 @@ function MissionBriefingRoomPage() {
     }}>
       <main style={{ maxWidth: 1400, margin: "0 auto", padding: "20px 24px", overflowX: "hidden" }}>
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0,3fr) minmax(280px,1fr)", gap: 20, alignItems: "start" }}>
-          {/* ── LEFT (main) column ── */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
-            <Hero missionId={missionId} />
-            <MissionObjective />
-            <StrategicBrief />
-            <ThreeColumnRow missionId={missionId} />
-            <MissionMap missionId={missionId} />
-            <BottomPanels missionId={missionId} />
-            
+            <Hero missionId={missionId} brief={brief} />
+            <MissionObjective brief={brief} />
+            <StrategicBrief brief={brief} />
+            <ThreeColumnRow missionId={missionId} brief={brief} />
+            <MissionMap missionId={missionId} brief={brief} />
+            <BottomPanels missionId={missionId} brief={brief} />
           </div>
 
-          {/* ── RIGHT column ── */}
           <aside style={{ display: "flex", flexDirection: "column", gap: 16, position: "sticky", top: 20 }}>
-            <IrisMissionBrief greeting={greeting} firstName={firstName} missionId={missionId} />
-            <MissionHealthCard missionId={missionId} />
+            <IrisMissionBrief greeting={greeting} firstName={firstName} missionId={missionId} brief={brief} />
+            <MissionHealthCard missionId={missionId} brief={brief} />
             <YoureBriefedCard missionId={missionId} />
           </aside>
         </div>
@@ -144,7 +154,18 @@ function MissionBriefingRoomPage() {
 
 
 /* ════════════════ HERO ════════════════ */
-function Hero({ missionId }: { missionId: string }) {
+function Hero({ missionId, brief }: { missionId: string; brief: MissionBrief }) {
+  const m = brief.mission;
+  const subtitle = [m.state, m.state_agency].filter(Boolean).join(" · ");
+  const days = brief.daysToSubmission;
+  const daysValue = days == null ? "—" : days < 0 ? "Past due" : String(days);
+  const daysSub = m.submission_date
+    ? new Date(m.submission_date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+    : "No date set";
+  const statusText = (m.status ?? "Active").toUpperCase();
+  const healthColor =
+    m.health === "Green" ? C.green : m.health === "Red" ? C.red : C.orange;
+
   return (
     <div style={{ ...card, position: "relative", overflow: "hidden", padding: 0 }}>
       <div style={{ position: "relative", padding: "24px 28px 20px", display: "flex", flexDirection: "column", gap: 14 }}>
@@ -159,23 +180,38 @@ function Hero({ missionId }: { missionId: string }) {
                 fontSize: 32, fontWeight: 800, color: C.textPrimary, lineHeight: 1.1,
                 margin: "6px 0 10px", letterSpacing: "-0.02em",
               }}>
-                NJ CSOC RFP
+                {m.name}
               </h1>
               <div style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.5 }}>
-                State of New Jersey<br />Children's System of Care
+                {m.client ?? "Unknown client"}
+                {subtitle && <><br />{subtitle}</>}
               </div>
             </div>
           </div>
 
-          {/* Metric chips */}
           <div style={{ display: "flex", gap: 0, alignItems: "stretch", flexShrink: 0 }}>
-            <MetricChip icon={<Clock size={12} />} label="Days to Submission" value="58" sub="May 22, 2025" />
+            <MetricChip icon={<Clock size={12} />} label="Days to Submission" value={daysValue} sub={daysSub} />
             <MetricDivider />
-            <MetricChip icon={<Activity size={12} />} label="Mission Status" valueNode={<StatusPill text="ON TRACK" />} sub="Updated 2h ago" />
+            <MetricChip
+              icon={<Activity size={12} />}
+              label="Mission Status"
+              valueNode={<StatusPill text={statusText} color={healthColor} />}
+              sub={`Health: ${m.health ?? "Unknown"}`}
+            />
             <MetricDivider />
-            <MetricChip icon={<DollarSign size={12} />} label="Estimated Value" value="$85M+" sub="5 Year Potential" />
+            <MetricChip
+              icon={<DollarSign size={12} />}
+              label="Estimated Value"
+              value={m.contract_value || "—"}
+              sub={m.contract_term || "Contract value"}
+            />
             <MetricDivider />
-            <MetricChip icon={<Users size={12} />} label="Team Members" value="32" sub="Writers, SMEs, PMs" />
+            <MetricChip
+              icon={<Users size={12} />}
+              label="Team Members"
+              value={String(brief.team.length)}
+              sub={brief.team.length === 0 ? "No team yet" : `${brief.team.length} assigned`}
+            />
           </div>
         </div>
       </div>
@@ -184,7 +220,6 @@ function Hero({ missionId }: { missionId: string }) {
 }
 
 function ClientLogoSlot({ missionId }: { missionId: string }) {
-  const [logoPath, setLogoPath] = useState<string | null>(null);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -200,7 +235,6 @@ function ClientLogoSlot({ missionId }: { missionId: string }) {
         .maybeSingle();
       if (cancelled) return;
       const path = (data?.client_logo_url as string | null) ?? null;
-      setLogoPath(path);
       if (path) {
         const { data: signed } = await supabase
           .storage.from("mission-logos")
@@ -230,7 +264,6 @@ function ClientLogoSlot({ missionId }: { missionId: string }) {
       const { data: signed } = await supabase
         .storage.from("mission-logos")
         .createSignedUrl(path, 60 * 60);
-      setLogoPath(path);
       setSignedUrl(signed?.signedUrl ?? null);
     } catch (e: any) {
       setError(e?.message ?? "Upload failed");
@@ -250,20 +283,9 @@ function ClientLogoSlot({ missionId }: { missionId: string }) {
   if (signedUrl) {
     return (
       <label style={{ ...box, borderStyle: "solid", background: "#fff", cursor: "pointer" }} title="Replace client logo">
-        <img
-          src={signedUrl}
-          alt="Client logo"
-          style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", padding: 8 }}
-        />
-        <input
-          type="file"
-          accept="image/*"
-          style={{ display: "none" }}
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) void handleFile(f);
-          }}
-        />
+        <img src={signedUrl} alt="Client logo" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", padding: 8 }} />
+        <input type="file" accept="image/*" style={{ display: "none" }}
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFile(f); }} />
       </label>
     );
   }
@@ -277,16 +299,8 @@ function ClientLogoSlot({ missionId }: { missionId: string }) {
         </div>
         {error && <div style={{ fontSize: 9, color: C.red, marginTop: 4 }}>{error}</div>}
       </div>
-      <input
-        type="file"
-        accept="image/*"
-        disabled={uploading}
-        style={{ display: "none" }}
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) void handleFile(f);
-        }}
-      />
+      <input type="file" accept="image/*" disabled={uploading} style={{ display: "none" }}
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFile(f); }} />
     </label>
   );
 }
@@ -306,18 +320,25 @@ function MetricChip({ icon, label, value, valueNode, sub }: { icon: React.ReactN
 function MetricDivider() {
   return <div style={{ width: 1, background: C.border, alignSelf: "center", height: 36 }} />;
 }
-function StatusPill({ text }: { text: string }) {
+function StatusPill({ text, color }: { text: string; color: string }) {
   return (
     <span style={{
       display: "inline-flex", alignItems: "center", padding: "4px 10px", borderRadius: 999,
-      background: "rgba(22,163,74,0.12)", color: C.green, fontSize: 11, fontWeight: 700, letterSpacing: "0.04em",
+      background: `${color}1f`, color, fontSize: 11, fontWeight: 700, letterSpacing: "0.04em",
       marginTop: 2, width: "fit-content",
     }}>{text}</span>
   );
 }
 
 /* ════════════════ MISSION OBJECTIVE ════════════════ */
-function MissionObjective() {
+function MissionObjective({ brief }: { brief: MissionBrief }) {
+  const m = brief.mission;
+  // Prefer program_goals, fall back to first paragraph of description.
+  const quote =
+    m.program_goals?.trim() ||
+    m.mission_highlights?.trim() ||
+    (m.description ?? "").split(/\n\n/)[0]?.trim() ||
+    "No mission objective set yet. Add one in Mission Settings.";
   return (
     <div style={{
       background: C.navy, borderRadius: 8, padding: "20px 24px", color: "#fff",
@@ -331,52 +352,58 @@ function MissionObjective() {
         Mission Objective
       </div>
       <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1.5, maxWidth: "85%" }}>
-        "Deliver a response that demonstrates deep understanding of New Jersey's Children's System of Care ecosystem."
+        {quote}
       </div>
     </div>
   );
 }
 
 /* ════════════════ STRATEGIC BRIEF ════════════════ */
-function StrategicBrief() {
-  const cols = [
+function StrategicBrief({ brief }: { brief: MissionBrief }) {
+  const m = brief.mission;
+  const objective =
+    m.client_win_strategy?.trim() ||
+    m.mission_highlights?.trim() ||
+    (m.description ?? "").split(/\n\n/)[0]?.trim() ||
+    null;
+
+  const winThemes = brief.winThemes.length
+    ? brief.winThemes.map((t) => t.title)
+    : m.win_themes ?? [];
+  const requirements = m.key_requirements ?? [];
+  const risks = brief.risks.map((r) => r.title);
+
+  const cols: Array<{
+    icon: React.ReactNode;
+    heading: string;
+    sub: string;
+    body?: string | null;
+    bullets?: string[];
+    emptyHint: string;
+  }> = [
     {
       icon: <Target size={22} style={{ color: C.green }} />,
       heading: "WHAT ARE WE TRYING TO WIN?", sub: "Mission Objective",
-      body: "Partner with NJ to strengthen the Children's System of Care through integrated, whole-child solutions that drive outcomes.",
+      body: objective,
+      emptyHint: "Add a win strategy in Mission Settings.",
     },
     {
       icon: <Trophy size={22} style={{ color: C.gold }} />,
       heading: "WHY WILL WE WIN?", sub: "Win Themes",
-      bullets: [
-        "Deep NJ CSOC expertise",
-        "Proven outcomes at scale",
-        "Integrated, whole-child approach",
-        "Local presence and partnerships",
-        "Innovation and continuous improvement",
-      ],
+      bullets: winThemes,
+      emptyHint: "No win themes yet. Add in Settings → Themes.",
     },
     {
       icon: <ShieldCheck size={22} style={{ color: C.blue }} />,
-      heading: "WHAT MUST BE TRUE?", sub: "Critical Success Factors",
-      bullets: [
-        "Demonstrate understanding of NJ CSOC",
-        "Meet all mandatory requirements",
-        "Show measurable outcomes",
-        "Provide strong care coordination model",
-        "Ensure cultural competency and equity",
-      ],
+      heading: "WHAT MUST BE TRUE?", sub: "Critical Requirements",
+      bullets: requirements,
+      emptyHint: "No key requirements captured yet.",
     },
     {
       icon: <AlertTriangle size={22} style={{ color: C.red }} />,
       heading: "WHAT COULD HURT US?", sub: "Mission Risks",
-      bullets: [
-        "Incumbent advantage",
-        "Budget constraints",
-        "High technical bar",
-        "Tight timeline",
-        "Evolving requirements",
-      ],
+      bullets: risks,
+      emptyHint: "No risks logged yet.",
     },
   ];
 
@@ -384,53 +411,53 @@ function StrategicBrief() {
     <div style={{ ...card, padding: 20 }}>
       <div style={sectionLabel}>Strategic Brief</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,minmax(0,1fr))", marginTop: 16, gap: 0 }}>
-        {cols.map((c, i) => (
-          <div key={c.heading} style={{
-            padding: i === 0 ? "0 18px 0 0" : i === 3 ? "0 0 0 18px" : "0 18px",
-            borderRight: i < 3 ? `1px solid ${C.borderLight}` : "none",
-          }}>
-            <div style={{ marginBottom: 10 }}>{c.icon}</div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: C.textPrimary, letterSpacing: "0.02em", marginBottom: 2 }}>
-              {c.heading}
+        {cols.map((c, i) => {
+          const hasBody = !!c.body;
+          const hasBullets = c.bullets && c.bullets.length > 0;
+          return (
+            <div key={c.heading} style={{
+              padding: i === 0 ? "0 18px 0 0" : i === 3 ? "0 0 0 18px" : "0 18px",
+              borderRight: i < 3 ? `1px solid ${C.borderLight}` : "none",
+            }}>
+              <div style={{ marginBottom: 10 }}>{c.icon}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: C.textPrimary, letterSpacing: "0.02em", marginBottom: 2 }}>
+                {c.heading}
+              </div>
+              <div style={{ fontSize: 11, color: C.textMuted, marginBottom: 10 }}>{c.sub}</div>
+              {hasBody && (
+                <p style={{ fontSize: 12, color: C.textBody, lineHeight: 1.6, margin: 0 }}>{c.body}</p>
+              )}
+              {hasBullets && (
+                <ul style={{ listStyle: "disc", margin: 0, paddingLeft: 16 }}>
+                  {c.bullets!.slice(0, 6).map((b) => (
+                    <li key={b} style={{ fontSize: 12, color: C.textBody, lineHeight: 1.6 }}>{b}</li>
+                  ))}
+                </ul>
+              )}
+              {!hasBody && !hasBullets && (
+                <div style={empty}>{c.emptyHint}</div>
+              )}
             </div>
-            <div style={{ fontSize: 11, color: C.textMuted, marginBottom: 10 }}>{c.sub}</div>
-            {c.body && (
-              <p style={{ fontSize: 12, color: C.textBody, lineHeight: 1.6, margin: 0 }}>{c.body}</p>
-            )}
-            {c.bullets && (
-              <ul style={{ listStyle: "disc", margin: 0, paddingLeft: 16 }}>
-                {c.bullets.map((b) => (
-                  <li key={b} style={{ fontSize: 12, color: C.textBody, lineHeight: 1.6 }}>{b}</li>
-                ))}
-              </ul>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
 }
 
 /* ════════════════ THREE COLUMN ROW ════════════════ */
-function ThreeColumnRow({ missionId }: { missionId: string }) {
+function ThreeColumnRow({ missionId, brief }: { missionId: string; brief: MissionBrief }) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 16 }}>
-      <WinThemesAlignment missionId={missionId} />
-      <OracleBriefing missionId={missionId} />
-      <ClarificationsAndWhatChanged missionId={missionId} />
+      <WinThemesAlignment missionId={missionId} brief={brief} />
+      <OracleBriefing missionId={missionId} brief={brief} />
+      <ClarificationsAndWhatChanged missionId={missionId} brief={brief} />
     </div>
   );
 }
 
-function WinThemesAlignment({ missionId }: { missionId: string }) {
-  const themes = [
-    { name: "Deep Understanding of NJ CSOC", pct: 92, color: C.green },
-    { name: "Whole-Child Integrated Approach", pct: 88, color: C.green },
-    { name: "Proven Outcomes & Impact", pct: 84, color: C.green },
-    { name: "Local Presence & Partnerships", pct: 76, color: C.blue },
-    { name: "Innovation & Continuous Improvement", pct: 72, color: C.blue },
-    { name: "Cultural Competency & Equity", pct: 68, color: C.orange },
-  ];
+function WinThemesAlignment({ missionId, brief }: { missionId: string; brief: MissionBrief }) {
+  const themes = brief.winThemes;
   return (
     <div style={{ ...card, padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
       <div>
@@ -438,35 +465,32 @@ function WinThemesAlignment({ missionId }: { missionId: string }) {
         <div style={subLabel}>How we will win this mission.</div>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
-        {themes.map((t) => (
-          <div key={t.name}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-              <span style={{ fontSize: 12, color: C.textBody }}>{t.name}</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: C.textPrimary }}>{t.pct}%</span>
+        {themes.length === 0 ? (
+          <div style={empty}>No win themes captured yet. Add them in Settings → Themes.</div>
+        ) : (
+          themes.slice(0, 6).map((t) => (
+            <div key={t.id}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                <span style={{ fontSize: 12, color: C.textBody }}>{t.title}</span>
+                {t.key_message && (
+                  <span style={{ fontSize: 11, color: C.textMuted, maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {t.key_message}
+                  </span>
+                )}
+              </div>
             </div>
-            <div style={{ height: 6, background: C.borderLight, borderRadius: 999, overflow: "hidden" }}>
-              <div style={{ width: `${t.pct}%`, height: "100%", background: t.color, borderRadius: 999 }} />
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
-      <Link to="/missions/$missionId/settings" params={{ missionId }} search={{ tab: "themes" }} style={linkBlue}>View all win themes <ArrowRight size={12} /></Link>
+      <Link to="/missions/$missionId/settings" params={{ missionId }} search={{ tab: "themes" }} style={linkBlue}>
+        View all win themes <ArrowRight size={12} />
+      </Link>
     </div>
   );
 }
 
-function OracleBriefing({ missionId }: { missionId: string }) {
-  const sources = [
-    { icon: <FileText size={14} />, name: "Policy & Regulation", text: "NJ CSOC Waiver renewal priorities emphasize care coordination and data-driven outcomes." },
-    { icon: <Building2 size={14} />, name: "State Intelligence", text: "NJ is focused on reducing ER utilization and improving community-based care access." },
-    { icon: <Megaphone size={14} />, name: "Stakeholders & Advocates", text: "Strong emphasis from advocates on family voice, trauma-informed care, and equity." },
-    { icon: <Swords size={14} />, name: "Competitive Intelligence", text: "Incumbent response focuses on scale. We win on differentiation and outcomes." },
-  ];
-  const top3 = [
-    "NJ continues emphasizing care coordination outcomes and data-driven family engagement as top evaluation priorities.",
-    "Recent Clarification #4 increases reporting requirements — teams must address quarterly dashboard submissions explicitly in Section 4.0.",
-    "Family voice and trauma-informed care are recurring themes across advocacy stakeholder submissions — evaluators are watching for this language.",
-  ];
+function OracleBriefing({ missionId, brief }: { missionId: string; brief: MissionBrief }) {
+  const signals = brief.signals;
   return (
     <div style={{ ...card, padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
       <div>
@@ -476,34 +500,25 @@ function OracleBriefing({ missionId }: { missionId: string }) {
 
       <div>
         <div style={{ fontSize: 10, fontWeight: 600, color: C.iris, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>
-          Top 3 Things We Learned This Week
+          Top Insights
         </div>
-        <ol style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
-          {top3.map((t, i) => (
-            <li key={i} style={{ display: "flex", gap: 8, fontSize: 12, color: C.textBody, lineHeight: 1.6 }}>
-              <span style={{
-                flexShrink: 0, width: 18, height: 18, borderRadius: 999,
-                background: "rgba(99,102,241,0.12)", color: C.iris,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 10, fontWeight: 700, marginTop: 1,
-              }}>{i + 1}</span>
-              <span>{t}</span>
-            </li>
-          ))}
-        </ol>
-        <div style={{ fontSize: 10, color: C.textMuted, marginTop: 8 }}>Last updated: 2h ago</div>
-      </div>
-
-      <div style={{ borderTop: `1px solid ${C.borderLight}`, paddingTop: 12, display: "flex", flexDirection: "column", gap: 10 }}>
-        {sources.map((s) => (
-          <div key={s.name} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-            <div style={{ color: C.iris, flexShrink: 0, marginTop: 2 }}>{s.icon}</div>
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: C.textPrimary }}>{s.name}</div>
-              <div style={{ fontSize: 12, color: C.textMuted, lineHeight: 1.5 }}>{s.text}</div>
-            </div>
-          </div>
-        ))}
+        {signals.length === 0 ? (
+          <div style={empty}>IRIS hasn't surfaced any signals for this mission yet.</div>
+        ) : (
+          <ol style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
+            {signals.slice(0, 3).map((s, i) => (
+              <li key={s.id} style={{ display: "flex", gap: 8, fontSize: 12, color: C.textBody, lineHeight: 1.6 }}>
+                <span style={{
+                  flexShrink: 0, width: 18, height: 18, borderRadius: 999,
+                  background: "rgba(99,102,241,0.12)", color: C.iris,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 10, fontWeight: 700, marginTop: 1,
+                }}>{i + 1}</span>
+                <span>{s.signal_title || s.signal_summary || "Untitled signal"}</span>
+              </li>
+            ))}
+          </ol>
+        )}
       </div>
 
       <Link to="/missions/$missionId/briefing" params={{ missionId }} style={linkBlue}>Go to Oracle <ArrowRight size={12} /></Link>
@@ -511,19 +526,8 @@ function OracleBriefing({ missionId }: { missionId: string }) {
   );
 }
 
-function ClarificationsAndWhatChanged({ missionId }: { missionId: string }) {
-  const clarifications = [
-    { num: 4, date: "Posted yesterday", text: "Clarification on Care Coordination metrics and reporting requirements." },
-    { num: 3, date: "May 14, 2025", text: "Updated exhibit template and data fields." },
-    { num: 2, date: "May 7, 2025", text: "Clinical quality measure definitions." },
-    { num: 1, date: "Apr 29, 2025", text: "Budget assumptions and template update." },
-  ];
-  const changes = [
-    { dot: C.iris, type: "IRIS Insight Added", text: "New trend analysis on ER diversion outcomes.", time: "1h ago" },
-    { dot: C.orange, type: "Question Reassigned", text: "3.2.1 Care Coordination Approach reassigned to you.", time: "2h ago" },
-    { dot: C.red, type: "New Risk Identified", text: "Dependency risk added for Section 3.2.", time: "3h ago" },
-    { dot: C.gold, type: "Leadership Decision", text: "Approved win theme updates for Section 2.0.", time: "5h ago" },
-  ];
+function ClarificationsAndWhatChanged({ missionId, brief }: { missionId: string; brief: MissionBrief }) {
+  const clarifications = brief.clarifications;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ ...card, padding: 16 }}>
@@ -534,23 +538,27 @@ function ClarificationsAndWhatChanged({ missionId }: { missionId: string }) {
           </div>
           <Link to="/missions/$missionId/intel" params={{ missionId }} style={linkBlue}>View all <ArrowRight size={12} /></Link>
         </div>
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          {clarifications.map((c, i) => (
-            <div key={c.num} style={{
-              display: "flex", gap: 10, padding: "10px 0",
-              borderBottom: i < clarifications.length - 1 ? `1px solid ${C.borderLight}` : "none",
-            }}>
-              <FileText size={14} style={{ color: C.iris, flexShrink: 0, marginTop: 2 }} />
-              <div>
-                <div style={{ fontSize: 12, color: C.textPrimary }}>
-                  <span style={{ fontWeight: 700 }}>#{c.num}</span>{" "}
-                  <span style={{ color: C.textMuted }}>{c.date}</span>
+        {clarifications.length === 0 ? (
+          <div style={empty}>No clarifications submitted yet.</div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            {clarifications.slice(0, 4).map((c, i) => (
+              <div key={c.id} style={{
+                display: "flex", gap: 10, padding: "10px 0",
+                borderBottom: i < Math.min(clarifications.length, 4) - 1 ? `1px solid ${C.borderLight}` : "none",
+              }}>
+                <FileText size={14} style={{ color: C.iris, flexShrink: 0, marginTop: 2 }} />
+                <div>
+                  <div style={{ fontSize: 12, color: C.textPrimary }}>
+                    <span style={{ fontWeight: 700 }}>#{c.number}</span>{" "}
+                    <span style={{ color: C.textMuted }}>{formatRelative(c.submitted_at ?? c.created_at)}</span>
+                  </div>
+                  <div style={{ fontSize: 12, color: C.textBody, lineHeight: 1.5, marginTop: 2 }}>{c.question}</div>
                 </div>
-                <div style={{ fontSize: 12, color: C.textBody, lineHeight: 1.5, marginTop: 2 }}>{c.text}</div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div style={{ ...card, padding: 16 }}>
@@ -561,18 +569,37 @@ function ClarificationsAndWhatChanged({ missionId }: { missionId: string }) {
           </div>
           <Link to="/missions/$missionId/overview" params={{ missionId }} style={linkBlue}>View all <ArrowRight size={12} /></Link>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {changes.map((c, i) => (
-            <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-              <span style={{ width: 8, height: 8, borderRadius: 999, background: c.dot, marginTop: 6, flexShrink: 0 }} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: C.textPrimary }}>{c.type}</div>
-                <div style={{ fontSize: 12, color: C.textBody, lineHeight: 1.5 }}>{c.text}</div>
+        {brief.signals.length === 0 && brief.clarifications.length === 0 ? (
+          <div style={empty}>No recent activity to show.</div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {[
+              ...brief.signals.slice(0, 3).map((s) => ({
+                key: `sig-${s.id}`,
+                dot: severityColor(s.severity),
+                type: s.signal_type ? s.signal_type.toUpperCase() : "IRIS INSIGHT",
+                text: s.signal_title || s.signal_summary || "Signal recorded",
+                time: formatRelative(s.created_at),
+              })),
+              ...brief.clarifications.slice(0, 2).map((c) => ({
+                key: `clar-${c.id}`,
+                dot: C.blue,
+                type: `CLARIFICATION #${c.number}`,
+                text: c.question,
+                time: formatRelative(c.submitted_at ?? c.created_at),
+              })),
+            ].slice(0, 4).map((c) => (
+              <div key={c.key} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                <span style={{ width: 8, height: 8, borderRadius: 999, background: c.dot, marginTop: 6, flexShrink: 0 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: C.textPrimary }}>{c.type}</div>
+                  <div style={{ fontSize: 12, color: C.textBody, lineHeight: 1.5 }}>{c.text}</div>
+                </div>
+                <div style={{ fontSize: 10, color: C.textMuted, flexShrink: 0, marginTop: 2 }}>{c.time}</div>
               </div>
-              <div style={{ fontSize: 10, color: C.textMuted, flexShrink: 0, marginTop: 2 }}>{c.time}</div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -580,18 +607,36 @@ function ClarificationsAndWhatChanged({ missionId }: { missionId: string }) {
 
 /* ════════════════ MISSION MAP ════════════════ */
 type MapStatus = "completed" | "ontrack" | "atrisk" | "notstarted" | "blocked";
-function MissionMap({ missionId }: { missionId: string }) {
+
+function deriveSectionStatus(done: number, total: number, studio?: string | null): MapStatus {
+  if (total === 0) return "notstarted";
+  if (done === total) return "completed";
+  const studioLower = (studio ?? "").toLowerCase();
+  if (studioLower.includes("risk")) return "atrisk";
+  if (studioLower.includes("block")) return "blocked";
+  if (done === 0) return "notstarted";
+  return "ontrack";
+}
+
+function MissionMap({ missionId, brief }: { missionId: string; brief: MissionBrief }) {
   const [view, setView] = useState<"sections" | "status" | "owner">("sections");
-  const sections: { num: string; name: string; status: MapStatus; count: string; label: string }[] = [
-    { num: "1.0", name: "Program Overview", status: "completed", count: "12 / 12", label: "Completed" },
-    { num: "2.0", name: "Service Approach", status: "atrisk", count: "8 / 18", label: "At Risk" },
-    { num: "3.0", name: "Care Coordination", status: "atrisk", count: "6 / 22", label: "At Risk" },
-    { num: "4.0", name: "Quality & Performance", status: "ontrack", count: "10 / 16", label: "On Track" },
-    { num: "5.0", name: "Data & Reporting", status: "ontrack", count: "7 / 12", label: "On Track" },
-    { num: "6.0", name: "Implementation Plan", status: "ontrack", count: "5 / 9", label: "On Track" },
-    { num: "7.0", name: "Management Team", status: "notstarted", count: "0 / 8", label: "Not Started" },
-    { num: "8.0", name: "Administrative Requirements", status: "notstarted", count: "0 / 7", label: "Not Started" },
-  ];
+
+  const sections = brief.sections.map((s) => {
+    const status = deriveSectionStatus(s.question_done, s.question_total, s.studio_status);
+    const label =
+      status === "completed" ? "Completed" :
+      status === "atrisk" ? "At Risk" :
+      status === "blocked" ? "Blocked" :
+      status === "notstarted" ? "Not Started" : "On Track";
+    return {
+      num: s.number,
+      name: s.title,
+      status,
+      count: `${s.question_done} / ${s.question_total}`,
+      label,
+    };
+  });
+
   const dot = (s: MapStatus) =>
     s === "completed" || s === "ontrack" ? C.green :
     s === "atrisk" ? C.orange :
@@ -616,41 +661,45 @@ function MissionMap({ missionId }: { missionId: string }) {
               }}>{v}</button>
             ))}
           </div>
-          <button style={{ background: "none", border: "none", color: C.textMuted, cursor: "pointer" }}>
+          <Link to="/missions/$missionId/sections" params={{ missionId }} style={{ background: "none", border: "none", color: C.textMuted, cursor: "pointer", display: "inline-flex", alignItems: "center" }} title="Open Sections">
             <Maximize2 size={14} />
-          </button>
+          </Link>
         </div>
       </div>
 
-      {/* Journey row */}
-      <div style={{ position: "relative", marginTop: 22, padding: "0 8px" }}>
-        {/* connecting line */}
-        <div style={{
-          position: "absolute", left: "8%", right: "8%", top: 78, height: 2,
-          background: `linear-gradient(to right, ${C.green} 0%, ${C.green} 35%, ${C.orange} 35%, ${C.orange} 50%, ${C.green} 50%, ${C.green} 75%, #CBD5E1 75%, #CBD5E1 100%)`,
-        }} />
-        <div style={{ display: "grid", gridTemplateColumns: `repeat(${sections.length},1fr)`, gap: 4 }}>
-          {sections.map((s) => (
-            <div key={s.num} style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", padding: "0 4px" }}>
-              <div style={{ fontSize: 11, color: C.textMuted }}>{s.num}</div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: C.textPrimary, lineHeight: 1.25, minHeight: 30, marginTop: 2 }}>{s.name}</div>
-              <div style={{
-                marginTop: 8, width: 18, height: 18, borderRadius: 999, background: dot(s.status),
-                display: "flex", alignItems: "center", justifyContent: "center", color: "#fff",
-                border: `3px solid ${C.card}`, boxShadow: `0 0 0 2px ${dot(s.status)}`,
-              }}>
-                {(s.status === "completed" || s.status === "ontrack") && <Check size={10} strokeWidth={3} />}
-                {s.status === "atrisk" && <AlertTriangle size={10} strokeWidth={3} />}
-              </div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary, marginTop: 10 }}>{s.count}</div>
-              <div style={{
-                fontSize: 11, marginTop: 2,
-                color: s.status === "atrisk" ? C.orange : s.status === "notstarted" ? C.textMuted : C.green,
-              }}>{s.label}</div>
-            </div>
-          ))}
+      {sections.length === 0 ? (
+        <div style={{ ...empty, marginTop: 24, textAlign: "center", padding: "24px 0" }}>
+          No sections defined yet. Build the section map in <Link to="/missions/$missionId/sections" params={{ missionId }} style={{ color: C.blue }}>Sections</Link>.
         </div>
-      </div>
+      ) : (
+        <div style={{ position: "relative", marginTop: 22, padding: "0 8px" }}>
+          <div style={{
+            position: "absolute", left: "8%", right: "8%", top: 78, height: 2,
+            background: C.borderLight,
+          }} />
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${sections.length},1fr)`, gap: 4 }}>
+            {sections.map((s) => (
+              <div key={s.num} style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", padding: "0 4px" }}>
+                <div style={{ fontSize: 11, color: C.textMuted }}>{s.num}</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: C.textPrimary, lineHeight: 1.25, minHeight: 30, marginTop: 2 }}>{s.name}</div>
+                <div style={{
+                  marginTop: 8, width: 18, height: 18, borderRadius: 999, background: dot(s.status),
+                  display: "flex", alignItems: "center", justifyContent: "center", color: "#fff",
+                  border: `3px solid ${C.card}`, boxShadow: `0 0 0 2px ${dot(s.status)}`,
+                }}>
+                  {(s.status === "completed" || s.status === "ontrack") && <Check size={10} strokeWidth={3} />}
+                  {s.status === "atrisk" && <AlertTriangle size={10} strokeWidth={3} />}
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary, marginTop: 10 }}>{s.count}</div>
+                <div style={{
+                  fontSize: 11, marginTop: 2,
+                  color: s.status === "atrisk" ? C.orange : s.status === "notstarted" ? C.textMuted : C.green,
+                }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 16, flexWrap: "wrap", gap: 12 }}>
         <div style={{ display: "flex", gap: 18, fontSize: 11, color: C.textMuted, flexWrap: "wrap" }}>
@@ -678,103 +727,98 @@ function Legend({ dot, label, hollow, check, tri }: { dot: string; label: string
 }
 
 /* ════════════════ BOTTOM PANELS ════════════════ */
-function BottomPanels({ missionId }: { missionId: string }) {
+function BottomPanels({ missionId, brief }: { missionId: string; brief: MissionBrief }) {
   const panelCard: React.CSSProperties = {
-    ...card,
-    padding: 16,
-    display: "block",
-    color: "inherit",
-    textDecoration: "none",
-    cursor: "pointer",
-    transition: "border-color 120ms ease, transform 120ms ease",
+    ...card, padding: 16, display: "block", color: "inherit",
+    textDecoration: "none", cursor: "pointer",
   };
+  const team = brief.team;
+  const shownAvatars = team.slice(0, 5);
+  const overflow = Math.max(0, team.length - shownAvatars.length);
+
+  const q = brief.questions;
+  const completedPct = q.total > 0 ? Math.round((q.by_status.complete / q.total) * 100) : 0;
+  const assignedPct = q.total > 0 ? Math.round((q.assigned / q.total) * 100) : 0;
+
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(4,minmax(0,1fr))", gap: 16 }}>
       {/* Team */}
-      <Link
-        to="/missions/$missionId/settings"
-        params={{ missionId }}
-        search={{ tab: "team" }}
-        style={panelCard}
-      >
+      <Link to="/missions/$missionId/settings" params={{ missionId }} search={{ tab: "team" }} style={panelCard}>
         <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary }}>TEAM OVERVIEW</div>
         <div style={subLabel}>People and roles.</div>
-        <div style={{ display: "flex", alignItems: "center", marginTop: 14 }}>
-          {["#F8B595", "#A29BFE", "#FAB1A0", "#74B9FF", "#FFEAA7"].map((c, i) => (
-            <div key={i} style={{
-              width: 32, height: 32, borderRadius: "50%", background: c,
-              border: `2px solid ${C.card}`, marginLeft: i === 0 ? 0 : -8,
-              boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
-            }} />
-          ))}
-          <div style={{
-            width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.10)",
-            border: `2px solid ${C.card}`, marginLeft: -8, display: "flex",
-            alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: C.textBody,
-          }}>+27</div>
-        </div>
+        {team.length === 0 ? (
+          <div style={{ ...empty, marginTop: 14 }}>No team members yet. Invite people in Settings → Team.</div>
+        ) : (
+          <>
+            <div style={{ display: "flex", alignItems: "center", marginTop: 14 }}>
+              {shownAvatars.map((m, i) => {
+                const initials = (m.display_name || "?").split(/\s+/).map((s) => s[0]).slice(0, 2).join("").toUpperCase();
+                const bg = m.avatar_color || AVATAR_FALLBACK[i % AVATAR_FALLBACK.length];
+                return (
+                  <div key={m.user_id} title={m.display_name || ""} style={{
+                    width: 32, height: 32, borderRadius: "50%", background: bg,
+                    border: `2px solid ${C.card}`, marginLeft: i === 0 ? 0 : -8,
+                    boxShadow: "0 1px 2px rgba(0,0,0,0.3)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 11, fontWeight: 700, color: "#0a1220",
+                    overflow: "hidden",
+                  }}>
+                    {m.avatar_url ? (
+                      <img src={m.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : initials}
+                  </div>
+                );
+              })}
+              {overflow > 0 && (
+                <div style={{
+                  width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.10)",
+                  border: `2px solid ${C.card}`, marginLeft: -8, display: "flex",
+                  alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: C.textBody,
+                }}>+{overflow}</div>
+              )}
+            </div>
+            <div style={{ fontSize: 11, color: C.textMuted, marginTop: 10 }}>
+              {team.length} member{team.length === 1 ? "" : "s"}
+            </div>
+          </>
+        )}
       </Link>
 
       {/* Vault */}
-      <Link
-        to="/missions/$missionId/vault"
-        params={{ missionId }}
-        style={panelCard}
-      >
+      <Link to="/missions/$missionId/vault" params={{ missionId }} style={panelCard}>
         <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary }}>VAULT</div>
         <div style={subLabel}>Mission resources.</div>
-        <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", rowGap: 6, columnGap: 12, fontSize: 12, color: C.textBody }}>
-          {[
-            ["RFP Docs", 12], ["Model Contract", 3],
-            ["SOW & Exhibits", 7], ["Templates", 24],
-            ["Templates Pkg", 156], ["Meeting Notes", 9],
-          ].map(([k, v]) => (
-            <div key={k as string} style={{ display: "flex", justifyContent: "space-between" }}>
-              <span>{k}</span><span style={{ fontWeight: 700 }}>{v}</span>
-            </div>
-          ))}
+        <div style={{ marginTop: 14, fontSize: 36, fontWeight: 800, color: C.textPrimary, lineHeight: 1 }}>
+          {brief.vaultCount}
+        </div>
+        <div style={{ fontSize: 12, color: C.textMuted, marginTop: 4 }}>
+          {brief.vaultCount === 0 ? "No documents uploaded" : `document${brief.vaultCount === 1 ? "" : "s"} on file`}
         </div>
       </Link>
 
       {/* Questions */}
-      <Link
-        to="/missions/$missionId/sections"
-        params={{ missionId }}
-        style={panelCard}
-      >
+      <Link to="/missions/$missionId/sections" params={{ missionId }} style={panelCard}>
         <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary }}>QUESTIONS & SECTIONS</div>
         <div style={subLabel}>Scope and progress.</div>
         <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 6, fontSize: 12, color: C.textBody }}>
-          <Row k="Total Questions" v="156" />
-          <Row k="Total Sections" v="12" />
-          <Row k="Assigned to Team" v="48 (31%)" />
-          <Row k="At Risk" v="7" tone="red" />
-          <Row k="Unassigned" v="0" />
-          <Row k="Completed" v="12 (8%)" />
+          <Row k="Total Questions" v={String(q.total)} />
+          <Row k="Total Sections" v={String(brief.sections.length)} />
+          <Row k="Assigned" v={`${q.assigned} (${assignedPct}%)`} />
+          <Row k="At Risk" v={String(q.by_health.red)} tone={q.by_health.red > 0 ? "red" : undefined} />
+          <Row k="Unassigned" v={String(q.unassigned)} />
+          <Row k="Completed" v={`${q.by_status.complete} (${completedPct}%)`} />
         </div>
       </Link>
 
       {/* Oracle */}
-      <Link
-        to="/missions/$missionId/briefing"
-        params={{ missionId }}
-        style={panelCard}
-      >
+      <Link to="/missions/$missionId/briefing" params={{ missionId }} style={panelCard}>
         <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary }}>ORACLE</div>
         <div style={subLabel}>Deep dive into intelligence.</div>
-        <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8, fontSize: 12, color: C.textBody }}>
-          {[
-            [<FileText size={13} />, "Policy & Regulations"],
-            [<Building2 size={13} />, "State Intelligence"],
-            [<Megaphone size={13} />, "Stakeholders & Advocates"],
-            [<Swords size={13} />, "Competitive Intelligence"],
-            [<Activity size={13} />, "Research & Reports"],
-          ].map(([icon, label], i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ color: C.iris }}>{icon as React.ReactNode}</span>
-              <span>{label as React.ReactNode}</span>
-            </div>
-          ))}
+        <div style={{ marginTop: 14, fontSize: 36, fontWeight: 800, color: C.textPrimary, lineHeight: 1 }}>
+          {brief.signals.length}
+        </div>
+        <div style={{ fontSize: 12, color: C.textMuted, marginTop: 4 }}>
+          {brief.signals.length === 0 ? "No signals yet" : `signal${brief.signals.length === 1 ? "" : "s"} from IRIS`}
         </div>
       </Link>
     </div>
@@ -791,13 +835,78 @@ function Row({ k, v, tone }: { k: string; v: string; tone?: "red" }) {
 
 
 /* ════════════════ RIGHT COLUMN ════════════════ */
-function IrisMissionBrief({ greeting, firstName, missionId }: { greeting: string; firstName: string; missionId: string }) {
-  const alerts = [
-    { icon: <CheckCircle2 size={16} style={{ color: C.green }} />, title: "Mission Health: Green", titleColor: C.green, text: "Progress is on track across most areas.", to: "/missions/$missionId/overview" as const },
-    { icon: <AlertTriangle size={16} style={{ color: C.orange }} />, title: "2 Sections Need Attention", titleColor: C.orange, text: "Sections 2.0 and 3.0 have questions at risk.", to: "/missions/$missionId/sections" as const },
-    { icon: <FileText size={16} style={{ color: C.blue }} />, title: "Client Clarification #4", titleColor: C.blue, text: "NJ posted clarification #4 yesterday.", to: "/missions/$missionId/intel" as const },
-    { icon: <Link2 size={16} style={{ color: C.red }} />, title: "1 Dependency Risk Detected", titleColor: C.red, text: "Section 3.2 depends on 2.1 response.", to: "/missions/$missionId/sections" as const },
-  ];
+function IrisMissionBrief({ greeting, firstName, missionId, brief }: { greeting: string; firstName: string; missionId: string; brief: MissionBrief }) {
+  const alerts = useMemo(() => {
+    const out: Array<{ icon: React.ReactNode; title: string; titleColor: string; text: string; to: string }> = [];
+    const healthColor = brief.mission.health === "Green" ? C.green : brief.mission.health === "Red" ? C.red : C.orange;
+    out.push({
+      icon: brief.mission.health === "Green"
+        ? <CheckCircle2 size={16} style={{ color: C.green }} />
+        : <AlertTriangle size={16} style={{ color: healthColor }} />,
+      title: `Mission Health: ${brief.mission.health ?? "Unknown"}`,
+      titleColor: healthColor,
+      text:
+        brief.mission.health === "Green" ? "Progress is on track across most areas." :
+        brief.mission.health === "Red" ? "Multiple sections need urgent attention." :
+        "Some sections need attention.",
+      to: "/missions/$missionId/overview",
+    });
+    if (brief.questions.by_health.red > 0) {
+      out.push({
+        icon: <AlertTriangle size={16} style={{ color: C.orange }} />,
+        title: `${brief.questions.by_health.red} Question${brief.questions.by_health.red === 1 ? "" : "s"} at Risk`,
+        titleColor: C.orange,
+        text: "Open Sections to triage and reassign.",
+        to: "/missions/$missionId/sections",
+      });
+    }
+    const latestClar = brief.clarifications[0];
+    if (latestClar) {
+      out.push({
+        icon: <FileText size={16} style={{ color: C.blue }} />,
+        title: `Client Clarification #${latestClar.number}`,
+        titleColor: C.blue,
+        text: latestClar.question.length > 80 ? latestClar.question.slice(0, 80) + "…" : latestClar.question,
+        to: "/missions/$missionId/intel",
+      });
+    }
+    if (brief.risks.length > 0) {
+      out.push({
+        icon: <Link2 size={16} style={{ color: C.red }} />,
+        title: `${brief.risks.length} Risk${brief.risks.length === 1 ? "" : "s"} Tracked`,
+        titleColor: C.red,
+        text: brief.risks[0].title,
+        to: "/missions/$missionId/overview",
+      });
+    }
+    if (brief.questions.unassigned > 0 && out.length < 4) {
+      out.push({
+        icon: <Users size={16} style={{ color: C.textMuted }} />,
+        title: `${brief.questions.unassigned} Unassigned Question${brief.questions.unassigned === 1 ? "" : "s"}`,
+        titleColor: C.textBody,
+        text: "Assign owners to keep things moving.",
+        to: "/missions/$missionId/sections",
+      });
+    }
+    return out.slice(0, 4);
+  }, [brief]);
+
+  const recommended = useMemo(() => {
+    if (brief.questions.by_health.red > 0) {
+      return "Triage at-risk questions in Sections before they slip further.";
+    }
+    if (brief.questions.unassigned > 0) {
+      return `Assign owners to ${brief.questions.unassigned} unassigned question${brief.questions.unassigned === 1 ? "" : "s"}.`;
+    }
+    if (brief.team.length <= 1) {
+      return "Invite teammates so you're not flying solo.";
+    }
+    if (brief.winThemes.length === 0) {
+      return "Capture win themes so the team writes to the same north star.";
+    }
+    return "Review the Mission Map below and confirm section ownership.";
+  }, [brief]);
+
   return (
     <div style={{ ...card, padding: 16 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -810,14 +919,16 @@ function IrisMissionBrief({ greeting, firstName, missionId }: { greeting: string
       <div style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>Here's your mission brief.</div>
 
       <div style={{ marginTop: 14, display: "flex", flexDirection: "column" }}>
-        {alerts.map((a, i) => (
+        {alerts.length === 0 ? (
+          <div style={empty}>Nothing urgent. Nice work.</div>
+        ) : alerts.map((a, i) => (
           <div key={i} style={{
             display: "flex", gap: 10, padding: "10px 0",
             borderBottom: i < alerts.length - 1 ? `1px solid ${C.borderLight}` : "none",
           }}>
             <div style={{ marginTop: 1, flexShrink: 0 }}>{a.icon}</div>
             <div>
-              <Link to={a.to} params={{ missionId }} style={{ fontSize: 12, fontWeight: 700, color: a.titleColor, textDecoration: "none" }}>{a.title}</Link>
+              <Link to={a.to as any} params={{ missionId } as any} style={{ fontSize: 12, fontWeight: 700, color: a.titleColor, textDecoration: "none" }}>{a.title}</Link>
               <div style={{ fontSize: 12, color: C.textMuted, lineHeight: 1.5, marginTop: 2 }}>{a.text}</div>
             </div>
           </div>
@@ -829,32 +940,34 @@ function IrisMissionBrief({ greeting, firstName, missionId }: { greeting: string
           Recommended Action
         </div>
         <div style={{ fontSize: 12, color: C.textBody, lineHeight: 1.5, marginTop: 6 }}>
-          Review Care Coordination Approach (3.2.1) — high impact section with tight requirements.
+          {recommended}
         </div>
-        <Link
-          to="/missions/$missionId/sections"
-          params={{ missionId }}
-          style={{
-            display: "inline-block",
-            marginTop: 10, background: "transparent", color: C.textBody, fontSize: 12,
-            padding: "6px 14px", borderRadius: 6, border: `1px solid ${C.border}`, cursor: "pointer", fontWeight: 500,
-            textDecoration: "none",
-          }}
-        >View Details</Link>
+        <Link to="/missions/$missionId/sections" params={{ missionId }} style={{
+          display: "inline-block", marginTop: 10, background: "transparent", color: C.textBody, fontSize: 12,
+          padding: "6px 14px", borderRadius: 6, border: `1px solid ${C.border}`, cursor: "pointer", fontWeight: 500,
+          textDecoration: "none",
+        }}>View Details</Link>
       </div>
     </div>
   );
 }
 
-function MissionHealthCard({ missionId }: { missionId: string }) {
+function MissionHealthCard({ missionId, brief }: { missionId: string; brief: MissionBrief }) {
+  const q = brief.questions;
+  const onTrack = q.by_health.green;
+  const atRisk = q.by_health.yellow;
+  const blocked = q.by_health.red;
+  const progressPct = q.total > 0 ? Math.round((q.by_status.complete / q.total) * 100) : 0;
+
   const metrics = [
-    { icon: <CheckCircle2 size={14} style={{ color: C.green }} />, label: "On Track", val: 42, color: C.green },
-    { icon: <AlertTriangle size={14} style={{ color: C.orange }} />, label: "At Risk", val: 7, color: C.orange },
-    { icon: <XCircle size={14} style={{ color: C.red }} />, label: "Blocked", val: 1, color: C.red },
-    { icon: <Bell size={14} style={{ color: C.orange }} />, label: "Open SOS", val: 2, color: C.orange },
-    { icon: <Gavel size={14} style={{ color: C.blue }} />, label: "Pending Decisions", val: 3, color: C.blue },
-    { icon: <Calendar size={14} style={{ color: C.textMuted }} />, label: "Upcoming Milestones", val: 5, color: C.textMuted },
+    { icon: <CheckCircle2 size={14} style={{ color: C.green }} />, label: "On Track", val: onTrack, color: C.green },
+    { icon: <AlertTriangle size={14} style={{ color: C.orange }} />, label: "At Risk", val: atRisk, color: C.orange },
+    { icon: <XCircle size={14} style={{ color: C.red }} />, label: "Blocked", val: blocked, color: C.red },
+    { icon: <Bell size={14} style={{ color: C.orange }} />, label: "Open Risks", val: brief.risks.length, color: C.orange },
+    { icon: <Gavel size={14} style={{ color: C.blue }} />, label: "Clarifications", val: brief.clarifications.length, color: C.blue },
+    { icon: <Calendar size={14} style={{ color: C.textMuted }} />, label: "Sections", val: brief.sections.length, color: C.textMuted },
   ];
+
   return (
     <div style={{ ...card, padding: 16 }}>
       <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary }}>MISSION HEALTH</div>
@@ -863,10 +976,10 @@ function MissionHealthCard({ missionId }: { missionId: string }) {
       <div style={{ marginTop: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
           <span style={{ fontSize: 12, color: C.textBody }}>Overall Progress</span>
-          <span style={{ fontSize: 12, fontWeight: 700, color: C.textPrimary }}>67%</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: C.textPrimary }}>{progressPct}%</span>
         </div>
         <div style={{ height: 7, background: C.borderLight, borderRadius: 999, overflow: "hidden" }}>
-          <div style={{ width: "67%", height: "100%", background: C.green, borderRadius: 999 }} />
+          <div style={{ width: `${progressPct}%`, height: "100%", background: C.green, borderRadius: 999 }} />
         </div>
       </div>
 
@@ -901,17 +1014,13 @@ function YoureBriefedCard({ missionId }: { missionId: string }) {
           <div style={{ fontSize: 11, color: C.textMuted, lineHeight: 1.5, marginTop: 6 }}>
             Open the Flight Deck to check your status and manage your assignments.
           </div>
-          <Link
-            to="/missions/$missionId/flight-deck"
-            params={{ missionId }}
-            style={{
-              display: "inline-flex", alignItems: "center", gap: 6, marginTop: 12,
-              padding: "8px 14px", borderRadius: 8,
-              background: C.blue, color: "#fff",
-              fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase",
-              textDecoration: "none",
-            }}
-          >
+          <Link to="/missions/$missionId/flight-deck" params={{ missionId }} style={{
+            display: "inline-flex", alignItems: "center", gap: 6, marginTop: 12,
+            padding: "8px 14px", borderRadius: 8,
+            background: C.blue, color: "#fff",
+            fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase",
+            textDecoration: "none",
+          }}>
             <Plane size={12} />
             Go to Flight Deck
           </Link>
@@ -921,3 +1030,28 @@ function YoureBriefedCard({ missionId }: { missionId: string }) {
   );
 }
 
+
+/* ════════════════ HELPERS ════════════════ */
+function formatRelative(iso: string | null): string {
+  if (!iso) return "";
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return "";
+  const now = Date.now();
+  const diffMs = now - then;
+  const mins = Math.round(diffMs / 60_000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.round(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function severityColor(sev: string | null): string {
+  const s = (sev ?? "").toLowerCase();
+  if (s === "high" || s === "critical") return C.red;
+  if (s === "medium") return C.orange;
+  if (s === "low") return C.iris;
+  return C.iris;
+}
