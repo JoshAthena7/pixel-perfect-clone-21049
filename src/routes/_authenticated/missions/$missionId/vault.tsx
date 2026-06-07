@@ -463,6 +463,21 @@ function UploadModal({
           setBusy(false);
           return;
         }
+        // Client-side guardrails — fail before uploading to storage so we
+        // don't orphan a blob and so the user sees a friendly message instead
+        // of the server-fn runtime error overlay.
+        const mimeErr = validateVaultMime(file.name, file.type || "");
+        if (mimeErr) {
+          toast.error(mimeErr.message);
+          setBusy(false);
+          return;
+        }
+        const sizeErr = validateVaultSize(file.size);
+        if (sizeErr) {
+          toast.error(sizeErr.message);
+          setBusy(false);
+          return;
+        }
         const safeName = file.name.replace(/[^\w.\-]+/g, "_");
         const path = `${missionId}/vault/${docType}/${Date.now()}_${safeName}`;
         const { error: upErr } = await supabase.storage
@@ -497,7 +512,7 @@ function UploadModal({
       toast.success(`${meta.label} added to Vault`);
       onSaved();
     } catch (e: any) {
-      toast.error(e?.message ?? "Upload failed");
+      toast.error(friendlyErrorMessage(e));
     } finally {
       setBusy(false);
     }
