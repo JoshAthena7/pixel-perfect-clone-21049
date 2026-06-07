@@ -138,7 +138,8 @@ function MissionBriefingRoomPage() {
             <MissionObjective brief={brief} />
             <StrategicBrief brief={brief} />
             <ThreeColumnRow missionId={missionId} brief={brief} />
-            <MissionMap missionId={missionId} brief={brief} />
+            <MissionLifecycleMap brief={brief} />
+            <SectionStatus missionId={missionId} brief={brief} />
             <BottomPanels missionId={missionId} brief={brief} />
           </div>
 
