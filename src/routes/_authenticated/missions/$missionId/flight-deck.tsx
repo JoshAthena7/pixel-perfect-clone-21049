@@ -133,6 +133,39 @@ function MissionFlightDeckPage() {
         </Link>
       </div>
 
+      {/* M-4: Personal Flight Deck header — visually distinct from the mission-wide Brief. */}
+      <div className="mx-auto mt-4 max-w-[1200px] px-6">
+        <div
+          className="rounded-lg border px-4 py-3"
+          style={{
+            background: "linear-gradient(135deg, rgba(96,165,250,0.10), rgba(96,165,250,0.02))",
+            borderColor: "rgba(96,165,250,0.35)",
+          }}
+        >
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-[0.22em]" style={{ color: "#60A5FA" }}>
+                Your Flight Deck
+              </div>
+              <div className="text-[15px] font-semibold text-foreground mt-1">
+                {meId
+                  ? `${myQuestions.length} question${myQuestions.length === 1 ? "" : "s"} assigned to you`
+                  : "Sign in to see your personal assignments"}
+              </div>
+              <div className="text-[12px] text-muted-foreground mt-0.5">
+                Personal task list and individual progress. For the mission-wide overview, win themes, team, and IRIS intelligence, open the Mission Brief.
+              </div>
+            </div>
+            <Link
+              to="/missions/$missionId/brief"
+              params={{ missionId }}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground hover:text-foreground"
+            >
+              View Mission Brief
+            </Link>
+          </div>
+        </div>
+      </div>
 
       <IrisAlertBar missionId={missionId} />
       <BriefPrompt missionId={missionId} userId={meId ?? ""} />

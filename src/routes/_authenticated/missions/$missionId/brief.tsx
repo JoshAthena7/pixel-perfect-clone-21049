@@ -140,6 +140,7 @@ function MissionBriefingRoomPage() {
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0,3fr) minmax(280px,1fr)", gap: 20, alignItems: "start" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
             <Hero missionId={missionId} brief={brief} />
+            <GetStartedCard missionId={missionId} brief={brief} />
             <MissionLeaders brief={brief} />
             <MissionObjective brief={brief} />
             <StrategicBrief brief={brief} />
@@ -328,7 +329,51 @@ function StatusPill({ text, color }: { text: string; color: string }) {
   );
 }
 
-/* ════════════════ MISSION OBJECTIVE ════════════════ */
+/* ════════════════ GET STARTED (H-6) ════════════════ */
+function GetStartedCard({ missionId, brief }: { missionId: string; brief: MissionBrief }) {
+  const m = brief.mission;
+  const isDraft = (m.status ?? "").toLowerCase() === "draft";
+  const hasTeam = brief.team.length > 0;
+  const hasThemes = brief.winThemes.length > 0;
+  const hasIntel = brief.signals.length > 0;
+  // Show only while the mission is clearly under-configured.
+  const ready = hasTeam && hasThemes && hasIntel && !!m.submission_date;
+  if (!isDraft && ready) return null;
+  return (
+    <div style={{
+      ...card,
+      padding: "20px 24px",
+      borderColor: "rgba(224,179,65,0.35)",
+      background: "linear-gradient(135deg, rgba(224,179,65,0.10), rgba(224,179,65,0.02))",
+    }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: C.gold, textTransform: "uppercase", marginBottom: 6 }}>
+            Get Started
+          </div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: C.textPrimary, marginBottom: 4 }}>
+            Your mission is set up. Complete your Setup Record to activate IRIS and unlock full mission intelligence.
+          </div>
+          <div style={{ fontSize: 12, color: C.textMuted }}>
+            One next step beats eight half-finished ones. Start with the Setup Record — everything else fills in from there.
+          </div>
+        </div>
+        <Link
+          to="/admin/missions/$missionId/setup"
+          params={{ missionId }}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "10px 16px", borderRadius: 8,
+            background: C.gold, color: "#0a1322", fontSize: 13, fontWeight: 700,
+            textDecoration: "none", whiteSpace: "nowrap",
+          }}
+        >
+          Go to Setup Record <ArrowRight size={14} />
+        </Link>
+      </div>
+    </div>
+  );
+}
 function MissionObjective({ brief }: { brief: MissionBrief }) {
   const m = brief.mission;
   // Prefer program_goals, fall back to first paragraph of description.
@@ -518,8 +563,8 @@ function OracleBriefing({ missionId, brief }: { missionId: string; brief: Missio
   return (
     <div style={{ ...card, padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
       <div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary }}>ORACLE BRIEFING</div>
-        <div style={subLabel}>Key intelligence and insights.</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary }} title="Oracle surfaces competitive intelligence, state comparables, and historical patterns relevant to this mission.">ORACLE BRIEFING</div>
+        <div style={subLabel}>Competitive intelligence, state comparables, and historical patterns relevant to this mission.</div>
       </div>
 
       <div>
@@ -812,8 +857,19 @@ function MissionLifecycleMap({ brief }: { brief: MissionBrief }) {
         )}
       </div>
 
-      <div style={{ overflowX: "auto", marginTop: 22, paddingBottom: 6 }}>
-        <div style={{ position: "relative", minWidth: phases.length * 110, padding: "0 12px" }}>
+      {/* L-6: Legend pinned above the map so statuses are readable at a glance. */}
+      <div style={{ display: "flex", gap: 14, fontSize: 11, color: C.textMuted, flexWrap: "wrap", marginTop: 14 }}>
+        <Legend dot={C.green} label="Done" check />
+        <Legend dot={C.gold} label="In progress / Active" />
+        <Legend dot={C.orange} label="At risk" tri />
+        <Legend dot={C.red} label="Overdue" />
+        <Legend dot="rgba(255,255,255,0.25)" label="Upcoming" hollow />
+        <Legend dot="rgba(255,255,255,0.10)" label="Not scheduled" hollow />
+      </div>
+
+      <div style={{ overflowX: "auto", marginTop: 14, paddingBottom: 6 }}>
+        {/* M-8: Use a compact per-phase minWidth so all 12 stages fit on common viewports. */}
+        <div style={{ position: "relative", minWidth: phases.length * 72, padding: "0 8px" }}>
           {/* connector line */}
           <div style={{
             position: "absolute", left: 28, right: 28, top: 56, height: 2,
@@ -869,16 +925,6 @@ function MissionLifecycleMap({ brief }: { brief: MissionBrief }) {
         </div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 14, flexWrap: "wrap", gap: 12 }}>
-        <div style={{ display: "flex", gap: 16, fontSize: 11, color: C.textMuted, flexWrap: "wrap" }}>
-          <Legend dot={C.green} label="Done" check />
-          <Legend dot={C.gold} label="In progress / Active" />
-          <Legend dot={C.orange} label="At risk" tri />
-          <Legend dot={C.red} label="Overdue" />
-          <Legend dot="rgba(255,255,255,0.25)" label="Upcoming" hollow />
-          <Legend dot="rgba(255,255,255,0.10)" label="Not scheduled" hollow />
-        </div>
-      </div>
     </div>
   );
 }
@@ -1433,8 +1479,8 @@ function MissionLeaders({ brief }: { brief: MissionBrief }) {
           <div style={sectionLabel}>MISSION LEADERS</div>
           <div style={subLabel}>Who's leading this mission. Click anyone to ask a question.</div>
         </div>
-        <div style={{ fontSize: 11, color: C.textMuted }}>
-          {leaders.length} leader{leaders.length === 1 ? "" : "s"}
+        <div style={{ fontSize: 11, color: C.textMuted }} title="Number of leadership roles (Engagement Lead, PM, Founder) filled on this mission.">
+          {leaders.length} leadership role{leaders.length === 1 ? "" : "s"} assigned
         </div>
       </div>
 
