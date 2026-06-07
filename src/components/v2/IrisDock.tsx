@@ -72,24 +72,39 @@ export function IrisDock() {
 
   return (
     <>
-      {/* Floating launcher */}
+      {/* Floating launcher — mystical IRIS brand */}
       {!open && (
         <button
           onClick={() => setOpen(true)}
           aria-label="Ask IRIS"
           title="Ask IRIS (⌘J)"
-          className="group fixed right-5 bottom-5 z-[1500] flex h-12 items-center gap-2 rounded-full px-4 transition-all duration-200 hover:scale-105"
+          className="iris-ask-launcher group fixed right-5 bottom-5 z-[1500] flex h-12 items-center gap-2.5 rounded-full pl-2 pr-4 transition-all duration-200 hover:scale-[1.03]"
           style={{
-            background: "linear-gradient(135deg, rgba(34,211,238,0.95), rgba(34,211,238,0.7))",
-            boxShadow: "0 0 0 1px rgba(34,211,238,0.4), 0 10px 30px rgba(34,211,238,0.35), 0 0 30px rgba(34,211,238,0.25)",
-            color: "#001218",
+            background:
+              "radial-gradient(120% 140% at 0% 50%, rgba(167,139,250,0.35), rgba(99,102,241,0.18) 55%, rgba(10,8,28,0.92) 100%), #0a081c",
+            boxShadow:
+              "0 0 0 1px var(--iris-border), 0 10px 30px rgba(99,102,241,0.30), 0 0 40px rgba(139,109,255,0.22), inset 0 1px 0 rgba(255,255,255,0.06)",
+            color: "#e9e2ff",
           }}
         >
-          <span className="-ml-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-black/20 shadow-[0_0_18px_rgba(245,158,11,0.25)]">
-            <Sparkles className="h-3.5 w-3.5" />
+          <IrisMark size={32} glow />
+          <span
+            className="text-[11px] font-semibold uppercase tracking-[0.22em]"
+            style={{
+              backgroundImage: "linear-gradient(135deg,#dcd0ff 0%,#ffffff 50%,#bff0ff 100%)",
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              color: "transparent",
+            }}
+          >
+            Ask IRIS
           </span>
-          <span className="text-[11px] font-bold uppercase tracking-[0.12em]">Ask IRIS</span>
-          <kbd className="hidden md:inline-flex items-center rounded bg-black/20 px-1.5 py-0.5 text-[9px] font-mono">⌘J</kbd>
+          <kbd
+            className="hidden md:inline-flex items-center rounded px-1.5 py-0.5 text-[9px] font-mono"
+            style={{ background: "rgba(255,255,255,0.06)", color: "rgba(220,208,255,0.7)" }}
+          >
+            ⌘J
+          </kbd>
         </button>
       )}
 
@@ -98,24 +113,33 @@ export function IrisDock() {
         <aside
           className="fixed right-0 top-0 z-[1500] flex h-screen w-full max-w-[420px] flex-col border-l shadow-2xl"
           style={{
-            background: "#060b14",
-            borderColor: "rgba(34,211,238,0.18)",
-            boxShadow: "-20px 0 60px rgba(0,0,0,0.5), inset 1px 0 0 rgba(34,211,238,0.08)",
+            background: "#060616",
+            borderColor: "var(--iris-border)",
+            boxShadow: "-20px 0 60px rgba(0,0,0,0.6), inset 1px 0 0 rgba(139,109,255,0.10)",
           }}
         >
           <header
             className="flex items-center justify-between border-b px-4 py-3"
-            style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(34,211,238,0.04)" }}
+            style={{
+              borderColor: "rgba(255,255,255,0.06)",
+              background:
+                "linear-gradient(180deg, rgba(99,102,241,0.10), rgba(99,102,241,0) 90%)",
+            }}
           >
-            <div className="flex items-center gap-2">
-              <span className="relative inline-flex">
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[color:var(--iris,#22d3ee)]/12 text-[color:var(--iris,#22d3ee)]">
-                  <Sparkles className="h-3.5 w-3.5" />
-                </span>
-                <span className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 animate-ping rounded-full bg-[color:var(--athena-gold,#f59e0b)]" />
-              </span>
+            <div className="flex items-center gap-2.5">
+              <IrisMark size={26} glow />
               <div>
-                <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[color:var(--iris,#22d3ee)]">IRIS</div>
+                <div
+                  className="text-[11px] font-bold uppercase tracking-[0.28em]"
+                  style={{
+                    backgroundImage: "linear-gradient(135deg,#a78bfa,#e9e2ff 55%,#67e8f9)",
+                    WebkitBackgroundClip: "text",
+                    backgroundClip: "text",
+                    color: "transparent",
+                  }}
+                >
+                  IRIS
+                </div>
                 <div className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Context · {contextLabel}</div>
               </div>
             </div>
@@ -127,6 +151,7 @@ export function IrisDock() {
               <X size={14} />
             </button>
           </header>
+
 
           <IngestionBadge missionId={missionId ?? null} />
 
