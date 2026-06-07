@@ -878,8 +878,8 @@ function SectionStatus({ missionId, brief }: { missionId: string; brief: Mission
     <div style={{ ...card, padding: "20px 24px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
         <div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary }}>MISSION MAP</div>
-          <div style={subLabel}>Visualize the journey from start to submission.</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary }}>SECTION STATUS</div>
+          <div style={subLabel}>Progress and ownership for every RFP section.</div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontSize: 12, color: C.textMuted }}>View by:</span>
