@@ -84,6 +84,22 @@ export type MissionBrief = {
     created_at: string;
   }>;
   daysToSubmission: number | null;
+  lifecycle: {
+    created_at: string | null;
+    iris_kickoff_at: string | null;
+    iris_kickoff_status: string | null;
+    timeline: {
+      question_deadline: string | null;
+      pink_team: string | null;
+      red_team: string | null;
+      gold_team: string | null;
+      exec_review: string | null;
+      submission: string | null;
+      orals: string | null;
+      award: string | null;
+    } | null;
+    debriefCount: number;
+  };
 };
 
 async function fetchMissionBrief(missionId: string): Promise<MissionBrief> {
