@@ -322,15 +322,8 @@ function VaultPage() {
                       </p>
                     </div>
                   </div>
-                  {isLead && (
-                    <button
-                      onClick={() => setOpenUpload(type)}
-                      className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/5 px-2.5 py-1.5 text-[11px] font-medium text-foreground hover:bg-white/10"
-                    >
-                      <Plus className="h-3 w-3" />
-                      Add
-                    </button>
-                  )}
+                  {/* Uploads are admin-only via Olympus. No in-vault upload button. */}
+
                 </div>
 
                 <div className="mt-4 space-y-2">
