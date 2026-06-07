@@ -106,6 +106,7 @@ import { Route as AuthenticatedV1SectionsSectionIdRouteImport } from './routes/_
 import { Route as AuthenticatedMissionsMissionIdVaultRouteImport } from './routes/_authenticated/missions/$missionId/vault'
 import { Route as AuthenticatedMissionsMissionIdTeamRouteImport } from './routes/_authenticated/missions/$missionId/team'
 import { Route as AuthenticatedMissionsMissionIdSettingsRouteImport } from './routes/_authenticated/missions/$missionId/settings'
+import { Route as AuthenticatedMissionsMissionIdSectionBriefsRouteImport } from './routes/_authenticated/missions/$missionId/section-briefs'
 import { Route as AuthenticatedMissionsMissionIdResponseTemplateRouteImport } from './routes/_authenticated/missions/$missionId/response-template'
 import { Route as AuthenticatedMissionsMissionIdOverviewRouteImport } from './routes/_authenticated/missions/$missionId/overview'
 import { Route as AuthenticatedMissionsMissionIdLibraryRouteImport } from './routes/_authenticated/missions/$missionId/library'
@@ -674,6 +675,12 @@ const AuthenticatedMissionsMissionIdSettingsRoute =
     path: '/settings',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
+const AuthenticatedMissionsMissionIdSectionBriefsRoute =
+  AuthenticatedMissionsMissionIdSectionBriefsRouteImport.update({
+    id: '/section-briefs',
+    path: '/section-briefs',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
+  } as any)
 const AuthenticatedMissionsMissionIdResponseTemplateRoute =
   AuthenticatedMissionsMissionIdResponseTemplateRouteImport.update({
     id: '/response-template',
@@ -901,6 +908,7 @@ export interface FileRoutesByFullPath {
   '/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
   '/missions/$missionId/overview': typeof AuthenticatedMissionsMissionIdOverviewRoute
   '/missions/$missionId/response-template': typeof AuthenticatedMissionsMissionIdResponseTemplateRoute
+  '/missions/$missionId/section-briefs': typeof AuthenticatedMissionsMissionIdSectionBriefsRoute
   '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
   '/missions/$missionId/vault': typeof AuthenticatedMissionsMissionIdVaultRoute
@@ -1017,6 +1025,7 @@ export interface FileRoutesByTo {
   '/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
   '/missions/$missionId/overview': typeof AuthenticatedMissionsMissionIdOverviewRoute
   '/missions/$missionId/response-template': typeof AuthenticatedMissionsMissionIdResponseTemplateRoute
+  '/missions/$missionId/section-briefs': typeof AuthenticatedMissionsMissionIdSectionBriefsRoute
   '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
   '/missions/$missionId/vault': typeof AuthenticatedMissionsMissionIdVaultRoute
@@ -1139,6 +1148,7 @@ export interface FileRoutesById {
   '/_authenticated/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
   '/_authenticated/missions/$missionId/overview': typeof AuthenticatedMissionsMissionIdOverviewRoute
   '/_authenticated/missions/$missionId/response-template': typeof AuthenticatedMissionsMissionIdResponseTemplateRoute
+  '/_authenticated/missions/$missionId/section-briefs': typeof AuthenticatedMissionsMissionIdSectionBriefsRoute
   '/_authenticated/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/_authenticated/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
   '/_authenticated/missions/$missionId/vault': typeof AuthenticatedMissionsMissionIdVaultRoute
@@ -1261,6 +1271,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/library'
     | '/missions/$missionId/overview'
     | '/missions/$missionId/response-template'
+    | '/missions/$missionId/section-briefs'
     | '/missions/$missionId/settings'
     | '/missions/$missionId/team'
     | '/missions/$missionId/vault'
@@ -1377,6 +1388,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/library'
     | '/missions/$missionId/overview'
     | '/missions/$missionId/response-template'
+    | '/missions/$missionId/section-briefs'
     | '/missions/$missionId/settings'
     | '/missions/$missionId/team'
     | '/missions/$missionId/vault'
@@ -1498,6 +1510,7 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/$missionId/library'
     | '/_authenticated/missions/$missionId/overview'
     | '/_authenticated/missions/$missionId/response-template'
+    | '/_authenticated/missions/$missionId/section-briefs'
     | '/_authenticated/missions/$missionId/settings'
     | '/_authenticated/missions/$missionId/team'
     | '/_authenticated/missions/$missionId/vault'
@@ -2235,6 +2248,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdSettingsRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
+    '/_authenticated/missions/$missionId/section-briefs': {
+      id: '/_authenticated/missions/$missionId/section-briefs'
+      path: '/section-briefs'
+      fullPath: '/missions/$missionId/section-briefs'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdSectionBriefsRouteImport
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
     '/_authenticated/missions/$missionId/response-template': {
       id: '/_authenticated/missions/$missionId/response-template'
       path: '/response-template'
@@ -2534,6 +2554,7 @@ interface AuthenticatedMissionsMissionIdRouteChildren {
   AuthenticatedMissionsMissionIdLibraryRoute: typeof AuthenticatedMissionsMissionIdLibraryRoute
   AuthenticatedMissionsMissionIdOverviewRoute: typeof AuthenticatedMissionsMissionIdOverviewRoute
   AuthenticatedMissionsMissionIdResponseTemplateRoute: typeof AuthenticatedMissionsMissionIdResponseTemplateRoute
+  AuthenticatedMissionsMissionIdSectionBriefsRoute: typeof AuthenticatedMissionsMissionIdSectionBriefsRoute
   AuthenticatedMissionsMissionIdSettingsRoute: typeof AuthenticatedMissionsMissionIdSettingsRoute
   AuthenticatedMissionsMissionIdTeamRoute: typeof AuthenticatedMissionsMissionIdTeamRoute
   AuthenticatedMissionsMissionIdVaultRoute: typeof AuthenticatedMissionsMissionIdVaultRoute
@@ -2577,6 +2598,8 @@ const AuthenticatedMissionsMissionIdRouteChildren: AuthenticatedMissionsMissionI
       AuthenticatedMissionsMissionIdOverviewRoute,
     AuthenticatedMissionsMissionIdResponseTemplateRoute:
       AuthenticatedMissionsMissionIdResponseTemplateRoute,
+    AuthenticatedMissionsMissionIdSectionBriefsRoute:
+      AuthenticatedMissionsMissionIdSectionBriefsRoute,
     AuthenticatedMissionsMissionIdSettingsRoute:
       AuthenticatedMissionsMissionIdSettingsRoute,
     AuthenticatedMissionsMissionIdTeamRoute:
