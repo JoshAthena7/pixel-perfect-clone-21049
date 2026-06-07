@@ -115,6 +115,13 @@ function AllMissionsPage() {
                         </Link>
                       </td>
                       <td className="px-4 py-3">
+                        <MissionProgressRing
+                          size="sm"
+                          completed={completedByMission[m.id] ?? 0}
+                          total={m.question_count ?? 0}
+                        />
+                      </td>
+                      <td className="px-4 py-3">
                         <StatusChip status={m.status} />
                       </td>
                       <td className="px-4 py-3 text-muted-foreground tabular-nums">
