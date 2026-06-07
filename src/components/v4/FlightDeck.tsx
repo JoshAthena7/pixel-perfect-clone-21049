@@ -375,6 +375,16 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
           onClose={() => setPhoneOpen(false)}
         />
       )}
+      {rowPhoneFor && (
+        <PhoneAFriendOverlay
+          missionId={missionId}
+          questionId={rowPhoneFor.id}
+          questionNumber={rowPhoneFor.question_number}
+          meId={me || null}
+          meName={meName}
+          onClose={() => setRowPhoneFor(null)}
+        />
+      )}
       <Sheet open={pulseOpen} onOpenChange={setPulseOpen}>
         <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto">
           <SheetHeader>
