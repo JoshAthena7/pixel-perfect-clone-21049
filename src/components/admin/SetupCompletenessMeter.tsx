@@ -45,8 +45,15 @@ export function SetupCompletenessMeter({ mission, evaluationCount }: Props) {
       </div>
 
       <p className="mt-3 text-xs text-muted-foreground leading-relaxed">
-        IRIS needs these fields to generate accurate intelligence. The more you complete, the sharper your analysis becomes.
+        Every field you complete gives IRIS a clearer picture of your competitive position.
       </p>
+
+      {pct >= 50 && !complete && (
+        <p className="mt-3 flex items-center gap-2 text-sm text-cyan-700 dark:text-cyan-300">
+          <Check className="h-4 w-4" />
+          IRIS is now active. Continue completing sections to sharpen your intelligence profile.
+        </p>
+      )}
 
       {complete ? (
         <p className="mt-3 flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-300">
