@@ -25,7 +25,7 @@ const STATUS_DOT: Record<string, string> = {
   critical: "bg-rose-500",
 };
 
-function HealthDashboardPage() {
+export function HealthDashboardPage() {
   const listFn = useServerFn(listLeadMissions);
   const getFn = useServerFn(getMissionHealth);
 
