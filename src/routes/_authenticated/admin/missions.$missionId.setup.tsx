@@ -304,18 +304,25 @@ function useSetupData(missionId: string) {
 }
 
 function useCompletion(setup: any): Record<SectionId, boolean> {
-  return useMemo(() => ({
-    identity: !!(setup.mission?.name && setup.mission?.client && setup.mission?.status),
-    team: (setup.members?.length ?? 0) > 0,
-    inputs: (setup.docs?.length ?? 0) > 0 || (setup.monitoring?.length ?? 0) > 0,
-    strategy: (setup.strategy?.length ?? 0) > 0 || (setup.mission?.win_themes?.length ?? 0) > 0,
-    evaluation: (setup.evaluation?.length ?? 0) > 0,
-    client: !!setup.clientIntel,
-    timeline: !!(setup.timeline?.submission),
-    questions: (setup.questions?.length ?? 0) > 0,
-    governance: !!(setup.governance?.submission_authority),
-    financials: !!setup.financials,
-  }), [setup]);
+  return useMemo(() => {
+    const qs = setup.questions ?? [];
+    const assignedCount = qs.filter((q: any) => q.assigned_writer_id).length;
+    // Question Setup is complete when at least half of the imported
+    // questions have a Writer assigned (minimum ownership coverage).
+    const questionsComplete = qs.length > 0 && assignedCount >= Math.max(1, Math.ceil(qs.length / 2));
+    return {
+      identity: !!(setup.mission?.name && setup.mission?.client && setup.mission?.status),
+      team: (setup.members?.length ?? 0) > 0,
+      inputs: (setup.docs?.length ?? 0) > 0 || (setup.monitoring?.length ?? 0) > 0,
+      strategy: (setup.strategy?.length ?? 0) > 0 || (setup.mission?.win_themes?.length ?? 0) > 0,
+      evaluation: (setup.evaluation?.length ?? 0) > 0,
+      client: !!setup.clientIntel,
+      timeline: !!(setup.timeline?.submission),
+      questions: questionsComplete,
+      governance: !!(setup.governance?.submission_authority),
+      financials: !!setup.financials,
+    };
+  }, [setup]);
 }
 
 function CompletionMeter({ completion, isAdmin }: { completion: Record<SectionId, boolean>; isAdmin: boolean }) {
