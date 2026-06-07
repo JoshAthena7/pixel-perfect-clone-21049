@@ -78,11 +78,7 @@ export function AtlasLoginPage() {
               className="h-[5.5rem] w-[5.5rem] object-contain -my-2"
               draggable={false}
             />
-            <div
-              aria-hidden
-              className="h-10 w-px"
-              style={{ background: "linear-gradient(180deg, transparent, rgba(201,168,76,0.55), transparent)" }}
-            />
+            <span className="atlas-gold-dot" aria-hidden style={{ width: 9, height: 9 }} />
             <img
               src={atlasWordmark.url}
               alt="ATLAS"
