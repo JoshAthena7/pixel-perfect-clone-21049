@@ -217,15 +217,15 @@ export function SectionBriefManager({ missionId }: { missionId: string }) {
 function statusLabel(s: QuestionStatus): string {
   switch (s) {
     case "not_started":
-      return "Not started";
+      return "Not Initiated";
     case "questions_ready":
-      return "Questions ready";
+      return "Pre-Flight Ready";
     case "answering":
-      return "Answering";
+      return "In Progress";
     case "answers_submitted":
-      return "Submitted";
+      return "Answers Submitted";
     case "refined_brief_ready":
-      return "Refined brief";
+      return "Flight Plan Ready";
   }
 }
 
