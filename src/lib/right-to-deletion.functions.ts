@@ -20,7 +20,7 @@ export const listDeletionRequests = createServerFn({ method: "GET" })
     const { data, error } = await supabase
       .from("writer_deletion_requests")
       .select("*")
-      .order("created_at", { ascending: false })
+      .order("request_received_at", { ascending: false })
       .limit(500);
     if (error) throw new Error(error.message);
     return data ?? [];
@@ -38,12 +38,12 @@ export const createDeletionRequest = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await assertAdmin(supabase, userId);
-    const { error } = await supabase.from("writer_deletion_requests").insert({
-      requested_by: userId,
+    const { error } = await (supabase.from("writer_deletion_requests") as any).insert({
+      writer_email: data.subject_email,
       subject_name: data.subject_name,
-      subject_email: data.subject_email,
       notes: data.notes ?? null,
-      status: "pending",
+      request_source: "in_app",
+      requested_by: userId,
     });
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -62,12 +62,10 @@ export const markDeletionFulfilled = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await assertAdmin(supabase, userId);
-    const { error } = await supabase
-      .from("writer_deletion_requests")
+    const { error } = await (supabase.from("writer_deletion_requests") as any)
       .update({
-        status: "fulfilled",
-        fulfilled_at: new Date().toISOString(),
-        fulfilled_by: userId,
+        processed_at: new Date().toISOString(),
+        processed_by: userId,
         fulfillment_method: data.method ?? null,
       })
       .eq("id", data.id);

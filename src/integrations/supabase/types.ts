@@ -6627,32 +6627,41 @@ export type Database = {
       }
       writer_deletion_requests: {
         Row: {
+          fulfillment_method: string | null
           id: string
           notes: string | null
           processed_at: string | null
           processed_by: string | null
           request_received_at: string
           request_source: string | null
+          requested_by: string | null
+          subject_name: string | null
           writer_email: string
           writer_id: string | null
         }
         Insert: {
+          fulfillment_method?: string | null
           id?: string
           notes?: string | null
           processed_at?: string | null
           processed_by?: string | null
           request_received_at?: string
           request_source?: string | null
+          requested_by?: string | null
+          subject_name?: string | null
           writer_email: string
           writer_id?: string | null
         }
         Update: {
+          fulfillment_method?: string | null
           id?: string
           notes?: string | null
           processed_at?: string | null
           processed_by?: string | null
           request_received_at?: string
           request_source?: string | null
+          requested_by?: string | null
+          subject_name?: string | null
           writer_email?: string
           writer_id?: string | null
         }
