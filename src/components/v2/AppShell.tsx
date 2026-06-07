@@ -538,7 +538,7 @@ function UserAvatarMenu() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-[11px] font-semibold text-primary hover:bg-primary/25 transition-colors"
+        className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-[11px] font-semibold text-primary ring-1 ring-transparent hover:bg-primary/25 hover:ring-[color:var(--athena-gold,#C9A84C)]/40 transition-all"
         aria-label="Account menu"
       >
         {initials}
