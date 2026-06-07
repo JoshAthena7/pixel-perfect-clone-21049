@@ -158,8 +158,10 @@ export function IrisDock() {
           <div ref={scrollerRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
             {msgs.length === 0 && (
               <div className="space-y-3">
-                <div className="rounded-lg border border-[color:var(--iris,#22d3ee)]/15 bg-[color:var(--iris,#22d3ee)]/[0.04] p-3 text-xs text-muted-foreground">
-                  <Sparkles size={12} className="mb-1 inline text-[color:var(--iris,#22d3ee)]" /> Ask anything about <b className="text-foreground">{contextLabel.toLowerCase()}</b>. IRIS sees the same intelligence you do.
+                <div className="rounded-lg border p-3 text-xs text-muted-foreground flex items-start gap-2"
+                  style={{ borderColor: "var(--iris-border)", background: "var(--iris-subtle)" }}>
+                  <IrisMark size={16} />
+                  <span>Ask anything about <b className="text-foreground">{contextLabel.toLowerCase()}</b>. IRIS sees the same intelligence you do.</span>
                 </div>
                 <div className="space-y-1.5">
                   {[
