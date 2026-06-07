@@ -7,12 +7,18 @@ export const Route = createFileRoute("/api/public/hooks/backfill-research-embedd
   server: {
     handlers: {
       POST: async ({ request }) => handle(request),
-      GET: async ({ request }) => handle(request),
     },
   },
 });
 
-async function handle(_request: Request) {
+async function handle(request: Request) {
+  const provided =
+    request.headers.get("x-cron-secret") ?? request.headers.get("apikey");
+  const expected = process.env.CRON_HOOK_SECRET;
+  if (!expected || !provided || provided !== expected) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { embed, storeEmbedding } = await import("@/lib/intel-enrich.server");
 
@@ -25,20 +31,21 @@ async function handle(_request: Request) {
     .limit(limit);
 
   if (error) {
-    return new Response(JSON.stringify({ ok: false, error: error.message }), {
+    console.error("[backfill-research-embeddings] query failed", error);
+    return new Response(JSON.stringify({ ok: false }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
   }
 
-  const results: Array<{ id: string; ok: boolean; error?: string }> = [];
+  const results: Array<{ id: string; ok: boolean }> = [];
   for (const row of pending ?? []) {
     try {
       const question = (row as any).research_tasks?.question ?? "";
       const text = `[Perplexity research]\nQuestion: ${question}\n\nAnswer: ${row.answer}`.slice(0, 6000);
       const vec = await embed(text);
       if (!vec) {
-        results.push({ id: row.id, ok: false, error: "embed returned null" });
+        results.push({ id: row.id, ok: false });
         continue;
       }
       await supabaseAdmin
@@ -54,13 +61,14 @@ async function handle(_request: Request) {
         scope: "mission",
       });
       results.push({ id: row.id, ok: true });
-    } catch (e: any) {
-      results.push({ id: row.id, ok: false, error: e?.message ?? String(e) });
+    } catch (e) {
+      console.error("[backfill-research-embeddings] row failed", row.id, e);
+      results.push({ id: row.id, ok: false });
     }
   }
 
   return new Response(
-    JSON.stringify({ ok: true, processed: results.length, results }),
+    JSON.stringify({ ok: true, processed: results.length }),
     { status: 200, headers: { "Content-Type": "application/json" } },
   );
 }
