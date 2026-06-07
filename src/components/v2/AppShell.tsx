@@ -138,24 +138,39 @@ function TopBar({
       <div className="flex min-w-0 items-center gap-3">
         <BackButton isAtrium={isAtrium} />
 
-        <Link to="/atrium" className="flex items-center gap-2.5 shrink-0" title="Atrium">
-          {isFlightDeck ? (
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-white/[0.03] text-[11px] font-black tracking-[0.08em] text-[color:var(--athena-gold,#f59e0b)]">
-              A
-            </span>
-          ) : (
+        {inMission && missionId ? (
+          <Link
+            to="/missions/$missionId/brief"
+            params={{ missionId }}
+            className="flex items-center gap-2.5 shrink-0"
+            title="Mission Brief"
+          >
+            {isFlightDeck ? (
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-white/[0.03] text-[11px] font-black tracking-[0.08em] text-[color:var(--athena-gold,#f59e0b)]">
+                A
+              </span>
+            ) : (
+              <img
+                src={atlasLogo.url}
+                alt="Atlas"
+                className="h-8 w-8 object-contain"
+                style={{ filter: "drop-shadow(0 0 6px rgba(125,211,252,0.35))" }}
+              />
+            )}
+            <span className="text-[13px] font-extrabold tracking-[0.22em] text-white">MISSION BRIEF</span>
+          </Link>
+        ) : (
+          <Link to="/home" className="flex items-center gap-2.5 shrink-0" title="Home">
             <img
               src={atlasLogo.url}
               alt="Atlas"
               className="h-8 w-8 object-contain"
               style={{ filter: "drop-shadow(0 0 6px rgba(125,211,252,0.35))" }}
             />
-          )}
-          <span className="text-[13px] font-extrabold tracking-[0.22em] text-white">{path === "/home" ? "ATHENA HQ" : "ATLAS"}</span>
-          {!isFlightDeck && (
+            <span className="text-[13px] font-extrabold tracking-[0.22em] text-white">ATHENA HQ</span>
             <img src={athenaSgLogo.url} alt="" className="hidden md:block ml-2 h-5 w-auto object-contain opacity-30 mix-blend-luminosity" style={{ filter: "brightness(0.6) contrast(0.9)" }} />
-          )}
-        </Link>
+          </Link>
+        )}
 
         {inMission && mission && (
           <>
