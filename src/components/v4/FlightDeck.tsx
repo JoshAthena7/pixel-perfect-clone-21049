@@ -256,8 +256,34 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
       approved: allQuestions.filter((q) => q.status === "approved").length,
       blocked: allQuestions.filter((q) => q.status === "blocked").length,
       noOwner: allQuestions.filter((q) => !q.assigned_writer_id).length,
+      awaitingExpert: openConsults.filter((c) =>
+        c.status === "sent" || c.status === "acknowledged" || c.status === "needs_info",
+      ).length,
     };
-  }, [allQuestions]);
+  }, [allQuestions, openConsults]);
+
+  // Merge recently-responded consults into Air Traffic Control as signals
+  const combinedAtcRows = useMemo(() => {
+    const qMap = new Map(allQuestions.map((q) => [q.id, q]));
+    const responded = openConsults
+      .filter((c) => c.status === "responded")
+      .map((c) => {
+        const q = c.question_id ? qMap.get(c.question_id) : null;
+        return {
+          id: `ec:${c.id}`,
+          type: "Expert",
+          typeTone: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+          question: q ? `Q${q.question_number} · ${c.ask_subject}` : c.ask_subject,
+          from: "Phone-a-Friend",
+          priority: c.urgency === "urgent" ? "High" : "Normal",
+          priorityTone: c.urgency === "urgent" ? "text-amber-300" : "text-emerald-300",
+          created_at: c.response_at ?? c.created_at,
+        };
+      });
+    return [...responded, ...atcRows].sort(
+      (a, b) => +new Date(b.created_at) - +new Date(a.created_at),
+    );
+  }, [atcRows, openConsults, allQuestions]);
 
   // Mission Radar segments
   const radar = useMemo(() => {
