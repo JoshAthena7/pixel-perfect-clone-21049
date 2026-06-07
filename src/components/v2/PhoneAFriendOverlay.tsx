@@ -211,7 +211,7 @@ export function PhoneAFriendOverlay({
               disabled={step === 2 && !selected}
               className="inline-flex items-center gap-1 rounded-md bg-primary px-3.5 py-1.5 text-[12px] font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-40"
             >
-              Next
+              {step === 2 ? "Draft the ask" : "Next"}
               <ArrowRight className="h-3.5 w-3.5" />
             </button>
           ) : (
