@@ -1,6 +1,8 @@
 // Extracted Journey Map page — shared between top-level redirect and per-mission route.
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useParams } from "@tanstack/react-router";
 import { CheckCircle2, Circle, AlertTriangle, Sparkles, ChevronRight, Users, Target, ListChecks, Layers, Brain, Trophy } from "lucide-react";
+import { useMissionBrief, type MissionBrief } from "@/lib/mission-brief-data";
 
 type Status = "complete" | "active" | "upcoming" | "at_risk";
 
