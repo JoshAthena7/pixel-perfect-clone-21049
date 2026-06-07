@@ -62,7 +62,7 @@ function IntelDriftPage() {
       <div className="mb-6">
         <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
           <AlertTriangle className="h-3 w-3" />
-          Olympus · Leadership Only
+          Olympus · Admin Only
         </div>
         <h1 className="mt-1 text-xl font-semibold">Intel Drift</h1>
         <p className="mt-2 text-xs text-muted-foreground leading-relaxed max-w-2xl">
