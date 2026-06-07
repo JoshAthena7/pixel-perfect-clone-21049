@@ -239,6 +239,44 @@ function MissionFlightDeckPage() {
   );
 }
 
+function IrisIntelligenceNav({ missionId }: { missionId: string }) {
+  const items = [
+    { to: "/missions/$missionId/iris-brief" as const, label: "Mission Brief", Icon: FileText, tone: "#C9A84C" },
+    { to: "/missions/$missionId/iris-strategic" as const, label: "Strategic Assessment", Icon: Target, tone: "#60A5FA" },
+    { to: "/missions/$missionId/intel-upload" as const, label: "Intelligence Vault", Icon: Upload, tone: "#a3a3a3" },
+  ];
+  return (
+    <div className="mx-auto mt-4 max-w-[1200px] px-6">
+      <div
+        className="flex items-center gap-2 rounded-lg border px-3 py-2"
+        style={{
+          background: "linear-gradient(135deg, rgba(201,168,76,0.06), rgba(96,165,250,0.03))",
+          borderColor: "rgba(201,168,76,0.25)",
+        }}
+      >
+        <div className="flex items-center gap-1.5 pr-2 mr-1 border-r border-white/10">
+          <Brain className="h-3.5 w-3.5" style={{ color: "#C9A84C" }} />
+          <span className="text-[10px] font-bold uppercase tracking-[0.22em]" style={{ color: "#C9A84C" }}>
+            IRIS
+          </span>
+        </div>
+        {items.map(({ to, label, Icon, tone }) => (
+          <Link
+            key={to}
+            to={to}
+            params={{ missionId }}
+            className="inline-flex items-center gap-1.5 rounded-md border border-transparent px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
+            activeProps={{ style: { color: tone, borderColor: `${tone}55`, background: `${tone}10` } }}
+          >
+            <Icon className="h-3.5 w-3.5" />
+            {label}
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function BriefPrompt({ missionId, userId }: { missionId: string; userId: string }) {
   const [progress, setProgress] = useState<BriefProgress | null>(null);
 
