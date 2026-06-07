@@ -19,6 +19,7 @@ import { Route as CheckinTokenRouteImport } from './routes/checkin.$token'
 import { Route as ApiIrisVoiceRouteImport } from './routes/api/iris-voice'
 import { Route as ApiIrisRouteImport } from './routes/api/iris'
 import { Route as ApiAtriumRouteImport } from './routes/api/atrium'
+import { Route as AuthenticatedWelcomeRouteImport } from './routes/_authenticated/welcome'
 import { Route as AuthenticatedV1RouteImport } from './routes/_authenticated/v1'
 import { Route as AuthenticatedStatusReportRouteImport } from './routes/_authenticated/status-report'
 import { Route as AuthenticatedOlympusRouteImport } from './routes/_authenticated/olympus'
@@ -158,6 +159,11 @@ const ApiAtriumRoute = ApiAtriumRouteImport.update({
   id: '/api/atrium',
   path: '/api/atrium',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedWelcomeRoute = AuthenticatedWelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedV1Route = AuthenticatedV1RouteImport.update({
   id: '/v1',
@@ -700,6 +706,7 @@ export interface FileRoutesByFullPath {
   '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/status-report': typeof AuthenticatedStatusReportRoute
   '/v1': typeof AuthenticatedV1RouteWithChildren
+  '/welcome': typeof AuthenticatedWelcomeRoute
   '/api/atrium': typeof ApiAtriumRoute
   '/api/iris': typeof ApiIrisRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
@@ -799,6 +806,7 @@ export interface FileRoutesByTo {
   '/journey-map': typeof AuthenticatedJourneyMapRoute
   '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/status-report': typeof AuthenticatedStatusReportRoute
+  '/welcome': typeof AuthenticatedWelcomeRoute
   '/api/atrium': typeof ApiAtriumRoute
   '/api/iris': typeof ApiIrisRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
@@ -900,6 +908,7 @@ export interface FileRoutesById {
   '/_authenticated/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/_authenticated/status-report': typeof AuthenticatedStatusReportRoute
   '/_authenticated/v1': typeof AuthenticatedV1RouteWithChildren
+  '/_authenticated/welcome': typeof AuthenticatedWelcomeRoute
   '/api/atrium': typeof ApiAtriumRoute
   '/api/iris': typeof ApiIrisRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
@@ -1003,6 +1012,7 @@ export interface FileRouteTypes {
     | '/olympus'
     | '/status-report'
     | '/v1'
+    | '/welcome'
     | '/api/atrium'
     | '/api/iris'
     | '/api/iris-voice'
@@ -1102,6 +1112,7 @@ export interface FileRouteTypes {
     | '/journey-map'
     | '/olympus'
     | '/status-report'
+    | '/welcome'
     | '/api/atrium'
     | '/api/iris'
     | '/api/iris-voice'
@@ -1202,6 +1213,7 @@ export interface FileRouteTypes {
     | '/_authenticated/olympus'
     | '/_authenticated/status-report'
     | '/_authenticated/v1'
+    | '/_authenticated/welcome'
     | '/api/atrium'
     | '/api/iris'
     | '/api/iris-voice'
@@ -1376,6 +1388,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/atrium'
       preLoaderRoute: typeof ApiAtriumRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/welcome': {
+      id: '/_authenticated/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof AuthenticatedWelcomeRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/v1': {
       id: '/_authenticated/v1'
@@ -2215,6 +2234,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedOlympusRoute: typeof AuthenticatedOlympusRouteWithChildren
   AuthenticatedStatusReportRoute: typeof AuthenticatedStatusReportRoute
   AuthenticatedV1Route: typeof AuthenticatedV1RouteWithChildren
+  AuthenticatedWelcomeRoute: typeof AuthenticatedWelcomeRoute
   AuthenticatedCommandAlignmentRoute: typeof AuthenticatedCommandAlignmentRoute
   AuthenticatedCommandAlignmentConflictsRoute: typeof AuthenticatedCommandAlignmentConflictsRoute
   AuthenticatedCommandAttentionRoute: typeof AuthenticatedCommandAttentionRoute
@@ -2245,6 +2265,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedOlympusRoute: AuthenticatedOlympusRouteWithChildren,
   AuthenticatedStatusReportRoute: AuthenticatedStatusReportRoute,
   AuthenticatedV1Route: AuthenticatedV1RouteWithChildren,
+  AuthenticatedWelcomeRoute: AuthenticatedWelcomeRoute,
   AuthenticatedCommandAlignmentRoute: AuthenticatedCommandAlignmentRoute,
   AuthenticatedCommandAlignmentConflictsRoute:
     AuthenticatedCommandAlignmentConflictsRoute,
