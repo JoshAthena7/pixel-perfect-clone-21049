@@ -1,69 +1,55 @@
-## Goal
-Add a unified three-state user model (LOADED / INVITED / ACTIVE) surfaced in Olympus, and block all mission access for users who are not ACTIVE. Build on existing tables — do not duplicate infrastructure.
+# Olympus UX Refinement — Implementation Plan
 
-## What's already in place (reuse, don't rebuild)
-- `atlas_invites` table — already stages people with `email`, `display_name`, `role_hint`, `invite_sent_at`, `accepted_at`, `accepted_user_id`. Today it has an extra "contract signed" gate.
-- `profiles` table — has `has_onboarded` (boolean) and `onboarded_at`. FK'd to `auth.users`.
-- `/admin/invites` page — manages staging.
-- `/admin/users` page — lists everyone in `profiles`.
-- Server fns `createAtlasInvite`, `sendAtlasInvite`, etc. in `src/lib/atlas-invites.functions.ts`.
+All 60 items are copy, labels, helper text, tooltips, conditional states, and small CSS affordances. No architectural changes. I'll ship in three batches matching your priority order so you can review after each.
 
-The three states map cleanly onto existing data — no new table needed.
+## Batch 1 — Immediate (highest return, lowest effort)
 
-## State derivation (single source of truth)
+Targets the moments users first encounter Atlas: mission creation, Setup Record framing, IRIS readiness language.
 
-| State    | Condition                                                                                          |
-|----------|----------------------------------------------------------------------------------------------------|
-| LOADED   | Row in `atlas_invites`, `invite_sent_at IS NULL`, `accepted_user_id IS NULL`                       |
-| INVITED  | `invite_sent_at IS NOT NULL` AND (no linked profile yet OR `profiles.has_onboarded = false`)       |
-| ACTIVE   | Linked `profiles` row with `has_onboarded = true`                                                  |
+- UX-1: Add plain-language explanation under IRIS coverage bar
+- UX-2: Add "Readiness: X/10" label above Launch Mission; copy reflects state ("Launch with Partial Setup →" under 7/10)
+- UX-9: "Estimated time to complete: 15–20 minutes. IRIS activates at section 5." under Setup Record title
+- UX-11: "Create & Open Setup →" → "Create Mission & Begin Setup Record →"
+- UX-12: Prepend stakes statement to mission creation modal helper text
+- Clarity-1: "IRIS CONTEXT COVERAGE" → "IRIS Intelligence Readiness"
+- Clarity-2: "Opportunity Type" → "Procurement Vehicle"
+- Language-1: "MISSION SETUP RECORD" → "Mission Intelligence Record"
+- Language-2: Rewrite "operating with partial context" banner to active-outcome phrasing
+- Onboarding-1: Add expectation-setting sentence to new-mission modal
 
-Users who already exist in `profiles` without an invite row are treated as ACTIVE (legacy). New people always start by being LOADED via the Olympus "Add user" form.
+## Batch 2 — Short-term (clarity & navigation polish)
 
-## Implementation
+- UX-3: Setup Record left-rail steps become clickable anchor jumps with hover affordance
+- UX-7: Tooltip on Readiness score explaining 5/10 IRIS activation, 10/10 full
+- UX-10: Bold or mark the highest-priority missing IRIS chip with "Start here →"
+- UX-20: One-time tooltip on Ask IRIS button on first Setup Record visit
+- Clarity-3 → Clarity-7: Rename Setup Record steps (Mission Context, Win Strategy, How We'll Be Scored, Agency Intelligence, Deadlines & Decision Gates)
+- Nav-1: Anchor links + ↓ hover affordance on rail steps
+- Nav-3: Visual grouping dividers between MISSION / ORACLE / PLATFORM / SECURITY
+- Nav-8: Breadcrumb includes mission name (OLYMPUS / SETUP RECORD / [Mission])
+- Onboarding-3: "Help IRIS get smarter:" header above partial-context chips
+- Onboarding-6: IRIS routing explainer above Team Assignment dropdowns
 
-### 1. Migration (small, additive)
-- Drop the "contract signed" precondition from `sendAtlasInvite` to match the new simpler model. Keep the columns for now (backward compat, no data loss).
-- Add `last_login_at timestamptz` to `profiles` (nullable). Updated client-side on successful sign-in.
-- Add DB function `public.get_user_state(_email text) returns text` — returns `'loaded' | 'invited' | 'active'` so the UI and policies share one definition.
+## Batch 3 — Ongoing structural polish
 
-### 2. Mission access gate (ACTIVE-only)
-- In `src/routes/_authenticated/route.tsx`: after `supabase.auth.getUser()`, fetch `profiles.has_onboarded`. If false → `redirect({ to: '/onboarding' })` (existing onboarding flow already redirects this way for non-admins; we extend it to apply to everyone except `/onboarding` and `/admin/*` for platform admins).
-- This guarantees no INVITED user reaches `/missions/*` or any mission content.
+Remaining 35 items: section save confirmations, conditional empty states (team dropdowns, Olympus first-run), sidebar subtitles (ORACLE, Firm Health, Score-Me Lab), language rewrites (Audit Log, PHI, Right-to-Deletion), navigation context (top-nav greying in Olympus, sticky Back to Mission, active sidebar accent bar), mission list status badges, Question Setup sub-step indicator, pre-launch summary state, invited-user pending screen, milestone toast at 5/10 readiness, IRIS pre-fill offer for Question Setup, Send Team Briefing rename, Clarity 8–10 (Conflict & Ethics Review, Budget & Pricing Setup, verb-first IRIS chips), Language 3–6.
 
-### 3. Server functions (`src/lib/atlas-invites.functions.ts`)
-- `loadUser({ email, displayName, roleHint })` — thin wrapper that creates an `atlas_invites` row with no invite sent (LOADED).
-- `sendOfficialInvite({ id })` — replaces the contract-gated path. Calls `supabaseAdmin.auth.admin.inviteUserByEmail(email, { redirectTo: <origin>/onboarding })`, stamps `invite_sent_at = now()`, status `invite_sent`. Resending re-stamps the timestamp.
-- `listTeamRoster()` — returns the unified roster (atlas_invites LEFT JOIN profiles by email/accepted_user_id) plus active-mission counts and `last_login_at`. One query for the whole Team view.
+## Technical notes
 
-### 4. Olympus UI — `/admin/users` becomes the unified Team view
-- Status badge column: LOADED (gray) / INVITED (amber) / ACTIVE (emerald).
-- Row actions by state:
-  - LOADED → prominent gold "Official Invite" button.
-  - INVITED → "Invitation sent {date}" + secondary "Resend invite" link.
-  - ACTIVE → "Last login {date}" + active mission count with link to memberships.
-- Add a small "Add to roster (LOADED)" form at the top — email + name + role hint.
-- Keep `/admin/invites` route for now, but redirect it to `/admin/users` so there is one place to manage people. Do not delete the file in this build — just change its component to a `Navigate`.
+All changes live in existing files — primarily:
+- Setup Record route + step rail component
+- New Mission modal
+- Olympus sidebar config
+- IRIS partial-context banner component
+- Mission list page
+- Invited-user gate (already created at `/welcome`)
 
-### 5. Login wiring
-- On successful sign-in in `AtlasLoginPage`, write `profiles.last_login_at = now()`.
+No new routes, no migrations, no schema changes. Conditional empty states use existing data already in scope. The one-time IRIS tooltip uses a localStorage flag.
 
-## Technical details (for engineering review)
+## Question for you before I start
 
-- New code paths added only; existing Olympus pages (Atlas Sources, Audit, etc.) are untouched.
-- `last_login_at` write happens client-side under the user's own RLS policy (`profiles_self_update`, which already exists).
-- The onboarding redirect in `_authenticated/route.tsx` exempts: the onboarding route itself, `/auth*`, and `/admin/*` for platform admins (so admins can never lock themselves out).
-- `sendOfficialInvite` is idempotent — if `accepted_user_id` already exists, it short-circuits to "already accepted" instead of re-inviting.
+Want me to:
+- **(A)** Ship Batch 1 now, review, then continue, or
+- **(B)** Ship all three batches straight through in one pass?
 
-## Out of scope
-- Per-user permissions UI beyond what `mission_members` already provides.
-- Removing the contract-signed columns from `atlas_invites` (kept for history).
-- Bulk import / CSV roster upload.
-
-## Files touched
-- New migration (profiles.last_login_at, get_user_state function).
-- `src/lib/atlas-invites.functions.ts` — add `loadUser`, `sendOfficialInvite`, `listTeamRoster`.
-- `src/routes/_authenticated/admin/users.tsx` — rebuild as unified Team view.
-- `src/routes/_authenticated/admin/invites.tsx` — replace component with redirect to `/admin/users`.
-- `src/routes/_authenticated/route.tsx` — add ACTIVE gate.
-- `src/components/AtlasLoginPage.tsx` — stamp `last_login_at` on success.
+Either works — (A) gives you a checkpoint, (B) is faster.
