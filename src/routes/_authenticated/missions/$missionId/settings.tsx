@@ -290,6 +290,19 @@ function IntelligenceProfileTab({ missionId }: { missionId: string }) {
             onChange={(priority_topics) => setForm({ ...form, priority_topics })}
           />
           <TagEditor
+            label="Focus Areas"
+            placeholder="e.g. Care Coordination, Quality Measures, Network Adequacy"
+            tags={form.focus_areas}
+            onChange={(focus_areas) => setForm({ ...form, focus_areas })}
+            tone="primary"
+          />
+          <TagEditor
+            label="IRIS Search Terms"
+            placeholder="Keywords IRIS scans intelligence sources for"
+            tags={form.iris_search_terms}
+            onChange={(iris_search_terms) => setForm({ ...form, iris_search_terms })}
+          />
+          <TagEditor
             label="Competitors"
             placeholder="e.g. Centene, Molina, UnitedHealthcare"
             tags={form.competitors}
