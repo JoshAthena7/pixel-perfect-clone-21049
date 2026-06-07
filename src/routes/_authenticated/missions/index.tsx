@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowRight } from "lucide-react";
+import { MissionProgressRing } from "@/components/MissionProgressRing";
 
 export const Route = createFileRoute("/_authenticated/missions/")({
   ssr: false,
@@ -36,6 +37,24 @@ function AllMissionsPage() {
     },
   });
 
+  const missionIds = missions.map((m) => m.id);
+  const { data: completedByMission = {} } = useQuery({
+    queryKey: ["my-missions-completed", missionIds.join(",")],
+    enabled: missionIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("question_records")
+        .select("mission_id,status")
+        .in("mission_id", missionIds)
+        .in("status", ["approved", "submitted"]);
+      const map: Record<string, number> = {};
+      for (const row of (data ?? []) as Array<{ mission_id: string }>) {
+        map[row.mission_id] = (map[row.mission_id] ?? 0) + 1;
+      }
+      return map;
+    },
+  });
+
   return (
     <div className="mx-auto max-w-7xl px-8 py-8">
       <header className="mb-6">
@@ -63,6 +82,7 @@ function AllMissionsPage() {
               <thead className="border-b border-border bg-surface-hover text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                 <tr>
                   <th className="px-4 py-3 text-left">Mission</th>
+                  <th className="px-4 py-3 text-left w-24">Progress</th>
                   <th className="px-4 py-3 text-left w-28">Status</th>
                   <th className="px-4 py-3 text-left w-32">Submission</th>
                   <th className="px-4 py-3 text-left w-20">Health</th>
@@ -93,6 +113,13 @@ function AllMissionsPage() {
                           <div className="font-medium text-foreground group-hover:text-primary">{m.name}</div>
                           <div className="text-[11px] text-muted-foreground">{m.client}</div>
                         </Link>
+                      </td>
+                      <td className="px-4 py-3">
+                        <MissionProgressRing
+                          size="sm"
+                          completed={completedByMission[m.id] ?? 0}
+                          total={m.question_count ?? 0}
+                        />
                       </td>
                       <td className="px-4 py-3">
                         <StatusChip status={m.status} />

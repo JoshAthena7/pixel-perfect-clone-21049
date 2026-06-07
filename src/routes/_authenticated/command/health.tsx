@@ -7,6 +7,7 @@ import { getMissionHealth, listLeadMissions, type QuestionHealth } from "@/lib/h
 import { recordMockScore } from "@/lib/mock-scores.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { MissionProgressRing } from "@/components/MissionProgressRing";
 
 export const Route = createFileRoute("/_authenticated/command/health")({
   component: HealthDashboardPage,
@@ -44,6 +45,18 @@ export function HealthDashboardPage() {
     refetchInterval: 60_000,
   });
 
+  const { data: progress } = useQuery({
+    queryKey: ["mission-progress", effectiveMissionId],
+    enabled: !!effectiveMissionId,
+    queryFn: async () => {
+      const [total, completed] = await Promise.all([
+        supabase.from("question_records").select("id", { count: "exact", head: true }).eq("mission_id", effectiveMissionId!),
+        supabase.from("question_records").select("id", { count: "exact", head: true }).eq("mission_id", effectiveMissionId!).in("status", ["approved", "submitted"]),
+      ]);
+      return { total: total.count ?? 0, completed: completed.count ?? 0 };
+    },
+  });
+
   const [view, setView] = useState<"section" | "writer" | "activity">("section");
   const [scoreOpen, setScoreOpen] = useState(false);
 
@@ -58,6 +71,9 @@ export function HealthDashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          {progress && progress.total > 0 && (
+            <MissionProgressRing size="md" completed={progress.completed} total={progress.total} />
+          )}
           <select
             value={effectiveMissionId ?? ""}
             onChange={(e) => setMissionId(e.target.value)}

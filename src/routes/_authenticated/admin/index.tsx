@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { logOlympusAction } from "@/lib/audit";
 import { MissionReadinessPanel, ReadinessChip } from "@/components/v2/MissionReadinessPanel";
 import { IrisGreeting } from "@/components/v2/IrisGreeting";
+import { MissionProgressRing } from "@/components/MissionProgressRing";
 
 import { IrisHealthCheckCard } from "@/components/admin/IrisHealthCheckCard";
 import { RefreshIrisCard } from "@/components/admin/RefreshIrisCard";
@@ -45,6 +46,24 @@ function MissionsIndex() {
         .select("id,name,client,status,health,submission_date,question_count,created_at")
         .order("created_at", { ascending: false });
       return (data ?? []) as MissionRow[];
+    },
+  });
+
+  const missionIds = missions.map((m) => m.id);
+  const { data: completedByMission = {} } = useQuery({
+    queryKey: ["olympus-missions-completed", missionIds.join(",")],
+    enabled: missionIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("question_records")
+        .select("mission_id,status")
+        .in("mission_id", missionIds)
+        .in("status", ["approved", "submitted"]);
+      const map: Record<string, number> = {};
+      for (const row of (data ?? []) as Array<{ mission_id: string }>) {
+        map[row.mission_id] = (map[row.mission_id] ?? 0) + 1;
+      }
+      return map;
     },
   });
 
@@ -97,6 +116,7 @@ function MissionsIndex() {
             <thead className="border-b border-border bg-surface-hover text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
               <tr>
                 <th className="px-4 py-3 text-left">Mission</th>
+                <th className="px-4 py-3 text-left w-24">Progress</th>
                 <th className="px-4 py-3 text-left w-28">Status</th>
                 <th className="px-4 py-3 text-left w-32">Submission</th>
                 <th className="px-4 py-3 text-left w-20">Qs</th>
@@ -122,6 +142,13 @@ function MissionsIndex() {
                         <div className="font-medium text-foreground group-hover:text-primary">{m.name}</div>
                         <div className="text-[11px] text-muted-foreground">{m.client}</div>
                       </Link>
+                    </td>
+                    <td className="px-4 py-3">
+                      <MissionProgressRing
+                        size="sm"
+                        completed={completedByMission[m.id] ?? 0}
+                        total={m.question_count ?? 0}
+                      />
                     </td>
                     <td className="px-4 py-3">
                       <StatusChip status={m.status} />

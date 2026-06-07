@@ -13,6 +13,7 @@ import { ArrowRight, Megaphone, CalendarClock, DoorOpen, ClipboardList, Search, 
 import { HORIZON_FILTERS, inferCategory, matchesHorizonFilter, type IntelItem } from "@/lib/intelligence-feed";
 import { LiveBadge, ScanningBeam, IrisWaveform, TypewriterText } from "@/components/v2/effects";
 import { Constellation, AnimatedNumber } from "@/components/v2/polish";
+import { MissionProgressRing } from "@/components/MissionProgressRing";
 import athenaLogo from "@/assets/athena-logo.png";
 import atlasLogo from "@/assets/atlas-wordmark-optical.png";
 import athenaMark from "@/assets/athena-mark-v3.png.asset.json";
@@ -225,9 +226,9 @@ function AthenaHQ() {
     queryFn: async () => {
       const { data } = await supabase
         .from("question_records")
-        .select("id,mission_id,question_number,title,pens_down_date,health")
+        .select("id,mission_id,question_number,title,pens_down_date,health,status")
         .in("mission_id", missionIds);
-      return (data ?? []) as Array<{ id: string; mission_id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null }>;
+      return (data ?? []) as Array<{ id: string; mission_id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null; status: string | null }>;
     },
   });
 
@@ -942,7 +943,7 @@ function FirmIntel({
 
 
 
-type MissionCardQ = { id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null };
+type MissionCardQ = { id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null; status: string | null };
 
 function MissionCardActions({ missionId }: { missionId: string }) {
   const nav = useNavigate();
@@ -1074,6 +1075,14 @@ function MissionCard({
           )}
         </div>
         <div className="flex flex-col items-end gap-1.5 shrink-0">
+          <MissionProgressRing
+            size="sm"
+            completed={questions.filter((q) => {
+              const s = (q.status ?? "").toLowerCase();
+              return s === "approved" || s === "submitted";
+            }).length}
+            total={mission.question_count ?? questions.length}
+          />
           {showNeedsBadge && needsCount > 0 && (
             <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-semibold text-white">
               {needsCount} {needsCount === 1 ? "need" : "needs"}
