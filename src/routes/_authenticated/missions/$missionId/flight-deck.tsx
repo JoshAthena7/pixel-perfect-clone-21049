@@ -114,7 +114,7 @@ function MissionFlightDeckPage() {
 
   return (
     <div className="min-h-screen" style={{ background: "#060b14" }}>
-      <div className="mx-auto max-w-[1200px] px-6 pt-6">
+      <div className="mx-auto max-w-[1200px] px-6 pt-6 flex items-center justify-between gap-4">
         <Link
           to="/missions/$missionId/command"
           params={{ missionId }}
@@ -123,7 +123,9 @@ function MissionFlightDeckPage() {
           <ArrowLeft className="h-3 w-3" />
           Back to Mission Command
         </Link>
+        <RestoreHelpTooltip />
       </div>
+
 
       <FlightDeck
         missionId={missionId}
