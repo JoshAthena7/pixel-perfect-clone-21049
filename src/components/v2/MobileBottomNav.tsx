@@ -118,6 +118,7 @@ export function MobileBottomNav() {
  */
 export function MobileBottomNavSpacer() {
   const [isMobile, setIsMobile] = useState(false);
+  const path = useRouterState({ select: (s) => s.location.pathname });
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
     const update = () => setIsMobile(mq.matches);
@@ -126,5 +127,6 @@ export function MobileBottomNavSpacer() {
     return () => mq.removeEventListener("change", update);
   }, []);
   if (!isMobile) return null;
+  if (isHiddenPath(path)) return null;
   return <div aria-hidden style={{ height: "calc(58px + env(safe-area-inset-bottom))" }} />;
 }
