@@ -20,6 +20,7 @@ import {
   CircleSlash,
   Clock,
   Eye,
+  Headphones,
   Layers,
   ListChecks,
   Phone,
@@ -255,8 +256,34 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
       approved: allQuestions.filter((q) => q.status === "approved").length,
       blocked: allQuestions.filter((q) => q.status === "blocked").length,
       noOwner: allQuestions.filter((q) => !q.assigned_writer_id).length,
+      awaitingExpert: openConsults.filter((c) =>
+        c.status === "sent" || c.status === "acknowledged" || c.status === "needs_info",
+      ).length,
     };
-  }, [allQuestions]);
+  }, [allQuestions, openConsults]);
+
+  // Merge recently-responded consults into Air Traffic Control as signals
+  const combinedAtcRows = useMemo(() => {
+    const qMap = new Map(allQuestions.map((q) => [q.id, q]));
+    const responded = openConsults
+      .filter((c) => c.status === "responded")
+      .map((c) => {
+        const q = c.question_id ? qMap.get(c.question_id) : null;
+        return {
+          id: `ec:${c.id}`,
+          type: "Expert",
+          typeTone: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+          question: q ? `Q${q.question_number} · ${c.ask_subject}` : c.ask_subject,
+          from: "Phone-a-Friend",
+          priority: c.urgency === "urgent" ? "High" : "Normal",
+          priorityTone: c.urgency === "urgent" ? "text-amber-300" : "text-emerald-300",
+          created_at: c.response_at ?? c.created_at,
+        };
+      });
+    return [...responded, ...atcRows].sort(
+      (a, b) => +new Date(b.created_at) - +new Date(a.created_at),
+    );
+  }, [atcRows, openConsults, allQuestions]);
 
   // Mission Radar segments
   const radar = useMemo(() => {
@@ -351,7 +378,7 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
 
         {/* RIGHT: Air Traffic Control + Open Consults */}
         <div className="lg:col-span-3 space-y-4">
-          <AirTrafficControl rows={atcRows as any[]} />
+          <AirTrafficControl rows={combinedAtcRows as any[]} />
           <OpenConsultsPanel rows={openConsults} questions={allQuestions} />
         </div>
       </div>
@@ -423,6 +450,7 @@ function FlightStatusPanel({
     approved: number;
     blocked: number;
     noOwner: number;
+    awaitingExpert: number;
   };
 }) {
   const rows: Array<{
@@ -449,6 +477,12 @@ function FlightStatusPanel({
       value: s.review,
       icon: <Eye className="h-3.5 w-3.5" />,
       tone: s.review > 0 ? "text-amber-300" : "",
+    },
+    {
+      label: "Awaiting Expert Response",
+      value: s.awaitingExpert,
+      icon: <Headphones className="h-3.5 w-3.5" />,
+      tone: s.awaitingExpert > 0 ? "text-sky-300" : "",
     },
     {
       label: "Approved",
@@ -846,11 +880,15 @@ function OpenConsultsPanel({
           No open expert consults.
         </div>
       ) : (
-        <ul className="max-h-[280px] divide-y divide-border/40 overflow-y-auto">
+        <ul className="max-h-[320px] divide-y divide-border/40 overflow-y-auto">
           {open.slice(0, 12).map((r) => {
             const q = r.question_id ? qMap.get(r.question_id) : null;
+            const stage =
+              r.status === "responded" ? 3
+              : r.status === "acknowledged" || r.status === "needs_info" ? 2
+              : 1;
             return (
-              <li key={r.id} className="px-3 py-2 text-[11px]">
+              <li key={r.id} className="px-3 py-2.5 text-[11px]">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-muted-foreground">
                     {q ? `Q${q.question_number}` : "General"}
@@ -860,7 +898,35 @@ function OpenConsultsPanel({
                   </span>
                 </div>
                 <div className="mt-1 line-clamp-2 text-foreground/85">{r.ask_subject}</div>
-                <div className="mt-0.5 text-[10px] text-muted-foreground tabular-nums">
+                {/* Sent → Acknowledged → Response Received tracker */}
+                <div className="mt-2 flex items-center gap-1">
+                  {[
+                    { n: 1, label: "Sent" },
+                    { n: 2, label: "Ack" },
+                    { n: 3, label: "Response" },
+                  ].map((step, i) => (
+                    <div key={step.n} className="flex flex-1 items-center gap-1">
+                      <div
+                        className={`flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[8px] font-bold ${
+                          stage >= step.n
+                            ? step.n === 3
+                              ? "bg-emerald-500 text-white"
+                              : "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {stage > step.n ? "✓" : step.n}
+                      </div>
+                      <span className={`text-[9px] uppercase tracking-[0.1em] ${stage >= step.n ? "text-foreground/80" : "text-muted-foreground/60"}`}>
+                        {step.label}
+                      </span>
+                      {i < 2 && (
+                        <div className={`h-px flex-1 ${stage > step.n ? "bg-primary/60" : "bg-border"}`} />
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-1 text-[10px] text-muted-foreground tabular-nums">
                   {ageOf(r.created_at)} ago · urgency {r.urgency}
                 </div>
               </li>
