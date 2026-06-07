@@ -450,6 +450,7 @@ function FlightStatusPanel({
     approved: number;
     blocked: number;
     noOwner: number;
+    awaitingExpert: number;
   };
 }) {
   const rows: Array<{
@@ -476,6 +477,12 @@ function FlightStatusPanel({
       value: s.review,
       icon: <Eye className="h-3.5 w-3.5" />,
       tone: s.review > 0 ? "text-amber-300" : "",
+    },
+    {
+      label: "Awaiting Expert Response",
+      value: s.awaitingExpert,
+      icon: <Headphones className="h-3.5 w-3.5" />,
+      tone: s.awaitingExpert > 0 ? "text-sky-300" : "",
     },
     {
       label: "Approved",
