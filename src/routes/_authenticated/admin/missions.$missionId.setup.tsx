@@ -16,6 +16,7 @@ import { irisPopulateSetupRecord } from "@/lib/iris-setup-autofill.functions";
 import { IrisAutofillBanner } from "@/components/admin/IrisAutofillBanner";
 import { SetupCompletenessMeter } from "@/components/admin/SetupCompletenessMeter";
 import { LaunchSequence } from "@/components/olympus/LaunchSequence";
+import { PersonPicker } from "@/components/setup/PersonPicker";
 import { useIsAdmin } from "@/hooks/useAccess";
 
 export const Route = createFileRoute("/_authenticated/admin/missions/$missionId/setup")({
@@ -148,19 +149,27 @@ function MissionSetupRecord() {
                 const done = list.filter((s) => completion[s.id]).length;
                 const total = list.length;
                 const ready = done >= Math.ceil(total * 0.7);
+                const isActive = setup.mission?.status === "Active";
                 return (
                   <>
                     <div className="mt-4 text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-mono">
                       Readiness: {done}/{total}
                     </div>
-                    <button
-                      onClick={handleLaunch}
-                      disabled={confirm}
-                      className="mt-1.5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#C49A22] px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50 transition"
-                    >
-                      <Rocket className="h-4 w-4" />
-                      {ready ? "Launch Mission" : "Launch with Partial Setup"}
-                    </button>
+                    {isActive ? (
+                      <div className="mt-1.5 inline-flex w-full items-center justify-center gap-2 rounded-md border border-emerald-500/40 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-200">
+                        <CheckCircle2 className="h-4 w-4" />
+                        Mission is Active
+                      </div>
+                    ) : (
+                      <button
+                        onClick={handleLaunch}
+                        disabled={confirm}
+                        className="mt-1.5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#C49A22] px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50 transition"
+                      >
+                        <Rocket className="h-4 w-4" />
+                        {ready ? "Launch Mission" : "Launch with Partial Setup"}
+                      </button>
+                    )}
                   </>
                 );
               })()}
@@ -212,27 +221,29 @@ function MissionSetupRecord() {
             <SectionFinancials missionId={missionId} financials={setup.financials} refetch={setup.refetch} />
           )}
 
-          <div className="pt-12 border-t border-border">
-            <div className="flex items-center justify-between gap-6">
-              <div>
-                <div className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground font-mono">
-                  Final step
+          {setup.mission?.status !== "Active" && (
+            <div className="pt-12 border-t border-border">
+              <div className="flex items-center justify-between gap-6">
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground font-mono">
+                    Final step
+                  </div>
+                  <h2 className="mt-2 text-xl font-light text-foreground">Launch Mission</h2>
+                  <p className="mt-1 text-sm text-muted-foreground max-w-lg">
+                    Generates Mission Home, Vault, Oracle, Studio, Calendar, team permissions, and the initial IRIS briefing.
+                  </p>
                 </div>
-                <h2 className="mt-2 text-xl font-light text-foreground">Launch Mission</h2>
-                <p className="mt-1 text-sm text-muted-foreground max-w-lg">
-                  Generates Mission Home, Vault, Oracle, Studio, Calendar, team permissions, and the initial IRIS briefing.
-                </p>
+                <button
+                  onClick={handleLaunch}
+                  disabled={confirm}
+                  className="inline-flex items-center gap-2 rounded-md bg-[#C49A22] px-6 py-3 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50 transition"
+                >
+                  <Rocket className="h-4 w-4" />
+                  Launch Mission
+                </button>
               </div>
-              <button
-                onClick={handleLaunch}
-                disabled={confirm}
-                className="inline-flex items-center gap-2 rounded-md bg-[#C49A22] px-6 py-3 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50 transition"
-              >
-                <Rocket className="h-4 w-4" />
-                Launch Mission
-              </button>
             </div>
-          </div>
+          )}
         </main>
       </div>
 
@@ -265,7 +276,7 @@ function useSetupData(missionId: string) {
         supabase.from("mission_sensitivities").select("*").eq("mission_id", missionId),
         supabase.from("mission_client_intel").select("*").eq("mission_id", missionId).maybeSingle(),
         supabase.from("mission_timeline").select("*").eq("mission_id", missionId).maybeSingle(),
-        supabase.from("question_records").select("id,question_number,title,section_number,assigned_writer_id,reviewer_id,pens_down_date,review_path,volume_id,point_value,competitive_risk").eq("mission_id", missionId).order("sort_order"),
+        supabase.from("question_records").select("id,question_number,title,section_number,assigned_writer_id,assigned_sme_id,reviewer_id,pens_down_date,review_path,volume_id,point_value,competitive_risk").eq("mission_id", missionId).order("sort_order"),
         supabase.from("mission_volumes").select("*").eq("mission_id", missionId).order("sort_order"),
         supabase.from("mission_governance").select("*").eq("mission_id", missionId).maybeSingle(),
         supabase.from("mission_financials").select("*").eq("mission_id", missionId).maybeSingle(),
@@ -303,18 +314,25 @@ function useSetupData(missionId: string) {
 }
 
 function useCompletion(setup: any): Record<SectionId, boolean> {
-  return useMemo(() => ({
-    identity: !!(setup.mission?.name && setup.mission?.client && setup.mission?.status),
-    team: (setup.members?.length ?? 0) > 0,
-    inputs: (setup.docs?.length ?? 0) > 0 || (setup.monitoring?.length ?? 0) > 0,
-    strategy: (setup.strategy?.length ?? 0) > 0 || (setup.mission?.win_themes?.length ?? 0) > 0,
-    evaluation: (setup.evaluation?.length ?? 0) > 0,
-    client: !!setup.clientIntel,
-    timeline: !!(setup.timeline?.submission),
-    questions: (setup.questions?.length ?? 0) > 0,
-    governance: !!(setup.governance?.submission_authority),
-    financials: !!setup.financials,
-  }), [setup]);
+  return useMemo(() => {
+    const qs = setup.questions ?? [];
+    const assignedCount = qs.filter((q: any) => q.assigned_writer_id).length;
+    // Question Setup is complete when at least half of the imported
+    // questions have a Writer assigned (minimum ownership coverage).
+    const questionsComplete = qs.length > 0 && assignedCount >= Math.max(1, Math.ceil(qs.length / 2));
+    return {
+      identity: !!(setup.mission?.name && setup.mission?.client && setup.mission?.status),
+      team: (setup.members?.length ?? 0) > 0,
+      inputs: (setup.docs?.length ?? 0) > 0 || (setup.monitoring?.length ?? 0) > 0,
+      strategy: (setup.strategy?.length ?? 0) > 0 || (setup.mission?.win_themes?.length ?? 0) > 0,
+      evaluation: (setup.evaluation?.length ?? 0) > 0,
+      client: !!setup.clientIntel,
+      timeline: !!(setup.timeline?.submission),
+      questions: questionsComplete,
+      governance: !!(setup.governance?.submission_authority),
+      financials: !!setup.financials,
+    };
+  }, [setup]);
 }
 
 function CompletionMeter({ completion, isAdmin }: { completion: Record<SectionId, boolean>; isAdmin: boolean }) {
@@ -520,19 +538,12 @@ function SectionTeam({ missionId, members, expertise, refetch }: any) {
                   );
                 })}
                 {(r.multi || assigned.length === 0) && (
-                  <select
-                    value=""
-                    onChange={(e) => {
-                      const p = profiles.find((x: any) => x.id === e.target.value);
-                      if (p) addMember(r.key, p.id, p.display_name ?? p.email ?? "");
-                    }}
-                    className="rounded-md border border-border bg-background px-2.5 py-1.5 text-xs"
-                  >
-                    <option value="">+ Add person…</option>
-                    {profiles.filter((p: any) => !assigned.find((m: any) => m.user_id === p.id)).map((p: any) => (
-                      <option key={p.id} value={p.id}>{p.display_name ?? p.email}</option>
-                    ))}
-                  </select>
+                  <PersonPicker
+                    options={profiles.filter((p: any) => !assigned.find((m: any) => m.user_id === p.id))}
+                    onSelect={(opt) => addMember(r.key, opt.id, opt.display_name ?? opt.email ?? "")}
+                    placeholder="+ Add person…"
+                    emptyText={profiles.length === 0 ? "No people available yet. Load people on the Users page." : "No matches."}
+                  />
                 )}
               </div>
             </div>
@@ -1315,25 +1326,118 @@ function SectionQuestions({ missionId, questions, volumes, refetch }: any) {
 
         {/* Question list */}
         <div>
-          <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-2">
-            Questions <span className="tabular-nums">({questions.length})</span>
+          <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-2 flex items-center justify-between">
+            <span>
+              Questions <span className="tabular-nums">({questions.length})</span>
+            </span>
+            <span className="tabular-nums">
+              {questions.filter((q: any) => q.assigned_writer_id).length}/{questions.length} assigned
+            </span>
           </div>
           {questions.length === 0 ? (
             <div className="text-sm text-muted-foreground italic">No questions yet.</div>
           ) : (
             <ul className="divide-y divide-border border border-border rounded-md">
-              {questions.slice(0, 50).map((q: any) => (
-                <li key={q.id} className="px-3 py-2 text-sm flex items-center gap-3">
-                  <span className="font-mono text-[11px] text-muted-foreground w-12 tabular-nums">{q.question_number}</span>
-                  <span className="flex-1 truncate">{q.title}</span>
-                  <span className="text-[11px] text-muted-foreground">{q.pens_down_date ?? "—"}</span>
-                </li>
+              {questions.slice(0, 100).map((q: any) => (
+                <QuestionAssignmentRow key={q.id} question={q} refetch={refetch} />
               ))}
             </ul>
           )}
         </div>
       </div>
     </Section>
+  );
+}
+
+function QuestionAssignmentRow({ question, refetch }: { question: any; refetch: () => void }) {
+  const [open, setOpen] = useState(false);
+  const { data: profiles = [] } = useQuery({
+    queryKey: ["profiles-min"],
+    queryFn: async () => (await supabase.from("profiles").select("id,display_name,email").limit(500)).data ?? [],
+  });
+
+  async function assign(field: "assigned_writer_id" | "assigned_sme_id" | "reviewer_id", userId: string | null) {
+    const patch = { [field]: userId } as any;
+    const { error } = await supabase
+      .from("question_records")
+      .update(patch)
+      .eq("id", question.id);
+    if (error) return toast.error(error.message);
+    refetch();
+  }
+
+  const writer = profiles.find((p: any) => p.id === question.assigned_writer_id);
+  const sme = profiles.find((p: any) => p.id === question.assigned_sme_id);
+  const reviewer = profiles.find((p: any) => p.id === question.reviewer_id);
+  const writerLabel = writer ? (writer.display_name ?? writer.email) : "—";
+
+  return (
+    <li className="text-sm">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full px-3 py-2 flex items-center gap-3 text-left hover:bg-surface-hover"
+      >
+        <span className="font-mono text-[11px] text-muted-foreground w-12 tabular-nums">{question.question_number}</span>
+        <span className="flex-1 truncate">{question.title}</span>
+        <span className="text-[11px] text-muted-foreground">{question.pens_down_date ?? "—"}</span>
+        <span className={`text-[11px] w-32 truncate text-right ${writer ? "text-foreground" : "text-muted-foreground italic"}`}>
+          {writerLabel}
+        </span>
+        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="px-3 py-3 bg-surface/30 border-t border-border grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-1.5">Writer</div>
+            <div className="flex items-center gap-2">
+              <PersonPicker
+                options={profiles}
+                selectedId={question.assigned_writer_id}
+                onSelect={(opt) => assign("assigned_writer_id", opt.id)}
+              />
+              {question.assigned_writer_id && (
+                <button onClick={() => assign("assigned_writer_id", null)} className="opacity-50 hover:opacity-100" aria-label="Clear writer">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+          <div>
+            <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-1.5">SME</div>
+            <div className="flex items-center gap-2">
+              <PersonPicker
+                options={profiles}
+                selectedId={question.assigned_sme_id}
+                onSelect={(opt) => assign("assigned_sme_id", opt.id)}
+              />
+              {question.assigned_sme_id && (
+                <button onClick={() => assign("assigned_sme_id", null)} className="opacity-50 hover:opacity-100" aria-label="Clear SME">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+            <div className="mt-1 text-[10px] text-muted-foreground">{sme?.display_name ?? sme?.email ?? ""}</div>
+          </div>
+          <div>
+            <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-1.5">Reviewer</div>
+            <div className="flex items-center gap-2">
+              <PersonPicker
+                options={profiles}
+                selectedId={question.reviewer_id}
+                onSelect={(opt) => assign("reviewer_id", opt.id)}
+              />
+              {question.reviewer_id && (
+                <button onClick={() => assign("reviewer_id", null)} className="opacity-50 hover:opacity-100" aria-label="Clear reviewer">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+            <div className="mt-1 text-[10px] text-muted-foreground">{reviewer?.display_name ?? reviewer?.email ?? ""}</div>
+          </div>
+        </div>
+      )}
+    </li>
   );
 }
 
