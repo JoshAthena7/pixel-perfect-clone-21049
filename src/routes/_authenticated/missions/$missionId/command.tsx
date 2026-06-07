@@ -663,19 +663,8 @@ function MissionBrief() {
             style={{ background: healthDotHex, boxShadow: `0 0 6px ${healthDotHex}` }}
           />
           <span className="font-medium truncate">{mission.name}</span>
-          <Link
-            to="/missions/$missionId"
-            params={{ missionId }}
-            className="ml-2 inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em]"
-            style={{
-              background: "var(--athena-gold, #f59e0b)",
-              borderColor: "rgba(255,255,255,0.24)",
-              color: "#060b14",
-            }}
-          >
-            <Plane className="h-3 w-3" /> Flight Deck
-          </Link>
           <span className="text-muted-foreground">·</span>
+
           <span className={needs.length > 0 ? "text-amber-300" : "text-muted-foreground"}>
             {needs.length} need{needs.length === 1 ? "" : "s"}
           </span>
@@ -704,19 +693,8 @@ function MissionBrief() {
               <IrisKickoffBadge missionId={missionId} />
             </div>
           </div>
-          <Link
-            to="/missions/$missionId/flight-deck"
-            params={{ missionId }}
-            className="group inline-flex items-center gap-2 rounded-xl px-6 py-4 text-[14px] font-bold tracking-wide text-white shadow-2xl transition hover:-translate-y-0.5"
-            style={{
-              background: "#6366F1",
-              boxShadow: "0 18px 50px rgba(99,102,241,0.35)",
-            }}
-          >
-            <Zap className="h-5 w-5" />
-            Enter Flight Deck
-          </Link>
         </div>
+
 
         {/* Full-width prominent CTA below the title for maximum visibility */}
         <Link
