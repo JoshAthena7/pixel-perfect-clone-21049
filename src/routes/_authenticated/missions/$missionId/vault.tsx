@@ -36,6 +36,22 @@ import {
   type VaultDocType,
   type VaultDoc,
 } from "@/lib/vault.functions";
+import { validateVaultMime, validateVaultSize, VAULT_ALLOWED_MIME } from "@/lib/file-validation";
+
+const ACCEPT_ATTR = Array.from(
+  new Set(
+    Object.entries(VAULT_ALLOWED_MIME).flatMap(([mime, exts]) => [mime, ...exts.map((e) => `.${e}`)]),
+  ),
+).join(",");
+
+function friendlyErrorMessage(e: any): string {
+  const raw = e?.message ?? String(e ?? "Upload failed");
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object" && parsed.message) return parsed.message;
+  } catch {}
+  return raw;
+}
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/vault")({
   component: VaultPage,
@@ -447,6 +463,21 @@ function UploadModal({
           setBusy(false);
           return;
         }
+        // Client-side guardrails — fail before uploading to storage so we
+        // don't orphan a blob and so the user sees a friendly message instead
+        // of the server-fn runtime error overlay.
+        const mimeErr = validateVaultMime(file.name, file.type || "");
+        if (mimeErr) {
+          toast.error(mimeErr.message);
+          setBusy(false);
+          return;
+        }
+        const sizeErr = validateVaultSize(file.size);
+        if (sizeErr) {
+          toast.error(sizeErr.message);
+          setBusy(false);
+          return;
+        }
         const safeName = file.name.replace(/[^\w.\-]+/g, "_");
         const path = `${missionId}/vault/${docType}/${Date.now()}_${safeName}`;
         const { error: upErr } = await supabase.storage
@@ -481,7 +512,7 @@ function UploadModal({
       toast.success(`${meta.label} added to Vault`);
       onSaved();
     } catch (e: any) {
-      toast.error(e?.message ?? "Upload failed");
+      toast.error(friendlyErrorMessage(e));
     } finally {
       setBusy(false);
     }
@@ -547,6 +578,7 @@ function UploadModal({
               <input
                 ref={fileRef}
                 type="file"
+                accept={ACCEPT_ATTR}
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                 className="block w-full text-xs file:mr-3 file:rounded-md file:border-0 file:bg-white/10 file:px-3 file:py-1.5 file:text-foreground hover:file:bg-white/20"
                 required
