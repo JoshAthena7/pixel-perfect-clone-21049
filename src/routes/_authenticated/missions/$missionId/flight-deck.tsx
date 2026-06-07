@@ -9,6 +9,8 @@ import { useEffect, useState } from "react";
 import { getBriefProgress, markBriefCompleted, type BriefProgress } from "@/lib/brief-seen";
 import { Check } from "lucide-react";
 import { PhoneAFriendOverlay } from "@/components/v2/PhoneAFriendOverlay";
+import { PhoneAFriendPanel } from "@/components/v2/PhoneAFriendPanel";
+import { Users as UsersIcon } from "lucide-react";
 import { IrisAlertBar } from "@/components/v4/IrisAlertBar";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/flight-deck")({
@@ -158,6 +160,19 @@ function MissionFlightDeckPage() {
           <ArrowLeft className="h-3 w-3" />
           Back to Mission Command
         </Link>
+        <button
+          type="button"
+          onClick={() => setPhonePanelOpen(true)}
+          className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] hover:bg-surface-hover"
+          style={{
+            borderColor: "rgba(201,168,76,0.4)",
+            color: "#C9A84C",
+            background: "rgba(201,168,76,0.04)",
+          }}
+        >
+          <UsersIcon className="h-3.5 w-3.5" />
+          Phone a Friend
+        </button>
       </div>
 
       {/* M-4: Personal Flight Deck header — visually distinct from the mission-wide Brief. */}
@@ -213,6 +228,11 @@ function MissionFlightDeckPage() {
           onClose={() => setGlobalPhoneOpen(false)}
         />
       )}
+      <PhoneAFriendPanel
+        open={phonePanelOpen}
+        onOpenChange={setPhonePanelOpen}
+        missionId={missionId}
+      />
     </div>
   );
 }
