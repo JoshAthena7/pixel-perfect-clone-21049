@@ -289,6 +289,36 @@ function BriefRoomNavButton() {
   );
 }
 
+// ─── Inbox nav button with unread badge ───────────────────────────────────
+function InboxNavButton() {
+  const fn = useServerFn(inboxUnreadCount);
+  const { data } = useQuery({
+    queryKey: ["inbox-unread"],
+    queryFn: () => fn(),
+    refetchInterval: 60_000,
+  });
+  const count = data?.count ?? 0;
+  return (
+    <Link
+      to="/inbox"
+      title={count > 0 ? `${count} open Phone-a-Friend consult${count === 1 ? "" : "s"}` : "Phone-a-Friend Inbox"}
+      aria-label="Phone a Friend Inbox"
+      className="relative inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
+    >
+      <PhoneIcon size={16} strokeWidth={1.5} />
+      {count > 0 && (
+        <span
+          className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] px-1 rounded-full text-[9px] font-bold inline-flex items-center justify-center"
+          style={{ background: "var(--athena-gold, #f59e0b)", color: "#0a0a0a" }}
+        >
+          {count > 9 ? "9+" : count}
+        </span>
+      )}
+    </Link>
+  );
+}
+
+
 
 // ─── Sign out button (always visible in header) ───────────────────────────
 function SignOutButton() {
