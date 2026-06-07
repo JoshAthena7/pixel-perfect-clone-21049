@@ -4786,6 +4786,56 @@ export type Database = {
           },
         ]
       }
+      mission_staffing_summary: {
+        Row: {
+          created_at: string
+          generated_at: string
+          generated_by: string | null
+          high_risk_areas: Json
+          id: string
+          mission_id: string
+          overloaded_writers: Json
+          sections_without_owner: Json
+          totals: Json
+          unassigned_questions: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          generated_at?: string
+          generated_by?: string | null
+          high_risk_areas?: Json
+          id?: string
+          mission_id: string
+          overloaded_writers?: Json
+          sections_without_owner?: Json
+          totals?: Json
+          unassigned_questions?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          generated_at?: string
+          generated_by?: string | null
+          high_risk_areas?: Json
+          id?: string
+          mission_id?: string
+          overloaded_writers?: Json
+          sections_without_owner?: Json
+          totals?: Json
+          unassigned_questions?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_staffing_summary_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_strategy: {
         Row: {
           created_at: string
@@ -5903,6 +5953,7 @@ export type Database = {
           health: string | null
           health_drivers: Json | null
           id: string
+          import_notes: string | null
           iris_pre_brief: Json | null
           iris_risk_flag: string | null
           iris_risk_flag_text: string | null
@@ -5920,8 +5971,12 @@ export type Database = {
           reviewer_id: string | null
           scoring_criteria: string | null
           section_number: string | null
+          sme_meeting_date: string | null
+          sme_meeting_status: string
           sort_order: number | null
           status: string | null
+          strategic_owner_id: string | null
+          support_sme_ids: string[]
           target_score: number | null
           title: string
           updated_at: string | null
@@ -5946,6 +6001,7 @@ export type Database = {
           health?: string | null
           health_drivers?: Json | null
           id?: string
+          import_notes?: string | null
           iris_pre_brief?: Json | null
           iris_risk_flag?: string | null
           iris_risk_flag_text?: string | null
@@ -5963,8 +6019,12 @@ export type Database = {
           reviewer_id?: string | null
           scoring_criteria?: string | null
           section_number?: string | null
+          sme_meeting_date?: string | null
+          sme_meeting_status?: string
           sort_order?: number | null
           status?: string | null
+          strategic_owner_id?: string | null
+          support_sme_ids?: string[]
           target_score?: number | null
           title: string
           updated_at?: string | null
@@ -5989,6 +6049,7 @@ export type Database = {
           health?: string | null
           health_drivers?: Json | null
           id?: string
+          import_notes?: string | null
           iris_pre_brief?: Json | null
           iris_risk_flag?: string | null
           iris_risk_flag_text?: string | null
@@ -6006,8 +6067,12 @@ export type Database = {
           reviewer_id?: string | null
           scoring_criteria?: string | null
           section_number?: string | null
+          sme_meeting_date?: string | null
+          sme_meeting_status?: string
           sort_order?: number | null
           status?: string | null
+          strategic_owner_id?: string | null
+          support_sme_ids?: string[]
           target_score?: number | null
           title?: string
           updated_at?: string | null
@@ -6058,6 +6123,20 @@ export type Database = {
             columns: ["parent_question_id"]
             isOneToOne: false
             referencedRelation: "question_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_records_strategic_owner_id_fkey"
+            columns: ["strategic_owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_records_strategic_owner_id_fkey"
+            columns: ["strategic_owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_directory"
             referencedColumns: ["id"]
           },
           {

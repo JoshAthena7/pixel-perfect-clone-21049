@@ -1,117 +1,74 @@
-# IRIS Intelligence Pipeline — Phase 1
 
-Additive build. No existing IRIS, vault, or mission routes are modified.
+## What already exists (do NOT rebuild)
 
-## Important deviations from the spec (need confirmation)
+After auditing the codebase, ~70% of what you described is already shipped:
 
-1. **No Supabase Edge Function.** This stack is TanStack Start; the project's standing instruction is *"Do NOT use Supabase Edge Functions. Use TanStack Start's built-in server capabilities."* All existing IRIS work in this codebase is `createServerFn`. I'll build `iris-intelligence` as `src/lib/iris-intelligence.functions.ts` with `requireSupabaseAuth` middleware. Same input/output contract, same prompts — just called via `useServerFn` from the UI instead of `supabase.functions.invoke`.
+- **Upload + AI extraction**: `UploadMatrixModal.tsx` + `matrix-extract.server.ts` + `extractMissionMatrixFromUpload` already accept XLSX, CSV, PDF, DOCX, parse them with Gemini, and let an admin review + commit.
+- **Question records table**: `question_records` already has question_number, title, section, parent, writer, SME, page_limit, weight, pens_down_date, scoring_criteria, status, **health** (auto-calculated by `calculate_question_health` DB function — green/yellow/red based on SME, writer, score, days-to-pens-down), confidence, etc.
+- **Auto health engine**: trigger `trg_refresh_question_health` already runs on every write.
+- **Writer cockpit / flight deck**: `flight-deck.tsx`, `sections/index.tsx`, `sections/$questionId.tsx` already filter to the writer's assigned questions.
+- **SME interview engine**: `iris-question-brief.functions.ts` + `interviews.tsx` already generate interview objectives, suggested questions, gaps, follow-ups per question.
+- **Mission health dashboard**: `MissionHealthAndThemes.tsx`, `MissionPulse.tsx`, `MissionReadinessPanel.tsx` already aggregate.
 
-2. **AI call uses existing `callIris(system, user)` helper** (`src/lib/iris-prompts.ts`) — the canonical IRIS gateway path already used by `iris-mission-brief`, the extractors, etc. Layer-specific system prompts come straight from your spec.
+## Real gaps in the current import flow
 
-3. **PDF/DOCX text extraction.** Cloudflare Worker runtime can't run `pdf-parse` (Node-only). I'll use `unpdf` (PDF, Worker-compatible) and `mammoth` (DOCX). TXT is read directly. Scanned PDFs left as `// TODO: Add OCR pipeline for scanned documents` per spec.
+What the spec asks for that we *don't* have:
 
-4. **Vault placement.** The existing `vault.tsx` page is dense and tied to `mission_vault_documents`. Per your "do not replace" constraint I'll add a **new** sibling tab/route `/_authenticated/missions/$missionId/intel-upload` that hosts `IntelligenceVault`. The existing vault is untouched.
+1. **Field mapping preview step** — today the AI just parses and shows you the result. There is no "Question Number → Question_ID" column-mapping confirm screen with a header-row preview. Pure-spreadsheet uploads should let the admin reassign columns before commit.
+2. **"Strategic Owner" and "Support SMEs"** — schema has one `assigned_writer_id` and one `assigned_sme_id`. No strategic owner. No multi-SME support. These columns from the matrix get dropped on the floor today.
+3. **SME meeting status fields** — no `sme_meeting_status` / `sme_meeting_date` columns. Today this lives implicitly in interview records, not on the question.
+4. **Default status normalization** — extractor doesn't force the spec's defaults (Not Scheduled / Not Started / Not Started / Green) for new records explicitly.
+5. **IRIS staffing summary after import** — `iris_staffing_recommendations` table exists but nothing writes to it on commit. No "unassigned questions / overloaded writers / sections with no owner" report is generated at the end of import.
+6. **Notes / Comments column** — matrix has a Comments column; we don't store it.
 
-If any of the above is wrong, say so before I implement.
+## Plan — focused, surgical additions
 
-## Part 1 — Schema (one migration)
+### Step 1 — Schema additions (one migration)
+Add to `question_records`:
+- `strategic_owner_id uuid` (profile reference, nullable)
+- `support_sme_ids uuid[]` (default `'{}'`)
+- `sme_meeting_status text` (default `'not_scheduled'`)
+- `sme_meeting_date timestamptz`
+- `import_notes text` (the Comments column)
 
-`public.mission_documents`
-- `id uuid pk`, `mission_id uuid → missions.id`, `file_name text`, `file_path text`
-- `document_type text` (enum-checked: RFP, Amendment, Model Contract, Regulation, Waiver, Legislative, Stakeholder Report, Advocacy, Research, News, Provider Materials, Incumbent Report, Other)
-- `processing_status text` default `'pending'` (pending|processing|complete|error)
-- `extracted_text text`, `page_count int`, `uploaded_by uuid → profiles.id`
-- `processed_at timestamptz`, `created_at`, `updated_at`
+Add `mission_staffing_summary` table — one row per mission, JSON payload with unassigned_questions, overloaded_writers, sections_without_owner, high_risk_areas, last_generated_at. RLS: mission members read, leads/admins write.
 
-`public.mission_intelligence`
-- `id uuid pk`, `mission_id uuid → missions.id`
-- `layer text` (`mission_brief` | `strategic_assessment`)
-- `content jsonb`, `version int default 1`, `generated_at timestamptz`
-- `source_document_ids uuid[]`, `iris_notes text`
-- `created_at`, `updated_at`
-- Unique `(mission_id, layer)` — server fn bumps `version` + updates in place
+### Step 2 — Spreadsheet field-mapping UI (the headline new feature)
+For XLSX/CSV uploads only (PDF/DOCX keep AI-extraction path):
+- Server fn `previewMatrixHeaders` — returns the first sheet's header row + first 5 data rows + IRIS auto-guessed mapping (Question Number → question_number, Writer → assigned_writer_name, etc.).
+- New step in `UploadMatrixModal`: column-mapping table. Each source column gets a dropdown of target fields (Question_ID, Question_Title, Athena_Writer, Lead_SME, Support_SME, Strategic_Owner, Comments, Volume, Pens-Down Date, Page Limit, Weight, Skip).
+- Admin confirms → server fn applies mapping → produces the same `SuggestedQuestion[]` shape that the existing commit pipeline uses.
 
-GRANTs to `authenticated` + `service_role`. RLS uses existing `public.is_mission_member(mission_id, auth.uid())` helper — read/write allowed if member. Admin bypass via `has_role(auth.uid(), 'admin')`.
+### Step 3 — Extend extractor + commit
+- `matrix-extract.server.ts`: AI prompt also captures `strategic_owner_name`, `support_sme_names[]`, `notes`.
+- `matrix-import.functions.ts` `commitMissionMatrix`: resolve those names through the same profile-matching path, write new columns, force the spec's defaults on every inserted row.
 
-Storage bucket: `mission-documents` (private). RLS on `storage.objects` scoped to mission membership via path prefix `{mission_id}/`.
+### Step 4 — Post-import IRIS staffing summary
+New server fn `generateMissionStaffingSummary(missionId)` runs automatically after commit:
+- Unassigned: rows missing writer/SME/owner.
+- Overloaded writers: writers with > N assigned questions OR > X total page_limit.
+- Sections with no strategic owner.
+- High-risk areas: count of red health.
+Stores into `mission_staffing_summary`. Show as a banner at the top of the mission setup page after import completes.
 
-## Part 2 — `iris-intelligence` server function
+### Step 5 — Surface new fields in existing views
+- Writer cockpit (`sections/$questionId.tsx` + flight-deck question card): show Strategic Owner, Support SMEs, SME meeting status/date.
+- Mission setup question list: same columns visible.
+- (Optional, deferred) edit controls — for now read-only from import; existing inline editors stay as-is.
 
-`src/lib/iris-intelligence.functions.ts`
+## Out of scope (intentionally not in this build)
+- Rebuilding writer cockpit / SME tracker / leadership briefing — those exist; we're just feeding richer data into them.
+- New "Assignment Dashboard" page — the existing mission setup question list IS this; we'll just light up the new columns.
+- SOS button / interview flight plan button — already implemented elsewhere.
 
-```ts
-generateIrisIntelligence({ mission_id, document_ids, layer })
-```
+## Files touched
+- `supabase/migrations/<new>.sql` (schema)
+- `src/lib/matrix-extract.server.ts` (extend AI prompt)
+- `src/lib/matrix-import.functions.ts` (new fields, defaults, staffing summary, preview fn)
+- `src/components/questions/UploadMatrixModal.tsx` (field-mapping step for spreadsheets)
+- `src/lib/mission-staffing.functions.ts` (new — summary generator + reader)
+- `src/components/admin/MissionStaffingBanner.tsx` (new — small)
+- `src/routes/_authenticated/admin/missions.$missionId.setup.tsx` (wire banner)
+- `src/routes/_authenticated/missions/$missionId/sections/$questionId.tsx` (display new fields)
 
-1. `requireSupabaseAuth` → mission membership check.
-2. Load `mission_documents` where id IN document_ids AND status='complete'.
-3. Build corpus: `[DOCUMENT: {file_name} | TYPE: {document_type}]\n{extracted_text}\n\n` joined.
-4. Pick system prompt by `layer` (your two prompts verbatim in `src/lib/iris-intelligence-prompts.ts`).
-5. `callIris(systemPrompt, corpus)` → parse JSON. On parse failure return `{ success: false, error: 'malformed_json' }` (UI shows the spec error card).
-6. Upsert into `mission_intelligence` on `(mission_id, layer)`; bump `version`, set `generated_at`, `source_document_ids`.
-7. Return `{ success: true, intelligence_id, layer, version }`.
-
-Companion read fns: `getMissionIntelligence({ mission_id, layer })`, `listMissionDocuments({ mission_id })`, `markDocumentProcessed({ id, extracted_text, page_count })`.
-
-## Part 3 — `IntelligenceVault` upload UI
-
-New route: `src/routes/_authenticated/missions/$missionId/intel-upload.tsx` (linked from the existing mission tab strip — additive entry, no replacement).
-
-Component: `src/components/intelligence/IntelligenceVault.tsx`
-- Multi-file drop (PDF/DOCX/TXT), per-file `document_type` selector (12 options + Other).
-- Upload to `mission-documents/{mission_id}/{uuid}-{file_name}` → insert `mission_documents` row (`pending`).
-- After upload, client-side text extraction (`unpdf` for PDF, `mammoth` for DOCX, raw for TXT) → call `markDocumentProcessed` → status `complete`. Failures → `error` with toast.
-- Document list with status pill badges (Pending gray, Processing amber pulsing, Complete green, Error red).
-- `Generate IRIS Intelligence` button — disabled until ≥1 complete. Opens modal with **Mission Brief** / **Strategic Assessment** choice + note "Processing time: approximately 60–90 seconds".
-- Calls `generateIrisIntelligence`, shows spinner, on success deep-links to the matching display tab.
-
-## Part 4 — `MissionBriefView`
-
-Route: `src/routes/_authenticated/missions/$missionId/iris-brief.tsx`
-Component: `src/components/intelligence/MissionBriefView.tsx`
-
-Sections exactly as spec:
-1. IRIS Assessment Banner — gold left border, large headline, confidence badge (Pursue=green / Caution=amber / More Analysis=red), `Watch:` bullets.
-2. Procurement Overview info grid (responsive 2–3 col).
-3. Two-col: Key Risks (severity badges) | Key Opportunities (strength badges).
-4. Win Themes card grid.
-5. Key Deadlines table.
-6. Source References (Collapsible, label "IRIS Intelligence Sources", tagline "All intelligence is traceable to source documents").
-7. Footer: `Generated by IRIS™ | Version {version} | {generated_at}` + Regenerate button.
-
-ATLAS palette via existing tokens; literal hexes (#1F3864 navy, #C9A84C gold, #0a0e1a bg) used inline where the spec calls for them. Skeleton loader matches existing IRIS components. Malformed-content card per spec.
-
-## Part 5 — `StrategicAssessmentView`
-
-Route: `src/routes/_authenticated/missions/$missionId/iris-strategic.tsx`
-Component: `src/components/intelligence/StrategicAssessmentView.tsx`
-
-Sections 1–8 exactly as spec, including stakeholder position color map (Supportive=green / Neutral=gray / Cautious=amber / Unknown=blue) and collapsed source references.
-
-## File map
-
-**Created**
-- `supabase/migrations/<ts>_iris_intelligence_phase1.sql`
-- `src/lib/iris-intelligence-prompts.ts`
-- `src/lib/iris-intelligence.functions.ts`
-- `src/components/intelligence/IntelligenceVault.tsx`
-- `src/components/intelligence/MissionBriefView.tsx`
-- `src/components/intelligence/StrategicAssessmentView.tsx`
-- `src/components/intelligence/IntelligenceSkeleton.tsx`
-- `src/routes/_authenticated/missions/$missionId/intel-upload.tsx`
-- `src/routes/_authenticated/missions/$missionId/iris-brief.tsx`
-- `src/routes/_authenticated/missions/$missionId/iris-strategic.tsx`
-
-**Touched (link additions only, no behavior changes)**
-- Existing mission tab strip — add three new tabs (Intel Upload / IRIS Brief / IRIS Strategic). If you'd rather keep the tab bar untouched and reach these only via deep links from the upload button, I'll skip this.
-
-**Dependencies added**
-- `unpdf`, `mammoth`
-
-## Open questions
-
-1. Confirm `createServerFn` instead of Supabase Edge Function (per stack mandate).
-2. Confirm new `mission_documents` table is correct — existing `mission_vault_documents` is a different surface I should not touch, right?
-3. Confirm new route + new tab entries (vs. deep link only).
-
-Reply "go" + answers to the 3 questions and I'll build it end-to-end.
+This is roughly 1 migration + ~600 lines of focused code, not a rewrite. **Approve and I'll start with the migration.**
