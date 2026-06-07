@@ -252,7 +252,8 @@ export const extractVaultDoc = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase } = context as { supabase: any };
+    const { supabase, userId } = context as { supabase: any; userId: string };
+    await assertAdmin(supabase, userId);
     const { extractAndEmbedVaultDoc } = await import("./vault-extract.server");
     return await extractAndEmbedVaultDoc(supabase, data.id);
   });
