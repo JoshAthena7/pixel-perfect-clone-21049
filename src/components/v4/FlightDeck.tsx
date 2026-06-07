@@ -571,12 +571,14 @@ function QuestionWorkspace({
   selectedId,
   onSelect,
   updateStatus,
+  onPhoneRow,
 }: {
   missionId: string;
   myQuestions: Q[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   updateStatus: (q: Q, db: string) => Promise<void>;
+  onPhoneRow: (q: Q) => void;
 }) {
   return (
     <section className="rounded-[12px] border border-border bg-surface">
@@ -607,6 +609,7 @@ function QuestionWorkspace({
               selected={q.id === selectedId}
               onSelect={() => onSelect(q.id)}
               updateStatus={updateStatus}
+              onPhoneRow={() => onPhoneRow(q)}
             />
           ))}
         </ul>
