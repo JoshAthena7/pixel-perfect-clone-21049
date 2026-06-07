@@ -228,6 +228,7 @@ function TopBar({
         </button>
         <IrisStatusIndicator />
         {/* Atrium button removed from header — admins reach it via Olympus/avatar */}
+        <InboxNavButton />
         <NotificationBell />
         <UserAvatarMenu />
         <OlympusNavLink isOlympus={isOlympus} />
