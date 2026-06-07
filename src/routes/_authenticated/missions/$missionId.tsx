@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { generateMissionBrief } from "@/lib/iris-mission-brief.functions";
 import { useMissionAccess } from "@/hooks/useAccess";
 import { NotAvailable } from "@/components/access/NotAvailable";
+import { MissionCountdownBanner } from "@/components/MissionCountdownBanner";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId")({
   component: MissionLayout,
@@ -41,6 +42,7 @@ function MissionLayout() {
   return (
     <div className="flex flex-col min-h-full">
       <OracleWarmingBanner missionId={missionId} />
+      <MissionCountdownBanner missionId={missionId} />
       {!hideStrip && <IrisBriefStrip missionId={missionId} />}
       <div className="flex-1 min-w-0">
         <Outlet />

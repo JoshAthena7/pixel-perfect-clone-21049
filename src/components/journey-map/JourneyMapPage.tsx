@@ -6,6 +6,7 @@ import { CheckCircle2, Circle, AlertTriangle, Sparkles, ChevronRight, Users, Tar
 import { useMissionBrief, type MissionBrief } from "@/lib/mission-brief-data";
 import { supabase } from "@/integrations/supabase/client";
 import { MissionProgressRing } from "@/components/MissionProgressRing";
+import { MissionSetupChecklist } from "@/components/MissionSetupChecklist";
 
 type Status = "complete" | "active" | "upcoming" | "at_risk";
 
