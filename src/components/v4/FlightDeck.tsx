@@ -22,8 +22,11 @@ import {
   Eye,
   Layers,
   ListChecks,
+  Phone,
   UserX,
 } from "lucide-react";
+import { listMissionConsults, type ExpertConsultRow } from "@/lib/expert-consult.functions";
+import { useServerFn } from "@tanstack/react-start";
 
 type Q = {
   id: string;
