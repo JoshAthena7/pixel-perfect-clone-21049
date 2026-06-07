@@ -274,6 +274,13 @@ async function fetchMissionBrief(missionId: string): Promise<MissionBrief> {
     clarifications: clarRes.data ?? [],
     signals: signalsRes.data ?? [],
     daysToSubmission,
+    lifecycle: {
+      created_at: (m as any).created_at ?? null,
+      iris_kickoff_at: (m as any).iris_kickoff_at ?? null,
+      iris_kickoff_status: (m as any).iris_kickoff_status ?? null,
+      timeline: (timelineRes.data as any) ?? null,
+      debriefCount: debriefRes.count ?? 0,
+    },
   };
 }
 
