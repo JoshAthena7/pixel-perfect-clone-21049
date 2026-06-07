@@ -54,8 +54,8 @@ export const Route = createFileRoute("/api/iris-voice")({
 
         if (!voiceResponse.ok) {
           const detail = await voiceResponse.text();
-          console.warn(`IRIS TTS unavailable: ${voiceResponse.status} ${detail}`);
-          return jsonError(detail || `TTS failed (${voiceResponse.status})`, 502);
+          console.warn(`IRIS TTS unavailable: ${voiceResponse.status}`, detail);
+          return jsonError("Voice synthesis temporarily unavailable.", 502);
         }
 
         return new Response(await voiceResponse.arrayBuffer(), {
