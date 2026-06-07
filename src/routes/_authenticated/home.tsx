@@ -418,7 +418,7 @@ function AthenaHQ() {
         <div className="max-w-md text-center">
           <div className="flex items-center justify-center gap-4 mb-8">
             <img src={athenaMark.url} alt="" aria-hidden draggable={false} className="h-20 w-20 object-contain select-none -my-2" />
-            <span className="atlas-gold-dot" aria-hidden style={{ width: 8, height: 8 }} />
+            <span className="atlas-gold-dot" aria-hidden />
             <img src={atlasLogo} alt="Atlas" draggable={false} className="h-7 w-auto object-contain select-none" style={{ filter: "brightness(1.1) drop-shadow(0 0 6px rgba(201,168,76,0.25))" }} />
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Welcome to Atlas.</h1>
