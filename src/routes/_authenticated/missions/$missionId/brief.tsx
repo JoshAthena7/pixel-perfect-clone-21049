@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import {
   Plane,
   Clock, Activity, DollarSign, Users, Target, Trophy, ShieldCheck, AlertTriangle,
@@ -8,6 +10,8 @@ import {
   Check, Circle, Link2,
 } from "lucide-react";
 import { useMissionBrief, useCurrentProfile, type MissionBrief } from "@/lib/mission-brief-data";
+import { generateMissionBrief } from "@/lib/iris-mission-brief.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/brief")({
