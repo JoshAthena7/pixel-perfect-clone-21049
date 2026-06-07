@@ -96,11 +96,11 @@ function MissionFlightDeckPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("id,display_name,full_name")
+        .select("id,display_name")
         .in("id", writerIds);
       const map: Record<string, string> = {};
       for (const p of data ?? []) {
-        map[(p as any).id] = (p as any).display_name ?? (p as any).full_name ?? "";
+        map[(p as any).id] = (p as any).display_name ?? "";
       }
       return map;
     },
