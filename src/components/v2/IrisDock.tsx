@@ -45,24 +45,28 @@ export function IrisDock() {
     scrollerRef.current?.scrollTo({ top: 9e9, behavior: "smooth" });
   }, [msgs, busy]);
 
-  async function send() {
-    const text = input.trim();
-    if (!text || busy) return;
-    setMsgs((m) => [...m, { role: "user", text }]);
+  async function sendText(text: string) {
+    const trimmed = text.trim();
+    if (!trimmed || busy) return;
+    setMsgs((m) => [...m, { role: "user", text: trimmed }]);
     setInput("");
     setBusy(true);
     try {
       const res = questionId
-        ? await askQuestion({ data: { questionId, prompt: text } })
+        ? await askQuestion({ data: { questionId, prompt: trimmed } })
         : missionId
-          ? await askMission({ data: { missionId, prompt: text } })
-          : await askGlobal({ data: { prompt: text } });
+          ? await askMission({ data: { missionId, prompt: trimmed } })
+          : await askGlobal({ data: { prompt: trimmed } });
       setMsgs((m) => [...m, { role: "iris", text: res.answer }]);
     } catch (e: any) {
       setMsgs((m) => [...m, { role: "iris", text: `_Error: ${e?.message ?? "unknown"}_` }]);
     } finally {
       setBusy(false);
     }
+  }
+
+  async function send() {
+    await sendText(input);
   }
 
   // Hide on login or no auth
@@ -207,6 +211,39 @@ export function IrisDock() {
               </div>
             )}
           </div>
+
+          {/* UX-2: Quick-prompt strip — only when input is empty, no conversation, and inside a mission. */}
+          {!input && msgs.length === 0 && !busy && missionId && (
+            <div className="flex flex-wrap gap-1.5 border-t px-3 pt-2.5" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+              {[
+                "What are evaluators looking for?",
+                "What's the win theme here?",
+                "Summarize the requirements",
+              ].map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => void sendText(p)}
+                  className="iris-quick-prompt rounded-full px-3 py-1 text-[11px] font-medium transition-colors"
+                  style={{
+                    border: "1px solid rgba(201,168,76,0.3)",
+                    background: "transparent",
+                    color: "#C9A84C",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "rgba(201,168,76,0.08)";
+                    e.currentTarget.style.borderColor = "rgba(201,168,76,0.6)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.borderColor = "rgba(201,168,76,0.3)";
+                  }}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          )}
 
           <form
             onSubmit={(e) => { e.preventDefault(); send(); }}

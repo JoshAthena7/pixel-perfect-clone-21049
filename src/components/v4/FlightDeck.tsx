@@ -28,6 +28,8 @@ import {
 } from "lucide-react";
 import { listMissionConsults, type ExpertConsultRow } from "@/lib/expert-consult.functions";
 import { useServerFn } from "@tanstack/react-start";
+import { PensDownBadge } from "@/components/PensDownBadge";
+import { WriterActivityIndicator } from "@/components/WriterActivityIndicator";
 
 type Q = {
   id: string;
@@ -43,6 +45,8 @@ type Q = {
   iris_risk_flag: string | null;
   iris_risk_flag_text: string | null;
   point_value: number | null;
+  updated_at?: string | null;
+  writer_name?: string | null;
 };
 
 type Props = {
@@ -982,6 +986,7 @@ function QuestionRow({
                 {days}d
               </span>
             )}
+            <PensDownBadge pensDownDate={q.pens_down_date} />
             {selected && (
               <span className="rounded bg-sky-500/15 px-1.5 py-px text-[9px] font-bold tracking-[0.1em] text-sky-300">
                 SELECTED
@@ -989,6 +994,10 @@ function QuestionRow({
             )}
           </div>
           <div className="mt-1 truncate text-[14px] font-medium text-foreground">{q.title}</div>
+          <WriterActivityIndicator
+            writerName={q.writer_name ?? null}
+            lastActiveAt={q.updated_at ?? null}
+          />
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <span
