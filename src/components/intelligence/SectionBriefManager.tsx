@@ -648,11 +648,11 @@ function Step2Questions({
         >
           {submitting ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" /> IRIS is synthesizing…
+              <Loader2 className="w-4 h-4 animate-spin" /> IRIS is preparing your Flight Plan…
             </>
           ) : (
             <>
-              Submit Answers to IRIS <ArrowRight className="w-4 h-4" />
+              Submit to IRIS — Generate Flight Plan <ArrowRight className="w-4 h-4" />
             </>
           )}
         </button>
