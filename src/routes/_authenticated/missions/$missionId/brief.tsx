@@ -124,7 +124,7 @@ function MissionBriefingRoomPage() {
             <Hero missionId={missionId} />
             <MissionObjective />
             <StrategicBrief />
-            <ThreeColumnRow />
+            <ThreeColumnRow missionId={missionId} />
             <MissionMap missionId={missionId} />
             <BottomPanels missionId={missionId} />
             
@@ -132,8 +132,8 @@ function MissionBriefingRoomPage() {
 
           {/* ── RIGHT column ── */}
           <aside style={{ display: "flex", flexDirection: "column", gap: 16, position: "sticky", top: 20 }}>
-            <IrisMissionBrief greeting={greeting} firstName={firstName} />
-            <MissionHealthCard />
+            <IrisMissionBrief greeting={greeting} firstName={firstName} missionId={missionId} />
+            <MissionHealthCard missionId={missionId} />
             <YoureBriefedCard missionId={missionId} />
           </aside>
         </div>
