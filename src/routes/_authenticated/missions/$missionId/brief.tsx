@@ -124,7 +124,7 @@ function MissionBriefingRoomPage() {
             <Hero missionId={missionId} />
             <MissionObjective />
             <StrategicBrief />
-            <ThreeColumnRow />
+            <ThreeColumnRow missionId={missionId} />
             <MissionMap missionId={missionId} />
             <BottomPanels missionId={missionId} />
             
@@ -132,8 +132,8 @@ function MissionBriefingRoomPage() {
 
           {/* ── RIGHT column ── */}
           <aside style={{ display: "flex", flexDirection: "column", gap: 16, position: "sticky", top: 20 }}>
-            <IrisMissionBrief greeting={greeting} firstName={firstName} />
-            <MissionHealthCard />
+            <IrisMissionBrief greeting={greeting} firstName={firstName} missionId={missionId} />
+            <MissionHealthCard missionId={missionId} />
             <YoureBriefedCard missionId={missionId} />
           </aside>
         </div>
@@ -412,17 +412,17 @@ function StrategicBrief() {
 }
 
 /* ════════════════ THREE COLUMN ROW ════════════════ */
-function ThreeColumnRow() {
+function ThreeColumnRow({ missionId }: { missionId: string }) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 16 }}>
-      <WinThemesAlignment />
-      <OracleBriefing />
-      <ClarificationsAndWhatChanged />
+      <WinThemesAlignment missionId={missionId} />
+      <OracleBriefing missionId={missionId} />
+      <ClarificationsAndWhatChanged missionId={missionId} />
     </div>
   );
 }
 
-function WinThemesAlignment() {
+function WinThemesAlignment({ missionId }: { missionId: string }) {
   const themes = [
     { name: "Deep Understanding of NJ CSOC", pct: 92, color: C.green },
     { name: "Whole-Child Integrated Approach", pct: 88, color: C.green },
@@ -450,12 +450,12 @@ function WinThemesAlignment() {
           </div>
         ))}
       </div>
-      <a href="#" style={linkBlue}>View all win themes <ArrowRight size={12} /></a>
+      <Link to="/missions/$missionId/settings" params={{ missionId }} search={{ tab: "themes" }} style={linkBlue}>View all win themes <ArrowRight size={12} /></Link>
     </div>
   );
 }
 
-function OracleBriefing() {
+function OracleBriefing({ missionId }: { missionId: string }) {
   const sources = [
     { icon: <FileText size={14} />, name: "Policy & Regulation", text: "NJ CSOC Waiver renewal priorities emphasize care coordination and data-driven outcomes." },
     { icon: <Building2 size={14} />, name: "State Intelligence", text: "NJ is focused on reducing ER utilization and improving community-based care access." },
@@ -506,12 +506,12 @@ function OracleBriefing() {
         ))}
       </div>
 
-      <a href="#" style={linkBlue}>Go to Oracle <ArrowRight size={12} /></a>
+      <Link to="/missions/$missionId/briefing" params={{ missionId }} style={linkBlue}>Go to Oracle <ArrowRight size={12} /></Link>
     </div>
   );
 }
 
-function ClarificationsAndWhatChanged() {
+function ClarificationsAndWhatChanged({ missionId }: { missionId: string }) {
   const clarifications = [
     { num: 4, date: "Posted yesterday", text: "Clarification on Care Coordination metrics and reporting requirements." },
     { num: 3, date: "May 14, 2025", text: "Updated exhibit template and data fields." },
@@ -532,7 +532,7 @@ function ClarificationsAndWhatChanged() {
             <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary }}>CLIENT CLARIFICATIONS</div>
             <div style={subLabel}>Latest from the state.</div>
           </div>
-          <a href="#" style={linkBlue}>View all <ArrowRight size={12} /></a>
+          <Link to="/missions/$missionId/intel" params={{ missionId }} style={linkBlue}>View all <ArrowRight size={12} /></Link>
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
           {clarifications.map((c, i) => (
@@ -559,7 +559,7 @@ function ClarificationsAndWhatChanged() {
             <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary }}>WHAT CHANGED</div>
             <div style={subLabel}>Recent mission activity.</div>
           </div>
-          <a href="#" style={linkBlue}>View all <ArrowRight size={12} /></a>
+          <Link to="/missions/$missionId/overview" params={{ missionId }} style={linkBlue}>View all <ArrowRight size={12} /></Link>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {changes.map((c, i) => (
@@ -791,12 +791,12 @@ function Row({ k, v, tone }: { k: string; v: string; tone?: "red" }) {
 
 
 /* ════════════════ RIGHT COLUMN ════════════════ */
-function IrisMissionBrief({ greeting, firstName }: { greeting: string; firstName: string }) {
+function IrisMissionBrief({ greeting, firstName, missionId }: { greeting: string; firstName: string; missionId: string }) {
   const alerts = [
-    { icon: <CheckCircle2 size={16} style={{ color: C.green }} />, title: "Mission Health: Green", titleColor: C.green, text: "Progress is on track across most areas." },
-    { icon: <AlertTriangle size={16} style={{ color: C.orange }} />, title: "2 Sections Need Attention", titleColor: C.orange, text: "Sections 2.0 and 3.0 have questions at risk." },
-    { icon: <FileText size={16} style={{ color: C.blue }} />, title: "Client Clarification #4", titleColor: C.blue, text: "NJ posted clarification #4 yesterday." },
-    { icon: <Link2 size={16} style={{ color: C.red }} />, title: "1 Dependency Risk Detected", titleColor: C.red, text: "Section 3.2 depends on 2.1 response." },
+    { icon: <CheckCircle2 size={16} style={{ color: C.green }} />, title: "Mission Health: Green", titleColor: C.green, text: "Progress is on track across most areas.", to: "/missions/$missionId/overview" as const },
+    { icon: <AlertTriangle size={16} style={{ color: C.orange }} />, title: "2 Sections Need Attention", titleColor: C.orange, text: "Sections 2.0 and 3.0 have questions at risk.", to: "/missions/$missionId/sections" as const },
+    { icon: <FileText size={16} style={{ color: C.blue }} />, title: "Client Clarification #4", titleColor: C.blue, text: "NJ posted clarification #4 yesterday.", to: "/missions/$missionId/intel" as const },
+    { icon: <Link2 size={16} style={{ color: C.red }} />, title: "1 Dependency Risk Detected", titleColor: C.red, text: "Section 3.2 depends on 2.1 response.", to: "/missions/$missionId/sections" as const },
   ];
   return (
     <div style={{ ...card, padding: 16 }}>
@@ -817,7 +817,7 @@ function IrisMissionBrief({ greeting, firstName }: { greeting: string; firstName
           }}>
             <div style={{ marginTop: 1, flexShrink: 0 }}>{a.icon}</div>
             <div>
-              <a href="#" style={{ fontSize: 12, fontWeight: 700, color: a.titleColor, textDecoration: "none" }}>{a.title}</a>
+              <Link to={a.to} params={{ missionId }} style={{ fontSize: 12, fontWeight: 700, color: a.titleColor, textDecoration: "none" }}>{a.title}</Link>
               <div style={{ fontSize: 12, color: C.textMuted, lineHeight: 1.5, marginTop: 2 }}>{a.text}</div>
             </div>
           </div>
@@ -831,16 +831,22 @@ function IrisMissionBrief({ greeting, firstName }: { greeting: string; firstName
         <div style={{ fontSize: 12, color: C.textBody, lineHeight: 1.5, marginTop: 6 }}>
           Review Care Coordination Approach (3.2.1) — high impact section with tight requirements.
         </div>
-        <button style={{
-          marginTop: 10, background: "transparent", color: C.textBody, fontSize: 12,
-          padding: "6px 14px", borderRadius: 6, border: `1px solid ${C.border}`, cursor: "pointer", fontWeight: 500,
-        }}>View Details</button>
+        <Link
+          to="/missions/$missionId/sections"
+          params={{ missionId }}
+          style={{
+            display: "inline-block",
+            marginTop: 10, background: "transparent", color: C.textBody, fontSize: 12,
+            padding: "6px 14px", borderRadius: 6, border: `1px solid ${C.border}`, cursor: "pointer", fontWeight: 500,
+            textDecoration: "none",
+          }}
+        >View Details</Link>
       </div>
     </div>
   );
 }
 
-function MissionHealthCard() {
+function MissionHealthCard({ missionId }: { missionId: string }) {
   const metrics = [
     { icon: <CheckCircle2 size={14} style={{ color: C.green }} />, label: "On Track", val: 42, color: C.green },
     { icon: <AlertTriangle size={14} style={{ color: C.orange }} />, label: "At Risk", val: 7, color: C.orange },
@@ -875,7 +881,7 @@ function MissionHealthCard() {
         ))}
       </div>
 
-      <a href="#" style={{ ...linkBlue, marginTop: 14 }}>View Mission Health <ArrowRight size={12} /></a>
+      <Link to="/missions/$missionId/overview" params={{ missionId }} style={{ ...linkBlue, marginTop: 14 }}>View Mission Health <ArrowRight size={12} /></Link>
     </div>
   );
 }
