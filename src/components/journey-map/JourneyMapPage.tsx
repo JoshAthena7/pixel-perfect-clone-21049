@@ -1,6 +1,8 @@
 // Extracted Journey Map page — shared between top-level redirect and per-mission route.
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useParams } from "@tanstack/react-router";
 import { CheckCircle2, Circle, AlertTriangle, Sparkles, ChevronRight, Users, Target, ListChecks, Layers, Brain, Trophy } from "lucide-react";
+import { useMissionBrief, type MissionBrief } from "@/lib/mission-brief-data";
 
 type Status = "complete" | "active" | "upcoming" | "at_risk";
 
@@ -377,14 +379,33 @@ function useMotionPreference() {
 }
 
 export function JourneyMapPage() {
-  const activeIdx = STAGES.findIndex((s) => s.status === "active");
+  // missionId is present when mounted under /missions/$missionId/journey-map.
+  // strict:false lets the same component render at /v1/journey (no mission) too.
+  const params = useParams({ strict: false }) as { missionId?: string };
+  const missionId = params.missionId;
+  const { data: brief } = useMissionBrief(missionId ?? "");
+
+  // Derive per-stage status, task progress, and active stage from live data.
+  const stages = useMemo<Stage[]>(() => deriveStages(STAGES, brief), [brief]);
+
+  const activeIdx = stages.findIndex((s) => s.status === "active");
   const [selected, setSelected] = useState<number>(activeIdx >= 0 ? activeIdx : 0);
+  // Keep the selected stage aligned with progress when brief loads/changes.
+  useEffect(() => {
+    if (activeIdx >= 0) setSelected(activeIdx);
+  }, [activeIdx]);
   const [persona, setPersona] = useState<Persona>("All Roles");
   const [insightsOpen, setInsightsOpen] = useState(true);
   const [openTransition, setOpenTransition] = useState<number | null>(null);
   const { pref: motionPref, setPref: setMotionPref, animate, systemReduced } = useMotionPreference();
 
-  const stage = STAGES[selected];
+  const stage = stages[selected];
+
+  // Header values — live when we have a mission, fallback labels otherwise.
+  const missionName = brief?.mission.name ?? (missionId ? "Loading mission…" : "No mission selected");
+  const submissionLabel = useMemo(() => formatSubmissionCountdown(brief), [brief]);
+  const irisHealth = useMemo(() => deriveIrisHealthScore(brief), [brief]);
+  const irisHealthColor = irisHealth >= 75 ? "#22C55E" : irisHealth >= 50 ? "#3B82F6" : irisHealth >= 30 ? "#F59E0B" : "#EF4444";
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -393,29 +414,29 @@ export function JourneyMapPage() {
         <div className="mx-auto max-w-[1600px] px-6 py-4 flex flex-wrap items-center gap-6">
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Mission</div>
-            <div className="text-base font-semibold">Ohio Medicaid Managed Care — 2026</div>
+            <div className="text-base font-semibold">{missionName}</div>
           </div>
           <div className="h-8 w-px bg-border" />
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Active Stage</div>
             <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: "#3B82F6" }}>
               <span className="h-2 w-2 rounded-full bg-[#3B82F6] animate-pulse" />
-              {STAGES[activeIdx]?.name ?? "—"}
+              {stages[activeIdx >= 0 ? activeIdx : 0]?.name ?? "—"}
             </div>
           </div>
           <div className="h-8 w-px bg-border" />
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Submission</div>
-            <div className="text-sm font-semibold text-foreground">12d 04h remaining</div>
+            <div className="text-sm font-semibold text-foreground">{submissionLabel}</div>
           </div>
           <div className="h-8 w-px bg-border" />
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">IRIS Mission Health</div>
             <div className="flex items-center gap-2">
               <div className="h-1.5 w-32 rounded-full bg-border overflow-hidden">
-                <div className="h-full rounded-full" style={{ width: "78%", background: "linear-gradient(90deg,#3B82F6,#6366F1)" }} />
+                <div className="h-full rounded-full" style={{ width: `${irisHealth}%`, background: `linear-gradient(90deg, ${irisHealthColor}, #6366F1)` }} />
               </div>
-              <span className="text-sm font-semibold">78</span>
+              <span className="text-sm font-semibold">{irisHealth}</span>
             </div>
           </div>
           <div className="ml-auto flex items-center gap-3">
@@ -529,7 +550,7 @@ export function JourneyMapPage() {
           {/* Timeline */}
           <div className="rounded-xl border border-border bg-surface/40 p-6">
             <div className="flex items-stretch gap-2">
-              {STAGES.map((s, i) => {
+              {stages.map((s, i) => {
                 const isSelected = i === selected;
                 const isActive = s.status === "active";
                 const color = statusColor(s.status);
@@ -589,7 +610,7 @@ export function JourneyMapPage() {
 
 
                     {/* Transition indicator */}
-                    {i < STAGES.length - 1 && (
+                    {i < stages.length - 1 && (
                       <div className="relative mt-3 flex items-center justify-center">
                         <div
                           className="absolute left-1/2 right-[-50%] top-1/2 h-px -translate-y-1/2"
@@ -607,9 +628,9 @@ export function JourneyMapPage() {
                       </div>
                     )}
 
-                    {openTransition === i && i < STAGES.length - 1 && (
+                    {openTransition === i && i < stages.length - 1 && (
                       <div className="mt-2 rounded-md border border-border bg-background p-2 text-[10px] text-muted-foreground">
-                        <div className="mb-1 font-semibold uppercase tracking-[0.16em] text-foreground">To unlock {STAGES[i + 1].name}</div>
+                        <div className="mb-1 font-semibold uppercase tracking-[0.16em] text-foreground">To unlock {stages[i + 1].name}</div>
                         <ul className="space-y-1">
                           {s.nextActions.map((a) => (
                             <li key={a} className="flex items-start gap-1.5">
@@ -844,3 +865,120 @@ function DetailCard({
     </div>
   );
 }
+
+/* ──────────────────────────────────────────────────────────────────────────
+ * Live-data helpers — map MissionBrief into Journey Map stage state.
+ * The narrative content per stage (objective / actions / atlas / iris / etc.)
+ * is the universal Atlas workflow template. Only status + tasksDone/Total +
+ * the header identity values are mission-specific.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+function deriveStages(template: Stage[], brief: MissionBrief | undefined): Stage[] {
+  if (!brief) return template;
+
+  const m = brief.mission;
+  const q = brief.questions;
+  const lc = brief.lifecycle;
+  const tl = lc.timeline ?? ({} as Record<string, string | null>);
+  const now = Date.now();
+  const inPast = (iso?: string | null) => !!iso && new Date(iso).getTime() < now;
+
+  const hasTeam = brief.team.length > 0;
+  const hasIntel = brief.signals.length > 0;
+  const hasThemes = brief.winThemes.length > 0;
+  const totalQ = q.total;
+  const doneQ = q.by_status.complete;
+  const inProgressQ = q.by_status.in_progress;
+  const completePct = totalQ > 0 ? doneQ / totalQ : 0;
+
+  const reviewDone = inPast(tl.gold_team) || inPast(tl.red_team);
+  const reviewActive = !reviewDone && (inPast(tl.pink_team) || inPast(tl.red_team));
+  const submitted = inPast(m.submission_date ?? tl.submission);
+  const debriefed = lc.debriefCount > 0;
+
+  // Per-stage status derivation, mapped to the 7 template stages.
+  // 1: Mission Activated · 2: Intelligence · 3: Alignment ·
+  // 4: Execution · 5: Review · 6: Final Assembly · 7: Submitted
+  const stageStatuses: Status[] = [
+    // 1 — Mission Activated
+    hasTeam && !!m.submission_date ? "complete" : "active",
+    // 2 — Intelligence Gathered
+    hasIntel ? "complete" : hasTeam ? "active" : "upcoming",
+    // 3 — Alignment Locked (win themes captured)
+    hasThemes ? "complete" : hasIntel ? "active" : "upcoming",
+    // 4 — Execution (drafting)
+    completePct >= 1 ? "complete"
+      : inProgressQ > 0 || (totalQ > 0 && completePct > 0) ? "active"
+      : hasThemes ? "active"
+      : "upcoming",
+    // 5 — Review & Refinement
+    reviewDone ? "complete"
+      : reviewActive ? "active"
+      : completePct >= 0.6 ? "active"
+      : "upcoming",
+    // 6 — Final Assembly (pens down → submission)
+    submitted ? "complete"
+      : inPast(m.pens_down_date) ? "active"
+      : completePct >= 0.9 ? "active"
+      : "upcoming",
+    // 7 — Submitted / Debrief
+    debriefed ? "complete" : submitted ? "active" : "upcoming",
+  ];
+
+  // Promote the first non-complete stage to "active" so the UI always has one.
+  if (!stageStatuses.includes("active") && stageStatuses.some((s) => s !== "complete")) {
+    const idx = stageStatuses.findIndex((s) => s !== "complete");
+    if (idx >= 0) stageStatuses[idx] = "active";
+  }
+
+  // Mark stage 4 (Execution) at risk if behind schedule.
+  const subDate = m.submission_date ? new Date(m.submission_date).getTime() : null;
+  const daysToSubmit = subDate ? Math.floor((subDate - now) / (1000 * 60 * 60 * 24)) : null;
+  if (stageStatuses[3] === "active" && daysToSubmit != null && daysToSubmit < 14 && completePct < 0.5) {
+    stageStatuses[3] = "at_risk";
+  }
+
+  // Per-stage task progress from real data (keeps template totals as fallback).
+  const stageTasks: Array<{ done?: number; total?: number }> = [
+    { done: hasTeam ? Math.min(template[0].tasksTotal, brief.team.length + (m.submission_date ? 1 : 0) + 1) : 0 },
+    { done: hasIntel ? template[1].tasksTotal : hasTeam ? Math.ceil(template[1].tasksTotal / 2) : 0 },
+    { done: hasThemes ? template[2].tasksTotal : hasIntel ? 2 : 0 },
+    {
+      done: totalQ > 0 ? Math.min(template[3].tasksTotal, Math.round(completePct * template[3].tasksTotal)) : 0,
+    },
+    { done: reviewDone ? template[4].tasksTotal : reviewActive ? Math.ceil(template[4].tasksTotal / 2) : 0 },
+    { done: submitted ? template[5].tasksTotal : inPast(m.pens_down_date) ? Math.ceil(template[5].tasksTotal / 2) : 0 },
+    { done: debriefed ? template[6].tasksTotal : submitted ? 1 : 0 },
+  ];
+
+  return template.map((t, i) => ({
+    ...t,
+    status: stageStatuses[i] ?? t.status,
+    tasksDone: Math.max(0, Math.min(t.tasksTotal, stageTasks[i]?.done ?? t.tasksDone)),
+  }));
+}
+
+function formatSubmissionCountdown(brief: MissionBrief | undefined): string {
+  const iso = brief?.mission.submission_date;
+  if (!iso) return "No date set";
+  const target = new Date(iso).getTime();
+  if (isNaN(target)) return "No date set";
+  const diff = target - Date.now();
+  if (diff <= 0) return "Past due";
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  return `${days}d ${String(hours).padStart(2, "0")}h remaining`;
+}
+
+function deriveIrisHealthScore(brief: MissionBrief | undefined): number {
+  if (!brief) return 0;
+  const h = brief.mission.health;
+  // Base from coarse health flag, then nudge by question completion + risk pressure.
+  const base = h === "Green" ? 85 : h === "Yellow" ? 65 : h === "Red" ? 35 : 50;
+  const q = brief.questions;
+  const completePct = q.total > 0 ? q.by_status.complete / q.total : 0;
+  const redRatio = q.total > 0 ? q.by_health.red / q.total : 0;
+  const score = base + completePct * 10 - redRatio * 20;
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
