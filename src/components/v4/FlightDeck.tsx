@@ -812,9 +812,7 @@ function QuestionWorkspace({
       </div>
 
       {myQuestions.length === 0 ? (
-        <div className="px-5 py-10 text-center text-sm text-muted-foreground">
-          When a mission lead assigns you a question, it will appear here.
-        </div>
+        <RequestAssignmentEmptyState missionId={missionId} />
       ) : (
         <ul className="divide-y divide-border/60">
           {myQuestions.map((q) => (
