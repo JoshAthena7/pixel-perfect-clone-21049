@@ -125,7 +125,7 @@ function MissionFlightDeckPage() {
           <ArrowLeft className="h-3 w-3" />
           Back to Mission Command
         </Link>
-        <RestoreHelpTooltip />
+        
       </div>
 
 
