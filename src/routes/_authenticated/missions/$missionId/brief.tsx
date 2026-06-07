@@ -580,7 +580,7 @@ function ClarificationsAndWhatChanged() {
 
 /* ════════════════ MISSION MAP ════════════════ */
 type MapStatus = "completed" | "ontrack" | "atrisk" | "notstarted" | "blocked";
-function MissionMap({ missionId: _mid }: { missionId: string }) {
+function MissionMap({ missionId }: { missionId: string }) {
   const [view, setView] = useState<"sections" | "status" | "owner">("sections");
   const sections: { num: string; name: string; status: MapStatus; count: string; label: string }[] = [
     { num: "1.0", name: "Program Overview", status: "completed", count: "12 / 12", label: "Completed" },
