@@ -89,10 +89,10 @@
   --vault-glow-edge: rgba(245, 158, 11, 0.06);
   --vault-gold: #f59e0b;
   --vault-gold-dim: rgba(245, 158, 11, 0.6);
-  --oracle-glow: rgba(8, 145, 178, 0.15);
-  --oracle-glow-strong: rgba(8, 145, 178, 0.40);
-  --oracle-glow-edge: rgba(8, 145, 178, 0.06);
-  --oracle-active: #0891b2;
+  --oracle-glow: rgba(139, 109, 255, 0.18);
+  --oracle-glow-strong: rgba(139, 109, 255, 0.42);
+  --oracle-glow-edge: rgba(139, 109, 255, 0.06);
+  --oracle-active: #8b6dff;
 
   /* ATLAS V1 — single-mission build tokens */
   --v1-bg: #0A0C10;
