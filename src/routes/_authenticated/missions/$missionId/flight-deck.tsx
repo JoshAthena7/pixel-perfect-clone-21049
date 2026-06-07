@@ -241,11 +241,11 @@ function MissionFlightDeckPage() {
 
 function IrisIntelligenceNav({ missionId }: { missionId: string }) {
   const items = [
-    { to: "/missions/$missionId/iris-brief" as const, label: "Mission Brief", Icon: FileText, tone: "#C9A84C" },
-    { to: "/missions/$missionId/iris-strategic" as const, label: "Strategic Assessment", Icon: Target, tone: "#60A5FA" },
+    { to: "/missions/$missionId/iris-brief" as const, label: "IRIS Brief", Icon: FileText, tone: "#C9A84C" },
+    { to: "/missions/$missionId/iris-strategic" as const, label: "IRIS Strategic", Icon: Target, tone: "#60A5FA" },
     { to: "/missions/$missionId/section-briefs" as const, label: "Pre-Flight", Icon: MessageSquare, tone: "#a78bfa" },
     { to: "/missions/$missionId/interviews" as const, label: "Interviews", Icon: Plane, tone: "#34d399" },
-    { to: "/missions/$missionId/intel-upload" as const, label: "Intelligence Vault", Icon: Upload, tone: "#a3a3a3" },
+    { to: "/missions/$missionId/intel-upload" as const, label: "Intel Upload", Icon: Upload, tone: "#a3a3a3" },
   ];
   return (
     <div className="mx-auto mt-4 max-w-[1200px] px-6">
@@ -259,7 +259,18 @@ function IrisIntelligenceNav({ missionId }: { missionId: string }) {
         <div className="flex items-center gap-1.5 pr-2 mr-1 border-r border-white/10">
           <Brain className="h-3.5 w-3.5" style={{ color: "#C9A84C" }} />
           <span className="text-[10px] font-bold uppercase tracking-[0.22em]" style={{ color: "#C9A84C" }}>
-            IRIS
+            IRIS™
+          </span>
+          <span
+            className="ml-1 inline-flex items-center rounded-sm border px-1.5 py-[1px] text-[9px] font-bold uppercase tracking-[0.18em]"
+            style={{
+              borderColor: "rgba(201,168,76,0.5)",
+              color: "#C9A84C",
+              background: "rgba(201,168,76,0.08)",
+            }}
+            title="ATLAS V3"
+          >
+            V3
           </span>
         </div>
         {items.map(({ to, label, Icon, tone }) => (
