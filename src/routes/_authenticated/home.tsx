@@ -225,9 +225,9 @@ function AthenaHQ() {
     queryFn: async () => {
       const { data } = await supabase
         .from("question_records")
-        .select("id,mission_id,question_number,title,pens_down_date,health")
+        .select("id,mission_id,question_number,title,pens_down_date,health,status")
         .in("mission_id", missionIds);
-      return (data ?? []) as Array<{ id: string; mission_id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null }>;
+      return (data ?? []) as Array<{ id: string; mission_id: string; question_number: string; title: string; pens_down_date: string | null; health: string | null; status: string | null }>;
     },
   });
 
