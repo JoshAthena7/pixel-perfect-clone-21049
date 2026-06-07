@@ -744,45 +744,6 @@ function Row({ k, v, tone }: { k: string; v: string; tone?: "red" }) {
   );
 }
 
-/* ════════════════ FINAL CTA ════════════════ */
-function FinalCTA({ missionId }: { missionId: string }) {
-  const goFlightDeck = () => {
-    try { localStorage.setItem(`atlas.lastRoom.${missionId}`, "flight-deck"); } catch {}
-  };
-  return (
-    <div style={{
-      background: C.navy, borderRadius: 12, padding: "32px 36px", color: "#fff",
-      display: "flex", justifyContent: "space-between", alignItems: "center", gap: 24, marginTop: 8,
-    }}>
-      <div>
-        <div style={{ fontSize: 11, fontWeight: 700, color: C.gold, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 12 }}>
-          Mission Brief Complete
-        </div>
-        <div style={{ fontSize: 16, fontWeight: 400, lineHeight: 2, color: "#fff" }}>
-          You understand the mission.<br />
-          You know the risks.<br />
-          You know the strategy.
-        </div>
-        <div style={{ fontSize: 13, color: C.textFaint, marginTop: 8 }}>Proceed to Flight Deck.</div>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-        <Plane size={32} style={{ color: C.gold }} />
-        <Link
-          to="/missions/$missionId/flight-deck"
-          params={{ missionId }}
-          onClick={goFlightDeck}
-          style={{
-            background: C.gold, color: "#fff", fontSize: 15, fontWeight: 700,
-            padding: "16px 32px", borderRadius: 8, textDecoration: "none",
-            display: "inline-flex", alignItems: "center", gap: 10,
-          }}
-        >
-          Enter Flight Deck <ArrowRight size={16} />
-        </Link>
-      </div>
-    </div>
-  );
-}
 
 /* ════════════════ RIGHT COLUMN ════════════════ */
 function IrisMissionBrief({ greeting, firstName }: { greeting: string; firstName: string }) {
