@@ -51,10 +51,10 @@ export function HealthDashboardPage() {
     <div className="mx-auto max-w-[1400px] px-8 py-10 space-y-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">Lead · Health Monitor</div>
-          <h1 className="mt-2 text-3xl font-light tracking-tight">Mission Health</h1>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">Firm Health · Across Missions</div>
+          <h1 className="mt-2 text-3xl font-light tracking-tight">Mission Health Overview</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Composite of mock scores, gate proximity, pulse confidence, and behavioral activity.
+            Status across all active missions — composite of mock scores, gate proximity, pulse confidence, and behavioral activity.
           </p>
         </div>
         <div className="flex items-center gap-3">
