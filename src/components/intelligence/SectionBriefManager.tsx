@@ -146,7 +146,7 @@ export function SectionBriefManager({ missionId }: { missionId: string }) {
           style={{ background: PANEL, border: `1px solid ${BORDER}` }}
         >
           <h2 className="text-sm font-semibold tracking-wide uppercase mb-3" style={{ color: GOLD }}>
-            Section Briefs
+            Pre-Flight Status
           </h2>
           <div className="flex gap-2 mb-4">
             <input
@@ -164,13 +164,13 @@ export function SectionBriefManager({ missionId }: { missionId: string }) {
               className="rounded-md px-2 py-1.5 text-sm font-medium"
               style={{ background: NAVY, color: "white" }}
             >
-              Add
+              Request Pre-Flight
             </button>
           </div>
           {isLoading ? (
             <p className="text-xs text-neutral-500">Loading…</p>
           ) : briefs.length === 0 ? (
-            <p className="text-xs text-neutral-500">No section briefs yet.</p>
+            <p className="text-xs text-neutral-500">No Pre-Flights initiated. Select a section and request your Pre-Flight briefing before you write.</p>
           ) : (
             <ul className="space-y-1">
               {briefs.map((b) => (
@@ -217,15 +217,15 @@ export function SectionBriefManager({ missionId }: { missionId: string }) {
 function statusLabel(s: QuestionStatus): string {
   switch (s) {
     case "not_started":
-      return "Not started";
+      return "Not Initiated";
     case "questions_ready":
-      return "Questions ready";
+      return "Pre-Flight Ready";
     case "answering":
-      return "Answering";
+      return "In Progress";
     case "answers_submitted":
-      return "Submitted";
+      return "Answers Submitted";
     case "refined_brief_ready":
-      return "Refined brief";
+      return "Flight Plan Ready";
   }
 }
 
@@ -299,13 +299,13 @@ function Stepper({
 }) {
   const steps = [
     { n: 1 as const, label: "IRIS Brief", unlocked: true },
-    { n: 2 as const, label: "Question Set", unlocked: status !== "not_started" },
+    { n: 2 as const, label: "Flight Questions", unlocked: status !== "not_started" },
     {
       n: 3 as const,
       label: "Your Answers",
       unlocked: status === "answers_submitted" || status === "refined_brief_ready",
     },
-    { n: 4 as const, label: "Refined Brief", unlocked: status === "refined_brief_ready" },
+    { n: 4 as const, label: "Flight Plan", unlocked: status === "refined_brief_ready" },
   ];
   return (
     <div className="flex items-center gap-2 px-6 py-4 border-b" style={{ borderColor: BORDER }}>
@@ -408,7 +408,7 @@ function Step1Brief({
         >
           {busy ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" /> IRIS is preparing your question set…
+              <Loader2 className="w-4 h-4 animate-spin" /> IRIS is preparing your Pre-Flight…
             </>
           ) : (
             <>
@@ -503,7 +503,7 @@ function Step2Questions({
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold text-white">
-            IRIS Question Set — {qs.section_name ?? brief.section_name}
+            Pre-Flight — {qs.section_name ?? brief.section_name}
           </h2>
           {qs.question_brief_headline && (
             <p className="text-sm text-neutral-400 mt-1">{qs.question_brief_headline}</p>
@@ -618,7 +618,7 @@ function Step2Questions({
           <div className="flex items-center gap-2 mb-2">
             <Trophy className="w-5 h-5" style={{ color: GOLD }} />
             <h3 className="text-base font-bold" style={{ color: GOLD }}>
-              The Win Question
+              Cleared for Takeoff
             </h3>
           </div>
           <p className="text-lg text-white mb-2">{qs.the_win_question.question}</p>
@@ -648,11 +648,11 @@ function Step2Questions({
         >
           {submitting ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" /> IRIS is synthesizing…
+              <Loader2 className="w-4 h-4 animate-spin" /> IRIS is preparing your Flight Plan…
             </>
           ) : (
             <>
-              Submit Answers to IRIS <ArrowRight className="w-4 h-4" />
+              Submit to IRIS — Generate Flight Plan <ArrowRight className="w-4 h-4" />
             </>
           )}
         </button>
@@ -817,7 +817,7 @@ function Step4Refined({
           style={{ background: NAVY, border: `1px solid ${GOLD}` }}
         >
           <p className="text-xs uppercase tracking-wider mb-2" style={{ color: GOLD }}>
-            IRIS Refined Brief — {brief.section_name}
+            Flight Plan — {brief.section_name}
           </p>
           <p className="text-lg font-semibold text-white">{rb.refined_headline}</p>
         </div>
@@ -939,7 +939,7 @@ function Step4Refined({
         style={{ borderColor: BORDER }}
       >
         <span>
-          Refined by IRIS™ from {answerCount} writer answer{answerCount === 1 ? "" : "s"} · v
+          Flight Plan prepared by IRIS™ from {answerCount} writer answer{answerCount === 1 ? "" : "s"} · v
           {brief.refined_brief_version}
           {brief.refined_brief_generated_at &&
             ` · ${new Date(brief.refined_brief_generated_at).toLocaleString()}`}
@@ -951,7 +951,7 @@ function Step4Refined({
           style={{ background: NAVY, color: "white" }}
         >
           {busy ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
-          Regenerate Refined Brief
+          Regenerate Flight Plan
         </button>
       </div>
     </div>
