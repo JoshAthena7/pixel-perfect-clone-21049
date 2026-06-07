@@ -7,6 +7,7 @@ import { getMissionHealth, listLeadMissions, type QuestionHealth } from "@/lib/h
 import { recordMockScore } from "@/lib/mock-scores.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { MissionProgressRing } from "@/components/MissionProgressRing";
 
 export const Route = createFileRoute("/_authenticated/command/health")({
   component: HealthDashboardPage,
