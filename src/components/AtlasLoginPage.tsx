@@ -56,15 +56,21 @@ export function AtlasLoginPage() {
           <img
             src={athenaMark.url}
             alt="Athena Strategy Group"
-            className="mx-auto h-20 w-20 object-contain mb-5"
-            style={{ filter: "drop-shadow(0 0 24px rgba(201,146,42,0.25))" }}
+            className="mx-auto h-24 w-24 object-contain mb-5"
+            style={{ filter: "drop-shadow(0 0 28px rgba(201,146,42,0.30))" }}
           />
-          <div className="text-[11px] font-semibold uppercase tracking-[0.32em] mb-4" style={{ color: "#C9922A" }}>
-            Athena Strategy Group
-          </div>
-          <h1 className="text-5xl font-bold tracking-[0.18em] mb-2" style={{ color: "#C9922A", letterSpacing: "0.18em" }}>
-            ATLAS
-          </h1>
+          <img
+            src={athenaSgLockup.url}
+            alt="Athena Strategy Group"
+            className="mx-auto h-7 w-auto object-contain mb-5 opacity-90"
+            style={{ filter: "brightness(1.15)" }}
+          />
+          <img
+            src={atlasWordmark.url}
+            alt="ATLAS"
+            className="mx-auto h-14 w-auto object-contain mb-3"
+            style={{ filter: "brightness(1.15) drop-shadow(0 0 16px rgba(201,146,42,0.25))" }}
+          />
           <div className="text-[10px] uppercase tracking-[0.3em] text-amber-100/60">
             Intelligence · Alignment · Execution
           </div>
