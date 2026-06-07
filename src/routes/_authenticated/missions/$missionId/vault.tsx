@@ -578,6 +578,7 @@ function UploadModal({
               <input
                 ref={fileRef}
                 type="file"
+                accept={ACCEPT_ATTR}
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                 className="block w-full text-xs file:mr-3 file:rounded-md file:border-0 file:bg-white/10 file:px-3 file:py-1.5 file:text-foreground hover:file:bg-white/20"
                 required
