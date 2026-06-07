@@ -28,7 +28,7 @@ function AtlasPendingScreen() {
           draggable={false}
           style={{ height: 80, width: 80, objectFit: "contain", userSelect: "none", marginTop: -8, marginBottom: -8 }}
         />
-        <span className="atlas-gold-dot" aria-hidden style={{ width: 8, height: 8 }} />
+        <span className="atlas-gold-dot" aria-hidden />
         <img
           src={atlasWordmark}
           alt="ATLAS"

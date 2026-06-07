@@ -151,7 +151,7 @@ function WelcomePage() {
               draggable={false}
               className="h-16 w-16 object-contain select-none -my-2"
             />
-            <span className="atlas-gold-dot" aria-hidden style={{ width: 7, height: 7 }} />
+            <span className="atlas-gold-dot" aria-hidden />
             <img
               src={atlasWordmark}
               alt="ATLAS"
