@@ -80,6 +80,7 @@ import { Route as AuthenticatedAdminAtlasSourcesRouteImport } from './routes/_au
 import { Route as AuthenticatedAdminAdminsRouteImport } from './routes/_authenticated/admin/admins'
 import { Route as AuthenticatedV1SectionsIndexRouteImport } from './routes/_authenticated/v1/sections.index'
 import { Route as AuthenticatedMissionsMissionIdIndexRouteImport } from './routes/_authenticated/missions/$missionId/index'
+import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as ApiPublicHooksRefreshIntelligenceRouteImport } from './routes/api/public/hooks/refresh-intelligence'
 import { Route as ApiPublicHooksIrisMonitorRouteImport } from './routes/api/public/hooks/iris-monitor'
 import { Route as ApiPublicHooksIngestIntelRouteImport } from './routes/api/public/hooks/ingest-intel'
@@ -506,6 +507,12 @@ const AuthenticatedMissionsMissionIdIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksRefreshIntelligenceRoute =
   ApiPublicHooksRefreshIntelligenceRouteImport.update({
     id: '/api/public/hooks/refresh-intelligence',
@@ -779,6 +786,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/v1/sections/': typeof AuthenticatedV1SectionsIndexRoute
   '/admin/missions/$missionId/debrief': typeof AuthenticatedAdminMissionsMissionIdDebriefRoute
@@ -877,6 +885,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/v1/sections': typeof AuthenticatedV1SectionsIndexRoute
   '/admin/missions/$missionId/debrief': typeof AuthenticatedAdminMissionsMissionIdDebriefRoute
@@ -981,6 +990,7 @@ export interface FileRoutesById {
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/_authenticated/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/_authenticated/v1/sections/': typeof AuthenticatedV1SectionsIndexRoute
   '/_authenticated/admin/missions/$missionId/debrief': typeof AuthenticatedAdminMissionsMissionIdDebriefRoute
@@ -1085,6 +1095,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/ingest-intel'
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/refresh-intelligence'
+    | '/lovable/email/queue/process'
     | '/missions/$missionId/'
     | '/v1/sections/'
     | '/admin/missions/$missionId/debrief'
@@ -1183,6 +1194,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/ingest-intel'
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/refresh-intelligence'
+    | '/lovable/email/queue/process'
     | '/missions/$missionId'
     | '/v1/sections'
     | '/admin/missions/$missionId/debrief'
@@ -1286,6 +1298,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/ingest-intel'
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/refresh-intelligence'
+    | '/lovable/email/queue/process'
     | '/_authenticated/missions/$missionId/'
     | '/_authenticated/v1/sections/'
     | '/_authenticated/admin/missions/$missionId/debrief'
@@ -1315,6 +1328,7 @@ export interface RootRouteChildren {
   ApiPublicHooksIngestIntelRoute: typeof ApiPublicHooksIngestIntelRoute
   ApiPublicHooksIrisMonitorRoute: typeof ApiPublicHooksIrisMonitorRoute
   ApiPublicHooksRefreshIntelligenceRoute: typeof ApiPublicHooksRefreshIntelligenceRoute
+  LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1816,6 +1830,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdIndexRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/refresh-intelligence': {
       id: '/api/public/hooks/refresh-intelligence'
       path: '/api/public/hooks/refresh-intelligence'
@@ -2310,6 +2331,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksIrisMonitorRoute: ApiPublicHooksIrisMonitorRoute,
   ApiPublicHooksRefreshIntelligenceRoute:
     ApiPublicHooksRefreshIntelligenceRoute,
+  LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
