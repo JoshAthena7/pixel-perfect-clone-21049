@@ -216,7 +216,11 @@ function VaultPage() {
         </div>
       </header>
 
-      <IntelligenceHighlights />
+      {/* Per-mission IRIS intelligence highlights intentionally omitted here:
+          the previous block rendered hardcoded NJ/CSOC cards that appeared on
+          every mission's Vault. Re-add only when sourced from a server fn
+          scoped to the current missionId. */}
+
 
 
 
