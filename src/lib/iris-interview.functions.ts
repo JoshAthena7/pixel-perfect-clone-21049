@@ -118,7 +118,7 @@ export const updateInterviewPlan = createServerFn({ method: "POST" })
     if (data.status === "complete") patch.completed_at = new Date().toISOString();
     const { error } = await context.supabase
       .from("interview_flight_plans")
-      .update(patch)
+      .update(patch as never)
       .eq("id", data.interview_flight_plan_id);
     if (error) return { success: false as const, error: error.message };
     return { success: true as const };
