@@ -110,8 +110,10 @@ function MissionBriefingRoomPage() {
     if (h < 18) return "Good afternoon";
     return "Good evening";
   })();
-  const firstName =
+  // L-3: Always capitalize the first letter of the displayed greeting name.
+  const rawFirst =
     (profile?.display_name ?? "").trim().split(/\s+/)[0] || "Team";
+  const firstName = rawFirst.charAt(0).toUpperCase() + rawFirst.slice(1);
 
   if (isLoading) {
     return (
@@ -1354,11 +1356,11 @@ function YoureBriefedCard({ missionId }: { missionId: string }) {
           <Plane size={20} style={{ color: C.blue }} />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: C.textPrimary }}>You're briefed.<br />Ready to fly?</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: C.textPrimary }}>You're briefed.<br />Pick your next mission.</div>
           <div style={{ fontSize: 11, color: C.textMuted, lineHeight: 1.5, marginTop: 6 }}>
-            Open the Flight Deck to check your status and manage your assignments.
+            Return to All Missions to switch context, or stay here and dive deeper.
           </div>
-          <Link to="/missions/$missionId/flight-deck" params={{ missionId }} style={{
+          <Link to="/missions" style={{
             display: "inline-flex", alignItems: "center", gap: 6, marginTop: 12,
             padding: "8px 14px", borderRadius: 8,
             background: C.blue, color: "#fff",
@@ -1366,7 +1368,7 @@ function YoureBriefedCard({ missionId }: { missionId: string }) {
             textDecoration: "none",
           }}>
             <Plane size={12} />
-            Go to Flight Deck
+            All Missions
           </Link>
         </div>
       </div>
