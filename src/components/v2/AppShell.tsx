@@ -156,7 +156,7 @@ function TopBar({
 
           </Link>
         ) : (
-          <Link to="/home" className="flex items-center gap-2.5 shrink-0" title="Home">
+          <Link to="/missions" className="flex items-center gap-2.5 shrink-0" title="All Missions">
             <img
               src={atlasLogo.url}
               alt="Atlas"
