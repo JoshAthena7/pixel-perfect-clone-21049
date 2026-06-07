@@ -675,6 +675,101 @@ function Empty({ text }: { text: string }) {
   return <div className="py-10 text-center text-[12px] text-muted-foreground">{text}</div>;
 }
 
+/* ───────────────────── PRISIM™ Context Banner ───────────────────── */
+
+function PrismContextBanner({ missionId, questionId }: { missionId: string; questionId: string }) {
+  const { data: q } = useQuery({
+    queryKey: ["paf-prism-banner", questionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("question_records")
+        .select("question_number,section_number,point_value,pens_down_date,iris_risk_flag,iris_risk_flag_text")
+        .eq("id", questionId)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  if (!q) return null;
+
+  // Derive evaluator layer from section_number prefix
+  const sec = (q.section_number ?? "").toUpperCase();
+  const layer =
+    sec.startsWith("F") || sec.startsWith("I") ? "Federal"
+    : sec.startsWith("S") ? "State"
+    : sec ? "Evaluator"
+    : "Evaluator";
+  const layerTone =
+    layer === "Federal" ? "text-sky-300 border-sky-500/30 bg-sky-500/10"
+    : layer === "State" ? "text-violet-300 border-violet-500/30 bg-violet-500/10"
+    : "text-foreground/80 border-border bg-background/40";
+
+  // Urgency derived from pens_down proximity
+  let urgencyLabel = "Standard";
+  let urgencyTone = "text-foreground/80 border-border bg-background/40";
+  if (q.pens_down_date) {
+    const days = Math.ceil((new Date(q.pens_down_date).getTime() - Date.now()) / 86_400_000);
+    if (days <= 3) { urgencyLabel = "Urgent"; urgencyTone = "text-red-300 border-red-500/40 bg-red-500/10"; }
+    else if (days <= 7) { urgencyLabel = "Standard · " + days + "d"; urgencyTone = "text-amber-300 border-amber-500/30 bg-amber-500/10"; }
+    else { urgencyLabel = "Standard · " + days + "d"; }
+  }
+
+  return (
+    <div className="mb-3 rounded-[10px] border border-primary/30 bg-primary/[0.04] p-3">
+      <div className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-primary/90">
+        <Sparkles className="h-3 w-3" /> PRISIM™ Context · Q{q.question_number}
+      </div>
+      <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+        <PrismTile
+          icon={<Gauge className="h-3 w-3" />}
+          label="Point Weight"
+          value={q.point_value != null ? `${q.point_value} pts` : "—"}
+        />
+        <PrismTile
+          icon={<Layers className="h-3 w-3" />}
+          label="Evaluator Layer"
+          value={layer}
+          tone={layerTone}
+        />
+        <PrismTile
+          icon={<CalendarClock className="h-3 w-3" />}
+          label="Due / Urgency"
+          value={q.pens_down_date ?? "No date"}
+          sub={urgencyLabel}
+          tone={urgencyTone}
+        />
+        <PrismTile
+          icon={<AlertTriangle className="h-3 w-3" />}
+          label="Intent Divergence"
+          value={q.iris_risk_flag ? "Flagged" : "Clear"}
+          tone={q.iris_risk_flag ? "text-amber-300 border-amber-500/30 bg-amber-500/10" : "text-emerald-300 border-emerald-500/30 bg-emerald-500/10"}
+        />
+      </div>
+      {q.iris_risk_flag_text && (
+        <p className="mt-2 rounded-md bg-amber-500/10 px-2.5 py-1.5 text-[11px] text-amber-200">
+          {q.iris_risk_flag_text}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function PrismTile({
+  icon, label, value, sub, tone,
+}: {
+  icon: React.ReactNode; label: string; value: string; sub?: string; tone?: string;
+}) {
+  return (
+    <div className={`rounded-md border px-2 py-1.5 ${tone ?? "bg-background/40 border-border text-foreground/85"}`}>
+      <div className="flex items-center gap-1 text-[8px] uppercase tracking-[0.14em] opacity-70">
+        {icon} {label}
+      </div>
+      <div className="mt-0.5 text-[12px] font-semibold leading-tight">{value}</div>
+      {sub && <div className="text-[9px] opacity-70">{sub}</div>}
+    </div>
+  );
+}
+
 /* ───────────────────────── global event listener ───────────────────────── */
 /**
  * Mount once near the flight deck to handle ⌘K "Phone a Friend" launches.
