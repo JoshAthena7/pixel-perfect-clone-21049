@@ -101,7 +101,22 @@ export function AtlasLoginPage() {
           <div className="text-[10px] uppercase tracking-[0.32em] text-amber-100/55">
             Intelligence · Alignment · Execution
           </div>
+          <div className="mt-5 flex items-center justify-center gap-2">
+            <IrisMark size={18} glow />
+            <span
+              className="text-[9px] font-semibold uppercase tracking-[0.34em]"
+              style={{
+                background:
+                  "linear-gradient(90deg, #a78bfa 0%, #8b6dff 50%, #67e8f9 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              Powered by IRIS
+            </span>
+          </div>
         </div>
+
 
         {/* Form card */}
         <form
