@@ -137,7 +137,7 @@ SENTENCE 1 must be action-first: state current mission health and the single mos
 SENTENCES 2-4 may add narrative context, key team needs, and upcoming gates.
 Lead with the win strategy and program goals from the Setup Record above when relevant.
 Use question numbers (Q4.3 etc.) and writer names when available. Be specific and direct.
-Plain prose. No headers, no bullets. NEVER open with a literary metaphor, simile, or allusion ("Like Penelope…", "As a ship…", etc.).
+Plain prose. No headers, no bullets. NEVER open with a literary metaphor, simile, or allusion ("Like Penelope…", "As a ship…", etc.).`;
 
     let brief = await callIris(sys, userMsg);
     if (!brief) {
