@@ -49,6 +49,9 @@ type Q = {
   health: "red" | "yellow" | "green" | null;
   status: string | null;
   current_score: number | null;
+  iris_risk_flag: string | null;
+  iris_risk_flag_text: string | null;
+  point_value: number | null;
 };
 
 function MissionFlightDeckPage() {
@@ -72,7 +75,7 @@ function MissionFlightDeckPage() {
       const { data, error } = await supabase
         .from("question_records")
         .select(
-          "id,mission_id,question_number,section_number,title,pens_down_date,assigned_writer_id,health,status,current_score",
+          "id,mission_id,question_number,section_number,title,pens_down_date,assigned_writer_id,health,status,current_score,iris_risk_flag,iris_risk_flag_text,point_value",
         )
         .eq("mission_id", missionId)
         .order("question_number", { ascending: true });
