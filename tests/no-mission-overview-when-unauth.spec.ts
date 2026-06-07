@@ -11,7 +11,23 @@ import { test, expect, type Request } from "@playwright/test";
  * visiting public routes and assert none target getMissionOverview.
  */
 
-const PUBLIC_ROUTES = ["/", "/login", "/iris"];
+const PUBLIC_ROUTES = [
+  // Top-level public routes
+  "/",
+  "/login",
+  "/iris",
+  "/debug/gold-entry-fallback",
+  "/debug/daily-note-layout",
+  "/checkin/test-token-123",
+  // Protected routes — visiting unauthenticated must redirect to /login via
+  // the _authenticated gate WITHOUT triggering the protected serverFn.
+  "/flight-deck",
+  "/v1",
+  "/v1/vault",
+  "/v1/sections",
+  "/missions/00000000-0000-0000-0000-000000000000/vault",
+  "/missions/00000000-0000-0000-0000-000000000000/team",
+];
 
 function decodeServerFnTarget(url: string): { file: string; export: string } | null {
   const match = url.match(/\/_serverFn\/([^/?#]+)/);
