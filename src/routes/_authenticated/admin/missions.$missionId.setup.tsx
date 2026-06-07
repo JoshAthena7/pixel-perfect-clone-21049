@@ -528,19 +528,12 @@ function SectionTeam({ missionId, members, expertise, refetch }: any) {
                   );
                 })}
                 {(r.multi || assigned.length === 0) && (
-                  <select
-                    value=""
-                    onChange={(e) => {
-                      const p = profiles.find((x: any) => x.id === e.target.value);
-                      if (p) addMember(r.key, p.id, p.display_name ?? p.email ?? "");
-                    }}
-                    className="rounded-md border border-border bg-background px-2.5 py-1.5 text-xs"
-                  >
-                    <option value="">+ Add person…</option>
-                    {profiles.filter((p: any) => !assigned.find((m: any) => m.user_id === p.id)).map((p: any) => (
-                      <option key={p.id} value={p.id}>{p.display_name ?? p.email}</option>
-                    ))}
-                  </select>
+                  <PersonPicker
+                    options={profiles.filter((p: any) => !assigned.find((m: any) => m.user_id === p.id))}
+                    onSelect={(opt) => addMember(r.key, opt.id, opt.display_name ?? opt.email ?? "")}
+                    placeholder="+ Add person…"
+                    emptyText={profiles.length === 0 ? "No people available yet. Load people on the Users page." : "No matches."}
+                  />
                 )}
               </div>
             </div>
