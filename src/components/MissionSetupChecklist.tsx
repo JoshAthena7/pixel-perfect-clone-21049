@@ -25,14 +25,13 @@ export function MissionSetupChecklist({ missionId }: Props) {
     queryKey: ["mission-setup-checklist", missionId],
     enabled: !!missionId && !dismissed && !isViewer,
     queryFn: async () => {
-      const [mission, library, qAll, qPens, qWriter, atlas, briefings] = await Promise.all([
+      const [mission, library, qAll, qPens, qWriter, atlas] = await Promise.all([
         supabase.from("missions").select("created_at").eq("id", missionId).maybeSingle(),
         supabase.from("mission_library").select("id", { count: "exact", head: true }).eq("mission_id", missionId).eq("category", "RFP"),
         supabase.from("question_records").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
         supabase.from("question_records").select("id", { count: "exact", head: true }).eq("mission_id", missionId).not("pens_down_date", "is", null),
         supabase.from("question_records").select("id", { count: "exact", head: true }).eq("mission_id", missionId).not("assigned_writer_id", "is", null),
         supabase.from("atlas_sources").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
-        supabase.from("briefings").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
       ]);
       return {
         createdAt: (mission.data?.created_at as string | null) ?? null,
@@ -41,7 +40,7 @@ export function MissionSetupChecklist({ missionId }: Props) {
         pensQ: qPens.count ?? 0,
         writerQ: qWriter.count ?? 0,
         atlasCount: atlas.count ?? 0,
-        briefingsCount: briefings.count ?? 0,
+        briefingsCount: 0,
       };
     },
     staleTime: 30_000,
