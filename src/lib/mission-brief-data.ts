@@ -50,6 +50,7 @@ export type MissionBrief = {
     display_name: string | null;
     avatar_url: string | null;
     avatar_color: string | null;
+    email: string | null;
   }>;
   vaultCount: number;
   winThemes: Array<{
