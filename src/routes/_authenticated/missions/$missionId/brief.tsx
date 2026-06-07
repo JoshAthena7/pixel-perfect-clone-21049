@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  ClipboardList, Plane, Settings as SettingsIcon, HelpCircle, MoreHorizontal,
+  Plane,
   Clock, Activity, DollarSign, Users, Target, Trophy, ShieldCheck, AlertTriangle,
   FileText, Building2, Megaphone, Swords, ArrowRight, ExternalLink, Maximize2,
   Zap, CheckCircle2, AlertCircle, Bell, Gavel, Calendar, XCircle, Sparkles,
@@ -14,27 +14,28 @@ export const Route = createFileRoute("/_authenticated/missions/$missionId/brief"
   component: MissionBriefingRoomPage,
 });
 
-/* ════════════════ DESIGN TOKENS ════════════════ */
+/* ════════════════ DESIGN TOKENS — DARK (matches Flight Deck) ════════════════ */
 const C = {
-  bg: "#F8F9FA",
-  card: "#FFFFFF",
-  navy: "#1B3A6B",
-  navyDeep: "#0F2347",
-  gold: "#C9922A",
-  goldLight: "#E8B84B",
-  goldTint: "rgba(201,146,42,0.08)",
-  iris: "#6366F1",
-  green: "#16A34A",
-  orange: "#F59E0B",
-  red: "#DC2626",
-  blue: "#2563EB",
-  border: "#E5E7EB",
-  borderLight: "#F3F4F6",
-  textPrimary: "#111827",
-  textBody: "#374151",
-  textMuted: "#6B7280",
-  textFaint: "#94A3B8",
-  sidebarText: "#CBD5E1",
+  bg: "#060b14",
+  bgSoft: "#0a121d",
+  card: "#0f1722",
+  navy: "#13233d",
+  navyDeep: "#0a1322",
+  gold: "#E0B341",
+  goldLight: "#F0C95A",
+  goldTint: "rgba(224,179,65,0.10)",
+  iris: "#818CF8",
+  green: "#34D399",
+  orange: "#FBBF24",
+  red: "#F87171",
+  blue: "#60A5FA",
+  border: "rgba(255,255,255,0.08)",
+  borderLight: "rgba(255,255,255,0.05)",
+  textPrimary: "#E6EDF7",
+  textBody: "#C0CAD8",
+  textMuted: "#8B95A5",
+  textFaint: "#64748B",
+  sidebarText: "rgba(255,255,255,0.18)",
   sidebarMuted: "#64748B",
 };
 
@@ -42,7 +43,7 @@ const card: React.CSSProperties = {
   background: C.card,
   border: `1px solid ${C.border}`,
   borderRadius: 8,
-  boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+  boxShadow: "0 1px 3px rgba(0,0,0,0.4)",
 };
 
 const sectionLabel: React.CSSProperties = {
@@ -115,10 +116,8 @@ function MissionBriefingRoomPage() {
     <div style={{
       background: C.bg, minHeight: "100vh", color: C.textPrimary,
       fontFamily: "Inter, system-ui, -apple-system, sans-serif",
-      display: "flex",
     }}>
-      <Sidebar />
-      <main style={{ flex: 1, padding: "20px 24px", overflowX: "hidden" }}>
+      <main style={{ maxWidth: 1400, margin: "0 auto", padding: "20px 24px", overflowX: "hidden" }}>
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0,3fr) minmax(280px,1fr)", gap: 20, alignItems: "start" }}>
           {/* ── LEFT (main) column ── */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
@@ -143,79 +142,6 @@ function MissionBriefingRoomPage() {
   );
 }
 
-/* ════════════════ SIDEBAR ════════════════ */
-function Sidebar() {
-  const { missionId } = Route.useParams();
-  return (
-    <aside style={{
-      width: 190, minWidth: 190, background: C.navy, color: "#fff",
-      minHeight: "100vh", display: "flex", flexDirection: "column", padding: "20px 0",
-      position: "sticky", top: 0,
-    }}>
-      <div style={{ padding: "0 20px 24px", fontWeight: 800, fontSize: 20, letterSpacing: 2, color: "#fff" }}>
-        ATLAS
-      </div>
-
-      <nav style={{ display: "flex", flexDirection: "column", gap: 4, padding: "0 8px" }}>
-        {/* Mission Briefing Room — ACTIVE */}
-        <div style={{
-          display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 12px",
-          borderLeft: `3px solid ${C.gold}`,
-          background: C.goldTint, borderRadius: "0 6px 6px 0",
-          color: C.gold, fontWeight: 600, fontSize: 14, lineHeight: 1.25,
-        }}>
-          <ClipboardList size={16} strokeWidth={2} style={{ marginTop: 1, flexShrink: 0 }} />
-          <span>Mission<br />Briefing Room</span>
-        </div>
-
-        {/* Flight Deck */}
-        <Link
-          to="/missions/$missionId/flight-deck"
-          params={{ missionId }}
-          style={{
-            display: "flex", alignItems: "center", gap: 10, padding: "10px 12px",
-            color: C.sidebarText, fontSize: 14, fontWeight: 400, textDecoration: "none",
-            borderRadius: 6,
-          }}
-        >
-          <Plane size={16} strokeWidth={2} style={{ color: "#fff" }} />
-          Flight Deck
-        </Link>
-      </nav>
-
-      <div style={{ flex: 1 }} />
-
-      {/* Bottom: profile + settings + help */}
-      <div style={{ padding: "0 16px", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 16 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-          <div style={{
-            width: 34, height: 34, borderRadius: "50%",
-            background: "linear-gradient(135deg, #F8B595, #F67E7D)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: "#fff", fontSize: 13, fontWeight: 700, position: "relative",
-          }}>
-            S
-            <span style={{
-              position: "absolute", bottom: -1, right: -1, width: 10, height: 10,
-              borderRadius: "50%", background: "#22C55E", border: "2px solid #1B3A6B",
-            }} />
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}>Sarah M.</div>
-            <div style={{ color: C.sidebarMuted, fontSize: 11 }}>Writer</div>
-          </div>
-        </div>
-        <button style={navBtnBottom}><SettingsIcon size={14} /> Settings</button>
-        <button style={navBtnBottom}><HelpCircle size={14} /> Help</button>
-      </div>
-    </aside>
-  );
-}
-const navBtnBottom: React.CSSProperties = {
-  display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "8px 4px",
-  background: "transparent", border: "none", color: C.sidebarMuted, fontSize: 13,
-  cursor: "pointer", textAlign: "left",
-};
 
 /* ════════════════ HERO ════════════════ */
 function Hero() {
@@ -228,7 +154,7 @@ function Hero() {
       }} />
       <div style={{
         position: "absolute", top: 0, right: 0, bottom: 0, width: "60%",
-        background: "linear-gradient(to right, #FFFFFF 0%, rgba(255,255,255,0.85) 25%, rgba(255,255,255,0.3) 60%, rgba(255,255,255,0.05) 100%)",
+        background: "linear-gradient(to right, '#0f1722' 0%, rgba(15,23,34,0.92) 25%, rgba(15,23,34,0.55) 60%, rgba(15,23,34,0.15) 100%)",
       }} />
 
       <div style={{ position: "relative", padding: "24px 28px 20px", display: "flex", flexDirection: "column", gap: 14 }}>
@@ -238,7 +164,7 @@ function Hero() {
               Mission Briefing Room
             </div>
             <h1 style={{
-              fontSize: 32, fontWeight: 800, color: C.navy, lineHeight: 1.1,
+              fontSize: 32, fontWeight: 800, color: C.textPrimary, lineHeight: 1.1,
               margin: "6px 0 10px", letterSpacing: "-0.02em",
             }}>
               NJ CSOC RFP
@@ -275,7 +201,7 @@ function MetricChip({ icon, label, value, valueNode, sub }: { icon: React.ReactN
       <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, fontWeight: 600, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.04em" }}>
         {icon} {label}
       </div>
-      {valueNode ?? <div style={{ fontSize: 24, fontWeight: 700, color: C.navy, lineHeight: 1.1 }}>{value}</div>}
+      {valueNode ?? <div style={{ fontSize: 24, fontWeight: 700, color: C.textPrimary, lineHeight: 1.1 }}>{value}</div>}
       <div style={{ fontSize: 12, color: C.textMuted }}>{sub}</div>
     </div>
   );
@@ -572,7 +498,7 @@ function MissionMap({ missionId: _mid }: { missionId: string }) {
   const dot = (s: MapStatus) =>
     s === "completed" || s === "ontrack" ? C.green :
     s === "atrisk" ? C.orange :
-    s === "blocked" ? C.red : "#CBD5E1";
+    s === "blocked" ? C.red : "rgba(255,255,255,0.18)";
 
   return (
     <div style={{ ...card, padding: "20px 24px" }}>
@@ -587,8 +513,8 @@ function MissionMap({ missionId: _mid }: { missionId: string }) {
             {(["sections", "status", "owner"] as const).map((v) => (
               <button key={v} onClick={() => setView(v)} style={{
                 padding: "5px 12px", fontSize: 12, fontWeight: 600, textTransform: "capitalize",
-                background: view === v ? C.navy : "#fff",
-                color: view === v ? "#fff" : C.textMuted,
+                background: view === v ? C.gold : "transparent",
+                color: view === v ? "#0a1220" : C.textMuted,
                 border: "none", cursor: "pointer",
               }}>{v}</button>
             ))}
@@ -610,11 +536,11 @@ function MissionMap({ missionId: _mid }: { missionId: string }) {
           {sections.map((s) => (
             <div key={s.num} style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", padding: "0 4px" }}>
               <div style={{ fontSize: 11, color: C.textMuted }}>{s.num}</div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: C.navy, lineHeight: 1.25, minHeight: 30, marginTop: 2 }}>{s.name}</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: C.textPrimary, lineHeight: 1.25, minHeight: 30, marginTop: 2 }}>{s.name}</div>
               <div style={{
                 marginTop: 8, width: 18, height: 18, borderRadius: 999, background: dot(s.status),
                 display: "flex", alignItems: "center", justifyContent: "center", color: "#fff",
-                border: "3px solid #fff", boxShadow: `0 0 0 2px ${dot(s.status)}`,
+                border: `3px solid ${C.card}`, boxShadow: `0 0 0 2px ${dot(s.status)}`,
               }}>
                 {(s.status === "completed" || s.status === "ontrack") && <Check size={10} strokeWidth={3} />}
                 {s.status === "atrisk" && <AlertTriangle size={10} strokeWidth={3} />}
@@ -634,7 +560,7 @@ function MissionMap({ missionId: _mid }: { missionId: string }) {
           <Legend dot={C.green} label="On Track" />
           <Legend dot={C.orange} label="At Risk" tri />
           <Legend dot={C.red} label="Blocked" />
-          <Legend dot="#CBD5E1" label="Not Started" hollow />
+          <Legend dot="rgba(255,255,255,0.18)" label="Not Started" hollow />
           <Legend dot={C.green} label="Completed" check />
         </div>
         <a href="#" style={linkBlue}>View Full Question List <ArrowRight size={12} /></a>
@@ -666,13 +592,13 @@ function BottomPanels({ missionId }: { missionId: string }) {
           {["#F8B595", "#A29BFE", "#FAB1A0", "#74B9FF", "#FFEAA7"].map((c, i) => (
             <div key={i} style={{
               width: 32, height: 32, borderRadius: "50%", background: c,
-              border: "2px solid #fff", marginLeft: i === 0 ? 0 : -8,
+              border: `2px solid ${C.card}`, marginLeft: i === 0 ? 0 : -8,
               boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
             }} />
           ))}
           <div style={{
-            width: 32, height: 32, borderRadius: "50%", background: "#E5E7EB",
-            border: "2px solid #fff", marginLeft: -8, display: "flex",
+            width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.10)",
+            border: `2px solid ${C.card}`, marginLeft: -8, display: "flex",
             alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: C.textBody,
           }}>+27</div>
         </div>
@@ -787,7 +713,7 @@ function IrisMissionBrief({ greeting, firstName }: { greeting: string; firstName
           Review Care Coordination Approach (3.2.1) — high impact section with tight requirements.
         </div>
         <button style={{
-          marginTop: 10, background: "#fff", color: C.textBody, fontSize: 12,
+          marginTop: 10, background: "transparent", color: C.textBody, fontSize: 12,
           padding: "6px 14px", borderRadius: 6, border: `1px solid ${C.border}`, cursor: "pointer", fontWeight: 500,
         }}>View Details</button>
       </div>
@@ -812,7 +738,7 @@ function MissionHealthCard() {
       <div style={{ marginTop: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
           <span style={{ fontSize: 12, color: C.textBody }}>Overall Progress</span>
-          <span style={{ fontSize: 12, fontWeight: 700, color: C.navy }}>67%</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: C.textPrimary }}>67%</span>
         </div>
         <div style={{ height: 7, background: C.borderLight, borderRadius: 999, overflow: "hidden" }}>
           <div style={{ width: "67%", height: "100%", background: C.green, borderRadius: 999 }} />
@@ -837,7 +763,7 @@ function MissionHealthCard() {
 
 function YoureBriefedCard({ missionId: _missionId }: { missionId: string }) {
   return (
-    <div style={{ ...card, padding: 16, background: "#EFF6FF", borderColor: "#DBEAFE" }}>
+    <div style={{ ...card, padding: 16, background: "rgba(96,165,250,0.08)", borderColor: "rgba(96,165,250,0.25)" }}>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
         <div style={{
           width: 44, height: 44, borderRadius: 999, background: "rgba(37,99,235,0.12)",
@@ -846,7 +772,7 @@ function YoureBriefedCard({ missionId: _missionId }: { missionId: string }) {
           <Plane size={20} style={{ color: C.blue }} />
         </div>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: C.navy }}>You're briefed.<br />Ready to fly?</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: C.textPrimary }}>You're briefed.<br />Ready to fly?</div>
           <div style={{ fontSize: 11, color: C.textMuted, lineHeight: 1.5, marginTop: 6 }}>
             Use the Flight Deck link in the sidebar to check your status and manage your assignments.
           </div>
