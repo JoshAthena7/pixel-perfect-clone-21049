@@ -3878,6 +3878,7 @@ export type Database = {
           display_order: number
           id: string
           mission_id: string
+          notes: string | null
           points: number
           sections_covered: Json
           updated_at: string
@@ -3889,6 +3890,7 @@ export type Database = {
           display_order?: number
           id?: string
           mission_id: string
+          notes?: string | null
           points?: number
           sections_covered?: Json
           updated_at?: string
@@ -3900,6 +3902,7 @@ export type Database = {
           display_order?: number
           id?: string
           mission_id?: string
+          notes?: string | null
           points?: number
           sections_covered?: Json
           updated_at?: string
@@ -5038,6 +5041,7 @@ export type Database = {
           rfp_extraction_status: string | null
           rfp_number: string | null
           rfp_parsed: boolean | null
+          scoring_methodology: string | null
           slack_webhook: string | null
           state: string | null
           state_agency: string | null
@@ -5087,6 +5091,7 @@ export type Database = {
           rfp_extraction_status?: string | null
           rfp_number?: string | null
           rfp_parsed?: boolean | null
+          scoring_methodology?: string | null
           slack_webhook?: string | null
           state?: string | null
           state_agency?: string | null
@@ -5136,6 +5141,7 @@ export type Database = {
           rfp_extraction_status?: string | null
           rfp_number?: string | null
           rfp_parsed?: boolean | null
+          scoring_methodology?: string | null
           slack_webhook?: string | null
           state?: string | null
           state_agency?: string | null

@@ -8,6 +8,7 @@ const Criteria = z.object({
   points: z.number().int().min(0).max(10000),
   sections_covered: z.array(z.string().min(1).max(50)).max(50),
   competitive_risk: z.enum(["low", "medium", "high"]),
+  notes: z.string().trim().max(4000).optional().nullable(),
 });
 
 export const saveEvaluationCriteria = createServerFn({ method: "POST" })
@@ -24,6 +25,7 @@ export const saveEvaluationCriteria = createServerFn({ method: "POST" })
       points: c.points,
       sections_covered: c.sections_covered,
       competitive_risk: c.competitive_risk,
+      notes: c.notes ?? null,
       display_order: i,
     }));
     const { error } = await supabase.from("mission_evaluation_criteria").insert(rows);
