@@ -17,6 +17,7 @@ import { IrisAutofillBanner } from "@/components/admin/IrisAutofillBanner";
 import { SetupCompletenessMeter } from "@/components/admin/SetupCompletenessMeter";
 import { LaunchSequence } from "@/components/olympus/LaunchSequence";
 import { PersonPicker } from "@/components/setup/PersonPicker";
+import { UploadMatrixModal } from "@/components/questions/UploadMatrixModal";
 import { useIsAdmin } from "@/hooks/useAccess";
 
 export const Route = createFileRoute("/_authenticated/admin/missions/$missionId/setup")({
@@ -588,12 +589,40 @@ function SectionInputs({ missionId, mission, docs, monitoring, refetch }: any) {
     refetch();
   }
 
+  async function attachFile(category: string, file: File) {
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth.user) return toast.error("Not authenticated");
+    if (file.size > 50 * 1024 * 1024) return toast.error("File too large (max 50MB)");
+    const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const path = `${missionId}/${Date.now()}_${safe}`;
+    const up = await supabase.storage.from("mission-documents").upload(path, file, {
+      contentType: file.type || undefined,
+      upsert: false,
+    });
+    if (up.error) return toast.error(`Upload failed: ${up.error.message}`);
+    const { data: prof } = await supabase.from("profiles").select("display_name,email").eq("id", auth.user.id).maybeSingle();
+    const { error } = await supabase.from("mission_vault_documents").insert({
+      mission_id: missionId,
+      doc_type: "other",
+      title: file.name,
+      file_path: path,
+      file_size: file.size,
+      mime_type: file.type || null,
+      category,
+      uploaded_by: auth.user.id,
+      uploaded_by_name: prof?.display_name ?? prof?.email ?? null,
+    });
+    if (error) return toast.error(error.message);
+    toast.success(`Uploaded to ${category}`);
+    refetch();
+  }
+
   return (
-    <Section id="inputs" n="03" label="Mission Context" sublabel="Source material and signals IRIS reads to understand the mission environment. Anything attached here lands in The Vault automatically.">
+    <Section id="inputs" n="03" label="Mission Context" sublabel="Source material and signals IRIS reads to understand the mission environment. Upload actual files or attach URLs — everything lands in The Vault.">
       <div className="space-y-3">
         {INPUT_CATEGORIES.map((cat) => {
           const items = docs.filter((d: any) => d.category === cat);
-          return <UploadZone key={cat} category={cat} items={items} onAttach={attachUrl} onRemove={async (id: string) => {
+          return <UploadZone key={cat} category={cat} items={items} onAttach={attachUrl} onUpload={attachFile} onRemove={async (id: string) => {
             await supabase.from("mission_vault_documents").delete().eq("id", id);
             refetch();
           }} />;
@@ -708,10 +737,22 @@ function MonitoringWatchlist({ missionId, mission, sources, refetch }: any) {
   );
 }
 
-function UploadZone({ category, items, onAttach, onRemove }: any) {
-  const [adding, setAdding] = useState(false);
+function UploadZone({ category, items, onAttach, onUpload, onRemove }: any) {
+  const [mode, setMode] = useState<null | "url" | "file">(null);
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function doFileUpload() {
+    if (!file) return;
+    setBusy(true);
+    try {
+      await onUpload(category, file);
+      setFile(null);
+      setMode(null);
+    } finally { setBusy(false); }
+  }
 
   return (
     <div className="rounded-md border border-border bg-surface/30 p-4">
@@ -720,16 +761,38 @@ function UploadZone({ category, items, onAttach, onRemove }: any) {
           <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">{category}</span>
           <span className="text-[11px] text-muted-foreground tabular-nums">{items.length} item{items.length !== 1 && "s"}</span>
         </div>
-        <button onClick={() => setAdding(!adding)} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground">
-          <Upload className="h-3 w-3" /> Attach
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={() => { setMode(mode === "file" ? null : "file"); setFile(null); }} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+            <Upload className="h-3 w-3" /> Upload file
+          </button>
+          <button onClick={() => setMode(mode === "url" ? null : "url")} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+            <Plus className="h-3 w-3" /> Attach URL
+          </button>
+        </div>
       </div>
-      {adding && (
+      {mode === "url" && (
         <div className="mt-3 flex flex-col sm:flex-row gap-2">
           <TextInput placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
-          <TextInput placeholder="https://… or file URL" value={url} onChange={(e) => setUrl(e.target.value)} />
-          <button onClick={() => { if (title && url) { onAttach(category, title, url); setTitle(""); setUrl(""); setAdding(false); } }}
+          <TextInput placeholder="https://…" value={url} onChange={(e) => setUrl(e.target.value)} />
+          <button onClick={() => { if (title && url) { onAttach(category, title, url); setTitle(""); setUrl(""); setMode(null); } }}
             className="rounded-md bg-primary px-3 py-2 text-xs text-primary-foreground">Add</button>
+        </div>
+      )}
+      {mode === "file" && (
+        <div className="mt-3 flex flex-col sm:flex-row items-start sm:items-center gap-2">
+          <input
+            type="file"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            className="text-xs file:mr-3 file:rounded file:border-0 file:bg-primary/15 file:px-3 file:py-1.5 file:text-xs file:text-primary"
+          />
+          <button
+            onClick={doFileUpload}
+            disabled={!file || busy}
+            className="rounded-md bg-primary px-3 py-2 text-xs text-primary-foreground disabled:opacity-50 inline-flex items-center gap-1.5"
+          >
+            {busy ? <><Loader2 className="h-3 w-3 animate-spin" /> Uploading…</> : <>Upload</>}
+          </button>
+          <span className="text-[10px] text-muted-foreground">Max 50 MB · stored in mission-documents</span>
         </div>
       )}
       {items.length > 0 && (
@@ -737,7 +800,11 @@ function UploadZone({ category, items, onAttach, onRemove }: any) {
           {items.map((it: any) => (
             <li key={it.id} className="flex items-center justify-between py-2 text-sm">
               <div className="min-w-0">
-                <div className="truncate text-foreground">{it.title}</div>
+                <div className="truncate text-foreground">
+                  {it.title}
+                  {it.file_path && <span className="ml-2 text-[10px] text-muted-foreground">[file]</span>}
+                  {it.external_url && <span className="ml-2 text-[10px] text-muted-foreground">[url]</span>}
+                </div>
                 <div className="text-[11px] text-muted-foreground">
                   {new Date(it.created_at).toLocaleDateString()} · {it.uploaded_by_name ?? "—"}
                 </div>
