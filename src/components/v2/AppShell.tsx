@@ -157,7 +157,7 @@ function TopBar({
                 style={{ filter: "drop-shadow(0 0 6px rgba(125,211,252,0.35))" }}
               />
             )}
-            <span className="text-[13px] font-extrabold tracking-[0.22em] text-white">MISSION BRIEF</span>
+            <span className="text-[13px] font-extrabold tracking-[0.22em] text-white">ATLAS</span>
           </Link>
         ) : (
           <Link to="/home" className="flex items-center gap-2.5 shrink-0" title="Home">
