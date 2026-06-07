@@ -408,7 +408,7 @@ function Step1Brief({
         >
           {busy ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" /> IRIS is preparing your question set…
+              <Loader2 className="w-4 h-4 animate-spin" /> IRIS is preparing your Pre-Flight…
             </>
           ) : (
             <>
