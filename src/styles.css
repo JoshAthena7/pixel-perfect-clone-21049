@@ -595,3 +595,32 @@ html[data-write-mode="on"] .studio-body > .studio-left { border-right: none !imp
   .mission-card-active { animation: none; }
 }
 
+
+/* ──────────────────────────────────────────────────────────────────────── */
+/* ATHENA × ATLAS GOLD DOT — pulses 3× slowly on landing, then rests        */
+/* ──────────────────────────────────────────────────────────────────────── */
+@keyframes atlas-dot-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.0), 0 0 4px 0 rgba(201, 168, 76, 0.55);
+    opacity: 0.95;
+  }
+  50% {
+    transform: scale(1.55);
+    box-shadow: 0 0 0 6px rgba(201, 168, 76, 0.0), 0 0 14px 2px rgba(201, 168, 76, 0.85);
+    opacity: 1;
+  }
+}
+.atlas-gold-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: #c9a84c;
+  box-shadow: 0 0 6px 0 rgba(201, 168, 76, 0.6);
+  flex-shrink: 0;
+  animation: atlas-dot-pulse 1.6s ease-in-out 3;
+}
+@media (prefers-reduced-motion: reduce) {
+  .atlas-gold-dot { animation: none; }
+}
