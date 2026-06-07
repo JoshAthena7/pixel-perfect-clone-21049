@@ -438,7 +438,7 @@ export function CommandCenter({ missionId }: { missionId?: string } = {}) {
       >
         {gates.length === 0 ? (
           <Empty>
-            No review gates scheduled. <Link to={"/missions" as any} className="text-primary hover:underline">Add gates in Mission Settings →</Link>
+            No review gates scheduled. <Link to={"/missions" as any} className="text-primary hover:underline">Add gates in the Setup Record →</Link>
           </Empty>
         ) : (
           <ul className="divide-y divide-border">
