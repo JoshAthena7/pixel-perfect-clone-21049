@@ -53,13 +53,23 @@ export function AtlasLoginPage() {
 
   return (
     <div
-      className="min-h-svh w-full flex items-center justify-center px-4 py-12 text-foreground"
+      className="relative min-h-svh w-full flex items-center justify-center px-4 py-12 text-foreground overflow-hidden"
       style={{
         background:
           "radial-gradient(ellipse at top, #0a1228 0%, #05070d 55%, #000 100%)",
       }}
     >
-      <div className="w-full max-w-md">
+      {/* IRIS violet-indigo ambient glow */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 60% 40% at 50% 18%, rgba(139,109,255,0.18) 0%, rgba(103,232,249,0.06) 40%, transparent 70%)",
+        }}
+      />
+      <div className="relative w-full max-w-md">
+
         {/* Brand */}
         <div className="text-center mb-8 px-2">
           <img
