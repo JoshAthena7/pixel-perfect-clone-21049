@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { FlightDeck } from "@/components/v4/FlightDeck";
 import { toast } from "sonner";
-import { ArrowLeft, BookOpen, X, Phone as PhoneIcon } from "lucide-react";
+import { ArrowLeft, BookOpen, X, Phone as PhoneIcon, FileText, Brain, Target, Upload } from "lucide-react";
 import { createSignal } from "@/lib/signals";
 import { useEffect, useState } from "react";
 import { getBriefProgress, markBriefCompleted, type BriefProgress } from "@/lib/brief-seen";
