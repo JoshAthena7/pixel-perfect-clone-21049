@@ -13,6 +13,26 @@ import {
 } from "./file-validation";
 import { assertNoPHI } from "./phi-detection";
 
+// Vault mutations (upload / delete) are admin-only — all setup lives in the
+// Olympus / Admin control room. Mission members can still view + download.
+async function assertAdmin(supabase: any, userId: string) {
+  const { data, error } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) {
+    throw new Error(
+      JSON.stringify({
+        error: "forbidden",
+        message: "Only platform admins can modify the Vault. Ask an admin to add or remove documents from the Olympus control room.",
+      }),
+    );
+  }
+}
+
 export const VAULT_DOC_TYPES = [
   "data_security",
   "contract",
@@ -122,6 +142,7 @@ export const createVaultDoc = createServerFn({ method: "POST" })
   .inputValidator((d) => CreateInput.parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as { supabase: any; userId: string };
+    await assertAdmin(supabase, userId);
 
     if (!data.filePath && !data.externalUrl) {
       throw new Error("Either a file upload or an external link is required.");
@@ -231,7 +252,8 @@ export const extractVaultDoc = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase } = context as { supabase: any };
+    const { supabase, userId } = context as { supabase: any; userId: string };
+    await assertAdmin(supabase, userId);
     const { extractAndEmbedVaultDoc } = await import("./vault-extract.server");
     return await extractAndEmbedVaultDoc(supabase, data.id);
   });
@@ -244,7 +266,8 @@ export const deleteVaultDoc = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase } = context as { supabase: any };
+    const { supabase, userId } = context as { supabase: any; userId: string };
+    await assertAdmin(supabase, userId);
     const { data: row } = await supabase
       .from("mission_vault_documents")
       .select("file_path")
