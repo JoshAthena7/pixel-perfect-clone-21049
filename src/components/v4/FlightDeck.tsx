@@ -832,6 +832,92 @@ function QuestionWorkspace({
   );
 }
 
+// R-2: Empty workspace gets a human bridge — request assignment from the
+// engagement lead instead of just telling the user to wait.
+function RequestAssignmentEmptyState({ missionId }: { missionId: string }) {
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const { data: lead } = useQuery({
+    queryKey: ["request-assign-lead", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_members")
+        .select("user_id,role,display_name")
+        .eq("mission_id", missionId)
+        .in("role", ["engagement_lead", "lead", "admin"])
+        .order("role", { ascending: true })
+        .limit(1);
+      return data?.[0] ?? null;
+    },
+  });
+
+  async function onRequest() {
+    setSending(true);
+    try {
+      const { data: auth } = await supabase.auth.getUser();
+      const me = auth.user;
+      const meName =
+        (me?.user_metadata as any)?.display_name ??
+        me?.email?.split("@")[0] ??
+        "A team member";
+      const { createSignal } = await import("@/lib/signals");
+      await createSignal({
+        mission_id: missionId,
+        source_module: "flight-deck",
+        signal_type: "assignment_requested",
+        signal_title: `${meName} is requesting a question assignment`,
+        signal_summary:
+          "Team member has no questions assigned and is ready for work.",
+        severity: "warning",
+        owner_id: lead?.user_id ?? null,
+        recommended_action: "Open the Question Workspace and assign a question to this team member.",
+      });
+      setSent(true);
+      toast.success(
+        lead?.display_name
+          ? `Request sent to ${lead.display_name}.`
+          : "Request sent to mission leadership.",
+      );
+    } catch (err: any) {
+      toast.error(err?.message ?? "Couldn't send request");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <div className="px-5 py-10 text-center">
+      <div className="text-sm text-muted-foreground">
+        No questions assigned to you yet.
+      </div>
+      <div className="mt-1 text-[12px] text-muted-foreground/80">
+        When a mission lead assigns you a question, it will appear here.
+      </div>
+      {sent ? (
+        <div className="mt-5 inline-flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/[0.08] px-3 py-2 text-[12px] text-emerald-200">
+          <CheckCircle2 className="h-3.5 w-3.5" />
+          Request sent. {lead?.display_name ? `${lead.display_name} has been notified.` : "Mission leadership has been notified."}
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={onRequest}
+          disabled={sending}
+          className="mt-5 inline-flex items-center gap-2 rounded-md border border-amber-400/40 bg-amber-400/10 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-100 hover:bg-amber-400/15 disabled:opacity-60"
+        >
+          {sending
+            ? "Sending…"
+            : lead?.display_name
+              ? `Request assignment from ${lead.display_name}`
+              : "Request question assignment"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+
 function QuestionRow({
   q,
   missionId,
