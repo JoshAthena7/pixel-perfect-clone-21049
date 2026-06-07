@@ -12,7 +12,7 @@ import {
 } from "@/lib/expert-consult.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { X, Phone, Sparkles, ArrowRight, ArrowLeft, Clock, Users, Globe2 } from "lucide-react";
+import { X, Phone, Sparkles, ArrowRight, ArrowLeft, Clock, Users, Globe2, AlertTriangle, Layers, Gauge, CalendarClock } from "lucide-react";
 
 type Props = {
   missionId: string;
