@@ -60,16 +60,26 @@ export function SetupCompletenessMeter({ mission, evaluationCount }: Props) {
             IRIS is working with limited intelligence — complete these fields to sharpen your analysis.
           </p>
           {missing.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {missing.map((f) => (
-                <span
-                  key={f.key}
-                  className="inline-flex items-center rounded-full border border-amber-500/40 bg-background/60 px-2 py-0.5 text-[11px] font-mono text-amber-800 dark:text-amber-200"
-                >
-                  {f.label}
-                </span>
-              ))}
-            </div>
+            <>
+              <div className="mt-4 text-[10px] uppercase tracking-[0.2em] font-mono text-amber-700 dark:text-amber-300">
+                Help IRIS get smarter:
+              </div>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {missing.map((f, i) => (
+                  <span
+                    key={f.key}
+                    className={
+                      i === 0
+                        ? "inline-flex items-center gap-1.5 rounded-full border border-amber-500 bg-amber-500/20 px-2.5 py-0.5 text-[11px] font-mono font-semibold text-amber-900 dark:text-amber-100"
+                        : "inline-flex items-center rounded-full border border-amber-500/40 bg-background/60 px-2 py-0.5 text-[11px] font-mono text-amber-800 dark:text-amber-200"
+                    }
+                  >
+                    {f.label}
+                    {i === 0 && <span className="opacity-80">· Start here →</span>}
+                  </span>
+                ))}
+              </div>
+            </>
           )}
         </>
       )}
