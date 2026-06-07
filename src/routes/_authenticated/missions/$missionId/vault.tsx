@@ -119,7 +119,7 @@ function VaultPage() {
     return out;
   }, [docs]);
 
-  const [openUpload, setOpenUpload] = useState<VaultDocType | null>(null);
+  // Uploads are admin-only via Olympus; no in-vault upload state.
 
   async function handleOpenDoc(doc: VaultDoc) {
     try {
