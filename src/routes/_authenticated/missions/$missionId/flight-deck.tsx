@@ -131,14 +131,6 @@ function MissionFlightDeckPage() {
           <ArrowLeft className="h-3 w-3" />
           Back to Mission Command
         </Link>
-        <button
-          type="button"
-          onClick={() => setGlobalPhoneOpen(true)}
-          className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary hover:bg-primary/15"
-        >
-          <PhoneIcon className="h-3 w-3" />
-          Phone a Friend
-        </button>
       </div>
 
 
