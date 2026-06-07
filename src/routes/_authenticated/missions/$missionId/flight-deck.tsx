@@ -147,6 +147,15 @@ function MissionFlightDeckPage() {
         allQuestions={allQuestions}
         updateStatus={updateStatus}
       />
+      {globalPhoneOpen && (
+        <PhoneAFriendOverlay
+          missionId={missionId}
+          questionId={null}
+          meId={meId}
+          meName=""
+          onClose={() => setGlobalPhoneOpen(false)}
+        />
+      )}
     </div>
   );
 }
