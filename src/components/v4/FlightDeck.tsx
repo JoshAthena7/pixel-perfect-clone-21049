@@ -800,3 +800,74 @@ function AirTrafficControl({
     </section>
   );
 }
+
+// ---------- Open Consults (Phone-a-Friend status) ----------
+
+function OpenConsultsPanel({
+  rows,
+  questions,
+}: {
+  rows: ExpertConsultRow[];
+  questions: Q[];
+}) {
+  const open = rows.filter((r) => r.status !== "closed");
+  const qMap = new Map(questions.map((q) => [q.id, q]));
+
+  const statusTone = (s: ExpertConsultRow["status"]) => {
+    switch (s) {
+      case "sent":
+        return "bg-sky-500/15 text-sky-300 border-sky-500/30";
+      case "acknowledged":
+        return "bg-violet-500/15 text-violet-300 border-violet-500/30";
+      case "needs_info":
+        return "bg-amber-500/15 text-amber-300 border-amber-500/30";
+      case "reassigned":
+        return "bg-muted text-muted-foreground border-border";
+      case "responded":
+        return "bg-emerald-500/15 text-emerald-300 border-emerald-500/30";
+      default:
+        return "bg-muted text-muted-foreground border-border";
+    }
+  };
+
+  return (
+    <section className="rounded-[12px] border border-border bg-surface">
+      <div className="border-b border-border/60 px-4 py-3">
+        <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          <Phone className="h-3 w-3" />
+          Open Consults
+        </div>
+        <div className="mt-0.5 text-[11px] text-muted-foreground">
+          {open.length} active Phone-a-Friend request{open.length === 1 ? "" : "s"}
+        </div>
+      </div>
+      {open.length === 0 ? (
+        <div className="px-4 py-6 text-center text-[12px] text-muted-foreground">
+          No open expert consults.
+        </div>
+      ) : (
+        <ul className="max-h-[280px] divide-y divide-border/40 overflow-y-auto">
+          {open.slice(0, 12).map((r) => {
+            const q = r.question_id ? qMap.get(r.question_id) : null;
+            return (
+              <li key={r.id} className="px-3 py-2 text-[11px]">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-muted-foreground">
+                    {q ? `Q${q.question_number}` : "General"}
+                  </span>
+                  <span className={`rounded-full border px-1.5 py-px text-[9px] font-semibold uppercase tracking-[0.08em] ${statusTone(r.status)}`}>
+                    {r.status.replace("_", " ")}
+                  </span>
+                </div>
+                <div className="mt-1 line-clamp-2 text-foreground/85">{r.ask_subject}</div>
+                <div className="mt-0.5 text-[10px] text-muted-foreground tabular-nums">
+                  {ageOf(r.created_at)} ago · urgency {r.urgency}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
+}
