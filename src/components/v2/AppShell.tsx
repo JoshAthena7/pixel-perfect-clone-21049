@@ -159,11 +159,11 @@ function TopBar({
 
         {inMission && mission && (
           <>
-            <span className="hidden lg:block h-5 w-px bg-white/15 mx-2" />
+            <span className="hidden 2xl:block h-5 w-px bg-white/15 mx-2" />
             <Link
               to="/missions/$missionId/brief"
               params={{ missionId: missionId! }}
-              className="hidden lg:block max-w-[180px] xl:max-w-[260px] truncate text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className="hidden 2xl:block max-w-[220px] truncate text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors"
               title={mission.name}
             >
               {mission.name}
@@ -212,28 +212,7 @@ function TopBar({
         </button>
         <IrisStatusIndicator />
         {/* Atrium button removed from header — admins reach it via Olympus/avatar */}
-        {inMission && (
-          <Link
-            to="/profile"
-            title="Profile"
-            aria-label="Profile"
-            className={`inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-[11px] font-semibold uppercase tracking-[0.18em] transition-colors hover:bg-white/5 hover:text-foreground ${
-              isProfile
-                ? "bg-[color:var(--athena-gold,#f59e0b)]/10 text-[color:var(--athena-gold,#f59e0b)]"
-                : "text-muted-foreground"
-            }`}
-          >
-            <User size={14} strokeWidth={1.5} />
-            <span className="hidden sm:inline">Profile</span>
-          </Link>
-        )}
-        {/* Flight Deck removed from Atrium header in V1 — writers land directly on /v1/my-sections */}
         <NotificationBell />
-        {/* Brief Room megaphone removed from Atrium header — reach via /brief-room directly */}
-        {/* Help moved to /profile?tab=help */}
-
-
-        <SignOutButton />
         <UserAvatarMenu />
         <OlympusNavLink isOlympus={isOlympus} />
 
