@@ -1,0 +1,1 @@
+ALTER VIEW public.expertise_user_index SET (security_invoker = true);
