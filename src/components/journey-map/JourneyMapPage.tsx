@@ -410,14 +410,37 @@ export function JourneyMapPage() {
   const irisHealth = useMemo(() => deriveIrisHealthScore(brief), [brief]);
   const irisHealthColor = irisHealth >= 75 ? "#22C55E" : irisHealth >= 50 ? "#3B82F6" : irisHealth >= 30 ? "#F59E0B" : "#EF4444";
 
+  // Approved/submitted question count for the progress ring.
+  const { data: progress } = useQuery({
+    queryKey: ["journey-map-progress", missionId],
+    enabled: !!missionId,
+    queryFn: async () => {
+      const [total, completed] = await Promise.all([
+        supabase.from("question_records").select("id", { count: "exact", head: true }).eq("mission_id", missionId!),
+        supabase.from("question_records").select("id", { count: "exact", head: true }).eq("mission_id", missionId!).in("status", ["approved", "submitted"]),
+      ]);
+      return { total: total.count ?? 0, completed: completed.count ?? 0 };
+    },
+  });
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Mission Context Bar */}
       <header className="border-b border-border bg-surface/60 backdrop-blur">
         <div className="mx-auto max-w-[1600px] px-6 py-4 flex flex-wrap items-center gap-6">
-          <div>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Mission</div>
-            <div className="text-base font-semibold">{missionName}</div>
+          <div className="flex items-center gap-3">
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Mission</div>
+              <div className="text-base font-semibold">{missionName}</div>
+            </div>
+            {missionId && progress && (
+              <MissionProgressRing
+                size="lg"
+                showLabel
+                completed={progress.completed}
+                total={progress.total}
+              />
+            )}
           </div>
           <div className="h-8 w-px bg-border" />
           <div>
