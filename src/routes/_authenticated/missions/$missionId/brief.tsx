@@ -1479,8 +1479,8 @@ function MissionLeaders({ brief }: { brief: MissionBrief }) {
           <div style={sectionLabel}>MISSION LEADERS</div>
           <div style={subLabel}>Who's leading this mission. Click anyone to ask a question.</div>
         </div>
-        <div style={{ fontSize: 11, color: C.textMuted }}>
-          {leaders.length} leader{leaders.length === 1 ? "" : "s"}
+        <div style={{ fontSize: 11, color: C.textMuted }} title="Number of leadership roles (Engagement Lead, PM, Founder) filled on this mission.">
+          {leaders.length} leadership role{leaders.length === 1 ? "" : "s"} assigned
         </div>
       </div>
 
