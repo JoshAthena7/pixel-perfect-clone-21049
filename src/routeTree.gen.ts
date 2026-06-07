@@ -40,6 +40,7 @@ import { Route as AuthenticatedAtriumRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedV1IndexRouteImport } from './routes/_authenticated/v1/index'
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile/index'
+import { Route as AuthenticatedMissionsIndexRouteImport } from './routes/_authenticated/missions/index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as AuthenticatedV1VaultRouteImport } from './routes/_authenticated/v1/vault'
@@ -278,6 +279,12 @@ const AuthenticatedProfileIndexRoute =
   AuthenticatedProfileIndexRouteImport.update({
     id: '/profile/',
     path: '/profile/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMissionsIndexRoute =
+  AuthenticatedMissionsIndexRouteImport.update({
+    id: '/missions/',
+    path: '/missions/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
@@ -815,6 +822,7 @@ export interface FileRoutesByFullPath {
   '/v1/vault': typeof AuthenticatedV1VaultRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/missions/': typeof AuthenticatedMissionsIndexRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
   '/v1/': typeof AuthenticatedV1IndexRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
@@ -922,6 +930,7 @@ export interface FileRoutesByTo {
   '/v1/vault': typeof AuthenticatedV1VaultRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/missions': typeof AuthenticatedMissionsIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
   '/v1': typeof AuthenticatedV1IndexRoute
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
@@ -1035,6 +1044,7 @@ export interface FileRoutesById {
   '/_authenticated/v1/vault': typeof AuthenticatedV1VaultRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/missions/': typeof AuthenticatedMissionsIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/_authenticated/v1/': typeof AuthenticatedV1IndexRoute
   '/_authenticated/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
@@ -1148,6 +1158,7 @@ export interface FileRouteTypes {
     | '/v1/vault'
     | '/lovable/email/suppression'
     | '/admin/'
+    | '/missions/'
     | '/profile/'
     | '/v1/'
     | '/missions/$missionId/brief'
@@ -1255,6 +1266,7 @@ export interface FileRouteTypes {
     | '/v1/vault'
     | '/lovable/email/suppression'
     | '/admin'
+    | '/missions'
     | '/profile'
     | '/v1'
     | '/missions/$missionId/brief'
@@ -1367,6 +1379,7 @@ export interface FileRouteTypes {
     | '/_authenticated/v1/vault'
     | '/lovable/email/suppression'
     | '/_authenticated/admin/'
+    | '/_authenticated/missions/'
     | '/_authenticated/profile/'
     | '/_authenticated/v1/'
     | '/_authenticated/missions/$missionId/brief'
@@ -1654,6 +1667,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile/'
       preLoaderRoute: typeof AuthenticatedProfileIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/missions/': {
+      id: '/_authenticated/missions/'
+      path: '/missions'
+      fullPath: '/missions/'
+      preLoaderRoute: typeof AuthenticatedMissionsIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/admin/': {
@@ -2429,6 +2449,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCommandSecurityRoute: typeof AuthenticatedCommandSecurityRoute
   AuthenticatedMissionsMissionIdRoute: typeof AuthenticatedMissionsMissionIdRouteWithChildren
   AuthenticatedProfileExpertiseRoute: typeof AuthenticatedProfileExpertiseRoute
+  AuthenticatedMissionsIndexRoute: typeof AuthenticatedMissionsIndexRoute
   AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
 }
 
@@ -2463,6 +2484,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMissionsMissionIdRoute:
     AuthenticatedMissionsMissionIdRouteWithChildren,
   AuthenticatedProfileExpertiseRoute: AuthenticatedProfileExpertiseRoute,
+  AuthenticatedMissionsIndexRoute: AuthenticatedMissionsIndexRoute,
   AuthenticatedProfileIndexRoute: AuthenticatedProfileIndexRoute,
 }
 

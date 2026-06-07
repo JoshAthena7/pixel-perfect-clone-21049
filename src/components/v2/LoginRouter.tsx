@@ -73,7 +73,7 @@ export function LoginRouter() {
           try { window.sessionStorage.setItem(`atlas.role.${user.id}`, result.role); } catch { /* noop */ }
         }).catch(() => { /* noop */ });
       } catch { /* noop */ }
-      await navigate({ to: "/flight-deck", replace: true });
+      await navigate({ to: "/missions", replace: true });
     })();
   }, [fn, navigate]);
 

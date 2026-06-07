@@ -15,7 +15,7 @@ export function AtlasLoginPage() {
   const [loading, setLoading] = useState(false);
 
   async function routeAfterAuth(_userId: string) {
-    navigate({ to: "/flight-deck", replace: true });
+    navigate({ to: "/missions", replace: true });
   }
 
   useEffect(() => {
