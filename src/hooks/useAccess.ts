@@ -36,12 +36,20 @@ export function useMyAccess() {
 }
 
 export function useIsAdmin() {
+  const hasSession = useHasSession();
   const { data, isLoading, isFetching } = useMyAccess();
+  // Treat "session not yet known" and "query hasn't returned data yet" as
+  // loading. Without this, useQuery with `enabled: false` reports
+  // `isLoading: false` while `data` is still undefined, which makes any
+  // layout that gates on `isAdmin` flip to `false` on first render and
+  // redirect the user away before the access check ever runs.
+  const resolving = hasSession === null || (hasSession === true && data === undefined);
   return {
     isAdmin: data?.isAdmin ?? false,
-    isLoading: isLoading || isFetching,
+    isLoading: isLoading || isFetching || resolving,
   };
 }
+
 
 export function useMissionAccess(missionId: string | undefined) {
   const fn = useServerFn(canAccessMission);
