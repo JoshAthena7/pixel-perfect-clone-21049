@@ -139,6 +139,7 @@ function MissionBriefingRoomPage() {
       <main style={{ maxWidth: 1400, margin: "0 auto", padding: "20px 24px", overflowX: "hidden" }}>
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0,3fr) minmax(280px,1fr)", gap: 20, alignItems: "start" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
+            <RoleLandingBanner brief={brief} firstName={firstName} />
             <Hero missionId={missionId} brief={brief} />
             <GetStartedCard missionId={missionId} brief={brief} />
             <MissionLeaders brief={brief} />
