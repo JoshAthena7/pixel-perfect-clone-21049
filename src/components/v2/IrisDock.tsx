@@ -45,24 +45,28 @@ export function IrisDock() {
     scrollerRef.current?.scrollTo({ top: 9e9, behavior: "smooth" });
   }, [msgs, busy]);
 
-  async function send() {
-    const text = input.trim();
-    if (!text || busy) return;
-    setMsgs((m) => [...m, { role: "user", text }]);
+  async function sendText(text: string) {
+    const trimmed = text.trim();
+    if (!trimmed || busy) return;
+    setMsgs((m) => [...m, { role: "user", text: trimmed }]);
     setInput("");
     setBusy(true);
     try {
       const res = questionId
-        ? await askQuestion({ data: { questionId, prompt: text } })
+        ? await askQuestion({ data: { questionId, prompt: trimmed } })
         : missionId
-          ? await askMission({ data: { missionId, prompt: text } })
-          : await askGlobal({ data: { prompt: text } });
+          ? await askMission({ data: { missionId, prompt: trimmed } })
+          : await askGlobal({ data: { prompt: trimmed } });
       setMsgs((m) => [...m, { role: "iris", text: res.answer }]);
     } catch (e: any) {
       setMsgs((m) => [...m, { role: "iris", text: `_Error: ${e?.message ?? "unknown"}_` }]);
     } finally {
       setBusy(false);
     }
+  }
+
+  async function send() {
+    await sendText(input);
   }
 
   // Hide on login or no auth
