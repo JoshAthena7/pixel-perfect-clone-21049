@@ -659,6 +659,11 @@ export const listTeamRoster = createServerFn({ method: "GET" })
         has_onboarded: p.has_onboarded === true,
         active_missions: missionsByUser.get(p.id) ?? 0,
         created_at: p.created_at ?? new Date(0).toISOString(),
+        mission_id: null,
+        mission_name: null,
+        role: null,
+        expected_start_date: null,
+        engagement_lead_name: null,
       });
     }
 
