@@ -679,10 +679,24 @@ function Legend({ dot, label, hollow, check, tri }: { dot: string; label: string
 
 /* ════════════════ BOTTOM PANELS ════════════════ */
 function BottomPanels({ missionId }: { missionId: string }) {
+  const panelCard: React.CSSProperties = {
+    ...card,
+    padding: 16,
+    display: "block",
+    color: "inherit",
+    textDecoration: "none",
+    cursor: "pointer",
+    transition: "border-color 120ms ease, transform 120ms ease",
+  };
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(4,minmax(0,1fr))", gap: 16 }}>
       {/* Team */}
-      <div style={{ ...card, padding: 16 }}>
+      <Link
+        to="/missions/$missionId/settings"
+        params={{ missionId }}
+        search={{ tab: "team" }}
+        style={panelCard}
+      >
         <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary }}>TEAM OVERVIEW</div>
         <div style={subLabel}>People and roles.</div>
         <div style={{ display: "flex", alignItems: "center", marginTop: 14 }}>
@@ -699,11 +713,14 @@ function BottomPanels({ missionId }: { missionId: string }) {
             alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: C.textBody,
           }}>+27</div>
         </div>
-        
-      </div>
+      </Link>
 
       {/* Vault */}
-      <div style={{ ...card, padding: 16 }}>
+      <Link
+        to="/missions/$missionId/vault"
+        params={{ missionId }}
+        style={panelCard}
+      >
         <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary }}>VAULT</div>
         <div style={subLabel}>Mission resources.</div>
         <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", rowGap: 6, columnGap: 12, fontSize: 12, color: C.textBody }}>
@@ -717,11 +734,14 @@ function BottomPanels({ missionId }: { missionId: string }) {
             </div>
           ))}
         </div>
-        
-      </div>
+      </Link>
 
       {/* Questions */}
-      <div style={{ ...card, padding: 16 }}>
+      <Link
+        to="/missions/$missionId/sections"
+        params={{ missionId }}
+        style={panelCard}
+      >
         <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary }}>QUESTIONS & SECTIONS</div>
         <div style={subLabel}>Scope and progress.</div>
         <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 6, fontSize: 12, color: C.textBody }}>
@@ -732,11 +752,14 @@ function BottomPanels({ missionId }: { missionId: string }) {
           <Row k="Unassigned" v="0" />
           <Row k="Completed" v="12 (8%)" />
         </div>
-        
-      </div>
+      </Link>
 
       {/* Oracle */}
-      <div style={{ ...card, padding: 16 }}>
+      <Link
+        to="/missions/$missionId/briefing"
+        params={{ missionId }}
+        style={panelCard}
+      >
         <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary }}>ORACLE</div>
         <div style={subLabel}>Deep dive into intelligence.</div>
         <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8, fontSize: 12, color: C.textBody }}>
@@ -753,8 +776,7 @@ function BottomPanels({ missionId }: { missionId: string }) {
             </div>
           ))}
         </div>
-        
-      </div>
+      </Link>
     </div>
   );
 }
