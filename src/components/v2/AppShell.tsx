@@ -154,6 +154,7 @@ function TopBar({
               className="h-11 w-11 object-contain select-none -my-1"
               draggable={false}
             />
+            <span className="atlas-gold-dot" aria-hidden />
             <img
               src={atlasWordmark.url}
               alt="ATLAS"
