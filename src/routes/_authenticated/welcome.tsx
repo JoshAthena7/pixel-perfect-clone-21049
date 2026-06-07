@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { markOnboardingComplete } from "@/lib/atlas-invites.functions";
-import atlasWordmark from "@/assets/atlas-wordmark-dark.png.asset.json";
+import atlasWordmark from "@/assets/atlas-wordmark-optical.png";
 import athenaMark from "@/assets/athena-mark-v3.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/welcome")({
@@ -153,10 +153,10 @@ function WelcomePage() {
             />
             <span className="atlas-gold-dot" aria-hidden style={{ width: 7, height: 7 }} />
             <img
-              src={atlasWordmark.url}
+              src={atlasWordmark}
               alt="ATLAS"
               draggable={false}
-              className="h-12 w-auto object-contain select-none"
+              className="h-5 w-auto object-contain select-none"
               style={{ filter: "brightness(1.12) drop-shadow(0 0 6px rgba(201,168,76,0.25))" }}
             />
           </div>
