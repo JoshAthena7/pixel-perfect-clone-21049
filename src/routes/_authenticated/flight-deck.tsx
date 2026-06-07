@@ -41,10 +41,24 @@ function FlightDeckResolver() {
     return (
       <div className="mx-auto max-w-xl px-6 py-16 text-center">
         <h1 className="text-lg font-semibold">No mission Flight Deck available</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Join or select a mission to open its live Flight Deck.</p>
-        <Link to="/home" className="mt-4 inline-flex rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted/40">
-          Go to missions
-        </Link>
+        <p className="mt-2 text-sm text-muted-foreground">
+          You're signed in but not a member of any mission yet. Switch accounts or contact your admin.
+        </p>
+        <div className="mt-4 flex items-center justify-center gap-2">
+          <Link to="/home" className="inline-flex rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted/40">
+            Go to missions
+          </Link>
+          <button
+            type="button"
+            onClick={async () => {
+              await supabase.auth.signOut();
+              window.location.href = "/login";
+            }}
+            className="inline-flex rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted/40"
+          >
+            Sign out
+          </button>
+        </div>
       </div>
     );
   }
