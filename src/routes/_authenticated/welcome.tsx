@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { markOnboardingComplete } from "@/lib/atlas-invites.functions";
-import atlasWordmark from "@/assets/atlas-wordmark-v2.png.asset.json";
+import atlasWordmark from "@/assets/atlas-wordmark-dark.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/welcome")({
   component: WelcomePage,
