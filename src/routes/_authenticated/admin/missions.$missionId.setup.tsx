@@ -18,6 +18,7 @@ import { SetupCompletenessMeter } from "@/components/admin/SetupCompletenessMete
 import { LaunchSequence } from "@/components/olympus/LaunchSequence";
 import { PersonPicker } from "@/components/setup/PersonPicker";
 import { UploadMatrixModal } from "@/components/questions/UploadMatrixModal";
+import { MissionStaffingBanner } from "@/components/admin/MissionStaffingBanner";
 import { useIsAdmin } from "@/hooks/useAccess";
 
 export const Route = createFileRoute("/_authenticated/admin/missions/$missionId/setup")({
@@ -1360,13 +1361,16 @@ function SectionQuestions({ missionId, questions, volumes, refetch }: any) {
   return (
     <Section id="questions" n="07" label="Question Setup" sublabel={`${(questions?.length ?? 0)} questions configured · Evaluation mapping required. Pre-populates the Studio with questions, owners, and deadlines.`}>
       <div className="space-y-6">
+        {/* IRIS Staffing Summary — generated after each matrix import */}
+        <MissionStaffingBanner missionId={missionId} />
+
         {/* Upload Matrix — IRIS-reconciled */}
         <div className="rounded-md border border-primary/30 bg-primary/[0.04] p-4 flex items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-primary mb-1">Source of Truth · Matrix</div>
             <div className="text-sm font-medium">Upload Assignment Matrix</div>
             <div className="text-[11px] text-muted-foreground mt-0.5">
-              Upload the client's question + assignment matrix (Excel, CSV, PDF, Word). IRIS extracts questions, sections, writers, SMEs, page limits, weights, and pens-down dates — review, then commit as source of truth.
+              Upload the client's question + assignment matrix (Excel, CSV, PDF, Word). For spreadsheets you'll confirm a column mapping; PDFs/Word use IRIS auto-extraction. After commit, IRIS generates a staffing summary flagging unassigned questions, overloaded writers, and high-risk sections.
             </div>
           </div>
           <button
