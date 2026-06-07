@@ -15,8 +15,9 @@ export function MobileBottomNav() {
   const isAuthRoute = path.startsWith("/login") || path.startsWith("/auth") || path.startsWith("/signup");
   if (isAuthRoute) return null;
 
-  // Hide on the Mission Briefing Room — its own layout already covers navigation.
-  if (path.startsWith("/missions/") && path.endsWith("/brief")) return null;
+  // Hide on the Mission Briefing Room and Flight Deck — their layouts cover navigation.
+  if (path.startsWith("/missions/") && (path.endsWith("/brief") || path.includes("/flight-deck"))) return null;
+  if (path.startsWith("/flight-deck")) return null;
 
   const inMission = !!missionId;
   const inSections = path.startsWith("/missions/") && (path.includes("/sections") || path.includes("/scaffold") || path.includes("/iris"));
