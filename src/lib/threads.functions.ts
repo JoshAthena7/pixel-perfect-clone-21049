@@ -149,6 +149,9 @@ export const listComments = createServerFn({ method: "POST" })
           createdAt: r.created_at,
           anchorText: r.anchor_text,
           versionTag: r.version_tag,
+          isDecision: !!r.is_decision,
+          decisionStarredAt: r.decision_starred_at ?? null,
+          decisionStarredBy: r.decision_starred_by ?? null,
           author: {
             id: r.author_id,
             displayName: r.is_iris_reply ? "IRIS" : p?.display_name ?? "Unknown",
