@@ -243,7 +243,7 @@ function IrisIntelligenceNav({ missionId }: { missionId: string }) {
   const items = [
     { to: "/missions/$missionId/iris-brief" as const, label: "Mission Brief", Icon: FileText, tone: "#C9A84C" },
     { to: "/missions/$missionId/iris-strategic" as const, label: "Strategic Assessment", Icon: Target, tone: "#60A5FA" },
-    { to: "/missions/$missionId/section-briefs" as const, label: "Writer Briefs", Icon: MessageSquare, tone: "#a78bfa" },
+    { to: "/missions/$missionId/section-briefs" as const, label: "Pre-Flight", Icon: MessageSquare, tone: "#a78bfa" },
     { to: "/missions/$missionId/intel-upload" as const, label: "Intelligence Vault", Icon: Upload, tone: "#a3a3a3" },
   ];
   return (
