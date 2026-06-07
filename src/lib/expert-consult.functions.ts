@@ -334,13 +334,22 @@ export const sendConsult = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
 
+    // Look up requester display name for thread attribution
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("display_name,email")
+      .eq("id", userId)
+      .maybeSingle();
+    const authorName = prof?.display_name || prof?.email || "Team member";
+
     // Cross-post to question thread so the consult is visible in the reconciliation row
     if (data.questionId) {
       await supabase.from("question_collaboration").insert({
         question_id: data.questionId,
         mission_id: data.missionId,
         author_id: userId,
-        entry_type: "phone_a_friend",
+        author_name: authorName,
+        entry_type: "sme_request",
         body: `Phone-a-Friend request sent: ${data.askSubject}`,
       });
     }
@@ -348,11 +357,13 @@ export const sendConsult = createServerFn({ method: "POST" })
     // Surface on Air Traffic Control via signals stream
     await supabase.from("signals").insert({
       mission_id: data.missionId,
+      user_id: userId,
+      source_module: "phone_a_friend",
       signal_type: "expert_consult",
       signal_title: data.askSubject,
       signal_summary: `Phone-a-Friend request · urgency ${data.urgency}`,
       severity: data.urgency === "urgent" ? "high" : "medium",
-      status: "active",
+      status: "open",
     });
 
     return { id: row.id };
