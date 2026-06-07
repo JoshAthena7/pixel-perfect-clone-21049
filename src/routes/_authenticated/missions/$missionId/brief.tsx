@@ -7,7 +7,7 @@ import {
   Zap, CheckCircle2, AlertCircle, Bell, Gavel, Calendar, XCircle, Sparkles,
   Check, Circle, Link2,
 } from "lucide-react";
-import lighthouse from "@/assets/briefing-lighthouse.jpg";
+
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/brief")({
   ssr: false,
@@ -147,15 +147,7 @@ function MissionBriefingRoomPage() {
 function Hero() {
   return (
     <div style={{ ...card, position: "relative", overflow: "hidden", padding: 0 }}>
-      {/* Lighthouse decorative photo right side */}
-      <div style={{
-        position: "absolute", top: 0, right: 0, bottom: 0, width: "55%",
-        backgroundImage: `url(${lighthouse})`, backgroundSize: "cover", backgroundPosition: "center right",
-      }} />
-      <div style={{
-        position: "absolute", top: 0, right: 0, bottom: 0, width: "60%",
-        background: "linear-gradient(to right, '#0f1722' 0%, rgba(15,23,34,0.92) 25%, rgba(15,23,34,0.55) 60%, rgba(15,23,34,0.15) 100%)",
-      }} />
+
 
       <div style={{ position: "relative", padding: "24px 28px 20px", display: "flex", flexDirection: "column", gap: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 32 }}>
