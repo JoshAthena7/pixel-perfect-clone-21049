@@ -329,7 +329,51 @@ function StatusPill({ text, color }: { text: string; color: string }) {
   );
 }
 
-/* ════════════════ MISSION OBJECTIVE ════════════════ */
+/* ════════════════ GET STARTED (H-6) ════════════════ */
+function GetStartedCard({ missionId, brief }: { missionId: string; brief: MissionBrief }) {
+  const m = brief.mission;
+  const isDraft = (m.status ?? "").toLowerCase() === "draft";
+  const hasTeam = brief.team.length > 0;
+  const hasThemes = brief.winThemes.length > 0;
+  const hasIntel = brief.signals.length > 0;
+  // Show only while the mission is clearly under-configured.
+  const ready = hasTeam && hasThemes && hasIntel && !!m.submission_date;
+  if (!isDraft && ready) return null;
+  return (
+    <div style={{
+      ...card,
+      padding: "20px 24px",
+      borderColor: "rgba(224,179,65,0.35)",
+      background: "linear-gradient(135deg, rgba(224,179,65,0.10), rgba(224,179,65,0.02))",
+    }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: C.gold, textTransform: "uppercase", marginBottom: 6 }}>
+            Get Started
+          </div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: C.textPrimary, marginBottom: 4 }}>
+            Your mission is set up. Complete your Setup Record to activate IRIS and unlock full mission intelligence.
+          </div>
+          <div style={{ fontSize: 12, color: C.textMuted }}>
+            One next step beats eight half-finished ones. Start with the Setup Record — everything else fills in from there.
+          </div>
+        </div>
+        <Link
+          to="/admin/missions/$missionId/setup"
+          params={{ missionId }}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "10px 16px", borderRadius: 8,
+            background: C.gold, color: "#0a1322", fontSize: 13, fontWeight: 700,
+            textDecoration: "none", whiteSpace: "nowrap",
+          }}
+        >
+          Go to Setup Record <ArrowRight size={14} />
+        </Link>
+      </div>
+    </div>
+  );
+}
 function MissionObjective({ brief }: { brief: MissionBrief }) {
   const m = brief.mission;
   // Prefer program_goals, fall back to first paragraph of description.
