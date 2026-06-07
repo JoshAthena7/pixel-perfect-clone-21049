@@ -817,7 +817,7 @@ function Step4Refined({
           style={{ background: NAVY, border: `1px solid ${GOLD}` }}
         >
           <p className="text-xs uppercase tracking-wider mb-2" style={{ color: GOLD }}>
-            IRIS Refined Brief — {brief.section_name}
+            Flight Plan — {brief.section_name}
           </p>
           <p className="text-lg font-semibold text-white">{rb.refined_headline}</p>
         </div>
