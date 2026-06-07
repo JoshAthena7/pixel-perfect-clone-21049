@@ -602,7 +602,7 @@ function BottomPanels({ missionId }: { missionId: string }) {
             alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: C.textBody,
           }}>+27</div>
         </div>
-        <a href="#" style={{ ...linkBlue, marginTop: 14 }}>View Team <ArrowRight size={12} /></a>
+        
       </div>
 
       {/* Vault */}
@@ -620,7 +620,7 @@ function BottomPanels({ missionId }: { missionId: string }) {
             </div>
           ))}
         </div>
-        <a href="#" style={{ ...linkBlue, marginTop: 12 }}>Go to Vault <ArrowRight size={12} /></a>
+        
       </div>
 
       {/* Questions */}
@@ -635,7 +635,7 @@ function BottomPanels({ missionId }: { missionId: string }) {
           <Row k="Unassigned" v="0" />
           <Row k="Completed" v="12 (8%)" />
         </div>
-        <a href="#" style={{ ...linkBlue, marginTop: 12 }}>View All Questions <ArrowRight size={12} /></a>
+        
       </div>
 
       {/* Oracle */}
@@ -656,7 +656,7 @@ function BottomPanels({ missionId }: { missionId: string }) {
             </div>
           ))}
         </div>
-        <a href="#" style={{ ...linkBlue, marginTop: 12 }}>Go to Oracle <ArrowRight size={12} /></a>
+        
       </div>
     </div>
   );
