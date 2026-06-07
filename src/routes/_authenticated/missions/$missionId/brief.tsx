@@ -147,11 +147,10 @@ function MissionBriefingRoomPage() {
 function Hero() {
   return (
     <div style={{ ...card, position: "relative", overflow: "hidden", padding: 0 }}>
-
-
       <div style={{ position: "relative", padding: "24px 28px 20px", display: "flex", flexDirection: "column", gap: 14 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 32 }}>
-          <div style={{ minWidth: 0, maxWidth: "55%" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 32, flexWrap: "wrap" }}>
+          <div style={{ minWidth: 0 }}>
+
             <div style={{ fontSize: 11, fontWeight: 600, color: C.iris, letterSpacing: "0.05em", textTransform: "uppercase" }}>
               Mission Briefing Room
             </div>
