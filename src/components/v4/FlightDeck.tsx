@@ -880,11 +880,15 @@ function OpenConsultsPanel({
           No open expert consults.
         </div>
       ) : (
-        <ul className="max-h-[280px] divide-y divide-border/40 overflow-y-auto">
+        <ul className="max-h-[320px] divide-y divide-border/40 overflow-y-auto">
           {open.slice(0, 12).map((r) => {
             const q = r.question_id ? qMap.get(r.question_id) : null;
+            const stage =
+              r.status === "responded" ? 3
+              : r.status === "acknowledged" || r.status === "needs_info" ? 2
+              : 1;
             return (
-              <li key={r.id} className="px-3 py-2 text-[11px]">
+              <li key={r.id} className="px-3 py-2.5 text-[11px]">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-muted-foreground">
                     {q ? `Q${q.question_number}` : "General"}
@@ -894,7 +898,35 @@ function OpenConsultsPanel({
                   </span>
                 </div>
                 <div className="mt-1 line-clamp-2 text-foreground/85">{r.ask_subject}</div>
-                <div className="mt-0.5 text-[10px] text-muted-foreground tabular-nums">
+                {/* Sent → Acknowledged → Response Received tracker */}
+                <div className="mt-2 flex items-center gap-1">
+                  {[
+                    { n: 1, label: "Sent" },
+                    { n: 2, label: "Ack" },
+                    { n: 3, label: "Response" },
+                  ].map((step, i) => (
+                    <div key={step.n} className="flex flex-1 items-center gap-1">
+                      <div
+                        className={`flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[8px] font-bold ${
+                          stage >= step.n
+                            ? step.n === 3
+                              ? "bg-emerald-500 text-white"
+                              : "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {stage > step.n ? "✓" : step.n}
+                      </div>
+                      <span className={`text-[9px] uppercase tracking-[0.1em] ${stage >= step.n ? "text-foreground/80" : "text-muted-foreground/60"}`}>
+                        {step.label}
+                      </span>
+                      {i < 2 && (
+                        <div className={`h-px flex-1 ${stage > step.n ? "bg-primary/60" : "bg-border"}`} />
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-1 text-[10px] text-muted-foreground tabular-nums">
                   {ageOf(r.created_at)} ago · urgency {r.urgency}
                 </div>
               </li>
