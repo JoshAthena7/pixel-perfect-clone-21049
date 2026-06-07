@@ -220,12 +220,12 @@ function VaultPage() {
 
 
 
-      {/* Beta: sensitive-data warning. Vault content is visible to every signed-in Atlas user on this mission. */}
-      <div className="rounded-[10px] border border-rose-500/30 bg-rose-500/[0.06] px-4 py-3 text-[12px] leading-relaxed text-rose-100">
-        <div className="font-semibold text-rose-200 mb-0.5">Do not upload PHI, PII, or client-confidential material.</div>
-        Beta Vault content is visible to every signed-in user on this mission. No HIPAA-regulated data,
-        member identifiers, or confidential contract terms. Admin-only uploads during beta.
+      {/* Vault is read-only. All intel and documents are ingested through Olympus (admin only). */}
+      <div className="rounded-[10px] border border-white/10 bg-white/[0.03] px-4 py-3 text-[12px] leading-relaxed text-muted-foreground">
+        <div className="font-semibold text-foreground/90 mb-0.5">Vault is read-only here.</div>
+        All intel and vault documents are ingested through Olympus by a platform admin. Do not upload PHI, PII, or client-confidential material to Atlas.
       </div>
+
 
 
 
