@@ -116,10 +116,8 @@ function MissionBriefingRoomPage() {
     <div style={{
       background: C.bg, minHeight: "100vh", color: C.textPrimary,
       fontFamily: "Inter, system-ui, -apple-system, sans-serif",
-      display: "flex",
     }}>
-      <Sidebar />
-      <main style={{ flex: 1, padding: "20px 24px", overflowX: "hidden" }}>
+      <main style={{ maxWidth: 1400, margin: "0 auto", padding: "20px 24px", overflowX: "hidden" }}>
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0,3fr) minmax(280px,1fr)", gap: 20, alignItems: "start" }}>
           {/* ── LEFT (main) column ── */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
