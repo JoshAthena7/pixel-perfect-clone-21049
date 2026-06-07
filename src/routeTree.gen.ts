@@ -67,6 +67,7 @@ import { Route as AuthenticatedAdminStatusReportRouteImport } from './routes/_au
 import { Route as AuthenticatedAdminSourceLibraryRouteImport } from './routes/_authenticated/admin/source-library'
 import { Route as AuthenticatedAdminSourceFinderRouteImport } from './routes/_authenticated/admin/source-finder'
 import { Route as AuthenticatedAdminScoreMeRouteImport } from './routes/_authenticated/admin/score-me'
+import { Route as AuthenticatedAdminRightToDeletionRouteImport } from './routes/_authenticated/admin/right-to-deletion'
 import { Route as AuthenticatedAdminReviewQueueRouteImport } from './routes/_authenticated/admin/review-queue'
 import { Route as AuthenticatedAdminPhiLogRouteImport } from './routes/_authenticated/admin/phi-log'
 import { Route as AuthenticatedAdminIrisMemoryRouteImport } from './routes/_authenticated/admin/iris-memory'
@@ -74,6 +75,7 @@ import { Route as AuthenticatedAdminInvitesRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminIntelligenceRouteImport } from './routes/_authenticated/admin/intelligence'
 import { Route as AuthenticatedAdminIntelEngineRouteImport } from './routes/_authenticated/admin/intel-engine'
 import { Route as AuthenticatedAdminIntelDriftRouteImport } from './routes/_authenticated/admin/intel-drift'
+import { Route as AuthenticatedAdminIncidentResponseRouteImport } from './routes/_authenticated/admin/incident-response'
 import { Route as AuthenticatedAdminFirmHealthRouteImport } from './routes/_authenticated/admin/firm-health'
 import { Route as AuthenticatedAdminExpertiseRouteImport } from './routes/_authenticated/admin/expertise'
 import { Route as AuthenticatedAdminDiscoveryHistoryRouteImport } from './routes/_authenticated/admin/discovery-history'
@@ -81,6 +83,7 @@ import { Route as AuthenticatedAdminConflictsRouteImport } from './routes/_authe
 import { Route as AuthenticatedAdminComparablesRouteImport } from './routes/_authenticated/admin/comparables'
 import { Route as AuthenticatedAdminCanonLibraryRouteImport } from './routes/_authenticated/admin/canon-library'
 import { Route as AuthenticatedAdminBriefRoomRouteImport } from './routes/_authenticated/admin/brief-room'
+import { Route as AuthenticatedAdminAuditLogRouteImport } from './routes/_authenticated/admin/audit-log'
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
 import { Route as AuthenticatedAdminAtlasSourcesRouteImport } from './routes/_authenticated/admin/atlas-sources'
 import { Route as AuthenticatedAdminAdminsRouteImport } from './routes/_authenticated/admin/admins'
@@ -436,6 +439,12 @@ const AuthenticatedAdminScoreMeRoute =
     path: '/score-me',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminRightToDeletionRoute =
+  AuthenticatedAdminRightToDeletionRouteImport.update({
+    id: '/right-to-deletion',
+    path: '/right-to-deletion',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminReviewQueueRoute =
   AuthenticatedAdminReviewQueueRouteImport.update({
     id: '/review-queue',
@@ -478,6 +487,12 @@ const AuthenticatedAdminIntelDriftRoute =
     path: '/intel-drift',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminIncidentResponseRoute =
+  AuthenticatedAdminIncidentResponseRouteImport.update({
+    id: '/incident-response',
+    path: '/incident-response',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminFirmHealthRoute =
   AuthenticatedAdminFirmHealthRouteImport.update({
     id: '/firm-health',
@@ -518,6 +533,12 @@ const AuthenticatedAdminBriefRoomRoute =
   AuthenticatedAdminBriefRoomRouteImport.update({
     id: '/brief-room',
     path: '/brief-room',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminAuditLogRoute =
+  AuthenticatedAdminAuditLogRouteImport.update({
+    id: '/audit-log',
+    path: '/audit-log',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminAuditRoute = AuthenticatedAdminAuditRouteImport.update({
@@ -790,6 +811,7 @@ export interface FileRoutesByFullPath {
   '/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/admin/atlas-sources': typeof AuthenticatedAdminAtlasSourcesRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/admin/brief-room': typeof AuthenticatedAdminBriefRoomRoute
   '/admin/canon-library': typeof AuthenticatedAdminCanonLibraryRoute
   '/admin/comparables': typeof AuthenticatedAdminComparablesRoute
@@ -797,6 +819,7 @@ export interface FileRoutesByFullPath {
   '/admin/discovery-history': typeof AuthenticatedAdminDiscoveryHistoryRoute
   '/admin/expertise': typeof AuthenticatedAdminExpertiseRoute
   '/admin/firm-health': typeof AuthenticatedAdminFirmHealthRoute
+  '/admin/incident-response': typeof AuthenticatedAdminIncidentResponseRoute
   '/admin/intel-drift': typeof AuthenticatedAdminIntelDriftRoute
   '/admin/intel-engine': typeof AuthenticatedAdminIntelEngineRoute
   '/admin/intelligence': typeof AuthenticatedAdminIntelligenceRoute
@@ -804,6 +827,7 @@ export interface FileRoutesByFullPath {
   '/admin/iris-memory': typeof AuthenticatedAdminIrisMemoryRoute
   '/admin/phi-log': typeof AuthenticatedAdminPhiLogRoute
   '/admin/review-queue': typeof AuthenticatedAdminReviewQueueRoute
+  '/admin/right-to-deletion': typeof AuthenticatedAdminRightToDeletionRoute
   '/admin/score-me': typeof AuthenticatedAdminScoreMeRoute
   '/admin/source-finder': typeof AuthenticatedAdminSourceFinderRoute
   '/admin/source-library': typeof AuthenticatedAdminSourceLibraryRoute
@@ -901,6 +925,7 @@ export interface FileRoutesByTo {
   '/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/admin/atlas-sources': typeof AuthenticatedAdminAtlasSourcesRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/admin/brief-room': typeof AuthenticatedAdminBriefRoomRoute
   '/admin/canon-library': typeof AuthenticatedAdminCanonLibraryRoute
   '/admin/comparables': typeof AuthenticatedAdminComparablesRoute
@@ -908,6 +933,7 @@ export interface FileRoutesByTo {
   '/admin/discovery-history': typeof AuthenticatedAdminDiscoveryHistoryRoute
   '/admin/expertise': typeof AuthenticatedAdminExpertiseRoute
   '/admin/firm-health': typeof AuthenticatedAdminFirmHealthRoute
+  '/admin/incident-response': typeof AuthenticatedAdminIncidentResponseRoute
   '/admin/intel-drift': typeof AuthenticatedAdminIntelDriftRoute
   '/admin/intel-engine': typeof AuthenticatedAdminIntelEngineRoute
   '/admin/intelligence': typeof AuthenticatedAdminIntelligenceRoute
@@ -915,6 +941,7 @@ export interface FileRoutesByTo {
   '/admin/iris-memory': typeof AuthenticatedAdminIrisMemoryRoute
   '/admin/phi-log': typeof AuthenticatedAdminPhiLogRoute
   '/admin/review-queue': typeof AuthenticatedAdminReviewQueueRoute
+  '/admin/right-to-deletion': typeof AuthenticatedAdminRightToDeletionRoute
   '/admin/score-me': typeof AuthenticatedAdminScoreMeRoute
   '/admin/source-finder': typeof AuthenticatedAdminSourceFinderRoute
   '/admin/source-library': typeof AuthenticatedAdminSourceLibraryRoute
@@ -1014,6 +1041,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/_authenticated/admin/atlas-sources': typeof AuthenticatedAdminAtlasSourcesRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/_authenticated/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/_authenticated/admin/brief-room': typeof AuthenticatedAdminBriefRoomRoute
   '/_authenticated/admin/canon-library': typeof AuthenticatedAdminCanonLibraryRoute
   '/_authenticated/admin/comparables': typeof AuthenticatedAdminComparablesRoute
@@ -1021,6 +1049,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/discovery-history': typeof AuthenticatedAdminDiscoveryHistoryRoute
   '/_authenticated/admin/expertise': typeof AuthenticatedAdminExpertiseRoute
   '/_authenticated/admin/firm-health': typeof AuthenticatedAdminFirmHealthRoute
+  '/_authenticated/admin/incident-response': typeof AuthenticatedAdminIncidentResponseRoute
   '/_authenticated/admin/intel-drift': typeof AuthenticatedAdminIntelDriftRoute
   '/_authenticated/admin/intel-engine': typeof AuthenticatedAdminIntelEngineRoute
   '/_authenticated/admin/intelligence': typeof AuthenticatedAdminIntelligenceRoute
@@ -1028,6 +1057,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/iris-memory': typeof AuthenticatedAdminIrisMemoryRoute
   '/_authenticated/admin/phi-log': typeof AuthenticatedAdminPhiLogRoute
   '/_authenticated/admin/review-queue': typeof AuthenticatedAdminReviewQueueRoute
+  '/_authenticated/admin/right-to-deletion': typeof AuthenticatedAdminRightToDeletionRoute
   '/_authenticated/admin/score-me': typeof AuthenticatedAdminScoreMeRoute
   '/_authenticated/admin/source-finder': typeof AuthenticatedAdminSourceFinderRoute
   '/_authenticated/admin/source-library': typeof AuthenticatedAdminSourceLibraryRoute
@@ -1129,6 +1159,7 @@ export interface FileRouteTypes {
     | '/admin/admins'
     | '/admin/atlas-sources'
     | '/admin/audit'
+    | '/admin/audit-log'
     | '/admin/brief-room'
     | '/admin/canon-library'
     | '/admin/comparables'
@@ -1136,6 +1167,7 @@ export interface FileRouteTypes {
     | '/admin/discovery-history'
     | '/admin/expertise'
     | '/admin/firm-health'
+    | '/admin/incident-response'
     | '/admin/intel-drift'
     | '/admin/intel-engine'
     | '/admin/intelligence'
@@ -1143,6 +1175,7 @@ export interface FileRouteTypes {
     | '/admin/iris-memory'
     | '/admin/phi-log'
     | '/admin/review-queue'
+    | '/admin/right-to-deletion'
     | '/admin/score-me'
     | '/admin/source-finder'
     | '/admin/source-library'
@@ -1240,6 +1273,7 @@ export interface FileRouteTypes {
     | '/admin/admins'
     | '/admin/atlas-sources'
     | '/admin/audit'
+    | '/admin/audit-log'
     | '/admin/brief-room'
     | '/admin/canon-library'
     | '/admin/comparables'
@@ -1247,6 +1281,7 @@ export interface FileRouteTypes {
     | '/admin/discovery-history'
     | '/admin/expertise'
     | '/admin/firm-health'
+    | '/admin/incident-response'
     | '/admin/intel-drift'
     | '/admin/intel-engine'
     | '/admin/intelligence'
@@ -1254,6 +1289,7 @@ export interface FileRouteTypes {
     | '/admin/iris-memory'
     | '/admin/phi-log'
     | '/admin/review-queue'
+    | '/admin/right-to-deletion'
     | '/admin/score-me'
     | '/admin/source-finder'
     | '/admin/source-library'
@@ -1352,6 +1388,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/admins'
     | '/_authenticated/admin/atlas-sources'
     | '/_authenticated/admin/audit'
+    | '/_authenticated/admin/audit-log'
     | '/_authenticated/admin/brief-room'
     | '/_authenticated/admin/canon-library'
     | '/_authenticated/admin/comparables'
@@ -1359,6 +1396,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/discovery-history'
     | '/_authenticated/admin/expertise'
     | '/_authenticated/admin/firm-health'
+    | '/_authenticated/admin/incident-response'
     | '/_authenticated/admin/intel-drift'
     | '/_authenticated/admin/intel-engine'
     | '/_authenticated/admin/intelligence'
@@ -1366,6 +1404,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/iris-memory'
     | '/_authenticated/admin/phi-log'
     | '/_authenticated/admin/review-queue'
+    | '/_authenticated/admin/right-to-deletion'
     | '/_authenticated/admin/score-me'
     | '/_authenticated/admin/source-finder'
     | '/_authenticated/admin/source-library'
@@ -1871,6 +1910,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminScoreMeRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/right-to-deletion': {
+      id: '/_authenticated/admin/right-to-deletion'
+      path: '/right-to-deletion'
+      fullPath: '/admin/right-to-deletion'
+      preLoaderRoute: typeof AuthenticatedAdminRightToDeletionRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/review-queue': {
       id: '/_authenticated/admin/review-queue'
       path: '/review-queue'
@@ -1920,6 +1966,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIntelDriftRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/incident-response': {
+      id: '/_authenticated/admin/incident-response'
+      path: '/incident-response'
+      fullPath: '/admin/incident-response'
+      preLoaderRoute: typeof AuthenticatedAdminIncidentResponseRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/firm-health': {
       id: '/_authenticated/admin/firm-health'
       path: '/firm-health'
@@ -1967,6 +2020,13 @@ declare module '@tanstack/react-router' {
       path: '/brief-room'
       fullPath: '/admin/brief-room'
       preLoaderRoute: typeof AuthenticatedAdminBriefRoomRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/audit-log': {
+      id: '/_authenticated/admin/audit-log'
+      path: '/audit-log'
+      fullPath: '/admin/audit-log'
+      preLoaderRoute: typeof AuthenticatedAdminAuditLogRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/audit': {
@@ -2256,6 +2316,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAdminsRoute: typeof AuthenticatedAdminAdminsRoute
   AuthenticatedAdminAtlasSourcesRoute: typeof AuthenticatedAdminAtlasSourcesRoute
   AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
+  AuthenticatedAdminAuditLogRoute: typeof AuthenticatedAdminAuditLogRoute
   AuthenticatedAdminBriefRoomRoute: typeof AuthenticatedAdminBriefRoomRoute
   AuthenticatedAdminCanonLibraryRoute: typeof AuthenticatedAdminCanonLibraryRoute
   AuthenticatedAdminComparablesRoute: typeof AuthenticatedAdminComparablesRoute
@@ -2263,6 +2324,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminDiscoveryHistoryRoute: typeof AuthenticatedAdminDiscoveryHistoryRoute
   AuthenticatedAdminExpertiseRoute: typeof AuthenticatedAdminExpertiseRoute
   AuthenticatedAdminFirmHealthRoute: typeof AuthenticatedAdminFirmHealthRoute
+  AuthenticatedAdminIncidentResponseRoute: typeof AuthenticatedAdminIncidentResponseRoute
   AuthenticatedAdminIntelDriftRoute: typeof AuthenticatedAdminIntelDriftRoute
   AuthenticatedAdminIntelEngineRoute: typeof AuthenticatedAdminIntelEngineRoute
   AuthenticatedAdminIntelligenceRoute: typeof AuthenticatedAdminIntelligenceRoute
@@ -2270,6 +2332,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminIrisMemoryRoute: typeof AuthenticatedAdminIrisMemoryRoute
   AuthenticatedAdminPhiLogRoute: typeof AuthenticatedAdminPhiLogRoute
   AuthenticatedAdminReviewQueueRoute: typeof AuthenticatedAdminReviewQueueRoute
+  AuthenticatedAdminRightToDeletionRoute: typeof AuthenticatedAdminRightToDeletionRoute
   AuthenticatedAdminScoreMeRoute: typeof AuthenticatedAdminScoreMeRoute
   AuthenticatedAdminSourceFinderRoute: typeof AuthenticatedAdminSourceFinderRoute
   AuthenticatedAdminSourceLibraryRoute: typeof AuthenticatedAdminSourceLibraryRoute
@@ -2285,6 +2348,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAdminsRoute: AuthenticatedAdminAdminsRoute,
   AuthenticatedAdminAtlasSourcesRoute: AuthenticatedAdminAtlasSourcesRoute,
   AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
+  AuthenticatedAdminAuditLogRoute: AuthenticatedAdminAuditLogRoute,
   AuthenticatedAdminBriefRoomRoute: AuthenticatedAdminBriefRoomRoute,
   AuthenticatedAdminCanonLibraryRoute: AuthenticatedAdminCanonLibraryRoute,
   AuthenticatedAdminComparablesRoute: AuthenticatedAdminComparablesRoute,
@@ -2293,6 +2357,8 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
     AuthenticatedAdminDiscoveryHistoryRoute,
   AuthenticatedAdminExpertiseRoute: AuthenticatedAdminExpertiseRoute,
   AuthenticatedAdminFirmHealthRoute: AuthenticatedAdminFirmHealthRoute,
+  AuthenticatedAdminIncidentResponseRoute:
+    AuthenticatedAdminIncidentResponseRoute,
   AuthenticatedAdminIntelDriftRoute: AuthenticatedAdminIntelDriftRoute,
   AuthenticatedAdminIntelEngineRoute: AuthenticatedAdminIntelEngineRoute,
   AuthenticatedAdminIntelligenceRoute: AuthenticatedAdminIntelligenceRoute,
@@ -2300,6 +2366,8 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminIrisMemoryRoute: AuthenticatedAdminIrisMemoryRoute,
   AuthenticatedAdminPhiLogRoute: AuthenticatedAdminPhiLogRoute,
   AuthenticatedAdminReviewQueueRoute: AuthenticatedAdminReviewQueueRoute,
+  AuthenticatedAdminRightToDeletionRoute:
+    AuthenticatedAdminRightToDeletionRoute,
   AuthenticatedAdminScoreMeRoute: AuthenticatedAdminScoreMeRoute,
   AuthenticatedAdminSourceFinderRoute: AuthenticatedAdminSourceFinderRoute,
   AuthenticatedAdminSourceLibraryRoute: AuthenticatedAdminSourceLibraryRoute,

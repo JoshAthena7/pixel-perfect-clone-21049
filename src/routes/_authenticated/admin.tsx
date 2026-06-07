@@ -8,7 +8,7 @@ import {
   ArrowLeft, ChevronDown, Zap,
   LayoutGrid, ClipboardCheck, UserCog, History, Brain,
   UserPlus, Activity,
-  ShieldAlert, UserMinus, ExternalLink, Megaphone,
+  ShieldAlert, UserMinus, Megaphone,
   Globe, Inbox, TrendingUp, Gauge, Compass,
 } from "lucide-react";
 
@@ -219,16 +219,8 @@ function AdminSidebar() {
         <SidebarItem to="/admin/audit" path={path} icon={<History size={15} strokeWidth={1.5} />}>Audit Log</SidebarItem>
         <SidebarItem to="/admin/conflicts" path={path} icon={<ShieldAlert size={15} strokeWidth={1.5} />}>Conflicts</SidebarItem>
         <SidebarItem to="/admin/phi-log" path={path} icon={<ShieldAlert size={15} strokeWidth={1.5} />}>PHI Rejection Log</SidebarItem>
-        <SidebarItem to="/admin/writer-deletion" path={path} icon={<UserMinus size={15} strokeWidth={1.5} />}>Right-to-Deletion</SidebarItem>
-        <a
-          href="https://athenacommandcenter.com/security/incident-response"
-          target="_blank"
-          rel="noreferrer"
-          className="flex items-center gap-2 rounded px-3 py-1.5 text-[12px] text-muted-foreground hover:bg-surface-hover hover:text-foreground"
-        >
-          <ExternalLink size={15} strokeWidth={1.5} />
-          <span>Incident Response Plan</span>
-        </a>
+        <SidebarItem to="/admin/right-to-deletion" path={path} icon={<UserMinus size={15} strokeWidth={1.5} />}>Right-to-Deletion</SidebarItem>
+        <SidebarItem to="/admin/incident-response" path={path} icon={<ShieldAlert size={15} strokeWidth={1.5} />}>Incident Response Plan</SidebarItem>
       </nav>
     </aside>
   );
