@@ -2,19 +2,75 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 /**
  * Read aggregator for the IRIS page. Uses the admin client to read all
- * five output slices for a mission in one shot. Authentication and
- * authorization are enforced by the API route caller (see
- * src/routes/api/iris.ts).
+ * five output slices for a mission in one shot. Authentication is enforced
+ * by the API route caller (see src/routes/api/iris.ts). When userId is
+ * provided, results are scoped to missions the user is a member of (or
+ * the user is a platform admin).
  */
-export async function getIrisPayload(missionIdInput?: string) {
+export async function getIrisPayload(
+  missionIdInput?: string,
+  userId?: string,
+): Promise<
+  | {
+      mission: any;
+      missions: any[];
+      signals: any[];
+      risks: any[];
+      winThemes: any[];
+      strategy: any[];
+      clientIntel: any;
+    }
+  | { error: string }
+> {
+  // Resolve mission scope: which mission IDs is the caller allowed to see?
+  let allowedMissionIds: string[] | null = null; // null = no caller scoping (admin)
+  let isAdmin = false;
+
+  if (userId) {
+    const { data: adminRow } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "admin")
+      .maybeSingle();
+    isAdmin = !!adminRow;
+
+    if (!isAdmin) {
+      const { data: memberships } = await supabaseAdmin
+        .from("mission_members")
+        .select("mission_id")
+        .eq("user_id", userId);
+      allowedMissionIds = (memberships ?? []).map((m: any) => m.mission_id);
+    }
+  }
+
+  // Membership check for explicitly requested mission.
+  if (missionIdInput && allowedMissionIds && !allowedMissionIds.includes(missionIdInput)) {
+    return { error: "Forbidden" };
+  }
+
   let missionId = missionIdInput ?? null;
   if (!missionId) {
-    const { data: first } = await supabaseAdmin
+    const q = supabaseAdmin
       .from("missions")
       .select("id")
       .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(1);
+    if (allowedMissionIds) {
+      if (allowedMissionIds.length === 0) {
+        return {
+          mission: null,
+          signals: [],
+          risks: [],
+          winThemes: [],
+          strategy: [],
+          clientIntel: null,
+          missions: [],
+        };
+      }
+      q.in("id", allowedMissionIds);
+    }
+    const { data: first } = await q.maybeSingle();
     missionId = first?.id ?? null;
   }
   if (!missionId) {
@@ -29,10 +85,12 @@ export async function getIrisPayload(missionIdInput?: string) {
     };
   }
 
-  const { data: missions } = await supabaseAdmin
+  const missionsQuery = supabaseAdmin
     .from("missions")
     .select("id,name,client,state,state_agency,procurement_name,submission_date,health,status")
     .order("created_at", { ascending: false });
+  if (allowedMissionIds) missionsQuery.in("id", allowedMissionIds);
+  const { data: missions } = await missionsQuery;
 
   const { data: mission } = await supabaseAdmin
     .from("missions")
