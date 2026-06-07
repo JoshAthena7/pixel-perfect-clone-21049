@@ -19,10 +19,6 @@ import {
   Loader2,
   Link2,
   Lock,
-  Sparkles,
-  AlertTriangle,
-  Target,
-  Handshake,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useAccess";
