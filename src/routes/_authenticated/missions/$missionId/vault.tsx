@@ -397,17 +397,8 @@ function VaultPage() {
         </div>
       )}
 
-      {openUpload && (
-        <UploadModal
-          missionId={missionId}
-          docType={openUpload}
-          onClose={() => setOpenUpload(null)}
-          onSaved={() => {
-            qc.invalidateQueries({ queryKey: ["vault", missionId] });
-            setOpenUpload(null);
-          }}
-        />
-      )}
+      {/* Upload modal removed — uploads only via Olympus admin. */}
+
       </div>
     </>
   );
