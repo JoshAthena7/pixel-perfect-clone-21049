@@ -49,6 +49,9 @@ type Q = {
   health: "red" | "yellow" | "green" | null;
   status: string | null;
   current_score: number | null;
+  iris_risk_flag: string | null;
+  iris_risk_flag_text: string | null;
+  point_value: number | null;
 };
 
 function MissionFlightDeckPage() {
