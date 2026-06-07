@@ -45,6 +45,18 @@ export function HealthDashboardPage() {
     refetchInterval: 60_000,
   });
 
+  const { data: progress } = useQuery({
+    queryKey: ["mission-progress", effectiveMissionId],
+    enabled: !!effectiveMissionId,
+    queryFn: async () => {
+      const [total, completed] = await Promise.all([
+        supabase.from("question_records").select("id", { count: "exact", head: true }).eq("mission_id", effectiveMissionId!),
+        supabase.from("question_records").select("id", { count: "exact", head: true }).eq("mission_id", effectiveMissionId!).in("status", ["approved", "submitted"]),
+      ]);
+      return { total: total.count ?? 0, completed: completed.count ?? 0 };
+    },
+  });
+
   const [view, setView] = useState<"section" | "writer" | "activity">("section");
   const [scoreOpen, setScoreOpen] = useState(false);
 
