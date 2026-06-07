@@ -618,7 +618,7 @@ function Step2Questions({
           <div className="flex items-center gap-2 mb-2">
             <Trophy className="w-5 h-5" style={{ color: GOLD }} />
             <h3 className="text-base font-bold" style={{ color: GOLD }}>
-              The Win Question
+              Cleared for Takeoff
             </h3>
           </div>
           <p className="text-lg text-white mb-2">{qs.the_win_question.question}</p>
