@@ -121,7 +121,7 @@ function MissionBriefingRoomPage() {
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0,3fr) minmax(280px,1fr)", gap: 20, alignItems: "start" }}>
           {/* ── LEFT (main) column ── */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
-            <Hero />
+            <Hero missionId={missionId} />
             <MissionObjective />
             <StrategicBrief />
             <ThreeColumnRow />
