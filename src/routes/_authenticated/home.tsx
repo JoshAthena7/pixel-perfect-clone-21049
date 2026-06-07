@@ -13,6 +13,7 @@ import { ArrowRight, Megaphone, CalendarClock, DoorOpen, ClipboardList, Search, 
 import { HORIZON_FILTERS, inferCategory, matchesHorizonFilter, type IntelItem } from "@/lib/intelligence-feed";
 import { LiveBadge, ScanningBeam, IrisWaveform, TypewriterText } from "@/components/v2/effects";
 import { Constellation, AnimatedNumber } from "@/components/v2/polish";
+import { MissionProgressRing } from "@/components/MissionProgressRing";
 import athenaLogo from "@/assets/athena-logo.png";
 import atlasLogo from "@/assets/atlas-wordmark-optical.png";
 import athenaMark from "@/assets/athena-mark-v3.png.asset.json";
