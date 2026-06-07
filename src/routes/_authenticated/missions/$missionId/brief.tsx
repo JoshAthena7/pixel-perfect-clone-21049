@@ -887,7 +887,7 @@ function YoureBriefedCard({ missionId: _missionId }: { missionId: string }) {
         <div>
           <div style={{ fontSize: 14, fontWeight: 700, color: C.navy }}>You're briefed.<br />Ready to fly?</div>
           <div style={{ fontSize: 11, color: C.textMuted, lineHeight: 1.5, marginTop: 6 }}>
-            Scroll down and use the Enter Flight Deck button to check your status and manage your assignments.
+            Use the Flight Deck link in the sidebar to check your status and manage your assignments.
           </div>
         </div>
       </div>
