@@ -2,9 +2,9 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import athenaMark from "@/assets/athena-mark-v2.png.asset.json";
-import atlasWordmark from "@/assets/atlas-wordmark-v2.png.asset.json";
-import athenaSgLockup from "@/assets/athena-sg-lockup-v2.png.asset.json";
+import athenaMark from "@/assets/athena-mark-dark.png.asset.json";
+import atlasWordmark from "@/assets/atlas-wordmark-dark.png.asset.json";
+import athenaSgLockup from "@/assets/athena-sg-lockup-dark.png.asset.json";
 
 
 

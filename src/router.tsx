@@ -1,7 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
-import atlasWordmark from "@/assets/atlas-wordmark-v2.png.asset.json";
+import atlasWordmark from "@/assets/atlas-wordmark-dark.png.asset.json";
 
 // L-10: Branded loading state shown during route transitions.
 function AtlasPendingScreen() {
