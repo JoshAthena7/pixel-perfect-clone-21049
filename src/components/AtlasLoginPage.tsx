@@ -60,26 +60,29 @@ export function AtlasLoginPage() {
     >
       <div className="w-full max-w-md">
         {/* Brand */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 px-2">
           <img
             src={athenaMark.url}
             alt="Athena Strategy Group"
-            className="mx-auto h-24 w-24 object-contain mb-5"
-            style={{ filter: "drop-shadow(0 0 28px rgba(201,146,42,0.30))" }}
+            className="mx-auto h-24 w-24 object-contain mb-6 select-none"
+            draggable={false}
+            style={{ filter: "drop-shadow(0 0 10px rgba(201,168,76,0.22))" }}
           />
           <img
             src={athenaSgLockup.url}
             alt="Athena Strategy Group"
-            className="mx-auto h-7 w-auto object-contain mb-5 opacity-90"
-            style={{ filter: "brightness(1.15)" }}
+            className="mx-auto h-6 w-auto object-contain mb-6 opacity-95 select-none"
+            draggable={false}
+            style={{ filter: "brightness(1.1)" }}
           />
           <img
             src={atlasWordmark.url}
             alt="ATLAS"
-            className="mx-auto h-14 w-auto object-contain mb-3"
-            style={{ filter: "brightness(1.15) drop-shadow(0 0 16px rgba(201,146,42,0.25))" }}
+            className="mx-auto h-16 w-auto object-contain mb-3 select-none"
+            draggable={false}
+            style={{ filter: "brightness(1.12) drop-shadow(0 0 6px rgba(201,168,76,0.25))" }}
           />
-          <div className="text-[10px] uppercase tracking-[0.3em] text-amber-100/60">
+          <div className="text-[10px] uppercase tracking-[0.32em] text-amber-100/55">
             Intelligence · Alignment · Execution
           </div>
         </div>

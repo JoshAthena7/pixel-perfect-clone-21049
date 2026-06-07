@@ -141,14 +141,15 @@ function WelcomePage() {
       }}
     >
       <div className="w-full max-w-3xl">
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 px-2">
           <img
             src={atlasWordmark.url}
             alt="ATLAS"
-            className="mx-auto h-12 w-auto object-contain mb-3"
-            style={{ filter: "brightness(1.15) drop-shadow(0 0 16px rgba(201,146,42,0.25))" }}
+            draggable={false}
+            className="mx-auto h-12 w-auto object-contain mb-3 select-none"
+            style={{ filter: "brightness(1.12) drop-shadow(0 0 6px rgba(201,168,76,0.25))" }}
           />
-          <div className="text-[10px] uppercase tracking-[0.3em] text-amber-100/60">
+          <div className="text-[10px] uppercase tracking-[0.32em] text-amber-100/55">
             Intelligence · Coordination · Mission Execution
           </div>
         </div>

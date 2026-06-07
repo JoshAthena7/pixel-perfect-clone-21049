@@ -14,7 +14,7 @@ import { HORIZON_FILTERS, inferCategory, matchesHorizonFilter, type IntelItem } 
 import { LiveBadge, ScanningBeam, IrisWaveform, TypewriterText } from "@/components/v2/effects";
 import { Constellation, AnimatedNumber } from "@/components/v2/polish";
 import athenaLogo from "@/assets/athena-logo.png";
-import atlasLogo from "@/assets/atlas-logo.png.asset.json";
+import atlasLogo from "@/assets/atlas-wordmark-v2.png.asset.json";
 // LegacyRecord temporarily removed
 import { DailyPulse } from "@/components/v4/DailyPulse";
 import { IrisTrustIntro } from "@/components/v4/IrisTrustIntro";
@@ -415,7 +415,7 @@ function AthenaHQ() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-6">
         <div className="max-w-md text-center">
-          <img src={atlasLogo.url} alt="Atlas" className="mx-auto mb-8 h-24 w-24 object-contain" style={{ filter: "drop-shadow(0 0 20px rgba(125,211,252,0.35))" }} />
+          <img src={atlasLogo.url} alt="Atlas" draggable={false} className="mx-auto mb-8 h-16 w-auto object-contain select-none" style={{ filter: "brightness(1.1) drop-shadow(0 0 6px rgba(201,168,76,0.25))" }} />
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Welcome to Atlas.</h1>
           <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
             You haven't been assigned to a mission yet.<br />
