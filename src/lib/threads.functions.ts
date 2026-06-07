@@ -110,7 +110,7 @@ export const listComments = createServerFn({ method: "POST" })
     const { data: rows, error } = await supabase
       .from("comments")
       .select(
-        "id, author_id, body, is_iris_reply, is_deleted, created_at, anchor_text, version_tag",
+        "id, author_id, body, is_iris_reply, is_deleted, created_at, anchor_text, version_tag, is_decision, decision_starred_by, decision_starred_at",
       )
       .eq("thread_id", data.threadId)
       .order("created_at", { ascending: true });
