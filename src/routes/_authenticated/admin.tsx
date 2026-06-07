@@ -200,14 +200,14 @@ function AdminSidebar() {
         <SidebarItem to="/admin/status-report" path={path} icon={<ClipboardCheck size={15} strokeWidth={1.5} />}>Status Report</SidebarItem>
         <SidebarItem to="/admin/score-me" path={path} icon={<Gauge size={15} strokeWidth={1.5} />}>Score-Me Lab</SidebarItem>
 
-        <SectionHeader>Platform</SectionHeader>
+        <SectionHeader withDivider>Platform</SectionHeader>
         <SidebarItem to="/command/health" path={path} icon={<Activity size={15} strokeWidth={1.5} />}>Firm Health</SidebarItem>
         <SidebarItem to="/admin/admins" path={path} icon={<UserCog size={15} strokeWidth={1.5} />}>Admins</SidebarItem>
         <SidebarItem to="/admin/invites" path={path} icon={<UserPlus size={15} strokeWidth={1.5} />}>Invites</SidebarItem>
         <SidebarItem to="/admin/users" path={path} icon={<UserCog size={15} strokeWidth={1.5} />}>Users</SidebarItem>
         <SidebarItem to="/admin/brief-room" path={path} icon={<Megaphone size={15} strokeWidth={1.5} />}>Send Briefing</SidebarItem>
 
-        <SectionHeader>Security</SectionHeader>
+        <SectionHeader withDivider>Security</SectionHeader>
         <SidebarItem to="/admin/audit" path={path} icon={<History size={15} strokeWidth={1.5} />}>Audit Log</SidebarItem>
         <SidebarItem to="/admin/conflicts" path={path} icon={<ShieldAlert size={15} strokeWidth={1.5} />}>Conflicts</SidebarItem>
         <SidebarItem to="/admin/phi-log" path={path} icon={<ShieldAlert size={15} strokeWidth={1.5} />}>PHI Rejection Log</SidebarItem>
@@ -226,13 +226,13 @@ function AdminSidebar() {
   );
 }
 
-function SectionHeader({ children }: { children: ReactNode }) {
+function SectionHeader({ children, withDivider }: { children: ReactNode; withDivider?: boolean }) {
   return (
     <div
-      className="text-muted-foreground"
+      className={`text-muted-foreground ${withDivider ? "border-t border-border/60 mt-3 pt-3" : ""}`}
       style={{
         fontSize: 10, fontWeight: 700, letterSpacing: "0.2em",
-        textTransform: "uppercase", padding: "16px 16px 4px", marginTop: 8,
+        textTransform: "uppercase", padding: withDivider ? "12px 16px 4px" : "16px 16px 4px", marginTop: withDivider ? 12 : 8,
       }}
     >
       {children}
@@ -243,10 +243,10 @@ function SectionHeader({ children }: { children: ReactNode }) {
 function IntelligenceSectionHeader() {
   return (
     <div
-      className="flex items-center gap-2"
+      className="flex items-center gap-2 border-t border-border/60 mt-3"
       style={{
         fontSize: 10, fontWeight: 700, letterSpacing: "0.2em",
-        textTransform: "uppercase", padding: "16px 16px 4px", marginTop: 8,
+        textTransform: "uppercase", padding: "16px 16px 4px", marginTop: 12,
         color: "var(--iris, #22d3ee)",
       }}
     >
@@ -254,7 +254,10 @@ function IntelligenceSectionHeader() {
         className="iris-pulse-dot"
         style={{ width: 6, height: 6, borderRadius: 999, background: "var(--iris, #22d3ee)" }}
       />
-      Oracle
+      <span>Oracle</span>
+      <span className="ml-auto text-[9px] font-normal tracking-[0.15em] text-muted-foreground normal-case">
+        Intelligence
+      </span>
     </div>
   );
 }

@@ -31,14 +31,14 @@ type SectionId = "identity" | "team" | "inputs" | "strategy" | "evaluation" | "c
 const SECTIONS: Array<{ id: SectionId; n: string; label: string; admin?: boolean }> = [
   { id: "identity", n: "01", label: "Mission Identity" },
   { id: "team", n: "02", label: "Team Assignment" },
-  { id: "inputs", n: "03", label: "Mission Inputs" },
-  { id: "strategy", n: "04", label: "Strategic Foundation" },
-  { id: "evaluation", n: "4B", label: "Evaluation Criteria Map" },
-  { id: "client", n: "05", label: "Client Intelligence" },
-  { id: "timeline", n: "06", label: "Timeline & Gates" },
+  { id: "inputs", n: "03", label: "Mission Context" },
+  { id: "strategy", n: "04", label: "Win Strategy" },
+  { id: "evaluation", n: "4B", label: "How We'll Be Scored" },
+  { id: "client", n: "05", label: "Agency Intelligence" },
+  { id: "timeline", n: "06", label: "Deadlines & Decision Gates" },
   { id: "questions", n: "07", label: "Question Setup" },
-  { id: "governance", n: "08", label: "Governance" },
-  { id: "financials", n: "09", label: "Financial Setup", admin: true },
+  { id: "governance", n: "08", label: "Conflict & Ethics Review" },
+  { id: "financials", n: "09", label: "Budget & Pricing Setup", admin: true },
 ];
 
 /* ────────────────────────────────────────────────────────────
@@ -108,9 +108,9 @@ function MissionSetupRecord() {
           <div className="sticky top-8">
             <div className="mb-6">
               <div className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground font-mono">
-                Olympus / Setup Record
+                Olympus / Setup Record / <span className="text-foreground/70">{setup.mission?.name ?? "Untitled"}</span>
               </div>
-              <div className="mt-2 text-sm font-medium text-foreground truncate">
+              <div className="mt-2 text-base font-semibold text-foreground truncate">
                 {setup.mission?.name ?? "Untitled mission"}
               </div>
               <div className="mt-0.5 text-[11px] text-muted-foreground truncate">
@@ -125,7 +125,8 @@ function MissionSetupRecord() {
                   <a
                     key={s.id}
                     href={`#${s.id}`}
-                    className="group flex items-center gap-3 py-1.5 text-[12px] text-muted-foreground hover:text-foreground transition"
+                    title="Jump to section"
+                    className="group flex items-center gap-3 py-1.5 text-[12px] text-muted-foreground hover:text-foreground hover:underline underline-offset-4 transition"
                   >
                     {done ? (
                       <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
@@ -134,6 +135,7 @@ function MissionSetupRecord() {
                     )}
                     <span className="font-mono text-[10px] opacity-60">{s.n}</span>
                     <span className="truncate">{s.label}</span>
+                    <span className="ml-auto opacity-0 group-hover:opacity-60 text-[10px]">↓</span>
                   </a>
                 );
               })}
@@ -320,7 +322,7 @@ function CompletionMeter({ completion, isAdmin }: { completion: Record<SectionId
   const done = list.filter((s) => completion[s.id]).length;
   const pct = Math.round((done / list.length) * 100);
   return (
-    <div>
+    <div title={`${done} of ${list.length} required sections complete. IRIS activates at ${Math.ceil(list.length / 2)}/${list.length}. Full intelligence at ${list.length}/${list.length}.`}>
       <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground">
         <span>Readiness</span>
         <span className="tabular-nums">{done}/{list.length}</span>
@@ -475,6 +477,10 @@ function SectionTeam({ missionId, members, expertise, refetch }: any) {
 
   return (
     <Section id="team" n="02" label="Team Assignment" sublabel="Drives mission permissions and IRIS expert routing when launched.">
+      <p className="mb-4 rounded-md border border-border/60 bg-surface/40 px-3 py-2.5 text-xs text-muted-foreground leading-relaxed">
+        <span className="text-foreground font-medium">IRIS uses these assignments to route the right intelligence to the right team member.</span>{" "}
+        An Engagement Lead gets strategic analysis; Writers get proposal-ready content; SMEs get domain-specific briefings.
+      </p>
       <div className="space-y-5">
         {TEAM_ROLES.map((r) => {
           const assigned = members.filter((m: any) => m.role === r.key);
