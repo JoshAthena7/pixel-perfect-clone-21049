@@ -503,7 +503,7 @@ function Step2Questions({
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold text-white">
-            IRIS Question Set — {qs.section_name ?? brief.section_name}
+            Pre-Flight — {qs.section_name ?? brief.section_name}
           </h2>
           {qs.question_brief_headline && (
             <p className="text-sm text-neutral-400 mt-1">{qs.question_brief_headline}</p>
