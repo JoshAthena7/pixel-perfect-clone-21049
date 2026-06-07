@@ -1,6 +1,7 @@
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { hasSeenBrief } from "@/lib/brief-seen";
 
 export const Route = createFileRoute("/_authenticated/flight-deck")({
   ssr: false,
