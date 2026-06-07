@@ -150,9 +150,10 @@ function TopBar({
             <img
               src={atlasWordmark.url}
               alt="ATLAS"
-              className="h-7 w-auto object-contain"
-              style={{ filter: "brightness(0) invert(1)" }}
+              className="h-8 w-auto object-contain"
+              style={{ filter: "drop-shadow(0 0 8px rgba(125,211,252,0.4))" }}
             />
+
           </Link>
         ) : (
           <Link to="/home" className="flex items-center gap-2.5 shrink-0" title="Home">
