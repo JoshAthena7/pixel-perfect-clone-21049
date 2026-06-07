@@ -142,6 +142,7 @@ export const createVaultDoc = createServerFn({ method: "POST" })
   .inputValidator((d) => CreateInput.parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as { supabase: any; userId: string };
+    await assertAdmin(supabase, userId);
 
     if (!data.filePath && !data.externalUrl) {
       throw new Error("Either a file upload or an external link is required.");
