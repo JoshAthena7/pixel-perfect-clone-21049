@@ -200,14 +200,14 @@ function AdminSidebar() {
         <SidebarItem to="/admin/status-report" path={path} icon={<ClipboardCheck size={15} strokeWidth={1.5} />}>Status Report</SidebarItem>
         <SidebarItem to="/admin/score-me" path={path} icon={<Gauge size={15} strokeWidth={1.5} />}>Score-Me Lab</SidebarItem>
 
-        <SectionHeader>Platform</SectionHeader>
+        <SectionHeader withDivider>Platform</SectionHeader>
         <SidebarItem to="/command/health" path={path} icon={<Activity size={15} strokeWidth={1.5} />}>Firm Health</SidebarItem>
         <SidebarItem to="/admin/admins" path={path} icon={<UserCog size={15} strokeWidth={1.5} />}>Admins</SidebarItem>
         <SidebarItem to="/admin/invites" path={path} icon={<UserPlus size={15} strokeWidth={1.5} />}>Invites</SidebarItem>
         <SidebarItem to="/admin/users" path={path} icon={<UserCog size={15} strokeWidth={1.5} />}>Users</SidebarItem>
         <SidebarItem to="/admin/brief-room" path={path} icon={<Megaphone size={15} strokeWidth={1.5} />}>Send Briefing</SidebarItem>
 
-        <SectionHeader>Security</SectionHeader>
+        <SectionHeader withDivider>Security</SectionHeader>
         <SidebarItem to="/admin/audit" path={path} icon={<History size={15} strokeWidth={1.5} />}>Audit Log</SidebarItem>
         <SidebarItem to="/admin/conflicts" path={path} icon={<ShieldAlert size={15} strokeWidth={1.5} />}>Conflicts</SidebarItem>
         <SidebarItem to="/admin/phi-log" path={path} icon={<ShieldAlert size={15} strokeWidth={1.5} />}>PHI Rejection Log</SidebarItem>
