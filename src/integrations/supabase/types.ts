@@ -1755,9 +1755,13 @@ export type Database = {
           author_id: string
           body: string
           created_at: string
+          decision_note: string | null
+          decision_starred_at: string | null
+          decision_starred_by: string | null
           deleted_at: string | null
           deleted_by: string | null
           id: string
+          is_decision: boolean
           is_deleted: boolean
           is_iris_reply: boolean
           thread_id: string
@@ -1769,9 +1773,13 @@ export type Database = {
           author_id: string
           body: string
           created_at?: string
+          decision_note?: string | null
+          decision_starred_at?: string | null
+          decision_starred_by?: string | null
           deleted_at?: string | null
           deleted_by?: string | null
           id?: string
+          is_decision?: boolean
           is_deleted?: boolean
           is_iris_reply?: boolean
           thread_id: string
@@ -1783,9 +1791,13 @@ export type Database = {
           author_id?: string
           body?: string
           created_at?: string
+          decision_note?: string | null
+          decision_starred_at?: string | null
+          decision_starred_by?: string | null
           deleted_at?: string | null
           deleted_by?: string | null
           id?: string
+          is_decision?: boolean
           is_deleted?: boolean
           is_iris_reply?: boolean
           thread_id?: string

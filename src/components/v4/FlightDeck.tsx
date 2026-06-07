@@ -10,7 +10,7 @@ import { IrisDock } from "@/components/v2/IrisDock";
 import { ScoreMeOverlay } from "@/components/v2/ScoreMeOverlay";
 import { PhoneAFriendOverlay } from "@/components/v2/PhoneAFriendOverlay";
 import { MissionPulse } from "@/components/v4/MissionPulse";
-import { ThreadPanel } from "@/components/threads/ThreadPanel";
+import { MissionThreadsPanel } from "@/components/threads/MissionThreadsPanel";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import {
@@ -343,7 +343,7 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
           onScoreMe={() => requireSelected("Score Me") && setScoreOpen(true)}
           onPhone={() => requireSelected("Phone a Friend") && setPhoneOpen(true)}
           onPulse={() => setPulseOpen(true)}
-          onThread={() => requireSelected("Thread") && setThreadOpen(true)}
+          onThread={() => setThreadOpen(true)}
           sosSlot={<SOSButton missionId={missionId} questionId={selected?.id} />}
         />
       </section>
@@ -422,14 +422,12 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
           </div>
         </SheetContent>
       </Sheet>
-      {selected && (
-        <ThreadPanel
-          open={threadOpen}
-          onClose={() => setThreadOpen(false)}
-          objectType="question_record"
-          objectId={selected.id}
-        />
-      )}
+      <MissionThreadsPanel
+        open={threadOpen}
+        onClose={() => setThreadOpen(false)}
+        missionId={missionId}
+        initialQuestionId={selected?.id ?? null}
+      />
 
       {/* IRIS Dock — fixed bottom-right with ⌘J */}
       <IrisDock />

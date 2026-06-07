@@ -110,7 +110,7 @@ export const listComments = createServerFn({ method: "POST" })
     const { data: rows, error } = await supabase
       .from("comments")
       .select(
-        "id, author_id, body, is_iris_reply, is_deleted, created_at, anchor_text, version_tag",
+        "id, author_id, body, is_iris_reply, is_deleted, created_at, anchor_text, version_tag, is_decision, decision_starred_by, decision_starred_at",
       )
       .eq("thread_id", data.threadId)
       .order("created_at", { ascending: true });
@@ -149,6 +149,9 @@ export const listComments = createServerFn({ method: "POST" })
           createdAt: r.created_at,
           anchorText: r.anchor_text,
           versionTag: r.version_tag,
+          isDecision: !!r.is_decision,
+          decisionStarredAt: r.decision_starred_at ?? null,
+          decisionStarredBy: r.decision_starred_by ?? null,
           author: {
             id: r.author_id,
             displayName: r.is_iris_reply ? "IRIS" : p?.display_name ?? "Unknown",
@@ -414,4 +417,228 @@ export const getThreadsInternalAckState = createServerFn({ method: "GET" })
       .eq("id", userId)
       .maybeSingle();
     return { acked: !!data?.has_acked_threads_internal_at };
+  });
+
+/* ─── listMissionThreads — all active threads scoped to a mission ─── */
+
+export const listMissionThreads = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({ missionId: z.string().uuid() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+
+    const { data: threads, error } = await supabase
+      .from("threads")
+      .select("id, object_type, object_id, mission_id, created_at")
+      .eq("mission_id", data.missionId)
+      .eq("object_type", "question_record");
+    if (error) throw new Error(error.message);
+
+    const threadIds = (threads ?? []).map((t: any) => t.id);
+    if (!threadIds.length) return { threads: [] as any[] };
+
+    // Resolutions
+    const { data: resRows } = await supabase
+      .from("comment_resolutions")
+      .select("thread_id, resolved_at, reopened_at")
+      .in("thread_id", threadIds);
+    const resMap = new Map<string, { resolvedAt: string | null; reopenedAt: string | null }>();
+    for (const r of resRows ?? []) {
+      resMap.set(r.thread_id, { resolvedAt: r.resolved_at, reopenedAt: r.reopened_at });
+    }
+
+    // Last comment per thread + counts
+    const { data: commentRows } = await supabase
+      .from("comments")
+      .select("id, thread_id, body, created_at, is_iris_reply, is_deleted, author_id")
+      .in("thread_id", threadIds)
+      .order("created_at", { ascending: false });
+
+    type CommentRow = {
+      id: string;
+      thread_id: string;
+      body: string;
+      created_at: string;
+      is_iris_reply: boolean;
+      is_deleted: boolean;
+      author_id: string;
+    };
+
+    const byThread = new Map<string, CommentRow[]>();
+    for (const c of (commentRows ?? []) as CommentRow[]) {
+      const arr = byThread.get(c.thread_id) ?? [];
+      arr.push(c);
+      byThread.set(c.thread_id, arr);
+    }
+
+    // Mentions to derive "Needs Decision" hint
+    const allCommentIds = (commentRows ?? []).map((c: any) => c.id);
+    const { data: mentionRows } = await supabase
+      .from("mentions")
+      .select("comment_id, is_iris")
+      .in("comment_id", allCommentIds.length ? allCommentIds : ["00000000-0000-0000-0000-000000000000"]);
+    const mentionedComments = new Set((mentionRows ?? []).map((m: any) => m.comment_id));
+
+    // Question records
+    const questionIds = Array.from(new Set((threads ?? []).map((t: any) => t.object_id)));
+    const { data: qrows } = await supabase
+      .from("question_records")
+      .select("id, question_number, title, point_value, pens_down_date, assigned_writer_id, status")
+      .in("id", questionIds);
+    const qMap = new Map((qrows ?? []).map((q: any) => [q.id, q]));
+
+    // Writer names
+    const writerIds = Array.from(
+      new Set((qrows ?? []).map((q: any) => q.assigned_writer_id).filter(Boolean)),
+    );
+    const { data: writers } = await supabase
+      .from("profiles")
+      .select("id, display_name")
+      .in("id", writerIds.length ? writerIds : ["00000000-0000-0000-0000-000000000000"]);
+    const writerMap = new Map((writers ?? []).map((w: any) => [w.id, w.display_name]));
+
+    const out = (threads ?? []).map((t: any) => {
+      const comments = byThread.get(t.id) ?? [];
+      const last = comments[0];
+      const q = qMap.get(t.object_id) as any;
+      const resolved = resMap.get(t.id);
+      const isResolved = !!resolved && !!resolved.resolvedAt && !resolved.reopenedAt;
+
+      // Needs Decision: open AND last comment was a mention (or IRIS reply) awaiting human response
+      const needsDecision =
+        !isResolved &&
+        !!last &&
+        (mentionedComments.has(last.id) || last.is_iris_reply);
+
+      return {
+        threadId: t.id,
+        objectType: t.object_type,
+        objectId: t.object_id,
+        questionNumber: q?.question_number ?? "—",
+        questionTitle: q?.title ?? "Untitled",
+        pointValue: q?.point_value ?? null,
+        pensDownDate: q?.pens_down_date ?? null,
+        assignedOwner: q?.assigned_writer_id
+          ? writerMap.get(q.assigned_writer_id) ?? null
+          : null,
+        status: isResolved ? "resolved" : needsDecision ? "needs_decision" : "open",
+        lastActivityAt: last?.created_at ?? t.created_at,
+        lastMessagePreview: last
+          ? last.is_deleted
+            ? "[message removed]"
+            : (last.is_iris_reply ? "IRIS: " : "") + last.body.slice(0, 140)
+          : "No messages yet",
+        commentCount: comments.length,
+      };
+    });
+
+    out.sort(
+      (a, b) =>
+        new Date(b.lastActivityAt).getTime() - new Date(a.lastActivityAt).getTime(),
+    );
+
+    return { threads: out };
+  });
+
+/* ─── toggleDecisionStar — star/unstar a comment as a Decision ─── */
+
+export const toggleDecisionStar = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        commentId: z.string().uuid(),
+        star: z.boolean(),
+        note: z.string().max(500).optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase
+      .from("comments")
+      .update(
+        data.star
+          ? {
+              is_decision: true,
+              decision_starred_by: userId,
+              decision_starred_at: new Date().toISOString(),
+              decision_note: data.note ?? null,
+            }
+          : {
+              is_decision: false,
+              decision_starred_by: null,
+              decision_starred_at: null,
+              decision_note: null,
+            },
+      )
+      .eq("id", data.commentId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+/* ─── listMissionDecisions — Decisions log for Mission Vault ─── */
+
+export const listMissionDecisions = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({ missionId: z.string().uuid() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+
+    const { data: threads } = await supabase
+      .from("threads")
+      .select("id, object_id")
+      .eq("mission_id", data.missionId)
+      .eq("object_type", "question_record");
+    const threadIds = (threads ?? []).map((t: any) => t.id);
+    if (!threadIds.length) return { decisions: [] as any[] };
+
+    const { data: rows } = await supabase
+      .from("comments")
+      .select(
+        "id, thread_id, author_id, body, created_at, decision_starred_at, decision_starred_by",
+      )
+      .in("thread_id", threadIds)
+      .eq("is_decision", true)
+      .order("decision_starred_at", { ascending: false });
+
+    const threadToQ = new Map((threads ?? []).map((t: any) => [t.id, t.object_id]));
+    const questionIds = Array.from(new Set((rows ?? []).map((r: any) => threadToQ.get(r.thread_id)).filter(Boolean)));
+    const { data: qs } = await supabase
+      .from("question_records")
+      .select("id, question_number, title")
+      .in("id", questionIds.length ? questionIds : ["00000000-0000-0000-0000-000000000000"]);
+    const qMap = new Map((qs ?? []).map((q: any) => [q.id, q]));
+
+    const userIds = Array.from(
+      new Set((rows ?? []).flatMap((r: any) => [r.author_id, r.decision_starred_by]).filter(Boolean)),
+    );
+    const { data: profs } = await supabase
+      .from("profiles")
+      .select("id, display_name")
+      .in("id", userIds.length ? userIds : ["00000000-0000-0000-0000-000000000000"]);
+    const pMap = new Map((profs ?? []).map((p: any) => [p.id, p.display_name]));
+
+    return {
+      decisions: (rows ?? []).map((r: any) => {
+        const qid = threadToQ.get(r.thread_id);
+        const q = qid ? (qMap.get(qid) as any) : null;
+        return {
+          commentId: r.id,
+          threadId: r.thread_id,
+          questionId: qid,
+          questionNumber: q?.question_number ?? "—",
+          questionTitle: q?.title ?? "Untitled",
+          body: r.body,
+          author: pMap.get(r.author_id) ?? "Unknown",
+          starredBy: r.decision_starred_by ? pMap.get(r.decision_starred_by) ?? null : null,
+          starredAt: r.decision_starred_at,
+          createdAt: r.created_at,
+        };
+      }),
+    };
   });
