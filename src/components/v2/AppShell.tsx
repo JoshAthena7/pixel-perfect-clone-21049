@@ -28,8 +28,8 @@ import { IrisDock } from "@/components/v2/IrisDock";
 import { MobileBottomNav, MobileBottomNavSpacer } from "@/components/v2/MobileBottomNav";
 import { SupportCenterMount } from "@/components/v2/SupportCenter";
 import { BriefRoomPinned } from "@/components/brief-room/BriefRoomPinned";
-import athenaSgLogo from "@/assets/athena-sg-lockup.png.asset.json";
-import atlasLogo from "@/assets/atlas-logo.png.asset.json";
+import athenaSgLogo from "@/assets/athena-sg-lockup-v2.png.asset.json";
+import atlasLogo from "@/assets/athena-mark-v2.png.asset.json";
 
 // ─── Room detection (three rooms inside a mission) ─────────────────────────
 type Room = "mission" | "studio" | "brief" | null;
