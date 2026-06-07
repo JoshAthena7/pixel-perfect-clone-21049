@@ -563,8 +563,8 @@ function OracleBriefing({ missionId, brief }: { missionId: string; brief: Missio
   return (
     <div style={{ ...card, padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
       <div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary }}>ORACLE BRIEFING</div>
-        <div style={subLabel}>Key intelligence and insights.</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary }} title="Oracle surfaces competitive intelligence, state comparables, and historical patterns relevant to this mission.">ORACLE BRIEFING</div>
+        <div style={subLabel}>Competitive intelligence, state comparables, and historical patterns relevant to this mission.</div>
       </div>
 
       <div>
