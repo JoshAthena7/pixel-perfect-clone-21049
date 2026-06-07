@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IrisRouteImport } from './routes/iris'
@@ -117,6 +118,11 @@ import { Route as AuthenticatedMissionsMissionIdQuestionsQuestionIdRouteImport }
 import { Route as AuthenticatedAdminMissionsMissionIdSetupRouteImport } from './routes/_authenticated/admin/missions.$missionId.setup'
 import { Route as AuthenticatedAdminMissionsMissionIdDebriefRouteImport } from './routes/_authenticated/admin/missions.$missionId.debrief'
 
+const UnsubscribeRoute = UnsubscribeRouteImport.update({
+  id: '/unsubscribe',
+  path: '/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
@@ -731,6 +737,7 @@ export interface FileRoutesByFullPath {
   '/iris': typeof IrisRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/unsubscribe': typeof UnsubscribeRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/atrium': typeof AuthenticatedAtriumRoute
   '/brief-room': typeof AuthenticatedBriefRoomRoute
@@ -839,6 +846,7 @@ export interface FileRoutesByTo {
   '/iris': typeof IrisRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/unsubscribe': typeof UnsubscribeRoute
   '/atrium': typeof AuthenticatedAtriumRoute
   '/brief-room': typeof AuthenticatedBriefRoomRoute
   '/checkin-home': typeof AuthenticatedCheckinHomeRoute
@@ -945,6 +953,7 @@ export interface FileRoutesById {
   '/iris': typeof IrisRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/unsubscribe': typeof UnsubscribeRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/atrium': typeof AuthenticatedAtriumRoute
   '/_authenticated/brief-room': typeof AuthenticatedBriefRoomRoute
@@ -1055,6 +1064,7 @@ export interface FileRouteTypes {
     | '/iris'
     | '/login'
     | '/onboarding'
+    | '/unsubscribe'
     | '/admin'
     | '/atrium'
     | '/brief-room'
@@ -1163,6 +1173,7 @@ export interface FileRouteTypes {
     | '/iris'
     | '/login'
     | '/onboarding'
+    | '/unsubscribe'
     | '/atrium'
     | '/brief-room'
     | '/checkin-home'
@@ -1268,6 +1279,7 @@ export interface FileRouteTypes {
     | '/iris'
     | '/login'
     | '/onboarding'
+    | '/unsubscribe'
     | '/_authenticated/admin'
     | '/_authenticated/atrium'
     | '/_authenticated/brief-room'
@@ -1378,6 +1390,7 @@ export interface RootRouteChildren {
   IrisRoute: typeof IrisRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
+  UnsubscribeRoute: typeof UnsubscribeRoute
   ApiAtriumRoute: typeof ApiAtriumRoute
   ApiIrisRoute: typeof ApiIrisRoute
   ApiIrisVoiceRoute: typeof ApiIrisVoiceRoute
@@ -1400,6 +1413,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/unsubscribe': {
+      id: '/unsubscribe'
+      path: '/unsubscribe'
+      fullPath: '/unsubscribe'
+      preLoaderRoute: typeof UnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/onboarding': {
       id: '/onboarding'
       path: '/onboarding'
@@ -2416,6 +2436,7 @@ const rootRouteChildren: RootRouteChildren = {
   IrisRoute: IrisRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
+  UnsubscribeRoute: UnsubscribeRoute,
   ApiAtriumRoute: ApiAtriumRoute,
   ApiIrisRoute: ApiIrisRoute,
   ApiIrisVoiceRoute: ApiIrisVoiceRoute,
