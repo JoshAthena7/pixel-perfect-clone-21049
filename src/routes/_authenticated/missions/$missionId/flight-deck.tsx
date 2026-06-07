@@ -53,6 +53,7 @@ type Q = {
 function MissionFlightDeckPage() {
   const { missionId } = Route.useParams();
   const qc = useQueryClient();
+  const [globalPhoneOpen, setGlobalPhoneOpen] = useState(false);
 
   const { data: me, isLoading: meLoading } = useQuery({
     queryKey: ["mc-flight-deck-me"],
