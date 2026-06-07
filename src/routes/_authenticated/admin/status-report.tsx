@@ -14,6 +14,7 @@ import {
   sendCheckinReminders,
   mintCheckinTokens,
 } from "@/lib/checkin.functions";
+import { useSelectedAdminMission } from "@/routes/_authenticated/admin";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin/status-report")({
@@ -21,6 +22,7 @@ export const Route = createFileRoute("/_authenticated/admin/status-report")({
 });
 
 function StatusReportPage() {
+  const adminMissionId = useSelectedAdminMission();
   const listMissions = useServerFn(listMissionsForPM);
   const missionsQuery = useQuery({
     queryKey: ["status-report", "missions"],
@@ -28,7 +30,10 @@ function StatusReportPage() {
   });
 
   const [missionId, setMissionId] = useState<string | null>(null);
-  const effectiveMissionId = missionId ?? missionsQuery.data?.[0]?.id ?? null;
+  // O-4: Prefer the admin header's active mission context so Status Report
+  // tracks the rest of the Olympus shell. Fall back to local picker.
+  const effectiveMissionId =
+    missionId ?? adminMissionId ?? missionsQuery.data?.[0]?.id ?? null;
 
   return (
     <div className="min-h-dvh bg-[#060b14] px-6 py-8 text-slate-200">
@@ -56,8 +61,17 @@ function StatusReportPage() {
           )}
         </div>
 
-        {missionsQuery.isLoading && <div className="text-sm text-slate-500">Loading…</div>}
-        {missionsQuery.data && missionsQuery.data.length === 0 && (
+        {/* O-4: never show an infinite spinner. If we have no mission to scope
+            to, show a clear empty state instead. */}
+        {!effectiveMissionId && !missionsQuery.isLoading && (
+          <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-8 text-center text-sm text-slate-400">
+            Select a mission context above to view the status report.
+          </div>
+        )}
+        {missionsQuery.isLoading && !effectiveMissionId && (
+          <div className="text-sm text-slate-500">Loading missions…</div>
+        )}
+        {missionsQuery.data && missionsQuery.data.length === 0 && !adminMissionId && (
           <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-8 text-center text-sm text-slate-400">
             No missions to report on yet. The Status Report is available to project managers and platform admins.
           </div>

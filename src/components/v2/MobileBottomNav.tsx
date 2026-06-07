@@ -2,6 +2,14 @@ import { Link, useRouterState, useParams } from "@tanstack/react-router";
 import { Building2, Plane, Bell, HelpCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 
+function isHiddenPath(path: string): boolean {
+  if (path.startsWith("/login") || path.startsWith("/auth") || path.startsWith("/signup")) return true;
+  if (path.startsWith("/admin") || path.startsWith("/olympus")) return true;
+  if (path.startsWith("/missions/") && (path.endsWith("/brief") || path.includes("/flight-deck"))) return true;
+  if (path.startsWith("/flight-deck")) return true;
+  return false;
+}
+
 /**
  * Mobile-only fixed bottom navigation.
  * Shown only on screens < 768px. Replaces the desktop room toggle.
@@ -14,6 +22,10 @@ export function MobileBottomNav() {
   // Hide entirely on auth/login flows.
   const isAuthRoute = path.startsWith("/login") || path.startsWith("/auth") || path.startsWith("/signup");
   if (isAuthRoute) return null;
+
+  // O-1: Bottom nav is for the Atlas user-facing shell only.
+  // Never render it inside the Olympus admin shell.
+  if (path.startsWith("/admin") || path.startsWith("/olympus")) return null;
 
   // Hide on the Mission Briefing Room and Flight Deck — their layouts cover navigation.
   if (path.startsWith("/missions/") && (path.endsWith("/brief") || path.includes("/flight-deck"))) return null;
@@ -106,6 +118,7 @@ export function MobileBottomNav() {
  */
 export function MobileBottomNavSpacer() {
   const [isMobile, setIsMobile] = useState(false);
+  const path = useRouterState({ select: (s) => s.location.pathname });
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
     const update = () => setIsMobile(mq.matches);
@@ -114,5 +127,6 @@ export function MobileBottomNavSpacer() {
     return () => mq.removeEventListener("change", update);
   }, []);
   if (!isMobile) return null;
+  if (isHiddenPath(path)) return null;
   return <div aria-hidden style={{ height: "calc(58px + env(safe-area-inset-bottom))" }} />;
 }

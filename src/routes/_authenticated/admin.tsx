@@ -92,7 +92,6 @@ function AdminHeader() {
         <span className="ml-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Platform Administration</span>
       </div>
 
-      {/* M-5: Make the mission context selector unmistakably an interactive control. */}
       <div className="flex items-center gap-3">
         <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-[0.22em] text-amber-300/90">
           Active Mission Context:
@@ -129,7 +128,7 @@ function MissionSwitcher({ missions, selected, onPick }: {
   }, [open]);
 
   if (missions.length === 0) {
-    return <div className="text-xs text-muted-foreground">No missions yet</div>;
+    return <div className="text-xs text-muted-foreground">No missions selected</div>;
   }
 
   return (
@@ -255,9 +254,6 @@ function IntelligenceSectionHeader() {
         style={{ width: 6, height: 6, borderRadius: 999, background: "var(--iris, #22d3ee)" }}
       />
       <span>Oracle</span>
-      <span className="ml-auto text-[9px] font-normal tracking-[0.15em] text-muted-foreground normal-case">
-        Intelligence
-      </span>
     </div>
   );
 }

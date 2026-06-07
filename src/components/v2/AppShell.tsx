@@ -538,15 +538,29 @@ function UserAvatarMenu() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-[11px] font-semibold text-primary hover:bg-primary/25 transition-colors"
+        className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-[11px] font-semibold text-primary ring-1 ring-transparent hover:bg-primary/25 hover:ring-[color:var(--athena-gold,#C9A84C)]/40 transition-all"
         aria-label="Account menu"
       >
         {initials}
       </button>
       {open && (
-        <div className="modal-surface absolute right-0 top-10 z-50 w-56 p-1 text-sm">
+        <div className="modal-surface absolute right-0 top-10 z-50 w-60 p-1 text-sm">
           <div className="border-b border-border px-3 py-2.5">
-            <div className="truncate text-sm font-medium">{profile?.name}</div>
+            <div className="flex items-center justify-between gap-2">
+              <div className="truncate text-sm font-medium">{profile?.name}</div>
+              {isAdmin && (
+                <span
+                  className="shrink-0 rounded-sm px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em]"
+                  style={{
+                    background: "rgba(201,168,76,0.12)",
+                    color: "#C9A84C",
+                    border: "1px solid rgba(201,168,76,0.4)",
+                  }}
+                >
+                  Admin
+                </span>
+              )}
+            </div>
             <div className="truncate text-xs text-muted-foreground">{profile?.email}</div>
           </div>
           <Link
