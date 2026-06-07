@@ -159,11 +159,11 @@ function TopBar({
 
         {inMission && mission && (
           <>
-            <span className="hidden lg:block h-5 w-px bg-white/15 mx-2" />
+            <span className="hidden 2xl:block h-5 w-px bg-white/15 mx-2" />
             <Link
               to="/missions/$missionId/brief"
               params={{ missionId: missionId! }}
-              className="hidden lg:block max-w-[180px] xl:max-w-[260px] truncate text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className="hidden 2xl:block max-w-[220px] truncate text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors"
               title={mission.name}
             >
               {mission.name}
