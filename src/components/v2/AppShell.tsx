@@ -30,7 +30,7 @@ import { MobileBottomNav, MobileBottomNavSpacer } from "@/components/v2/MobileBo
 import { SupportCenterMount } from "@/components/v2/SupportCenter";
 import { BriefRoomPinned } from "@/components/brief-room/BriefRoomPinned";
 import athenaSgLogo from "@/assets/athena-sg-lockup-dark.png.asset.json";
-
+import athenaMark from "@/assets/athena-mark-v3.png.asset.json";
 import atlasWordmark from "@/assets/atlas-wordmark-dark.png.asset.json";
 
 // ─── Room detection (three rooms inside a mission) ─────────────────────────
@@ -144,21 +144,16 @@ function TopBar({
           // M-2: Logo always navigates to /missions (home), not the active mission brief.
           <Link
             to="/missions"
-            className="flex items-center shrink-0 px-1"
+            className="flex items-center gap-2 shrink-0 px-1"
             title="All Missions"
           >
             <img
-              src={atlasWordmark.url}
-              alt="ATLAS"
-              className="h-8 w-auto object-contain select-none"
+              src={athenaMark.url}
+              alt=""
+              aria-hidden
+              className="h-8 w-8 object-contain select-none"
               draggable={false}
-              style={{ filter: "brightness(1.1) drop-shadow(0 0 6px rgba(201,168,76,0.25))" }}
             />
-
-          </Link>
-        ) : (
-          // H-1: Unified branding — ATLAS wordmark everywhere, including Olympus/Admin/Atrium.
-          <Link to="/missions" className="flex items-center gap-3 shrink-0 px-1" title="All Missions">
             <img
               src={atlasWordmark.url}
               alt="ATLAS"
@@ -166,7 +161,25 @@ function TopBar({
               draggable={false}
               style={{ filter: "brightness(1.1) drop-shadow(0 0 6px rgba(201,168,76,0.25))" }}
             />
-            <span className="hidden md:block h-5 w-px bg-white/10" aria-hidden />
+          </Link>
+        ) : (
+          // H-1: Unified branding — ATLAS wordmark everywhere, including Olympus/Admin/Atrium.
+          <Link to="/missions" className="flex items-center gap-2 shrink-0 px-1" title="All Missions">
+            <img
+              src={athenaMark.url}
+              alt=""
+              aria-hidden
+              className="h-8 w-8 object-contain select-none"
+              draggable={false}
+            />
+            <img
+              src={atlasWordmark.url}
+              alt="ATLAS"
+              className="h-8 w-auto object-contain select-none"
+              draggable={false}
+              style={{ filter: "brightness(1.1) drop-shadow(0 0 6px rgba(201,168,76,0.25))" }}
+            />
+            <span className="hidden md:block h-5 w-px bg-white/10 ml-1" aria-hidden />
             <img
               src={athenaSgLogo.url}
               alt=""

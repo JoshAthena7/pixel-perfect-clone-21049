@@ -2,6 +2,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 import atlasWordmark from "@/assets/atlas-wordmark-dark.png.asset.json";
+import athenaMark from "@/assets/athena-mark-v3.png.asset.json";
 
 // L-10: Branded loading state shown during route transitions.
 function AtlasPendingScreen() {
@@ -19,18 +20,27 @@ function AtlasPendingScreen() {
         fontFamily: "Inter, system-ui, -apple-system, sans-serif",
       }}
     >
-      <img
-        src={atlasWordmark.url}
-        alt="ATLAS"
-        draggable={false}
-        style={{
-          height: 56,
-          width: "auto",
-          objectFit: "contain",
-          userSelect: "none",
-          filter: "brightness(1.12) drop-shadow(0 0 8px rgba(201,168,76,0.28))",
-        }}
-      />
+      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <img
+          src={athenaMark.url}
+          alt=""
+          aria-hidden
+          draggable={false}
+          style={{ height: 56, width: 56, objectFit: "contain", userSelect: "none" }}
+        />
+        <img
+          src={atlasWordmark.url}
+          alt="ATLAS"
+          draggable={false}
+          style={{
+            height: 56,
+            width: "auto",
+            objectFit: "contain",
+            userSelect: "none",
+            filter: "brightness(1.12) drop-shadow(0 0 8px rgba(201,168,76,0.28))",
+          }}
+        />
+      </div>
       <div
         aria-hidden
         style={{
