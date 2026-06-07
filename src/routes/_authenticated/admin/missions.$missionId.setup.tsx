@@ -149,19 +149,27 @@ function MissionSetupRecord() {
                 const done = list.filter((s) => completion[s.id]).length;
                 const total = list.length;
                 const ready = done >= Math.ceil(total * 0.7);
+                const isActive = setup.mission?.status === "Active";
                 return (
                   <>
                     <div className="mt-4 text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-mono">
                       Readiness: {done}/{total}
                     </div>
-                    <button
-                      onClick={handleLaunch}
-                      disabled={confirm}
-                      className="mt-1.5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#C49A22] px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50 transition"
-                    >
-                      <Rocket className="h-4 w-4" />
-                      {ready ? "Launch Mission" : "Launch with Partial Setup"}
-                    </button>
+                    {isActive ? (
+                      <div className="mt-1.5 inline-flex w-full items-center justify-center gap-2 rounded-md border border-emerald-500/40 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-200">
+                        <CheckCircle2 className="h-4 w-4" />
+                        Mission is Active
+                      </div>
+                    ) : (
+                      <button
+                        onClick={handleLaunch}
+                        disabled={confirm}
+                        className="mt-1.5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#C49A22] px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50 transition"
+                      >
+                        <Rocket className="h-4 w-4" />
+                        {ready ? "Launch Mission" : "Launch with Partial Setup"}
+                      </button>
+                    )}
                   </>
                 );
               })()}
