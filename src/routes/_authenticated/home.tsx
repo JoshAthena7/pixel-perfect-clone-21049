@@ -405,7 +405,7 @@ function AthenaHQ() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-xs uppercase tracking-[0.32em] text-muted-foreground animate-pulse">
-          Loading
+          One moment…
         </div>
       </div>
     );
