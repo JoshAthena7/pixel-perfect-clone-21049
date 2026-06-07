@@ -865,3 +865,120 @@ function DetailCard({
     </div>
   );
 }
+
+/* ──────────────────────────────────────────────────────────────────────────
+ * Live-data helpers — map MissionBrief into Journey Map stage state.
+ * The narrative content per stage (objective / actions / atlas / iris / etc.)
+ * is the universal Atlas workflow template. Only status + tasksDone/Total +
+ * the header identity values are mission-specific.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+function deriveStages(template: Stage[], brief: MissionBrief | undefined): Stage[] {
+  if (!brief) return template;
+
+  const m = brief.mission;
+  const q = brief.questions;
+  const lc = brief.lifecycle;
+  const tl = lc.timeline ?? ({} as Record<string, string | null>);
+  const now = Date.now();
+  const inPast = (iso?: string | null) => !!iso && new Date(iso).getTime() < now;
+
+  const hasTeam = brief.team.length > 0;
+  const hasIntel = brief.signals.length > 0;
+  const hasThemes = brief.winThemes.length > 0;
+  const totalQ = q.total;
+  const doneQ = q.by_status.complete;
+  const inProgressQ = q.by_status.in_progress;
+  const completePct = totalQ > 0 ? doneQ / totalQ : 0;
+
+  const reviewDone = inPast(tl.gold_team) || inPast(tl.red_team);
+  const reviewActive = !reviewDone && (inPast(tl.pink_team) || inPast(tl.red_team));
+  const submitted = inPast(m.submission_date ?? tl.submission);
+  const debriefed = lc.debriefCount > 0;
+
+  // Per-stage status derivation, mapped to the 7 template stages.
+  // 1: Mission Activated · 2: Intelligence · 3: Alignment ·
+  // 4: Execution · 5: Review · 6: Final Assembly · 7: Submitted
+  const stageStatuses: Status[] = [
+    // 1 — Mission Activated
+    hasTeam && !!m.submission_date ? "complete" : "active",
+    // 2 — Intelligence Gathered
+    hasIntel ? "complete" : hasTeam ? "active" : "upcoming",
+    // 3 — Alignment Locked (win themes captured)
+    hasThemes ? "complete" : hasIntel ? "active" : "upcoming",
+    // 4 — Execution (drafting)
+    completePct >= 1 ? "complete"
+      : inProgressQ > 0 || (totalQ > 0 && completePct > 0) ? "active"
+      : hasThemes ? "active"
+      : "upcoming",
+    // 5 — Review & Refinement
+    reviewDone ? "complete"
+      : reviewActive ? "active"
+      : completePct >= 0.6 ? "active"
+      : "upcoming",
+    // 6 — Final Assembly (pens down → submission)
+    submitted ? "complete"
+      : inPast(m.pens_down_date) ? "active"
+      : completePct >= 0.9 ? "active"
+      : "upcoming",
+    // 7 — Submitted / Debrief
+    debriefed ? "complete" : submitted ? "active" : "upcoming",
+  ];
+
+  // Promote the first non-complete stage to "active" so the UI always has one.
+  if (!stageStatuses.includes("active") && stageStatuses.some((s) => s !== "complete")) {
+    const idx = stageStatuses.findIndex((s) => s !== "complete");
+    if (idx >= 0) stageStatuses[idx] = "active";
+  }
+
+  // Mark stage 4 (Execution) at risk if behind schedule.
+  const subDate = m.submission_date ? new Date(m.submission_date).getTime() : null;
+  const daysToSubmit = subDate ? Math.floor((subDate - now) / (1000 * 60 * 60 * 24)) : null;
+  if (stageStatuses[3] === "active" && daysToSubmit != null && daysToSubmit < 14 && completePct < 0.5) {
+    stageStatuses[3] = "at_risk";
+  }
+
+  // Per-stage task progress from real data (keeps template totals as fallback).
+  const stageTasks: Array<{ done?: number; total?: number }> = [
+    { done: hasTeam ? Math.min(template[0].tasksTotal, brief.team.length + (m.submission_date ? 1 : 0) + 1) : 0 },
+    { done: hasIntel ? template[1].tasksTotal : hasTeam ? Math.ceil(template[1].tasksTotal / 2) : 0 },
+    { done: hasThemes ? template[2].tasksTotal : hasIntel ? 2 : 0 },
+    {
+      done: totalQ > 0 ? Math.min(template[3].tasksTotal, Math.round(completePct * template[3].tasksTotal)) : 0,
+    },
+    { done: reviewDone ? template[4].tasksTotal : reviewActive ? Math.ceil(template[4].tasksTotal / 2) : 0 },
+    { done: submitted ? template[5].tasksTotal : inPast(m.pens_down_date) ? Math.ceil(template[5].tasksTotal / 2) : 0 },
+    { done: debriefed ? template[6].tasksTotal : submitted ? 1 : 0 },
+  ];
+
+  return template.map((t, i) => ({
+    ...t,
+    status: stageStatuses[i] ?? t.status,
+    tasksDone: Math.max(0, Math.min(t.tasksTotal, stageTasks[i]?.done ?? t.tasksDone)),
+  }));
+}
+
+function formatSubmissionCountdown(brief: MissionBrief | undefined): string {
+  const iso = brief?.mission.submission_date;
+  if (!iso) return "No date set";
+  const target = new Date(iso).getTime();
+  if (isNaN(target)) return "No date set";
+  const diff = target - Date.now();
+  if (diff <= 0) return "Past due";
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  return `${days}d ${String(hours).padStart(2, "0")}h remaining`;
+}
+
+function deriveIrisHealthScore(brief: MissionBrief | undefined): number {
+  if (!brief) return 0;
+  const h = brief.mission.health;
+  // Base from coarse health flag, then nudge by question completion + risk pressure.
+  const base = h === "Green" ? 85 : h === "Yellow" ? 65 : h === "Red" ? 35 : 50;
+  const q = brief.questions;
+  const completePct = q.total > 0 ? q.by_status.complete / q.total : 0;
+  const redRatio = q.total > 0 ? q.by_health.red / q.total : 0;
+  const score = base + completePct * 10 - redRatio * 20;
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
