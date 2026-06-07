@@ -1331,6 +1331,7 @@ function SectionQuestions({ missionId, questions, volumes, refetch }: any) {
   const [vName, setVName] = useState("");
   const [vDesc, setVDesc] = useState("");
   const [paste, setPaste] = useState("");
+  const [matrixOpen, setMatrixOpen] = useState(false);
 
   async function addVolume() {
     if (!vName.trim()) return;
@@ -1359,7 +1360,31 @@ function SectionQuestions({ missionId, questions, volumes, refetch }: any) {
   return (
     <Section id="questions" n="07" label="Question Setup" sublabel={`${(questions?.length ?? 0)} questions configured · Evaluation mapping required. Pre-populates the Studio with questions, owners, and deadlines.`}>
       <div className="space-y-6">
-        {/* Volumes */}
+        {/* Upload Matrix — IRIS-reconciled */}
+        <div className="rounded-md border border-primary/30 bg-primary/[0.04] p-4 flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-primary mb-1">Source of Truth · Matrix</div>
+            <div className="text-sm font-medium">Upload Assignment Matrix</div>
+            <div className="text-[11px] text-muted-foreground mt-0.5">
+              Upload the client's question + assignment matrix (Excel, CSV, PDF, Word). IRIS extracts questions, sections, writers, SMEs, page limits, weights, and pens-down dates — review, then commit as source of truth.
+            </div>
+          </div>
+          <button
+            onClick={() => setMatrixOpen(true)}
+            className="shrink-0 inline-flex items-center gap-1.5 rounded-md bg-[#C49A22] px-3 py-2 text-xs font-semibold text-black hover:bg-[#D4AA32]"
+          >
+            <Upload className="h-3 w-3" /> Upload Matrix
+          </button>
+        </div>
+
+        {matrixOpen && (
+          <UploadMatrixModal
+            missionId={missionId}
+            onClose={() => setMatrixOpen(false)}
+            onCommitted={() => { setMatrixOpen(false); refetch(); }}
+          />
+        )}
+
         <div>
           <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-2">Volumes</div>
           <ul className="space-y-1.5">
