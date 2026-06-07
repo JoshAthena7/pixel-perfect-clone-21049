@@ -557,6 +557,11 @@ type RosterEntry = {
   has_onboarded: boolean;
   active_missions: number;
   created_at: string;
+  mission_id: string | null;
+  mission_name: string | null;
+  role: string | null;
+  expected_start_date: string | null;
+  engagement_lead_name: string | null;
 };
 
 export const listTeamRoster = createServerFn({ method: "GET" })
@@ -566,24 +571,28 @@ export const listTeamRoster = createServerFn({ method: "GET" })
     await assertAdmin(supabase, userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const [{ data: invites }, { data: profiles }, { data: memberships }] = await Promise.all([
-      supabaseAdmin
-        .from("atlas_invites")
-        .select(
-          "id,email,display_name,role_hint,invite_sent_at,accepted_user_id,created_at",
-        )
-        .order("created_at", { ascending: false }),
-      supabaseAdmin
-        .from("profiles")
-        .select("id,display_name,email,has_onboarded,last_login_at,created_at"),
-      supabaseAdmin.from("mission_members").select("user_id,mission_id"),
-    ]);
+    const [{ data: invites }, { data: profiles }, { data: memberships }, { data: missions }] =
+      await Promise.all([
+        supabaseAdmin
+          .from("atlas_invites")
+          .select(
+            "id,email,display_name,role_hint,role,invite_sent_at,accepted_user_id,created_at,mission_id,expected_start_date,engagement_lead_id,invited_by",
+          )
+          .order("created_at", { ascending: false }),
+        supabaseAdmin
+          .from("profiles")
+          .select("id,display_name,email,has_onboarded,last_login_at,created_at"),
+        supabaseAdmin.from("mission_members").select("user_id,mission_id"),
+        supabaseAdmin.from("missions").select("id,name"),
+      ]);
 
     const missionsByUser = new Map<string, number>();
     for (const m of memberships ?? []) {
       if (!m.user_id) continue;
       missionsByUser.set(m.user_id, (missionsByUser.get(m.user_id) ?? 0) + 1);
     }
+    const missionNameById = new Map<string, string>();
+    for (const m of missions ?? []) missionNameById.set(m.id, m.name);
 
     const profileByEmail = new Map<string, any>();
     const profileById = new Map<string, any>();
@@ -608,6 +617,9 @@ export const listTeamRoster = createServerFn({ method: "GET" })
       else if (inv.invite_sent_at) state = "invited";
       else state = "loaded";
 
+      const leadId = inv.engagement_lead_id ?? inv.invited_by ?? null;
+      const leadProfile = leadId ? profileById.get(leadId) : null;
+
       entries.push({
         key: `inv:${inv.id}`,
         state,
@@ -621,8 +633,15 @@ export const listTeamRoster = createServerFn({ method: "GET" })
         has_onboarded: linked?.has_onboarded === true,
         active_missions: linked?.id ? (missionsByUser.get(linked.id) ?? 0) : 0,
         created_at: inv.created_at,
+        mission_id: inv.mission_id ?? null,
+        mission_name: inv.mission_id ? (missionNameById.get(inv.mission_id) ?? null) : null,
+        role: inv.role ?? inv.role_hint ?? null,
+        expected_start_date: inv.expected_start_date ?? null,
+        engagement_lead_name:
+          leadProfile?.display_name ?? leadProfile?.email ?? null,
       });
     }
+
 
     // Legacy profiles with no invite row → treat as ACTIVE.
     for (const p of profiles ?? []) {
