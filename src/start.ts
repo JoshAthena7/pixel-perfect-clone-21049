@@ -8,7 +8,12 @@ const SECURITY_HEADERS: Record<string, string> = {
   "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
 };
 
-const securityHeadersMiddleware = createMiddleware().server(async ({ next }) => {
+const securityHeadersMiddleware = createMiddleware().server(async ({ request, next }) => {
+  // Bypass internal email infrastructure routes — they have their own auth
+  const url = new URL(request.url);
+  if (url.pathname.startsWith("/lovable/") || url.pathname === "/email/unsubscribe") {
+    return next();
+  }
   const result = await next();
   if (!(result instanceof Response)) return result;
   // Mutate headers in place when possible. Rewrapping the Response can drop the
