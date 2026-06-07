@@ -110,8 +110,11 @@ import { Route as AuthenticatedMissionsMissionIdResponseTemplateRouteImport } fr
 import { Route as AuthenticatedMissionsMissionIdOverviewRouteImport } from './routes/_authenticated/missions/$missionId/overview'
 import { Route as AuthenticatedMissionsMissionIdLibraryRouteImport } from './routes/_authenticated/missions/$missionId/library'
 import { Route as AuthenticatedMissionsMissionIdJourneyMapRouteImport } from './routes/_authenticated/missions/$missionId/journey-map'
+import { Route as AuthenticatedMissionsMissionIdIrisStrategicRouteImport } from './routes/_authenticated/missions/$missionId/iris-strategic'
 import { Route as AuthenticatedMissionsMissionIdIrisCommandRouteImport } from './routes/_authenticated/missions/$missionId/iris-command'
+import { Route as AuthenticatedMissionsMissionIdIrisBriefRouteImport } from './routes/_authenticated/missions/$missionId/iris-brief'
 import { Route as AuthenticatedMissionsMissionIdIrisRouteImport } from './routes/_authenticated/missions/$missionId/iris'
+import { Route as AuthenticatedMissionsMissionIdIntelUploadRouteImport } from './routes/_authenticated/missions/$missionId/intel-upload'
 import { Route as AuthenticatedMissionsMissionIdIntelRouteImport } from './routes/_authenticated/missions/$missionId/intel'
 import { Route as AuthenticatedMissionsMissionIdFlightDeckRouteImport } from './routes/_authenticated/missions/$missionId/flight-deck'
 import { Route as AuthenticatedMissionsMissionIdCommandRouteImport } from './routes/_authenticated/missions/$missionId/command'
@@ -695,16 +698,34 @@ const AuthenticatedMissionsMissionIdJourneyMapRoute =
     path: '/journey-map',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
+const AuthenticatedMissionsMissionIdIrisStrategicRoute =
+  AuthenticatedMissionsMissionIdIrisStrategicRouteImport.update({
+    id: '/iris-strategic',
+    path: '/iris-strategic',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
+  } as any)
 const AuthenticatedMissionsMissionIdIrisCommandRoute =
   AuthenticatedMissionsMissionIdIrisCommandRouteImport.update({
     id: '/iris-command',
     path: '/iris-command',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
+const AuthenticatedMissionsMissionIdIrisBriefRoute =
+  AuthenticatedMissionsMissionIdIrisBriefRouteImport.update({
+    id: '/iris-brief',
+    path: '/iris-brief',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
+  } as any)
 const AuthenticatedMissionsMissionIdIrisRoute =
   AuthenticatedMissionsMissionIdIrisRouteImport.update({
     id: '/iris',
     path: '/iris',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
+  } as any)
+const AuthenticatedMissionsMissionIdIntelUploadRoute =
+  AuthenticatedMissionsMissionIdIntelUploadRouteImport.update({
+    id: '/intel-upload',
+    path: '/intel-upload',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
 const AuthenticatedMissionsMissionIdIntelRoute =
@@ -871,8 +892,11 @@ export interface FileRoutesByFullPath {
   '/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
   '/missions/$missionId/flight-deck': typeof AuthenticatedMissionsMissionIdFlightDeckRoute
   '/missions/$missionId/intel': typeof AuthenticatedMissionsMissionIdIntelRoute
+  '/missions/$missionId/intel-upload': typeof AuthenticatedMissionsMissionIdIntelUploadRoute
   '/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
+  '/missions/$missionId/iris-brief': typeof AuthenticatedMissionsMissionIdIrisBriefRoute
   '/missions/$missionId/iris-command': typeof AuthenticatedMissionsMissionIdIrisCommandRoute
+  '/missions/$missionId/iris-strategic': typeof AuthenticatedMissionsMissionIdIrisStrategicRoute
   '/missions/$missionId/journey-map': typeof AuthenticatedMissionsMissionIdJourneyMapRoute
   '/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
   '/missions/$missionId/overview': typeof AuthenticatedMissionsMissionIdOverviewRoute
@@ -984,8 +1008,11 @@ export interface FileRoutesByTo {
   '/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
   '/missions/$missionId/flight-deck': typeof AuthenticatedMissionsMissionIdFlightDeckRoute
   '/missions/$missionId/intel': typeof AuthenticatedMissionsMissionIdIntelRoute
+  '/missions/$missionId/intel-upload': typeof AuthenticatedMissionsMissionIdIntelUploadRoute
   '/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
+  '/missions/$missionId/iris-brief': typeof AuthenticatedMissionsMissionIdIrisBriefRoute
   '/missions/$missionId/iris-command': typeof AuthenticatedMissionsMissionIdIrisCommandRoute
+  '/missions/$missionId/iris-strategic': typeof AuthenticatedMissionsMissionIdIrisStrategicRoute
   '/missions/$missionId/journey-map': typeof AuthenticatedMissionsMissionIdJourneyMapRoute
   '/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
   '/missions/$missionId/overview': typeof AuthenticatedMissionsMissionIdOverviewRoute
@@ -1103,8 +1130,11 @@ export interface FileRoutesById {
   '/_authenticated/missions/$missionId/command': typeof AuthenticatedMissionsMissionIdCommandRoute
   '/_authenticated/missions/$missionId/flight-deck': typeof AuthenticatedMissionsMissionIdFlightDeckRoute
   '/_authenticated/missions/$missionId/intel': typeof AuthenticatedMissionsMissionIdIntelRoute
+  '/_authenticated/missions/$missionId/intel-upload': typeof AuthenticatedMissionsMissionIdIntelUploadRoute
   '/_authenticated/missions/$missionId/iris': typeof AuthenticatedMissionsMissionIdIrisRoute
+  '/_authenticated/missions/$missionId/iris-brief': typeof AuthenticatedMissionsMissionIdIrisBriefRoute
   '/_authenticated/missions/$missionId/iris-command': typeof AuthenticatedMissionsMissionIdIrisCommandRoute
+  '/_authenticated/missions/$missionId/iris-strategic': typeof AuthenticatedMissionsMissionIdIrisStrategicRoute
   '/_authenticated/missions/$missionId/journey-map': typeof AuthenticatedMissionsMissionIdJourneyMapRoute
   '/_authenticated/missions/$missionId/library': typeof AuthenticatedMissionsMissionIdLibraryRoute
   '/_authenticated/missions/$missionId/overview': typeof AuthenticatedMissionsMissionIdOverviewRoute
@@ -1222,8 +1252,11 @@ export interface FileRouteTypes {
     | '/missions/$missionId/command'
     | '/missions/$missionId/flight-deck'
     | '/missions/$missionId/intel'
+    | '/missions/$missionId/intel-upload'
     | '/missions/$missionId/iris'
+    | '/missions/$missionId/iris-brief'
     | '/missions/$missionId/iris-command'
+    | '/missions/$missionId/iris-strategic'
     | '/missions/$missionId/journey-map'
     | '/missions/$missionId/library'
     | '/missions/$missionId/overview'
@@ -1335,8 +1368,11 @@ export interface FileRouteTypes {
     | '/missions/$missionId/command'
     | '/missions/$missionId/flight-deck'
     | '/missions/$missionId/intel'
+    | '/missions/$missionId/intel-upload'
     | '/missions/$missionId/iris'
+    | '/missions/$missionId/iris-brief'
     | '/missions/$missionId/iris-command'
+    | '/missions/$missionId/iris-strategic'
     | '/missions/$missionId/journey-map'
     | '/missions/$missionId/library'
     | '/missions/$missionId/overview'
@@ -1453,8 +1489,11 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/$missionId/command'
     | '/_authenticated/missions/$missionId/flight-deck'
     | '/_authenticated/missions/$missionId/intel'
+    | '/_authenticated/missions/$missionId/intel-upload'
     | '/_authenticated/missions/$missionId/iris'
+    | '/_authenticated/missions/$missionId/iris-brief'
     | '/_authenticated/missions/$missionId/iris-command'
+    | '/_authenticated/missions/$missionId/iris-strategic'
     | '/_authenticated/missions/$missionId/journey-map'
     | '/_authenticated/missions/$missionId/library'
     | '/_authenticated/missions/$missionId/overview'
@@ -2224,6 +2263,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdJourneyMapRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
+    '/_authenticated/missions/$missionId/iris-strategic': {
+      id: '/_authenticated/missions/$missionId/iris-strategic'
+      path: '/iris-strategic'
+      fullPath: '/missions/$missionId/iris-strategic'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdIrisStrategicRouteImport
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
     '/_authenticated/missions/$missionId/iris-command': {
       id: '/_authenticated/missions/$missionId/iris-command'
       path: '/iris-command'
@@ -2231,11 +2277,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdIrisCommandRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
+    '/_authenticated/missions/$missionId/iris-brief': {
+      id: '/_authenticated/missions/$missionId/iris-brief'
+      path: '/iris-brief'
+      fullPath: '/missions/$missionId/iris-brief'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdIrisBriefRouteImport
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
     '/_authenticated/missions/$missionId/iris': {
       id: '/_authenticated/missions/$missionId/iris'
       path: '/iris'
       fullPath: '/missions/$missionId/iris'
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdIrisRouteImport
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
+    '/_authenticated/missions/$missionId/intel-upload': {
+      id: '/_authenticated/missions/$missionId/intel-upload'
+      path: '/intel-upload'
+      fullPath: '/missions/$missionId/intel-upload'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdIntelUploadRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
     '/_authenticated/missions/$missionId/intel': {
@@ -2465,8 +2525,11 @@ interface AuthenticatedMissionsMissionIdRouteChildren {
   AuthenticatedMissionsMissionIdCommandRoute: typeof AuthenticatedMissionsMissionIdCommandRoute
   AuthenticatedMissionsMissionIdFlightDeckRoute: typeof AuthenticatedMissionsMissionIdFlightDeckRoute
   AuthenticatedMissionsMissionIdIntelRoute: typeof AuthenticatedMissionsMissionIdIntelRoute
+  AuthenticatedMissionsMissionIdIntelUploadRoute: typeof AuthenticatedMissionsMissionIdIntelUploadRoute
   AuthenticatedMissionsMissionIdIrisRoute: typeof AuthenticatedMissionsMissionIdIrisRoute
+  AuthenticatedMissionsMissionIdIrisBriefRoute: typeof AuthenticatedMissionsMissionIdIrisBriefRoute
   AuthenticatedMissionsMissionIdIrisCommandRoute: typeof AuthenticatedMissionsMissionIdIrisCommandRoute
+  AuthenticatedMissionsMissionIdIrisStrategicRoute: typeof AuthenticatedMissionsMissionIdIrisStrategicRoute
   AuthenticatedMissionsMissionIdJourneyMapRoute: typeof AuthenticatedMissionsMissionIdJourneyMapRoute
   AuthenticatedMissionsMissionIdLibraryRoute: typeof AuthenticatedMissionsMissionIdLibraryRoute
   AuthenticatedMissionsMissionIdOverviewRoute: typeof AuthenticatedMissionsMissionIdOverviewRoute
@@ -2496,10 +2559,16 @@ const AuthenticatedMissionsMissionIdRouteChildren: AuthenticatedMissionsMissionI
       AuthenticatedMissionsMissionIdFlightDeckRoute,
     AuthenticatedMissionsMissionIdIntelRoute:
       AuthenticatedMissionsMissionIdIntelRoute,
+    AuthenticatedMissionsMissionIdIntelUploadRoute:
+      AuthenticatedMissionsMissionIdIntelUploadRoute,
     AuthenticatedMissionsMissionIdIrisRoute:
       AuthenticatedMissionsMissionIdIrisRoute,
+    AuthenticatedMissionsMissionIdIrisBriefRoute:
+      AuthenticatedMissionsMissionIdIrisBriefRoute,
     AuthenticatedMissionsMissionIdIrisCommandRoute:
       AuthenticatedMissionsMissionIdIrisCommandRoute,
+    AuthenticatedMissionsMissionIdIrisStrategicRoute:
+      AuthenticatedMissionsMissionIdIrisStrategicRoute,
     AuthenticatedMissionsMissionIdJourneyMapRoute:
       AuthenticatedMissionsMissionIdJourneyMapRoute,
     AuthenticatedMissionsMissionIdLibraryRoute:

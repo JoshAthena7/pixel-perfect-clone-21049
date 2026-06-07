@@ -60,7 +60,7 @@ async function extractText(file: File): Promise<{ text: string; page_count: numb
     const buf = new Uint8Array(await file.arrayBuffer());
     const pdf = await getDocumentProxy(buf);
     const { text, totalPages } = await pdfExtract(pdf, { mergePages: true });
-    return { text: typeof text === "string" ? text : text.join("\n"), page_count: totalPages ?? null };
+    return { text: typeof text === "string" ? text : (text as string[]).join("\n"), page_count: totalPages ?? null };
   }
   if (name.endsWith(".docx")) {
     const mammoth = await import("mammoth");
