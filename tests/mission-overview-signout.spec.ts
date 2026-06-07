@@ -65,21 +65,49 @@ test("getMissionOverview stops firing after sign-out", async ({ page }) => {
   await page.waitForURL(/\/(login|auth)$/, { timeout: 15_000 });
   await page.waitForLoadState("networkidle");
 
+  // ── 2a. Session is fully cleared ──────────────────────────────────────
+  // Supabase persists the session under localStorage key `sb-<ref>-auth-token`
+  // (and historical `supabase.auth.token`). After signOut() none must remain.
+  const lingering = await page.evaluate(() => {
+    const keys = Object.keys(localStorage);
+    const authKeys = keys.filter(
+      (k) => /^sb-.*-auth-token$/.test(k) || k === "supabase.auth.token",
+    );
+    return authKeys.map((k) => ({ key: k, hasValue: !!localStorage.getItem(k) }));
+  });
+  expect(
+    lingering.filter((e) => e.hasValue),
+    "Supabase auth token must be cleared from localStorage after sign-out",
+  ).toEqual([]);
+
+  // Any cookie whose name looks auth-related must also be gone.
+  const authCookies = (await page.context().cookies()).filter((c) =>
+    /^(sb-|supabase)/i.test(c.name),
+  );
+  expect(authCookies, "no supabase auth cookies should remain").toEqual([]);
+
   // Flip the phase AFTER the sign-out network settles so any trailing
   // post-auth refetch isn't misattributed.
   phase = "post-logout";
 
-  // ── 3. Re-walk public + protected fallbacks while signed out ─────────
-  const ROUTES = [
-    "/",
-    "/login",
-    "/iris",
+  // ── 3. Authenticated routes must NOT load without re-login ───────────
+  const PROTECTED = [
     "/flight-deck",
     "/v1",
     "/v1/vault",
     "/missions/00000000-0000-0000-0000-000000000000/vault",
   ];
-  for (const r of ROUTES) {
+  for (const r of PROTECTED) {
+    await page.goto(r, { waitUntil: "networkidle" });
+    expect(
+      new URL(page.url()).pathname,
+      `visiting ${r} signed out must redirect to /login`,
+    ).toMatch(/^\/(login|auth)$/);
+  }
+
+  // Also walk top-level public routes to make sure nothing there leaks
+  // a protected fetch either.
+  for (const r of ["/", "/login", "/iris"]) {
     await page.goto(r, { waitUntil: "networkidle" });
   }
 
