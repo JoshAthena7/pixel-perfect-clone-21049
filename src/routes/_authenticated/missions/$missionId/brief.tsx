@@ -660,7 +660,7 @@ function MissionMap({ missionId }: { missionId: string }) {
           <Legend dot="rgba(255,255,255,0.18)" label="Not Started" hollow />
           <Legend dot={C.green} label="Completed" check />
         </div>
-        <a href="#" style={linkBlue}>View Full Question List <ArrowRight size={12} /></a>
+        <Link to="/missions/$missionId/sections" params={{ missionId }} style={linkBlue}>View Full Question List <ArrowRight size={12} /></Link>
       </div>
     </div>
   );
