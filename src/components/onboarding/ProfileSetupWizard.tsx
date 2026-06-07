@@ -3,6 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ArrowRight, ArrowLeft, Check, Sparkles, Plus } from "lucide-react";
+import { ResumeUploadCard } from "./ResumeUploadCard";
+
 
 /**
  * First-login wizard. Mounts after the IRIS briefing (has_onboarded=true)
@@ -44,6 +46,10 @@ type Form = {
   question_types: string[];
   availability_status: Availability;
   expert_bio: string;
+  // Resume-driven expertise (new)
+  certifications: string[];
+  years_of_experience: number | null;
+  expertise_source: "resume_upload" | "manual" | null;
   // "Make IRIS yours"
   writing_voice_sample: string;
   preferred_pov: Pov;
@@ -52,6 +58,7 @@ type Form = {
   timezone: string;
   domain_depth: Record<string, Depth>;
 };
+
 
 function isReplay() {
   if (typeof window === "undefined") return false;
@@ -103,6 +110,7 @@ export function ProfileSetupWizardMount() {
 
 const STEPS = [
   { key: "intro", title: "Welcome", subtitle: "A few minutes to get IRIS pointed at you." },
+  { key: "resume", title: "Let IRIS learn your expertise", subtitle: "Upload your resume and IRIS will identify your areas of expertise. You can review and edit before saving." },
   { key: "expertise", title: "What do you know?", subtitle: "Pick the areas you can speak to with depth." },
   { key: "states", title: "Where have you worked?", subtitle: "States where you've delivered procurement work." },
   { key: "programs", title: "Which programs?", subtitle: "Specific programs you've supported." },
@@ -112,6 +120,7 @@ const STEPS = [
   { key: "voice", title: "How should IRIS sound like you?", subtitle: "Optional, but it makes every IRIS-drafted suggestion feel like your writing." },
   { key: "style", title: "How do you work?", subtitle: "Tells IRIS what to show you first and when to ping you." },
 ] as const;
+
 
 function ProfileSetupWizard({
   profileId,
@@ -151,6 +160,9 @@ function ProfileSetupWizard({
     question_types: [],
     availability_status: "available",
     expert_bio: "",
+    certifications: [],
+    years_of_experience: null,
+    expertise_source: null,
     writing_voice_sample: "",
     preferred_pov: "we",
     banned_words: [],
@@ -164,6 +176,8 @@ function ProfileSetupWizard({
   const [customExpertise, setCustomExpertise] = useState("");
   const [customProgram, setCustomProgram] = useState("");
   const [customBannedWord, setCustomBannedWord] = useState("");
+  const [customCertification, setCustomCertification] = useState("");
+
   const [showAllStates, setShowAllStates] = useState(false);
 
   // Pre-fill if user already has anything saved (re-entry).
@@ -172,28 +186,37 @@ function ProfileSetupWizard({
       const { data } = await supabase
         .from("profiles")
         .select(
-          "expertise_areas,states_experience,programs_experience,question_types,availability_status,expert_bio,writing_voice_sample,preferred_pov,banned_words,default_mission_role,timezone,domain_depth",
+          "expertise_areas,states_experience,programs_experience,question_types,availability_status,expert_bio,writing_voice_sample,preferred_pov,banned_words,default_mission_role,timezone,domain_depth,certifications,years_of_experience,expertise_source",
         )
         .eq("id", profileId)
         .maybeSingle();
       if (data) {
+        const d = data as any;
         setForm((prev) => ({
-          expertise_areas: data.expertise_areas ?? [],
-          states_experience: data.states_experience ?? [],
-          programs_experience: data.programs_experience ?? [],
-          question_types: data.question_types ?? [],
-          availability_status: (data.availability_status as Availability) ?? "available",
-          expert_bio: data.expert_bio ?? "",
-          writing_voice_sample: data.writing_voice_sample ?? "",
-          preferred_pov: ((data.preferred_pov as Pov) ?? "we"),
-          banned_words: data.banned_words ?? [],
-          default_mission_role: ((data.default_mission_role as MissionRole) ?? "") as MissionRole | "",
-          timezone: data.timezone ?? prev.timezone,
-          domain_depth: (data.domain_depth as Record<string, Depth>) ?? {},
+          expertise_areas: d.expertise_areas ?? [],
+          states_experience: d.states_experience ?? [],
+          programs_experience: d.programs_experience ?? [],
+          question_types: d.question_types ?? [],
+          availability_status: (d.availability_status as Availability) ?? "available",
+          expert_bio: d.expert_bio ?? "",
+          certifications: d.certifications ?? [],
+          years_of_experience:
+            typeof d.years_of_experience === "number" ? d.years_of_experience : null,
+          expertise_source:
+            d.expertise_source === "resume_upload" || d.expertise_source === "manual"
+              ? d.expertise_source
+              : null,
+          writing_voice_sample: d.writing_voice_sample ?? "",
+          preferred_pov: ((d.preferred_pov as Pov) ?? "we"),
+          banned_words: d.banned_words ?? [],
+          default_mission_role: ((d.default_mission_role as MissionRole) ?? "") as MissionRole | "",
+          timezone: d.timezone ?? prev.timezone,
+          domain_depth: (d.domain_depth as Record<string, Depth>) ?? {},
         }));
       }
     })();
   }, [profileId]);
+
 
   const { data: libraryRows = [] } = useQuery({
     queryKey: ["expertise-library-labels"],
@@ -270,6 +293,10 @@ function ProfileSetupWizard({
         question_types: form.question_types,
         availability_status: form.availability_status,
         expert_bio: form.expert_bio || null,
+        certifications: form.certifications,
+        years_of_experience: form.years_of_experience,
+        expertise_source: form.expertise_source,
+        expertise_updated_at: form.expertise_source ? new Date().toISOString() : null,
         writing_voice_sample: form.writing_voice_sample.trim() || null,
         preferred_pov: form.preferred_pov,
         banned_words: form.banned_words,
@@ -291,6 +318,7 @@ function ProfileSetupWizard({
     qc.invalidateQueries({ queryKey: ["editable-profile", profileId] });
     return true;
   }
+
 
   async function finish() {
     setSaving(true);
