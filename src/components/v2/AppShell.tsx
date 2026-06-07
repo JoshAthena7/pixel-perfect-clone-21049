@@ -151,7 +151,7 @@ function TopBar({
               src={athenaMark.url}
               alt=""
               aria-hidden
-              className="h-8 w-8 object-contain select-none"
+              className="h-11 w-11 object-contain select-none -my-1"
               draggable={false}
             />
             <img
@@ -169,7 +169,7 @@ function TopBar({
               src={athenaMark.url}
               alt=""
               aria-hidden
-              className="h-8 w-8 object-contain select-none"
+              className="h-11 w-11 object-contain select-none -my-1"
               draggable={false}
             />
             <img

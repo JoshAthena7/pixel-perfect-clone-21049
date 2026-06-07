@@ -149,7 +149,7 @@ function WelcomePage() {
               alt=""
               aria-hidden
               draggable={false}
-              className="h-12 w-12 object-contain select-none"
+              className="h-16 w-16 object-contain select-none -my-2"
             />
             <img
               src={atlasWordmark.url}
