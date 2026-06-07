@@ -464,7 +464,7 @@ function WinThemesAlignment({ missionId, brief }: { missionId: string; brief: Mi
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
         {themes.length === 0 ? (
-          <div style={empty}>No win themes captured yet. Add them in Settings → Themes.</div>
+          <div style={empty}>No win themes captured yet. Add them in the Setup Record.</div>
         ) : (
           themes.slice(0, 6).map((t) => (
             <div key={t.id}>
