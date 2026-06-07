@@ -219,6 +219,26 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
     },
   });
 
+  // Open Phone-a-Friend consults (live)
+  const listConsultsFn = useServerFn(listMissionConsults);
+  const { data: openConsults = [], refetch: refetchConsults } = useQuery<ExpertConsultRow[]>({
+    queryKey: ["mission-consults", missionId],
+    queryFn: () => listConsultsFn({ data: { missionId } }),
+  });
+  useEffect(() => {
+    const ch = supabase
+      .channel(`expert_consults:${missionId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "expert_consults", filter: `mission_id=eq.${missionId}` },
+        () => refetchConsults(),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [missionId, refetchConsults]);
+
   // Flight Status counts
   const flightStatus = useMemo(() => {
     const now = Date.now();
