@@ -3,9 +3,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { FlightDeck } from "@/components/v4/FlightDeck";
 import { toast } from "sonner";
-import { ArrowLeft, HelpCircle } from "lucide-react";
+import { ArrowLeft, HelpCircle, BookOpen, X } from "lucide-react";
 import { createSignal } from "@/lib/signals";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { hasSeenBrief, markBriefSeen } from "@/lib/brief-seen";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/flight-deck")({
   component: MissionFlightDeckPage,
@@ -127,6 +128,8 @@ function MissionFlightDeckPage() {
       </div>
 
 
+      <BriefPrompt missionId={missionId} userId={meId ?? ""} />
+
       <FlightDeck
         missionId={missionId}
         me={meId ?? ""}
@@ -134,6 +137,56 @@ function MissionFlightDeckPage() {
         allQuestions={allQuestions}
         updateStatus={updateStatus}
       />
+    </div>
+  );
+}
+
+function BriefPrompt({ missionId, userId }: { missionId: string; userId: string }) {
+  const [show, setShow] = useState(false);
+
+  // Resolve on the client only — hasSeenBrief reads localStorage.
+  useEffect(() => {
+    if (!userId) return;
+    setShow(!hasSeenBrief(userId, missionId));
+  }, [userId, missionId]);
+
+  if (!show || !userId) return null;
+
+  const dismiss = () => {
+    markBriefSeen(userId, missionId);
+    setShow(false);
+  };
+
+  return (
+    <div className="mx-auto mt-4 max-w-[1200px] px-6">
+      <div
+        role="status"
+        className="flex items-start gap-3 rounded-lg border border-amber-400/30 bg-amber-400/[0.06] px-4 py-3 text-amber-100"
+        style={{ backdropFilter: "blur(4px)" }}
+      >
+        <BookOpen className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-300" />
+        <div className="flex-1 text-[13px] leading-relaxed">
+          <div className="font-semibold tracking-wide">Start with the Mission Brief</div>
+          <div className="mt-0.5 text-amber-100/75">
+            Read the brief once to orient yourself — every output on this Flight Deck builds on it.
+          </div>
+        </div>
+        <Link
+          to="/missions/$missionId/brief"
+          params={{ missionId }}
+          className="inline-flex items-center gap-1.5 rounded-md border border-amber-300/40 bg-amber-300/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-100 hover:bg-amber-300/20"
+        >
+          Open brief
+        </Link>
+        <button
+          type="button"
+          onClick={dismiss}
+          aria-label="Dismiss"
+          className="rounded-md p-1 text-amber-100/60 hover:bg-amber-300/10 hover:text-amber-100"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </div>
     </div>
   );
 }
