@@ -26,6 +26,7 @@ import { Route as AuthenticatedJourneyMapRouteImport } from './routes/_authentic
 import { Route as AuthenticatedIrisConsoleRouteImport } from './routes/_authenticated/iris-console'
 import { Route as AuthenticatedIntelligenceQueueRouteImport } from './routes/_authenticated/intelligence-queue'
 import { Route as AuthenticatedIntelligenceRouteImport } from './routes/_authenticated/intelligence'
+import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated/inbox'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedFlightDeckRouteImport } from './routes/_authenticated/flight-deck'
 import { Route as AuthenticatedCockpitRouteImport } from './routes/_authenticated/cockpit'
@@ -197,6 +198,11 @@ const AuthenticatedIntelligenceRoute =
     path: '/intelligence',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedInboxRoute = AuthenticatedInboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   id: '/home',
   path: '/home',
@@ -686,6 +692,7 @@ export interface FileRoutesByFullPath {
   '/cockpit': typeof AuthenticatedCockpitRoute
   '/flight-deck': typeof AuthenticatedFlightDeckRoute
   '/home': typeof AuthenticatedHomeRoute
+  '/inbox': typeof AuthenticatedInboxRoute
   '/intelligence': typeof AuthenticatedIntelligenceRoute
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
   '/iris-console': typeof AuthenticatedIrisConsoleRoute
@@ -785,6 +792,7 @@ export interface FileRoutesByTo {
   '/cockpit': typeof AuthenticatedCockpitRoute
   '/flight-deck': typeof AuthenticatedFlightDeckRoute
   '/home': typeof AuthenticatedHomeRoute
+  '/inbox': typeof AuthenticatedInboxRoute
   '/intelligence': typeof AuthenticatedIntelligenceRoute
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
   '/iris-console': typeof AuthenticatedIrisConsoleRoute
@@ -884,6 +892,7 @@ export interface FileRoutesById {
   '/_authenticated/cockpit': typeof AuthenticatedCockpitRoute
   '/_authenticated/flight-deck': typeof AuthenticatedFlightDeckRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
+  '/_authenticated/inbox': typeof AuthenticatedInboxRoute
   '/_authenticated/intelligence': typeof AuthenticatedIntelligenceRoute
   '/_authenticated/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
   '/_authenticated/iris-console': typeof AuthenticatedIrisConsoleRoute
@@ -986,6 +995,7 @@ export interface FileRouteTypes {
     | '/cockpit'
     | '/flight-deck'
     | '/home'
+    | '/inbox'
     | '/intelligence'
     | '/intelligence-queue'
     | '/iris-console'
@@ -1085,6 +1095,7 @@ export interface FileRouteTypes {
     | '/cockpit'
     | '/flight-deck'
     | '/home'
+    | '/inbox'
     | '/intelligence'
     | '/intelligence-queue'
     | '/iris-console'
@@ -1183,6 +1194,7 @@ export interface FileRouteTypes {
     | '/_authenticated/cockpit'
     | '/_authenticated/flight-deck'
     | '/_authenticated/home'
+    | '/_authenticated/inbox'
     | '/_authenticated/intelligence'
     | '/_authenticated/intelligence-queue'
     | '/_authenticated/iris-console'
@@ -1412,6 +1424,13 @@ declare module '@tanstack/react-router' {
       path: '/intelligence'
       fullPath: '/intelligence'
       preLoaderRoute: typeof AuthenticatedIntelligenceRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/inbox': {
+      id: '/_authenticated/inbox'
+      path: '/inbox'
+      fullPath: '/inbox'
+      preLoaderRoute: typeof AuthenticatedInboxRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/home': {
@@ -2188,6 +2207,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCockpitRoute: typeof AuthenticatedCockpitRoute
   AuthenticatedFlightDeckRoute: typeof AuthenticatedFlightDeckRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
+  AuthenticatedInboxRoute: typeof AuthenticatedInboxRoute
   AuthenticatedIntelligenceRoute: typeof AuthenticatedIntelligenceRoute
   AuthenticatedIntelligenceQueueRoute: typeof AuthenticatedIntelligenceQueueRoute
   AuthenticatedIrisConsoleRoute: typeof AuthenticatedIrisConsoleRoute
@@ -2217,6 +2237,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCockpitRoute: AuthenticatedCockpitRoute,
   AuthenticatedFlightDeckRoute: AuthenticatedFlightDeckRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
+  AuthenticatedInboxRoute: AuthenticatedInboxRoute,
   AuthenticatedIntelligenceRoute: AuthenticatedIntelligenceRoute,
   AuthenticatedIntelligenceQueueRoute: AuthenticatedIntelligenceQueueRoute,
   AuthenticatedIrisConsoleRoute: AuthenticatedIrisConsoleRoute,

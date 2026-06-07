@@ -2224,6 +2224,152 @@ export type Database = {
           },
         ]
       }
+      expert_consults: {
+        Row: {
+          ask_body: string
+          ask_subject: string
+          closed_at: string | null
+          context_snapshot: Json
+          created_at: string
+          expert_user_id: string | null
+          external_expert_id: string | null
+          id: string
+          mission_id: string
+          question_id: string | null
+          requested_by: string
+          resolution_note: string | null
+          response_at: string | null
+          response_body: string | null
+          section_id: string | null
+          status: string
+          updated_at: string
+          urgency: string
+        }
+        Insert: {
+          ask_body: string
+          ask_subject: string
+          closed_at?: string | null
+          context_snapshot?: Json
+          created_at?: string
+          expert_user_id?: string | null
+          external_expert_id?: string | null
+          id?: string
+          mission_id: string
+          question_id?: string | null
+          requested_by: string
+          resolution_note?: string | null
+          response_at?: string | null
+          response_body?: string | null
+          section_id?: string | null
+          status?: string
+          updated_at?: string
+          urgency?: string
+        }
+        Update: {
+          ask_body?: string
+          ask_subject?: string
+          closed_at?: string | null
+          context_snapshot?: Json
+          created_at?: string
+          expert_user_id?: string | null
+          external_expert_id?: string | null
+          id?: string
+          mission_id?: string
+          question_id?: string | null
+          requested_by?: string
+          resolution_note?: string | null
+          response_at?: string | null
+          response_body?: string | null
+          section_id?: string | null
+          status?: string
+          updated_at?: string
+          urgency?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expert_consults_external_expert_id_fkey"
+            columns: ["external_expert_id"]
+            isOneToOne: false
+            referencedRelation: "expert_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expert_consults_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expert_consults_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "question_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expert_consults_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "mission_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expert_directory: {
+        Row: {
+          active: boolean
+          avg_response_hours: number | null
+          created_at: string
+          created_by: string | null
+          domain_tags: string[]
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          org: string | null
+          phone: string | null
+          programs: string[]
+          states: string[]
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          avg_response_hours?: number | null
+          created_at?: string
+          created_by?: string | null
+          domain_tags?: string[]
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          org?: string | null
+          phone?: string | null
+          programs?: string[]
+          states?: string[]
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          avg_response_hours?: number | null
+          created_at?: string
+          created_by?: string | null
+          domain_tags?: string[]
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          org?: string | null
+          phone?: string | null
+          programs?: string[]
+          states?: string[]
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       expertise_library: {
         Row: {
           active: boolean

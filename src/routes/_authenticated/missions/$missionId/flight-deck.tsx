@@ -3,11 +3,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { FlightDeck } from "@/components/v4/FlightDeck";
 import { toast } from "sonner";
-import { ArrowLeft, BookOpen, X } from "lucide-react";
+import { ArrowLeft, BookOpen, X, Phone as PhoneIcon } from "lucide-react";
 import { createSignal } from "@/lib/signals";
 import { useEffect, useState } from "react";
 import { getBriefProgress, markBriefCompleted, type BriefProgress } from "@/lib/brief-seen";
 import { Check } from "lucide-react";
+import { PhoneAFriendOverlay } from "@/components/v2/PhoneAFriendOverlay";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/flight-deck")({
   component: MissionFlightDeckPage,
@@ -52,6 +53,7 @@ type Q = {
 function MissionFlightDeckPage() {
   const { missionId } = Route.useParams();
   const qc = useQueryClient();
+  const [globalPhoneOpen, setGlobalPhoneOpen] = useState(false);
 
   const { data: me, isLoading: meLoading } = useQuery({
     queryKey: ["mc-flight-deck-me"],
@@ -125,7 +127,14 @@ function MissionFlightDeckPage() {
           <ArrowLeft className="h-3 w-3" />
           Back to Mission Command
         </Link>
-        
+        <button
+          type="button"
+          onClick={() => setGlobalPhoneOpen(true)}
+          className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary hover:bg-primary/15"
+        >
+          <PhoneIcon className="h-3 w-3" />
+          Phone a Friend
+        </button>
       </div>
 
 
@@ -138,6 +147,15 @@ function MissionFlightDeckPage() {
         allQuestions={allQuestions}
         updateStatus={updateStatus}
       />
+      {globalPhoneOpen && (
+        <PhoneAFriendOverlay
+          missionId={missionId}
+          questionId={null}
+          meId={meId}
+          meName=""
+          onClose={() => setGlobalPhoneOpen(false)}
+        />
+      )}
     </div>
   );
 }

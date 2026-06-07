@@ -22,8 +22,11 @@ import {
   Eye,
   Layers,
   ListChecks,
+  Phone,
   UserX,
 } from "lucide-react";
+import { listMissionConsults, type ExpertConsultRow } from "@/lib/expert-consult.functions";
+import { useServerFn } from "@tanstack/react-start";
 
 type Q = {
   id: string;
@@ -99,6 +102,7 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
   // Overlay state
   const [scoreOpen, setScoreOpen] = useState(false);
   const [phoneOpen, setPhoneOpen] = useState(false);
+  const [rowPhoneFor, setRowPhoneFor] = useState<Q | null>(null);
   const [pulseOpen, setPulseOpen] = useState(false);
   const [threadOpen, setThreadOpen] = useState(false);
 
@@ -215,6 +219,26 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
     },
   });
 
+  // Open Phone-a-Friend consults (live)
+  const listConsultsFn = useServerFn(listMissionConsults);
+  const { data: openConsults = [], refetch: refetchConsults } = useQuery<ExpertConsultRow[]>({
+    queryKey: ["mission-consults", missionId],
+    queryFn: () => listConsultsFn({ data: { missionId } }),
+  });
+  useEffect(() => {
+    const ch = supabase
+      .channel(`expert_consults:${missionId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "expert_consults", filter: `mission_id=eq.${missionId}` },
+        () => refetchConsults(),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [missionId, refetchConsults]);
+
   // Flight Status counts
   const flightStatus = useMemo(() => {
     const now = Date.now();
@@ -321,12 +345,14 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
             selectedId={selectedId}
             onSelect={setSelectedId}
             updateStatus={updateStatus}
+            onPhoneRow={(q) => setRowPhoneFor(q)}
           />
         </div>
 
-        {/* RIGHT: Air Traffic Control */}
-        <div className="lg:col-span-3">
+        {/* RIGHT: Air Traffic Control + Open Consults */}
+        <div className="lg:col-span-3 space-y-4">
           <AirTrafficControl rows={atcRows as any[]} />
+          <OpenConsultsPanel rows={openConsults} questions={allQuestions} />
         </div>
       </div>
 
@@ -347,6 +373,16 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
           meId={me || null}
           meName={meName}
           onClose={() => setPhoneOpen(false)}
+        />
+      )}
+      {rowPhoneFor && (
+        <PhoneAFriendOverlay
+          missionId={missionId}
+          questionId={rowPhoneFor.id}
+          questionNumber={rowPhoneFor.question_number}
+          meId={me || null}
+          meName={meName}
+          onClose={() => setRowPhoneFor(null)}
         />
       )}
       <Sheet open={pulseOpen} onOpenChange={setPulseOpen}>
@@ -545,12 +581,14 @@ function QuestionWorkspace({
   selectedId,
   onSelect,
   updateStatus,
+  onPhoneRow,
 }: {
   missionId: string;
   myQuestions: Q[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   updateStatus: (q: Q, db: string) => Promise<void>;
+  onPhoneRow: (q: Q) => void;
 }) {
   return (
     <section className="rounded-[12px] border border-border bg-surface">
@@ -581,6 +619,7 @@ function QuestionWorkspace({
               selected={q.id === selectedId}
               onSelect={() => onSelect(q.id)}
               updateStatus={updateStatus}
+              onPhoneRow={() => onPhoneRow(q)}
             />
           ))}
         </ul>
@@ -595,12 +634,14 @@ function QuestionRow({
   selected,
   onSelect,
   updateStatus,
+  onPhoneRow,
 }: {
   q: Q;
   missionId: string;
   selected: boolean;
   onSelect: () => void;
   updateStatus: (q: Q, db: string) => Promise<void>;
+  onPhoneRow: () => void;
 }) {
   const days = daysUntil(q.pens_down_date);
   const [pending, setPending] = useState(false);
@@ -660,6 +701,17 @@ function QuestionRow({
           <div className="mt-1 truncate text-[14px] font-medium text-foreground">{q.title}</div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          <span
+            role="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onPhoneRow();
+            }}
+            title="Phone a Friend about this question"
+            className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2 py-1 text-[11px] text-primary hover:bg-primary/15"
+          >
+            <Phone className="h-3 w-3" />
+          </span>
           {q.status !== "approved" && (
             <span
               role="button"
@@ -744,6 +796,77 @@ function AirTrafficControl({
             </tbody>
           </table>
         </div>
+      )}
+    </section>
+  );
+}
+
+// ---------- Open Consults (Phone-a-Friend status) ----------
+
+function OpenConsultsPanel({
+  rows,
+  questions,
+}: {
+  rows: ExpertConsultRow[];
+  questions: Q[];
+}) {
+  const open = rows.filter((r) => r.status !== "closed");
+  const qMap = new Map(questions.map((q) => [q.id, q]));
+
+  const statusTone = (s: ExpertConsultRow["status"]) => {
+    switch (s) {
+      case "sent":
+        return "bg-sky-500/15 text-sky-300 border-sky-500/30";
+      case "acknowledged":
+        return "bg-violet-500/15 text-violet-300 border-violet-500/30";
+      case "needs_info":
+        return "bg-amber-500/15 text-amber-300 border-amber-500/30";
+      case "reassigned":
+        return "bg-muted text-muted-foreground border-border";
+      case "responded":
+        return "bg-emerald-500/15 text-emerald-300 border-emerald-500/30";
+      default:
+        return "bg-muted text-muted-foreground border-border";
+    }
+  };
+
+  return (
+    <section className="rounded-[12px] border border-border bg-surface">
+      <div className="border-b border-border/60 px-4 py-3">
+        <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          <Phone className="h-3 w-3" />
+          Open Consults
+        </div>
+        <div className="mt-0.5 text-[11px] text-muted-foreground">
+          {open.length} active Phone-a-Friend request{open.length === 1 ? "" : "s"}
+        </div>
+      </div>
+      {open.length === 0 ? (
+        <div className="px-4 py-6 text-center text-[12px] text-muted-foreground">
+          No open expert consults.
+        </div>
+      ) : (
+        <ul className="max-h-[280px] divide-y divide-border/40 overflow-y-auto">
+          {open.slice(0, 12).map((r) => {
+            const q = r.question_id ? qMap.get(r.question_id) : null;
+            return (
+              <li key={r.id} className="px-3 py-2 text-[11px]">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-muted-foreground">
+                    {q ? `Q${q.question_number}` : "General"}
+                  </span>
+                  <span className={`rounded-full border px-1.5 py-px text-[9px] font-semibold uppercase tracking-[0.08em] ${statusTone(r.status)}`}>
+                    {r.status.replace("_", " ")}
+                  </span>
+                </div>
+                <div className="mt-1 line-clamp-2 text-foreground/85">{r.ask_subject}</div>
+                <div className="mt-0.5 text-[10px] text-muted-foreground tabular-nums">
+                  {ageOf(r.created_at)} ago · urgency {r.urgency}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       )}
     </section>
   );
