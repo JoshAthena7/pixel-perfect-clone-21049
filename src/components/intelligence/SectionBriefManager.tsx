@@ -939,7 +939,7 @@ function Step4Refined({
         style={{ borderColor: BORDER }}
       >
         <span>
-          Refined by IRIS™ from {answerCount} writer answer{answerCount === 1 ? "" : "s"} · v
+          Flight Plan prepared by IRIS™ from {answerCount} writer answer{answerCount === 1 ? "" : "s"} · v
           {brief.refined_brief_version}
           {brief.refined_brief_generated_at &&
             ` · ${new Date(brief.refined_brief_generated_at).toLocaleString()}`}
@@ -951,7 +951,7 @@ function Step4Refined({
           style={{ background: NAVY, color: "white" }}
         >
           {busy ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
-          Regenerate Refined Brief
+          Regenerate Flight Plan
         </button>
       </div>
     </div>
