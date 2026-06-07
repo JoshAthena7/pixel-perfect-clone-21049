@@ -1075,6 +1075,14 @@ function MissionCard({
           )}
         </div>
         <div className="flex flex-col items-end gap-1.5 shrink-0">
+          <MissionProgressRing
+            size="sm"
+            completed={questions.filter((q) => {
+              const s = (q.status ?? "").toLowerCase();
+              return s === "approved" || s === "submitted";
+            }).length}
+            total={mission.question_count ?? questions.length}
+          />
           {showNeedsBadge && needsCount > 0 && (
             <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-semibold text-white">
               {needsCount} {needsCount === 1 ? "need" : "needs"}
