@@ -925,16 +925,6 @@ function MissionLifecycleMap({ brief }: { brief: MissionBrief }) {
         </div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 14, flexWrap: "wrap", gap: 12 }}>
-        <div style={{ display: "flex", gap: 16, fontSize: 11, color: C.textMuted, flexWrap: "wrap" }}>
-          <Legend dot={C.green} label="Done" check />
-          <Legend dot={C.gold} label="In progress / Active" />
-          <Legend dot={C.orange} label="At risk" tri />
-          <Legend dot={C.red} label="Overdue" />
-          <Legend dot="rgba(255,255,255,0.25)" label="Upcoming" hollow />
-          <Legend dot="rgba(255,255,255,0.10)" label="Not scheduled" hollow />
-        </div>
-      </div>
     </div>
   );
 }
