@@ -3,8 +3,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { FlightDeck } from "@/components/v4/FlightDeck";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, HelpCircle } from "lucide-react";
 import { createSignal } from "@/lib/signals";
+import { useState } from "react";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/flight-deck")({
   component: MissionFlightDeckPage,
@@ -113,7 +114,7 @@ function MissionFlightDeckPage() {
 
   return (
     <div className="min-h-screen" style={{ background: "#060b14" }}>
-      <div className="mx-auto max-w-[1200px] px-6 pt-6">
+      <div className="mx-auto max-w-[1200px] px-6 pt-6 flex items-center justify-between gap-4">
         <Link
           to="/missions/$missionId/command"
           params={{ missionId }}
@@ -122,7 +123,9 @@ function MissionFlightDeckPage() {
           <ArrowLeft className="h-3 w-3" />
           Back to Mission Command
         </Link>
+        <RestoreHelpTooltip />
       </div>
+
 
       <FlightDeck
         missionId={missionId}
@@ -131,6 +134,42 @@ function MissionFlightDeckPage() {
         allQuestions={allQuestions}
         updateStatus={updateStatus}
       />
+    </div>
+  );
+}
+
+function RestoreHelpTooltip() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        className="inline-flex items-center gap-1.5 rounded-md border border-border/60 bg-background/40 px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground hover:bg-background/70"
+        aria-expanded={open}
+      >
+        <HelpCircle className="h-3.5 w-3.5" />
+        Restore older version
+      </button>
+      {open && (
+        <div
+          role="dialog"
+          className="absolute right-0 z-50 mt-2 w-80 rounded-lg border border-border bg-popover p-4 text-left text-xs text-popover-foreground shadow-xl"
+        >
+          <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            How to restore an older Flight Deck
+          </div>
+          <ol className="mt-2 space-y-1.5 list-decimal pl-4 text-foreground/90 normal-case tracking-normal">
+            <li>Open the chat panel on the left of the Lovable editor.</li>
+            <li>Click the <span className="font-medium">clock / History</span> icon at the top of the chat (or use any AI message's revert button).</li>
+            <li>Pick the version you want, then click <span className="font-medium">Restore</span>.</li>
+          </ol>
+          <p className="mt-2 text-[11px] text-muted-foreground normal-case tracking-normal">
+            Restoring is a Lovable action — it can't be triggered from inside the app itself.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
