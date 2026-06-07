@@ -1164,7 +1164,7 @@ function BottomPanels({ missionId, brief }: { missionId: string; brief: MissionB
         <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary }}>TEAM OVERVIEW</div>
         <div style={subLabel}>People and roles.</div>
         {team.length === 0 ? (
-          <div style={{ ...empty, marginTop: 14 }}>No team members yet. Invite people in Settings → Team.</div>
+          <div style={{ ...empty, marginTop: 14 }}>No team members yet. Add them in the Setup Record → Team.</div>
         ) : (
           <>
             <div style={{ display: "flex", alignItems: "center", marginTop: 14 }}>
