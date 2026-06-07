@@ -130,11 +130,11 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
     (profile as any)?.email ||
     "You";
 
-  // ATC feed
-  const { data: atcRows = [] } = useQuery({
+  // ATC feed — existing reality/SOS/decision streams
+  const { data: atcRows = [], refetch: refetchAtc } = useQuery({
     queryKey: ["fd-atc", missionId],
     queryFn: async () => {
-      const [sos, reality, decisions] = await Promise.all([
+      const [sos, reality, decisions, pulses] = await Promise.all([
         supabase
           .from("support_requests")
           .select("id, body, urgency, status, requester_id, created_at")
@@ -156,6 +156,14 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
           .eq("status", "pending")
           .order("created_at", { ascending: false })
           .limit(15),
+        supabase
+          .from("signals")
+          .select("id, signal_title, signal_summary, severity, status, related_question_id, source_module, created_at")
+          .eq("mission_id", missionId)
+          .eq("source_module", "daily_pulse")
+          .eq("status", "open")
+          .order("created_at", { ascending: false })
+          .limit(15),
       ]);
 
       const qMap = new Map(allQuestions.map((q) => [q.id, q]));
@@ -166,31 +174,31 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
         question: string;
         from: string;
         priority: string;
+        priorityLevel: "red" | "yellow" | "green";
         priorityTone: string;
         created_at: string;
+        link: string | null;
       };
       const rows: Row[] = [];
 
       for (const r of sos.data ?? []) {
+        const level: Row["priorityLevel"] = r.urgency === "right_now" ? "red" : r.urgency === "today" ? "yellow" : "green";
         rows.push({
           id: `sos:${r.id}`,
           type: "SOS",
           typeTone: "bg-red-500/15 text-red-300 border-red-500/30",
           question: r.body ?? "Support request",
           from: "Team member",
-          priority:
-            r.urgency === "right_now" ? "Critical" : r.urgency === "today" ? "High" : "Normal",
-          priorityTone:
-            r.urgency === "right_now"
-              ? "text-red-300"
-              : r.urgency === "today"
-                ? "text-amber-300"
-                : "text-muted-foreground",
+          priority: r.urgency === "right_now" ? "Critical" : r.urgency === "today" ? "High" : "Normal",
+          priorityLevel: level,
+          priorityTone: level === "red" ? "text-red-300" : level === "yellow" ? "text-amber-300" : "text-muted-foreground",
           created_at: r.created_at,
+          link: null,
         });
       }
       for (const r of reality.data ?? []) {
         const q = r.question_id ? qMap.get(r.question_id) : null;
+        const level: Row["priorityLevel"] = r.signal_type === "need" ? "yellow" : "green";
         rows.push({
           id: `ru:${r.id}`,
           type: r.signal_type === "need" ? "Need" : "Update",
@@ -201,11 +209,14 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
           question: q ? `Q${q.question_number} · ${r.details ?? r.need_type ?? ""}` : (r.details ?? "Reality update"),
           from: r.user_name ?? "Unknown",
           priority: r.signal_type === "need" ? "High" : "Normal",
-          priorityTone: r.signal_type === "need" ? "text-amber-300" : "text-muted-foreground",
+          priorityLevel: level,
+          priorityTone: level === "yellow" ? "text-amber-300" : "text-muted-foreground",
           created_at: r.created_at,
+          link: q ? `/missions/${missionId}/sections/${q.id}` : null,
         });
       }
       for (const r of decisions.data ?? []) {
+        const level: Row["priorityLevel"] = r.urgency === "urgent" ? "yellow" : "green";
         rows.push({
           id: `ed:${r.id}`,
           type: "Decision",
@@ -213,8 +224,31 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
           question: r.description ?? "Decision needed",
           from: "Leadership",
           priority: r.urgency === "urgent" ? "High" : "Normal",
-          priorityTone: r.urgency === "urgent" ? "text-amber-300" : "text-muted-foreground",
+          priorityLevel: level,
+          priorityTone: level === "yellow" ? "text-amber-300" : "text-muted-foreground",
           created_at: r.created_at,
+          link: null,
+        });
+      }
+      // Daily Pulse user signals
+      for (const r of pulses.data ?? []) {
+        const level: Row["priorityLevel"] =
+          r.severity === "critical" ? "red" : r.severity === "warning" ? "yellow" : "green";
+        const q = r.related_question_id ? qMap.get(r.related_question_id) : null;
+        rows.push({
+          id: `sig:${r.id}`,
+          type: "Pulse",
+          typeTone: "bg-fuchsia-500/15 text-fuchsia-300 border-fuchsia-500/30",
+          question:
+            (q ? `Q${q.question_number} · ` : "") +
+            (r.signal_title ?? "Daily Pulse signal") +
+            (r.signal_summary ? ` — ${r.signal_summary}` : ""),
+          from: "Daily Pulse",
+          priority: level === "red" ? "Critical" : level === "yellow" ? "High" : "Normal",
+          priorityLevel: level,
+          priorityTone: level === "red" ? "text-red-300" : level === "yellow" ? "text-amber-300" : "text-muted-foreground",
+          created_at: r.created_at,
+          link: q ? `/missions/${missionId}/sections/${q.id}` : null,
         });
       }
 
@@ -243,6 +277,26 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
     };
   }, [missionId, refetchConsults]);
 
+  // Realtime: refresh ATC when signals or question_records change for this mission
+  useEffect(() => {
+    const ch = supabase
+      .channel(`atc-feed:${missionId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "signals", filter: `mission_id=eq.${missionId}` },
+        () => refetchAtc(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "question_records", filter: `mission_id=eq.${missionId}` },
+        () => refetchAtc(),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [missionId, refetchAtc]);
+
   // Flight Status counts
   const flightStatus = useMemo(() => {
     const now = Date.now();
@@ -265,28 +319,145 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
     };
   }, [allQuestions, openConsults]);
 
-  // Merge recently-responded consults into Air Traffic Control as signals
-  const combinedAtcRows = useMemo(() => {
+  // Compute derived signals: PRISIM flags, Due alerts, Expert overdue, Coverage gaps, Expert responded
+  const derivedAtcRows = useMemo(() => {
+    const now = Date.now();
+    type Row = {
+      id: string;
+      type: string;
+      typeTone: string;
+      question: string;
+      from: string;
+      priority: string;
+      priorityLevel: "red" | "yellow" | "green";
+      priorityTone: string;
+      created_at: string;
+      link: string | null;
+    };
+    const rows: Row[] = [];
     const qMap = new Map(allQuestions.map((q) => [q.id, q]));
-    const responded = openConsults
-      .filter((c) => c.status === "responded")
-      .map((c) => {
-        const q = c.question_id ? qMap.get(c.question_id) : null;
-        return {
-          id: `ec:${c.id}`,
-          type: "Expert",
-          typeTone: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
-          question: q ? `Q${q.question_number} · ${c.ask_subject}` : c.ask_subject,
-          from: "Phone-a-Friend",
-          priority: c.urgency === "urgent" ? "High" : "Normal",
-          priorityTone: c.urgency === "urgent" ? "text-amber-300" : "text-emerald-300",
-          created_at: c.response_at ?? c.created_at,
-        };
+
+    // 1) PRISIM flags — yellow
+    for (const q of allQuestions) {
+      if (!q.iris_risk_flag) continue;
+      rows.push({
+        id: `prisim:${q.id}`,
+        type: "PRISIM",
+        typeTone: "bg-amber-500/15 text-amber-300 border-amber-500/30",
+        question: `Q${q.question_number} — ${q.iris_risk_flag_text ?? q.iris_risk_flag}`,
+        from: "IRIS",
+        priority: "High",
+        priorityLevel: "yellow",
+        priorityTone: "text-amber-300",
+        created_at: new Date(now - 60_000).toISOString(),
+        link: `/missions/${missionId}/sections/${q.id}`,
       });
-    return [...responded, ...atcRows].sort(
-      (a, b) => +new Date(b.created_at) - +new Date(a.created_at),
-    );
-  }, [atcRows, openConsults, allQuestions]);
+    }
+
+    // 2) Due date alerts — red if ≤72h and no approved draft
+    for (const q of allQuestions) {
+      if (!q.pens_down_date) continue;
+      const t = new Date(q.pens_down_date).getTime();
+      const hoursOut = (t - now) / 3_600_000;
+      if (hoursOut <= 0 || hoursOut > 72) continue;
+      if (q.status === "approved") continue;
+      const label = hoursOut < 1 ? "<1h" : `${Math.round(hoursOut)}h`;
+      rows.push({
+        id: `due:${q.id}`,
+        type: "Due",
+        typeTone: "bg-red-500/15 text-red-300 border-red-500/30",
+        question: `Q${q.question_number} — Due in ${label}. ${q.status === "ready_for_review" ? "Awaiting review." : "No approved draft."}`,
+        from: "Schedule",
+        priority: "Critical",
+        priorityLevel: "red",
+        priorityTone: "text-red-300",
+        created_at: new Date(now - 30_000).toISOString(),
+        link: `/missions/${missionId}/sections/${q.id}`,
+      });
+    }
+
+    // 3) Expert overdue — yellow (urgent >4h, standard >24h, fyi >72h)
+    const windowFor = (u: ExpertConsultRow["urgency"]) =>
+      u === "urgent" ? 4 : u === "standard" ? 24 : 72;
+    for (const c of openConsults) {
+      if (c.status !== "sent" && c.status !== "acknowledged") continue;
+      const ageHours = (now - new Date(c.created_at).getTime()) / 3_600_000;
+      if (ageHours < windowFor(c.urgency)) continue;
+      const q = c.question_id ? qMap.get(c.question_id) : null;
+      rows.push({
+        id: `expover:${c.id}`,
+        type: "Expert",
+        typeTone: "bg-amber-500/15 text-amber-300 border-amber-500/30",
+        question: `${q ? `Q${q.question_number} · ` : ""}Expert request — ${Math.round(ageHours)}h no response (${c.urgency}).`,
+        from: "Phone-a-Friend",
+        priority: "High",
+        priorityLevel: "yellow",
+        priorityTone: "text-amber-300",
+        created_at: c.created_at,
+        link: q ? `/missions/${missionId}/sections/${q.id}` : null,
+      });
+    }
+
+    // 4) Expert responded — green (recent, last 48h)
+    for (const c of openConsults) {
+      if (c.status !== "responded") continue;
+      const responded = c.response_at ?? c.created_at;
+      if ((now - new Date(responded).getTime()) / 3_600_000 > 48) continue;
+      const q = c.question_id ? qMap.get(c.question_id) : null;
+      rows.push({
+        id: `ec:${c.id}`,
+        type: "Expert",
+        typeTone: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+        question: `${q ? `Q${q.question_number} · ` : ""}Response received — ${c.ask_subject}`,
+        from: "Phone-a-Friend",
+        priority: "Resolved",
+        priorityLevel: "green",
+        priorityTone: "text-emerald-300",
+        created_at: responded,
+        link: q ? `/missions/${missionId}/sections/${q.id}` : null,
+      });
+    }
+
+    // 5) Coverage gaps — yellow when >50% of a section has No Owner
+    const bySection = new Map<string, Q[]>();
+    for (const q of allQuestions) {
+      const key = (q.section_number ?? "").split(".")[0] || "—";
+      const arr = bySection.get(key) ?? [];
+      arr.push(q);
+      bySection.set(key, arr);
+    }
+    for (const [section, qs] of bySection) {
+      if (qs.length < 2) continue;
+      const unassigned = qs.filter((q) => !q.assigned_writer_id).length;
+      if (unassigned / qs.length <= 0.5) continue;
+      const firstQ = qs[0];
+      rows.push({
+        id: `cov:${section}`,
+        type: "Coverage",
+        typeTone: "bg-amber-500/15 text-amber-300 border-amber-500/30",
+        question: `Section ${section} — ${unassigned} of ${qs.length} questions unassigned.`,
+        from: "Coverage",
+        priority: "High",
+        priorityLevel: "yellow",
+        priorityTone: "text-amber-300",
+        created_at: new Date(now - 90_000).toISOString(),
+        link: `/missions/${missionId}/sections/${firstQ.id}`,
+      });
+    }
+
+    return rows;
+  }, [allQuestions, openConsults, missionId]);
+
+  // Merge: derived signals first (most actionable), then the live feed
+  const priorityRank = { red: 0, yellow: 1, green: 2 } as const;
+  const combinedAtcRows = useMemo(() => {
+    return [...derivedAtcRows, ...atcRows].sort((a, b) => {
+      const pa = priorityRank[a.priorityLevel] ?? 3;
+      const pb = priorityRank[b.priorityLevel] ?? 3;
+      if (pa !== pb) return pa - pb;
+      return +new Date(b.created_at) - +new Date(a.created_at);
+    });
+  }, [derivedAtcRows, atcRows]);
 
   // Mission Radar segments
   const radar = useMemo(() => {
