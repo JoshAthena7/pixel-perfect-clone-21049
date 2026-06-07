@@ -25,6 +25,7 @@ export const saveEvaluationCriteria = createServerFn({ method: "POST" })
       points: c.points,
       sections_covered: c.sections_covered,
       competitive_risk: c.competitive_risk,
+      notes: c.notes ?? null,
       display_order: i,
     }));
     const { error } = await supabase.from("mission_evaluation_criteria").insert(rows);
