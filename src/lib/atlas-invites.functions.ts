@@ -699,3 +699,67 @@ export const markOnboardingComplete = createServerFn({ method: "POST" })
 
     return { ok: true };
   });
+
+/**
+ * Mint a fresh 72hr invite token and return the onboarding URL — without
+ * sending an email. Used by the "Copy Invite Link" admin action.
+ */
+export const generateInviteLink = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({ id: z.string().uuid(), baseUrl: z.string().url() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const rawToken = generateInviteToken();
+    const tokenHash = await sha256Hex(rawToken);
+    const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString();
+
+    await supabaseAdmin
+      .from("atlas_invite_tokens")
+      .update({ used_at: new Date().toISOString() })
+      .eq("invite_id", data.id)
+      .is("used_at", null);
+
+    const { error: tokErr } = await supabaseAdmin
+      .from("atlas_invite_tokens")
+      .insert({
+        invite_id: data.id,
+        token_hash: tokenHash,
+        expires_at: expiresAt,
+        created_by: userId,
+      });
+    if (tokErr) throw new Error(tokErr.message);
+
+    const url = `${data.baseUrl.replace(/\/$/, "")}/onboarding?token=${rawToken}`;
+    return { url, expires_at: expiresAt };
+  });
+
+/**
+ * Remove an invite from the roster. Invalidates any outstanding tokens,
+ * then deletes the atlas_invites row. Leaves any linked profile in place.
+ */
+export const removeInviteFromRoster = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    await supabaseAdmin
+      .from("atlas_invite_tokens")
+      .update({ used_at: new Date().toISOString() })
+      .eq("invite_id", data.id)
+      .is("used_at", null);
+
+    const { error } = await supabaseAdmin
+      .from("atlas_invites")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
