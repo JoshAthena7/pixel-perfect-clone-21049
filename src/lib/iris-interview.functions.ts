@@ -162,17 +162,15 @@ export const generateInterviewPlan = createServerFn({ method: "POST" })
       }
     }
 
-    // Mission intelligence (most recent of each type).
+    // Mission intelligence (most recent of each layer).
     const { data: intels } = await context.supabase
       .from("mission_intelligence")
-      .select("intelligence_type, content, created_at")
+      .select("layer, content, created_at")
       .eq("mission_id", plan.mission_id)
       .order("created_at", { ascending: false });
 
-    const missionBrief =
-      intels?.find((r) => r.intelligence_type === "mission_brief")?.content ?? null;
-    const strategic =
-      intels?.find((r) => r.intelligence_type === "strategic_assessment")?.content ?? null;
+    const missionBrief = intels?.find((r) => r.layer === "mission_brief")?.content ?? null;
+    const strategic = intels?.find((r) => r.layer === "strategic_assessment")?.content ?? null;
 
     // Compliance requirements (best-effort relevance).
     const { data: reqs } = await context.supabase
