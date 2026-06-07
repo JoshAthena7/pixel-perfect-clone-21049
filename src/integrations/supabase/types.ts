@@ -4425,6 +4425,7 @@ export type Database = {
       missions: {
         Row: {
           client: string
+          client_logo_url: string | null
           client_strengths: string | null
           client_win_strategy: string | null
           competitors: string[] | null
@@ -4473,6 +4474,7 @@ export type Database = {
         }
         Insert: {
           client: string
+          client_logo_url?: string | null
           client_strengths?: string | null
           client_win_strategy?: string | null
           competitors?: string[] | null
@@ -4521,6 +4523,7 @@ export type Database = {
         }
         Update: {
           client?: string
+          client_logo_url?: string | null
           client_strengths?: string | null
           client_win_strategy?: string | null
           competitors?: string[] | null
