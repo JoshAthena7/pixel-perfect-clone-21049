@@ -31,6 +31,7 @@ import { SupportCenterMount } from "@/components/v2/SupportCenter";
 import { BriefRoomPinned } from "@/components/brief-room/BriefRoomPinned";
 import athenaSgLogo from "@/assets/athena-sg-lockup-v2.png.asset.json";
 import atlasLogo from "@/assets/athena-mark-v2.png.asset.json";
+import atlasWordmark from "@/assets/atlas-wordmark.png.asset.json";
 
 // ─── Room detection (three rooms inside a mission) ─────────────────────────
 type Room = "mission" | "studio" | "brief" | null;
@@ -143,22 +144,16 @@ function TopBar({
           <Link
             to="/missions/$missionId/brief"
             params={{ missionId }}
-            className="flex items-center gap-2.5 shrink-0"
+            className="flex items-center shrink-0"
             title="Mission Brief"
           >
-            {isFlightDeck ? (
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-white/[0.03] text-[11px] font-black tracking-[0.08em] text-[color:var(--athena-gold,#f59e0b)]">
-                A
-              </span>
-            ) : (
-              <img
-                src={atlasLogo.url}
-                alt="Atlas"
-                className="h-8 w-8 object-contain"
-                style={{ filter: "drop-shadow(0 0 6px rgba(125,211,252,0.35))" }}
-              />
-            )}
-            <span className="text-[13px] font-extrabold tracking-[0.22em] text-white">ATLAS</span>
+            <img
+              src={atlasWordmark.url}
+              alt="ATLAS"
+              className="h-8 w-auto object-contain"
+              style={{ filter: "drop-shadow(0 0 8px rgba(125,211,252,0.4))" }}
+            />
+
           </Link>
         ) : (
           <Link to="/home" className="flex items-center gap-2.5 shrink-0" title="Home">
