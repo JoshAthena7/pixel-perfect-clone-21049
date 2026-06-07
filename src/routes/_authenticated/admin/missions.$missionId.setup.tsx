@@ -410,7 +410,11 @@ function SectionIdentity({ missionId, mission, refetch }: any) {
   }
 
   return (
-    <Section id="identity" n="01" label="Mission Identity" sublabel="Core mission record. Required to launch.">
+    <Section id="identity" n="01" label="Mission Identity" sublabel="The foundation IRIS builds your entire intelligence profile on.">
+      <p className="mb-4 rounded-md border border-cyan-500/20 bg-cyan-500/5 px-3 py-2.5 text-xs text-cyan-700 dark:text-cyan-300 leading-relaxed">
+        <span className="font-mono uppercase tracking-[0.16em] text-[10px] opacity-80">IRIS</span>{" "}
+        — I use the mission name, client, and procurement vehicle to begin mapping the procurement environment. This is where your intelligence profile starts.
+      </p>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <Field label="Mission Name" span={2}>
           <TextInput value={form.name ?? ""} onChange={(e) => setForm({ ...form, name: e.target.value })} />
@@ -476,7 +480,7 @@ function SectionTeam({ missionId, members, expertise, refetch }: any) {
   }
 
   return (
-    <Section id="team" n="02" label="Team Assignment" sublabel="Drives mission permissions and IRIS expert routing when launched.">
+    <Section id="team" n="02" label="Team Assignment" sublabel="Tells IRIS who's responsible for what — so the right intelligence reaches the right person.">
       <p className="mb-4 rounded-md border border-border/60 bg-surface/40 px-3 py-2.5 text-xs text-muted-foreground leading-relaxed">
         <span className="text-foreground font-medium">IRIS uses these assignments to route the right intelligence to the right team member.</span>{" "}
         An Engagement Lead gets strategic analysis; Writers get proposal-ready content; SMEs get domain-specific briefings.
@@ -490,7 +494,7 @@ function SectionTeam({ missionId, members, expertise, refetch }: any) {
                 <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">{r.label}</div>
               </div>
               <div className="col-span-9 space-y-2">
-                {assigned.length === 0 && <span className="text-xs text-muted-foreground italic">None assigned</span>}
+                {assigned.length === 0 && <span className="text-xs text-muted-foreground italic">Unassigned — add a team member</span>}
                 {assigned.map((m: any) => {
                   const tags = expertise.filter((e: any) => e.user_id === m.user_id);
                   return (
@@ -574,7 +578,7 @@ function SectionInputs({ missionId, mission, docs, monitoring, refetch }: any) {
   }
 
   return (
-    <Section id="inputs" n="03" label="Mission Inputs" sublabel="Anything attached here lands in The Vault automatically.">
+    <Section id="inputs" n="03" label="Mission Context" sublabel="Source material and signals IRIS reads to understand the mission environment. Anything attached here lands in The Vault automatically.">
       <div className="space-y-3">
         {INPUT_CATEGORIES.map((cat) => {
           const items = docs.filter((d: any) => d.category === cat);
@@ -769,7 +773,7 @@ function SectionStrategy({ missionId, mission, strategy, refetch }: any) {
   }
 
   return (
-    <Section id="strategy" n="04" label="Strategic Foundation" sublabel="The strategic inputs that make IRIS intelligent about this specific mission.">
+    <Section id="strategy" n="04" label="Win Strategy" sublabel="The strategic inputs that make IRIS intelligent about this specific mission.">
       <div className="space-y-10">
         {/* ── Strategic Foundation: the five IRIS-grounding fields ── */}
         <StrategicFoundationBlock missionId={missionId} mission={mission} hasRfp={false} refetch={refetch} />
@@ -1177,7 +1181,7 @@ function SectionClientIntel({ missionId, intel, refetch }: any) {
   }
 
   return (
-    <Section id="client" n="05" label="Client Intelligence" sublabel="Who matters on the client side.">
+    <Section id="client" n="05" label="Agency Intelligence" sublabel="Who matters on the issuing agency side.">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <Field label="Key Contacts (one per line)"><TextArea rows={3} value={form.contacts} onChange={(e) => setForm({ ...form, contacts: e.target.value })} /></Field>
         <Field label="Stakeholders"><TextArea rows={3} value={form.stakeholders} onChange={(e) => setForm({ ...form, stakeholders: e.target.value })} /></Field>
@@ -1227,7 +1231,7 @@ function SectionTimeline({ missionId, timeline, refetch }: any) {
   }
 
   return (
-    <Section id="timeline" n="06" label="Timeline & Gates" sublabel="Auto-populates the Mission Calendar.">
+    <Section id="timeline" n="06" label="Deadlines & Decision Gates" sublabel="Deadlines are dates; gates are decision checkpoints. Auto-populates the Mission Calendar.">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
         {TIMELINE_FIELDS.map((tf) => (
           <Field key={tf.key} label={tf.label}>
@@ -1275,7 +1279,7 @@ function SectionQuestions({ missionId, questions, volumes, refetch }: any) {
   }
 
   return (
-    <Section id="questions" n="07" label="Question Setup" sublabel="Pre-populates the Studio with questions, owners, and deadlines.">
+    <Section id="questions" n="07" label="Question Setup" sublabel={`${(questions?.length ?? 0)} questions configured · Evaluation mapping required. Pre-populates the Studio with questions, owners, and deadlines.`}>
       <div className="space-y-6">
         {/* Volumes */}
         <div>
@@ -1408,7 +1412,7 @@ function SectionFinancials({ missionId, financials, refetch }: any) {
   }
 
   return (
-    <Section id="financials" n="09" label="Financial Setup" sublabel="Admin only. Never visible to writers, SMEs, or reviewers." collapsible defaultOpen={false} locked>
+    <Section id="financials" n="09" label="Budget & Pricing Setup" sublabel="Admin only. Never visible to writers, SMEs, or reviewers." collapsible defaultOpen={false} locked>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <Field label="SOW Reference"><TextInput value={form.sow} onChange={(e) => setForm({ ...form, sow: e.target.value })} /></Field>
         <Field label="Budget (USD)"><TextInput type="number" value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} /></Field>
@@ -1470,7 +1474,7 @@ function SectionEvaluation({ missionId, criteria, questions, refetch }: any) {
   }
 
   return (
-    <Section id="evaluation" n="4B" label="Evaluation Criteria Map" sublabel="RFP scoring matrix. Drives competitive risk on every question and IRIS priority flags.">
+    <Section id="evaluation" n="4B" label="How We'll Be Scored" sublabel="RFP scoring matrix. Drives competitive risk on every question and IRIS priority flags.">
       <div className="overflow-x-auto rounded-md border border-border">
         <table className="w-full text-sm">
           <thead>

@@ -280,7 +280,7 @@ function CreateMissionModal({ onClose }: { onClose: () => void }) {
         <p className="text-[11px] text-muted-foreground leading-relaxed">
           IRIS needs this information to start building your procurement intelligence profile.
           Creating a mission opens a 9-section Intelligence Setup Record — takes about 20 minutes and activates IRIS.
-          You'll be taken straight to the Setup Record to fill in the rest (timeline, team, intel, vault, gates).
+          Once created, this mission will appear in your active pursuit list. You can archive it at any time.
         </p>
         {err && <div className="rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300">{err}</div>}
         <footer className="flex items-center justify-end gap-2 pt-2">
