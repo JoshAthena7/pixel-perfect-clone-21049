@@ -139,6 +139,7 @@ function MissionBriefingRoomPage() {
       <main style={{ maxWidth: 1400, margin: "0 auto", padding: "20px 24px", overflowX: "hidden" }}>
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0,3fr) minmax(280px,1fr)", gap: 20, alignItems: "start" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
+            <RoleLandingBanner brief={brief} firstName={firstName} />
             <Hero missionId={missionId} brief={brief} />
             <GetStartedCard missionId={missionId} brief={brief} />
             <MissionLeaders brief={brief} />
@@ -160,6 +161,98 @@ function MissionBriefingRoomPage() {
     </div>
   );
 }
+
+
+/* ════════════════ R-3 · ROLE LANDING BANNER ════════════════ */
+function RoleLandingBanner({ brief, firstName }: { brief: MissionBrief; firstName: string }) {
+  const { data: meId } = useQuery({
+    queryKey: ["brief-role-banner-me"],
+    queryFn: async () => {
+      const { data } = await supabase.auth.getUser();
+      return data.user?.id ?? null;
+    },
+  });
+
+  const role = meId ? brief.team.find((t) => t.user_id === meId)?.role ?? null : null;
+  const roleLabel = formatRoleLabel(role);
+
+  const sections = (brief as any).sections as Array<{ assigned_user_id: string | null }> | undefined;
+  const unassignedCount = Array.isArray(sections)
+    ? sections.filter((s) => !s.assigned_user_id).length
+    : 0;
+
+  const message = buildRoleMessage(role, unassignedCount, brief.team.length);
+
+  return (
+    <div
+      style={{
+        ...card,
+        padding: "14px 18px",
+        background: "linear-gradient(135deg, rgba(129,140,248,0.10), rgba(129,140,248,0.02))",
+        borderColor: "rgba(129,140,248,0.30)",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.18em", color: C.iris, textTransform: "uppercase" }}>
+            Welcome, {firstName} · {roleLabel}
+          </div>
+          <div style={{ fontSize: 13, color: C.textBody, marginTop: 4, lineHeight: 1.5 }}>
+            {message}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function formatRoleLabel(role: string | null): string {
+  if (!role) return "Team Member";
+  const map: Record<string, string> = {
+    admin: "Mission Admin",
+    lead: "Mission Lead",
+    engagement_lead: "Engagement Lead",
+    project_manager: "Project Manager",
+    lead_writer: "Lead Writer",
+    lead_graphics: "Lead Graphics",
+    writer: "Writer",
+    sme: "Subject-Matter Expert",
+    viewer: "Viewer",
+  };
+  return map[role] ?? role.replace(/_/g, " ");
+}
+
+function buildRoleMessage(role: string | null, unassigned: number, teamSize: number): string {
+  const unassignedText =
+    unassigned > 0
+      ? `${unassigned} question${unassigned === 1 ? "" : "s"} ${unassigned === 1 ? "is" : "are"} waiting to be assigned.`
+      : "All questions are assigned.";
+
+  switch (role) {
+    case "writer":
+    case "lead_writer":
+      return `You're a ${role === "lead_writer" ? "Lead Writer" : "Writer"} on this mission. ${unassignedText} Your stage is coming — here's what to prepare.`;
+    case "engagement_lead":
+      return `You're the Engagement Lead. ${unassignedText} Use this brief to align the team and own win-theme decisions.`;
+    case "lead":
+      return `You're a Mission Lead. ${unassignedText} Drive assignment, timeline, and quality from here.`;
+    case "admin":
+      return `You're a Mission Admin. Full configuration is in your hands — ${unassignedText.toLowerCase()}`;
+    case "project_manager":
+      return `You're the Project Manager. ${unassignedText} Track schedule, owners, and pens-down across the team of ${teamSize}.`;
+    case "lead_graphics":
+      return `You're Lead Graphics. Review the win themes and section structure to plan visual support.`;
+    case "sme":
+      return `You're a Subject-Matter Expert. ${unassignedText} Writers will pull you in when they need your expertise.`;
+    case "viewer":
+      return `You have viewer access. Read the brief to stay aligned with the mission.`;
+    default:
+      return `${unassignedText} Read the brief to orient yourself, then check your Flight Deck for assigned work.`;
+  }
+}
+
+
+
 
 
 /* ════════════════ HERO ════════════════ */
