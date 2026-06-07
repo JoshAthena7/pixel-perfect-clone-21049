@@ -138,7 +138,8 @@ function MissionBriefingRoomPage() {
             <MissionObjective brief={brief} />
             <StrategicBrief brief={brief} />
             <ThreeColumnRow missionId={missionId} brief={brief} />
-            <MissionMap missionId={missionId} brief={brief} />
+            <MissionLifecycleMap brief={brief} />
+            <SectionStatus missionId={missionId} brief={brief} />
             <BottomPanels missionId={missionId} brief={brief} />
           </div>
 
@@ -596,7 +597,247 @@ function ClarificationsAndWhatChanged({ missionId, brief }: { missionId: string;
   );
 }
 
-/* ════════════════ MISSION MAP ════════════════ */
+/* ════════════════ MISSION LIFECYCLE MAP ════════════════ */
+type LifecyclePhaseStatus = "done" | "active" | "upcoming" | "atrisk" | "overdue" | "skipped";
+
+type LifecyclePhase = {
+  key: string;
+  label: string;
+  sublabel?: string | null;
+  date?: string | null;
+  status: LifecyclePhaseStatus;
+};
+
+function fmtPhaseDate(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function MissionLifecycleMap({ brief }: { brief: MissionBrief }) {
+  const m = brief.mission;
+  const lc = brief.lifecycle;
+  const tl = lc.timeline ?? {} as any;
+  const now = Date.now();
+  const dayMs = 1000 * 60 * 60 * 24;
+  const inPast = (iso?: string | null) => !!iso && new Date(iso).getTime() < now;
+  const within = (iso?: string | null, days = 7) => !!iso && new Date(iso).getTime() - now < days * dayMs && new Date(iso).getTime() - now > 0;
+
+  const team = brief.team;
+  const q = brief.questions;
+  const assignedPct = q.total > 0 ? q.assigned / q.total : 0;
+  const completePct = q.total > 0 ? q.by_status.complete / q.total : 0;
+  const drafting = q.by_status.in_progress > 0 || (completePct > 0 && completePct < 1);
+
+  const phases: LifecyclePhase[] = [
+    {
+      key: "rfp",
+      label: "RFP Drop",
+      date: lc.created_at,
+      status: lc.created_at ? "done" : "upcoming",
+    },
+    {
+      key: "iris",
+      label: "IRIS Intake",
+      sublabel: lc.iris_kickoff_status ?? null,
+      date: lc.iris_kickoff_at,
+      status: lc.iris_kickoff_at
+        ? (lc.iris_kickoff_status?.toLowerCase().includes("complete") ? "done" : "active")
+        : "upcoming",
+    },
+    {
+      key: "team",
+      label: "Team Assigned",
+      sublabel: team.length > 0 ? `${team.length} member${team.length === 1 ? "" : "s"}` : "—",
+      status: team.length === 0 ? "upcoming" : team.length < 2 ? "atrisk" : "done",
+    },
+    {
+      key: "assign",
+      label: "Questions Assigned",
+      sublabel: q.total > 0 ? `${q.assigned}/${q.total}` : "—",
+      status:
+        q.total === 0 ? "upcoming"
+          : assignedPct >= 1 ? "done"
+          : assignedPct >= 0.5 ? "active"
+          : assignedPct > 0 ? "atrisk"
+          : "upcoming",
+    },
+    {
+      key: "draft",
+      label: "Drafting",
+      sublabel: q.total > 0 ? `${Math.round(completePct * 100)}% complete` : "—",
+      status:
+        q.total === 0 ? "upcoming"
+          : completePct >= 1 ? "done"
+          : drafting ? "active"
+          : "upcoming",
+    },
+    {
+      key: "pink",
+      label: "Pink Team",
+      date: tl.pink_team,
+      status: inPast(tl.pink_team) ? "done" : within(tl.pink_team) ? "active" : tl.pink_team ? "upcoming" : "skipped",
+    },
+    {
+      key: "red",
+      label: "Red Team",
+      date: tl.red_team,
+      status: inPast(tl.red_team) ? "done" : within(tl.red_team) ? "active" : tl.red_team ? "upcoming" : "skipped",
+    },
+    {
+      key: "gold",
+      label: "Gold Team",
+      date: tl.gold_team,
+      status: inPast(tl.gold_team) ? "done" : within(tl.gold_team) ? "active" : tl.gold_team ? "upcoming" : "skipped",
+    },
+    {
+      key: "pens",
+      label: "Pens Down",
+      date: m.pens_down_date,
+      status:
+        inPast(m.pens_down_date)
+          ? (completePct >= 1 ? "done" : "overdue")
+          : within(m.pens_down_date, 3) ? "atrisk"
+          : m.pens_down_date ? "upcoming" : "skipped",
+    },
+    {
+      key: "submit",
+      label: "Submit",
+      date: m.submission_date ?? tl.submission,
+      status:
+        inPast(m.submission_date ?? tl.submission)
+          ? "done"
+          : within(m.submission_date ?? tl.submission, 7) ? "active"
+          : (m.submission_date ?? tl.submission) ? "upcoming" : "skipped",
+    },
+    {
+      key: "award",
+      label: "Award",
+      date: tl.award,
+      status: inPast(tl.award) ? "done" : tl.award ? "upcoming" : "skipped",
+    },
+    {
+      key: "debrief",
+      label: "Debrief",
+      sublabel: lc.debriefCount > 0 ? "Captured" : null,
+      status: lc.debriefCount > 0 ? "done" : inPast(m.submission_date) ? "active" : "skipped",
+    },
+  ];
+
+  // Find "you are here" — first non-done, non-skipped phase
+  const youAreHereIdx = phases.findIndex((p) => p.status === "active" || p.status === "atrisk" || p.status === "overdue");
+  const fallbackIdx = phases.findIndex((p) => p.status !== "done" && p.status !== "skipped");
+  const hereIdx = youAreHereIdx >= 0 ? youAreHereIdx : fallbackIdx;
+
+  const colorFor = (s: LifecyclePhaseStatus) =>
+    s === "done" ? C.green
+      : s === "active" ? C.gold
+      : s === "atrisk" ? C.orange
+      : s === "overdue" ? C.red
+      : s === "skipped" ? "rgba(255,255,255,0.10)"
+      : "rgba(255,255,255,0.25)";
+
+  const textColorFor = (s: LifecyclePhaseStatus) =>
+    s === "done" ? C.green
+      : s === "active" ? C.gold
+      : s === "atrisk" ? C.orange
+      : s === "overdue" ? C.red
+      : C.textMuted;
+
+  return (
+    <div style={{ ...card, padding: "20px 24px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap", marginBottom: 4 }}>
+        <div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary }}>MISSION MAP</div>
+          <div style={subLabel}>Where this pursuit stands, from RFP drop to debrief.</div>
+        </div>
+        {hereIdx >= 0 && (
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 10px",
+            border: `1px solid ${colorFor(phases[hereIdx].status)}`,
+            background: "rgba(245,158,11,0.08)",
+            borderRadius: 999, fontSize: 11, fontWeight: 700, color: textColorFor(phases[hereIdx].status),
+            textTransform: "uppercase", letterSpacing: "0.08em",
+          }}>
+            <span style={{ width: 6, height: 6, borderRadius: 999, background: colorFor(phases[hereIdx].status) }} />
+            You are here: {phases[hereIdx].label}
+          </div>
+        )}
+      </div>
+
+      <div style={{ overflowX: "auto", marginTop: 22, paddingBottom: 6 }}>
+        <div style={{ position: "relative", minWidth: phases.length * 110, padding: "0 12px" }}>
+          {/* connector line */}
+          <div style={{
+            position: "absolute", left: 28, right: 28, top: 56, height: 2,
+            background: C.borderLight,
+          }} />
+          {/* progress fill */}
+          {hereIdx > 0 && (
+            <div style={{
+              position: "absolute", left: 28, top: 56, height: 2,
+              width: `calc(${(hereIdx / Math.max(phases.length - 1, 1)) * 100}% - ${hereIdx === phases.length - 1 ? 56 : 28}px)`,
+              background: `linear-gradient(90deg, ${C.green}, ${C.gold})`,
+            }} />
+          )}
+
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${phases.length},minmax(0,1fr))`, gap: 4, position: "relative" }}>
+            {phases.map((p, i) => {
+              const isHere = i === hereIdx;
+              const bg = colorFor(p.status);
+              const dateLabel = fmtPhaseDate(p.date);
+              return (
+                <div key={p.key} style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", padding: "0 2px" }}>
+                  <div style={{ fontSize: 10, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.06em", minHeight: 14 }}>
+                    {String(i + 1).padStart(2, "0")}
+                  </div>
+                  <div style={{ fontSize: 11.5, fontWeight: 700, color: C.textPrimary, lineHeight: 1.2, marginTop: 4, minHeight: 28 }}>
+                    {p.label}
+                  </div>
+                  <div style={{ marginTop: 8, position: "relative" }}>
+                    <div style={{
+                      width: isHere ? 24 : 18,
+                      height: isHere ? 24 : 18,
+                      borderRadius: 999,
+                      background: p.status === "skipped" ? "transparent" : bg,
+                      border: p.status === "skipped" ? `2px dashed ${bg}` : `3px solid ${C.card}`,
+                      boxShadow: p.status === "skipped" ? "none" : `0 0 0 2px ${bg}${isHere ? ", 0 0 0 6px rgba(245,158,11,0.18)" : ""}`,
+                      display: "flex", alignItems: "center", justifyContent: "center", color: "#0a1220",
+                    }}>
+                      {p.status === "done" && <Check size={11} strokeWidth={3} />}
+                      {p.status === "atrisk" && <AlertTriangle size={10} strokeWidth={3} style={{ color: "#0a1220" }} />}
+                      {p.status === "overdue" && <AlertTriangle size={10} strokeWidth={3} style={{ color: "#fff" }} />}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 11, color: textColorFor(p.status), marginTop: 8, fontWeight: 600, minHeight: 14 }}>
+                    {dateLabel ?? (p.status === "skipped" ? "Not set" : p.sublabel ?? "—")}
+                  </div>
+                  {p.sublabel && dateLabel && (
+                    <div style={{ fontSize: 10, color: C.textMuted, marginTop: 2 }}>{p.sublabel}</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 14, flexWrap: "wrap", gap: 12 }}>
+        <div style={{ display: "flex", gap: 16, fontSize: 11, color: C.textMuted, flexWrap: "wrap" }}>
+          <Legend dot={C.green} label="Done" check />
+          <Legend dot={C.gold} label="In progress / Active" />
+          <Legend dot={C.orange} label="At risk" tri />
+          <Legend dot={C.red} label="Overdue" />
+          <Legend dot="rgba(255,255,255,0.25)" label="Upcoming" hollow />
+          <Legend dot="rgba(255,255,255,0.10)" label="Not scheduled" hollow />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════ SECTION STATUS ════════════════ */
 type MapStatus = "completed" | "ontrack" | "atrisk" | "notstarted" | "blocked";
 
 function deriveSectionStatus(done: number, total: number, studio?: string | null): MapStatus {
@@ -609,7 +850,7 @@ function deriveSectionStatus(done: number, total: number, studio?: string | null
   return "ontrack";
 }
 
-function MissionMap({ missionId, brief }: { missionId: string; brief: MissionBrief }) {
+function SectionStatus({ missionId, brief }: { missionId: string; brief: MissionBrief }) {
   const [view, setView] = useState<"sections" | "status" | "owner">("sections");
 
   const sections = brief.sections.map((s) => {
@@ -637,8 +878,8 @@ function MissionMap({ missionId, brief }: { missionId: string; brief: MissionBri
     <div style={{ ...card, padding: "20px 24px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
         <div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary }}>MISSION MAP</div>
-          <div style={subLabel}>Visualize the journey from start to submission.</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary }}>SECTION STATUS</div>
+          <div style={subLabel}>Progress and ownership for every RFP section.</div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontSize: 12, color: C.textMuted }}>View by:</span>

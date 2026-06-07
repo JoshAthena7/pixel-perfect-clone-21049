@@ -84,6 +84,22 @@ export type MissionBrief = {
     created_at: string;
   }>;
   daysToSubmission: number | null;
+  lifecycle: {
+    created_at: string | null;
+    iris_kickoff_at: string | null;
+    iris_kickoff_status: string | null;
+    timeline: {
+      question_deadline: string | null;
+      pink_team: string | null;
+      red_team: string | null;
+      gold_team: string | null;
+      exec_review: string | null;
+      submission: string | null;
+      orals: string | null;
+      award: string | null;
+    } | null;
+    debriefCount: number;
+  };
 };
 
 async function fetchMissionBrief(missionId: string): Promise<MissionBrief> {
@@ -97,11 +113,13 @@ async function fetchMissionBrief(missionId: string): Promise<MissionBrief> {
     risksRes,
     clarRes,
     signalsRes,
+    timelineRes,
+    debriefRes,
   ] = await Promise.all([
     supabase
       .from("missions")
       .select(
-        "id,name,client,state,state_agency,program_type,procurement_name,rfp_number,submission_date,pens_down_date,health,status,description,contract_value,contract_term,incumbent_name,win_themes,key_requirements,focus_areas,mission_highlights,client_strengths,client_win_strategy,program_goals",
+        "id,name,client,state,state_agency,program_type,procurement_name,rfp_number,submission_date,pens_down_date,health,status,description,contract_value,contract_term,incumbent_name,win_themes,key_requirements,focus_areas,mission_highlights,client_strengths,client_win_strategy,program_goals,created_at,iris_kickoff_at,iris_kickoff_status",
       )
       .eq("id", missionId)
       .maybeSingle(),
@@ -144,6 +162,15 @@ async function fetchMissionBrief(missionId: string): Promise<MissionBrief> {
       .eq("mission_id", missionId)
       .order("created_at", { ascending: false })
       .limit(6),
+    supabase
+      .from("mission_timeline")
+      .select("question_deadline,pink_team,red_team,gold_team,exec_review,submission,orals,award")
+      .eq("mission_id", missionId)
+      .maybeSingle(),
+    supabase
+      .from("mission_debriefs")
+      .select("id", { count: "exact", head: true })
+      .eq("mission_id", missionId),
   ]);
 
   const m = missionRes.data;
@@ -247,6 +274,13 @@ async function fetchMissionBrief(missionId: string): Promise<MissionBrief> {
     clarifications: clarRes.data ?? [],
     signals: signalsRes.data ?? [],
     daysToSubmission,
+    lifecycle: {
+      created_at: (m as any).created_at ?? null,
+      iris_kickoff_at: (m as any).iris_kickoff_at ?? null,
+      iris_kickoff_status: (m as any).iris_kickoff_status ?? null,
+      timeline: (timelineRes.data as any) ?? null,
+      debriefCount: debriefRes.count ?? 0,
+    },
   };
 }
 
