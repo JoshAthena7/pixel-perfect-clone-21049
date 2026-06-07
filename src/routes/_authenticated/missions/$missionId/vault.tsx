@@ -119,7 +119,7 @@ function VaultPage() {
     return out;
   }, [docs]);
 
-  const [openUpload, setOpenUpload] = useState<VaultDocType | null>(null);
+  // Uploads are admin-only via Olympus; no in-vault upload state.
 
   async function handleOpenDoc(doc: VaultDoc) {
     try {
@@ -220,12 +220,12 @@ function VaultPage() {
 
 
 
-      {/* Beta: sensitive-data warning. Vault content is visible to every signed-in Atlas user on this mission. */}
-      <div className="rounded-[10px] border border-rose-500/30 bg-rose-500/[0.06] px-4 py-3 text-[12px] leading-relaxed text-rose-100">
-        <div className="font-semibold text-rose-200 mb-0.5">Do not upload PHI, PII, or client-confidential material.</div>
-        Beta Vault content is visible to every signed-in user on this mission. No HIPAA-regulated data,
-        member identifiers, or confidential contract terms. Admin-only uploads during beta.
+      {/* Vault is read-only. All intel and documents are ingested through Olympus (admin only). */}
+      <div className="rounded-[10px] border border-white/10 bg-white/[0.03] px-4 py-3 text-[12px] leading-relaxed text-muted-foreground">
+        <div className="font-semibold text-foreground/90 mb-0.5">Vault is read-only here.</div>
+        All intel and vault documents are ingested through Olympus by a platform admin. Do not upload PHI, PII, or client-confidential material to Atlas.
       </div>
+
 
 
 
@@ -322,24 +322,17 @@ function VaultPage() {
                       </p>
                     </div>
                   </div>
-                  {isLead && (
-                    <button
-                      onClick={() => setOpenUpload(type)}
-                      className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/5 px-2.5 py-1.5 text-[11px] font-medium text-foreground hover:bg-white/10"
-                    >
-                      <Plus className="h-3 w-3" />
-                      Add
-                    </button>
-                  )}
+                  {/* Uploads are admin-only via Olympus. No in-vault upload button. */}
+
                 </div>
 
                 <div className="mt-4 space-y-2">
                   {items.length === 0 && (
                     <div className="rounded-md border border-dashed border-white/10 px-4 py-6 text-center text-xs text-muted-foreground">
-                      No document loaded.
-                      {isLead ? " Upload to satisfy this slot." : " Lead will upload shortly."}
+                      No document loaded. Admin will ingest via Olympus.
                     </div>
                   )}
+
                   {items.map((doc) => (
                     <div
                       key={doc.id}
@@ -404,17 +397,8 @@ function VaultPage() {
         </div>
       )}
 
-      {openUpload && (
-        <UploadModal
-          missionId={missionId}
-          docType={openUpload}
-          onClose={() => setOpenUpload(null)}
-          onSaved={() => {
-            qc.invalidateQueries({ queryKey: ["vault", missionId] });
-            setOpenUpload(null);
-          }}
-        />
-      )}
+      {/* Upload modal removed — uploads only via Olympus admin. */}
+
       </div>
     </>
   );
