@@ -43,6 +43,8 @@ type Q = {
   iris_risk_flag: string | null;
   iris_risk_flag_text: string | null;
   point_value: number | null;
+  updated_at?: string | null;
+  writer_name?: string | null;
 };
 
 type Props = {
