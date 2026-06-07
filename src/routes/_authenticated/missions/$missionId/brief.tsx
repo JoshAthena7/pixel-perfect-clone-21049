@@ -1233,7 +1233,13 @@ function MissionHealthCard({ missionId, brief }: { missionId: string; brief: Mis
   const onTrack = q.by_health.green;
   const atRisk = q.by_health.yellow;
   const blocked = q.by_health.red;
-  const progressPct = q.total > 0 ? Math.round((q.by_status.complete / q.total) * 100) : 0;
+
+  // Overall Progress = Setup Record completion. Reuses the same per-section
+  // checks as Olympus → Setup Record so the two surfaces stay in sync.
+  const setupSections = useSetupCompletion(missionId, brief);
+  const setupDone = setupSections.filter((s) => s.done).length;
+  const setupTotal = setupSections.length;
+  const progressPct = setupTotal > 0 ? Math.round((setupDone / setupTotal) * 100) : 0;
 
   const metrics = [
     { icon: <CheckCircle2 size={14} style={{ color: C.green }} />, label: "On Track", val: onTrack, color: C.green },
@@ -1257,6 +1263,10 @@ function MissionHealthCard({ missionId, brief }: { missionId: string; brief: Mis
         <div style={{ height: 7, background: C.borderLight, borderRadius: 999, overflow: "hidden" }}>
           <div style={{ width: `${progressPct}%`, height: "100%", background: C.green, borderRadius: 999 }} />
         </div>
+        <div style={{ marginTop: 6, fontSize: 11, color: C.textMuted, display: "flex", justifyContent: "space-between" }}>
+          <span>Sections Completed</span>
+          <span style={{ fontVariantNumeric: "tabular-nums" }}>{setupDone}/{setupTotal}</span>
+        </div>
       </div>
 
       <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 8 }}>
@@ -1273,6 +1283,64 @@ function MissionHealthCard({ missionId, brief }: { missionId: string; brief: Mis
       <Link to="/missions/$missionId/command" params={{ missionId }} style={{ ...linkBlue, marginTop: 14 }}>View Mission Health <ArrowRight size={12} /></Link>
     </div>
   );
+}
+
+/**
+ * Mirrors the per-section completion logic from
+ * src/routes/_authenticated/admin/missions.$missionId.setup.tsx so the
+ * Mission Brief shows the same "X of 9" the Setup Record uses. Each
+ * section is one HEAD count query — cheap and runs once per mission.
+ */
+function useSetupCompletion(missionId: string, brief: MissionBrief) {
+  const { data } = useQuery({
+    queryKey: ["mission-setup-completion", missionId],
+    queryFn: async () => {
+      const [members, docs, monitoring, strategy, evaluation, clientIntel, timeline, questions, governance] = await Promise.all([
+        supabase.from("mission_members").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
+        supabase.from("mission_vault_documents").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
+        supabase.from("mission_monitoring_sources").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
+        supabase.from("mission_strategy").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
+        supabase.from("mission_evaluation_criteria").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
+        supabase.from("mission_client_intel").select("mission_id").eq("mission_id", missionId).maybeSingle(),
+        supabase.from("mission_timeline").select("submission").eq("mission_id", missionId).maybeSingle(),
+        supabase.from("question_records").select("id,assigned_writer_id").eq("mission_id", missionId),
+        supabase.from("mission_governance").select("submission_authority").eq("mission_id", missionId).maybeSingle(),
+      ]);
+      const qs = questions.data ?? [];
+      const assigned = qs.filter((q: any) => q.assigned_writer_id).length;
+      return {
+        members: members.count ?? 0,
+        docs: docs.count ?? 0,
+        monitoring: monitoring.count ?? 0,
+        strategy: strategy.count ?? 0,
+        evaluation: evaluation.count ?? 0,
+        clientIntel: !!clientIntel.data,
+        timeline: !!timeline.data?.submission,
+        questionsTotal: qs.length,
+        questionsAssigned: assigned,
+        governance: !!governance.data?.submission_authority,
+      };
+    },
+    staleTime: 60_000,
+  });
+  const m = brief.mission;
+  const themesCount = (m.win_themes?.length ?? 0) + (brief.winThemes?.length ?? 0);
+  return [
+    { id: "identity", done: !!(m.name && m.client && m.status) },
+    { id: "team", done: (data?.members ?? 0) > 0 },
+    { id: "inputs", done: (data?.docs ?? 0) > 0 || (data?.monitoring ?? 0) > 0 },
+    { id: "strategy", done: (data?.strategy ?? 0) > 0 || themesCount > 0 },
+    { id: "evaluation", done: (data?.evaluation ?? 0) > 0 },
+    { id: "client", done: data?.clientIntel === true },
+    { id: "timeline", done: data?.timeline === true },
+    {
+      id: "questions",
+      done:
+        (data?.questionsTotal ?? 0) > 0 &&
+        (data?.questionsAssigned ?? 0) >= Math.max(1, Math.ceil((data?.questionsTotal ?? 0) / 2)),
+    },
+    { id: "governance", done: data?.governance === true },
+  ];
 }
 
 function YoureBriefedCard({ missionId }: { missionId: string }) {
