@@ -49,6 +49,24 @@ function MissionsIndex() {
     },
   });
 
+  const missionIds = missions.map((m) => m.id);
+  const { data: completedByMission = {} } = useQuery({
+    queryKey: ["olympus-missions-completed", missionIds.join(",")],
+    enabled: missionIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("question_records")
+        .select("mission_id,status")
+        .in("mission_id", missionIds)
+        .in("status", ["approved", "submitted"]);
+      const map: Record<string, number> = {};
+      for (const row of (data ?? []) as Array<{ mission_id: string }>) {
+        map[row.mission_id] = (map[row.mission_id] ?? 0) + 1;
+      }
+      return map;
+    },
+  });
+
   async function archive(m: MissionRow) {
     if (!confirm(`Archive "${m.name}"? Team members will lose access.`)) return;
     const { error } = await supabase.from("missions").update({ status: "Archived" }).eq("id", m.id);
