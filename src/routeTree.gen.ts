@@ -13,6 +13,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as IrisRouteImport } from './routes/iris'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as DebugGoldEntryFallbackRouteImport } from './routes/debug.gold-entry-fallback'
 import { Route as DebugDailyNoteLayoutRouteImport } from './routes/debug.daily-note-layout'
 import { Route as CheckinTokenRouteImport } from './routes/checkin.$token'
@@ -38,6 +39,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedV1IndexRouteImport } from './routes/_authenticated/v1/index'
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile/index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as AuthenticatedV1VaultRouteImport } from './routes/_authenticated/v1/vault'
 import { Route as AuthenticatedV1SectionsRouteImport } from './routes/_authenticated/v1/sections'
 import { Route as AuthenticatedV1MySectionsRouteImport } from './routes/_authenticated/v1/my-sections'
@@ -80,6 +82,8 @@ import { Route as AuthenticatedAdminAtlasSourcesRouteImport } from './routes/_au
 import { Route as AuthenticatedAdminAdminsRouteImport } from './routes/_authenticated/admin/admins'
 import { Route as AuthenticatedV1SectionsIndexRouteImport } from './routes/_authenticated/v1/sections.index'
 import { Route as AuthenticatedMissionsMissionIdIndexRouteImport } from './routes/_authenticated/missions/$missionId/index'
+import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
+import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as ApiPublicHooksRefreshIntelligenceRouteImport } from './routes/api/public/hooks/refresh-intelligence'
 import { Route as ApiPublicHooksIrisMonitorRouteImport } from './routes/api/public/hooks/iris-monitor'
@@ -129,6 +133,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
+  id: '/email/unsubscribe',
+  path: '/email/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DebugGoldEntryFallbackRoute = DebugGoldEntryFallbackRouteImport.update({
@@ -261,6 +270,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
+  id: '/lovable/email/suppression',
+  path: '/lovable/email/suppression',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedV1VaultRoute = AuthenticatedV1VaultRouteImport.update({
   id: '/vault',
@@ -507,6 +521,18 @@ const AuthenticatedMissionsMissionIdIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
+const LovableEmailTransactionalSendRoute =
+  LovableEmailTransactionalSendRouteImport.update({
+    id: '/lovable/email/transactional/send',
+    path: '/lovable/email/transactional/send',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LovableEmailTransactionalPreviewRoute =
+  LovableEmailTransactionalPreviewRouteImport.update({
+    id: '/lovable/email/transactional/preview',
+    path: '/lovable/email/transactional/preview',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LovableEmailQueueProcessRoute =
   LovableEmailQueueProcessRouteImport.update({
     id: '/lovable/email/queue/process',
@@ -720,6 +746,7 @@ export interface FileRoutesByFullPath {
   '/checkin/$token': typeof CheckinTokenRoute
   '/debug/daily-note-layout': typeof DebugDailyNoteLayoutRoute
   '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
+  '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/admin/atlas-sources': typeof AuthenticatedAdminAtlasSourcesRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
@@ -760,6 +787,7 @@ export interface FileRoutesByFullPath {
   '/v1/my-sections': typeof AuthenticatedV1MySectionsRoute
   '/v1/sections': typeof AuthenticatedV1SectionsRouteWithChildren
   '/v1/vault': typeof AuthenticatedV1VaultRoute
+  '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
   '/v1/': typeof AuthenticatedV1IndexRoute
@@ -787,6 +815,8 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
+  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/v1/sections/': typeof AuthenticatedV1SectionsIndexRoute
   '/admin/missions/$missionId/debrief': typeof AuthenticatedAdminMissionsMissionIdDebriefRoute
@@ -821,6 +851,7 @@ export interface FileRoutesByTo {
   '/checkin/$token': typeof CheckinTokenRoute
   '/debug/daily-note-layout': typeof DebugDailyNoteLayoutRoute
   '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
+  '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/admin/atlas-sources': typeof AuthenticatedAdminAtlasSourcesRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
@@ -859,6 +890,7 @@ export interface FileRoutesByTo {
   '/v1/journey': typeof AuthenticatedV1JourneyRoute
   '/v1/my-sections': typeof AuthenticatedV1MySectionsRoute
   '/v1/vault': typeof AuthenticatedV1VaultRoute
+  '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
   '/v1': typeof AuthenticatedV1IndexRoute
@@ -886,6 +918,8 @@ export interface FileRoutesByTo {
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
+  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/v1/sections': typeof AuthenticatedV1SectionsIndexRoute
   '/admin/missions/$missionId/debrief': typeof AuthenticatedAdminMissionsMissionIdDebriefRoute
@@ -924,6 +958,7 @@ export interface FileRoutesById {
   '/checkin/$token': typeof CheckinTokenRoute
   '/debug/daily-note-layout': typeof DebugDailyNoteLayoutRoute
   '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
+  '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/_authenticated/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/_authenticated/admin/atlas-sources': typeof AuthenticatedAdminAtlasSourcesRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
@@ -964,6 +999,7 @@ export interface FileRoutesById {
   '/_authenticated/v1/my-sections': typeof AuthenticatedV1MySectionsRoute
   '/_authenticated/v1/sections': typeof AuthenticatedV1SectionsRouteWithChildren
   '/_authenticated/v1/vault': typeof AuthenticatedV1VaultRoute
+  '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/_authenticated/v1/': typeof AuthenticatedV1IndexRoute
@@ -991,6 +1027,8 @@ export interface FileRoutesById {
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
+  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/_authenticated/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/_authenticated/v1/sections/': typeof AuthenticatedV1SectionsIndexRoute
   '/_authenticated/admin/missions/$missionId/debrief': typeof AuthenticatedAdminMissionsMissionIdDebriefRoute
@@ -1029,6 +1067,7 @@ export interface FileRouteTypes {
     | '/checkin/$token'
     | '/debug/daily-note-layout'
     | '/debug/gold-entry-fallback'
+    | '/email/unsubscribe'
     | '/admin/admins'
     | '/admin/atlas-sources'
     | '/admin/audit'
@@ -1069,6 +1108,7 @@ export interface FileRouteTypes {
     | '/v1/my-sections'
     | '/v1/sections'
     | '/v1/vault'
+    | '/lovable/email/suppression'
     | '/admin/'
     | '/profile/'
     | '/v1/'
@@ -1096,6 +1136,8 @@ export interface FileRouteTypes {
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/refresh-intelligence'
     | '/lovable/email/queue/process'
+    | '/lovable/email/transactional/preview'
+    | '/lovable/email/transactional/send'
     | '/missions/$missionId/'
     | '/v1/sections/'
     | '/admin/missions/$missionId/debrief'
@@ -1130,6 +1172,7 @@ export interface FileRouteTypes {
     | '/checkin/$token'
     | '/debug/daily-note-layout'
     | '/debug/gold-entry-fallback'
+    | '/email/unsubscribe'
     | '/admin/admins'
     | '/admin/atlas-sources'
     | '/admin/audit'
@@ -1168,6 +1211,7 @@ export interface FileRouteTypes {
     | '/v1/journey'
     | '/v1/my-sections'
     | '/v1/vault'
+    | '/lovable/email/suppression'
     | '/admin'
     | '/profile'
     | '/v1'
@@ -1195,6 +1239,8 @@ export interface FileRouteTypes {
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/refresh-intelligence'
     | '/lovable/email/queue/process'
+    | '/lovable/email/transactional/preview'
+    | '/lovable/email/transactional/send'
     | '/missions/$missionId'
     | '/v1/sections'
     | '/admin/missions/$missionId/debrief'
@@ -1232,6 +1278,7 @@ export interface FileRouteTypes {
     | '/checkin/$token'
     | '/debug/daily-note-layout'
     | '/debug/gold-entry-fallback'
+    | '/email/unsubscribe'
     | '/_authenticated/admin/admins'
     | '/_authenticated/admin/atlas-sources'
     | '/_authenticated/admin/audit'
@@ -1272,6 +1319,7 @@ export interface FileRouteTypes {
     | '/_authenticated/v1/my-sections'
     | '/_authenticated/v1/sections'
     | '/_authenticated/v1/vault'
+    | '/lovable/email/suppression'
     | '/_authenticated/admin/'
     | '/_authenticated/profile/'
     | '/_authenticated/v1/'
@@ -1299,6 +1347,8 @@ export interface FileRouteTypes {
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/refresh-intelligence'
     | '/lovable/email/queue/process'
+    | '/lovable/email/transactional/preview'
+    | '/lovable/email/transactional/send'
     | '/_authenticated/missions/$missionId/'
     | '/_authenticated/v1/sections/'
     | '/_authenticated/admin/missions/$missionId/debrief'
@@ -1321,6 +1371,8 @@ export interface RootRouteChildren {
   CheckinTokenRoute: typeof CheckinTokenRoute
   DebugDailyNoteLayoutRoute: typeof DebugDailyNoteLayoutRoute
   DebugGoldEntryFallbackRoute: typeof DebugGoldEntryFallbackRoute
+  EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksBackfillAtlasEmbeddingsRoute: typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
   ApiPublicHooksBackfillQuestionEmbeddingsRoute: typeof ApiPublicHooksBackfillQuestionEmbeddingsRoute
   ApiPublicHooksBackfillResearchEmbeddingsRoute: typeof ApiPublicHooksBackfillResearchEmbeddingsRoute
@@ -1329,6 +1381,8 @@ export interface RootRouteChildren {
   ApiPublicHooksIrisMonitorRoute: typeof ApiPublicHooksIrisMonitorRoute
   ApiPublicHooksRefreshIntelligenceRoute: typeof ApiPublicHooksRefreshIntelligenceRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
+  LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
+  LovableEmailTransactionalSendRoute: typeof LovableEmailTransactionalSendRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1359,6 +1413,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/email/unsubscribe': {
+      id: '/email/unsubscribe'
+      path: '/email/unsubscribe'
+      fullPath: '/email/unsubscribe'
+      preLoaderRoute: typeof EmailUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/debug/gold-entry-fallback': {
@@ -1535,6 +1596,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/lovable/email/suppression': {
+      id: '/lovable/email/suppression'
+      path: '/lovable/email/suppression'
+      fullPath: '/lovable/email/suppression'
+      preLoaderRoute: typeof LovableEmailSuppressionRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/v1/vault': {
       id: '/_authenticated/v1/vault'
@@ -1829,6 +1897,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/missions/$missionId/'
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdIndexRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
+    '/lovable/email/transactional/send': {
+      id: '/lovable/email/transactional/send'
+      path: '/lovable/email/transactional/send'
+      fullPath: '/lovable/email/transactional/send'
+      preLoaderRoute: typeof LovableEmailTransactionalSendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/transactional/preview': {
+      id: '/lovable/email/transactional/preview'
+      path: '/lovable/email/transactional/preview'
+      fullPath: '/lovable/email/transactional/preview'
+      preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/lovable/email/queue/process': {
       id: '/lovable/email/queue/process'
@@ -2319,6 +2401,8 @@ const rootRouteChildren: RootRouteChildren = {
   CheckinTokenRoute: CheckinTokenRoute,
   DebugDailyNoteLayoutRoute: DebugDailyNoteLayoutRoute,
   DebugGoldEntryFallbackRoute: DebugGoldEntryFallbackRoute,
+  EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksBackfillAtlasEmbeddingsRoute:
     ApiPublicHooksBackfillAtlasEmbeddingsRoute,
   ApiPublicHooksBackfillQuestionEmbeddingsRoute:
@@ -2332,6 +2416,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksRefreshIntelligenceRoute:
     ApiPublicHooksRefreshIntelligenceRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
+  LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
+  LovableEmailTransactionalSendRoute: LovableEmailTransactionalSendRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
