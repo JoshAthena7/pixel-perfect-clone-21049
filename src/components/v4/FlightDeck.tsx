@@ -343,7 +343,7 @@ export function FlightDeck({ missionId, me, myQuestions, allQuestions, updateSta
           onScoreMe={() => requireSelected("Score Me") && setScoreOpen(true)}
           onPhone={() => requireSelected("Phone a Friend") && setPhoneOpen(true)}
           onPulse={() => setPulseOpen(true)}
-          onThread={() => requireSelected("Thread") && setThreadOpen(true)}
+          onThread={() => setThreadOpen(true)}
           sosSlot={<SOSButton missionId={missionId} questionId={selected?.id} />}
         />
       </section>
