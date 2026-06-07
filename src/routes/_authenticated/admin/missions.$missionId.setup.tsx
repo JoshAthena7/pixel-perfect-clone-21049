@@ -276,7 +276,7 @@ function useSetupData(missionId: string) {
         supabase.from("mission_sensitivities").select("*").eq("mission_id", missionId),
         supabase.from("mission_client_intel").select("*").eq("mission_id", missionId).maybeSingle(),
         supabase.from("mission_timeline").select("*").eq("mission_id", missionId).maybeSingle(),
-        supabase.from("question_records").select("id,question_number,title,section_number,assigned_writer_id,reviewer_id,pens_down_date,review_path,volume_id,point_value,competitive_risk").eq("mission_id", missionId).order("sort_order"),
+        supabase.from("question_records").select("id,question_number,title,section_number,assigned_writer_id,assigned_sme_id,reviewer_id,pens_down_date,review_path,volume_id,point_value,competitive_risk").eq("mission_id", missionId).order("sort_order"),
         supabase.from("mission_volumes").select("*").eq("mission_id", missionId).order("sort_order"),
         supabase.from("mission_governance").select("*").eq("mission_id", missionId).maybeSingle(),
         supabase.from("mission_financials").select("*").eq("mission_id", missionId).maybeSingle(),
