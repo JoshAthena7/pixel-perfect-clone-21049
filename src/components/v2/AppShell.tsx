@@ -377,17 +377,15 @@ function MissionNav({ missionId }: { missionId: string }) {
     active: boolean;
   }> = [
     {
-      key: "flight deck",
-      label: "Flight Deck",
-      icon: <Plane size={13} strokeWidth={1.75} />,
-      to: `${base}/flight-deck`,
+      key: "journey",
+      label: "Journey Map",
+      icon: <MapIcon size={13} strokeWidth={1.75} />,
+      to: `${base}/journey-map`,
+      // R-4: Journey Map is the default mission landing (orientation first).
       active:
         path === base ||
         path === `${base}/` ||
-        path.startsWith(`${base}/flight-deck`) ||
-        path === `${base}/overview` ||
-        path.startsWith(`${base}/sections`) ||
-        path.startsWith(`${base}/scaffold`),
+        path.startsWith(`${base}/journey-map`),
     },
     {
       key: "brief",
@@ -395,6 +393,17 @@ function MissionNav({ missionId }: { missionId: string }) {
       icon: <FileText size={13} strokeWidth={1.75} />,
       to: `${base}/brief`,
       active: path === `${base}/brief`,
+    },
+    {
+      key: "flight deck",
+      label: "Flight Deck",
+      icon: <Plane size={13} strokeWidth={1.75} />,
+      to: `${base}/flight-deck`,
+      active:
+        path.startsWith(`${base}/flight-deck`) ||
+        path === `${base}/overview` ||
+        path.startsWith(`${base}/sections`) ||
+        path.startsWith(`${base}/scaffold`),
     },
     {
       key: "intel",
@@ -409,13 +418,6 @@ function MissionNav({ missionId }: { missionId: string }) {
       icon: <Archive size={13} strokeWidth={1.75} />,
       to: `${base}/vault`,
       active: path.startsWith(`${base}/vault`),
-    },
-    {
-      key: "journey",
-      label: "Journey Map",
-      icon: <MapIcon size={13} strokeWidth={1.75} />,
-      to: `${base}/journey-map`,
-      active: path.startsWith(`${base}/journey-map`),
     },
   ];
 
