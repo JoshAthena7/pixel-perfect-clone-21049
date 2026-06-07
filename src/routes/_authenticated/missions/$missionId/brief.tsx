@@ -128,7 +128,7 @@ function MissionBriefingRoomPage() {
             <ThreeColumnRow />
             <MissionMap missionId={missionId} />
             <BottomPanels missionId={missionId} />
-            <FinalCTA missionId={missionId} />
+            
           </div>
 
           {/* ── RIGHT column ── */}
