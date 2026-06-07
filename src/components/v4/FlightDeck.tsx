@@ -20,6 +20,7 @@ import {
   CircleSlash,
   Clock,
   Eye,
+  Headphones,
   Layers,
   ListChecks,
   Phone,
