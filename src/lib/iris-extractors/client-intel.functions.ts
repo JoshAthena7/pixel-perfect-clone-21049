@@ -95,6 +95,31 @@ function deterministicAgencyFallback(docText: string, mission: any) {
   if (/evaluation committee|evaluation team|technical evaluation|quote evaluation/i.test(text)) {
     decisionMakers.push("Evaluation Committee / technical evaluators — documented proposal evaluation decision body");
   }
+  // Oversight & cross-agency authorities (NJ children/youth ecosystem)
+  if (/department of children and families|\bdcf\b|dcp&p|division of child protection/i.test(text)) {
+    decisionMakers.push("NJ Department of Children & Families (DCF) — cross-agency oversight authority for child-serving programs");
+    stakeholders.push("NJ Department of Children & Families (DCF) — oversight & policy authority");
+  }
+  if (/department of human services|\bdhs\b/i.test(text)) {
+    decisionMakers.push("NJ Department of Human Services (DHS) — parent department oversight authority");
+    stakeholders.push("NJ Department of Human Services (DHS) — parent department");
+  }
+  if (/division of medical assistance|\bdmahs\b|medicaid/i.test(text)) {
+    decisionMakers.push("NJ Division of Medical Assistance & Health Services (DMAHS / Medicaid) — funding & program oversight authority");
+    stakeholders.push("NJ DMAHS / Medicaid — funding authority");
+  }
+  if (/department of education|\bdoe\b|special education/i.test(text)) {
+    stakeholders.push("NJ Department of Education — cross-agency partner (school-based services)");
+  }
+  if (/juvenile justice commission|\bjjc\b/i.test(text)) {
+    stakeholders.push("NJ Juvenile Justice Commission (JJC) — cross-agency partner (justice-involved youth)");
+  }
+  if (/cms|centers for medicare/i.test(text)) {
+    decisionMakers.push("Centers for Medicare & Medicaid Services (CMS) — federal oversight authority for Medicaid-funded services");
+  }
+  if (/governor[’']?s office|office of the governor/i.test(text)) {
+    decisionMakers.push("Office of the Governor — executive approval authority");
+  }
 
   let meetingCadence: string | null = null;
   const preQuote = text.match(/Optional Pre-Quote Submission Conference.{0,160}?06\/08\/2026.{0,80}?10:00 AM/i);
@@ -202,7 +227,13 @@ Extract who matters from the mission metadata, RFP cover pages, scope of work, p
 Arrays may contain named people OR clearly supported offices/organizations, formatted as "Name or Org — Role/Relationship (evidence)". Never invent names.
 
 contacts = solicitation POCs, contracting/procurement officers, email/phone contacts, program contacts (AGENCY side only).
-decision_makers = named approvers/evaluators OR documented decision bodies/roles such as evaluation committee, procurement director, agency executive.
+decision_makers = the FULL chain of decision authority — not just procurement or the contracting agency. Be sharp and include ALL of:
+  • Named approvers/evaluators, evaluation committees, contracting officers
+  • The issuing/program agency leadership (e.g., CSOC, Medicaid)
+  • CROSS-AGENCY OVERSIGHT authorities that govern this scope (e.g., for children's services: NJ Dept of Children & Families (DCF), DCP&P, NJ Dept of Human Services (DHS), Division of Medical Assistance & Health Services (DMAHS/Medicaid), Dept of Education, Juvenile Justice Commission)
+  • Federal oversight where funding flows from CMS, ACF, SAMHSA, HRSA, etc.
+  • Executive authority (Governor's Office, agency Commissioner) when documented or implied by funding scale
+  Format: "Org/Person — role + why they have decision power (evidence)". If a parent department or oversight agency isn't named in the doc but clearly governs the scope, include it with "(inferred from scope: …)".
 
 stakeholders = THE FULL EXTERNAL ECOSYSTEM that touches this scope. Be EXHAUSTIVE. Mine the document for ANY mentioned:
   • Community-based organizations (CBOs) and service providers, current or prospective

@@ -1506,8 +1506,12 @@ function SectionClientIntel({ missionId, intel, refetch }: any) {
         <Field label="Agency Key Contacts (one per line)">
           <TextArea rows={3} value={form.contacts} onChange={(e) => setForm({ ...form, contacts: e.target.value })} />
         </Field>
-        <Field label="Agency Decision Makers">
-          <TextArea rows={3} value={form.decision_makers} onChange={(e) => setForm({ ...form, decision_makers: e.target.value })} />
+        <Field label="Decision Makers — Full Authority Chain" span={2}>
+          <p className="-mt-1 mb-2 text-[11px] text-muted-foreground">
+            One per line. Don't stop at procurement. Capture the <strong className="text-foreground/80">entire chain of authority</strong>: evaluation committee → program office (e.g., CSOC) → <strong className="text-foreground/80">cross-agency oversight (DCF, DHS, DMAHS/Medicaid, DOE, JJC)</strong> → federal funder (CMS, ACF, SAMHSA) → executive (Commissioner, Governor's Office).
+            Format: <span className="font-mono">Org/Person — role + why they have decision power</span>
+          </p>
+          <TextArea rows={6} value={form.decision_makers} onChange={(e) => setForm({ ...form, decision_makers: e.target.value })} />
         </Field>
         <Field
           label="Stakeholders & Advocacy Ecosystem"
