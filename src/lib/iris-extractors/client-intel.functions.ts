@@ -48,7 +48,6 @@ function hasMeaningfulList(value: unknown) {
     })
   );
 }
-}
 
 export const extractClientIntel = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
