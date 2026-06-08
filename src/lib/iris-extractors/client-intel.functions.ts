@@ -398,15 +398,23 @@ stakeholders = THE FULL EXTERNAL ECOSYSTEM that touches this scope. Be EXHAUSTIV
   • Faith-based organizations, philanthropic funders
   • Issuing agency itself, program office, oversight entities, affected agency-side units
   Advocates and CBO coalitions are decisive — extract every one mentioned, cited, or referenced (citations, footnotes, "in collaboration with…", "stakeholder feedback from…", "informed by…").
+  Also use the WEB SCRUB section below: it lists named advocacy organizations, CBOs, university research partners, family/youth coalitions, and philanthropic funders found via targeted web search on this scope + state. Include every one that is clearly relevant to this scope, and append the source URL inline so we can audit, e.g. "ACNJ — statewide child welfare advocacy (web: acnj.org)".
 
 relationship_owners = leave empty (deprecated field).
 For political_considerations and meeting_cadence, summarize supported evidence or write a concise "No documented ... found" statement. Honesty over completeness.`;
+
+    // Live web scrub for advocates / CBOs / research & policy partners /
+    // funders. Silent no-op if FIRECRAWL_API_KEY isn't configured.
+    const scrub = await scrubAdvocatesFromWeb(mission, docText);
 
     const result = await callJsonExtractor<ClientIntelOut>({
       system,
       user:
         renderContext(mission, rows) +
-        (docText ? `\n\n=== UPLOADED MISSION DOCUMENTS ===\n${docText}` : ""),
+        (docText ? `\n\n=== UPLOADED MISSION DOCUMENTS ===\n${docText}` : "") +
+        (scrub.webContext
+          ? `\n\n=== WEB SCRUB: ADVOCATES, CBOs, RESEARCH & POLICY PARTNERS, FUNDERS ===\n${scrub.webContext}`
+          : ""),
       toolName: "emit_client_intel",
       toolDescription: "Emit the client intelligence record for this mission.",
       parametersSchema: {
