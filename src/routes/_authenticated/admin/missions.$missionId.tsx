@@ -843,18 +843,23 @@ function CloseoutTab({ missionId, mission }: { missionId: string; mission: any }
       {/* Archive */}
       <section className="rounded-lg border border-border bg-surface/40 p-4 lg:col-span-2">
         <h2 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.28em]">Archive</h2>
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="space-y-3">
           <div className="text-sm text-muted-foreground">
-            {allChecked
-              ? "All closeout items complete. Ready to archive."
-              : `Complete all 6 checklist items before archiving (${Object.values(checklist).filter(Boolean).length}/6 done).`}
+            {Object.values(checklist).filter(Boolean).length} of 6 closeout items complete
           </div>
+          {!allChecked && (
+            <ul className="list-disc pl-5 text-xs text-amber-300 space-y-0.5">
+              {CLOSEOUT_ITEMS.filter((i) => !checklist[i.key]).map((i) => (
+                <li key={i.key}>{i.label}</li>
+              ))}
+            </ul>
+          )}
           <button
             type="button"
             onClick={archive}
             disabled={!allChecked || archiving}
-            className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold text-black disabled:cursor-not-allowed disabled:opacity-40"
-            style={{ backgroundColor: "#C9A84C" }}
+            className="inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
+            style={{ backgroundColor: "#1F3864" }}
           >
             <Archive className="h-3.5 w-3.5" />
             {archiving ? "Archiving…" : "Archive Mission"}
