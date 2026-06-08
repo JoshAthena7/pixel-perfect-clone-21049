@@ -32,7 +32,7 @@ export const Route = createFileRoute("/_authenticated")({
         .eq("id", user.id)
         .maybeSingle(),
       4000,
-      { data: null, error: null },
+      { data: null, error: null, count: null, status: 200, statusText: "OK" },
     );
     const isAdmin = prof?.is_platform_admin === true;
     const onboarded = prof?.has_onboarded === true;
