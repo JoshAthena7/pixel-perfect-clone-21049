@@ -7,7 +7,7 @@ import { Eye, BookMarked, Compass, Play, Pause, ArrowRight, Database, Network, L
 export const Route = createFileRoute("/iris")({
   head: () => ({
     meta: [
-      { title: "IRIS — Healthcare Intelligence System by Athena Strategy Group" },
+      { title: "IRIS™ — Healthcare Intelligence System by Athena Strategy Command" },
       {
         name: "description",
         content:
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/iris")({
       {
         property: "og:description",
         content:
-          "Intelligence. Readiness. Integration. Strategy. Built exclusively for the Athena Collective.",
+          "Intelligence · Alignment · Execution. Built exclusively for the Athena Collective by Athena Strategy Command.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -124,7 +124,7 @@ function PublicNav() {
             className="text-[11px] font-semibold uppercase tracking-[0.32em]"
             style={{ color: "rgba(255,255,255,0.7)" }}
           >
-            Athena Strategy Group
+            Athena Strategy Command
           </span>
         </div>
         <a
@@ -605,7 +605,7 @@ function PublicFooter() {
       <div className="mx-auto flex max-w-[1320px] flex-col items-center justify-between gap-4 text-[11px] uppercase tracking-[0.28em] md:flex-row" style={{ color: "rgba(255,255,255,0.4)" }}>
         <div className="flex items-center gap-3">
           <IrisMark size={24} />
-          <span>Athena Strategy Group, Inc.</span>
+          <span>Athena Strategy Command</span>
         </div>
         <span>© {new Date().getFullYear()} — Built for the Collective.</span>
       </div>
