@@ -41,7 +41,7 @@ function AdminSidebar() {
     <aside className="hidden md:flex w-56 shrink-0 flex-col border-r border-border bg-surface">
       <div className="flex h-14 items-center gap-2 border-b border-border px-4">
         <Zap className="h-4 w-4 text-[color:var(--athena-gold)]" />
-        <span className="text-[11px] font-extrabold uppercase tracking-[0.28em]">Olympus</span>
+        <span className="text-[11px] font-extrabold uppercase tracking-[0.28em]">OLYMPUS</span>
       </div>
       <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
         <NavItem to="/admin" active={isActive("/admin", true)} icon={<LayoutGrid size={15} strokeWidth={1.5} />}>
