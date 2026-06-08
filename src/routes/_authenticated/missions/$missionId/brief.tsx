@@ -1361,7 +1361,7 @@ function IrisMissionBrief({ greeting, firstName, missionId, brief }: { greeting:
       return `Assign owners to ${brief.questions.unassigned} unassigned question${brief.questions.unassigned === 1 ? "" : "s"}.`;
     }
     if (brief.team.length <= 1) {
-      return "Invite teammates so you're not flying solo.";
+      return "Assign teammates from Mission Setup → Team to share the load.";
     }
     if (brief.winThemes.length === 0) {
       return "Capture win themes so the team writes to the same north star.";

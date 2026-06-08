@@ -1,11 +1,9 @@
 import { useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Upload, Search, UserPlus, Trash2, Users, Tag } from "lucide-react";
+import { Upload, Search, Trash2, Users, Tag } from "lucide-react";
 import { logOlympusAction } from "@/lib/audit";
-import { addCollectiveMemberToMission } from "@/lib/mission-members.functions";
 
 type Collective = {
   id: string;
@@ -22,29 +20,8 @@ type Collective = {
   imported_at: string;
 };
 
-const ROLES = [
-  "admin",
-  "engagement_lead",
-  "project_manager",
-  "lead_writer",
-  "lead_graphics",
-  "lead",
-  "writer",
-  "sme",
-  "viewer",
-] as const;
-type Role = (typeof ROLES)[number];
-const ROLE_LABELS: Record<Role, string> = {
-  admin: "Admin",
-  engagement_lead: "Engagement Lead",
-  project_manager: "Project Manager",
-  lead_writer: "Lead Writer",
-  lead_graphics: "Lead Graphics",
-  lead: "Lead",
-  writer: "Writer",
-  sme: "SME",
-  viewer: "Viewer",
-};
+
+
 
 // ---------- CSV parsing ----------
 function parseCsv(text: string): string[][] {
@@ -137,16 +114,13 @@ function parseRows(text: string): { rows: ParsedRow[]; errors: string[]; headerM
 }
 
 // ---------- Component ----------
-export function CollectivePanel({ missionId }: { missionId: string | null }) {
+export function CollectivePanel({ missionId: _missionId }: { missionId: string | null }) {
   const qc = useQueryClient();
-  const addCollectiveMember = useServerFn(addCollectiveMemberToMission);
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<ParsedRow[] | null>(null);
   const [importing, setImporting] = useState(false);
   const [search, setSearch] = useState("");
   const [tagFilter, setTagFilter] = useState<string | null>(null);
-  const [addRole, setAddRole] = useState<Role>("writer");
-  const [busyMemberId, setBusyMemberId] = useState<string | null>(null);
 
   const { data: collective = [], isLoading } = useQuery({
     queryKey: ["collective-members"],
@@ -237,28 +211,6 @@ export function CollectivePanel({ missionId }: { missionId: string | null }) {
     qc.invalidateQueries({ queryKey: ["collective-members"] });
   }
 
-  async function inviteToMission(c: Collective) {
-    if (!missionId) { toast.error("Select a mission from the header first"); return; }
-    setBusyMemberId(c.id);
-    try {
-      const result = await addCollectiveMember({
-        data: { missionId, collectiveMemberId: c.id, role: addRole },
-      });
-      toast.success(`${result.sentInvite ? "Invited and added" : "Added"} ${c.full_name} as ${addRole}`);
-      await logOlympusAction({
-        action_type: "team.add",
-        action_summary: `${result.sentInvite ? "Invited and added" : "Added"} ${c.full_name} (${c.email ?? "no email"}) from collective as ${addRole}`,
-        mission_id: missionId,
-        target_table: "mission_members",
-      });
-      qc.invalidateQueries({ queryKey: ["olympus-team", missionId] });
-      qc.invalidateQueries({ queryKey: ["collective-members"] });
-    } catch (e: any) {
-      toast.error(e?.message ?? "Could not add member to mission");
-    } finally {
-      setBusyMemberId(null);
-    }
-  }
 
   async function removeFromCollective(c: Collective) {
     if (!confirm(`Remove ${c.full_name} from the Athena Collective directory?`)) return;
@@ -369,15 +321,8 @@ export function CollectivePanel({ missionId }: { missionId: string | null }) {
           <option value="">All skill tags</option>
           {allTags.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
-        <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-          Add as
-          <select
-            value={addRole}
-            onChange={(e) => setAddRole(e.target.value as Role)}
-            className="rounded-md border border-border bg-background px-2 py-1 text-xs"
-          >
-            {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
-          </select>
+        <div className="text-[11px] text-muted-foreground italic">
+          Add teammates to a mission from Mission Setup → Team.
         </div>
       </div>
 
@@ -436,14 +381,6 @@ export function CollectivePanel({ missionId }: { missionId: string | null }) {
                   </td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center justify-end gap-1">
-                      <button
-                        onClick={() => inviteToMission(c)}
-                        disabled={!missionId || busyMemberId === c.id}
-                        title={missionId ? "Add to current mission" : "Select a mission first"}
-                        className="flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] hover:bg-surface-hover disabled:opacity-40"
-                      >
-                        <UserPlus className="h-3 w-3" /> {busyMemberId === c.id ? "Adding…" : "Add"}
-                      </button>
                       <button
                         onClick={() => removeFromCollective(c)}
                         className="rounded-md p-1.5 text-muted-foreground hover:bg-red-500/10 hover:text-red-400"
