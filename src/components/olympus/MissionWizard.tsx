@@ -16,7 +16,7 @@ const STEP_NAMES = [
   "Source Materials",
   "IRIS Review",
   "Review & Edit Record",
-  "Build the Team",
+  "Upload Assignment Tracker",
   "Readiness & GO LIVE",
 ];
 
