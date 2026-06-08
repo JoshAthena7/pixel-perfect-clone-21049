@@ -92,6 +92,19 @@ For political_considerations and meeting_cadence, summarize supported evidence o
       parametersSchema: {
         type: "object",
         properties: {
+          contacts: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+                role: { type: "string" },
+                notes: { type: "string" },
+              },
+              required: ["name", "role"],
+              additionalProperties: false,
+            },
+          },
           decision_makers: {
             type: "array",
             items: {
@@ -118,11 +131,24 @@ For political_considerations and meeting_cadence, summarize supported evidence o
               additionalProperties: false,
             },
           },
+          relationship_owners: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+                role: { type: "string" },
+                notes: { type: "string" },
+              },
+              required: ["name", "role"],
+              additionalProperties: false,
+            },
+          },
           political_considerations: { type: "string" },
           meeting_cadence: { type: "string" },
           notes: { type: "string" },
         },
-        required: ["decision_makers", "stakeholders", "political_considerations", "notes"],
+        required: ["contacts", "decision_makers", "relationship_owners", "stakeholders", "political_considerations", "notes"],
         additionalProperties: false,
       },
       zodSchema: ClientIntelSchema,
@@ -150,8 +176,10 @@ For political_considerations and meeting_cadence, summarize supported evidence o
         return x.notes ? `${head} (${x.notes})` : head;
       }).filter(Boolean);
 
+    const newContacts = flatten(result.contacts);
     const newStakeholders = flatten(result.stakeholders);
     const newDecisionMakers = flatten(result.decision_makers);
+    const newRelationshipOwners = flatten(result.relationship_owners);
 
     // Merge with any existing row (manual entries / importer-populated values).
     const { data: existing } = await supabaseAdmin
@@ -160,7 +188,19 @@ For political_considerations and meeting_cadence, summarize supported evidence o
       .eq("mission_id", data.missionId)
       .maybeSingle();
     const asStrings = (v: unknown): string[] =>
-      Array.isArray(v) ? v.map((x) => (typeof x === "string" ? x : "")).filter(Boolean) : [];
+      Array.isArray(v)
+        ? v
+            .map((x) => {
+              if (typeof x === "string") return x.trim();
+              if (x && typeof x === "object") {
+                const obj = x as { name?: unknown; role?: unknown; notes?: unknown };
+                const head = [obj.name, obj.role].map((part) => String(part ?? "").trim()).filter(Boolean).join(" — ");
+                return obj.notes ? `${head} (${String(obj.notes).trim()})` : head;
+              }
+              return "";
+            })
+            .filter(Boolean)
+        : [];
     const merge = (a: string[], b: string[]) => {
       const seen = new Set(a.map((s) => s.toLowerCase()));
       const out = [...a];
@@ -172,10 +212,10 @@ For political_considerations and meeting_cadence, summarize supported evidence o
       .from("mission_client_intel")
       .upsert({
         mission_id: data.missionId,
-        contacts: asStrings(existing?.contacts),
+        contacts: merge(asStrings(existing?.contacts), newContacts),
         stakeholders: merge(asStrings(existing?.stakeholders), newStakeholders),
         decision_makers: merge(asStrings(existing?.decision_makers), newDecisionMakers),
-        relationship_owners: asStrings(existing?.relationship_owners),
+        relationship_owners: merge(asStrings(existing?.relationship_owners), newRelationshipOwners),
         political_considerations: existing?.political_considerations || result.political_considerations || null,
         meeting_cadence: existing?.meeting_cadence || result.meeting_cadence || null,
         notes: existing?.notes || result.notes || null,
