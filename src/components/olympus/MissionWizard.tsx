@@ -63,6 +63,11 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
   const [irisPhase, setIrisPhase] = useState(0);
   const [irisError, setIrisError] = useState<string | null>(null);
 
+  // Step 4 review state
+  const [review, setReview] = useState<ReviewData | null>(null);
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewIntelId, setReviewIntelId] = useState<string | null>(null);
+
 
   // Step 1 state
   const [s1, setS1] = useState({
