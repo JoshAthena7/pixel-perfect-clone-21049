@@ -268,6 +268,30 @@ export default function AssignmentReview({
     if (error) toast.error(error.message);
   };
 
+  const persistIntel = async (
+    questionId: string,
+    field: IntelFieldKey,
+    next: string[],
+  ) => {
+    const existing =
+      intelMap.get(questionId) ?? ({ question_id: questionId, mission_id: missionId } as IntelRow);
+    const updated: IntelRow = { ...existing, [field]: next };
+    const newMap = new Map(intelMap);
+    newMap.set(questionId, updated);
+    setIntelMap(newMap);
+
+    const payload: any = {
+      question_id: questionId,
+      mission_id: missionId,
+      [field]: next,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase
+      .from("question_intelligence")
+      .upsert(payload as never, { onConflict: "question_id" });
+    if (error) toast.error(error.message);
+  };
+
   const upsertTeamMember = async (name: string, inferredRole: string) => {
     const trimmed = name.trim();
     if (!trimmed) return;
