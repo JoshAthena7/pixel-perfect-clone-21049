@@ -325,15 +325,9 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
             />
           )}
           {step === 5 && missionId && (
-            <Step5Team
+            <Step5AssignmentTracker
               missionId={missionId}
-              onSkip={async () => {
-                await supabase
-                  .from("missions")
-                  .update({ wizard_step: 5 } as never)
-                  .eq("id", missionId);
-                setStep(6);
-              }}
+              onAdvance={() => setStep(6)}
             />
           )}
           {step === 6 && missionId && (
