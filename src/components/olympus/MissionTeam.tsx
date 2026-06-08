@@ -53,7 +53,7 @@ export default function MissionTeam({ missionId }: { missionId: string }) {
   const updateField = async (id: string, field: keyof Member, value: any) => {
     const { error } = await supabase
       .from("mission_team_members")
-      .update({ [field]: value })
+      .update({ [field]: value } as any)
       .eq("id", id);
     if (error) {
       toast.error(error.message);
