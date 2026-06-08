@@ -63,6 +63,7 @@ type Props = {
 };
 
 export default function MissionWizard({ open, onClose, missionId: initialMissionId, startStep = 1 }: Props) {
+  const navigate = useNavigate();
   const [step, setStep] = useState(startStep);
   const [missionId, setMissionId] = useState<string | null>(initialMissionId ?? null);
   const [saving, setSaving] = useState(false);
