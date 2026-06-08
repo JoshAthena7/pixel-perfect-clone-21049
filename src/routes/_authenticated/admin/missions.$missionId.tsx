@@ -73,11 +73,7 @@ function MissionDetail() {
           <span className="text-muted-foreground/40">·</span>
           <h1 className="truncate text-sm font-semibold text-foreground">{mission.name}</h1>
           {mission.client && <span className="text-xs text-muted-foreground">{mission.client}</span>}
-          {mission.status && (
-            <span className="rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] uppercase tracking-wider">
-              {mission.status}
-            </span>
-          )}
+          <MissionStatusBadge status={mission.mission_status ?? mission.status} />
         </div>
         <FastReportsMenu />
       </header>
@@ -91,10 +87,10 @@ function MissionDetail() {
           {((mission.wizard_step ?? 0) < 7) && (
             <TabBtn active={tab === "setup"} onClick={() => setTab("setup")} icon={<Sliders className="h-3.5 w-3.5" />}>Setup</TabBtn>
           )}
-          {mission.status === "ACTIVE" && (
+          {(mission.mission_status === "Live" || mission.mission_status === "Live with Pending Edits") && (
             <TabBtn active={tab === "oversight"} onClick={() => setTab("oversight")} icon={<ShieldCheck className="h-3.5 w-3.5" />}>Oversight</TabBtn>
           )}
-          {mission.status === "ACTIVE" && (
+          {(mission.mission_status === "Live" || mission.mission_status === "Live with Pending Edits" || mission.status === "ACTIVE") && (
             <TabBtn active={tab === "closeout"} onClick={() => setTab("closeout")} icon={<Archive className="h-3.5 w-3.5" />}>Closeout</TabBtn>
           )}
         </nav>
@@ -162,38 +158,44 @@ function OverviewTab({ missionId, mission }: { missionId: string; mission: any }
   const greenReqs = reqs.filter((r: any) => (r.severity ?? "").toLowerCase() === "standard").length;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
-      <div className="space-y-3 lg:col-span-2">
-        <div className="grid grid-cols-2 gap-3">
-          <StatCard label="Sections Complete" value={`${complete} / ${sections.length}`} />
-          <StatCard label="Requirements Coverage" value={totalReqs ? `${greenReqs} / ${totalReqs}` : "—"} />
-          <StatCard label="Submission Date" value={formatDate(mission.submission_date)} sub={mission.submission_date ? countdown(mission.submission_date) : undefined} />
-          <StatCard label="IRIS Last Run" value={latestIntel?.generated_at ? formatDate(latestIntel.generated_at) : "Never"} />
+    <div className="space-y-4">
+      {mission.mission_status === "Live with Pending Edits" && (
+        <PendingEditsBanner missionId={missionId} />
+      )}
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="space-y-3 lg:col-span-2">
+          <div className="grid grid-cols-2 gap-3">
+            <StatCard label="Sections Complete" value={`${complete} / ${sections.length}`} />
+            <StatCard label="Requirements Coverage" value={totalReqs ? `${greenReqs} / ${totalReqs}` : "—"} />
+            <StatCard label="Submission Date" value={formatDate(mission.submission_date)} sub={mission.submission_date ? countdown(mission.submission_date) : undefined} />
+            <StatCard label="IRIS Last Run" value={latestIntel?.generated_at ? formatDate(latestIntel.generated_at) : "Never"} />
+          </div>
         </div>
-      </div>
-      <section className="rounded-lg border border-border bg-surface/40 p-4">
-        <header className="mb-3 flex items-center gap-2">
-          <Brain className="h-4 w-4 text-[color:var(--athena-gold)]" />
-          <h2 className="text-[11px] font-extrabold uppercase tracking-[0.28em]">IRIS Next Action</h2>
-        </header>
-        {latestIntel ? (
-          <div>
-            <div className="mb-2 inline-flex rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] uppercase tracking-wider">
-              {latestIntel.layer}
+        <section className="rounded-lg border border-border bg-surface/40 p-4">
+          <header className="mb-3 flex items-center gap-2">
+            <Brain className="h-4 w-4 text-[color:var(--athena-gold)]" />
+            <h2 className="text-[11px] font-extrabold uppercase tracking-[0.28em]">IRIS Next Action</h2>
+          </header>
+          {latestIntel ? (
+            <div>
+              <div className="mb-2 inline-flex rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] uppercase tracking-wider">
+                {latestIntel.layer}
+              </div>
+              <p className="text-sm text-muted-foreground line-clamp-6">
+                {summarize(latestIntel.content)}
+              </p>
             </div>
-            <p className="text-sm text-muted-foreground line-clamp-6">
-              {summarize(latestIntel.content)}
-            </p>
-          </div>
-        ) : (
-          <div>
-            <p className="text-sm text-muted-foreground">IRIS has not analyzed this mission.</p>
-            <Link to="/admin/intel-engine" className="mt-3 inline-flex text-xs font-medium text-amber-300 hover:underline">
-              Run IRIS Engine →
-            </Link>
-          </div>
-        )}
-      </section>
+          ) : (
+            <div>
+              <p className="text-sm text-muted-foreground">IRIS has not analyzed this mission.</p>
+              <Link to="/admin/intel-engine" className="mt-3 inline-flex text-xs font-medium text-amber-300 hover:underline">
+                Run IRIS Engine →
+              </Link>
+            </div>
+          )}
+        </section>
+      </div>
+      <ChangeLogSection missionId={missionId} mission={mission} />
     </div>
   );
 }
@@ -369,20 +371,19 @@ function RequirementsTab({ missionId }: { missionId: string }) {
 
 /* ─── Setup ─── */
 const SETUP_STEPS = [
-  "Mission Identity",
+  "Mission Basics",
   "Source Materials",
-  "IRIS Analysis",
+  "IRIS Review",
   "Review Record",
   "Build Team",
-  "Readiness Check",
-  "Launch",
+  "Readiness & GO LIVE",
 ];
 
 function SetupTab({ missionId, mission }: { missionId: string; mission: any }) {
   const qc = useQueryClient();
   const [wizardStart, setWizardStart] = useState<number | null>(null);
-  const current = Math.max(1, Math.min(7, (mission.wizard_step ?? 0) + 1));
-  const completed = mission.wizard_step ?? 0;
+  const completed = Math.min(6, mission.wizard_step ?? 0);
+  const current = Math.max(1, Math.min(6, completed + 1));
 
   const openAt = (n: number) => setWizardStart(n);
 
@@ -393,7 +394,7 @@ function SetupTab({ missionId, mission }: { missionId: string; mission: any }) {
           <div>
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Setup Progress</div>
             <div className="mt-0.5 text-sm font-semibold text-foreground">
-              Step {current} of 7 — {SETUP_STEPS[current - 1]}
+              Step {current} of 6 — {SETUP_STEPS[current - 1]}
             </div>
           </div>
           <button
@@ -410,7 +411,7 @@ function SetupTab({ missionId, mission }: { missionId: string; mission: any }) {
           {SETUP_STEPS.map((label, i) => {
             const num = i + 1;
             const isDone = num <= completed;
-            const isCurrent = num === current && completed < 7;
+            const isCurrent = num === current && completed < 6;
             const clickable = isDone || isCurrent;
             return (
               <li key={num} className="flex items-center gap-2">
@@ -433,7 +434,7 @@ function SetupTab({ missionId, mission }: { missionId: string; mission: any }) {
                   </span>
                   {label}
                 </button>
-                {num < 7 && <span className="text-muted-foreground/40">·</span>}
+                {num < 6 && <span className="text-muted-foreground/40">·</span>}
               </li>
             );
           })}
@@ -498,10 +499,19 @@ function OversightTab({ missionId, mission }: { missionId: string; mission: any 
           })) as never,
         );
       }
+      const updates: Record<string, unknown> = { atlas_synced_at: new Date().toISOString() };
+      if (mission.mission_status === "Live with Pending Edits") {
+        updates.mission_status = "Live";
+      }
       await supabase
         .from("missions")
-        .update({ atlas_synced_at: new Date().toISOString() } as never)
+        .update(updates as never)
         .eq("id", missionId);
+      await supabase
+        .from("mission_change_log")
+        .update({ synced_to_atlas: true } as never)
+        .eq("mission_id", missionId)
+        .eq("synced_to_atlas", false);
       toast.success("Synced to Atlas");
       qc.invalidateQueries({ queryKey: ["olympus-mission", missionId] });
     } catch (e) {
@@ -873,5 +883,164 @@ function NoteField({
         className="w-full resize-y rounded-md border border-border bg-surface/40 px-3 py-2 text-sm"
       />
     </label>
+  );
+}
+
+/* ─── Status badge ─── */
+const STATUS_STYLES: Record<string, string> = {
+  "Draft": "bg-muted text-muted-foreground border-border",
+  "IRIS Review Needed": "bg-violet-500/15 text-violet-200 border-violet-500/40",
+  "Ready for Review": "bg-sky-500/15 text-sky-200 border-sky-500/40",
+  "Ready to Go Live": "bg-amber-500/15 text-amber-200 border-amber-500/40",
+  "Live": "bg-emerald-500/15 text-emerald-200 border-emerald-500/40",
+  "Live with Pending Edits": "bg-amber-500/20 text-amber-100 border-amber-500/60",
+  "Locked": "bg-rose-500/15 text-rose-200 border-rose-500/40",
+};
+function MissionStatusBadge({ status }: { status: string | null | undefined }) {
+  if (!status) return null;
+  const cls = STATUS_STYLES[status] ?? "bg-surface border-border text-foreground";
+  return (
+    <span className={`rounded border px-1.5 py-0.5 text-[10px] uppercase tracking-wider ${cls}`}>
+      {status}
+    </span>
+  );
+}
+
+/* ─── Pending edits banner ─── */
+function PendingEditsBanner({ missionId }: { missionId: string }) {
+  const { data: count = 0 } = useQuery({
+    queryKey: ["pending-edits-count", missionId],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("mission_change_log")
+        .select("id", { count: "exact", head: true })
+        .eq("mission_id", missionId)
+        .eq("synced_to_atlas", false);
+      return count ?? 0;
+    },
+  });
+  return (
+    <div className="rounded-md border border-amber-500/60 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+      Pending edits — {count} change{count === 1 ? "" : "s"} not yet synced to Atlas.
+      Go to the Oversight tab and click <span className="font-semibold">Sync Changes to Atlas</span> when ready.
+    </div>
+  );
+}
+
+/* ─── Change log ─── */
+function ChangeLogSection({ missionId, mission }: { missionId: string; mission: any }) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const { data: rows = [] } = useQuery({
+    queryKey: ["change-log", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_change_log")
+        .select("*")
+        .eq("mission_id", missionId)
+        .order("created_at", { ascending: false });
+      return (data ?? []) as any[];
+    },
+  });
+
+  const refresh = () => {
+    qc.invalidateQueries({ queryKey: ["change-log", missionId] });
+    qc.invalidateQueries({ queryKey: ["pending-edits-count", missionId] });
+    qc.invalidateQueries({ queryKey: ["olympus-mission", missionId] });
+  };
+
+  const lockIn = async (id: string) => {
+    const { error } = await supabase
+      .from("mission_change_log")
+      .update({ locked_in: true } as never)
+      .eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Locked in");
+    refresh();
+  };
+
+  const lockAllAndSync = async () => {
+    const { data: intel } = await supabase
+      .from("mission_intelligence")
+      .select("content")
+      .eq("mission_id", missionId)
+      .eq("layer", "wizard_analysis")
+      .maybeSingle();
+    const content = (intel?.content ?? {}) as Record<string, unknown>;
+    const themes = Array.isArray(content.recommended_win_themes) ? (content.recommended_win_themes as string[]) : [];
+    if (themes.length) {
+      await supabase.from("win_themes").upsert(
+        themes.map((t) => ({ mission_id: missionId, theme: t })) as never,
+        { onConflict: "mission_id,theme" } as never,
+      );
+    }
+    await supabase
+      .from("mission_change_log")
+      .update({ locked_in: true, synced_to_atlas: true } as never)
+      .eq("mission_id", missionId)
+      .eq("synced_to_atlas", false);
+    const updates: Record<string, unknown> = { atlas_synced_at: new Date().toISOString() };
+    if (mission.mission_status === "Live with Pending Edits") updates.mission_status = "Live";
+    await supabase.from("missions").update(updates as never).eq("id", missionId);
+    toast.success("All changes locked in and synced");
+    refresh();
+  };
+
+  if (rows.length === 0) return null;
+  const pending = rows.filter((r) => !r.synced_to_atlas).length;
+
+  return (
+    <section className="rounded-lg border border-border bg-surface/40">
+      <header className="flex items-center justify-between gap-3 p-4">
+        <button type="button" onClick={() => setOpen((v) => !v)} className="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.28em]">
+          <span>Change Log</span>
+          <span className="rounded bg-border/60 px-1.5 py-0.5 text-[10px] font-medium normal-case tracking-normal text-muted-foreground">
+            {rows.length} total · {pending} pending
+          </span>
+          <span className="text-muted-foreground">{open ? "▾" : "▸"}</span>
+        </button>
+        {pending > 0 && (
+          <button
+            type="button"
+            onClick={lockAllAndSync}
+            className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-200 hover:bg-amber-500/20"
+          >
+            Lock In All & Sync
+          </button>
+        )}
+      </header>
+      {open && (
+        <div className="overflow-x-auto border-t border-border">
+          <table className="w-full text-xs">
+            <thead className="bg-surface/60 text-[10px] uppercase tracking-wider text-muted-foreground">
+              <tr><Th>Field</Th><Th>Old</Th><Th>New</Th><Th>Date</Th><Th>Synced</Th><Th>{" "}</Th></tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.id} className="border-t border-border/60">
+                  <Td>{r.field_name ?? r.change_type}</Td>
+                  <Td className="text-muted-foreground">{r.old_value ?? "—"}</Td>
+                  <Td>{r.new_value ?? "—"}</Td>
+                  <Td className="text-muted-foreground">{formatDateTime(r.created_at)}</Td>
+                  <Td>
+                    {r.synced_to_atlas
+                      ? <span className="text-emerald-300">✓</span>
+                      : <span className="text-amber-300">pending</span>}
+                  </Td>
+                  <Td>
+                    {!r.locked_in && (
+                      <button onClick={() => lockIn(r.id)} className="rounded border border-border bg-surface px-2 py-0.5 text-[10px] hover:bg-surface-hover">
+                        Lock In
+                      </button>
+                    )}
+                    {r.locked_in && <span className="text-[10px] text-emerald-300">locked</span>}
+                  </Td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
   );
 }

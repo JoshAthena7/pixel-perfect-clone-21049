@@ -1,0 +1,1 @@
+ALTER TABLE public.mission_change_log ADD COLUMN IF NOT EXISTS locked_in boolean NOT NULL DEFAULT false;

@@ -3623,6 +3623,7 @@ export type Database = {
           created_at: string | null
           field_name: string | null
           id: string
+          locked_in: boolean
           mission_id: string
           new_value: string | null
           old_value: string | null
@@ -3634,6 +3635,7 @@ export type Database = {
           created_at?: string | null
           field_name?: string | null
           id?: string
+          locked_in?: boolean
           mission_id: string
           new_value?: string | null
           old_value?: string | null
@@ -3645,6 +3647,7 @@ export type Database = {
           created_at?: string | null
           field_name?: string | null
           id?: string
+          locked_in?: boolean
           mission_id?: string
           new_value?: string | null
           old_value?: string | null
