@@ -272,6 +272,42 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
     return () => clearInterval(t);
   }, [irisState]);
 
+  // Load review data when entering Step 4
+  useEffect(() => {
+    if (step !== 4 || !missionId) return;
+    if (review) return;
+    let cancelled = false;
+    (async () => {
+      setReviewLoading(true);
+      const { data: row } = await supabase
+        .from("mission_intelligence")
+        .select("id,content")
+        .eq("mission_id", missionId)
+        .eq("layer", "wizard_analysis")
+        .maybeSingle();
+      if (cancelled) return;
+      if (row) {
+        setReviewIntelId((row as { id: string }).id);
+        const c = ((row as { content: unknown }).content ?? {}) as Partial<ReviewData>;
+        setReview(normalizeReview(c));
+      } else {
+        setReview(normalizeReview({}));
+      }
+      setReviewLoading(false);
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, missionId]);
+
+  const rerunIris = () => {
+    setReview(null);
+    setReviewIntelId(null);
+    setIrisState("idle");
+    setIrisPhase(0);
+    setIrisError(null);
+    setStep(3);
+  };
+
   const meta = STEP_META[step];
   const progressPct = (step / TOTAL_STEPS) * 100;
 
