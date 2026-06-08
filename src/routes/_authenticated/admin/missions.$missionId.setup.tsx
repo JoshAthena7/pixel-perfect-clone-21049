@@ -925,12 +925,25 @@ function SectionStrategy({ missionId, mission, strategy, sensitivities, refetch 
             />
           ))}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-border">
-            <Field label="Sensitivities"><TextArea rows={3} placeholder="Topics or terms IRIS should treat carefully…" value={textForm.sensitivities} onChange={(e) => setTextForm({ ...textForm, sensitivities: e.target.value })} /></Field>
-            <Field label="Language Guidance"><TextArea rows={3} placeholder="Tone, voice, phrasing rules…" value={textForm.language} onChange={(e) => setTextForm({ ...textForm, language: e.target.value })} /></Field>
-            <Field label="Things to Avoid"><TextArea rows={3} value={textForm.avoid} onChange={(e) => setTextForm({ ...textForm, avoid: e.target.value })} /></Field>
-            <Field label="Things to Reinforce"><TextArea rows={3} value={textForm.reinforce} onChange={(e) => setTextForm({ ...textForm, reinforce: e.target.value })} /></Field>
+          <div className="pt-4 border-t border-border space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <Field label="Sensitivities"><TextArea rows={3} placeholder="Topics or terms IRIS should treat carefully…" value={textForm.sensitivities} onChange={(e) => setTextForm({ ...textForm, sensitivities: e.target.value })} /></Field>
+              <Field label="Language Guidance"><TextArea rows={3} placeholder="Tone, voice, phrasing rules…" value={textForm.language} onChange={(e) => setTextForm({ ...textForm, language: e.target.value })} /></Field>
+              <Field label="Things to Avoid"><TextArea rows={3} value={textForm.avoid} onChange={(e) => setTextForm({ ...textForm, avoid: e.target.value })} /></Field>
+              <Field label="Things to Reinforce"><TextArea rows={3} value={textForm.reinforce} onChange={(e) => setTextForm({ ...textForm, reinforce: e.target.value })} /></Field>
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={saveSensitivities}
+                disabled={savingSens}
+                className="rounded-md border border-border bg-foreground px-4 py-2 text-xs font-medium text-background hover:opacity-90 disabled:opacity-50"
+              >
+                {savingSens ? "Saving…" : "Save sensitivities"}
+              </button>
+            </div>
           </div>
+
         </div>
       </div>
     </Section>
