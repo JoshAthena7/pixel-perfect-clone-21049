@@ -1013,7 +1013,7 @@ function ChangeLogSection({ missionId, mission }: { missionId: string; mission: 
         <div className="overflow-x-auto border-t border-border">
           <table className="w-full text-xs">
             <thead className="bg-surface/60 text-[10px] uppercase tracking-wider text-muted-foreground">
-              <tr><Th>Field</Th><Th>Old</Th><Th>New</Th><Th>Date</Th><Th>Synced</Th><Th></Th></tr>
+              <tr><Th>Field</Th><Th>Old</Th><Th>New</Th><Th>Date</Th><Th>Synced</Th><Th>{" "}</Th></tr>
             </thead>
             <tbody>
               {rows.map((r) => (
