@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+
 import { ArrowLeft, Sparkles, ClipboardCheck, Flag, AlertTriangle } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -154,6 +155,7 @@ function Header({
 
 function useRunIris(missionId: string, missionName: string) {
   const generate = useServerFn(generateIrisIntelligence);
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: async () => {
       const { data: docs, error } = await supabase
@@ -164,7 +166,9 @@ function useRunIris(missionId: string, missionName: string) {
       if (error) throw new Error(error.message);
       const ids = (docs ?? []).map((d: { id: string }) => d.id);
       if (ids.length === 0) {
-        throw new Error("No completed documents available to analyze.");
+        throw new Error(
+          "No processed documents yet. Upload the RFP and supporting docs in the Setup Record first, then re-run IRIS.",
+        );
       }
       for (const layer of ["mission_brief", "strategic_assessment"] as const) {
         const res: any = await generate({ data: { mission_id: missionId, document_ids: ids, layer } });
@@ -173,10 +177,14 @@ function useRunIris(missionId: string, missionName: string) {
         }
       }
     },
-    onSuccess: () => toast.success(`IRIS regenerated for ${missionName}`),
+    onSuccess: async () => {
+      toast.success(`IRIS regenerated for ${missionName}`);
+      await qc.invalidateQueries({ queryKey: ["admin-mission-intel", missionId] });
+    },
     onError: (e: any) => toast.error(e?.message ?? "IRIS run failed"),
   });
 }
+
 
 function StatusBadge({ status }: { status: string | null }) {
   const s = (status ?? "Active").toUpperCase();
@@ -322,13 +330,14 @@ function IrisStatusPanel({ missionId }: { missionId: string }) {
       ) : isError ? (
         <Unavailable />
       ) : (
-        <IrisStatusBody rows={data ?? []} />
+        <IrisStatusBody rows={data ?? []} missionId={missionId} />
       )}
     </Panel>
   );
 }
 
-function IrisStatusBody({ rows }: { rows: Array<{ layer: string; version: number; generated_at: string; content: any }> }) {
+function IrisStatusBody({ rows, missionId }: { rows: Array<{ layer: string; version: number; generated_at: string; content: any }>; missionId: string }) {
+
   const layers: Array<{ key: string; label: string }> = [
     { key: "mission_brief", label: "Layer 1 · Mission Brief" },
     { key: "strategic_assessment", label: "Layer 2 · Strategic Assessment" },
@@ -339,12 +348,23 @@ function IrisStatusBody({ rows }: { rows: Array<{ layer: string; version: number
   }
   if (rows.length === 0) {
     return (
-      <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-200">
-        IRIS has not analyzed this mission. Click Run IRIS™ to generate the Mission Brief and
-        Strategic Assessment.
+      <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-200 space-y-2">
+        <div>
+          IRIS has not analyzed this mission yet. IRIS needs at least one
+          processed document (RFP, amendments, supporting materials) before it
+          can generate the Mission Brief and Strategic Assessment.
+        </div>
+        <Link
+          to="/admin/missions/$missionId/setup"
+          params={{ missionId }}
+          className="inline-flex items-center gap-1.5 rounded-md border border-amber-400/40 bg-amber-400/10 px-2.5 py-1 text-[12px] font-semibold text-amber-100 hover:bg-amber-400/20"
+        >
+          <ClipboardCheck className="h-3 w-3" /> Open Setup Record to upload documents
+        </Link>
       </div>
     );
   }
+
   return (
     <ul className="space-y-2">
       {layers.map((l) => {
