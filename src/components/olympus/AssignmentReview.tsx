@@ -646,12 +646,16 @@ function intelTotal(intel: IntelRow | undefined): number {
 function AssignmentRow({
   row,
   team,
+  showIntelligence,
+  intelCount,
   onOpen,
   onChange,
   onUpsertTeam,
 }: {
   row: Row;
   team: TeamMember[];
+  showIntelligence?: boolean;
+  intelCount?: number;
   onOpen: () => void;
   onChange: (patch: Partial<Assignment>) => void;
   onUpsertTeam: (name: string, inferredRole: string) => Promise<void>;
