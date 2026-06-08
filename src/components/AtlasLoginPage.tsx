@@ -173,6 +173,16 @@ export function AtlasLoginPage() {
         <div className="text-center mt-3 text-[9px] uppercase tracking-[0.32em] text-amber-100/30">
           Athena Strategy Command
         </div>
+        <figure className="mt-6 text-center select-none">
+          <blockquote className="text-[10px] italic leading-relaxed tracking-wide text-amber-100/35">
+            “Forget regret, or life is yours to miss.<br />
+            No other path, no other way.<br />
+            No day but today.”
+          </blockquote>
+          <figcaption className="mt-1.5 text-[8px] uppercase tracking-[0.3em] text-amber-100/25">
+            — Jonathan Larson
+          </figcaption>
+        </figure>
       </div>
     </div>
   );
