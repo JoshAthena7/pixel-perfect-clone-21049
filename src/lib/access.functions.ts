@@ -15,7 +15,8 @@ export const getMyAccess = createServerFn({ method: "GET" })
       .from("user_roles")
       .select("role")
       .eq("user_id", userId)
-      .eq("role", "admin")
+      .in("role", ["admin", "project_manager"])
+      .limit(1)
       .maybeSingle();
     if (error && error.code !== "PGRST116") {
       console.error("getMyAccess error", error);
