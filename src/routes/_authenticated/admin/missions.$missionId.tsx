@@ -2,12 +2,13 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Brain, FileText, ListChecks, LayoutGrid, Sliders, ShieldCheck, Check, Archive } from "lucide-react";
+import { ArrowLeft, Brain, FileText, ListChecks, LayoutGrid, Sliders, ShieldCheck, Check, Archive, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { FastReportsMenu } from "@/components/olympus/FastReportsMenu";
 import MissionWizard from "@/components/olympus/MissionWizard";
+import AssignmentReview from "@/components/olympus/AssignmentReview";
 
-type Tab = "overview" | "sections" | "intelligence" | "requirements" | "setup" | "oversight" | "closeout";
+type Tab = "assignments" | "overview" | "sections" | "intelligence" | "requirements" | "setup" | "oversight" | "closeout";
 
 export const Route = createFileRoute("/_authenticated/admin/missions/$missionId")({
   validateSearch: (s: Record<string, unknown>): { tab?: Tab } => {
