@@ -716,10 +716,23 @@ function AssignmentRow({
           />
         </Td>
       ))}
+      {showIntelligence && (
+        <Td>
+          <button
+            type="button"
+            onClick={onOpen}
+            className={`inline-flex min-w-[28px] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-bold ${
+              (intelCount ?? 0) > 0
+                ? "bg-blue-500/15 text-blue-500 border border-blue-500/30"
+                : "bg-muted text-muted-foreground border border-border"
+            }`}
+            title="Edit intelligence"
+          >
+            {intelCount ?? 0}
+          </button>
+        </Td>
+      )}
       <Td>
-        <BadgeSelect
-          value={a.status || "Unassigned"}
-          options={STATUS_OPTIONS as readonly string[]}
           onChange={(v) => onChange({ status: v })}
           tone={badgeTone(a.status)}
         />
