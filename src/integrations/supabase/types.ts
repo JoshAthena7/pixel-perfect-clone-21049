@@ -5285,6 +5285,7 @@ export type Database = {
           key_requirements: string[] | null
           launched_at: string | null
           mission_highlights: string | null
+          mission_status: string | null
           name: string
           operations_lead: string | null
           page_limit: number | null
@@ -5346,6 +5347,7 @@ export type Database = {
           key_requirements?: string[] | null
           launched_at?: string | null
           mission_highlights?: string | null
+          mission_status?: string | null
           name: string
           operations_lead?: string | null
           page_limit?: number | null
@@ -5407,6 +5409,7 @@ export type Database = {
           key_requirements?: string[] | null
           launched_at?: string | null
           mission_highlights?: string | null
+          mission_status?: string | null
           name?: string
           operations_lead?: string | null
           page_limit?: number | null
