@@ -314,6 +314,7 @@ For political_considerations and meeting_cadence, summarize supported evidence o
     const newStakeholders = flatten(result.stakeholders);
     const newDecisionMakers = flatten(result.decision_makers);
     const newRelationshipOwners = flatten(result.relationship_owners);
+    const fallback = deterministicAgencyFallback(docText, mission);
 
     // Merge with any existing row (manual entries / importer-populated values).
     const { data: existing } = await supabaseAdmin
@@ -371,16 +372,19 @@ For political_considerations and meeting_cadence, summarize supported evidence o
     const { error } = await supabaseAdmin.from("mission_client_intel").upsert(
       {
         mission_id: data.missionId,
-        contacts: merge(existingContacts, newContacts),
-        stakeholders: merge(existingStakeholders, newStakeholders),
-        decision_makers: merge(existingDecisionMakers, newDecisionMakers),
+        contacts: merge(merge(existingContacts, newContacts), fallback.contacts),
+        stakeholders: merge(merge(existingStakeholders, newStakeholders), fallback.stakeholders),
+        decision_makers: merge(merge(existingDecisionMakers, newDecisionMakers), fallback.decision_makers),
         relationship_owners: merge(existingRelationshipOwners, newRelationshipOwners),
         political_considerations:
           usableText(existing?.political_considerations) ||
           usableText(result.political_considerations) ||
           null,
         meeting_cadence:
-          usableText(existing?.meeting_cadence) || usableText(result.meeting_cadence) || null,
+          usableText(existing?.meeting_cadence) ||
+          usableText(result.meeting_cadence) ||
+          usableText(fallback.meeting_cadence) ||
+          null,
         notes: usableText(existing?.notes) || usableText(result.notes) || null,
         created_by_system: true,
         updated_at: new Date().toISOString(),
