@@ -13,6 +13,7 @@ const Input = z.object({
 const SYSTEM = `You are IRIS, the intelligence engine for ATLAS. You are reading a "Mission Setup Record" document for a government RFP capture and must extract structured fields.
 
 Return ONLY valid JSON matching this exact shape — no prose, no markdown, no code fences. Use null for missing scalar fields and [] for missing arrays. Do not invent data.
+If the document is a completed setup form, treat labels like "Agency Intelligence", "Key Contacts", "Stakeholders", "Decision Makers", "Relationship Owners", "Political Considerations", and "Meeting Cadence" as authoritative source fields and copy their entered values into the matching JSON fields.
 
 {
   "name": string|null,                  // Mission name
@@ -88,6 +89,68 @@ function s(v: unknown, max = 4000): string | null {
 function arr(v: unknown, max = 40): string[] {
   if (!Array.isArray(v)) return [];
   return v.map((x) => String(x ?? "").trim()).filter(Boolean).slice(0, max);
+}
+function mergeList(a: string[], b: string[]) {
+  const seen = new Set(a.map((x) => x.toLowerCase()));
+  const out = [...a];
+  for (const x of b) {
+    const t = x.trim();
+    if (t && !seen.has(t.toLowerCase())) {
+      out.push(t);
+      seen.add(t.toLowerCase());
+    }
+  }
+  return out;
+}
+function extractAgencyIntelFromLabels(text: string): Pick<Parsed, "key_contacts" | "agency_stakeholders" | "decision_makers" | "relationship_owners" | "political_considerations" | "meeting_cadence"> {
+  const empty = {
+    key_contacts: [],
+    agency_stakeholders: [],
+    decision_makers: [],
+    relationship_owners: [],
+    political_considerations: null,
+    meeting_cadence: null,
+  };
+  const start = text.search(/agency\s+intelligence|client\s+intelligence/i);
+  const scoped = (start >= 0 ? text.slice(start) : text)
+    .replace(/\r\n?/g, "\n")
+    .replace(/\t+/g, "\n")
+    .slice(0, 30_000);
+  const end = scoped.search(/\n\s*(?:deadlines?|timeline|question\s+setup|governance|conflict|ethics|financials?)\b/i);
+  const section = end > 200 ? scoped.slice(0, end) : scoped;
+  const specs = [
+    { key: "key_contacts", re: /key\s+contacts?(?:\s*\([^)]*\))?/gi },
+    { key: "agency_stakeholders", re: /stakeholders?/gi },
+    { key: "decision_makers", re: /decision\s+makers?/gi },
+    { key: "relationship_owners", re: /relationship\s+owners?/gi },
+    { key: "political_considerations", re: /political\s+considerations?/gi },
+    { key: "meeting_cadence", re: /meeting\s+cadence/gi },
+  ] as const;
+  const matches: Array<{ key: keyof typeof empty; index: number; end: number }> = [];
+  for (const spec of specs) {
+    for (const m of section.matchAll(spec.re)) matches.push({ key: spec.key, index: m.index ?? 0, end: (m.index ?? 0) + m[0].length });
+  }
+  matches.sort((a, b) => a.index - b.index);
+  const result = { ...empty };
+  const clean = (value: string) => value.replace(/^\s*[:\-–—]+\s*/, "").replace(/\n{3,}/g, "\n\n").trim();
+  const splitItems = (value: string) =>
+    clean(value)
+      .split(/\n|[•●▪▫]\s*/g)
+      .map((x) => x.replace(/^\s*[-–—*]\s*/, "").trim())
+      .filter(Boolean)
+      .slice(0, 20);
+  for (let i = 0; i < matches.length; i++) {
+    const m = matches[i];
+    const next = matches[i + 1]?.index ?? section.length;
+    const value = clean(section.slice(m.end, next));
+    if (!value) continue;
+    if (m.key === "political_considerations" || m.key === "meeting_cadence") {
+      result[m.key] = value.replace(/\s+/g, " ").slice(0, m.key === "meeting_cadence" ? 1000 : 4000);
+    } else {
+      result[m.key] = mergeList(result[m.key], splitItems(value));
+    }
+  }
+  return result;
 }
 function tryParse(raw: string): Parsed | null {
   const cleaned = raw.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
