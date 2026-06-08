@@ -107,6 +107,7 @@ function MissionDetail() {
         {tab === "requirements" && <RequirementsTab missionId={missionId} />}
         {tab === "setup" && <SetupTab missionId={missionId} mission={mission} />}
         {tab === "oversight" && <OversightTab missionId={missionId} mission={mission} />}
+        {tab === "closeout" && <CloseoutTab missionId={missionId} mission={mission} />}
       </div>
     </div>
   );
