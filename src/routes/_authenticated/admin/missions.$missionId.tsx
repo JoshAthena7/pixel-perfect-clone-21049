@@ -81,6 +81,7 @@ function MissionDetail() {
 
       <div className="border-b border-border bg-surface/20 px-5">
         <nav className="flex gap-1 overflow-x-auto">
+          <TabBtn active={tab === "assignments"} onClick={() => setTab("assignments")} icon={<Users className="h-3.5 w-3.5" />}>Assignments</TabBtn>
           <TabBtn active={tab === "overview"} onClick={() => setTab("overview")} icon={<LayoutGrid className="h-3.5 w-3.5" />}>Overview</TabBtn>
           <TabBtn active={tab === "sections"} onClick={() => setTab("sections")} icon={<FileText className="h-3.5 w-3.5" />}>Sections</TabBtn>
           <TabBtn active={tab === "intelligence"} onClick={() => setTab("intelligence")} icon={<Brain className="h-3.5 w-3.5" />}>Intelligence</TabBtn>
