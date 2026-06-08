@@ -57,7 +57,7 @@ export function computeSetupCompleteness(input: {
     submission_date: hasText(m.submission_date),
     program_type: hasText(m.program_type),
     incumbent_name: hasText(m.incumbent_name),
-    contract_value: hasText(m.contract_value),
+    
     mission_highlights: hasText(m.mission_highlights),
     client_strengths: hasText(m.client_strengths),
     client_win_strategy: hasText(m.client_win_strategy),
