@@ -249,24 +249,16 @@ function MissionSetupRecord() {
         <main className="flex-1 min-w-0 space-y-16 pb-32">
           <header>
             <div className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground font-mono">
-              Mission Intelligence Record
+              Mission Setup
             </div>
             <h1 className="mt-2 text-3xl font-light tracking-tight text-foreground">
               {setup.mission?.name ?? "Untitled mission"}
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-              Complete the sections below. When the mission launches, this record generates
-              the Vault, Oracle, Studio, Calendar, team permissions, and the first IRIS briefing.
-            </p>
-            <p className="mt-3 text-[11px] text-muted-foreground font-mono uppercase tracking-[0.16em]">
-              Estimated time to complete: 15–20 minutes · IRIS activates at section 5
+              One page. Start by uploading documents in Section 00 — IRIS auto-populates the rest.
+              Review each section, then launch.
             </p>
           </header>
-
-          <SetupCompletenessMeter
-            mission={setup.mission}
-            evaluationCount={setup.evaluation?.length ?? 0}
-          />
 
           <IrisAutofillBanner
             missionId={missionId}
@@ -274,8 +266,6 @@ function MissionSetupRecord() {
             written={autofillWritten}
             onChange={() => setup.refetch()}
           />
-
-          <ImportSetupRecordCard missionId={missionId} onImported={() => setup.refetch()} />
 
           <SectionDocuments missionId={missionId} />
           <SectionIdentity missionId={missionId} mission={setup.mission} refetch={setup.refetch} />
