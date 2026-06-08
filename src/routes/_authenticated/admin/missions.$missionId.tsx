@@ -73,11 +73,7 @@ function MissionDetail() {
           <span className="text-muted-foreground/40">·</span>
           <h1 className="truncate text-sm font-semibold text-foreground">{mission.name}</h1>
           {mission.client && <span className="text-xs text-muted-foreground">{mission.client}</span>}
-          {mission.status && (
-            <span className="rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] uppercase tracking-wider">
-              {mission.status}
-            </span>
-          )}
+          <MissionStatusBadge status={mission.mission_status ?? mission.status} />
         </div>
         <FastReportsMenu />
       </header>
