@@ -16,8 +16,6 @@ import { irisPopulateSetupRecord } from "@/lib/iris-setup-autofill.functions";
 import { extractClientIntel } from "@/lib/iris-extractors/client-intel.functions";
 import { IrisAutofillBanner } from "@/components/admin/IrisAutofillBanner";
 import { IntelligenceVault } from "@/components/intelligence/IntelligenceVault";
-import { ImportSetupRecordCard } from "@/components/admin/ImportSetupRecordCard";
-import { SetupCompletenessMeter } from "@/components/admin/SetupCompletenessMeter";
 import { LaunchSequence } from "@/components/olympus/LaunchSequence";
 import { PersonPicker } from "@/components/setup/PersonPicker";
 import { UploadMatrixModal } from "@/components/questions/UploadMatrixModal";
