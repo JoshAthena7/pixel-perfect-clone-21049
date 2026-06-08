@@ -352,11 +352,74 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
             </div>
           )}
 
-          {step >= 3 && (
+          {step === 3 && (
+            <div
+              className="rounded-xl border p-10 text-center"
+              style={{ backgroundColor: NAVY, borderColor: GOLD + "40" }}
+            >
+              {irisState === "running" || irisState === "done" ? (
+                <div className="flex flex-col items-center gap-5 text-white">
+                  {irisState === "running" && (
+                    <div
+                      className="h-12 w-12 animate-spin rounded-full border-[3px] border-white/20"
+                      style={{ borderTopColor: GOLD }}
+                    />
+                  )}
+                  {irisState === "done" && (
+                    <div
+                      className="flex h-12 w-12 items-center justify-center rounded-full text-2xl font-bold text-black"
+                      style={{ backgroundColor: GOLD }}
+                    >
+                      ✓
+                    </div>
+                  )}
+                  <div
+                    key={irisPhase}
+                    className="animate-in fade-in text-sm font-medium"
+                    style={{ color: GOLD }}
+                  >
+                    {IRIS_PHASES[irisPhase]}
+                  </div>
+                  <div className="text-xs text-white/60">
+                    IRIS is building your mission record. This usually takes 10–30 seconds.
+                  </div>
+                </div>
+              ) : irisState === "error" ? (
+                <div className="flex flex-col items-center gap-4 text-white">
+                  <div className="text-sm font-medium text-rose-200">
+                    IRIS analysis could not complete. You can continue and fill in the record manually.
+                  </div>
+                  {irisError && <div className="text-xs text-white/60">{irisError}</div>}
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void startIris()}
+                      className="rounded-md border border-white/30 bg-white/10 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/20"
+                    >
+                      Try Again
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setStep(4)}
+                      className="rounded-md px-3 py-1.5 text-xs font-semibold text-black"
+                      style={{ backgroundColor: GOLD }}
+                    >
+                      Continue Without IRIS →
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm text-white/70">Preparing analysis…</div>
+              )}
+            </div>
+          )}
+
+          {step >= 4 && (
             <div className="rounded-lg border border-dashed border-border bg-surface/30 p-10 text-center text-sm text-muted-foreground">
               {meta.name} — coming soon.
             </div>
           )}
+
 
           {err && (
             <div className="mt-4 rounded-md border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-xs text-rose-300">
