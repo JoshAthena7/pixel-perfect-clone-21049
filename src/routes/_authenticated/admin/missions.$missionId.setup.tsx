@@ -827,15 +827,31 @@ const STRATEGY_KINDS = [
   { key: "competitor", label: "Competitors", hasNotes: true },
   { key: "risk", label: "Risks", hasNotes: true },
 ];
-function SectionStrategy({ missionId, mission, strategy, refetch }: any) {
+function SectionStrategy({ missionId, mission, strategy, sensitivities, refetch }: any) {
   const [themes, setThemes] = useState<string[]>(mission?.win_themes ?? []);
   const [focusAreas, setFocusAreas] = useState<string[]>(mission?.focus_areas ?? []);
   const [textForm, setTextForm] = useState({ sensitivities: "", language: "", avoid: "", reinforce: "" });
+  const [savingSens, setSavingSens] = useState(false);
 
   useEffect(() => {
     setThemes(mission?.win_themes ?? []);
     setFocusAreas(mission?.focus_areas ?? []);
   }, [mission]);
+
+  useEffect(() => {
+    const byCat: Record<string, string> = {};
+    for (const row of (sensitivities ?? []) as Array<{ category: string; note: string | null }>) {
+      if (!row.category) continue;
+      byCat[row.category] = row.note ?? "";
+    }
+    setTextForm({
+      sensitivities: byCat.sensitivity ?? "",
+      language: byCat.language ?? "",
+      avoid: byCat.avoid ?? "",
+      reinforce: byCat.reinforce ?? "",
+    });
+  }, [sensitivities]);
+
 
   async function addItem(kind: string, label: string, notes?: string) {
     if (!label.trim()) return;
