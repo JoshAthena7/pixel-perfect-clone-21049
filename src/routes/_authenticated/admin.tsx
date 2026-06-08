@@ -89,28 +89,23 @@ function AdminHeader() {
       <div className="flex items-center gap-2">
         <Zap className="h-4 w-4 text-[color:var(--athena-gold)]" />
         <span className="text-[12px] font-extrabold uppercase tracking-[0.32em]">Admin</span>
-        <span className="ml-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Platform Administration</span>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-[0.22em] text-amber-300/90">
-          Active Mission Context:
-        </span>
-        <MissionSwitcher missions={missions} selected={selected} onPick={pick} />
       </div>
 
       <div className="flex items-center gap-2">
+        <MissionSwitcher missions={missions} selected={selected} onPick={pick} />
         <button
           onClick={() => {
             if (selected) navigate({ to: "/missions/$missionId/brief", params: { missionId: selected.id } });
             else navigate({ to: "/home" });
           }}
           className="inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-200 hover:bg-amber-500/20 hover:text-amber-100"
+          title="Exit to Mission"
         >
-          <ArrowLeft className="h-3 w-3" /> Exit to Mission
+          <ArrowLeft className="h-3 w-3" /> Exit
         </button>
       </div>
     </header>
+
   );
 }
 
