@@ -147,7 +147,7 @@ export default function AssignmentReview({
     missionStatus === "Live" || missionStatus === "Live with Pending Edits";
 
   const reload = async () => {
-    const [{ data: qData, error: qErr }, { data: aData }, { data: tData }, { data: iData }, { data: dData }] =
+    const [{ data: qData, error: qErr }, { data: aData }, { data: tData }, { data: iData }, { data: dData }, { data: mData }] =
       await Promise.all([
         supabase
           .from("questions")
@@ -179,6 +179,11 @@ export default function AssignmentReview({
           .select("id, file_name, doc_type")
           .eq("mission_id", missionId)
           .order("file_name", { ascending: true }),
+        supabase
+          .from("missions")
+          .select("mission_status")
+          .eq("id", missionId)
+          .maybeSingle(),
       ]);
 
     if (qErr) {
