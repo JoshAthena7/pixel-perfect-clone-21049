@@ -21,7 +21,7 @@ export const SETUP_FIELDS: { key: SetupFieldKey; label: string }[] = [
   { key: "submission_date", label: "Submission date" },
   { key: "program_type", label: "Program type" },
   { key: "incumbent_name", label: "Incumbent" },
-  { key: "contract_value", label: "Contract value" },
+  
   { key: "mission_highlights", label: "Mission highlights" },
   { key: "client_strengths", label: "Client strengths" },
   { key: "client_win_strategy", label: "Win strategy" },
