@@ -129,14 +129,6 @@ export default function MissionCommand() {
 }
 
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <div className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
-      {children}
-    </label>
-  );
-}
 
 function Th({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <th className={`px-4 py-2.5 text-left font-medium ${className}`}>{children}</th>;
