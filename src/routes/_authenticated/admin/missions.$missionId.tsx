@@ -158,38 +158,44 @@ function OverviewTab({ missionId, mission }: { missionId: string; mission: any }
   const greenReqs = reqs.filter((r: any) => (r.severity ?? "").toLowerCase() === "standard").length;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
-      <div className="space-y-3 lg:col-span-2">
-        <div className="grid grid-cols-2 gap-3">
-          <StatCard label="Sections Complete" value={`${complete} / ${sections.length}`} />
-          <StatCard label="Requirements Coverage" value={totalReqs ? `${greenReqs} / ${totalReqs}` : "—"} />
-          <StatCard label="Submission Date" value={formatDate(mission.submission_date)} sub={mission.submission_date ? countdown(mission.submission_date) : undefined} />
-          <StatCard label="IRIS Last Run" value={latestIntel?.generated_at ? formatDate(latestIntel.generated_at) : "Never"} />
+    <div className="space-y-4">
+      {mission.mission_status === "Live with Pending Edits" && (
+        <PendingEditsBanner missionId={missionId} />
+      )}
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="space-y-3 lg:col-span-2">
+          <div className="grid grid-cols-2 gap-3">
+            <StatCard label="Sections Complete" value={`${complete} / ${sections.length}`} />
+            <StatCard label="Requirements Coverage" value={totalReqs ? `${greenReqs} / ${totalReqs}` : "—"} />
+            <StatCard label="Submission Date" value={formatDate(mission.submission_date)} sub={mission.submission_date ? countdown(mission.submission_date) : undefined} />
+            <StatCard label="IRIS Last Run" value={latestIntel?.generated_at ? formatDate(latestIntel.generated_at) : "Never"} />
+          </div>
         </div>
-      </div>
-      <section className="rounded-lg border border-border bg-surface/40 p-4">
-        <header className="mb-3 flex items-center gap-2">
-          <Brain className="h-4 w-4 text-[color:var(--athena-gold)]" />
-          <h2 className="text-[11px] font-extrabold uppercase tracking-[0.28em]">IRIS Next Action</h2>
-        </header>
-        {latestIntel ? (
-          <div>
-            <div className="mb-2 inline-flex rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] uppercase tracking-wider">
-              {latestIntel.layer}
+        <section className="rounded-lg border border-border bg-surface/40 p-4">
+          <header className="mb-3 flex items-center gap-2">
+            <Brain className="h-4 w-4 text-[color:var(--athena-gold)]" />
+            <h2 className="text-[11px] font-extrabold uppercase tracking-[0.28em]">IRIS Next Action</h2>
+          </header>
+          {latestIntel ? (
+            <div>
+              <div className="mb-2 inline-flex rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] uppercase tracking-wider">
+                {latestIntel.layer}
+              </div>
+              <p className="text-sm text-muted-foreground line-clamp-6">
+                {summarize(latestIntel.content)}
+              </p>
             </div>
-            <p className="text-sm text-muted-foreground line-clamp-6">
-              {summarize(latestIntel.content)}
-            </p>
-          </div>
-        ) : (
-          <div>
-            <p className="text-sm text-muted-foreground">IRIS has not analyzed this mission.</p>
-            <Link to="/admin/intel-engine" className="mt-3 inline-flex text-xs font-medium text-amber-300 hover:underline">
-              Run IRIS Engine →
-            </Link>
-          </div>
-        )}
-      </section>
+          ) : (
+            <div>
+              <p className="text-sm text-muted-foreground">IRIS has not analyzed this mission.</p>
+              <Link to="/admin/intel-engine" className="mt-3 inline-flex text-xs font-medium text-amber-300 hover:underline">
+                Run IRIS Engine →
+              </Link>
+            </div>
+          )}
+        </section>
+      </div>
+      <ChangeLogSection missionId={missionId} mission={mission} />
     </div>
   );
 }
