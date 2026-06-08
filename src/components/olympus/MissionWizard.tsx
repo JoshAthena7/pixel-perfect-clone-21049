@@ -1,22 +1,26 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { X } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { runWizardIrisAnalysis } from "@/lib/mission-wizard-iris.functions";
 
 const TOTAL_STEPS = 7;
 const GOLD = "#C9A84C";
+const NAVY = "#1F3864";
 
 const STEP_META: Record<number, { name: string; subtitle: string }> = {
   1: { name: "Mission Identity", subtitle: "Define the mission foundation — this becomes the official record" },
   2: { name: "Source Materials", subtitle: "Give IRIS everything it needs to build your mission record" },
-  3: { name: "Team", subtitle: "Coming soon" },
-  4: { name: "Timeline", subtitle: "Coming soon" },
+  3: { name: "IRIS Analysis", subtitle: "IRIS is reading your materials and building the mission record" },
+  4: { name: "Team", subtitle: "Coming soon" },
   5: { name: "Readiness", subtitle: "Coming soon" },
   6: { name: "Strategy", subtitle: "Coming soon" },
   7: { name: "Launch", subtitle: "Coming soon" },
 };
+
 
 const DOC_SLOTS: { type: string; label: string }[] = [
   { type: "rfp", label: "RFP" },
@@ -31,6 +35,14 @@ const DOC_SLOTS: { type: string; label: string }[] = [
 
 const ENGAGEMENT_TYPES = ["Proposal", "Task Order", "IDIQ", "BPA", "Sole Source", "Other"];
 
+const IRIS_PHASES = [
+  "Reading source materials…",
+  "Identifying requirements…",
+  "Analyzing risks…",
+  "Drafting mission record…",
+  "Analysis complete ✓",
+];
+
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -40,10 +52,17 @@ type Props = {
 
 export default function MissionWizard({ open, onClose, missionId: initialMissionId, startStep = 1 }: Props) {
   const qc = useQueryClient();
+  const runIris = useServerFn(runWizardIrisAnalysis);
   const [step, setStep] = useState(startStep);
   const [missionId, setMissionId] = useState<string | null>(initialMissionId ?? null);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  // Step 3 IRIS analysis state
+  const [irisState, setIrisState] = useState<"idle" | "running" | "done" | "error">("idle");
+  const [irisPhase, setIrisPhase] = useState(0);
+  const [irisError, setIrisError] = useState<string | null>(null);
+
 
   // Step 1 state
   const [s1, setS1] = useState({
@@ -173,8 +192,43 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
     setStep(3);
   };
 
+  const startIris = async () => {
+    if (!missionId) return;
+    setIrisState("running");
+    setIrisError(null);
+    setIrisPhase(0);
+    try {
+      await runIris({ data: { missionId } });
+      setIrisPhase(IRIS_PHASES.length - 1);
+      setIrisState("done");
+      toast.success("IRIS analysis complete");
+      setTimeout(() => setStep((s) => (s === 3 ? 4 : s)), 1500);
+    } catch (e) {
+      setIrisError(e instanceof Error ? e.message : "Analysis failed");
+      setIrisState("error");
+    }
+  };
+
+  // Auto-trigger IRIS when entering step 3
+  useEffect(() => {
+    if (step === 3 && irisState === "idle" && missionId) {
+      void startIris();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, missionId]);
+
+  // Cycle phase text while running
+  useEffect(() => {
+    if (irisState !== "running") return;
+    const t = setInterval(() => {
+      setIrisPhase((p) => Math.min(p + 1, IRIS_PHASES.length - 2));
+    }, 1800);
+    return () => clearInterval(t);
+  }, [irisState]);
+
   const meta = STEP_META[step];
   const progressPct = (step / TOTAL_STEPS) * 100;
+
 
   return (
     <div
@@ -298,11 +352,74 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
             </div>
           )}
 
-          {step >= 3 && (
+          {step === 3 && (
+            <div
+              className="rounded-xl border p-10 text-center"
+              style={{ backgroundColor: NAVY, borderColor: GOLD + "40" }}
+            >
+              {irisState === "running" || irisState === "done" ? (
+                <div className="flex flex-col items-center gap-5 text-white">
+                  {irisState === "running" && (
+                    <div
+                      className="h-12 w-12 animate-spin rounded-full border-[3px] border-white/20"
+                      style={{ borderTopColor: GOLD }}
+                    />
+                  )}
+                  {irisState === "done" && (
+                    <div
+                      className="flex h-12 w-12 items-center justify-center rounded-full text-2xl font-bold text-black"
+                      style={{ backgroundColor: GOLD }}
+                    >
+                      ✓
+                    </div>
+                  )}
+                  <div
+                    key={irisPhase}
+                    className="animate-in fade-in text-sm font-medium"
+                    style={{ color: GOLD }}
+                  >
+                    {IRIS_PHASES[irisPhase]}
+                  </div>
+                  <div className="text-xs text-white/60">
+                    IRIS is building your mission record. This usually takes 10–30 seconds.
+                  </div>
+                </div>
+              ) : irisState === "error" ? (
+                <div className="flex flex-col items-center gap-4 text-white">
+                  <div className="text-sm font-medium text-rose-200">
+                    IRIS analysis could not complete. You can continue and fill in the record manually.
+                  </div>
+                  {irisError && <div className="text-xs text-white/60">{irisError}</div>}
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void startIris()}
+                      className="rounded-md border border-white/30 bg-white/10 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/20"
+                    >
+                      Try Again
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setStep(4)}
+                      className="rounded-md px-3 py-1.5 text-xs font-semibold text-black"
+                      style={{ backgroundColor: GOLD }}
+                    >
+                      Continue Without IRIS →
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm text-white/70">Preparing analysis…</div>
+              )}
+            </div>
+          )}
+
+          {step >= 4 && (
             <div className="rounded-lg border border-dashed border-border bg-surface/30 p-10 text-center text-sm text-muted-foreground">
               {meta.name} — coming soon.
             </div>
           )}
+
 
           {err && (
             <div className="mt-4 rounded-md border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-xs text-rose-300">
