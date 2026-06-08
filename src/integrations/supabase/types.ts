@@ -4299,6 +4299,8 @@ export type Database = {
           id: string
           label: string
           last_checked_at: string | null
+          last_content_hash: string | null
+          last_signal_at: string | null
           mission_id: string
           source_type: string
           updated_at: string
@@ -4311,6 +4313,8 @@ export type Database = {
           id?: string
           label: string
           last_checked_at?: string | null
+          last_content_hash?: string | null
+          last_signal_at?: string | null
           mission_id: string
           source_type: string
           updated_at?: string
@@ -4323,6 +4327,8 @@ export type Database = {
           id?: string
           label?: string
           last_checked_at?: string | null
+          last_content_hash?: string | null
+          last_signal_at?: string | null
           mission_id?: string
           source_type?: string
           updated_at?: string
