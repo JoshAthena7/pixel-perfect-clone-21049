@@ -184,8 +184,43 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
     setStep(3);
   };
 
+  const startIris = async () => {
+    if (!missionId) return;
+    setIrisState("running");
+    setIrisError(null);
+    setIrisPhase(0);
+    try {
+      await runIris({ data: { missionId } });
+      setIrisPhase(IRIS_PHASES.length - 1);
+      setIrisState("done");
+      toast.success("IRIS analysis complete");
+      setTimeout(() => setStep((s) => (s === 3 ? 4 : s)), 1500);
+    } catch (e) {
+      setIrisError(e instanceof Error ? e.message : "Analysis failed");
+      setIrisState("error");
+    }
+  };
+
+  // Auto-trigger IRIS when entering step 3
+  useEffect(() => {
+    if (step === 3 && irisState === "idle" && missionId) {
+      void startIris();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, missionId]);
+
+  // Cycle phase text while running
+  useEffect(() => {
+    if (irisState !== "running") return;
+    const t = setInterval(() => {
+      setIrisPhase((p) => Math.min(p + 1, IRIS_PHASES.length - 2));
+    }, 1800);
+    return () => clearInterval(t);
+  }, [irisState]);
+
   const meta = STEP_META[step];
   const progressPct = (step / TOTAL_STEPS) * 100;
+
 
   return (
     <div
