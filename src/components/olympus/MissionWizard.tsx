@@ -532,7 +532,11 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
             )
           )}
 
-          {step >= 5 && (
+          {step === 5 && missionId && (
+            <TeamStep missionId={missionId} onSkip={skipStep5} />
+          )}
+
+          {step >= 6 && (
             <div className="rounded-lg border border-dashed border-border bg-surface/30 p-10 text-center text-sm text-muted-foreground">
               {meta.name} — coming soon.
             </div>
