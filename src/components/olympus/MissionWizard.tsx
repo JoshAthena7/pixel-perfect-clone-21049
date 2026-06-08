@@ -43,6 +43,26 @@ const IRIS_PHASES = [
   "Analysis complete ✓",
 ];
 
+type KeyDate = { label: string; date: string; note: string };
+type KeyRisk = { risk: string; mitigation: string };
+type RiskLevel = "LOW" | "MEDIUM" | "HIGH";
+type ReviewData = {
+  mission_overview: string;
+  risk_level: RiskLevel;
+  key_dates: KeyDate[];
+  major_requirements: string[];
+  deliverables: string[];
+  key_risks: KeyRisk[];
+  required_expertise: string[];
+  client_sensitivities: string[];
+  recommended_win_themes: string[];
+  suggested_sections: string[];
+  compliance_flags: string[];
+  staffing_notes?: string;
+  setup_checklist_notes?: string;
+  [k: string]: unknown;
+};
+
 type Props = {
   open: boolean;
   onClose: () => void;
