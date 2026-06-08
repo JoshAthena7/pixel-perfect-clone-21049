@@ -1383,9 +1383,6 @@ function Step4QuestionReconciliation({
                             <Input
                               value={q.question_number ?? ""}
                               onChange={(v) => commitField(q.id, { question_number: v })}
-                              onBlur={() =>
-                                persistField(q.id, { question_number: q.question_number })
-                              }
                             />
                           </div>
                           <div className="col-span-4">
@@ -1395,9 +1392,6 @@ function Step4QuestionReconciliation({
                             <Input
                               value={q.question_name ?? ""}
                               onChange={(v) => commitField(q.id, { question_name: v })}
-                              onBlur={() =>
-                                persistField(q.id, { question_name: q.question_name })
-                              }
                             />
                           </div>
                           <div className="col-span-4">
@@ -1446,9 +1440,6 @@ function Step4QuestionReconciliation({
                               <Textarea
                                 value={q.question_text ?? ""}
                                 onChange={(v) => commitField(q.id, { question_text: v })}
-                                onBlur={() =>
-                                  persistField(q.id, { question_text: q.question_text })
-                                }
                                 rows={4}
                               />
                             )}
