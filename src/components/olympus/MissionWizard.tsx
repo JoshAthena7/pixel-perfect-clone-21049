@@ -275,27 +275,6 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
             </button>
           )}
         </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between border-t border-border px-6 py-4">
-          <button
-            type="button"
-            onClick={() => (step > 1 ? setStep(step - 1) : requestClose())}
-            disabled={saving}
-            className="text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-50"
-          >
-            ← Back
-          </button>
-          <button
-            type="button"
-            onClick={handleContinue}
-            disabled={saving}
-            className="rounded-md px-5 py-2 text-sm font-bold uppercase tracking-wider shadow disabled:opacity-50"
-            style={{ backgroundColor: GOLD, color: NAVY }}
-          >
-            {saving ? "Saving…" : step === 6 ? "Finish" : "Save & Continue →"}
-          </button>
-        </div>
       </div>
     </div>
   );
