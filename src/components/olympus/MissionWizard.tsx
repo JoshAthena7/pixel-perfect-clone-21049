@@ -281,7 +281,19 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
               onReRun={() => setStep(3)}
             />
           )}
-          {step >= 5 && (
+          {step === 5 && missionId && (
+            <Step5Team
+              missionId={missionId}
+              onSkip={async () => {
+                await supabase
+                  .from("missions")
+                  .update({ wizard_step: 5 } as never)
+                  .eq("id", missionId);
+                setStep(6);
+              }}
+            />
+          )}
+          {step === 6 && (
             <div className="py-16 text-center text-sm text-muted-foreground">
               <h2 className="text-lg font-semibold text-foreground mb-2">
                 {STEP_NAMES[step - 1]}
