@@ -1,16 +1,18 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { ArrowLeft, Brain, FileText, ListChecks, LayoutGrid, Sliders } from "lucide-react";
+import { toast } from "sonner";
+import { ArrowLeft, Brain, FileText, ListChecks, LayoutGrid, Sliders, ShieldCheck, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { FastReportsMenu } from "@/components/olympus/FastReportsMenu";
+import MissionWizard from "@/components/olympus/MissionWizard";
 
-type Tab = "overview" | "sections" | "intelligence" | "requirements" | "setup";
+type Tab = "overview" | "sections" | "intelligence" | "requirements" | "setup" | "oversight";
 
 export const Route = createFileRoute("/_authenticated/admin/missions/$missionId")({
   validateSearch: (s: Record<string, unknown>): { tab?: Tab } => {
     const t = s.tab;
-    if (t === "overview" || t === "sections" || t === "intelligence" || t === "requirements" || t === "setup") return { tab: t };
+    if (t === "overview" || t === "sections" || t === "intelligence" || t === "requirements" || t === "setup" || t === "oversight") return { tab: t };
     return {};
   },
   component: MissionDetail,
