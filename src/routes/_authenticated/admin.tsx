@@ -1,7 +1,7 @@
 import {
   createFileRoute, Outlet, Link, useRouterState,
 } from "@tanstack/react-router";
-import { LayoutGrid, Brain, Zap, Settings, Home } from "lucide-react";
+import { FileText, Home, LayoutGrid, Settings, Zap } from "lucide-react";
 
 import { useIsAdmin } from "@/hooks/useAccess";
 import { useRedirectIfBlocked } from "@/hooks/useRedirectIfBlocked";
@@ -37,6 +37,8 @@ function AdminSidebar() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const isActive = (p: string, exact = false) =>
     exact ? path === p : path.startsWith(p);
+  const missionDetailMatch = path.match(/^\/admin\/missions\/([^/]+)/);
+  const missionId = missionDetailMatch?.[1];
 
   return (
     <aside className="hidden md:flex w-56 shrink-0 flex-col border-r border-border bg-surface">
@@ -45,18 +47,25 @@ function AdminSidebar() {
         <span className="text-[11px] font-extrabold uppercase tracking-[0.28em]">Olympus</span>
       </div>
       <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
-        <NavItem to="/admin" active={isActive("/admin", true) || path.startsWith("/admin/missions")} icon={<LayoutGrid size={15} strokeWidth={1.5} />}>
-          Mission Control
+        <NavItem to="/admin" active={isActive("/admin", true)} icon={<LayoutGrid size={15} strokeWidth={1.5} />}>
+          Missions
         </NavItem>
-        <NavItem to="/admin/intel-engine" active={isActive("/admin/intel-engine")} icon={<Brain size={15} strokeWidth={1.5} />}>
-          IRIS Engine
-        </NavItem>
+        {missionId && (
+          <NavItem
+            to="/admin/missions/$missionId"
+            params={{ missionId }}
+            active={path.startsWith(`/admin/missions/${missionId}`)}
+            icon={<FileText size={15} strokeWidth={1.5} />}
+          >
+            Mission Detail
+          </NavItem>
+        )}
         <NavItem to="/admin/settings" active={isActive("/admin/settings")} icon={<Settings size={15} strokeWidth={1.5} />}>
           Settings
         </NavItem>
       </nav>
       <div className="border-t border-border px-2 py-3">
-        <NavItem to="/" active={false} icon={<Home size={15} strokeWidth={1.5} />}>
+        <NavItem to="/missions" active={false} icon={<Home size={15} strokeWidth={1.5} />}>
           Atlas Home
         </NavItem>
       </div>
@@ -65,11 +74,12 @@ function AdminSidebar() {
 }
 
 function NavItem({
-  to, active, icon, children,
-}: { to: string; active: boolean; icon: React.ReactNode; children: React.ReactNode }) {
+  to, params, active, icon, children,
+}: { to: string; params?: Record<string, string>; active: boolean; icon: React.ReactNode; children: React.ReactNode }) {
   return (
     <Link
       to={to}
+      params={params}
       className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors ${
         active
           ? "bg-surface-hover text-foreground"
