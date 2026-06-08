@@ -73,6 +73,12 @@ function AuthenticatedLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { isAdmin, isLoading: adminLoading } = useIsAdmin();
 
+  // /admin owns its own layout — bypass the outer Atrium chrome entirely.
+  // Runs before any role gate so admin.tsx renders immediately without flicker.
+  if (path === "/admin" || path.startsWith("/admin/")) {
+    return <Outlet />;
+  }
+
   // Check-in only users get a minimalist landing.
   if (path === "/checkin-home" || path.startsWith("/checkin-home/")) {
     return (
@@ -87,11 +93,6 @@ function AuthenticatedLayout() {
   // the Atrium chrome for non-admins.
   if (adminLoading) {
     return <div className="min-h-screen bg-background" />;
-  }
-
-  // /admin owns its own layout — bypass the outer Atrium chrome entirely.
-  if (path === "/admin" || path.startsWith("/admin/")) {
-    return <Outlet />;
   }
 
   // Admins keep the full Atrium chrome (Athena HQ, top nav, etc.).
