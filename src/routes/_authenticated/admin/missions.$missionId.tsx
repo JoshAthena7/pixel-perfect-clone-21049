@@ -499,10 +499,19 @@ function OversightTab({ missionId, mission }: { missionId: string; mission: any 
           })) as never,
         );
       }
+      const updates: Record<string, unknown> = { atlas_synced_at: new Date().toISOString() };
+      if (mission.mission_status === "Live with Pending Edits") {
+        updates.mission_status = "Live";
+      }
       await supabase
         .from("missions")
-        .update({ atlas_synced_at: new Date().toISOString() } as never)
+        .update(updates as never)
         .eq("id", missionId);
+      await supabase
+        .from("mission_change_log")
+        .update({ synced_to_atlas: true } as never)
+        .eq("mission_id", missionId)
+        .eq("synced_to_atlas", false);
       toast.success("Synced to Atlas");
       qc.invalidateQueries({ queryKey: ["olympus-mission", missionId] });
     } catch (e) {
