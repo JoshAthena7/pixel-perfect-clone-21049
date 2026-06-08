@@ -3,7 +3,13 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
 const ClientIntelSchema = z.object({
+  contacts: z
+    .array(z.object({ name: z.string().max(120), role: z.string().max(180), notes: z.string().max(400).optional() }))
+    .max(15),
   decision_makers: z
+    .array(z.object({ name: z.string().max(120), role: z.string().max(180), notes: z.string().max(400).optional() }))
+    .max(10),
+  relationship_owners: z
     .array(z.object({ name: z.string().max(120), role: z.string().max(180), notes: z.string().max(400).optional() }))
     .max(10),
   stakeholders: z
@@ -25,24 +31,58 @@ export const extractClientIntel = createServerFn({ method: "POST" })
 
     const { mission, rows } = await loadMissionAndFeed(supabaseAdmin, data.missionId);
 
-    // ALSO pull uploaded mission documents — RFP cover pages, capture notes,
-    // org charts, meeting summaries. These are where named contacts live.
-    const { data: docs } = await supabaseAdmin
-      .from("mission_documents")
-      .select("file_name,document_type,extracted_text")
-      .eq("mission_id", data.missionId)
-      .eq("processing_status", "complete")
-      .not("extracted_text", "is", null)
-      .order("created_at", { ascending: false })
-      .limit(8);
-    const docText = (docs ?? [])
-      .map((d: any) => `--- ${d.document_type}: ${d.file_name} ---\n${String(d.extracted_text ?? "").slice(0, 8000)}`)
+    // Pull every document source used by setup/the Vault. Named agency POCs
+    // usually live in the RFP cover page or capture notes, not market rows.
+    const [missionDocs, vaultDocs, libraryExtractions] = await Promise.all([
+      supabaseAdmin
+        .from("mission_documents")
+        .select("file_name,document_type,extracted_text")
+        .eq("mission_id", data.missionId)
+        .eq("processing_status", "complete")
+        .not("extracted_text", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(8),
+      supabaseAdmin
+        .from("mission_vault_documents")
+        .select("title,category,extracted_text")
+        .eq("mission_id", data.missionId)
+        .not("extracted_text", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(10),
+      supabaseAdmin
+        .from("document_extractions")
+        .select("extracted_text,summary,mission_library!inner(name,category,mission_id)")
+        .eq("mission_id", data.missionId)
+        .eq("status", "ready")
+        .limit(10),
+    ]);
+    const sourceParts = [
+      ...((missionDocs.data ?? []) as any[]).map((d) => ({
+        label: `${d.document_type ?? "Document"}: ${d.file_name ?? "Uploaded document"}`,
+        text: d.extracted_text,
+      })),
+      ...((vaultDocs.data ?? []) as any[]).map((d) => ({
+        label: `${d.category ?? "Vault"}: ${d.title ?? "Vault document"}`,
+        text: d.extracted_text,
+      })),
+      ...((libraryExtractions.data ?? []) as any[]).map((d) => ({
+        label: `${d.mission_library?.category ?? "Library"}: ${d.mission_library?.name ?? "Library document"}`,
+        text: d.extracted_text ?? d.summary,
+      })),
+    ];
+    const docText = sourceParts
+      .map((d) => `--- ${d.label} ---\n${String(d.text ?? "").slice(0, 8000)}`)
       .join("\n\n")
-      .slice(0, 60_000);
+      .slice(0, 80_000);
 
-    const system = `You produce the "Client Intel" record for a procurement strategy brief.
-List only people, considerations, and dynamics you can support from the provided context — never invent contacts.
-If a field has no supporting evidence, leave the array empty or write "No public evidence available" in the notes/political_considerations fields. Honesty over completeness.`;
+    const system = `You produce the "Agency Intelligence" setup record for a procurement strategy brief.
+Extract who matters on the ISSUING AGENCY side from the mission metadata, RFP cover pages, procurement instructions, capture notes, org charts, meeting summaries, and market context.
+Arrays may contain named people OR clearly supported agency-side offices/roles when no name is provided, formatted as "Name or Office — Role (evidence)". Never invent names.
+contacts = solicitation POCs, contracting/procurement officers, email/phone contacts, program contacts.
+stakeholders = issuing agency, program office, oversight entities, affected agency-side units.
+decision_makers = named approvers/evaluators OR documented decision bodies/roles such as evaluation committee, procurement director, agency executive.
+relationship_owners = internal/client-side people only if capture notes explicitly identify who owns the agency relationship; otherwise leave empty.
+For political_considerations and meeting_cadence, summarize supported evidence or write a concise "No documented ... found" statement. Honesty over completeness.`;
 
     const result = await callJsonExtractor<ClientIntelOut>({
       system,
