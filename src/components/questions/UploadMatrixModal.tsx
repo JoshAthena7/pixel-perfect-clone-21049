@@ -372,9 +372,11 @@ export function UploadMatrixModal({
           />
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
+
 
 function stageBadge(
   cur: string,
