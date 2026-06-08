@@ -143,7 +143,7 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
       .filter(Boolean) as { mission_id: string; doc_type: string; file_url: string | null; notes: string | null }[];
 
     if (rows.length > 0) {
-      const { error } = await supabase.from("mission_documents").insert(rows);
+      const { error } = await supabase.from("mission_documents").insert(rows as never);
       if (error) {
         setSaving(false);
         setErr(error.message);
