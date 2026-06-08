@@ -155,6 +155,7 @@ function Header({
 
 function useRunIris(missionId: string, missionName: string) {
   const generate = useServerFn(generateIrisIntelligence);
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: async () => {
       const { data: docs, error } = await supabase
@@ -165,7 +166,9 @@ function useRunIris(missionId: string, missionName: string) {
       if (error) throw new Error(error.message);
       const ids = (docs ?? []).map((d: { id: string }) => d.id);
       if (ids.length === 0) {
-        throw new Error("No completed documents available to analyze.");
+        throw new Error(
+          "No processed documents yet. Upload the RFP and supporting docs in the Setup Record first, then re-run IRIS.",
+        );
       }
       for (const layer of ["mission_brief", "strategic_assessment"] as const) {
         const res: any = await generate({ data: { mission_id: missionId, document_ids: ids, layer } });
@@ -174,10 +177,14 @@ function useRunIris(missionId: string, missionName: string) {
         }
       }
     },
-    onSuccess: () => toast.success(`IRIS regenerated for ${missionName}`),
+    onSuccess: async () => {
+      toast.success(`IRIS regenerated for ${missionName}`);
+      await qc.invalidateQueries({ queryKey: ["admin-mission-intel", missionId] });
+    },
     onError: (e: any) => toast.error(e?.message ?? "IRIS run failed"),
   });
 }
+
 
 function StatusBadge({ status }: { status: string | null }) {
   const s = (status ?? "Active").toUpperCase();
