@@ -1,5 +1,5 @@
 // ATLAS V1 — single mission constants
-export const NJ_CSOC_MISSION_ID = "2c47b677-60ec-4579-a5ed-d9bc3ec227c2";
+export const NJ_CSOC_MISSION_ID = "4e75a7c2-9b69-45b3-9cdb-503680bd3683";
 
 // Role buckets used for routing + visibility
 export const PM_ROLES = ["project_manager", "engagement_lead", "lead", "lead_writer", "admin"];
