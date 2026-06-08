@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as OlympusRouteImport } from './routes/olympus'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IrisRouteImport } from './routes/iris'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
@@ -62,6 +63,7 @@ import { Route as AuthenticatedCommandBroadcastsRouteImport } from './routes/_au
 import { Route as AuthenticatedCommandAttentionRouteImport } from './routes/_authenticated/command/attention'
 import { Route as AuthenticatedCommandAlignmentConflictsRouteImport } from './routes/_authenticated/command/alignment-conflicts'
 import { Route as AuthenticatedCommandAlignmentRouteImport } from './routes/_authenticated/command/alignment'
+import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin/settings'
 import { Route as AuthenticatedAdminIntelEngineRouteImport } from './routes/_authenticated/admin/intel-engine'
 import { Route as AuthenticatedV1SectionsIndexRouteImport } from './routes/_authenticated/v1/sections.index'
 import { Route as AuthenticatedMissionsMissionIdIndexRouteImport } from './routes/_authenticated/missions/$missionId/index'
@@ -116,6 +118,11 @@ const UnsubscribeRoute = UnsubscribeRouteImport.update({
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OlympusRoute = OlympusRouteImport.update({
+  id: '/olympus',
+  path: '/olympus',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -392,6 +399,12 @@ const AuthenticatedCommandAlignmentRoute =
     path: '/command/alignment',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminSettingsRoute =
+  AuthenticatedAdminSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminIntelEngineRoute =
   AuthenticatedAdminIntelEngineRouteImport.update({
     id: '/intel-engine',
@@ -665,6 +678,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/iris': typeof IrisRoute
   '/login': typeof LoginRoute
+  '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -680,7 +694,6 @@ export interface FileRoutesByFullPath {
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
   '/iris-console': typeof AuthenticatedIrisConsoleRoute
   '/journey-map': typeof AuthenticatedJourneyMapRoute
-  '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/status-report': typeof AuthenticatedStatusReportRoute
   '/v1': typeof AuthenticatedV1RouteWithChildren
   '/welcome': typeof AuthenticatedWelcomeRoute
@@ -692,6 +705,7 @@ export interface FileRoutesByFullPath {
   '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/admin/intel-engine': typeof AuthenticatedAdminIntelEngineRoute
+  '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/command/attention': typeof AuthenticatedCommandAttentionRoute
@@ -764,6 +778,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/iris': typeof IrisRoute
   '/login': typeof LoginRoute
+  '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/atrium': typeof AuthenticatedAtriumRoute
@@ -778,7 +793,6 @@ export interface FileRoutesByTo {
   '/intelligence-queue': typeof AuthenticatedIntelligenceQueueRoute
   '/iris-console': typeof AuthenticatedIrisConsoleRoute
   '/journey-map': typeof AuthenticatedJourneyMapRoute
-  '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/status-report': typeof AuthenticatedStatusReportRoute
   '/welcome': typeof AuthenticatedWelcomeRoute
   '/api/atrium': typeof ApiAtriumRoute
@@ -789,6 +803,7 @@ export interface FileRoutesByTo {
   '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/admin/intel-engine': typeof AuthenticatedAdminIntelEngineRoute
+  '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/command/attention': typeof AuthenticatedCommandAttentionRoute
@@ -861,6 +876,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/iris': typeof IrisRoute
   '/login': typeof LoginRoute
+  '/olympus': typeof OlympusRoute
   '/onboarding': typeof OnboardingRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -888,6 +904,7 @@ export interface FileRoutesById {
   '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/_authenticated/admin/intel-engine': typeof AuthenticatedAdminIntelEngineRoute
+  '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/_authenticated/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/_authenticated/command/attention': typeof AuthenticatedCommandAttentionRoute
@@ -962,6 +979,7 @@ export interface FileRouteTypes {
     | '/'
     | '/iris'
     | '/login'
+    | '/olympus'
     | '/onboarding'
     | '/unsubscribe'
     | '/admin'
@@ -977,7 +995,6 @@ export interface FileRouteTypes {
     | '/intelligence-queue'
     | '/iris-console'
     | '/journey-map'
-    | '/olympus'
     | '/status-report'
     | '/v1'
     | '/welcome'
@@ -989,6 +1006,7 @@ export interface FileRouteTypes {
     | '/debug/gold-entry-fallback'
     | '/email/unsubscribe'
     | '/admin/intel-engine'
+    | '/admin/settings'
     | '/command/alignment'
     | '/command/alignment-conflicts'
     | '/command/attention'
@@ -1061,6 +1079,7 @@ export interface FileRouteTypes {
     | '/'
     | '/iris'
     | '/login'
+    | '/olympus'
     | '/onboarding'
     | '/unsubscribe'
     | '/atrium'
@@ -1075,7 +1094,6 @@ export interface FileRouteTypes {
     | '/intelligence-queue'
     | '/iris-console'
     | '/journey-map'
-    | '/olympus'
     | '/status-report'
     | '/welcome'
     | '/api/atrium'
@@ -1086,6 +1104,7 @@ export interface FileRouteTypes {
     | '/debug/gold-entry-fallback'
     | '/email/unsubscribe'
     | '/admin/intel-engine'
+    | '/admin/settings'
     | '/command/alignment'
     | '/command/alignment-conflicts'
     | '/command/attention'
@@ -1157,6 +1176,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/iris'
     | '/login'
+    | '/olympus'
     | '/onboarding'
     | '/unsubscribe'
     | '/_authenticated/admin'
@@ -1184,6 +1204,7 @@ export interface FileRouteTypes {
     | '/debug/gold-entry-fallback'
     | '/email/unsubscribe'
     | '/_authenticated/admin/intel-engine'
+    | '/_authenticated/admin/settings'
     | '/_authenticated/command/alignment'
     | '/_authenticated/command/alignment-conflicts'
     | '/_authenticated/command/attention'
@@ -1258,6 +1279,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   IrisRoute: typeof IrisRoute
   LoginRoute: typeof LoginRoute
+  OlympusRoute: typeof OlympusRoute
   OnboardingRoute: typeof OnboardingRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
   ApiAtriumRoute: typeof ApiAtriumRoute
@@ -1297,6 +1319,13 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/olympus': {
+      id: '/olympus'
+      path: '/olympus'
+      fullPath: '/olympus'
+      preLoaderRoute: typeof OlympusRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -1656,6 +1685,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCommandAlignmentRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/settings': {
+      id: '/_authenticated/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AuthenticatedAdminSettingsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/intel-engine': {
       id: '/_authenticated/admin/intel-engine'
       path: '/intel-engine'
@@ -1991,12 +2027,14 @@ const AuthenticatedAdminMissionsMissionIdRouteWithChildren =
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminIntelEngineRoute: typeof AuthenticatedAdminIntelEngineRoute
+  AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminMissionsMissionIdRoute: typeof AuthenticatedAdminMissionsMissionIdRouteWithChildren
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminIntelEngineRoute: AuthenticatedAdminIntelEngineRoute,
+  AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedAdminMissionsMissionIdRoute:
     AuthenticatedAdminMissionsMissionIdRouteWithChildren,
@@ -2228,6 +2266,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   IrisRoute: IrisRoute,
   LoginRoute: LoginRoute,
+  OlympusRoute: OlympusRoute,
   OnboardingRoute: OnboardingRoute,
   UnsubscribeRoute: UnsubscribeRoute,
   ApiAtriumRoute: ApiAtriumRoute,
@@ -2261,13 +2300,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
