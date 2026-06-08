@@ -79,6 +79,10 @@ function MissionDetail() {
         <FastReportsMenu />
       </header>
 
+      {mission.mission_status === "Live with Pending Edits" && (
+        <PendingEditsBanner missionId={missionId} />
+      )}
+
       <div className="border-b border-border bg-surface/20 px-5">
         <nav className="flex gap-1 overflow-x-auto">
           <TabBtn active={tab === "assignments"} onClick={() => setTab("assignments")} icon={<Users className="h-3.5 w-3.5" />}>Assignments</TabBtn>
