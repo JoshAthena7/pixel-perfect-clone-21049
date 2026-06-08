@@ -87,10 +87,10 @@ function MissionDetail() {
           {((mission.wizard_step ?? 0) < 7) && (
             <TabBtn active={tab === "setup"} onClick={() => setTab("setup")} icon={<Sliders className="h-3.5 w-3.5" />}>Setup</TabBtn>
           )}
-          {mission.status === "ACTIVE" && (
+          {(mission.mission_status === "Live" || mission.mission_status === "Live with Pending Edits") && (
             <TabBtn active={tab === "oversight"} onClick={() => setTab("oversight")} icon={<ShieldCheck className="h-3.5 w-3.5" />}>Oversight</TabBtn>
           )}
-          {mission.status === "ACTIVE" && (
+          {(mission.mission_status === "Live" || mission.mission_status === "Live with Pending Edits" || mission.status === "ACTIVE") && (
             <TabBtn active={tab === "closeout"} onClick={() => setTab("closeout")} icon={<Archive className="h-3.5 w-3.5" />}>Closeout</TabBtn>
           )}
         </nav>
