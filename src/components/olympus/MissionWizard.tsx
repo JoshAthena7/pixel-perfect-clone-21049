@@ -17,8 +17,10 @@ const STEP_NAMES = [
   "IRIS Review",
   "Review & Edit Record",
   "Upload Assignment Tracker",
+  "IRIS Assignment Reconciliation",
   "Readiness & GO LIVE",
 ];
+const TOTAL_STEPS = STEP_NAMES.length;
 
 type Milestone = { label: string; date: string };
 
@@ -261,7 +263,7 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
       } finally {
         setSaving(false);
       }
-    } else if (step < 6) {
+    } else if (step < TOTAL_STEPS) {
       setStep(step + 1);
     } else {
       onClose();
@@ -279,13 +281,13 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1">
               <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                <span>Step {step} of 6</span>
+                <span>Step {step} of {TOTAL_STEPS}</span>
                 <span>{STEP_NAMES[step - 1]}</span>
               </div>
               <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-border/60">
                 <div
                   className="h-full transition-all"
-                  style={{ width: `${(step / 6) * 100}%`, backgroundColor: GOLD }}
+                  style={{ width: `${(step / TOTAL_STEPS) * 100}%`, backgroundColor: GOLD }}
                 />
               </div>
             </div>
@@ -331,13 +333,19 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
             />
           )}
           {step === 6 && missionId && (
+            <Step6IrisAssignmentReconciliation
+              missionId={missionId}
+              onAdvance={() => setStep(7)}
+            />
+          )}
+          {step === 7 && missionId && (
             <Step6Readiness
               missionId={missionId}
               onClose={onClose}
               onSaveAndClose={async () => {
                 await supabase
                   .from("missions")
-                  .update({ wizard_step: 6 } as never)
+                  .update({ wizard_step: 7 } as never)
                   .eq("id", missionId);
                 onClose();
               }}
@@ -355,7 +363,7 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
           >
             ← Back
           </button>
-          {step !== 3 && step !== 4 && step !== 5 && step !== 6 && (
+          {step !== 3 && step !== 4 && step !== 5 && step !== 6 && step !== 7 && (
             <button
               type="button"
               onClick={handleContinue}
@@ -2155,7 +2163,375 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
   );
 }
 
-/* ---------- Step 6: Readiness & GO LIVE ---------- */
+/* ---------- Step 6: IRIS Assignment Reconciliation ---------- */
+
+type ReconReport = {
+  totalQuestions: number;
+  exactCount: number;
+  fuzzyMatched: string[];        // question_number labels
+  unmatchedTrackerRows: string[]; // tracker identifiers
+  questionsNoWriter: string[];
+  questionsNoReviewer: string[];
+  questionsNotInTracker: string[];
+};
+
+function Step6IrisAssignmentReconciliation({
+  missionId,
+  onAdvance,
+}: {
+  missionId: string;
+  onAdvance: () => void;
+}) {
+  const [loading, setLoading] = useState(true);
+  const [questionCount, setQuestionCount] = useState(0);
+  const [trackerCount, setTrackerCount] = useState(0);
+  const [running, setRunning] = useState(false);
+  const [advancing, setAdvancing] = useState(false);
+  const [report, setReport] = useState<ReconReport | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const [{ count: qCount }, { data: m }] = await Promise.all([
+        supabase
+          .from("questions")
+          .select("id", { count: "exact", head: true })
+          .eq("mission_id", missionId)
+          .eq("architecture_version", "v2"),
+        supabase
+          .from("missions")
+          .select("assignment_tracker_data")
+          .eq("id", missionId)
+          .maybeSingle(),
+      ]);
+      if (!alive) return;
+      setQuestionCount(qCount ?? 0);
+      const tracker = (m as any)?.assignment_tracker_data;
+      setTrackerCount(Array.isArray(tracker) ? tracker.length : 0);
+      setLoading(false);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [missionId]);
+
+  const runReconciliation = async () => {
+    setRunning(true);
+    try {
+      const { data: qData, error: qErr } = await supabase
+        .from("questions")
+        .select("id, question_number, question_name")
+        .eq("mission_id", missionId)
+        .eq("architecture_version", "v2");
+      if (qErr) throw qErr;
+      const questions = (qData ?? []) as Array<{
+        id: string;
+        question_number: string | null;
+        question_name: string | null;
+      }>;
+
+      const { data: mData, error: mErr } = await supabase
+        .from("missions")
+        .select("assignment_tracker_data")
+        .eq("id", missionId)
+        .maybeSingle();
+      if (mErr) throw mErr;
+      const trackerRows: any[] = Array.isArray((mData as any)?.assignment_tracker_data)
+        ? (mData as any).assignment_tracker_data
+        : [];
+
+      const norm = (s: any) => (s == null ? "" : String(s).trim().toLowerCase());
+
+      let exactCount = 0;
+      const fuzzyMatched: string[] = [];
+      const unmatchedTrackerRows: string[] = [];
+      const matchedQuestionIds = new Set<string>();
+
+      for (let i = 0; i < trackerRows.length; i++) {
+        const row = trackerRows[i] || {};
+        const qnum = norm(row.question_number);
+        let match = qnum
+          ? questions.find((q) => norm(q.question_number) === qnum)
+          : undefined;
+        let matchKind: "exact" | "fuzzy" | "unmatched" = "exact";
+        if (!match) {
+          // fuzzy: case-insensitive substring on question_name
+          const targets = [norm(row.question_name), qnum].filter(Boolean);
+          if (targets.length) {
+            match = questions.find((q) => {
+              const qn = norm(q.question_name);
+              if (!qn) return false;
+              return targets.some(
+                (t) => qn.includes(t) || t.includes(qn),
+              );
+            });
+          }
+          matchKind = match ? "fuzzy" : "unmatched";
+        }
+
+        const label =
+          (row.question_number && String(row.question_number)) ||
+          (row.question_name && String(row.question_name)) ||
+          `Row ${i + 1}`;
+
+        if (!match) {
+          unmatchedTrackerRows.push(label);
+          continue;
+        }
+
+        if (matchKind === "exact") exactCount++;
+        else fuzzyMatched.push(label);
+        matchedQuestionIds.add(match.id);
+
+        const internalDeadline =
+          row.internal_deadline && String(row.internal_deadline).trim()
+            ? String(row.internal_deadline).trim()
+            : null;
+
+        const payload: any = {
+          question_id: match.id,
+          mission_id: missionId,
+          writer_name: row.writer || null,
+          athena_sme_name: row.athena_sme || null,
+          client_sme_name: row.client_sme || null,
+          reviewer_name: row.reviewer || null,
+          copy_editor_name: row.copy_editor || null,
+          workstream_lead: row.workstream_lead || null,
+          internal_deadline: internalDeadline,
+          notes: row.notes || null,
+          status: "assigned",
+        };
+
+        const { error: upErr } = await supabase
+          .from("question_assignments")
+          .upsert(payload as never, { onConflict: "question_id" });
+        if (upErr) {
+          console.warn("upsert failed", upErr);
+        }
+      }
+
+      // Reload assignments to compute writer/reviewer gaps across ALL questions
+      const { data: assigns } = await supabase
+        .from("question_assignments")
+        .select("question_id, writer_name, reviewer_name")
+        .eq("mission_id", missionId);
+      const assignByQ = new Map<string, any>();
+      (assigns ?? []).forEach((a: any) => assignByQ.set(a.question_id, a));
+
+      const questionsNoWriter: string[] = [];
+      const questionsNoReviewer: string[] = [];
+      const questionsNotInTracker: string[] = [];
+
+      for (const q of questions) {
+        const a = assignByQ.get(q.id);
+        const label = q.question_number || q.question_name || q.id.slice(0, 6);
+        if (!a) questionsNotInTracker.push(label);
+        if (!a || !a.writer_name) questionsNoWriter.push(label);
+        if (!a || !a.reviewer_name) questionsNoReviewer.push(label);
+      }
+
+      setReport({
+        totalQuestions: questions.length,
+        exactCount,
+        fuzzyMatched,
+        unmatchedTrackerRows,
+        questionsNoWriter,
+        questionsNoReviewer,
+        questionsNotInTracker,
+      });
+      toast.success("IRIS reconciliation complete");
+    } catch (e: any) {
+      toast.error(e?.message || "Reconciliation failed");
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  const proceed = async () => {
+    setAdvancing(true);
+    try {
+      const { error } = await supabase
+        .from("missions")
+        .update({ wizard_step: 6, mission_status: "Ready for Review" } as never)
+        .eq("id", missionId);
+      if (error) throw error;
+      onAdvance();
+    } catch (e: any) {
+      toast.error(e?.message || "Could not advance");
+    } finally {
+      setAdvancing(false);
+    }
+  };
+
+  const skipManually = async () => {
+    const { error } = await supabase
+      .from("missions")
+      .update({ wizard_step: 6 } as never)
+      .eq("id", missionId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    onAdvance();
+  };
+
+  if (loading) {
+    return (
+      <div className="py-16 text-center text-sm text-muted-foreground">
+        <Loader2 className="mx-auto mb-3 h-5 w-5 animate-spin" />
+        Loading…
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      <p className="text-sm text-muted-foreground">
+        IRIS is mapping your assignments to every question
+      </p>
+
+      {!report && (
+        <div className="space-y-5">
+          <div className="rounded-md border border-border bg-surface p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                Questions in architecture v2
+              </div>
+              <div className="text-2xl font-bold mt-1">{questionCount}</div>
+            </div>
+            <div>
+              <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                Rows in assignment tracker
+              </div>
+              <div className="text-2xl font-bold mt-1">{trackerCount}</div>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center gap-3 pt-2">
+            <button
+              type="button"
+              onClick={runReconciliation}
+              disabled={running || questionCount === 0}
+              className="inline-flex items-center gap-2 rounded-md px-6 py-2.5 text-sm font-bold uppercase tracking-wider shadow disabled:opacity-50"
+              style={{ backgroundColor: GOLD, color: NAVY }}
+            >
+              {running ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+              {running ? "Running…" : "Run IRIS Reconciliation →"}
+            </button>
+            <button
+              type="button"
+              onClick={skipManually}
+              className="text-xs font-medium text-muted-foreground underline hover:text-foreground"
+            >
+              Skip — I'll assign manually in the review screen →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {report && (
+        <div className="space-y-4">
+          <div className="rounded-md border border-border bg-surface p-4">
+            <div className="text-sm font-bold mb-3">IRIS Reconciliation Report</div>
+            <ul className="space-y-2 text-sm">
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="h-4 w-4 mt-0.5 text-foreground shrink-0" />
+                <span>
+                  Total questions: <strong>{report.totalQuestions}</strong>
+                </span>
+              </li>
+              <li className="flex items-start gap-2 text-emerald-500">
+                <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>
+                  Successfully mapped (exact): <strong>{report.exactCount}</strong>
+                </span>
+              </li>
+              <li className="flex items-start gap-2 text-amber-500">
+                <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>
+                  Fuzzy matched: <strong>{report.fuzzyMatched.length}</strong>
+                  {report.fuzzyMatched.length > 0 && (
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      ({report.fuzzyMatched.join(", ")})
+                    </span>
+                  )}
+                </span>
+              </li>
+              <li className="flex items-start gap-2 text-amber-500">
+                <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>
+                  Unmatched tracker rows:{" "}
+                  <strong>{report.unmatchedTrackerRows.length}</strong>
+                  {report.unmatchedTrackerRows.length > 0 && (
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      ({report.unmatchedTrackerRows.join(", ")})
+                    </span>
+                  )}
+                </span>
+              </li>
+              <li className="flex items-start gap-2 text-red-500">
+                <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>
+                  Questions with no writer:{" "}
+                  <strong>{report.questionsNoWriter.length}</strong>
+                  {report.questionsNoWriter.length > 0 && (
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      ({report.questionsNoWriter.join(", ")})
+                    </span>
+                  )}
+                </span>
+              </li>
+              <li className="flex items-start gap-2 text-red-500">
+                <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>
+                  Questions with no reviewer:{" "}
+                  <strong>{report.questionsNoReviewer.length}</strong>
+                  {report.questionsNoReviewer.length > 0 && (
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      ({report.questionsNoReviewer.join(", ")})
+                    </span>
+                  )}
+                </span>
+              </li>
+              <li className="flex items-start gap-2 text-red-500">
+                <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>
+                  Questions not in tracker at all:{" "}
+                  <strong>{report.questionsNotInTracker.length}</strong>
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => setReport(null)}
+              className="text-xs font-medium text-muted-foreground underline hover:text-foreground"
+            >
+              ← Run again
+            </button>
+            <button
+              type="button"
+              onClick={proceed}
+              disabled={advancing}
+              className="rounded-md px-5 py-2 text-sm font-bold uppercase tracking-wider shadow disabled:opacity-50"
+              style={{ backgroundColor: GOLD, color: NAVY }}
+            >
+              {advancing ? "Advancing…" : "Proceed to Assignment Review →"}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------- Step 7: Readiness & GO LIVE ---------- */
 
 
 
