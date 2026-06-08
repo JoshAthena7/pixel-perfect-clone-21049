@@ -255,13 +255,16 @@ export function UploadMatrixModal({
     setQuestions((qs) => qs.filter((_, idx) => idx !== i));
   }
 
+  const [mounted, setMounted] = useState(false);
   useEffect(() => {
+    setMounted(true);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = prev; };
   }, []);
 
-  if (typeof document === "undefined") return null;
+  if (!mounted || typeof document === "undefined" || !document.body) return null;
+
 
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-start justify-center bg-black/60 p-4 sm:p-8 overflow-y-auto">
