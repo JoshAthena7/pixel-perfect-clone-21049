@@ -1073,30 +1073,42 @@ function QuestionDrawer({
             <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
               Intelligence
             </div>
-            {!intel ? (
+            {showIntelligence ? (
+              <div className="space-y-4">
+                {INTEL_FIELDS.map((f) => (
+                  <ChipListField
+                    key={f.key}
+                    label={f.label}
+                    values={(intel?.[f.key] as string[]) || []}
+                    documentOptions={f.key === "source_doc_refs" ? missionDocs ?? [] : undefined}
+                    onChange={(next) => onIntelChange?.(f.key, next)}
+                  />
+                ))}
+              </div>
+            ) : !legacyIntel ? (
               <div className="text-xs text-muted-foreground">
                 No intelligence generated for this question yet.
               </div>
             ) : (
               <div className="space-y-2 text-xs">
-                {intel.iris_brief && (
+                {legacyIntel.iris_brief && (
                   <div>
                     <div className="font-semibold">IRIS Brief</div>
                     <div className="text-muted-foreground line-clamp-4">
-                      {intel.iris_brief}
+                      {legacyIntel.iris_brief}
                     </div>
                   </div>
                 )}
                 <div className="flex flex-wrap gap-3">
-                  <Stat label="Key Messages" value={countItems(intel.key_messages)} />
-                  <Stat label="Research" value={countItems(intel.relevant_research)} />
+                  <Stat label="Key Messages" value={countItems(legacyIntel.key_messages)} />
+                  <Stat label="Research" value={countItems(legacyIntel.relevant_research)} />
                   <Stat
                     label="Compliance Flags"
-                    value={countItems(intel.compliance_flags)}
+                    value={countItems(legacyIntel.compliance_flags)}
                   />
                   <Stat
                     label="State Priorities"
-                    value={countItems(intel.state_priorities)}
+                    value={countItems(legacyIntel.state_priorities)}
                   />
                 </div>
               </div>
