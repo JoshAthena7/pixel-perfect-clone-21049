@@ -28,10 +28,10 @@ export function ResumeUploadCard({ onParsed, onSkip }: Props) {
     setFileName(file.name);
     setStatus("reading");
     try {
-      // Path constructed at runtime to avoid the import-protection plugin's
-      // static scan flagging this .client module as a server-graph import.
-      const mod = "@/lib/extract-resume-text" + ".client";
-      const { extractResumeText } = (await import(/* @vite-ignore */ mod)) as typeof import("@/lib/extract-resume-text.client");
+      const { extractResumeText } = await import("@/lib/extract-resume-text");
+      const text = await extractResumeText(file);
+      setStatus("parsing");
+      const parsed = (await parseFn({ data: { resume_text: text } })) as ParsedExpertise;
       const text = await extractResumeText(file);
       setStatus("parsing");
       const parsed = (await parseFn({ data: { resume_text: text } })) as ParsedExpertise;
