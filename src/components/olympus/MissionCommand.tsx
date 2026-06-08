@@ -12,7 +12,6 @@ type MissionRow = {
   mission_status: string | null;
   status: string | null;
   submission_date: string | null;
-  updated_at: string | null;
   created_at: string;
 };
 
@@ -28,8 +27,8 @@ export default function MissionCommand() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("missions")
-        .select("id,name,client,mission_status,status,submission_date,updated_at,created_at")
-        .order("updated_at", { ascending: false, nullsFirst: false });
+        .select("id,name,client,mission_status,status,submission_date,created_at")
+        .order("created_at", { ascending: false, nullsFirst: false });
       if (error) throw error;
       return (data ?? []) as MissionRow[];
     },
