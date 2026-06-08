@@ -96,6 +96,7 @@ import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/e
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicHooksRefreshIntelligenceRouteImport } from './routes/api/public/hooks/refresh-intelligence'
+import { Route as ApiPublicHooksIrisRescrubAdvocatesRouteImport } from './routes/api/public/hooks/iris-rescrub-advocates'
 import { Route as ApiPublicHooksIrisMonitorRouteImport } from './routes/api/public/hooks/iris-monitor'
 import { Route as ApiPublicHooksIngestIntelRouteImport } from './routes/api/public/hooks/ingest-intel'
 import { Route as ApiPublicHooksBackfillVaultExtractionsRouteImport } from './routes/api/public/hooks/backfill-vault-extractions'
@@ -616,6 +617,12 @@ const ApiPublicHooksRefreshIntelligenceRoute =
     path: '/api/public/hooks/refresh-intelligence',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksIrisRescrubAdvocatesRoute =
+  ApiPublicHooksIrisRescrubAdvocatesRouteImport.update({
+    id: '/api/public/hooks/iris-rescrub-advocates',
+    path: '/api/public/hooks/iris-rescrub-advocates',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksIrisMonitorRoute =
   ApiPublicHooksIrisMonitorRouteImport.update({
     id: '/api/public/hooks/iris-monitor',
@@ -927,6 +934,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/backfill-vault-extractions': typeof ApiPublicHooksBackfillVaultExtractionsRoute
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
+  '/api/public/hooks/iris-rescrub-advocates': typeof ApiPublicHooksIrisRescrubAdvocatesRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -1045,6 +1053,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/backfill-vault-extractions': typeof ApiPublicHooksBackfillVaultExtractionsRoute
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
+  '/api/public/hooks/iris-rescrub-advocates': typeof ApiPublicHooksIrisRescrubAdvocatesRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -1169,6 +1178,7 @@ export interface FileRoutesById {
   '/api/public/hooks/backfill-vault-extractions': typeof ApiPublicHooksBackfillVaultExtractionsRoute
   '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
+  '/api/public/hooks/iris-rescrub-advocates': typeof ApiPublicHooksIrisRescrubAdvocatesRoute
   '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -1293,6 +1303,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/backfill-vault-extractions'
     | '/api/public/hooks/ingest-intel'
     | '/api/public/hooks/iris-monitor'
+    | '/api/public/hooks/iris-rescrub-advocates'
     | '/api/public/hooks/refresh-intelligence'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -1411,6 +1422,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/backfill-vault-extractions'
     | '/api/public/hooks/ingest-intel'
     | '/api/public/hooks/iris-monitor'
+    | '/api/public/hooks/iris-rescrub-advocates'
     | '/api/public/hooks/refresh-intelligence'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -1534,6 +1546,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/backfill-vault-extractions'
     | '/api/public/hooks/ingest-intel'
     | '/api/public/hooks/iris-monitor'
+    | '/api/public/hooks/iris-rescrub-advocates'
     | '/api/public/hooks/refresh-intelligence'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -1572,6 +1585,7 @@ export interface RootRouteChildren {
   ApiPublicHooksBackfillVaultExtractionsRoute: typeof ApiPublicHooksBackfillVaultExtractionsRoute
   ApiPublicHooksIngestIntelRoute: typeof ApiPublicHooksIngestIntelRoute
   ApiPublicHooksIrisMonitorRoute: typeof ApiPublicHooksIrisMonitorRoute
+  ApiPublicHooksIrisRescrubAdvocatesRoute: typeof ApiPublicHooksIrisRescrubAdvocatesRoute
   ApiPublicHooksRefreshIntelligenceRoute: typeof ApiPublicHooksRefreshIntelligenceRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -2191,6 +2205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksRefreshIntelligenceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/iris-rescrub-advocates': {
+      id: '/api/public/hooks/iris-rescrub-advocates'
+      path: '/api/public/hooks/iris-rescrub-advocates'
+      fullPath: '/api/public/hooks/iris-rescrub-advocates'
+      preLoaderRoute: typeof ApiPublicHooksIrisRescrubAdvocatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/iris-monitor': {
       id: '/api/public/hooks/iris-monitor'
       path: '/api/public/hooks/iris-monitor'
@@ -2744,6 +2765,8 @@ const rootRouteChildren: RootRouteChildren = {
     ApiPublicHooksBackfillVaultExtractionsRoute,
   ApiPublicHooksIngestIntelRoute: ApiPublicHooksIngestIntelRoute,
   ApiPublicHooksIrisMonitorRoute: ApiPublicHooksIrisMonitorRoute,
+  ApiPublicHooksIrisRescrubAdvocatesRoute:
+    ApiPublicHooksIrisRescrubAdvocatesRoute,
   ApiPublicHooksRefreshIntelligenceRoute:
     ApiPublicHooksRefreshIntelligenceRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,

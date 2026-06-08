@@ -196,7 +196,7 @@ function deterministicAgencyFallback(docText: string, mission: any) {
  * relying solely on whatever the RFP happens to cite, so the Stakeholder
  * section comes back sharp and source-grounded.
  */
-async function scrubAdvocatesFromWeb(mission: any, docText: string): Promise<{
+export async function scrubAdvocatesFromWeb(mission: any, docText: string): Promise<{
   webContext: string;
   sources: Array<{ url: string; title?: string }>;
 }> {

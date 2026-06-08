@@ -3621,6 +3621,7 @@ export type Database = {
           contacts: Json
           created_by_system: boolean
           decision_makers: Json
+          last_advocate_scrub_at: string | null
           meeting_cadence: string | null
           mission_id: string
           notes: string | null
@@ -3633,6 +3634,7 @@ export type Database = {
           contacts?: Json
           created_by_system?: boolean
           decision_makers?: Json
+          last_advocate_scrub_at?: string | null
           meeting_cadence?: string | null
           mission_id: string
           notes?: string | null
@@ -3645,6 +3647,7 @@ export type Database = {
           contacts?: Json
           created_by_system?: boolean
           decision_makers?: Json
+          last_advocate_scrub_at?: string | null
           meeting_cadence?: string | null
           mission_id?: string
           notes?: string | null
