@@ -16,7 +16,7 @@ const STEP_META: Record<number, { name: string; subtitle: string }> = {
   2: { name: "Source Materials", subtitle: "Give IRIS everything it needs to build your mission record" },
   3: { name: "IRIS Analysis", subtitle: "IRIS is reading your materials and building the mission record" },
   4: { name: "Review & Edit Record", subtitle: "IRIS drafted this — review it and correct anything before staging the team" },
-  5: { name: "Readiness", subtitle: "Coming soon" },
+  5: { name: "Build the Team", subtitle: "Stage your team — no invites go out until you launch" },
   6: { name: "Strategy", subtitle: "Coming soon" },
   7: { name: "Launch", subtitle: "Coming soon" },
 };
@@ -220,11 +220,28 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
     return true;
   };
 
+  const saveStep5 = async () => {
+    if (!missionId) return false;
+    setSaving(true);
+    setErr(null);
+    const { error } = await supabase
+      .from("missions")
+      .update({ wizard_step: 5 } as never)
+      .eq("id", missionId);
+    setSaving(false);
+    if (error) {
+      setErr(error.message);
+      return false;
+    }
+    return true;
+  };
+
   const handleContinue = async () => {
     let ok = true;
     if (step === 1) ok = await saveStep1();
     else if (step === 2) ok = await saveStep2();
     else if (step === 4) ok = await saveStep4();
+    else if (step === 5) ok = await saveStep5();
     if (!ok) return;
     if (step >= TOTAL_STEPS) {
       qc.invalidateQueries({ queryKey: ["olympus-missions"] });
@@ -237,6 +254,11 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
   const skipStep2 = () => {
     setStep(3);
   };
+
+  const skipStep5 = () => {
+    setStep(6);
+  };
+
 
   const startIris = async () => {
     if (!missionId) return;
@@ -510,7 +532,11 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
             )
           )}
 
-          {step >= 5 && (
+          {step === 5 && missionId && (
+            <TeamStep missionId={missionId} onSkip={skipStep5} />
+          )}
+
+          {step >= 6 && (
             <div className="rounded-lg border border-dashed border-border bg-surface/30 p-10 text-center text-sm text-muted-foreground">
               {meta.name} — coming soon.
             </div>
@@ -962,5 +988,487 @@ function RiskTable({
         + Add Risk
       </button>
     </div>
+  );
+}
+
+// ---------- Step 5: Build the Team ----------
+
+const TEAM_ROLES = [
+  "Engagement Lead",
+  "Operations Lead",
+  "Project Manager",
+  "SME",
+  "Writer",
+  "Copy Editor",
+  "QA Reviewer",
+  "Client Contact",
+];
+
+type TeamMember = {
+  id: string;
+  name: string;
+  email: string | null;
+  role: string;
+  assigned_sections: string[] | null;
+  start_date: string | null;
+  talentdesk_status: string | null;
+  contract_status: string | null;
+  nda_status: string | null;
+  baa_required: boolean | null;
+  client_system_access: boolean | null;
+  slack_access: boolean | null;
+  folder_access: boolean | null;
+};
+
+function TeamStep({ missionId, onSkip }: { missionId: string; onSkip: () => void }) {
+  const [members, setMembers] = useState<TeamMember[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAccess, setShowAccess] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    role: TEAM_ROLES[0],
+    sections: "",
+    start_date: "",
+  });
+  const [adding, setAdding] = useState(false);
+  const [formErr, setFormErr] = useState<string | null>(null);
+
+  const refresh = async () => {
+    const { data } = await supabase
+      .from("mission_team_members")
+      .select("*")
+      .eq("mission_id", missionId)
+      .order("created_at", { ascending: true });
+    setMembers((data ?? []) as unknown as TeamMember[]);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    void refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [missionId]);
+
+  const addMember = async () => {
+    setFormErr(null);
+    if (!form.name.trim()) {
+      setFormErr("Name is required.");
+      return;
+    }
+    if (!form.role.trim()) {
+      setFormErr("Role is required.");
+      return;
+    }
+    setAdding(true);
+    const sections = form.sections
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const payload: Record<string, unknown> = {
+      mission_id: missionId,
+      name: form.name.trim(),
+      role: form.role,
+      assigned_sections: sections,
+    };
+    if (form.email.trim()) payload.email = form.email.trim();
+    if (form.start_date) payload.start_date = form.start_date;
+
+    const { error } = await supabase
+      .from("mission_team_members")
+      .insert(payload as never);
+    setAdding(false);
+    if (error) {
+      setFormErr(error.message);
+      return;
+    }
+    toast.success(`${form.name.trim()} added to team`);
+    setForm({ name: "", email: "", role: TEAM_ROLES[0], sections: "", start_date: "" });
+    void refresh();
+  };
+
+  const removeMember = async (m: TeamMember) => {
+    if (!window.confirm(`Remove ${m.name} from the team?`)) return;
+    const { error } = await supabase.from("mission_team_members").delete().eq("id", m.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Member removed");
+    void refresh();
+  };
+
+  const updateMember = async (id: string, patch: Partial<TeamMember>) => {
+    setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, ...patch } : m)));
+    const { error } = await supabase
+      .from("mission_team_members")
+      .update(patch as never)
+      .eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      void refresh();
+    }
+  };
+
+  const toggleAccess = (id: string, field: keyof TeamMember, current: boolean | null | string) => {
+    if (field === "talentdesk_status" || field === "contract_status" || field === "nda_status") {
+      const next = current === "complete" ? "pending" : "complete";
+      void updateMember(id, { [field]: next } as Partial<TeamMember>);
+    } else {
+      void updateMember(id, { [field]: !current } as Partial<TeamMember>);
+    }
+  };
+
+  return (
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr]">
+      {/* Left: Add Team Member */}
+      <div className="rounded-lg border border-border bg-surface/40 p-4">
+        <h3 className="mb-3 text-xs font-bold uppercase tracking-[0.18em]" style={{ color: GOLD }}>
+          Add Team Member
+        </h3>
+        <div className="space-y-3">
+          <Field label="Name *">
+            <Input value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
+          </Field>
+          <Field label="Email">
+            <Input value={form.email} onChange={(v) => setForm({ ...form, email: v })} />
+          </Field>
+          <Field label="Role">
+            <select
+              value={form.role}
+              onChange={(e) => setForm({ ...form, role: e.target.value })}
+              className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm"
+            >
+              {TEAM_ROLES.map((r) => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Assigned Sections">
+            <Input
+              value={form.sections}
+              onChange={(v) => setForm({ ...form, sections: v })}
+              placeholder="e.g. Section C, Management"
+            />
+          </Field>
+          <Field label="Start Date">
+            <Input
+              type="date"
+              value={form.start_date}
+              onChange={(v) => setForm({ ...form, start_date: v })}
+            />
+          </Field>
+          {formErr && (
+            <div className="rounded-md border border-rose-500/40 bg-rose-500/10 px-2 py-1.5 text-[11px] text-rose-300">
+              {formErr}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={addMember}
+            disabled={adding}
+            className="w-full rounded-md px-3 py-2 text-xs font-semibold text-black disabled:opacity-50"
+            style={{ backgroundColor: GOLD }}
+          >
+            {adding ? "Adding…" : "Add to Team"}
+          </button>
+        </div>
+      </div>
+
+      {/* Right: Roster */}
+      <div>
+        <h3 className="mb-3 text-xs font-bold uppercase tracking-[0.18em]" style={{ color: GOLD }}>
+          Team Roster
+        </h3>
+        {loading ? (
+          <div className="rounded-md border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
+            Loading…
+          </div>
+        ) : members.length === 0 ? (
+          <div className="rounded-md border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
+            No team members yet. Add one on the left.
+          </div>
+        ) : (
+          <div className="overflow-x-auto rounded-md border border-border">
+            <table className="w-full text-xs">
+              <thead className="bg-surface/60 text-[10px] uppercase tracking-wider text-muted-foreground">
+                <tr>
+                  <th className="px-2 py-2 text-left">Name</th>
+                  <th className="px-2 py-2 text-left">Role</th>
+                  <th className="px-2 py-2 text-left">Email</th>
+                  <th className="px-2 py-2 text-left">Sections</th>
+                  <th className="px-2 py-2 text-left">Start</th>
+                  <th className="px-2 py-2" />
+                </tr>
+              </thead>
+              <tbody>
+                {members.map((m) => (
+                  <TeamRow
+                    key={m.id}
+                    member={m}
+                    editing={editingId === m.id}
+                    onEdit={() => setEditingId(m.id)}
+                    onCancel={() => setEditingId(null)}
+                    onSave={async (patch) => {
+                      await updateMember(m.id, patch);
+                      setEditingId(null);
+                      toast.success("Member updated");
+                    }}
+                    onRemove={() => removeMember(m)}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Access Requirements */}
+        {members.length > 0 && (
+          <div className="mt-4 rounded-md border border-border">
+            <button
+              type="button"
+              onClick={() => setShowAccess((v) => !v)}
+              className="flex w-full items-center justify-between px-3 py-2 text-xs font-semibold uppercase tracking-wider text-foreground hover:bg-surface-hover"
+            >
+              <span>Access Requirements</span>
+              <span className="text-muted-foreground">{showAccess ? "▾" : "▸"}</span>
+            </button>
+            {showAccess && (
+              <div className="overflow-x-auto border-t border-border">
+                <table className="w-full text-[11px]">
+                  <thead className="bg-surface/60 text-[10px] uppercase tracking-wider text-muted-foreground">
+                    <tr>
+                      <th className="px-2 py-2 text-left">Name</th>
+                      <th className="px-2 py-2">TalentDesk</th>
+                      <th className="px-2 py-2">Contract</th>
+                      <th className="px-2 py-2">NDA</th>
+                      <th className="px-2 py-2">BAA Req.</th>
+                      <th className="px-2 py-2">Client</th>
+                      <th className="px-2 py-2">Slack</th>
+                      <th className="px-2 py-2">Folder</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {members.map((m) => (
+                      <tr key={m.id} className="border-t border-border">
+                        <td className="px-2 py-1.5">{m.name}</td>
+                        <td className="px-2 py-1.5 text-center">
+                          <Toggle
+                            on={m.talentdesk_status === "complete"}
+                            onClick={() => toggleAccess(m.id, "talentdesk_status", m.talentdesk_status)}
+                          />
+                        </td>
+                        <td className="px-2 py-1.5 text-center">
+                          <Toggle
+                            on={m.contract_status === "complete"}
+                            onClick={() => toggleAccess(m.id, "contract_status", m.contract_status)}
+                          />
+                        </td>
+                        <td className="px-2 py-1.5 text-center">
+                          <Toggle
+                            on={m.nda_status === "complete"}
+                            onClick={() => toggleAccess(m.id, "nda_status", m.nda_status)}
+                          />
+                        </td>
+                        <td className="px-2 py-1.5 text-center">
+                          <Toggle
+                            on={!!m.baa_required}
+                            onClick={() => toggleAccess(m.id, "baa_required", m.baa_required)}
+                          />
+                        </td>
+                        <td className="px-2 py-1.5 text-center">
+                          <Toggle
+                            on={!!m.client_system_access}
+                            onClick={() => toggleAccess(m.id, "client_system_access", m.client_system_access)}
+                          />
+                        </td>
+                        <td className="px-2 py-1.5 text-center">
+                          <Toggle
+                            on={!!m.slack_access}
+                            onClick={() => toggleAccess(m.id, "slack_access", m.slack_access)}
+                          />
+                        </td>
+                        <td className="px-2 py-1.5 text-center">
+                          <Toggle
+                            on={!!m.folder_access}
+                            onClick={() => toggleAccess(m.id, "folder_access", m.folder_access)}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="mt-4 text-right">
+          <button
+            type="button"
+            onClick={onSkip}
+            className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+          >
+            Skip — add team later
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TeamRow({
+  member,
+  editing,
+  onEdit,
+  onCancel,
+  onSave,
+  onRemove,
+}: {
+  member: TeamMember;
+  editing: boolean;
+  onEdit: () => void;
+  onCancel: () => void;
+  onSave: (patch: Partial<TeamMember>) => Promise<void>;
+  onRemove: () => void;
+}) {
+  const [draft, setDraft] = useState({
+    name: member.name,
+    role: member.role,
+    email: member.email ?? "",
+    sections: (member.assigned_sections ?? []).join(", "),
+    start_date: member.start_date ?? "",
+  });
+
+  useEffect(() => {
+    if (editing) {
+      setDraft({
+        name: member.name,
+        role: member.role,
+        email: member.email ?? "",
+        sections: (member.assigned_sections ?? []).join(", "),
+        start_date: member.start_date ?? "",
+      });
+    }
+  }, [editing, member]);
+
+  if (!editing) {
+    return (
+      <tr className="border-t border-border">
+        <td className="px-2 py-1.5">{member.name}</td>
+        <td className="px-2 py-1.5 text-muted-foreground">{member.role}</td>
+        <td className="px-2 py-1.5 text-muted-foreground">{member.email ?? "—"}</td>
+        <td className="px-2 py-1.5 text-muted-foreground">
+          {(member.assigned_sections ?? []).join(", ") || "—"}
+        </td>
+        <td className="px-2 py-1.5 text-muted-foreground">{member.start_date ?? "—"}</td>
+        <td className="px-2 py-1.5 text-right whitespace-nowrap">
+          <button
+            type="button"
+            onClick={onEdit}
+            className="mr-1 rounded border border-border px-2 py-0.5 text-[10px] hover:bg-surface-hover"
+          >
+            Edit
+          </button>
+          <button
+            type="button"
+            onClick={onRemove}
+            className="rounded border border-rose-500/40 px-2 py-0.5 text-[10px] text-rose-300 hover:bg-rose-500/10"
+          >
+            Remove
+          </button>
+        </td>
+      </tr>
+    );
+  }
+
+  return (
+    <tr className="border-t border-border bg-surface/40">
+      <td className="px-2 py-1.5">
+        <input
+          value={draft.name}
+          onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+          className="w-full rounded border border-border bg-background px-1.5 py-1 text-[11px]"
+        />
+      </td>
+      <td className="px-2 py-1.5">
+        <select
+          value={draft.role}
+          onChange={(e) => setDraft({ ...draft, role: e.target.value })}
+          className="w-full rounded border border-border bg-background px-1.5 py-1 text-[11px]"
+        >
+          {TEAM_ROLES.map((r) => (
+            <option key={r} value={r}>{r}</option>
+          ))}
+        </select>
+      </td>
+      <td className="px-2 py-1.5">
+        <input
+          value={draft.email}
+          onChange={(e) => setDraft({ ...draft, email: e.target.value })}
+          className="w-full rounded border border-border bg-background px-1.5 py-1 text-[11px]"
+        />
+      </td>
+      <td className="px-2 py-1.5">
+        <input
+          value={draft.sections}
+          onChange={(e) => setDraft({ ...draft, sections: e.target.value })}
+          placeholder="Comma-separated"
+          className="w-full rounded border border-border bg-background px-1.5 py-1 text-[11px]"
+        />
+      </td>
+      <td className="px-2 py-1.5">
+        <input
+          type="date"
+          value={draft.start_date}
+          onChange={(e) => setDraft({ ...draft, start_date: e.target.value })}
+          className="w-full rounded border border-border bg-background px-1.5 py-1 text-[11px]"
+        />
+      </td>
+      <td className="px-2 py-1.5 text-right whitespace-nowrap">
+        <button
+          type="button"
+          onClick={() =>
+            void onSave({
+              name: draft.name.trim() || member.name,
+              role: draft.role,
+              email: draft.email.trim() || null,
+              assigned_sections: draft.sections
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean),
+              start_date: draft.start_date || null,
+            })
+          }
+          className="mr-1 rounded px-2 py-0.5 text-[10px] font-semibold text-black"
+          style={{ backgroundColor: GOLD }}
+        >
+          Save
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded border border-border px-2 py-0.5 text-[10px] hover:bg-surface-hover"
+        >
+          Cancel
+        </button>
+      </td>
+    </tr>
+  );
+}
+
+function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex h-4 w-7 items-center rounded-full transition-colors ${on ? "bg-emerald-500" : "bg-border"}`}
+      aria-pressed={on}
+    >
+      <span
+        className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${on ? "translate-x-3.5" : "translate-x-0.5"}`}
+      />
+    </button>
   );
 }
