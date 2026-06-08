@@ -88,6 +88,37 @@ function MissionSetupRecord() {
   const [preLaunchError, setPreLaunchError] = useState<string | null>(null);
   const [autofillWritten, setAutofillWritten] = useState<number | undefined>(undefined);
   const [clientIntelAttempted, setClientIntelAttempted] = useState<string | null>(null);
+  const [rerunning, setRerunning] = useState(false);
+
+  async function handleRerunIris() {
+    if (rerunning) return;
+    setRerunning(true);
+    const t = toast.loading("Re-running IRIS extraction…");
+    try {
+      const [autofill, intel] = await Promise.allSettled([
+        autofillFn({ data: { missionId } }),
+        extractClientIntelFn({ data: { missionId } }),
+      ]);
+      if (autofill.status === "fulfilled") {
+        setAutofillWritten((autofill.value as any)?.written);
+      }
+      // bust client-intel dedupe so the auto-effect won't immediately fire again
+      setClientIntelAttempted(clientIntelSourceSignature);
+      await setup.refetch();
+      const errs = [autofill, intel].filter((r) => r.status === "rejected") as PromiseRejectedResult[];
+      if (errs.length === 2) {
+        toast.error("IRIS re-run failed", { id: t });
+      } else if (errs.length === 1) {
+        toast.warning("IRIS re-ran with partial results", { id: t });
+      } else {
+        toast.success("IRIS re-ran. Sections refreshed.", { id: t });
+      }
+    } catch (e: any) {
+      toast.error(e?.message ?? "IRIS re-run failed", { id: t });
+    } finally {
+      setRerunning(false);
+    }
+  }
 
   const setup = useSetupData(missionId);
   const completion = useCompletion(setup);
