@@ -2291,7 +2291,7 @@ function Step6Readiness({
         supabase.from("missions").select("name").eq("id", missionId).maybeSingle(),
         supabase
           .from("mission_team_members")
-          .select("contract_status, nda_status, talentdesk_status")
+          .select("contract_status, nda_status, talentdesk_status, baa_required, baa_status")
           .eq("mission_id", missionId),
       ]);
       if (!alive) return;
@@ -2300,8 +2300,9 @@ function Step6Readiness({
       const members = (team ?? []) as any[];
       setOpenItems({
         contracts: members.filter((m) => m.contract_status !== "signed").length,
-        ndas: members.filter((m) => m.nda_status !== "signed").length,
+        ndas: members.filter((m) => m.nda_status !== "signed" && m.nda_status !== "waived").length,
         talentdesk: members.filter((m) => m.talentdesk_status !== "active").length,
+        baas: members.filter((m) => m.baa_required === true && m.baa_status !== "signed").length,
       });
       setLoading(false);
     })();
