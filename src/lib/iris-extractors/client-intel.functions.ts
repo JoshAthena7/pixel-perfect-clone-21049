@@ -121,6 +121,54 @@ function deterministicAgencyFallback(docText: string, mission: any) {
     decisionMakers.push("Office of the Governor — executive approval authority");
   }
 
+  // ── Advocacy / CBO / research ecosystem ───────────────────────────────
+  // Generic regex sweep — catch orgs explicitly named in the source docs.
+  const advocacyPatterns: Array<[RegExp, string]> = [
+    [/family[- ]?based services association of new jersey|\bfbsanj\b/i, "Family-Based Services Association of NJ (FBSANJ) — provider/advocacy coalition for children's behavioral health"],
+    [/new jersey association of mental health and addiction agencies|\bnjamhaa\b/i, "NJ Association of Mental Health & Addiction Agencies (NJAMHAA) — provider association / policy advocacy"],
+    [/mental health association in new jersey|\bmhanj\b/i, "Mental Health Association in NJ (MHANJ) — statewide mental health advocacy organization"],
+    [/nami[- ]?new jersey|\bnami nj\b/i, "NAMI New Jersey — family & consumer mental health advocacy"],
+    [/advocates for children of new jersey|\bacnj\b/i, "Advocates for Children of NJ (ACNJ) — statewide child welfare & policy advocacy"],
+    [/association for children of new jersey/i, "Association for Children of NJ — child advocacy organization"],
+    [/new jersey citizen action|\bnjca\b/i, "NJ Citizen Action — statewide policy advocacy coalition"],
+    [/youth move|\byouthmove\b/i, "Youth MOVE NJ — youth-led peer advocacy organization"],
+    [/family support organization|\bfso\b/i, "NJ Family Support Organizations (FSOs) — county-based parent/family peer advocacy network"],
+    [/parents anonymous/i, "Parents Anonymous of NJ — parent peer support & advocacy"],
+    [/(?:rutgers|montclair|princeton|seton hall|rowan|stockton|njit) (?:university|college|center|institute|school)/i, "Academic / research partner — university-based evaluation or technical assistance"],
+    [/center of excellence|center for evidence[- ]based|behavioral health research/i, "Behavioral health research/evidence-based practice center — research & TA partner"],
+    [/community[- ]based organization|\bcbo\b/i, "Community-based organizations (CBOs) — local service delivery & advocacy partners"],
+    [/family voice|youth voice|lived experience|peer[- ]led/i, "Family/youth voice partners — lived-experience advisory stakeholders"],
+    [/robert wood johnson|\brwjf\b|nicholson foundation|burke foundation|turrell fund/i, "Philanthropic funder (RWJF / Nicholson / Burke / Turrell) — funding & policy influence"],
+  ];
+  for (const [re, label] of advocacyPatterns) {
+    if (re.test(text)) stakeholders.push(label);
+  }
+
+  // Always-add roster: when the scope is clearly NJ children's behavioral
+  // health (CSOC / children's system of care / care management organization),
+  // the ecosystem ALWAYS includes these advocacy & CBO actors — even if the
+  // RFP doesn't name them. Add them with an "(inferred from scope)" note.
+  const isNjChildBh =
+    /\bcsoc\b|children[’']?s system of care|care management organization|\bcmo\b|mobile response and stabilization|\bmrss\b|perform care|children[’']?s mental health/i.test(text);
+  if (isNjChildBh) {
+    const alwaysAdd = [
+      "Family-Based Services Association of NJ (FBSANJ) — provider/advocacy coalition for children's behavioral health (inferred from CSOC scope)",
+      "NJ Association of Mental Health & Addiction Agencies (NJAMHAA) — provider association & policy advocacy (inferred from scope)",
+      "Mental Health Association in NJ (MHANJ) — statewide advocacy (inferred from scope)",
+      "NAMI New Jersey — family/consumer mental health advocacy (inferred from scope)",
+      "Advocates for Children of NJ (ACNJ) — statewide child welfare & policy advocacy (inferred from scope)",
+      "NJ Family Support Organizations (FSOs) — county-based parent/family peer advocacy network (inferred from CSOC scope)",
+      "Youth MOVE NJ — youth-led peer advocacy (inferred from CSOC scope)",
+      "PerformCare NJ — statewide Contracted System Administrator for CSOC (inferred from scope)",
+      "Care Management Organizations (CMOs, 15 county-based) — intensive care coordination providers (inferred from CSOC scope)",
+      "Mobile Response & Stabilization Services (MRSS) providers — crisis response network (inferred from CSOC scope)",
+      "Rutgers University Behavioral Health Care / Rutgers School of Social Work — academic & research/evaluation partner (inferred from scope)",
+      "Robert Wood Johnson Foundation — philanthropic funder & policy influence in NJ child health (inferred from scope)",
+      "The Nicholson Foundation — NJ-focused philanthropic funder for vulnerable populations (inferred from scope)",
+    ];
+    for (const s of alwaysAdd) stakeholders.push(s);
+  }
+
   let meetingCadence: string | null = null;
   const preQuote = text.match(/Optional Pre-Quote Submission Conference.{0,160}?06\/08\/2026.{0,80}?10:00 AM/i);
   const questions = text.match(/Due Date For Electronic Questions.{0,160}?06\/23\/2026.{0,80}?2:00 PM/i);
@@ -133,7 +181,7 @@ function deterministicAgencyFallback(docText: string, mission: any) {
 
   return {
     contacts: uniqueLines(contacts, 12),
-    stakeholders: uniqueLines(stakeholders, 12),
+    stakeholders: uniqueLines(stakeholders, 40),
     decision_makers: uniqueLines(decisionMakers, 10),
     meeting_cadence: meetingCadence,
   };
