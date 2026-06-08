@@ -62,33 +62,7 @@ import { Route as AuthenticatedCommandBroadcastsRouteImport } from './routes/_au
 import { Route as AuthenticatedCommandAttentionRouteImport } from './routes/_authenticated/command/attention'
 import { Route as AuthenticatedCommandAlignmentConflictsRouteImport } from './routes/_authenticated/command/alignment-conflicts'
 import { Route as AuthenticatedCommandAlignmentRouteImport } from './routes/_authenticated/command/alignment'
-import { Route as AuthenticatedAdminWriterDeletionRouteImport } from './routes/_authenticated/admin/writer-deletion'
-import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
-import { Route as AuthenticatedAdminStatusReportRouteImport } from './routes/_authenticated/admin/status-report'
-import { Route as AuthenticatedAdminSourceLibraryRouteImport } from './routes/_authenticated/admin/source-library'
-import { Route as AuthenticatedAdminSourceFinderRouteImport } from './routes/_authenticated/admin/source-finder'
-import { Route as AuthenticatedAdminSmeDirectoryRouteImport } from './routes/_authenticated/admin/sme-directory'
-import { Route as AuthenticatedAdminScoreMeRouteImport } from './routes/_authenticated/admin/score-me'
-import { Route as AuthenticatedAdminRightToDeletionRouteImport } from './routes/_authenticated/admin/right-to-deletion'
-import { Route as AuthenticatedAdminReviewQueueRouteImport } from './routes/_authenticated/admin/review-queue'
-import { Route as AuthenticatedAdminPhiLogRouteImport } from './routes/_authenticated/admin/phi-log'
-import { Route as AuthenticatedAdminIrisMemoryRouteImport } from './routes/_authenticated/admin/iris-memory'
-import { Route as AuthenticatedAdminInvitesRouteImport } from './routes/_authenticated/admin/invites'
-import { Route as AuthenticatedAdminIntelligenceRouteImport } from './routes/_authenticated/admin/intelligence'
 import { Route as AuthenticatedAdminIntelEngineRouteImport } from './routes/_authenticated/admin/intel-engine'
-import { Route as AuthenticatedAdminIntelDriftRouteImport } from './routes/_authenticated/admin/intel-drift'
-import { Route as AuthenticatedAdminIncidentResponseRouteImport } from './routes/_authenticated/admin/incident-response'
-import { Route as AuthenticatedAdminFirmHealthRouteImport } from './routes/_authenticated/admin/firm-health'
-import { Route as AuthenticatedAdminExpertiseRouteImport } from './routes/_authenticated/admin/expertise'
-import { Route as AuthenticatedAdminDiscoveryHistoryRouteImport } from './routes/_authenticated/admin/discovery-history'
-import { Route as AuthenticatedAdminConflictsRouteImport } from './routes/_authenticated/admin/conflicts'
-import { Route as AuthenticatedAdminComparablesRouteImport } from './routes/_authenticated/admin/comparables'
-import { Route as AuthenticatedAdminCanonLibraryRouteImport } from './routes/_authenticated/admin/canon-library'
-import { Route as AuthenticatedAdminBriefRoomRouteImport } from './routes/_authenticated/admin/brief-room'
-import { Route as AuthenticatedAdminAuditLogRouteImport } from './routes/_authenticated/admin/audit-log'
-import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
-import { Route as AuthenticatedAdminAtlasSourcesRouteImport } from './routes/_authenticated/admin/atlas-sources'
-import { Route as AuthenticatedAdminAdminsRouteImport } from './routes/_authenticated/admin/admins'
 import { Route as AuthenticatedV1SectionsIndexRouteImport } from './routes/_authenticated/v1/sections.index'
 import { Route as AuthenticatedMissionsMissionIdIndexRouteImport } from './routes/_authenticated/missions/$missionId/index'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
@@ -133,7 +107,6 @@ import { Route as AuthenticatedMissionsMissionIdSectionsQuestionIdRouteImport } 
 import { Route as AuthenticatedMissionsMissionIdScaffoldSectionIdRouteImport } from './routes/_authenticated/missions/$missionId/scaffold/$sectionId'
 import { Route as AuthenticatedMissionsMissionIdQuestionsQuestionIdRouteImport } from './routes/_authenticated/missions/$missionId/questions/$questionId'
 import { Route as AuthenticatedAdminMissionsMissionIdSetupRouteImport } from './routes/_authenticated/admin/missions.$missionId.setup'
-import { Route as AuthenticatedAdminMissionsMissionIdDebriefRouteImport } from './routes/_authenticated/admin/missions.$missionId.debrief'
 
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
   id: '/unsubscribe',
@@ -419,164 +392,10 @@ const AuthenticatedCommandAlignmentRoute =
     path: '/command/alignment',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedAdminWriterDeletionRoute =
-  AuthenticatedAdminWriterDeletionRouteImport.update({
-    id: '/writer-deletion',
-    path: '/writer-deletion',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => AuthenticatedAdminRoute,
-} as any)
-const AuthenticatedAdminStatusReportRoute =
-  AuthenticatedAdminStatusReportRouteImport.update({
-    id: '/status-report',
-    path: '/status-report',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminSourceLibraryRoute =
-  AuthenticatedAdminSourceLibraryRouteImport.update({
-    id: '/source-library',
-    path: '/source-library',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminSourceFinderRoute =
-  AuthenticatedAdminSourceFinderRouteImport.update({
-    id: '/source-finder',
-    path: '/source-finder',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminSmeDirectoryRoute =
-  AuthenticatedAdminSmeDirectoryRouteImport.update({
-    id: '/sme-directory',
-    path: '/sme-directory',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminScoreMeRoute =
-  AuthenticatedAdminScoreMeRouteImport.update({
-    id: '/score-me',
-    path: '/score-me',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminRightToDeletionRoute =
-  AuthenticatedAdminRightToDeletionRouteImport.update({
-    id: '/right-to-deletion',
-    path: '/right-to-deletion',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminReviewQueueRoute =
-  AuthenticatedAdminReviewQueueRouteImport.update({
-    id: '/review-queue',
-    path: '/review-queue',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminPhiLogRoute =
-  AuthenticatedAdminPhiLogRouteImport.update({
-    id: '/phi-log',
-    path: '/phi-log',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminIrisMemoryRoute =
-  AuthenticatedAdminIrisMemoryRouteImport.update({
-    id: '/iris-memory',
-    path: '/iris-memory',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminInvitesRoute =
-  AuthenticatedAdminInvitesRouteImport.update({
-    id: '/invites',
-    path: '/invites',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminIntelligenceRoute =
-  AuthenticatedAdminIntelligenceRouteImport.update({
-    id: '/intelligence',
-    path: '/intelligence',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
 const AuthenticatedAdminIntelEngineRoute =
   AuthenticatedAdminIntelEngineRouteImport.update({
     id: '/intel-engine',
     path: '/intel-engine',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminIntelDriftRoute =
-  AuthenticatedAdminIntelDriftRouteImport.update({
-    id: '/intel-drift',
-    path: '/intel-drift',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminIncidentResponseRoute =
-  AuthenticatedAdminIncidentResponseRouteImport.update({
-    id: '/incident-response',
-    path: '/incident-response',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminFirmHealthRoute =
-  AuthenticatedAdminFirmHealthRouteImport.update({
-    id: '/firm-health',
-    path: '/firm-health',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminExpertiseRoute =
-  AuthenticatedAdminExpertiseRouteImport.update({
-    id: '/expertise',
-    path: '/expertise',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminDiscoveryHistoryRoute =
-  AuthenticatedAdminDiscoveryHistoryRouteImport.update({
-    id: '/discovery-history',
-    path: '/discovery-history',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminConflictsRoute =
-  AuthenticatedAdminConflictsRouteImport.update({
-    id: '/conflicts',
-    path: '/conflicts',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminComparablesRoute =
-  AuthenticatedAdminComparablesRouteImport.update({
-    id: '/comparables',
-    path: '/comparables',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminCanonLibraryRoute =
-  AuthenticatedAdminCanonLibraryRouteImport.update({
-    id: '/canon-library',
-    path: '/canon-library',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminBriefRoomRoute =
-  AuthenticatedAdminBriefRoomRouteImport.update({
-    id: '/brief-room',
-    path: '/brief-room',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminAuditLogRoute =
-  AuthenticatedAdminAuditLogRouteImport.update({
-    id: '/audit-log',
-    path: '/audit-log',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminAuditRoute = AuthenticatedAdminAuditRouteImport.update({
-  id: '/audit',
-  path: '/audit',
-  getParentRoute: () => AuthenticatedAdminRoute,
-} as any)
-const AuthenticatedAdminAtlasSourcesRoute =
-  AuthenticatedAdminAtlasSourcesRouteImport.update({
-    id: '/atlas-sources',
-    path: '/atlas-sources',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminAdminsRoute =
-  AuthenticatedAdminAdminsRouteImport.update({
-    id: '/admins',
-    path: '/admins',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedV1SectionsIndexRoute =
@@ -841,12 +660,6 @@ const AuthenticatedAdminMissionsMissionIdSetupRoute =
     path: '/setup',
     getParentRoute: () => AuthenticatedAdminMissionsMissionIdRoute,
   } as any)
-const AuthenticatedAdminMissionsMissionIdDebriefRoute =
-  AuthenticatedAdminMissionsMissionIdDebriefRouteImport.update({
-    id: '/debrief',
-    path: '/debrief',
-    getParentRoute: () => AuthenticatedAdminMissionsMissionIdRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -878,33 +691,7 @@ export interface FileRoutesByFullPath {
   '/debug/daily-note-layout': typeof DebugDailyNoteLayoutRoute
   '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
-  '/admin/admins': typeof AuthenticatedAdminAdminsRoute
-  '/admin/atlas-sources': typeof AuthenticatedAdminAtlasSourcesRoute
-  '/admin/audit': typeof AuthenticatedAdminAuditRoute
-  '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
-  '/admin/brief-room': typeof AuthenticatedAdminBriefRoomRoute
-  '/admin/canon-library': typeof AuthenticatedAdminCanonLibraryRoute
-  '/admin/comparables': typeof AuthenticatedAdminComparablesRoute
-  '/admin/conflicts': typeof AuthenticatedAdminConflictsRoute
-  '/admin/discovery-history': typeof AuthenticatedAdminDiscoveryHistoryRoute
-  '/admin/expertise': typeof AuthenticatedAdminExpertiseRoute
-  '/admin/firm-health': typeof AuthenticatedAdminFirmHealthRoute
-  '/admin/incident-response': typeof AuthenticatedAdminIncidentResponseRoute
-  '/admin/intel-drift': typeof AuthenticatedAdminIntelDriftRoute
   '/admin/intel-engine': typeof AuthenticatedAdminIntelEngineRoute
-  '/admin/intelligence': typeof AuthenticatedAdminIntelligenceRoute
-  '/admin/invites': typeof AuthenticatedAdminInvitesRoute
-  '/admin/iris-memory': typeof AuthenticatedAdminIrisMemoryRoute
-  '/admin/phi-log': typeof AuthenticatedAdminPhiLogRoute
-  '/admin/review-queue': typeof AuthenticatedAdminReviewQueueRoute
-  '/admin/right-to-deletion': typeof AuthenticatedAdminRightToDeletionRoute
-  '/admin/score-me': typeof AuthenticatedAdminScoreMeRoute
-  '/admin/sme-directory': typeof AuthenticatedAdminSmeDirectoryRoute
-  '/admin/source-finder': typeof AuthenticatedAdminSourceFinderRoute
-  '/admin/source-library': typeof AuthenticatedAdminSourceLibraryRoute
-  '/admin/status-report': typeof AuthenticatedAdminStatusReportRoute
-  '/admin/users': typeof AuthenticatedAdminUsersRoute
-  '/admin/writer-deletion': typeof AuthenticatedAdminWriterDeletionRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/command/attention': typeof AuthenticatedCommandAttentionRoute
@@ -966,7 +753,6 @@ export interface FileRoutesByFullPath {
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/v1/sections/': typeof AuthenticatedV1SectionsIndexRoute
-  '/admin/missions/$missionId/debrief': typeof AuthenticatedAdminMissionsMissionIdDebriefRoute
   '/admin/missions/$missionId/setup': typeof AuthenticatedAdminMissionsMissionIdSetupRoute
   '/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
   '/missions/$missionId/scaffold/$sectionId': typeof AuthenticatedMissionsMissionIdScaffoldSectionIdRoute
@@ -1002,33 +788,7 @@ export interface FileRoutesByTo {
   '/debug/daily-note-layout': typeof DebugDailyNoteLayoutRoute
   '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
-  '/admin/admins': typeof AuthenticatedAdminAdminsRoute
-  '/admin/atlas-sources': typeof AuthenticatedAdminAtlasSourcesRoute
-  '/admin/audit': typeof AuthenticatedAdminAuditRoute
-  '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
-  '/admin/brief-room': typeof AuthenticatedAdminBriefRoomRoute
-  '/admin/canon-library': typeof AuthenticatedAdminCanonLibraryRoute
-  '/admin/comparables': typeof AuthenticatedAdminComparablesRoute
-  '/admin/conflicts': typeof AuthenticatedAdminConflictsRoute
-  '/admin/discovery-history': typeof AuthenticatedAdminDiscoveryHistoryRoute
-  '/admin/expertise': typeof AuthenticatedAdminExpertiseRoute
-  '/admin/firm-health': typeof AuthenticatedAdminFirmHealthRoute
-  '/admin/incident-response': typeof AuthenticatedAdminIncidentResponseRoute
-  '/admin/intel-drift': typeof AuthenticatedAdminIntelDriftRoute
   '/admin/intel-engine': typeof AuthenticatedAdminIntelEngineRoute
-  '/admin/intelligence': typeof AuthenticatedAdminIntelligenceRoute
-  '/admin/invites': typeof AuthenticatedAdminInvitesRoute
-  '/admin/iris-memory': typeof AuthenticatedAdminIrisMemoryRoute
-  '/admin/phi-log': typeof AuthenticatedAdminPhiLogRoute
-  '/admin/review-queue': typeof AuthenticatedAdminReviewQueueRoute
-  '/admin/right-to-deletion': typeof AuthenticatedAdminRightToDeletionRoute
-  '/admin/score-me': typeof AuthenticatedAdminScoreMeRoute
-  '/admin/sme-directory': typeof AuthenticatedAdminSmeDirectoryRoute
-  '/admin/source-finder': typeof AuthenticatedAdminSourceFinderRoute
-  '/admin/source-library': typeof AuthenticatedAdminSourceLibraryRoute
-  '/admin/status-report': typeof AuthenticatedAdminStatusReportRoute
-  '/admin/users': typeof AuthenticatedAdminUsersRoute
-  '/admin/writer-deletion': typeof AuthenticatedAdminWriterDeletionRoute
   '/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/command/attention': typeof AuthenticatedCommandAttentionRoute
@@ -1088,7 +848,6 @@ export interface FileRoutesByTo {
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/v1/sections': typeof AuthenticatedV1SectionsIndexRoute
-  '/admin/missions/$missionId/debrief': typeof AuthenticatedAdminMissionsMissionIdDebriefRoute
   '/admin/missions/$missionId/setup': typeof AuthenticatedAdminMissionsMissionIdSetupRoute
   '/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
   '/missions/$missionId/scaffold/$sectionId': typeof AuthenticatedMissionsMissionIdScaffoldSectionIdRoute
@@ -1128,33 +887,7 @@ export interface FileRoutesById {
   '/debug/daily-note-layout': typeof DebugDailyNoteLayoutRoute
   '/debug/gold-entry-fallback': typeof DebugGoldEntryFallbackRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
-  '/_authenticated/admin/admins': typeof AuthenticatedAdminAdminsRoute
-  '/_authenticated/admin/atlas-sources': typeof AuthenticatedAdminAtlasSourcesRoute
-  '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
-  '/_authenticated/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
-  '/_authenticated/admin/brief-room': typeof AuthenticatedAdminBriefRoomRoute
-  '/_authenticated/admin/canon-library': typeof AuthenticatedAdminCanonLibraryRoute
-  '/_authenticated/admin/comparables': typeof AuthenticatedAdminComparablesRoute
-  '/_authenticated/admin/conflicts': typeof AuthenticatedAdminConflictsRoute
-  '/_authenticated/admin/discovery-history': typeof AuthenticatedAdminDiscoveryHistoryRoute
-  '/_authenticated/admin/expertise': typeof AuthenticatedAdminExpertiseRoute
-  '/_authenticated/admin/firm-health': typeof AuthenticatedAdminFirmHealthRoute
-  '/_authenticated/admin/incident-response': typeof AuthenticatedAdminIncidentResponseRoute
-  '/_authenticated/admin/intel-drift': typeof AuthenticatedAdminIntelDriftRoute
   '/_authenticated/admin/intel-engine': typeof AuthenticatedAdminIntelEngineRoute
-  '/_authenticated/admin/intelligence': typeof AuthenticatedAdminIntelligenceRoute
-  '/_authenticated/admin/invites': typeof AuthenticatedAdminInvitesRoute
-  '/_authenticated/admin/iris-memory': typeof AuthenticatedAdminIrisMemoryRoute
-  '/_authenticated/admin/phi-log': typeof AuthenticatedAdminPhiLogRoute
-  '/_authenticated/admin/review-queue': typeof AuthenticatedAdminReviewQueueRoute
-  '/_authenticated/admin/right-to-deletion': typeof AuthenticatedAdminRightToDeletionRoute
-  '/_authenticated/admin/score-me': typeof AuthenticatedAdminScoreMeRoute
-  '/_authenticated/admin/sme-directory': typeof AuthenticatedAdminSmeDirectoryRoute
-  '/_authenticated/admin/source-finder': typeof AuthenticatedAdminSourceFinderRoute
-  '/_authenticated/admin/source-library': typeof AuthenticatedAdminSourceLibraryRoute
-  '/_authenticated/admin/status-report': typeof AuthenticatedAdminStatusReportRoute
-  '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
-  '/_authenticated/admin/writer-deletion': typeof AuthenticatedAdminWriterDeletionRoute
   '/_authenticated/command/alignment': typeof AuthenticatedCommandAlignmentRoute
   '/_authenticated/command/alignment-conflicts': typeof AuthenticatedCommandAlignmentConflictsRoute
   '/_authenticated/command/attention': typeof AuthenticatedCommandAttentionRoute
@@ -1216,7 +949,6 @@ export interface FileRoutesById {
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/_authenticated/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/_authenticated/v1/sections/': typeof AuthenticatedV1SectionsIndexRoute
-  '/_authenticated/admin/missions/$missionId/debrief': typeof AuthenticatedAdminMissionsMissionIdDebriefRoute
   '/_authenticated/admin/missions/$missionId/setup': typeof AuthenticatedAdminMissionsMissionIdSetupRoute
   '/_authenticated/missions/$missionId/questions/$questionId': typeof AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute
   '/_authenticated/missions/$missionId/scaffold/$sectionId': typeof AuthenticatedMissionsMissionIdScaffoldSectionIdRoute
@@ -1256,33 +988,7 @@ export interface FileRouteTypes {
     | '/debug/daily-note-layout'
     | '/debug/gold-entry-fallback'
     | '/email/unsubscribe'
-    | '/admin/admins'
-    | '/admin/atlas-sources'
-    | '/admin/audit'
-    | '/admin/audit-log'
-    | '/admin/brief-room'
-    | '/admin/canon-library'
-    | '/admin/comparables'
-    | '/admin/conflicts'
-    | '/admin/discovery-history'
-    | '/admin/expertise'
-    | '/admin/firm-health'
-    | '/admin/incident-response'
-    | '/admin/intel-drift'
     | '/admin/intel-engine'
-    | '/admin/intelligence'
-    | '/admin/invites'
-    | '/admin/iris-memory'
-    | '/admin/phi-log'
-    | '/admin/review-queue'
-    | '/admin/right-to-deletion'
-    | '/admin/score-me'
-    | '/admin/sme-directory'
-    | '/admin/source-finder'
-    | '/admin/source-library'
-    | '/admin/status-report'
-    | '/admin/users'
-    | '/admin/writer-deletion'
     | '/command/alignment'
     | '/command/alignment-conflicts'
     | '/command/attention'
@@ -1344,7 +1050,6 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/send'
     | '/missions/$missionId/'
     | '/v1/sections/'
-    | '/admin/missions/$missionId/debrief'
     | '/admin/missions/$missionId/setup'
     | '/missions/$missionId/questions/$questionId'
     | '/missions/$missionId/scaffold/$sectionId'
@@ -1380,33 +1085,7 @@ export interface FileRouteTypes {
     | '/debug/daily-note-layout'
     | '/debug/gold-entry-fallback'
     | '/email/unsubscribe'
-    | '/admin/admins'
-    | '/admin/atlas-sources'
-    | '/admin/audit'
-    | '/admin/audit-log'
-    | '/admin/brief-room'
-    | '/admin/canon-library'
-    | '/admin/comparables'
-    | '/admin/conflicts'
-    | '/admin/discovery-history'
-    | '/admin/expertise'
-    | '/admin/firm-health'
-    | '/admin/incident-response'
-    | '/admin/intel-drift'
     | '/admin/intel-engine'
-    | '/admin/intelligence'
-    | '/admin/invites'
-    | '/admin/iris-memory'
-    | '/admin/phi-log'
-    | '/admin/review-queue'
-    | '/admin/right-to-deletion'
-    | '/admin/score-me'
-    | '/admin/sme-directory'
-    | '/admin/source-finder'
-    | '/admin/source-library'
-    | '/admin/status-report'
-    | '/admin/users'
-    | '/admin/writer-deletion'
     | '/command/alignment'
     | '/command/alignment-conflicts'
     | '/command/attention'
@@ -1466,7 +1145,6 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/send'
     | '/missions/$missionId'
     | '/v1/sections'
-    | '/admin/missions/$missionId/debrief'
     | '/admin/missions/$missionId/setup'
     | '/missions/$missionId/questions/$questionId'
     | '/missions/$missionId/scaffold/$sectionId'
@@ -1505,33 +1183,7 @@ export interface FileRouteTypes {
     | '/debug/daily-note-layout'
     | '/debug/gold-entry-fallback'
     | '/email/unsubscribe'
-    | '/_authenticated/admin/admins'
-    | '/_authenticated/admin/atlas-sources'
-    | '/_authenticated/admin/audit'
-    | '/_authenticated/admin/audit-log'
-    | '/_authenticated/admin/brief-room'
-    | '/_authenticated/admin/canon-library'
-    | '/_authenticated/admin/comparables'
-    | '/_authenticated/admin/conflicts'
-    | '/_authenticated/admin/discovery-history'
-    | '/_authenticated/admin/expertise'
-    | '/_authenticated/admin/firm-health'
-    | '/_authenticated/admin/incident-response'
-    | '/_authenticated/admin/intel-drift'
     | '/_authenticated/admin/intel-engine'
-    | '/_authenticated/admin/intelligence'
-    | '/_authenticated/admin/invites'
-    | '/_authenticated/admin/iris-memory'
-    | '/_authenticated/admin/phi-log'
-    | '/_authenticated/admin/review-queue'
-    | '/_authenticated/admin/right-to-deletion'
-    | '/_authenticated/admin/score-me'
-    | '/_authenticated/admin/sme-directory'
-    | '/_authenticated/admin/source-finder'
-    | '/_authenticated/admin/source-library'
-    | '/_authenticated/admin/status-report'
-    | '/_authenticated/admin/users'
-    | '/_authenticated/admin/writer-deletion'
     | '/_authenticated/command/alignment'
     | '/_authenticated/command/alignment-conflicts'
     | '/_authenticated/command/attention'
@@ -1593,7 +1245,6 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/send'
     | '/_authenticated/missions/$missionId/'
     | '/_authenticated/v1/sections/'
-    | '/_authenticated/admin/missions/$missionId/debrief'
     | '/_authenticated/admin/missions/$missionId/setup'
     | '/_authenticated/missions/$missionId/questions/$questionId'
     | '/_authenticated/missions/$missionId/scaffold/$sectionId'
@@ -2005,193 +1656,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCommandAlignmentRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/admin/writer-deletion': {
-      id: '/_authenticated/admin/writer-deletion'
-      path: '/writer-deletion'
-      fullPath: '/admin/writer-deletion'
-      preLoaderRoute: typeof AuthenticatedAdminWriterDeletionRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/users': {
-      id: '/_authenticated/admin/users'
-      path: '/users'
-      fullPath: '/admin/users'
-      preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/status-report': {
-      id: '/_authenticated/admin/status-report'
-      path: '/status-report'
-      fullPath: '/admin/status-report'
-      preLoaderRoute: typeof AuthenticatedAdminStatusReportRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/source-library': {
-      id: '/_authenticated/admin/source-library'
-      path: '/source-library'
-      fullPath: '/admin/source-library'
-      preLoaderRoute: typeof AuthenticatedAdminSourceLibraryRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/source-finder': {
-      id: '/_authenticated/admin/source-finder'
-      path: '/source-finder'
-      fullPath: '/admin/source-finder'
-      preLoaderRoute: typeof AuthenticatedAdminSourceFinderRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/sme-directory': {
-      id: '/_authenticated/admin/sme-directory'
-      path: '/sme-directory'
-      fullPath: '/admin/sme-directory'
-      preLoaderRoute: typeof AuthenticatedAdminSmeDirectoryRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/score-me': {
-      id: '/_authenticated/admin/score-me'
-      path: '/score-me'
-      fullPath: '/admin/score-me'
-      preLoaderRoute: typeof AuthenticatedAdminScoreMeRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/right-to-deletion': {
-      id: '/_authenticated/admin/right-to-deletion'
-      path: '/right-to-deletion'
-      fullPath: '/admin/right-to-deletion'
-      preLoaderRoute: typeof AuthenticatedAdminRightToDeletionRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/review-queue': {
-      id: '/_authenticated/admin/review-queue'
-      path: '/review-queue'
-      fullPath: '/admin/review-queue'
-      preLoaderRoute: typeof AuthenticatedAdminReviewQueueRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/phi-log': {
-      id: '/_authenticated/admin/phi-log'
-      path: '/phi-log'
-      fullPath: '/admin/phi-log'
-      preLoaderRoute: typeof AuthenticatedAdminPhiLogRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/iris-memory': {
-      id: '/_authenticated/admin/iris-memory'
-      path: '/iris-memory'
-      fullPath: '/admin/iris-memory'
-      preLoaderRoute: typeof AuthenticatedAdminIrisMemoryRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/invites': {
-      id: '/_authenticated/admin/invites'
-      path: '/invites'
-      fullPath: '/admin/invites'
-      preLoaderRoute: typeof AuthenticatedAdminInvitesRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/intelligence': {
-      id: '/_authenticated/admin/intelligence'
-      path: '/intelligence'
-      fullPath: '/admin/intelligence'
-      preLoaderRoute: typeof AuthenticatedAdminIntelligenceRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
     '/_authenticated/admin/intel-engine': {
       id: '/_authenticated/admin/intel-engine'
       path: '/intel-engine'
       fullPath: '/admin/intel-engine'
       preLoaderRoute: typeof AuthenticatedAdminIntelEngineRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/intel-drift': {
-      id: '/_authenticated/admin/intel-drift'
-      path: '/intel-drift'
-      fullPath: '/admin/intel-drift'
-      preLoaderRoute: typeof AuthenticatedAdminIntelDriftRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/incident-response': {
-      id: '/_authenticated/admin/incident-response'
-      path: '/incident-response'
-      fullPath: '/admin/incident-response'
-      preLoaderRoute: typeof AuthenticatedAdminIncidentResponseRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/firm-health': {
-      id: '/_authenticated/admin/firm-health'
-      path: '/firm-health'
-      fullPath: '/admin/firm-health'
-      preLoaderRoute: typeof AuthenticatedAdminFirmHealthRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/expertise': {
-      id: '/_authenticated/admin/expertise'
-      path: '/expertise'
-      fullPath: '/admin/expertise'
-      preLoaderRoute: typeof AuthenticatedAdminExpertiseRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/discovery-history': {
-      id: '/_authenticated/admin/discovery-history'
-      path: '/discovery-history'
-      fullPath: '/admin/discovery-history'
-      preLoaderRoute: typeof AuthenticatedAdminDiscoveryHistoryRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/conflicts': {
-      id: '/_authenticated/admin/conflicts'
-      path: '/conflicts'
-      fullPath: '/admin/conflicts'
-      preLoaderRoute: typeof AuthenticatedAdminConflictsRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/comparables': {
-      id: '/_authenticated/admin/comparables'
-      path: '/comparables'
-      fullPath: '/admin/comparables'
-      preLoaderRoute: typeof AuthenticatedAdminComparablesRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/canon-library': {
-      id: '/_authenticated/admin/canon-library'
-      path: '/canon-library'
-      fullPath: '/admin/canon-library'
-      preLoaderRoute: typeof AuthenticatedAdminCanonLibraryRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/brief-room': {
-      id: '/_authenticated/admin/brief-room'
-      path: '/brief-room'
-      fullPath: '/admin/brief-room'
-      preLoaderRoute: typeof AuthenticatedAdminBriefRoomRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/audit-log': {
-      id: '/_authenticated/admin/audit-log'
-      path: '/audit-log'
-      fullPath: '/admin/audit-log'
-      preLoaderRoute: typeof AuthenticatedAdminAuditLogRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/audit': {
-      id: '/_authenticated/admin/audit'
-      path: '/audit'
-      fullPath: '/admin/audit'
-      preLoaderRoute: typeof AuthenticatedAdminAuditRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/atlas-sources': {
-      id: '/_authenticated/admin/atlas-sources'
-      path: '/atlas-sources'
-      fullPath: '/admin/atlas-sources'
-      preLoaderRoute: typeof AuthenticatedAdminAtlasSourcesRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/admins': {
-      id: '/_authenticated/admin/admins'
-      path: '/admins'
-      fullPath: '/admin/admins'
-      preLoaderRoute: typeof AuthenticatedAdminAdminsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/v1/sections/': {
@@ -2502,25 +1971,15 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminMissionsMissionIdSetupRouteImport
       parentRoute: typeof AuthenticatedAdminMissionsMissionIdRoute
     }
-    '/_authenticated/admin/missions/$missionId/debrief': {
-      id: '/_authenticated/admin/missions/$missionId/debrief'
-      path: '/debrief'
-      fullPath: '/admin/missions/$missionId/debrief'
-      preLoaderRoute: typeof AuthenticatedAdminMissionsMissionIdDebriefRouteImport
-      parentRoute: typeof AuthenticatedAdminMissionsMissionIdRoute
-    }
   }
 }
 
 interface AuthenticatedAdminMissionsMissionIdRouteChildren {
-  AuthenticatedAdminMissionsMissionIdDebriefRoute: typeof AuthenticatedAdminMissionsMissionIdDebriefRoute
   AuthenticatedAdminMissionsMissionIdSetupRoute: typeof AuthenticatedAdminMissionsMissionIdSetupRoute
 }
 
 const AuthenticatedAdminMissionsMissionIdRouteChildren: AuthenticatedAdminMissionsMissionIdRouteChildren =
   {
-    AuthenticatedAdminMissionsMissionIdDebriefRoute:
-      AuthenticatedAdminMissionsMissionIdDebriefRoute,
     AuthenticatedAdminMissionsMissionIdSetupRoute:
       AuthenticatedAdminMissionsMissionIdSetupRoute,
   }
@@ -2531,68 +1990,13 @@ const AuthenticatedAdminMissionsMissionIdRouteWithChildren =
   )
 
 interface AuthenticatedAdminRouteChildren {
-  AuthenticatedAdminAdminsRoute: typeof AuthenticatedAdminAdminsRoute
-  AuthenticatedAdminAtlasSourcesRoute: typeof AuthenticatedAdminAtlasSourcesRoute
-  AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
-  AuthenticatedAdminAuditLogRoute: typeof AuthenticatedAdminAuditLogRoute
-  AuthenticatedAdminBriefRoomRoute: typeof AuthenticatedAdminBriefRoomRoute
-  AuthenticatedAdminCanonLibraryRoute: typeof AuthenticatedAdminCanonLibraryRoute
-  AuthenticatedAdminComparablesRoute: typeof AuthenticatedAdminComparablesRoute
-  AuthenticatedAdminConflictsRoute: typeof AuthenticatedAdminConflictsRoute
-  AuthenticatedAdminDiscoveryHistoryRoute: typeof AuthenticatedAdminDiscoveryHistoryRoute
-  AuthenticatedAdminExpertiseRoute: typeof AuthenticatedAdminExpertiseRoute
-  AuthenticatedAdminFirmHealthRoute: typeof AuthenticatedAdminFirmHealthRoute
-  AuthenticatedAdminIncidentResponseRoute: typeof AuthenticatedAdminIncidentResponseRoute
-  AuthenticatedAdminIntelDriftRoute: typeof AuthenticatedAdminIntelDriftRoute
   AuthenticatedAdminIntelEngineRoute: typeof AuthenticatedAdminIntelEngineRoute
-  AuthenticatedAdminIntelligenceRoute: typeof AuthenticatedAdminIntelligenceRoute
-  AuthenticatedAdminInvitesRoute: typeof AuthenticatedAdminInvitesRoute
-  AuthenticatedAdminIrisMemoryRoute: typeof AuthenticatedAdminIrisMemoryRoute
-  AuthenticatedAdminPhiLogRoute: typeof AuthenticatedAdminPhiLogRoute
-  AuthenticatedAdminReviewQueueRoute: typeof AuthenticatedAdminReviewQueueRoute
-  AuthenticatedAdminRightToDeletionRoute: typeof AuthenticatedAdminRightToDeletionRoute
-  AuthenticatedAdminScoreMeRoute: typeof AuthenticatedAdminScoreMeRoute
-  AuthenticatedAdminSmeDirectoryRoute: typeof AuthenticatedAdminSmeDirectoryRoute
-  AuthenticatedAdminSourceFinderRoute: typeof AuthenticatedAdminSourceFinderRoute
-  AuthenticatedAdminSourceLibraryRoute: typeof AuthenticatedAdminSourceLibraryRoute
-  AuthenticatedAdminStatusReportRoute: typeof AuthenticatedAdminStatusReportRoute
-  AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
-  AuthenticatedAdminWriterDeletionRoute: typeof AuthenticatedAdminWriterDeletionRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminMissionsMissionIdRoute: typeof AuthenticatedAdminMissionsMissionIdRouteWithChildren
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
-  AuthenticatedAdminAdminsRoute: AuthenticatedAdminAdminsRoute,
-  AuthenticatedAdminAtlasSourcesRoute: AuthenticatedAdminAtlasSourcesRoute,
-  AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
-  AuthenticatedAdminAuditLogRoute: AuthenticatedAdminAuditLogRoute,
-  AuthenticatedAdminBriefRoomRoute: AuthenticatedAdminBriefRoomRoute,
-  AuthenticatedAdminCanonLibraryRoute: AuthenticatedAdminCanonLibraryRoute,
-  AuthenticatedAdminComparablesRoute: AuthenticatedAdminComparablesRoute,
-  AuthenticatedAdminConflictsRoute: AuthenticatedAdminConflictsRoute,
-  AuthenticatedAdminDiscoveryHistoryRoute:
-    AuthenticatedAdminDiscoveryHistoryRoute,
-  AuthenticatedAdminExpertiseRoute: AuthenticatedAdminExpertiseRoute,
-  AuthenticatedAdminFirmHealthRoute: AuthenticatedAdminFirmHealthRoute,
-  AuthenticatedAdminIncidentResponseRoute:
-    AuthenticatedAdminIncidentResponseRoute,
-  AuthenticatedAdminIntelDriftRoute: AuthenticatedAdminIntelDriftRoute,
   AuthenticatedAdminIntelEngineRoute: AuthenticatedAdminIntelEngineRoute,
-  AuthenticatedAdminIntelligenceRoute: AuthenticatedAdminIntelligenceRoute,
-  AuthenticatedAdminInvitesRoute: AuthenticatedAdminInvitesRoute,
-  AuthenticatedAdminIrisMemoryRoute: AuthenticatedAdminIrisMemoryRoute,
-  AuthenticatedAdminPhiLogRoute: AuthenticatedAdminPhiLogRoute,
-  AuthenticatedAdminReviewQueueRoute: AuthenticatedAdminReviewQueueRoute,
-  AuthenticatedAdminRightToDeletionRoute:
-    AuthenticatedAdminRightToDeletionRoute,
-  AuthenticatedAdminScoreMeRoute: AuthenticatedAdminScoreMeRoute,
-  AuthenticatedAdminSmeDirectoryRoute: AuthenticatedAdminSmeDirectoryRoute,
-  AuthenticatedAdminSourceFinderRoute: AuthenticatedAdminSourceFinderRoute,
-  AuthenticatedAdminSourceLibraryRoute: AuthenticatedAdminSourceLibraryRoute,
-  AuthenticatedAdminStatusReportRoute: AuthenticatedAdminStatusReportRoute,
-  AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
-  AuthenticatedAdminWriterDeletionRoute: AuthenticatedAdminWriterDeletionRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedAdminMissionsMissionIdRoute:
     AuthenticatedAdminMissionsMissionIdRouteWithChildren,
