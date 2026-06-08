@@ -173,12 +173,15 @@ For political_considerations and meeting_cadence, summarize supported evidence o
 
     await clearMissionOutputGraph(supabaseAdmin, data.missionId, "client_intel");
 
-    // Flatten {name, role, notes} objects into strings the setup form renders.
-    const flatten = (arr: Array<{ name: string; role: string; notes?: string }>) =>
-      arr.map((x) => {
-        const head = [x.name, x.role].filter(Boolean).join(" — ");
-        return x.notes ? `${head} (${x.notes})` : head;
-      }).filter(Boolean);
+    // Flatten model output into strings the setup form renders.
+    const flatten = (arr: ClientIntelEntry[]) =>
+      arr
+        .map((x) => {
+          if (typeof x === "string") return x.trim();
+          const head = [x.name, x.role].filter(Boolean).join(" — ");
+          return x.notes ? `${head} (${x.notes})` : head;
+        })
+        .filter(Boolean);
 
     const newContacts = flatten(result.contacts);
     const newStakeholders = flatten(result.stakeholders);
@@ -198,7 +201,10 @@ For political_considerations and meeting_cadence, summarize supported evidence o
               if (typeof x === "string") return x.trim();
               if (x && typeof x === "object") {
                 const obj = x as { name?: unknown; role?: unknown; notes?: unknown };
-                const head = [obj.name, obj.role].map((part) => String(part ?? "").trim()).filter(Boolean).join(" — ");
+                const head = [obj.name, obj.role]
+                  .map((part) => String(part ?? "").trim())
+                  .filter(Boolean)
+                  .join(" — ");
                 return obj.notes ? `${head} (${String(obj.notes).trim()})` : head;
               }
               return "";
@@ -208,7 +214,12 @@ For political_considerations and meeting_cadence, summarize supported evidence o
     const merge = (a: string[], b: string[]) => {
       const seen = new Set(a.map((s) => s.toLowerCase()));
       const out = [...a];
-      for (const x of b) if (!seen.has(x.toLowerCase())) { out.push(x); seen.add(x.toLowerCase()); }
+      for (const x of b) {
+        if (!seen.has(x.toLowerCase())) {
+          out.push(x);
+          seen.add(x.toLowerCase());
+        }
+      }
       return out;
     };
 
