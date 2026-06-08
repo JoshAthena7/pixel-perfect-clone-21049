@@ -71,14 +71,13 @@ function isAllowedForNonAdmin(path: string): boolean {
 
 function AuthenticatedLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const { isAdmin, isLoading: adminLoading } = useIsAdmin();
 
   // /admin owns its own layout — bypass the outer Atrium chrome entirely.
-  // Must run BEFORE any role-resolution gate so admin.tsx renders immediately.
+  // Runs before any role gate so admin.tsx renders immediately without flicker.
   if (path === "/admin" || path.startsWith("/admin/")) {
     return <Outlet />;
   }
-
-  const { isAdmin, isLoading: adminLoading } = useIsAdmin();
 
   // Check-in only users get a minimalist landing.
   if (path === "/checkin-home" || path.startsWith("/checkin-home/")) {
