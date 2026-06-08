@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, Link, useRouterState } from "@tanstack/react-router";
-import { FileText, Home, LayoutGrid, Settings } from "lucide-react";
+import { FileText, Home, LayoutGrid, Settings, Zap } from "lucide-react";
 import { useIsAdmin } from "@/hooks/useAccess";
 import { useRedirectIfBlocked } from "@/hooks/useRedirectIfBlocked";
 
@@ -14,18 +14,18 @@ function AdminLayout() {
 
   if (isLoading || gate === false) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
+      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
         One moment…
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
+    <div className="flex min-h-[calc(100vh-52px)] w-full">
       <AdminSidebar />
-      <main className="min-w-0 flex-1">
+      <div className="flex-1 min-w-0 flex flex-col">
         <Outlet />
-      </main>
+      </div>
     </div>
   );
 }
@@ -38,35 +38,31 @@ function AdminSidebar() {
   const missionId = missionDetailMatch?.[1];
 
   return (
-    <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-surface md:flex">
+    <aside className="hidden md:flex w-56 shrink-0 flex-col border-r border-border bg-surface">
       <div className="flex h-14 items-center gap-2 border-b border-border px-4">
-        <LayoutGrid className="h-4 w-4 text-muted-foreground" />
-        <span className="text-[11px] font-extrabold uppercase tracking-[0.28em]">
-          Olympus
-        </span>
+        <Zap className="h-4 w-4 text-[color:var(--athena-gold)]" />
+        <span className="text-[11px] font-extrabold uppercase tracking-[0.28em]">Olympus</span>
       </div>
-
-      <nav className="flex-1 space-y-0.5 px-2 py-3">
-        <NavItem to="/admin" active={isActive("/admin", true)} icon={<LayoutGrid className="h-4 w-4" />}>
+      <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
+        <NavItem to="/admin" active={isActive("/admin", true)} icon={<LayoutGrid size={15} strokeWidth={1.5} />}>
           Missions
         </NavItem>
         {missionId && (
           <NavItem
             to="/admin/missions/$missionId"
             params={{ missionId }}
-            active={isActive("/admin/missions/")}
-            icon={<FileText className="h-4 w-4" />}
+            active={path.startsWith("/admin/missions/" + missionId)}
+            icon={<FileText size={15} strokeWidth={1.5} />}
           >
             Mission Detail
           </NavItem>
         )}
-        <NavItem to="/admin/settings" active={isActive("/admin/settings")} icon={<Settings className="h-4 w-4" />}>
+        <NavItem to="/admin/settings" active={isActive("/admin/settings")} icon={<Settings size={15} strokeWidth={1.5} />}>
           Settings
         </NavItem>
       </nav>
-
       <div className="border-t border-border px-2 py-3">
-        <NavItem to="/missions" active={false} icon={<Home className="h-4 w-4" />}>
+        <NavItem to="/missions" active={false} icon={<Home size={15} strokeWidth={1.5} />}>
           Atlas Home
         </NavItem>
       </div>
@@ -74,31 +70,20 @@ function AdminSidebar() {
   );
 }
 
-function NavItem({
-  to,
-  params,
-  active,
-  icon,
-  children,
-}: {
-  to: string;
-  params?: Record<string, string>;
-  active: boolean;
-  icon: React.ReactNode;
-  children: React.ReactNode;
+function NavItem({ to, params, active, icon, children }: {
+  to: string; params?: Record<string, string>; active: boolean;
+  icon: React.ReactNode; children: React.ReactNode;
 }) {
   return (
     <Link
       to={to}
-      params={params as never}
-      className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${
-        active
-          ? "bg-surface-hover text-foreground"
-          : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
-      }`}
+      params={params}
+      className={"flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors " + (
+        active ? "bg-surface-hover text-foreground" : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+      )}
     >
       {icon}
-      {children}
+      <span className="flex-1 truncate">{children}</span>
     </Link>
   );
 }
