@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/admin/missions/$missionId"
 
 function MissionDetail() {
   const { missionId } = Route.useParams();
-  const { tab = "overview" } = Route.useSearch();
+  const { tab = "assignments" } = Route.useSearch();
   const navigate = useNavigate();
 
   const { data: mission, isLoading, error } = useQuery({
