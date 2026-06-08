@@ -200,6 +200,21 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
       } finally {
         setSaving(false);
       }
+    } else if (step === 5) {
+      if (!missionId) return;
+      setSaving(true);
+      try {
+        const { error } = await supabase
+          .from("missions")
+          .update({ wizard_step: 5 } as never)
+          .eq("id", missionId);
+        if (error) throw error;
+        setStep(6);
+      } catch (e: any) {
+        toast.error(e?.message || "Could not save");
+      } finally {
+        setSaving(false);
+      }
     } else if (step < 6) {
       setStep(step + 1);
     } else {
@@ -266,7 +281,19 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
               onReRun={() => setStep(3)}
             />
           )}
-          {step >= 5 && (
+          {step === 5 && missionId && (
+            <Step5Team
+              missionId={missionId}
+              onSkip={async () => {
+                await supabase
+                  .from("missions")
+                  .update({ wizard_step: 5 } as never)
+                  .eq("id", missionId);
+                setStep(6);
+              }}
+            />
+          )}
+          {step === 6 && (
             <div className="py-16 text-center text-sm text-muted-foreground">
               <h2 className="text-lg font-semibold text-foreground mb-2">
                 {STEP_NAMES[step - 1]}
@@ -1602,5 +1629,530 @@ function RowTable<T>({
         <Plus className="h-3 w-3" /> {addLabel}
       </button>
     </div>
+  );
+}
+
+/* ---------- Step 5: Build the Team ---------- */
+
+const TEAM_ROLES = [
+  "Engagement Lead",
+  "Operations Lead",
+  "Project Manager",
+  "SME",
+  "Writer",
+  "Copy Editor",
+  "QA Reviewer",
+  "Client Contact",
+] as const;
+
+type TeamMember = {
+  id: string;
+  mission_id: string;
+  name: string;
+  email: string | null;
+  role: string;
+  assigned_sections: any;
+  start_date: string | null;
+  talentdesk_status: string | null;
+  contract_status: string | null;
+  nda_status: string | null;
+  baa_required: boolean | null;
+  baa_status: string | null;
+  client_system_access: boolean | null;
+  slack_access: boolean | null;
+  folder_access: boolean | null;
+};
+
+type StaffingSuggestion = { role: string; reason: string };
+type WritingSuggestion = { section: string; role: string; notes: string };
+
+function sectionsToText(v: any): string {
+  if (Array.isArray(v)) return v.join(", ");
+  if (typeof v === "string") return v;
+  return "";
+}
+function sectionsFromText(s: string): string[] {
+  return s
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean);
+}
+
+function Step5Team({
+  missionId,
+  onSkip,
+}: {
+  missionId: string;
+  onSkip: () => void;
+}) {
+  const [members, setMembers] = useState<TeamMember[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [accessOpen, setAccessOpen] = useState(false);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [staffing, setStaffing] = useState<StaffingSuggestion[]>([]);
+  const [writing, setWriting] = useState<WritingSuggestion[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  // form state
+  const [fName, setFName] = useState("");
+  const [fEmail, setFEmail] = useState("");
+  const [fRole, setFRole] = useState<string>(TEAM_ROLES[0]);
+  const [fSections, setFSections] = useState("");
+  const [fStart, setFStart] = useState("");
+  const [adding, setAdding] = useState(false);
+
+  const reload = async () => {
+    const { data } = await supabase
+      .from("mission_team_members")
+      .select(
+        "id, mission_id, name, email, role, assigned_sections, start_date, talentdesk_status, contract_status, nda_status, baa_required, baa_status, client_system_access, slack_access, folder_access",
+      )
+      .eq("mission_id", missionId)
+      .order("created_at", { ascending: true });
+    setMembers((data ?? []) as any);
+  };
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      await reload();
+      const { data: intel } = await supabase
+        .from("mission_intelligence")
+        .select("content")
+        .eq("mission_id", missionId)
+        .eq("layer", "wizard_analysis")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!alive) return;
+      const c: any = (intel as any)?.content ?? {};
+      setStaffing(
+        Array.isArray(c.suggested_staffing)
+          ? c.suggested_staffing.map((s: any) =>
+              typeof s === "string"
+                ? { role: s, reason: "" }
+                : { role: s?.role ?? "", reason: s?.reason ?? "" },
+            )
+          : [],
+      );
+      setWriting(
+        Array.isArray(c.suggested_writing_assignments)
+          ? c.suggested_writing_assignments.map((s: any) => ({
+              section: s?.section ?? "",
+              role: s?.role ?? "",
+              notes: s?.notes ?? "",
+            }))
+          : [],
+      );
+      setLoading(false);
+    })();
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [missionId]);
+
+  const addMember = async () => {
+    if (!fName.trim()) {
+      toast.error("Name is required");
+      return;
+    }
+    setAdding(true);
+    try {
+      const { error } = await supabase.from("mission_team_members").insert({
+        mission_id: missionId,
+        name: fName.trim(),
+        email: fEmail.trim() || null,
+        role: fRole,
+        assigned_sections: sectionsFromText(fSections),
+        start_date: fStart || null,
+      } as never);
+      if (error) throw error;
+      setFName("");
+      setFEmail("");
+      setFRole(TEAM_ROLES[0]);
+      setFSections("");
+      setFStart("");
+      await reload();
+      toast.success("Added to team");
+    } catch (e: any) {
+      toast.error(e?.message || "Could not add member");
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const updateMember = async (id: string, patch: Partial<TeamMember>) => {
+    setMembers((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, ...patch } : m)),
+    );
+    const { error } = await supabase
+      .from("mission_team_members")
+      .update(patch as never)
+      .eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      await reload();
+    }
+  };
+
+  const removeMember = async (m: TeamMember) => {
+    if (!confirm(`Remove ${m.name} from the team?`)) return;
+    const { error } = await supabase
+      .from("mission_team_members")
+      .delete()
+      .eq("id", m.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setMembers((prev) => prev.filter((x) => x.id !== m.id));
+    toast.success("Removed");
+  };
+
+  if (loading) {
+    return (
+      <div className="py-16 text-center text-sm text-muted-foreground">
+        <Loader2 className="mx-auto mb-3 h-5 w-5 animate-spin" />
+        Loading team…
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <p className="text-sm text-muted-foreground">
+        Stage your team — no invites go out until you GO LIVE
+      </p>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-5">
+        {/* Add member form */}
+        <div className="rounded-lg border border-border bg-background/40 p-4 space-y-3 h-fit">
+          <h3 className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: GOLD }}>
+            Add Team Member
+          </h3>
+          <Field label="Name" required>
+            <Input value={fName} onChange={setFName} />
+          </Field>
+          <Field label="Email">
+            <Input value={fEmail} onChange={setFEmail} placeholder="name@example.com" />
+          </Field>
+          <Field label="Role">
+            <Select
+              value={fRole}
+              onChange={setFRole}
+              options={[...TEAM_ROLES]}
+            />
+          </Field>
+          <Field label="Assigned Sections">
+            <Input
+              value={fSections}
+              onChange={setFSections}
+              placeholder="e.g. Section C, Management Approach"
+            />
+          </Field>
+          <Field label="Start Date">
+            <Input type="date" value={fStart} onChange={setFStart} />
+          </Field>
+          <button
+            type="button"
+            onClick={addMember}
+            disabled={adding}
+            className="w-full rounded-md px-4 py-2 text-sm font-bold uppercase tracking-wider shadow disabled:opacity-50"
+            style={{ backgroundColor: GOLD, color: NAVY }}
+          >
+            {adding ? "Adding…" : "Add to Team"}
+          </button>
+        </div>
+
+        {/* Roster */}
+        <div className="space-y-3 min-w-0">
+          <h3 className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: GOLD }}>
+            Team Roster ({members.length})
+          </h3>
+          {members.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border bg-background/30 p-6 text-center text-sm text-muted-foreground">
+              No team members yet — add your first one.
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-lg border border-border">
+              <table className="w-full text-sm">
+                <thead className="bg-surface text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <tr>
+                    <th className="px-3 py-2 text-left">Name</th>
+                    <th className="px-3 py-2 text-left">Role</th>
+                    <th className="px-3 py-2 text-left">Email</th>
+                    <th className="px-3 py-2 text-left">Sections</th>
+                    <th className="px-3 py-2 text-left">Start</th>
+                    <th className="px-3 py-2" />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {members.map((m) => {
+                    const editing = editingId === m.id;
+                    return (
+                      <tr key={m.id} className="align-top">
+                        <td className="px-3 py-2">
+                          {editing ? (
+                            <Input value={m.name} onChange={(v) => updateMember(m.id, { name: v })} />
+                          ) : (
+                            <span className="font-medium text-foreground">{m.name}</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2">
+                          {editing ? (
+                            <Select
+                              value={m.role}
+                              onChange={(v) => updateMember(m.id, { role: v })}
+                              options={[...TEAM_ROLES]}
+                            />
+                          ) : (
+                            m.role
+                          )}
+                        </td>
+                        <td className="px-3 py-2">
+                          {editing ? (
+                            <Input value={m.email ?? ""} onChange={(v) => updateMember(m.id, { email: v })} />
+                          ) : (
+                            <span className="text-muted-foreground">{m.email || "—"}</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2">
+                          {editing ? (
+                            <Input
+                              value={sectionsToText(m.assigned_sections)}
+                              onChange={(v) =>
+                                updateMember(m.id, { assigned_sections: sectionsFromText(v) as any })
+                              }
+                            />
+                          ) : (
+                            <span className="text-muted-foreground text-xs">
+                              {sectionsToText(m.assigned_sections) || "—"}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2">
+                          {editing ? (
+                            <Input
+                              type="date"
+                              value={m.start_date ?? ""}
+                              onChange={(v) => updateMember(m.id, { start_date: v || null })}
+                            />
+                          ) : (
+                            <span className="text-muted-foreground text-xs">{m.start_date || "—"}</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap text-right">
+                          <button
+                            type="button"
+                            onClick={() => setEditingId(editing ? null : m.id)}
+                            className="text-xs font-semibold text-muted-foreground hover:text-foreground mr-2"
+                          >
+                            {editing ? "Done" : "Edit"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => removeMember(m)}
+                            aria-label="Remove"
+                            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-surface-hover hover:text-rose-400"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Access Requirements */}
+      {members.length > 0 && (
+        <div className="rounded-lg border border-border">
+          <button
+            type="button"
+            onClick={() => setAccessOpen((v) => !v)}
+            className="w-full flex items-center justify-between px-4 py-3 text-left"
+          >
+            <span className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: GOLD }}>
+              Access Requirements
+            </span>
+            <span className="text-xs text-muted-foreground">{accessOpen ? "Hide" : "Show"}</span>
+          </button>
+          {accessOpen && (
+            <div className="overflow-x-auto border-t border-border">
+              <table className="w-full text-xs">
+                <thead className="bg-surface text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <tr>
+                    <th className="px-3 py-2 text-left">Name</th>
+                    <th className="px-3 py-2 text-center">TalentDesk</th>
+                    <th className="px-3 py-2 text-center">Contract</th>
+                    <th className="px-3 py-2 text-center">NDA</th>
+                    <th className="px-3 py-2 text-center">BAA Required</th>
+                    <th className="px-3 py-2 text-center">Client Access</th>
+                    <th className="px-3 py-2 text-center">Slack</th>
+                    <th className="px-3 py-2 text-center">Folder</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {members.map((m) => (
+                    <tr key={m.id}>
+                      <td className="px-3 py-2 font-medium text-foreground">{m.name}</td>
+                      <td className="px-3 py-2 text-center">
+                        <Toggle
+                          on={m.talentdesk_status === "active"}
+                          onChange={(v) =>
+                            updateMember(m.id, { talentdesk_status: v ? "active" : "pending" })
+                          }
+                        />
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        <Toggle
+                          on={m.contract_status === "signed"}
+                          onChange={(v) =>
+                            updateMember(m.id, { contract_status: v ? "signed" : "pending" })
+                          }
+                        />
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        <Toggle
+                          on={m.nda_status === "signed"}
+                          onChange={(v) =>
+                            updateMember(m.id, { nda_status: v ? "signed" : "pending" })
+                          }
+                        />
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        <Toggle
+                          on={!!m.baa_required}
+                          onChange={(v) =>
+                            updateMember(m.id, {
+                              baa_required: v,
+                              baa_status: v ? "pending" : "not_required",
+                            } as any)
+                          }
+                        />
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        <Toggle
+                          on={!!m.client_system_access}
+                          onChange={(v) => updateMember(m.id, { client_system_access: v })}
+                        />
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        <Toggle
+                          on={!!m.slack_access}
+                          onChange={(v) => updateMember(m.id, { slack_access: v })}
+                        />
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        <Toggle
+                          on={!!m.folder_access}
+                          onChange={(v) => updateMember(m.id, { folder_access: v })}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* IRIS Suggestions */}
+      {(staffing.length > 0 || writing.length > 0) && (
+        <div
+          className="rounded-lg border"
+          style={{ borderColor: "rgba(201, 168, 76, 0.3)", backgroundColor: "rgba(31, 56, 100, 0.06)" }}
+        >
+          <button
+            type="button"
+            onClick={() => setSuggestionsOpen((v) => !v)}
+            className="w-full flex items-center justify-between px-4 py-3 text-left"
+          >
+            <span className="inline-flex items-center gap-2">
+              <Sparkles className="h-4 w-4" style={{ color: GOLD }} />
+              <span className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: GOLD }}>
+                IRIS Suggestions — Review these as you build the team
+              </span>
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {suggestionsOpen ? "Hide" : "Show"}
+            </span>
+          </button>
+          {suggestionsOpen && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-border/60 p-4">
+              <div>
+                <h4 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                  Suggested Staffing
+                </h4>
+                {staffing.length === 0 ? (
+                  <p className="text-xs italic text-muted-foreground">None</p>
+                ) : (
+                  <ul className="space-y-2 text-xs">
+                    {staffing.map((s, i) => (
+                      <li key={i} className="rounded border border-border/60 bg-background/40 p-2">
+                        <div className="font-semibold text-foreground">{s.role}</div>
+                        {s.reason && <div className="text-muted-foreground mt-0.5">{s.reason}</div>}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <div>
+                <h4 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                  Suggested Writing Assignments
+                </h4>
+                {writing.length === 0 ? (
+                  <p className="text-xs italic text-muted-foreground">None</p>
+                ) : (
+                  <ul className="space-y-2 text-xs">
+                    {writing.map((s, i) => (
+                      <li key={i} className="rounded border border-border/60 bg-background/40 p-2">
+                        <div className="font-semibold text-foreground">{s.section}</div>
+                        <div className="text-muted-foreground">{s.role}</div>
+                        {s.notes && <div className="text-muted-foreground mt-0.5">{s.notes}</div>}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="text-center">
+        <button
+          type="button"
+          onClick={onSkip}
+          className="text-xs text-muted-foreground underline hover:text-foreground"
+        >
+          Skip — I'll add the team later
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      onClick={() => onChange(!on)}
+      className="relative inline-flex h-5 w-9 items-center rounded-full transition"
+      style={{ backgroundColor: on ? GOLD : "rgba(148,163,184,0.35)" }}
+    >
+      <span
+        className="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform"
+        style={{ transform: on ? "translateX(18px)" : "translateX(2px)" }}
+      />
+    </button>
   );
 }
