@@ -145,7 +145,7 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
     }
     setSaving(true);
     try {
-      const payload = {
+      const payload: Record<string, unknown> = {
         name: step1.name.trim(),
         client: step1.client.trim(),
         prime_contractor: step1.prime_contractor || null,
@@ -158,18 +158,25 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
         submission_date: step1.submission_date || null,
         submission_milestones: step1.milestones.filter((m) => m.label.trim() || m.date),
         description: step1.internal_notes || null,
-        mission_status: "Draft",
-        wizard_step: 1,
-        status: "DRAFT",
       };
-      const { data: inserted, error } = await supabase
-        .from("missions")
-        .insert(payload as any)
-        .select("id")
-        .single();
-      if (error) throw error;
-      setMissionId(inserted.id);
-      await supabase.from("mission_readiness").insert({ mission_id: inserted.id } as any);
+      if (missionId) {
+        // EDIT MODE: update existing row, preserve mission_status / wizard_step
+        const { error } = await supabase
+          .from("missions")
+          .update(payload as any)
+          .eq("id", missionId);
+        if (error) throw error;
+      } else {
+        const insertPayload = { ...payload, mission_status: "Draft", wizard_step: 1, status: "DRAFT" };
+        const { data: inserted, error } = await supabase
+          .from("missions")
+          .insert(insertPayload as any)
+          .select("id")
+          .single();
+        if (error) throw error;
+        setMissionId(inserted.id);
+        await supabase.from("mission_readiness").insert({ mission_id: inserted.id } as any);
+      }
       return true;
     } catch (e: any) {
       toast.error(e?.message || "Could not save mission.");
