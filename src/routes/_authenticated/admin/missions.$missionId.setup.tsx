@@ -326,12 +326,13 @@ function useSetupData(missionId: string) {
     queryKey: ["mission-setup", missionId],
     queryFn: async () => {
       const [
-        mission, members, docs, strategy, sensitivities, clientIntel, timeline,
+        mission, members, docs, missionDocs, strategy, sensitivities, clientIntel, timeline,
         questions, volumes, governance, financials, monitoring, evaluation, expertise,
       ] = await Promise.all([
         supabase.from("missions").select("*").eq("id", missionId).maybeSingle(),
         supabase.from("mission_members").select("*").eq("mission_id", missionId),
-        supabase.from("mission_vault_documents").select("id,title,category,uploaded_by_name,created_at,file_path").eq("mission_id", missionId).order("created_at", { ascending: false }),
+        supabase.from("mission_vault_documents").select("id,title,category,uploaded_by_name,created_at,updated_at,file_path,extraction_status,extracted_at").eq("mission_id", missionId).order("created_at", { ascending: false }),
+        supabase.from("mission_documents").select("id,file_name,document_type,processing_status,processed_at,created_at").eq("mission_id", missionId).order("created_at", { ascending: false }),
         supabase.from("mission_strategy").select("*").eq("mission_id", missionId).order("sort_order"),
         supabase.from("mission_sensitivities").select("*").eq("mission_id", missionId),
         supabase.from("mission_client_intel").select("*").eq("mission_id", missionId).maybeSingle(),
@@ -348,6 +349,7 @@ function useSetupData(missionId: string) {
         mission: mission.data,
         members: members.data ?? [],
         docs: docs.data ?? [],
+        missionDocs: missionDocs.data ?? [],
         strategy: strategy.data ?? [],
         sensitivities: sensitivities.data ?? [],
         clientIntel: clientIntel.data,
@@ -366,7 +368,7 @@ function useSetupData(missionId: string) {
     ...(q.data ?? {
       mission: null, members: [], docs: [], strategy: [], sensitivities: [],
       clientIntel: null, timeline: null, questions: [], volumes: [], governance: null, financials: null,
-      monitoring: [], evaluation: [], expertise: [],
+      monitoring: [], evaluation: [], expertise: [], missionDocs: [],
     }),
     refetch: q.refetch,
     isLoading: q.isLoading,
