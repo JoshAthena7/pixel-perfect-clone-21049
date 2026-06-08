@@ -411,7 +411,7 @@ function SetupTab({ missionId, mission }: { missionId: string; mission: any }) {
           {SETUP_STEPS.map((label, i) => {
             const num = i + 1;
             const isDone = num <= completed;
-            const isCurrent = num === current && completed < 7;
+            const isCurrent = num === current && completed < 6;
             const clickable = isDone || isCurrent;
             return (
               <li key={num} className="flex items-center gap-2">
