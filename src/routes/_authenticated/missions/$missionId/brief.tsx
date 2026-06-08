@@ -423,14 +423,35 @@ function StatusPill({ text, color }: { text: string; color: string }) {
 }
 
 /* ════════════════ GET STARTED (H-6) ════════════════ */
+const GET_STARTED_THRESHOLD_KEY = "athena.brief.getStartedHideThreshold";
+const DEFAULT_GET_STARTED_THRESHOLD = 80;
+const THRESHOLD_OPTIONS = [25, 50, 75, 80, 100] as const;
+
+function useGetStartedThreshold(): [number, (n: number) => void] {
+  const [threshold, setThreshold] = useState<number>(() => {
+    if (typeof window === "undefined") return DEFAULT_GET_STARTED_THRESHOLD;
+    const raw = window.localStorage.getItem(GET_STARTED_THRESHOLD_KEY);
+    const n = raw ? Number(raw) : NaN;
+    return Number.isFinite(n) && n >= 0 && n <= 100 ? n : DEFAULT_GET_STARTED_THRESHOLD;
+  });
+  const update = (n: number) => {
+    setThreshold(n);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(GET_STARTED_THRESHOLD_KEY, String(n));
+    }
+  };
+  return [threshold, update];
+}
+
 function GetStartedCard({ missionId, brief }: { missionId: string; brief: MissionBrief }) {
-  // Hide once Setup Record is ≥80% complete (same source of truth as
-  // MissionHealthCard's Overall Progress and the Olympus Setup Record page).
+  // Hide once Setup Record reaches the user-configured threshold (same source
+  // of truth as MissionHealthCard's Overall Progress).
   const setupSections = useSetupCompletion(missionId, brief);
   const setupDone = setupSections.filter((s) => s.done).length;
   const setupTotal = setupSections.length;
   const progressPct = setupTotal > 0 ? (setupDone / setupTotal) * 100 : 0;
-  if (progressPct >= 80) return null;
+  const [threshold, setThreshold] = useGetStartedThreshold();
+  if (progressPct >= threshold) return null;
   return (
     <div style={{
       ...card,
@@ -463,9 +484,34 @@ function GetStartedCard({ missionId, brief }: { missionId: string; brief: Missio
           Go to Setup Record <ArrowRight size={14} />
         </Link>
       </div>
+      <div style={{
+        marginTop: 12, paddingTop: 10, borderTop: `1px solid ${C.border}`,
+        display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
+        fontSize: 11, color: C.textMuted,
+      }}>
+        <span>Hide this banner once Setup Record is</span>
+        <select
+          value={threshold}
+          onChange={(e) => setThreshold(Number(e.target.value))}
+          style={{
+            background: C.navyDeep, color: C.textPrimary,
+            border: `1px solid ${C.border}`, borderRadius: 6,
+            padding: "3px 6px", fontSize: 11, cursor: "pointer",
+          }}
+          aria-label="Hide threshold"
+        >
+          {THRESHOLD_OPTIONS.map((n) => (
+            <option key={n} value={n}>≥ {n}%</option>
+          ))}
+        </select>
+        <span style={{ marginLeft: "auto", fontVariantNumeric: "tabular-nums" }}>
+          Currently {Math.round(progressPct)}% complete
+        </span>
+      </div>
     </div>
   );
 }
+
 function MissionObjective({ brief }: { brief: MissionBrief }) {
   const m = brief.mission;
   // Prefer program_goals, fall back to first paragraph of description.
