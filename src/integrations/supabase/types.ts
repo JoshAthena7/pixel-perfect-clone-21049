@@ -3853,44 +3853,59 @@ export type Database = {
       mission_documents: {
         Row: {
           created_at: string
-          document_type: string
+          doc_type: string | null
+          document_type: string | null
           extracted_text: string | null
-          file_name: string
-          file_path: string
+          file_name: string | null
+          file_path: string | null
+          file_url: string | null
           id: string
+          iris_processed: boolean | null
           mission_id: string
+          notes: string | null
           page_count: number | null
           processed_at: string | null
           processing_status: string
           updated_at: string
+          uploaded_at: string | null
           uploaded_by: string | null
         }
         Insert: {
           created_at?: string
-          document_type: string
+          doc_type?: string | null
+          document_type?: string | null
           extracted_text?: string | null
-          file_name: string
-          file_path: string
+          file_name?: string | null
+          file_path?: string | null
+          file_url?: string | null
           id?: string
+          iris_processed?: boolean | null
           mission_id: string
+          notes?: string | null
           page_count?: number | null
           processed_at?: string | null
           processing_status?: string
           updated_at?: string
+          uploaded_at?: string | null
           uploaded_by?: string | null
         }
         Update: {
           created_at?: string
-          document_type?: string
+          doc_type?: string | null
+          document_type?: string | null
           extracted_text?: string | null
-          file_name?: string
-          file_path?: string
+          file_name?: string | null
+          file_path?: string | null
+          file_url?: string | null
           id?: string
+          iris_processed?: boolean | null
           mission_id?: string
+          notes?: string | null
           page_count?: number | null
           processed_at?: string | null
           processing_status?: string
           updated_at?: string
+          uploaded_at?: string | null
           uploaded_by?: string | null
         }
         Relationships: [
