@@ -31,7 +31,7 @@ function AdminLayout() {
         </nav>
 
         <div className="border-t border-border px-2 py-3">
-          <NavLink to="/missions" label="Atlas Home" />
+          <NavLink to="/missions" label="← Atlas Home" />
         </div>
       </aside>
 
