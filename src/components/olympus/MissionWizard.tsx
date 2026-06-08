@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { X, Plus, Trash2, Check, Sparkles, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { X, Plus, Trash2, Check, Sparkles, AlertTriangle, CheckCircle2, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -79,6 +79,8 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
     Object.fromEntries(DOC_SLOTS.map((s) => [s.key, { url: "", notes: "" }])),
   );
   const [otherMaterials, setOtherMaterials] = useState("");
+  const step4SaveRef = useRef<null | (() => Promise<boolean>)>(null);
+
 
   if (!open) return null;
 
@@ -186,6 +188,18 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
     } else if (step === 3) {
       // Step 3 advances via its own internal buttons; this is a no-op.
       return;
+    } else if (step === 4) {
+      if (!step4SaveRef.current) {
+        setStep(5);
+        return;
+      }
+      setSaving(true);
+      try {
+        const ok = await step4SaveRef.current();
+        if (ok) setStep(5);
+      } finally {
+        setSaving(false);
+      }
     } else if (step < 6) {
       setStep(step + 1);
     } else {
@@ -243,7 +257,16 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
               onAdvance={() => setStep(4)}
             />
           )}
-          {step >= 4 && (
+          {step === 4 && missionId && (
+            <Step4Review
+              missionId={missionId}
+              registerSave={(fn) => {
+                step4SaveRef.current = fn;
+              }}
+              onReRun={() => setStep(3)}
+            />
+          )}
+          {step >= 5 && (
             <div className="py-16 text-center text-sm text-muted-foreground">
               <h2 className="text-lg font-semibold text-foreground mb-2">
                 {STEP_NAMES[step - 1]}
@@ -892,4 +915,692 @@ function formatDocType(s: string | null): string {
     .split("_")
     .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
     .join(" ");
+}
+
+/* ---------- Step 4: Review & Edit Record ---------- */
+
+type KeyDate = { label: string; date: string; note: string };
+type KeyRisk = { risk: string; mitigation: string };
+type Staffing = { role: string; reason: string };
+type WritingAssignment = { section: string; role: string; notes: string };
+type RiskLevel = "LOW" | "MEDIUM" | "HIGH";
+
+type RecordContent = {
+  mission_overview: string;
+  mission_briefing: string;
+  risk_level: RiskLevel;
+  key_dates: KeyDate[];
+  major_requirements: string[];
+  deliverables: string[];
+  compliance_items: string[];
+  key_risks: KeyRisk[];
+  known_gaps: string[];
+  recommended_win_themes: string[];
+  intelligence_notes: string;
+  iris_briefing_notes: string;
+  suggested_sections: string[];
+  workstreams: string[];
+  suggested_staffing: Staffing[];
+  suggested_writing_assignments: WritingAssignment[];
+  required_expertise: string[];
+  client_sensitivities: string[];
+};
+
+const EMPTY_RECORD: RecordContent = {
+  mission_overview: "",
+  mission_briefing: "",
+  risk_level: "MEDIUM",
+  key_dates: [],
+  major_requirements: [],
+  deliverables: [],
+  compliance_items: [],
+  key_risks: [],
+  known_gaps: [],
+  recommended_win_themes: [],
+  intelligence_notes: "",
+  iris_briefing_notes: "",
+  suggested_sections: [],
+  workstreams: [],
+  suggested_staffing: [],
+  suggested_writing_assignments: [],
+  required_expertise: [],
+  client_sensitivities: [],
+};
+
+function normalizeContent(raw: any): RecordContent {
+  const c = raw && typeof raw === "object" ? raw : {};
+  const asArr = (v: any): any[] => (Array.isArray(v) ? v : []);
+  const asStrArr = (v: any): string[] =>
+    asArr(v).map((x) => (typeof x === "string" ? x : x?.label ?? x?.name ?? String(x ?? ""))).filter(Boolean);
+  const rl = String(c.risk_level || "MEDIUM").toUpperCase();
+  return {
+    mission_overview: c.mission_overview ?? "",
+    mission_briefing: c.mission_briefing ?? "",
+    risk_level: (rl === "LOW" || rl === "HIGH" ? rl : "MEDIUM") as RiskLevel,
+    key_dates: asArr(c.key_dates).map((d: any) => ({
+      label: d?.label ?? "",
+      date: d?.date ?? "",
+      note: d?.note ?? "",
+    })),
+    major_requirements: asStrArr(c.major_requirements),
+    deliverables: asStrArr(c.deliverables),
+    compliance_items: asStrArr(c.compliance_items),
+    key_risks: asArr(c.key_risks).map((r: any) =>
+      typeof r === "string"
+        ? { risk: r, mitigation: "" }
+        : { risk: r?.risk ?? "", mitigation: r?.mitigation ?? "" },
+    ),
+    known_gaps: asStrArr(c.known_gaps),
+    recommended_win_themes: asStrArr(c.recommended_win_themes),
+    intelligence_notes: c.intelligence_notes ?? "",
+    iris_briefing_notes: c.iris_briefing_notes ?? "",
+    suggested_sections: asStrArr(c.suggested_sections),
+    workstreams: asStrArr(c.workstreams),
+    suggested_staffing: asArr(c.suggested_staffing).map((s: any) =>
+      typeof s === "string"
+        ? { role: s, reason: "" }
+        : { role: s?.role ?? "", reason: s?.reason ?? "" },
+    ),
+    suggested_writing_assignments: asArr(c.suggested_writing_assignments).map((s: any) => ({
+      section: s?.section ?? "",
+      role: s?.role ?? "",
+      notes: s?.notes ?? "",
+    })),
+    required_expertise: asStrArr(c.required_expertise),
+    client_sensitivities: asStrArr(c.client_sensitivities),
+  };
+}
+
+function Step4Review({
+  missionId,
+  registerSave,
+  onReRun,
+}: {
+  missionId: string;
+  registerSave: (fn: () => Promise<boolean>) => void;
+  onReRun: () => void;
+}) {
+  const [loading, setLoading] = useState(true);
+  const [intelId, setIntelId] = useState<string | null>(null);
+  const [rec, setRec] = useState<RecordContent>(EMPTY_RECORD);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const { data } = await supabase
+        .from("mission_intelligence")
+        .select("id, content, created_at")
+        .eq("mission_id", missionId)
+        .eq("layer", "wizard_analysis")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!alive) return;
+      if (data) {
+        setIntelId(data.id);
+        setRec(normalizeContent((data as any).content));
+      }
+      setLoading(false);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [missionId]);
+
+  useEffect(() => {
+    registerSave(async () => {
+      try {
+        if (intelId) {
+          const { error } = await supabase
+            .from("mission_intelligence")
+            .update({ content: rec as any } as never)
+            .eq("id", intelId);
+          if (error) throw error;
+        } else {
+          const { data, error } = await supabase
+            .from("mission_intelligence")
+            .insert({
+              mission_id: missionId,
+              layer: "wizard_analysis",
+              type: "wizard_analysis",
+              content: rec as any,
+            } as never)
+            .select("id")
+            .single();
+          if (error) throw error;
+          if (data) setIntelId((data as any).id);
+        }
+        const { error: mErr } = await supabase
+          .from("missions")
+          .update({ wizard_step: 4 } as never)
+          .eq("id", missionId);
+        if (mErr) throw mErr;
+        toast.success("Record saved");
+        return true;
+      } catch (e: any) {
+        toast.error(e?.message || "Could not save record");
+        return false;
+      }
+    });
+  }, [rec, intelId, missionId, registerSave]);
+
+  const set = <K extends keyof RecordContent>(k: K, v: RecordContent[K]) =>
+    setRec((r) => ({ ...r, [k]: v }));
+
+  const handleReRun = () => {
+    if (
+      confirm(
+        "Re-run IRIS? This will overwrite the current record after the new analysis completes.",
+      )
+    ) {
+      onReRun();
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="py-16 text-center text-sm text-muted-foreground">
+        <Loader2 className="mx-auto mb-3 h-5 w-5 animate-spin" />
+        Loading mission record…
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-7">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-sm text-muted-foreground">
+          IRIS drafted this — correct anything, add what's missing, and save your changes
+        </p>
+        <button
+          type="button"
+          onClick={handleReRun}
+          className="shrink-0 inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-semibold hover:bg-surface-hover"
+        >
+          <RefreshCw className="h-3.5 w-3.5" /> Re-run IRIS
+        </button>
+      </div>
+
+      <Section title="Mission Overview">
+        <Field label="Overview">
+          <Textarea
+            value={rec.mission_overview}
+            onChange={(v) => set("mission_overview", v)}
+            rows={4}
+          />
+        </Field>
+        <Field label="Mission Briefing — shown to the team at launch">
+          <Textarea
+            value={rec.mission_briefing}
+            onChange={(v) => set("mission_briefing", v)}
+            rows={5}
+          />
+        </Field>
+      </Section>
+
+      <Section title="Risk Level">
+        <div className="flex gap-2">
+          {(["LOW", "MEDIUM", "HIGH"] as RiskLevel[]).map((lvl) => {
+            const active = rec.risk_level === lvl;
+            const color =
+              lvl === "LOW" ? "#10b981" : lvl === "MEDIUM" ? "#f59e0b" : "#f43f5e";
+            return (
+              <button
+                key={lvl}
+                type="button"
+                onClick={() => set("risk_level", lvl)}
+                className="rounded-md border px-4 py-2 text-xs font-bold uppercase tracking-wider transition"
+                style={{
+                  borderColor: active ? color : "var(--border)",
+                  backgroundColor: active ? `${color}22` : "transparent",
+                  color: active ? color : "var(--muted-foreground)",
+                }}
+              >
+                {lvl}
+              </button>
+            );
+          })}
+        </div>
+      </Section>
+
+      <Section title="Key Dates">
+        <RowTable
+          headers={["Label", "Date", "Note"]}
+          rows={rec.key_dates}
+          onAdd={() =>
+            set("key_dates", [...rec.key_dates, { label: "", date: "", note: "" }])
+          }
+          addLabel="Add Date"
+          render={(row, i) => (
+            <>
+              <Input
+                value={row.label}
+                onChange={(v) =>
+                  set(
+                    "key_dates",
+                    rec.key_dates.map((r, idx) => (idx === i ? { ...r, label: v } : r)),
+                  )
+                }
+                placeholder="e.g. Proposal Due"
+              />
+              <Input
+                type="date"
+                value={row.date}
+                onChange={(v) =>
+                  set(
+                    "key_dates",
+                    rec.key_dates.map((r, idx) => (idx === i ? { ...r, date: v } : r)),
+                  )
+                }
+              />
+              <Input
+                value={row.note}
+                onChange={(v) =>
+                  set(
+                    "key_dates",
+                    rec.key_dates.map((r, idx) => (idx === i ? { ...r, note: v } : r)),
+                  )
+                }
+                placeholder="Note"
+              />
+            </>
+          )}
+          onRemove={(i) =>
+            set("key_dates", rec.key_dates.filter((_, idx) => idx !== i))
+          }
+        />
+      </Section>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Section title="Major Requirements">
+          <ChipEditor
+            items={rec.major_requirements}
+            onChange={(v) => set("major_requirements", v)}
+            placeholder="Add requirement"
+          />
+        </Section>
+        <Section title="Deliverables">
+          <ChipEditor
+            items={rec.deliverables}
+            onChange={(v) => set("deliverables", v)}
+            placeholder="Add deliverable"
+          />
+        </Section>
+      </div>
+
+      <Section title="Compliance Items">
+        <ChipEditor
+          items={rec.compliance_items}
+          onChange={(v) => set("compliance_items", v)}
+          placeholder="Add compliance item"
+        />
+      </Section>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Section title="Key Risks">
+          <RowTable
+            headers={["Risk", "Mitigation"]}
+            rows={rec.key_risks}
+            onAdd={() =>
+              set("key_risks", [...rec.key_risks, { risk: "", mitigation: "" }])
+            }
+            addLabel="Add Risk"
+            render={(row, i) => (
+              <>
+                <Input
+                  value={row.risk}
+                  onChange={(v) =>
+                    set(
+                      "key_risks",
+                      rec.key_risks.map((r, idx) => (idx === i ? { ...r, risk: v } : r)),
+                    )
+                  }
+                  placeholder="Risk"
+                />
+                <Input
+                  value={row.mitigation}
+                  onChange={(v) =>
+                    set(
+                      "key_risks",
+                      rec.key_risks.map((r, idx) =>
+                        idx === i ? { ...r, mitigation: v } : r,
+                      ),
+                    )
+                  }
+                  placeholder="Mitigation"
+                />
+              </>
+            )}
+            onRemove={(i) =>
+              set("key_risks", rec.key_risks.filter((_, idx) => idx !== i))
+            }
+          />
+        </Section>
+        <Section title="Known Gaps">
+          <ChipEditor
+            items={rec.known_gaps}
+            onChange={(v) => set("known_gaps", v)}
+            placeholder="Add gap"
+          />
+        </Section>
+      </div>
+
+      <Section title="Recommended Win Themes">
+        <ChipEditor
+          items={rec.recommended_win_themes}
+          onChange={(v) => set("recommended_win_themes", v)}
+          placeholder="Add win theme"
+        />
+      </Section>
+
+      <Section title="Intelligence Notes">
+        <Textarea
+          value={rec.intelligence_notes}
+          onChange={(v) => set("intelligence_notes", v)}
+          rows={4}
+        />
+      </Section>
+
+      <Section title="IRIS Briefing Notes">
+        <Textarea
+          value={rec.iris_briefing_notes}
+          onChange={(v) => set("iris_briefing_notes", v)}
+          rows={4}
+        />
+      </Section>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Section
+          title="Suggested Sections"
+          subtitle="These will populate Atlas at launch"
+        >
+          <ChipEditor
+            items={rec.suggested_sections}
+            onChange={(v) => set("suggested_sections", v)}
+            placeholder="Add section"
+          />
+        </Section>
+        <Section title="Workstreams">
+          <ChipEditor
+            items={rec.workstreams}
+            onChange={(v) => set("workstreams", v)}
+            placeholder="Add workstream"
+          />
+        </Section>
+      </div>
+
+      <Section title="Suggested Staffing">
+        <RowTable
+          headers={["Role", "Reason"]}
+          rows={rec.suggested_staffing}
+          onAdd={() =>
+            set("suggested_staffing", [
+              ...rec.suggested_staffing,
+              { role: "", reason: "" },
+            ])
+          }
+          addLabel="Add Role"
+          render={(row, i) => (
+            <>
+              <Input
+                value={row.role}
+                onChange={(v) =>
+                  set(
+                    "suggested_staffing",
+                    rec.suggested_staffing.map((r, idx) =>
+                      idx === i ? { ...r, role: v } : r,
+                    ),
+                  )
+                }
+                placeholder="Role"
+              />
+              <Input
+                value={row.reason}
+                onChange={(v) =>
+                  set(
+                    "suggested_staffing",
+                    rec.suggested_staffing.map((r, idx) =>
+                      idx === i ? { ...r, reason: v } : r,
+                    ),
+                  )
+                }
+                placeholder="Reason"
+              />
+            </>
+          )}
+          onRemove={(i) =>
+            set(
+              "suggested_staffing",
+              rec.suggested_staffing.filter((_, idx) => idx !== i),
+            )
+          }
+        />
+      </Section>
+
+      <Section title="Suggested Writing Assignments">
+        <RowTable
+          headers={["Section", "Role", "Notes"]}
+          rows={rec.suggested_writing_assignments}
+          onAdd={() =>
+            set("suggested_writing_assignments", [
+              ...rec.suggested_writing_assignments,
+              { section: "", role: "", notes: "" },
+            ])
+          }
+          addLabel="Add Assignment"
+          render={(row, i) => (
+            <>
+              <Input
+                value={row.section}
+                onChange={(v) =>
+                  set(
+                    "suggested_writing_assignments",
+                    rec.suggested_writing_assignments.map((r, idx) =>
+                      idx === i ? { ...r, section: v } : r,
+                    ),
+                  )
+                }
+                placeholder="Section"
+              />
+              <Input
+                value={row.role}
+                onChange={(v) =>
+                  set(
+                    "suggested_writing_assignments",
+                    rec.suggested_writing_assignments.map((r, idx) =>
+                      idx === i ? { ...r, role: v } : r,
+                    ),
+                  )
+                }
+                placeholder="Role"
+              />
+              <Input
+                value={row.notes}
+                onChange={(v) =>
+                  set(
+                    "suggested_writing_assignments",
+                    rec.suggested_writing_assignments.map((r, idx) =>
+                      idx === i ? { ...r, notes: v } : r,
+                    ),
+                  )
+                }
+                placeholder="Notes"
+              />
+            </>
+          )}
+          onRemove={(i) =>
+            set(
+              "suggested_writing_assignments",
+              rec.suggested_writing_assignments.filter((_, idx) => idx !== i),
+            )
+          }
+        />
+      </Section>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Section title="Required Expertise">
+          <ChipEditor
+            items={rec.required_expertise}
+            onChange={(v) => set("required_expertise", v)}
+            placeholder="Add expertise"
+          />
+        </Section>
+        <Section title="Client Sensitivities">
+          <ChipEditor
+            items={rec.client_sensitivities}
+            onChange={(v) => set("client_sensitivities", v)}
+            placeholder="Add sensitivity"
+          />
+        </Section>
+      </div>
+    </div>
+  );
+}
+
+function Section({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-3">
+      <div>
+        <h3 className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: GOLD }}>
+          {title}
+        </h3>
+        {subtitle && (
+          <p className="text-[11px] text-muted-foreground mt-0.5">{subtitle}</p>
+        )}
+      </div>
+      <div className="space-y-3">{children}</div>
+    </div>
+  );
+}
+
+function ChipEditor({
+  items,
+  onChange,
+  placeholder,
+}: {
+  items: string[];
+  onChange: (v: string[]) => void;
+  placeholder?: string;
+}) {
+  const [draft, setDraft] = useState("");
+  const add = () => {
+    const v = draft.trim();
+    if (!v) return;
+    onChange([...items, v]);
+    setDraft("");
+  };
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-1.5">
+        {items.length === 0 && (
+          <span className="text-xs text-muted-foreground italic">None</span>
+        )}
+        {items.map((it, i) => (
+          <span
+            key={`${it}-${i}`}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/60 px-2.5 py-1 text-xs"
+          >
+            {it}
+            <button
+              type="button"
+              onClick={() => onChange(items.filter((_, idx) => idx !== i))}
+              className="text-muted-foreground hover:text-rose-400"
+              aria-label="Remove"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </span>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <input
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              add();
+            }
+          }}
+          placeholder={placeholder}
+          className="flex-1 rounded-md border border-border bg-background px-3 py-1.5 text-sm focus:border-[color:var(--athena-gold,#C9A84C)] focus:outline-none"
+        />
+        <button
+          type="button"
+          onClick={add}
+          className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs font-medium hover:bg-surface-hover"
+        >
+          <Plus className="h-3 w-3" /> Add
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function RowTable<T>({
+  headers,
+  rows,
+  render,
+  onAdd,
+  onRemove,
+  addLabel,
+}: {
+  headers: string[];
+  rows: T[];
+  render: (row: T, i: number) => React.ReactNode;
+  onAdd: () => void;
+  onRemove: (i: number) => void;
+  addLabel: string;
+}) {
+  const cols = headers.length;
+  const gridTemplate = `${"minmax(0,1fr) ".repeat(cols)}auto`;
+  return (
+    <div className="space-y-2">
+      <div
+        className="grid gap-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
+        style={{ gridTemplateColumns: gridTemplate }}
+      >
+        {headers.map((h) => (
+          <div key={h}>{h}</div>
+        ))}
+        <div />
+      </div>
+      {rows.length === 0 ? (
+        <p className="text-xs text-muted-foreground italic">No rows yet.</p>
+      ) : (
+        rows.map((row, i) => (
+          <div
+            key={i}
+            className="grid gap-2 items-center"
+            style={{ gridTemplateColumns: gridTemplate }}
+          >
+            {render(row, i)}
+            <button
+              type="button"
+              onClick={() => onRemove(i)}
+              aria-label="Remove row"
+              className="shrink-0 inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-surface-hover hover:text-rose-400"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        ))
+      )}
+      <button
+        type="button"
+        onClick={onAdd}
+        className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-medium hover:bg-surface-hover"
+      >
+        <Plus className="h-3 w-3" /> {addLabel}
+      </button>
+    </div>
+  );
 }
