@@ -921,21 +921,43 @@ function MissionStatusBadge({ status }: { status: string | null | undefined }) {
 
 /* ─── Pending edits banner ─── */
 function PendingEditsBanner({ missionId }: { missionId: string }) {
-  const { data: count = 0 } = useQuery({
-    queryKey: ["pending-edits-count", missionId],
-    queryFn: async () => {
-      const { count } = await supabase
+  const qc = useQueryClient();
+  const [syncing, setSyncing] = useState(false);
+  const sync = async () => {
+    setSyncing(true);
+    try {
+      const { error: e1 } = await supabase
         .from("mission_change_log")
-        .select("id", { count: "exact", head: true })
+        .update({ synced_to_atlas: true } as never)
         .eq("mission_id", missionId)
         .eq("synced_to_atlas", false);
-      return count ?? 0;
-    },
-  });
+      if (e1) throw e1;
+      const { error: e2 } = await supabase
+        .from("missions")
+        .update({ mission_status: "Live", atlas_synced_at: new Date().toISOString() } as never)
+        .eq("id", missionId);
+      if (e2) throw e2;
+      toast.success("Synced to Atlas");
+      qc.invalidateQueries({ queryKey: ["olympus-mission", missionId] });
+      qc.invalidateQueries({ queryKey: ["pending-edits-count", missionId] });
+      qc.invalidateQueries({ queryKey: ["change-log", missionId] });
+    } catch (e: any) {
+      toast.error(e?.message || "Sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  };
   return (
-    <div className="rounded-md border border-amber-500/60 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-      Pending edits — {count} change{count === 1 ? "" : "s"} not yet synced to Atlas.
-      Go to the Oversight tab and click <span className="font-semibold">Sync Changes to Atlas</span> when ready.
+    <div className="flex items-center justify-between gap-3 border-b border-amber-500/40 bg-amber-500/15 px-5 py-2.5 text-sm text-amber-100">
+      <span>This mission has unsynced edits pending Atlas sync</span>
+      <button
+        type="button"
+        onClick={sync}
+        disabled={syncing}
+        className="rounded-md border border-amber-300/50 bg-amber-400/20 px-3 py-1 text-xs font-semibold text-amber-50 hover:bg-amber-400/30 disabled:opacity-50"
+      >
+        {syncing ? "Syncing…" : "Sync to Atlas →"}
+      </button>
     </div>
   );
 }
