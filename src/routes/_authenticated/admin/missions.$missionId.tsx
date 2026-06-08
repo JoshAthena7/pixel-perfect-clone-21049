@@ -166,9 +166,6 @@ function OverviewTab({ missionId, mission }: { missionId: string; mission: any }
 
   return (
     <div className="space-y-4">
-      {mission.mission_status === "Live with Pending Edits" && (
-        <PendingEditsBanner missionId={missionId} />
-      )}
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-3 lg:col-span-2">
           <div className="grid grid-cols-2 gap-3">
