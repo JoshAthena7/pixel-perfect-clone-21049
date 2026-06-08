@@ -200,10 +200,31 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
     return true;
   };
 
+  const saveStep4 = async () => {
+    if (!missionId || !review) return false;
+    setSaving(true);
+    setErr(null);
+    let q = supabase.from("mission_intelligence").update({ content: review as never } as never);
+    q = reviewIntelId
+      ? q.eq("id", reviewIntelId)
+      : q.eq("mission_id", missionId).eq("layer", "wizard_analysis");
+    const { error } = await q;
+    if (error) {
+      setSaving(false);
+      setErr(error.message);
+      return false;
+    }
+    await supabase.from("missions").update({ wizard_step: 4 } as never).eq("id", missionId);
+    setSaving(false);
+    toast.success("Mission record confirmed");
+    return true;
+  };
+
   const handleContinue = async () => {
     let ok = true;
     if (step === 1) ok = await saveStep1();
     else if (step === 2) ok = await saveStep2();
+    else if (step === 4) ok = await saveStep4();
     if (!ok) return;
     if (step >= TOTAL_STEPS) {
       qc.invalidateQueries({ queryKey: ["olympus-missions"] });
