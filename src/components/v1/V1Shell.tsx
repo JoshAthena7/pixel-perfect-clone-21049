@@ -41,8 +41,18 @@ export function V1Shell({ children }: { children: ReactNode }) {
       {/* Top bar */}
       <header className="border-b border-[color:var(--v1-border)] bg-[color:var(--v1-surface)] px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <Link to="/v1" className="font-bold text-lg tracking-tight text-[color:var(--v1-text)]">
+          <Link
+            to="/v1"
+            className="group relative font-bold text-lg tracking-tight text-[color:var(--v1-text)]"
+            title="Forget regret, or life is yours to miss. No other path, no other way. No day but today. — Jonathan Larson"
+          >
             ATLAS
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute left-0 -bottom-2 whitespace-nowrap text-[9px] italic font-normal tracking-wide text-[color:var(--v1-muted)]/60 opacity-70"
+            >
+              no day but today
+            </span>
           </Link>
           {mission && (
             <div className="flex items-center gap-3 text-xs text-[color:var(--v1-muted)]">
