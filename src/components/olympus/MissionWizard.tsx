@@ -2477,16 +2477,17 @@ function Step6Readiness({
         <h4 className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground mb-2">
           Open Items
         </h4>
-        <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
-          <span>
-            <strong className="text-foreground">{openItems.contracts}</strong> unsigned contracts
-          </span>
-          <span>
-            <strong className="text-foreground">{openItems.ndas}</strong> unsigned NDAs
-          </span>
-          <span>
-            <strong className="text-foreground">{openItems.talentdesk}</strong> not active in TalentDesk
-          </span>
+        <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs">
+          {([
+            ["contracts", openItems.contracts, "unsigned contracts"],
+            ["ndas", openItems.ndas, "unsigned NDAs"],
+            ["talentdesk", openItems.talentdesk, "not active in TalentDesk"],
+            ["baas", openItems.baas, "unsigned BAAs"],
+          ] as const).map(([k, n, label]) => (
+            <span key={k} style={{ color: n > 0 ? "#f59e0b" : "var(--muted-foreground)" }}>
+              <strong style={{ color: n > 0 ? "#f59e0b" : "var(--foreground)" }}>{n}</strong> {label}
+            </span>
+          ))}
         </div>
       </div>
 
