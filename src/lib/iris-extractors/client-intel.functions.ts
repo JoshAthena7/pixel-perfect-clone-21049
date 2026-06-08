@@ -46,7 +46,7 @@ If a field has no supporting evidence, leave the array empty or write "No public
 
     const result = await callJsonExtractor<ClientIntelOut>({
       system,
-      user: renderContext(mission, rows),
+      user: renderContext(mission, rows) + (docText ? `\n\n=== UPLOADED MISSION DOCUMENTS ===\n${docText}` : ""),
       toolName: "emit_client_intel",
       toolDescription: "Emit the client intelligence record for this mission.",
       parametersSchema: {
