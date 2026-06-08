@@ -95,6 +95,7 @@ export const importSetupRecord = createServerFn({ method: "POST" })
     const { data: role } = await supabase
       .from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
     if (!role) throw new Error("Admin access required.");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("IRIS is not configured — built-in AI key missing.");
@@ -153,12 +154,12 @@ export const importSetupRecord = createServerFn({ method: "POST" })
     const updatedFields = Object.keys(patch);
     const fieldsUpdated = updatedFields.length;
     if (fieldsUpdated > 0) {
-      const { error } = await supabase.from("missions").update(patch as never).eq("id", data.mission_id);
+      const { error } = await supabaseAdmin.from("missions").update(patch as never).eq("id", data.mission_id);
       if (error) throw new Error(error.message);
     }
 
     if (parsed.submission_date && /^\d{4}-\d{2}-\d{2}$/.test(parsed.submission_date)) {
-      const { error } = await supabase.from("mission_timeline").upsert({
+      const { error } = await supabaseAdmin.from("mission_timeline").upsert({
         mission_id: data.mission_id,
         submission: parsed.submission_date,
         updated_at: new Date().toISOString(),
@@ -168,7 +169,7 @@ export const importSetupRecord = createServerFn({ method: "POST" })
     }
 
     if (parsed.competitors.length > 0) {
-      const { data: existing, error: readError } = await supabase
+      const { data: existing, error: readError } = await supabaseAdmin
         .from("mission_strategy")
         .select("label")
         .eq("mission_id", data.mission_id)
@@ -179,7 +180,7 @@ export const importSetupRecord = createServerFn({ method: "POST" })
         .filter((label) => !seen.has(label.toLowerCase()))
         .map((label) => ({ mission_id: data.mission_id, kind: "competitor", label, created_by: userId }));
       if (rows.length > 0) {
-        const { error } = await supabase.from("mission_strategy").insert(rows as never);
+        const { error } = await supabaseAdmin.from("mission_strategy").insert(rows as never);
         if (error) throw new Error(error.message);
         updatedFields.push("strategy.competitors");
       }
