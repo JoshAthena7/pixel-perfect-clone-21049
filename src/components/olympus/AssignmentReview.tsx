@@ -237,9 +237,10 @@ export default function AssignmentReview({
     patch: Partial<Assignment>,
   ) => {
     const row = rows.find((r) => r.question.id === questionId);
+    const previous = row?.assignment ?? emptyAssignment(missionId, questionId);
     const merged = {
       ...emptyAssignment(missionId, questionId),
-      ...(row?.assignment ?? {}),
+      ...previous,
       ...patch,
       question_id: questionId,
       mission_id: missionId,
@@ -256,7 +257,35 @@ export default function AssignmentReview({
     const { error } = await supabase
       .from("question_assignments")
       .upsert(merged as never, { onConflict: "question_id" });
-    if (error) toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    // Live-mission change log + status bump
+    if (isLive) {
+      const changeRows = Object.entries(patch)
+        .filter(([k]) => k !== "id" && k !== "question_id" && k !== "mission_id" && k !== "updated_at")
+        .filter(([k, v]) => (previous as any)[k] !== v)
+        .map(([k, v]) => ({
+          mission_id: missionId,
+          change_type: "assignment_update",
+          field_name: k,
+          old_value: String((previous as any)[k] ?? ""),
+          new_value: String(v ?? ""),
+          synced_to_atlas: false,
+        }));
+      if (changeRows.length) {
+        await supabase.from("mission_change_log").insert(changeRows as never);
+        if (missionStatus !== "Live with Pending Edits") {
+          await supabase
+            .from("missions")
+            .update({ mission_status: "Live with Pending Edits" } as never)
+            .eq("id", missionId);
+          setMissionStatus("Live with Pending Edits");
+        }
+      }
+    }
   };
 
   const persistQuestion = async (
