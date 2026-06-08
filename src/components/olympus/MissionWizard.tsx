@@ -360,7 +360,7 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
           >
             ← Back
           </button>
-          {step !== 3 && step !== 6 && (
+          {step !== 3 && step !== 4 && step !== 6 && (
             <button
               type="button"
               onClick={handleContinue}
