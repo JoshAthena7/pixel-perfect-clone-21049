@@ -5015,9 +5015,11 @@ export type Database = {
       }
       mission_team_members: {
         Row: {
+          active: boolean | null
           assigned_sections: Json | null
           baa_required: boolean | null
           baa_status: string | null
+          clearance: string | null
           client_system_access: boolean | null
           contract_status: string | null
           created_at: string | null
@@ -5029,16 +5031,20 @@ export type Database = {
           name: string
           nda_status: string | null
           onboarding_completed_at: string | null
+          org: string | null
           role: string
           slack_access: boolean | null
+          source: string | null
           start_date: string | null
           talentdesk_status: string | null
           user_id: string | null
         }
         Insert: {
+          active?: boolean | null
           assigned_sections?: Json | null
           baa_required?: boolean | null
           baa_status?: string | null
+          clearance?: string | null
           client_system_access?: boolean | null
           contract_status?: string | null
           created_at?: string | null
@@ -5050,16 +5056,20 @@ export type Database = {
           name: string
           nda_status?: string | null
           onboarding_completed_at?: string | null
+          org?: string | null
           role: string
           slack_access?: boolean | null
+          source?: string | null
           start_date?: string | null
           talentdesk_status?: string | null
           user_id?: string | null
         }
         Update: {
+          active?: boolean | null
           assigned_sections?: Json | null
           baa_required?: boolean | null
           baa_status?: string | null
+          clearance?: string | null
           client_system_access?: boolean | null
           contract_status?: string | null
           created_at?: string | null
@@ -5071,8 +5081,10 @@ export type Database = {
           name?: string
           nda_status?: string | null
           onboarding_completed_at?: string | null
+          org?: string | null
           role?: string
           slack_access?: boolean | null
+          source?: string | null
           start_date?: string | null
           talentdesk_status?: string | null
           user_id?: string | null
