@@ -733,6 +733,9 @@ function AssignmentRow({
         </Td>
       )}
       <Td>
+        <BadgeSelect
+          value={a.status || "Unassigned"}
+          options={STATUS_OPTIONS as readonly string[]}
           onChange={(v) => onChange({ status: v })}
           tone={badgeTone(a.status)}
         />
