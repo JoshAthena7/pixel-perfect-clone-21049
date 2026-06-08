@@ -8,6 +8,7 @@ import {
   Loader2,
   AlertTriangle,
   CheckCircle2,
+  Plus,
 } from "lucide-react";
 
 const GOLD = "#C9A84C";
@@ -129,6 +130,7 @@ export default function AssignmentReview({
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [intelMap, setIntelMap] = useState<Map<string, IntelRow>>(new Map());
   const [missionDocs, setMissionDocs] = useState<MissionDoc[]>([]);
+  const [missionStatus, setMissionStatus] = useState<string | null>(null);
 
   // filters
   const [filterSection, setFilterSection] = useState("");
@@ -139,9 +141,13 @@ export default function AssignmentReview({
 
   const [drawerQid, setDrawerQid] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+
+  const isLive =
+    missionStatus === "Live" || missionStatus === "Live with Pending Edits";
 
   const reload = async () => {
-    const [{ data: qData, error: qErr }, { data: aData }, { data: tData }, { data: iData }, { data: dData }] =
+    const [{ data: qData, error: qErr }, { data: aData }, { data: tData }, { data: iData }, { data: dData }, { data: mData }] =
       await Promise.all([
         supabase
           .from("questions")
@@ -173,6 +179,11 @@ export default function AssignmentReview({
           .select("id, file_name, doc_type")
           .eq("mission_id", missionId)
           .order("file_name", { ascending: true }),
+        supabase
+          .from("missions")
+          .select("mission_status")
+          .eq("id", missionId)
+          .maybeSingle(),
       ]);
 
     if (qErr) {
@@ -203,6 +214,7 @@ export default function AssignmentReview({
     setTeam((tData ?? []) as TeamMember[]);
     setIntelMap(iMap);
     setMissionDocs((dData ?? []) as MissionDoc[]);
+    setMissionStatus(((mData as any)?.mission_status as string | null) ?? null);
     setLoading(false);
   };
 
@@ -225,9 +237,10 @@ export default function AssignmentReview({
     patch: Partial<Assignment>,
   ) => {
     const row = rows.find((r) => r.question.id === questionId);
+    const previous = row?.assignment ?? emptyAssignment(missionId, questionId);
     const merged = {
       ...emptyAssignment(missionId, questionId),
-      ...(row?.assignment ?? {}),
+      ...previous,
       ...patch,
       question_id: questionId,
       mission_id: missionId,
@@ -244,7 +257,35 @@ export default function AssignmentReview({
     const { error } = await supabase
       .from("question_assignments")
       .upsert(merged as never, { onConflict: "question_id" });
-    if (error) toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    // Live-mission change log + status bump
+    if (isLive) {
+      const changeRows = Object.entries(patch)
+        .filter(([k]) => k !== "id" && k !== "question_id" && k !== "mission_id" && k !== "updated_at")
+        .filter(([k, v]) => (previous as any)[k] !== v)
+        .map(([k, v]) => ({
+          mission_id: missionId,
+          change_type: "assignment_update",
+          field_name: k,
+          old_value: String((previous as any)[k] ?? ""),
+          new_value: String(v ?? ""),
+          synced_to_atlas: false,
+        }));
+      if (changeRows.length) {
+        await supabase.from("mission_change_log").insert(changeRows as never);
+        if (missionStatus !== "Live with Pending Edits") {
+          await supabase
+            .from("missions")
+            .update({ mission_status: "Live with Pending Edits" } as never)
+            .eq("id", missionId);
+          setMissionStatus("Live with Pending Edits");
+        }
+      }
+    }
   };
 
   const persistQuestion = async (
@@ -503,7 +544,17 @@ export default function AssignmentReview({
           />
           Unassigned Only
         </label>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          {mode === "tab" && isLive && (
+            <button
+              type="button"
+              onClick={() => setAddOpen(true)}
+              className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-bold shadow"
+              style={{ backgroundColor: GOLD, color: NAVY }}
+            >
+              <Plus className="h-3 w-3" /> Add Question
+            </button>
+          )}
           <button
             type="button"
             onClick={exportCsv}
@@ -625,6 +676,64 @@ export default function AssignmentReview({
             persistIntel(drawerRow.question.id, field, next)
           }
           onUpsertTeam={upsertTeamMember}
+        />
+      )}
+
+      {addOpen && (
+        <AddQuestionModal
+          sections={sections}
+          onClose={() => setAddOpen(false)}
+          onSubmit={async (form) => {
+            const { data: inserted, error: qErr } = await supabase
+              .from("questions")
+              .insert({
+                mission_id: missionId,
+                architecture_version: "v2",
+                status: "draft",
+                question_number: form.question_number || null,
+                question_name: form.question_name || null,
+                question_text: form.question_text || null,
+                section: form.section || null,
+                page_limit: form.page_limit,
+              } as never)
+              .select("id, question_number, question_name, question_text, section, subsection, page_limit, requirements, evaluation_criteria")
+              .single();
+            if (qErr || !inserted) {
+              toast.error(qErr?.message || "Could not add question");
+              return;
+            }
+            const newQ = inserted as any as Question;
+            const newAssignment: Assignment = {
+              ...emptyAssignment(missionId, newQ.id),
+              status: "unassigned",
+            };
+            const { error: aErr } = await supabase
+              .from("question_assignments")
+              .insert({ ...newAssignment } as never);
+            if (aErr) toast.error(aErr.message);
+
+            if (isLive) {
+              await supabase.from("mission_change_log").insert({
+                mission_id: missionId,
+                change_type: "question_added",
+                field_name: "question_number",
+                old_value: "",
+                new_value: String(newQ.question_number ?? newQ.question_name ?? newQ.id),
+                synced_to_atlas: false,
+              } as never);
+              if (missionStatus !== "Live with Pending Edits") {
+                await supabase
+                  .from("missions")
+                  .update({ mission_status: "Live with Pending Edits" } as never)
+                  .eq("id", missionId);
+                setMissionStatus("Live with Pending Edits");
+              }
+            }
+
+            setRows((rs) => [...rs, { question: newQ, assignment: newAssignment }]);
+            setAddOpen(false);
+            toast.success("Question added — assign it now");
+          }}
         />
       )}
     </div>
@@ -1264,6 +1373,140 @@ function ChipListField({
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+/* ---------- Add Question Modal ---------- */
+
+type AddQuestionForm = {
+  question_number: string;
+  question_name: string;
+  question_text: string;
+  section: string;
+  page_limit: number | null;
+};
+
+function AddQuestionModal({
+  sections,
+  onClose,
+  onSubmit,
+}: {
+  sections: string[];
+  onClose: () => void;
+  onSubmit: (form: AddQuestionForm) => Promise<void>;
+}) {
+  const [form, setForm] = useState<AddQuestionForm>({
+    question_number: "",
+    question_name: "",
+    question_text: "",
+    section: "",
+    page_limit: null,
+  });
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await onSubmit(form);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4">
+      <form
+        onSubmit={submit}
+        className="w-full max-w-lg rounded-lg border border-border bg-background p-5 shadow-xl"
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-sm font-bold">Add Question</h2>
+          <button type="button" onClick={onClose} className="text-muted-foreground hover:text-foreground">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block">
+              <div className="text-xs font-semibold mb-1">Question Number</div>
+              <input
+                value={form.question_number}
+                onChange={(e) => setForm((f) => ({ ...f, question_number: e.target.value }))}
+                className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
+                placeholder="e.g. 4.1.2"
+                required
+              />
+            </label>
+            <label className="block">
+              <div className="text-xs font-semibold mb-1">Page Limit</div>
+              <input
+                type="number"
+                value={form.page_limit ?? ""}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, page_limit: e.target.value === "" ? null : Number(e.target.value) }))
+                }
+                className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
+              />
+            </label>
+          </div>
+
+          <label className="block">
+            <div className="text-xs font-semibold mb-1">Question Name</div>
+            <input
+              value={form.question_name}
+              onChange={(e) => setForm((f) => ({ ...f, question_name: e.target.value }))}
+              className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
+              required
+            />
+          </label>
+
+          <label className="block">
+            <div className="text-xs font-semibold mb-1">Section</div>
+            <input
+              list="add-q-sections"
+              value={form.section}
+              onChange={(e) => setForm((f) => ({ ...f, section: e.target.value }))}
+              className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
+            />
+            <datalist id="add-q-sections">
+              {sections.map((s) => (
+                <option key={s} value={s} />
+              ))}
+            </datalist>
+          </label>
+
+          <label className="block">
+            <div className="text-xs font-semibold mb-1">Question Text</div>
+            <textarea
+              value={form.question_text}
+              onChange={(e) => setForm((f) => ({ ...f, question_text: e.target.value }))}
+              rows={5}
+              className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
+            />
+          </label>
+        </div>
+
+        <div className="mt-5 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-semibold hover:bg-surface-hover"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={saving}
+            className="rounded-md px-4 py-1.5 text-xs font-bold shadow disabled:opacity-50"
+            style={{ backgroundColor: GOLD, color: NAVY }}
+          >
+            {saving ? "Adding…" : "Add Question"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }
