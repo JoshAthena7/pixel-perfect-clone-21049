@@ -14,6 +14,7 @@ import { saveEvaluationCriteria, saveExpertiseTag, removeExpertiseTag } from "@/
 import { generateStrategicField, type StrategicFieldKey } from "@/lib/iris-strategic-foundation.functions";
 import { irisPopulateSetupRecord } from "@/lib/iris-setup-autofill.functions";
 import { IrisAutofillBanner } from "@/components/admin/IrisAutofillBanner";
+import { ImportSetupRecordCard } from "@/components/admin/ImportSetupRecordCard";
 import { SetupCompletenessMeter } from "@/components/admin/SetupCompletenessMeter";
 import { LaunchSequence } from "@/components/olympus/LaunchSequence";
 import { PersonPicker } from "@/components/setup/PersonPicker";
@@ -209,6 +210,9 @@ function MissionSetupRecord() {
             written={autofillWritten}
             onChange={() => setup.refetch()}
           />
+
+          <ImportSetupRecordCard missionId={missionId} onImported={() => setup.refetch()} />
+
 
           <SectionIdentity missionId={missionId} mission={setup.mission} refetch={setup.refetch} />
           <SectionTeam missionId={missionId} members={setup.members} expertise={setup.expertise} refetch={setup.refetch} />
