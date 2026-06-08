@@ -56,6 +56,10 @@ type Parsed = {
   key_requirements: string[];
   win_themes: string[];
   competitors: string[];
+  discriminators: string[];
+  proof_points: string[];
+  client_priorities: string[];
+  risks: string[];
   focus_areas: string[];
   sensitivities_note: string | null;
   language_guidance: string | null;
