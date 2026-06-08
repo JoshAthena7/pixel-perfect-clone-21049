@@ -23,15 +23,12 @@ export const Route = createFileRoute("/api/public/hooks/iris-monitor")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const apiKey = request.headers.get("apikey");
-        const cronSecret = request.headers.get("x-cron-secret");
-        const expectedAnon =
-          process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY;
-        const expectedCron = process.env.CRON_HOOK_SECRET;
-        const authed =
-          (expectedAnon && apiKey === expectedAnon) ||
-          (expectedCron && cronSecret === expectedCron);
-        if (!authed) return new Response("Unauthorized", { status: 401 });
+        const provided =
+          request.headers.get("x-cron-secret") ?? request.headers.get("apikey");
+        const expected = process.env.CRON_HOOK_SECRET;
+        if (!expected || !provided || provided !== expected) {
+          return new Response("Unauthorized", { status: 401 });
+        }
 
         const { supabaseAdmin } = await import(
           "@/integrations/supabase/client.server"
