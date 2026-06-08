@@ -99,6 +99,7 @@ function MissionDetail() {
       </div>
 
       <div className="p-5">
+        {tab === "assignments" && <AssignmentReview missionId={missionId} mode="tab" />}
         {tab === "overview" && <OverviewTab missionId={missionId} mission={mission} />}
         {tab === "sections" && <SectionsTab missionId={missionId} />}
         {tab === "intelligence" && <IntelligenceTab missionId={missionId} />}
