@@ -20,29 +20,8 @@ type Collective = {
   imported_at: string;
 };
 
-const ROLES = [
-  "admin",
-  "engagement_lead",
-  "project_manager",
-  "lead_writer",
-  "lead_graphics",
-  "lead",
-  "writer",
-  "sme",
-  "viewer",
-] as const;
-type Role = (typeof ROLES)[number];
-const ROLE_LABELS: Record<Role, string> = {
-  admin: "Admin",
-  engagement_lead: "Engagement Lead",
-  project_manager: "Project Manager",
-  lead_writer: "Lead Writer",
-  lead_graphics: "Lead Graphics",
-  lead: "Lead",
-  writer: "Writer",
-  sme: "SME",
-  viewer: "Viewer",
-};
+
+
 
 // ---------- CSV parsing ----------
 function parseCsv(text: string): string[][] {
