@@ -7,7 +7,6 @@ export type SetupFieldKey =
   | "submission_date"
   | "program_type"
   | "incumbent_name"
-  | "contract_value"
   | "mission_highlights"
   | "client_strengths"
   | "client_win_strategy"
@@ -22,7 +21,7 @@ export const SETUP_FIELDS: { key: SetupFieldKey; label: string }[] = [
   { key: "submission_date", label: "Submission date" },
   { key: "program_type", label: "Program type" },
   { key: "incumbent_name", label: "Incumbent" },
-  { key: "contract_value", label: "Contract value" },
+  
   { key: "mission_highlights", label: "Mission highlights" },
   { key: "client_strengths", label: "Client strengths" },
   { key: "client_win_strategy", label: "Win strategy" },
@@ -58,7 +57,7 @@ export function computeSetupCompleteness(input: {
     submission_date: hasText(m.submission_date),
     program_type: hasText(m.program_type),
     incumbent_name: hasText(m.incumbent_name),
-    contract_value: hasText(m.contract_value),
+    
     mission_highlights: hasText(m.mission_highlights),
     client_strengths: hasText(m.client_strengths),
     client_win_strategy: hasText(m.client_win_strategy),
