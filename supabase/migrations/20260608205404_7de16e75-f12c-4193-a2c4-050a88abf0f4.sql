@@ -1,0 +1,2 @@
+ALTER TABLE public.mission_intelligence DROP CONSTRAINT IF EXISTS mission_intelligence_layer_check;
+ALTER TABLE public.mission_intelligence ADD CONSTRAINT mission_intelligence_layer_check CHECK (layer = ANY (ARRAY['mission_brief'::text, 'strategic_assessment'::text, 'wizard_analysis'::text]));

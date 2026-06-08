@@ -15,7 +15,7 @@ const STEP_META: Record<number, { name: string; subtitle: string }> = {
   1: { name: "Mission Identity", subtitle: "Define the mission foundation — this becomes the official record" },
   2: { name: "Source Materials", subtitle: "Give IRIS everything it needs to build your mission record" },
   3: { name: "IRIS Analysis", subtitle: "IRIS is reading your materials and building the mission record" },
-  4: { name: "Team", subtitle: "Coming soon" },
+  4: { name: "Review & Edit Record", subtitle: "IRIS drafted this — review it and correct anything before staging the team" },
   5: { name: "Readiness", subtitle: "Coming soon" },
   6: { name: "Strategy", subtitle: "Coming soon" },
   7: { name: "Launch", subtitle: "Coming soon" },
@@ -43,6 +43,26 @@ const IRIS_PHASES = [
   "Analysis complete ✓",
 ];
 
+type KeyDate = { label: string; date: string; note: string };
+type KeyRisk = { risk: string; mitigation: string };
+type RiskLevel = "LOW" | "MEDIUM" | "HIGH";
+type ReviewData = {
+  mission_overview: string;
+  risk_level: RiskLevel;
+  key_dates: KeyDate[];
+  major_requirements: string[];
+  deliverables: string[];
+  key_risks: KeyRisk[];
+  required_expertise: string[];
+  client_sensitivities: string[];
+  recommended_win_themes: string[];
+  suggested_sections: string[];
+  compliance_flags: string[];
+  staffing_notes?: string;
+  setup_checklist_notes?: string;
+  [k: string]: unknown;
+};
+
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -62,6 +82,11 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
   const [irisState, setIrisState] = useState<"idle" | "running" | "done" | "error">("idle");
   const [irisPhase, setIrisPhase] = useState(0);
   const [irisError, setIrisError] = useState<string | null>(null);
+
+  // Step 4 review state
+  const [review, setReview] = useState<ReviewData | null>(null);
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewIntelId, setReviewIntelId] = useState<string | null>(null);
 
 
   // Step 1 state
@@ -175,10 +200,31 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
     return true;
   };
 
+  const saveStep4 = async () => {
+    if (!missionId || !review) return false;
+    setSaving(true);
+    setErr(null);
+    let q = supabase.from("mission_intelligence").update({ content: review as never } as never);
+    q = reviewIntelId
+      ? q.eq("id", reviewIntelId)
+      : q.eq("mission_id", missionId).eq("layer", "wizard_analysis");
+    const { error } = await q;
+    if (error) {
+      setSaving(false);
+      setErr(error.message);
+      return false;
+    }
+    await supabase.from("missions").update({ wizard_step: 4 } as never).eq("id", missionId);
+    setSaving(false);
+    toast.success("Mission record confirmed");
+    return true;
+  };
+
   const handleContinue = async () => {
     let ok = true;
     if (step === 1) ok = await saveStep1();
     else if (step === 2) ok = await saveStep2();
+    else if (step === 4) ok = await saveStep4();
     if (!ok) return;
     if (step >= TOTAL_STEPS) {
       qc.invalidateQueries({ queryKey: ["olympus-missions"] });
@@ -225,6 +271,42 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
     }, 1800);
     return () => clearInterval(t);
   }, [irisState]);
+
+  // Load review data when entering Step 4
+  useEffect(() => {
+    if (step !== 4 || !missionId) return;
+    if (review) return;
+    let cancelled = false;
+    (async () => {
+      setReviewLoading(true);
+      const { data: row } = await supabase
+        .from("mission_intelligence")
+        .select("id,content")
+        .eq("mission_id", missionId)
+        .eq("layer", "wizard_analysis")
+        .maybeSingle();
+      if (cancelled) return;
+      if (row) {
+        setReviewIntelId((row as { id: string }).id);
+        const c = ((row as { content: unknown }).content ?? {}) as Partial<ReviewData>;
+        setReview(normalizeReview(c));
+      } else {
+        setReview(normalizeReview({}));
+      }
+      setReviewLoading(false);
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, missionId]);
+
+  const rerunIris = () => {
+    setReview(null);
+    setReviewIntelId(null);
+    setIrisState("idle");
+    setIrisPhase(0);
+    setIrisError(null);
+    setStep(3);
+  };
 
   const meta = STEP_META[step];
   const progressPct = (step / TOTAL_STEPS) * 100;
@@ -414,7 +496,21 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
             </div>
           )}
 
-          {step >= 4 && (
+          {step === 4 && (
+            reviewLoading || !review ? (
+              <div className="rounded-lg border border-dashed border-border bg-surface/30 p-10 text-center text-sm text-muted-foreground">
+                Loading IRIS draft…
+              </div>
+            ) : (
+              <ReviewForm
+                review={review}
+                onChange={setReview}
+                onRerun={rerunIris}
+              />
+            )
+          )}
+
+          {step >= 5 && (
             <div className="rounded-lg border border-dashed border-border bg-surface/30 p-10 text-center text-sm text-muted-foreground">
               {meta.name} — coming soon.
             </div>
@@ -484,5 +580,387 @@ function Input({
       onChange={(e) => onChange(e.target.value)}
       className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm"
     />
+  );
+}
+
+// ---------- Step 4 helpers ----------
+
+function normalizeReview(c: Partial<ReviewData>): ReviewData {
+  const arr = (v: unknown): string[] =>
+    Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+  const lvl = (c.risk_level as string | undefined)?.toUpperCase();
+  const risk_level: RiskLevel = lvl === "LOW" || lvl === "HIGH" ? lvl : "MEDIUM";
+  const key_dates: KeyDate[] = Array.isArray(c.key_dates)
+    ? (c.key_dates as KeyDate[]).map((d) => ({
+        label: d?.label ?? "",
+        date: d?.date ?? "",
+        note: d?.note ?? "",
+      }))
+    : [];
+  const key_risks: KeyRisk[] = Array.isArray(c.key_risks)
+    ? (c.key_risks as KeyRisk[]).map((d) => ({
+        risk: d?.risk ?? "",
+        mitigation: d?.mitigation ?? "",
+      }))
+    : [];
+  return {
+    mission_overview: typeof c.mission_overview === "string" ? c.mission_overview : "",
+    risk_level,
+    key_dates,
+    major_requirements: arr(c.major_requirements),
+    deliverables: arr(c.deliverables),
+    key_risks,
+    required_expertise: arr(c.required_expertise),
+    client_sensitivities: arr(c.client_sensitivities),
+    recommended_win_themes: arr(c.recommended_win_themes),
+    suggested_sections: arr(c.suggested_sections),
+    compliance_flags: arr(c.compliance_flags),
+    staffing_notes: typeof c.staffing_notes === "string" ? c.staffing_notes : "",
+    setup_checklist_notes:
+      typeof c.setup_checklist_notes === "string" ? c.setup_checklist_notes : "",
+  };
+}
+
+const RISK_COLORS: Record<RiskLevel, string> = {
+  LOW: "bg-emerald-500/15 text-emerald-300 border-emerald-500/40",
+  MEDIUM: "bg-amber-500/15 text-amber-300 border-amber-500/40",
+  HIGH: "bg-rose-500/15 text-rose-300 border-rose-500/40",
+};
+
+function ReviewForm({
+  review,
+  onChange,
+  onRerun,
+}: {
+  review: ReviewData;
+  onChange: (r: ReviewData) => void;
+  onRerun: () => void;
+}) {
+  const update = <K extends keyof ReviewData>(k: K, v: ReviewData[K]) =>
+    onChange({ ...review, [k]: v });
+
+  const cycleRisk = () => {
+    const next: RiskLevel =
+      review.risk_level === "LOW" ? "MEDIUM" : review.risk_level === "MEDIUM" ? "HIGH" : "LOW";
+    update("risk_level", next);
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* Mission Overview */}
+      <Section title="Mission Overview">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            Risk Level
+          </span>
+          <button
+            type="button"
+            onClick={cycleRisk}
+            className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wider ${RISK_COLORS[review.risk_level]}`}
+            title="Click to change"
+          >
+            {review.risk_level}
+          </button>
+        </div>
+        <textarea
+          value={review.mission_overview}
+          onChange={(e) => update("mission_overview", e.target.value)}
+          rows={5}
+          className="w-full resize-y rounded-md border border-border bg-surface px-3 py-2 text-sm"
+        />
+      </Section>
+
+      {/* Key Dates */}
+      <Section title="Key Dates">
+        <DateTable
+          rows={review.key_dates}
+          onChange={(rows) => update("key_dates", rows)}
+        />
+      </Section>
+
+      {/* Requirements + Deliverables */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <Section title="Major Requirements">
+          <TagList
+            values={review.major_requirements}
+            onChange={(v) => update("major_requirements", v)}
+            placeholder="Add requirement…"
+          />
+        </Section>
+        <Section title="Deliverables">
+          <TagList
+            values={review.deliverables}
+            onChange={(v) => update("deliverables", v)}
+            placeholder="Add deliverable…"
+          />
+        </Section>
+      </div>
+
+      {/* Risks */}
+      <Section title="Risks">
+        <RiskTable
+          rows={review.key_risks}
+          onChange={(rows) => update("key_risks", rows)}
+        />
+      </Section>
+
+      {/* Team & Win Strategy */}
+      <Section title="Team & Win Strategy">
+        <div className="space-y-4">
+          <SubField label="Required Expertise">
+            <TagList
+              values={review.required_expertise}
+              onChange={(v) => update("required_expertise", v)}
+              placeholder="Add expertise…"
+            />
+          </SubField>
+          <SubField label="Client Sensitivities">
+            <TagList
+              values={review.client_sensitivities}
+              onChange={(v) => update("client_sensitivities", v)}
+              placeholder="Add sensitivity…"
+            />
+          </SubField>
+          <SubField label="Recommended Win Themes">
+            <TagList
+              values={review.recommended_win_themes}
+              onChange={(v) => update("recommended_win_themes", v)}
+              placeholder="Add win theme…"
+            />
+          </SubField>
+        </div>
+      </Section>
+
+      {/* Sections */}
+      <Section title="Sections (will populate Atlas after launch)">
+        <TagList
+          values={review.suggested_sections}
+          onChange={(v) => update("suggested_sections", v)}
+          placeholder="Add section…"
+        />
+        <p className="mt-2 text-[11px] italic text-muted-foreground">
+          These will pre-populate Atlas section assignments when the mission launches.
+        </p>
+      </Section>
+
+      {/* Compliance Flags */}
+      <Section title="Compliance Flags">
+        <TagList
+          values={review.compliance_flags}
+          onChange={(v) => update("compliance_flags", v)}
+          placeholder="Add compliance flag…"
+        />
+      </Section>
+
+      <div className="flex justify-end border-t border-border pt-4">
+        <button
+          type="button"
+          onClick={onRerun}
+          className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+        >
+          ↻ Re-run IRIS
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section>
+      <h3
+        className="mb-3 text-xs font-bold uppercase tracking-[0.18em]"
+        style={{ color: GOLD }}
+      >
+        {title}
+      </h3>
+      {children}
+    </section>
+  );
+}
+
+function SubField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="mb-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function TagList({
+  values,
+  onChange,
+  placeholder,
+}: {
+  values: string[];
+  onChange: (v: string[]) => void;
+  placeholder?: string;
+}) {
+  const [draft, setDraft] = useState("");
+  const add = () => {
+    const t = draft.trim();
+    if (!t) return;
+    onChange([...values, t]);
+    setDraft("");
+  };
+  return (
+    <div>
+      <div className="mb-2 flex flex-wrap gap-1.5">
+        {values.length === 0 && (
+          <span className="text-xs italic text-muted-foreground">No items yet.</span>
+        )}
+        {values.map((v, i) => (
+          <span
+            key={`${v}-${i}`}
+            className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-2.5 py-1 text-xs"
+          >
+            {v}
+            <button
+              type="button"
+              onClick={() => onChange(values.filter((_, idx) => idx !== i))}
+              className="text-muted-foreground hover:text-rose-400"
+              aria-label="Remove"
+            >
+              <X size={12} />
+            </button>
+          </span>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <input
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              add();
+            }
+          }}
+          placeholder={placeholder}
+          className="flex-1 rounded-md border border-border bg-background px-2.5 py-1.5 text-xs"
+        />
+        <button
+          type="button"
+          onClick={add}
+          className="rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs font-medium hover:bg-surface-hover"
+        >
+          Add
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function DateTable({
+  rows,
+  onChange,
+}: {
+  rows: KeyDate[];
+  onChange: (r: KeyDate[]) => void;
+}) {
+  const upd = (i: number, patch: Partial<KeyDate>) =>
+    onChange(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
+  return (
+    <div className="space-y-2">
+      <div className="hidden grid-cols-[1fr_140px_1.5fr_28px] gap-2 text-[10px] uppercase tracking-wider text-muted-foreground sm:grid">
+        <div>Label</div>
+        <div>Date</div>
+        <div>Note</div>
+        <div />
+      </div>
+      {rows.map((r, i) => (
+        <div key={i} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_140px_1.5fr_28px]">
+          <input
+            value={r.label}
+            onChange={(e) => upd(i, { label: e.target.value })}
+            placeholder="Label"
+            className="rounded-md border border-border bg-background px-2.5 py-1.5 text-xs"
+          />
+          <input
+            type="date"
+            value={r.date}
+            onChange={(e) => upd(i, { date: e.target.value })}
+            className="rounded-md border border-border bg-background px-2.5 py-1.5 text-xs"
+          />
+          <input
+            value={r.note}
+            onChange={(e) => upd(i, { note: e.target.value })}
+            placeholder="Note"
+            className="rounded-md border border-border bg-background px-2.5 py-1.5 text-xs"
+          />
+          <button
+            type="button"
+            onClick={() => onChange(rows.filter((_, idx) => idx !== i))}
+            className="text-muted-foreground hover:text-rose-400"
+            aria-label="Remove date"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() => onChange([...rows, { label: "", date: "", note: "" }])}
+        className="rounded-md border border-dashed border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+      >
+        + Add Date
+      </button>
+    </div>
+  );
+}
+
+function RiskTable({
+  rows,
+  onChange,
+}: {
+  rows: KeyRisk[];
+  onChange: (r: KeyRisk[]) => void;
+}) {
+  const upd = (i: number, patch: Partial<KeyRisk>) =>
+    onChange(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
+  return (
+    <div className="space-y-2">
+      <div className="hidden grid-cols-[1fr_1.5fr_28px] gap-2 text-[10px] uppercase tracking-wider text-muted-foreground sm:grid">
+        <div>Risk</div>
+        <div>Mitigation</div>
+        <div />
+      </div>
+      {rows.map((r, i) => (
+        <div key={i} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1.5fr_28px]">
+          <textarea
+            value={r.risk}
+            onChange={(e) => upd(i, { risk: e.target.value })}
+            placeholder="Risk"
+            rows={2}
+            className="resize-none rounded-md border border-border bg-background px-2.5 py-1.5 text-xs"
+          />
+          <textarea
+            value={r.mitigation}
+            onChange={(e) => upd(i, { mitigation: e.target.value })}
+            placeholder="Mitigation"
+            rows={2}
+            className="resize-none rounded-md border border-border bg-background px-2.5 py-1.5 text-xs"
+          />
+          <button
+            type="button"
+            onClick={() => onChange(rows.filter((_, idx) => idx !== i))}
+            className="text-muted-foreground hover:text-rose-400"
+            aria-label="Remove risk"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() => onChange([...rows, { risk: "", mitigation: "" }])}
+        className="rounded-md border border-dashed border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+      >
+        + Add Risk
+      </button>
+    </div>
   );
 }
