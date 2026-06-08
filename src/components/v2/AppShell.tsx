@@ -164,9 +164,17 @@ function TopBar({
             />
           </Link>
         ) : isPlatformAdmin ? (
-          // Admin pages render their own branded header — skip the logo + ADMIN
-          // chip here to avoid duplication.
-          null
+          // Admin pages: ATLAS wordmark only (no Athena mark, no ADMIN chip).
+          <Link to="/missions" className="flex items-center shrink-0 px-1" title="All Missions">
+            <img
+              src={atlasWordmark}
+              alt="ATLAS"
+              className="h-[14px] w-auto object-contain select-none"
+              draggable={false}
+              style={{ filter: "brightness(1.1) drop-shadow(0 0 6px rgba(201,168,76,0.25))" }}
+            />
+          </Link>
+
         ) : (
           // H-1: Unified branding — ATLAS wordmark everywhere, including Olympus/Atrium.
           <Link to="/missions" className="flex items-center gap-2 shrink-0 px-1" title="All Missions">
