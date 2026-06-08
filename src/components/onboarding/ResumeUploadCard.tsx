@@ -32,9 +32,6 @@ export function ResumeUploadCard({ onParsed, onSkip }: Props) {
       const text = await extractResumeText(file);
       setStatus("parsing");
       const parsed = (await parseFn({ data: { resume_text: text } })) as ParsedExpertise;
-      const text = await extractResumeText(file);
-      setStatus("parsing");
-      const parsed = (await parseFn({ data: { resume_text: text } })) as ParsedExpertise;
       setStatus("done");
       onParsed(parsed);
       toast.success("IRIS pulled your expertise from your resume.");
