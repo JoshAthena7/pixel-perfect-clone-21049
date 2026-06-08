@@ -318,12 +318,9 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
             />
           )}
           {step === 4 && missionId && (
-            <Step4Review
+            <Step4QuestionReconciliation
               missionId={missionId}
-              registerSave={(fn) => {
-                step4SaveRef.current = fn;
-              }}
-              onReRun={() => setStep(3)}
+              onAdvance={() => setStep(5)}
             />
           )}
           {step === 5 && missionId && (
