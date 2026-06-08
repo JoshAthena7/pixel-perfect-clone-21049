@@ -15,6 +15,7 @@ import { generateStrategicField, type StrategicFieldKey } from "@/lib/iris-strat
 import { irisPopulateSetupRecord } from "@/lib/iris-setup-autofill.functions";
 import { extractClientIntel } from "@/lib/iris-extractors/client-intel.functions";
 import { IrisAutofillBanner } from "@/components/admin/IrisAutofillBanner";
+import { IntelligenceVault } from "@/components/intelligence/IntelligenceVault";
 import { ImportSetupRecordCard } from "@/components/admin/ImportSetupRecordCard";
 import { SetupCompletenessMeter } from "@/components/admin/SetupCompletenessMeter";
 import { LaunchSequence } from "@/components/olympus/LaunchSequence";
@@ -31,9 +32,10 @@ export const Route = createFileRoute("/_authenticated/admin/missions/$missionId/
 /* ────────────────────────────────────────────────────────────
    Section spec — order matters; ids are anchor targets.
    ──────────────────────────────────────────────────────────── */
-type SectionId = "identity" | "team" | "inputs" | "strategy" | "evaluation" | "client" | "timeline" | "questions" | "governance" | "financials";
+type SectionId = "documents" | "identity" | "team" | "inputs" | "strategy" | "evaluation" | "client" | "timeline" | "questions" | "governance" | "financials";
 
 const SECTIONS: Array<{ id: SectionId; n: string; label: string; admin?: boolean }> = [
+  { id: "documents", n: "00", label: "Documents (Vault)" },
   { id: "identity", n: "01", label: "Mission Identity" },
   { id: "team", n: "02", label: "Team Assignment" },
   { id: "inputs", n: "03", label: "Monitoring Watchlist" },
@@ -43,7 +45,7 @@ const SECTIONS: Array<{ id: SectionId; n: string; label: string; admin?: boolean
   { id: "timeline", n: "06", label: "Deadlines & Decision Gates" },
   { id: "questions", n: "07", label: "Question Setup" },
   { id: "governance", n: "08", label: "Conflict & Ethics Review" },
-  
+
 ];
 
 function hasAgencyText(value: unknown) {
@@ -275,7 +277,7 @@ function MissionSetupRecord() {
 
           <ImportSetupRecordCard missionId={missionId} onImported={() => setup.refetch()} />
 
-
+          <SectionDocuments missionId={missionId} />
           <SectionIdentity missionId={missionId} mission={setup.mission} refetch={setup.refetch} />
           <SectionTeam missionId={missionId} members={setup.members} expertise={setup.expertise} refetch={setup.refetch} />
           <SectionInputs missionId={missionId} mission={setup.mission} docs={setup.docs} monitoring={setup.monitoring} refetch={setup.refetch} />
