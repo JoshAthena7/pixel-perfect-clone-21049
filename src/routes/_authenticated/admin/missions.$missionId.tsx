@@ -394,7 +394,7 @@ function SetupTab({ missionId, mission }: { missionId: string; mission: any }) {
           <div>
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Setup Progress</div>
             <div className="mt-0.5 text-sm font-semibold text-foreground">
-              Step {current} of 7 — {SETUP_STEPS[current - 1]}
+              Step {current} of 6 — {SETUP_STEPS[current - 1]}
             </div>
           </div>
           <button
