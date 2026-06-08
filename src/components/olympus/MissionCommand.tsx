@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { FastReportsMenu } from "@/components/olympus/FastReportsMenu";
