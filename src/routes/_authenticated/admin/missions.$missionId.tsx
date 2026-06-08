@@ -398,14 +398,26 @@ function countdown(iso: string) {
 }
 function summarize(content: any): string {
   if (!content) return "";
-  if (typeof content === "string") return content.slice(0, 600);
+  if (typeof content === "string") return content.slice(0, 800);
   if (typeof content === "object") {
-    // Try common shapes
     const c: any = content;
     if (typeof c.summary === "string") return c.summary;
     if (typeof c.text === "string") return c.text;
     if (typeof c.body === "string") return c.body;
-    try { return JSON.stringify(content, null, 2).slice(0, 600); } catch { return ""; }
+    if (Array.isArray(c.key_risks) && c.key_risks.length > 0) {
+      return c.key_risks.map((r: any) => `• ${r.risk}`).join("\n");
+    }
+    if (Array.isArray(c.emerging_themes) && c.emerging_themes.length > 0) {
+      return c.emerging_themes.map((t: any) => `• ${t.theme}: ${t.strategic_implication}`).join("\n");
+    }
+    if (Array.isArray(c.recommendations) && c.recommendations.length > 0) {
+      return c.recommendations.map((r: any) => `• ${typeof r === "string" ? r : r.recommendation || r.text || JSON.stringify(r)}`).join("\n");
+    }
+    const firstArray = Object.values(c).find((v) => Array.isArray(v)) as any[] | undefined;
+    if (firstArray && firstArray.length > 0) {
+      return firstArray.map((item: any) => `• ${typeof item === "string" ? item : item.risk || item.theme || item.text || item.recommendation || JSON.stringify(item)}`).join("\n").slice(0, 800);
+    }
+    try { return JSON.stringify(content, null, 2).slice(0, 800); } catch { return ""; }
   }
   return String(content);
 }
