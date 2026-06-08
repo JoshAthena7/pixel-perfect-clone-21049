@@ -34,6 +34,12 @@ Return ONLY valid JSON matching this exact shape — no prose, no markdown, no c
   "client_priorities": string[],        // what the client/agency cares about most (short phrases)
   "risks": string[],                    // capture/competitive risks (short phrases)
   "focus_areas": string[],              // sensitivities / focus areas (short phrases)
+  "key_contacts": string[],             // contracting officer / POC / "Name — Title" lines from cover page
+  "agency_stakeholders": string[],      // named stakeholders on the agency side
+  "decision_makers": string[],          // named decision makers on the agency side
+  "relationship_owners": string[],      // anyone owning the relationship (often blank in an RFP)
+  "political_considerations": string|null,
+  "meeting_cadence": string|null,
   "sensitivities_note": string|null,    // free-text: topics/terms IRIS should treat carefully
   "language_guidance": string|null,     // free-text: tone, voice, phrasing rules
   "things_to_avoid": string|null,       // free-text: words/positions/claims to avoid
