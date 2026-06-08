@@ -1,0 +1,1 @@
+ALTER TABLE public.question_assignments ADD CONSTRAINT question_assignments_question_id_key UNIQUE (question_id);

@@ -5981,7 +5981,7 @@ export type Database = {
           {
             foreignKeyName: "question_assignments_question_id_fkey"
             columns: ["question_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "questions"
             referencedColumns: ["id"]
           },
