@@ -1675,8 +1675,11 @@ function SectionQuestions({ missionId, questions, volumes, refetch }: any) {
 
         {/* Paste import */}
         <div>
-          <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-2">Import Sections</div>
-          <TextArea rows={4} placeholder="Paste one question per line. Format: '1.1 Question text here'" value={paste} onChange={(e) => setPaste(e.target.value)} />
+          <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground mb-2">Quick-paste questions</div>
+          <div className="text-xs text-muted-foreground mb-2">
+            Paste an RFP question list — one per line, numbered first (e.g. <span className="font-mono">1.1 Describe your staffing approach</span>). Each line becomes a question record you can assign. Use <span className="font-medium">Upload Matrix</span> above if you have a compliance spreadsheet instead.
+          </div>
+          <TextArea rows={4} placeholder="1.1 Describe your staffing approach&#10;1.2 Provide your implementation timeline" value={paste} onChange={(e) => setPaste(e.target.value)} />
           <div className="mt-2 flex justify-end">
             <button onClick={pasteQuestions} className="rounded-md border border-border bg-background px-3 py-1.5 text-xs hover:bg-surface-hover">Import {paste.split("\n").filter(Boolean).length || ""} questions</button>
           </div>
