@@ -51,9 +51,6 @@ export function computeSetupCompleteness(input: {
   evaluationCount: number;
 }): SetupCompleteness {
   const m = input.mission ?? {};
-  const suggested = (m.iris_setup_suggested_fields ?? {}) as Record<string, any>;
-  const populationSuggested = suggested.population_served?.value;
-  const geographicSuggested = suggested.geographic_scope?.value;
 
   const checks: Record<SetupFieldKey, boolean> = {
     client: hasText(m.client),
@@ -69,8 +66,6 @@ export function computeSetupCompleteness(input: {
     key_requirements: hasArray(m.key_requirements),
     win_themes: hasArray(m.win_themes),
     evaluation_criteria: input.evaluationCount > 0,
-    population_served: hasText(populationSuggested),
-    geographic_scope: hasText(geographicSuggested),
   };
 
   const missing = SETUP_FIELDS.filter((f) => !checks[f.key]);
