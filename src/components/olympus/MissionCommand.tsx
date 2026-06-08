@@ -55,7 +55,6 @@ export default function MissionCommand() {
           </Link>
           <FastReportsMenu />
         </div>
-        <FastReportsMenu />
       </header>
 
       <div className="p-5">
