@@ -35,7 +35,7 @@ type SectionId = "identity" | "team" | "inputs" | "strategy" | "evaluation" | "c
 const SECTIONS: Array<{ id: SectionId; n: string; label: string; admin?: boolean }> = [
   { id: "identity", n: "01", label: "Mission Identity" },
   { id: "team", n: "02", label: "Team Assignment" },
-  { id: "inputs", n: "03", label: "Mission Context" },
+  { id: "inputs", n: "03", label: "Monitoring Watchlist" },
   { id: "strategy", n: "04", label: "Win Strategy" },
   { id: "evaluation", n: "4B", label: "How We'll Be Scored" },
   { id: "client", n: "05", label: "Agency Intelligence" },
@@ -626,20 +626,12 @@ function SectionInputs({ missionId, mission, docs, monitoring, refetch }: any) {
   }
 
   return (
-    <Section id="inputs" n="03" label="Mission Context" sublabel="Source material and signals IRIS reads to understand the mission environment. Upload actual files or attach URLs — everything lands in The Vault.">
-      <div className="space-y-3">
-        {INPUT_CATEGORIES.map((cat) => {
-          const items = docs.filter((d: any) => d.category === cat);
-          return <UploadZone key={cat} category={cat} items={items} onAttach={attachUrl} onUpload={attachFile} onRemove={async (id: string) => {
-            await supabase.from("mission_vault_documents").delete().eq("id", id);
-            refetch();
-          }} />;
-        })}
-      </div>
+    <Section id="inputs" n="03" label="Monitoring Watchlist" sublabel="Live sources IRIS scans for amendments, Q&A drops, and signal changes. Documents live in The Vault — upload them there, not here.">
       <MonitoringWatchlist missionId={missionId} mission={mission} sources={monitoring} refetch={refetch} />
     </Section>
   );
 }
+
 
 function MonitoringWatchlist({ missionId, mission, sources, refetch }: any) {
   const seedFn = useServerFn(seedMonitoringWatchlist);
