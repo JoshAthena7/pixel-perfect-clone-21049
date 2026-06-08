@@ -14,9 +14,7 @@ export type SetupFieldKey =
   | "program_goals"
   | "key_requirements"
   | "win_themes"
-  | "evaluation_criteria"
-  | "population_served"
-  | "geographic_scope";
+  | "evaluation_criteria";
 
 export const SETUP_FIELDS: { key: SetupFieldKey; label: string }[] = [
   { key: "client", label: "Client" },
@@ -32,8 +30,6 @@ export const SETUP_FIELDS: { key: SetupFieldKey; label: string }[] = [
   { key: "key_requirements", label: "Key requirements" },
   { key: "win_themes", label: "Win themes" },
   { key: "evaluation_criteria", label: "Evaluation criteria" },
-  { key: "population_served", label: "Population served" },
-  { key: "geographic_scope", label: "Geographic scope" },
 ];
 
 export type SetupCompleteness = {
