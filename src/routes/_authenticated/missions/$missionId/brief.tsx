@@ -141,7 +141,7 @@ function MissionBriefingRoomPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
             <RoleLandingBanner brief={brief} firstName={firstName} />
             <Hero missionId={missionId} brief={brief} />
-            <GetStartedCard missionId={missionId} brief={brief} />
+            
             <MissionLeaders brief={brief} />
             <MissionObjective brief={brief} />
             <StrategicBrief brief={brief} />
@@ -422,57 +422,6 @@ function StatusPill({ text, color }: { text: string; color: string }) {
   );
 }
 
-/* ════════════════ GET STARTED (H-6) ════════════════ */
-
-function GetStartedCard({ missionId, brief }: { missionId: string; brief: MissionBrief }) {
-  // Hide once Setup Record reaches 100% (same source of truth as MissionHealthCard's Overall Progress).
-  const setupSections = useSetupCompletion(missionId, brief);
-  const setupDone = setupSections.filter((s) => s.done).length;
-  const setupTotal = setupSections.length;
-  const progressPct = setupTotal > 0 ? (setupDone / setupTotal) * 100 : 0;
-  if (progressPct >= 100) return null;
-  return (
-    <div style={{
-      ...card,
-      padding: "20px 24px",
-      borderColor: "rgba(224,179,65,0.35)",
-      background: "linear-gradient(135deg, rgba(224,179,65,0.10), rgba(224,179,65,0.02))",
-    }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: C.gold, textTransform: "uppercase", marginBottom: 6 }}>
-            Get Started
-          </div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: C.textPrimary, marginBottom: 4 }}>
-            Your mission is set up. Complete your Setup Record to activate IRIS and unlock full mission intelligence.
-          </div>
-          <div style={{ fontSize: 12, color: C.textMuted }}>
-            One next step beats eight half-finished ones. Start with the Setup Record — everything else fills in from there.
-          </div>
-        </div>
-        <Link
-          to="/admin/missions/$missionId/setup"
-          params={{ missionId }}
-          style={{
-            display: "inline-flex", alignItems: "center", gap: 6,
-            padding: "10px 16px", borderRadius: 8,
-            background: C.gold, color: "#0a1322", fontSize: 13, fontWeight: 700,
-            textDecoration: "none", whiteSpace: "nowrap",
-          }}
-        >
-          Go to Setup Record <ArrowRight size={14} />
-        </Link>
-      </div>
-      <div style={{
-        marginTop: 12, paddingTop: 10, borderTop: `1px solid ${C.border}`,
-        fontSize: 11, color: C.textMuted, textAlign: "right",
-        fontVariantNumeric: "tabular-nums",
-      }}>
-        Setup Record {Math.round(progressPct)}% complete — banner hides at 100%.
-      </div>
-    </div>
-  );
-}
 
 function MissionObjective({ brief }: { brief: MissionBrief }) {
   const m = brief.mission;
