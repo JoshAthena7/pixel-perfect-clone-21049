@@ -208,9 +208,9 @@ function TopBar({
         {isOlympus && (
           <>
             <span className="hidden sm:block h-5 w-px bg-white/15 mx-2" />
-            <span className="hidden sm:block text-[12px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            <Link to="/olympus" className="hidden sm:block text-[12px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
               OLYMPUS
-            </span>
+            </Link>
           </>
         )}
         {isPlatformAdmin && (

@@ -43,7 +43,7 @@ function MissionCommandView() {
           The mission you requested no longer exists or you don't have access to it.
         </p>
         <Link
-          to="/admin"
+          to="/olympus"
           className="mt-4 inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-white/5 px-3 py-1.5 text-xs hover:bg-white/10"
         >
           <ArrowLeft className="h-3 w-3" /> Back to Olympus
@@ -128,7 +128,7 @@ function Header({
             {runIris.isPending ? "Running IRIS…" : "Run IRIS™"}
           </button>
           <Link
-            to="/admin"
+            to="/olympus"
             className="inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-white/5 px-3 py-1.5 text-xs hover:bg-white/10"
           >
             <ArrowLeft className="h-3 w-3" /> Back to Olympus
