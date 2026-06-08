@@ -345,19 +345,37 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
             <AssignmentReview
               missionId={missionId}
               mode="wizard"
+              nextWizardStep={7}
               onConfirm={() => setStep(8)}
             />
           )}
           {step === 8 && missionId && (
-            <Step6Readiness
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Attach intelligence to every question — win themes, sources, compliance refs, and more.
+              </p>
+              <AssignmentReview
+                missionId={missionId}
+                mode="wizard"
+                showIntelligence
+                nextWizardStep={8}
+                confirmLabel="Save & Continue →"
+                onConfirm={() => setStep(9)}
+                onSkip={() => setStep(9)}
+              />
+            </div>
+          )}
+          {step === 9 && missionId && (
+            <Step9ReadinessReview
               missionId={missionId}
               onClose={onClose}
-              onSaveAndClose={async () => {
-                await supabase
-                  .from("missions")
-                  .update({ wizard_step: 8 } as never)
-                  .eq("id", missionId);
+              onGoToAssignments={(filter) => {
                 onClose();
+                navigate({
+                  to: "/admin/missions/$missionId",
+                  params: { missionId },
+                  search: { tab: "assignments", ...(filter || {}) } as never,
+                });
               }}
             />
           )}
@@ -373,7 +391,7 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
           >
             ← Back
           </button>
-          {step !== 3 && step !== 4 && step !== 5 && step !== 6 && step !== 7 && step !== 8 && (
+          {step !== 3 && step !== 4 && step !== 5 && step !== 6 && step !== 7 && step !== 8 && step !== 9 && (
             <button
               type="button"
               onClick={handleContinue}
