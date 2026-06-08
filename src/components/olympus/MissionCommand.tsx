@@ -1,178 +1,141 @@
 import { Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
-import { FastReportsMenu } from "@/components/olympus/FastReportsMenu";
 import MissionWizard from "@/components/olympus/MissionWizard";
 import { supabase } from "@/integrations/supabase/client";
-
 
 type MissionRow = {
   id: string;
   name: string;
   client: string | null;
+  mission_status: string | null;
   status: string | null;
-  health: string | null;
   submission_date: string | null;
+  updated_at: string | null;
   created_at: string;
 };
 
+const GOLD = "#C9A84C";
+const NAVY = "#1F3864";
+
 export default function MissionCommand() {
-  const [showCreate, setShowCreate] = useState(false);
-  const { data, isLoading } = useQuery({
+  const [showWizard, setShowWizard] = useState(false);
+  const qc = useQueryClient();
+
+  const { data: missions = [], isLoading } = useQuery({
     queryKey: ["olympus-missions"],
     queryFn: async () => {
-      const { data: missions, error } = await supabase
+      const { data, error } = await supabase
         .from("missions")
-        .select("id,name,client,status,health,submission_date,created_at")
-        .order("submission_date", { ascending: true, nullsFirst: false });
+        .select("id,name,client,mission_status,status,submission_date,updated_at,created_at")
+        .order("updated_at", { ascending: false, nullsFirst: false });
       if (error) throw error;
-
-      const { data: intelRows } = await supabase
-        .from("mission_intelligence")
-        .select("mission_id");
-      const counts = new Map<string, number>();
-      for (const r of (intelRows ?? []) as { mission_id: string | null }[]) {
-        if (!r.mission_id) continue;
-        counts.set(r.mission_id, (counts.get(r.mission_id) ?? 0) + 1);
-      }
-      return { missions: (missions ?? []) as MissionRow[], counts };
+      return (data ?? []) as MissionRow[];
     },
   });
-  const missions = data?.missions ?? [];
-  const counts = data?.counts ?? new Map<string, number>();
+
+  const handleClose = () => {
+    setShowWizard(false);
+    qc.invalidateQueries({ queryKey: ["olympus-missions"] });
+  };
 
   return (
-    <div className="flex-1 min-w-0">
-      <header className="flex h-14 items-center justify-between border-b border-border bg-surface/40 px-5">
-        <div className="flex items-center gap-3">
-          <h1 className="text-[12px] font-extrabold uppercase tracking-[0.32em]">
-            Olympus · Mission Command
+    <div className="flex-1 min-w-0 min-h-screen bg-background">
+      <div className="mx-auto max-w-5xl px-6 pt-20 pb-12">
+        <div className="text-center">
+          <h1 className="text-[11px] font-extrabold uppercase tracking-[0.32em] text-muted-foreground">
+            Olympus — Mission Setup Engine
           </h1>
+          <div className="mt-8 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setShowWizard(true)}
+              className="w-full md:w-auto rounded-lg px-12 py-5 text-base font-bold uppercase tracking-[0.18em] shadow-lg transition hover:opacity-90 active:scale-[0.99]"
+              style={{ backgroundColor: GOLD, color: NAVY }}
+            >
+              Start a Mission
+            </button>
+          </div>
+          {!isLoading && missions.length === 0 && (
+            <p className="mt-4 text-sm text-muted-foreground">
+              No missions yet. Start one to begin.
+            </p>
+          )}
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setShowCreate(true)}
-            className="rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-medium hover:bg-surface-hover"
-          >
-            + New Mission
-          </button>
-          <FastReportsMenu />
-        </div>
-      </header>
-      <MissionWizard open={showCreate} onClose={() => setShowCreate(false)} />
 
-      <div className="p-5">
-        <div className="rounded-lg border border-border bg-surface/40 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-surface/60 text-[10px] uppercase tracking-wider text-muted-foreground">
-              <tr>
-                <Th>Name</Th>
-                <Th>Client</Th>
-                <Th>Status</Th>
-                <Th>Submission</Th>
-                <Th>Health</Th>
-                <Th>Readiness</Th>
-                <Th className="text-right">Actions</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
-                    Loading…
-                  </td>
-                </tr>
-              ) : missions.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
-                    No missions yet.
-                  </td>
-                </tr>
-              ) : (
-                missions.map((m) => (
-                  <tr key={m.id} className="border-t border-border/60 hover:bg-surface-hover/40">
-                    <Td className="font-medium text-foreground">{m.name}</Td>
-                    <Td>{m.client ?? "—"}</Td>
-                    <Td><Badge value={m.status} /></Td>
-                    <Td>{formatDate(m.submission_date)}</Td>
-                    <Td><HealthDot value={m.health} /></Td>
-                    <Td><IrisBadge count={counts.get(m.id) ?? 0} /></Td>
-                    <Td className="text-right">
-                      <div className="inline-flex gap-2">
+        {missions.length > 0 && (
+          <div className="mt-16">
+            <div className="rounded-lg border border-border bg-surface/40 overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-surface/60 text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <tr>
+                    <Th>Mission Name</Th>
+                    <Th>Client</Th>
+                    <Th>Due Date</Th>
+                    <Th>Status</Th>
+                    <Th>Last Updated</Th>
+                    <Th className="text-right">Action</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {missions.map((m) => (
+                    <tr key={m.id} className="border-t border-border/60 hover:bg-surface-hover/40">
+                      <Td className="font-medium text-foreground">{m.name}</Td>
+                      <Td>{m.client ?? "—"}</Td>
+                      <Td>{formatDate(m.submission_date)}</Td>
+                      <Td><StatusBadge value={m.mission_status ?? m.status ?? "Draft"} /></Td>
+                      <Td className="text-muted-foreground">{formatDate(m.updated_at ?? m.created_at)}</Td>
+                      <Td className="text-right">
                         <Link
                           to="/admin/missions/$missionId"
                           params={{ missionId: m.id }}
-                          className="rounded-md border border-border bg-surface px-2.5 py-1 text-xs hover:bg-surface-hover"
+                          className="rounded-md border border-border bg-surface px-3 py-1 text-xs font-medium hover:bg-surface-hover"
                         >
                           Open
                         </Link>
-                        <Link
-                          to="/admin/missions/$missionId/setup"
-                          params={{ missionId: m.id }}
-                          className="rounded-md border border-border bg-surface px-2.5 py-1 text-xs hover:bg-surface-hover"
-                        >
-                          Setup
-                        </Link>
-                      </div>
-                    </Td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                      </Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
+
+      {showWizard && <MissionWizard open onClose={handleClose} />}
     </div>
   );
 }
-
-
 
 function Th({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <th className={`px-4 py-2.5 text-left font-medium ${className}`}>{children}</th>;
 }
 
 function Td({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <td className={`px-4 py-2.5 align-middle ${className}`}>{children}</td>;
+  return <td className={`px-4 py-3 align-middle ${className}`}>{children}</td>;
 }
 
-function Badge({ value }: { value: string | null }) {
-  if (!value) return <span className="text-muted-foreground">—</span>;
+function StatusBadge({ value }: { value: string }) {
+  const v = value.trim();
+  const styles: Record<string, { bg: string; fg: string; border: string; dot?: string }> = {
+    "Draft": { bg: "rgba(148,163,184,0.15)", fg: "#94a3b8", border: "rgba(148,163,184,0.35)" },
+    "IRIS Review Needed": { bg: "rgba(59,130,246,0.15)", fg: "#60a5fa", border: "rgba(59,130,246,0.4)" },
+    "Ready for Review": { bg: "rgba(245,158,11,0.15)", fg: "#fbbf24", border: "rgba(245,158,11,0.4)" },
+    "Ready to Go Live": { bg: "transparent", fg: "#34d399", border: "rgba(52,211,153,0.6)" },
+    "Live": { bg: "#10b981", fg: "#062b1d", border: "#10b981" },
+    "Live with Pending Edits": { bg: "rgba(16,185,129,0.85)", fg: "#062b1d", border: "#10b981", dot: "#fbbf24" },
+    "Locked": { bg: "rgba(51,65,85,0.6)", fg: "#cbd5e1", border: "rgba(51,65,85,0.8)" },
+  };
+  const s = styles[v] ?? styles["Draft"];
   return (
-    <span className="inline-flex rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] uppercase tracking-wider">
-      {value}
-    </span>
-  );
-}
-
-function IrisBadge({ count }: { count: number }) {
-  const { label, cls } =
-    count === 0
-      ? { label: "No Intel", cls: "text-muted-foreground border-border" }
-      : count <= 3
-      ? { label: "Partial", cls: "text-amber-400 border-amber-400/40" }
-      : { label: "IRIS Ready", cls: "text-emerald-400 border-emerald-400/40" };
-  return (
-    <span className={`inline-flex rounded border bg-surface px-1.5 py-0.5 text-[10px] uppercase tracking-wider ${cls}`}>
-      {label}
-    </span>
-  );
-}
-
-
-function HealthDot({ value }: { value: string | null }) {
-  const v = (value ?? "").toLowerCase();
-  const color =
-    v === "green" ? "bg-emerald-500"
-    : v === "yellow" ? "bg-amber-500"
-    : v === "red" ? "bg-rose-500"
-    : "bg-muted-foreground/40";
-  return (
-    <span className="inline-flex items-center gap-2">
-      <span className={`h-2 w-2 rounded-full ${color}`} />
-      <span className="text-xs capitalize">{value ?? "unknown"}</span>
+    <span
+      className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
+      style={{ backgroundColor: s.bg, color: s.fg, borderColor: s.border }}
+    >
+      {s.dot && <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: s.dot }} />}
+      {v}
     </span>
   );
 }
