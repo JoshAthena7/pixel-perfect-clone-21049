@@ -46,7 +46,15 @@ export default function MissionCommand() {
             Olympus · Mission Command
           </h1>
         </div>
-        <FastReportsMenu />
+        <div className="flex items-center gap-2">
+          <Link
+            to="/admin/missions/new"
+            className="rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-medium hover:bg-surface-hover"
+          >
+            + Create New Mission
+          </Link>
+          <FastReportsMenu />
+        </div>
       </header>
 
       <div className="p-5">
