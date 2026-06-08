@@ -17,8 +17,10 @@ const STEP_NAMES = [
   "IRIS Review",
   "Review & Edit Record",
   "Upload Assignment Tracker",
+  "IRIS Assignment Reconciliation",
   "Readiness & GO LIVE",
 ];
+const TOTAL_STEPS = STEP_NAMES.length;
 
 type Milestone = { label: string; date: string };
 
