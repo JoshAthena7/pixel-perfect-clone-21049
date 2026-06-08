@@ -6,6 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { runWizardQuestionArchitecture } from "@/lib/mission-wizard-architecture.functions";
+import AssignmentReview from "@/components/olympus/AssignmentReview";
 
 const GOLD = "#C9A84C";
 const NAVY = "#1F3864";
@@ -18,6 +19,7 @@ const STEP_NAMES = [
   "Review & Edit Record",
   "Upload Assignment Tracker",
   "IRIS Assignment Reconciliation",
+  "Assignment Review",
   "Readiness & GO LIVE",
 ];
 const TOTAL_STEPS = STEP_NAMES.length;
@@ -339,13 +341,20 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
             />
           )}
           {step === 7 && missionId && (
+            <AssignmentReview
+              missionId={missionId}
+              mode="wizard"
+              onConfirm={() => setStep(8)}
+            />
+          )}
+          {step === 8 && missionId && (
             <Step6Readiness
               missionId={missionId}
               onClose={onClose}
               onSaveAndClose={async () => {
                 await supabase
                   .from("missions")
-                  .update({ wizard_step: 7 } as never)
+                  .update({ wizard_step: 8 } as never)
                   .eq("id", missionId);
                 onClose();
               }}
@@ -363,7 +372,7 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
           >
             ← Back
           </button>
-          {step !== 3 && step !== 4 && step !== 5 && step !== 6 && step !== 7 && (
+          {step !== 3 && step !== 4 && step !== 5 && step !== 6 && step !== 7 && step !== 8 && (
             <button
               type="button"
               onClick={handleContinue}
