@@ -103,7 +103,7 @@ function mergeList(a: string[], b: string[]) {
   return out;
 }
 function extractAgencyIntelFromLabels(text: string): Pick<Parsed, "key_contacts" | "agency_stakeholders" | "decision_makers" | "relationship_owners" | "political_considerations" | "meeting_cadence"> {
-  const empty = {
+  const empty: Pick<Parsed, "key_contacts" | "agency_stakeholders" | "decision_makers" | "relationship_owners" | "political_considerations" | "meeting_cadence"> = {
     key_contacts: [],
     agency_stakeholders: [],
     decision_makers: [],
@@ -144,10 +144,25 @@ function extractAgencyIntelFromLabels(text: string): Pick<Parsed, "key_contacts"
     const next = matches[i + 1]?.index ?? section.length;
     const value = clean(section.slice(m.end, next));
     if (!value) continue;
-    if (m.key === "political_considerations" || m.key === "meeting_cadence") {
-      result[m.key] = value.replace(/\s+/g, " ").slice(0, m.key === "meeting_cadence" ? 1000 : 4000);
-    } else {
-      result[m.key] = mergeList(result[m.key], splitItems(value));
+    switch (m.key) {
+      case "political_considerations":
+        result.political_considerations = value.replace(/\s+/g, " ").slice(0, 4000);
+        break;
+      case "meeting_cadence":
+        result.meeting_cadence = value.replace(/\s+/g, " ").slice(0, 1000);
+        break;
+      case "key_contacts":
+        result.key_contacts = mergeList(result.key_contacts, splitItems(value));
+        break;
+      case "agency_stakeholders":
+        result.agency_stakeholders = mergeList(result.agency_stakeholders, splitItems(value));
+        break;
+      case "decision_makers":
+        result.decision_makers = mergeList(result.decision_makers, splitItems(value));
+        break;
+      case "relationship_owners":
+        result.relationship_owners = mergeList(result.relationship_owners, splitItems(value));
+        break;
     }
   }
   return result;
