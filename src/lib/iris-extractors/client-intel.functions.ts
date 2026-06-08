@@ -15,7 +15,7 @@ const ClientIntelSchema = z.object({
   contacts: z.array(ClientIntelEntrySchema).max(15),
   decision_makers: z.array(ClientIntelEntrySchema).max(10),
   relationship_owners: z.array(ClientIntelEntrySchema).max(10),
-  stakeholders: z.array(ClientIntelEntrySchema).max(15),
+  stakeholders: z.array(ClientIntelEntrySchema).max(60),
   political_considerations: z.string().max(1200),
   meeting_cadence: z.string().max(400).optional(),
   notes: z.string().max(1500),
@@ -197,13 +197,25 @@ export const extractClientIntel = createServerFn({ method: "POST" })
       .join("\n\n")
       .slice(0, 80_000);
 
-    const system = `You produce the "Agency Intelligence" setup record for a procurement strategy brief.
-Extract who matters on the ISSUING AGENCY side from the mission metadata, RFP cover pages, procurement instructions, capture notes, org charts, meeting summaries, and market context.
-Arrays may contain named people OR clearly supported agency-side offices/roles when no name is provided, formatted as "Name or Office — Role (evidence)". Never invent names.
-contacts = solicitation POCs, contracting/procurement officers, email/phone contacts, program contacts.
-stakeholders = issuing agency, program office, oversight entities, affected agency-side units.
+    const system = `You produce the "Agency & Stakeholder Intelligence" setup record for a procurement strategy brief.
+Extract who matters from the mission metadata, RFP cover pages, scope of work, procurement instructions, capture notes, org charts, meeting summaries, and market context.
+Arrays may contain named people OR clearly supported offices/organizations, formatted as "Name or Org — Role/Relationship (evidence)". Never invent names.
+
+contacts = solicitation POCs, contracting/procurement officers, email/phone contacts, program contacts (AGENCY side only).
 decision_makers = named approvers/evaluators OR documented decision bodies/roles such as evaluation committee, procurement director, agency executive.
-relationship_owners = internal/client-side people only if capture notes explicitly identify who owns the agency relationship; otherwise leave empty.
+
+stakeholders = THE FULL EXTERNAL ECOSYSTEM that touches this scope. Be EXHAUSTIVE. Mine the document for ANY mentioned:
+  • Community-based organizations (CBOs) and service providers, current or prospective
+  • Advocacy organizations, non-profits, policy advocacy groups
+  • University & academic research partners, evaluation/research centers
+  • Policy partners, think tanks, technical assistance providers
+  • Parent/family/youth coalitions, peer-led organizations
+  • Professional associations, accreditation bodies
+  • Faith-based organizations, philanthropic funders
+  • Issuing agency itself, program office, oversight entities, affected agency-side units
+  Advocates and CBO coalitions are decisive — extract every one mentioned, cited, or referenced (citations, footnotes, "in collaboration with…", "stakeholder feedback from…", "informed by…").
+
+relationship_owners = leave empty (deprecated field).
 For political_considerations and meeting_cadence, summarize supported evidence or write a concise "No documented ... found" statement. Honesty over completeness.`;
 
     const result = await callJsonExtractor<ClientIntelOut>({
