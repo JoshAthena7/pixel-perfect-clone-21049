@@ -183,6 +183,9 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
     } else if (step === 2) {
       const ok = await saveStep2();
       if (ok) setStep(3);
+    } else if (step === 3) {
+      // Step 3 advances via its own internal buttons; this is a no-op.
+      return;
     } else if (step < 6) {
       setStep(step + 1);
     } else {
