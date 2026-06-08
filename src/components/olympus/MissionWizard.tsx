@@ -243,17 +243,8 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
       // Step 3 advances via its own internal buttons; this is a no-op.
       return;
     } else if (step === 4) {
-      if (!step4SaveRef.current) {
-        setStep(5);
-        return;
-      }
-      setSaving(true);
-      try {
-        const ok = await step4SaveRef.current();
-        if (ok) setStep(5);
-      } finally {
-        setSaving(false);
-      }
+      // Step 4 advances via its own internal "Confirm Architecture →" button.
+      return;
     } else if (step === 5) {
       if (!missionId) return;
       setSaving(true);
