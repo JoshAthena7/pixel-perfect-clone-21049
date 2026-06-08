@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   CheckCircle2, Circle, Plus, Trash2, Upload, Rocket, ChevronDown, ChevronRight, ChevronUp,
-  Lock, X, Radar, Tag, Zap, Loader2,
+  Lock, X, Radar, Tag, Zap, Loader2, RefreshCw,
 } from "lucide-react";
 import { launchMission } from "@/lib/mission-setup.functions";
 import { seedMonitoringWatchlist, saveMonitoringSource, deleteMonitoringSource } from "@/lib/mission-monitoring.functions";
@@ -88,6 +88,37 @@ function MissionSetupRecord() {
   const [preLaunchError, setPreLaunchError] = useState<string | null>(null);
   const [autofillWritten, setAutofillWritten] = useState<number | undefined>(undefined);
   const [clientIntelAttempted, setClientIntelAttempted] = useState<string | null>(null);
+  const [rerunning, setRerunning] = useState(false);
+
+  async function handleRerunIris() {
+    if (rerunning) return;
+    setRerunning(true);
+    const t = toast.loading("Re-running IRIS extraction…");
+    try {
+      const [autofill, intel] = await Promise.allSettled([
+        autofillFn({ data: { missionId } }),
+        extractClientIntelFn({ data: { missionId } }),
+      ]);
+      if (autofill.status === "fulfilled") {
+        setAutofillWritten((autofill.value as any)?.written);
+      }
+      // bust client-intel dedupe so the auto-effect won't immediately fire again
+      setClientIntelAttempted(clientIntelSourceSignature);
+      await setup.refetch();
+      const errs = [autofill, intel].filter((r) => r.status === "rejected") as PromiseRejectedResult[];
+      if (errs.length === 2) {
+        toast.error("IRIS re-run failed", { id: t });
+      } else if (errs.length === 1) {
+        toast.warning("IRIS re-ran with partial results", { id: t });
+      } else {
+        toast.success("IRIS re-ran. Sections refreshed.", { id: t });
+      }
+    } catch (e: any) {
+      toast.error(e?.message ?? "IRIS re-run failed", { id: t });
+    } finally {
+      setRerunning(false);
+    }
+  }
 
   const setup = useSetupData(missionId);
   const completion = useCompletion(setup);
@@ -246,17 +277,36 @@ function MissionSetupRecord() {
         {/* ── Main column ── */}
         <main className="flex-1 min-w-0 space-y-16 pb-32">
           <header>
-            <div className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground font-mono">
-              Mission Setup
+            <div className="flex items-start justify-between gap-6">
+              <div>
+                <div className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground font-mono">
+                  Mission Setup
+                </div>
+                <h1 className="mt-2 text-3xl font-light tracking-tight text-foreground">
+                  {setup.mission?.name ?? "Untitled mission"}
+                </h1>
+                <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                  One page. Start by uploading documents in Section 00 — IRIS auto-populates the rest.
+                  Review each section, then launch.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleRerunIris}
+                disabled={rerunning}
+                className="shrink-0 inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-xs font-medium text-foreground hover:bg-accent hover:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Re-run IRIS autofill + Agency & Stakeholder extraction against current vault docs"
+              >
+                {rerunning ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-3.5 w-3.5" />
+                )}
+                {rerunning ? "Re-running IRIS…" : "Re-run IRIS extraction"}
+              </button>
             </div>
-            <h1 className="mt-2 text-3xl font-light tracking-tight text-foreground">
-              {setup.mission?.name ?? "Untitled mission"}
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-              One page. Start by uploading documents in Section 00 — IRIS auto-populates the rest.
-              Review each section, then launch.
-            </p>
           </header>
+
 
           <IrisAutofillBanner
             missionId={missionId}
