@@ -140,7 +140,7 @@ function Header({
       {confirming && (
         <ConfirmDialog
           title="Re-run IRIS?"
-          body={`This will regenerate the Mission Brief and Strategic Assessment for "${mission.name ?? "this mission"}" using the latest completed documents.`}
+          body={`This will regenerate the Mission Brief and Strategic Assessment for "${mission.name ?? "this mission"}" using the latest loaded mission intelligence.`}
           confirmLabel="Run IRIS"
           onCancel={() => setConfirming(false)}
           onConfirm={() => {
@@ -165,11 +165,6 @@ function useRunIris(missionId: string, missionName: string) {
         .eq("processing_status", "complete");
       if (error) throw new Error(error.message);
       const ids = (docs ?? []).map((d: { id: string }) => d.id);
-      if (ids.length === 0) {
-        throw new Error(
-          "No processed documents yet. Upload the RFP and supporting docs in the Setup Record first, then re-run IRIS.",
-        );
-      }
       for (const layer of ["mission_brief", "strategic_assessment"] as const) {
         const res: any = await generate({ data: { mission_id: missionId, document_ids: ids, layer } });
         if (res && res.success === false) {
@@ -350,16 +345,16 @@ function IrisStatusBody({ rows, missionId }: { rows: Array<{ layer: string; vers
     return (
       <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-200 space-y-2">
         <div>
-          IRIS has not analyzed this mission yet. IRIS needs at least one
-          processed document (RFP, amendments, supporting materials) before it
-          can generate the Mission Brief and Strategic Assessment.
+          IRIS has not analyzed this mission yet. Click Run IRIS™ to generate
+          the Mission Brief and Strategic Assessment from the loaded mission
+          intelligence.
         </div>
         <Link
           to="/admin/missions/$missionId/setup"
           params={{ missionId }}
           className="inline-flex items-center gap-1.5 rounded-md border border-amber-400/40 bg-amber-400/10 px-2.5 py-1 text-[12px] font-semibold text-amber-100 hover:bg-amber-400/20"
         >
-          <ClipboardCheck className="h-3 w-3" /> Open Setup Record to upload documents
+          <ClipboardCheck className="h-3 w-3" /> Open Setup Record
         </Link>
       </div>
     );
