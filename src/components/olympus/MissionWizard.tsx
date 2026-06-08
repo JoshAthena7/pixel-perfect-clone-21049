@@ -3116,12 +3116,12 @@ function Step9ReadinessReview({
     { key: "intel", label: "Intelligence attached", complete: stats.intelOK },
   ];
 
-  const filterParamFor = (key: keyof typeof stats.missingByCheck) => {
+  const filterParamFor = (key: keyof typeof stats.missingByCheck): Record<string, string> => {
     switch (key) {
       case "writer":
         return { unassigned: "1" };
       default:
-        return { missing: key };
+        return { missing: String(key) };
     }
   };
 
