@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, ArrowRight, Zap, AlertTriangle, Users, Plus, Check } from "lucide-react";
 import { toast } from "sonner";
 import { IrisContextHealthPanel } from "@/components/admin/IrisContextHealthPanel";
+import { FastReportsMenu } from "@/components/olympus/FastReportsMenu";
 
 const IRIS_INDIGO = "#6366F1";
 
@@ -196,19 +197,22 @@ export function StrategicOlympus({ canSubmitDecisions, canResolveDecisions }: {
                 Strategic Portfolio View
               </p>
             </div>
-            <div className="text-right text-[11px] text-muted-foreground">
-              <div>
-                <span className="font-bold uppercase tracking-[0.18em]" style={{ color: IRIS_INDIGO }}>⚡ IRIS</span>{" "}
-                · Last analyzed: {timeAgo(latestIntelTime)}
-              </div>
-              {nearest && (
-                <div className="mt-1">
-                  Nearest submission: <span className="text-foreground/80">{nearest.name}</span>
-                  {nearest.submission_date && (
-                    <> · {daysTo(nearest.submission_date)}d</>
-                  )}
+            <div className="flex items-start gap-4">
+              <div className="text-right text-[11px] text-muted-foreground">
+                <div>
+                  <span className="font-bold uppercase tracking-[0.18em]" style={{ color: IRIS_INDIGO }}>⚡ IRIS</span>{" "}
+                  · Last analyzed: {timeAgo(latestIntelTime)}
                 </div>
-              )}
+                {nearest && (
+                  <div className="mt-1">
+                    Nearest submission: <span className="text-foreground/80">{nearest.name}</span>
+                    {nearest.submission_date && (
+                      <> · {daysTo(nearest.submission_date)}d</>
+                    )}
+                  </div>
+                )}
+              </div>
+              <FastReportsMenu />
             </div>
           </div>
 
