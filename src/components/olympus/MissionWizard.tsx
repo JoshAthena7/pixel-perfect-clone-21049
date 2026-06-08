@@ -318,7 +318,7 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
           >
             ← Back
           </button>
-          {step !== 3 && (
+          {step !== 3 && step !== 6 && (
             <button
               type="button"
               onClick={handleContinue}
@@ -326,7 +326,7 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
               className="rounded-md px-5 py-2 text-sm font-bold uppercase tracking-wider shadow disabled:opacity-50"
               style={{ backgroundColor: GOLD, color: NAVY }}
             >
-              {saving ? "Saving…" : step === 6 ? "Finish" : "Save & Continue →"}
+              {saving ? "Saving…" : "Save & Continue →"}
             </button>
           )}
         </div>
