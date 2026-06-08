@@ -334,7 +334,7 @@ function useSetupData(missionId: string) {
     queryFn: async () => {
       const [
         mission, members, docs, missionDocs, strategy, sensitivities, clientIntel, timeline,
-        questions, volumes, governance, financials, monitoring, evaluation, expertise,
+        questions, volumes, governance, financials, monitoring, evaluation, expertise, libraryExtractions,
       ] = await Promise.all([
         supabase.from("missions").select("*").eq("id", missionId).maybeSingle(),
         supabase.from("mission_members").select("*").eq("mission_id", missionId),
@@ -351,6 +351,7 @@ function useSetupData(missionId: string) {
         supabase.from("mission_monitoring_sources").select("*").eq("mission_id", missionId).order("source_type"),
         supabase.from("mission_evaluation_criteria").select("*").eq("mission_id", missionId).order("display_order"),
         supabase.from("mission_member_expertise").select("*").eq("mission_id", missionId),
+        supabase.from("document_extractions").select("id,status,processed_at,updated_at").eq("mission_id", missionId).eq("status", "ready").order("processed_at", { ascending: false }).limit(20),
       ]);
       return {
         mission: mission.data,
@@ -368,6 +369,7 @@ function useSetupData(missionId: string) {
         monitoring: monitoring.data ?? [],
         evaluation: evaluation.data ?? [],
         expertise: expertise.data ?? [],
+        libraryExtractions: libraryExtractions.data ?? [],
       };
     },
   });
@@ -375,7 +377,7 @@ function useSetupData(missionId: string) {
     ...(q.data ?? {
       mission: null, members: [], docs: [], strategy: [], sensitivities: [],
       clientIntel: null, timeline: null, questions: [], volumes: [], governance: null, financials: null,
-      monitoring: [], evaluation: [], expertise: [], missionDocs: [],
+      monitoring: [], evaluation: [], expertise: [], missionDocs: [], libraryExtractions: [],
     }),
     refetch: q.refetch,
     isLoading: q.isLoading,
