@@ -15,7 +15,7 @@ export const runWizardIrisAnalysis = createServerFn({ method: "POST" })
 
     const { data: mission, error: mErr } = await supabase
       .from("missions")
-      .select("name,client,program_type,state,submission_date")
+      .select("name,client,program_type,state,engagement_type,submission_date")
       .eq("id", data.missionId)
       .maybeSingle();
     if (mErr || !mission) throw new Error("Mission not found");
@@ -34,35 +34,41 @@ export const runWizardIrisAnalysis = createServerFn({ method: "POST" })
       })
       .join("\n\n");
 
-    const prompt = `You are IRIS, the mission intelligence system for ATLAS. Analyze the following source materials for a government proposal mission and produce a structured mission record.
+    const prompt = `You are IRIS, the mission intelligence engine for ATLAS. Analyze the following source materials for a government proposal mission and produce a complete structured mission record as JSON.
 
 Mission: ${mission.name ?? ""}
 Client: ${mission.client ?? ""}
 Program: ${mission.program_type ?? ""}
 State: ${mission.state ?? ""}
+Procurement: ${(mission as { engagement_type?: string | null }).engagement_type ?? ""}
 Due: ${mission.submission_date ?? ""}
 
-Source materials:
+Source materials provided:
 ${docLines || "(none provided)"}
 
-Respond with ONLY valid JSON using these exact keys:
+Return ONLY valid JSON with these exact keys — no markdown, no explanation:
 {
-  "mission_overview": "string",
+  "mission_overview": "string — 3-4 sentence mission summary",
+  "mission_briefing": "string — detailed briefing paragraph for the team",
   "key_dates": [{ "label": "string", "date": "string", "note": "string" }],
   "major_requirements": ["string"],
   "deliverables": ["string"],
+  "compliance_items": ["string"],
+  "suggested_sections": ["string"],
+  "workstreams": ["string"],
   "risk_level": "LOW" | "MEDIUM" | "HIGH",
   "key_risks": [{ "risk": "string", "mitigation": "string" }],
-  "required_expertise": ["string"],
-  "client_sensitivities": ["string"],
+  "known_gaps": ["string"],
   "recommended_win_themes": ["string"],
-  "suggested_sections": ["string"],
-  "compliance_flags": ["string"],
-  "staffing_notes": "string",
-  "setup_checklist_notes": "string"
-}
-
-No markdown. No explanation. JSON only.`;
+  "suggested_staffing": [{ "role": "string", "reason": "string" }],
+  "suggested_writing_assignments": [{ "section": "string", "role": "string", "notes": "string" }],
+  "source_document_inventory": [{ "doc_type": "string", "status": "string", "notes": "string" }],
+  "intelligence_notes": "string",
+  "oracle_prompts": ["string"],
+  "iris_briefing_notes": "string",
+  "required_expertise": ["string"],
+  "client_sensitivities": ["string"]
+}`;
 
     const res = await withAICircuit(async () => {
       const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -93,16 +99,20 @@ No markdown. No explanation. JSON only.`;
       throw new Error("IRIS returned invalid JSON");
     }
 
-    const { error: insErr } = await supabase.from("mission_intelligence").upsert({
-      mission_id: data.missionId,
-      layer: "wizard_analysis",
-      content: parsed as never,
-    } as never, { onConflict: "mission_id,layer" });
+    const { error: insErr } = await supabase.from("mission_intelligence").upsert(
+      {
+        mission_id: data.missionId,
+        layer: "wizard_analysis",
+        content: parsed as never,
+      } as never,
+      { onConflict: "mission_id,layer" },
+    );
     if (insErr) throw new Error(insErr.message);
 
-    await supabase.from("missions").update({ wizard_step: 3 } as never).eq("id", data.missionId);
+    await supabase
+      .from("missions")
+      .update({ mission_status: "Ready for Review", wizard_step: 3 } as never)
+      .eq("id", data.missionId);
 
     return { analysisJson: JSON.stringify(parsed) };
   });
-
-
