@@ -86,7 +86,7 @@ function MissionDetail() {
           <TabBtn active={tab === "sections"} onClick={() => setTab("sections")} icon={<FileText className="h-3.5 w-3.5" />}>Sections</TabBtn>
           <TabBtn active={tab === "intelligence"} onClick={() => setTab("intelligence")} icon={<Brain className="h-3.5 w-3.5" />}>Intelligence</TabBtn>
           <TabBtn active={tab === "requirements"} onClick={() => setTab("requirements")} icon={<ListChecks className="h-3.5 w-3.5" />}>Requirements</TabBtn>
-          {((mission.wizard_step ?? 0) < 7) && (
+          {((mission.wizard_step ?? 0) < 8) && (
             <TabBtn active={tab === "setup"} onClick={() => setTab("setup")} icon={<Sliders className="h-3.5 w-3.5" />}>Setup</TabBtn>
           )}
           {(mission.mission_status === "Live" || mission.mission_status === "Live with Pending Edits") && (
