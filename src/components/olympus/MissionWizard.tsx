@@ -20,7 +20,8 @@ const STEP_NAMES = [
   "Upload Assignment Tracker",
   "IRIS Assignment Reconciliation",
   "Assignment Review",
-  "Readiness & GO LIVE",
+  "Mission Intelligence Mapping",
+  "Readiness Review",
 ];
 const TOTAL_STEPS = STEP_NAMES.length;
 
