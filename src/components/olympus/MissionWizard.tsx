@@ -1,7 +1,9 @@
-import { useState } from "react";
-import { X, Plus, Trash2, Check } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { X, Plus, Trash2, Check, Sparkles, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { runWizardIrisAnalysis } from "@/lib/mission-wizard-iris.functions";
 
 const GOLD = "#C9A84C";
 const NAVY = "#1F3864";
@@ -181,6 +183,9 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
     } else if (step === 2) {
       const ok = await saveStep2();
       if (ok) setStep(3);
+    } else if (step === 3) {
+      // Step 3 advances via its own internal buttons; this is a no-op.
+      return;
     } else if (step < 6) {
       setStep(step + 1);
     } else {
@@ -232,7 +237,13 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
               onSkip={skipStep2}
             />
           )}
-          {step >= 3 && (
+          {step === 3 && missionId && (
+            <Step3IrisReview
+              missionId={missionId}
+              onAdvance={() => setStep(4)}
+            />
+          )}
+          {step >= 4 && (
             <div className="py-16 text-center text-sm text-muted-foreground">
               <h2 className="text-lg font-semibold text-foreground mb-2">
                 {STEP_NAMES[step - 1]}
@@ -252,15 +263,17 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
           >
             ← Back
           </button>
-          <button
-            type="button"
-            onClick={handleContinue}
-            disabled={saving}
-            className="rounded-md px-5 py-2 text-sm font-bold uppercase tracking-wider shadow disabled:opacity-50"
-            style={{ backgroundColor: GOLD, color: NAVY }}
-          >
-            {saving ? "Saving…" : step === 6 ? "Finish" : "Save & Continue →"}
-          </button>
+          {step !== 3 && (
+            <button
+              type="button"
+              onClick={handleContinue}
+              disabled={saving}
+              className="rounded-md px-5 py-2 text-sm font-bold uppercase tracking-wider shadow disabled:opacity-50"
+              style={{ backgroundColor: GOLD, color: NAVY }}
+            >
+              {saving ? "Saving…" : step === 6 ? "Finish" : "Save & Continue →"}
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -552,4 +565,331 @@ function Select({
       ))}
     </select>
   );
+}
+
+/* ---------- Step 3: IRIS Review ---------- */
+
+const LOADING_STAGES = [
+  "Reading source materials...",
+  "Identifying requirements...",
+  "Mapping compliance items...",
+  "Drafting mission record...",
+  "Analysis complete ✓",
+];
+
+type DocSummary = { doc_type: string | null; has_content: boolean };
+
+function Step3IrisReview({
+  missionId,
+  onAdvance,
+}: {
+  missionId: string;
+  onAdvance: () => void;
+}) {
+  const runIris = useServerFn(runWizardIrisAnalysis);
+  const [status, setStatus] = useState<"idle" | "running" | "done" | "error">("idle");
+  const [error, setError] = useState<string | null>(null);
+  const [stageIdx, setStageIdx] = useState(0);
+  const [docs, setDocs] = useState<DocSummary[]>([]);
+  const [loadingDocs, setLoadingDocs] = useState(true);
+  const [hasExisting, setHasExisting] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const [{ data: dRows }, { data: intel }] = await Promise.all([
+        supabase
+          .from("mission_documents")
+          .select("doc_type,file_url,notes")
+          .eq("mission_id", missionId),
+        supabase
+          .from("mission_intelligence")
+          .select("id")
+          .eq("mission_id", missionId)
+          .eq("layer", "wizard_analysis")
+          .maybeSingle(),
+      ]);
+      if (!alive) return;
+      const summary: DocSummary[] = (dRows ?? []).map((r) => ({
+        doc_type: r.doc_type,
+        has_content: !!(r.file_url || r.notes),
+      }));
+      setDocs(summary);
+      setHasExisting(!!intel);
+      if (intel) setStatus("done");
+      setLoadingDocs(false);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [missionId]);
+
+  useEffect(() => {
+    if (status !== "running") return;
+    setStageIdx(0);
+    const interval = setInterval(() => {
+      setStageIdx((i) => Math.min(i + 1, LOADING_STAGES.length - 2));
+    }, 1800);
+    return () => clearInterval(interval);
+  }, [status]);
+
+  const filledDocs = useMemo(() => docs.filter((d) => d.has_content), [docs]);
+
+  const trigger = async () => {
+    setStatus("running");
+    setError(null);
+    try {
+      await runIris({ data: { missionId } });
+      setStageIdx(LOADING_STAGES.length - 1);
+      setStatus("done");
+      toast.success("IRIS analysis complete");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "IRIS analysis failed";
+      setError(msg);
+      setStatus("error");
+    }
+  };
+
+  const skipManually = async () => {
+    await supabase
+      .from("missions")
+      .update({ wizard_step: 3 } as never)
+      .eq("id", missionId);
+    onAdvance();
+  };
+
+  if (loadingDocs) {
+    return (
+      <div className="py-16 text-center text-sm text-muted-foreground">
+        <Loader2 className="mx-auto mb-3 h-5 w-5 animate-spin" />
+        Loading source materials…
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      <p className="text-sm text-muted-foreground">
+        IRIS will read your materials and draft the full mission record
+      </p>
+
+      <div
+        className="rounded-xl border p-6"
+        style={{
+          borderColor: "rgba(201, 168, 76, 0.3)",
+          backgroundColor: "rgba(31, 56, 100, 0.08)",
+        }}
+      >
+        <div className="flex items-center gap-2 mb-1">
+          <Sparkles className="h-5 w-5" style={{ color: GOLD }} />
+          <span
+            className="text-[11px] font-extrabold uppercase tracking-[0.28em]"
+            style={{ color: GOLD }}
+          >
+            IRIS
+          </span>
+        </div>
+
+        {status === "idle" && (
+          <IdleView
+            filledDocs={filledDocs}
+            onRun={trigger}
+            onSkip={skipManually}
+            hasExisting={hasExisting}
+          />
+        )}
+
+        {status === "running" && (
+          <RunningView stageIdx={stageIdx} />
+        )}
+
+        {status === "done" && (
+          <DoneView onAdvance={onAdvance} />
+        )}
+
+        {status === "error" && (
+          <ErrorView
+            message={error ?? "Unknown error"}
+            onRetry={trigger}
+            onContinue={() => {
+              skipManually();
+            }}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function IdleView({
+  filledDocs,
+  onRun,
+  onSkip,
+  hasExisting,
+}: {
+  filledDocs: DocSummary[];
+  onRun: () => void;
+  onSkip: () => void;
+  hasExisting: boolean;
+}) {
+  return (
+    <div className="space-y-5">
+      <div>
+        <h3 className="text-lg font-semibold text-foreground mb-1">
+          {hasExisting ? "Re-run IRIS Analysis" : "Ready to analyze your mission"}
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          {filledDocs.length} source {filledDocs.length === 1 ? "document" : "documents"} provided
+          {filledDocs.length > 0 && (
+            <>
+              :{" "}
+              <span className="text-foreground/80">
+                {filledDocs.map((d) => formatDocType(d.doc_type)).join(", ")}
+              </span>
+            </>
+          )}
+        </p>
+      </div>
+
+      <div className="rounded-lg border border-border/60 bg-background/40 p-4 text-sm text-muted-foreground leading-relaxed">
+        IRIS will read your source materials and draft: Mission briefing, Key dates,
+        Requirements, Deliverables, Risks, Compliance items, Suggested sections, Win themes,
+        Staffing needs, and Intelligence notes.
+      </div>
+
+      <div className="flex flex-col items-center gap-3 pt-2">
+        <button
+          type="button"
+          onClick={onRun}
+          className="rounded-lg px-8 py-3.5 text-sm font-bold uppercase tracking-[0.18em] shadow-lg hover:opacity-90 transition"
+          style={{ backgroundColor: GOLD, color: NAVY }}
+        >
+          {hasExisting ? "Re-run IRIS Review →" : "Run IRIS Review →"}
+        </button>
+        <button
+          type="button"
+          onClick={onSkip}
+          className="text-xs text-muted-foreground underline hover:text-foreground"
+        >
+          Skip — I'll fill in the record manually →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function RunningView({ stageIdx }: { stageIdx: number }) {
+  return (
+    <div className="py-10 space-y-6 text-center">
+      <div
+        className="mx-auto flex h-16 w-16 items-center justify-center rounded-full"
+        style={{ backgroundColor: "rgba(201, 168, 76, 0.15)" }}
+      >
+        <Loader2 className="h-7 w-7 animate-spin" style={{ color: GOLD }} />
+      </div>
+      <div className="space-y-2">
+        {LOADING_STAGES.slice(0, -1).map((s, i) => {
+          const reached = i <= stageIdx;
+          const active = i === stageIdx;
+          return (
+            <div
+              key={s}
+              className="text-sm transition-opacity"
+              style={{
+                color: active ? GOLD : reached ? "rgba(201, 168, 76, 0.6)" : "rgba(148,163,184,0.45)",
+                fontWeight: active ? 600 : 400,
+              }}
+            >
+              {reached ? "▸ " : "  "}
+              {s}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function DoneView({ onAdvance }: { onAdvance: () => void }) {
+  return (
+    <div className="py-6 space-y-5 text-center">
+      <div
+        className="mx-auto flex h-16 w-16 items-center justify-center rounded-full"
+        style={{ backgroundColor: "rgba(16, 185, 129, 0.15)" }}
+      >
+        <CheckCircle2 className="h-8 w-8 text-emerald-400" />
+      </div>
+      <div>
+        <h3 className="text-base font-semibold text-foreground">
+          IRIS analysis complete
+        </h3>
+        <p className="text-sm text-muted-foreground mt-1">
+          Review and edit the record below
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={onAdvance}
+        className="rounded-lg px-6 py-3 text-sm font-bold uppercase tracking-[0.18em] shadow hover:opacity-90"
+        style={{ backgroundColor: GOLD, color: NAVY }}
+      >
+        Review the Record →
+      </button>
+    </div>
+  );
+}
+
+function ErrorView({
+  message,
+  onRetry,
+  onContinue,
+}: {
+  message: string;
+  onRetry: () => void;
+  onContinue: () => void;
+}) {
+  return (
+    <div className="py-6 space-y-5 text-center">
+      <div
+        className="mx-auto flex h-16 w-16 items-center justify-center rounded-full"
+        style={{ backgroundColor: "rgba(244, 63, 94, 0.12)" }}
+      >
+        <AlertTriangle className="h-7 w-7 text-rose-400" />
+      </div>
+      <div>
+        <h3 className="text-base font-semibold text-foreground">
+          IRIS could not complete the analysis
+        </h3>
+        <p className="text-sm text-muted-foreground mt-1">
+          You can fill in the record manually.
+        </p>
+        <p className="text-xs text-muted-foreground/70 mt-2 italic">{message}</p>
+      </div>
+      <div className="flex items-center justify-center gap-3">
+        <button
+          type="button"
+          onClick={onRetry}
+          className="rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium hover:bg-surface-hover"
+        >
+          Try Again
+        </button>
+        <button
+          type="button"
+          onClick={onContinue}
+          className="rounded-md px-4 py-2 text-sm font-bold uppercase tracking-wider shadow"
+          style={{ backgroundColor: GOLD, color: NAVY }}
+        >
+          Continue Without IRIS →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function formatDocType(s: string | null): string {
+  if (!s) return "doc";
+  return s
+    .split("_")
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+    .join(" ");
 }
