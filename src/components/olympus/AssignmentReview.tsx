@@ -544,7 +544,17 @@ export default function AssignmentReview({
           />
           Unassigned Only
         </label>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          {mode === "tab" && isLive && (
+            <button
+              type="button"
+              onClick={() => setAddOpen(true)}
+              className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-bold shadow"
+              style={{ backgroundColor: GOLD, color: NAVY }}
+            >
+              <Plus className="h-3 w-3" /> Add Question
+            </button>
+          )}
           <button
             type="button"
             onClick={exportCsv}
