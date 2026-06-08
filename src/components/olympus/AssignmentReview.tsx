@@ -214,6 +214,7 @@ export default function AssignmentReview({
     setTeam((tData ?? []) as TeamMember[]);
     setIntelMap(iMap);
     setMissionDocs((dData ?? []) as MissionDoc[]);
+    setMissionStatus(((mData as any)?.mission_status as string | null) ?? null);
     setLoading(false);
   };
 
