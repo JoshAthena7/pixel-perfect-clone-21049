@@ -257,7 +257,16 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
               onAdvance={() => setStep(4)}
             />
           )}
-          {step >= 4 && (
+          {step === 4 && missionId && (
+            <Step4Review
+              missionId={missionId}
+              registerSave={(fn) => {
+                step4SaveRef.current = fn;
+              }}
+              onReRun={() => setStep(3)}
+            />
+          )}
+          {step >= 5 && (
             <div className="py-16 text-center text-sm text-muted-foreground">
               <h2 className="text-lg font-semibold text-foreground mb-2">
                 {STEP_NAMES[step - 1]}
