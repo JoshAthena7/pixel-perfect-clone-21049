@@ -163,8 +163,12 @@ function TopBar({
               style={{ filter: "brightness(1.1) drop-shadow(0 0 6px rgba(201,168,76,0.25))" }}
             />
           </Link>
+        ) : isPlatformAdmin ? (
+          // Admin pages render their own branded header — skip the logo + ADMIN
+          // chip here to avoid duplication.
+          null
         ) : (
-          // H-1: Unified branding — ATLAS wordmark everywhere, including Olympus/Admin/Atrium.
+          // H-1: Unified branding — ATLAS wordmark everywhere, including Olympus/Atrium.
           <Link to="/missions" className="flex items-center gap-2 shrink-0 px-1" title="All Missions">
             <img
               src={athenaMark.url}
@@ -213,14 +217,7 @@ function TopBar({
             </Link>
           </>
         )}
-        {isPlatformAdmin && (
-          <>
-            <span className="hidden sm:block h-5 w-px bg-white/15 mx-2" />
-            <span className="hidden sm:block text-[12px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              ADMIN
-            </span>
-          </>
-        )}
+
       </div>
 
       {/* CENTER — atrium nav / mission nav (hidden on mobile; bottom nav replaces) */}
