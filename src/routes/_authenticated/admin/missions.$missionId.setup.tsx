@@ -425,7 +425,8 @@ function SectionIdentity({ missionId, mission, refetch }: any) {
   async function save() {
     const { error } = await supabase.from("missions").update({
       name: form.name, client: form.client, program_type: form.program_type,
-      state: form.state, incumbent_name: form.incumbent_name,
+      state: form.state, state_agency: form.state_agency, incumbent_name: form.incumbent_name,
+      contract_value: form.contract_value,
       submission_date: form.submission_date || null, status: form.status,
     }).eq("id", missionId);
     if (error) return toast.error(error.message);
@@ -450,7 +451,9 @@ function SectionIdentity({ missionId, mission, refetch }: any) {
         <Field label="Client"><TextInput value={form.client ?? ""} onChange={(e) => setForm({ ...form, client: e.target.value })} /></Field>
         <Field label="Procurement Vehicle"><TextInput value={form.program_type ?? ""} onChange={(e) => setForm({ ...form, program_type: e.target.value })} placeholder="RFP, IDIQ, Sole Source…" /></Field>
         <Field label="State"><TextInput value={form.state ?? ""} onChange={(e) => setForm({ ...form, state: e.target.value })} /></Field>
+        <Field label="Issuing Agency"><TextInput value={form.state_agency ?? ""} onChange={(e) => setForm({ ...form, state_agency: e.target.value })} /></Field>
         <Field label="Prime Contractor"><TextInput value={form.incumbent_name ?? ""} onChange={(e) => setForm({ ...form, incumbent_name: e.target.value })} /></Field>
+        <Field label="Contract Value"><TextInput value={form.contract_value ?? ""} onChange={(e) => setForm({ ...form, contract_value: e.target.value })} placeholder="$ / estimated value" /></Field>
         <Field label="Submission Date"><TextInput type="date" value={form.submission_date ?? ""} onChange={(e) => setForm({ ...form, submission_date: e.target.value })} /></Field>
       </div>
       <div className="mt-5 flex justify-end">
@@ -835,9 +838,13 @@ const STRATEGY_KINDS = [
 ];
 function SectionStrategy({ missionId, mission, strategy, refetch }: any) {
   const [themes, setThemes] = useState<string[]>(mission?.win_themes ?? []);
+  const [focusAreas, setFocusAreas] = useState<string[]>(mission?.focus_areas ?? []);
   const [textForm, setTextForm] = useState({ sensitivities: "", language: "", avoid: "", reinforce: "" });
 
-  useEffect(() => { setThemes(mission?.win_themes ?? []); }, [mission]);
+  useEffect(() => {
+    setThemes(mission?.win_themes ?? []);
+    setFocusAreas(mission?.focus_areas ?? []);
+  }, [mission]);
 
   async function addItem(kind: string, label: string, notes?: string) {
     if (!label.trim()) return;
@@ -854,6 +861,11 @@ function SectionStrategy({ missionId, mission, strategy, refetch }: any) {
     toast.success("Win themes saved");
     refetch();
   }
+  async function saveFocusAreas() {
+    await supabase.from("missions").update({ focus_areas: focusAreas }).eq("id", missionId);
+    toast.success("Focus areas saved");
+    refetch();
+  }
 
   return (
     <Section id="strategy" n="04" label="Win Strategy" sublabel="The strategic inputs that make IRIS intelligent about this specific mission.">
@@ -864,6 +876,7 @@ function SectionStrategy({ missionId, mission, strategy, refetch }: any) {
         <div className="pt-6 border-t border-border space-y-8">
           {/* Win themes — stored on missions.win_themes */}
           <RepeatingArray label="Win Themes" items={themes} onChange={setThemes} onSave={saveThemes} />
+          <RepeatingArray label="Focus Areas" items={focusAreas} onChange={setFocusAreas} onSave={saveFocusAreas} />
 
           {STRATEGY_KINDS.map((k) => (
             <StrategyGroup
@@ -947,7 +960,13 @@ function StrategicFoundationBlock({ missionId, mission, refetch }: { missionId: 
       program_goals: mission?.program_goals ?? "",
     });
     setRequirements(mission?.key_requirements ?? []);
-  }, [mission?.id]);
+  }, [
+    mission?.mission_highlights,
+    mission?.client_strengths,
+    mission?.client_win_strategy,
+    mission?.program_goals,
+    mission?.key_requirements,
+  ]);
 
   // Detect uploaded RFP docs (any vault doc counts as RFP context for IRIS)
   useEffect(() => {
