@@ -347,12 +347,23 @@ function IrisStatusBody({ rows }: { rows: Array<{ layer: string; version: number
   }
   if (rows.length === 0) {
     return (
-      <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-200">
-        IRIS has not analyzed this mission. Click Run IRIS™ to generate the Mission Brief and
-        Strategic Assessment.
+      <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-200 space-y-2">
+        <div>
+          IRIS has not analyzed this mission yet. IRIS needs at least one
+          processed document (RFP, amendments, supporting materials) before it
+          can generate the Mission Brief and Strategic Assessment.
+        </div>
+        <Link
+          to="/admin/missions/$missionId/setup"
+          params={{ missionId }}
+          className="inline-flex items-center gap-1.5 rounded-md border border-amber-400/40 bg-amber-400/10 px-2.5 py-1 text-[12px] font-semibold text-amber-100 hover:bg-amber-400/20"
+        >
+          <ClipboardCheck className="h-3 w-3" /> Open Setup Record to upload documents
+        </Link>
       </div>
     );
   }
+
   return (
     <ul className="space-y-2">
       {layers.map((l) => {
