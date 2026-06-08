@@ -152,7 +152,7 @@ export const importSetupRecord = createServerFn({ method: "POST" })
 
     const fieldsUpdated = Object.keys(patch).length;
     if (fieldsUpdated > 0) {
-      const { error } = await supabase.from("missions").update(patch).eq("id", data.mission_id);
+      const { error } = await supabase.from("missions").update(patch as never).eq("id", data.mission_id);
       if (error) throw new Error(error.message);
     }
 
