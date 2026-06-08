@@ -13,6 +13,7 @@ import { seedMonitoringWatchlist, saveMonitoringSource, deleteMonitoringSource }
 import { saveEvaluationCriteria, saveExpertiseTag, removeExpertiseTag } from "@/lib/mission-evaluation.functions";
 import { generateStrategicField, type StrategicFieldKey } from "@/lib/iris-strategic-foundation.functions";
 import { irisPopulateSetupRecord } from "@/lib/iris-setup-autofill.functions";
+import { extractClientIntel } from "@/lib/iris-extractors/client-intel.functions";
 import { IrisAutofillBanner } from "@/components/admin/IrisAutofillBanner";
 import { ImportSetupRecordCard } from "@/components/admin/ImportSetupRecordCard";
 import { SetupCompletenessMeter } from "@/components/admin/SetupCompletenessMeter";
@@ -55,9 +56,11 @@ function MissionSetupRecord() {
   const { isAdmin } = useIsAdmin();
   const launchFn = useServerFn(launchMission);
   const autofillFn = useServerFn(irisPopulateSetupRecord);
+  const extractClientIntelFn = useServerFn(extractClientIntel);
   const [confirm, setConfirm] = useState(false);
   const [preLaunchError, setPreLaunchError] = useState<string | null>(null);
   const [autofillWritten, setAutofillWritten] = useState<number | undefined>(undefined);
+  const [clientIntelAttempted, setClientIntelAttempted] = useState(false);
 
   const setup = useSetupData(missionId);
   const completion = useCompletion(setup);
@@ -85,6 +88,34 @@ function MissionSetupRecord() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setup.mission?.id, setup.mission?.iris_setup_autofill_status, setup.mission?.iris_kickoff_status]);
+
+  useEffect(() => {
+    if (!setup.mission || clientIntelAttempted) return;
+    const intel = setup.clientIntel;
+    const hasAgencyIntel = !!(
+      intel?.contacts?.length ||
+      intel?.stakeholders?.length ||
+      intel?.decision_makers?.length ||
+      intel?.relationship_owners?.length ||
+      intel?.political_considerations ||
+      intel?.meeting_cadence
+    );
+    if (hasAgencyIntel) return;
+    let cancelled = false;
+    setClientIntelAttempted(true);
+    (async () => {
+      try {
+        const res = await extractClientIntelFn({ data: { missionId } });
+        if (!cancelled && !res.skipped) setup.refetch();
+      } catch {
+        // silent — Agency Intelligence can still be entered manually
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setup.mission?.id, setup.clientIntel, clientIntelAttempted]);
 
   async function handleLaunch() {
     setPreLaunchError(null);
