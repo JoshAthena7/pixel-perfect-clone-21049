@@ -35,7 +35,7 @@ export type SetupCompleteness = {
   pct: number;
   filled: number;
   total: number;
-  missing: { key: SetupFieldKey; label: string }[];
+  missing: { key: SetupFieldKey; label: string; sectionId: string }[];
 };
 
 function hasText(v: unknown): boolean {
