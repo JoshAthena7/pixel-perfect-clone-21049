@@ -17,7 +17,7 @@ export const generateIrisIntelligence = createServerFn({ method: "POST" })
     z
       .object({
         mission_id: z.string().uuid(),
-        document_ids: z.array(z.string().uuid()).min(1).max(50),
+        document_ids: z.array(z.string().uuid()).max(50).default([]),
         layer: layerSchema,
       })
       .parse(d),
@@ -25,29 +25,45 @@ export const generateIrisIntelligence = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase } = context;
 
-    // 1. Fetch only completed docs the caller can read (RLS filters automatically).
-    const { data: docs, error: docsErr } = await supabase
-      .from("mission_documents")
-      .select("id, file_name, document_type, extracted_text, processing_status")
-      .eq("mission_id", data.mission_id)
-      .in("id", data.document_ids)
-      .eq("processing_status", "complete");
+    // 1. Fetch completed docs when provided; otherwise fall back to the mission setup record.
+    let docs: Array<{ id: string; file_name: string | null; document_type: string | null; extracted_text: string | null }> = [];
+    if (data.document_ids.length > 0) {
+      const { data: rows, error: docsErr } = await supabase
+        .from("mission_documents")
+        .select("id, file_name, document_type, extracted_text, processing_status")
+        .eq("mission_id", data.mission_id)
+        .in("id", data.document_ids)
+        .eq("processing_status", "complete");
 
-    if (docsErr) {
-      return { success: false as const, error: "documents_read_failed", detail: docsErr.message };
-    }
-    if (!docs || docs.length === 0) {
-      return { success: false as const, error: "no_complete_documents" };
+      if (docsErr) {
+        return { success: false as const, error: "documents_read_failed", detail: docsErr.message };
+      }
+      docs = rows ?? [];
     }
 
     // 2. Build corpus. Cap per-doc text so we stay within model context window.
     const PER_DOC_CAP = 60_000;
-    const corpus = docs
+    const documentCorpus = docs
       .map((d) => {
         const body = (d.extracted_text ?? "").slice(0, PER_DOC_CAP);
         return `[DOCUMENT: ${d.file_name} | TYPE: ${d.document_type}]\n${body}`;
       })
       .join("\n\n");
+
+    const { data: mission, error: missionErr } = await supabase
+      .from("missions")
+      .select(
+        "name, client, state, description, procurement_name, program_type, contract_value, contract_term, incumbent_name, evaluation_criteria, key_requirements, focus_areas, win_themes, priority_topics, program_goals, mission_highlights, client_strengths, client_win_strategy, iris_setup_suggested_fields, rfp_extraction",
+      )
+      .eq("id", data.mission_id)
+      .maybeSingle();
+    if (missionErr) return { success: false as const, error: "mission_read_failed", detail: missionErr.message };
+
+    const setupCorpus = mission
+      ? `[MISSION SETUP RECORD]\n${JSON.stringify(mission, null, 2).slice(0, PER_DOC_CAP)}`
+      : "";
+
+    const corpus = [documentCorpus, setupCorpus].filter((part) => part.trim().length > 0).join("\n\n");
 
     if (corpus.trim().length < 100) {
       return { success: false as const, error: "insufficient_text" };
