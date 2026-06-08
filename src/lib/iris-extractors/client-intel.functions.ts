@@ -23,6 +23,18 @@ const ClientIntelSchema = z.object({
 type ClientIntelEntry = z.infer<typeof ClientIntelEntrySchema>;
 type ClientIntelOut = z.infer<typeof ClientIntelSchema>;
 
+function hasMeaningfulText(value: unknown) {
+  const text = typeof value === "string" ? value.trim() : "";
+  return !!text && !/^(no documented|not documented|none documented|none found|not specified|no specific|no public evidence|unknown|n\/a|not available)/i.test(text);
+}
+
+function hasMeaningfulList(value: unknown) {
+  return Array.isArray(value) && value.some((item) => {
+    const text = typeof item === "string" ? item.trim() : "";
+    return !!text && text !== "[object Object]" && !/^(no documented|not documented|none documented|none found|not specified|no specific|no public evidence|unknown|n\/a|not available)/i.test(text);
+  });
+}
+
 export const extractClientIntel = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ missionId: z.string().uuid() }).parse(d))
@@ -91,6 +103,16 @@ export const extractClientIntel = createServerFn({ method: "POST" })
         text: d.extracted_text ?? d.summary,
       })),
     ];
+    const hasSourceText = sourceParts.some((d) => String(d.text ?? "").trim().length > 200);
+    if (!hasSourceText) {
+      return {
+        stage: "client_intel",
+        inserted: 0,
+        skipped: true,
+        reason: "no parsed documents available",
+        ms: Date.now() - started,
+      };
+    }
     const docText = sourceParts
       .map((d) => `--- ${d.label} ---\n${String(d.text ?? "").slice(0, 8000)}`)
       .join("\n\n")
@@ -252,19 +274,20 @@ For political_considerations and meeting_cadence, summarize supported evidence o
     };
     const usableText = (value: unknown) => {
       const text = typeof value === "string" ? value.trim() : "";
-      if (!text) return null;
-      return /^(no documented|not documented|none documented|none found|not specified|no specific)/i.test(text)
-        ? null
-        : text;
+      return hasMeaningfulText(text) ? text : null;
     };
+    const existingContacts = hasMeaningfulList(existing?.contacts) ? asStrings(existing?.contacts) : [];
+    const existingStakeholders = hasMeaningfulList(existing?.stakeholders) ? asStrings(existing?.stakeholders) : [];
+    const existingDecisionMakers = hasMeaningfulList(existing?.decision_makers) ? asStrings(existing?.decision_makers) : [];
+    const existingRelationshipOwners = hasMeaningfulList(existing?.relationship_owners) ? asStrings(existing?.relationship_owners) : [];
 
     const { error } = await supabaseAdmin.from("mission_client_intel").upsert(
       {
         mission_id: data.missionId,
-        contacts: merge(asStrings(existing?.contacts), newContacts),
-        stakeholders: merge(asStrings(existing?.stakeholders), newStakeholders),
-        decision_makers: merge(asStrings(existing?.decision_makers), newDecisionMakers),
-        relationship_owners: merge(asStrings(existing?.relationship_owners), newRelationshipOwners),
+        contacts: merge(existingContacts, newContacts),
+        stakeholders: merge(existingStakeholders, newStakeholders),
+        decision_makers: merge(existingDecisionMakers, newDecisionMakers),
+        relationship_owners: merge(existingRelationshipOwners, newRelationshipOwners),
         political_considerations:
           usableText(existing?.political_considerations) || usableText(result.political_considerations) || null,
         meeting_cadence: usableText(existing?.meeting_cadence) || usableText(result.meeting_cadence) || null,
