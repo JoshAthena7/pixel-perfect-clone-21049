@@ -1,5 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import { FastReportsMenu } from "@/components/olympus/FastReportsMenu";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +17,7 @@ type MissionRow = {
 };
 
 export default function MissionCommand() {
+  const [showCreate, setShowCreate] = useState(false);
   const { data, isLoading } = useQuery({
     queryKey: ["olympus-missions"],
     queryFn: async () => {
@@ -47,15 +50,17 @@ export default function MissionCommand() {
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <Link
-            to="/admin/missions/new"
+          <button
+            type="button"
+            onClick={() => setShowCreate(true)}
             className="rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-medium hover:bg-surface-hover"
           >
             + New Mission
-          </Link>
+          </button>
           <FastReportsMenu />
         </div>
       </header>
+      {showCreate && <CreateMissionModal onClose={() => setShowCreate(false)} />}
 
       <div className="p-5">
         <div className="rounded-lg border border-border bg-surface/40 overflow-hidden">
