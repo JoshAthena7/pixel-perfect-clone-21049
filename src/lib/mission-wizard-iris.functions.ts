@@ -93,11 +93,11 @@ No markdown. No explanation. JSON only.`;
       throw new Error("IRIS returned invalid JSON");
     }
 
-    const { error: insErr } = await supabase.from("mission_intelligence").insert({
+    const { error: insErr } = await supabase.from("mission_intelligence").upsert({
       mission_id: data.missionId,
       layer: "wizard_analysis",
       content: parsed as never,
-    } as never);
+    } as never, { onConflict: "mission_id,layer" });
     if (insErr) throw new Error(insErr.message);
 
     await supabase.from("missions").update({ wizard_step: 3 } as never).eq("id", data.missionId);
