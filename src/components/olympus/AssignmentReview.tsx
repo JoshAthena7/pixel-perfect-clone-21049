@@ -89,18 +89,46 @@ function emptyAssignment(missionId: string, questionId: string): Assignment {
   };
 }
 
+export const INTEL_FIELDS = [
+  { key: "win_themes", label: "Win Themes" },
+  { key: "source_doc_refs", label: "Source Documents" },
+  { key: "compliance_refs", label: "Compliance References" },
+  { key: "best_practices", label: "Best Practices" },
+  { key: "oracle_prompts", label: "Oracle Prompts" },
+  { key: "iris_recommendations", label: "IRIS Recommendations" },
+  { key: "required_evidence", label: "Required Evidence" },
+] as const;
+
+export type IntelFieldKey = (typeof INTEL_FIELDS)[number]["key"];
+export type IntelRow = Partial<Record<IntelFieldKey, string[]>> & {
+  question_id: string;
+  mission_id: string;
+};
+
+export type MissionDoc = { id: string; file_name: string | null; doc_type: string | null };
+
 export default function AssignmentReview({
   missionId,
   mode,
   onConfirm,
+  showIntelligence = false,
+  nextWizardStep = 7,
+  confirmLabel,
+  onSkip,
 }: {
   missionId: string;
   mode: "wizard" | "tab";
   onConfirm?: () => void;
+  showIntelligence?: boolean;
+  nextWizardStep?: number;
+  confirmLabel?: string;
+  onSkip?: () => void;
 }) {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<Row[]>([]);
   const [team, setTeam] = useState<TeamMember[]>([]);
+  const [intelMap, setIntelMap] = useState<Map<string, IntelRow>>(new Map());
+  const [missionDocs, setMissionDocs] = useState<MissionDoc[]>([]);
 
   // filters
   const [filterSection, setFilterSection] = useState("");
