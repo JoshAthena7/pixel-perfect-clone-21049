@@ -434,7 +434,7 @@ function SetupTab({ missionId, mission }: { missionId: string; mission: any }) {
                   </span>
                   {label}
                 </button>
-                {num < 7 && <span className="text-muted-foreground/40">·</span>}
+                {num < 6 && <span className="text-muted-foreground/40">·</span>}
               </li>
             );
           })}
