@@ -2,18 +2,19 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Brain, FileText, ListChecks, LayoutGrid, Sliders, ShieldCheck, Check, Archive, Users } from "lucide-react";
+import { ArrowLeft, Brain, FileText, ListChecks, LayoutGrid, Sliders, ShieldCheck, Check, Archive, Users, UserCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { FastReportsMenu } from "@/components/olympus/FastReportsMenu";
 import MissionWizard from "@/components/olympus/MissionWizard";
 import AssignmentReview from "@/components/olympus/AssignmentReview";
+import MissionTeam from "@/components/olympus/MissionTeam";
 
-type Tab = "assignments" | "overview" | "sections" | "intelligence" | "requirements" | "setup" | "oversight" | "closeout";
+type Tab = "assignments" | "team" | "overview" | "sections" | "intelligence" | "requirements" | "setup" | "oversight" | "closeout";
 
 export const Route = createFileRoute("/_authenticated/admin/missions/$missionId")({
   validateSearch: (s: Record<string, unknown>): { tab?: Tab } => {
     const t = s.tab;
-    if (t === "assignments" || t === "overview" || t === "sections" || t === "intelligence" || t === "requirements" || t === "setup" || t === "oversight" || t === "closeout") return { tab: t };
+    if (t === "assignments" || t === "team" || t === "overview" || t === "sections" || t === "intelligence" || t === "requirements" || t === "setup" || t === "oversight" || t === "closeout") return { tab: t };
     return {};
   },
   component: MissionDetail,
@@ -86,6 +87,7 @@ function MissionDetail() {
       <div className="border-b border-border bg-surface/20 px-5">
         <nav className="flex gap-1 overflow-x-auto">
           <TabBtn active={tab === "assignments"} onClick={() => setTab("assignments")} icon={<Users className="h-3.5 w-3.5" />}>Assignments</TabBtn>
+          <TabBtn active={tab === "team"} onClick={() => setTab("team")} icon={<UserCircle2 className="h-3.5 w-3.5" />}>Team</TabBtn>
           <TabBtn active={tab === "overview"} onClick={() => setTab("overview")} icon={<LayoutGrid className="h-3.5 w-3.5" />}>Overview</TabBtn>
           <TabBtn active={tab === "sections"} onClick={() => setTab("sections")} icon={<FileText className="h-3.5 w-3.5" />}>Sections</TabBtn>
           <TabBtn active={tab === "intelligence"} onClick={() => setTab("intelligence")} icon={<Brain className="h-3.5 w-3.5" />}>Intelligence</TabBtn>
@@ -104,6 +106,7 @@ function MissionDetail() {
 
       <div className="p-5">
         {tab === "assignments" && <AssignmentReview missionId={missionId} mode="tab" />}
+        {tab === "team" && <MissionTeam missionId={missionId} />}
         {tab === "overview" && <OverviewTab missionId={missionId} mission={mission} />}
         {tab === "sections" && <SectionsTab missionId={missionId} />}
         {tab === "intelligence" && <IntelligenceTab missionId={missionId} />}
