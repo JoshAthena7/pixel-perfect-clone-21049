@@ -15,20 +15,20 @@ export type SetupFieldKey =
   | "win_themes"
   | "evaluation_criteria";
 
-export const SETUP_FIELDS: { key: SetupFieldKey; label: string }[] = [
-  { key: "client", label: "Client" },
-  { key: "state_agency", label: "Issuing agency" },
-  { key: "submission_date", label: "Submission date" },
-  { key: "program_type", label: "Program type" },
-  { key: "incumbent_name", label: "Incumbent" },
-  
-  { key: "mission_highlights", label: "Mission highlights" },
-  { key: "client_strengths", label: "Client strengths" },
-  { key: "client_win_strategy", label: "Win strategy" },
-  { key: "program_goals", label: "Program goals" },
-  { key: "key_requirements", label: "Key requirements" },
-  { key: "win_themes", label: "Win themes" },
-  { key: "evaluation_criteria", label: "Evaluation criteria" },
+export const SETUP_FIELDS: { key: SetupFieldKey; label: string; sectionId: string }[] = [
+  { key: "client", label: "Client", sectionId: "identity" },
+  { key: "state_agency", label: "Issuing agency", sectionId: "identity" },
+  { key: "submission_date", label: "Submission date", sectionId: "timeline" },
+  { key: "program_type", label: "Program type", sectionId: "identity" },
+  { key: "incumbent_name", label: "Incumbent", sectionId: "identity" },
+
+  { key: "mission_highlights", label: "Mission highlights", sectionId: "identity" },
+  { key: "client_strengths", label: "Client strengths", sectionId: "strategy" },
+  { key: "client_win_strategy", label: "Win strategy", sectionId: "strategy" },
+  { key: "program_goals", label: "Program goals", sectionId: "strategy" },
+  { key: "key_requirements", label: "Key requirements", sectionId: "strategy" },
+  { key: "win_themes", label: "Win themes", sectionId: "strategy" },
+  { key: "evaluation_criteria", label: "Evaluation criteria", sectionId: "evaluation" },
 ];
 
 export type SetupCompleteness = {
