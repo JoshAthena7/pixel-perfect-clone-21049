@@ -29,8 +29,13 @@ Return ONLY valid JSON matching this exact shape — no prose, no markdown, no c
   "key_requirements": string[],         // requirement list (short phrases)
   "win_themes": string[],               // win theme list (short phrases)
   "competitors": string[],              // known competitor names only
-  "focus_areas": string[]               // sensitivities / focus areas (short phrases)
+  "focus_areas": string[],              // sensitivities / focus areas (short phrases)
+  "sensitivities_note": string|null,    // free-text: topics/terms IRIS should treat carefully
+  "language_guidance": string|null,     // free-text: tone, voice, phrasing rules
+  "things_to_avoid": string|null,       // free-text: words/positions/claims to avoid
+  "things_to_reinforce": string|null    // free-text: themes/messages to reinforce
 }`;
+
 
 type Parsed = {
   name: string | null;
@@ -48,7 +53,12 @@ type Parsed = {
   win_themes: string[];
   competitors: string[];
   focus_areas: string[];
+  sensitivities_note: string | null;
+  language_guidance: string | null;
+  things_to_avoid: string | null;
+  things_to_reinforce: string | null;
 };
+
 
 function s(v: unknown, max = 4000): string | null {
   if (typeof v !== "string") return null;
@@ -79,11 +89,16 @@ function tryParse(raw: string): Parsed | null {
       win_themes: arr(j.win_themes),
       competitors: arr(j.competitors),
       focus_areas: arr(j.focus_areas),
+      sensitivities_note: s(j.sensitivities_note, 4000),
+      language_guidance: s(j.language_guidance, 4000),
+      things_to_avoid: s(j.things_to_avoid, 4000),
+      things_to_reinforce: s(j.things_to_reinforce, 4000),
     };
   } catch {
     return null;
   }
 }
+
 
 export const importSetupRecord = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
