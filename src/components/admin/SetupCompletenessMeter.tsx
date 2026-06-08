@@ -73,17 +73,24 @@ export function SetupCompletenessMeter({ mission, evaluationCount }: Props) {
               </div>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {missing.map((f, i) => (
-                  <span
+                  <button
+                    type="button"
                     key={f.key}
+                    onClick={() => {
+                      const el = document.getElementById(f.sectionId);
+                      if (el) {
+                        el.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }
+                    }}
                     className={
                       i === 0
-                        ? "inline-flex items-center gap-1.5 rounded-full border border-amber-500 bg-amber-500/20 px-2.5 py-0.5 text-[11px] font-mono font-semibold text-amber-900 dark:text-amber-100"
-                        : "inline-flex items-center rounded-full border border-amber-500/40 bg-background/60 px-2 py-0.5 text-[11px] font-mono text-amber-800 dark:text-amber-200"
+                        ? "inline-flex items-center gap-1.5 rounded-full border border-amber-500 bg-amber-500/20 px-2.5 py-0.5 text-[11px] font-mono font-semibold text-amber-900 dark:text-amber-100 hover:bg-amber-500/30 transition-colors cursor-pointer"
+                        : "inline-flex items-center rounded-full border border-amber-500/40 bg-background/60 px-2 py-0.5 text-[11px] font-mono text-amber-800 dark:text-amber-200 hover:bg-amber-500/10 transition-colors cursor-pointer"
                     }
                   >
                     {f.label}
                     {i === 0 && <span className="opacity-80">· Start here →</span>}
-                  </span>
+                  </button>
                 ))}
               </div>
             </>
