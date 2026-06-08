@@ -15,17 +15,28 @@ type MissionRow = {
 };
 
 export default function MissionCommand() {
-  const { data: missions = [], isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["olympus-missions"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: missions, error } = await supabase
         .from("missions")
         .select("id,name,client,status,health,submission_date,created_at")
         .order("submission_date", { ascending: true, nullsFirst: false });
       if (error) throw error;
-      return (data ?? []) as MissionRow[];
+
+      const { data: intelRows } = await supabase
+        .from("mission_intelligence")
+        .select("mission_id");
+      const counts = new Map<string, number>();
+      for (const r of (intelRows ?? []) as { mission_id: string | null }[]) {
+        if (!r.mission_id) continue;
+        counts.set(r.mission_id, (counts.get(r.mission_id) ?? 0) + 1);
+      }
+      return { missions: (missions ?? []) as MissionRow[], counts };
     },
   });
+  const missions = data?.missions ?? [];
+  const counts = data?.counts ?? new Map<string, number>();
 
   return (
     <div className="flex-1 min-w-0">
