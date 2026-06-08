@@ -89,6 +89,11 @@ function AuthenticatedLayout() {
     return <div className="min-h-screen bg-background" />;
   }
 
+  // /admin owns its own layout — bypass the outer Atrium chrome entirely.
+  if (path === "/admin" || path.startsWith("/admin/")) {
+    return <Outlet />;
+  }
+
   // Admins keep the full Atrium chrome (Athena HQ, top nav, etc.).
   if (isAdmin) {
     return (
