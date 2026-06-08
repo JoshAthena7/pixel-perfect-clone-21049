@@ -277,33 +277,8 @@ function MissionSetupRecord() {
           <SectionTimeline missionId={missionId} timeline={setup.timeline} refetch={setup.refetch} />
           <SectionQuestions missionId={missionId} questions={setup.questions} volumes={setup.volumes} refetch={setup.refetch} />
           <SectionGovernance missionId={missionId} governance={setup.governance} refetch={setup.refetch} />
-
-
-
-          {setup.mission?.status !== "Active" && (
-            <div className="pt-12 border-t border-border">
-              <div className="flex items-center justify-between gap-6">
-                <div>
-                  <div className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground font-mono">
-                    Final step
-                  </div>
-                  <h2 className="mt-2 text-xl font-light text-foreground">Launch Mission</h2>
-                  <p className="mt-1 text-sm text-muted-foreground max-w-lg">
-                    Generates Mission Home, Vault, Oracle, Studio, Calendar, team permissions, and the initial IRIS briefing.
-                  </p>
-                </div>
-                <button
-                  onClick={handleLaunch}
-                  disabled={confirm}
-                  className="inline-flex items-center gap-2 rounded-md bg-[#C49A22] px-6 py-3 text-sm font-semibold text-black hover:bg-[#D4AA32] disabled:opacity-50 transition"
-                >
-                  <Rocket className="h-4 w-4" />
-                  Launch Mission
-                </button>
-              </div>
-            </div>
-          )}
         </main>
+
       </div>
 
       {confirm && (
