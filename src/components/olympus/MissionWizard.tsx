@@ -44,10 +44,17 @@ type Props = {
 
 export default function MissionWizard({ open, onClose, missionId: initialMissionId, startStep = 1 }: Props) {
   const qc = useQueryClient();
+  const runIris = useServerFn(runWizardIrisAnalysis);
   const [step, setStep] = useState(startStep);
   const [missionId, setMissionId] = useState<string | null>(initialMissionId ?? null);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  // Step 3 IRIS analysis state
+  const [irisState, setIrisState] = useState<"idle" | "running" | "done" | "error">("idle");
+  const [irisPhase, setIrisPhase] = useState(0);
+  const [irisError, setIrisError] = useState<string | null>(null);
+
 
   // Step 1 state
   const [s1, setS1] = useState({
