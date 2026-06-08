@@ -7,7 +7,6 @@ export type SetupFieldKey =
   | "submission_date"
   | "program_type"
   | "incumbent_name"
-  | "contract_value"
   | "mission_highlights"
   | "client_strengths"
   | "client_win_strategy"
