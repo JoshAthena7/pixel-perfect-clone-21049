@@ -143,6 +143,8 @@ function IrisBadge({ count }: { count: number }) {
       {label}
     </span>
   );
+}
+
 
 function HealthDot({ value }: { value: string | null }) {
   const v = (value ?? "").toLowerCase();
