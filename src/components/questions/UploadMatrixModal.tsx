@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -254,9 +255,18 @@ export function UploadMatrixModal({
     setQuestions((qs) => qs.filter((_, idx) => idx !== i));
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 p-4 sm:p-8 overflow-y-auto">
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-start justify-center bg-black/60 p-4 sm:p-8 overflow-y-auto">
       <div className="relative my-auto w-full max-w-6xl rounded-[14px] border border-border bg-surface shadow-2xl">
+
         <header className="flex items-start justify-between gap-4 border-b border-border px-6 py-4">
           <div>
             <div className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
@@ -362,9 +372,11 @@ export function UploadMatrixModal({
           />
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
+
 
 function stageBadge(
   cur: string,
