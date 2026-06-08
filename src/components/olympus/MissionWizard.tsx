@@ -677,14 +677,15 @@ function Select({
   );
 }
 
-/* ---------- Step 3: IRIS Review ---------- */
+/* ---------- Step 3: IRIS Analysis ---------- */
 
 const LOADING_STAGES = [
-  "Reading source materials...",
+  "Reading RFP...",
+  "Extracting sections...",
+  "Mapping questions...",
   "Identifying requirements...",
-  "Mapping compliance items...",
-  "Drafting mission record...",
-  "Analysis complete ✓",
+  "Building response architecture...",
+  "Architecture v1 complete ✓",
 ];
 
 type DocSummary = { doc_type: string | null; has_content: boolean };
@@ -696,13 +697,14 @@ function Step3IrisReview({
   missionId: string;
   onAdvance: () => void;
 }) {
-  const runIris = useServerFn(runWizardIrisAnalysis);
+  const runArch = useServerFn(runWizardQuestionArchitecture);
   const [status, setStatus] = useState<"idle" | "running" | "done" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
   const [stageIdx, setStageIdx] = useState(0);
   const [docs, setDocs] = useState<DocSummary[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(true);
   const [hasExisting, setHasExisting] = useState(false);
+  const [result, setResult] = useState<{ sectionCount: number; questionCount: number } | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -749,10 +751,11 @@ function Step3IrisReview({
     setStatus("running");
     setError(null);
     try {
-      await runIris({ data: { missionId } });
+      const r = await runArch({ data: { missionId } });
+      setResult({ sectionCount: r.sectionCount, questionCount: r.questionCount });
       setStageIdx(LOADING_STAGES.length - 1);
       setStatus("done");
-      toast.success("IRIS analysis complete");
+      toast.success(`IRIS extracted ${r.questionCount} questions across ${r.sectionCount} sections`);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "IRIS analysis failed";
       setError(msg);
@@ -780,7 +783,7 @@ function Step3IrisReview({
   return (
     <div className="space-y-5">
       <p className="text-sm text-muted-foreground">
-        IRIS will read your materials and draft the full mission record
+        IRIS will read your RFP and build the response architecture
       </p>
 
       <div
@@ -809,12 +812,10 @@ function Step3IrisReview({
           />
         )}
 
-        {status === "running" && (
-          <RunningView stageIdx={stageIdx} />
-        )}
+        {status === "running" && <RunningView stageIdx={stageIdx} />}
 
         {status === "done" && (
-          <DoneView onAdvance={onAdvance} />
+          <DoneView onAdvance={onAdvance} result={result} />
         )}
 
         {status === "error" && (
@@ -846,7 +847,7 @@ function IdleView({
     <div className="space-y-5">
       <div>
         <h3 className="text-lg font-semibold text-foreground mb-1">
-          {hasExisting ? "Re-run IRIS Analysis" : "Ready to analyze your mission"}
+          {hasExisting ? "Re-run IRIS Analysis" : "Ready to analyze your RFP"}
         </h3>
         <p className="text-sm text-muted-foreground">
           {filledDocs.length} source {filledDocs.length === 1 ? "document" : "documents"} provided
@@ -862,9 +863,8 @@ function IdleView({
       </div>
 
       <div className="rounded-lg border border-border/60 bg-background/40 p-4 text-sm text-muted-foreground leading-relaxed">
-        IRIS will read your source materials and draft: Mission briefing, Key dates,
-        Requirements, Deliverables, Risks, Compliance items, Suggested sections, Win themes,
-        Staffing needs, and Intelligence notes.
+        IRIS will extract: Sections, Questions, Subquestions, Requirements, Evaluation Criteria,
+        Page Limits, Deliverables, and Compliance Requirements. This becomes the mission backbone.
       </div>
 
       <div className="flex flex-col items-center gap-3 pt-2">
@@ -874,14 +874,14 @@ function IdleView({
           className="rounded-lg px-8 py-3.5 text-sm font-bold uppercase tracking-[0.18em] shadow-lg hover:opacity-90 transition"
           style={{ backgroundColor: GOLD, color: NAVY }}
         >
-          {hasExisting ? "Re-run IRIS Review →" : "Run IRIS Review →"}
+          {hasExisting ? "Re-run IRIS Analyze →" : "Run IRIS Analyze →"}
         </button>
         <button
           type="button"
           onClick={onSkip}
           className="text-xs text-muted-foreground underline hover:text-foreground"
         >
-          Skip — I'll fill in the record manually →
+          Skip — I'll enter questions manually →
         </button>
       </div>
     </div>
@@ -920,7 +920,13 @@ function RunningView({ stageIdx }: { stageIdx: number }) {
   );
 }
 
-function DoneView({ onAdvance }: { onAdvance: () => void }) {
+function DoneView({
+  onAdvance,
+  result,
+}: {
+  onAdvance: () => void;
+  result: { sectionCount: number; questionCount: number } | null;
+}) {
   return (
     <div className="py-6 space-y-5 text-center">
       <div
@@ -931,10 +937,12 @@ function DoneView({ onAdvance }: { onAdvance: () => void }) {
       </div>
       <div>
         <h3 className="text-base font-semibold text-foreground">
-          IRIS analysis complete
+          {result
+            ? `✓ IRIS extracted ${result.questionCount} questions across ${result.sectionCount} sections`
+            : "✓ Response Architecture v1 ready"}
         </h3>
         <p className="text-sm text-muted-foreground mt-1">
-          Review and edit the record below
+          Response Architecture v1 ready
         </p>
       </div>
       <button
@@ -943,7 +951,7 @@ function DoneView({ onAdvance }: { onAdvance: () => void }) {
         className="rounded-lg px-6 py-3 text-sm font-bold uppercase tracking-[0.18em] shadow hover:opacity-90"
         style={{ backgroundColor: GOLD, color: NAVY }}
       >
-        Review the Record →
+        Review Architecture →
       </button>
     </div>
   );
@@ -968,10 +976,10 @@ function ErrorView({
       </div>
       <div>
         <h3 className="text-base font-semibold text-foreground">
-          IRIS could not complete the analysis
+          IRIS could not complete
         </h3>
         <p className="text-sm text-muted-foreground mt-1">
-          You can fill in the record manually.
+          You can enter questions manually.
         </p>
         <p className="text-xs text-muted-foreground/70 mt-2 italic">{message}</p>
       </div>
