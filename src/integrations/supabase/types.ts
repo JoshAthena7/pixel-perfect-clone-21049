@@ -6119,46 +6119,70 @@ export type Database = {
       }
       question_intelligence: {
         Row: {
+          best_practices: Json | null
           competitor_signals: string | null
           compliance_flags: string[] | null
+          compliance_refs: Json | null
           expires_at: string | null
           generated_at: string | null
           id: string
           iris_brief: string | null
+          iris_recommendations: Json | null
           key_messages: string[] | null
           mission_id: string
+          oracle_prompts: Json | null
           procurement_priorities: string | null
           question_id: string
           relevant_research: string[] | null
+          required_evidence: Json | null
+          source_doc_refs: Json | null
           state_priorities: string | null
+          updated_at: string | null
+          win_themes: Json | null
         }
         Insert: {
+          best_practices?: Json | null
           competitor_signals?: string | null
           compliance_flags?: string[] | null
+          compliance_refs?: Json | null
           expires_at?: string | null
           generated_at?: string | null
           id?: string
           iris_brief?: string | null
+          iris_recommendations?: Json | null
           key_messages?: string[] | null
           mission_id: string
+          oracle_prompts?: Json | null
           procurement_priorities?: string | null
           question_id: string
           relevant_research?: string[] | null
+          required_evidence?: Json | null
+          source_doc_refs?: Json | null
           state_priorities?: string | null
+          updated_at?: string | null
+          win_themes?: Json | null
         }
         Update: {
+          best_practices?: Json | null
           competitor_signals?: string | null
           compliance_flags?: string[] | null
+          compliance_refs?: Json | null
           expires_at?: string | null
           generated_at?: string | null
           id?: string
           iris_brief?: string | null
+          iris_recommendations?: Json | null
           key_messages?: string[] | null
           mission_id?: string
+          oracle_prompts?: Json | null
           procurement_priorities?: string | null
           question_id?: string
           relevant_research?: string[] | null
+          required_evidence?: Json | null
+          source_doc_refs?: Json | null
           state_priorities?: string | null
+          updated_at?: string | null
+          win_themes?: Json | null
         }
         Relationships: [
           {
@@ -6172,7 +6196,7 @@ export type Database = {
             foreignKeyName: "question_intelligence_question_id_fkey"
             columns: ["question_id"]
             isOneToOne: true
-            referencedRelation: "question_records"
+            referencedRelation: "questions"
             referencedColumns: ["id"]
           },
         ]
