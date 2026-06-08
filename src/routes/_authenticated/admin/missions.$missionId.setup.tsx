@@ -2160,3 +2160,20 @@ function SectionEvaluation({ missionId, criteria, questions, refetch }: any) {
 }
 
 
+
+function SectionDocuments({ missionId }: { missionId: string }) {
+  return (
+    <section id="documents" className="scroll-mt-24">
+      <div className="mb-4">
+        <div className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground font-mono">00</div>
+        <h2 className="mt-1 text-xl font-light text-foreground">Documents (Vault)</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Upload the RFP, amendments, Q&amp;A, and reference materials. Uploads here feed the auto-extractors that populate every section below.
+        </p>
+      </div>
+      <div className="rounded-lg border border-border bg-surface/30 p-4">
+        <IntelligenceVault missionId={missionId} />
+      </div>
+    </section>
+  );
+}
