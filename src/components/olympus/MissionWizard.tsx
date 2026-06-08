@@ -281,13 +281,13 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1">
               <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                <span>Step {step} of 6</span>
+                <span>Step {step} of {TOTAL_STEPS}</span>
                 <span>{STEP_NAMES[step - 1]}</span>
               </div>
               <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-border/60">
                 <div
                   className="h-full transition-all"
-                  style={{ width: `${(step / 6) * 100}%`, backgroundColor: GOLD }}
+                  style={{ width: `${(step / TOTAL_STEPS) * 100}%`, backgroundColor: GOLD }}
                 />
               </div>
             </div>
