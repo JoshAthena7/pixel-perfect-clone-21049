@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_authenticated")({
     const sessionResult = await withTimeout(
       supabase.auth.getSession(),
       2500,
-      { data: { session: null }, error: new Error("Auth session timed out") },
+      { data: { session: null }, error: null },
     );
     const user = sessionResult.data.session?.user ?? null;
     if (sessionResult.error || !user) {
@@ -32,7 +32,7 @@ export const Route = createFileRoute("/_authenticated")({
         .eq("id", user.id)
         .maybeSingle(),
       4000,
-      { data: null, error: new Error("Profile lookup timed out") },
+      { data: null, error: null },
     );
     const isAdmin = prof?.is_platform_admin === true;
     const onboarded = prof?.has_onboarded === true;
