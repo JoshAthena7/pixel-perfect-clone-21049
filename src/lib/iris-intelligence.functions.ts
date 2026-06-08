@@ -41,12 +41,30 @@ export const generateIrisIntelligence = createServerFn({ method: "POST" })
       docs = rows ?? [];
     }
 
+    const { data: extractionRows, error: extractionErr } = await supabase
+      .from("document_extractions")
+      .select("id, document_id, extracted_text, status")
+      .eq("mission_id", data.mission_id)
+      .eq("status", "ready")
+      .order("processed_at", { ascending: false })
+      .limit(12);
+    if (extractionErr) {
+      return { success: false as const, error: "extractions_read_failed", detail: extractionErr.message };
+    }
+
     // 2. Build corpus. Cap per-doc text so we stay within model context window.
     const PER_DOC_CAP = 60_000;
     const documentCorpus = docs
       .map((d) => {
         const body = (d.extracted_text ?? "").slice(0, PER_DOC_CAP);
         return `[DOCUMENT: ${d.file_name} | TYPE: ${d.document_type}]\n${body}`;
+      })
+      .join("\n\n");
+
+    const extractionCorpus = (extractionRows ?? [])
+      .map((d: { id: string; document_id: string | null; extracted_text: string | null }) => {
+        const body = (d.extracted_text ?? "").slice(0, PER_DOC_CAP);
+        return `[EXTRACTED SOURCE: ${d.document_id ?? d.id}]\n${body}`;
       })
       .join("\n\n");
 
@@ -63,7 +81,7 @@ export const generateIrisIntelligence = createServerFn({ method: "POST" })
       ? `[MISSION SETUP RECORD]\n${JSON.stringify(mission, null, 2).slice(0, PER_DOC_CAP)}`
       : "";
 
-    const corpus = [documentCorpus, setupCorpus].filter((part) => part.trim().length > 0).join("\n\n");
+    const corpus = [documentCorpus, extractionCorpus, setupCorpus].filter((part) => part.trim().length > 0).join("\n\n");
 
     if (corpus.trim().length < 100) {
       return { success: false as const, error: "insufficient_text" };
