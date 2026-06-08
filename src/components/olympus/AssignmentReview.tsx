@@ -562,7 +562,16 @@ export default function AssignmentReview({
 
       {/* Wizard confirm button */}
       {mode === "wizard" && (
-        <div className="mt-4 flex justify-end">
+        <div className="mt-4 flex items-center justify-end gap-3">
+          {onSkip && (
+            <button
+              type="button"
+              onClick={onSkip}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground"
+            >
+              Skip for now →
+            </button>
+          )}
           <button
             type="button"
             onClick={handleConfirm}
@@ -570,7 +579,9 @@ export default function AssignmentReview({
             className="rounded-md px-5 py-2 text-sm font-bold uppercase tracking-wider shadow disabled:opacity-50"
             style={{ backgroundColor: GOLD, color: NAVY }}
           >
-            {confirming ? "Confirming…" : "Confirm Assignments →"}
+            {confirming
+              ? "Saving…"
+              : confirmLabel || (showIntelligence ? "Save & Continue →" : "Confirm Assignments →")}
           </button>
         </div>
       )}
