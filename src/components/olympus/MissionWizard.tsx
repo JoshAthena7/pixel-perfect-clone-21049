@@ -200,6 +200,21 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
       } finally {
         setSaving(false);
       }
+    } else if (step === 5) {
+      if (!missionId) return;
+      setSaving(true);
+      try {
+        const { error } = await supabase
+          .from("missions")
+          .update({ wizard_step: 5 } as never)
+          .eq("id", missionId);
+        if (error) throw error;
+        setStep(6);
+      } catch (e: any) {
+        toast.error(e?.message || "Could not save");
+      } finally {
+        setSaving(false);
+      }
     } else if (step < 6) {
       setStep(step + 1);
     } else {
