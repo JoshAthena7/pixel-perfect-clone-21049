@@ -1,10 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { toast } from "sonner";
 
 import { FastReportsMenu } from "@/components/olympus/FastReportsMenu";
+import MissionWizard from "@/components/olympus/MissionWizard";
 import { supabase } from "@/integrations/supabase/client";
+
 
 type MissionRow = {
   id: string;
@@ -60,7 +61,7 @@ export default function MissionCommand() {
           <FastReportsMenu />
         </div>
       </header>
-      {showCreate && <CreateMissionModal onClose={() => setShowCreate(false)} />}
+      <MissionWizard open={showCreate} onClose={() => setShowCreate(false)} />
 
       <div className="p-5">
         <div className="rounded-lg border border-border bg-surface/40 overflow-hidden">
@@ -127,123 +128,7 @@ export default function MissionCommand() {
   );
 }
 
-function CreateMissionModal({ onClose }: { onClose: () => void }) {
-  const qc = useQueryClient();
-  const [name, setName] = useState("");
-  const [client, setClient] = useState("");
-  const [submissionDate, setSubmissionDate] = useState("");
-  const [status, setStatus] = useState<"ACTIVE" | "DRAFT" | "ARCHIVED">("DRAFT");
-  const [submitting, setSubmitting] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErr(null);
-    if (!name.trim() || !client.trim()) {
-      setErr("Mission Name and Client are required.");
-      return;
-    }
-    setSubmitting(true);
-    const payload: {
-      name: string;
-      client: string;
-      status: string;
-      submission_date?: string;
-    } = {
-      name: name.trim(),
-      client: client.trim(),
-      status,
-    };
-    if (submissionDate) payload.submission_date = submissionDate;
-    const { error } = await supabase.from("missions").insert(payload);
-    setSubmitting(false);
-    if (error) {
-      setErr(error.message);
-      return;
-    }
-    toast.success("Mission created");
-    qc.invalidateQueries({ queryKey: ["olympus-missions"] });
-    onClose();
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
-      <form
-        onClick={(e) => e.stopPropagation()}
-        onSubmit={submit}
-        className="w-full max-w-md rounded-lg border border-border bg-background p-5 shadow-xl"
-      >
-        <h2 className="text-sm font-extrabold uppercase tracking-[0.28em]">New Mission</h2>
-        <div className="mt-4 space-y-3">
-          <Field label="Mission Name *">
-            <input
-              autoFocus
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-sm"
-            />
-          </Field>
-          <Field label="Client / Agency *">
-            <input
-              value={client}
-              onChange={(e) => setClient(e.target.value)}
-              className="w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-sm"
-            />
-          </Field>
-          <Field label="Submission Date">
-            <input
-              type="date"
-              value={submissionDate}
-              onChange={(e) => setSubmissionDate(e.target.value)}
-              className="w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-sm"
-            />
-          </Field>
-          <Field label="Status">
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value as "ACTIVE" | "DRAFT" | "ARCHIVED")}
-              className="w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-sm"
-            >
-              <option value="DRAFT">DRAFT</option>
-              <option value="ACTIVE">ACTIVE</option>
-              <option value="ARCHIVED">ARCHIVED</option>
-            </select>
-          </Field>
-        </div>
-        {err && (
-          <div className="mt-3 rounded border border-rose-500/40 bg-rose-500/10 px-2.5 py-1.5 text-xs text-rose-300">
-            {err}
-          </div>
-        )}
-        <div className="mt-5 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md border border-border bg-surface px-3 py-1.5 text-xs hover:bg-surface-hover"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-200 hover:bg-amber-500/20 disabled:opacity-50"
-          >
-            {submitting ? "Creating…" : "Create Mission"}
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <div className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
-      {children}
-    </label>
-  );
-}
 
 function Th({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <th className={`px-4 py-2.5 text-left font-medium ${className}`}>{children}</th>;
