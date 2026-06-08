@@ -248,6 +248,13 @@ export const importSetupRecord = createServerFn({ method: "POST" })
     const content = json.choices?.[0]?.message?.content?.trim() ?? "";
     const parsed = tryParse(content);
     if (!parsed) throw new Error("IRIS could not extract structured fields from the document.");
+    const labeledIntel = extractAgencyIntelFromLabels(data.doc_text);
+    parsed.key_contacts = mergeList(parsed.key_contacts, labeledIntel.key_contacts);
+    parsed.agency_stakeholders = mergeList(parsed.agency_stakeholders, labeledIntel.agency_stakeholders);
+    parsed.decision_makers = mergeList(parsed.decision_makers, labeledIntel.decision_makers);
+    parsed.relationship_owners = mergeList(parsed.relationship_owners, labeledIntel.relationship_owners);
+    parsed.political_considerations = parsed.political_considerations || labeledIntel.political_considerations;
+    parsed.meeting_cadence = parsed.meeting_cadence || labeledIntel.meeting_cadence;
 
     // Build patch (skip nulls / empty arrays so we never wipe existing data).
     const patch: Record<string, unknown> = {};
