@@ -201,5 +201,31 @@ export const importSetupRecord = createServerFn({ method: "POST" })
       }
     }
 
+    const sensRows = [
+      { category: "sensitivity", note: parsed.sensitivities_note },
+      { category: "language", note: parsed.language_guidance },
+      { category: "avoid", note: parsed.things_to_avoid },
+      { category: "reinforce", note: parsed.things_to_reinforce },
+    ].filter((r) => r.note && r.note.trim().length > 0);
+    if (sensRows.length > 0) {
+      const cats = sensRows.map((r) => r.category);
+      const { error: delErr } = await supabaseAdmin
+        .from("mission_sensitivities")
+        .delete()
+        .eq("mission_id", data.mission_id)
+        .in("category", cats);
+      if (delErr) throw new Error(delErr.message);
+      const insertRows = sensRows.map((r) => ({
+        mission_id: data.mission_id,
+        category: r.category,
+        note: (r.note as string).trim(),
+        created_by: userId,
+      }));
+      const { error } = await supabaseAdmin.from("mission_sensitivities").insert(insertRows as never);
+      if (error) throw new Error(error.message);
+      updatedFields.push(`sensitivities(${cats.join(",")})`);
+    }
+
     return { ok: true as const, fieldsUpdated: updatedFields.length, fields: updatedFields };
   });
+
