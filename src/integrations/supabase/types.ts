@@ -5254,6 +5254,7 @@ export type Database = {
       }
       missions: {
         Row: {
+          assignment_tracker_data: Json
           atlas_synced_at: string | null
           client: string
           client_logo_url: string | null
@@ -5317,6 +5318,7 @@ export type Database = {
           wizard_step: number | null
         }
         Insert: {
+          assignment_tracker_data?: Json
           atlas_synced_at?: string | null
           client: string
           client_logo_url?: string | null
@@ -5380,6 +5382,7 @@ export type Database = {
           wizard_step?: number | null
         }
         Update: {
+          assignment_tracker_data?: Json
           atlas_synced_at?: string | null
           client?: string
           client_logo_url?: string | null
