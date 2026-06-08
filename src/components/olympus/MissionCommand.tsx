@@ -61,7 +61,7 @@ export default function MissionCommand() {
           <FastReportsMenu />
         </div>
       </header>
-      {showCreate && <CreateMissionModal onClose={() => setShowCreate(false)} />}
+      <MissionWizard open={showCreate} onClose={() => setShowCreate(false)} />
 
       <div className="p-5">
         <div className="rounded-lg border border-border bg-surface/40 overflow-hidden">
