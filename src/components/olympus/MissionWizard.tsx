@@ -220,11 +220,28 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
     return true;
   };
 
+  const saveStep5 = async () => {
+    if (!missionId) return false;
+    setSaving(true);
+    setErr(null);
+    const { error } = await supabase
+      .from("missions")
+      .update({ wizard_step: 5 } as never)
+      .eq("id", missionId);
+    setSaving(false);
+    if (error) {
+      setErr(error.message);
+      return false;
+    }
+    return true;
+  };
+
   const handleContinue = async () => {
     let ok = true;
     if (step === 1) ok = await saveStep1();
     else if (step === 2) ok = await saveStep2();
     else if (step === 4) ok = await saveStep4();
+    else if (step === 5) ok = await saveStep5();
     if (!ok) return;
     if (step >= TOTAL_STEPS) {
       qc.invalidateQueries({ queryKey: ["olympus-missions"] });
@@ -237,6 +254,11 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
   const skipStep2 = () => {
     setStep(3);
   };
+
+  const skipStep5 = () => {
+    setStep(6);
+  };
+
 
   const startIris = async () => {
     if (!missionId) return;
