@@ -182,9 +182,11 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
     const payload: Record<string, unknown> = {
       name: s1.name.trim(),
       client: s1.client.trim(),
-      status: "DRAFT",
-      wizard_step: 1,
     };
+    if (!isEditMode) {
+      payload.status = "DRAFT";
+      payload.wizard_step = 1;
+    }
     for (const k of [
       "prime_contractor",
       "state",
@@ -194,9 +196,20 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
       "operations_lead",
       "engagement_lead",
     ] as const) {
-      if (s1[k].trim()) payload[k] = s1[k].trim();
+      payload[k] = s1[k].trim() || null;
     }
-    if (s1.submission_date) payload.submission_date = s1.submission_date;
+    payload.submission_date = s1.submission_date || null;
+
+    if (isEditMode && missionId) {
+      const { error } = await supabase
+        .from("missions")
+        .update(payload as never)
+        .eq("id", missionId);
+      setSaving(false);
+      if (error) { setErr(error.message); return false; }
+      toast.success("Mission updated");
+      return true;
+    }
 
     const { data, error } = await supabase.from("missions").insert(payload as never).select("id").single();
     if (error || !data) {
@@ -219,6 +232,14 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
     }
     setSaving(true);
     setErr(null);
+    // Replace existing rows for the slots we manage
+    if (isEditMode) {
+      await supabase
+        .from("mission_documents")
+        .delete()
+        .eq("mission_id", missionId)
+        .in("doc_type", DOC_SLOTS.map((d) => d.type));
+    }
     const rows = DOC_SLOTS
       .map((slot) => {
         const v = docs[slot.type];
