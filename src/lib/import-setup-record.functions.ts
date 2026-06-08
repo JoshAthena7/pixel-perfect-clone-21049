@@ -264,6 +264,53 @@ export const importSetupRecord = createServerFn({ method: "POST" })
       updatedFields.push(`sensitivities(${cats.join(",")})`);
     }
 
+    // Agency Intelligence — merge into mission_client_intel without wiping
+    // existing manual entries. PK is mission_id so we read → dedup → upsert.
+    const intelStringArrays = {
+      contacts: parsed.key_contacts,
+      stakeholders: parsed.agency_stakeholders,
+      decision_makers: parsed.decision_makers,
+      relationship_owners: parsed.relationship_owners,
+    };
+    const hasIntel =
+      Object.values(intelStringArrays).some((a) => a.length > 0) ||
+      !!parsed.political_considerations ||
+      !!parsed.meeting_cadence;
+    if (hasIntel) {
+      const { data: existing } = await supabaseAdmin
+        .from("mission_client_intel")
+        .select("contacts,stakeholders,decision_makers,relationship_owners,political_considerations,meeting_cadence,notes")
+        .eq("mission_id", data.mission_id)
+        .maybeSingle();
+      const norm = (v: unknown): string[] => {
+        if (!Array.isArray(v)) return [];
+        return v
+          .map((x) => (typeof x === "string" ? x : x && typeof x === "object" ? [(x as any).name, (x as any).role].filter(Boolean).join(" — ") : ""))
+          .map((s) => s.trim())
+          .filter(Boolean);
+      };
+      const merge = (a: string[], b: string[]) => {
+        const seen = new Set(a.map((s) => s.toLowerCase()));
+        const out = [...a];
+        for (const x of b) if (!seen.has(x.toLowerCase())) { out.push(x); seen.add(x.toLowerCase()); }
+        return out;
+      };
+      const merged = {
+        mission_id: data.mission_id,
+        contacts: merge(norm(existing?.contacts), intelStringArrays.contacts),
+        stakeholders: merge(norm(existing?.stakeholders), intelStringArrays.stakeholders),
+        decision_makers: merge(norm(existing?.decision_makers), intelStringArrays.decision_makers),
+        relationship_owners: merge(norm(existing?.relationship_owners), intelStringArrays.relationship_owners),
+        political_considerations: existing?.political_considerations || parsed.political_considerations || null,
+        meeting_cadence: existing?.meeting_cadence || parsed.meeting_cadence || null,
+        notes: existing?.notes ?? null,
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabaseAdmin.from("mission_client_intel").upsert(merged as never, { onConflict: "mission_id" });
+      if (error) throw new Error(`client_intel: ${error.message}`);
+      updatedFields.push("client_intel");
+    }
+
     return { ok: true as const, fieldsUpdated: updatedFields.length, fields: updatedFields };
   });
 
