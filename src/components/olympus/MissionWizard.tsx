@@ -35,6 +35,14 @@ const DOC_SLOTS: { type: string; label: string }[] = [
 
 const ENGAGEMENT_TYPES = ["Proposal", "Task Order", "IDIQ", "BPA", "Sole Source", "Other"];
 
+const IRIS_PHASES = [
+  "Reading source materials…",
+  "Identifying requirements…",
+  "Analyzing risks…",
+  "Drafting mission record…",
+  "Analysis complete ✓",
+];
+
 type Props = {
   open: boolean;
   onClose: () => void;
