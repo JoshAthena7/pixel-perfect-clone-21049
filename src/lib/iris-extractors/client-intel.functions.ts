@@ -25,14 +25,29 @@ type ClientIntelOut = z.infer<typeof ClientIntelSchema>;
 
 function hasMeaningfulText(value: unknown) {
   const text = typeof value === "string" ? value.trim() : "";
-  return !!text && !/^(no documented|not documented|none documented|none found|not specified|no specific|no public evidence|unknown|n\/a|not available)/i.test(text);
+  return (
+    !!text &&
+    !/^(no documented|not documented|none documented|none found|not specified|no specific|no public evidence|unknown|n\/a|not available)/i.test(
+      text,
+    )
+  );
 }
 
 function hasMeaningfulList(value: unknown) {
-  return Array.isArray(value) && value.some((item) => {
-    const text = typeof item === "string" ? item.trim() : "";
-    return !!text && text !== "[object Object]" && !/^(no documented|not documented|none documented|none found|not specified|no specific|no public evidence|unknown|n\/a|not available)/i.test(text);
-  });
+  return (
+    Array.isArray(value) &&
+    value.some((item) => {
+      const text = typeof item === "string" ? item.trim() : "";
+      return (
+        !!text &&
+        text !== "[object Object]" &&
+        !/^(no documented|not documented|none documented|none found|not specified|no specific|no public evidence|unknown|n\/a|not available)/i.test(
+          text,
+        )
+      );
+    })
+  );
+}
 }
 
 export const extractClientIntel = createServerFn({ method: "POST" })
@@ -276,10 +291,18 @@ For political_considerations and meeting_cadence, summarize supported evidence o
       const text = typeof value === "string" ? value.trim() : "";
       return hasMeaningfulText(text) ? text : null;
     };
-    const existingContacts = hasMeaningfulList(existing?.contacts) ? asStrings(existing?.contacts) : [];
-    const existingStakeholders = hasMeaningfulList(existing?.stakeholders) ? asStrings(existing?.stakeholders) : [];
-    const existingDecisionMakers = hasMeaningfulList(existing?.decision_makers) ? asStrings(existing?.decision_makers) : [];
-    const existingRelationshipOwners = hasMeaningfulList(existing?.relationship_owners) ? asStrings(existing?.relationship_owners) : [];
+    const existingContacts = hasMeaningfulList(existing?.contacts)
+      ? asStrings(existing?.contacts)
+      : [];
+    const existingStakeholders = hasMeaningfulList(existing?.stakeholders)
+      ? asStrings(existing?.stakeholders)
+      : [];
+    const existingDecisionMakers = hasMeaningfulList(existing?.decision_makers)
+      ? asStrings(existing?.decision_makers)
+      : [];
+    const existingRelationshipOwners = hasMeaningfulList(existing?.relationship_owners)
+      ? asStrings(existing?.relationship_owners)
+      : [];
 
     const { error } = await supabaseAdmin.from("mission_client_intel").upsert(
       {
@@ -289,7 +312,9 @@ For political_considerations and meeting_cadence, summarize supported evidence o
         decision_makers: merge(existingDecisionMakers, newDecisionMakers),
         relationship_owners: merge(existingRelationshipOwners, newRelationshipOwners),
         political_considerations:
-          usableText(existing?.political_considerations) || usableText(result.political_considerations) || null,
+          usableText(existing?.political_considerations) ||
+          usableText(result.political_considerations) ||
+          null,
         meeting_cadence: usableText(existing?.meeting_cadence) || usableText(result.meeting_cadence) || null,
         notes: usableText(existing?.notes) || usableText(result.notes) || null,
         created_by_system: true,
