@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { X, Plus, Trash2, Check, Sparkles, AlertTriangle, CheckCircle2, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
+import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { runWizardIrisAnalysis } from "@/lib/mission-wizard-iris.functions";
 
@@ -293,13 +294,18 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
               }}
             />
           )}
-          {step === 6 && (
-            <div className="py-16 text-center text-sm text-muted-foreground">
-              <h2 className="text-lg font-semibold text-foreground mb-2">
-                {STEP_NAMES[step - 1]}
-              </h2>
-              <p>This step will be available soon.</p>
-            </div>
+          {step === 6 && missionId && (
+            <Step6Readiness
+              missionId={missionId}
+              onClose={onClose}
+              onSaveAndClose={async () => {
+                await supabase
+                  .from("missions")
+                  .update({ wizard_step: 6 } as never)
+                  .eq("id", missionId);
+                onClose();
+              }}
+            />
           )}
         </div>
 
@@ -313,7 +319,7 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
           >
             ← Back
           </button>
-          {step !== 3 && (
+          {step !== 3 && step !== 6 && (
             <button
               type="button"
               onClick={handleContinue}
@@ -321,7 +327,7 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
               className="rounded-md px-5 py-2 text-sm font-bold uppercase tracking-wider shadow disabled:opacity-50"
               style={{ backgroundColor: GOLD, color: NAVY }}
             >
-              {saving ? "Saving…" : step === 6 ? "Finish" : "Save & Continue →"}
+              {saving ? "Saving…" : "Save & Continue →"}
             </button>
           )}
         </div>
@@ -2154,5 +2160,345 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
         style={{ transform: on ? "translateX(18px)" : "translateX(2px)" }}
       />
     </button>
+  );
+}
+
+/* ---------- Step 6: Readiness & GO LIVE ---------- */
+
+
+
+type ReadinessRow = {
+  id?: string;
+  contracts_complete: boolean;
+  talentdesk_active: boolean;
+  required_forms_complete: boolean;
+  client_access_requested: boolean;
+  slack_channels_ready: boolean;
+  folders_created: boolean;
+  kickoff_materials_ready: boolean;
+  assignments_reviewed: boolean;
+  security_acknowledgments_complete: boolean;
+};
+
+const READINESS_ITEMS: {
+  key: keyof Omit<ReadinessRow, "id">;
+  title: string;
+  desc: string;
+}[] = [
+  { key: "contracts_complete", title: "Contracts Complete", desc: "All team contracts are signed and on file" },
+  { key: "talentdesk_active", title: "TalentDesk Active", desc: "All team members are active in TalentDesk" },
+  { key: "required_forms_complete", title: "Required Forms", desc: "NDAs, BAAs, and required forms are signed" },
+  { key: "client_access_requested", title: "Client Access Requested", desc: "Access requests submitted for all client systems" },
+  { key: "slack_channels_ready", title: "Slack Channels Ready", desc: "Mission Slack channels created and members added" },
+  { key: "folders_created", title: "Folders Created", desc: "Shared drive folders set up with correct permissions" },
+  { key: "kickoff_materials_ready", title: "Kickoff Materials", desc: "Kickoff deck, agenda, and assignments are prepared" },
+  { key: "assignments_reviewed", title: "Assignments Reviewed", desc: "Section assignments confirmed with leads" },
+  { key: "security_acknowledgments_complete", title: "Security Acknowledgments", desc: "All team members signed security and confidentiality forms" },
+];
+
+const EMPTY_READINESS: ReadinessRow = {
+  contracts_complete: false,
+  talentdesk_active: false,
+  required_forms_complete: false,
+  client_access_requested: false,
+  slack_channels_ready: false,
+  folders_created: false,
+  kickoff_materials_ready: false,
+  assignments_reviewed: false,
+  security_acknowledgments_complete: false,
+};
+
+function Step6Readiness({
+  missionId,
+  onClose,
+  onSaveAndClose,
+}: {
+  missionId: string;
+  onClose: () => void;
+  onSaveAndClose: () => Promise<void> | void;
+}) {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [row, setRow] = useState<ReadinessRow>(EMPTY_READINESS);
+  const [missionName, setMissionName] = useState("");
+  const [openItems, setOpenItems] = useState({ contracts: 0, ndas: 0, talentdesk: 0 });
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [launching, setLaunching] = useState(false);
+  const [launchStage, setLaunchStage] = useState<string>("");
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const [{ data: rd }, { data: mission }, { data: team }] = await Promise.all([
+        supabase
+          .from("mission_readiness")
+          .select("*")
+          .eq("mission_id", missionId)
+          .maybeSingle(),
+        supabase.from("missions").select("name").eq("id", missionId).maybeSingle(),
+        supabase
+          .from("mission_team_members")
+          .select("contract_status, nda_status, talentdesk_status")
+          .eq("mission_id", missionId),
+      ]);
+      if (!alive) return;
+      if (rd) setRow({ ...EMPTY_READINESS, ...(rd as any) });
+      setMissionName((mission as any)?.name ?? "this mission");
+      const members = (team ?? []) as any[];
+      setOpenItems({
+        contracts: members.filter((m) => m.contract_status !== "signed").length,
+        ndas: members.filter((m) => m.nda_status !== "signed").length,
+        talentdesk: members.filter((m) => m.talentdesk_status !== "active").length,
+      });
+      setLoading(false);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [missionId]);
+
+  const checkedCount = useMemo(
+    () => READINESS_ITEMS.reduce((n, it) => n + (row[it.key] ? 1 : 0), 0),
+    [row],
+  );
+  const allReady = checkedCount === 9;
+  const barColor = checkedCount < 6 ? "#f43f5e" : checkedCount < 9 ? "#f59e0b" : "#10b981";
+
+  const toggle = async (key: keyof Omit<ReadinessRow, "id">) => {
+    const next = { ...row, [key]: !row[key] };
+    setRow(next);
+    const checkedNext = READINESS_ITEMS.reduce((n, it) => n + (next[it.key] ? 1 : 0), 0);
+    const { error } = await supabase
+      .from("mission_readiness")
+      .upsert({ mission_id: missionId, ...next } as never, { onConflict: "mission_id" });
+    if (error) {
+      toast.error(error.message);
+      setRow(row);
+      return;
+    }
+    // Cascade mission_status based on readiness
+    await supabase
+      .from("missions")
+      .update({
+        mission_status: checkedNext === 9 ? "Ready to Go Live" : "Draft",
+      } as never)
+      .eq("id", missionId);
+  };
+
+  const goLive = async () => {
+    setLaunching(true);
+    try {
+      setLaunchStage("Activating mission...");
+      const now = new Date().toISOString();
+      const { error: mErr } = await supabase
+        .from("missions")
+        .update({
+          mission_status: "Live",
+          status: "ACTIVE",
+          wizard_step: 7,
+          launched_at: now,
+          atlas_synced_at: now,
+        } as never)
+        .eq("id", missionId);
+      if (mErr) throw mErr;
+
+      setLaunchStage("Cascading to Atlas...");
+      const { data: intel } = await supabase
+        .from("mission_intelligence")
+        .select("content")
+        .eq("mission_id", missionId)
+        .eq("layer", "wizard_analysis")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const content: any = (intel as any)?.content ?? {};
+
+      const themes: string[] = Array.isArray(content.recommended_win_themes)
+        ? content.recommended_win_themes
+            .map((t: any) => (typeof t === "string" ? t : t?.title ?? t?.theme ?? ""))
+            .filter(Boolean)
+        : [];
+      if (themes.length > 0) {
+        await supabase.from("win_themes").insert(
+          themes.map((t) => ({
+            mission_id: missionId,
+            title: t,
+            created_by_system: true,
+          })) as never,
+        );
+      }
+
+      const items: string[] = Array.isArray(content.compliance_items)
+        ? content.compliance_items
+            .map((i: any) => (typeof i === "string" ? i : i?.requirement_text ?? i?.requirement ?? ""))
+            .filter(Boolean)
+        : [];
+      if (items.length > 0) {
+        await supabase.from("compliance_requirements").insert(
+          items.map((i) => ({
+            mission_id: missionId,
+            requirement_text: i,
+            source_document: "IRIS",
+            source_kind: "iris_wizard",
+          })) as never,
+        );
+      }
+
+      setLaunchStage("Mission is LIVE ✓");
+      toast.success("Mission is LIVE");
+      await new Promise((r) => setTimeout(r, 700));
+      onClose();
+      navigate({ to: "/admin/missions/$missionId", params: { missionId } });
+    } catch (e: any) {
+      toast.error(e?.message || "Could not launch mission");
+    } finally {
+      setLaunching(false);
+      setConfirmOpen(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="py-16 text-center text-sm text-muted-foreground">
+        <Loader2 className="mx-auto mb-3 h-5 w-5 animate-spin" />
+        Loading readiness…
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <p className="text-sm text-muted-foreground">
+        Nothing launches until you're ready — and you can always save and come back
+      </p>
+
+      {/* Score */}
+      <div className="rounded-lg border border-border bg-background/40 p-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: GOLD }}>
+            Readiness
+          </span>
+          <span className="text-sm font-bold" style={{ color: barColor }}>
+            {checkedCount} of 9 Ready
+          </span>
+        </div>
+        <div className="h-2 w-full overflow-hidden rounded-full bg-border/60">
+          <div
+            className="h-full transition-all"
+            style={{ width: `${(checkedCount / 9) * 100}%`, backgroundColor: barColor }}
+          />
+        </div>
+      </div>
+
+      {/* Checklist */}
+      <div className="space-y-2">
+        {READINESS_ITEMS.map((it) => {
+          const on = row[it.key];
+          return (
+            <button
+              key={it.key}
+              type="button"
+              onClick={() => toggle(it.key)}
+              className="w-full flex items-start gap-4 rounded-lg border p-3 text-left transition hover:bg-surface-hover"
+              style={{
+                borderColor: on ? GOLD : "var(--border)",
+                backgroundColor: on ? "rgba(201,168,76,0.06)" : "transparent",
+              }}
+            >
+              <div className="pt-0.5">
+                <Toggle on={on} onChange={() => toggle(it.key)} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold text-foreground">{it.title}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">{it.desc}</div>
+              </div>
+              {on && <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-1" />}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Open items */}
+      <div className="rounded-lg border border-border bg-background/30 p-4">
+        <h4 className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground mb-2">
+          Open Items
+        </h4>
+        <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
+          <span>
+            <strong className="text-foreground">{openItems.contracts}</strong> unsigned contracts
+          </span>
+          <span>
+            <strong className="text-foreground">{openItems.ndas}</strong> unsigned NDAs
+          </span>
+          <span>
+            <strong className="text-foreground">{openItems.talentdesk}</strong> not active in TalentDesk
+          </span>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 pt-2">
+        <button
+          type="button"
+          onClick={() => onSaveAndClose()}
+          className="rounded-md border border-border bg-surface px-5 py-2.5 text-sm font-semibold hover:bg-surface-hover"
+        >
+          Save & Come Back
+        </button>
+        <button
+          type="button"
+          onClick={() => setConfirmOpen(true)}
+          disabled={!allReady}
+          className="rounded-lg px-8 py-3.5 text-sm font-bold uppercase tracking-[0.18em] shadow-lg transition disabled:cursor-not-allowed disabled:opacity-40"
+          style={{ backgroundColor: GOLD, color: NAVY }}
+        >
+          GO LIVE →
+        </button>
+      </div>
+
+      {/* Confirm modal */}
+      {confirmOpen && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
+        >
+          <div className="w-full max-w-md rounded-xl border border-border bg-surface p-6 shadow-2xl">
+            {!launching ? (
+              <>
+                <h3 className="text-lg font-bold text-foreground mb-2">
+                  GO LIVE — {missionName}?
+                </h3>
+                <p className="text-sm text-muted-foreground mb-5">
+                  This will activate the mission and cascade all approved content into Atlas.
+                  You can still make controlled edits after launch.
+                </p>
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setConfirmOpen(false)}
+                    className="rounded-md border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-surface-hover"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={goLive}
+                    className="rounded-md px-5 py-2 text-sm font-bold uppercase tracking-wider shadow"
+                    style={{ backgroundColor: GOLD, color: NAVY }}
+                  >
+                    Confirm — GO LIVE
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="py-6 text-center">
+                <Loader2 className="mx-auto mb-3 h-7 w-7 animate-spin" style={{ color: GOLD }} />
+                <p className="text-sm font-semibold text-foreground">{launchStage}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
