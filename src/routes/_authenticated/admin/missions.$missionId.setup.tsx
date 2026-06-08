@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   CheckCircle2, Circle, Plus, Trash2, Upload, Rocket, ChevronDown, ChevronRight, ChevronUp,
-  Lock, X, Radar, Tag, Zap, Loader2,
+  Lock, X, Radar, Tag, Zap, Loader2, RefreshCw,
 } from "lucide-react";
 import { launchMission } from "@/lib/mission-setup.functions";
 import { seedMonitoringWatchlist, saveMonitoringSource, deleteMonitoringSource } from "@/lib/mission-monitoring.functions";
