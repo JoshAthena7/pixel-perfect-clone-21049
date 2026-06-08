@@ -29,6 +29,10 @@ Return ONLY valid JSON matching this exact shape — no prose, no markdown, no c
   "key_requirements": string[],         // requirement list (short phrases)
   "win_themes": string[],               // win theme list (short phrases)
   "competitors": string[],              // known competitor names only
+  "discriminators": string[],           // our differentiators / what sets us apart (short phrases)
+  "proof_points": string[],             // evidence, case studies, metrics that back our claims (short phrases)
+  "client_priorities": string[],        // what the client/agency cares about most (short phrases)
+  "risks": string[],                    // capture/competitive risks (short phrases)
   "focus_areas": string[],              // sensitivities / focus areas (short phrases)
   "sensitivities_note": string|null,    // free-text: topics/terms IRIS should treat carefully
   "language_guidance": string|null,     // free-text: tone, voice, phrasing rules
@@ -52,6 +56,10 @@ type Parsed = {
   key_requirements: string[];
   win_themes: string[];
   competitors: string[];
+  discriminators: string[];
+  proof_points: string[];
+  client_priorities: string[];
+  risks: string[];
   focus_areas: string[];
   sensitivities_note: string | null;
   language_guidance: string | null;
@@ -88,6 +96,10 @@ function tryParse(raw: string): Parsed | null {
       key_requirements: arr(j.key_requirements),
       win_themes: arr(j.win_themes),
       competitors: arr(j.competitors),
+      discriminators: arr(j.discriminators),
+      proof_points: arr(j.proof_points),
+      client_priorities: arr(j.client_priorities),
+      risks: arr(j.risks),
       focus_areas: arr(j.focus_areas),
       sensitivities_note: s(j.sensitivities_note, 4000),
       language_guidance: s(j.language_guidance, 4000),
@@ -183,21 +195,29 @@ export const importSetupRecord = createServerFn({ method: "POST" })
       updatedFields.push("timeline.submission");
     }
 
-    if (parsed.competitors.length > 0) {
+    const strategyGroups: Array<{ kind: string; labels: string[]; tag: string }> = [
+      { kind: "competitor", labels: parsed.competitors, tag: "competitors" },
+      { kind: "discriminator", labels: parsed.discriminators, tag: "discriminators" },
+      { kind: "proof_point", labels: parsed.proof_points, tag: "proof_points" },
+      { kind: "client_priority", labels: parsed.client_priorities, tag: "client_priorities" },
+      { kind: "risk", labels: parsed.risks, tag: "risks" },
+    ];
+    for (const group of strategyGroups) {
+      if (group.labels.length === 0) continue;
       const { data: existing, error: readError } = await supabaseAdmin
         .from("mission_strategy")
         .select("label")
         .eq("mission_id", data.mission_id)
-        .eq("kind", "competitor");
+        .eq("kind", group.kind);
       if (readError) throw new Error(readError.message);
       const seen = new Set((existing ?? []).map((r: any) => String(r.label ?? "").trim().toLowerCase()));
-      const rows = parsed.competitors
+      const rows = group.labels
         .filter((label) => !seen.has(label.toLowerCase()))
-        .map((label) => ({ mission_id: data.mission_id, kind: "competitor", label, created_by: userId }));
+        .map((label) => ({ mission_id: data.mission_id, kind: group.kind, label, created_by: userId }));
       if (rows.length > 0) {
         const { error } = await supabaseAdmin.from("mission_strategy").insert(rows as never);
         if (error) throw new Error(error.message);
-        updatedFields.push("strategy.competitors");
+        updatedFields.push(`strategy.${group.tag}`);
       }
     }
 
