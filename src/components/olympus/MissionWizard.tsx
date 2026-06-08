@@ -15,7 +15,7 @@ const STEP_META: Record<number, { name: string; subtitle: string }> = {
   1: { name: "Mission Identity", subtitle: "Define the mission foundation — this becomes the official record" },
   2: { name: "Source Materials", subtitle: "Give IRIS everything it needs to build your mission record" },
   3: { name: "IRIS Analysis", subtitle: "IRIS is reading your materials and building the mission record" },
-  4: { name: "Team", subtitle: "Coming soon" },
+  4: { name: "Review & Edit Record", subtitle: "IRIS drafted this — review it and correct anything before staging the team" },
   5: { name: "Readiness", subtitle: "Coming soon" },
   6: { name: "Strategy", subtitle: "Coming soon" },
   7: { name: "Launch", subtitle: "Coming soon" },
