@@ -371,20 +371,19 @@ function RequirementsTab({ missionId }: { missionId: string }) {
 
 /* ─── Setup ─── */
 const SETUP_STEPS = [
-  "Mission Identity",
+  "Mission Basics",
   "Source Materials",
-  "IRIS Analysis",
+  "IRIS Review",
   "Review Record",
   "Build Team",
-  "Readiness Check",
-  "Launch",
+  "Readiness & GO LIVE",
 ];
 
 function SetupTab({ missionId, mission }: { missionId: string; mission: any }) {
   const qc = useQueryClient();
   const [wizardStart, setWizardStart] = useState<number | null>(null);
-  const current = Math.max(1, Math.min(7, (mission.wizard_step ?? 0) + 1));
-  const completed = mission.wizard_step ?? 0;
+  const completed = Math.min(6, mission.wizard_step ?? 0);
+  const current = Math.max(1, Math.min(6, completed + 1));
 
   const openAt = (n: number) => setWizardStart(n);
 
