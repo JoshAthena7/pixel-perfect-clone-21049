@@ -50,11 +50,15 @@ function hasAgencyText(value: unknown) {
   const text = String(value ?? "").trim();
   if (!text) return false;
   const normalized = text.toLowerCase();
-  return !/^(no documented|not documented|none documented|none found|not specified|no specific)/.test(normalized);
+  return !/^(no documented|not documented|none documented|none found|not specified|no specific|no public evidence|unknown|n\/a|not available)/.test(normalized);
 }
 
 function hasAgencyList(value: unknown) {
-  return Array.isArray(value) && value.some((item) => String(item ?? "").trim().length > 0);
+  return Array.isArray(value) && value.some((item) => {
+    const text = typeof item === "string" ? item.trim() : "";
+    if (!text || text === "[object Object]") return false;
+    return !/^(no documented|not documented|none documented|none found|not specified|no specific|no public evidence|unknown|n\/a|not available)/i.test(text);
+  });
 }
 
 function hasSubstantiveAgencyIntel(intel: any) {
@@ -94,8 +98,11 @@ function MissionSetupRecord() {
     const missionReady = (setup.missionDocs ?? [])
       .filter((doc: any) => doc.processing_status === "complete")
       .map((doc: any) => `mission:${doc.id}:${doc.processed_at ?? doc.created_at ?? ""}`);
-    return [...vaultReady, ...missionReady].sort().join("|");
-  }, [setup.docs, setup.missionDocs]);
+    const libraryReady = (setup.libraryExtractions ?? [])
+      .filter((doc: any) => doc.status === "ready")
+      .map((doc: any) => `library:${doc.id}:${doc.processed_at ?? doc.updated_at ?? ""}`);
+    return [...vaultReady, ...missionReady, ...libraryReady].sort().join("|");
+  }, [setup.docs, setup.missionDocs, setup.libraryExtractions]);
 
   // First-open auto-population from IRIS
   useEffect(() => {
@@ -327,7 +334,7 @@ function useSetupData(missionId: string) {
     queryFn: async () => {
       const [
         mission, members, docs, missionDocs, strategy, sensitivities, clientIntel, timeline,
-        questions, volumes, governance, financials, monitoring, evaluation, expertise,
+        questions, volumes, governance, financials, monitoring, evaluation, expertise, libraryExtractions,
       ] = await Promise.all([
         supabase.from("missions").select("*").eq("id", missionId).maybeSingle(),
         supabase.from("mission_members").select("*").eq("mission_id", missionId),
@@ -344,6 +351,7 @@ function useSetupData(missionId: string) {
         supabase.from("mission_monitoring_sources").select("*").eq("mission_id", missionId).order("source_type"),
         supabase.from("mission_evaluation_criteria").select("*").eq("mission_id", missionId).order("display_order"),
         supabase.from("mission_member_expertise").select("*").eq("mission_id", missionId),
+        supabase.from("document_extractions").select("id,status,processed_at,updated_at").eq("mission_id", missionId).eq("status", "ready").order("processed_at", { ascending: false }).limit(20),
       ]);
       return {
         mission: mission.data,
@@ -361,6 +369,7 @@ function useSetupData(missionId: string) {
         monitoring: monitoring.data ?? [],
         evaluation: evaluation.data ?? [],
         expertise: expertise.data ?? [],
+        libraryExtractions: libraryExtractions.data ?? [],
       };
     },
   });
@@ -368,7 +377,7 @@ function useSetupData(missionId: string) {
     ...(q.data ?? {
       mission: null, members: [], docs: [], strategy: [], sensitivities: [],
       clientIntel: null, timeline: null, questions: [], volumes: [], governance: null, financials: null,
-      monitoring: [], evaluation: [], expertise: [], missionDocs: [],
+      monitoring: [], evaluation: [], expertise: [], missionDocs: [], libraryExtractions: [],
     }),
     refetch: q.refetch,
     isLoading: q.isLoading,
