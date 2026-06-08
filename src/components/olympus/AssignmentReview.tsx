@@ -130,6 +130,7 @@ export default function AssignmentReview({
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [intelMap, setIntelMap] = useState<Map<string, IntelRow>>(new Map());
   const [missionDocs, setMissionDocs] = useState<MissionDoc[]>([]);
+  const [missionStatus, setMissionStatus] = useState<string | null>(null);
 
   // filters
   const [filterSection, setFilterSection] = useState("");
@@ -140,6 +141,10 @@ export default function AssignmentReview({
 
   const [drawerQid, setDrawerQid] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+
+  const isLive =
+    missionStatus === "Live" || missionStatus === "Live with Pending Edits";
 
   const reload = async () => {
     const [{ data: qData, error: qErr }, { data: aData }, { data: tData }, { data: iData }, { data: dData }] =
