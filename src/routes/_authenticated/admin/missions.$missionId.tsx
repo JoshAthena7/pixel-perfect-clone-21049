@@ -760,11 +760,12 @@ function CloseoutTab({ missionId, mission }: { missionId: string; mission: any }
   const allChecked = CLOSEOUT_ITEMS.every((i) => checklist[i.key]);
 
   const archive = async () => {
-    if (!window.confirm(`Archive ${mission.name}? The mission will move to archived view and all access should be reviewed.`)) return;
+    if (!window.confirm(`Archive ${mission.name}? The mission record will be locked. No further edits will be allowed.`)) return;
     setArchiving(true);
     const { error } = await supabase
       .from("missions")
       .update({
+        mission_status: "Locked",
         status: "ARCHIVED",
         closed_at: new Date().toISOString(),
         wizard_step: 11,
@@ -775,7 +776,7 @@ function CloseoutTab({ missionId, mission }: { missionId: string; mission: any }
       toast.error(error.message);
       return;
     }
-    toast.success("Mission archived.");
+    toast.success("Mission archived and locked.");
     qc.invalidateQueries({ queryKey: ["olympus-missions"] });
     qc.invalidateQueries({ queryKey: ["olympus-mission", missionId] });
     navigate({ to: "/admin" });
