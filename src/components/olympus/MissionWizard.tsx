@@ -344,13 +344,29 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
     }
   };
 
-  // Auto-trigger IRIS when entering step 3
+  // Auto-trigger IRIS when entering step 3; skip if analysis already exists (edit-mode resume)
   useEffect(() => {
-    if (step === 3 && irisState === "idle" && missionId) {
-      void startIris();
-    }
+    if (step !== 3 || irisState !== "idle" || !missionId) return;
+    let cancelled = false;
+    (async () => {
+      const { data: existing } = await supabase
+        .from("mission_intelligence")
+        .select("id")
+        .eq("mission_id", missionId)
+        .eq("layer", "wizard_analysis")
+        .maybeSingle();
+      if (cancelled) return;
+      if (existing) {
+        setIrisState("done");
+        setIrisPhase(IRIS_PHASES.length - 1);
+      } else {
+        void startIris();
+      }
+    })();
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, missionId]);
+
 
   // Cycle phase text while running
   useEffect(() => {
