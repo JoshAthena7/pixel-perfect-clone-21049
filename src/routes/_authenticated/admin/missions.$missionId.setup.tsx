@@ -39,7 +39,7 @@ const SECTIONS: Array<{ id: SectionId; n: string; label: string; admin?: boolean
   { id: "inputs", n: "03", label: "Monitoring Watchlist" },
   { id: "strategy", n: "04", label: "Win Strategy" },
   { id: "evaluation", n: "4B", label: "How We'll Be Scored" },
-  { id: "client", n: "05", label: "Agency Intelligence" },
+  { id: "client", n: "05", label: "Agency & Stakeholder Intelligence" },
   { id: "timeline", n: "06", label: "Deadlines & Decision Gates" },
   { id: "questions", n: "07", label: "Question Setup" },
   { id: "governance", n: "08", label: "Conflict & Ethics Review" },
@@ -1496,18 +1496,47 @@ function SectionClientIntel({ missionId, intel, refetch }: any) {
   }
 
   return (
-    <Section id="client" n="05" label="Agency Intelligence" sublabel="Who matters on the issuing agency side.">
+    <Section
+      id="client"
+      n="05"
+      label="Agency & Stakeholder Intelligence"
+      sublabel="Who matters on the issuing agency side — AND every advocate, CBO, provider, research, university, and policy partner that touches this scope."
+    >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <Field label="Key Contacts (one per line)"><TextArea rows={3} value={form.contacts} onChange={(e) => setForm({ ...form, contacts: e.target.value })} /></Field>
-        <Field label="Stakeholders"><TextArea rows={3} value={form.stakeholders} onChange={(e) => setForm({ ...form, stakeholders: e.target.value })} /></Field>
-        <Field label="Decision Makers"><TextArea rows={3} value={form.decision_makers} onChange={(e) => setForm({ ...form, decision_makers: e.target.value })} /></Field>
-        <Field label="Relationship Owners"><TextArea rows={3} value={form.relationship_owners} onChange={(e) => setForm({ ...form, relationship_owners: e.target.value })} /></Field>
-        <Field label="Political Considerations"><TextArea rows={3} value={form.political_considerations} onChange={(e) => setForm({ ...form, political_considerations: e.target.value })} /></Field>
-        <Field label="Meeting Cadence"><TextArea rows={3} value={form.meeting_cadence} onChange={(e) => setForm({ ...form, meeting_cadence: e.target.value })} /></Field>
-        <Field label="Client Notes" span={2}><TextArea rows={4} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></Field>
+        <Field label="Agency Key Contacts (one per line)">
+          <TextArea rows={3} value={form.contacts} onChange={(e) => setForm({ ...form, contacts: e.target.value })} />
+        </Field>
+        <Field label="Agency Decision Makers">
+          <TextArea rows={3} value={form.decision_makers} onChange={(e) => setForm({ ...form, decision_makers: e.target.value })} />
+        </Field>
+        <Field
+          label="Stakeholders & Advocacy Ecosystem"
+          span={2}
+        >
+          <p className="-mt-1 mb-2 text-[11px] text-muted-foreground">
+            One per line. Be exhaustive — community-based organizations (CBOs), advocacy groups, non-profits, current/prospective providers,
+            university & research partners, policy partners, parent/family coalitions, professional associations, faith-based groups,
+            philanthropic funders. <strong className="text-foreground/80">Advocates are decisive.</strong> Format: <span className="font-mono">Org Name — role/relationship — contact</span>
+          </p>
+          <TextArea
+            rows={8}
+            value={form.stakeholders}
+            onChange={(e) => setForm({ ...form, stakeholders: e.target.value })}
+            placeholder={"NJ Alliance for Children, Youth & Families — statewide CBO coalition — contact@njacyf.org\nRutgers Center for Behavioral Health Services & Criminal Justice Research — research partner — ...\nACNJ (Advocates for Children of NJ) — policy/advocacy — ..."}
+          />
+        </Field>
+        <Field label="Political Considerations">
+          <TextArea rows={3} value={form.political_considerations} onChange={(e) => setForm({ ...form, political_considerations: e.target.value })} />
+        </Field>
+        <Field label="Meeting Cadence">
+          <TextArea rows={3} value={form.meeting_cadence} onChange={(e) => setForm({ ...form, meeting_cadence: e.target.value })} />
+        </Field>
+        <Field label="Notes" span={2}>
+          <TextArea rows={4} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+        </Field>
       </div>
       <div className="mt-5 flex justify-end">
-        <button onClick={save} className="rounded-md border border-border bg-background px-4 py-2 text-sm hover:bg-surface-hover">Save Client Intel</button>
+        <button onClick={save} className="rounded-md border border-border bg-background px-4 py-2 text-sm hover:bg-surface-hover">Save Agency & Stakeholder Intel</button>
       </div>
     </Section>
   );
