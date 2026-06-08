@@ -42,7 +42,7 @@ const SECTIONS: Array<{ id: SectionId; n: string; label: string; admin?: boolean
   { id: "timeline", n: "06", label: "Deadlines & Decision Gates" },
   { id: "questions", n: "07", label: "Question Setup" },
   { id: "governance", n: "08", label: "Conflict & Ethics Review" },
-  { id: "financials", n: "09", label: "Budget & Pricing Setup", admin: true },
+  
 ];
 
 /* ────────────────────────────────────────────────────────────
@@ -223,9 +223,8 @@ function MissionSetupRecord() {
           <SectionTimeline missionId={missionId} timeline={setup.timeline} refetch={setup.refetch} />
           <SectionQuestions missionId={missionId} questions={setup.questions} volumes={setup.volumes} refetch={setup.refetch} />
           <SectionGovernance missionId={missionId} governance={setup.governance} refetch={setup.refetch} />
-          {isAdmin && (
-            <SectionFinancials missionId={missionId} financials={setup.financials} refetch={setup.refetch} />
-          )}
+
+
 
           {setup.mission?.status !== "Active" && (
             <div className="pt-12 border-t border-border">
