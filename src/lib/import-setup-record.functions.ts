@@ -29,6 +29,10 @@ Return ONLY valid JSON matching this exact shape — no prose, no markdown, no c
   "key_requirements": string[],         // requirement list (short phrases)
   "win_themes": string[],               // win theme list (short phrases)
   "competitors": string[],              // known competitor names only
+  "discriminators": string[],           // our differentiators / what sets us apart (short phrases)
+  "proof_points": string[],             // evidence, case studies, metrics that back our claims (short phrases)
+  "client_priorities": string[],        // what the client/agency cares about most (short phrases)
+  "risks": string[],                    // capture/competitive risks (short phrases)
   "focus_areas": string[],              // sensitivities / focus areas (short phrases)
   "sensitivities_note": string|null,    // free-text: topics/terms IRIS should treat carefully
   "language_guidance": string|null,     // free-text: tone, voice, phrasing rules
