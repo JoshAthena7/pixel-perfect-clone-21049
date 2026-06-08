@@ -250,6 +250,13 @@ For political_considerations and meeting_cadence, summarize supported evidence o
       }
       return out;
     };
+    const usableText = (value: unknown) => {
+      const text = typeof value === "string" ? value.trim() : "";
+      if (!text) return null;
+      return /^(no documented|not documented|none documented|none found|not specified|no specific)/i.test(text)
+        ? null
+        : text;
+    };
 
     const { error } = await supabaseAdmin.from("mission_client_intel").upsert(
       {
@@ -259,9 +266,9 @@ For political_considerations and meeting_cadence, summarize supported evidence o
         decision_makers: merge(asStrings(existing?.decision_makers), newDecisionMakers),
         relationship_owners: merge(asStrings(existing?.relationship_owners), newRelationshipOwners),
         political_considerations:
-          existing?.political_considerations || result.political_considerations || null,
-        meeting_cadence: existing?.meeting_cadence || result.meeting_cadence || null,
-        notes: existing?.notes || result.notes || null,
+          usableText(existing?.political_considerations) || usableText(result.political_considerations) || null,
+        meeting_cadence: usableText(existing?.meeting_cadence) || usableText(result.meeting_cadence) || null,
+        notes: usableText(existing?.notes) || usableText(result.notes) || null,
         created_by_system: true,
         updated_at: new Date().toISOString(),
       } as never,

@@ -46,6 +46,29 @@ const SECTIONS: Array<{ id: SectionId; n: string; label: string; admin?: boolean
   
 ];
 
+function hasAgencyText(value: unknown) {
+  const text = String(value ?? "").trim();
+  if (!text) return false;
+  const normalized = text.toLowerCase();
+  return !/^(no documented|not documented|none documented|none found|not specified|no specific)/.test(normalized);
+}
+
+function hasAgencyList(value: unknown) {
+  return Array.isArray(value) && value.some((item) => String(item ?? "").trim().length > 0);
+}
+
+function hasSubstantiveAgencyIntel(intel: any) {
+  if (!intel) return false;
+  return (
+    hasAgencyList(intel.contacts) ||
+    hasAgencyList(intel.stakeholders) ||
+    hasAgencyList(intel.decision_makers) ||
+    hasAgencyList(intel.relationship_owners) ||
+    hasAgencyText(intel.political_considerations) ||
+    hasAgencyText(intel.meeting_cadence)
+  );
+}
+
 /* ────────────────────────────────────────────────────────────
    Page
    ──────────────────────────────────────────────────────────── */
@@ -60,10 +83,19 @@ function MissionSetupRecord() {
   const [confirm, setConfirm] = useState(false);
   const [preLaunchError, setPreLaunchError] = useState<string | null>(null);
   const [autofillWritten, setAutofillWritten] = useState<number | undefined>(undefined);
-  const [clientIntelAttempted, setClientIntelAttempted] = useState(false);
+  const [clientIntelAttempted, setClientIntelAttempted] = useState<string | null>(null);
 
   const setup = useSetupData(missionId);
   const completion = useCompletion(setup);
+  const clientIntelSourceSignature = useMemo(() => {
+    const vaultReady = (setup.docs ?? [])
+      .filter((doc: any) => doc.extraction_status === "ready" || doc.extracted_at)
+      .map((doc: any) => `vault:${doc.id}:${doc.extracted_at ?? doc.updated_at ?? ""}`);
+    const missionReady = (setup.missionDocs ?? [])
+      .filter((doc: any) => doc.processing_status === "complete")
+      .map((doc: any) => `mission:${doc.id}:${doc.processed_at ?? doc.created_at ?? ""}`);
+    return [...vaultReady, ...missionReady].sort().join("|");
+  }, [setup.docs, setup.missionDocs]);
 
   // First-open auto-population from IRIS
   useEffect(() => {
@@ -90,19 +122,11 @@ function MissionSetupRecord() {
   }, [setup.mission?.id, setup.mission?.iris_setup_autofill_status, setup.mission?.iris_kickoff_status]);
 
   useEffect(() => {
-    if (!setup.mission || clientIntelAttempted) return;
-    const intel = setup.clientIntel;
-    const hasAgencyIntel = !!(
-      intel?.contacts?.length ||
-      intel?.stakeholders?.length ||
-      intel?.decision_makers?.length ||
-      intel?.relationship_owners?.length ||
-      intel?.political_considerations ||
-      intel?.meeting_cadence
-    );
-    if (hasAgencyIntel) return;
+    if (!setup.mission || !clientIntelSourceSignature) return;
+    if (hasSubstantiveAgencyIntel(setup.clientIntel)) return;
+    if (clientIntelAttempted === clientIntelSourceSignature) return;
     let cancelled = false;
-    setClientIntelAttempted(true);
+    setClientIntelAttempted(clientIntelSourceSignature);
     (async () => {
       try {
         const res = await extractClientIntelFn({ data: { missionId } });
@@ -115,7 +139,7 @@ function MissionSetupRecord() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setup.mission?.id, setup.clientIntel, clientIntelAttempted]);
+  }, [setup.mission?.id, setup.clientIntel, clientIntelSourceSignature, clientIntelAttempted]);
 
   async function handleLaunch() {
     setPreLaunchError(null);
@@ -302,12 +326,13 @@ function useSetupData(missionId: string) {
     queryKey: ["mission-setup", missionId],
     queryFn: async () => {
       const [
-        mission, members, docs, strategy, sensitivities, clientIntel, timeline,
+        mission, members, docs, missionDocs, strategy, sensitivities, clientIntel, timeline,
         questions, volumes, governance, financials, monitoring, evaluation, expertise,
       ] = await Promise.all([
         supabase.from("missions").select("*").eq("id", missionId).maybeSingle(),
         supabase.from("mission_members").select("*").eq("mission_id", missionId),
-        supabase.from("mission_vault_documents").select("id,title,category,uploaded_by_name,created_at,file_path").eq("mission_id", missionId).order("created_at", { ascending: false }),
+        supabase.from("mission_vault_documents").select("id,title,category,uploaded_by_name,created_at,updated_at,file_path,extraction_status,extracted_at").eq("mission_id", missionId).order("created_at", { ascending: false }),
+        supabase.from("mission_documents").select("id,file_name,document_type,processing_status,processed_at,created_at").eq("mission_id", missionId).order("created_at", { ascending: false }),
         supabase.from("mission_strategy").select("*").eq("mission_id", missionId).order("sort_order"),
         supabase.from("mission_sensitivities").select("*").eq("mission_id", missionId),
         supabase.from("mission_client_intel").select("*").eq("mission_id", missionId).maybeSingle(),
@@ -324,6 +349,7 @@ function useSetupData(missionId: string) {
         mission: mission.data,
         members: members.data ?? [],
         docs: docs.data ?? [],
+        missionDocs: missionDocs.data ?? [],
         strategy: strategy.data ?? [],
         sensitivities: sensitivities.data ?? [],
         clientIntel: clientIntel.data,
@@ -342,7 +368,7 @@ function useSetupData(missionId: string) {
     ...(q.data ?? {
       mission: null, members: [], docs: [], strategy: [], sensitivities: [],
       clientIntel: null, timeline: null, questions: [], volumes: [], governance: null, financials: null,
-      monitoring: [], evaluation: [], expertise: [],
+      monitoring: [], evaluation: [], expertise: [], missionDocs: [],
     }),
     refetch: q.refetch,
     isLoading: q.isLoading,
