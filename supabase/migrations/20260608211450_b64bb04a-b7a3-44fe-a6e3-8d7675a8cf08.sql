@@ -1,0 +1,1 @@
+ALTER TABLE public.missions ADD COLUMN IF NOT EXISTS submission_milestones JSONB DEFAULT '[]'::jsonb;

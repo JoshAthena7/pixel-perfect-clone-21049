@@ -5309,6 +5309,7 @@ export type Database = {
           state_agency: string | null
           status: string | null
           submission_date: string | null
+          submission_milestones: Json | null
           win_themes: string[] | null
           wizard_step: number | null
         }
@@ -5371,6 +5372,7 @@ export type Database = {
           state_agency?: string | null
           status?: string | null
           submission_date?: string | null
+          submission_milestones?: Json | null
           win_themes?: string[] | null
           wizard_step?: number | null
         }
@@ -5433,6 +5435,7 @@ export type Database = {
           state_agency?: string | null
           status?: string | null
           submission_date?: string | null
+          submission_milestones?: Json | null
           win_themes?: string[] | null
           wizard_step?: number | null
         }
