@@ -801,10 +801,13 @@ function CloseoutTab({ missionId, mission }: { missionId: string; mission: any }
                       : "border-border bg-surface/30 text-foreground hover:bg-surface-hover"
                   }`}
                 >
-                  <span className={`inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border ${on ? "border-emerald-500 bg-emerald-500" : "border-border"}`}>
+                  <span className={`inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border mt-0.5 ${on ? "border-emerald-500 bg-emerald-500" : "border-border"}`}>
                     {on && <Check className="h-3 w-3 text-black" />}
                   </span>
-                  {item.label}
+                  <span className="flex-1">
+                    <span className="block font-semibold">{item.label}</span>
+                    <span className="block text-xs text-muted-foreground mt-0.5">{item.desc}</span>
+                  </span>
                 </button>
               </li>
             );
