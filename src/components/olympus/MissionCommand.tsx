@@ -131,6 +131,19 @@ function Badge({ value }: { value: string | null }) {
   );
 }
 
+function IrisBadge({ count }: { count: number }) {
+  const { label, cls } =
+    count === 0
+      ? { label: "No Intel", cls: "text-muted-foreground border-border" }
+      : count <= 3
+      ? { label: "Partial", cls: "text-amber-400 border-amber-400/40" }
+      : { label: "IRIS Ready", cls: "text-emerald-400 border-emerald-400/40" };
+  return (
+    <span className={`inline-flex rounded border bg-surface px-1.5 py-0.5 text-[10px] uppercase tracking-wider ${cls}`}>
+      {label}
+    </span>
+  );
+
 function HealthDot({ value }: { value: string | null }) {
   const v = (value ?? "").toLowerCase();
   const color =
