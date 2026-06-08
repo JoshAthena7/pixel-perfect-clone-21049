@@ -15,17 +15,28 @@ type MissionRow = {
 };
 
 export default function MissionCommand() {
-  const { data: missions = [], isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["olympus-missions"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: missions, error } = await supabase
         .from("missions")
         .select("id,name,client,status,health,submission_date,created_at")
         .order("submission_date", { ascending: true, nullsFirst: false });
       if (error) throw error;
-      return (data ?? []) as MissionRow[];
+
+      const { data: intelRows } = await supabase
+        .from("mission_intelligence")
+        .select("mission_id");
+      const counts = new Map<string, number>();
+      for (const r of (intelRows ?? []) as { mission_id: string | null }[]) {
+        if (!r.mission_id) continue;
+        counts.set(r.mission_id, (counts.get(r.mission_id) ?? 0) + 1);
+      }
+      return { missions: (missions ?? []) as MissionRow[], counts };
     },
   });
+  const missions = data?.missions ?? [];
+  const counts = data?.counts ?? new Map<string, number>();
 
   return (
     <div className="flex-1 min-w-0">
@@ -73,7 +84,7 @@ export default function MissionCommand() {
                     <Td><Badge value={m.status} /></Td>
                     <Td>{formatDate(m.submission_date)}</Td>
                     <Td><HealthDot value={m.health} /></Td>
-                    <Td className="text-muted-foreground">—</Td>
+                    <Td><IrisBadge count={counts.get(m.id) ?? 0} /></Td>
                     <Td className="text-right">
                       <div className="inline-flex gap-2">
                         <Link
@@ -119,6 +130,21 @@ function Badge({ value }: { value: string | null }) {
     </span>
   );
 }
+
+function IrisBadge({ count }: { count: number }) {
+  const { label, cls } =
+    count === 0
+      ? { label: "No Intel", cls: "text-muted-foreground border-border" }
+      : count <= 3
+      ? { label: "Partial", cls: "text-amber-400 border-amber-400/40" }
+      : { label: "IRIS Ready", cls: "text-emerald-400 border-emerald-400/40" };
+  return (
+    <span className={`inline-flex rounded border bg-surface px-1.5 py-0.5 text-[10px] uppercase tracking-wider ${cls}`}>
+      {label}
+    </span>
+  );
+}
+
 
 function HealthDot({ value }: { value: string | null }) {
   const v = (value ?? "").toLowerCase();
