@@ -32,12 +32,10 @@ type IntelRow = {
 };
 
 function authorize(request: Request): boolean {
-  const apiKey = request.headers.get("apikey");
-  const cronSecret = request.headers.get("x-cron-secret");
-  const anon = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY;
-  if (apiKey && anon && apiKey === anon) return true;
-  if (cronSecret && process.env.CRON_SECRET && cronSecret === process.env.CRON_SECRET) return true;
-  return false;
+  const provided =
+    request.headers.get("x-cron-secret") ?? request.headers.get("apikey");
+  const expected = process.env.CRON_HOOK_SECRET;
+  return !!(expected && provided && provided === expected);
 }
 
 function asStakeholderStrings(v: unknown): string[] {
