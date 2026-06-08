@@ -101,29 +101,48 @@ If a field has no supporting evidence, leave the array empty or write "No public
     const { upsertNode, recordEdges, clearMissionOutputGraph, upsertFeedNodes } =
       await import("@/lib/iris-graph.server");
 
-    // Upsert (one row per mission). Delete then insert to keep idempotent.
-    await supabaseAdmin
-      .from("mission_client_intel")
-      .delete()
-      .eq("mission_id", data.missionId)
-      .eq("created_by_system", true);
-
     await clearMissionOutputGraph(supabaseAdmin, data.missionId, "client_intel");
+
+    // Flatten {name, role, notes} objects into strings the setup form renders.
+    const flatten = (arr: Array<{ name: string; role: string; notes?: string }>) =>
+      arr.map((x) => {
+        const head = [x.name, x.role].filter(Boolean).join(" — ");
+        return x.notes ? `${head} (${x.notes})` : head;
+      }).filter(Boolean);
+
+    const newStakeholders = flatten(result.stakeholders);
+    const newDecisionMakers = flatten(result.decision_makers);
+
+    // Merge with any existing row (manual entries / importer-populated values).
+    const { data: existing } = await supabaseAdmin
+      .from("mission_client_intel")
+      .select("contacts,stakeholders,decision_makers,relationship_owners,political_considerations,meeting_cadence,notes")
+      .eq("mission_id", data.missionId)
+      .maybeSingle();
+    const asStrings = (v: unknown): string[] =>
+      Array.isArray(v) ? v.map((x) => (typeof x === "string" ? x : "")).filter(Boolean) : [];
+    const merge = (a: string[], b: string[]) => {
+      const seen = new Set(a.map((s) => s.toLowerCase()));
+      const out = [...a];
+      for (const x of b) if (!seen.has(x.toLowerCase())) { out.push(x); seen.add(x.toLowerCase()); }
+      return out;
+    };
 
     const { error } = await supabaseAdmin
       .from("mission_client_intel")
-      .insert({
+      .upsert({
         mission_id: data.missionId,
-        contacts: [],
-        stakeholders: result.stakeholders,
-        decision_makers: result.decision_makers,
-        relationship_owners: [],
-        political_considerations: result.political_considerations,
-        meeting_cadence: result.meeting_cadence ?? null,
-        notes: result.notes,
+        contacts: asStrings(existing?.contacts),
+        stakeholders: merge(asStrings(existing?.stakeholders), newStakeholders),
+        decision_makers: merge(asStrings(existing?.decision_makers), newDecisionMakers),
+        relationship_owners: asStrings(existing?.relationship_owners),
+        political_considerations: existing?.political_considerations || result.political_considerations || null,
+        meeting_cadence: existing?.meeting_cadence || result.meeting_cadence || null,
+        notes: existing?.notes || result.notes || null,
         created_by_system: true,
-      });
-    if (error) throw new Error(`insert client_intel: ${error.message}`);
+        updated_at: new Date().toISOString(),
+      } as never, { onConflict: "mission_id" });
+    if (error) throw new Error(`upsert client_intel: ${error.message}`);
 
     if (rows.length > 0) {
       const nodeId = await upsertNode(supabaseAdmin, {
