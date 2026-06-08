@@ -102,5 +102,6 @@ No markdown. No explanation. JSON only.`;
 
     await supabase.from("missions").update({ wizard_step: 3 } as never).eq("id", data.missionId);
 
-    return { analysis: parsed };
-  });
+    return { analysis: parsed as Record<string, unknown> } as { analysis: Record<string, unknown> };
+  }) as unknown as ReturnType<typeof createServerFn>;
+
