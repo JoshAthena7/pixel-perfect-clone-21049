@@ -13,18 +13,27 @@ import { useIsAdmin } from "@/hooks/useAccess";
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async ({ location }) => {
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) {
+    const sessionResult = await withTimeout(
+      supabase.auth.getSession(),
+      2500,
+      { data: { session: null }, error: null },
+    );
+    const user = sessionResult.data.session?.user ?? null;
+    if (sessionResult.error || !user) {
       throw redirect({ to: "/login" });
     }
     // Three-state gate: anyone not ACTIVE (onboarded) and not a platform admin
     // is sent to /welcome to finish onboarding. Platform admins bypass so they
     // can never lock themselves out of Olympus.
-    const { data: prof } = await supabase
-      .from("profiles")
-      .select("has_onboarded,is_platform_admin")
-      .eq("id", data.user.id)
-      .maybeSingle();
+    const { data: prof } = await withTimeout(
+      supabase
+        .from("profiles")
+        .select("has_onboarded,is_platform_admin")
+        .eq("id", user.id)
+        .maybeSingle(),
+      4000,
+      { data: null, error: null, count: null, status: 200, statusText: "OK", success: true },
+    );
     const isAdmin = prof?.is_platform_admin === true;
     const onboarded = prof?.has_onboarded === true;
     const path = location.pathname;
@@ -32,10 +41,17 @@ export const Route = createFileRoute("/_authenticated")({
     if (!onboarded && !isAdmin && !onWelcome) {
       throw redirect({ to: "/welcome" });
     }
-    return { user: data.user };
+    return { user };
   },
   component: AuthenticatedLayout,
 });
+
+function withTimeout<T>(promise: PromiseLike<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => window.setTimeout(() => resolve(fallback), ms)),
+  ]);
+}
 
 // Paths a non-admin is allowed to view outside the V1 shell.
 const NON_ADMIN_ALLOWED_PREFIXES = [
