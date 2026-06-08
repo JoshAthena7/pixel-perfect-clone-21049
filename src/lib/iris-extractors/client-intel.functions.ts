@@ -25,6 +25,21 @@ export const extractClientIntel = createServerFn({ method: "POST" })
 
     const { mission, rows } = await loadMissionAndFeed(supabaseAdmin, data.missionId);
 
+    // ALSO pull uploaded mission documents — RFP cover pages, capture notes,
+    // org charts, meeting summaries. These are where named contacts live.
+    const { data: docs } = await supabaseAdmin
+      .from("mission_documents")
+      .select("file_name,document_type,extracted_text")
+      .eq("mission_id", data.missionId)
+      .eq("processing_status", "complete")
+      .not("extracted_text", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(8);
+    const docText = (docs ?? [])
+      .map((d: any) => `--- ${d.document_type}: ${d.file_name} ---\n${String(d.extracted_text ?? "").slice(0, 8000)}`)
+      .join("\n\n")
+      .slice(0, 60_000);
+
     const system = `You produce the "Client Intel" record for a procurement strategy brief.
 List only people, considerations, and dynamics you can support from the provided context — never invent contacts.
 If a field has no supporting evidence, leave the array empty or write "No public evidence available" in the notes/political_considerations fields. Honesty over completeness.`;
