@@ -369,15 +369,8 @@ export function CollectivePanel({ missionId }: { missionId: string | null }) {
           <option value="">All skill tags</option>
           {allTags.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
-        <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-          Add as
-          <select
-            value={addRole}
-            onChange={(e) => setAddRole(e.target.value as Role)}
-            className="rounded-md border border-border bg-background px-2 py-1 text-xs"
-          >
-            {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
-          </select>
+        <div className="text-[11px] text-muted-foreground italic">
+          Add teammates to a mission from Mission Setup → Team.
         </div>
       </div>
 
@@ -436,14 +429,6 @@ export function CollectivePanel({ missionId }: { missionId: string | null }) {
                   </td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center justify-end gap-1">
-                      <button
-                        onClick={() => inviteToMission(c)}
-                        disabled={!missionId || busyMemberId === c.id}
-                        title={missionId ? "Add to current mission" : "Select a mission first"}
-                        className="flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] hover:bg-surface-hover disabled:opacity-40"
-                      >
-                        <UserPlus className="h-3 w-3" /> {busyMemberId === c.id ? "Adding…" : "Add"}
-                      </button>
                       <button
                         onClick={() => removeFromCollective(c)}
                         className="rounded-md p-1.5 text-muted-foreground hover:bg-red-500/10 hover:text-red-400"
