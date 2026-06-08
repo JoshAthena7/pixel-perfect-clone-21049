@@ -195,21 +195,29 @@ export const importSetupRecord = createServerFn({ method: "POST" })
       updatedFields.push("timeline.submission");
     }
 
-    if (parsed.competitors.length > 0) {
+    const strategyGroups: Array<{ kind: string; labels: string[]; tag: string }> = [
+      { kind: "competitor", labels: parsed.competitors, tag: "competitors" },
+      { kind: "discriminator", labels: parsed.discriminators, tag: "discriminators" },
+      { kind: "proof_point", labels: parsed.proof_points, tag: "proof_points" },
+      { kind: "client_priority", labels: parsed.client_priorities, tag: "client_priorities" },
+      { kind: "risk", labels: parsed.risks, tag: "risks" },
+    ];
+    for (const group of strategyGroups) {
+      if (group.labels.length === 0) continue;
       const { data: existing, error: readError } = await supabaseAdmin
         .from("mission_strategy")
         .select("label")
         .eq("mission_id", data.mission_id)
-        .eq("kind", "competitor");
+        .eq("kind", group.kind);
       if (readError) throw new Error(readError.message);
       const seen = new Set((existing ?? []).map((r: any) => String(r.label ?? "").trim().toLowerCase()));
-      const rows = parsed.competitors
+      const rows = group.labels
         .filter((label) => !seen.has(label.toLowerCase()))
-        .map((label) => ({ mission_id: data.mission_id, kind: "competitor", label, created_by: userId }));
+        .map((label) => ({ mission_id: data.mission_id, kind: group.kind, label, created_by: userId }));
       if (rows.length > 0) {
         const { error } = await supabaseAdmin.from("mission_strategy").insert(rows as never);
         if (error) throw new Error(error.message);
-        updatedFields.push("strategy.competitors");
+        updatedFields.push(`strategy.${group.tag}`);
       }
     }
 
