@@ -90,7 +90,7 @@ function MissionDetail() {
           {(mission.mission_status === "Live" || mission.mission_status === "Live with Pending Edits") && (
             <TabBtn active={tab === "oversight"} onClick={() => setTab("oversight")} icon={<ShieldCheck className="h-3.5 w-3.5" />}>Oversight</TabBtn>
           )}
-          {(mission.mission_status === "Live" || mission.mission_status === "Live with Pending Edits" || mission.status === "ACTIVE") && (
+          {(mission.mission_status === "Live" || mission.mission_status === "Live with Pending Edits") && (
             <TabBtn active={tab === "closeout"} onClick={() => setTab("closeout")} icon={<Archive className="h-3.5 w-3.5" />}>Closeout</TabBtn>
           )}
         </nav>
