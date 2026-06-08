@@ -108,7 +108,7 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
     }
     if (s1.submission_date) payload.submission_date = s1.submission_date;
 
-    const { data, error } = await supabase.from("missions").insert(payload).select("id").single();
+    const { data, error } = await supabase.from("missions").insert(payload as never).select("id").single();
     if (error || !data) {
       setSaving(false);
       setErr(error?.message ?? "Failed to create mission");
