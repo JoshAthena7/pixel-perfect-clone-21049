@@ -2,23 +2,25 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
+const ClientIntelEntrySchema = z.union([
+  z.string().max(500),
+  z.object({
+    name: z.string().max(200),
+    role: z.string().max(300),
+    notes: z.string().max(600).optional(),
+  }),
+]);
+
 const ClientIntelSchema = z.object({
-  contacts: z
-    .array(z.object({ name: z.string().max(120), role: z.string().max(180), notes: z.string().max(400).optional() }))
-    .max(15),
-  decision_makers: z
-    .array(z.object({ name: z.string().max(120), role: z.string().max(180), notes: z.string().max(400).optional() }))
-    .max(10),
-  relationship_owners: z
-    .array(z.object({ name: z.string().max(120), role: z.string().max(180), notes: z.string().max(400).optional() }))
-    .max(10),
-  stakeholders: z
-    .array(z.object({ name: z.string().max(120), role: z.string().max(180), notes: z.string().max(400).optional() }))
-    .max(15),
+  contacts: z.array(ClientIntelEntrySchema).max(15),
+  decision_makers: z.array(ClientIntelEntrySchema).max(10),
+  relationship_owners: z.array(ClientIntelEntrySchema).max(10),
+  stakeholders: z.array(ClientIntelEntrySchema).max(15),
   political_considerations: z.string().max(1200),
   meeting_cadence: z.string().max(400).optional(),
   notes: z.string().max(1500),
 });
+type ClientIntelEntry = z.infer<typeof ClientIntelEntrySchema>;
 type ClientIntelOut = z.infer<typeof ClientIntelSchema>;
 
 export const extractClientIntel = createServerFn({ method: "POST" })
@@ -27,7 +29,9 @@ export const extractClientIntel = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const started = Date.now();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { loadMissionAndFeed, renderContext, callJsonExtractor } = await import("./shared.server");
+    const { loadMissionAndFeed, renderContext, callJsonExtractor } = await import(
+      "./shared.server"
+    );
 
     const { mission, rows } = await loadMissionAndFeed(supabaseAdmin, data.missionId);
 
