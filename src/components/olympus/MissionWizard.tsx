@@ -80,7 +80,7 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
     Object.fromEntries(DOC_SLOTS.map((s) => [s.key, { url: "", notes: "" }])),
   );
   const [otherMaterials, setOtherMaterials] = useState("");
-  const step4SaveRef = useRef<null | (() => Promise<boolean>)>(null);
+  
   
 
   // Prefill Step 1 (and Step 2 slot indicators) when opened in edit mode
