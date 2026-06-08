@@ -827,15 +827,31 @@ const STRATEGY_KINDS = [
   { key: "competitor", label: "Competitors", hasNotes: true },
   { key: "risk", label: "Risks", hasNotes: true },
 ];
-function SectionStrategy({ missionId, mission, strategy, refetch }: any) {
+function SectionStrategy({ missionId, mission, strategy, sensitivities, refetch }: any) {
   const [themes, setThemes] = useState<string[]>(mission?.win_themes ?? []);
   const [focusAreas, setFocusAreas] = useState<string[]>(mission?.focus_areas ?? []);
   const [textForm, setTextForm] = useState({ sensitivities: "", language: "", avoid: "", reinforce: "" });
+  const [savingSens, setSavingSens] = useState(false);
 
   useEffect(() => {
     setThemes(mission?.win_themes ?? []);
     setFocusAreas(mission?.focus_areas ?? []);
   }, [mission]);
+
+  useEffect(() => {
+    const byCat: Record<string, string> = {};
+    for (const row of (sensitivities ?? []) as Array<{ category: string; note: string | null }>) {
+      if (!row.category) continue;
+      byCat[row.category] = row.note ?? "";
+    }
+    setTextForm({
+      sensitivities: byCat.sensitivity ?? "",
+      language: byCat.language ?? "",
+      avoid: byCat.avoid ?? "",
+      reinforce: byCat.reinforce ?? "",
+    });
+  }, [sensitivities]);
+
 
   async function addItem(kind: string, label: string, notes?: string) {
     if (!label.trim()) return;
@@ -857,6 +873,35 @@ function SectionStrategy({ missionId, mission, strategy, refetch }: any) {
     toast.success("Focus areas saved");
     refetch();
   }
+  async function saveSensitivities() {
+    setSavingSens(true);
+    try {
+      const cats = ["sensitivity", "language", "avoid", "reinforce"];
+      const { error: delErr } = await supabase
+        .from("mission_sensitivities")
+        .delete()
+        .eq("mission_id", missionId)
+        .in("category", cats);
+      if (delErr) return toast.error(delErr.message);
+      const rows = [
+        { category: "sensitivity", note: textForm.sensitivities },
+        { category: "language", note: textForm.language },
+        { category: "avoid", note: textForm.avoid },
+        { category: "reinforce", note: textForm.reinforce },
+      ]
+        .filter((r) => r.note.trim().length > 0)
+        .map((r) => ({ mission_id: missionId, category: r.category, note: r.note.trim() }));
+      if (rows.length > 0) {
+        const { error } = await supabase.from("mission_sensitivities").insert(rows);
+        if (error) return toast.error(error.message);
+      }
+      toast.success("Sensitivities saved");
+      refetch();
+    } finally {
+      setSavingSens(false);
+    }
+  }
+
 
   return (
     <Section id="strategy" n="04" label="Win Strategy" sublabel="The strategic inputs that make IRIS intelligent about this specific mission.">
@@ -880,12 +925,25 @@ function SectionStrategy({ missionId, mission, strategy, refetch }: any) {
             />
           ))}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-border">
-            <Field label="Sensitivities"><TextArea rows={3} placeholder="Topics or terms IRIS should treat carefully…" value={textForm.sensitivities} onChange={(e) => setTextForm({ ...textForm, sensitivities: e.target.value })} /></Field>
-            <Field label="Language Guidance"><TextArea rows={3} placeholder="Tone, voice, phrasing rules…" value={textForm.language} onChange={(e) => setTextForm({ ...textForm, language: e.target.value })} /></Field>
-            <Field label="Things to Avoid"><TextArea rows={3} value={textForm.avoid} onChange={(e) => setTextForm({ ...textForm, avoid: e.target.value })} /></Field>
-            <Field label="Things to Reinforce"><TextArea rows={3} value={textForm.reinforce} onChange={(e) => setTextForm({ ...textForm, reinforce: e.target.value })} /></Field>
+          <div className="pt-4 border-t border-border space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <Field label="Sensitivities"><TextArea rows={3} placeholder="Topics or terms IRIS should treat carefully…" value={textForm.sensitivities} onChange={(e) => setTextForm({ ...textForm, sensitivities: e.target.value })} /></Field>
+              <Field label="Language Guidance"><TextArea rows={3} placeholder="Tone, voice, phrasing rules…" value={textForm.language} onChange={(e) => setTextForm({ ...textForm, language: e.target.value })} /></Field>
+              <Field label="Things to Avoid"><TextArea rows={3} value={textForm.avoid} onChange={(e) => setTextForm({ ...textForm, avoid: e.target.value })} /></Field>
+              <Field label="Things to Reinforce"><TextArea rows={3} value={textForm.reinforce} onChange={(e) => setTextForm({ ...textForm, reinforce: e.target.value })} /></Field>
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={saveSensitivities}
+                disabled={savingSens}
+                className="rounded-md border border-border bg-foreground px-4 py-2 text-xs font-medium text-background hover:opacity-90 disabled:opacity-50"
+              >
+                {savingSens ? "Saving…" : "Save sensitivities"}
+              </button>
+            </div>
           </div>
+
         </div>
       </div>
     </Section>
