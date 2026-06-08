@@ -81,7 +81,53 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
   );
   const [otherMaterials, setOtherMaterials] = useState("");
   const step4SaveRef = useRef<null | (() => Promise<boolean>)>(null);
+  const isEditMode = !!initialMissionId;
 
+  // Prefill Step 1 (and Step 2 slot indicators) when opened in edit mode
+  useEffect(() => {
+    if (!open || !initialMissionId) return;
+    let cancelled = false;
+    (async () => {
+      const { data: m } = await supabase
+        .from("missions")
+        .select("*")
+        .eq("id", initialMissionId)
+        .maybeSingle();
+      if (cancelled || !m) return;
+      const mm = m as any;
+      setStep1({
+        name: mm.name ?? "",
+        client: mm.client ?? "",
+        prime_contractor: mm.prime_contractor ?? "",
+        state: mm.state ?? "",
+        program_type: mm.program_type ?? "",
+        internal_notes: mm.description ?? "",
+        submission_date: mm.submission_date ?? "",
+        procurement_type: mm.engagement_type ?? "",
+        engagement_lead: mm.internal_lead ?? "",
+        operations_lead: mm.operations_lead ?? "",
+        client_contacts: mm.engagement_lead ?? "",
+        milestones: Array.isArray(mm.submission_milestones) ? mm.submission_milestones : [],
+      });
+      const { data: docs } = await supabase
+        .from("mission_documents")
+        .select("doc_type,file_url,notes")
+        .eq("mission_id", initialMissionId);
+      if (cancelled) return;
+      const next: SlotState = Object.fromEntries(DOC_SLOTS.map((s) => [s.key, { url: "", notes: "" }]));
+      let other = "";
+      for (const d of (docs ?? []) as any[]) {
+        if (d.doc_type === "other") {
+          other = d.notes ?? "";
+        } else if (next[d.doc_type]) {
+          next[d.doc_type] = { url: d.file_url ?? "", notes: d.notes ?? "" };
+        }
+      }
+      setSlots(next);
+      setOtherMaterials(other);
+    })();
+    return () => { cancelled = true; };
+  }, [open, initialMissionId]);
 
   if (!open) return null;
 
