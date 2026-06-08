@@ -1777,13 +1777,10 @@ function QuestionAssignmentRow({ question, refetch }: { question: any; refetch: 
    08 — Governance
    ──────────────────────────────────────────────────────────── */
 function SectionGovernance({ missionId, governance, refetch }: any) {
-  const [form, setForm] = useState({ approval: "", escalation: "", leadership: "", quality: "", authority: "" });
+  const [form, setForm] = useState({ approval: "", authority: "" });
   useEffect(() => {
     if (governance) setForm({
       approval: (governance.approval_workflow ?? []).join("\n"),
-      escalation: (governance.escalation_path ?? []).join("\n"),
-      leadership: (governance.leadership_gates ?? []).join("\n"),
-      quality: (governance.quality_gates ?? []).join("\n"),
       authority: governance.submission_authority ?? "",
     });
   }, [governance]);
@@ -1791,10 +1788,7 @@ function SectionGovernance({ missionId, governance, refetch }: any) {
   async function save() {
     const { error } = await supabase.from("mission_governance").upsert({
       mission_id: missionId,
-      approval_workflow: form.approval.split("\n").filter(Boolean),
-      escalation_path: form.escalation.split("\n").filter(Boolean),
-      leadership_gates: form.leadership.split("\n").filter(Boolean),
-      quality_gates: form.quality.split("\n").filter(Boolean),
+      approval_workflow: form.approval.split("\n").map((s) => s.trim()).filter(Boolean),
       submission_authority: form.authority,
       updated_at: new Date().toISOString(),
     });
@@ -1803,13 +1797,14 @@ function SectionGovernance({ missionId, governance, refetch }: any) {
   }
 
   return (
-    <Section id="governance" n="08" label="Governance">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <Field label="Approval Workflow (one step per line)"><TextArea rows={4} value={form.approval} onChange={(e) => setForm({ ...form, approval: e.target.value })} /></Field>
-        <Field label="Escalation Path"><TextArea rows={4} value={form.escalation} onChange={(e) => setForm({ ...form, escalation: e.target.value })} /></Field>
-        <Field label="Leadership Gates"><TextArea rows={4} value={form.leadership} onChange={(e) => setForm({ ...form, leadership: e.target.value })} /></Field>
-        <Field label="Quality Gates"><TextArea rows={4} value={form.quality} onChange={(e) => setForm({ ...form, quality: e.target.value })} /></Field>
-        <Field label="Submission Authority" span={2}><TextInput value={form.authority} onChange={(e) => setForm({ ...form, authority: e.target.value })} /></Field>
+    <Section id="governance" n="08" label="Governance" sublabel="Who approves, and in what order.">
+      <div className="grid grid-cols-1 gap-5">
+        <Field label="Approval Steps (one per line — e.g. Capture Lead → Practice Lead → Partner)">
+          <TextArea rows={5} value={form.approval} onChange={(e) => setForm({ ...form, approval: e.target.value })} />
+        </Field>
+        <Field label="Final Submission Authority">
+          <TextInput value={form.authority} onChange={(e) => setForm({ ...form, authority: e.target.value })} placeholder="Person or role with final sign-off" />
+        </Field>
       </div>
       <div className="mt-5 flex justify-end">
         <button onClick={save} className="rounded-md border border-border bg-background px-4 py-2 text-sm hover:bg-surface-hover">Save Governance</button>
@@ -1817,6 +1812,8 @@ function SectionGovernance({ missionId, governance, refetch }: any) {
     </Section>
   );
 }
+
+
 
 /* ────────────────────────────────────────────────────────────
    09 — Financial Setup (admin)
