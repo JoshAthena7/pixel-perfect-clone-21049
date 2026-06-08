@@ -125,6 +125,7 @@ import { Route as AuthenticatedMissionsMissionIdCommandRouteImport } from './rou
 import { Route as AuthenticatedMissionsMissionIdCockpitRouteImport } from './routes/_authenticated/missions/$missionId/cockpit'
 import { Route as AuthenticatedMissionsMissionIdBriefingRouteImport } from './routes/_authenticated/missions/$missionId/briefing'
 import { Route as AuthenticatedMissionsMissionIdBriefRouteImport } from './routes/_authenticated/missions/$missionId/brief'
+import { Route as AuthenticatedAdminMissionsMissionIdRouteImport } from './routes/_authenticated/admin/missions.$missionId'
 import { Route as AuthenticatedMissionsMissionIdSectionsIndexRouteImport } from './routes/_authenticated/missions/$missionId/sections/index'
 import { Route as AuthenticatedMissionsMissionIdQuestionsIndexRouteImport } from './routes/_authenticated/missions/$missionId/questions/index'
 import { Route as AuthenticatedMissionsMissionIdSectionsQuestionIdRouteImport } from './routes/_authenticated/missions/$missionId/sections/$questionId'
@@ -792,6 +793,12 @@ const AuthenticatedMissionsMissionIdBriefRoute =
     path: '/brief',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
+const AuthenticatedAdminMissionsMissionIdRoute =
+  AuthenticatedAdminMissionsMissionIdRouteImport.update({
+    id: '/missions/$missionId',
+    path: '/missions/$missionId',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedMissionsMissionIdSectionsIndexRoute =
   AuthenticatedMissionsMissionIdSectionsIndexRouteImport.update({
     id: '/sections/',
@@ -824,15 +831,15 @@ const AuthenticatedMissionsMissionIdQuestionsQuestionIdRoute =
   } as any)
 const AuthenticatedAdminMissionsMissionIdSetupRoute =
   AuthenticatedAdminMissionsMissionIdSetupRouteImport.update({
-    id: '/missions/$missionId/setup',
-    path: '/missions/$missionId/setup',
-    getParentRoute: () => AuthenticatedAdminRoute,
+    id: '/setup',
+    path: '/setup',
+    getParentRoute: () => AuthenticatedAdminMissionsMissionIdRoute,
   } as any)
 const AuthenticatedAdminMissionsMissionIdDebriefRoute =
   AuthenticatedAdminMissionsMissionIdDebriefRouteImport.update({
-    id: '/missions/$missionId/debrief',
-    path: '/missions/$missionId/debrief',
-    getParentRoute: () => AuthenticatedAdminRoute,
+    id: '/debrief',
+    path: '/debrief',
+    getParentRoute: () => AuthenticatedAdminMissionsMissionIdRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -914,6 +921,7 @@ export interface FileRoutesByFullPath {
   '/missions/': typeof AuthenticatedMissionsIndexRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
   '/v1/': typeof AuthenticatedV1IndexRoute
+  '/admin/missions/$missionId': typeof AuthenticatedAdminMissionsMissionIdRouteWithChildren
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/missions/$missionId/cockpit': typeof AuthenticatedMissionsMissionIdCockpitRoute
@@ -1034,6 +1042,7 @@ export interface FileRoutesByTo {
   '/missions': typeof AuthenticatedMissionsIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
   '/v1': typeof AuthenticatedV1IndexRoute
+  '/admin/missions/$missionId': typeof AuthenticatedAdminMissionsMissionIdRouteWithChildren
   '/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/missions/$missionId/cockpit': typeof AuthenticatedMissionsMissionIdCockpitRoute
@@ -1160,6 +1169,7 @@ export interface FileRoutesById {
   '/_authenticated/missions/': typeof AuthenticatedMissionsIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/_authenticated/v1/': typeof AuthenticatedV1IndexRoute
+  '/_authenticated/admin/missions/$missionId': typeof AuthenticatedAdminMissionsMissionIdRouteWithChildren
   '/_authenticated/missions/$missionId/brief': typeof AuthenticatedMissionsMissionIdBriefRoute
   '/_authenticated/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/_authenticated/missions/$missionId/cockpit': typeof AuthenticatedMissionsMissionIdCockpitRoute
@@ -1286,6 +1296,7 @@ export interface FileRouteTypes {
     | '/missions/'
     | '/profile/'
     | '/v1/'
+    | '/admin/missions/$missionId'
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
     | '/missions/$missionId/cockpit'
@@ -1406,6 +1417,7 @@ export interface FileRouteTypes {
     | '/missions'
     | '/profile'
     | '/v1'
+    | '/admin/missions/$missionId'
     | '/missions/$missionId/brief'
     | '/missions/$missionId/briefing'
     | '/missions/$missionId/cockpit'
@@ -1531,6 +1543,7 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/'
     | '/_authenticated/profile/'
     | '/_authenticated/v1/'
+    | '/_authenticated/admin/missions/$missionId'
     | '/_authenticated/missions/$missionId/brief'
     | '/_authenticated/missions/$missionId/briefing'
     | '/_authenticated/missions/$missionId/cockpit'
@@ -2421,6 +2434,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdBriefRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
+    '/_authenticated/admin/missions/$missionId': {
+      id: '/_authenticated/admin/missions/$missionId'
+      path: '/missions/$missionId'
+      fullPath: '/admin/missions/$missionId'
+      preLoaderRoute: typeof AuthenticatedAdminMissionsMissionIdRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/missions/$missionId/sections/': {
       id: '/_authenticated/missions/$missionId/sections/'
       path: '/sections'
@@ -2458,20 +2478,38 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/admin/missions/$missionId/setup': {
       id: '/_authenticated/admin/missions/$missionId/setup'
-      path: '/missions/$missionId/setup'
+      path: '/setup'
       fullPath: '/admin/missions/$missionId/setup'
       preLoaderRoute: typeof AuthenticatedAdminMissionsMissionIdSetupRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
+      parentRoute: typeof AuthenticatedAdminMissionsMissionIdRoute
     }
     '/_authenticated/admin/missions/$missionId/debrief': {
       id: '/_authenticated/admin/missions/$missionId/debrief'
-      path: '/missions/$missionId/debrief'
+      path: '/debrief'
       fullPath: '/admin/missions/$missionId/debrief'
       preLoaderRoute: typeof AuthenticatedAdminMissionsMissionIdDebriefRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
+      parentRoute: typeof AuthenticatedAdminMissionsMissionIdRoute
     }
   }
 }
+
+interface AuthenticatedAdminMissionsMissionIdRouteChildren {
+  AuthenticatedAdminMissionsMissionIdDebriefRoute: typeof AuthenticatedAdminMissionsMissionIdDebriefRoute
+  AuthenticatedAdminMissionsMissionIdSetupRoute: typeof AuthenticatedAdminMissionsMissionIdSetupRoute
+}
+
+const AuthenticatedAdminMissionsMissionIdRouteChildren: AuthenticatedAdminMissionsMissionIdRouteChildren =
+  {
+    AuthenticatedAdminMissionsMissionIdDebriefRoute:
+      AuthenticatedAdminMissionsMissionIdDebriefRoute,
+    AuthenticatedAdminMissionsMissionIdSetupRoute:
+      AuthenticatedAdminMissionsMissionIdSetupRoute,
+  }
+
+const AuthenticatedAdminMissionsMissionIdRouteWithChildren =
+  AuthenticatedAdminMissionsMissionIdRoute._addFileChildren(
+    AuthenticatedAdminMissionsMissionIdRouteChildren,
+  )
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAdminsRoute: typeof AuthenticatedAdminAdminsRoute
@@ -2502,8 +2540,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminWriterDeletionRoute: typeof AuthenticatedAdminWriterDeletionRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
-  AuthenticatedAdminMissionsMissionIdDebriefRoute: typeof AuthenticatedAdminMissionsMissionIdDebriefRoute
-  AuthenticatedAdminMissionsMissionIdSetupRoute: typeof AuthenticatedAdminMissionsMissionIdSetupRoute
+  AuthenticatedAdminMissionsMissionIdRoute: typeof AuthenticatedAdminMissionsMissionIdRouteWithChildren
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
@@ -2538,10 +2575,8 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedAdminWriterDeletionRoute: AuthenticatedAdminWriterDeletionRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
-  AuthenticatedAdminMissionsMissionIdDebriefRoute:
-    AuthenticatedAdminMissionsMissionIdDebriefRoute,
-  AuthenticatedAdminMissionsMissionIdSetupRoute:
-    AuthenticatedAdminMissionsMissionIdSetupRoute,
+  AuthenticatedAdminMissionsMissionIdRoute:
+    AuthenticatedAdminMissionsMissionIdRouteWithChildren,
 }
 
 const AuthenticatedAdminRouteWithChildren =
