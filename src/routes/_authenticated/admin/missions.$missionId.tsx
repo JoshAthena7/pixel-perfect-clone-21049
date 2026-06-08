@@ -2,17 +2,17 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Brain, FileText, ListChecks, LayoutGrid, Sliders, ShieldCheck, Check } from "lucide-react";
+import { ArrowLeft, Brain, FileText, ListChecks, LayoutGrid, Sliders, ShieldCheck, Check, Archive } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { FastReportsMenu } from "@/components/olympus/FastReportsMenu";
 import MissionWizard from "@/components/olympus/MissionWizard";
 
-type Tab = "overview" | "sections" | "intelligence" | "requirements" | "setup" | "oversight";
+type Tab = "overview" | "sections" | "intelligence" | "requirements" | "setup" | "oversight" | "closeout";
 
 export const Route = createFileRoute("/_authenticated/admin/missions/$missionId")({
   validateSearch: (s: Record<string, unknown>): { tab?: Tab } => {
     const t = s.tab;
-    if (t === "overview" || t === "sections" || t === "intelligence" || t === "requirements" || t === "setup" || t === "oversight") return { tab: t };
+    if (t === "overview" || t === "sections" || t === "intelligence" || t === "requirements" || t === "setup" || t === "oversight" || t === "closeout") return { tab: t };
     return {};
   },
   component: MissionDetail,
@@ -94,6 +94,9 @@ function MissionDetail() {
           {mission.status === "ACTIVE" && (
             <TabBtn active={tab === "oversight"} onClick={() => setTab("oversight")} icon={<ShieldCheck className="h-3.5 w-3.5" />}>Oversight</TabBtn>
           )}
+          {mission.status === "ACTIVE" && (
+            <TabBtn active={tab === "closeout"} onClick={() => setTab("closeout")} icon={<Archive className="h-3.5 w-3.5" />}>Closeout</TabBtn>
+          )}
         </nav>
       </div>
 
@@ -104,6 +107,7 @@ function MissionDetail() {
         {tab === "requirements" && <RequirementsTab missionId={missionId} />}
         {tab === "setup" && <SetupTab missionId={missionId} mission={mission} />}
         {tab === "oversight" && <OversightTab missionId={missionId} mission={mission} />}
+        {tab === "closeout" && <CloseoutTab missionId={missionId} mission={mission} />}
       </div>
     </div>
   );
@@ -692,4 +696,182 @@ function summarize(content: any): string {
     try { return JSON.stringify(content, null, 2).slice(0, 800); } catch { return ""; }
   }
   return String(content);
+}
+
+/* ─── Closeout ─── */
+const CLOSEOUT_ITEMS: { key: string; label: string }[] = [
+  { key: "client_access_removed", label: "Client access removed for all team members" },
+  { key: "final_invoices_submitted", label: "Final invoices submitted" },
+  { key: "contracts_marked_closed", label: "Contracts marked closed" },
+  { key: "documents_archived", label: "Documents archived to final storage" },
+  { key: "lessons_learned_documented", label: "Lessons learned documented" },
+  { key: "team_feedback_collected", label: "Team feedback collected" },
+];
+
+function CloseoutTab({ missionId, mission }: { missionId: string; mission: any }) {
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+
+  const initialChecklist: Record<string, boolean> = {};
+  for (const item of CLOSEOUT_ITEMS) {
+    initialChecklist[item.key] = !!(mission.closeout_checklist?.[item.key]);
+  }
+  const [checklist, setChecklist] = useState<Record<string, boolean>>(initialChecklist);
+
+  const initialNotes = (mission.closeout_notes ?? {}) as Record<string, string>;
+  const [notes, setNotes] = useState({
+    went_well: initialNotes.went_well ?? "",
+    improvements: initialNotes.improvements ?? "",
+    reusable_intelligence: initialNotes.reusable_intelligence ?? "",
+  });
+  const [archiving, setArchiving] = useState(false);
+
+  const toggle = async (key: string) => {
+    const next = { ...checklist, [key]: !checklist[key] };
+    setChecklist(next);
+    const { error } = await supabase
+      .from("missions")
+      .update({ closeout_checklist: next } as never)
+      .eq("id", missionId);
+    if (error) {
+      toast.error(error.message);
+      setChecklist(checklist);
+    }
+  };
+
+  const saveNotes = async () => {
+    const { error } = await supabase
+      .from("missions")
+      .update({ closeout_notes: notes } as never)
+      .eq("id", missionId);
+    if (error) toast.error(error.message);
+  };
+
+  const allChecked = CLOSEOUT_ITEMS.every((i) => checklist[i.key]);
+
+  const archive = async () => {
+    if (!window.confirm(`Archive ${mission.name}? The mission will move to archived view and all access should be reviewed.`)) return;
+    setArchiving(true);
+    const { error } = await supabase
+      .from("missions")
+      .update({
+        status: "ARCHIVED",
+        closed_at: new Date().toISOString(),
+        wizard_step: 11,
+      } as never)
+      .eq("id", missionId);
+    setArchiving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Mission archived.");
+    qc.invalidateQueries({ queryKey: ["olympus-missions"] });
+    qc.invalidateQueries({ queryKey: ["olympus-mission", missionId] });
+    navigate({ to: "/admin" });
+  };
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      {/* Checklist */}
+      <section className="rounded-lg border border-border bg-surface/40 p-4 lg:col-span-2">
+        <h2 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.28em]">Closeout Checklist</h2>
+        <ul className="space-y-2">
+          {CLOSEOUT_ITEMS.map((item) => {
+            const on = !!checklist[item.key];
+            return (
+              <li key={item.key}>
+                <button
+                  type="button"
+                  onClick={() => toggle(item.key)}
+                  className={`flex w-full items-center gap-3 rounded-md border px-3 py-2 text-left text-sm transition-colors ${
+                    on
+                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-100"
+                      : "border-border bg-surface/30 text-foreground hover:bg-surface-hover"
+                  }`}
+                >
+                  <span className={`inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border ${on ? "border-emerald-500 bg-emerald-500" : "border-border"}`}>
+                    {on && <Check className="h-3 w-3 text-black" />}
+                  </span>
+                  {item.label}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      {/* Lessons Learned */}
+      <section className="rounded-lg border border-border bg-surface/40 p-4 lg:col-span-2">
+        <h2 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.28em]">Lessons Learned</h2>
+        <div className="space-y-3">
+          <NoteField
+            label="What went well?"
+            value={notes.went_well}
+            onChange={(v) => setNotes({ ...notes, went_well: v })}
+            onBlur={saveNotes}
+          />
+          <NoteField
+            label="What could be improved?"
+            value={notes.improvements}
+            onChange={(v) => setNotes({ ...notes, improvements: v })}
+            onBlur={saveNotes}
+          />
+          <NoteField
+            label="Reusable intelligence for future missions"
+            value={notes.reusable_intelligence}
+            onChange={(v) => setNotes({ ...notes, reusable_intelligence: v })}
+            onBlur={saveNotes}
+          />
+        </div>
+      </section>
+
+      {/* Archive */}
+      <section className="rounded-lg border border-border bg-surface/40 p-4 lg:col-span-2">
+        <h2 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.28em]">Archive</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="text-sm text-muted-foreground">
+            {allChecked
+              ? "All closeout items complete. Ready to archive."
+              : `Complete all 6 checklist items before archiving (${Object.values(checklist).filter(Boolean).length}/6 done).`}
+          </div>
+          <button
+            type="button"
+            onClick={archive}
+            disabled={!allChecked || archiving}
+            className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold text-black disabled:cursor-not-allowed disabled:opacity-40"
+            style={{ backgroundColor: "#C9A84C" }}
+          >
+            <Archive className="h-3.5 w-3.5" />
+            {archiving ? "Archiving…" : "Archive Mission"}
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function NoteField({
+  label,
+  value,
+  onChange,
+  onBlur,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  onBlur: () => void;
+}) {
+  return (
+    <label className="block">
+      <div className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
+        rows={3}
+        className="w-full resize-y rounded-md border border-border bg-surface/40 px-3 py-2 text-sm"
+      />
+    </label>
+  );
 }
