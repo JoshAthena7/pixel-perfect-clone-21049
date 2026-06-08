@@ -144,7 +144,12 @@ function CreateMissionModal({ onClose }: { onClose: () => void }) {
       return;
     }
     setSubmitting(true);
-    const payload: Record<string, unknown> = {
+    const payload: {
+      name: string;
+      client: string;
+      status: string;
+      submission_date?: string;
+    } = {
       name: name.trim(),
       client: client.trim(),
       status,
