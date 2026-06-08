@@ -2,5 +2,6 @@
 // environment before the first RPC request can arrive.
 import "./routing.functions";
 import "./client-clarifications.functions";
+import "./expert-consult.functions";
 
 export {};
