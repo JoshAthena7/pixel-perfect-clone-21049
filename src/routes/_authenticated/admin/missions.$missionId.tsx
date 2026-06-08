@@ -88,7 +88,12 @@ function MissionDetail() {
           <TabBtn active={tab === "sections"} onClick={() => setTab("sections")} icon={<FileText className="h-3.5 w-3.5" />}>Sections</TabBtn>
           <TabBtn active={tab === "intelligence"} onClick={() => setTab("intelligence")} icon={<Brain className="h-3.5 w-3.5" />}>Intelligence</TabBtn>
           <TabBtn active={tab === "requirements"} onClick={() => setTab("requirements")} icon={<ListChecks className="h-3.5 w-3.5" />}>Requirements</TabBtn>
-          <TabBtn active={tab === "setup"} onClick={() => setTab("setup")} icon={<Sliders className="h-3.5 w-3.5" />}>Setup Record</TabBtn>
+          {((mission.wizard_step ?? 0) < 7) && (
+            <TabBtn active={tab === "setup"} onClick={() => setTab("setup")} icon={<Sliders className="h-3.5 w-3.5" />}>Setup</TabBtn>
+          )}
+          {mission.status === "ACTIVE" && (
+            <TabBtn active={tab === "oversight"} onClick={() => setTab("oversight")} icon={<ShieldCheck className="h-3.5 w-3.5" />}>Oversight</TabBtn>
+          )}
         </nav>
       </div>
 
@@ -97,7 +102,8 @@ function MissionDetail() {
         {tab === "sections" && <SectionsTab missionId={missionId} />}
         {tab === "intelligence" && <IntelligenceTab missionId={missionId} />}
         {tab === "requirements" && <RequirementsTab missionId={missionId} />}
-        {tab === "setup" && <SetupTab missionId={missionId} />}
+        {tab === "setup" && <SetupTab missionId={missionId} mission={mission} />}
+        {tab === "oversight" && <OversightTab missionId={missionId} mission={mission} />}
       </div>
     </div>
   );
