@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { X, Plus, Trash2, Check, Sparkles, AlertTriangle, CheckCircle2, Loader2, RefreshCw } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { X, Plus, Trash2, Check, Sparkles, AlertTriangle, CheckCircle2, Loader2, RefreshCw, Upload, FileSpreadsheet } from "lucide-react";
+import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
@@ -15,7 +16,7 @@ const STEP_NAMES = [
   "Source Materials",
   "IRIS Review",
   "Review & Edit Record",
-  "Build the Team",
+  "Upload Assignment Tracker",
   "Readiness & GO LIVE",
 ];
 
@@ -324,15 +325,9 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
             />
           )}
           {step === 5 && missionId && (
-            <Step5Team
+            <Step5AssignmentTracker
               missionId={missionId}
-              onSkip={async () => {
-                await supabase
-                  .from("missions")
-                  .update({ wizard_step: 5 } as never)
-                  .eq("id", missionId);
-                setStep(6);
-              }}
+              onAdvance={() => setStep(6)}
             />
           )}
           {step === 6 && missionId && (
@@ -360,7 +355,7 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
           >
             ← Back
           </button>
-          {step !== 3 && step !== 4 && step !== 6 && (
+          {step !== 3 && step !== 4 && step !== 5 && step !== 6 && (
             <button
               type="button"
               onClick={handleContinue}
@@ -1764,520 +1759,391 @@ function RowTable<T>({
   );
 }
 
-/* ---------- Step 5: Build the Team ---------- */
+/* ---------- Step 5: Upload Assignment Tracker ---------- */
 
-const TEAM_ROLES = [
-  "Engagement Lead",
-  "Operations Lead",
-  "Project Manager",
-  "SME",
-  "Writer",
-  "Copy Editor",
-  "QA Reviewer",
-  "Client Contact",
-] as const;
+type TrackerField =
+  | "question_number"
+  | "writer"
+  | "athena_sme"
+  | "client_sme"
+  | "reviewer"
+  | "copy_editor"
+  | "workstream_lead"
+  | "internal_deadline"
+  | "notes";
 
-type TeamMember = {
-  id: string;
-  mission_id: string;
-  name: string;
-  email: string | null;
-  role: string;
-  assigned_sections: any;
-  start_date: string | null;
-  talentdesk_status: string | null;
-  contract_status: string | null;
-  nda_status: string | null;
-  baa_required: boolean | null;
-  baa_status: string | null;
-  client_system_access: boolean | null;
-  slack_access: boolean | null;
-  folder_access: boolean | null;
-};
+const TRACKER_FIELDS: { key: TrackerField; label: string }[] = [
+  { key: "question_number", label: "Question Number" },
+  { key: "writer", label: "Writer" },
+  { key: "athena_sme", label: "Athena SME" },
+  { key: "client_sme", label: "Client SME" },
+  { key: "reviewer", label: "Reviewer" },
+  { key: "copy_editor", label: "Copy Editor" },
+  { key: "workstream_lead", label: "Workstream Lead" },
+  { key: "internal_deadline", label: "Internal Deadline" },
+  { key: "notes", label: "Notes" },
+];
 
-type StaffingSuggestion = { role: string; reason: string };
-type WritingSuggestion = { section: string; role: string; notes: string };
+const PERSON_FIELDS: TrackerField[] = [
+  "writer",
+  "athena_sme",
+  "client_sme",
+  "reviewer",
+  "copy_editor",
+  "workstream_lead",
+];
 
-function sectionsToText(v: any): string {
-  if (Array.isArray(v)) return v.join(", ");
-  if (typeof v === "string") return v;
-  return "";
+function autoMapHeader(header: string, field: TrackerField): boolean {
+  const h = header.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const map: Record<TrackerField, string[]> = {
+    question_number: ["questionnumber", "qnumber", "questno", "qno", "questionno", "q", "questionid"],
+    writer: ["writer", "author"],
+    athena_sme: ["athenasme", "sme", "athena"],
+    client_sme: ["clientsme", "client"],
+    reviewer: ["reviewer", "review"],
+    copy_editor: ["copyeditor", "copyedit", "editor"],
+    workstream_lead: ["workstreamlead", "workstream", "lead"],
+    internal_deadline: ["internaldeadline", "deadline", "duedate", "due"],
+    notes: ["notes", "comment", "comments"],
+  };
+  return map[field].some((m) => h === m || h.includes(m));
 }
-function sectionsFromText(s: string): string[] {
-  return s
-    .split(",")
-    .map((x) => x.trim())
-    .filter(Boolean);
-}
 
-function Step5Team({
+function Step5AssignmentTracker({
   missionId,
-  onSkip,
+  onAdvance,
 }: {
   missionId: string;
-  onSkip: () => void;
+  onAdvance: () => void;
 }) {
-  const [members, setMembers] = useState<TeamMember[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [accessOpen, setAccessOpen] = useState(false);
-  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
-  const [staffing, setStaffing] = useState<StaffingSuggestion[]>([]);
-  const [writing, setWriting] = useState<WritingSuggestion[]>([]);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [headers, setHeaders] = useState<string[]>([]);
+  const [rawRows, setRawRows] = useState<Record<string, any>[]>([]);
+  const [mapping, setMapping] = useState<Record<TrackerField, string>>({
+    question_number: "",
+    writer: "",
+    athena_sme: "",
+    client_sme: "",
+    reviewer: "",
+    copy_editor: "",
+    workstream_lead: "",
+    internal_deadline: "",
+    notes: "",
+  });
+  const [parsing, setParsing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
 
-  // form state
-  const [fName, setFName] = useState("");
-  const [fEmail, setFEmail] = useState("");
-  const [fRole, setFRole] = useState<string>(TEAM_ROLES[0]);
-  const [fSections, setFSections] = useState("");
-  const [fStart, setFStart] = useState("");
-  const [adding, setAdding] = useState(false);
-
-  const reload = async () => {
-    const { data } = await supabase
-      .from("mission_team_members")
-      .select(
-        "id, mission_id, name, email, role, assigned_sections, start_date, talentdesk_status, contract_status, nda_status, baa_required, baa_status, client_system_access, slack_access, folder_access",
-      )
-      .eq("mission_id", missionId)
-      .order("created_at", { ascending: true });
-    setMembers((data ?? []) as any);
-  };
-
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      await reload();
-      const { data: intel } = await supabase
-        .from("mission_intelligence")
-        .select("content")
-        .eq("mission_id", missionId)
-        .eq("layer", "wizard_analysis")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (!alive) return;
-      const c: any = (intel as any)?.content ?? {};
-      setStaffing(
-        Array.isArray(c.suggested_staffing)
-          ? c.suggested_staffing.map((s: any) =>
-              typeof s === "string"
-                ? { role: s, reason: "" }
-                : { role: s?.role ?? "", reason: s?.reason ?? "" },
-            )
-          : [],
-      );
-      setWriting(
-        Array.isArray(c.suggested_writing_assignments)
-          ? c.suggested_writing_assignments.map((s: any) => ({
-              section: s?.section ?? "",
-              role: s?.role ?? "",
-              notes: s?.notes ?? "",
-            }))
-          : [],
-      );
-      setLoading(false);
-    })();
-    return () => {
-      alive = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [missionId]);
-
-  const addMember = async () => {
-    if (!fName.trim()) {
-      toast.error("Name is required");
-      return;
-    }
-    setAdding(true);
+  const handleFile = async (file: File) => {
+    setParsing(true);
     try {
-      const { error } = await supabase.from("mission_team_members").insert({
-        mission_id: missionId,
-        name: fName.trim(),
-        email: fEmail.trim() || null,
-        role: fRole,
-        assigned_sections: sectionsFromText(fSections),
-        start_date: fStart || null,
-      } as never);
-      if (error) throw error;
-      setFName("");
-      setFEmail("");
-      setFRole(TEAM_ROLES[0]);
-      setFSections("");
-      setFStart("");
-      await reload();
-      toast.success("Added to team");
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json<Record<string, any>>(ws, { defval: "" });
+      if (!json.length) {
+        toast.error("Spreadsheet appears empty");
+        return;
+      }
+      const cols = Object.keys(json[0]);
+      setHeaders(cols);
+      setRawRows(json);
+      setFileName(file.name);
+      // auto-map
+      const next: Record<TrackerField, string> = { ...mapping };
+      for (const f of TRACKER_FIELDS) {
+        const match = cols.find((c) => autoMapHeader(String(c), f.key));
+        if (match) next[f.key] = match;
+      }
+      setMapping(next);
     } catch (e: any) {
-      toast.error(e?.message || "Could not add member");
+      toast.error(e?.message || "Could not parse spreadsheet");
     } finally {
-      setAdding(false);
+      setParsing(false);
     }
   };
 
-  const updateMember = async (id: string, patch: Partial<TeamMember>) => {
-    setMembers((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, ...patch } : m)),
-    );
-    const { error } = await supabase
-      .from("mission_team_members")
-      .update(patch as never)
-      .eq("id", id);
-    if (error) {
-      toast.error(error.message);
-      await reload();
-    }
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const f = e.dataTransfer.files?.[0];
+    if (f) void handleFile(f);
   };
 
-  const removeMember = async (m: TeamMember) => {
-    if (!confirm(`Remove ${m.name} from the team?`)) return;
-    const { error } = await supabase
-      .from("mission_team_members")
-      .delete()
-      .eq("id", m.id);
-    if (error) {
-      toast.error(error.message);
+  const mappedRows = useMemo(() => {
+    if (!rawRows.length) return [];
+    return rawRows.map((r) => {
+      const out: Record<string, any> = {};
+      for (const f of TRACKER_FIELDS) {
+        const col = mapping[f.key];
+        out[f.key] = col ? r[col] ?? null : null;
+      }
+      return out;
+    });
+  }, [rawRows, mapping]);
+
+  const handleSave = async () => {
+    if (!mappedRows.length) {
+      toast.error("Upload a tracker first");
       return;
     }
-    setMembers((prev) => prev.filter((x) => x.id !== m.id));
-    toast.success("Removed");
+    setSaving(true);
+    try {
+      // 1. Store parsed data
+      const { error: mErr } = await supabase
+        .from("missions")
+        .update({
+          assignment_tracker_data: mappedRows as any,
+          wizard_step: 5,
+        } as never)
+        .eq("id", missionId);
+      if (mErr) throw mErr;
+
+      // 2. Auto-seed mission_team_members
+      const nameRoles = new Map<string, Set<TrackerField>>();
+      for (const row of mappedRows) {
+        for (const field of PERSON_FIELDS) {
+          const raw = row[field];
+          if (raw == null) continue;
+          const cell = String(raw).trim();
+          if (!cell) continue;
+          // allow comma-separated multi names
+          for (const piece of cell.split(/[,;/]/)) {
+            const name = piece.trim();
+            if (!name) continue;
+            if (!nameRoles.has(name)) nameRoles.set(name, new Set());
+            nameRoles.get(name)!.add(field);
+          }
+        }
+      }
+
+      const inferRole = (fields: Set<TrackerField>): string => {
+        if (fields.size > 1) {
+          const onlySmes = Array.from(fields).every(
+            (f) => f === "athena_sme" || f === "client_sme",
+          );
+          if (onlySmes) return "SME";
+          return "Multi-Role";
+        }
+        const [only] = Array.from(fields);
+        switch (only) {
+          case "writer":
+            return "Writer";
+          case "athena_sme":
+          case "client_sme":
+            return "SME";
+          case "reviewer":
+            return "Reviewer";
+          case "copy_editor":
+            return "Copy Editor";
+          case "workstream_lead":
+            return "Workstream Lead";
+          default:
+            return "Team Member";
+        }
+      };
+
+      let added = 0;
+      for (const [name, fields] of nameRoles) {
+        const { error } = await supabase
+          .from("mission_team_members")
+          .upsert(
+            {
+              mission_id: missionId,
+              name,
+              role: inferRole(fields),
+              source: "tracker_import",
+              active: true,
+            } as never,
+            { onConflict: "mission_id,name" },
+          );
+        if (!error) added++;
+      }
+
+      toast.success(
+        `Assignment tracker saved — ${mappedRows.length} rows loaded, ${added} team members added to roster`,
+      );
+      onAdvance();
+    } catch (e: any) {
+      toast.error(e?.message || "Could not save tracker");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  if (loading) {
-    return (
-      <div className="py-16 text-center text-sm text-muted-foreground">
-        <Loader2 className="mx-auto mb-3 h-5 w-5 animate-spin" />
-        Loading team…
-      </div>
-    );
-  }
+  const handleSkip = async () => {
+    await supabase
+      .from("missions")
+      .update({ wizard_step: 5 } as never)
+      .eq("id", missionId);
+    onAdvance();
+  };
+
+  const previewRows = mappedRows.slice(0, 10);
+  const remainingRows = Math.max(0, mappedRows.length - previewRows.length);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <p className="text-sm text-muted-foreground">
-        Stage your team — no invites go out until you GO LIVE
+        Upload your Athena staffing spreadsheet — IRIS will map assignments to questions
       </p>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-5">
-        {/* Add member form */}
-        <div className="rounded-lg border border-border bg-background/40 p-4 space-y-3 h-fit">
-          <h3 className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: GOLD }}>
-            Add Team Member
-          </h3>
-          <Field label="Name" required>
-            <Input value={fName} onChange={setFName} />
-          </Field>
-          <Field label="Email">
-            <Input value={fEmail} onChange={setFEmail} placeholder="name@example.com" />
-          </Field>
-          <Field label="Role">
-            <Select
-              value={fRole}
-              onChange={setFRole}
-              options={[...TEAM_ROLES]}
-            />
-          </Field>
-          <Field label="Assigned Sections">
-            <Input
-              value={fSections}
-              onChange={setFSections}
-              placeholder="e.g. Section C, Management Approach"
-            />
-          </Field>
-          <Field label="Start Date">
-            <Input type="date" value={fStart} onChange={setFStart} />
-          </Field>
+      {/* Upload zone */}
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragOver(true);
+        }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={onDrop}
+        className={`rounded-lg border-2 border-dashed px-6 py-10 text-center transition ${
+          dragOver ? "border-amber-400 bg-amber-50/5" : "border-border bg-surface"
+        }`}
+      >
+        <FileSpreadsheet className="mx-auto h-8 w-8 text-muted-foreground" />
+        <div className="mt-3 text-sm font-semibold">Athena Assignment Tracker</div>
+        <div className="mt-1 text-xs text-muted-foreground max-w-xl mx-auto">
+          Your spreadsheet should include: Question Number, Writer, Athena SME, Client SME,
+          Reviewer, Copy Editor, Workstream Lead, Internal Deadline, Notes
+        </div>
+        <div className="mt-4 flex items-center justify-center gap-3">
           <button
             type="button"
-            onClick={addMember}
-            disabled={adding}
-            className="w-full rounded-md px-4 py-2 text-sm font-bold uppercase tracking-wider shadow disabled:opacity-50"
-            style={{ backgroundColor: GOLD, color: NAVY }}
+            onClick={() => fileInputRef.current?.click()}
+            disabled={parsing}
+            className="inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-semibold hover:bg-surface-hover disabled:opacity-50"
           >
-            {adding ? "Adding…" : "Add to Team"}
+            {parsing ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Upload className="h-3 w-3" />
+            )}
+            Browse Files
           </button>
-        </div>
-
-        {/* Roster */}
-        <div className="space-y-3 min-w-0">
-          <h3 className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: GOLD }}>
-            Team Roster ({members.length})
-          </h3>
-          {members.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-border bg-background/30 p-6 text-center text-sm text-muted-foreground">
-              No team members yet — add your first one.
-            </div>
-          ) : (
-            <div className="overflow-x-auto rounded-lg border border-border">
-              <table className="w-full text-sm">
-                <thead className="bg-surface text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  <tr>
-                    <th className="px-3 py-2 text-left">Name</th>
-                    <th className="px-3 py-2 text-left">Role</th>
-                    <th className="px-3 py-2 text-left">Email</th>
-                    <th className="px-3 py-2 text-left">Sections</th>
-                    <th className="px-3 py-2 text-left">Start</th>
-                    <th className="px-3 py-2" />
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {members.map((m) => {
-                    const editing = editingId === m.id;
-                    return (
-                      <tr key={m.id} className="align-top">
-                        <td className="px-3 py-2">
-                          {editing ? (
-                            <Input value={m.name} onChange={(v) => updateMember(m.id, { name: v })} />
-                          ) : (
-                            <span className="font-medium text-foreground">{m.name}</span>
-                          )}
-                        </td>
-                        <td className="px-3 py-2">
-                          {editing ? (
-                            <Select
-                              value={m.role}
-                              onChange={(v) => updateMember(m.id, { role: v })}
-                              options={[...TEAM_ROLES]}
-                            />
-                          ) : (
-                            m.role
-                          )}
-                        </td>
-                        <td className="px-3 py-2">
-                          {editing ? (
-                            <Input value={m.email ?? ""} onChange={(v) => updateMember(m.id, { email: v })} />
-                          ) : (
-                            <span className="text-muted-foreground">{m.email || "—"}</span>
-                          )}
-                        </td>
-                        <td className="px-3 py-2">
-                          {editing ? (
-                            <Input
-                              value={sectionsToText(m.assigned_sections)}
-                              onChange={(v) =>
-                                updateMember(m.id, { assigned_sections: sectionsFromText(v) as any })
-                              }
-                            />
-                          ) : (
-                            <span className="text-muted-foreground text-xs">
-                              {sectionsToText(m.assigned_sections) || "—"}
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-3 py-2">
-                          {editing ? (
-                            <Input
-                              type="date"
-                              value={m.start_date ?? ""}
-                              onChange={(v) => updateMember(m.id, { start_date: v || null })}
-                            />
-                          ) : (
-                            <span className="text-muted-foreground text-xs">{m.start_date || "—"}</span>
-                          )}
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap text-right">
-                          <button
-                            type="button"
-                            onClick={() => setEditingId(editing ? null : m.id)}
-                            className="text-xs font-semibold text-muted-foreground hover:text-foreground mr-2"
-                          >
-                            {editing ? "Done" : "Edit"}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => removeMember(m)}
-                            aria-label="Remove"
-                            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-surface-hover hover:text-rose-400"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+          {fileName && (
+            <span className="text-xs text-muted-foreground">
+              <Check className="inline h-3 w-3 text-emerald-500" /> {fileName}
+            </span>
           )}
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".xlsx,.xls,.csv"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void handleFile(f);
+            e.target.value = "";
+          }}
+        />
+        <div className="mt-2 text-[11px] text-muted-foreground">
+          Accepts .xlsx, .xls, .csv · or drag and drop
         </div>
       </div>
 
-      {/* Access Requirements */}
-      {members.length > 0 && (
-        <div className="rounded-lg border border-border">
-          <button
-            type="button"
-            onClick={() => setAccessOpen((v) => !v)}
-            className="w-full flex items-center justify-between px-4 py-3 text-left"
-          >
-            <span className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: GOLD }}>
-              Access Requirements
-            </span>
-            <span className="text-xs text-muted-foreground">{accessOpen ? "Hide" : "Show"}</span>
-          </button>
-          {accessOpen && (
-            <div className="overflow-x-auto border-t border-border">
-              <table className="w-full text-xs">
-                <thead className="bg-surface text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  <tr>
-                    <th className="px-3 py-2 text-left">Name</th>
-                    <th className="px-3 py-2 text-center">TalentDesk</th>
-                    <th className="px-3 py-2 text-center">Contract</th>
-                    <th className="px-3 py-2 text-center">NDA</th>
-                    <th className="px-3 py-2 text-center">BAA Required</th>
-                    <th className="px-3 py-2 text-center">Client Access</th>
-                    <th className="px-3 py-2 text-center">Slack</th>
-                    <th className="px-3 py-2 text-center">Folder</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {members.map((m) => (
-                    <tr key={m.id}>
-                      <td className="px-3 py-2 font-medium text-foreground">{m.name}</td>
-                      <td className="px-3 py-2 text-center">
-                        <Toggle
-                          on={m.talentdesk_status === "active"}
-                          onChange={(v) =>
-                            updateMember(m.id, { talentdesk_status: v ? "active" : "pending" })
-                          }
-                        />
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        <Toggle
-                          on={m.contract_status === "signed"}
-                          onChange={(v) =>
-                            updateMember(m.id, { contract_status: v ? "signed" : "pending" })
-                          }
-                        />
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        <Toggle
-                          on={m.nda_status === "signed"}
-                          onChange={(v) =>
-                            updateMember(m.id, { nda_status: v ? "signed" : "pending" })
-                          }
-                        />
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        <Toggle
-                          on={!!m.baa_required}
-                          onChange={(v) =>
-                            updateMember(m.id, {
-                              baa_required: v,
-                              baa_status: v ? "pending" : "not_required",
-                            } as any)
-                          }
-                        />
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        <Toggle
-                          on={!!m.client_system_access}
-                          onChange={(v) => updateMember(m.id, { client_system_access: v })}
-                        />
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        <Toggle
-                          on={!!m.slack_access}
-                          onChange={(v) => updateMember(m.id, { slack_access: v })}
-                        />
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        <Toggle
-                          on={!!m.folder_access}
-                          onChange={(v) => updateMember(m.id, { folder_access: v })}
-                        />
-                      </td>
-                    </tr>
+      {/* Column mapping */}
+      {headers.length > 0 && (
+        <div className="rounded-md border border-border bg-surface p-4">
+          <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Column Mapping
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {TRACKER_FIELDS.map((f) => (
+              <label key={f.key} className="space-y-1">
+                <div className="text-xs font-medium">{f.label}</div>
+                <select
+                  value={mapping[f.key]}
+                  onChange={(e) =>
+                    setMapping((m) => ({ ...m, [f.key]: e.target.value }))
+                  }
+                  className="w-full rounded border border-border bg-background px-2 py-1 text-xs"
+                >
+                  <option value="">— not mapped —</option>
+                  {headers.map((h) => (
+                    <option key={h} value={h}>
+                      {h}
+                    </option>
                   ))}
-                </tbody>
-              </table>
+                </select>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Preview */}
+      {previewRows.length > 0 && (
+        <div className="rounded-md border border-border bg-surface">
+          <div className="border-b border-border px-4 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Preview ({mappedRows.length} row{mappedRows.length === 1 ? "" : "s"})
+          </div>
+          <div className="max-h-80 overflow-auto">
+            <table className="w-full text-xs">
+              <thead className="bg-surface-hover sticky top-0">
+                <tr>
+                  {TRACKER_FIELDS.map((f) => (
+                    <th key={f.key} className="text-left px-2 py-1.5 font-semibold whitespace-nowrap">
+                      {f.label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {previewRows.map((row, i) => (
+                  <tr key={i} className="border-t border-border">
+                    {TRACKER_FIELDS.map((f) => (
+                      <td key={f.key} className="px-2 py-1.5 align-top whitespace-nowrap max-w-[200px] truncate">
+                        {row[f.key] != null ? String(row[f.key]) : ""}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {remainingRows > 0 && (
+            <div className="border-t border-border px-4 py-1.5 text-[11px] text-muted-foreground">
+              + {remainingRows} more row{remainingRows === 1 ? "" : "s"} (scroll to view)
             </div>
           )}
         </div>
       )}
 
-      {/* IRIS Suggestions */}
-      {(staffing.length > 0 || writing.length > 0) && (
-        <div
-          className="rounded-lg border"
-          style={{ borderColor: "rgba(201, 168, 76, 0.3)", backgroundColor: "rgba(31, 56, 100, 0.06)" }}
-        >
-          <button
-            type="button"
-            onClick={() => setSuggestionsOpen((v) => !v)}
-            className="w-full flex items-center justify-between px-4 py-3 text-left"
-          >
-            <span className="inline-flex items-center gap-2">
-              <Sparkles className="h-4 w-4" style={{ color: GOLD }} />
-              <span className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: GOLD }}>
-                IRIS Suggestions — Review these as you build the team
-              </span>
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {suggestionsOpen ? "Hide" : "Show"}
-            </span>
-          </button>
-          {suggestionsOpen && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-border/60 p-4">
-              <div>
-                <h4 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                  Suggested Staffing
-                </h4>
-                {staffing.length === 0 ? (
-                  <p className="text-xs italic text-muted-foreground">None</p>
-                ) : (
-                  <ul className="space-y-2 text-xs">
-                    {staffing.map((s, i) => (
-                      <li key={i} className="rounded border border-border/60 bg-background/40 p-2">
-                        <div className="font-semibold text-foreground">{s.role}</div>
-                        {s.reason && <div className="text-muted-foreground mt-0.5">{s.reason}</div>}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-              <div>
-                <h4 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                  Suggested Writing Assignments
-                </h4>
-                {writing.length === 0 ? (
-                  <p className="text-xs italic text-muted-foreground">None</p>
-                ) : (
-                  <ul className="space-y-2 text-xs">
-                    {writing.map((s, i) => (
-                      <li key={i} className="rounded border border-border/60 bg-background/40 p-2">
-                        <div className="font-semibold text-foreground">{s.section}</div>
-                        <div className="text-muted-foreground">{s.role}</div>
-                        {s.notes && <div className="text-muted-foreground mt-0.5">{s.notes}</div>}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="text-center">
+      {/* Actions */}
+      <div className="flex items-center justify-between pt-2">
         <button
           type="button"
-          onClick={onSkip}
-          className="text-xs text-muted-foreground underline hover:text-foreground"
+          onClick={handleSkip}
+          disabled={saving}
+          className="text-xs font-medium text-muted-foreground underline hover:text-foreground disabled:opacity-50"
         >
-          Skip — I'll add the team later
+          Skip — assign manually →
+        </button>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving || mappedRows.length === 0}
+          className="rounded-md px-5 py-2 text-sm font-bold uppercase tracking-wider shadow disabled:opacity-50"
+          style={{ backgroundColor: GOLD, color: NAVY }}
+        >
+          {saving ? "Saving…" : "Save Assignment Data →"}
         </button>
       </div>
     </div>
   );
 }
 
+
 function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
   return (
     <button
       type="button"
-      role="switch"
-      aria-checked={on}
-      onClick={() => onChange(!on)}
+      onClick={(e) => {
+        e.stopPropagation();
+        onChange(!on);
+      }}
       className="relative inline-flex h-5 w-9 items-center rounded-full transition"
       style={{ backgroundColor: on ? GOLD : "rgba(148,163,184,0.35)" }}
     >
