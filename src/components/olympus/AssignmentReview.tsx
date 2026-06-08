@@ -678,6 +678,64 @@ export default function AssignmentReview({
           onUpsertTeam={upsertTeamMember}
         />
       )}
+
+      {addOpen && (
+        <AddQuestionModal
+          sections={sections}
+          onClose={() => setAddOpen(false)}
+          onSubmit={async (form) => {
+            const { data: inserted, error: qErr } = await supabase
+              .from("questions")
+              .insert({
+                mission_id: missionId,
+                architecture_version: "v2",
+                status: "draft",
+                question_number: form.question_number || null,
+                question_name: form.question_name || null,
+                question_text: form.question_text || null,
+                section: form.section || null,
+                page_limit: form.page_limit,
+              } as never)
+              .select("id, question_number, question_name, question_text, section, subsection, page_limit, requirements, evaluation_criteria")
+              .single();
+            if (qErr || !inserted) {
+              toast.error(qErr?.message || "Could not add question");
+              return;
+            }
+            const newQ = inserted as any as Question;
+            const newAssignment: Assignment = {
+              ...emptyAssignment(missionId, newQ.id),
+              status: "unassigned",
+            };
+            const { error: aErr } = await supabase
+              .from("question_assignments")
+              .insert({ ...newAssignment } as never);
+            if (aErr) toast.error(aErr.message);
+
+            if (isLive) {
+              await supabase.from("mission_change_log").insert({
+                mission_id: missionId,
+                change_type: "question_added",
+                field_name: "question_number",
+                old_value: "",
+                new_value: String(newQ.question_number ?? newQ.question_name ?? newQ.id),
+                synced_to_atlas: false,
+              } as never);
+              if (missionStatus !== "Live with Pending Edits") {
+                await supabase
+                  .from("missions")
+                  .update({ mission_status: "Live with Pending Edits" } as never)
+                  .eq("id", missionId);
+                setMissionStatus("Live with Pending Edits");
+              }
+            }
+
+            setRows((rs) => [...rs, { question: newQ, assignment: newAssignment }]);
+            setAddOpen(false);
+            toast.success("Question added — assign it now");
+          }}
+        />
+      )}
     </div>
   );
 }
