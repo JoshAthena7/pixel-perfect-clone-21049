@@ -47,6 +47,8 @@ export function MissionBriefView({ missionId }: { missionId: string }) {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["mission-intelligence", missionId, "mission_brief"],
     queryFn: () => getFn({ data: { mission_id: missionId, layer: "mission_brief" } }),
+    refetchInterval: (q) => (regenerating || !q.state.data?.intelligence ? 5000 : false),
+    refetchOnWindowFocus: true,
   });
 
   if (isLoading) return <IntelligenceSkeleton label="Loading Mission Brief" />;

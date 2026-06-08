@@ -41,6 +41,8 @@ export function StrategicAssessmentView({ missionId }: { missionId: string }) {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["mission-intelligence", missionId, "strategic_assessment"],
     queryFn: () => getFn({ data: { mission_id: missionId, layer: "strategic_assessment" } }),
+    refetchInterval: (q) => (regenerating || !q.state.data?.intelligence ? 5000 : false),
+    refetchOnWindowFocus: true,
   });
 
   if (isLoading) return <IntelligenceSkeleton label="Loading Strategic Assessment" />;
