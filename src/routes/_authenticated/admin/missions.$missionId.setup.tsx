@@ -425,7 +425,8 @@ function SectionIdentity({ missionId, mission, refetch }: any) {
   async function save() {
     const { error } = await supabase.from("missions").update({
       name: form.name, client: form.client, program_type: form.program_type,
-      state: form.state, incumbent_name: form.incumbent_name,
+      state: form.state, state_agency: form.state_agency, incumbent_name: form.incumbent_name,
+      contract_value: form.contract_value,
       submission_date: form.submission_date || null, status: form.status,
     }).eq("id", missionId);
     if (error) return toast.error(error.message);
@@ -450,7 +451,9 @@ function SectionIdentity({ missionId, mission, refetch }: any) {
         <Field label="Client"><TextInput value={form.client ?? ""} onChange={(e) => setForm({ ...form, client: e.target.value })} /></Field>
         <Field label="Procurement Vehicle"><TextInput value={form.program_type ?? ""} onChange={(e) => setForm({ ...form, program_type: e.target.value })} placeholder="RFP, IDIQ, Sole Source…" /></Field>
         <Field label="State"><TextInput value={form.state ?? ""} onChange={(e) => setForm({ ...form, state: e.target.value })} /></Field>
+        <Field label="Issuing Agency"><TextInput value={form.state_agency ?? ""} onChange={(e) => setForm({ ...form, state_agency: e.target.value })} /></Field>
         <Field label="Prime Contractor"><TextInput value={form.incumbent_name ?? ""} onChange={(e) => setForm({ ...form, incumbent_name: e.target.value })} /></Field>
+        <Field label="Contract Value"><TextInput value={form.contract_value ?? ""} onChange={(e) => setForm({ ...form, contract_value: e.target.value })} placeholder="$ / estimated value" /></Field>
         <Field label="Submission Date"><TextInput type="date" value={form.submission_date ?? ""} onChange={(e) => setForm({ ...form, submission_date: e.target.value })} /></Field>
       </div>
       <div className="mt-5 flex justify-end">
