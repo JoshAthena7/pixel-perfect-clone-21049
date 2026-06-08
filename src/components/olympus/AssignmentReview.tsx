@@ -421,10 +421,10 @@ export default function AssignmentReview({
     try {
       const { error } = await supabase
         .from("missions")
-        .update({ wizard_step: 7 } as never)
+        .update({ wizard_step: nextWizardStep } as never)
         .eq("id", missionId);
       if (error) throw error;
-      toast.success("Assignments confirmed");
+      toast.success(showIntelligence ? "Intelligence saved" : "Assignments confirmed");
       onConfirm?.();
     } catch (e: any) {
       toast.error(e?.message || "Could not confirm");
