@@ -141,7 +141,7 @@ export default function AssignmentReview({
   const [confirming, setConfirming] = useState(false);
 
   const reload = async () => {
-    const [{ data: qData, error: qErr }, { data: aData }, { data: tData }] =
+    const [{ data: qData, error: qErr }, { data: aData }, { data: tData }, { data: iData }, { data: dData }] =
       await Promise.all([
         supabase
           .from("questions")
@@ -162,6 +162,17 @@ export default function AssignmentReview({
           .eq("mission_id", missionId)
           .eq("active", true)
           .order("name", { ascending: true }),
+        supabase
+          .from("question_intelligence")
+          .select(
+            "question_id, mission_id, win_themes, source_doc_refs, compliance_refs, best_practices, oracle_prompts, iris_recommendations, required_evidence",
+          )
+          .eq("mission_id", missionId),
+        supabase
+          .from("mission_documents")
+          .select("id, file_name, doc_type")
+          .eq("mission_id", missionId)
+          .order("file_name", { ascending: true }),
       ]);
 
     if (qErr) {
@@ -171,18 +182,27 @@ export default function AssignmentReview({
     }
 
     const aMap = new Map<string, Assignment>();
-    (aData ?? []).forEach((a: any) =>
-      aMap.set(a.question_id, a as Assignment),
-    );
+    (aData ?? []).forEach((a: any) => aMap.set(a.question_id, a as Assignment));
+
+    const iMap = new Map<string, IntelRow>();
+    (iData ?? []).forEach((i: any) => {
+      const norm: IntelRow = { question_id: i.question_id, mission_id: i.mission_id };
+      for (const f of INTEL_FIELDS) {
+        const v = i[f.key];
+        norm[f.key] = Array.isArray(v) ? (v as string[]) : [];
+      }
+      iMap.set(i.question_id, norm);
+    });
 
     const built: Row[] = (qData ?? []).map((q: any) => ({
       question: q as Question,
-      assignment:
-        aMap.get(q.id) ?? emptyAssignment(missionId, q.id),
+      assignment: aMap.get(q.id) ?? emptyAssignment(missionId, q.id),
     }));
 
     setRows(built);
     setTeam((tData ?? []) as TeamMember[]);
+    setIntelMap(iMap);
+    setMissionDocs((dData ?? []) as MissionDoc[]);
     setLoading(false);
   };
 
