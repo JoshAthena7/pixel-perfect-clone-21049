@@ -370,7 +370,7 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
             <Step9ReadinessReview
               missionId={missionId}
               onClose={onClose}
-              onGoToAssignments={(filter) => {
+              onGoToAssignments={(filter?: Record<string, string>) => {
                 onClose();
                 navigate({
                   to: "/admin/missions/$missionId",
