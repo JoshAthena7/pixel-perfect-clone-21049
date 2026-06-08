@@ -240,10 +240,10 @@ function WelcomePage() {
               style={{ background: "#C9922A" }}
             >
               {submitting
-                ? "Entering Atlas…"
+                ? "Entering ATLAS…"
                 : firstMission
                   ? "Start with the Journey Map"
-                  : "Enter Atlas"}
+                  : "Enter ATLAS"}
               <ArrowRight className="h-3.5 w-3.5" />
             </button>
             {firstMission && (

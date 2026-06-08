@@ -112,7 +112,7 @@ export function AtlasLoginPage() {
                 WebkitTextFillColor: "transparent",
               }}
             >
-              Powered by IRIS
+              Powered by IRIS™
             </span>
           </div>
         </div>
@@ -163,12 +163,15 @@ export function AtlasLoginPage() {
             className="w-full inline-flex items-center justify-center rounded-sm px-6 py-2.5 text-[11px] font-bold uppercase tracking-[0.3em] text-white shadow-[0_4px_24px_-8px_rgba(201,146,42,0.6)] transition hover:brightness-110 disabled:opacity-60"
             style={{ background: "#C9922A" }}
           >
-            {loading ? "Entering…" : "Enter Atlas"}
+            {loading ? "Entering…" : "Enter ATLAS"}
           </button>
         </form>
 
         <div className="text-center mt-6 text-[10px] uppercase tracking-[0.28em] text-amber-100/40">
           The operating environment for high stakes work
+        </div>
+        <div className="text-center mt-3 text-[9px] uppercase tracking-[0.32em] text-amber-100/30">
+          Athena Strategy Command
         </div>
       </div>
     </div>
