@@ -15,6 +15,7 @@ import { generateStrategicField, type StrategicFieldKey } from "@/lib/iris-strat
 import { irisPopulateSetupRecord } from "@/lib/iris-setup-autofill.functions";
 import { extractClientIntel } from "@/lib/iris-extractors/client-intel.functions";
 import { IrisAutofillBanner } from "@/components/admin/IrisAutofillBanner";
+import { IntelligenceVault } from "@/components/intelligence/IntelligenceVault";
 import { ImportSetupRecordCard } from "@/components/admin/ImportSetupRecordCard";
 import { SetupCompletenessMeter } from "@/components/admin/SetupCompletenessMeter";
 import { LaunchSequence } from "@/components/olympus/LaunchSequence";
@@ -31,9 +32,10 @@ export const Route = createFileRoute("/_authenticated/admin/missions/$missionId/
 /* ────────────────────────────────────────────────────────────
    Section spec — order matters; ids are anchor targets.
    ──────────────────────────────────────────────────────────── */
-type SectionId = "identity" | "team" | "inputs" | "strategy" | "evaluation" | "client" | "timeline" | "questions" | "governance" | "financials";
+type SectionId = "documents" | "identity" | "team" | "inputs" | "strategy" | "evaluation" | "client" | "timeline" | "questions" | "governance" | "financials";
 
 const SECTIONS: Array<{ id: SectionId; n: string; label: string; admin?: boolean }> = [
+  { id: "documents", n: "00", label: "Documents (Vault)" },
   { id: "identity", n: "01", label: "Mission Identity" },
   { id: "team", n: "02", label: "Team Assignment" },
   { id: "inputs", n: "03", label: "Monitoring Watchlist" },
@@ -43,7 +45,7 @@ const SECTIONS: Array<{ id: SectionId; n: string; label: string; admin?: boolean
   { id: "timeline", n: "06", label: "Deadlines & Decision Gates" },
   { id: "questions", n: "07", label: "Question Setup" },
   { id: "governance", n: "08", label: "Conflict & Ethics Review" },
-  
+
 ];
 
 function hasAgencyText(value: unknown) {
@@ -275,7 +277,7 @@ function MissionSetupRecord() {
 
           <ImportSetupRecordCard missionId={missionId} onImported={() => setup.refetch()} />
 
-
+          <SectionDocuments missionId={missionId} />
           <SectionIdentity missionId={missionId} mission={setup.mission} refetch={setup.refetch} />
           <SectionTeam missionId={missionId} members={setup.members} expertise={setup.expertise} refetch={setup.refetch} />
           <SectionInputs missionId={missionId} mission={setup.mission} docs={setup.docs} monitoring={setup.monitoring} refetch={setup.refetch} />
@@ -392,6 +394,7 @@ function useCompletion(setup: any): Record<SectionId, boolean> {
     // questions have a Writer assigned (minimum ownership coverage).
     const questionsComplete = qs.length > 0 && assignedCount >= Math.max(1, Math.ceil(qs.length / 2));
     return {
+      documents: (setup.docs?.length ?? 0) > 0 || (setup.missionDocs?.length ?? 0) > 0,
       identity: !!(setup.mission?.name && setup.mission?.client && setup.mission?.status),
       team: (setup.members?.length ?? 0) > 0,
       inputs: (setup.docs?.length ?? 0) > 0 || (setup.monitoring?.length ?? 0) > 0,
@@ -2157,3 +2160,20 @@ function SectionEvaluation({ missionId, criteria, questions, refetch }: any) {
 }
 
 
+
+function SectionDocuments({ missionId }: { missionId: string }) {
+  return (
+    <section id="documents" className="scroll-mt-24">
+      <div className="mb-4">
+        <div className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground font-mono">00</div>
+        <h2 className="mt-1 text-xl font-light text-foreground">Documents (Vault)</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Upload the RFP, amendments, Q&amp;A, and reference materials. Uploads here feed the auto-extractors that populate every section below.
+        </p>
+      </div>
+      <div className="rounded-lg border border-border bg-surface/30 p-4">
+        <IntelligenceVault missionId={missionId} />
+      </div>
+    </section>
+  );
+}
