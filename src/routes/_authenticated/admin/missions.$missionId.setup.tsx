@@ -763,8 +763,52 @@ function MonitoringWatchlist({ missionId, mission, sources, refetch }: any) {
       {bulkOpen && (
         <div className="mt-3 rounded border border-border bg-background p-3 space-y-2">
           <div className="text-[11px] text-muted-foreground">
-            Paste one URL per line. Optionally prefix with a label and comma:
+            Paste one URL per line, or upload a CSV. Optionally prefix with a label and comma:
             <span className="font-mono"> Texas HHSC, https://hhs.texas.gov/news</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] cursor-pointer hover:bg-surface-hover">
+              <Plus className="h-3 w-3" /> Upload CSV
+              <input
+                type="file"
+                accept=".csv,text/csv"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  try {
+                    const text = await file.text();
+                    // Parse simple CSV: split lines, then split each on first comma.
+                    // Treats first column as label, second as URL (or single col as URL).
+                    const rows = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+                    const out: string[] = [];
+                    for (let i = 0; i < rows.length; i++) {
+                      const raw = rows[i];
+                      // Skip likely header row
+                      if (i === 0 && /^(label|name|title)?[,\s]*url\b/i.test(raw)) continue;
+                      // Strip surrounding quotes from CSV fields
+                      const cells = raw.split(",").map((c) => c.trim().replace(/^"(.*)"$/, "$1"));
+                      const urlCell = cells.find((c) => /^https?:\/\//i.test(c));
+                      if (!urlCell) continue;
+                      const labelCell = cells.find((c) => c !== urlCell && c.length > 0);
+                      out.push(labelCell ? `${labelCell}, ${urlCell}` : urlCell);
+                    }
+                    if (out.length === 0) {
+                      toast.error("No URLs found in CSV.");
+                    } else {
+                      setBulkText((prev) => (prev.trim() ? prev.trim() + "\n" : "") + out.join("\n"));
+                      toast.success(`Loaded ${out.length} row${out.length === 1 ? "" : "s"} from CSV.`);
+                    }
+                  } catch (err) {
+                    console.error(err);
+                    toast.error("Could not read CSV file.");
+                  } finally {
+                    e.target.value = "";
+                  }
+                }}
+              />
+            </label>
+            <span className="text-[10px] text-muted-foreground">CSV with columns like <span className="font-mono">label,url</span> or just <span className="font-mono">url</span></span>
           </div>
           <textarea
             value={bulkText}
