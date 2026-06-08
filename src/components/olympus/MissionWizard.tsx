@@ -2274,7 +2274,7 @@ function Step6Readiness({
   const [loading, setLoading] = useState(true);
   const [row, setRow] = useState<ReadinessRow>(EMPTY_READINESS);
   const [missionName, setMissionName] = useState("");
-  const [openItems, setOpenItems] = useState({ contracts: 0, ndas: 0, talentdesk: 0 });
+  const [openItems, setOpenItems] = useState({ contracts: 0, ndas: 0, talentdesk: 0, baas: 0 });
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [launching, setLaunching] = useState(false);
   const [launchStage, setLaunchStage] = useState<string>("");
