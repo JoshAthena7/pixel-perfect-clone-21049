@@ -14,9 +14,7 @@ export type SetupFieldKey =
   | "program_goals"
   | "key_requirements"
   | "win_themes"
-  | "evaluation_criteria"
-  | "population_served"
-  | "geographic_scope";
+  | "evaluation_criteria";
 
 export const SETUP_FIELDS: { key: SetupFieldKey; label: string }[] = [
   { key: "client", label: "Client" },
@@ -32,8 +30,6 @@ export const SETUP_FIELDS: { key: SetupFieldKey; label: string }[] = [
   { key: "key_requirements", label: "Key requirements" },
   { key: "win_themes", label: "Win themes" },
   { key: "evaluation_criteria", label: "Evaluation criteria" },
-  { key: "population_served", label: "Population served" },
-  { key: "geographic_scope", label: "Geographic scope" },
 ];
 
 export type SetupCompleteness = {
@@ -55,9 +51,6 @@ export function computeSetupCompleteness(input: {
   evaluationCount: number;
 }): SetupCompleteness {
   const m = input.mission ?? {};
-  const suggested = (m.iris_setup_suggested_fields ?? {}) as Record<string, any>;
-  const populationSuggested = suggested.population_served?.value;
-  const geographicSuggested = suggested.geographic_scope?.value;
 
   const checks: Record<SetupFieldKey, boolean> = {
     client: hasText(m.client),
@@ -73,8 +66,6 @@ export function computeSetupCompleteness(input: {
     key_requirements: hasArray(m.key_requirements),
     win_themes: hasArray(m.win_themes),
     evaluation_criteria: input.evaluationCount > 0,
-    population_served: hasText(populationSuggested),
-    geographic_scope: hasText(geographicSuggested),
   };
 
   const missing = SETUP_FIELDS.filter((f) => !checks[f.key]);
