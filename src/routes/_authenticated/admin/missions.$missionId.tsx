@@ -1,14 +1,25 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, FileText, Calendar, ListChecks, Brain } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, Brain, FileText, ListChecks, LayoutGrid, Sliders } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { FastReportsMenu } from "@/components/olympus/FastReportsMenu";
+
+type Tab = "overview" | "sections" | "intelligence" | "requirements" | "setup";
 
 export const Route = createFileRoute("/_authenticated/admin/missions/$missionId")({
-  component: SingleMissionView,
+  validateSearch: (s: Record<string, unknown>): { tab?: Tab } => {
+    const t = s.tab;
+    if (t === "overview" || t === "sections" || t === "intelligence" || t === "requirements" || t === "setup") return { tab: t };
+    return {};
+  },
+  component: MissionDetail,
 });
 
-function SingleMissionView() {
+function MissionDetail() {
   const { missionId } = Route.useParams();
+  const { tab = "overview" } = Route.useSearch();
+  const navigate = useNavigate();
 
   const { data: mission, isLoading } = useQuery({
     queryKey: ["olympus-mission", missionId],
@@ -23,10 +34,7 @@ function SingleMissionView() {
     },
   });
 
-  if (isLoading) {
-    return <div className="p-8 text-sm text-muted-foreground">Loading mission…</div>;
-  }
-
+  if (isLoading) return <div className="p-8 text-sm text-muted-foreground">Loading mission…</div>;
   if (!mission) {
     return (
       <div className="p-8">
@@ -38,241 +46,334 @@ function SingleMissionView() {
     );
   }
 
+  const setTab = (t: Tab) =>
+    navigate({ to: "/admin/missions/$missionId", params: { missionId }, search: { tab: t } });
+
   return (
     <div className="flex-1 min-w-0">
       <header className="flex h-14 items-center justify-between border-b border-border bg-surface/40 px-5">
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <Link to="/admin" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-3.5 w-3.5" /> All Missions
           </Link>
           <span className="text-muted-foreground/40">·</span>
-          <h1 className="text-sm font-semibold text-foreground truncate">{mission.name}</h1>
-          {mission.client && (
-            <span className="text-xs text-muted-foreground">{mission.client}</span>
+          <h1 className="truncate text-sm font-semibold text-foreground">{mission.name}</h1>
+          {mission.client && <span className="text-xs text-muted-foreground">{mission.client}</span>}
+          {mission.status && (
+            <span className="rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] uppercase tracking-wider">
+              {mission.status}
+            </span>
           )}
         </div>
-        <Link
-          to="/admin/missions/$missionId/setup"
-          params={{ missionId }}
-          className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-200 hover:bg-amber-500/20"
-        >
-          Open Setup Record
-        </Link>
+        <FastReportsMenu />
       </header>
 
-      <div className="grid gap-4 p-5 lg:grid-cols-2">
-        <IrisPanel missionId={missionId} />
-        <SectionHealthPanel missionId={missionId} />
-        <RequirementsPanel missionId={missionId} />
-        <DeadlinesPanel submissionDate={mission.submission_date} />
+      <div className="border-b border-border bg-surface/20 px-5">
+        <nav className="flex gap-1 overflow-x-auto">
+          <TabBtn active={tab === "overview"} onClick={() => setTab("overview")} icon={<LayoutGrid className="h-3.5 w-3.5" />}>Overview</TabBtn>
+          <TabBtn active={tab === "sections"} onClick={() => setTab("sections")} icon={<FileText className="h-3.5 w-3.5" />}>Sections</TabBtn>
+          <TabBtn active={tab === "intelligence"} onClick={() => setTab("intelligence")} icon={<Brain className="h-3.5 w-3.5" />}>Intelligence</TabBtn>
+          <TabBtn active={tab === "requirements"} onClick={() => setTab("requirements")} icon={<ListChecks className="h-3.5 w-3.5" />}>Requirements</TabBtn>
+          <TabBtn active={tab === "setup"} onClick={() => setTab("setup")} icon={<Sliders className="h-3.5 w-3.5" />}>Setup Record</TabBtn>
+        </nav>
+      </div>
+
+      <div className="p-5">
+        {tab === "overview" && <OverviewTab missionId={missionId} mission={mission} />}
+        {tab === "sections" && <SectionsTab missionId={missionId} />}
+        {tab === "intelligence" && <IntelligenceTab missionId={missionId} />}
+        {tab === "requirements" && <RequirementsTab missionId={missionId} />}
+        {tab === "setup" && <SetupTab missionId={missionId} />}
       </div>
     </div>
   );
 }
 
-/* ─────────── Panel A: IRIS ─────────── */
-
-function IrisPanel({ missionId }: { missionId: string }) {
-  const { data, isLoading } = useQuery({
-    queryKey: ["olympus-iris", missionId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("mission_intelligence")
-        .select("*")
-        .eq("mission_id", missionId);
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
+function TabBtn({ active, onClick, icon, children }: { active: boolean; onClick: () => void; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <Panel icon={<Brain className="h-4 w-4" />} title="IRIS Intelligence">
-      {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
-      ) : !data || data.length === 0 ? (
-        <p className="text-sm text-muted-foreground">IRIS has not run on this mission.</p>
-      ) : (
-        <ul className="space-y-2">
-          {data.map((row: any) => (
-            <li key={row.id} className="flex items-center justify-between border-b border-border/60 pb-2 last:border-0">
-              <div>
-                <div className="text-sm font-medium text-foreground">
-                  {row.layer ?? row.kind ?? row.type ?? "Layer"}
-                </div>
-                <div className="text-[11px] text-muted-foreground">
-                  Generated · {formatDateTime(row.created_at ?? row.updated_at)}
-                </div>
-              </div>
-              <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] uppercase text-emerald-300">
-                Ready
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </Panel>
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2.5 text-xs font-medium transition-colors ${
+        active ? "border-[color:var(--athena-gold)] text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      {icon}
+      {children}
+    </button>
   );
 }
 
-/* ─────────── Panel B: Section Health ─────────── */
+/* ─── Overview ─── */
+function OverviewTab({ missionId, mission }: { missionId: string; mission: any }) {
+  const { data: sections = [] } = useQuery({
+    queryKey: ["ov-sections", missionId],
+    queryFn: async () => {
+      const { data } = await supabase.from("question_records").select("id,health,status").eq("mission_id", missionId);
+      return data ?? [];
+    },
+  });
+  const { data: reqs = [] } = useQuery({
+    queryKey: ["ov-reqs", missionId],
+    queryFn: async () => {
+      const { data } = await supabase.from("compliance_requirements").select("id,severity").eq("mission_id", missionId);
+      return data ?? [];
+    },
+  });
+  const { data: latestIntel } = useQuery({
+    queryKey: ["ov-intel", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_intelligence")
+        .select("layer,content,generated_at")
+        .eq("mission_id", missionId)
+        .order("generated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+  });
 
-function SectionHealthPanel({ missionId }: { missionId: string }) {
-  const { data, isLoading } = useQuery({
-    queryKey: ["olympus-sections", missionId],
+  const complete = sections.filter((s: any) => s.status === "complete" || s.health === "green").length;
+  const totalReqs = reqs.length;
+  const greenReqs = reqs.filter((r: any) => (r.severity ?? "").toLowerCase() === "standard").length;
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-3">
+      <div className="space-y-3 lg:col-span-2">
+        <div className="grid grid-cols-2 gap-3">
+          <StatCard label="Sections Complete" value={`${complete} / ${sections.length}`} />
+          <StatCard label="Requirements Coverage" value={totalReqs ? `${greenReqs} / ${totalReqs}` : "—"} />
+          <StatCard label="Submission Date" value={formatDate(mission.submission_date)} sub={mission.submission_date ? countdown(mission.submission_date) : undefined} />
+          <StatCard label="IRIS Last Run" value={latestIntel?.generated_at ? formatDate(latestIntel.generated_at) : "Never"} />
+        </div>
+      </div>
+      <section className="rounded-lg border border-border bg-surface/40 p-4">
+        <header className="mb-3 flex items-center gap-2">
+          <Brain className="h-4 w-4 text-[color:var(--athena-gold)]" />
+          <h2 className="text-[11px] font-extrabold uppercase tracking-[0.28em]">IRIS Next Action</h2>
+        </header>
+        {latestIntel ? (
+          <div>
+            <div className="mb-2 inline-flex rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] uppercase tracking-wider">
+              {latestIntel.layer}
+            </div>
+            <p className="text-sm text-muted-foreground line-clamp-6">
+              {summarize(latestIntel.content)}
+            </p>
+          </div>
+        ) : (
+          <div>
+            <p className="text-sm text-muted-foreground">IRIS has not analyzed this mission.</p>
+            <Link to="/admin/intel-engine" className="mt-3 inline-flex text-xs font-medium text-amber-300 hover:underline">
+              Run IRIS Engine →
+            </Link>
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div className="rounded-lg border border-border bg-surface/40 p-4">
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="mt-1 text-xl font-semibold text-foreground">{value}</div>
+      {sub && <div className="mt-0.5 text-xs text-muted-foreground">{sub}</div>}
+    </div>
+  );
+}
+
+/* ─── Sections ─── */
+function SectionsTab({ missionId }: { missionId: string }) {
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["tab-sections", missionId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("question_records")
-        .select("id,section_number,title,health,pens_down_date,assigned_writer_id")
+        .select("id,section_number,title,health,status,pens_down_date,assigned_writer_id,assigned_sme_id")
         .eq("mission_id", missionId)
         .order("sort_order", { ascending: true });
       if (error) throw error;
       const rows = data ?? [];
-      const writerIds = Array.from(new Set(rows.map((r: any) => r.assigned_writer_id).filter(Boolean)));
-      let writers: Record<string, string> = {};
-      if (writerIds.length > 0) {
-        const { data: ps } = await supabase
-          .from("profiles")
-          .select("id,display_name,email")
-          .in("id", writerIds);
-        (ps ?? []).forEach((p: any) => {
-          writers[p.id] = p.display_name || p.email || "—";
-        });
+      const ids = Array.from(new Set([...rows.map((r: any) => r.assigned_writer_id), ...rows.map((r: any) => r.assigned_sme_id)].filter(Boolean)));
+      const profMap: Record<string, string> = {};
+      if (ids.length) {
+        const { data: ps } = await supabase.from("profiles").select("id,display_name,email").in("id", ids);
+        (ps ?? []).forEach((p: any) => { profMap[p.id] = p.display_name || p.email || "—"; });
       }
-      return rows.map((r: any) => ({ ...r, writer: writers[r.assigned_writer_id] ?? "Unassigned" }));
+      return rows.map((r: any) => ({
+        ...r,
+        writer: r.assigned_writer_id ? profMap[r.assigned_writer_id] : null,
+        sme: r.assigned_sme_id ? profMap[r.assigned_sme_id] : null,
+      }));
     },
   });
 
+  if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
+  if (data.length === 0) return <Empty>No sections yet. Complete the Setup Record first.</Empty>;
+
+  const soon = (d: string | null) => {
+    if (!d) return false;
+    const ms = new Date(d).getTime() - Date.now();
+    return ms > 0 && ms < 3 * 86400000;
+  };
+
   return (
-    <Panel icon={<FileText className="h-4 w-4" />} title="Section Health">
-      {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
-      ) : !data || data.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No sections yet.</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              <tr>
-                <th className="px-2 py-1.5 text-left font-medium">Section</th>
-                <th className="px-2 py-1.5 text-left font-medium">Writer</th>
-                <th className="px-2 py-1.5 text-left font-medium">Health</th>
-                <th className="px-2 py-1.5 text-left font-medium">Deadline</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((s: any) => (
-                <tr key={s.id} className="border-t border-border/60">
-                  <td className="px-2 py-1.5">
-                    <div className="text-foreground">{s.section_number ?? "—"}</div>
-                    <div className="text-[11px] text-muted-foreground truncate max-w-[18rem]">{s.title}</div>
-                  </td>
-                  <td className="px-2 py-1.5">{s.writer}</td>
-                  <td className="px-2 py-1.5"><HealthDot value={s.health} /></td>
-                  <td className="px-2 py-1.5 text-muted-foreground">{formatDate(s.pens_down_date)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </Panel>
+    <div className="rounded-lg border border-border bg-surface/40 overflow-hidden">
+      <table className="w-full text-sm">
+        <thead className="bg-surface/60 text-[10px] uppercase tracking-wider text-muted-foreground">
+          <tr>
+            <Th>Section</Th><Th>Writer</Th><Th>SME</Th><Th>Due</Th><Th>Health</Th><Th>Status</Th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((s: any) => (
+            <tr key={s.id} className="border-t border-border/60">
+              <Td>
+                <div className="text-foreground">{s.section_number ?? "—"}</div>
+                <div className="max-w-[20rem] truncate text-[11px] text-muted-foreground">{s.title}</div>
+              </Td>
+              <Td>{s.writer ?? <span className="rounded bg-rose-500/15 px-1.5 py-0.5 text-[10px] font-medium text-rose-300">Unassigned</span>}</Td>
+              <Td>{s.sme ?? <span className="text-muted-foreground">—</span>}</Td>
+              <Td className={soon(s.pens_down_date) ? "text-amber-300" : "text-muted-foreground"}>{formatDate(s.pens_down_date)}</Td>
+              <Td><HealthDot value={s.health} /></Td>
+              <Td className="text-muted-foreground">{s.status ?? "—"}</Td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
-/* ─────────── Panel C: Requirements ─────────── */
+/* ─── Intelligence ─── */
+function IntelligenceTab({ missionId }: { missionId: string }) {
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["tab-intel", missionId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("mission_intelligence")
+        .select("id,layer,content,generated_at")
+        .eq("mission_id", missionId)
+        .order("generated_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const [open, setOpen] = useState<Record<string, boolean>>({});
 
-function RequirementsPanel({ missionId }: { missionId: string }) {
-  const { data, isLoading } = useQuery({
-    queryKey: ["olympus-reqs", missionId],
+  if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
+  if (data.length === 0) return <Empty>IRIS has not generated intelligence for this mission.</Empty>;
+
+  // Most recent per layer
+  const byLayer = new Map<string, any>();
+  for (const r of data) if (!byLayer.has(r.layer)) byLayer.set(r.layer, r);
+
+  return (
+    <div className="space-y-3">
+      {Array.from(byLayer.values()).map((r: any) => {
+        const isOpen = !!open[r.id];
+        const text = summarize(r.content);
+        return (
+          <div key={r.id} className="rounded-lg border border-border bg-surface/40 p-4">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] uppercase tracking-wider">{r.layer}</span>
+              <span className="text-[11px] text-muted-foreground">{formatDateTime(r.generated_at)}</span>
+            </div>
+            <p className={`text-sm text-foreground/80 whitespace-pre-wrap ${isOpen ? "" : "line-clamp-4"}`}>{text}</p>
+            <button onClick={() => setOpen((s) => ({ ...s, [r.id]: !isOpen }))} className="mt-2 text-xs text-amber-300 hover:underline">
+              {isOpen ? "Collapse" : "Expand"}
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ─── Requirements ─── */
+function RequirementsTab({ missionId }: { missionId: string }) {
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["tab-reqs", missionId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("compliance_requirements")
-        .select("id,severity")
-        .eq("mission_id", missionId);
+        .select("id,requirement_text,plain_language,severity,section_reference,is_federal")
+        .eq("mission_id", missionId)
+        .order("severity", { ascending: true });
       if (error) throw error;
       return data ?? [];
     },
   });
 
-  const counts = (data ?? []).reduce(
-    (acc: any, r: any) => {
-      const sev = (r.severity ?? "").toLowerCase();
-      if (sev === "critical" || sev === "red") acc.red += 1;
-      else if (sev === "important" || sev === "yellow") acc.yellow += 1;
-      else acc.green += 1;
-      return acc;
-    },
-    { red: 0, yellow: 0, green: 0 },
-  );
+  if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
+  if (data.length === 0) return <Empty>No requirements extracted. Run IRIS to extract requirements.</Empty>;
+
+  const sevColor = (sev: string) => {
+    const s = sev?.toLowerCase();
+    if (s === "critical") return "bg-rose-500";
+    if (s === "important") return "bg-amber-500";
+    return "bg-emerald-500";
+  };
 
   return (
-    <Panel icon={<ListChecks className="h-4 w-4" />} title="Requirements">
-      {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
-      ) : !data || data.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No requirements extracted.</p>
-      ) : (
-        <div className="grid grid-cols-4 gap-3">
-          <Stat label="Total" value={data.length} />
-          <Stat label="Green" value={counts.green} dotClass="bg-emerald-500" />
-          <Stat label="Yellow" value={counts.yellow} dotClass="bg-amber-500" />
-          <Stat label="Red" value={counts.red} dotClass="bg-rose-500" />
-        </div>
-      )}
-    </Panel>
-  );
-}
-
-/* ─────────── Panel D: Deadlines ─────────── */
-
-function DeadlinesPanel({ submissionDate }: { submissionDate: string | null }) {
-  return (
-    <Panel icon={<Calendar className="h-4 w-4" />} title="Deadlines">
-      {!submissionDate ? (
-        <p className="text-sm text-muted-foreground">No submission date set.</p>
-      ) : (
-        <div>
-          <div className="text-2xl font-semibold text-foreground">{formatDate(submissionDate)}</div>
-          <div className="mt-1 text-sm text-muted-foreground">{countdown(submissionDate)}</div>
-        </div>
-      )}
-    </Panel>
-  );
-}
-
-/* ─────────── Shared ─────────── */
-
-function Panel({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
-  return (
-    <section className="rounded-lg border border-border bg-surface/40 p-4">
-      <header className="mb-3 flex items-center gap-2">
-        <span className="text-[color:var(--athena-gold)]">{icon}</span>
-        <h2 className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-foreground">{title}</h2>
-      </header>
-      {children}
-    </section>
-  );
-}
-
-function Stat({ label, value, dotClass }: { label: string; value: number; dotClass?: string }) {
-  return (
-    <div className="rounded-md border border-border bg-surface p-3">
-      <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
-        {dotClass && <span className={`h-1.5 w-1.5 rounded-full ${dotClass}`} />}
-        {label}
+    <div className="space-y-2">
+      <div className="rounded-lg border border-border bg-surface/40 p-3 text-sm text-muted-foreground">
+        {data.length} requirement{data.length === 1 ? "" : "s"} extracted.
       </div>
-      <div className="mt-1 text-xl font-semibold text-foreground">{value}</div>
+      <div className="rounded-lg border border-border bg-surface/40 overflow-hidden">
+        <ul className="divide-y divide-border/60">
+          {data.map((r: any) => (
+            <li key={r.id} className="flex items-start gap-3 px-4 py-3">
+              <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${sevColor(r.severity)}`} />
+              <div className="min-w-0 flex-1">
+                <div className="text-sm text-foreground">{r.plain_language || r.requirement_text}</div>
+                <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                  {r.section_reference && <span>§ {r.section_reference}</span>}
+                  <span className="uppercase tracking-wider">{r.severity}</span>
+                  {r.is_federal && <span className="rounded border border-border px-1 py-0.5">Federal</span>}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
 
+/* ─── Setup ─── */
+function SetupTab({ missionId }: { missionId: string }) {
+  return (
+    <div className="rounded-lg border border-border bg-surface/40 p-6">
+      <p className="text-sm text-muted-foreground">
+        The full Setup Record editor lives on its own page.
+      </p>
+      <Link
+        to="/admin/missions/$missionId/setup"
+        params={{ missionId }}
+        className="mt-4 inline-flex rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-200 hover:bg-amber-500/20"
+      >
+        Open Setup Record →
+      </Link>
+    </div>
+  );
+}
+
+/* ─── Shared ─── */
+function Th({ children }: { children: React.ReactNode }) {
+  return <th className="px-4 py-2.5 text-left font-medium">{children}</th>;
+}
+function Td({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <td className={`px-4 py-2.5 align-middle ${className}`}>{children}</td>;
+}
+function Empty({ children }: { children: React.ReactNode }) {
+  return <div className="rounded-lg border border-dashed border-border bg-surface/20 p-10 text-center text-sm text-muted-foreground">{children}</div>;
+}
 function HealthDot({ value }: { value: string | null }) {
   const v = (value ?? "").toLowerCase();
-  const color =
-    v === "green" ? "bg-emerald-500"
-    : v === "yellow" ? "bg-amber-500"
-    : v === "red" ? "bg-rose-500"
-    : "bg-muted-foreground/40";
+  const color = v === "green" ? "bg-emerald-500" : v === "yellow" ? "bg-amber-500" : v === "red" ? "bg-rose-500" : "bg-muted-foreground/40";
   return (
     <span className="inline-flex items-center gap-2">
       <span className={`h-2 w-2 rounded-full ${color}`} />
@@ -280,23 +381,31 @@ function HealthDot({ value }: { value: string | null }) {
     </span>
   );
 }
-
 function formatDate(iso: string | null) {
   if (!iso) return "—";
-  try {
-    return new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-  } catch { return iso; }
+  try { return new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }); } catch { return iso; }
 }
-
 function formatDateTime(iso: string | null) {
   if (!iso) return "—";
   try { return new Date(iso).toLocaleString(); } catch { return iso; }
 }
-
 function countdown(iso: string) {
   const ms = new Date(iso).getTime() - Date.now();
-  const days = Math.ceil(ms / (1000 * 60 * 60 * 24));
+  const days = Math.ceil(ms / 86400000);
   if (days < 0) return `${Math.abs(days)} days past`;
   if (days === 0) return "Today";
-  return `${days} days remaining`;
+  return `in ${days} days`;
+}
+function summarize(content: any): string {
+  if (!content) return "";
+  if (typeof content === "string") return content.slice(0, 600);
+  if (typeof content === "object") {
+    // Try common shapes
+    const c: any = content;
+    if (typeof c.summary === "string") return c.summary;
+    if (typeof c.text === "string") return c.text;
+    if (typeof c.body === "string") return c.body;
+    try { return JSON.stringify(content, null, 2).slice(0, 600); } catch { return ""; }
+  }
+  return String(content);
 }

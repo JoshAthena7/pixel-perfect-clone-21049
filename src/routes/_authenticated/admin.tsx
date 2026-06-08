@@ -1,7 +1,7 @@
 import {
   createFileRoute, Outlet, Link, useRouterState,
 } from "@tanstack/react-router";
-import { LayoutGrid, Brain, Zap } from "lucide-react";
+import { LayoutGrid, Brain, Zap, Settings, Home } from "lucide-react";
 
 import { useIsAdmin } from "@/hooks/useAccess";
 import { useRedirectIfBlocked } from "@/hooks/useRedirectIfBlocked";
@@ -46,12 +46,20 @@ function AdminSidebar() {
       </div>
       <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
         <NavItem to="/admin" active={isActive("/admin", true) || path.startsWith("/admin/missions")} icon={<LayoutGrid size={15} strokeWidth={1.5} />}>
-          Missions
+          Mission Control
         </NavItem>
         <NavItem to="/admin/intel-engine" active={isActive("/admin/intel-engine")} icon={<Brain size={15} strokeWidth={1.5} />}>
-          Intel Engine
+          IRIS Engine
+        </NavItem>
+        <NavItem to="/admin/settings" active={isActive("/admin/settings")} icon={<Settings size={15} strokeWidth={1.5} />}>
+          Settings
         </NavItem>
       </nav>
+      <div className="border-t border-border px-2 py-3">
+        <NavItem to="/" active={false} icon={<Home size={15} strokeWidth={1.5} />}>
+          Atlas Home
+        </NavItem>
+      </div>
     </aside>
   );
 }
