@@ -1382,7 +1382,7 @@ function Step4QuestionReconciliation({
                             </label>
                             <Input
                               value={q.question_number ?? ""}
-                              onChange={(v) => updateRow(q.id, { question_number: v })}
+                              onChange={(v) => commitField(q.id, { question_number: v })}
                               onBlur={() =>
                                 persistField(q.id, { question_number: q.question_number })
                               }
@@ -1394,7 +1394,7 @@ function Step4QuestionReconciliation({
                             </label>
                             <Input
                               value={q.question_name ?? ""}
-                              onChange={(v) => updateRow(q.id, { question_name: v })}
+                              onChange={(v) => commitField(q.id, { question_name: v })}
                               onBlur={() =>
                                 persistField(q.id, { question_name: q.question_name })
                               }
@@ -1407,8 +1407,7 @@ function Step4QuestionReconciliation({
                             <input
                               list={`sections-${q.id}`}
                               value={q.section ?? ""}
-                              onChange={(e) => updateRow(q.id, { section: e.target.value })}
-                              onBlur={() => persistField(q.id, { section: q.section })}
+                              onChange={(e) => commitField(q.id, { section: e.target.value })}
                               className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs"
                             />
                             <datalist id={`sections-${q.id}`}>
@@ -1425,11 +1424,10 @@ function Step4QuestionReconciliation({
                               type="number"
                               value={q.page_limit ?? ""}
                               onChange={(e) =>
-                                updateRow(q.id, {
+                                commitField(q.id, {
                                   page_limit: e.target.value === "" ? null : Number(e.target.value),
                                 })
                               }
-                              onBlur={() => persistField(q.id, { page_limit: q.page_limit })}
                               className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs"
                             />
                           </div>
@@ -1447,7 +1445,7 @@ function Step4QuestionReconciliation({
                             {expanded && (
                               <Textarea
                                 value={q.question_text ?? ""}
-                                onChange={(v) => updateRow(q.id, { question_text: v })}
+                                onChange={(v) => commitField(q.id, { question_text: v })}
                                 onBlur={() =>
                                   persistField(q.id, { question_text: q.question_text })
                                 }
@@ -1462,8 +1460,7 @@ function Step4QuestionReconciliation({
                             </label>
                             <Input
                               value={q.admin_notes ?? ""}
-                              onChange={(v) => updateRow(q.id, { admin_notes: v })}
-                              onBlur={() => persistField(q.id, { admin_notes: q.admin_notes })}
+                              onChange={(v) => commitField(q.id, { admin_notes: v })}
                             />
                           </div>
 
