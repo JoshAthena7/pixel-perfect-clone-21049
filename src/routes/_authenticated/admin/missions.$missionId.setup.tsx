@@ -394,6 +394,7 @@ function useCompletion(setup: any): Record<SectionId, boolean> {
     // questions have a Writer assigned (minimum ownership coverage).
     const questionsComplete = qs.length > 0 && assignedCount >= Math.max(1, Math.ceil(qs.length / 2));
     return {
+      documents: (setup.docs?.length ?? 0) > 0 || (setup.missionDocs?.length ?? 0) > 0,
       identity: !!(setup.mission?.name && setup.mission?.client && setup.mission?.status),
       team: (setup.members?.length ?? 0) > 0,
       inputs: (setup.docs?.length ?? 0) > 0 || (setup.monitoring?.length ?? 0) > 0,
