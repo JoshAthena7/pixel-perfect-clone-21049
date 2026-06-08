@@ -13,7 +13,7 @@ type Tab = "assignments" | "overview" | "sections" | "intelligence" | "requireme
 export const Route = createFileRoute("/_authenticated/admin/missions/$missionId")({
   validateSearch: (s: Record<string, unknown>): { tab?: Tab } => {
     const t = s.tab;
-    if (t === "overview" || t === "sections" || t === "intelligence" || t === "requirements" || t === "setup" || t === "oversight" || t === "closeout") return { tab: t };
+    if (t === "assignments" || t === "overview" || t === "sections" || t === "intelligence" || t === "requirements" || t === "setup" || t === "oversight" || t === "closeout") return { tab: t };
     return {};
   },
   component: MissionDetail,
