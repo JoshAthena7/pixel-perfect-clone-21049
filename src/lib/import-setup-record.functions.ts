@@ -34,6 +34,12 @@ Return ONLY valid JSON matching this exact shape — no prose, no markdown, no c
   "client_priorities": string[],        // what the client/agency cares about most (short phrases)
   "risks": string[],                    // capture/competitive risks (short phrases)
   "focus_areas": string[],              // sensitivities / focus areas (short phrases)
+  "key_contacts": string[],             // contracting officer / POC / "Name — Title" lines from cover page
+  "agency_stakeholders": string[],      // named stakeholders on the agency side
+  "decision_makers": string[],          // named decision makers on the agency side
+  "relationship_owners": string[],      // anyone owning the relationship (often blank in an RFP)
+  "political_considerations": string|null,
+  "meeting_cadence": string|null,
   "sensitivities_note": string|null,    // free-text: topics/terms IRIS should treat carefully
   "language_guidance": string|null,     // free-text: tone, voice, phrasing rules
   "things_to_avoid": string|null,       // free-text: words/positions/claims to avoid
@@ -61,6 +67,12 @@ type Parsed = {
   client_priorities: string[];
   risks: string[];
   focus_areas: string[];
+  key_contacts: string[];
+  agency_stakeholders: string[];
+  decision_makers: string[];
+  relationship_owners: string[];
+  political_considerations: string | null;
+  meeting_cadence: string | null;
   sensitivities_note: string | null;
   language_guidance: string | null;
   things_to_avoid: string | null;
@@ -101,6 +113,12 @@ function tryParse(raw: string): Parsed | null {
       client_priorities: arr(j.client_priorities),
       risks: arr(j.risks),
       focus_areas: arr(j.focus_areas),
+      key_contacts: arr(j.key_contacts),
+      agency_stakeholders: arr(j.agency_stakeholders),
+      decision_makers: arr(j.decision_makers),
+      relationship_owners: arr(j.relationship_owners),
+      political_considerations: s(j.political_considerations, 4000),
+      meeting_cadence: s(j.meeting_cadence, 1000),
       sensitivities_note: s(j.sensitivities_note, 4000),
       language_guidance: s(j.language_guidance, 4000),
       things_to_avoid: s(j.things_to_avoid, 4000),
@@ -244,6 +262,53 @@ export const importSetupRecord = createServerFn({ method: "POST" })
       const { error } = await supabaseAdmin.from("mission_sensitivities").insert(insertRows as never);
       if (error) throw new Error(error.message);
       updatedFields.push(`sensitivities(${cats.join(",")})`);
+    }
+
+    // Agency Intelligence — merge into mission_client_intel without wiping
+    // existing manual entries. PK is mission_id so we read → dedup → upsert.
+    const intelStringArrays = {
+      contacts: parsed.key_contacts,
+      stakeholders: parsed.agency_stakeholders,
+      decision_makers: parsed.decision_makers,
+      relationship_owners: parsed.relationship_owners,
+    };
+    const hasIntel =
+      Object.values(intelStringArrays).some((a) => a.length > 0) ||
+      !!parsed.political_considerations ||
+      !!parsed.meeting_cadence;
+    if (hasIntel) {
+      const { data: existing } = await supabaseAdmin
+        .from("mission_client_intel")
+        .select("contacts,stakeholders,decision_makers,relationship_owners,political_considerations,meeting_cadence,notes")
+        .eq("mission_id", data.mission_id)
+        .maybeSingle();
+      const norm = (v: unknown): string[] => {
+        if (!Array.isArray(v)) return [];
+        return v
+          .map((x) => (typeof x === "string" ? x : x && typeof x === "object" ? [(x as any).name, (x as any).role].filter(Boolean).join(" — ") : ""))
+          .map((s) => s.trim())
+          .filter(Boolean);
+      };
+      const merge = (a: string[], b: string[]) => {
+        const seen = new Set(a.map((s) => s.toLowerCase()));
+        const out = [...a];
+        for (const x of b) if (!seen.has(x.toLowerCase())) { out.push(x); seen.add(x.toLowerCase()); }
+        return out;
+      };
+      const merged = {
+        mission_id: data.mission_id,
+        contacts: merge(norm(existing?.contacts), intelStringArrays.contacts),
+        stakeholders: merge(norm(existing?.stakeholders), intelStringArrays.stakeholders),
+        decision_makers: merge(norm(existing?.decision_makers), intelStringArrays.decision_makers),
+        relationship_owners: merge(norm(existing?.relationship_owners), intelStringArrays.relationship_owners),
+        political_considerations: existing?.political_considerations || parsed.political_considerations || null,
+        meeting_cadence: existing?.meeting_cadence || parsed.meeting_cadence || null,
+        notes: existing?.notes ?? null,
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabaseAdmin.from("mission_client_intel").upsert(merged as never, { onConflict: "mission_id" });
+      if (error) throw new Error(`client_intel: ${error.message}`);
+      updatedFields.push("client_intel");
     }
 
     return { ok: true as const, fieldsUpdated: updatedFields.length, fields: updatedFields };
