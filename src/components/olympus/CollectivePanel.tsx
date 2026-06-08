@@ -232,28 +232,6 @@ export function CollectivePanel({ missionId: _missionId }: { missionId: string |
     qc.invalidateQueries({ queryKey: ["collective-members"] });
   }
 
-  async function inviteToMission(c: Collective) {
-    if (!missionId) { toast.error("Select a mission from the header first"); return; }
-    setBusyMemberId(c.id);
-    try {
-      const result = await addCollectiveMember({
-        data: { missionId, collectiveMemberId: c.id, role: addRole },
-      });
-      toast.success(`${result.sentInvite ? "Invited and added" : "Added"} ${c.full_name} as ${addRole}`);
-      await logOlympusAction({
-        action_type: "team.add",
-        action_summary: `${result.sentInvite ? "Invited and added" : "Added"} ${c.full_name} (${c.email ?? "no email"}) from collective as ${addRole}`,
-        mission_id: missionId,
-        target_table: "mission_members",
-      });
-      qc.invalidateQueries({ queryKey: ["olympus-team", missionId] });
-      qc.invalidateQueries({ queryKey: ["collective-members"] });
-    } catch (e: any) {
-      toast.error(e?.message ?? "Could not add member to mission");
-    } finally {
-      setBusyMemberId(null);
-    }
-  }
 
   async function removeFromCollective(c: Collective) {
     if (!confirm(`Remove ${c.full_name} from the Athena Collective directory?`)) return;
