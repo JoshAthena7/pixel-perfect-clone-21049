@@ -203,7 +203,9 @@ For political_considerations and meeting_cadence, summarize supported evidence o
     // Merge with any existing row (manual entries / importer-populated values).
     const { data: existing } = await supabaseAdmin
       .from("mission_client_intel")
-      .select("contacts,stakeholders,decision_makers,relationship_owners,political_considerations,meeting_cadence,notes")
+      .select(
+        "contacts,stakeholders,decision_makers,relationship_owners,political_considerations,meeting_cadence,notes",
+      )
       .eq("mission_id", data.missionId)
       .maybeSingle();
     const asStrings = (v: unknown): string[] =>
@@ -235,20 +237,25 @@ For political_considerations and meeting_cadence, summarize supported evidence o
       return out;
     };
 
-    const { error } = await supabaseAdmin
-      .from("mission_client_intel")
-      .upsert({
+    const { error } = await supabaseAdmin.from("mission_client_intel").upsert(
+      {
         mission_id: data.missionId,
         contacts: merge(asStrings(existing?.contacts), newContacts),
         stakeholders: merge(asStrings(existing?.stakeholders), newStakeholders),
         decision_makers: merge(asStrings(existing?.decision_makers), newDecisionMakers),
-        relationship_owners: merge(asStrings(existing?.relationship_owners), newRelationshipOwners),
-        political_considerations: existing?.political_considerations || result.political_considerations || null,
+        relationship_owners: merge(
+          asStrings(existing?.relationship_owners),
+          newRelationshipOwners,
+        ),
+        political_considerations:
+          existing?.political_considerations || result.political_considerations || null,
         meeting_cadence: existing?.meeting_cadence || result.meeting_cadence || null,
         notes: existing?.notes || result.notes || null,
         created_by_system: true,
         updated_at: new Date().toISOString(),
-      } as never, { onConflict: "mission_id" });
+      } as never,
+      { onConflict: "mission_id" },
+    );
     if (error) throw new Error(`upsert client_intel: ${error.message}`);
 
     if (rows.length > 0) {
