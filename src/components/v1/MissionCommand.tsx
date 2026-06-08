@@ -3,12 +3,16 @@ import { useServerFn } from "@tanstack/react-start";
 import { getMissionOverview } from "@/lib/v1/mission.functions";
 import { IrisBadge } from "./IrisBadge";
 import { normalizeStatus } from "@/lib/v1/mission";
+import { useHasSupabaseSession } from "@/hooks/useSupabaseSession";
 
 export function MissionCommand() {
   const fetch = useServerFn(getMissionOverview);
+  const hasSession = useHasSupabaseSession();
   const { data, isLoading } = useQuery({
     queryKey: ["v1-overview"],
     queryFn: () => fetch(),
+    enabled: hasSession === true,
+    retry: false,
   });
 
   if (isLoading || !data?.mission) {

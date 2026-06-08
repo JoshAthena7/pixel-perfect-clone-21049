@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMissionOverview } from "@/lib/v1/mission.functions";
 import { isPmRole } from "@/lib/v1/mission";
+import { useHasSupabaseSession } from "@/hooks/useSupabaseSession";
 
 type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; pmOnly?: boolean };
 const NAV: NavItem[] = [
@@ -20,10 +21,13 @@ const NAV: NavItem[] = [
 export function V1Shell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const fetchOverview = useServerFn(getMissionOverview);
+  const hasSession = useHasSupabaseSession();
   const { data } = useQuery({
     queryKey: ["v1-overview-shell"],
     queryFn: () => fetchOverview(),
     staleTime: 60_000,
+    enabled: hasSession === true,
+    retry: false,
   });
   const mission = data?.mission;
   const isPm = isPmRole(data?.myRole);
