@@ -71,6 +71,13 @@ function isAllowedForNonAdmin(path: string): boolean {
 
 function AuthenticatedLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
+
+  // /admin owns its own layout — bypass the outer Atrium chrome entirely.
+  // Must run BEFORE any role-resolution gate so admin.tsx renders immediately.
+  if (path === "/admin" || path.startsWith("/admin/")) {
+    return <Outlet />;
+  }
+
   const { isAdmin, isLoading: adminLoading } = useIsAdmin();
 
   // Check-in only users get a minimalist landing.
@@ -87,11 +94,6 @@ function AuthenticatedLayout() {
   // the Atrium chrome for non-admins.
   if (adminLoading) {
     return <div className="min-h-screen bg-background" />;
-  }
-
-  // /admin owns its own layout — bypass the outer Atrium chrome entirely.
-  if (path === "/admin" || path.startsWith("/admin/")) {
-    return <Outlet />;
   }
 
   // Admins keep the full Atrium chrome (Athena HQ, top nav, etc.).
