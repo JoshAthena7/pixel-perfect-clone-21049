@@ -424,14 +424,13 @@ function StatusPill({ text, color }: { text: string; color: string }) {
 
 /* ════════════════ GET STARTED (H-6) ════════════════ */
 function GetStartedCard({ missionId, brief }: { missionId: string; brief: MissionBrief }) {
-  const m = brief.mission;
-  const isDraft = (m.status ?? "").toLowerCase() === "draft";
-  const hasTeam = brief.team.length > 0;
-  const hasThemes = brief.winThemes.length > 0;
-  const hasIntel = brief.signals.length > 0;
-  // Show only while the mission is clearly under-configured.
-  const ready = hasTeam && hasThemes && hasIntel && !!m.submission_date;
-  if (!isDraft && ready) return null;
+  // Hide once Setup Record is ≥80% complete (same source of truth as
+  // MissionHealthCard's Overall Progress and the Olympus Setup Record page).
+  const setupSections = useSetupCompletion(missionId, brief);
+  const setupDone = setupSections.filter((s) => s.done).length;
+  const setupTotal = setupSections.length;
+  const progressPct = setupTotal > 0 ? (setupDone / setupTotal) * 100 : 0;
+  if (progressPct >= 80) return null;
   return (
     <div style={{
       ...card,
