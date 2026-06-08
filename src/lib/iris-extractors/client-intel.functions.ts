@@ -60,19 +60,33 @@ export const extractClientIntel = createServerFn({ method: "POST" })
         .limit(10),
     ]);
     const sourceParts = [
-      ...((missionDocs.data ?? []) as Array<{ document_type?: string | null; file_name?: string | null; extracted_text?: string | null }>).map((d) => ({
+      ...(
+        (missionDocs.data ?? []) as Array<{
+          document_type?: string | null;
+          file_name?: string | null;
+          extracted_text?: string | null;
+        }>
+      ).map((d) => ({
         label: `${d.document_type ?? "Document"}: ${d.file_name ?? "Uploaded document"}`,
         text: d.extracted_text,
       })),
-      ...((vaultDocs.data ?? []) as Array<{ category?: string | null; title?: string | null; extracted_text?: string | null }>).map((d) => ({
+      ...(
+        (vaultDocs.data ?? []) as Array<{
+          category?: string | null;
+          title?: string | null;
+          extracted_text?: string | null;
+        }>
+      ).map((d) => ({
         label: `${d.category ?? "Vault"}: ${d.title ?? "Vault document"}`,
         text: d.extracted_text,
       })),
-      ...((libraryExtractions.data ?? []) as Array<{
-        extracted_text?: string | null;
-        summary?: string | null;
-        mission_library?: { category?: string | null; name?: string | null } | null;
-      }>).map((d) => ({
+      ...(
+        (libraryExtractions.data ?? []) as Array<{
+          extracted_text?: string | null;
+          summary?: string | null;
+          mission_library?: { category?: string | null; name?: string | null } | null;
+        }>
+      ).map((d) => ({
         label: `${d.mission_library?.category ?? "Library"}: ${d.mission_library?.name ?? "Library document"}`,
         text: d.extracted_text ?? d.summary,
       })),
@@ -243,10 +257,7 @@ For political_considerations and meeting_cadence, summarize supported evidence o
         contacts: merge(asStrings(existing?.contacts), newContacts),
         stakeholders: merge(asStrings(existing?.stakeholders), newStakeholders),
         decision_makers: merge(asStrings(existing?.decision_makers), newDecisionMakers),
-        relationship_owners: merge(
-          asStrings(existing?.relationship_owners),
-          newRelationshipOwners,
-        ),
+        relationship_owners: merge(asStrings(existing?.relationship_owners), newRelationshipOwners),
         political_considerations:
           existing?.political_considerations || result.political_considerations || null,
         meeting_cadence: existing?.meeting_cadence || result.meeting_cadence || null,
