@@ -94,6 +94,9 @@ function MissionDetail() {
           {mission.status === "ACTIVE" && (
             <TabBtn active={tab === "oversight"} onClick={() => setTab("oversight")} icon={<ShieldCheck className="h-3.5 w-3.5" />}>Oversight</TabBtn>
           )}
+          {mission.status === "ACTIVE" && (
+            <TabBtn active={tab === "closeout"} onClick={() => setTab("closeout")} icon={<Archive className="h-3.5 w-3.5" />}>Closeout</TabBtn>
+          )}
         </nav>
       </div>
 
