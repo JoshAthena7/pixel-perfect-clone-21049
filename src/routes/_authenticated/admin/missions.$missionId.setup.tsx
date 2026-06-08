@@ -960,7 +960,13 @@ function StrategicFoundationBlock({ missionId, mission, refetch }: { missionId: 
       program_goals: mission?.program_goals ?? "",
     });
     setRequirements(mission?.key_requirements ?? []);
-  }, [mission?.id]);
+  }, [
+    mission?.mission_highlights,
+    mission?.client_strengths,
+    mission?.client_win_strategy,
+    mission?.program_goals,
+    mission?.key_requirements,
+  ]);
 
   // Detect uploaded RFP docs (any vault doc counts as RFP context for IRIS)
   useEffect(() => {
