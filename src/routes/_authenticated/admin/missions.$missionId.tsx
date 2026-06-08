@@ -710,12 +710,12 @@ function summarize(content: any): string {
 
 /* ─── Closeout ─── */
 const CLOSEOUT_ITEMS: { key: string; label: string }[] = [
-  { key: "client_access_removed", label: "Client access removed for all team members" },
-  { key: "final_invoices_submitted", label: "Final invoices submitted" },
-  { key: "contracts_marked_closed", label: "Contracts marked closed" },
-  { key: "documents_archived", label: "Documents archived to final storage" },
-  { key: "lessons_learned_documented", label: "Lessons learned documented" },
-  { key: "team_feedback_collected", label: "Team feedback collected" },
+  { key: "access_removed", label: "Client access removed for all team members" },
+  { key: "invoices_submitted", label: "Final invoices submitted" },
+  { key: "contracts_closed", label: "Contracts marked closed" },
+  { key: "docs_archived", label: "Documents archived to final storage" },
+  { key: "lessons_documented", label: "Lessons learned documented" },
+  { key: "feedback_collected", label: "Team feedback collected" },
 ];
 
 function CloseoutTab({ missionId, mission }: { missionId: string; mission: any }) {
