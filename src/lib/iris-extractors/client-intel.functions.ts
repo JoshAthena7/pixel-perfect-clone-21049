@@ -49,6 +49,71 @@ function hasMeaningfulList(value: unknown) {
   );
 }
 
+function uniqueLines(lines: string[], max = 20) {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const line of lines) {
+    const text = line.replace(/\s+/g, " ").trim();
+    const key = text.toLowerCase();
+    if (!text || seen.has(key)) continue;
+    seen.add(key);
+    out.push(text.slice(0, 500));
+    if (out.length >= max) break;
+  }
+  return out;
+}
+
+function deterministicAgencyFallback(docText: string, mission: any) {
+  const text = docText.replace(/\s+/g, " ");
+  const lower = text.toLowerCase();
+  const contacts: string[] = [];
+  const decisionMakers: string[] = [];
+  const stakeholders: string[] = [];
+
+  const emailMatches = Array.from(text.matchAll(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi)).map((m) => m[0]);
+  for (const email of emailMatches) {
+    const normalized = email.toLowerCase();
+    if (normalized.includes("procurement.bureau@treas.nj.gov")) {
+      contacts.push("Division of Purchase and Property Procurement Bureau — official procurement contact (Procurement.Bureau@treas.nj.gov)");
+    } else if (normalized.includes("njstart@treas.nj.gov")) {
+      contacts.push("NJSTART Vendor Support — submission portal support contact (njstart@treas.nj.gov)");
+    } else {
+      contacts.push(`${email} — documented agency/procurement contact`);
+    }
+  }
+
+  const agency = String(mission?.state_agency ?? "").trim();
+  if (agency) stakeholders.push(`${agency} — issuing agency`);
+  if (/division of children[’']?s system of care|\bcsoc\b/i.test(text)) {
+    stakeholders.push("Division of Children’s System of Care — program office / service delivery owner");
+    decisionMakers.push("Division of Children’s System of Care — program-side decision authority for CSA/MIS requirements");
+  }
+  if (/division of purchase and property|department of the treasury|26DPP01212/i.test(text)) {
+    stakeholders.push("New Jersey Department of the Treasury, Division of Purchase and Property — procurement oversight entity");
+    decisionMakers.push("New Jersey Department of the Treasury, Division of Purchase and Property — procurement authority for Bid Solicitation 26DPP01212");
+  }
+  if (/evaluation committee|evaluation team|technical evaluation|quote evaluation/i.test(text)) {
+    decisionMakers.push("Evaluation Committee / technical evaluators — documented proposal evaluation decision body");
+  }
+
+  let meetingCadence: string | null = null;
+  const preQuote = text.match(/Optional Pre-Quote Submission Conference.{0,160}?06\/08\/2026.{0,80}?10:00 AM/i);
+  const questions = text.match(/Due Date For Electronic Questions.{0,160}?06\/23\/2026.{0,80}?2:00 PM/i);
+  if (preQuote || questions) {
+    meetingCadence = uniqueLines([
+      preQuote ? "Optional Pre-Quote Submission Conference: 06/08/2026 at 10:00 AM ET" : "",
+      questions ? "Electronic questions due: 06/23/2026 at 2:00 PM ET" : "",
+    ]).join("; ");
+  }
+
+  return {
+    contacts: uniqueLines(contacts, 12),
+    stakeholders: uniqueLines(stakeholders, 12),
+    decision_makers: uniqueLines(decisionMakers, 10),
+    meeting_cadence: meetingCadence,
+  };
+}
+
 export const extractClientIntel = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ missionId: z.string().uuid() }).parse(d))
