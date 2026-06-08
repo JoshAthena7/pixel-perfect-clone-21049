@@ -3616,6 +3616,50 @@ export type Database = {
         }
         Relationships: []
       }
+      mission_change_log: {
+        Row: {
+          change_type: string
+          changed_by: string | null
+          created_at: string | null
+          field_name: string | null
+          id: string
+          mission_id: string
+          new_value: string | null
+          old_value: string | null
+          synced_to_atlas: boolean | null
+        }
+        Insert: {
+          change_type: string
+          changed_by?: string | null
+          created_at?: string | null
+          field_name?: string | null
+          id?: string
+          mission_id: string
+          new_value?: string | null
+          old_value?: string | null
+          synced_to_atlas?: boolean | null
+        }
+        Update: {
+          change_type?: string
+          changed_by?: string | null
+          created_at?: string | null
+          field_name?: string | null
+          id?: string
+          mission_id?: string
+          new_value?: string | null
+          old_value?: string | null
+          synced_to_atlas?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_change_log_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_client_intel: {
         Row: {
           contacts: Json
@@ -4391,6 +4435,65 @@ export type Database = {
           },
         ]
       }
+      mission_readiness: {
+        Row: {
+          assignments_reviewed: boolean | null
+          client_access_requested: boolean | null
+          contracts_complete: boolean | null
+          created_at: string | null
+          folders_created: boolean | null
+          id: string
+          kickoff_materials_ready: boolean | null
+          mission_id: string
+          required_forms_complete: boolean | null
+          reviewed_at: string | null
+          security_acknowledgments_complete: boolean | null
+          slack_channels_ready: boolean | null
+          talentdesk_active: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          assignments_reviewed?: boolean | null
+          client_access_requested?: boolean | null
+          contracts_complete?: boolean | null
+          created_at?: string | null
+          folders_created?: boolean | null
+          id?: string
+          kickoff_materials_ready?: boolean | null
+          mission_id: string
+          required_forms_complete?: boolean | null
+          reviewed_at?: string | null
+          security_acknowledgments_complete?: boolean | null
+          slack_channels_ready?: boolean | null
+          talentdesk_active?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          assignments_reviewed?: boolean | null
+          client_access_requested?: boolean | null
+          contracts_complete?: boolean | null
+          created_at?: string | null
+          folders_created?: boolean | null
+          id?: string
+          kickoff_materials_ready?: boolean | null
+          mission_id?: string
+          required_forms_complete?: boolean | null
+          reviewed_at?: string | null
+          security_acknowledgments_complete?: boolean | null
+          slack_channels_ready?: boolean | null
+          talentdesk_active?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_readiness_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_response_template_elements: {
         Row: {
           created_at: string
@@ -4892,6 +4995,80 @@ export type Database = {
           },
         ]
       }
+      mission_team_members: {
+        Row: {
+          assigned_sections: Json | null
+          baa_required: boolean | null
+          baa_status: string | null
+          client_system_access: boolean | null
+          contract_status: string | null
+          created_at: string | null
+          email: string | null
+          folder_access: boolean | null
+          id: string
+          invite_sent_at: string | null
+          mission_id: string
+          name: string
+          nda_status: string | null
+          onboarding_completed_at: string | null
+          role: string
+          slack_access: boolean | null
+          start_date: string | null
+          talentdesk_status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          assigned_sections?: Json | null
+          baa_required?: boolean | null
+          baa_status?: string | null
+          client_system_access?: boolean | null
+          contract_status?: string | null
+          created_at?: string | null
+          email?: string | null
+          folder_access?: boolean | null
+          id?: string
+          invite_sent_at?: string | null
+          mission_id: string
+          name: string
+          nda_status?: string | null
+          onboarding_completed_at?: string | null
+          role: string
+          slack_access?: boolean | null
+          start_date?: string | null
+          talentdesk_status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          assigned_sections?: Json | null
+          baa_required?: boolean | null
+          baa_status?: string | null
+          client_system_access?: boolean | null
+          contract_status?: string | null
+          created_at?: string | null
+          email?: string | null
+          folder_access?: boolean | null
+          id?: string
+          invite_sent_at?: string | null
+          mission_id?: string
+          name?: string
+          nda_status?: string | null
+          onboarding_completed_at?: string | null
+          role?: string
+          slack_access?: boolean | null
+          start_date?: string | null
+          talentdesk_status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_team_members_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_timeline: {
         Row: {
           award: string | null
@@ -5059,10 +5236,14 @@ export type Database = {
       }
       missions: {
         Row: {
+          atlas_synced_at: string | null
           client: string
           client_logo_url: string | null
           client_strengths: string | null
           client_win_strategy: string | null
+          closed_at: string | null
+          closeout_checklist: Json | null
+          closeout_notes: Json | null
           competitors: string[] | null
           contract_start_date: string | null
           contract_term: string | null
@@ -5070,11 +5251,14 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           description: string | null
+          engagement_lead: string | null
+          engagement_type: string | null
           evaluation_criteria: Json | null
           focus_areas: string[] | null
           health: string | null
           id: string
           incumbent_name: string | null
+          internal_lead: string | null
           iris_kickoff_at: string | null
           iris_kickoff_status: string
           iris_kickoff_summary: Json | null
@@ -5084,10 +5268,13 @@ export type Database = {
           iris_setup_suggested_fields: Json
           is_fedramp_scope: boolean
           key_requirements: string[] | null
+          launched_at: string | null
           mission_highlights: string | null
           name: string
+          operations_lead: string | null
           page_limit: number | null
           pens_down_date: string | null
+          prime_contractor: string | null
           priority_topics: string[] | null
           procurement_id: string | null
           procurement_name: string | null
@@ -5107,12 +5294,17 @@ export type Database = {
           status: string | null
           submission_date: string | null
           win_themes: string[] | null
+          wizard_step: number | null
         }
         Insert: {
+          atlas_synced_at?: string | null
           client: string
           client_logo_url?: string | null
           client_strengths?: string | null
           client_win_strategy?: string | null
+          closed_at?: string | null
+          closeout_checklist?: Json | null
+          closeout_notes?: Json | null
           competitors?: string[] | null
           contract_start_date?: string | null
           contract_term?: string | null
@@ -5120,11 +5312,14 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          engagement_lead?: string | null
+          engagement_type?: string | null
           evaluation_criteria?: Json | null
           focus_areas?: string[] | null
           health?: string | null
           id?: string
           incumbent_name?: string | null
+          internal_lead?: string | null
           iris_kickoff_at?: string | null
           iris_kickoff_status?: string
           iris_kickoff_summary?: Json | null
@@ -5134,10 +5329,13 @@ export type Database = {
           iris_setup_suggested_fields?: Json
           is_fedramp_scope?: boolean
           key_requirements?: string[] | null
+          launched_at?: string | null
           mission_highlights?: string | null
           name: string
+          operations_lead?: string | null
           page_limit?: number | null
           pens_down_date?: string | null
+          prime_contractor?: string | null
           priority_topics?: string[] | null
           procurement_id?: string | null
           procurement_name?: string | null
@@ -5157,12 +5355,17 @@ export type Database = {
           status?: string | null
           submission_date?: string | null
           win_themes?: string[] | null
+          wizard_step?: number | null
         }
         Update: {
+          atlas_synced_at?: string | null
           client?: string
           client_logo_url?: string | null
           client_strengths?: string | null
           client_win_strategy?: string | null
+          closed_at?: string | null
+          closeout_checklist?: Json | null
+          closeout_notes?: Json | null
           competitors?: string[] | null
           contract_start_date?: string | null
           contract_term?: string | null
@@ -5170,11 +5373,14 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          engagement_lead?: string | null
+          engagement_type?: string | null
           evaluation_criteria?: Json | null
           focus_areas?: string[] | null
           health?: string | null
           id?: string
           incumbent_name?: string | null
+          internal_lead?: string | null
           iris_kickoff_at?: string | null
           iris_kickoff_status?: string
           iris_kickoff_summary?: Json | null
@@ -5184,10 +5390,13 @@ export type Database = {
           iris_setup_suggested_fields?: Json
           is_fedramp_scope?: boolean
           key_requirements?: string[] | null
+          launched_at?: string | null
           mission_highlights?: string | null
           name?: string
+          operations_lead?: string | null
           page_limit?: number | null
           pens_down_date?: string | null
+          prime_contractor?: string | null
           priority_topics?: string[] | null
           procurement_id?: string | null
           procurement_name?: string | null
@@ -5207,6 +5416,7 @@ export type Database = {
           status?: string | null
           submission_date?: string | null
           win_themes?: string[] | null
+          wizard_step?: number | null
         }
         Relationships: []
       }
