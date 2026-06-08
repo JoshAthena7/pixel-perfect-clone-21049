@@ -2136,6 +2136,25 @@ function Step5AssignmentTracker({
 }
 
 
+function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onChange(!on);
+      }}
+      className="relative inline-flex h-5 w-9 items-center rounded-full transition"
+      style={{ backgroundColor: on ? GOLD : "rgba(148,163,184,0.35)" }}
+    >
+      <span
+        className="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform"
+        style={{ transform: on ? "translateX(18px)" : "translateX(2px)" }}
+      />
+    </button>
+  );
+}
+
 /* ---------- Step 6: Readiness & GO LIVE ---------- */
 
 
