@@ -527,6 +527,7 @@ export default function AssignmentReview({
               <Th>Client SME</Th>
               <Th>Reviewer</Th>
               <Th>Copy Editor</Th>
+              {showIntelligence && <Th>Intelligence</Th>}
               <Th>Status</Th>
               <Th>Risk</Th>
               <Th>Due</Th>
@@ -538,6 +539,8 @@ export default function AssignmentReview({
                 key={r.question.id}
                 row={r}
                 team={team}
+                showIntelligence={showIntelligence}
+                intelCount={intelTotal(intelMap.get(r.question.id))}
                 onOpen={() => setDrawerQid(r.question.id)}
                 onChange={(patch) => persistAssignment(r.question.id, patch)}
                 onUpsertTeam={upsertTeamMember}
@@ -546,7 +549,7 @@ export default function AssignmentReview({
             {filtered.length === 0 && (
               <tr>
                 <td
-                  colSpan={11}
+                  colSpan={showIntelligence ? 12 : 11}
                   className="px-3 py-8 text-center text-muted-foreground"
                 >
                   No questions match the current filters.
