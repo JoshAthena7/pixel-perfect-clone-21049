@@ -1,11 +1,9 @@
 import { useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Upload, Search, UserPlus, Trash2, Users, Tag } from "lucide-react";
+import { Upload, Search, Trash2, Users, Tag } from "lucide-react";
 import { logOlympusAction } from "@/lib/audit";
-import { addCollectiveMemberToMission } from "@/lib/mission-members.functions";
 
 type Collective = {
   id: string;
@@ -137,16 +135,13 @@ function parseRows(text: string): { rows: ParsedRow[]; errors: string[]; headerM
 }
 
 // ---------- Component ----------
-export function CollectivePanel({ missionId }: { missionId: string | null }) {
+export function CollectivePanel({ missionId: _missionId }: { missionId: string | null }) {
   const qc = useQueryClient();
-  const addCollectiveMember = useServerFn(addCollectiveMemberToMission);
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<ParsedRow[] | null>(null);
   const [importing, setImporting] = useState(false);
   const [search, setSearch] = useState("");
   const [tagFilter, setTagFilter] = useState<string | null>(null);
-  const [addRole, setAddRole] = useState<Role>("writer");
-  const [busyMemberId, setBusyMemberId] = useState<string | null>(null);
 
   const { data: collective = [], isLoading } = useQuery({
     queryKey: ["collective-members"],
