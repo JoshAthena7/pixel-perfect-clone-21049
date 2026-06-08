@@ -1164,3 +1164,106 @@ function Td({
 }) {
   return <td className={`px-2 py-1.5 align-middle ${className}`}>{children}</td>;
 }
+
+/* ---------- Chip list editor ---------- */
+
+function ChipListField({
+  label,
+  values,
+  documentOptions,
+  onChange,
+}: {
+  label: string;
+  values: string[];
+  documentOptions?: MissionDoc[];
+  onChange: (next: string[]) => void;
+}) {
+  const [draft, setDraft] = useState("");
+  const safe = Array.isArray(values) ? values : [];
+
+  const add = (raw: string) => {
+    const v = raw.trim();
+    if (!v) return;
+    if (safe.some((x) => x.toLowerCase() === v.toLowerCase())) return;
+    onChange([...safe, v]);
+    setDraft("");
+  };
+
+  const remove = (i: number) => {
+    const next = safe.filter((_, idx) => idx !== i);
+    onChange(next);
+  };
+
+  const isDocPicker = Array.isArray(documentOptions);
+
+  return (
+    <div>
+      <div className="text-xs font-semibold mb-1.5">{label}</div>
+      <div className="flex flex-wrap gap-1.5 mb-2">
+        {safe.length === 0 && (
+          <span className="text-[11px] text-muted-foreground italic">No items</span>
+        )}
+        {safe.map((chip, i) => (
+          <span
+            key={`${chip}-${i}`}
+            className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-2 py-0.5 text-[11px]"
+          >
+            <span className="max-w-[220px] truncate" title={chip}>
+              {chip}
+            </span>
+            <button
+              type="button"
+              onClick={() => remove(i)}
+              className="text-muted-foreground hover:text-foreground"
+              aria-label={`Remove ${chip}`}
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </span>
+        ))}
+      </div>
+      {isDocPicker ? (
+        <select
+          value=""
+          onChange={(e) => {
+            if (e.target.value) add(e.target.value);
+            e.currentTarget.selectedIndex = 0;
+          }}
+          className="w-full rounded border border-border bg-background px-2 py-1 text-xs"
+        >
+          <option value="">+ Add source document…</option>
+          {(documentOptions ?? []).map((d) => {
+            const lbl = d.file_name || d.doc_type || d.id;
+            return (
+              <option key={d.id} value={lbl}>
+                {lbl}
+              </option>
+            );
+          })}
+        </select>
+      ) : (
+        <div className="flex gap-1.5">
+          <input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                add(draft);
+              }
+            }}
+            placeholder={`Add ${label.toLowerCase()}…`}
+            className="flex-1 rounded border border-border bg-background px-2 py-1 text-xs"
+          />
+          <button
+            type="button"
+            onClick={() => add(draft)}
+            className="rounded border border-border bg-surface px-2 py-1 text-xs font-semibold hover:bg-surface-hover"
+          >
+            Add
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
