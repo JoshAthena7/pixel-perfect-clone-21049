@@ -29,9 +29,8 @@ export const extractClientIntel = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const started = Date.now();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { loadMissionAndFeed, renderContext, callJsonExtractor } = await import(
-      "./shared.server"
-    );
+    const { loadMissionAndFeed, renderContext, callJsonExtractor } =
+      await import("./shared.server");
 
     const { mission, rows } = await loadMissionAndFeed(supabaseAdmin, data.missionId);
 
@@ -61,15 +60,19 @@ export const extractClientIntel = createServerFn({ method: "POST" })
         .limit(10),
     ]);
     const sourceParts = [
-      ...((missionDocs.data ?? []) as any[]).map((d) => ({
+      ...((missionDocs.data ?? []) as Array<{ document_type?: string | null; file_name?: string | null; extracted_text?: string | null }>).map((d) => ({
         label: `${d.document_type ?? "Document"}: ${d.file_name ?? "Uploaded document"}`,
         text: d.extracted_text,
       })),
-      ...((vaultDocs.data ?? []) as any[]).map((d) => ({
+      ...((vaultDocs.data ?? []) as Array<{ category?: string | null; title?: string | null; extracted_text?: string | null }>).map((d) => ({
         label: `${d.category ?? "Vault"}: ${d.title ?? "Vault document"}`,
         text: d.extracted_text,
       })),
-      ...((libraryExtractions.data ?? []) as any[]).map((d) => ({
+      ...((libraryExtractions.data ?? []) as Array<{
+        extracted_text?: string | null;
+        summary?: string | null;
+        mission_library?: { category?: string | null; name?: string | null } | null;
+      }>).map((d) => ({
         label: `${d.mission_library?.category ?? "Library"}: ${d.mission_library?.name ?? "Library document"}`,
         text: d.extracted_text ?? d.summary,
       })),
@@ -90,7 +93,9 @@ For political_considerations and meeting_cadence, summarize supported evidence o
 
     const result = await callJsonExtractor<ClientIntelOut>({
       system,
-      user: renderContext(mission, rows) + (docText ? `\n\n=== UPLOADED MISSION DOCUMENTS ===\n${docText}` : ""),
+      user:
+        renderContext(mission, rows) +
+        (docText ? `\n\n=== UPLOADED MISSION DOCUMENTS ===\n${docText}` : ""),
       toolName: "emit_client_intel",
       toolDescription: "Emit the client intelligence record for this mission.",
       parametersSchema: {
@@ -152,7 +157,14 @@ For political_considerations and meeting_cadence, summarize supported evidence o
           meeting_cadence: { type: "string" },
           notes: { type: "string" },
         },
-        required: ["contacts", "decision_makers", "relationship_owners", "stakeholders", "political_considerations", "notes"],
+        required: [
+          "contacts",
+          "decision_makers",
+          "relationship_owners",
+          "stakeholders",
+          "political_considerations",
+          "notes",
+        ],
         additionalProperties: false,
       },
       zodSchema: ClientIntelSchema,
