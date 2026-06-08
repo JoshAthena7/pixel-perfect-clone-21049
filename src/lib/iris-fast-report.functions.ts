@@ -67,7 +67,7 @@ If a mission has win themes but no Pre-Flight data yet, note that alignment cann
 Write in plain English. Be direct and specific.`,
 };
 
-async function safe<T>(p: Promise<T>): Promise<T | null> {
+async function safe<T>(p: PromiseLike<T>): Promise<T | null> {
   try {
     return await p;
   } catch {
@@ -200,9 +200,9 @@ async function gatherContext(
     const gates = await safe(
       supabaseAdmin
         .from("mission_review_gates")
-        .select("mission_id, gate_type, gate_date, status")
-        .gte("gate_date", new Date().toISOString())
-        .order("gate_date", { ascending: true })
+        .select("mission_id, gate_name, target_date")
+        .gte("target_date", new Date().toISOString().slice(0, 10))
+        .order("target_date", { ascending: true })
         .then((r) => r.data ?? []),
     );
     const qrs = await safe(
