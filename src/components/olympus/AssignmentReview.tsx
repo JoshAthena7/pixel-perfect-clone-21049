@@ -1376,3 +1376,137 @@ function ChipListField({
     </div>
   );
 }
+
+/* ---------- Add Question Modal ---------- */
+
+type AddQuestionForm = {
+  question_number: string;
+  question_name: string;
+  question_text: string;
+  section: string;
+  page_limit: number | null;
+};
+
+function AddQuestionModal({
+  sections,
+  onClose,
+  onSubmit,
+}: {
+  sections: string[];
+  onClose: () => void;
+  onSubmit: (form: AddQuestionForm) => Promise<void>;
+}) {
+  const [form, setForm] = useState<AddQuestionForm>({
+    question_number: "",
+    question_name: "",
+    question_text: "",
+    section: "",
+    page_limit: null,
+  });
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await onSubmit(form);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4">
+      <form
+        onSubmit={submit}
+        className="w-full max-w-lg rounded-lg border border-border bg-background p-5 shadow-xl"
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-sm font-bold">Add Question</h2>
+          <button type="button" onClick={onClose} className="text-muted-foreground hover:text-foreground">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block">
+              <div className="text-xs font-semibold mb-1">Question Number</div>
+              <input
+                value={form.question_number}
+                onChange={(e) => setForm((f) => ({ ...f, question_number: e.target.value }))}
+                className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
+                placeholder="e.g. 4.1.2"
+                required
+              />
+            </label>
+            <label className="block">
+              <div className="text-xs font-semibold mb-1">Page Limit</div>
+              <input
+                type="number"
+                value={form.page_limit ?? ""}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, page_limit: e.target.value === "" ? null : Number(e.target.value) }))
+                }
+                className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
+              />
+            </label>
+          </div>
+
+          <label className="block">
+            <div className="text-xs font-semibold mb-1">Question Name</div>
+            <input
+              value={form.question_name}
+              onChange={(e) => setForm((f) => ({ ...f, question_name: e.target.value }))}
+              className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
+              required
+            />
+          </label>
+
+          <label className="block">
+            <div className="text-xs font-semibold mb-1">Section</div>
+            <input
+              list="add-q-sections"
+              value={form.section}
+              onChange={(e) => setForm((f) => ({ ...f, section: e.target.value }))}
+              className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
+            />
+            <datalist id="add-q-sections">
+              {sections.map((s) => (
+                <option key={s} value={s} />
+              ))}
+            </datalist>
+          </label>
+
+          <label className="block">
+            <div className="text-xs font-semibold mb-1">Question Text</div>
+            <textarea
+              value={form.question_text}
+              onChange={(e) => setForm((f) => ({ ...f, question_text: e.target.value }))}
+              rows={5}
+              className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
+            />
+          </label>
+        </div>
+
+        <div className="mt-5 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-semibold hover:bg-surface-hover"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={saving}
+            className="rounded-md px-4 py-1.5 text-xs font-bold shadow disabled:opacity-50"
+            style={{ backgroundColor: GOLD, color: NAVY }}
+          >
+            {saving ? "Adding…" : "Add Question"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
