@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { X, Plus, Trash2, Check, Sparkles, AlertTriangle, CheckCircle2, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
@@ -80,7 +80,7 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
     Object.fromEntries(DOC_SLOTS.map((s) => [s.key, { url: "", notes: "" }])),
   );
   const [otherMaterials, setOtherMaterials] = useState("");
-  const step4SaveRef = useRef<null | (() => Promise<boolean>)>(null);
+  
   
 
   // Prefill Step 1 (and Step 2 slot indicators) when opened in edit mode
@@ -243,17 +243,8 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
       // Step 3 advances via its own internal buttons; this is a no-op.
       return;
     } else if (step === 4) {
-      if (!step4SaveRef.current) {
-        setStep(5);
-        return;
-      }
-      setSaving(true);
-      try {
-        const ok = await step4SaveRef.current();
-        if (ok) setStep(5);
-      } finally {
-        setSaving(false);
-      }
+      // Step 4 advances via its own internal "Confirm Architecture →" button.
+      return;
     } else if (step === 5) {
       if (!missionId) return;
       setSaving(true);
@@ -327,12 +318,9 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
             />
           )}
           {step === 4 && missionId && (
-            <Step4Review
+            <Step4QuestionReconciliation
               missionId={missionId}
-              registerSave={(fn) => {
-                step4SaveRef.current = fn;
-              }}
-              onReRun={() => setStep(3)}
+              onAdvance={() => setStep(5)}
             />
           )}
           {step === 5 && missionId && (
@@ -372,7 +360,7 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
           >
             ← Back
           </button>
-          {step !== 3 && step !== 6 && (
+          {step !== 3 && step !== 4 && step !== 6 && (
             <button
               type="button"
               onClick={handleContinue}
@@ -1011,129 +999,53 @@ function formatDocType(s: string | null): string {
     .join(" ");
 }
 
-/* ---------- Step 4: Review & Edit Record ---------- */
+/* ---------- Step 4: Question Reconciliation ---------- */
 
-type KeyDate = { label: string; date: string; note: string };
-type KeyRisk = { risk: string; mitigation: string };
-type Staffing = { role: string; reason: string };
-type WritingAssignment = { section: string; role: string; notes: string };
-type RiskLevel = "LOW" | "MEDIUM" | "HIGH";
-
-type RecordContent = {
-  mission_overview: string;
-  mission_briefing: string;
-  risk_level: RiskLevel;
-  key_dates: KeyDate[];
-  major_requirements: string[];
-  deliverables: string[];
-  compliance_items: string[];
-  key_risks: KeyRisk[];
-  known_gaps: string[];
-  recommended_win_themes: string[];
-  intelligence_notes: string;
-  iris_briefing_notes: string;
-  suggested_sections: string[];
-  workstreams: string[];
-  suggested_staffing: Staffing[];
-  suggested_writing_assignments: WritingAssignment[];
-  required_expertise: string[];
-  client_sensitivities: string[];
+type QuestionRow = {
+  id: string;
+  mission_id: string;
+  question_number: string | null;
+  question_name: string | null;
+  question_text: string | null;
+  section: string | null;
+  subsection: string | null;
+  page_limit: number | null;
+  admin_notes: string | null;
+  sort_order: number | null;
+  architecture_version: string | null;
 };
 
-const EMPTY_RECORD: RecordContent = {
-  mission_overview: "",
-  mission_briefing: "",
-  risk_level: "MEDIUM",
-  key_dates: [],
-  major_requirements: [],
-  deliverables: [],
-  compliance_items: [],
-  key_risks: [],
-  known_gaps: [],
-  recommended_win_themes: [],
-  intelligence_notes: "",
-  iris_briefing_notes: "",
-  suggested_sections: [],
-  workstreams: [],
-  suggested_staffing: [],
-  suggested_writing_assignments: [],
-  required_expertise: [],
-  client_sensitivities: [],
-};
+const WORKSTREAM_PREFIX = "Workstream: ";
 
-function normalizeContent(raw: any): RecordContent {
-  const c = raw && typeof raw === "object" ? raw : {};
-  const asArr = (v: any): any[] => (Array.isArray(v) ? v : []);
-  const asStrArr = (v: any): string[] =>
-    asArr(v).map((x) => (typeof x === "string" ? x : x?.label ?? x?.name ?? String(x ?? ""))).filter(Boolean);
-  const rl = String(c.risk_level || "MEDIUM").toUpperCase();
-  return {
-    mission_overview: c.mission_overview ?? "",
-    mission_briefing: c.mission_briefing ?? "",
-    risk_level: (rl === "LOW" || rl === "HIGH" ? rl : "MEDIUM") as RiskLevel,
-    key_dates: asArr(c.key_dates).map((d: any) => ({
-      label: d?.label ?? "",
-      date: d?.date ?? "",
-      note: d?.note ?? "",
-    })),
-    major_requirements: asStrArr(c.major_requirements),
-    deliverables: asStrArr(c.deliverables),
-    compliance_items: asStrArr(c.compliance_items),
-    key_risks: asArr(c.key_risks).map((r: any) =>
-      typeof r === "string"
-        ? { risk: r, mitigation: "" }
-        : { risk: r?.risk ?? "", mitigation: r?.mitigation ?? "" },
-    ),
-    known_gaps: asStrArr(c.known_gaps),
-    recommended_win_themes: asStrArr(c.recommended_win_themes),
-    intelligence_notes: c.intelligence_notes ?? "",
-    iris_briefing_notes: c.iris_briefing_notes ?? "",
-    suggested_sections: asStrArr(c.suggested_sections),
-    workstreams: asStrArr(c.workstreams),
-    suggested_staffing: asArr(c.suggested_staffing).map((s: any) =>
-      typeof s === "string"
-        ? { role: s, reason: "" }
-        : { role: s?.role ?? "", reason: s?.reason ?? "" },
-    ),
-    suggested_writing_assignments: asArr(c.suggested_writing_assignments).map((s: any) => ({
-      section: s?.section ?? "",
-      role: s?.role ?? "",
-      notes: s?.notes ?? "",
-    })),
-    required_expertise: asStrArr(c.required_expertise),
-    client_sensitivities: asStrArr(c.client_sensitivities),
-  };
-}
-
-function Step4Review({
+function Step4QuestionReconciliation({
   missionId,
-  registerSave,
-  onReRun,
+  onAdvance,
 }: {
   missionId: string;
-  registerSave: (fn: () => Promise<boolean>) => void;
-  onReRun: () => void;
+  onAdvance: () => void;
 }) {
   const [loading, setLoading] = useState(true);
-  const [intelId, setIntelId] = useState<string | null>(null);
-  const [rec, setRec] = useState<RecordContent>(EMPTY_RECORD);
+  const [rows, setRows] = useState<QuestionRow[]>([]);
+  const [filter, setFilter] = useState("");
+  const [expandedText, setExpandedText] = useState<Record<string, boolean>>({});
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const [mergeAnchor, setMergeAnchor] = useState<string | null>(null);
+  const [splitTarget, setSplitTarget] = useState<QuestionRow | null>(null);
+  const [confirming, setConfirming] = useState(false);
 
+  // Load
   useEffect(() => {
     let alive = true;
     (async () => {
-      const { data } = await supabase
-        .from("mission_intelligence")
-        .select("id, content, created_at")
+      const { data, error } = await supabase
+        .from("questions")
+        .select("*")
         .eq("mission_id", missionId)
-        .eq("layer", "wizard_analysis")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .eq("architecture_version", "v1")
+        .order("sort_order", { ascending: true });
       if (!alive) return;
-      if (data) {
-        setIntelId(data.id);
-        setRec(normalizeContent((data as any).content));
-      }
+      if (error) toast.error(error.message);
+      setRows((data as QuestionRow[]) || []);
       setLoading(false);
     })();
     return () => {
@@ -1141,53 +1053,200 @@ function Step4Review({
     };
   }, [missionId]);
 
-  useEffect(() => {
-    registerSave(async () => {
-      try {
-        if (intelId) {
-          const { error } = await supabase
-            .from("mission_intelligence")
-            .update({ content: rec as any } as never)
-            .eq("id", intelId);
-          if (error) throw error;
-        } else {
-          const { data, error } = await supabase
-            .from("mission_intelligence")
-            .insert({
-              mission_id: missionId,
-              layer: "wizard_analysis",
-              type: "wizard_analysis",
-              content: rec as any,
-            } as never)
-            .select("id")
-            .single();
-          if (error) throw error;
-          if (data) setIntelId((data as any).id);
-        }
-        const { error: mErr } = await supabase
-          .from("missions")
-          .update({ wizard_step: 4 } as never)
-          .eq("id", missionId);
-        if (mErr) throw mErr;
-        toast.success("Record saved");
-        return true;
-      } catch (e: any) {
-        toast.error(e?.message || "Could not save record");
-        return false;
-      }
+  // Persist a single field update
+  const persistField = async (id: string, patch: Partial<QuestionRow>) => {
+    const { error } = await supabase
+      .from("questions")
+      .update({ ...patch, updated_at: new Date().toISOString() } as never)
+      .eq("id", id);
+    if (error) toast.error(error.message);
+  };
+
+  const updateRow = (id: string, patch: Partial<QuestionRow>) => {
+    setRows((rs) => rs.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  };
+
+  const commitField = (id: string, patch: Partial<QuestionRow>) => {
+    updateRow(id, patch);
+    void persistField(id, patch);
+  };
+
+  const sectionsList = useMemo(() => {
+    const set = new Set<string>();
+    rows.forEach((r) => set.add((r.section || "Unsorted").trim()));
+    return Array.from(set);
+  }, [rows]);
+
+  const filtered = useMemo(() => {
+    const f = filter.trim().toLowerCase();
+    if (!f) return rows;
+    return rows.filter((r) =>
+      [r.question_number, r.question_name, r.question_text, r.section, r.admin_notes]
+        .filter(Boolean)
+        .some((v) => String(v).toLowerCase().includes(f)),
+    );
+  }, [rows, filter]);
+
+  const grouped = useMemo(() => {
+    const map = new Map<string, QuestionRow[]>();
+    filtered.forEach((r) => {
+      const sec = (r.section || "Unsorted").trim();
+      if (!map.has(sec)) map.set(sec, []);
+      map.get(sec)!.push(r);
     });
-  }, [rec, intelId, missionId, registerSave]);
+    return Array.from(map.entries());
+  }, [filtered]);
 
-  const set = <K extends keyof RecordContent>(k: K, v: RecordContent[K]) =>
-    setRec((r) => ({ ...r, [k]: v }));
+  const totalQuestions = rows.length;
+  const totalSections = useMemo(
+    () => new Set(rows.map((r) => (r.section || "Unsorted").trim())).size,
+    [rows],
+  );
 
-  const handleReRun = () => {
-    if (
-      confirm(
-        "Re-run IRIS? This will overwrite the current record after the new analysis completes.",
-      )
-    ) {
-      onReRun();
+  const nextSort = () =>
+    (rows.reduce((m, r) => Math.max(m, r.sort_order ?? 0), 0) || 0) + 10;
+
+  const addQuestion = async (sectionName?: string) => {
+    const payload: any = {
+      mission_id: missionId,
+      architecture_version: "v1",
+      section: sectionName ?? null,
+      sort_order: nextSort(),
+      status: "open",
+    };
+    const { data, error } = await supabase
+      .from("questions")
+      .insert(payload as never)
+      .select("*")
+      .single();
+    if (error) return toast.error(error.message);
+    setRows((rs) => [...rs, data as QuestionRow]);
+  };
+
+  const addSection = async () => {
+    const name = window.prompt("New section name?");
+    if (!name) return;
+    await addQuestion(name);
+  };
+
+  const addWorkstream = async () => {
+    const name = window.prompt("New workstream label? (internal grouping only)");
+    if (!name) return;
+    await addQuestion(WORKSTREAM_PREFIX + name);
+  };
+
+  const deleteRow = async (id: string) => {
+    if (!window.confirm("Delete this question?")) return;
+    const { error } = await supabase.from("questions").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    setRows((rs) => rs.filter((r) => r.id !== id));
+  };
+
+  const moveRow = async (id: string, dir: -1 | 1) => {
+    const sorted = [...rows].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    const idx = sorted.findIndex((r) => r.id === id);
+    const swapIdx = idx + dir;
+    if (idx < 0 || swapIdx < 0 || swapIdx >= sorted.length) return;
+    const a = sorted[idx];
+    const b = sorted[swapIdx];
+    const aSort = a.sort_order ?? 0;
+    const bSort = b.sort_order ?? 0;
+    setRows((rs) =>
+      rs.map((r) =>
+        r.id === a.id ? { ...r, sort_order: bSort } : r.id === b.id ? { ...r, sort_order: aSort } : r,
+      ),
+    );
+    await Promise.all([
+      persistField(a.id, { sort_order: bSort }),
+      persistField(b.id, { sort_order: aSort }),
+    ]);
+  };
+
+  const beginMerge = (id: string) => setMergeAnchor(id);
+  const cancelMerge = () => setMergeAnchor(null);
+  const confirmMerge = async () => {
+    if (!mergeAnchor) return;
+    const sorted = [...rows].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    const idx = sorted.findIndex((r) => r.id === mergeAnchor);
+    const a = sorted[idx];
+    const b = sorted[idx + 1];
+    if (!a || !b) {
+      toast.error("No next question to merge with");
+      setMergeAnchor(null);
+      return;
+    }
+    const mergedText = [a.question_text, b.question_text].filter(Boolean).join("\n\n");
+    const mergedName = [a.question_name, b.question_name].filter(Boolean).join(" + ");
+    const patch: Partial<QuestionRow> = {
+      question_text: mergedText,
+      question_name: mergedName,
+    };
+    const { error: uErr } = await supabase
+      .from("questions")
+      .update({ ...patch, updated_at: new Date().toISOString() } as never)
+      .eq("id", a.id);
+    if (uErr) return toast.error(uErr.message);
+    const { error: dErr } = await supabase.from("questions").delete().eq("id", b.id);
+    if (dErr) return toast.error(dErr.message);
+    setRows((rs) =>
+      rs.filter((r) => r.id !== b.id).map((r) => (r.id === a.id ? { ...r, ...patch } : r)),
+    );
+    setMergeAnchor(null);
+    toast.success("Merged");
+  };
+
+  const performSplit = async (original: QuestionRow, firstText: string, secondText: string) => {
+    const patch: Partial<QuestionRow> = { question_text: firstText };
+    const { error: uErr } = await supabase
+      .from("questions")
+      .update({ ...patch, updated_at: new Date().toISOString() } as never)
+      .eq("id", original.id);
+    if (uErr) return toast.error(uErr.message);
+    const newSort = (original.sort_order ?? 0) + 1;
+    const insertPayload: any = {
+      mission_id: missionId,
+      architecture_version: "v1",
+      section: original.section,
+      subsection: original.subsection,
+      page_limit: original.page_limit,
+      question_number: original.question_number ? original.question_number + ".b" : null,
+      question_name: original.question_name ? original.question_name + " (part 2)" : null,
+      question_text: secondText,
+      sort_order: newSort,
+      status: "open",
+    };
+    const { data, error: iErr } = await supabase
+      .from("questions")
+      .insert(insertPayload as never)
+      .select("*")
+      .single();
+    if (iErr) return toast.error(iErr.message);
+    setRows((rs) =>
+      [...rs.map((r) => (r.id === original.id ? { ...r, ...patch } : r)), data as QuestionRow],
+    );
+    setSplitTarget(null);
+    toast.success("Split into 2 questions");
+  };
+
+  const handleConfirm = async () => {
+    setConfirming(true);
+    try {
+      const { error: qErr } = await supabase
+        .from("questions")
+        .update({ architecture_version: "v2" } as never)
+        .eq("mission_id", missionId);
+      if (qErr) throw qErr;
+      const { error: mErr } = await supabase
+        .from("missions")
+        .update({ wizard_step: 4 } as never)
+        .eq("id", missionId);
+      if (mErr) throw mErr;
+      toast.success(`Response Architecture v2 confirmed — ${totalQuestions} questions locked in`);
+      onAdvance();
+    } catch (e: any) {
+      toast.error(e?.message || "Could not confirm architecture");
+    } finally {
+      setConfirming(false);
     }
   };
 
@@ -1195,361 +1254,367 @@ function Step4Review({
     return (
       <div className="py-16 text-center text-sm text-muted-foreground">
         <Loader2 className="mx-auto mb-3 h-5 w-5 animate-spin" />
-        Loading mission record…
+        Loading questions…
       </div>
     );
   }
 
   return (
-    <div className="space-y-7">
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
-          IRIS drafted this — correct anything, add what's missing, and save your changes
-        </p>
+    <div className="space-y-5">
+      <p className="text-sm text-muted-foreground">
+        Review every question IRIS extracted — merge, split, rename, reorganize
+      </p>
+
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-surface px-3 py-2">
         <button
           type="button"
-          onClick={handleReRun}
-          className="shrink-0 inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-semibold hover:bg-surface-hover"
+          onClick={() => addQuestion()}
+          className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-semibold hover:bg-surface-hover"
         >
-          <RefreshCw className="h-3.5 w-3.5" /> Re-run IRIS
+          <Plus className="h-3 w-3" /> Add Question
         </button>
+        <button
+          type="button"
+          onClick={addSection}
+          className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-semibold hover:bg-surface-hover"
+        >
+          <Plus className="h-3 w-3" /> Add Section
+        </button>
+        <button
+          type="button"
+          onClick={addWorkstream}
+          className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-semibold hover:bg-surface-hover"
+        >
+          <Plus className="h-3 w-3" /> Add Workstream
+        </button>
+        <div className="ml-auto">
+          <input
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            placeholder="Filter questions…"
+            className="w-56 rounded-md border border-border bg-background px-2.5 py-1 text-xs"
+          />
+        </div>
       </div>
 
-      <Section title="Mission Overview">
-        <Field label="Overview">
-          <Textarea
-            value={rec.mission_overview}
-            onChange={(v) => set("mission_overview", v)}
-            rows={4}
-          />
-        </Field>
-        <Field label="Mission Briefing — shown to the team at launch">
-          <Textarea
-            value={rec.mission_briefing}
-            onChange={(v) => set("mission_briefing", v)}
-            rows={5}
-          />
-        </Field>
-      </Section>
+      {mergeAnchor && (
+        <div className="flex items-center justify-between rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs">
+          <span>Merge selected question with the next one in order.</span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={cancelMerge}
+              className="rounded-md border border-border bg-surface px-2.5 py-1 font-semibold hover:bg-surface-hover"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={confirmMerge}
+              className="rounded-md px-2.5 py-1 font-bold uppercase tracking-wider"
+              style={{ backgroundColor: GOLD, color: NAVY }}
+            >
+              Confirm Merge
+            </button>
+          </div>
+        </div>
+      )}
 
-      <Section title="Risk Level">
-        <div className="flex gap-2">
-          {(["LOW", "MEDIUM", "HIGH"] as RiskLevel[]).map((lvl) => {
-            const active = rec.risk_level === lvl;
-            const color =
-              lvl === "LOW" ? "#10b981" : lvl === "MEDIUM" ? "#f59e0b" : "#f43f5e";
+      {/* Grouped table */}
+      {grouped.length === 0 ? (
+        <div className="rounded-md border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
+          No questions yet. Use "Add Question" or re-run IRIS.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {grouped.map(([sec, qs]) => {
+            const isWorkstream = sec.startsWith(WORKSTREAM_PREFIX);
+            const collapsed = !!collapsedSections[sec];
             return (
-              <button
-                key={lvl}
-                type="button"
-                onClick={() => set("risk_level", lvl)}
-                className="rounded-md border px-4 py-2 text-xs font-bold uppercase tracking-wider transition"
-                style={{
-                  borderColor: active ? color : "var(--border)",
-                  backgroundColor: active ? `${color}22` : "transparent",
-                  color: active ? color : "var(--muted-foreground)",
-                }}
-              >
-                {lvl}
-              </button>
+              <div key={sec} className="rounded-md border border-border">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCollapsedSections((c) => ({ ...c, [sec]: !c[sec] }))
+                  }
+                  className="flex w-full items-center justify-between border-b border-border bg-surface px-3 py-2 text-left text-xs font-bold uppercase tracking-wider"
+                >
+                  <span className="flex items-center gap-2">
+                    <span>{collapsed ? "▸" : "▾"}</span>
+                    {isWorkstream ? (
+                      <span
+                        className="rounded px-1.5 py-0.5 text-[10px]"
+                        style={{ backgroundColor: `${GOLD}33`, color: GOLD }}
+                      >
+                        WORKSTREAM
+                      </span>
+                    ) : null}
+                    <span>{sec}</span>
+                  </span>
+                  <span className="text-[11px] font-medium text-muted-foreground">
+                    {qs.length} question{qs.length === 1 ? "" : "s"}
+                  </span>
+                </button>
+                {!collapsed && (
+                  <div className="divide-y divide-border">
+                    {qs.map((q) => {
+                      const expanded = !!expandedText[q.id];
+                      const isMergeAnchor = mergeAnchor === q.id;
+                      const sortedAll = [...rows].sort(
+                        (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
+                      );
+                      const idxAll = sortedAll.findIndex((r) => r.id === q.id);
+                      const isMergeNext =
+                        mergeAnchor &&
+                        idxAll > 0 &&
+                        sortedAll[idxAll - 1].id === mergeAnchor;
+                      return (
+                        <div
+                          key={q.id}
+                          className={`grid grid-cols-12 gap-2 px-3 py-2 text-xs ${
+                            isMergeAnchor || isMergeNext ? "bg-amber-500/10" : ""
+                          }`}
+                        >
+                          <div className="col-span-2">
+                            <label className="block text-[10px] uppercase text-muted-foreground">
+                              Number
+                            </label>
+                            <Input
+                              value={q.question_number ?? ""}
+                              onChange={(v) => commitField(q.id, { question_number: v })}
+                            />
+                          </div>
+                          <div className="col-span-4">
+                            <label className="block text-[10px] uppercase text-muted-foreground">
+                              Name
+                            </label>
+                            <Input
+                              value={q.question_name ?? ""}
+                              onChange={(v) => commitField(q.id, { question_name: v })}
+                            />
+                          </div>
+                          <div className="col-span-4">
+                            <label className="block text-[10px] uppercase text-muted-foreground">
+                              Section
+                            </label>
+                            <input
+                              list={`sections-${q.id}`}
+                              value={q.section ?? ""}
+                              onChange={(e) => commitField(q.id, { section: e.target.value })}
+                              className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs"
+                            />
+                            <datalist id={`sections-${q.id}`}>
+                              {sectionsList.map((s) => (
+                                <option key={s} value={s} />
+                              ))}
+                            </datalist>
+                          </div>
+                          <div className="col-span-2">
+                            <label className="block text-[10px] uppercase text-muted-foreground">
+                              Page Limit
+                            </label>
+                            <input
+                              type="number"
+                              value={q.page_limit ?? ""}
+                              onChange={(e) =>
+                                commitField(q.id, {
+                                  page_limit: e.target.value === "" ? null : Number(e.target.value),
+                                })
+                              }
+                              className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs"
+                            />
+                          </div>
+
+                          <div className="col-span-12">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setExpandedText((m) => ({ ...m, [q.id]: !m[q.id] }))
+                              }
+                              className="text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground"
+                            >
+                              {expanded ? "▾ Hide question text" : "▸ Show question text"}
+                            </button>
+                            {expanded && (
+                              <Textarea
+                                value={q.question_text ?? ""}
+                                onChange={(v) => commitField(q.id, { question_text: v })}
+                                rows={4}
+                              />
+                            )}
+                          </div>
+
+                          <div className="col-span-12">
+                            <label className="block text-[10px] uppercase text-muted-foreground">
+                              Admin Notes
+                            </label>
+                            <Input
+                              value={q.admin_notes ?? ""}
+                              onChange={(v) => commitField(q.id, { admin_notes: v })}
+                            />
+                          </div>
+
+                          <div className="col-span-12 flex flex-wrap items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => beginMerge(q.id)}
+                              className="rounded-md border border-border bg-surface px-2 py-1 text-[10px] font-semibold hover:bg-surface-hover"
+                            >
+                              Merge ↓
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSplitTarget(q)}
+                              className="rounded-md border border-border bg-surface px-2 py-1 text-[10px] font-semibold hover:bg-surface-hover"
+                            >
+                              Split
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => moveRow(q.id, -1)}
+                              className="rounded-md border border-border bg-surface px-2 py-1 text-[10px] font-semibold hover:bg-surface-hover"
+                            >
+                              Move Up ↑
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => moveRow(q.id, 1)}
+                              className="rounded-md border border-border bg-surface px-2 py-1 text-[10px] font-semibold hover:bg-surface-hover"
+                            >
+                              Move Down ↓
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => deleteRow(q.id)}
+                              className="ml-auto inline-flex items-center gap-1 rounded-md border border-rose-500/40 bg-rose-500/10 px-2 py-1 text-[10px] font-semibold text-rose-300 hover:bg-rose-500/20"
+                            >
+                              <Trash2 className="h-3 w-3" /> Delete
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
-      </Section>
+      )}
 
-      <Section title="Key Dates">
-        <RowTable
-          headers={["Label", "Date", "Note"]}
-          rows={rec.key_dates}
-          onAdd={() =>
-            set("key_dates", [...rec.key_dates, { label: "", date: "", note: "" }])
-          }
-          addLabel="Add Date"
-          render={(row, i) => (
-            <>
-              <Input
-                value={row.label}
-                onChange={(v) =>
-                  set(
-                    "key_dates",
-                    rec.key_dates.map((r, idx) => (idx === i ? { ...r, label: v } : r)),
-                  )
-                }
-                placeholder="e.g. Proposal Due"
-              />
-              <Input
-                type="date"
-                value={row.date}
-                onChange={(v) =>
-                  set(
-                    "key_dates",
-                    rec.key_dates.map((r, idx) => (idx === i ? { ...r, date: v } : r)),
-                  )
-                }
-              />
-              <Input
-                value={row.note}
-                onChange={(v) =>
-                  set(
-                    "key_dates",
-                    rec.key_dates.map((r, idx) => (idx === i ? { ...r, note: v } : r)),
-                  )
-                }
-                placeholder="Note"
-              />
-            </>
-          )}
-          onRemove={(i) =>
-            set("key_dates", rec.key_dates.filter((_, idx) => idx !== i))
-          }
-        />
-      </Section>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Section title="Major Requirements">
-          <ChipEditor
-            items={rec.major_requirements}
-            onChange={(v) => set("major_requirements", v)}
-            placeholder="Add requirement"
-          />
-        </Section>
-        <Section title="Deliverables">
-          <ChipEditor
-            items={rec.deliverables}
-            onChange={(v) => set("deliverables", v)}
-            placeholder="Add deliverable"
-          />
-        </Section>
-      </div>
-
-      <Section title="Compliance Items">
-        <ChipEditor
-          items={rec.compliance_items}
-          onChange={(v) => set("compliance_items", v)}
-          placeholder="Add compliance item"
-        />
-      </Section>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Section title="Key Risks">
-          <RowTable
-            headers={["Risk", "Mitigation"]}
-            rows={rec.key_risks}
-            onAdd={() =>
-              set("key_risks", [...rec.key_risks, { risk: "", mitigation: "" }])
-            }
-            addLabel="Add Risk"
-            render={(row, i) => (
-              <>
-                <Input
-                  value={row.risk}
-                  onChange={(v) =>
-                    set(
-                      "key_risks",
-                      rec.key_risks.map((r, idx) => (idx === i ? { ...r, risk: v } : r)),
-                    )
-                  }
-                  placeholder="Risk"
-                />
-                <Input
-                  value={row.mitigation}
-                  onChange={(v) =>
-                    set(
-                      "key_risks",
-                      rec.key_risks.map((r, idx) =>
-                        idx === i ? { ...r, mitigation: v } : r,
-                      ),
-                    )
-                  }
-                  placeholder="Mitigation"
-                />
-              </>
-            )}
-            onRemove={(i) =>
-              set("key_risks", rec.key_risks.filter((_, idx) => idx !== i))
-            }
-          />
-        </Section>
-        <Section title="Known Gaps">
-          <ChipEditor
-            items={rec.known_gaps}
-            onChange={(v) => set("known_gaps", v)}
-            placeholder="Add gap"
-          />
-        </Section>
-      </div>
-
-      <Section title="Recommended Win Themes">
-        <ChipEditor
-          items={rec.recommended_win_themes}
-          onChange={(v) => set("recommended_win_themes", v)}
-          placeholder="Add win theme"
-        />
-      </Section>
-
-      <Section title="Intelligence Notes">
-        <Textarea
-          value={rec.intelligence_notes}
-          onChange={(v) => set("intelligence_notes", v)}
-          rows={4}
-        />
-      </Section>
-
-      <Section title="IRIS Briefing Notes">
-        <Textarea
-          value={rec.iris_briefing_notes}
-          onChange={(v) => set("iris_briefing_notes", v)}
-          rows={4}
-        />
-      </Section>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Section
-          title="Suggested Sections"
-          subtitle="These will populate Atlas at launch"
+      {/* Footer summary + confirm */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+        <div className="text-xs text-muted-foreground">
+          <span className="font-semibold text-foreground">{totalQuestions}</span> questions across{" "}
+          <span className="font-semibold text-foreground">{totalSections}</span> sections
+        </div>
+        <button
+          type="button"
+          onClick={handleConfirm}
+          disabled={confirming || totalQuestions === 0}
+          className="rounded-md px-5 py-2 text-sm font-bold uppercase tracking-wider shadow disabled:opacity-50"
+          style={{ backgroundColor: GOLD, color: NAVY }}
         >
-          <ChipEditor
-            items={rec.suggested_sections}
-            onChange={(v) => set("suggested_sections", v)}
-            placeholder="Add section"
-          />
-        </Section>
-        <Section title="Workstreams">
-          <ChipEditor
-            items={rec.workstreams}
-            onChange={(v) => set("workstreams", v)}
-            placeholder="Add workstream"
-          />
-        </Section>
+          {confirming ? "Confirming…" : "Confirm Architecture →"}
+        </button>
       </div>
 
-      <Section title="Suggested Staffing">
-        <RowTable
-          headers={["Role", "Reason"]}
-          rows={rec.suggested_staffing}
-          onAdd={() =>
-            set("suggested_staffing", [
-              ...rec.suggested_staffing,
-              { role: "", reason: "" },
-            ])
-          }
-          addLabel="Add Role"
-          render={(row, i) => (
-            <>
-              <Input
-                value={row.role}
-                onChange={(v) =>
-                  set(
-                    "suggested_staffing",
-                    rec.suggested_staffing.map((r, idx) =>
-                      idx === i ? { ...r, role: v } : r,
-                    ),
-                  )
-                }
-                placeholder="Role"
-              />
-              <Input
-                value={row.reason}
-                onChange={(v) =>
-                  set(
-                    "suggested_staffing",
-                    rec.suggested_staffing.map((r, idx) =>
-                      idx === i ? { ...r, reason: v } : r,
-                    ),
-                  )
-                }
-                placeholder="Reason"
-              />
-            </>
-          )}
-          onRemove={(i) =>
-            set(
-              "suggested_staffing",
-              rec.suggested_staffing.filter((_, idx) => idx !== i),
-            )
-          }
+      {splitTarget && (
+        <SplitModal
+          row={splitTarget}
+          onCancel={() => setSplitTarget(null)}
+          onConfirm={(a, b) => performSplit(splitTarget, a, b)}
         />
-      </Section>
+      )}
+    </div>
+  );
+}
 
-      <Section title="Suggested Writing Assignments">
-        <RowTable
-          headers={["Section", "Role", "Notes"]}
-          rows={rec.suggested_writing_assignments}
-          onAdd={() =>
-            set("suggested_writing_assignments", [
-              ...rec.suggested_writing_assignments,
-              { section: "", role: "", notes: "" },
-            ])
-          }
-          addLabel="Add Assignment"
-          render={(row, i) => (
-            <>
-              <Input
-                value={row.section}
-                onChange={(v) =>
-                  set(
-                    "suggested_writing_assignments",
-                    rec.suggested_writing_assignments.map((r, idx) =>
-                      idx === i ? { ...r, section: v } : r,
-                    ),
-                  )
-                }
-                placeholder="Section"
-              />
-              <Input
-                value={row.role}
-                onChange={(v) =>
-                  set(
-                    "suggested_writing_assignments",
-                    rec.suggested_writing_assignments.map((r, idx) =>
-                      idx === i ? { ...r, role: v } : r,
-                    ),
-                  )
-                }
-                placeholder="Role"
-              />
-              <Input
-                value={row.notes}
-                onChange={(v) =>
-                  set(
-                    "suggested_writing_assignments",
-                    rec.suggested_writing_assignments.map((r, idx) =>
-                      idx === i ? { ...r, notes: v } : r,
-                    ),
-                  )
-                }
-                placeholder="Notes"
-              />
-            </>
-          )}
-          onRemove={(i) =>
-            set(
-              "suggested_writing_assignments",
-              rec.suggested_writing_assignments.filter((_, idx) => idx !== i),
-            )
-          }
-        />
-      </Section>
+function SplitModal({
+  row,
+  onCancel,
+  onConfirm,
+}: {
+  row: QuestionRow;
+  onCancel: () => void;
+  onConfirm: (firstText: string, secondText: string) => void;
+}) {
+  const text = row.question_text ?? "";
+  const [splitAt, setSplitAt] = useState(() => Math.floor(text.length / 2));
+  const first = text.slice(0, splitAt);
+  const second = text.slice(splitAt);
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Section title="Required Expertise">
-          <ChipEditor
-            items={rec.required_expertise}
-            onChange={(v) => set("required_expertise", v)}
-            placeholder="Add expertise"
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center px-4"
+      style={{ backgroundColor: OVERLAY_BG }}
+    >
+      <div className="w-full max-w-2xl rounded-xl border border-border bg-surface shadow-2xl">
+        <div className="flex items-center justify-between border-b border-border px-5 py-3">
+          <h3 className="text-sm font-bold uppercase tracking-wider">Split Question</h3>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="space-y-4 px-5 py-4">
+          <p className="text-xs text-muted-foreground">
+            Drag the slider to choose where this question splits into two.
+          </p>
+          <input
+            type="range"
+            min={1}
+            max={Math.max(1, text.length - 1)}
+            value={splitAt}
+            onChange={(e) => setSplitAt(Number(e.target.value))}
+            className="w-full"
           />
-        </Section>
-        <Section title="Client Sensitivities">
-          <ChipEditor
-            items={rec.client_sensitivities}
-            onChange={(v) => set("client_sensitivities", v)}
-            placeholder="Add sensitivity"
-          />
-        </Section>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div>
+              <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Question 1
+              </div>
+              <div className="max-h-48 overflow-auto rounded-md border border-border bg-background p-2 text-xs whitespace-pre-wrap">
+                {first}
+              </div>
+            </div>
+            <div>
+              <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Question 2
+              </div>
+              <div className="max-h-48 overflow-auto rounded-md border border-border bg-background p-2 text-xs whitespace-pre-wrap">
+                {second}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center justify-end gap-2 border-t border-border px-5 py-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-semibold hover:bg-surface-hover"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={!first.trim() || !second.trim()}
+            onClick={() => onConfirm(first, second)}
+            className="rounded-md px-4 py-1.5 text-xs font-bold uppercase tracking-wider disabled:opacity-50"
+            style={{ backgroundColor: GOLD, color: NAVY }}
+          >
+            Confirm Split
+          </button>
+        </div>
       </div>
     </div>
   );
 }
+
 
 function Section({
   title,
