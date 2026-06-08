@@ -20,7 +20,8 @@ const STEP_NAMES = [
   "Upload Assignment Tracker",
   "IRIS Assignment Reconciliation",
   "Assignment Review",
-  "Readiness & GO LIVE",
+  "Mission Intelligence Mapping",
+  "Readiness Review",
 ];
 const TOTAL_STEPS = STEP_NAMES.length;
 
@@ -62,6 +63,7 @@ type Props = {
 };
 
 export default function MissionWizard({ open, onClose, missionId: initialMissionId, startStep = 1 }: Props) {
+  const navigate = useNavigate();
   const [step, setStep] = useState(startStep);
   const [missionId, setMissionId] = useState<string | null>(initialMissionId ?? null);
   const [saving, setSaving] = useState(false);
@@ -344,19 +346,37 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
             <AssignmentReview
               missionId={missionId}
               mode="wizard"
+              nextWizardStep={7}
               onConfirm={() => setStep(8)}
             />
           )}
           {step === 8 && missionId && (
-            <Step6Readiness
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Attach intelligence to every question — win themes, sources, compliance refs, and more.
+              </p>
+              <AssignmentReview
+                missionId={missionId}
+                mode="wizard"
+                showIntelligence
+                nextWizardStep={8}
+                confirmLabel="Save & Continue →"
+                onConfirm={() => setStep(9)}
+                onSkip={() => setStep(9)}
+              />
+            </div>
+          )}
+          {step === 9 && missionId && (
+            <Step9ReadinessReview
               missionId={missionId}
               onClose={onClose}
-              onSaveAndClose={async () => {
-                await supabase
-                  .from("missions")
-                  .update({ wizard_step: 8 } as never)
-                  .eq("id", missionId);
+              onGoToAssignments={(filter?: Record<string, string>) => {
                 onClose();
+                navigate({
+                  to: "/admin/missions/$missionId",
+                  params: { missionId },
+                  search: { tab: "assignments", ...(filter || {}) } as never,
+                });
               }}
             />
           )}
@@ -372,7 +392,7 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
           >
             ← Back
           </button>
-          {step !== 3 && step !== 4 && step !== 5 && step !== 6 && step !== 7 && step !== 8 && (
+          {step !== 3 && step !== 4 && step !== 5 && step !== 6 && step !== 7 && step !== 8 && step !== 9 && (
             <button
               type="button"
               onClick={handleContinue}
@@ -2873,6 +2893,391 @@ function Step6Readiness({
               <div className="py-6 text-center">
                 <Loader2 className="mx-auto mb-3 h-7 w-7 animate-spin" style={{ color: GOLD }} />
                 <p className="text-sm font-semibold text-foreground">{launchStage}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================== */
+/*  STEP 9 — Readiness Review (Mission Health Score)              */
+/* ============================================================== */
+
+type ReadinessQuestion = {
+  id: string;
+  question_number: string | null;
+  question_name: string | null;
+  section: string | null;
+};
+
+type ReadinessAssignment = {
+  question_id: string;
+  writer_name: string | null;
+  reviewer_name: string | null;
+  athena_sme_name: string | null;
+  internal_deadline: string | null;
+};
+
+type ReadinessIntel = {
+  question_id: string;
+  win_themes: any;
+  source_doc_refs: any;
+  compliance_refs: any;
+  best_practices: any;
+  oracle_prompts: any;
+  iris_recommendations: any;
+  required_evidence: any;
+};
+
+const INTEL_KEYS_FOR_SCORE = [
+  "win_themes",
+  "source_doc_refs",
+  "compliance_refs",
+  "best_practices",
+  "oracle_prompts",
+  "iris_recommendations",
+  "required_evidence",
+] as const;
+
+function hasAnyIntel(i: ReadinessIntel | undefined): boolean {
+  if (!i) return false;
+  for (const k of INTEL_KEYS_FOR_SCORE) {
+    const v = (i as any)[k];
+    if (Array.isArray(v) && v.length > 0) return true;
+  }
+  return false;
+}
+
+function Step9ReadinessReview({
+  missionId,
+  onClose,
+  onGoToAssignments,
+}: {
+  missionId: string;
+  onClose: () => void;
+  onGoToAssignments: (filter?: Record<string, string>) => void;
+}) {
+  const [loading, setLoading] = useState(true);
+  const [questions, setQuestions] = useState<ReadinessQuestion[]>([]);
+  const [assignments, setAssignments] = useState<Map<string, ReadinessAssignment>>(
+    new Map(),
+  );
+  const [intel, setIntel] = useState<Map<string, ReadinessIntel>>(new Map());
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [launching, setLaunching] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const [{ data: qData }, { data: aData }, { data: iData }] = await Promise.all([
+        supabase
+          .from("questions")
+          .select("id, question_number, question_name, section")
+          .eq("mission_id", missionId)
+          .eq("architecture_version", "v2")
+          .order("section", { ascending: true })
+          .order("sort_order", { ascending: true }),
+        supabase
+          .from("question_assignments")
+          .select("question_id, writer_name, reviewer_name, athena_sme_name, internal_deadline")
+          .eq("mission_id", missionId),
+        supabase
+          .from("question_intelligence")
+          .select(
+            "question_id, win_themes, source_doc_refs, compliance_refs, best_practices, oracle_prompts, iris_recommendations, required_evidence",
+          )
+          .eq("mission_id", missionId),
+      ]);
+      if (!alive) return;
+      setQuestions((qData ?? []) as ReadinessQuestion[]);
+      const aMap = new Map<string, ReadinessAssignment>();
+      (aData ?? []).forEach((a: any) => aMap.set(a.question_id, a));
+      setAssignments(aMap);
+      const iMap = new Map<string, ReadinessIntel>();
+      (iData ?? []).forEach((i: any) => iMap.set(i.question_id, i));
+      setIntel(iMap);
+      setLoading(false);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [missionId]);
+
+  const stats = useMemo(() => {
+    const total = questions.length;
+    let writerOK = 0,
+      reviewerOK = 0,
+      smeOK = 0,
+      dueOK = 0,
+      intelOK = 0;
+    let points = 0;
+    const missingByCheck = {
+      writer: [] as ReadinessQuestion[],
+      reviewer: [] as ReadinessQuestion[],
+      sme: [] as ReadinessQuestion[],
+      due: [] as ReadinessQuestion[],
+      intel: [] as ReadinessQuestion[],
+    };
+    questions.forEach((q) => {
+      const a = assignments.get(q.id);
+      const i = intel.get(q.id);
+      const hasWriter = !!a?.writer_name;
+      const hasReviewer = !!a?.reviewer_name;
+      const hasSME = !!a?.athena_sme_name;
+      const hasDue = !!a?.internal_deadline;
+      const hasIntel = hasAnyIntel(i);
+      if (hasWriter) {
+        writerOK++;
+        points += 2;
+      } else missingByCheck.writer.push(q);
+      if (hasReviewer) {
+        reviewerOK++;
+        points += 2;
+      } else missingByCheck.reviewer.push(q);
+      if (hasSME) smeOK++;
+      else missingByCheck.sme.push(q);
+      if (hasDue) {
+        dueOK++;
+        points += 1;
+      } else missingByCheck.due.push(q);
+      if (hasIntel) {
+        intelOK++;
+        points += 1;
+      } else missingByCheck.intel.push(q);
+    });
+    const max = total * 6;
+    const score = max === 0 ? 0 : Math.round((points / max) * 100);
+    const unassigned = missingByCheck.writer.length;
+    const atRisk = questions.filter((q) => {
+      const a = assignments.get(q.id);
+      return !a?.writer_name || !a?.reviewer_name;
+    }).length;
+    const ready = total - atRisk;
+    return {
+      total,
+      score,
+      writerOK,
+      reviewerOK,
+      smeOK,
+      dueOK,
+      intelOK,
+      missingByCheck,
+      unassigned,
+      atRisk,
+      ready,
+    };
+  }, [questions, assignments, intel]);
+
+  const ringColor =
+    stats.score >= 85 ? "#10b981" : stats.score >= 60 ? "#f59e0b" : "#ef4444";
+
+  const goLive = async () => {
+    setLaunching(true);
+    try {
+      const now = new Date().toISOString();
+      const { error } = await supabase
+        .from("missions")
+        .update({
+          mission_status: "Live",
+          wizard_step: 10,
+          launched_at: now,
+          atlas_synced_at: now,
+        } as never)
+        .eq("id", missionId);
+      if (error) throw error;
+      toast.success(`Mission is LIVE — ${stats.total} questions active`);
+      onClose();
+      onGoToAssignments();
+    } catch (e: any) {
+      toast.error(e?.message || "Could not launch mission");
+    } finally {
+      setLaunching(false);
+      setConfirmOpen(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="py-16 text-center text-sm text-muted-foreground">
+        <Loader2 className="mx-auto mb-3 h-5 w-5 animate-spin" />
+        Computing readiness…
+      </div>
+    );
+  }
+
+  const checks: { key: keyof typeof stats.missingByCheck; label: string; complete: number }[] = [
+    { key: "writer", label: "Writer assigned", complete: stats.writerOK },
+    { key: "reviewer", label: "Reviewer assigned", complete: stats.reviewerOK },
+    { key: "sme", label: "Athena SME assigned", complete: stats.smeOK },
+    { key: "due", label: "Due date set", complete: stats.dueOK },
+    { key: "intel", label: "Intelligence attached", complete: stats.intelOK },
+  ];
+
+  const filterParamFor = (key: keyof typeof stats.missingByCheck): Record<string, string> => {
+    switch (key) {
+      case "writer":
+        return { unassigned: "1" };
+      default:
+        return { missing: String(key) };
+    }
+  };
+
+  const ringSize = 140;
+  const radius = 60;
+  const circumference = 2 * Math.PI * radius;
+  const dash = (stats.score / 100) * circumference;
+
+  return (
+    <div className="space-y-6">
+      <p className="text-sm text-muted-foreground">
+        Every question must have an owner before GO LIVE
+      </p>
+
+      {/* Score ring */}
+      <div className="flex flex-col items-center py-2">
+        <div className="relative" style={{ width: ringSize, height: ringSize }}>
+          <svg width={ringSize} height={ringSize} className="-rotate-90">
+            <circle
+              cx={ringSize / 2}
+              cy={ringSize / 2}
+              r={radius}
+              stroke="var(--border)"
+              strokeWidth={10}
+              fill="none"
+            />
+            <circle
+              cx={ringSize / 2}
+              cy={ringSize / 2}
+              r={radius}
+              stroke={ringColor}
+              strokeWidth={10}
+              fill="none"
+              strokeDasharray={`${dash} ${circumference}`}
+              strokeLinecap="round"
+              className="transition-all"
+            />
+          </svg>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-4xl font-bold" style={{ color: ringColor }}>
+              {stats.score}
+            </span>
+          </div>
+        </div>
+        <div className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          Mission Health Score
+        </div>
+      </div>
+
+      {/* Breakdown */}
+      <div className="rounded-md border border-border bg-surface overflow-hidden">
+        <table className="w-full text-xs">
+          <thead className="bg-surface-hover">
+            <tr className="text-left">
+              <th className="px-3 py-2 font-semibold">Ownership Check</th>
+              <th className="px-3 py-2 font-semibold w-20 text-right">Total</th>
+              <th className="px-3 py-2 font-semibold w-24 text-right">Complete</th>
+              <th className="px-3 py-2 font-semibold w-24 text-right">Missing</th>
+              <th className="px-3 py-2"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {checks.map((c) => {
+              const missing = stats.missingByCheck[c.key].length;
+              return (
+                <tr key={c.key} className="border-t border-border">
+                  <td className="px-3 py-2 font-medium">{c.label}</td>
+                  <td className="px-3 py-2 text-right">{stats.total}</td>
+                  <td className="px-3 py-2 text-right text-emerald-500">{c.complete}</td>
+                  <td
+                    className={`px-3 py-2 text-right ${missing > 0 ? "text-amber-500" : "text-muted-foreground"}`}
+                  >
+                    {missing}
+                  </td>
+                  <td className="px-3 py-2 text-right">
+                    {missing > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => onGoToAssignments(filterParamFor(c.key))}
+                        className="text-blue-500 hover:underline text-[11px] font-semibold"
+                      >
+                        View {missing} questions →
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* GO LIVE */}
+      <div className="flex justify-end pt-2">
+        <button
+          type="button"
+          onClick={() => setConfirmOpen(true)}
+          className={
+            stats.score >= 85
+              ? "rounded-lg px-8 py-3 text-sm font-bold uppercase tracking-[0.18em] shadow-lg"
+              : "rounded-lg border-2 px-8 py-3 text-sm font-bold uppercase tracking-[0.18em]"
+          }
+          style={
+            stats.score >= 85
+              ? { backgroundColor: GOLD, color: NAVY }
+              : { borderColor: "#f59e0b", color: "#f59e0b" }
+          }
+        >
+          {stats.score >= 85 ? "GO LIVE →" : `GO LIVE (score: ${stats.score}) →`}
+        </button>
+      </div>
+
+      {/* Confirm modal */}
+      {confirmOpen && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
+        >
+          <div className="w-full max-w-md rounded-xl border border-border bg-surface p-6 shadow-2xl">
+            {!launching ? (
+              <>
+                <h3 className="text-lg font-bold text-foreground mb-2">
+                  Mission Health: {stats.score}/100
+                </h3>
+                <p className="text-sm text-muted-foreground mb-1">
+                  <strong className="text-foreground">{stats.ready}</strong> questions ready
+                  {"  |  "}
+                  <strong className="text-amber-500">{stats.unassigned}</strong> unassigned
+                  {"  |  "}
+                  <strong className="text-red-500">{stats.atRisk}</strong> at risk
+                </p>
+                <p className="text-sm text-muted-foreground mt-3 mb-5">
+                  Proceed to GO LIVE?
+                </p>
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setConfirmOpen(false)}
+                    className="rounded-md border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-surface-hover"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={goLive}
+                    className="rounded-md px-5 py-2 text-sm font-bold uppercase tracking-wider shadow"
+                    style={{ backgroundColor: GOLD, color: NAVY }}
+                  >
+                    GO LIVE →
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="py-6 text-center">
+                <Loader2 className="mx-auto mb-3 h-7 w-7 animate-spin" style={{ color: GOLD }} />
+                <p className="text-sm font-semibold text-foreground">Activating mission…</p>
               </div>
             )}
           </div>

@@ -89,18 +89,46 @@ function emptyAssignment(missionId: string, questionId: string): Assignment {
   };
 }
 
+export const INTEL_FIELDS = [
+  { key: "win_themes", label: "Win Themes" },
+  { key: "source_doc_refs", label: "Source Documents" },
+  { key: "compliance_refs", label: "Compliance References" },
+  { key: "best_practices", label: "Best Practices" },
+  { key: "oracle_prompts", label: "Oracle Prompts" },
+  { key: "iris_recommendations", label: "IRIS Recommendations" },
+  { key: "required_evidence", label: "Required Evidence" },
+] as const;
+
+export type IntelFieldKey = (typeof INTEL_FIELDS)[number]["key"];
+export type IntelRow = Partial<Record<IntelFieldKey, string[]>> & {
+  question_id: string;
+  mission_id: string;
+};
+
+export type MissionDoc = { id: string; file_name: string | null; doc_type: string | null };
+
 export default function AssignmentReview({
   missionId,
   mode,
   onConfirm,
+  showIntelligence = false,
+  nextWizardStep = 7,
+  confirmLabel,
+  onSkip,
 }: {
   missionId: string;
   mode: "wizard" | "tab";
   onConfirm?: () => void;
+  showIntelligence?: boolean;
+  nextWizardStep?: number;
+  confirmLabel?: string;
+  onSkip?: () => void;
 }) {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<Row[]>([]);
   const [team, setTeam] = useState<TeamMember[]>([]);
+  const [intelMap, setIntelMap] = useState<Map<string, IntelRow>>(new Map());
+  const [missionDocs, setMissionDocs] = useState<MissionDoc[]>([]);
 
   // filters
   const [filterSection, setFilterSection] = useState("");
@@ -113,7 +141,7 @@ export default function AssignmentReview({
   const [confirming, setConfirming] = useState(false);
 
   const reload = async () => {
-    const [{ data: qData, error: qErr }, { data: aData }, { data: tData }] =
+    const [{ data: qData, error: qErr }, { data: aData }, { data: tData }, { data: iData }, { data: dData }] =
       await Promise.all([
         supabase
           .from("questions")
@@ -134,6 +162,17 @@ export default function AssignmentReview({
           .eq("mission_id", missionId)
           .eq("active", true)
           .order("name", { ascending: true }),
+        supabase
+          .from("question_intelligence")
+          .select(
+            "question_id, mission_id, win_themes, source_doc_refs, compliance_refs, best_practices, oracle_prompts, iris_recommendations, required_evidence",
+          )
+          .eq("mission_id", missionId),
+        supabase
+          .from("mission_documents")
+          .select("id, file_name, doc_type")
+          .eq("mission_id", missionId)
+          .order("file_name", { ascending: true }),
       ]);
 
     if (qErr) {
@@ -143,18 +182,27 @@ export default function AssignmentReview({
     }
 
     const aMap = new Map<string, Assignment>();
-    (aData ?? []).forEach((a: any) =>
-      aMap.set(a.question_id, a as Assignment),
-    );
+    (aData ?? []).forEach((a: any) => aMap.set(a.question_id, a as Assignment));
+
+    const iMap = new Map<string, IntelRow>();
+    (iData ?? []).forEach((i: any) => {
+      const norm: IntelRow = { question_id: i.question_id, mission_id: i.mission_id };
+      for (const f of INTEL_FIELDS) {
+        const v = i[f.key];
+        norm[f.key] = Array.isArray(v) ? (v as string[]) : [];
+      }
+      iMap.set(i.question_id, norm);
+    });
 
     const built: Row[] = (qData ?? []).map((q: any) => ({
       question: q as Question,
-      assignment:
-        aMap.get(q.id) ?? emptyAssignment(missionId, q.id),
+      assignment: aMap.get(q.id) ?? emptyAssignment(missionId, q.id),
     }));
 
     setRows(built);
     setTeam((tData ?? []) as TeamMember[]);
+    setIntelMap(iMap);
+    setMissionDocs((dData ?? []) as MissionDoc[]);
     setLoading(false);
   };
 
@@ -217,6 +265,30 @@ export default function AssignmentReview({
         updated_at: new Date().toISOString(),
       } as never)
       .eq("id", questionId);
+    if (error) toast.error(error.message);
+  };
+
+  const persistIntel = async (
+    questionId: string,
+    field: IntelFieldKey,
+    next: string[],
+  ) => {
+    const existing =
+      intelMap.get(questionId) ?? ({ question_id: questionId, mission_id: missionId } as IntelRow);
+    const updated: IntelRow = { ...existing, [field]: next };
+    const newMap = new Map(intelMap);
+    newMap.set(questionId, updated);
+    setIntelMap(newMap);
+
+    const payload: any = {
+      question_id: questionId,
+      mission_id: missionId,
+      [field]: next,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase
+      .from("question_intelligence")
+      .upsert(payload as never, { onConflict: "question_id" });
     if (error) toast.error(error.message);
   };
 
@@ -349,10 +421,10 @@ export default function AssignmentReview({
     try {
       const { error } = await supabase
         .from("missions")
-        .update({ wizard_step: 7 } as never)
+        .update({ wizard_step: nextWizardStep } as never)
         .eq("id", missionId);
       if (error) throw error;
-      toast.success("Assignments confirmed");
+      toast.success(showIntelligence ? "Intelligence saved" : "Assignments confirmed");
       onConfirm?.();
     } catch (e: any) {
       toast.error(e?.message || "Could not confirm");
@@ -455,6 +527,7 @@ export default function AssignmentReview({
               <Th>Client SME</Th>
               <Th>Reviewer</Th>
               <Th>Copy Editor</Th>
+              {showIntelligence && <Th>Intelligence</Th>}
               <Th>Status</Th>
               <Th>Risk</Th>
               <Th>Due</Th>
@@ -466,6 +539,8 @@ export default function AssignmentReview({
                 key={r.question.id}
                 row={r}
                 team={team}
+                showIntelligence={showIntelligence}
+                intelCount={intelTotal(intelMap.get(r.question.id))}
                 onOpen={() => setDrawerQid(r.question.id)}
                 onChange={(patch) => persistAssignment(r.question.id, patch)}
                 onUpsertTeam={upsertTeamMember}
@@ -474,7 +549,7 @@ export default function AssignmentReview({
             {filtered.length === 0 && (
               <tr>
                 <td
-                  colSpan={11}
+                  colSpan={showIntelligence ? 12 : 11}
                   className="px-3 py-8 text-center text-muted-foreground"
                 >
                   No questions match the current filters.
@@ -487,7 +562,16 @@ export default function AssignmentReview({
 
       {/* Wizard confirm button */}
       {mode === "wizard" && (
-        <div className="mt-4 flex justify-end">
+        <div className="mt-4 flex items-center justify-end gap-3">
+          {onSkip && (
+            <button
+              type="button"
+              onClick={onSkip}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground"
+            >
+              Skip for now →
+            </button>
+          )}
           <button
             type="button"
             onClick={handleConfirm}
@@ -495,7 +579,9 @@ export default function AssignmentReview({
             className="rounded-md px-5 py-2 text-sm font-bold uppercase tracking-wider shadow disabled:opacity-50"
             style={{ backgroundColor: GOLD, color: NAVY }}
           >
-            {confirming ? "Confirming…" : "Confirm Assignments →"}
+            {confirming
+              ? "Saving…"
+              : confirmLabel || (showIntelligence ? "Save & Continue →" : "Confirm Assignments →")}
           </button>
         </div>
       )}
@@ -525,12 +611,18 @@ export default function AssignmentReview({
           row={drawerRow}
           team={team}
           missionId={missionId}
+          showIntelligence={showIntelligence}
+          intel={intelMap.get(drawerRow.question.id) ?? null}
+          missionDocs={missionDocs}
           onClose={() => setDrawerQid(null)}
           onAssignmentChange={(patch) =>
             persistAssignment(drawerRow.question.id, patch)
           }
           onQuestionChange={(patch) =>
             persistQuestion(drawerRow.question.id, patch)
+          }
+          onIntelChange={(field, next) =>
+            persistIntel(drawerRow.question.id, field, next)
           }
           onUpsertTeam={upsertTeamMember}
         />
@@ -539,17 +631,31 @@ export default function AssignmentReview({
   );
 }
 
+function intelTotal(intel: IntelRow | undefined): number {
+  if (!intel) return 0;
+  let n = 0;
+  for (const f of INTEL_FIELDS) {
+    const v = intel[f.key];
+    if (Array.isArray(v)) n += v.length;
+  }
+  return n;
+}
+
 /* ---------- Row ---------- */
 
 function AssignmentRow({
   row,
   team,
+  showIntelligence,
+  intelCount,
   onOpen,
   onChange,
   onUpsertTeam,
 }: {
   row: Row;
   team: TeamMember[];
+  showIntelligence?: boolean;
+  intelCount?: number;
   onOpen: () => void;
   onChange: (patch: Partial<Assignment>) => void;
   onUpsertTeam: (name: string, inferredRole: string) => Promise<void>;
@@ -610,6 +716,22 @@ function AssignmentRow({
           />
         </Td>
       ))}
+      {showIntelligence && (
+        <Td>
+          <button
+            type="button"
+            onClick={onOpen}
+            className={`inline-flex min-w-[28px] items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-bold ${
+              (intelCount ?? 0) > 0
+                ? "bg-blue-500/15 text-blue-500 border border-blue-500/30"
+                : "bg-muted text-muted-foreground border border-border"
+            }`}
+            title="Edit intelligence"
+          >
+            {intelCount ?? 0}
+          </button>
+        </Td>
+      )}
       <Td>
         <BadgeSelect
           value={a.status || "Unassigned"}
@@ -739,22 +861,31 @@ function QuestionDrawer({
   row,
   team,
   missionId,
+  showIntelligence,
+  intel,
+  missionDocs,
   onClose,
   onAssignmentChange,
   onQuestionChange,
+  onIntelChange,
   onUpsertTeam,
 }: {
   row: Row;
   team: TeamMember[];
   missionId: string;
+  showIntelligence?: boolean;
+  intel?: IntelRow | null;
+  missionDocs?: MissionDoc[];
   onClose: () => void;
   onAssignmentChange: (patch: Partial<Assignment>) => void;
   onQuestionChange: (patch: Partial<Question>) => void;
+  onIntelChange?: (field: IntelFieldKey, next: string[]) => void;
   onUpsertTeam: (name: string, inferredRole: string) => Promise<void>;
 }) {
-  const [intel, setIntel] = useState<any | null>(null);
+  const [legacyIntel, setLegacyIntel] = useState<any | null>(null);
 
   useEffect(() => {
+    if (showIntelligence) return;
     let alive = true;
     (async () => {
       const { data } = await supabase
@@ -766,12 +897,12 @@ function QuestionDrawer({
         .eq("mission_id", missionId)
         .maybeSingle();
       if (!alive) return;
-      setIntel(data || null);
+      setLegacyIntel(data || null);
     })();
     return () => {
       alive = false;
     };
-  }, [row.question.id, missionId]);
+  }, [row.question.id, missionId, showIntelligence]);
 
   const q = row.question;
   const a = row.assignment;
@@ -942,30 +1073,42 @@ function QuestionDrawer({
             <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
               Intelligence
             </div>
-            {!intel ? (
+            {showIntelligence ? (
+              <div className="space-y-4">
+                {INTEL_FIELDS.map((f) => (
+                  <ChipListField
+                    key={f.key}
+                    label={f.label}
+                    values={(intel?.[f.key] as string[]) || []}
+                    documentOptions={f.key === "source_doc_refs" ? missionDocs ?? [] : undefined}
+                    onChange={(next) => onIntelChange?.(f.key, next)}
+                  />
+                ))}
+              </div>
+            ) : !legacyIntel ? (
               <div className="text-xs text-muted-foreground">
                 No intelligence generated for this question yet.
               </div>
             ) : (
               <div className="space-y-2 text-xs">
-                {intel.iris_brief && (
+                {legacyIntel.iris_brief && (
                   <div>
                     <div className="font-semibold">IRIS Brief</div>
                     <div className="text-muted-foreground line-clamp-4">
-                      {intel.iris_brief}
+                      {legacyIntel.iris_brief}
                     </div>
                   </div>
                 )}
                 <div className="flex flex-wrap gap-3">
-                  <Stat label="Key Messages" value={countItems(intel.key_messages)} />
-                  <Stat label="Research" value={countItems(intel.relevant_research)} />
+                  <Stat label="Key Messages" value={countItems(legacyIntel.key_messages)} />
+                  <Stat label="Research" value={countItems(legacyIntel.relevant_research)} />
                   <Stat
                     label="Compliance Flags"
-                    value={countItems(intel.compliance_flags)}
+                    value={countItems(legacyIntel.compliance_flags)}
                   />
                   <Stat
                     label="State Priorities"
-                    value={countItems(intel.state_priorities)}
+                    value={countItems(legacyIntel.state_priorities)}
                   />
                 </div>
               </div>
@@ -1020,4 +1163,107 @@ function Td({
   className?: string;
 }) {
   return <td className={`px-2 py-1.5 align-middle ${className}`}>{children}</td>;
+}
+
+/* ---------- Chip list editor ---------- */
+
+function ChipListField({
+  label,
+  values,
+  documentOptions,
+  onChange,
+}: {
+  label: string;
+  values: string[];
+  documentOptions?: MissionDoc[];
+  onChange: (next: string[]) => void;
+}) {
+  const [draft, setDraft] = useState("");
+  const safe = Array.isArray(values) ? values : [];
+
+  const add = (raw: string) => {
+    const v = raw.trim();
+    if (!v) return;
+    if (safe.some((x) => x.toLowerCase() === v.toLowerCase())) return;
+    onChange([...safe, v]);
+    setDraft("");
+  };
+
+  const remove = (i: number) => {
+    const next = safe.filter((_, idx) => idx !== i);
+    onChange(next);
+  };
+
+  const isDocPicker = Array.isArray(documentOptions);
+
+  return (
+    <div>
+      <div className="text-xs font-semibold mb-1.5">{label}</div>
+      <div className="flex flex-wrap gap-1.5 mb-2">
+        {safe.length === 0 && (
+          <span className="text-[11px] text-muted-foreground italic">No items</span>
+        )}
+        {safe.map((chip, i) => (
+          <span
+            key={`${chip}-${i}`}
+            className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-2 py-0.5 text-[11px]"
+          >
+            <span className="max-w-[220px] truncate" title={chip}>
+              {chip}
+            </span>
+            <button
+              type="button"
+              onClick={() => remove(i)}
+              className="text-muted-foreground hover:text-foreground"
+              aria-label={`Remove ${chip}`}
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </span>
+        ))}
+      </div>
+      {isDocPicker ? (
+        <select
+          value=""
+          onChange={(e) => {
+            if (e.target.value) add(e.target.value);
+            e.currentTarget.selectedIndex = 0;
+          }}
+          className="w-full rounded border border-border bg-background px-2 py-1 text-xs"
+        >
+          <option value="">+ Add source document…</option>
+          {(documentOptions ?? []).map((d) => {
+            const lbl = d.file_name || d.doc_type || d.id;
+            return (
+              <option key={d.id} value={lbl}>
+                {lbl}
+              </option>
+            );
+          })}
+        </select>
+      ) : (
+        <div className="flex gap-1.5">
+          <input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                add(draft);
+              }
+            }}
+            placeholder={`Add ${label.toLowerCase()}…`}
+            className="flex-1 rounded border border-border bg-background px-2 py-1 text-xs"
+          />
+          <button
+            type="button"
+            onClick={() => add(draft)}
+            className="rounded border border-border bg-surface px-2 py-1 text-xs font-semibold hover:bg-surface-hover"
+          >
+            Add
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
