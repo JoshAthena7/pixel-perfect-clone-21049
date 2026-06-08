@@ -84,7 +84,7 @@ export default function MissionCommand() {
                       <Td>{m.client ?? "—"}</Td>
                       <Td>{formatDate(m.submission_date)}</Td>
                       <Td><StatusBadge value={m.mission_status ?? m.status ?? "Draft"} /></Td>
-                      <Td className="text-muted-foreground">{formatDate(m.updated_at ?? m.created_at)}</Td>
+                      <Td className="text-muted-foreground">{formatDate(m.created_at)}</Td>
                       <Td className="text-right">
                         <Link
                           to="/admin/missions/$missionId"
