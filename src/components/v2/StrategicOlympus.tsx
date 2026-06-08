@@ -439,14 +439,27 @@ function PortfolioIntelItem({ item }: { item: PortfolioIntel }) {
       <div className="mt-1.5 text-sm font-semibold text-foreground">{item.headline}</div>
       <p className="mt-1 text-[13px] text-foreground/75 leading-[1.55]">{item.body}</p>
       {item.action_label && (
-        <Link
-          to="/home"
-          className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold hover:underline"
-          style={{ color: IRIS_INDIGO }}
-        >
-          {item.action_label} <ArrowRight className="h-3 w-3" />
-        </Link>
+        item.affected_mission_ids?.length === 1 ? (
+          <Link
+            to="/missions/$missionId"
+            params={{ missionId: item.affected_mission_ids[0] }}
+            className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold hover:underline"
+            style={{ color: IRIS_INDIGO }}
+          >
+            {item.action_label} <ArrowRight className="h-3 w-3" />
+          </Link>
+        ) : (
+          <Link
+            to="/missions"
+            search={item.action_filter ? { intel: item.action_filter } as any : undefined}
+            className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold hover:underline"
+            style={{ color: IRIS_INDIGO }}
+          >
+            {item.action_label} <ArrowRight className="h-3 w-3" />
+          </Link>
+        )
       )}
+
     </li>
   );
 }
