@@ -1,22 +1,26 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { X } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { runWizardIrisAnalysis } from "@/lib/mission-wizard-iris.functions";
 
 const TOTAL_STEPS = 7;
 const GOLD = "#C9A84C";
+const NAVY = "#1F3864";
 
 const STEP_META: Record<number, { name: string; subtitle: string }> = {
   1: { name: "Mission Identity", subtitle: "Define the mission foundation — this becomes the official record" },
   2: { name: "Source Materials", subtitle: "Give IRIS everything it needs to build your mission record" },
-  3: { name: "Team", subtitle: "Coming soon" },
-  4: { name: "Timeline", subtitle: "Coming soon" },
+  3: { name: "IRIS Analysis", subtitle: "IRIS is reading your materials and building the mission record" },
+  4: { name: "Team", subtitle: "Coming soon" },
   5: { name: "Readiness", subtitle: "Coming soon" },
   6: { name: "Strategy", subtitle: "Coming soon" },
   7: { name: "Launch", subtitle: "Coming soon" },
 };
+
 
 const DOC_SLOTS: { type: string; label: string }[] = [
   { type: "rfp", label: "RFP" },
