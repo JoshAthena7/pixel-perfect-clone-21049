@@ -330,13 +330,14 @@ function IrisStatusPanel({ missionId }: { missionId: string }) {
       ) : isError ? (
         <Unavailable />
       ) : (
-        <IrisStatusBody rows={data ?? []} />
+        <IrisStatusBody rows={data ?? []} missionId={missionId} />
       )}
     </Panel>
   );
 }
 
-function IrisStatusBody({ rows }: { rows: Array<{ layer: string; version: number; generated_at: string; content: any }> }) {
+function IrisStatusBody({ rows, missionId }: { rows: Array<{ layer: string; version: number; generated_at: string; content: any }>; missionId: string }) {
+
   const layers: Array<{ key: string; label: string }> = [
     { key: "mission_brief", label: "Layer 1 · Mission Brief" },
     { key: "strategic_assessment", label: "Layer 2 · Strategic Assessment" },
