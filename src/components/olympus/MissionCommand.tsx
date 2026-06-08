@@ -84,7 +84,7 @@ export default function MissionCommand() {
                     <Td><Badge value={m.status} /></Td>
                     <Td>{formatDate(m.submission_date)}</Td>
                     <Td><HealthDot value={m.health} /></Td>
-                    <Td className="text-muted-foreground">—</Td>
+                    <Td><IrisBadge count={counts.get(m.id) ?? 0} /></Td>
                     <Td className="text-right">
                       <div className="inline-flex gap-2">
                         <Link
