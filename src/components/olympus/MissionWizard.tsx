@@ -496,7 +496,21 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
             </div>
           )}
 
-          {step >= 4 && (
+          {step === 4 && (
+            reviewLoading || !review ? (
+              <div className="rounded-lg border border-dashed border-border bg-surface/30 p-10 text-center text-sm text-muted-foreground">
+                Loading IRIS draft…
+              </div>
+            ) : (
+              <ReviewForm
+                review={review}
+                onChange={setReview}
+                onRerun={rerunIris}
+              />
+            )
+          )}
+
+          {step >= 5 && (
             <div className="rounded-lg border border-dashed border-border bg-surface/30 p-10 text-center text-sm text-muted-foreground">
               {meta.name} — coming soon.
             </div>
