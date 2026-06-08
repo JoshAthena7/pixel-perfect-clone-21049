@@ -611,6 +611,9 @@ export default function AssignmentReview({
           row={drawerRow}
           team={team}
           missionId={missionId}
+          showIntelligence={showIntelligence}
+          intel={intelMap.get(drawerRow.question.id) ?? null}
+          missionDocs={missionDocs}
           onClose={() => setDrawerQid(null)}
           onAssignmentChange={(patch) =>
             persistAssignment(drawerRow.question.id, patch)
@@ -618,11 +621,24 @@ export default function AssignmentReview({
           onQuestionChange={(patch) =>
             persistQuestion(drawerRow.question.id, patch)
           }
+          onIntelChange={(field, next) =>
+            persistIntel(drawerRow.question.id, field, next)
+          }
           onUpsertTeam={upsertTeamMember}
         />
       )}
     </div>
   );
+}
+
+function intelTotal(intel: IntelRow | undefined): number {
+  if (!intel) return 0;
+  let n = 0;
+  for (const f of INTEL_FIELDS) {
+    const v = intel[f.key];
+    if (Array.isArray(v)) n += v.length;
+  }
+  return n;
 }
 
 /* ---------- Row ---------- */
