@@ -314,7 +314,8 @@ For political_considerations and meeting_cadence, summarize supported evidence o
           usableText(existing?.political_considerations) ||
           usableText(result.political_considerations) ||
           null,
-        meeting_cadence: usableText(existing?.meeting_cadence) || usableText(result.meeting_cadence) || null,
+        meeting_cadence:
+          usableText(existing?.meeting_cadence) || usableText(result.meeting_cadence) || null,
         notes: usableText(existing?.notes) || usableText(result.notes) || null,
         created_by_system: true,
         updated_at: new Date().toISOString(),
