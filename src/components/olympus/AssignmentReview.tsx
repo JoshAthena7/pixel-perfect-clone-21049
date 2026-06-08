@@ -861,22 +861,31 @@ function QuestionDrawer({
   row,
   team,
   missionId,
+  showIntelligence,
+  intel,
+  missionDocs,
   onClose,
   onAssignmentChange,
   onQuestionChange,
+  onIntelChange,
   onUpsertTeam,
 }: {
   row: Row;
   team: TeamMember[];
   missionId: string;
+  showIntelligence?: boolean;
+  intel?: IntelRow | null;
+  missionDocs?: MissionDoc[];
   onClose: () => void;
   onAssignmentChange: (patch: Partial<Assignment>) => void;
   onQuestionChange: (patch: Partial<Question>) => void;
+  onIntelChange?: (field: IntelFieldKey, next: string[]) => void;
   onUpsertTeam: (name: string, inferredRole: string) => Promise<void>;
 }) {
-  const [intel, setIntel] = useState<any | null>(null);
+  const [legacyIntel, setLegacyIntel] = useState<any | null>(null);
 
   useEffect(() => {
+    if (showIntelligence) return;
     let alive = true;
     (async () => {
       const { data } = await supabase
@@ -888,12 +897,12 @@ function QuestionDrawer({
         .eq("mission_id", missionId)
         .maybeSingle();
       if (!alive) return;
-      setIntel(data || null);
+      setLegacyIntel(data || null);
     })();
     return () => {
       alive = false;
     };
-  }, [row.question.id, missionId]);
+  }, [row.question.id, missionId, showIntelligence]);
 
   const q = row.question;
   const a = row.assignment;
