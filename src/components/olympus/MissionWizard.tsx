@@ -293,13 +293,18 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
               }}
             />
           )}
-          {step === 6 && (
-            <div className="py-16 text-center text-sm text-muted-foreground">
-              <h2 className="text-lg font-semibold text-foreground mb-2">
-                {STEP_NAMES[step - 1]}
-              </h2>
-              <p>This step will be available soon.</p>
-            </div>
+          {step === 6 && missionId && (
+            <Step6Readiness
+              missionId={missionId}
+              onClose={onClose}
+              onSaveAndClose={async () => {
+                await supabase
+                  .from("missions")
+                  .update({ wizard_step: 6 } as never)
+                  .eq("id", missionId);
+                onClose();
+              }}
+            />
           )}
         </div>
 
