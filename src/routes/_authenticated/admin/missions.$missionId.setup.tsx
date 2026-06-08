@@ -1397,6 +1397,7 @@ function SectionQuestions({ missionId, questions, volumes, refetch }: any) {
             </div>
           </div>
           <button
+            type="button"
             onClick={() => setMatrixOpen(true)}
             className="shrink-0 inline-flex items-center gap-1.5 rounded-md bg-[#C49A22] px-3 py-2 text-xs font-semibold text-black hover:bg-[#D4AA32]"
           >
