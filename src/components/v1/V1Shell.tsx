@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMissionOverview } from "@/lib/v1/mission.functions";
 import { isPmRole } from "@/lib/v1/mission";
+import { useHasSupabaseSession } from "@/hooks/useSupabaseSession";
 
 type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; pmOnly?: boolean };
 const NAV: NavItem[] = [
