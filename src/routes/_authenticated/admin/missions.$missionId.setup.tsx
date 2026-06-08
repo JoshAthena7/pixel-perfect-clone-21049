@@ -873,6 +873,35 @@ function SectionStrategy({ missionId, mission, strategy, sensitivities, refetch 
     toast.success("Focus areas saved");
     refetch();
   }
+  async function saveSensitivities() {
+    setSavingSens(true);
+    try {
+      const cats = ["sensitivity", "language", "avoid", "reinforce"];
+      const { error: delErr } = await supabase
+        .from("mission_sensitivities")
+        .delete()
+        .eq("mission_id", missionId)
+        .in("category", cats);
+      if (delErr) return toast.error(delErr.message);
+      const rows = [
+        { category: "sensitivity", note: textForm.sensitivities },
+        { category: "language", note: textForm.language },
+        { category: "avoid", note: textForm.avoid },
+        { category: "reinforce", note: textForm.reinforce },
+      ]
+        .filter((r) => r.note.trim().length > 0)
+        .map((r) => ({ mission_id: missionId, category: r.category, note: r.note.trim() }));
+      if (rows.length > 0) {
+        const { error } = await supabase.from("mission_sensitivities").insert(rows);
+        if (error) return toast.error(error.message);
+      }
+      toast.success("Sensitivities saved");
+      refetch();
+    } finally {
+      setSavingSens(false);
+    }
+  }
+
 
   return (
     <Section id="strategy" n="04" label="Win Strategy" sublabel="The strategic inputs that make IRIS intelligent about this specific mission.">
