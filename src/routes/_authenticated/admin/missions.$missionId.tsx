@@ -21,7 +21,7 @@ function MissionDetail() {
   const { tab = "overview" } = Route.useSearch();
   const navigate = useNavigate();
 
-  const { data: mission, isLoading } = useQuery({
+  const { data: mission, isLoading, error } = useQuery({
     queryKey: ["olympus-mission", missionId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -35,10 +35,22 @@ function MissionDetail() {
   });
 
   if (isLoading) return <div className="p-8 text-sm text-muted-foreground">Loading mission…</div>;
+  if (error) {
+    return (
+      <div className="p-8">
+        <div className="text-lg font-semibold text-rose-300">Failed to load mission</div>
+        <div className="mt-2 text-sm text-muted-foreground">{(error as Error).message}</div>
+        <Link to="/admin" className="mt-3 inline-flex items-center gap-1.5 text-sm text-amber-300 hover:underline">
+          <ArrowLeft className="h-3.5 w-3.5" /> All Missions
+        </Link>
+      </div>
+    );
+  }
   if (!mission) {
     return (
       <div className="p-8">
         <div className="text-lg font-semibold">Mission not found</div>
+        <div className="mt-1 text-xs text-muted-foreground">ID: {missionId}</div>
         <Link to="/admin" className="mt-3 inline-flex items-center gap-1.5 text-sm text-amber-300 hover:underline">
           <ArrowLeft className="h-3.5 w-3.5" /> All Missions
         </Link>
