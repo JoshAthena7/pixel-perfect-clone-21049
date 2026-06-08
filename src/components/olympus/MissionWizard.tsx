@@ -263,7 +263,7 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
       } finally {
         setSaving(false);
       }
-    } else if (step < 6) {
+    } else if (step < TOTAL_STEPS) {
       setStep(step + 1);
     } else {
       onClose();
