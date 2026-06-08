@@ -187,6 +187,111 @@ function deterministicAgencyFallback(docText: string, mission: any) {
   };
 }
 
+/**
+ * Web "scrub" for advocacy orgs, CBOs, research/policy partners, family/youth
+ * coalitions, and philanthropic funders touching this scope. Uses Firecrawl
+ * search when FIRECRAWL_API_KEY is set; returns "" silently when not.
+ *
+ * The goal is to give the LLM a *real* roster of named advocates rather than
+ * relying solely on whatever the RFP happens to cite, so the Stakeholder
+ * section comes back sharp and source-grounded.
+ */
+async function scrubAdvocatesFromWeb(mission: any, docText: string): Promise<{
+  webContext: string;
+  sources: Array<{ url: string; title?: string }>;
+}> {
+  const firecrawlKey = process.env.FIRECRAWL_API_KEY;
+  if (!firecrawlKey) return { webContext: "", sources: [] };
+
+  const state = String(mission?.state ?? "").trim();
+  const agency = String(mission?.state_agency ?? "").trim();
+  const program = String(mission?.program_type ?? mission?.name ?? "").trim();
+
+  // Detect scope hints from doc text + mission so queries are sharp.
+  const lower = (docText + " " + program).toLowerCase();
+  const isChildBh =
+    /\bcsoc\b|children'?s system of care|children'?s behavioral health|care management organization|\bcmo\b|\bmrss\b|perform ?care|youth mental health/i.test(
+      lower,
+    );
+  const isMedicaid = /\bmedicaid\b|\bdmahs\b|managed care|mco\b/i.test(lower);
+  const isChildWelfare = /child welfare|foster care|dcp&p|\bdcf\b|child protection/i.test(lower);
+  const isJuvenileJustice = /juvenile justice|justice[- ]involved youth|\bjjc\b/i.test(lower);
+
+  const stateOrUS = state || "United States";
+  const queries = new Set<string>();
+  // Always-on baseline
+  queries.add(`${stateOrUS} ${program || "human services"} advocacy organizations`);
+  queries.add(`${stateOrUS} community based organizations ${program || "health and human services"} coalition`);
+  queries.add(`${stateOrUS} policy advocacy ${program || "human services"} nonprofit`);
+  queries.add(`${stateOrUS} ${program || ""} family youth peer advocacy organization`);
+  if (agency) queries.add(`${agency} stakeholder advocacy coalition partners`);
+  // Scope-specific
+  if (isChildBh) {
+    queries.add(`${stateOrUS} children's behavioral health advocacy organization`);
+    queries.add(`${stateOrUS} family support organization FSO children mental health`);
+    queries.add(`${stateOrUS} NAMI MHA youth move children`);
+  }
+  if (isMedicaid) {
+    queries.add(`${stateOrUS} Medicaid advocacy organization consumer coalition`);
+  }
+  if (isChildWelfare) {
+    queries.add(`${stateOrUS} child welfare advocacy organization`);
+  }
+  if (isJuvenileJustice) {
+    queries.add(`${stateOrUS} juvenile justice reform advocacy organization`);
+  }
+  // Research / academic partners
+  queries.add(`${stateOrUS} university research center ${program || "behavioral health"} evaluation partner`);
+  // Philanthropic funders
+  queries.add(`${stateOrUS} foundation funder ${program || "health"} children youth`);
+
+  const sources: Array<{ url: string; title?: string }> = [];
+  const blocks: string[] = [];
+  let blockIdx = 1;
+
+  // Run queries in parallel, cap at 8 to keep latency + cost bounded.
+  const queryList = Array.from(queries).slice(0, 8);
+  const results = await Promise.allSettled(
+    queryList.map((q) =>
+      fetch("https://api.firecrawl.dev/v2/search", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${firecrawlKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: q,
+          limit: 5,
+          scrapeOptions: { formats: ["markdown"] },
+        }),
+      }).then(async (r) => ({ q, ok: r.ok, json: r.ok ? await r.json() : null })),
+    ),
+  );
+
+  const seenUrls = new Set<string>();
+  for (const settled of results) {
+    if (settled.status !== "fulfilled" || !settled.value.ok || !settled.value.json) continue;
+    const { q, json } = settled.value as {
+      q: string;
+      json: { data?: Array<{ url?: string; title?: string; markdown?: string; description?: string }> };
+    };
+    const hits = (json.data ?? []).slice(0, 3);
+    if (hits.length === 0) continue;
+    blocks.push(`### Query: ${q}`);
+    for (const h of hits) {
+      if (!h.url || seenUrls.has(h.url)) continue;
+      seenUrls.add(h.url);
+      sources.push({ url: h.url, title: h.title });
+      const snippet = (h.markdown ?? h.description ?? "").replace(/\s+/g, " ").slice(0, 900);
+      blocks.push(`[${blockIdx}] ${h.title ?? h.url} — ${h.url}\n${snippet}`);
+      blockIdx += 1;
+    }
+  }
+
+  const webContext = blocks.join("\n\n").slice(0, 24_000);
+  return { webContext, sources };
+}
+
 export const extractClientIntel = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ missionId: z.string().uuid() }).parse(d))
