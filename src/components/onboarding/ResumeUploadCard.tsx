@@ -28,7 +28,7 @@ export function ResumeUploadCard({ onParsed, onSkip }: Props) {
     setFileName(file.name);
     setStatus("reading");
     try {
-      const { extractResumeText } = await import("@/lib/extract-resume-text.client");
+      const { extractResumeText } = await import("@/lib/extract-resume-text");
       const text = await extractResumeText(file);
       setStatus("parsing");
       const parsed = (await parseFn({ data: { resume_text: text } })) as ParsedExpertise;
