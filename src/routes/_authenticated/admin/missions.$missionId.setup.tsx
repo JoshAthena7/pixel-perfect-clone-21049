@@ -838,9 +838,13 @@ const STRATEGY_KINDS = [
 ];
 function SectionStrategy({ missionId, mission, strategy, refetch }: any) {
   const [themes, setThemes] = useState<string[]>(mission?.win_themes ?? []);
+  const [focusAreas, setFocusAreas] = useState<string[]>(mission?.focus_areas ?? []);
   const [textForm, setTextForm] = useState({ sensitivities: "", language: "", avoid: "", reinforce: "" });
 
-  useEffect(() => { setThemes(mission?.win_themes ?? []); }, [mission]);
+  useEffect(() => {
+    setThemes(mission?.win_themes ?? []);
+    setFocusAreas(mission?.focus_areas ?? []);
+  }, [mission]);
 
   async function addItem(kind: string, label: string, notes?: string) {
     if (!label.trim()) return;
@@ -857,6 +861,11 @@ function SectionStrategy({ missionId, mission, strategy, refetch }: any) {
     toast.success("Win themes saved");
     refetch();
   }
+  async function saveFocusAreas() {
+    await supabase.from("missions").update({ focus_areas: focusAreas }).eq("id", missionId);
+    toast.success("Focus areas saved");
+    refetch();
+  }
 
   return (
     <Section id="strategy" n="04" label="Win Strategy" sublabel="The strategic inputs that make IRIS intelligent about this specific mission.">
@@ -867,6 +876,7 @@ function SectionStrategy({ missionId, mission, strategy, refetch }: any) {
         <div className="pt-6 border-t border-border space-y-8">
           {/* Win themes — stored on missions.win_themes */}
           <RepeatingArray label="Win Themes" items={themes} onChange={setThemes} onSave={saveThemes} />
+          <RepeatingArray label="Focus Areas" items={focusAreas} onChange={setFocusAreas} onSave={saveFocusAreas} />
 
           {STRATEGY_KINDS.map((k) => (
             <StrategyGroup
