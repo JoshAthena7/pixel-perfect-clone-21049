@@ -5897,6 +5897,81 @@ export type Database = {
         }
         Relationships: []
       }
+      question_assignments: {
+        Row: {
+          athena_sme_name: string | null
+          client_sme_name: string | null
+          copy_editor_name: string | null
+          created_at: string | null
+          dependencies: Json | null
+          id: string
+          internal_deadline: string | null
+          mission_id: string
+          notes: string | null
+          question_id: string
+          reviewer_name: string | null
+          risk_level: string | null
+          status: string | null
+          updated_at: string | null
+          workstream_lead: string | null
+          writer_email: string | null
+          writer_name: string | null
+        }
+        Insert: {
+          athena_sme_name?: string | null
+          client_sme_name?: string | null
+          copy_editor_name?: string | null
+          created_at?: string | null
+          dependencies?: Json | null
+          id?: string
+          internal_deadline?: string | null
+          mission_id: string
+          notes?: string | null
+          question_id: string
+          reviewer_name?: string | null
+          risk_level?: string | null
+          status?: string | null
+          updated_at?: string | null
+          workstream_lead?: string | null
+          writer_email?: string | null
+          writer_name?: string | null
+        }
+        Update: {
+          athena_sme_name?: string | null
+          client_sme_name?: string | null
+          copy_editor_name?: string | null
+          created_at?: string | null
+          dependencies?: Json | null
+          id?: string
+          internal_deadline?: string | null
+          mission_id?: string
+          notes?: string | null
+          question_id?: string
+          reviewer_name?: string | null
+          risk_level?: string | null
+          status?: string | null
+          updated_at?: string | null
+          workstream_lead?: string | null
+          writer_email?: string | null
+          writer_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_assignments_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_assignments_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       question_collaboration: {
         Row: {
           author_id: string | null
@@ -6532,6 +6607,77 @@ export type Database = {
             columns: ["reviewer_id"]
             isOneToOne: false
             referencedRelation: "profiles_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      questions: {
+        Row: {
+          admin_notes: string | null
+          architecture_version: string | null
+          compliance_requirements: Json | null
+          created_at: string | null
+          deliverables: Json | null
+          evaluation_criteria: Json | null
+          id: string
+          mission_id: string
+          page_limit: number | null
+          question_name: string | null
+          question_number: string | null
+          question_text: string | null
+          requirements: Json | null
+          section: string | null
+          sort_order: number | null
+          status: string | null
+          subsection: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          architecture_version?: string | null
+          compliance_requirements?: Json | null
+          created_at?: string | null
+          deliverables?: Json | null
+          evaluation_criteria?: Json | null
+          id?: string
+          mission_id: string
+          page_limit?: number | null
+          question_name?: string | null
+          question_number?: string | null
+          question_text?: string | null
+          requirements?: Json | null
+          section?: string | null
+          sort_order?: number | null
+          status?: string | null
+          subsection?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          architecture_version?: string | null
+          compliance_requirements?: Json | null
+          created_at?: string | null
+          deliverables?: Json | null
+          evaluation_criteria?: Json | null
+          id?: string
+          mission_id?: string
+          page_limit?: number | null
+          question_name?: string | null
+          question_number?: string | null
+          question_text?: string | null
+          requirements?: Json | null
+          section?: string | null
+          sort_order?: number | null
+          status?: string | null
+          subsection?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
             referencedColumns: ["id"]
           },
         ]
