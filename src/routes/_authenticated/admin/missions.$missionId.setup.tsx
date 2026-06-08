@@ -748,6 +748,9 @@ function MonitoringWatchlist({ missionId, mission, sources, refetch }: any) {
               {seeding ? "Seeding…" : `Seed ${mission?.state ?? ""} defaults`}
             </button>
           )}
+          <button onClick={() => setBulkOpen(!bulkOpen)} className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+            <Plus className="h-3 w-3" /> Paste URLs
+          </button>
           <button onClick={() => setAdding(!adding)} className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
             <Plus className="h-3 w-3" /> Add source
           </button>
@@ -756,6 +759,28 @@ function MonitoringWatchlist({ missionId, mission, sources, refetch }: any) {
       <p className="mt-1 text-[11px] text-muted-foreground">
         Sources IRIS watches automatically on launch. Read-only for writers.
       </p>
+
+      {bulkOpen && (
+        <div className="mt-3 rounded border border-border bg-background p-3 space-y-2">
+          <div className="text-[11px] text-muted-foreground">
+            Paste one URL per line. Optionally prefix with a label and comma:
+            <span className="font-mono"> Texas HHSC, https://hhs.texas.gov/news</span>
+          </div>
+          <textarea
+            value={bulkText}
+            onChange={(e) => setBulkText(e.target.value)}
+            rows={6}
+            placeholder={"https://example.com/news\nDOJ Press, https://www.justice.gov/news"}
+            className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs font-mono"
+          />
+          <div className="flex items-center justify-end gap-2">
+            <button onClick={() => { setBulkOpen(false); setBulkText(""); }} className="text-xs text-muted-foreground hover:text-foreground">Cancel</button>
+            <button onClick={bulkAdd} disabled={bulkBusy || !bulkText.trim()} className="rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground disabled:opacity-50">
+              {bulkBusy ? "Adding…" : "Add all"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {adding && (
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-6 gap-2 rounded border border-border p-3 bg-background">
