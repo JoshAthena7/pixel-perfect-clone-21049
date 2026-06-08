@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
-  CheckCircle2, Circle, Plus, Trash2, Upload, Rocket, ChevronDown, ChevronRight,
+  CheckCircle2, Circle, Plus, Trash2, Upload, Rocket, ChevronDown, ChevronRight, ChevronUp,
   Lock, X, Radar, Tag, Zap, Loader2,
 } from "lucide-react";
 import { launchMission } from "@/lib/mission-setup.functions";
@@ -1777,19 +1777,43 @@ function QuestionAssignmentRow({ question, refetch }: { question: any; refetch: 
    08 — Governance
    ──────────────────────────────────────────────────────────── */
 function SectionGovernance({ missionId, governance, refetch }: any) {
-  const [form, setForm] = useState({ approval: "", authority: "" });
+  const [steps, setSteps] = useState<string[]>([]);
+  const [authority, setAuthority] = useState("");
+  const [draft, setDraft] = useState("");
+
   useEffect(() => {
-    if (governance) setForm({
-      approval: (governance.approval_workflow ?? []).join("\n"),
-      authority: governance.submission_authority ?? "",
-    });
+    if (governance) {
+      setSteps((governance.approval_workflow ?? []).filter(Boolean));
+      setAuthority(governance.submission_authority ?? "");
+    }
   }, [governance]);
 
+  function addStep() {
+    const v = draft.trim();
+    if (!v) return;
+    setSteps([...steps, v]);
+    setDraft("");
+  }
+  function removeStep(i: number) {
+    setSteps(steps.filter((_, idx) => idx !== i));
+  }
+  function moveStep(i: number, dir: -1 | 1) {
+    const j = i + dir;
+    if (j < 0 || j >= steps.length) return;
+    const next = [...steps];
+    [next[i], next[j]] = [next[j], next[i]];
+    setSteps(next);
+  }
+  function updateStep(i: number, v: string) {
+    setSteps(steps.map((s, idx) => (idx === i ? v : s)));
+  }
+
   async function save() {
+    const cleaned = steps.map((s) => s.trim()).filter(Boolean);
     const { error } = await supabase.from("mission_governance").upsert({
       mission_id: missionId,
-      approval_workflow: form.approval.split("\n").map((s) => s.trim()).filter(Boolean),
-      submission_authority: form.authority,
+      approval_workflow: cleaned,
+      submission_authority: authority,
       updated_at: new Date().toISOString(),
     });
     if (error) return toast.error(error.message);
@@ -1799,11 +1823,70 @@ function SectionGovernance({ missionId, governance, refetch }: any) {
   return (
     <Section id="governance" n="08" label="Governance" sublabel="Who approves, and in what order.">
       <div className="grid grid-cols-1 gap-5">
-        <Field label="Approval Steps (one per line — e.g. Capture Lead → Practice Lead → Partner)">
-          <TextArea rows={5} value={form.approval} onChange={(e) => setForm({ ...form, approval: e.target.value })} />
+        <Field label="Approval Steps">
+          <div className="space-y-2">
+            {steps.length === 0 && (
+              <p className="text-xs text-muted-foreground italic">No approval steps yet. Add one below.</p>
+            )}
+            {steps.map((step, i) => (
+              <div key={i} className="flex items-center gap-2 rounded-md border border-border bg-background px-2 py-1.5">
+                <span className="font-mono text-[11px] text-muted-foreground tabular-nums w-6 text-right">{i + 1}.</span>
+                <input
+                  value={step}
+                  onChange={(e) => updateStep(i, e.target.value)}
+                  className="flex-1 bg-transparent text-sm outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => moveStep(i, -1)}
+                  disabled={i === 0}
+                  className="rounded p-1 text-muted-foreground hover:bg-surface-hover disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Move up"
+                  aria-label="Move up"
+                >
+                  <ChevronUp className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => moveStep(i, 1)}
+                  disabled={i === steps.length - 1}
+                  className="rounded p-1 text-muted-foreground hover:bg-surface-hover disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Move down"
+                  aria-label="Move down"
+                >
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => removeStep(i)}
+                  className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  title="Remove step"
+                  aria-label="Remove step"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addStep(); } }}
+                placeholder="e.g. Capture Lead → Practice Lead → Partner"
+                className="flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:border-foreground/40"
+              />
+              <button
+                type="button"
+                onClick={addStep}
+                className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-3 py-1.5 text-sm hover:bg-surface-hover"
+              >
+                <Plus className="h-3.5 w-3.5" /> Add
+              </button>
+            </div>
+          </div>
         </Field>
         <Field label="Final Submission Authority">
-          <TextInput value={form.authority} onChange={(e) => setForm({ ...form, authority: e.target.value })} placeholder="Person or role with final sign-off" />
+          <TextInput value={authority} onChange={(e) => setAuthority(e.target.value)} placeholder="Person or role with final sign-off" />
         </Field>
       </div>
       <div className="mt-5 flex justify-end">
@@ -1812,6 +1895,7 @@ function SectionGovernance({ missionId, governance, refetch }: any) {
     </Section>
   );
 }
+
 
 
 
