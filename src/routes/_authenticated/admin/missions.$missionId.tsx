@@ -165,11 +165,6 @@ function useRunIris(missionId: string, missionName: string) {
         .eq("processing_status", "complete");
       if (error) throw new Error(error.message);
       const ids = (docs ?? []).map((d: { id: string }) => d.id);
-      if (ids.length === 0) {
-        throw new Error(
-          "No processed documents yet. Upload the RFP and supporting docs in the Setup Record first, then re-run IRIS.",
-        );
-      }
       for (const layer of ["mission_brief", "strategic_assessment"] as const) {
         const res: any = await generate({ data: { mission_id: missionId, document_ids: ids, layer } });
         if (res && res.success === false) {
