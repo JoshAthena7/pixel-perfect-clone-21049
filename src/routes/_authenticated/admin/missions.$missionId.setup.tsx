@@ -639,6 +639,9 @@ function MonitoringWatchlist({ missionId, mission, sources, refetch }: any) {
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState({ source_type: "custom", label: "", url: "", frequency: "daily" as "daily" | "weekly" });
   const [seeding, setSeeding] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkText, setBulkText] = useState("");
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   async function seed() {
     setSeeding(true);
@@ -661,6 +664,66 @@ function MonitoringWatchlist({ missionId, mission, sources, refetch }: any) {
     setDraft({ source_type: "custom", label: "", url: "", frequency: "daily" });
     setAdding(false);
     refetch();
+  }
+  async function bulkAdd() {
+    // Accept one URL or "Label, https://..." per line. Lines that are pure URLs derive a label from the hostname.
+    const lines = bulkText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    if (lines.length === 0) return;
+    const existingUrls = new Set(
+      (sources ?? []).map((s: any) => String(s.url ?? "").trim().toLowerCase()).filter(Boolean)
+    );
+    type Entry = { label: string; url: string };
+    const parsed: Entry[] = [];
+    const seenInBatch = new Set<string>();
+    for (const line of lines) {
+      // Split on first comma or tab → "Label, URL" or "Label\tURL"
+      const m = line.match(/^(.+?)[\t,]\s*(https?:\/\/\S+)$/i);
+      let label = "";
+      let url = "";
+      if (m) {
+        label = m[1].trim();
+        url = m[2].trim();
+      } else {
+        // Bare URL
+        const um = line.match(/(https?:\/\/\S+)/i);
+        if (!um) continue; // skip non-URL lines silently
+        url = um[1].trim();
+        try { label = new URL(url).hostname.replace(/^www\./, ""); } catch { label = url; }
+      }
+      const key = url.toLowerCase();
+      if (existingUrls.has(key) || seenInBatch.has(key)) continue;
+      seenInBatch.add(key);
+      parsed.push({ label: label.slice(0, 200), url });
+    }
+    if (parsed.length === 0) {
+      toast.info("No new URLs to add.");
+      return;
+    }
+    setBulkBusy(true);
+    let saved = 0;
+    try {
+      for (const p of parsed) {
+        try {
+          await saveFn({ data: {
+            missionId,
+            source_type: "custom",
+            label: p.label,
+            url: p.url,
+            frequency: "daily",
+            enabled: true,
+          }});
+          saved++;
+        } catch (e) {
+          console.error("bulk add failed for", p.url, e);
+        }
+      }
+      toast.success(`Added ${saved} source${saved === 1 ? "" : "s"}${saved < parsed.length ? ` (${parsed.length - saved} failed)` : ""}.`);
+      setBulkText("");
+      setBulkOpen(false);
+      refetch();
+    } finally {
+      setBulkBusy(false);
+    }
   }
   async function toggle(s: any, patch: Partial<{ enabled: boolean; frequency: "daily" | "weekly" }>) {
     await saveFn({ data: {
@@ -685,6 +748,9 @@ function MonitoringWatchlist({ missionId, mission, sources, refetch }: any) {
               {seeding ? "Seeding…" : `Seed ${mission?.state ?? ""} defaults`}
             </button>
           )}
+          <button onClick={() => setBulkOpen(!bulkOpen)} className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+            <Plus className="h-3 w-3" /> Paste URLs
+          </button>
           <button onClick={() => setAdding(!adding)} className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
             <Plus className="h-3 w-3" /> Add source
           </button>
@@ -693,6 +759,28 @@ function MonitoringWatchlist({ missionId, mission, sources, refetch }: any) {
       <p className="mt-1 text-[11px] text-muted-foreground">
         Sources IRIS watches automatically on launch. Read-only for writers.
       </p>
+
+      {bulkOpen && (
+        <div className="mt-3 rounded border border-border bg-background p-3 space-y-2">
+          <div className="text-[11px] text-muted-foreground">
+            Paste one URL per line. Optionally prefix with a label and comma:
+            <span className="font-mono"> Texas HHSC, https://hhs.texas.gov/news</span>
+          </div>
+          <textarea
+            value={bulkText}
+            onChange={(e) => setBulkText(e.target.value)}
+            rows={6}
+            placeholder={"https://example.com/news\nDOJ Press, https://www.justice.gov/news"}
+            className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs font-mono"
+          />
+          <div className="flex items-center justify-end gap-2">
+            <button onClick={() => { setBulkOpen(false); setBulkText(""); }} className="text-xs text-muted-foreground hover:text-foreground">Cancel</button>
+            <button onClick={bulkAdd} disabled={bulkBusy || !bulkText.trim()} className="rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground disabled:opacity-50">
+              {bulkBusy ? "Adding…" : "Add all"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {adding && (
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-6 gap-2 rounded border border-border p-3 bg-background">
