@@ -340,13 +340,20 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
             />
           )}
           {step === 7 && missionId && (
+            <AssignmentReview
+              missionId={missionId}
+              mode="wizard"
+              onConfirm={() => setStep(8)}
+            />
+          )}
+          {step === 8 && missionId && (
             <Step6Readiness
               missionId={missionId}
               onClose={onClose}
               onSaveAndClose={async () => {
                 await supabase
                   .from("missions")
-                  .update({ wizard_step: 7 } as never)
+                  .update({ wizard_step: 8 } as never)
                   .eq("id", missionId);
                 onClose();
               }}
