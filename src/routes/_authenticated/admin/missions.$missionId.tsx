@@ -1,16 +1,18 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { ArrowLeft, Brain, FileText, ListChecks, LayoutGrid, Sliders } from "lucide-react";
+import { toast } from "sonner";
+import { ArrowLeft, Brain, FileText, ListChecks, LayoutGrid, Sliders, ShieldCheck, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { FastReportsMenu } from "@/components/olympus/FastReportsMenu";
+import MissionWizard from "@/components/olympus/MissionWizard";
 
-type Tab = "overview" | "sections" | "intelligence" | "requirements" | "setup";
+type Tab = "overview" | "sections" | "intelligence" | "requirements" | "setup" | "oversight";
 
 export const Route = createFileRoute("/_authenticated/admin/missions/$missionId")({
   validateSearch: (s: Record<string, unknown>): { tab?: Tab } => {
     const t = s.tab;
-    if (t === "overview" || t === "sections" || t === "intelligence" || t === "requirements" || t === "setup") return { tab: t };
+    if (t === "overview" || t === "sections" || t === "intelligence" || t === "requirements" || t === "setup" || t === "oversight") return { tab: t };
     return {};
   },
   component: MissionDetail,
@@ -86,7 +88,12 @@ function MissionDetail() {
           <TabBtn active={tab === "sections"} onClick={() => setTab("sections")} icon={<FileText className="h-3.5 w-3.5" />}>Sections</TabBtn>
           <TabBtn active={tab === "intelligence"} onClick={() => setTab("intelligence")} icon={<Brain className="h-3.5 w-3.5" />}>Intelligence</TabBtn>
           <TabBtn active={tab === "requirements"} onClick={() => setTab("requirements")} icon={<ListChecks className="h-3.5 w-3.5" />}>Requirements</TabBtn>
-          <TabBtn active={tab === "setup"} onClick={() => setTab("setup")} icon={<Sliders className="h-3.5 w-3.5" />}>Setup Record</TabBtn>
+          {((mission.wizard_step ?? 0) < 7) && (
+            <TabBtn active={tab === "setup"} onClick={() => setTab("setup")} icon={<Sliders className="h-3.5 w-3.5" />}>Setup</TabBtn>
+          )}
+          {mission.status === "ACTIVE" && (
+            <TabBtn active={tab === "oversight"} onClick={() => setTab("oversight")} icon={<ShieldCheck className="h-3.5 w-3.5" />}>Oversight</TabBtn>
+          )}
         </nav>
       </div>
 
@@ -95,7 +102,8 @@ function MissionDetail() {
         {tab === "sections" && <SectionsTab missionId={missionId} />}
         {tab === "intelligence" && <IntelligenceTab missionId={missionId} />}
         {tab === "requirements" && <RequirementsTab missionId={missionId} />}
-        {tab === "setup" && <SetupTab missionId={missionId} />}
+        {tab === "setup" && <SetupTab missionId={missionId} mission={mission} />}
+        {tab === "oversight" && <OversightTab missionId={missionId} mission={mission} />}
       </div>
     </div>
   );
@@ -356,20 +364,272 @@ function RequirementsTab({ missionId }: { missionId: string }) {
 }
 
 /* ─── Setup ─── */
-function SetupTab({ missionId }: { missionId: string }) {
+const SETUP_STEPS = [
+  "Mission Identity",
+  "Source Materials",
+  "IRIS Analysis",
+  "Review Record",
+  "Build Team",
+  "Readiness Check",
+  "Launch",
+];
+
+function SetupTab({ missionId, mission }: { missionId: string; mission: any }) {
+  const qc = useQueryClient();
+  const [wizardStart, setWizardStart] = useState<number | null>(null);
+  const current = Math.max(1, Math.min(7, (mission.wizard_step ?? 0) + 1));
+  const completed = mission.wizard_step ?? 0;
+
+  const openAt = (n: number) => setWizardStart(n);
+
   return (
-    <div className="rounded-lg border border-border bg-surface/40 p-6">
-      <p className="text-sm text-muted-foreground">
-        The full Setup Record editor lives on its own page.
-      </p>
-      <Link
-        to="/admin/missions/$missionId/setup"
-        params={{ missionId }}
-        className="mt-4 inline-flex rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-200 hover:bg-amber-500/20"
-      >
-        Open Setup Record →
-      </Link>
+    <div className="space-y-5">
+      <div className="rounded-lg border border-border bg-surface/40 p-5">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Setup Progress</div>
+            <div className="mt-0.5 text-sm font-semibold text-foreground">
+              Step {current} of 7 — {SETUP_STEPS[current - 1]}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => openAt(current)}
+            className="rounded-md px-3 py-1.5 text-xs font-semibold text-black"
+            style={{ backgroundColor: "#C9A84C" }}
+          >
+            Continue Setup →
+          </button>
+        </div>
+
+        <ol className="flex flex-wrap items-center gap-2">
+          {SETUP_STEPS.map((label, i) => {
+            const num = i + 1;
+            const isDone = num <= completed;
+            const isCurrent = num === current && completed < 7;
+            const clickable = isDone || isCurrent;
+            return (
+              <li key={num} className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={!clickable}
+                  onClick={() => clickable && openAt(num)}
+                  className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
+                    isDone
+                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200 hover:bg-emerald-500/20"
+                      : isCurrent
+                      ? "border-amber-500/60 bg-amber-500/15 text-amber-100"
+                      : "border-border bg-surface/30 text-muted-foreground/60 cursor-not-allowed"
+                  }`}
+                >
+                  <span className={`inline-flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold ${
+                    isDone ? "bg-emerald-500 text-black" : isCurrent ? "bg-amber-400 text-black" : "bg-border/60 text-muted-foreground"
+                  }`}>
+                    {isDone ? <Check className="h-2.5 w-2.5" /> : num}
+                  </span>
+                  {label}
+                </button>
+                {num < 7 && <span className="text-muted-foreground/40">·</span>}
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+
+      <MissionWizard
+        open={wizardStart !== null}
+        onClose={() => {
+          setWizardStart(null);
+          qc.invalidateQueries({ queryKey: ["olympus-mission", missionId] });
+        }}
+        missionId={missionId}
+        startStep={wizardStart ?? 1}
+      />
     </div>
+  );
+}
+
+/* ─── Oversight ─── */
+function OversightTab({ missionId, mission }: { missionId: string; mission: any }) {
+  const qc = useQueryClient();
+  const { data: team = [] } = useQuery({
+    queryKey: ["oversight-team", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_team_members")
+        .select("*")
+        .eq("mission_id", missionId);
+      return data ?? [];
+    },
+  });
+
+  const [syncing, setSyncing] = useState(false);
+
+  const syncAtlas = async () => {
+    setSyncing(true);
+    try {
+      const { data: intel } = await supabase
+        .from("mission_intelligence")
+        .select("content")
+        .eq("mission_id", missionId)
+        .eq("layer", "wizard_analysis")
+        .maybeSingle();
+      const content = (intel?.content ?? {}) as Record<string, unknown>;
+      const themes = Array.isArray(content.recommended_win_themes) ? (content.recommended_win_themes as string[]) : [];
+      const flags = Array.isArray(content.compliance_flags) ? (content.compliance_flags as string[]) : [];
+
+      if (themes.length) {
+        await supabase.from("win_themes").upsert(
+          themes.map((t) => ({ mission_id: missionId, theme: t })) as never,
+          { onConflict: "mission_id,theme" } as never,
+        );
+      }
+      if (flags.length) {
+        await supabase.from("compliance_requirements").upsert(
+          flags.map((f) => ({
+            mission_id: missionId,
+            requirement_text: f,
+            plain_language: f,
+            severity: "important",
+          })) as never,
+        );
+      }
+      await supabase
+        .from("missions")
+        .update({ atlas_synced_at: new Date().toISOString() } as never)
+        .eq("id", missionId);
+      toast.success("Synced to Atlas");
+      qc.invalidateQueries({ queryKey: ["olympus-mission", missionId] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const isOk = (v: string | null) => v === "complete" || v === "signed" || v === "active";
+  const rowColor = (m: any) => {
+    const items = [m.talentdesk_status, m.contract_status, m.nda_status];
+    if (m.baa_required) items.push(m.baa_status);
+    const expired = items.some((x) => x === "expired");
+    if (expired) return "bg-rose-500/10";
+    const allOk = items.every((x) => isOk(x));
+    if (allOk) return "bg-emerald-500/5";
+    return "bg-amber-500/10";
+  };
+
+  const counts = {
+    unsignedContracts: team.filter((m: any) => m.contract_status !== "signed").length,
+    unsignedNDAs: team.filter((m: any) => m.nda_status !== "signed" && m.nda_status !== "waived").length,
+    notActiveTalent: team.filter((m: any) => m.talentdesk_status !== "active").length,
+    unsignedBAAs: team.filter((m: any) => m.baa_required && m.baa_status !== "signed").length,
+  };
+
+  const days = mission.submission_date
+    ? Math.ceil((new Date(mission.submission_date).getTime() - Date.now()) / 86400000)
+    : null;
+  const deadlineColor = days == null ? "text-muted-foreground" : days > 30 ? "text-emerald-300" : days > 7 ? "text-amber-300" : "text-rose-300";
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      {/* Team Status */}
+      <section className="rounded-lg border border-border bg-surface/40 p-4 lg:col-span-2">
+        <h2 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.28em]">Team Status</h2>
+        {team.length === 0 ? (
+          <Empty>No team members yet.</Empty>
+        ) : (
+          <div className="overflow-x-auto rounded-md border border-border">
+            <table className="w-full text-xs">
+              <thead className="bg-surface/60 text-[10px] uppercase tracking-wider text-muted-foreground">
+                <tr>
+                  <Th>Name</Th><Th>Role</Th><Th>TalentDesk</Th><Th>Contract</Th><Th>NDA</Th><Th>BAA</Th><Th>Start</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {team.map((m: any) => (
+                  <tr key={m.id} className={`border-t border-border/60 ${rowColor(m)}`}>
+                    <Td>{m.name}</Td>
+                    <Td className="text-muted-foreground">{m.role}</Td>
+                    <Td><StatusPill v={m.talentdesk_status} okValue="active" /></Td>
+                    <Td><StatusPill v={m.contract_status} okValue="signed" /></Td>
+                    <Td><StatusPill v={m.nda_status} okValue="signed" waivable /></Td>
+                    <Td>{m.baa_required ? <StatusPill v={m.baa_status} okValue="signed" /> : <span className="text-muted-foreground">n/a</span>}</Td>
+                    <Td className="text-muted-foreground">{formatDate(m.start_date)}</Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* Open Items */}
+      <section className="rounded-lg border border-border bg-surface/40 p-4">
+        <h2 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.28em]">Open Items</h2>
+        <ul className="space-y-2 text-sm">
+          <OpenItem label="Unsigned contracts" count={counts.unsignedContracts} />
+          <OpenItem label="Unsigned NDAs" count={counts.unsignedNDAs} />
+          <OpenItem label="Not active in TalentDesk" count={counts.notActiveTalent} />
+          <OpenItem label="Unsigned BAAs" count={counts.unsignedBAAs} />
+        </ul>
+      </section>
+
+      {/* Deadline */}
+      <section className="rounded-lg border border-border bg-surface/40 p-4">
+        <h2 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.28em]">Deadline Tracker</h2>
+        <div className="text-xs text-muted-foreground">Submission Date</div>
+        <div className="mt-1 text-lg font-semibold text-foreground">{formatDate(mission.submission_date)}</div>
+        <div className={`mt-2 text-2xl font-bold ${deadlineColor}`}>
+          {days == null ? "—" : days < 0 ? `${Math.abs(days)} days past` : days === 0 ? "Today" : `${days} days remaining`}
+        </div>
+      </section>
+
+      {/* Atlas Sync */}
+      <section className="rounded-lg border border-border bg-surface/40 p-4 lg:col-span-2">
+        <h2 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.28em]">Atlas Sync</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="text-sm text-muted-foreground">
+            {mission.atlas_synced_at
+              ? `Last synced ${formatDateTime(mission.atlas_synced_at)}`
+              : "Never synced to Atlas."}
+          </div>
+          <button
+            type="button"
+            onClick={syncAtlas}
+            disabled={syncing}
+            className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-200 hover:bg-amber-500/20 disabled:opacity-50"
+          >
+            {syncing ? "Syncing…" : "Sync Changes to Atlas"}
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function StatusPill({ v, okValue, waivable }: { v: string | null; okValue: string; waivable?: boolean }) {
+  const ok = v === okValue || (waivable && v === "waived");
+  const expired = v === "expired";
+  const cls = ok
+    ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/40"
+    : expired
+    ? "bg-rose-500/15 text-rose-300 border-rose-500/40"
+    : "bg-amber-500/15 text-amber-300 border-amber-500/40";
+  return (
+    <span className={`inline-flex rounded border px-1.5 py-0.5 text-[10px] uppercase tracking-wider ${cls}`}>
+      {v ?? "pending"}
+    </span>
+  );
+}
+
+function OpenItem({ label, count }: { label: string; count: number }) {
+  return (
+    <li className="flex items-center justify-between rounded-md border border-border bg-surface/30 px-3 py-2">
+      <span className="text-foreground/80">{label}</span>
+      <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${count === 0 ? "bg-emerald-500/15 text-emerald-300" : "bg-rose-500/15 text-rose-300"}`}>
+        {count}
+      </span>
+    </li>
   );
 }
 

@@ -108,12 +108,58 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
     () => Object.fromEntries(DOC_SLOTS.map((d) => [d.type, { url: "", notes: "" }])),
   );
 
+  const isEditMode = !!initialMissionId;
+
   useEffect(() => {
     if (open) {
       setStep(startStep);
       setErr(null);
     }
   }, [open, startStep]);
+
+  // Edit-mode prefill: load existing mission + documents
+  useEffect(() => {
+    if (!open || !initialMissionId) return;
+    let cancelled = false;
+    (async () => {
+      const { data: m } = await supabase
+        .from("missions")
+        .select("*")
+        .eq("id", initialMissionId)
+        .maybeSingle();
+      if (cancelled || !m) return;
+      const row = m as Record<string, unknown>;
+      setS1({
+        name: (row.name as string) ?? "",
+        client: (row.client as string) ?? "",
+        prime_contractor: (row.prime_contractor as string) ?? "",
+        state: (row.state as string) ?? "",
+        program_type: (row.program_type as string) ?? "",
+        submission_date: (row.submission_date as string) ?? "",
+        engagement_type: (row.engagement_type as string) ?? "",
+        internal_lead: (row.internal_lead as string) ?? "",
+        operations_lead: (row.operations_lead as string) ?? "",
+        engagement_lead: (row.engagement_lead as string) ?? "",
+      });
+
+      const { data: dRows } = await supabase
+        .from("mission_documents")
+        .select("doc_type,file_url,notes")
+        .eq("mission_id", initialMissionId);
+      if (cancelled) return;
+      const next: Record<string, { url: string; notes: string }> = Object.fromEntries(
+        DOC_SLOTS.map((d) => [d.type, { url: "", notes: "" }]),
+      );
+      for (const r of (dRows ?? []) as Array<{ doc_type: string | null; file_url: string | null; notes: string | null }>) {
+        if (r.doc_type && next[r.doc_type]) {
+          next[r.doc_type] = { url: r.file_url ?? "", notes: r.notes ?? "" };
+        }
+      }
+      setDocs(next);
+    })();
+    return () => { cancelled = true; };
+  }, [open, initialMissionId]);
+
 
   if (!open) return null;
 
@@ -136,9 +182,11 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
     const payload: Record<string, unknown> = {
       name: s1.name.trim(),
       client: s1.client.trim(),
-      status: "DRAFT",
-      wizard_step: 1,
     };
+    if (!isEditMode) {
+      payload.status = "DRAFT";
+      payload.wizard_step = 1;
+    }
     for (const k of [
       "prime_contractor",
       "state",
@@ -148,9 +196,20 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
       "operations_lead",
       "engagement_lead",
     ] as const) {
-      if (s1[k].trim()) payload[k] = s1[k].trim();
+      payload[k] = s1[k].trim() || null;
     }
-    if (s1.submission_date) payload.submission_date = s1.submission_date;
+    payload.submission_date = s1.submission_date || null;
+
+    if (isEditMode && missionId) {
+      const { error } = await supabase
+        .from("missions")
+        .update(payload as never)
+        .eq("id", missionId);
+      setSaving(false);
+      if (error) { setErr(error.message); return false; }
+      toast.success("Mission updated");
+      return true;
+    }
 
     const { data, error } = await supabase.from("missions").insert(payload as never).select("id").single();
     if (error || !data) {
@@ -173,6 +232,14 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
     }
     setSaving(true);
     setErr(null);
+    // Replace existing rows for the slots we manage
+    if (isEditMode) {
+      await supabase
+        .from("mission_documents")
+        .delete()
+        .eq("mission_id", missionId)
+        .in("doc_type", DOC_SLOTS.map((d) => d.type));
+    }
     const rows = DOC_SLOTS
       .map((slot) => {
         const v = docs[slot.type];
@@ -277,13 +344,29 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
     }
   };
 
-  // Auto-trigger IRIS when entering step 3
+  // Auto-trigger IRIS when entering step 3; skip if analysis already exists (edit-mode resume)
   useEffect(() => {
-    if (step === 3 && irisState === "idle" && missionId) {
-      void startIris();
-    }
+    if (step !== 3 || irisState !== "idle" || !missionId) return;
+    let cancelled = false;
+    (async () => {
+      const { data: existing } = await supabase
+        .from("mission_intelligence")
+        .select("id")
+        .eq("mission_id", missionId)
+        .eq("layer", "wizard_analysis")
+        .maybeSingle();
+      if (cancelled) return;
+      if (existing) {
+        setIrisState("done");
+        setIrisPhase(IRIS_PHASES.length - 1);
+      } else {
+        void startIris();
+      }
+    })();
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, missionId]);
+
 
   // Cycle phase text while running
   useEffect(() => {
