@@ -67,6 +67,12 @@ type Parsed = {
   client_priorities: string[];
   risks: string[];
   focus_areas: string[];
+  key_contacts: string[];
+  agency_stakeholders: string[];
+  decision_makers: string[];
+  relationship_owners: string[];
+  political_considerations: string | null;
+  meeting_cadence: string | null;
   sensitivities_note: string | null;
   language_guidance: string | null;
   things_to_avoid: string | null;
