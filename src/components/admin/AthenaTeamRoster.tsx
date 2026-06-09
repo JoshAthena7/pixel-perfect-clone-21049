@@ -603,8 +603,41 @@ function SortHeader({
   );
 }
 
-function Row({ m, zebra, selected, onToggle, onOpenDetail }: {
-  m: Member; zebra: boolean; selected: boolean; onToggle: (v: boolean) => void;
+function SortHeaderInline({
+  label, active, dir, onClick,
+}: { label: string; active: boolean; dir: SortDir; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center gap-1 ${active ? "text-foreground" : "text-muted-foreground"} hover:text-foreground`}
+    >
+      {label}
+      {active ? (dir === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : null}
+    </button>
+  );
+}
+
+function SkeletonRow({ zebra }: { zebra: boolean }) {
+  const bar = (w: string) => (
+    <div className={`h-3 ${w} animate-pulse rounded bg-surface-hover/60`} />
+  );
+  return (
+    <tr className={`border-t border-border/60 ${zebra ? "bg-surface/30" : "bg-transparent"}`}>
+      <td className="px-3 py-3"><div className="h-3.5 w-3.5 animate-pulse rounded bg-surface-hover/60" /></td>
+      <td className="px-3 py-3">{bar("w-32")}</td>
+      <td className="hidden md:table-cell px-3 py-3">{bar("w-20")}</td>
+      <td className="px-3 py-3">{bar("w-24")}</td>
+      <td className="hidden md:table-cell px-3 py-3">{bar("w-16")}</td>
+      <td className="hidden lg:table-cell px-3 py-3">{bar("w-8")}</td>
+      <td className="hidden md:table-cell px-3 py-3">{bar("w-16")}</td>
+      <td className="hidden md:table-cell px-3 py-3">{bar("w-28")}</td>
+      <td className="px-3 py-3"><div className="h-3 w-3 animate-pulse rounded bg-surface-hover/60" /></td>
+    </tr>
+  );
+}
+
+function Row({ m, zebra, selected, isDup, onToggle, onOpenDetail }: {
+  m: Member; zebra: boolean; selected: boolean; isDup: boolean; onToggle: (v: boolean) => void;
   onOpenDetail: (id: string) => void;
 }) {
   const lastActiveLabel = relativeTime(m.atlas_last_active_at);
@@ -621,10 +654,13 @@ function Row({ m, zebra, selected, onToggle, onOpenDetail }: {
       ? "bg-amber-500/15 text-amber-300 border-amber-500/40"
       : "bg-zinc-700/40 text-zinc-300 border-zinc-600/60";
 
+  // Never display null for completeness — fall back to 0.
   const pct = Math.max(0, Math.min(100, m.atlas_profile_completeness ?? 0));
   const band = getCompletenessBand(pct);
   const breakdown = getCompletenessBreakdown(m);
   const tooltipLine = formatBreakdownTooltip(breakdown);
+
+  const nameMissing = !(m.first_name?.trim()) && !(m.last_name?.trim());
 
   return (
     <tr className={`border-t border-border/60 ${zebra ? "bg-surface/30" : "bg-transparent"} hover:bg-surface-hover/60`}>
@@ -640,6 +676,30 @@ function Row({ m, zebra, selected, onToggle, onOpenDetail }: {
           >
             {fullName(m)}
           </button>
+          {nameMissing && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <AlertTriangle
+                  className="h-3 w-3 cursor-help text-amber-400"
+                  aria-label="Name missing"
+                />
+              </TooltipTrigger>
+              <TooltipContent>Name missing — update in TalentDesk.</TooltipContent>
+            </Tooltip>
+          )}
+          {isDup && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <AlertTriangle
+                  className="h-3 w-3 cursor-help text-amber-400"
+                  aria-label="Possible duplicate"
+                />
+              </TooltipTrigger>
+              <TooltipContent>
+                Another member with this name exists. Verify this is not a duplicate.
+              </TooltipContent>
+            </Tooltip>
+          )}
           {Array.isArray(m.admin_notes) && m.admin_notes.length > 0 && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -657,7 +717,7 @@ function Row({ m, zebra, selected, onToggle, onOpenDetail }: {
         {m.job_title && <div className="text-[11px] text-muted-foreground">{m.job_title}</div>}
       </td>
 
-      <td className="px-3 py-2.5">
+      <td className="hidden md:table-cell px-3 py-2.5">
         {/* TD Status — PILL shape */}
         <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${tdCls}`}>
           TD · {tdLabel}
@@ -669,18 +729,18 @@ function Row({ m, zebra, selected, onToggle, onOpenDetail }: {
           ATLAS · {atlasBadge.label}
         </span>
       </td>
-      <td className="px-3 py-2.5">
+      <td className="hidden md:table-cell px-3 py-2.5">
         <span className={m.atlas_role === "unassigned" ? "text-muted-foreground" : ""}>
           {ROLE_LABEL[m.atlas_role] ?? m.atlas_role}
         </span>
       </td>
-      <td className="px-3 py-2.5 text-muted-foreground">—</td>
-      <td className="px-3 py-2.5">
+      <td className="hidden lg:table-cell px-3 py-2.5 text-muted-foreground">—</td>
+      <td className="hidden md:table-cell px-3 py-2.5">
         <span className={isStaleInvite ? "text-red-400" : m.atlas_last_active_at ? "" : "text-muted-foreground"}>
           {lastActiveLabel}
         </span>
       </td>
-      <td className="px-3 py-2.5">
+      <td className="hidden md:table-cell px-3 py-2.5">
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="flex cursor-default items-center gap-2">
