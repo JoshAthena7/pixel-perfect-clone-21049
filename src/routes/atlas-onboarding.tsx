@@ -145,13 +145,6 @@ function AtlasOnboardingShell() {
   );
 }
 
-const STEP_TITLES = [
-  "Welcome to Athena",
-  "HIPAA acknowledgement",
-  "Add a profile photo",
-  "Upload your resume",
-  "All set",
-];
 
 function StepDots({ current }: { current: 1 | 2 | 3 | 4 | 5 }) {
   return (
