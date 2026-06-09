@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, Link, useRouterState } from "@tanstack/react-router";
-import { FileText, Home, LayoutGrid, Settings, Zap } from "lucide-react";
+import { FileText, Home, LayoutGrid, Users, Zap } from "lucide-react";
 import { useIsAdmin } from "@/hooks/useAccess";
 import { useRedirectIfBlocked } from "@/hooks/useRedirectIfBlocked";
 
