@@ -267,14 +267,41 @@ export const completeAtlasOnboarding = createServerFn({ method: "POST" })
     // no manual recalculation needed here.
 
     try {
-      await supabaseAdmin.from("atlas_activity_log").insert({
-        member_id: member.id,
-        action: "Onboarding completed — user is now active",
-        performed_by: member.email,
-        metadata: {},
-      });
+      await supabaseAdmin.from("atlas_activity_log").insert([
+        {
+          member_id: member.id,
+          action: "Onboarding Step 5 completed — celebration screen viewed",
+          performed_by: member.email,
+          metadata: { step: 5 },
+        },
+        {
+          member_id: member.id,
+          action: "Onboarding completed — user is now active in ATLAS",
+          performed_by: member.email,
+          metadata: {},
+        },
+      ]);
     } catch (e) {
       console.error("[atlas-onboarding] activity log write failed", e);
+    }
+
+    try {
+      const display = [member.first_name, member.last_name]
+        .filter(Boolean)
+        .join(" ")
+        .trim() || member.email;
+      await supabaseAdmin.from("atlas_notifications").insert({
+        recipient_role: "admin",
+        type: "onboarding_complete",
+        message: `${display} has completed onboarding and is ready to work.`,
+        metadata: {
+          member_id: member.id,
+          completed_at: now,
+          role: member.atlas_role,
+        },
+      });
+    } catch (e) {
+      console.error("[atlas-onboarding] admin notification write failed", e);
     }
     return { ok: true };
   });
