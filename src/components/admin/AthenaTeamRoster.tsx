@@ -362,90 +362,107 @@ export function AthenaTeamRoster() {
           selectedIds={selectedIds}
           onClear={clearSelection}
           onRefresh={refreshRoster}
+          isPendingTab={activeTab === "pending"}
         />
 
-        {/* Table */}
-        <div className="overflow-hidden rounded-lg border border-border bg-surface/40">
-          <table className="w-full text-sm">
-            <thead className="bg-surface/70 text-[10px] uppercase tracking-wider text-muted-foreground">
-              <tr>
-                <th className="w-10 px-3 py-2.5">
-                  <Checkbox
-                    checked={headerCheckState}
-                    onCheckedChange={(v) => toggleAllVisible(Boolean(v))}
-                    aria-label="Select all visible"
-                  />
-                </th>
-                <SortHeader label="Name" active={sortKey === "name"} dir={sortDir} onClick={() => toggleSort("name")} />
-                <th className="px-3 py-2.5 text-left font-medium">TD Status</th>
-                <th className="px-3 py-2.5 text-left font-medium">ATLAS Status</th>
-                <th className="px-3 py-2.5 text-left font-medium">Role</th>
-                <th className="px-3 py-2.5 text-left font-medium">Missions</th>
-                <SortHeader label="Last Active" active={sortKey === "last_active"} dir={sortDir} onClick={() => toggleSort("last_active")} />
-                <SortHeader label="Profile" active={sortKey === "profile"} dir={sortDir} onClick={() => toggleSort("profile")} />
-                <th className="w-10 px-3 py-2.5"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">Loading…</td></tr>
-              ) : pageRows.length === 0 ? (
-                <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">
-                  {members.length === 0 ? (
-                    "No team members found. Upload a TalentDesk CSV to get started."
-                  ) : isFiltered || activeTab !== "all" ? (
-                    <span>
-                      No members match your filters.{" "}
-                      <button
-                        onClick={clearAllFilters}
-                        className="text-[color:var(--athena-gold,#d4af37)] hover:underline"
-                      >
-                        Clear filters
-                      </button>
-                    </span>
-                  ) : (
-                    "No team members found."
-                  )}
-                </td></tr>
+        {activeTab === "pending" ? (
+          <PendingInvitesPanel
+            members={sorted as unknown as React.ComponentProps<typeof PendingInvitesPanel>["members"]}
+            selected={selected}
+            onToggleOne={(id, v) =>
+              setSelected((prev) => {
+                const next = new Set(prev);
+                if (v) next.add(id); else next.delete(id);
+                return next;
+              })
+            }
+            onToggleAll={(checked) => toggleAllVisible(checked)}
+            onOpenDetail={(id) => setDetailMemberId(id)}
+          />
+        ) : (
+          /* Table */
+          <div className="overflow-hidden rounded-lg border border-border bg-surface/40">
+            <table className="w-full text-sm">
+              <thead className="bg-surface/70 text-[10px] uppercase tracking-wider text-muted-foreground">
+                <tr>
+                  <th className="w-10 px-3 py-2.5">
+                    <Checkbox
+                      checked={headerCheckState}
+                      onCheckedChange={(v) => toggleAllVisible(Boolean(v))}
+                      aria-label="Select all visible"
+                    />
+                  </th>
+                  <SortHeader label="Name" active={sortKey === "name"} dir={sortDir} onClick={() => toggleSort("name")} />
+                  <th className="px-3 py-2.5 text-left font-medium">TD Status</th>
+                  <th className="px-3 py-2.5 text-left font-medium">ATLAS Status</th>
+                  <th className="px-3 py-2.5 text-left font-medium">Role</th>
+                  <th className="px-3 py-2.5 text-left font-medium">Missions</th>
+                  <SortHeader label="Last Active" active={sortKey === "last_active"} dir={sortDir} onClick={() => toggleSort("last_active")} />
+                  <SortHeader label="Profile" active={sortKey === "profile"} dir={sortDir} onClick={() => toggleSort("profile")} />
+                  <th className="w-10 px-3 py-2.5"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {isLoading ? (
+                  <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">Loading…</td></tr>
+                ) : pageRows.length === 0 ? (
+                  <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">
+                    {members.length === 0 ? (
+                      "No team members found. Upload a TalentDesk CSV to get started."
+                    ) : isFiltered || activeTab !== "all" ? (
+                      <span>
+                        No members match your filters.{" "}
+                        <button
+                          onClick={clearAllFilters}
+                          className="text-[color:var(--athena-gold,#d4af37)] hover:underline"
+                        >
+                          Clear filters
+                        </button>
+                      </span>
+                    ) : (
+                      "No team members found."
+                    )}
+                  </td></tr>
 
-              ) : (
-                pageRows.map((m, i) => <Row key={m.id} m={m} zebra={i % 2 === 1} selected={selected.has(m.id)} onOpenDetail={(id) => setDetailMemberId(id)} onToggle={(v) => {
-                  setSelected((prev) => {
-                    const next = new Set(prev);
-                    if (v) next.add(m.id); else next.delete(m.id);
-                    return next;
-                  });
-                }} />)
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  pageRows.map((m, i) => <Row key={m.id} m={m} zebra={i % 2 === 1} selected={selected.has(m.id)} onOpenDetail={(id) => setDetailMemberId(id)} onToggle={(v) => {
+                    setSelected((prev) => {
+                      const next = new Set(prev);
+                      if (v) next.add(m.id); else next.delete(m.id);
+                      return next;
+                    });
+                  }} />)
+                )}
+              </tbody>
+            </table>
 
-          {/* Pagination */}
-          {sorted.length > PAGE_SIZE && (
-            <div className="flex items-center justify-between border-t border-border px-4 py-2.5 text-xs">
-              <div className="text-muted-foreground">
-                Showing {safePage * PAGE_SIZE + 1}–{Math.min(sorted.length, (safePage + 1) * PAGE_SIZE)} of {sorted.length}
+            {/* Pagination */}
+            {sorted.length > PAGE_SIZE && (
+              <div className="flex items-center justify-between border-t border-border px-4 py-2.5 text-xs">
+                <div className="text-muted-foreground">
+                  Showing {safePage * PAGE_SIZE + 1}–{Math.min(sorted.length, (safePage + 1) * PAGE_SIZE)} of {sorted.length}
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setPage(Math.max(0, safePage - 1))}
+                    disabled={safePage === 0}
+                    className="inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-1 hover:bg-surface-hover disabled:opacity-40"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" /> Prev
+                  </button>
+                  <span className="px-2 text-muted-foreground">Page {safePage + 1} of {pageCount}</span>
+                  <button
+                    onClick={() => setPage(Math.min(pageCount - 1, safePage + 1))}
+                    disabled={safePage >= pageCount - 1}
+                    className="inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-1 hover:bg-surface-hover disabled:opacity-40"
+                  >
+                    Next <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => setPage(Math.max(0, safePage - 1))}
-                  disabled={safePage === 0}
-                  className="inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-1 hover:bg-surface-hover disabled:opacity-40"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5" /> Prev
-                </button>
-                <span className="px-2 text-muted-foreground">Page {safePage + 1} of {pageCount}</span>
-                <button
-                  onClick={() => setPage(Math.min(pageCount - 1, safePage + 1))}
-                  disabled={safePage >= pageCount - 1}
-                  className="inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-1 hover:bg-surface-hover disabled:opacity-40"
-                >
-                  Next <ChevronRight className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
 
       <PersonDetailDrawer
