@@ -409,7 +409,7 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
   );
 }
 
-function Step1Form({ value, onChange }: { value: Step1; onChange: (v: Step1) => void }) {
+function Step1Form({ value, onChange, missionId }: { value: Step1; onChange: (v: Step1) => void; missionId: string | null }) {
   const set = <K extends keyof Step1>(k: K, v: Step1[K]) => onChange({ ...value, [k]: v });
 
   const addMilestone = () =>
