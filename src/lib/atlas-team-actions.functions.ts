@@ -126,13 +126,21 @@ export const setAtlasRole = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as any;
-    await assertAdmin(supabase, userId);
+    const { adminName } = await assertAdmin(supabase, userId);
+    const m = await getMember(supabase, data.memberId);
+    const oldRole = m.atlas_role;
     const now = new Date().toISOString();
     const { error } = await supabase
       .from("atlas_team_members")
       .update({ atlas_role: data.role, updated_at: now })
       .eq("id", data.memberId);
     if (error) throw new Error(error.message);
+    if (oldRole !== data.role) {
+      await logActivity(supabase, data.memberId, "Role changed", adminName, {
+        from: oldRole,
+        to: data.role,
+      });
+    }
     return { ok: true, role: data.role };
   });
 
