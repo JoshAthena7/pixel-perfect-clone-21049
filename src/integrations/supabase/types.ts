@@ -59,27 +59,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "alignment_conflicts_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "alignment_conflicts_question_a_id_fkey"
-            columns: ["question_a_id"]
-            isOneToOne: false
-            referencedRelation: "question_records"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "alignment_conflicts_question_b_id_fkey"
-            columns: ["question_b_id"]
-            isOneToOne: false
-            referencedRelation: "question_records"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "alignment_conflicts_resolved_by_fkey"
             columns: ["resolved_by"]
             isOneToOne: false
@@ -456,15 +435,7 @@ export type Database = {
           status?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "atlas_invites_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       atlas_knowledge_objects: {
         Row: {
@@ -552,13 +523,6 @@ export type Database = {
           verbatim_quote?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "atlas_knowledge_objects_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "atlas_knowledge_objects_source_id_fkey"
             columns: ["source_id"]
@@ -984,13 +948,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "atlas_source_question_links_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "question_records"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "atlas_source_question_links_source_id_fkey"
             columns: ["source_id"]
             isOneToOne: false
@@ -1196,25 +1153,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "atlas_sources_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "atlas_sources_program_code_fkey"
             columns: ["program_code"]
             isOneToOne: false
             referencedRelation: "atlas_programs"
             referencedColumns: ["program_code"]
-          },
-          {
-            foreignKeyName: "atlas_sources_promoted_from_mission_fkey"
-            columns: ["promoted_from_mission"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "atlas_sources_state_code_fkey"
@@ -1610,13 +1553,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "broadcasts_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "broadcasts_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -1680,13 +1616,6 @@ export type Database = {
             referencedRelation: "mission_debriefs"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "canon_suggestions_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
         ]
       }
       checkin_cycles: {
@@ -1714,15 +1643,7 @@ export type Database = {
           mission_id?: string
           trigger_type?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "checkin_cycles_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       checkin_section_updates: {
         Row: {
@@ -1756,13 +1677,6 @@ export type Database = {
           submission_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "checkin_section_updates_section_id_fkey"
-            columns: ["section_id"]
-            isOneToOne: false
-            referencedRelation: "mission_sections"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "checkin_section_updates_submission_id_fkey"
             columns: ["submission_id"]
@@ -1800,13 +1714,6 @@ export type Database = {
             columns: ["cycle_id"]
             isOneToOne: false
             referencedRelation: "checkin_cycles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "checkin_submissions_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
             referencedColumns: ["id"]
           },
         ]
@@ -1848,13 +1755,6 @@ export type Database = {
             columns: ["cycle_id"]
             isOneToOne: false
             referencedRelation: "checkin_cycles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "checkin_tokens_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
             referencedColumns: ["id"]
           },
         ]
@@ -1899,15 +1799,7 @@ export type Database = {
           submitted_at?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "client_clarifications_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       collective_members: {
         Row: {
@@ -2039,15 +1931,7 @@ export type Database = {
           summary?: string
           tags?: string[]
         }
-        Relationships: [
-          {
-            foreignKeyName: "collective_memory_source_mission_id_fkey"
-            columns: ["source_mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       comment_resolutions: {
         Row: {
@@ -2186,22 +2070,7 @@ export type Database = {
           score_me_run_id?: string | null
           status?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "compliance_check_results_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "compliance_check_results_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "question_records"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       compliance_requirements: {
         Row: {
@@ -2261,15 +2130,7 @@ export type Database = {
           source_kind?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "compliance_requirements_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       contributions: {
         Row: {
@@ -2318,13 +2179,6 @@ export type Database = {
           writer_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "contributions_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "contributions_writer_id_fkey"
             columns: ["writer_id"]
@@ -2377,22 +2231,7 @@ export type Database = {
           summary?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "document_extractions_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: true
-            referencedRelation: "mission_library"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_extractions_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       email_send_log: {
         Row: {
@@ -2512,15 +2351,7 @@ export type Database = {
           source_id?: string
           source_table?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "embeddings_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       executive_decisions: {
         Row: {
@@ -2559,15 +2390,7 @@ export type Database = {
           submitted_by?: string | null
           urgency?: Database["public"]["Enums"]["executive_decision_urgency"]
         }
-        Relationships: [
-          {
-            foreignKeyName: "executive_decisions_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       expert_consults: {
         Row: {
@@ -2636,27 +2459,6 @@ export type Database = {
             columns: ["external_expert_id"]
             isOneToOne: false
             referencedRelation: "expert_directory"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "expert_consults_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "expert_consults_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "question_records"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "expert_consults_section_id_fkey"
-            columns: ["section_id"]
-            isOneToOne: false
-            referencedRelation: "mission_sections"
             referencedColumns: ["id"]
           },
         ]
@@ -2836,13 +2638,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "graph_edges_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "graph_edges_src_node_id_fkey"
             columns: ["src_node_id"]
             isOneToOne: false
@@ -2891,15 +2686,7 @@ export type Database = {
           valid_from?: string
           valid_to?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "graph_nodes_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       hook_failures: {
         Row: {
@@ -3159,13 +2946,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "interview_flight_plans_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "interview_flight_plans_section_brief_id_fkey"
             columns: ["section_brief_id"]
             isOneToOne: false
@@ -3360,22 +3140,7 @@ export type Database = {
           trigger_code?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "iris_health_flags_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "iris_health_flags_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "question_records"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       iris_memories: {
         Row: {
@@ -3456,13 +3221,6 @@ export type Database = {
             referencedRelation: "profiles_directory"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "iris_memories_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
         ]
       }
       iris_memory_usage: {
@@ -3496,20 +3254,6 @@ export type Database = {
             columns: ["memory_id"]
             isOneToOne: false
             referencedRelation: "iris_memories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "iris_memory_usage_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "iris_memory_usage_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "question_records"
             referencedColumns: ["id"]
           },
         ]
@@ -3676,15 +3420,7 @@ export type Database = {
           recommendation_reason?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "iris_staffing_recommendations_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       market_intelligence: {
         Row: {
@@ -3738,15 +3474,7 @@ export type Database = {
           type?: string
           url?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "market_intelligence_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mentions: {
         Row: {
@@ -3779,6 +3507,112 @@ export type Database = {
             columns: ["comment_id"]
             isOneToOne: false
             referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_assignment_smes: {
+        Row: {
+          added_at: string
+          added_by: string | null
+          assignment_id: string
+          id: string
+          sme_member_id: string
+        }
+        Insert: {
+          added_at?: string
+          added_by?: string | null
+          assignment_id: string
+          id?: string
+          sme_member_id: string
+        }
+        Update: {
+          added_at?: string
+          added_by?: string | null
+          assignment_id?: string
+          id?: string
+          sme_member_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_assignment_smes_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "mission_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_assignment_smes_sme_member_id_fkey"
+            columns: ["sme_member_id"]
+            isOneToOne: false
+            referencedRelation: "atlas_team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_assignments: {
+        Row: {
+          acceptance_responded_at: string | null
+          acceptance_status: string
+          assigned_at: string
+          assigned_by: string | null
+          assigned_writer_id: string | null
+          created_at: string
+          due_date: string | null
+          id: string
+          mission_id: string
+          question_id: string
+          updated_at: string
+          writer_confidence: string
+        }
+        Insert: {
+          acceptance_responded_at?: string | null
+          acceptance_status?: string
+          assigned_at?: string
+          assigned_by?: string | null
+          assigned_writer_id?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          mission_id: string
+          question_id: string
+          updated_at?: string
+          writer_confidence?: string
+        }
+        Update: {
+          acceptance_responded_at?: string | null
+          acceptance_status?: string
+          assigned_at?: string
+          assigned_by?: string | null
+          assigned_writer_id?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          mission_id?: string
+          question_id?: string
+          updated_at?: string
+          writer_confidence?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_assignments_assigned_writer_id_fkey"
+            columns: ["assigned_writer_id"]
+            isOneToOne: false
+            referencedRelation: "atlas_team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_assignments_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_assignments_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
             referencedColumns: ["id"]
           },
         ]
@@ -3865,15 +3699,7 @@ export type Database = {
           old_value?: string | null
           synced_to_atlas?: boolean | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "mission_change_log_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mission_client_intel: {
         Row: {
@@ -3915,15 +3741,7 @@ export type Database = {
           stakeholders?: Json
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "mission_client_intel_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: true
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mission_conflict_ack: {
         Row: {
@@ -3950,22 +3768,7 @@ export type Database = {
           mission_a_id?: string
           mission_b_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "mission_conflict_ack_mission_a_id_fkey"
-            columns: ["mission_a_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "mission_conflict_ack_mission_b_id_fkey"
-            columns: ["mission_b_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mission_debriefs: {
         Row: {
@@ -4004,15 +3807,7 @@ export type Database = {
           scored_well?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "mission_debriefs_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: true
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mission_decisions: {
         Row: {
@@ -4048,104 +3843,7 @@ export type Database = {
           status?: string | null
           title?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "mission_decisions_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "mission_decisions_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "question_records"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      mission_documents: {
-        Row: {
-          created_at: string
-          doc_type: string | null
-          document_type: string | null
-          extracted_text: string | null
-          file_name: string | null
-          file_path: string | null
-          file_url: string | null
-          id: string
-          iris_processed: boolean | null
-          mission_id: string
-          notes: string | null
-          page_count: number | null
-          processed_at: string | null
-          processing_status: string
-          updated_at: string
-          uploaded_at: string | null
-          uploaded_by: string | null
-        }
-        Insert: {
-          created_at?: string
-          doc_type?: string | null
-          document_type?: string | null
-          extracted_text?: string | null
-          file_name?: string | null
-          file_path?: string | null
-          file_url?: string | null
-          id?: string
-          iris_processed?: boolean | null
-          mission_id: string
-          notes?: string | null
-          page_count?: number | null
-          processed_at?: string | null
-          processing_status?: string
-          updated_at?: string
-          uploaded_at?: string | null
-          uploaded_by?: string | null
-        }
-        Update: {
-          created_at?: string
-          doc_type?: string | null
-          document_type?: string | null
-          extracted_text?: string | null
-          file_name?: string | null
-          file_path?: string | null
-          file_url?: string | null
-          id?: string
-          iris_processed?: boolean | null
-          mission_id?: string
-          notes?: string | null
-          page_count?: number | null
-          processed_at?: string | null
-          processing_status?: string
-          updated_at?: string
-          uploaded_at?: string | null
-          uploaded_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "mission_documents_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "mission_documents_uploaded_by_fkey"
-            columns: ["uploaded_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "mission_documents_uploaded_by_fkey"
-            columns: ["uploaded_by"]
-            isOneToOne: false
-            referencedRelation: "profiles_directory"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mission_evaluation_criteria: {
         Row: {
@@ -4184,15 +3882,7 @@ export type Database = {
           sections_covered?: Json
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "mission_evaluation_criteria_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mission_expertise_signals: {
         Row: {
@@ -4227,13 +3917,6 @@ export type Database = {
             referencedRelation: "expertise_library"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "mission_expertise_signals_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
         ]
       }
       mission_financials: {
@@ -4264,15 +3947,7 @@ export type Database = {
           tracking?: Json
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "mission_financials_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: true
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mission_governance: {
         Row: {
@@ -4302,15 +3977,7 @@ export type Database = {
           submission_authority?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "mission_governance_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: true
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mission_intelligence: {
         Row: {
@@ -4349,15 +4016,7 @@ export type Database = {
           updated_at?: string
           version?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "mission_intelligence_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mission_intelligence_dna: {
         Row: {
@@ -4428,79 +4087,6 @@ export type Database = {
         }
         Relationships: []
       }
-      mission_library: {
-        Row: {
-          added_by: string | null
-          added_by_id: string | null
-          category: string
-          created_at: string | null
-          file_hash: string | null
-          file_path: string | null
-          file_size: number | null
-          id: string
-          is_rfp: boolean | null
-          mission_id: string
-          name: string
-          notes: string | null
-          source: string
-          url: string | null
-        }
-        Insert: {
-          added_by?: string | null
-          added_by_id?: string | null
-          category: string
-          created_at?: string | null
-          file_hash?: string | null
-          file_path?: string | null
-          file_size?: number | null
-          id?: string
-          is_rfp?: boolean | null
-          mission_id: string
-          name: string
-          notes?: string | null
-          source?: string
-          url?: string | null
-        }
-        Update: {
-          added_by?: string | null
-          added_by_id?: string | null
-          category?: string
-          created_at?: string | null
-          file_hash?: string | null
-          file_path?: string | null
-          file_size?: number | null
-          id?: string
-          is_rfp?: boolean | null
-          mission_id?: string
-          name?: string
-          notes?: string | null
-          source?: string
-          url?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "mission_library_added_by_id_fkey"
-            columns: ["added_by_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "mission_library_added_by_id_fkey"
-            columns: ["added_by_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_directory"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "mission_library_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       mission_member_expertise: {
         Row: {
           created_at: string
@@ -4523,50 +4109,7 @@ export type Database = {
           tag?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "mission_member_expertise_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      mission_members: {
-        Row: {
-          display_name: string | null
-          id: string
-          joined_at: string | null
-          mission_id: string
-          role: string
-          user_id: string
-        }
-        Insert: {
-          display_name?: string | null
-          id?: string
-          joined_at?: string | null
-          mission_id: string
-          role?: string
-          user_id: string
-        }
-        Update: {
-          display_name?: string | null
-          id?: string
-          joined_at?: string | null
-          mission_id?: string
-          role?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "mission_members_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mission_monitoring_sources: {
         Row: {
@@ -4611,15 +4154,7 @@ export type Database = {
           updated_at?: string
           url?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "mission_monitoring_sources_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mission_outcomes: {
         Row: {
@@ -4655,12 +4190,79 @@ export type Database = {
           recorded_by?: string | null
           updated_at?: string
         }
+        Relationships: []
+      }
+      mission_questions: {
+        Row: {
+          created_at: string
+          due_date: string | null
+          evaluation_criteria: string | null
+          health_calculated_at: string | null
+          health_status: string
+          id: string
+          iris_confidence: string | null
+          is_withdrawn: boolean
+          mission_id: string
+          page_limit: number | null
+          question_number: string | null
+          question_text: string | null
+          reviewed_by_admin: boolean
+          section_id: string | null
+          status: string
+          updated_at: string
+          word_limit: number | null
+        }
+        Insert: {
+          created_at?: string
+          due_date?: string | null
+          evaluation_criteria?: string | null
+          health_calculated_at?: string | null
+          health_status?: string
+          id?: string
+          iris_confidence?: string | null
+          is_withdrawn?: boolean
+          mission_id: string
+          page_limit?: number | null
+          question_number?: string | null
+          question_text?: string | null
+          reviewed_by_admin?: boolean
+          section_id?: string | null
+          status?: string
+          updated_at?: string
+          word_limit?: number | null
+        }
+        Update: {
+          created_at?: string
+          due_date?: string | null
+          evaluation_criteria?: string | null
+          health_calculated_at?: string | null
+          health_status?: string
+          id?: string
+          iris_confidence?: string | null
+          is_withdrawn?: boolean
+          mission_id?: string
+          page_limit?: number | null
+          question_number?: string | null
+          question_text?: string | null
+          reviewed_by_admin?: boolean
+          section_id?: string | null
+          status?: string
+          updated_at?: string
+          word_limit?: number | null
+        }
         Relationships: [
           {
-            foreignKeyName: "mission_outcomes_mission_id_fkey"
+            foreignKeyName: "mission_questions_mission_id_fkey"
             columns: ["mission_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_questions_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "mission_sections"
             referencedColumns: ["id"]
           },
         ]
@@ -4714,15 +4316,7 @@ export type Database = {
           talentdesk_active?: boolean | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "mission_readiness_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: true
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mission_response_template_elements: {
         Row: {
@@ -4863,15 +4457,7 @@ export type Database = {
           updated_at?: string
           version?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "mission_response_templates_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: true
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mission_review_gates: {
         Row: {
@@ -4901,15 +4487,7 @@ export type Database = {
           mission_id?: string
           target_date?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "mission_review_gates_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mission_risks: {
         Row: {
@@ -4948,22 +4526,7 @@ export type Database = {
           status?: string | null
           title?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "mission_risks_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "mission_risks_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "question_records"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mission_section_template_progress: {
         Row: {
@@ -5007,72 +4570,56 @@ export type Database = {
             referencedRelation: "mission_response_template_elements"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "mission_section_template_progress_section_id_fkey"
-            columns: ["section_id"]
-            isOneToOne: false
-            referencedRelation: "mission_sections"
-            referencedColumns: ["id"]
-          },
         ]
       }
       mission_sections: {
         Row: {
-          assigned_user_id: string | null
-          body: string | null
           created_at: string
+          description: string | null
+          evaluation_weight: number | null
           id: string
-          internal_due_date: string | null
-          iris_alignment_pct: number | null
-          iris_flag_reason: string | null
-          iris_flagged: boolean
+          iris_confidence: string | null
           mission_id: string
-          number: string
-          rfp_page_ref: string | null
-          rfp_requirement: string | null
-          studio_progress_pct: number | null
-          studio_status: string | null
-          studio_updated_at: string | null
-          title: string
+          name: string | null
+          order_index: number | null
+          page_limit: number | null
+          parent_section_id: string | null
+          reviewed_by_admin: boolean
+          section_number: string | null
           updated_at: string
+          volume_id: string | null
         }
         Insert: {
-          assigned_user_id?: string | null
-          body?: string | null
           created_at?: string
+          description?: string | null
+          evaluation_weight?: number | null
           id?: string
-          internal_due_date?: string | null
-          iris_alignment_pct?: number | null
-          iris_flag_reason?: string | null
-          iris_flagged?: boolean
+          iris_confidence?: string | null
           mission_id: string
-          number: string
-          rfp_page_ref?: string | null
-          rfp_requirement?: string | null
-          studio_progress_pct?: number | null
-          studio_status?: string | null
-          studio_updated_at?: string | null
-          title: string
+          name?: string | null
+          order_index?: number | null
+          page_limit?: number | null
+          parent_section_id?: string | null
+          reviewed_by_admin?: boolean
+          section_number?: string | null
           updated_at?: string
+          volume_id?: string | null
         }
         Update: {
-          assigned_user_id?: string | null
-          body?: string | null
           created_at?: string
+          description?: string | null
+          evaluation_weight?: number | null
           id?: string
-          internal_due_date?: string | null
-          iris_alignment_pct?: number | null
-          iris_flag_reason?: string | null
-          iris_flagged?: boolean
+          iris_confidence?: string | null
           mission_id?: string
-          number?: string
-          rfp_page_ref?: string | null
-          rfp_requirement?: string | null
-          studio_progress_pct?: number | null
-          studio_status?: string | null
-          studio_updated_at?: string | null
-          title?: string
+          name?: string | null
+          order_index?: number | null
+          page_limit?: number | null
+          parent_section_id?: string | null
+          reviewed_by_admin?: boolean
+          section_number?: string | null
           updated_at?: string
+          volume_id?: string | null
         }
         Relationships: [
           {
@@ -5080,6 +4627,20 @@ export type Database = {
             columns: ["mission_id"]
             isOneToOne: false
             referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_sections_parent_section_id_fkey"
+            columns: ["parent_section_id"]
+            isOneToOne: false
+            referencedRelation: "mission_sections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_sections_volume_id_fkey"
+            columns: ["volume_id"]
+            isOneToOne: false
+            referencedRelation: "mission_volumes"
             referencedColumns: ["id"]
           },
         ]
@@ -5118,15 +4679,7 @@ export type Database = {
           subject?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "mission_sensitivities_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mission_staffing_summary: {
         Row: {
@@ -5168,15 +4721,7 @@ export type Database = {
           unassigned_questions?: Json
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "mission_staffing_summary_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: true
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mission_strategy: {
         Row: {
@@ -5215,93 +4760,41 @@ export type Database = {
           sort_order?: number
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "mission_strategy_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mission_team_members: {
         Row: {
-          active: boolean | null
-          assigned_sections: Json | null
-          baa_required: boolean | null
-          baa_status: string | null
-          clearance: string | null
-          client_system_access: boolean | null
-          contract_status: string | null
-          created_at: string | null
-          email: string | null
-          folder_access: boolean | null
+          added_at: string
+          added_by: string | null
           id: string
-          invite_sent_at: string | null
+          member_id: string
           mission_id: string
-          name: string
-          nda_status: string | null
-          onboarding_completed_at: string | null
-          org: string | null
-          role: string
-          slack_access: boolean | null
-          source: string | null
-          start_date: string | null
-          talentdesk_status: string | null
-          user_id: string | null
+          mission_role: string | null
         }
         Insert: {
-          active?: boolean | null
-          assigned_sections?: Json | null
-          baa_required?: boolean | null
-          baa_status?: string | null
-          clearance?: string | null
-          client_system_access?: boolean | null
-          contract_status?: string | null
-          created_at?: string | null
-          email?: string | null
-          folder_access?: boolean | null
+          added_at?: string
+          added_by?: string | null
           id?: string
-          invite_sent_at?: string | null
+          member_id: string
           mission_id: string
-          name: string
-          nda_status?: string | null
-          onboarding_completed_at?: string | null
-          org?: string | null
-          role: string
-          slack_access?: boolean | null
-          source?: string | null
-          start_date?: string | null
-          talentdesk_status?: string | null
-          user_id?: string | null
+          mission_role?: string | null
         }
         Update: {
-          active?: boolean | null
-          assigned_sections?: Json | null
-          baa_required?: boolean | null
-          baa_status?: string | null
-          clearance?: string | null
-          client_system_access?: boolean | null
-          contract_status?: string | null
-          created_at?: string | null
-          email?: string | null
-          folder_access?: boolean | null
+          added_at?: string
+          added_by?: string | null
           id?: string
-          invite_sent_at?: string | null
+          member_id?: string
           mission_id?: string
-          name?: string
-          nda_status?: string | null
-          onboarding_completed_at?: string | null
-          org?: string | null
-          role?: string
-          slack_access?: boolean | null
-          source?: string | null
-          start_date?: string | null
-          talentdesk_status?: string | null
-          user_id?: string | null
+          mission_role?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "mission_team_members_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "atlas_team_members"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "mission_team_members_mission_id_fkey"
             columns: ["mission_id"]
@@ -5351,15 +4844,7 @@ export type Database = {
           submission?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "mission_timeline_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: true
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mission_vault_documents: {
         Row: {
@@ -5431,40 +4916,32 @@ export type Database = {
           uploaded_by_name?: string | null
           version?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "mission_vault_documents_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mission_volumes: {
         Row: {
           created_at: string
-          description: string | null
           id: string
           mission_id: string
-          name: string
-          sort_order: number
+          name: string | null
+          order_index: number | null
+          updated_at: string
         }
         Insert: {
           created_at?: string
-          description?: string | null
           id?: string
           mission_id: string
-          name: string
-          sort_order?: number
+          name?: string | null
+          order_index?: number | null
+          updated_at?: string
         }
         Update: {
           created_at?: string
-          description?: string | null
           id?: string
           mission_id?: string
-          name?: string
-          sort_order?: number
+          name?: string | null
+          order_index?: number | null
+          updated_at?: string
         }
         Relationships: [
           {
@@ -5478,196 +4955,52 @@ export type Database = {
       }
       missions: {
         Row: {
-          assignment_tracker_data: Json
-          atlas_synced_at: string | null
-          client: string
-          client_logo_url: string | null
-          client_strengths: string | null
-          client_win_strategy: string | null
-          closed_at: string | null
-          closeout_checklist: Json | null
-          closeout_notes: Json | null
-          competitors: string[] | null
-          contract_start_date: string | null
-          contract_term: string | null
-          contract_value: string | null
-          created_at: string | null
+          blast_off_at: string | null
+          blast_off_by: string | null
+          client_name: string | null
+          contract_value: number | null
+          created_at: string
           created_by: string | null
-          description: string | null
-          engagement_lead: string | null
-          engagement_type: string | null
-          evaluation_criteria: Json | null
-          focus_areas: string[] | null
-          health: string | null
           id: string
-          incumbent_name: string | null
-          internal_lead: string | null
-          iris_kickoff_at: string | null
-          iris_kickoff_status: string
-          iris_kickoff_summary: Json | null
-          iris_search_terms: string[] | null
-          iris_setup_autofill_at: string | null
-          iris_setup_autofill_status: string | null
-          iris_setup_suggested_fields: Json
-          is_fedramp_scope: boolean
-          key_requirements: string[] | null
-          launched_at: string | null
-          mission_highlights: string | null
-          mission_status: string | null
           name: string
-          operations_lead: string | null
-          page_limit: number | null
-          pens_down_date: string | null
-          prime_contractor: string | null
-          priority_topics: string[] | null
-          procurement_id: string | null
-          procurement_name: string | null
-          program_goals: string | null
-          program_type: string | null
-          qa_deadline: string | null
-          question_count: number | null
-          rfp_extracted_at: string | null
-          rfp_extraction: Json | null
-          rfp_extraction_status: string | null
-          rfp_number: string | null
-          rfp_parsed: boolean | null
-          scoring_methodology: string | null
-          slack_webhook: string | null
-          state: string | null
-          state_agency: string | null
-          status: string | null
-          submission_date: string | null
-          submission_milestones: Json | null
-          win_themes: string[] | null
-          wizard_step: number | null
+          primary_contact_email: string | null
+          primary_contact_name: string | null
+          procurement_type: string | null
+          status: string
+          submission_deadline: string
+          updated_at: string
         }
         Insert: {
-          assignment_tracker_data?: Json
-          atlas_synced_at?: string | null
-          client: string
-          client_logo_url?: string | null
-          client_strengths?: string | null
-          client_win_strategy?: string | null
-          closed_at?: string | null
-          closeout_checklist?: Json | null
-          closeout_notes?: Json | null
-          competitors?: string[] | null
-          contract_start_date?: string | null
-          contract_term?: string | null
-          contract_value?: string | null
-          created_at?: string | null
+          blast_off_at?: string | null
+          blast_off_by?: string | null
+          client_name?: string | null
+          contract_value?: number | null
+          created_at?: string
           created_by?: string | null
-          description?: string | null
-          engagement_lead?: string | null
-          engagement_type?: string | null
-          evaluation_criteria?: Json | null
-          focus_areas?: string[] | null
-          health?: string | null
           id?: string
-          incumbent_name?: string | null
-          internal_lead?: string | null
-          iris_kickoff_at?: string | null
-          iris_kickoff_status?: string
-          iris_kickoff_summary?: Json | null
-          iris_search_terms?: string[] | null
-          iris_setup_autofill_at?: string | null
-          iris_setup_autofill_status?: string | null
-          iris_setup_suggested_fields?: Json
-          is_fedramp_scope?: boolean
-          key_requirements?: string[] | null
-          launched_at?: string | null
-          mission_highlights?: string | null
-          mission_status?: string | null
           name: string
-          operations_lead?: string | null
-          page_limit?: number | null
-          pens_down_date?: string | null
-          prime_contractor?: string | null
-          priority_topics?: string[] | null
-          procurement_id?: string | null
-          procurement_name?: string | null
-          program_goals?: string | null
-          program_type?: string | null
-          qa_deadline?: string | null
-          question_count?: number | null
-          rfp_extracted_at?: string | null
-          rfp_extraction?: Json | null
-          rfp_extraction_status?: string | null
-          rfp_number?: string | null
-          rfp_parsed?: boolean | null
-          scoring_methodology?: string | null
-          slack_webhook?: string | null
-          state?: string | null
-          state_agency?: string | null
-          status?: string | null
-          submission_date?: string | null
-          submission_milestones?: Json | null
-          win_themes?: string[] | null
-          wizard_step?: number | null
+          primary_contact_email?: string | null
+          primary_contact_name?: string | null
+          procurement_type?: string | null
+          status?: string
+          submission_deadline: string
+          updated_at?: string
         }
         Update: {
-          assignment_tracker_data?: Json
-          atlas_synced_at?: string | null
-          client?: string
-          client_logo_url?: string | null
-          client_strengths?: string | null
-          client_win_strategy?: string | null
-          closed_at?: string | null
-          closeout_checklist?: Json | null
-          closeout_notes?: Json | null
-          competitors?: string[] | null
-          contract_start_date?: string | null
-          contract_term?: string | null
-          contract_value?: string | null
-          created_at?: string | null
+          blast_off_at?: string | null
+          blast_off_by?: string | null
+          client_name?: string | null
+          contract_value?: number | null
+          created_at?: string
           created_by?: string | null
-          description?: string | null
-          engagement_lead?: string | null
-          engagement_type?: string | null
-          evaluation_criteria?: Json | null
-          focus_areas?: string[] | null
-          health?: string | null
           id?: string
-          incumbent_name?: string | null
-          internal_lead?: string | null
-          iris_kickoff_at?: string | null
-          iris_kickoff_status?: string
-          iris_kickoff_summary?: Json | null
-          iris_search_terms?: string[] | null
-          iris_setup_autofill_at?: string | null
-          iris_setup_autofill_status?: string | null
-          iris_setup_suggested_fields?: Json
-          is_fedramp_scope?: boolean
-          key_requirements?: string[] | null
-          launched_at?: string | null
-          mission_highlights?: string | null
-          mission_status?: string | null
           name?: string
-          operations_lead?: string | null
-          page_limit?: number | null
-          pens_down_date?: string | null
-          prime_contractor?: string | null
-          priority_topics?: string[] | null
-          procurement_id?: string | null
-          procurement_name?: string | null
-          program_goals?: string | null
-          program_type?: string | null
-          qa_deadline?: string | null
-          question_count?: number | null
-          rfp_extracted_at?: string | null
-          rfp_extraction?: Json | null
-          rfp_extraction_status?: string | null
-          rfp_number?: string | null
-          rfp_parsed?: boolean | null
-          scoring_methodology?: string | null
-          slack_webhook?: string | null
-          state?: string | null
-          state_agency?: string | null
-          status?: string | null
-          submission_date?: string | null
-          submission_milestones?: Json | null
-          win_themes?: string[] | null
-          wizard_step?: number | null
+          primary_contact_email?: string | null
+          primary_contact_name?: string | null
+          procurement_type?: string | null
+          status?: string
+          submission_deadline?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -5720,22 +5053,7 @@ export type Database = {
           threshold_yellow?: number
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "mock_scores_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "mock_scores_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "question_records"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       note_reads: {
         Row: {
@@ -5915,20 +5233,6 @@ export type Database = {
             columns: ["from_user_id"]
             isOneToOne: false
             referencedRelation: "profiles_directory"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pilot_copilot_messages_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pilot_copilot_messages_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "question_records"
             referencedColumns: ["id"]
           },
           {
@@ -6184,13 +5488,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "question_assignments_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "question_assignments_question_id_fkey"
             columns: ["question_id"]
             isOneToOne: true
@@ -6255,20 +5552,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "question_collaboration_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "question_collaboration_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "question_records"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "question_collaboration_resolved_by_fkey"
             columns: ["resolved_by"]
             isOneToOne: false
@@ -6318,13 +5601,6 @@ export type Database = {
             columns: ["gate_id"]
             isOneToOne: false
             referencedRelation: "mission_review_gates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "question_gate_status_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "question_records"
             referencedColumns: ["id"]
           },
         ]
@@ -6397,13 +5673,6 @@ export type Database = {
           win_themes?: Json | null
         }
         Relationships: [
-          {
-            foreignKeyName: "question_intelligence_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "question_intelligence_question_id_fkey"
             columns: ["question_id"]
@@ -6501,233 +5770,7 @@ export type Database = {
           submitted_at?: string
           writer_auth_user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "question_pulses_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "question_pulses_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "question_records"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      question_records: {
-        Row: {
-          assigned_sme_id: string | null
-          assigned_writer_id: string | null
-          competitive_risk: string | null
-          confidence_updated_at: string | null
-          created_at: string | null
-          current_focus: string | null
-          current_score: number | null
-          estimated_hours: number | null
-          evaluation_weight: number | null
-          formatting_rules: string | null
-          guidance: string | null
-          health: string | null
-          health_drivers: Json | null
-          id: string
-          import_notes: string | null
-          iris_pre_brief: Json | null
-          iris_risk_flag: string | null
-          iris_risk_flag_text: string | null
-          mandatory_language: string[] | null
-          mission_id: string
-          next_step: string | null
-          page_limit: number | null
-          parent_question_id: string | null
-          pens_down_date: string | null
-          point_value: number | null
-          question_number: string
-          question_text: string
-          requirements: string[] | null
-          review_path: string | null
-          reviewer_id: string | null
-          scoring_criteria: string | null
-          section_number: string | null
-          sme_meeting_date: string | null
-          sme_meeting_status: string
-          sort_order: number | null
-          status: string | null
-          strategic_owner_id: string | null
-          support_sme_ids: string[]
-          target_score: number | null
-          title: string
-          updated_at: string | null
-          volume_id: string | null
-          waiting_on: string | null
-          win_theme_alignment_score: number | null
-          word_limit: number | null
-          writer_confidence: string | null
-        }
-        Insert: {
-          assigned_sme_id?: string | null
-          assigned_writer_id?: string | null
-          competitive_risk?: string | null
-          confidence_updated_at?: string | null
-          created_at?: string | null
-          current_focus?: string | null
-          current_score?: number | null
-          estimated_hours?: number | null
-          evaluation_weight?: number | null
-          formatting_rules?: string | null
-          guidance?: string | null
-          health?: string | null
-          health_drivers?: Json | null
-          id?: string
-          import_notes?: string | null
-          iris_pre_brief?: Json | null
-          iris_risk_flag?: string | null
-          iris_risk_flag_text?: string | null
-          mandatory_language?: string[] | null
-          mission_id: string
-          next_step?: string | null
-          page_limit?: number | null
-          parent_question_id?: string | null
-          pens_down_date?: string | null
-          point_value?: number | null
-          question_number: string
-          question_text: string
-          requirements?: string[] | null
-          review_path?: string | null
-          reviewer_id?: string | null
-          scoring_criteria?: string | null
-          section_number?: string | null
-          sme_meeting_date?: string | null
-          sme_meeting_status?: string
-          sort_order?: number | null
-          status?: string | null
-          strategic_owner_id?: string | null
-          support_sme_ids?: string[]
-          target_score?: number | null
-          title: string
-          updated_at?: string | null
-          volume_id?: string | null
-          waiting_on?: string | null
-          win_theme_alignment_score?: number | null
-          word_limit?: number | null
-          writer_confidence?: string | null
-        }
-        Update: {
-          assigned_sme_id?: string | null
-          assigned_writer_id?: string | null
-          competitive_risk?: string | null
-          confidence_updated_at?: string | null
-          created_at?: string | null
-          current_focus?: string | null
-          current_score?: number | null
-          estimated_hours?: number | null
-          evaluation_weight?: number | null
-          formatting_rules?: string | null
-          guidance?: string | null
-          health?: string | null
-          health_drivers?: Json | null
-          id?: string
-          import_notes?: string | null
-          iris_pre_brief?: Json | null
-          iris_risk_flag?: string | null
-          iris_risk_flag_text?: string | null
-          mandatory_language?: string[] | null
-          mission_id?: string
-          next_step?: string | null
-          page_limit?: number | null
-          parent_question_id?: string | null
-          pens_down_date?: string | null
-          point_value?: number | null
-          question_number?: string
-          question_text?: string
-          requirements?: string[] | null
-          review_path?: string | null
-          reviewer_id?: string | null
-          scoring_criteria?: string | null
-          section_number?: string | null
-          sme_meeting_date?: string | null
-          sme_meeting_status?: string
-          sort_order?: number | null
-          status?: string | null
-          strategic_owner_id?: string | null
-          support_sme_ids?: string[]
-          target_score?: number | null
-          title?: string
-          updated_at?: string | null
-          volume_id?: string | null
-          waiting_on?: string | null
-          win_theme_alignment_score?: number | null
-          word_limit?: number | null
-          writer_confidence?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "question_records_assigned_sme_id_fkey"
-            columns: ["assigned_sme_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "question_records_assigned_sme_id_fkey"
-            columns: ["assigned_sme_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_directory"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "question_records_assigned_writer_id_fkey"
-            columns: ["assigned_writer_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "question_records_assigned_writer_id_fkey"
-            columns: ["assigned_writer_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_directory"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "question_records_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "question_records_parent_question_id_fkey"
-            columns: ["parent_question_id"]
-            isOneToOne: false
-            referencedRelation: "question_records"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "question_records_strategic_owner_id_fkey"
-            columns: ["strategic_owner_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "question_records_strategic_owner_id_fkey"
-            columns: ["strategic_owner_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_directory"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "question_records_volume_id_fkey"
-            columns: ["volume_id"]
-            isOneToOne: false
-            referencedRelation: "mission_volumes"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       question_relationships: {
         Row: {
@@ -6770,27 +5813,6 @@ export type Database = {
           resolved_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "question_relationships_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "question_relationships_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "question_records"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "question_relationships_related_question_id_fkey"
-            columns: ["related_question_id"]
-            isOneToOne: false
-            referencedRelation: "question_records"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "question_relationships_resolved_by_fkey"
             columns: ["resolved_by"]
@@ -6839,13 +5861,6 @@ export type Database = {
           scored_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "question_scores_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "question_records"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "question_scores_reviewer_id_fkey"
             columns: ["reviewer_id"]
@@ -6923,15 +5938,7 @@ export type Database = {
           subsection?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "questions_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       reality_updates: {
         Row: {
@@ -6977,20 +5984,6 @@ export type Database = {
           user_name?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "reality_updates_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reality_updates_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "question_records"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "reality_updates_resolved_by_fkey"
             columns: ["resolved_by"]
@@ -7224,22 +6217,7 @@ export type Database = {
           question_id?: string | null
           writer_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "score_me_interactions_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "score_me_interactions_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "question_records"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       section_briefs: {
         Row: {
@@ -7296,22 +6274,7 @@ export type Database = {
           updated_at?: string
           writer_answers?: Json | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "section_briefs_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "section_briefs_section_id_fkey"
-            columns: ["section_id"]
-            isOneToOne: false
-            referencedRelation: "mission_sections"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       signals: {
         Row: {
@@ -7592,15 +6555,7 @@ export type Database = {
           object_id?: string
           object_type?: Database["public"]["Enums"]["thread_object_type"]
         }
-        Relationships: [
-          {
-            foreignKeyName: "threads_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_expertise: {
         Row: {
@@ -7747,13 +6702,6 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles_directory"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "win_themes_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
             referencedColumns: ["id"]
           },
         ]
@@ -7998,15 +6946,7 @@ export type Database = {
           mission_id: string | null
           pulse_count: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "question_pulses_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: false
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Functions: {
@@ -8082,6 +7022,10 @@ export type Database = {
         Returns: boolean
       }
       is_mission_member: {
+        Args: { _mission_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_mission_team_member: {
         Args: { _mission_id: string; _user_id: string }
         Returns: boolean
       }
