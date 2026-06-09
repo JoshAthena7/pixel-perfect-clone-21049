@@ -204,12 +204,10 @@ export const resetMemberPassword = createServerFn({ method: "POST" })
 // ---------------------------------------------------------------------------
 
 function newUuid(): string {
-  // Prefer Web Crypto when available (Workers + modern Node); fall back to a
-  // RFC4122 v4 generator so this works in any server runtime.
   const g: any = (globalThis as any).crypto;
   if (g?.randomUUID) return g.randomUUID();
   const b = new Uint8Array(16);
-  (g?.getRandomValues ? g : require("crypto").webcrypto).getRandomValues(b);
+  g.getRandomValues(b);
   b[6] = (b[6] & 0x0f) | 0x40;
   b[8] = (b[8] & 0x3f) | 0x80;
   const h = Array.from(b, (x) => x.toString(16).padStart(2, "0"));
