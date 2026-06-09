@@ -535,6 +535,13 @@ export function AthenaTeamRoster() {
         open={!!detailMemberId}
         onOpenChange={(v) => !v && setDetailMemberId(null)}
       />
+
+      <AthenaTeamExportDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        currentViewRows={filtered as unknown as ExportMember[]}
+        onExporting={setExporting}
+      />
     </TooltipProvider>
   );
 }
