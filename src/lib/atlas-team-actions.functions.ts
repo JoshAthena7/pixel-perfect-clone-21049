@@ -64,7 +64,7 @@ export const sendAtlasInvite = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as any;
-    await assertAdmin(supabase, userId);
+    const { adminName } = await assertAdmin(supabase, userId);
     const m = await getMember(supabase, data.memberId);
     if (!m.email) throw new Error("Member has no email on file.");
     if (!data.resend && m.atlas_invite_status === "active") {
@@ -103,6 +103,14 @@ export const sendAtlasInvite = createServerFn({ method: "POST" })
       })
       .eq("id", m.id);
     if (updErr) throw new Error(updErr.message);
+
+    await logActivity(
+      supabase,
+      m.id,
+      data.resend ? "Invite resent" : "ATLAS invite sent",
+      adminName,
+      { email: m.email },
+    );
 
     return { ok: true, email: m.email };
   });
