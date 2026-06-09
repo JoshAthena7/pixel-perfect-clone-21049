@@ -144,6 +144,7 @@ export default function AssignmentReview({
   const [drawerQid, setDrawerQid] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const isLive =
     missionStatus === "Live" || missionStatus === "Live with Pending Edits";
