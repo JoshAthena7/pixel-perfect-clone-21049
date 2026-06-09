@@ -71,8 +71,8 @@ export function AthenaTeamExportDialog({
             <div>
               <div className="text-sm font-medium">Current view</div>
               <div className="text-xs text-muted-foreground">
-                Only the rows visible after active filters ({currentViewRows.length}{" "}
-                {currentViewRows.length === 1 ? "member" : "members"})
+                Only the rows visible after active filters ({currentViewIds.length}{" "}
+                {currentViewIds.length === 1 ? "member" : "members"})
               </div>
             </div>
           </label>
