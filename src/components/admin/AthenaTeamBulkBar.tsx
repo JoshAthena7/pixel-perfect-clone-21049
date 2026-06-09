@@ -52,10 +52,12 @@ export function AthenaTeamBulkBar({
   selectedIds,
   onClear,
   onRefresh,
+  isPendingTab = false,
 }: {
   selectedIds: string[];
   onClear: () => void;
   onRefresh: () => void;
+  isPendingTab?: boolean;
 }) {
   const count = selectedIds.length;
   const [confirmInvite, setConfirmInvite] = useState(false);
@@ -63,10 +65,13 @@ export function AthenaTeamBulkBar({
   const [roleOpen, setRoleOpen] = useState(false);
 
   const sendInvites = useServerFn(bulkSendAtlasInvites);
-
+  const resendInvites = useServerFn(bulkResendInvites);
 
   const inviteMut = useMutation({
-    mutationFn: () => sendInvites({ data: { memberIds: selectedIds } }),
+    mutationFn: () =>
+      isPendingTab
+        ? resendInvites({ data: { memberIds: selectedIds } })
+        : sendInvites({ data: { memberIds: selectedIds } }),
     onSuccess: (res: any) => {
       const skipped = res.skipped ?? 0;
       const failed = res.failed ?? 0;
