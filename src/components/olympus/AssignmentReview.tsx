@@ -690,6 +690,14 @@ export default function AssignmentReview({
         />
       )}
 
+      {importOpen && (
+        <MatrixImportModal
+          missionId={missionId}
+          onClose={() => setImportOpen(false)}
+          onImported={() => reload()}
+        />
+      )}
+
       {addOpen && (
         <AddQuestionModal
           sections={sections}
