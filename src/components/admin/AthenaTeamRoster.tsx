@@ -31,6 +31,8 @@ import {
 import { AthenaTeamBulkBar } from "@/components/admin/AthenaTeamBulkBar";
 import { PersonDetailDrawer } from "@/components/admin/PersonDetailDrawer";
 import { PendingInvitesPanel, type PendingMember } from "@/components/admin/PendingInvitesPanel";
+import { AthenaTeamExportDialog } from "@/components/admin/AthenaTeamExportDialog";
+import type { ExportMember } from "@/lib/atlas-team-export";
 
 import {
   getCompletenessBand,
