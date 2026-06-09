@@ -295,13 +295,3 @@ function TeamTab() {
     </div>
   );
 }
-
-function FirmTab() {
-  return (
-    <div className="rounded-lg border border-dashed border-border bg-surface/20 p-10 text-center">
-      <Building2 className="mx-auto mb-3 h-6 w-6 text-muted-foreground" />
-      <div className="text-sm font-medium">Firm configuration</div>
-      <div className="mt-1 text-xs text-muted-foreground">Coming soon.</div>
-    </div>
-  );
-}
