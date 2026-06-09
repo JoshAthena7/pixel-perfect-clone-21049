@@ -176,11 +176,11 @@ export function AthenaTeamFilterBar({
 
         <MultiSelectFilter
           label="Skills"
-          options={allSkills.map((s) => ({ value: s, label: s }))}
+          options={skillOptions.map((s) => ({ value: s.value, label: `${s.label} (${s.count})` }))}
           selected={filters.skills}
           onChange={(next) => setFilters({ ...filters, skills: next })}
           searchable
-          emptyText={allSkills.length === 0 ? "No skills yet" : "No matches"}
+          emptyText={skillOptions.length === 0 ? "No skills yet" : "No matches"}
         />
 
         {active && (
