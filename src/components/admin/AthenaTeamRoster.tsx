@@ -519,7 +519,9 @@ function Row({ m, zebra, selected, onToggle, onOpenDetail }: {
       : "bg-zinc-700/40 text-zinc-300 border-zinc-600/60";
 
   const pct = Math.max(0, Math.min(100, m.atlas_profile_completeness ?? 0));
-  const barCls = pct <= 40 ? "[&>div]:bg-red-500" : pct <= 75 ? "[&>div]:bg-amber-500" : "[&>div]:bg-emerald-500";
+  const band = getCompletenessBand(pct);
+  const breakdown = getCompletenessBreakdown(m);
+  const tooltipLine = formatBreakdownTooltip(breakdown);
 
   return (
     <tr className={`border-t border-border/60 ${zebra ? "bg-surface/30" : "bg-transparent"} hover:bg-surface-hover/60`}>
