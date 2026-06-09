@@ -379,7 +379,7 @@ export function AthenaTeamRoster() {
     <TooltipProvider delayDuration={150}>
       <div className="space-y-4">
         {/* Header */}
-        <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-start md:justify-between">
           <div className="min-w-0">
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold tracking-tight">Athena Team</h1>
