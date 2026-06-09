@@ -77,21 +77,19 @@ export const getAtlasCelebrationContext = createServerFn({ method: "POST" })
     try {
       const { data } = await supabaseAdmin
         .from("mission_team_members")
-        .select("mission_id,active,missions(id,name,client_name,status)")
+        .select("mission_id,active,missions(id,name,client,status)")
         .eq("user_id", userId)
         .eq("active", true)
         .limit(5);
       const row = (data ?? []).find(
-        // @ts-expect-error -- joined shape from PostgREST
-        (r) => r.missions && (r.missions.status ?? "active") !== "archived",
-      );
-      if (row) {
-        // @ts-expect-error -- joined shape
-        const m = row.missions;
+        (r: { missions: { status?: string | null } | null }) =>
+          r.missions && (r.missions.status ?? "active") !== "archived",
+      ) as { missions: { id: string; name: string; client: string | null } } | undefined;
+      if (row?.missions) {
         base.firstMission = {
-          id: m.id,
-          name: m.name,
-          subtitle: m.client_name ?? null,
+          id: row.missions.id,
+          name: row.missions.name,
+          subtitle: row.missions.client ?? null,
         };
       }
     } catch (e) {
