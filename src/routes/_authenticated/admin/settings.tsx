@@ -23,20 +23,13 @@ function AdminSettings() {
         <FastReportsMenu />
       </header>
 
-      <div className="border-b border-border bg-surface/20 px-5">
-        <nav className="flex gap-1">
-          <TabButton active={tab === "team"} onClick={() => setTab("team")} icon={<Users className="h-3.5 w-3.5" />}>Team</TabButton>
-          <TabButton active={tab === "firm"} onClick={() => setTab("firm")} icon={<Building2 className="h-3.5 w-3.5" />}>Firm</TabButton>
-        </nav>
-      </div>
-
       <div className="p-5">
-        {tab === "team" && <TeamTab />}
-        {tab === "firm" && <FirmTab />}
+        <TeamTab />
       </div>
     </div>
   );
 }
+
 
 function TabButton({ active, onClick, icon, children }: { active: boolean; onClick: () => void; icon: React.ReactNode; children: React.ReactNode }) {
   return (
