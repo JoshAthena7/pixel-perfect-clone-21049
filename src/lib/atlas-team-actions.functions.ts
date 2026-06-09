@@ -236,6 +236,7 @@ export const removeMemberFromRoster = createServerFn({ method: "POST" })
       })
       .eq("id", m.id);
     if (error) throw new Error(error.message);
+    await logActivity(supabase, m.id, "Removed from roster", adminName);
     return { ok: true };
   });
 
