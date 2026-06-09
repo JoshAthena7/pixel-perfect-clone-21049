@@ -133,7 +133,7 @@ export function AthenaTeamRoster() {
       const { data, error } = await supabase
         .from("atlas_team_members")
         .select(
-          "id,first_name,last_name,email,phone,job_title,avatar_url,talentdesk_status,atlas_invite_status,atlas_invite_sent_at,atlas_first_login_at,atlas_last_active_at,atlas_role,atlas_profile_completeness,atlas_hipaa_acknowledged,atlas_resume_url,skills",
+          "id,first_name,last_name,email,phone,job_title,avatar_url,talentdesk_status,atlas_invite_status,atlas_invite_sent_at,atlas_first_login_at,atlas_last_active_at,atlas_role,atlas_profile_completeness,atlas_hipaa_acknowledged,atlas_resume_url,skills,admin_notes",
         )
         .eq("is_removed", false);
       if (error) throw error;
