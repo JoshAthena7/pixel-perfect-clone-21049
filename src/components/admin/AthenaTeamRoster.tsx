@@ -354,7 +354,12 @@ export function AthenaTeamRoster() {
           totalCount={tabCounts[activeTab]}
         />
 
-
+        {/* Bulk actions bar (renders when selection is non-empty) */}
+        <AthenaTeamBulkBar
+          selectedIds={selectedIds}
+          onClear={clearSelection}
+          onRefresh={refreshRoster}
+        />
 
         {/* Table */}
         <div className="overflow-hidden rounded-lg border border-border bg-surface/40">
