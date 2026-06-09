@@ -328,7 +328,6 @@ function DrawerTab({ value, children }: { value: string; children: React.ReactNo
 }
 
 function OverviewTab({ member, onRefresh }: { member: any; onRefresh: () => void }) {
-function OverviewTab({ member, onRefresh }: { member: any; onRefresh: () => void }) {
   const pct = Math.max(0, Math.min(100, member.atlas_profile_completeness ?? 0));
   const band = getCompletenessBand(pct);
   const breakdown = getCompletenessBreakdown(member);
