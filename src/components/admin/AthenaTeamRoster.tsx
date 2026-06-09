@@ -325,6 +325,21 @@ export function AthenaTeamRoster() {
           </div>
         </div>
 
+        {/* Quick view tabs */}
+        <AthenaTeamTabs activeTab={activeTab} counts={tabCounts} onChange={handleTabChange} />
+
+        {/* Filter bar */}
+        <AthenaTeamFilterBar
+          filters={filters}
+          setFilters={handleFiltersChange}
+          allSkills={allSkills}
+          onClearAll={clearAllFilters}
+          filteredCount={filtered.length}
+          totalCount={tabCounts[activeTab]}
+        />
+
+
+
         {/* Table */}
         <div className="overflow-hidden rounded-lg border border-border bg-surface/40">
           <table className="w-full text-sm">
