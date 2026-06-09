@@ -9,6 +9,8 @@ import {
 } from "@/lib/atlas-onboarding-gate.functions";
 import { WelcomeStep } from "@/components/atlas-onboarding/WelcomeStep";
 import { HipaaStep } from "@/components/atlas-onboarding/HipaaStep";
+import { PhotoStep } from "@/components/atlas-onboarding/PhotoStep";
+import { ResumeStep } from "@/components/atlas-onboarding/ResumeStep";
 
 
 /**
