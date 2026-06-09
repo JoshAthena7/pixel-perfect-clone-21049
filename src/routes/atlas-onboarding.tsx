@@ -37,27 +37,24 @@ function AtlasOnboardingShell() {
   const getState = useServerFn(getAtlasOnboardingState);
   const [state, setState] = useState<AtlasOnboardingState | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await getState();
-        if (cancelled) return;
-        if (res.status === "complete") {
-          // Already done — bounce straight to Flight Deck.
-          navigate({ to: "/flight-deck", replace: true });
-          return;
-        }
-        setState(res);
-      } catch (e) {
-        console.error("[atlas-onboarding] gate state failed", e);
-        if (!cancelled) setState({ status: "no_member" });
+  const refreshState = useCallback(async () => {
+    try {
+      const res = await getState();
+      if (res.status === "complete") {
+        navigate({ to: "/flight-deck", replace: true });
+        return;
       }
-    })();
-    return () => {
-      cancelled = true;
-    };
+      setState(res);
+    } catch (e) {
+      console.error("[atlas-onboarding] gate state failed", e);
+      setState({ status: "no_member" });
+    }
   }, [getState, navigate]);
+
+  useEffect(() => {
+    void refreshState();
+  }, [refreshState]);
+
 
   if (!state) {
     return (
