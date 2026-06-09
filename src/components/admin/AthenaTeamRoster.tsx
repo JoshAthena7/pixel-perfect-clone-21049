@@ -446,6 +446,12 @@ export function AthenaTeamRoster() {
           )}
         </div>
       </div>
+
+      <PersonDetailDrawer
+        memberId={detailMemberId}
+        open={!!detailMemberId}
+        onOpenChange={(v) => !v && setDetailMemberId(null)}
+      />
     </TooltipProvider>
   );
 }
