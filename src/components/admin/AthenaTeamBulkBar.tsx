@@ -31,6 +31,7 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   bulkAssignToMission,
+  bulkResendInvites,
   bulkSendAtlasInvites,
   bulkSetAtlasRole,
   getActiveMissionsForAssign,
