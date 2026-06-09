@@ -105,17 +105,19 @@ export function AthenaTeamTabs({
   );
 }
 
+export type SkillOption = { value: string; label: string; count: number };
+
 export function AthenaTeamFilterBar({
   filters,
   setFilters,
-  allSkills,
+  skillOptions,
   onClearAll,
   filteredCount,
   totalCount,
 }: {
   filters: Filters;
   setFilters: (f: Filters) => void;
-  allSkills: string[];
+  skillOptions: SkillOption[];
   onClearAll: () => void;
   filteredCount: number;
   totalCount: number;
