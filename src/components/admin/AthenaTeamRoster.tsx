@@ -19,6 +19,14 @@ import {
 } from "@/components/ui/tooltip";
 import { AtlasTeamSyncButton } from "@/components/admin/AtlasTeamSyncButton";
 import { RowActions } from "@/components/admin/AthenaTeamRowActions";
+import {
+  AthenaTeamFilterBar,
+  AthenaTeamTabs,
+  EMPTY_FILTERS,
+  filtersAreActive,
+  type Filters,
+  type TabKey,
+} from "@/components/admin/AthenaTeamFilters";
 
 type Member = {
   id: string;
