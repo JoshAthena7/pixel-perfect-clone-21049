@@ -484,9 +484,6 @@ function AssignMissionsDialog({ member, onClose }: { member: RowMember; onClose:
 }
 
 function ProfileDrawer({ member, onClose }: { member: RowMember; onClose: () => void }) {
-  // Lazy import to keep this module light; the real drawer lives in PersonDetailDrawer.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { PersonDetailDrawer } = require("@/components/admin/PersonDetailDrawer");
   return (
     <PersonDetailDrawer
       memberId={member.id}
@@ -495,4 +492,5 @@ function ProfileDrawer({ member, onClose }: { member: RowMember; onClose: () => 
     />
   );
 }
+
 
