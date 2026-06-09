@@ -166,11 +166,51 @@ export function AthenaTeamRoster() {
     return { total: members.length, approved, pending };
   }, [members]);
 
-  const allSkills = useMemo(() => {
-    const s = new Set<string>();
-    for (const m of members) for (const k of m.skills ?? []) if (k) s.add(k);
-    return Array.from(s).sort((a, b) => a.localeCompare(b));
-  }, [members]);
+  // Skills available for the dropdown. We compute counts based on members
+  // matching ALL OTHER active filters (so the skill filter itself doesn't
+  // hide its own options). Skills with zero matches still appear with "(0)".
+  const skillOptions = useMemo(() => {
+    // First pass: every distinct skill across the roster (case-insensitive
+    // keys, displayed using the first-seen original casing).
+    const display = new Map<string, string>(); // key -> display label
+    for (const m of members) {
+      for (const raw of m.skills ?? []) {
+        const s = (raw ?? "").trim();
+        if (!s) continue;
+        const k = s.toLowerCase();
+        if (!display.has(k)) display.set(k, s);
+      }
+    }
+    // Second pass: count members that pass all filters except `skills`.
+    const counts = new Map<string, number>();
+    const q = filters.search.trim().toLowerCase();
+    for (const m of members) {
+      if (!tabFilter[activeTab](m)) continue;
+      if (q) {
+        const hay = [
+          m.first_name ?? "",
+          m.last_name ?? "",
+          m.email,
+          m.job_title ?? "",
+          ...(m.skills ?? []),
+        ].join(" ").toLowerCase();
+        if (!hay.includes(q)) continue;
+      }
+      if (filters.roles.size > 0 && !filters.roles.has(m.atlas_role)) continue;
+      if (filters.atlasStatus !== "all" && m.atlas_invite_status !== filters.atlasStatus) continue;
+      if (filters.tdStatus !== "all" && m.talentdesk_status !== filters.tdStatus) continue;
+      const seen = new Set<string>();
+      for (const raw of m.skills ?? []) {
+        const k = (raw ?? "").trim().toLowerCase();
+        if (!k || seen.has(k)) continue;
+        seen.add(k);
+        counts.set(k, (counts.get(k) ?? 0) + 1);
+      }
+    }
+    return Array.from(display.entries())
+      .map(([value, label]) => ({ value, label, count: counts.get(value) ?? 0 }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [members, filters, activeTab, tabFilter]);
 
   const tabFilter = useMemo(
     () => ({
