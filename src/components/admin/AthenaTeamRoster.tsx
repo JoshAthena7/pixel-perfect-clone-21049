@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
-  MoreHorizontal,
   ChevronUp,
   ChevronDown,
   Download,
@@ -18,14 +17,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { AtlasTeamSyncButton } from "@/components/admin/AtlasTeamSyncButton";
+import { RowActions } from "@/components/admin/AthenaTeamRowActions";
 
 type Member = {
   id: string;
