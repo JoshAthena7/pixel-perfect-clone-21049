@@ -121,7 +121,7 @@ export const sendAtlasInvite = createServerFn({ method: "POST" })
     await logActivity(
       supabase,
       m.id,
-      data.resend ? "Invite resent" : "ATLAS invite sent",
+      data.resend ? "ATLAS invite resent" : "ATLAS invite sent",
       adminName,
       { email: m.email },
     );
@@ -150,7 +150,7 @@ export const setAtlasRole = createServerFn({ method: "POST" })
       .eq("id", data.memberId);
     if (error) throw new Error(error.message);
     if (oldRole !== data.role) {
-      await logActivity(supabase, data.memberId, "Role changed", adminName, {
+      await logActivity(supabase, data.memberId, "Role updated", adminName, {
         from: oldRole,
         to: data.role,
       });
