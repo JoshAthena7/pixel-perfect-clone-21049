@@ -32,6 +32,10 @@ import {
   sendAtlasInvite,
   setAtlasRole,
 } from "@/lib/atlas-team-actions.functions";
+import {
+  getCompletenessBand,
+  getCompletenessBreakdown,
+} from "@/lib/atlas-profile-completeness";
 
 const ROLE_OPTIONS = [
   { value: "admin", label: "Admin" },
@@ -324,15 +328,9 @@ function DrawerTab({ value, children }: { value: string; children: React.ReactNo
 }
 
 function OverviewTab({ member, onRefresh }: { member: any; onRefresh: () => void }) {
-  const completeness = [
-    { label: "Name", ok: !!(member.first_name && member.last_name) },
-    { label: "Email", ok: !!member.email },
-    { label: "Phone", ok: !!member.phone },
-    { label: "Job title", ok: !!member.job_title },
-    { label: "Resume", ok: !!member.atlas_resume_url },
-    { label: "HIPAA Acknowledgment", ok: !!member.atlas_hipaa_acknowledged },
-  ];
-  const pct = member.atlas_profile_completeness ?? 0;
+  const pct = Math.max(0, Math.min(100, member.atlas_profile_completeness ?? 0));
+  const band = getCompletenessBand(pct);
+  const breakdown = getCompletenessBreakdown(member);
 
   const setRole = useServerFn(setAtlasRole);
   const roleMut = useMutation({
@@ -431,30 +429,41 @@ function OverviewTab({ member, onRefresh }: { member: any; onRefresh: () => void
             <dt className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               Profile completeness
             </dt>
-            <dd className="mt-1 space-y-2">
-              <div className="flex items-center gap-2">
-                <Progress
-                  value={pct}
-                  className={`h-1.5 flex-1 ${
-                    pct <= 40
-                      ? "[&>div]:bg-red-500"
-                      : pct <= 75
-                        ? "[&>div]:bg-amber-500"
-                        : "[&>div]:bg-emerald-500"
-                  }`}
-                />
-                <span className="text-[11px] tabular-nums text-muted-foreground">{pct}%</span>
+            <dd className="mt-2 space-y-3">
+              <div className="flex items-baseline justify-between">
+                <span className="text-sm font-semibold">
+                  Profile Score: {pct} / 100
+                </span>
+                <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                  {band.label}
+                </span>
               </div>
-              <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px]">
-                {completeness.map((c) => (
-                  <span
-                    key={c.label}
-                    className={c.ok ? "text-emerald-400" : "text-muted-foreground"}
+              <Progress value={pct} className={`h-1.5 ${band.barClass}`} />
+              <ul className="space-y-1 text-[12px]">
+                {breakdown.map((it) => (
+                  <li
+                    key={it.key}
+                    className={`flex items-center justify-between gap-2 ${
+                      it.ok ? "text-emerald-400" : "text-muted-foreground"
+                    }`}
                   >
-                    {c.ok ? "✓" : "✗"} {c.label}
-                  </span>
+                    <span className="flex items-center gap-1.5">
+                      <span aria-hidden>{it.ok ? "✓" : "✗"}</span>
+                      <span className={it.ok ? "" : "text-foreground/80"}>
+                        {it.label}
+                      </span>
+                      {it.futureOnboarding && !it.ok && (
+                        <span className="text-[10px] text-muted-foreground/80">
+                          (available after onboarding)
+                        </span>
+                      )}
+                    </span>
+                    <span className="tabular-nums text-[11px] text-muted-foreground">
+                      {it.points} pts
+                    </span>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </dd>
           </div>
         </dl>
