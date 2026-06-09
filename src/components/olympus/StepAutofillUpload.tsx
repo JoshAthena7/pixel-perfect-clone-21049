@@ -78,15 +78,51 @@ export function StepAutofillUpload({
       toast.error(`File too large (max ${MAX_BYTES / 1024 / 1024} MB)`);
       return;
     }
-    if (file.type && !file.type.includes("pdf")) {
-      toast.error("Only PDFs are supported for now");
-      return;
-    }
     setLoading(true);
     setFileName(file.name);
     setSuggestions(null);
     try {
-      const b64 = await toBase64(file);
+      const name = file.name.toLowerCase();
+      const type = file.type.toLowerCase();
+      const isPdf = type.includes("pdf") || name.endsWith(".pdf");
+      const isImage = type.startsWith("image/");
+      const isTxt =
+        type === "text/plain" ||
+        name.endsWith(".txt") ||
+        name.endsWith(".md") ||
+        name.endsWith(".csv");
+      const isDocx =
+        name.endsWith(".docx") ||
+        type ===
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+      let fileData: string;
+      let mimeType: string;
+      let sendName: string = file.name;
+
+      if (isPdf || isImage) {
+        fileData = await toBase64(file);
+        mimeType = file.type || (isPdf ? "application/pdf" : "image/png");
+      } else if (isDocx) {
+        // @ts-expect-error — mammoth browser subpath has no types
+        const mammoth: any = await import("mammoth/mammoth.browser");
+        const buf = await file.arrayBuffer();
+        const res2 = await mammoth.extractRawText({ arrayBuffer: buf });
+        const text = (res2?.value ?? "").toString().trim();
+        if (!text) throw new Error("Couldn't read any text from that document");
+        fileData = btoa(unescape(encodeURIComponent(text)));
+        mimeType = "text/plain";
+        sendName = file.name.replace(/\.[^.]+$/, "") + ".txt";
+      } else if (isTxt) {
+        const text = await file.text();
+        fileData = btoa(unescape(encodeURIComponent(text)));
+        mimeType = "text/plain";
+      } else {
+        toast.error("Unsupported file type. Use PDF, DOCX, TXT, or an image.");
+        setLoading(false);
+        return;
+      }
+
       const res = await autofill({
         data: {
           missionId,
@@ -98,9 +134,9 @@ export function StepAutofillUpload({
             description: f.description,
             currentValue: f.currentValue,
           })),
-          fileData: b64,
-          fileName: file.name,
-          mimeType: file.type || "application/pdf",
+          fileData,
+          fileName: sendName,
+          mimeType,
         },
       });
       const list = (res?.suggestions ?? []) as Suggestion[];
@@ -146,7 +182,7 @@ export function StepAutofillUpload({
         type="button"
         onClick={() => setOpen(true)}
         className={`inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs font-semibold hover:bg-surface-hover ${className ?? ""}`}
-        title={`Upload a PDF to auto-fill ${stepLabel}`}
+        title={`Upload a document to auto-fill ${stepLabel}`}
       >
         <Sparkles className="h-3.5 w-3.5" style={{ color: GOLD }} />
         Upload to autofill
@@ -171,14 +207,15 @@ export function StepAutofillUpload({
               {!suggestions && (
                 <>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Upload a PDF (RFP, SOW, briefing) and IRIS will propose values for this step's
-                    fields. Nothing saves until you review and confirm. Existing values are not
-                    overwritten unless you accept the suggestion.
+                    Upload a PDF, Word doc, text file, or image (RFP, SOW, briefing, screenshot)
+                    and IRIS will propose values for this step's fields. Nothing saves until you
+                    review and confirm. Existing values are not overwritten unless you accept the
+                    suggestion.
                   </p>
                   <input
                     ref={fileRef}
                     type="file"
-                    accept="application/pdf,.pdf"
+                    accept=".pdf,application/pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.txt,.md,.csv,text/plain,image/*"
                     className="hidden"
                     onChange={(e) => {
                       const f = e.target.files?.[0];
@@ -199,14 +236,15 @@ export function StepAutofillUpload({
                         </>
                       ) : (
                         <>
-                          <Upload className="h-3.5 w-3.5" /> Choose PDF
+                          <Upload className="h-3.5 w-3.5" /> Choose file
                         </>
                       )}
                     </button>
                     <div className="mt-2 text-[11px] text-muted-foreground">
-                      PDF only · max 12 MB · {fields.length} fields on this step
+                      PDF · DOCX · TXT · image · max 12 MB · {fields.length} fields on this step
                     </div>
                   </div>
+
                 </>
               )}
 
