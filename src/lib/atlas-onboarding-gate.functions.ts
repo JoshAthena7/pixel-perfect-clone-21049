@@ -140,6 +140,59 @@ export const updateAtlasOnboardingStep = createServerFn({ method: "POST" })
     return { ok: true, step: Math.max(current, data.step) };
   });
 
+export const acknowledgeAtlasHipaa = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        signature: z
+          .string()
+          .trim()
+          .min(5, "Please enter your full legal name to continue.")
+          .max(200),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const email = (context.claims?.email as string | undefined) ?? "";
+    if (!email) throw new Error("No email on session.");
+    const member = await loadMemberByEmail(email);
+    if (!member) throw new Error("No team-member record found for this user.");
+
+    const { error } = await supabaseAdmin
+      .from("atlas_team_members")
+      .update({
+        atlas_hipaa_acknowledged: true,
+        // Authoritative server timestamp.
+        atlas_hipaa_acknowledged_at: new Date().toISOString(),
+        atlas_hipaa_signature: data.signature,
+        onboarding_step_completed: Math.max(
+          member.onboarding_step_completed ?? 0,
+          2,
+        ),
+      })
+      .eq("id", member.id);
+    if (error) throw new Error(error.message);
+
+    // BEFORE-UPDATE trigger recomputes atlas_profile_completeness, so the
+    // +10 HIPAA points land automatically.
+
+    try {
+      await supabaseAdmin.from("atlas_activity_log").insert({
+        member_id: member.id,
+        action:
+          "Onboarding Step 2 completed — HIPAA and security acknowledgment signed",
+        performed_by: member.email,
+        metadata: { signature: data.signature, step: 2 },
+      });
+    } catch (e) {
+      console.error("[atlas-onboarding] activity log write failed", e);
+    }
+    return { ok: true };
+  });
+
+
+
 
 export const completeAtlasOnboarding = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
