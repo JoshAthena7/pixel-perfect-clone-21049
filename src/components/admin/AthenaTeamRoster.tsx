@@ -19,6 +19,14 @@ import {
 } from "@/components/ui/tooltip";
 import { AtlasTeamSyncButton } from "@/components/admin/AtlasTeamSyncButton";
 import { RowActions } from "@/components/admin/AthenaTeamRowActions";
+import {
+  AthenaTeamFilterBar,
+  AthenaTeamTabs,
+  EMPTY_FILTERS,
+  filtersAreActive,
+  type Filters,
+  type TabKey,
+} from "@/components/admin/AthenaTeamFilters";
 
 type Member = {
   id: string;
@@ -33,6 +41,7 @@ type Member = {
   atlas_last_active_at: string | null;
   atlas_role: string;
   atlas_profile_completeness: number;
+  skills: string[] | null;
 };
 
 type SortKey = "name" | "last_active" | "profile";
@@ -100,6 +109,8 @@ export function AthenaTeamRoster() {
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState<TabKey>("all");
+  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
 
   const { data: members = [], isLoading } = useQuery({
     queryKey: ["atlas-team-members"],
@@ -107,7 +118,7 @@ export function AthenaTeamRoster() {
       const { data, error } = await supabase
         .from("atlas_team_members")
         .select(
-          "id,first_name,last_name,email,job_title,talentdesk_status,atlas_invite_status,atlas_invite_sent_at,atlas_first_login_at,atlas_last_active_at,atlas_role,atlas_profile_completeness",
+          "id,first_name,last_name,email,job_title,talentdesk_status,atlas_invite_status,atlas_invite_sent_at,atlas_first_login_at,atlas_last_active_at,atlas_role,atlas_profile_completeness,skills",
         )
         .eq("is_removed", false);
       if (error) throw error;
@@ -139,8 +150,85 @@ export function AthenaTeamRoster() {
     return { total: members.length, approved, pending };
   }, [members]);
 
+  const allSkills = useMemo(() => {
+    const s = new Set<string>();
+    for (const m of members) for (const k of m.skills ?? []) if (k) s.add(k);
+    return Array.from(s).sort((a, b) => a.localeCompare(b));
+  }, [members]);
+
+  const tabFilter = useMemo(
+    () => ({
+      all: (_m: Member) => true,
+      pending: (m: Member) =>
+        m.atlas_invite_status === "invite_sent" || m.atlas_invite_status === "never_logged_in",
+      active: (m: Member) => {
+        const d = daysSince(m.atlas_last_active_at);
+        return d !== null && d <= 30;
+      },
+      no_activity: (m: Member) => {
+        const inviteDays = daysSince(m.atlas_invite_sent_at);
+        const staleInvite =
+          (m.atlas_invite_status === "invite_sent" ||
+            m.atlas_invite_status === "never_logged_in") &&
+          inviteDays !== null &&
+          inviteDays > 14;
+        const lastActiveDays = daysSince(m.atlas_last_active_at);
+        const staleActivity = lastActiveDays !== null && lastActiveDays > 30;
+        return staleInvite || staleActivity;
+      },
+      capacity: (_m: Member) => true,
+    }),
+    [],
+  );
+
+  const tabCounts = useMemo(
+    () => ({
+      all: members.filter(tabFilter.all).length,
+      pending: members.filter(tabFilter.pending).length,
+      active: members.filter(tabFilter.active).length,
+      no_activity: members.filter(tabFilter.no_activity).length,
+      capacity: members.filter(tabFilter.capacity).length,
+    }),
+    [members, tabFilter],
+  );
+
+  const filtered = useMemo(() => {
+    const q = filters.search.trim().toLowerCase();
+    return members.filter((m) => {
+      if (!tabFilter[activeTab](m)) return false;
+      if (q) {
+        const hay = [
+          m.first_name ?? "",
+          m.last_name ?? "",
+          m.email,
+          m.job_title ?? "",
+          ...(m.skills ?? []),
+        ]
+          .join(" ")
+          .toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      if (filters.roles.size > 0 && !filters.roles.has(m.atlas_role)) return false;
+      if (filters.atlasStatus !== "all" && m.atlas_invite_status !== filters.atlasStatus)
+        return false;
+      if (filters.tdStatus !== "all" && m.talentdesk_status !== filters.tdStatus) return false;
+      if (filters.skills.size > 0) {
+        const ms = new Set(m.skills ?? []);
+        let any = false;
+        for (const s of filters.skills) if (ms.has(s)) { any = true; break; }
+        if (!any) return false;
+      }
+      return true;
+    });
+  }, [members, filters, activeTab, tabFilter]);
+
   const sorted = useMemo(() => {
-    const arr = [...members];
+    const arr = [...filtered];
+    if (activeTab === "capacity") {
+      // Placeholder: sort alphabetically until missions are wired
+      arr.sort((a, b) => fullName(a).localeCompare(fullName(b)));
+      return arr;
+    }
     arr.sort((a, b) => {
       let av: number | string = 0;
       let bv: number | string = 0;
@@ -159,11 +247,28 @@ export function AthenaTeamRoster() {
       return 0;
     });
     return arr;
-  }, [members, sortKey, sortDir]);
+  }, [filtered, sortKey, sortDir, activeTab]);
 
   const pageCount = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount - 1);
   const pageRows = sorted.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE);
+
+  function handleTabChange(t: TabKey) {
+    setActiveTab(t);
+    setFilters(EMPTY_FILTERS);
+    setPage(0);
+  }
+  function handleFiltersChange(next: Filters) {
+    setFilters(next);
+    setPage(0);
+  }
+  function clearAllFilters() {
+    setActiveTab("all");
+    setFilters(EMPTY_FILTERS);
+    setPage(0);
+  }
+
+  const isFiltered = filtersAreActive(filters);
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
@@ -220,6 +325,21 @@ export function AthenaTeamRoster() {
           </div>
         </div>
 
+        {/* Quick view tabs */}
+        <AthenaTeamTabs activeTab={activeTab} counts={tabCounts} onChange={handleTabChange} />
+
+        {/* Filter bar */}
+        <AthenaTeamFilterBar
+          filters={filters}
+          setFilters={handleFiltersChange}
+          allSkills={allSkills}
+          onClearAll={clearAllFilters}
+          filteredCount={filtered.length}
+          totalCount={tabCounts[activeTab]}
+        />
+
+
+
         {/* Table */}
         <div className="overflow-hidden rounded-lg border border-border bg-surface/40">
           <table className="w-full text-sm">
@@ -247,8 +367,23 @@ export function AthenaTeamRoster() {
                 <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">Loading…</td></tr>
               ) : pageRows.length === 0 ? (
                 <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">
-                  No team members found. Upload a TalentDesk CSV to get started.
+                  {members.length === 0 ? (
+                    "No team members found. Upload a TalentDesk CSV to get started."
+                  ) : isFiltered || activeTab !== "all" ? (
+                    <span>
+                      No members match your filters.{" "}
+                      <button
+                        onClick={clearAllFilters}
+                        className="text-[color:var(--athena-gold,#d4af37)] hover:underline"
+                      >
+                        Clear filters
+                      </button>
+                    </span>
+                  ) : (
+                    "No team members found."
+                  )}
                 </td></tr>
+
               ) : (
                 pageRows.map((m, i) => <Row key={m.id} m={m} zebra={i % 2 === 1} selected={selected.has(m.id)} onToggle={(v) => {
                   setSelected((prev) => {
