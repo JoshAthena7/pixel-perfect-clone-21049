@@ -1205,6 +1205,138 @@ export type Database = {
         }
         Relationships: []
       }
+      atlas_team_members: {
+        Row: {
+          address: string | null
+          admin_notes: Json
+          atlas_first_login_at: string | null
+          atlas_hipaa_acknowledged: boolean
+          atlas_hipaa_acknowledged_at: string | null
+          atlas_invite_sent_at: string | null
+          atlas_invite_status: string
+          atlas_last_active_at: string | null
+          atlas_onboarding_complete: boolean
+          atlas_profile_completeness: number
+          atlas_resume_url: string | null
+          atlas_role: string
+          avatar_url: string | null
+          created_at: string
+          email: string
+          first_name: string | null
+          id: string
+          is_removed: boolean
+          job_title: string | null
+          languages: string[] | null
+          last_name: string | null
+          phone: string | null
+          removed_at: string | null
+          removed_by: string | null
+          skills: string[] | null
+          talentdesk_date_joined: string | null
+          talentdesk_id: string | null
+          talentdesk_invited_by: string | null
+          talentdesk_last_login: string | null
+          talentdesk_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          admin_notes?: Json
+          atlas_first_login_at?: string | null
+          atlas_hipaa_acknowledged?: boolean
+          atlas_hipaa_acknowledged_at?: string | null
+          atlas_invite_sent_at?: string | null
+          atlas_invite_status?: string
+          atlas_last_active_at?: string | null
+          atlas_onboarding_complete?: boolean
+          atlas_profile_completeness?: number
+          atlas_resume_url?: string | null
+          atlas_role?: string
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          first_name?: string | null
+          id?: string
+          is_removed?: boolean
+          job_title?: string | null
+          languages?: string[] | null
+          last_name?: string | null
+          phone?: string | null
+          removed_at?: string | null
+          removed_by?: string | null
+          skills?: string[] | null
+          talentdesk_date_joined?: string | null
+          talentdesk_id?: string | null
+          talentdesk_invited_by?: string | null
+          talentdesk_last_login?: string | null
+          talentdesk_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          admin_notes?: Json
+          atlas_first_login_at?: string | null
+          atlas_hipaa_acknowledged?: boolean
+          atlas_hipaa_acknowledged_at?: string | null
+          atlas_invite_sent_at?: string | null
+          atlas_invite_status?: string
+          atlas_last_active_at?: string | null
+          atlas_onboarding_complete?: boolean
+          atlas_profile_completeness?: number
+          atlas_resume_url?: string | null
+          atlas_role?: string
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          is_removed?: boolean
+          job_title?: string | null
+          languages?: string[] | null
+          last_name?: string | null
+          phone?: string | null
+          removed_at?: string | null
+          removed_by?: string | null
+          skills?: string[] | null
+          talentdesk_date_joined?: string | null
+          talentdesk_id?: string | null
+          talentdesk_invited_by?: string | null
+          talentdesk_last_login?: string | null
+          talentdesk_status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      atlas_team_sync_log: {
+        Row: {
+          conflicts: Json
+          id: string
+          records_added: number
+          records_flagged: number
+          records_updated: number
+          synced_at: string
+          synced_by: string | null
+        }
+        Insert: {
+          conflicts?: Json
+          id?: string
+          records_added?: number
+          records_flagged?: number
+          records_updated?: number
+          synced_at?: string
+          synced_by?: string | null
+        }
+        Update: {
+          conflicts?: Json
+          id?: string
+          records_added?: number
+          records_flagged?: number
+          records_updated?: number
+          synced_at?: string
+          synced_by?: string | null
+        }
+        Relationships: []
+      }
       briefing_acknowledgments: {
         Row: {
           acknowledged_at: string
