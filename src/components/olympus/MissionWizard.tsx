@@ -308,7 +308,7 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
 
         {/* Body */}
         <div className="px-6 py-6">
-          {step === 1 && <Step1Form value={step1} onChange={setStep1} />}
+          {step === 1 && <Step1Form value={step1} onChange={setStep1} missionId={missionId} />}
           {step === 2 && (
             <Step2Form
               slots={slots}
