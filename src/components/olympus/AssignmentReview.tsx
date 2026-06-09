@@ -9,7 +9,9 @@ import {
   AlertTriangle,
   CheckCircle2,
   Plus,
+  Upload,
 } from "lucide-react";
+import { MatrixImportModal } from "./MatrixImportModal";
 
 const GOLD = "#C9A84C";
 const NAVY = "#1F3864";
@@ -142,6 +144,7 @@ export default function AssignmentReview({
   const [drawerQid, setDrawerQid] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const isLive =
     missionStatus === "Live" || missionStatus === "Live with Pending Edits";
@@ -545,6 +548,14 @@ export default function AssignmentReview({
           Unassigned Only
         </label>
         <div className="ml-auto flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setImportOpen(true)}
+            className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-semibold hover:bg-surface-hover"
+            title="Import assignment matrix (.xlsx) — merge mode"
+          >
+            <Upload className="h-3 w-3" /> Import Matrix
+          </button>
           {mode === "tab" && isLive && (
             <button
               type="button"
@@ -676,6 +687,14 @@ export default function AssignmentReview({
             persistIntel(drawerRow.question.id, field, next)
           }
           onUpsertTeam={upsertTeamMember}
+        />
+      )}
+
+      {importOpen && (
+        <MatrixImportModal
+          missionId={missionId}
+          onClose={() => setImportOpen(false)}
+          onImported={() => reload()}
         />
       )}
 
