@@ -539,7 +539,7 @@ export function AthenaTeamRoster() {
       <AthenaTeamExportDialog
         open={exportOpen}
         onOpenChange={setExportOpen}
-        currentViewRows={filtered as unknown as ExportMember[]}
+        currentViewIds={filtered.map((m) => m.id)}
         onExporting={setExporting}
       />
     </TooltipProvider>
