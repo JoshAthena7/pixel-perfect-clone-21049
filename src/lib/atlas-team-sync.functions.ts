@@ -194,11 +194,27 @@ export const commitAtlasTeamSync = createServerFn({ method: "POST" })
         atlas_invite_status: "not_invited",
         ...tdFields(r),
       }));
-      const { error, count } = await supabase
+      const { data: insRows, error } = await supabase
         .from("atlas_team_members")
-        .insert(inserts, { count: "exact" });
+        .insert(inserts)
+        .select("id,email");
       if (error) errors.push({ error: `Insert failed: ${error.message}` });
-      else added = count ?? inserts.length;
+      else {
+        added = insRows?.length ?? inserts.length;
+        // Activity log per inserted member (best-effort; never blocks).
+        for (const row of insRows ?? []) {
+          try {
+            await supabase.from("atlas_activity_log").insert({
+              member_id: row.id,
+              action: "Added to roster via TalentDesk sync",
+              performed_by: "TalentDesk sync",
+              metadata: { email: row.email },
+            });
+          } catch {
+            /* swallow */
+          }
+        }
+      }
     }
 
     // UPDATE existing — only TalentDesk fields
@@ -208,7 +224,19 @@ export const commitAtlasTeamSync = createServerFn({ method: "POST" })
         .update(tdFields(u.row))
         .eq("id", u.id);
       if (error) errors.push({ email: u.row.email, error: error.message });
-      else updated += 1;
+      else {
+        updated += 1;
+        try {
+          await supabase.from("atlas_activity_log").insert({
+            member_id: u.id,
+            action: "Record updated via TalentDesk sync",
+            performed_by: "TalentDesk sync",
+            metadata: { email: u.row.email },
+          });
+        } catch {
+          /* swallow */
+        }
+      }
     }
 
     // REMOVE — only admin-selected

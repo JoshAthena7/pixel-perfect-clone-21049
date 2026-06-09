@@ -41,6 +41,11 @@ async function getMember(supabase: any, id: string) {
   return data;
 }
 
+/**
+ * Activity log writes must NEVER block the primary action.
+ * If the log write fails (transient DB issue, RLS, etc.) we swallow the
+ * error and log it to the server console only.
+ */
 async function logActivity(
   supabase: any,
   memberId: string,
@@ -48,9 +53,18 @@ async function logActivity(
   performedBy: string,
   metadata: Record<string, unknown> = {},
 ) {
-  await supabase
-    .from("atlas_activity_log")
-    .insert({ member_id: memberId, action, performed_by: performedBy, metadata });
+  try {
+    const { error } = await supabase
+      .from("atlas_activity_log")
+      .insert({ member_id: memberId, action, performed_by: performedBy, metadata });
+    if (error) {
+      // eslint-disable-next-line no-console
+      console.warn("[atlas_activity_log] write failed:", error.message);
+    }
+  } catch (e: any) {
+    // eslint-disable-next-line no-console
+    console.warn("[atlas_activity_log] write threw:", e?.message ?? e);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -107,7 +121,7 @@ export const sendAtlasInvite = createServerFn({ method: "POST" })
     await logActivity(
       supabase,
       m.id,
-      data.resend ? "Invite resent" : "ATLAS invite sent",
+      data.resend ? "ATLAS invite resent" : "ATLAS invite sent",
       adminName,
       { email: m.email },
     );
@@ -136,7 +150,7 @@ export const setAtlasRole = createServerFn({ method: "POST" })
       .eq("id", data.memberId);
     if (error) throw new Error(error.message);
     if (oldRole !== data.role) {
-      await logActivity(supabase, data.memberId, "Role changed", adminName, {
+      await logActivity(supabase, data.memberId, "Role updated", adminName, {
         from: oldRole,
         to: data.role,
       });
@@ -176,7 +190,10 @@ export const resetMemberPassword = createServerFn({ method: "POST" })
       .eq("id", m.id);
     if (updErr) throw new Error(updErr.message);
 
-    await logActivity(supabase, m.id, "Password reset triggered", adminName, { email: m.email });
+    await logActivity(supabase, m.id, "Password reset email sent", adminName, {
+      triggered_by: adminName,
+      email: m.email,
+    });
 
     return { ok: true, email: m.email };
 
@@ -186,12 +203,23 @@ export const resetMemberPassword = createServerFn({ method: "POST" })
 // Add admin note
 // ---------------------------------------------------------------------------
 
+function newUuid(): string {
+  const g: any = (globalThis as any).crypto;
+  if (g?.randomUUID) return g.randomUUID();
+  const b = new Uint8Array(16);
+  g.getRandomValues(b);
+  b[6] = (b[6] & 0x0f) | 0x40;
+  b[8] = (b[8] & 0x3f) | 0x80;
+  const h = Array.from(b, (x) => x.toString(16).padStart(2, "0"));
+  return `${h.slice(0,4).join("")}-${h.slice(4,6).join("")}-${h.slice(6,8).join("")}-${h.slice(8,10).join("")}-${h.slice(10,16).join("")}`;
+}
+
 export const addAdminNote = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z.object({
       memberId: z.string().uuid(),
-      body: z.string().trim().min(1).max(20000),
+      body: z.string().trim().min(10).max(20000),
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
@@ -200,7 +228,14 @@ export const addAdminNote = createServerFn({ method: "POST" })
     const m = await getMember(supabase, data.memberId);
 
     const now = new Date().toISOString();
-    const entry = { author: adminName, timestamp: now, body: data.body };
+    const noteId = newUuid();
+    const entry = {
+      id: noteId,
+      author: adminName,
+      author_id: userId,
+      timestamp: now,
+      body: data.body,
+    };
     const nextNotes = Array.isArray(m.admin_notes) ? [...m.admin_notes, entry] : [entry];
 
     const { error } = await supabase
@@ -208,10 +243,10 @@ export const addAdminNote = createServerFn({ method: "POST" })
       .update({ admin_notes: nextNotes, updated_at: now })
       .eq("id", m.id);
     if (error) throw new Error(error.message);
-    await logActivity(supabase, m.id, "Admin note added", adminName, {
-      preview: data.body.slice(0, 120),
-    });
-    return { ok: true };
+
+    // Privacy: never log the note body — only the note id.
+    await logActivity(supabase, m.id, "Admin note added", adminName, { note_id: noteId });
+    return { ok: true, note: entry };
   });
 
 // ---------------------------------------------------------------------------
@@ -236,7 +271,9 @@ export const removeMemberFromRoster = createServerFn({ method: "POST" })
       })
       .eq("id", m.id);
     if (error) throw new Error(error.message);
-    await logActivity(supabase, m.id, "Removed from roster", adminName);
+    await logActivity(supabase, m.id, "Removed from roster", adminName, {
+      removed_by: adminName,
+    });
     return { ok: true };
   });
 
@@ -336,9 +373,22 @@ export const assignMemberToMissions = createServerFn({ method: "POST" })
       .upsert(rows, { onConflict: "mission_id,user_id", count: "exact" });
     if (error) throw new Error(`Assignment failed: ${error.message}`);
 
-    await logActivity(supabase, m.id, "Assigned to mission", adminName, {
-      assignments: data.assignments,
-    });
+    // Resolve mission names so the log shows what was assigned.
+    const missionIds = data.assignments.map((a) => a.missionId);
+    const { data: missionRows } = await supabaseAdmin
+      .from("missions")
+      .select("id,name")
+      .in("id", missionIds);
+    const nameById = new Map<string, string>(
+      (missionRows ?? []).map((r: any) => [r.id, r.name ?? "Unknown mission"]),
+    );
+    for (const a of data.assignments) {
+      await logActivity(supabase, m.id, "Assigned to mission", adminName, {
+        mission_id: a.missionId,
+        mission_name: nameById.get(a.missionId) ?? "Unknown mission",
+        role: a.role,
+      });
+    }
 
     return { ok: true, count: count ?? rows.length };
   });
@@ -354,7 +404,7 @@ export const bulkSendAtlasInvites = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as any;
-    await assertAdmin(supabase, userId);
+    const { adminName } = await assertAdmin(supabase, userId);
 
     const { data: rows, error } = await supabase
       .from("atlas_team_members")
@@ -401,6 +451,9 @@ export const bulkSendAtlasInvites = createServerFn({ method: "POST" })
         failed++;
         continue;
       }
+      await logActivity(supabase, m.id, "ATLAS invite sent (bulk action)", adminName, {
+        email: m.email,
+      });
       sent++;
     }
     return { sent, skipped, failed };
@@ -416,14 +469,34 @@ export const bulkSetAtlasRole = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as any;
-    await assertAdmin(supabase, userId);
+    const { adminName } = await assertAdmin(supabase, userId);
     const now = new Date().toISOString();
+
+    // Snapshot old roles so we can log per-member from→to entries.
+    const { data: priorRows } = await supabase
+      .from("atlas_team_members")
+      .select("id,atlas_role")
+      .in("id", data.memberIds);
+    const oldById = new Map<string, string>(
+      (priorRows ?? []).map((r: any) => [r.id, r.atlas_role]),
+    );
+
     const { error, count } = await supabase
       .from("atlas_team_members")
       .update({ atlas_role: data.role, updated_at: now }, { count: "exact" })
       .in("id", data.memberIds);
     if (error) throw new Error(error.message);
     const updated = count ?? data.memberIds.length;
+
+    for (const id of data.memberIds) {
+      const from = oldById.get(id);
+      if (from === data.role) continue; // no-op for members already on this role
+      await logActivity(supabase, id, "Role updated (bulk action)", adminName, {
+        from: from ?? null,
+        to: data.role,
+      });
+    }
+
     return { updated, failed: data.memberIds.length - updated };
   });
 
@@ -438,7 +511,7 @@ export const bulkAssignToMission = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as any;
-    await assertAdmin(supabase, userId);
+    const { adminName } = await assertAdmin(supabase, userId);
 
     const { data: rows, error: rErr } = await supabase
       .from("atlas_team_members")
@@ -462,7 +535,16 @@ export const bulkAssignToMission = createServerFn({ method: "POST" })
     };
     const mapped = ROLE_MAP[data.role] ?? data.role;
 
+    // Resolve target mission name once for log metadata.
+    const { data: mission } = await supabaseAdmin
+      .from("missions")
+      .select("id,name")
+      .eq("id", data.missionId)
+      .maybeSingle();
+    const missionName = (mission as any)?.name ?? "Unknown mission";
+
     const upserts: any[] = [];
+    const assignedMemberIds: string[] = [];
     let skipped = 0;
     for (const m of rows ?? []) {
       const auth = m.email ? byEmail.get(m.email.toLowerCase()) : null;
@@ -478,6 +560,7 @@ export const bulkAssignToMission = createServerFn({ method: "POST" })
         role: mapped,
         display_name: displayName,
       });
+      assignedMemberIds.push(m.id);
     }
 
     let assigned = 0;
@@ -487,6 +570,14 @@ export const bulkAssignToMission = createServerFn({ method: "POST" })
         .upsert(upserts, { onConflict: "mission_id,user_id", count: "exact" });
       if (error) throw new Error(`Assignment failed: ${error.message}`);
       assigned = count ?? upserts.length;
+
+      for (const id of assignedMemberIds) {
+        await logActivity(supabase, id, "Assigned to mission (bulk action)", adminName, {
+          mission_id: data.missionId,
+          mission_name: missionName,
+          role: data.role,
+        });
+      }
     }
     return { assigned, skipped, failed: data.memberIds.length - assigned - skipped };
   });
@@ -581,7 +672,9 @@ export const bulkResendInvites = createServerFn({ method: "POST" })
         failed++;
         continue;
       }
-      await logActivity(supabase, m.id, "Invite resent", adminName, { email: m.email, bulk: true });
+      await logActivity(supabase, m.id, "ATLAS invite resent (bulk action)", adminName, {
+        email: m.email,
+      });
       sent++;
     }
     return { sent, skipped, failed };

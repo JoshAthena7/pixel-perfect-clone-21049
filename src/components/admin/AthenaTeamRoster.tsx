@@ -7,6 +7,7 @@ import {
   Download,
   ChevronLeft,
   ChevronRight,
+  Paperclip,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -55,6 +56,7 @@ type Member = {
   atlas_hipaa_acknowledged: boolean | null;
   atlas_resume_url: string | null;
   skills: string[] | null;
+  admin_notes: Array<{ id?: string; author?: string; timestamp?: string; body?: string }> | null;
 };
 
 type SortKey = "name" | "last_active" | "profile";
@@ -132,7 +134,7 @@ export function AthenaTeamRoster() {
       const { data, error } = await supabase
         .from("atlas_team_members")
         .select(
-          "id,first_name,last_name,email,phone,job_title,avatar_url,talentdesk_status,atlas_invite_status,atlas_invite_sent_at,atlas_first_login_at,atlas_last_active_at,atlas_role,atlas_profile_completeness,atlas_hipaa_acknowledged,atlas_resume_url,skills",
+          "id,first_name,last_name,email,phone,job_title,avatar_url,talentdesk_status,atlas_invite_status,atlas_invite_sent_at,atlas_first_login_at,atlas_last_active_at,atlas_role,atlas_profile_completeness,atlas_hipaa_acknowledged,atlas_resume_url,skills,admin_notes",
         )
         .eq("is_removed", false);
       if (error) throw error;
@@ -529,13 +531,28 @@ function Row({ m, zebra, selected, onToggle, onOpenDetail }: {
         <Checkbox checked={selected} onCheckedChange={(v) => onToggle(Boolean(v))} aria-label={`Select ${fullName(m)}`} />
       </td>
       <td className="px-3 py-2.5">
-        <button
-          type="button"
-          onClick={() => onOpenDetail(m.id)}
-          className="text-left font-medium text-foreground hover:text-[color:var(--athena-gold)]"
-        >
-          {fullName(m)}
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => onOpenDetail(m.id)}
+            className="text-left font-medium text-foreground hover:text-[color:var(--athena-gold)]"
+          >
+            {fullName(m)}
+          </button>
+          {Array.isArray(m.admin_notes) && m.admin_notes.length > 0 && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Paperclip
+                  className="h-3 w-3 cursor-help text-[color:var(--athena-gold,#d4af37)]"
+                  aria-label={`${m.admin_notes.length} admin note(s)`}
+                />
+              </TooltipTrigger>
+              <TooltipContent>
+                {m.admin_notes.length} admin note{m.admin_notes.length === 1 ? "" : "s"}
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
         {m.job_title && <div className="text-[11px] text-muted-foreground">{m.job_title}</div>}
       </td>
 

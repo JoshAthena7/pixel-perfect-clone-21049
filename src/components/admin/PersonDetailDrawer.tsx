@@ -36,6 +36,7 @@ import {
   getCompletenessBand,
   getCompletenessBreakdown,
 } from "@/lib/atlas-profile-completeness";
+import { useIsAdmin } from "@/hooks/useAccess";
 
 const ROLE_OPTIONS = [
   { value: "admin", label: "Admin" },
@@ -96,7 +97,7 @@ export function PersonDetailDrawer({
   memberId,
   open,
   onOpenChange,
-  isAdminViewer = true,
+  isAdminViewer,
 }: {
   memberId: string | null;
   open: boolean;
@@ -104,6 +105,9 @@ export function PersonDetailDrawer({
   isAdminViewer?: boolean;
 }) {
   const qc = useQueryClient();
+  const { isAdmin } = useIsAdmin();
+  // Fallback to live admin check when caller didn't pass an explicit flag.
+  const showAdmin = isAdminViewer ?? isAdmin;
   const loadDetail = useServerFn(getMemberDetail);
   const { data, isLoading } = useQuery({
     queryKey: ["atlas-member-detail", memberId],
@@ -127,7 +131,7 @@ export function PersonDetailDrawer({
             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading…
           </div>
         ) : (
-          <DrawerBody data={data as any} isAdminViewer={isAdminViewer} onRefresh={refresh} />
+          <DrawerBody data={data as any} isAdminViewer={showAdmin} onRefresh={refresh} />
         )}
       </SheetContent>
     </Sheet>
@@ -557,13 +561,21 @@ function AssignmentsTab({ assignments }: { assignments: any[] }) {
   );
 }
 
+type NoteEntry = {
+  id?: string;
+  author?: string;
+  author_id?: string;
+  timestamp?: string;
+  body?: string;
+};
+
 function NotesTab({
   memberId,
   notes,
   onRefresh,
 }: {
   memberId: string;
-  notes: Array<{ author: string; timestamp: string; body: string }>;
+  notes: NoteEntry[];
   onRefresh: () => void;
 }) {
   const [body, setBody] = useState("");
@@ -571,49 +583,48 @@ function NotesTab({
   const mut = useMutation({
     mutationFn: () => addNote({ data: { memberId, body: body.trim() } }),
     onSuccess: () => {
-      toast.success("Note added.");
+      toast.success("Note saved.");
       setBody("");
       onRefresh();
     },
-    onError: (e: any) => toast.error(e?.message ?? "Failed to add note"),
+    onError: (e: any) => toast.error(e?.message ?? "Failed to save note"),
   });
 
   const sorted = [...(notes ?? [])].sort((a, b) =>
     (b.timestamp ?? "").localeCompare(a.timestamp ?? ""),
   );
 
+  const canSave = body.trim().length >= 10 && !mut.isPending;
+
   return (
     <div className="space-y-4">
       {sorted.length === 0 ? (
-        <p className="text-xs text-muted-foreground">No admin notes yet.</p>
+        <p className="rounded-md border border-dashed border-border bg-surface/30 p-4 text-center text-xs text-muted-foreground">
+          No admin notes yet.
+        </p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="divide-y divide-[color:var(--athena-gold,#d4af37)]/40">
           {sorted.map((n, i) => (
-            <li key={i} className="border-b border-border/60 pb-3 last:border-b-0">
-              <div className="flex items-baseline justify-between gap-2">
-                <span className="text-xs font-bold">{n.author}</span>
-                <span className="text-[10px] text-muted-foreground">
-                  {formatDateTime(n.timestamp)}
-                </span>
-              </div>
-              <p className="mt-1 whitespace-pre-wrap text-sm">{n.body}</p>
-            </li>
+            <NoteCard key={n.id ?? `${n.timestamp}-${i}`} note={n} />
           ))}
         </ul>
       )}
-      <div className="space-y-2">
+      <div className="space-y-2 rounded-md border border-border bg-surface/40 p-3">
         <Textarea
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          placeholder="Add a private admin note..."
-          rows={3}
+          placeholder="Add a private admin note about this person. Notes are visible to admins only and cannot be edited after saving."
+          className="min-h-[100px] resize-y text-sm"
         />
-        <div className="flex justify-end">
-          <Button
-            size="sm"
-            onClick={() => mut.mutate()}
-            disabled={!body.trim() || mut.isPending}
-          >
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] text-muted-foreground">
+            {body.trim().length < 10
+              ? `${Math.max(0, 10 - body.trim().length)} more character${
+                  10 - body.trim().length === 1 ? "" : "s"
+                } required`
+              : `${body.trim().length} characters`}
+          </span>
+          <Button size="sm" onClick={() => mut.mutate()} disabled={!canSave}>
             {mut.isPending ? "Saving…" : "Save Note"}
           </Button>
         </div>
@@ -622,27 +633,118 @@ function NotesTab({
   );
 }
 
+function NoteCard({ note }: { note: NoteEntry }) {
+  const [expanded, setExpanded] = useState(false);
+  const body = note.body ?? "";
+  const TRUNC = 300;
+  const isLong = body.length > TRUNC;
+  const shown = !isLong || expanded ? body : body.slice(0, TRUNC).trimEnd() + "…";
+
+  return (
+    <li className="py-3 first:pt-0 last:pb-0">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-xs font-bold text-[#0b1d3a] dark:text-[color:var(--athena-gold,#d4af37)]">
+          {note.author ?? "Admin"}
+        </span>
+        <span className="text-[10px] text-muted-foreground">
+          {formatDateTime(note.timestamp ?? null)}
+        </span>
+      </div>
+      <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed">{shown}</p>
+      {isLong && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-1 text-[11px] font-medium text-[color:var(--athena-gold,#d4af37)] hover:underline"
+        >
+          {expanded ? "Show less" : "Read more"}
+        </button>
+      )}
+    </li>
+  );
+}
+
+function formatActivityTime(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return "";
+  const diff = Date.now() - t;
+  const days = diff / 86400000;
+  if (days >= 7) {
+    const d = new Date(t);
+    return d.toLocaleString(undefined, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
+  const s = Math.floor(diff / 1000);
+  if (s < 60) return "just now";
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m} minute${m === 1 ? "" : "s"} ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h} hour${h === 1 ? "" : "s"} ago`;
+  const d = Math.floor(days);
+  return `${d} day${d === 1 ? "" : "s"} ago`;
+}
+
+function formatMetadata(action: string, metadata: any): string | null {
+  if (!metadata || typeof metadata !== "object") return null;
+  if (metadata.from !== undefined && metadata.to !== undefined) {
+    const from = metadata.from ?? "—";
+    const to = metadata.to ?? "—";
+    return `${from} → ${to}`;
+  }
+  if (metadata.mission_name) {
+    return metadata.role
+      ? `${metadata.mission_name} · ${metadata.role}`
+      : String(metadata.mission_name);
+  }
+  if (metadata.email && /invite|password/i.test(action)) {
+    return String(metadata.email);
+  }
+  if (metadata.triggered_by && /password/i.test(action)) {
+    return `by ${metadata.triggered_by}`;
+  }
+  if (metadata.removed_by) {
+    return `by ${metadata.removed_by}`;
+  }
+  return null;
+}
+
 function ActivityTab({ entries }: { entries: any[] }) {
   if (!entries || entries.length === 0) {
-    return <p className="text-xs text-muted-foreground">No activity recorded yet.</p>;
+    return (
+      <p className="rounded-md border border-dashed border-border bg-surface/30 p-4 text-center text-xs text-muted-foreground">
+        No activity recorded yet.
+      </p>
+    );
   }
+  const sorted = [...entries].sort((a, b) =>
+    (b.timestamp ?? "").localeCompare(a.timestamp ?? ""),
+  );
   return (
     <ul className="space-y-3">
-      {entries.map((e) => (
-        <li key={e.id} className="border-b border-border/60 pb-3 last:border-b-0">
-          <div className="text-sm font-medium">
-            {e.action}
-            {e.metadata?.from && e.metadata?.to && (
-              <span className="ml-1 text-xs text-muted-foreground">
-                ({e.metadata.from} → {e.metadata.to})
-              </span>
-            )}
-          </div>
-          <div className="text-[11px] text-muted-foreground">
-            {e.performed_by ?? "System"} · {formatDateTime(e.timestamp)}
-          </div>
-        </li>
-      ))}
+      {sorted.map((e) => {
+        const meta = formatMetadata(e.action, e.metadata);
+        return (
+          <li key={e.id} className="border-b border-border/60 pb-3 last:border-b-0">
+            <div className="text-sm font-medium">
+              {e.action}
+              {meta && (
+                <span className="ml-1 text-xs font-normal text-muted-foreground">
+                  · {meta}
+                </span>
+              )}
+            </div>
+            <div className="text-[11px] text-muted-foreground">
+              {e.performed_by ?? "System"} · {formatActivityTime(e.timestamp)}
+            </div>
+          </li>
+        );
+      })}
     </ul>
   );
 }
