@@ -122,6 +122,16 @@ function AtlasOnboardingShell() {
             onAdvanced={refreshState}
             onBack={() => setViewOverride(1)}
           />
+        ) : currentStep === 3 ? (
+          <PhotoStep
+            onAdvanced={refreshState}
+            onBack={() => setViewOverride(2)}
+          />
+        ) : currentStep === 4 ? (
+          <ResumeStep
+            onAdvanced={refreshState}
+            onBack={() => setViewOverride(3)}
+          />
         ) : (
           <div className="w-full text-center">
             {resuming && state.firstName && (
