@@ -406,7 +406,7 @@ export function AthenaTeamRoster() {
                 </td></tr>
 
               ) : (
-                pageRows.map((m, i) => <Row key={m.id} m={m} zebra={i % 2 === 1} selected={selected.has(m.id)} onToggle={(v) => {
+                pageRows.map((m, i) => <Row key={m.id} m={m} zebra={i % 2 === 1} selected={selected.has(m.id)} onOpenDetail={(id) => setDetailMemberId(id)} onToggle={(v) => {
                   setSelected((prev) => {
                     const next = new Set(prev);
                     if (v) next.add(m.id); else next.delete(m.id);
