@@ -11,6 +11,7 @@ import { WelcomeStep } from "@/components/atlas-onboarding/WelcomeStep";
 import { HipaaStep } from "@/components/atlas-onboarding/HipaaStep";
 import { PhotoStep } from "@/components/atlas-onboarding/PhotoStep";
 import { ResumeStep } from "@/components/atlas-onboarding/ResumeStep";
+import { CelebrationStep } from "@/components/atlas-onboarding/CelebrationStep";
 
 
 /**
@@ -103,7 +104,8 @@ function AtlasOnboardingShell() {
   const naturalStep = (lastCompleted + 1) as 1 | 2 | 3 | 4 | 5;
   // viewOverride lets back navigation render an earlier step.
   const currentStep = viewOverride ?? naturalStep;
-  const resuming = state.resuming && currentStep === naturalStep;
+  void state.resuming; // resume copy currently lives inside each step component
+  void naturalStep;
 
 
   return (
@@ -133,25 +135,9 @@ function AtlasOnboardingShell() {
             onBack={() => setViewOverride(3)}
           />
         ) : (
-          <div className="w-full text-center">
-            {resuming && state.firstName && (
-              <p className="mb-6 text-sm sm:text-base" style={{ color: GOLD }}>
-                Welcome back {state.firstName}. Pick up right where you left off.
-              </p>
-            )}
-            <div className="text-xs uppercase tracking-[0.32em]" style={{ color: GOLD }}>
-              Step {currentStep} of 5
-            </div>
-            <h1 className="mt-4 text-3xl font-semibold">
-              {STEP_TITLES[currentStep - 1]}
-            </h1>
-            <p
-              className="mt-4 text-sm sm:text-base"
-              style={{ color: "rgba(255,255,255,0.7)" }}
-            >
-              Step content will appear here.
-            </p>
-          </div>
+          <CelebrationStep
+            onComplete={() => navigate({ to: "/flight-deck", replace: true })}
+          />
         )}
       </main>
 
@@ -159,13 +145,6 @@ function AtlasOnboardingShell() {
   );
 }
 
-const STEP_TITLES = [
-  "Welcome to Athena",
-  "HIPAA acknowledgement",
-  "Add a profile photo",
-  "Upload your resume",
-  "All set",
-];
 
 function StepDots({ current }: { current: 1 | 2 | 3 | 4 | 5 }) {
   return (

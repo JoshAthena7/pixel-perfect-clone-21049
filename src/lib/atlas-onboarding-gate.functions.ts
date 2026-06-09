@@ -42,13 +42,61 @@ async function loadMemberByEmail(email: string) {
   const { data, error } = await supabaseAdmin
     .from("atlas_team_members")
     .select(
-      "id,email,first_name,atlas_onboarding_complete,onboarding_step_completed,atlas_first_login_at,onboarding_started_at,is_removed",
+      "id,email,first_name,last_name,atlas_role,atlas_onboarding_complete,onboarding_step_completed,atlas_first_login_at,onboarding_started_at,is_removed",
     )
     .ilike("email", email)
     .maybeSingle();
   if (error) throw new Error(error.message);
   return data;
 }
+
+export type CelebrationContext = {
+  firstName: string | null;
+  lastName: string | null;
+  atlasRole: string;
+  firstMission: {
+    id: string;
+    name: string;
+    subtitle: string | null;
+  } | null;
+};
+
+export const getAtlasCelebrationContext = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<CelebrationContext> => {
+    const email = (context.claims?.email as string | undefined) ?? "";
+    const userId = context.userId as string | undefined;
+    const member = email ? await loadMemberByEmail(email) : null;
+    const base: CelebrationContext = {
+      firstName: member?.first_name ?? null,
+      lastName: member?.last_name ?? null,
+      atlasRole: member?.atlas_role ?? "unassigned",
+      firstMission: null,
+    };
+    if (!userId) return base;
+    try {
+      const { data } = await supabaseAdmin
+        .from("mission_team_members")
+        .select("mission_id,active,missions(id,name,client,status)")
+        .eq("user_id", userId)
+        .eq("active", true)
+        .limit(5);
+      const row = (data ?? []).find(
+        (r: { missions: { status?: string | null } | null }) =>
+          r.missions && (r.missions.status ?? "active") !== "archived",
+      ) as { missions: { id: string; name: string; client: string | null } } | undefined;
+      if (row?.missions) {
+        base.firstMission = {
+          id: row.missions.id,
+          name: row.missions.name,
+          subtitle: row.missions.client ?? null,
+        };
+      }
+    } catch (e) {
+      console.error("[atlas-onboarding] first mission lookup failed", e);
+    }
+    return base;
+  });
 
 export const getAtlasOnboardingState = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -219,14 +267,41 @@ export const completeAtlasOnboarding = createServerFn({ method: "POST" })
     // no manual recalculation needed here.
 
     try {
-      await supabaseAdmin.from("atlas_activity_log").insert({
-        member_id: member.id,
-        action: "Onboarding completed — user is now active",
-        performed_by: member.email,
-        metadata: {},
-      });
+      await supabaseAdmin.from("atlas_activity_log").insert([
+        {
+          member_id: member.id,
+          action: "Onboarding Step 5 completed — celebration screen viewed",
+          performed_by: member.email,
+          metadata: { step: 5 },
+        },
+        {
+          member_id: member.id,
+          action: "Onboarding completed — user is now active in ATLAS",
+          performed_by: member.email,
+          metadata: {},
+        },
+      ]);
     } catch (e) {
       console.error("[atlas-onboarding] activity log write failed", e);
+    }
+
+    try {
+      const display = [member.first_name, member.last_name]
+        .filter(Boolean)
+        .join(" ")
+        .trim() || member.email;
+      await supabaseAdmin.from("atlas_notifications").insert({
+        recipient_role: "admin",
+        type: "onboarding_complete",
+        message: `${display} has completed onboarding and is ready to work.`,
+        metadata: {
+          member_id: member.id,
+          completed_at: now,
+          role: member.atlas_role,
+        },
+      });
+    } catch (e) {
+      console.error("[atlas-onboarding] admin notification write failed", e);
     }
     return { ok: true };
   });

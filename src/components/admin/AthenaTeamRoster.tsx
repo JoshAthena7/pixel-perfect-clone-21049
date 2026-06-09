@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
@@ -132,6 +132,19 @@ export function AthenaTeamRoster() {
   const [detailMemberId, setDetailMemberId] = useState<string | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
+
+  useEffect(() => {
+    function handleOpen(e: Event) {
+      const id = (e as CustomEvent<{ memberId: string }>).detail?.memberId;
+      if (id) setDetailMemberId(id);
+    }
+    window.addEventListener("atlas:open-member", handleOpen as EventListener);
+    return () =>
+      window.removeEventListener(
+        "atlas:open-member",
+        handleOpen as EventListener,
+      );
+  }, []);
 
   const { data: members = [], isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ["atlas-team-members"],

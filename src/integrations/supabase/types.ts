@@ -631,6 +631,39 @@ export type Database = {
         }
         Relationships: []
       }
+      atlas_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          metadata: Json
+          recipient_id: string | null
+          recipient_role: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          metadata?: Json
+          recipient_id?: string | null
+          recipient_role: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          metadata?: Json
+          recipient_id?: string | null
+          recipient_role?: string
+          type?: string
+        }
+        Relationships: []
+      }
       atlas_playbook_chapters: {
         Row: {
           applicable_rfq_types: string[] | null
