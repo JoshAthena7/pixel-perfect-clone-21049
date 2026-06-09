@@ -9,6 +9,8 @@ import {
 } from "@/lib/atlas-onboarding-gate.functions";
 import { WelcomeStep } from "@/components/atlas-onboarding/WelcomeStep";
 import { HipaaStep } from "@/components/atlas-onboarding/HipaaStep";
+import { PhotoStep } from "@/components/atlas-onboarding/PhotoStep";
+import { ResumeStep } from "@/components/atlas-onboarding/ResumeStep";
 
 
 /**
@@ -119,6 +121,16 @@ function AtlasOnboardingShell() {
           <HipaaStep
             onAdvanced={refreshState}
             onBack={() => setViewOverride(1)}
+          />
+        ) : currentStep === 3 ? (
+          <PhotoStep
+            onAdvanced={refreshState}
+            onBack={() => setViewOverride(2)}
+          />
+        ) : currentStep === 4 ? (
+          <ResumeStep
+            onAdvanced={refreshState}
+            onBack={() => setViewOverride(3)}
           />
         ) : (
           <div className="w-full text-center">
