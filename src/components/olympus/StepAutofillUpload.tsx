@@ -44,6 +44,73 @@ function toBase64(file: File): Promise<string> {
   });
 }
 
+/**
+ * Render a document to a single tall JPEG so Gemini can OCR it when text
+ * extraction comes back empty (typical for scanned PDFs or image-heavy DOCX).
+ * Returns base64 (no data: prefix) or null if the document can't be rasterized.
+ */
+async function renderDocToStitchedJpeg(
+  file: File,
+  isPdf: boolean,
+): Promise<string | null> {
+  if (!isPdf) {
+    // DOCX → render via a hidden HTML conversion is heavy; for now, only
+    // PDFs get the OCR path. DOCX with no text is extremely rare.
+    return null;
+  }
+  const pdfjs: any = await import("pdfjs-dist");
+  try {
+    pdfjs.GlobalWorkerOptions.workerSrc = "";
+  } catch {
+    /* noop */
+  }
+  const buf = new Uint8Array(await file.arrayBuffer());
+  const pdf = await pdfjs.getDocument({
+    data: buf,
+    disableWorker: true,
+    isEvalSupported: false,
+  }).promise;
+
+  const maxPages = Math.min(pdf.numPages, 6);
+  const scale = 1.6;
+  const canvases: HTMLCanvasElement[] = [];
+  let totalHeight = 0;
+  let maxWidth = 0;
+
+  for (let i = 1; i <= maxPages; i++) {
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.ceil(viewport.width);
+    canvas.height = Math.ceil(viewport.height);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) continue;
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    canvases.push(canvas);
+    totalHeight += canvas.height;
+    maxWidth = Math.max(maxWidth, canvas.width);
+  }
+
+  if (canvases.length === 0) return null;
+
+  const stitched = document.createElement("canvas");
+  stitched.width = maxWidth;
+  stitched.height = totalHeight;
+  const sctx = stitched.getContext("2d");
+  if (!sctx) return null;
+  sctx.fillStyle = "#ffffff";
+  sctx.fillRect(0, 0, stitched.width, stitched.height);
+  let y = 0;
+  for (const c of canvases) {
+    sctx.drawImage(c, 0, y);
+    y += c.height;
+  }
+
+  const dataUrl = stitched.toDataURL("image/jpeg", 0.82);
+  const idx = dataUrl.indexOf(",");
+  return idx >= 0 ? dataUrl.slice(idx + 1) : dataUrl;
+}
+
 export function StepAutofillUpload({
   missionId,
   stepLabel,
@@ -123,23 +190,45 @@ export function StepAutofillUpload({
         return;
       }
 
-      const res = await autofill({
-        data: {
-          missionId,
-          stepLabel,
-          fields: fields.map((f) => ({
-            key: f.key,
-            label: f.label,
-            type: f.type,
-            description: f.description,
-            currentValue: f.currentValue,
-          })),
-          fileData,
-          fileName: sendName,
-          mimeType,
-        },
-      });
-      const list = (res?.suggestions ?? []) as Suggestion[];
+      const callAutofill = async (fd: string, fn: string, mt: string) =>
+        autofill({
+          data: {
+            missionId,
+            stepLabel,
+            fields: fields.map((f) => ({
+              key: f.key,
+              label: f.label,
+              type: f.type,
+              description: f.description,
+              currentValue: f.currentValue,
+            })),
+            fileData: fd,
+            fileName: fn,
+            mimeType: mt,
+          },
+        });
+
+      let res = await callAutofill(fileData, sendName, mimeType);
+      let list = (res?.suggestions ?? []) as Suggestion[];
+
+      // OCR fallback: if nothing came back and the original is a PDF or DOCX,
+      // re-send the document as page images so Gemini can OCR scanned content
+      // or read documents where text extraction missed everything.
+      if (list.length === 0 && (isPdf || isDocx)) {
+        try {
+          toast.info("No matches yet — retrying with OCR…");
+          const imageB64 = await renderDocToStitchedJpeg(file, isPdf);
+          if (imageB64) {
+            const ocrName =
+              file.name.replace(/\.[^.]+$/, "") + "-ocr.jpg";
+            res = await callAutofill(imageB64, ocrName, "image/jpeg");
+            list = (res?.suggestions ?? []) as Suggestion[];
+          }
+        } catch (ocrErr) {
+          console.warn("[autofill] OCR fallback failed", ocrErr);
+        }
+      }
+
       setSuggestions(list);
       // Default-accept high+medium confidence
       const next: Record<string, boolean> = {};
