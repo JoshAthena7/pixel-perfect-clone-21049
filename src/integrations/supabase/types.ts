@@ -1263,6 +1263,9 @@ export type Database = {
           job_title: string | null
           languages: string[] | null
           last_name: string | null
+          onboarding_completed_at: string | null
+          onboarding_started_at: string | null
+          onboarding_step_completed: number
           phone: string | null
           removed_at: string | null
           removed_by: string | null
@@ -1296,6 +1299,9 @@ export type Database = {
           job_title?: string | null
           languages?: string[] | null
           last_name?: string | null
+          onboarding_completed_at?: string | null
+          onboarding_started_at?: string | null
+          onboarding_step_completed?: number
           phone?: string | null
           removed_at?: string | null
           removed_by?: string | null
@@ -1329,6 +1335,9 @@ export type Database = {
           job_title?: string | null
           languages?: string[] | null
           last_name?: string | null
+          onboarding_completed_at?: string | null
+          onboarding_started_at?: string | null
+          onboarding_step_completed?: number
           phone?: string | null
           removed_at?: string | null
           removed_by?: string | null
