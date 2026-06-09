@@ -449,17 +449,40 @@ function Step1Form({ value, onChange, missionId }: { value: Step1; onChange: (v:
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-sm text-muted-foreground">This becomes the official mission record</p>
-        {missionId && (
-          <StepAutofillUpload
-            missionId={missionId}
-            stepLabel="Mission Basics"
-            fields={autofillFields}
-            onApply={applyAutofill}
-          />
-        )}
+      {/* Upload-first banner — sits above everything on Step 1 */}
+      <div
+        className="rounded-lg border p-4"
+        style={{ borderColor: `${GOLD}55`, background: `linear-gradient(180deg, ${GOLD}12, transparent)` }}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 text-sm font-bold">
+              <Sparkles className="h-4 w-4" style={{ color: GOLD }} />
+              Start with a document
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+              Upload an RFP, SOW, or briefing and IRIS will pre-fill mission basics for you to
+              review. You can still type everything by hand below.
+            </p>
+          </div>
+          {missionId ? (
+            <StepAutofillUpload
+              missionId={missionId}
+              stepLabel="Mission Basics"
+              fields={autofillFields}
+              onApply={applyAutofill}
+            />
+          ) : (
+            <div className="shrink-0 rounded-md border border-dashed border-border bg-surface/60 px-3 py-1.5 text-[11px] text-muted-foreground">
+              Enter a mission name &amp; click <span className="font-semibold">Next</span> to unlock upload
+            </div>
+          )}
+        </div>
       </div>
+
+      <p className="text-sm text-muted-foreground">This becomes the official mission record</p>
+
+
 
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
