@@ -87,6 +87,20 @@ export async function fetchFullRosterForExport(): Promise<ExportMember[]> {
   return (data ?? []) as unknown as ExportMember[];
 }
 
+export async function fetchRosterByIdsForExport(ids: string[]): Promise<ExportMember[]> {
+  if (ids.length === 0) return [];
+  const { data, error } = await supabase
+    .from("atlas_team_members")
+    .select(EXPORT_COLUMNS)
+    .in("id", ids);
+  if (error) throw error;
+  // Preserve caller order
+  const order = new Map(ids.map((id, i) => [id, i]));
+  return ((data ?? []) as unknown as (ExportMember & { id: string })[]).sort(
+    (a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0),
+  );
+}
+
 export function buildAndDownloadRosterXlsx(rows: ExportMember[]) {
   const aoa: (string | number)[][] = [HEADERS];
   for (const m of rows) {
