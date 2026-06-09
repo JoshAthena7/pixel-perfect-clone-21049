@@ -104,7 +104,8 @@ function AtlasOnboardingShell() {
   const naturalStep = (lastCompleted + 1) as 1 | 2 | 3 | 4 | 5;
   // viewOverride lets back navigation render an earlier step.
   const currentStep = viewOverride ?? naturalStep;
-  const resuming = state.resuming && currentStep === naturalStep;
+  void state.resuming; // resume copy currently lives inside each step component
+  void naturalStep;
 
 
   return (
