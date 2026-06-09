@@ -171,6 +171,19 @@ export function AthenaTeamRoster() {
     return { total: members.length, approved, pending };
   }, [members]);
 
+  // Names that appear on 2+ active members → flag for duplicate-warning icon.
+  const dupNames = useMemo(() => {
+    const seen = new Map<string, number>();
+    for (const m of members) {
+      const key = `${(m.first_name ?? "").trim().toLowerCase()} ${(m.last_name ?? "").trim().toLowerCase()}`.trim();
+      if (!key) continue;
+      seen.set(key, (seen.get(key) ?? 0) + 1);
+    }
+    const dups = new Set<string>();
+    for (const [k, n] of seen) if (n > 1) dups.add(k);
+    return dups;
+  }, [members]);
+
   const tabFilter = useMemo(
     () => ({
       all: (_m: Member) => true,
