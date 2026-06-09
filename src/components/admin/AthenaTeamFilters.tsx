@@ -105,17 +105,19 @@ export function AthenaTeamTabs({
   );
 }
 
+export type SkillOption = { value: string; label: string; count: number };
+
 export function AthenaTeamFilterBar({
   filters,
   setFilters,
-  allSkills,
+  skillOptions,
   onClearAll,
   filteredCount,
   totalCount,
 }: {
   filters: Filters;
   setFilters: (f: Filters) => void;
-  allSkills: string[];
+  skillOptions: SkillOption[];
   onClearAll: () => void;
   filteredCount: number;
   totalCount: number;
@@ -174,11 +176,11 @@ export function AthenaTeamFilterBar({
 
         <MultiSelectFilter
           label="Skills"
-          options={allSkills.map((s) => ({ value: s, label: s }))}
+          options={skillOptions.map((s) => ({ value: s.value, label: `${s.label} (${s.count})` }))}
           selected={filters.skills}
           onChange={(next) => setFilters({ ...filters, skills: next })}
           searchable
-          emptyText={allSkills.length === 0 ? "No skills yet" : "No matches"}
+          emptyText={skillOptions.length === 0 ? "No skills yet" : "No matches"}
         />
 
         {active && (

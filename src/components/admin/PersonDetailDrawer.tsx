@@ -368,7 +368,7 @@ function OverviewTab({ member, onRefresh }: { member: any; onRefresh: () => void
                 (member.skills ?? []).map((s: string) => (
                   <span
                     key={s}
-                    className="inline-flex items-center rounded-full border border-border bg-surface px-2 py-0.5 text-[10px]"
+                    className="inline-flex items-center rounded-full bg-[#0B1E3F] px-2 py-0.5 text-[10px] font-medium text-white"
                   >
                     {s}
                   </span>

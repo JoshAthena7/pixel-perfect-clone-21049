@@ -31,6 +31,7 @@ import {
 import { AthenaTeamBulkBar } from "@/components/admin/AthenaTeamBulkBar";
 import { PersonDetailDrawer } from "@/components/admin/PersonDetailDrawer";
 import { PendingInvitesPanel, type PendingMember } from "@/components/admin/PendingInvitesPanel";
+import { AthenaTeamExportDialog } from "@/components/admin/AthenaTeamExportDialog";
 
 import {
   getCompletenessBand,
@@ -127,6 +128,8 @@ export function AthenaTeamRoster() {
   const [activeTab, setActiveTab] = useState<TabKey>("all");
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [detailMemberId, setDetailMemberId] = useState<string | null>(null);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const { data: members = [], isLoading } = useQuery({
     queryKey: ["atlas-team-members"],
@@ -166,12 +169,6 @@ export function AthenaTeamRoster() {
     return { total: members.length, approved, pending };
   }, [members]);
 
-  const allSkills = useMemo(() => {
-    const s = new Set<string>();
-    for (const m of members) for (const k of m.skills ?? []) if (k) s.add(k);
-    return Array.from(s).sort((a, b) => a.localeCompare(b));
-  }, [members]);
-
   const tabFilter = useMemo(
     () => ({
       all: (_m: Member) => true,
@@ -208,6 +205,49 @@ export function AthenaTeamRoster() {
     [members, tabFilter],
   );
 
+  // Skills available for the dropdown. We compute counts based on members
+  // matching ALL OTHER active filters (so the skill filter itself doesn't
+  // hide its own options). Skills with zero matches still appear with "(0)".
+  const skillOptions = useMemo(() => {
+    const display = new Map<string, string>(); // lower-cased key -> display label
+    for (const m of members) {
+      for (const raw of m.skills ?? []) {
+        const s = (raw ?? "").trim();
+        if (!s) continue;
+        const k = s.toLowerCase();
+        if (!display.has(k)) display.set(k, s);
+      }
+    }
+    const counts = new Map<string, number>();
+    const q = filters.search.trim().toLowerCase();
+    for (const m of members) {
+      if (!tabFilter[activeTab](m)) continue;
+      if (q) {
+        const hay = [
+          m.first_name ?? "",
+          m.last_name ?? "",
+          m.email,
+          m.job_title ?? "",
+          ...(m.skills ?? []),
+        ].join(" ").toLowerCase();
+        if (!hay.includes(q)) continue;
+      }
+      if (filters.roles.size > 0 && !filters.roles.has(m.atlas_role)) continue;
+      if (filters.atlasStatus !== "all" && m.atlas_invite_status !== filters.atlasStatus) continue;
+      if (filters.tdStatus !== "all" && m.talentdesk_status !== filters.tdStatus) continue;
+      const seen = new Set<string>();
+      for (const raw of m.skills ?? []) {
+        const k = (raw ?? "").trim().toLowerCase();
+        if (!k || seen.has(k)) continue;
+        seen.add(k);
+        counts.set(k, (counts.get(k) ?? 0) + 1);
+      }
+    }
+    return Array.from(display.entries())
+      .map(([value, label]) => ({ value, label, count: counts.get(value) ?? 0 }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [members, filters, activeTab, tabFilter]);
+
   const filtered = useMemo(() => {
     const q = filters.search.trim().toLowerCase();
     return members.filter((m) => {
@@ -229,9 +269,10 @@ export function AthenaTeamRoster() {
         return false;
       if (filters.tdStatus !== "all" && m.talentdesk_status !== filters.tdStatus) return false;
       if (filters.skills.size > 0) {
-        const ms = new Set(m.skills ?? []);
+        // Case-insensitive ANY match.
+        const ms = new Set((m.skills ?? []).map((s) => (s ?? "").trim().toLowerCase()));
         let any = false;
-        for (const s of filters.skills) if (ms.has(s)) { any = true; break; }
+        for (const s of filters.skills) if (ms.has(s.toLowerCase())) { any = true; break; }
         if (!any) return false;
       }
       return true;
@@ -345,13 +386,24 @@ export function AthenaTeamRoster() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              disabled
-              title="Coming soon"
-              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-transparent px-3 py-1.5 text-xs font-medium hover:bg-surface-hover disabled:opacity-60"
-            >
-              <Download className="h-3.5 w-3.5" /> Export Roster
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <button
+                    onClick={() => setExportOpen(true)}
+                    disabled={exporting || members.length === 0}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-border bg-transparent px-3 py-1.5 text-xs font-medium hover:bg-surface-hover disabled:opacity-60"
+                  >
+                    <Download className="h-3.5 w-3.5" /> Export Roster
+                  </button>
+                </span>
+              </TooltipTrigger>
+              {(exporting || members.length === 0) && (
+                <TooltipContent>
+                  {exporting ? "Exporting..." : "No members to export"}
+                </TooltipContent>
+              )}
+            </Tooltip>
             <AtlasTeamSyncButton />
           </div>
         </div>
@@ -363,7 +415,7 @@ export function AthenaTeamRoster() {
         <AthenaTeamFilterBar
           filters={filters}
           setFilters={handleFiltersChange}
-          allSkills={allSkills}
+          skillOptions={skillOptions}
           onClearAll={clearAllFilters}
           filteredCount={filtered.length}
           totalCount={tabCounts[activeTab]}
@@ -481,6 +533,13 @@ export function AthenaTeamRoster() {
         memberId={detailMemberId}
         open={!!detailMemberId}
         onOpenChange={(v) => !v && setDetailMemberId(null)}
+      />
+
+      <AthenaTeamExportDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        currentViewIds={filtered.map((m) => m.id)}
+        onExporting={setExporting}
       />
     </TooltipProvider>
   );
