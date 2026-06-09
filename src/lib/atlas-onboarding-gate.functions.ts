@@ -104,7 +104,14 @@ export const getAtlasOnboardingState = createServerFn({ method: "POST" })
 
 export const updateAtlasOnboardingStep = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ step: z.number().int().min(1).max(4) }).parse(d))
+  .inputValidator((d) =>
+    z
+      .object({
+        step: z.number().int().min(1).max(4),
+        activityMessage: z.string().max(200).optional(),
+      })
+      .parse(d),
+  )
   .handler(async ({ data, context }) => {
     const email = (context.claims?.email as string | undefined) ?? "";
     if (!email) throw new Error("No email on session.");
@@ -117,9 +124,22 @@ export const updateAtlasOnboardingStep = createServerFn({ method: "POST" })
         .update({ onboarding_step_completed: data.step })
         .eq("id", member.id);
       if (error) throw new Error(error.message);
+      if (data.activityMessage) {
+        try {
+          await supabaseAdmin.from("atlas_activity_log").insert({
+            member_id: member.id,
+            action: data.activityMessage,
+            performed_by: member.email,
+            metadata: { step: data.step },
+          });
+        } catch (e) {
+          console.error("[atlas-onboarding] activity log write failed", e);
+        }
+      }
     }
     return { ok: true, step: Math.max(current, data.step) };
   });
+
 
 export const completeAtlasOnboarding = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
