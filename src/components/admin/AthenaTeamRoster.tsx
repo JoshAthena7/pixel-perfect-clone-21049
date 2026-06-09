@@ -279,15 +279,30 @@ export function AthenaTeamRoster() {
   function toggleAllVisible(checked: boolean) {
     setSelected((prev) => {
       const next = new Set(prev);
-      for (const r of pageRows) {
+      for (const r of sorted) {
         if (checked) next.add(r.id); else next.delete(r.id);
       }
       return next;
     });
   }
 
-  const allVisibleSelected = pageRows.length > 0 && pageRows.every((r) => selected.has(r.id));
+  const visibleSelectedCount = sorted.reduce((n, r) => (selected.has(r.id) ? n + 1 : n), 0);
+  const headerCheckState: boolean | "indeterminate" =
+    sorted.length > 0 && visibleSelectedCount === sorted.length
+      ? true
+      : visibleSelectedCount > 0
+        ? "indeterminate"
+        : false;
   const lastSyncLabel = lastSync ? formatDateTime(lastSync) : null;
+
+  const qc = useQueryClient();
+  const selectedIds = useMemo(() => Array.from(selected), [selected]);
+  function clearSelection() {
+    setSelected(new Set());
+  }
+  function refreshRoster() {
+    qc.invalidateQueries({ queryKey: ["atlas-team-members"] });
+  }
 
   return (
     <TooltipProvider delayDuration={150}>
