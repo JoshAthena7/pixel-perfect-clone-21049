@@ -563,10 +563,20 @@ function Row({ m, zebra, selected, onToggle, onOpenDetail }: {
         </span>
       </td>
       <td className="px-3 py-2.5">
-        <div className="flex items-center gap-2">
-          <Progress value={pct} className={`h-1.5 w-24 bg-surface ${barCls}`} />
-          <span className="text-[11px] tabular-nums text-muted-foreground">{pct}%</span>
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex cursor-default items-center gap-2">
+              <Progress value={pct} className={`h-1.5 w-24 bg-surface ${band.barClass}`} />
+              <span className="text-[11px] tabular-nums text-muted-foreground">{pct}%</span>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-xs">
+            <div className="mb-1 text-[11px] font-semibold">
+              {band.label} · {pct}%
+            </div>
+            <div className="text-[11px] leading-snug">{tooltipLine}</div>
+          </TooltipContent>
+        </Tooltip>
       </td>
       <td className="px-3 py-2.5 text-right">
         <RowActions
