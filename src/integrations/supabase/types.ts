@@ -7966,6 +7966,22 @@ export type Database = {
     }
     Functions: {
       archive_old_signals: { Args: never; Returns: number }
+      calc_atlas_profile_completeness: {
+        Args: {
+          p_atlas_invite_status: string
+          p_atlas_role: string
+          p_avatar_url: string
+          p_email: string
+          p_first_name: string
+          p_hipaa: boolean
+          p_job_title: string
+          p_last_name: string
+          p_phone: string
+          p_resume_url: string
+          p_skills: string[]
+        }
+        Returns: number
+      }
       calculate_question_health: {
         Args: { p_question_id: string }
         Returns: string
