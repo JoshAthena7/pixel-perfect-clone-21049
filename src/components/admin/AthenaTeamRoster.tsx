@@ -266,9 +266,10 @@ export function AthenaTeamRoster() {
         return false;
       if (filters.tdStatus !== "all" && m.talentdesk_status !== filters.tdStatus) return false;
       if (filters.skills.size > 0) {
-        const ms = new Set(m.skills ?? []);
+        // Case-insensitive ANY match.
+        const ms = new Set((m.skills ?? []).map((s) => (s ?? "").trim().toLowerCase()));
         let any = false;
-        for (const s of filters.skills) if (ms.has(s)) { any = true; break; }
+        for (const s of filters.skills) if (ms.has(s.toLowerCase())) { any = true; break; }
         if (!any) return false;
       }
       return true;
