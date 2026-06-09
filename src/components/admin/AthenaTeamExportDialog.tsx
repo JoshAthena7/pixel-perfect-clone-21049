@@ -10,7 +10,7 @@ import {
 import {
   buildAndDownloadRosterXlsx,
   fetchFullRosterForExport,
-  type ExportMember,
+  fetchRosterByIdsForExport,
 } from "@/lib/atlas-team-export";
 
 type Scope = "current" | "full";
@@ -18,12 +18,12 @@ type Scope = "current" | "full";
 export function AthenaTeamExportDialog({
   open,
   onOpenChange,
-  currentViewRows,
+  currentViewIds,
   onExporting,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  currentViewRows: ExportMember[];
+  currentViewIds: string[];
   onExporting?: (v: boolean) => void;
 }) {
   const [scope, setScope] = useState<Scope>("current");
@@ -36,7 +36,9 @@ export function AthenaTeamExportDialog({
     onExporting?.(true);
     try {
       const rows =
-        scope === "current" ? currentViewRows : await fetchFullRosterForExport();
+        scope === "current"
+          ? await fetchRosterByIdsForExport(currentViewIds)
+          : await fetchFullRosterForExport();
       buildAndDownloadRosterXlsx(rows);
       onOpenChange(false);
     } catch (e) {
