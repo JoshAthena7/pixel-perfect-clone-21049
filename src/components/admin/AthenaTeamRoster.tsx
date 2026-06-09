@@ -367,8 +367,23 @@ export function AthenaTeamRoster() {
                 <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">Loading…</td></tr>
               ) : pageRows.length === 0 ? (
                 <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">
-                  No team members found. Upload a TalentDesk CSV to get started.
+                  {members.length === 0 ? (
+                    "No team members found. Upload a TalentDesk CSV to get started."
+                  ) : isFiltered || activeTab !== "all" ? (
+                    <span>
+                      No members match your filters.{" "}
+                      <button
+                        onClick={clearAllFilters}
+                        className="text-[color:var(--athena-gold,#d4af37)] hover:underline"
+                      >
+                        Clear filters
+                      </button>
+                    </span>
+                  ) : (
+                    "No team members found."
+                  )}
                 </td></tr>
+
               ) : (
                 pageRows.map((m, i) => <Row key={m.id} m={m} zebra={i % 2 === 1} selected={selected.has(m.id)} onToggle={(v) => {
                   setSelected((prev) => {
