@@ -109,6 +109,8 @@ export function AthenaTeamRoster() {
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState<TabKey>("all");
+  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
 
   const { data: members = [], isLoading } = useQuery({
     queryKey: ["atlas-team-members"],
@@ -116,7 +118,7 @@ export function AthenaTeamRoster() {
       const { data, error } = await supabase
         .from("atlas_team_members")
         .select(
-          "id,first_name,last_name,email,job_title,talentdesk_status,atlas_invite_status,atlas_invite_sent_at,atlas_first_login_at,atlas_last_active_at,atlas_role,atlas_profile_completeness",
+          "id,first_name,last_name,email,job_title,talentdesk_status,atlas_invite_status,atlas_invite_sent_at,atlas_first_login_at,atlas_last_active_at,atlas_role,atlas_profile_completeness,skills",
         )
         .eq("is_removed", false);
       if (error) throw error;
