@@ -1,12 +1,14 @@
 import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   getAtlasOnboardingState,
   type AtlasOnboardingState,
 } from "@/lib/atlas-onboarding-gate.functions";
+import { WelcomeStep } from "@/components/atlas-onboarding/WelcomeStep";
+
 
 /**
  * Atlas onboarding shell.
@@ -35,27 +37,24 @@ function AtlasOnboardingShell() {
   const getState = useServerFn(getAtlasOnboardingState);
   const [state, setState] = useState<AtlasOnboardingState | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await getState();
-        if (cancelled) return;
-        if (res.status === "complete") {
-          // Already done — bounce straight to Flight Deck.
-          navigate({ to: "/flight-deck", replace: true });
-          return;
-        }
-        setState(res);
-      } catch (e) {
-        console.error("[atlas-onboarding] gate state failed", e);
-        if (!cancelled) setState({ status: "no_member" });
+  const refreshState = useCallback(async () => {
+    try {
+      const res = await getState();
+      if (res.status === "complete") {
+        navigate({ to: "/flight-deck", replace: true });
+        return;
       }
-    })();
-    return () => {
-      cancelled = true;
-    };
+      setState(res);
+    } catch (e) {
+      console.error("[atlas-onboarding] gate state failed", e);
+      setState({ status: "no_member" });
+    }
   }, [getState, navigate]);
+
+  useEffect(() => {
+    void refreshState();
+  }, [refreshState]);
+
 
   if (!state) {
     return (
@@ -104,30 +103,32 @@ function AtlasOnboardingShell() {
       <AthenaLogo />
       <StepDots current={currentStep} />
 
-      <main className="mt-10 w-full max-w-xl flex-1 flex items-center justify-center">
-        <div className="w-full text-center">
-          {resuming && state.firstName && (
+      <main className="mt-10 w-full max-w-4xl flex-1 flex items-center justify-center">
+        {currentStep === 1 ? (
+          <WelcomeStep firstName={state.firstName} onAdvanced={refreshState} />
+        ) : (
+          <div className="w-full text-center">
+            {resuming && state.firstName && (
+              <p className="mb-6 text-sm sm:text-base" style={{ color: GOLD }}>
+                Welcome back {state.firstName}. Pick up right where you left off.
+              </p>
+            )}
+            <div className="text-xs uppercase tracking-[0.32em]" style={{ color: GOLD }}>
+              Step {currentStep} of 5
+            </div>
+            <h1 className="mt-4 text-3xl font-semibold">
+              {STEP_TITLES[currentStep - 1]}
+            </h1>
             <p
-              className="mb-6 text-sm sm:text-base"
-              style={{ color: GOLD }}
+              className="mt-4 text-sm sm:text-base"
+              style={{ color: "rgba(255,255,255,0.7)" }}
             >
-              Welcome back {state.firstName}. Pick up right where you left off.
+              Step content will appear here.
             </p>
-          )}
-          <div className="text-xs uppercase tracking-[0.32em]" style={{ color: GOLD }}>
-            Step {currentStep} of 5
           </div>
-          <h1 className="mt-4 text-3xl font-semibold">
-            {STEP_TITLES[currentStep - 1]}
-          </h1>
-          <p
-            className="mt-4 text-sm sm:text-base"
-            style={{ color: "rgba(255,255,255,0.7)" }}
-          >
-            Step content will appear here.
-          </p>
-        </div>
+        )}
       </main>
+
     </div>
   );
 }
