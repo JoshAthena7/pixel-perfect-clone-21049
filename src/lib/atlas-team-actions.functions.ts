@@ -279,12 +279,14 @@ export const assignMemberToMissions = createServerFn({ method: "POST" })
 
     // mission_members.role enum may differ from atlas roles. We pass through
     // 'lead'/'writer'/'admin' style values commonly used. Map atlas → mission:
+    // mission_members.role allows: admin, lead, writer, sme, viewer,
+    // engagement_lead, project_manager, lead_writer, lead_graphics
     const ROLE_MAP: Record<string, string> = {
       admin: "admin",
-      engagement_lead: "lead",
+      engagement_lead: "engagement_lead",
       writer: "writer",
       sme: "sme",
-      reviewer: "reviewer",
+      reviewer: "viewer",
     };
 
     const rows = data.assignments.map((a) => ({
