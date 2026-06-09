@@ -127,6 +127,8 @@ export function AthenaTeamRoster() {
   const [activeTab, setActiveTab] = useState<TabKey>("all");
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [detailMemberId, setDetailMemberId] = useState<string | null>(null);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const { data: members = [], isLoading } = useQuery({
     queryKey: ["atlas-team-members"],
