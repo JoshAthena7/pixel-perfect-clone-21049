@@ -41,6 +41,7 @@ type Member = {
   atlas_last_active_at: string | null;
   atlas_role: string;
   atlas_profile_completeness: number;
+  skills: string[] | null;
 };
 
 type SortKey = "name" | "last_active" | "profile";
