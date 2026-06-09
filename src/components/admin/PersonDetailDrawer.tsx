@@ -97,7 +97,7 @@ export function PersonDetailDrawer({
   memberId,
   open,
   onOpenChange,
-  isAdminViewer = true,
+  isAdminViewer,
 }: {
   memberId: string | null;
   open: boolean;
@@ -105,6 +105,9 @@ export function PersonDetailDrawer({
   isAdminViewer?: boolean;
 }) {
   const qc = useQueryClient();
+  const { isAdmin } = useIsAdmin();
+  // Fallback to live admin check when caller didn't pass an explicit flag.
+  const showAdmin = isAdminViewer ?? isAdmin;
   const loadDetail = useServerFn(getMemberDetail);
   const { data, isLoading } = useQuery({
     queryKey: ["atlas-member-detail", memberId],
@@ -128,7 +131,7 @@ export function PersonDetailDrawer({
             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading…
           </div>
         ) : (
-          <DrawerBody data={data as any} isAdminViewer={isAdminViewer} onRefresh={refresh} />
+          <DrawerBody data={data as any} isAdminViewer={showAdmin} onRefresh={refresh} />
         )}
       </SheetContent>
     </Sheet>
