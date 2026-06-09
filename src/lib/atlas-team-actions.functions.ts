@@ -190,7 +190,10 @@ export const resetMemberPassword = createServerFn({ method: "POST" })
       .eq("id", m.id);
     if (updErr) throw new Error(updErr.message);
 
-    await logActivity(supabase, m.id, "Password reset triggered", adminName, { email: m.email });
+    await logActivity(supabase, m.id, "Password reset email sent", adminName, {
+      triggered_by: adminName,
+      email: m.email,
+    });
 
     return { ok: true, email: m.email };
 
@@ -200,12 +203,25 @@ export const resetMemberPassword = createServerFn({ method: "POST" })
 // Add admin note
 // ---------------------------------------------------------------------------
 
+function newUuid(): string {
+  // Prefer Web Crypto when available (Workers + modern Node); fall back to a
+  // RFC4122 v4 generator so this works in any server runtime.
+  const g: any = (globalThis as any).crypto;
+  if (g?.randomUUID) return g.randomUUID();
+  const b = new Uint8Array(16);
+  (g?.getRandomValues ? g : require("crypto").webcrypto).getRandomValues(b);
+  b[6] = (b[6] & 0x0f) | 0x40;
+  b[8] = (b[8] & 0x3f) | 0x80;
+  const h = Array.from(b, (x) => x.toString(16).padStart(2, "0"));
+  return `${h.slice(0,4).join("")}-${h.slice(4,6).join("")}-${h.slice(6,8).join("")}-${h.slice(8,10).join("")}-${h.slice(10,16).join("")}`;
+}
+
 export const addAdminNote = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z.object({
       memberId: z.string().uuid(),
-      body: z.string().trim().min(1).max(20000),
+      body: z.string().trim().min(10).max(20000),
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
@@ -214,7 +230,14 @@ export const addAdminNote = createServerFn({ method: "POST" })
     const m = await getMember(supabase, data.memberId);
 
     const now = new Date().toISOString();
-    const entry = { author: adminName, timestamp: now, body: data.body };
+    const noteId = newUuid();
+    const entry = {
+      id: noteId,
+      author: adminName,
+      author_id: userId,
+      timestamp: now,
+      body: data.body,
+    };
     const nextNotes = Array.isArray(m.admin_notes) ? [...m.admin_notes, entry] : [entry];
 
     const { error } = await supabase
@@ -222,10 +245,10 @@ export const addAdminNote = createServerFn({ method: "POST" })
       .update({ admin_notes: nextNotes, updated_at: now })
       .eq("id", m.id);
     if (error) throw new Error(error.message);
-    await logActivity(supabase, m.id, "Admin note added", adminName, {
-      preview: data.body.slice(0, 120),
-    });
-    return { ok: true };
+
+    // Privacy: never log the note body — only the note id.
+    await logActivity(supabase, m.id, "Admin note added", adminName, { note_id: noteId });
+    return { ok: true, note: entry };
   });
 
 // ---------------------------------------------------------------------------
@@ -250,7 +273,9 @@ export const removeMemberFromRoster = createServerFn({ method: "POST" })
       })
       .eq("id", m.id);
     if (error) throw new Error(error.message);
-    await logActivity(supabase, m.id, "Removed from roster", adminName);
+    await logActivity(supabase, m.id, "Removed from roster", adminName, {
+      removed_by: adminName,
+    });
     return { ok: true };
   });
 
