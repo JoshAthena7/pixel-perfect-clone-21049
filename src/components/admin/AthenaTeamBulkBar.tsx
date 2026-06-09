@@ -62,7 +62,7 @@ export function AthenaTeamBulkBar({
   const [roleOpen, setRoleOpen] = useState(false);
 
   const sendInvites = useServerFn(bulkSendAtlasInvites);
-  const setRole = useServerFn(bulkSetAtlasRole);
+
 
   const inviteMut = useMutation({
     mutationFn: () => sendInvites({ data: { memberIds: selectedIds } }),
