@@ -176,7 +176,10 @@ export const resetMemberPassword = createServerFn({ method: "POST" })
       .eq("id", m.id);
     if (updErr) throw new Error(updErr.message);
 
+    await logActivity(supabase, m.id, "Password reset triggered", adminName, { email: m.email });
+
     return { ok: true, email: m.email };
+
   });
 
 // ---------------------------------------------------------------------------
