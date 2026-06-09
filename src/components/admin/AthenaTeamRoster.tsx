@@ -131,7 +131,7 @@ export function AthenaTeamRoster() {
   const [exportOpen, setExportOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
 
-  const { data: members = [], isLoading } = useQuery({
+  const { data: members = [], isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ["atlas-team-members"],
     queryFn: async () => {
       const { data, error } = await supabase
