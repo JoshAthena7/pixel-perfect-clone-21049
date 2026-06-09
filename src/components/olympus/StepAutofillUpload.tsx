@@ -104,6 +104,7 @@ export function StepAutofillUpload({
         fileData = await toBase64(file);
         mimeType = file.type || (isPdf ? "application/pdf" : "image/png");
       } else if (isDocx) {
+        // @ts-expect-error — mammoth browser subpath has no types
         const mammoth: any = await import("mammoth/mammoth.browser");
         const buf = await file.arrayBuffer();
         const res2 = await mammoth.extractRawText({ arrayBuffer: buf });
