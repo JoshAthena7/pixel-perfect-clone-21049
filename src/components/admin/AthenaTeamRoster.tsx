@@ -31,12 +31,20 @@ import { AthenaTeamBulkBar } from "@/components/admin/AthenaTeamBulkBar";
 import { PersonDetailDrawer } from "@/components/admin/PersonDetailDrawer";
 import { PendingInvitesPanel, type PendingMember } from "@/components/admin/PendingInvitesPanel";
 
+import {
+  getCompletenessBand,
+  getCompletenessBreakdown,
+  formatBreakdownTooltip,
+} from "@/lib/atlas-profile-completeness";
+
 type Member = {
   id: string;
   first_name: string | null;
   last_name: string | null;
   email: string;
+  phone: string | null;
   job_title: string | null;
+  avatar_url: string | null;
   talentdesk_status: "approved" | "pending_onboarding" | null;
   atlas_invite_status: string;
   atlas_invite_sent_at: string | null;
@@ -44,6 +52,8 @@ type Member = {
   atlas_last_active_at: string | null;
   atlas_role: string;
   atlas_profile_completeness: number;
+  atlas_hipaa_acknowledged: boolean | null;
+  atlas_resume_url: string | null;
   skills: string[] | null;
 };
 
