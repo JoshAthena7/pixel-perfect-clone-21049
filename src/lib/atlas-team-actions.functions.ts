@@ -41,6 +41,18 @@ async function getMember(supabase: any, id: string) {
   return data;
 }
 
+async function logActivity(
+  supabase: any,
+  memberId: string,
+  action: string,
+  performedBy: string,
+  metadata: Record<string, unknown> = {},
+) {
+  await supabase
+    .from("atlas_activity_log")
+    .insert({ member_id: memberId, action, performed_by: performedBy, metadata });
+}
+
 // ---------------------------------------------------------------------------
 // Send / Resend ATLAS invite
 // ---------------------------------------------------------------------------
