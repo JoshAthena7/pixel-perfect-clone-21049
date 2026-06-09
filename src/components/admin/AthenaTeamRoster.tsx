@@ -27,6 +27,7 @@ import {
   type Filters,
   type TabKey,
 } from "@/components/admin/AthenaTeamFilters";
+import { AthenaTeamBulkBar } from "@/components/admin/AthenaTeamBulkBar";
 
 type Member = {
   id: string;
