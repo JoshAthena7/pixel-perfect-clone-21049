@@ -207,14 +207,15 @@ export function StepAutofillUpload({
               {!suggestions && (
                 <>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Upload a PDF (RFP, SOW, briefing) and IRIS will propose values for this step's
-                    fields. Nothing saves until you review and confirm. Existing values are not
-                    overwritten unless you accept the suggestion.
+                    Upload a PDF, Word doc, text file, or image (RFP, SOW, briefing, screenshot)
+                    and IRIS will propose values for this step's fields. Nothing saves until you
+                    review and confirm. Existing values are not overwritten unless you accept the
+                    suggestion.
                   </p>
                   <input
                     ref={fileRef}
                     type="file"
-                    accept="application/pdf,.pdf"
+                    accept=".pdf,application/pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.txt,.md,.csv,text/plain,image/*"
                     className="hidden"
                     onChange={(e) => {
                       const f = e.target.files?.[0];
@@ -235,14 +236,15 @@ export function StepAutofillUpload({
                         </>
                       ) : (
                         <>
-                          <Upload className="h-3.5 w-3.5" /> Choose PDF
+                          <Upload className="h-3.5 w-3.5" /> Choose file
                         </>
                       )}
                     </button>
                     <div className="mt-2 text-[11px] text-muted-foreground">
-                      PDF only · max 12 MB · {fields.length} fields on this step
+                      PDF · DOCX · TXT · image · max 12 MB · {fields.length} fields on this step
                     </div>
                   </div>
+
                 </>
               )}
 
