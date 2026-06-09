@@ -32,6 +32,10 @@ import {
   sendAtlasInvite,
   setAtlasRole,
 } from "@/lib/atlas-team-actions.functions";
+import {
+  getCompletenessBand,
+  getCompletenessBreakdown,
+} from "@/lib/atlas-profile-completeness";
 
 const ROLE_OPTIONS = [
   { value: "admin", label: "Admin" },
