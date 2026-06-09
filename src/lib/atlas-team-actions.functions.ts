@@ -303,3 +303,151 @@ export const assignMemberToMissions = createServerFn({ method: "POST" })
 
     return { ok: true, count: count ?? rows.length };
   });
+
+// ---------------------------------------------------------------------------
+// Bulk actions
+// ---------------------------------------------------------------------------
+
+export const bulkSendAtlasInvites = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ memberIds: z.array(z.string().uuid()).min(1).max(500) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context as any;
+    await assertAdmin(supabase, userId);
+
+    const { data: rows, error } = await supabase
+      .from("atlas_team_members")
+      .select("id,email,first_name,last_name,atlas_invite_status")
+      .in("id", data.memberIds);
+    if (error) throw new Error(error.message);
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const redirectTo =
+      (process.env.SITE_URL || process.env.PUBLIC_SITE_URL || "") + "/" || undefined;
+
+    let sent = 0;
+    let skipped = 0;
+    let failed = 0;
+    const now = new Date().toISOString();
+
+    for (const m of rows ?? []) {
+      if (m.atlas_invite_status !== "not_invited" || !m.email) {
+        skipped++;
+        continue;
+      }
+      const { error: inviteErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(m.email, {
+        redirectTo,
+        data: { first_name: m.first_name, last_name: m.last_name, source: "atlas_team_roster_bulk" },
+      });
+      if (inviteErr && !/already (registered|exists)/i.test(inviteErr.message)) {
+        failed++;
+        continue;
+      }
+      if (inviteErr) {
+        const { error: resetErr } = await supabaseAdmin.auth.resetPasswordForEmail(m.email, {
+          redirectTo,
+        });
+        if (resetErr) {
+          failed++;
+          continue;
+        }
+      }
+      const { error: updErr } = await supabase
+        .from("atlas_team_members")
+        .update({ atlas_invite_status: "invite_sent", atlas_invite_sent_at: now, updated_at: now })
+        .eq("id", m.id);
+      if (updErr) {
+        failed++;
+        continue;
+      }
+      sent++;
+    }
+    return { sent, skipped, failed };
+  });
+
+export const bulkSetAtlasRole = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({
+      memberIds: z.array(z.string().uuid()).min(1).max(500),
+      role: z.enum(ROLES),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context as any;
+    await assertAdmin(supabase, userId);
+    const now = new Date().toISOString();
+    const { error, count } = await supabase
+      .from("atlas_team_members")
+      .update({ atlas_role: data.role, updated_at: now }, { count: "exact" })
+      .in("id", data.memberIds);
+    if (error) throw new Error(error.message);
+    const updated = count ?? data.memberIds.length;
+    return { updated, failed: data.memberIds.length - updated };
+  });
+
+export const bulkAssignToMission = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({
+      memberIds: z.array(z.string().uuid()).min(1).max(500),
+      missionId: z.string().uuid(),
+      role: z.enum(["admin", "engagement_lead", "writer", "sme", "reviewer"]),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context as any;
+    await assertAdmin(supabase, userId);
+
+    const { data: rows, error: rErr } = await supabase
+      .from("atlas_team_members")
+      .select("id,email,first_name,last_name")
+      .in("id", data.memberIds);
+    if (rErr) throw new Error(rErr.message);
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: auths } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    const byEmail = new Map<string, any>();
+    for (const u of auths?.users ?? []) {
+      if (u.email) byEmail.set(u.email.toLowerCase(), u);
+    }
+
+    const ROLE_MAP: Record<string, string> = {
+      admin: "admin",
+      engagement_lead: "engagement_lead",
+      writer: "writer",
+      sme: "sme",
+      reviewer: "viewer",
+    };
+    const mapped = ROLE_MAP[data.role] ?? data.role;
+
+    const upserts: any[] = [];
+    let skipped = 0;
+    for (const m of rows ?? []) {
+      const auth = m.email ? byEmail.get(m.email.toLowerCase()) : null;
+      if (!auth) {
+        skipped++;
+        continue;
+      }
+      const displayName =
+        [m.first_name, m.last_name].filter(Boolean).join(" ").trim() || m.email;
+      upserts.push({
+        mission_id: data.missionId,
+        user_id: auth.id,
+        role: mapped,
+        display_name: displayName,
+      });
+    }
+
+    let assigned = 0;
+    if (upserts.length > 0) {
+      const { error, count } = await supabaseAdmin
+        .from("mission_members")
+        .upsert(upserts, { onConflict: "mission_id,user_id", count: "exact" });
+      if (error) throw new Error(`Assignment failed: ${error.message}`);
+      assigned = count ?? upserts.length;
+    }
+    return { assigned, skipped, failed: data.memberIds.length - assigned - skipped };
+  });

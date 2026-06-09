@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
   ChevronUp,
@@ -27,6 +27,7 @@ import {
   type Filters,
   type TabKey,
 } from "@/components/admin/AthenaTeamFilters";
+import { AthenaTeamBulkBar } from "@/components/admin/AthenaTeamBulkBar";
 
 type Member = {
   id: string;
@@ -278,15 +279,30 @@ export function AthenaTeamRoster() {
   function toggleAllVisible(checked: boolean) {
     setSelected((prev) => {
       const next = new Set(prev);
-      for (const r of pageRows) {
+      for (const r of sorted) {
         if (checked) next.add(r.id); else next.delete(r.id);
       }
       return next;
     });
   }
 
-  const allVisibleSelected = pageRows.length > 0 && pageRows.every((r) => selected.has(r.id));
+  const visibleSelectedCount = sorted.reduce((n, r) => (selected.has(r.id) ? n + 1 : n), 0);
+  const headerCheckState: boolean | "indeterminate" =
+    sorted.length > 0 && visibleSelectedCount === sorted.length
+      ? true
+      : visibleSelectedCount > 0
+        ? "indeterminate"
+        : false;
   const lastSyncLabel = lastSync ? formatDateTime(lastSync) : null;
+
+  const qc = useQueryClient();
+  const selectedIds = useMemo(() => Array.from(selected), [selected]);
+  function clearSelection() {
+    setSelected(new Set());
+  }
+  function refreshRoster() {
+    qc.invalidateQueries({ queryKey: ["atlas-team-members"] });
+  }
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -338,7 +354,12 @@ export function AthenaTeamRoster() {
           totalCount={tabCounts[activeTab]}
         />
 
-
+        {/* Bulk actions bar (renders when selection is non-empty) */}
+        <AthenaTeamBulkBar
+          selectedIds={selectedIds}
+          onClear={clearSelection}
+          onRefresh={refreshRoster}
+        />
 
         {/* Table */}
         <div className="overflow-hidden rounded-lg border border-border bg-surface/40">
@@ -347,7 +368,7 @@ export function AthenaTeamRoster() {
               <tr>
                 <th className="w-10 px-3 py-2.5">
                   <Checkbox
-                    checked={allVisibleSelected}
+                    checked={headerCheckState}
                     onCheckedChange={(v) => toggleAllVisible(Boolean(v))}
                     aria-label="Select all visible"
                   />
