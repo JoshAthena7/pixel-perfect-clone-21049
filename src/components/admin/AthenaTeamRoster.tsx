@@ -29,6 +29,7 @@ import {
 } from "@/components/admin/AthenaTeamFilters";
 import { AthenaTeamBulkBar } from "@/components/admin/AthenaTeamBulkBar";
 import { PersonDetailDrawer } from "@/components/admin/PersonDetailDrawer";
+import { PendingInvitesPanel } from "@/components/admin/PendingInvitesPanel";
 
 type Member = {
   id: string;
