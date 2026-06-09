@@ -328,15 +328,10 @@ function DrawerTab({ value, children }: { value: string; children: React.ReactNo
 }
 
 function OverviewTab({ member, onRefresh }: { member: any; onRefresh: () => void }) {
-  const completeness = [
-    { label: "Name", ok: !!(member.first_name && member.last_name) },
-    { label: "Email", ok: !!member.email },
-    { label: "Phone", ok: !!member.phone },
-    { label: "Job title", ok: !!member.job_title },
-    { label: "Resume", ok: !!member.atlas_resume_url },
-    { label: "HIPAA Acknowledgment", ok: !!member.atlas_hipaa_acknowledged },
-  ];
-  const pct = member.atlas_profile_completeness ?? 0;
+function OverviewTab({ member, onRefresh }: { member: any; onRefresh: () => void }) {
+  const pct = Math.max(0, Math.min(100, member.atlas_profile_completeness ?? 0));
+  const band = getCompletenessBand(pct);
+  const breakdown = getCompletenessBreakdown(member);
 
   const setRole = useServerFn(setAtlasRole);
   const roleMut = useMutation({
