@@ -41,6 +41,18 @@ async function getMember(supabase: any, id: string) {
   return data;
 }
 
+async function logActivity(
+  supabase: any,
+  memberId: string,
+  action: string,
+  performedBy: string,
+  metadata: Record<string, unknown> = {},
+) {
+  await supabase
+    .from("atlas_activity_log")
+    .insert({ member_id: memberId, action, performed_by: performedBy, metadata });
+}
+
 // ---------------------------------------------------------------------------
 // Send / Resend ATLAS invite
 // ---------------------------------------------------------------------------
@@ -52,7 +64,7 @@ export const sendAtlasInvite = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as any;
-    await assertAdmin(supabase, userId);
+    const { adminName } = await assertAdmin(supabase, userId);
     const m = await getMember(supabase, data.memberId);
     if (!m.email) throw new Error("Member has no email on file.");
     if (!data.resend && m.atlas_invite_status === "active") {
@@ -92,6 +104,14 @@ export const sendAtlasInvite = createServerFn({ method: "POST" })
       .eq("id", m.id);
     if (updErr) throw new Error(updErr.message);
 
+    await logActivity(
+      supabase,
+      m.id,
+      data.resend ? "Invite resent" : "ATLAS invite sent",
+      adminName,
+      { email: m.email },
+    );
+
     return { ok: true, email: m.email };
   });
 
@@ -106,13 +126,21 @@ export const setAtlasRole = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as any;
-    await assertAdmin(supabase, userId);
+    const { adminName } = await assertAdmin(supabase, userId);
+    const m = await getMember(supabase, data.memberId);
+    const oldRole = m.atlas_role;
     const now = new Date().toISOString();
     const { error } = await supabase
       .from("atlas_team_members")
       .update({ atlas_role: data.role, updated_at: now })
       .eq("id", data.memberId);
     if (error) throw new Error(error.message);
+    if (oldRole !== data.role) {
+      await logActivity(supabase, data.memberId, "Role changed", adminName, {
+        from: oldRole,
+        to: data.role,
+      });
+    }
     return { ok: true, role: data.role };
   });
 
@@ -148,7 +176,10 @@ export const resetMemberPassword = createServerFn({ method: "POST" })
       .eq("id", m.id);
     if (updErr) throw new Error(updErr.message);
 
+    await logActivity(supabase, m.id, "Password reset triggered", adminName, { email: m.email });
+
     return { ok: true, email: m.email };
+
   });
 
 // ---------------------------------------------------------------------------
@@ -177,6 +208,9 @@ export const addAdminNote = createServerFn({ method: "POST" })
       .update({ admin_notes: nextNotes, updated_at: now })
       .eq("id", m.id);
     if (error) throw new Error(error.message);
+    await logActivity(supabase, m.id, "Admin note added", adminName, {
+      preview: data.body.slice(0, 120),
+    });
     return { ok: true };
   });
 
@@ -202,6 +236,7 @@ export const removeMemberFromRoster = createServerFn({ method: "POST" })
       })
       .eq("id", m.id);
     if (error) throw new Error(error.message);
+    await logActivity(supabase, m.id, "Removed from roster", adminName);
     return { ok: true };
   });
 
@@ -300,6 +335,10 @@ export const assignMemberToMissions = createServerFn({ method: "POST" })
       .from("mission_members")
       .upsert(rows, { onConflict: "mission_id,user_id", count: "exact" });
     if (error) throw new Error(`Assignment failed: ${error.message}`);
+
+    await logActivity(supabase, m.id, "Assigned to mission", adminName, {
+      assignments: data.assignments,
+    });
 
     return { ok: true, count: count ?? rows.length };
   });

@@ -265,6 +265,41 @@ export type Database = {
           },
         ]
       }
+      atlas_activity_log: {
+        Row: {
+          action: string
+          id: string
+          member_id: string
+          metadata: Json
+          performed_by: string | null
+          timestamp: string
+        }
+        Insert: {
+          action: string
+          id?: string
+          member_id: string
+          metadata?: Json
+          performed_by?: string | null
+          timestamp?: string
+        }
+        Update: {
+          action?: string
+          id?: string
+          member_id?: string
+          metadata?: Json
+          performed_by?: string | null
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atlas_activity_log_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "atlas_team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       atlas_entities: {
         Row: {
           created_at: string | null

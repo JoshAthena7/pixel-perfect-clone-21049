@@ -28,6 +28,7 @@ import {
   type TabKey,
 } from "@/components/admin/AthenaTeamFilters";
 import { AthenaTeamBulkBar } from "@/components/admin/AthenaTeamBulkBar";
+import { PersonDetailDrawer } from "@/components/admin/PersonDetailDrawer";
 
 type Member = {
   id: string;
@@ -112,6 +113,7 @@ export function AthenaTeamRoster() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState<TabKey>("all");
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
+  const [detailMemberId, setDetailMemberId] = useState<string | null>(null);
 
   const { data: members = [], isLoading } = useQuery({
     queryKey: ["atlas-team-members"],
@@ -406,7 +408,7 @@ export function AthenaTeamRoster() {
                 </td></tr>
 
               ) : (
-                pageRows.map((m, i) => <Row key={m.id} m={m} zebra={i % 2 === 1} selected={selected.has(m.id)} onToggle={(v) => {
+                pageRows.map((m, i) => <Row key={m.id} m={m} zebra={i % 2 === 1} selected={selected.has(m.id)} onOpenDetail={(id) => setDetailMemberId(id)} onToggle={(v) => {
                   setSelected((prev) => {
                     const next = new Set(prev);
                     if (v) next.add(m.id); else next.delete(m.id);
@@ -444,6 +446,12 @@ export function AthenaTeamRoster() {
           )}
         </div>
       </div>
+
+      <PersonDetailDrawer
+        memberId={detailMemberId}
+        open={!!detailMemberId}
+        onOpenChange={(v) => !v && setDetailMemberId(null)}
+      />
     </TooltipProvider>
   );
 }
@@ -464,8 +472,9 @@ function SortHeader({
   );
 }
 
-function Row({ m, zebra, selected, onToggle }: {
+function Row({ m, zebra, selected, onToggle, onOpenDetail }: {
   m: Member; zebra: boolean; selected: boolean; onToggle: (v: boolean) => void;
+  onOpenDetail: (id: string) => void;
 }) {
   const lastActiveLabel = relativeTime(m.atlas_last_active_at);
   const inviteDays = daysSince(m.atlas_invite_sent_at);
@@ -490,14 +499,16 @@ function Row({ m, zebra, selected, onToggle }: {
         <Checkbox checked={selected} onCheckedChange={(v) => onToggle(Boolean(v))} aria-label={`Select ${fullName(m)}`} />
       </td>
       <td className="px-3 py-2.5">
-        <Link
-          to="/admin/settings"
-          className="font-medium text-foreground hover:text-[color:var(--athena-gold)]"
+        <button
+          type="button"
+          onClick={() => onOpenDetail(m.id)}
+          className="text-left font-medium text-foreground hover:text-[color:var(--athena-gold)]"
         >
           {fullName(m)}
-        </Link>
+        </button>
         {m.job_title && <div className="text-[11px] text-muted-foreground">{m.job_title}</div>}
       </td>
+
       <td className="px-3 py-2.5">
         {/* TD Status — PILL shape */}
         <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${tdCls}`}>
