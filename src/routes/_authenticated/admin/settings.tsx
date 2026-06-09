@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Users, Building2, Download, Upload, X } from "lucide-react";
+import { Users, Download, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { FastReportsMenu } from "@/components/olympus/FastReportsMenu";
@@ -10,10 +10,7 @@ export const Route = createFileRoute("/_authenticated/admin/settings")({
   component: AdminSettings,
 });
 
-type Tab = "team" | "firm";
-
 function AdminSettings() {
-  const [tab, setTab] = useState<Tab>("team");
 
   return (
     <div className="flex-1 min-w-0">
