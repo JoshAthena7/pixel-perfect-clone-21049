@@ -363,7 +363,7 @@ export function AthenaTeamRoster() {
               <tr>
                 <th className="w-10 px-3 py-2.5">
                   <Checkbox
-                    checked={allVisibleSelected}
+                    checked={headerCheckState}
                     onCheckedChange={(v) => toggleAllVisible(Boolean(v))}
                     aria-label="Select all visible"
                   />
