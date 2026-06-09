@@ -8,6 +8,7 @@ import {
   type AtlasOnboardingState,
 } from "@/lib/atlas-onboarding-gate.functions";
 import { WelcomeStep } from "@/components/atlas-onboarding/WelcomeStep";
+import { HipaaStep } from "@/components/atlas-onboarding/HipaaStep";
 
 
 /**
@@ -36,6 +37,11 @@ function AtlasOnboardingShell() {
   const navigate = useNavigate();
   const getState = useServerFn(getAtlasOnboardingState);
   const [state, setState] = useState<AtlasOnboardingState | null>(null);
+  // When the user clicks "← Back" we render an earlier step without
+  // mutating server state. Cleared whenever the gate state refreshes.
+  const [viewOverride, setViewOverride] = useState<1 | 2 | 3 | 4 | 5 | null>(
+    null,
+  );
 
   const refreshState = useCallback(async () => {
     try {
@@ -44,6 +50,7 @@ function AtlasOnboardingShell() {
         navigate({ to: "/flight-deck", replace: true });
         return;
       }
+      setViewOverride(null);
       setState(res);
     } catch (e) {
       console.error("[atlas-onboarding] gate state failed", e);
@@ -91,21 +98,28 @@ function AtlasOnboardingShell() {
   // incomplete — step is 0..4 (= last completed). The "current" step the
   // user should be on is step + 1 (1..5). Resume copy when step > 0.
   const lastCompleted = state.step;
-  const currentStep = (lastCompleted + 1) as 1 | 2 | 3 | 4 | 5;
-  const resuming = state.resuming;
+  const naturalStep = (lastCompleted + 1) as 1 | 2 | 3 | 4 | 5;
+  // viewOverride lets back navigation render an earlier step.
+  const currentStep = viewOverride ?? naturalStep;
+  const resuming = state.resuming && currentStep === naturalStep;
 
 
   return (
     <div
-      className="fixed inset-0 flex flex-col items-center px-4 py-10 sm:py-14 overflow-hidden"
+      className="fixed inset-0 flex flex-col items-center px-4 py-10 sm:py-14 overflow-y-auto"
       style={{ background: NAVY, color: "#fff" }}
     >
       <AthenaLogo />
       <StepDots current={currentStep} />
 
-      <main className="mt-10 w-full max-w-4xl flex-1 flex items-center justify-center">
+      <main className="mt-10 w-full max-w-4xl flex-1 flex items-start sm:items-center justify-center">
         {currentStep === 1 ? (
           <WelcomeStep firstName={state.firstName} onAdvanced={refreshState} />
+        ) : currentStep === 2 ? (
+          <HipaaStep
+            onAdvanced={refreshState}
+            onBack={() => setViewOverride(1)}
+          />
         ) : (
           <div className="w-full text-center">
             {resuming && state.firstName && (

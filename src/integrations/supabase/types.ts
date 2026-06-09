@@ -1247,6 +1247,7 @@ export type Database = {
           atlas_first_login_at: string | null
           atlas_hipaa_acknowledged: boolean
           atlas_hipaa_acknowledged_at: string | null
+          atlas_hipaa_signature: string | null
           atlas_invite_sent_at: string | null
           atlas_invite_status: string
           atlas_last_active_at: string | null
@@ -1283,6 +1284,7 @@ export type Database = {
           atlas_first_login_at?: string | null
           atlas_hipaa_acknowledged?: boolean
           atlas_hipaa_acknowledged_at?: string | null
+          atlas_hipaa_signature?: string | null
           atlas_invite_sent_at?: string | null
           atlas_invite_status?: string
           atlas_last_active_at?: string | null
@@ -1319,6 +1321,7 @@ export type Database = {
           atlas_first_login_at?: string | null
           atlas_hipaa_acknowledged?: boolean
           atlas_hipaa_acknowledged_at?: string | null
+          atlas_hipaa_signature?: string | null
           atlas_invite_sent_at?: string | null
           atlas_invite_status?: string
           atlas_last_active_at?: string | null
