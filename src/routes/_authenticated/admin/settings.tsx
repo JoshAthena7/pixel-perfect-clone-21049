@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Users, Building2, Download, Upload, X } from "lucide-react";
+import { Users, Download, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { FastReportsMenu } from "@/components/olympus/FastReportsMenu";
@@ -10,10 +10,7 @@ export const Route = createFileRoute("/_authenticated/admin/settings")({
   component: AdminSettings,
 });
 
-type Tab = "team" | "firm";
-
 function AdminSettings() {
-  const [tab, setTab] = useState<Tab>("team");
 
   return (
     <div className="flex-1 min-w-0">
@@ -26,20 +23,13 @@ function AdminSettings() {
         <FastReportsMenu />
       </header>
 
-      <div className="border-b border-border bg-surface/20 px-5">
-        <nav className="flex gap-1">
-          <TabButton active={tab === "team"} onClick={() => setTab("team")} icon={<Users className="h-3.5 w-3.5" />}>Team</TabButton>
-          <TabButton active={tab === "firm"} onClick={() => setTab("firm")} icon={<Building2 className="h-3.5 w-3.5" />}>Firm</TabButton>
-        </nav>
-      </div>
-
       <div className="p-5">
-        {tab === "team" && <TeamTab />}
-        {tab === "firm" && <FirmTab />}
+        <TeamTab />
       </div>
     </div>
   );
 }
+
 
 function TabButton({ active, onClick, icon, children }: { active: boolean; onClick: () => void; icon: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -302,16 +292,6 @@ function TeamTab() {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function FirmTab() {
-  return (
-    <div className="rounded-lg border border-dashed border-border bg-surface/20 p-10 text-center">
-      <Building2 className="mx-auto mb-3 h-6 w-6 text-muted-foreground" />
-      <div className="text-sm font-medium">Firm configuration</div>
-      <div className="mt-1 text-xs text-muted-foreground">Coming soon.</div>
     </div>
   );
 }
