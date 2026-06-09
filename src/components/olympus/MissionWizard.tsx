@@ -7,6 +7,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { runWizardQuestionArchitecture } from "@/lib/mission-wizard-architecture.functions";
 import AssignmentReview from "@/components/olympus/AssignmentReview";
+import { StepAutofillUpload, type AutofillField } from "@/components/olympus/StepAutofillUpload";
 
 const GOLD = "#C9A84C";
 const NAVY = "#1F3864";
@@ -308,7 +309,7 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
 
         {/* Body */}
         <div className="px-6 py-6">
-          {step === 1 && <Step1Form value={step1} onChange={setStep1} />}
+          {step === 1 && <Step1Form value={step1} onChange={setStep1} missionId={missionId} />}
           {step === 2 && (
             <Step2Form
               slots={slots}
@@ -409,7 +410,7 @@ export default function MissionWizard({ open, onClose, missionId: initialMission
   );
 }
 
-function Step1Form({ value, onChange }: { value: Step1; onChange: (v: Step1) => void }) {
+function Step1Form({ value, onChange, missionId }: { value: Step1; onChange: (v: Step1) => void; missionId: string | null }) {
   const set = <K extends keyof Step1>(k: K, v: Step1[K]) => onChange({ ...value, [k]: v });
 
   const addMilestone = () =>
@@ -422,9 +423,44 @@ function Step1Form({ value, onChange }: { value: Step1; onChange: (v: Step1) => 
       value.milestones.map((m, idx) => (idx === i ? { ...m, ...patch } : m)),
     );
 
+  const autofillFields: AutofillField[] = [
+    { key: "name", label: "Mission Name", type: "string", currentValue: value.name },
+    { key: "client", label: "Client / Agency", type: "string", currentValue: value.client },
+    { key: "prime_contractor", label: "Prime Contractor", type: "string", currentValue: value.prime_contractor },
+    { key: "state", label: "State", type: "string", currentValue: value.state },
+    { key: "program_type", label: "Program Type", type: "string", description: "e.g. CSOC, IT Modernization", currentValue: value.program_type },
+    { key: "submission_date", label: "Submission Date", type: "date", currentValue: value.submission_date },
+    { key: "procurement_type", label: "Procurement Type", type: "string", description: "Proposal / Task Order / IDIQ / BPA / Sole Source", currentValue: value.procurement_type },
+    { key: "engagement_lead", label: "Engagement Lead", type: "string", currentValue: value.engagement_lead },
+    { key: "operations_lead", label: "Operations Lead", type: "string", currentValue: value.operations_lead },
+    { key: "client_contacts", label: "Client Contacts", type: "string", description: "Names or emails, comma-separated", currentValue: value.client_contacts },
+  ];
+
+  const applyAutofill = (patch: Record<string, string | string[]>) => {
+    const next = { ...value };
+    Object.entries(patch).forEach(([k, v]) => {
+      if (k in next) {
+        // Coerce arrays to comma-joined for text fields
+        (next as any)[k] = Array.isArray(v) ? v.join(", ") : v;
+      }
+    });
+    onChange(next);
+  };
+
   return (
     <div className="space-y-6">
-      <p className="text-sm text-muted-foreground">This becomes the official mission record</p>
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-sm text-muted-foreground">This becomes the official mission record</p>
+        {missionId && (
+          <StepAutofillUpload
+            missionId={missionId}
+            stepLabel="Mission Basics"
+            fields={autofillFields}
+            onApply={applyAutofill}
+          />
+        )}
+      </div>
+
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Left */}
