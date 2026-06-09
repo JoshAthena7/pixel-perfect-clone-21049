@@ -42,13 +42,63 @@ async function loadMemberByEmail(email: string) {
   const { data, error } = await supabaseAdmin
     .from("atlas_team_members")
     .select(
-      "id,email,first_name,atlas_onboarding_complete,onboarding_step_completed,atlas_first_login_at,onboarding_started_at,is_removed",
+      "id,email,first_name,last_name,atlas_role,atlas_onboarding_complete,onboarding_step_completed,atlas_first_login_at,onboarding_started_at,is_removed",
     )
     .ilike("email", email)
     .maybeSingle();
   if (error) throw new Error(error.message);
   return data;
 }
+
+export type CelebrationContext = {
+  firstName: string | null;
+  lastName: string | null;
+  atlasRole: string;
+  firstMission: {
+    id: string;
+    name: string;
+    subtitle: string | null;
+  } | null;
+};
+
+export const getAtlasCelebrationContext = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<CelebrationContext> => {
+    const email = (context.claims?.email as string | undefined) ?? "";
+    const userId = context.userId as string | undefined;
+    const member = email ? await loadMemberByEmail(email) : null;
+    const base: CelebrationContext = {
+      firstName: member?.first_name ?? null,
+      lastName: member?.last_name ?? null,
+      atlasRole: member?.atlas_role ?? "unassigned",
+      firstMission: null,
+    };
+    if (!userId) return base;
+    try {
+      const { data } = await supabaseAdmin
+        .from("mission_team_members")
+        .select("mission_id,active,missions(id,name,client_name,status)")
+        .eq("user_id", userId)
+        .eq("active", true)
+        .limit(5);
+      const row = (data ?? []).find(
+        // @ts-expect-error -- joined shape from PostgREST
+        (r) => r.missions && (r.missions.status ?? "active") !== "archived",
+      );
+      if (row) {
+        // @ts-expect-error -- joined shape
+        const m = row.missions;
+        base.firstMission = {
+          id: m.id,
+          name: m.name,
+          subtitle: m.client_name ?? null,
+        };
+      }
+    } catch (e) {
+      console.error("[atlas-onboarding] first mission lookup failed", e);
+    }
+    return base;
+  });
 
 export const getAtlasOnboardingState = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
