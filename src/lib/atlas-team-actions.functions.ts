@@ -208,6 +208,9 @@ export const addAdminNote = createServerFn({ method: "POST" })
       .update({ admin_notes: nextNotes, updated_at: now })
       .eq("id", m.id);
     if (error) throw new Error(error.message);
+    await logActivity(supabase, m.id, "Admin note added", adminName, {
+      preview: data.body.slice(0, 120),
+    });
     return { ok: true };
   });
 
