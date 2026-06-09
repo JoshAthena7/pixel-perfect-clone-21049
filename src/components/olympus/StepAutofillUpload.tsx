@@ -182,7 +182,7 @@ export function StepAutofillUpload({
         type="button"
         onClick={() => setOpen(true)}
         className={`inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs font-semibold hover:bg-surface-hover ${className ?? ""}`}
-        title={`Upload a PDF to auto-fill ${stepLabel}`}
+        title={`Upload a document to auto-fill ${stepLabel}`}
       >
         <Sparkles className="h-3.5 w-3.5" style={{ color: GOLD }} />
         Upload to autofill
