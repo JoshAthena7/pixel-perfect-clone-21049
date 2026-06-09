@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, Link, useRouterState } from "@tanstack/react-router";
-import { FileText, Home, LayoutGrid, Settings, Zap } from "lucide-react";
+import { FileText, Home, LayoutGrid, Users, Zap } from "lucide-react";
 import { useIsAdmin } from "@/hooks/useAccess";
 import { useRedirectIfBlocked } from "@/hooks/useRedirectIfBlocked";
 
@@ -57,8 +57,8 @@ function AdminSidebar() {
             Mission Detail
           </NavItem>
         )}
-        <NavItem to="/admin/settings" active={isActive("/admin/settings")} icon={<Settings size={15} strokeWidth={1.5} />}>
-          Settings
+        <NavItem to="/admin/settings" active={isActive("/admin/settings")} icon={<Users size={15} strokeWidth={1.5} />}>
+          Athena Team
         </NavItem>
       </nav>
       <div className="border-t border-border px-2 py-3">
