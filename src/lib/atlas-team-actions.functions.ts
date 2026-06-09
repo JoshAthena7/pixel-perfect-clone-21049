@@ -375,9 +375,22 @@ export const assignMemberToMissions = createServerFn({ method: "POST" })
       .upsert(rows, { onConflict: "mission_id,user_id", count: "exact" });
     if (error) throw new Error(`Assignment failed: ${error.message}`);
 
-    await logActivity(supabase, m.id, "Assigned to mission", adminName, {
-      assignments: data.assignments,
-    });
+    // Resolve mission names so the log shows what was assigned.
+    const missionIds = data.assignments.map((a) => a.missionId);
+    const { data: missionRows } = await supabaseAdmin
+      .from("missions")
+      .select("id,name")
+      .in("id", missionIds);
+    const nameById = new Map<string, string>(
+      (missionRows ?? []).map((r: any) => [r.id, r.name ?? "Unknown mission"]),
+    );
+    for (const a of data.assignments) {
+      await logActivity(supabase, m.id, "Assigned to mission", adminName, {
+        mission_id: a.missionId,
+        mission_name: nameById.get(a.missionId) ?? "Unknown mission",
+        role: a.role,
+      });
+    }
 
     return { ok: true, count: count ?? rows.length };
   });
