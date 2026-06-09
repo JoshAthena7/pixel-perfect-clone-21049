@@ -1,7 +1,5 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from '@tanstack/react-router';
 
-export const Route = createFileRoute("/olympus")({
-  beforeLoad: () => {
-    throw redirect({ to: "/admin" });
-  },
+export const Route = createFileRoute('/olympus')({
+  component: () => <Navigate to="/home" />,
 });
