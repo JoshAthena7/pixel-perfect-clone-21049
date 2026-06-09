@@ -444,7 +444,25 @@ export function AthenaTeamRoster() {
           isPendingTab={activeTab === "pending"}
         />
 
-        {activeTab === "pending" ? (
+        {isError ? (
+          <div className="flex flex-col items-center gap-3 rounded-lg border border-border bg-surface/40 px-6 py-12 text-center">
+            <AlertTriangle className="h-6 w-6 text-red-400" />
+            <div className="text-sm font-medium">
+              Unable to load the Athena Team roster.
+            </div>
+            <p className="max-w-md text-xs text-muted-foreground">
+              Please check your connection and try again.
+            </p>
+            <button
+              onClick={() => refetch()}
+              disabled={isRefetching}
+              className="mt-1 inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-medium hover:bg-surface-hover disabled:opacity-60"
+            >
+              <RefreshCcw className={`h-3.5 w-3.5 ${isRefetching ? "animate-spin" : ""}`} />
+              {isRefetching ? "Retrying…" : "Retry"}
+            </button>
+          </div>
+        ) : activeTab === "pending" ? (
           <PendingInvitesPanel
             members={sorted as unknown as PendingMember[]}
             selected={selected}
@@ -472,23 +490,27 @@ export function AthenaTeamRoster() {
                     />
                   </th>
                   <SortHeader label="Name" active={sortKey === "name"} dir={sortDir} onClick={() => toggleSort("name")} />
-                  <th className="px-3 py-2.5 text-left font-medium">TD Status</th>
+                  <th className="hidden md:table-cell px-3 py-2.5 text-left font-medium">TD Status</th>
                   <th className="px-3 py-2.5 text-left font-medium">ATLAS Status</th>
-                  <th className="px-3 py-2.5 text-left font-medium">Role</th>
-                  <th className="px-3 py-2.5 text-left font-medium">Missions</th>
-                  <SortHeader label="Last Active" active={sortKey === "last_active"} dir={sortDir} onClick={() => toggleSort("last_active")} />
-                  <SortHeader label="Profile" active={sortKey === "profile"} dir={sortDir} onClick={() => toggleSort("profile")} />
+                  <th className="hidden md:table-cell px-3 py-2.5 text-left font-medium">Role</th>
+                  <th className="hidden lg:table-cell px-3 py-2.5 text-left font-medium">Missions</th>
+                  <th className="hidden md:table-cell px-3 py-2.5 text-left font-medium">
+                    <SortHeaderInline label="Last Active" active={sortKey === "last_active"} dir={sortDir} onClick={() => toggleSort("last_active")} />
+                  </th>
+                  <th className="hidden md:table-cell px-3 py-2.5 text-left font-medium">
+                    <SortHeaderInline label="Profile" active={sortKey === "profile"} dir={sortDir} onClick={() => toggleSort("profile")} />
+                  </th>
                   <th className="w-10 px-3 py-2.5"></th>
                 </tr>
               </thead>
               <tbody>
                 {isLoading ? (
-                  <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">Loading…</td></tr>
+                  Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} zebra={i % 2 === 1} />)
                 ) : pageRows.length === 0 ? (
-                  <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">
+                  <tr><td colSpan={9} className="px-4 py-10 text-center text-sm text-muted-foreground">
                     {members.length === 0 ? (
-                      "No team members found. Upload a TalentDesk CSV to get started."
-                    ) : isFiltered || activeTab !== "all" ? (
+                      "Roster has not been synced. Upload a TalentDesk CSV to get started."
+                    ) : isFiltered ? (
                       <span>
                         No members match your filters.{" "}
                         <button
@@ -498,13 +520,18 @@ export function AthenaTeamRoster() {
                           Clear filters
                         </button>
                       </span>
+                    ) : activeTab === "active" ? (
+                      "No members have logged into ATLAS in the last 30 days."
+                    ) : activeTab === "no_activity" ? (
+                      "No overdue or inactive members. Good shape."
+                    ) : activeTab === "capacity" ? (
+                      "No capacity data available yet."
                     ) : (
                       "No team members found."
                     )}
                   </td></tr>
-
                 ) : (
-                  pageRows.map((m, i) => <Row key={m.id} m={m} zebra={i % 2 === 1} selected={selected.has(m.id)} onOpenDetail={(id) => setDetailMemberId(id)} onToggle={(v) => {
+                  pageRows.map((m, i) => <Row key={m.id} m={m} zebra={i % 2 === 1} selected={selected.has(m.id)} isDup={dupNames.has(`${(m.first_name ?? "").trim().toLowerCase()} ${(m.last_name ?? "").trim().toLowerCase()}`.trim())} onOpenDetail={(id) => setDetailMemberId(id)} onToggle={(v) => {
                     setSelected((prev) => {
                       const next = new Set(prev);
                       if (v) next.add(m.id); else next.delete(m.id);
