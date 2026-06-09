@@ -41,6 +41,11 @@ async function getMember(supabase: any, id: string) {
   return data;
 }
 
+/**
+ * Activity log writes must NEVER block the primary action.
+ * If the log write fails (transient DB issue, RLS, etc.) we swallow the
+ * error and log it to the server console only.
+ */
 async function logActivity(
   supabase: any,
   memberId: string,
@@ -48,9 +53,18 @@ async function logActivity(
   performedBy: string,
   metadata: Record<string, unknown> = {},
 ) {
-  await supabase
-    .from("atlas_activity_log")
-    .insert({ member_id: memberId, action, performed_by: performedBy, metadata });
+  try {
+    const { error } = await supabase
+      .from("atlas_activity_log")
+      .insert({ member_id: memberId, action, performed_by: performedBy, metadata });
+    if (error) {
+      // eslint-disable-next-line no-console
+      console.warn("[atlas_activity_log] write failed:", error.message);
+    }
+  } catch (e: any) {
+    // eslint-disable-next-line no-console
+    console.warn("[atlas_activity_log] write threw:", e?.message ?? e);
+  }
 }
 
 // ---------------------------------------------------------------------------
