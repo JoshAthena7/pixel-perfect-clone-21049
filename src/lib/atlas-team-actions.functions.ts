@@ -490,3 +490,99 @@ export const bulkAssignToMission = createServerFn({ method: "POST" })
     }
     return { assigned, skipped, failed: data.memberIds.length - assigned - skipped };
   });
+
+// ---------------------------------------------------------------------------
+// Pending Invites: auto-escalate + bulk resend (resend regardless of status)
+// ---------------------------------------------------------------------------
+
+/**
+ * Mark any invite_sent member whose invite is >14 days old as never_logged_in.
+ * Runs silently in the background when the Pending Invites tab loads.
+ */
+export const escalateOverdueInvites = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context as any;
+    await assertAdmin(supabase, userId);
+    const cutoff = new Date(Date.now() - 14 * 86400000).toISOString();
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+      .from("atlas_team_members")
+      .update({ atlas_invite_status: "never_logged_in", updated_at: now })
+      .eq("atlas_invite_status", "invite_sent")
+      .lt("atlas_invite_sent_at", cutoff)
+      .eq("is_removed", false)
+      .select("id");
+    if (error) throw new Error(error.message);
+    const ids = (data ?? []).map((r: any) => r.id);
+    for (const id of ids) {
+      await logActivity(supabase, id, "Auto-escalated to Never Logged In", "System", {
+        reason: "invite_age_over_14_days",
+      });
+    }
+    return { escalated: ids.length };
+  });
+
+/**
+ * Resend invites to a specific list of members regardless of current status
+ * (used on the Pending Invites tab — "Resend All Overdue" and bulk action).
+ */
+export const bulkResendInvites = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ memberIds: z.array(z.string().uuid()).min(1).max(500) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context as any;
+    const { adminName } = await assertAdmin(supabase, userId);
+
+    const { data: rows, error } = await supabase
+      .from("atlas_team_members")
+      .select("id,email,first_name,last_name,atlas_invite_status")
+      .in("id", data.memberIds);
+    if (error) throw new Error(error.message);
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const redirectTo =
+      (process.env.SITE_URL || process.env.PUBLIC_SITE_URL || "") + "/" || undefined;
+
+    let sent = 0;
+    let skipped = 0;
+    let failed = 0;
+    const now = new Date().toISOString();
+
+    for (const m of rows ?? []) {
+      if (!m.email) {
+        skipped++;
+        continue;
+      }
+      const { error: inviteErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(m.email, {
+        redirectTo,
+        data: { first_name: m.first_name, last_name: m.last_name, source: "atlas_team_roster_resend" },
+      });
+      if (inviteErr && !/already (registered|exists)/i.test(inviteErr.message)) {
+        failed++;
+        continue;
+      }
+      if (inviteErr) {
+        const { error: resetErr } = await supabaseAdmin.auth.resetPasswordForEmail(m.email, {
+          redirectTo,
+        });
+        if (resetErr) {
+          failed++;
+          continue;
+        }
+      }
+      const { error: updErr } = await supabase
+        .from("atlas_team_members")
+        .update({ atlas_invite_status: "invite_sent", atlas_invite_sent_at: now, updated_at: now })
+        .eq("id", m.id);
+      if (updErr) {
+        failed++;
+        continue;
+      }
+      await logActivity(supabase, m.id, "Invite resent", adminName, { email: m.email, bulk: true });
+      sent++;
+    }
+    return { sent, skipped, failed };
+  });

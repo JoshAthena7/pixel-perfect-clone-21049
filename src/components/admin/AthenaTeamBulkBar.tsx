@@ -31,6 +31,7 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   bulkAssignToMission,
+  bulkResendInvites,
   bulkSendAtlasInvites,
   bulkSetAtlasRole,
   getActiveMissionsForAssign,
@@ -51,10 +52,12 @@ export function AthenaTeamBulkBar({
   selectedIds,
   onClear,
   onRefresh,
+  isPendingTab = false,
 }: {
   selectedIds: string[];
   onClear: () => void;
   onRefresh: () => void;
+  isPendingTab?: boolean;
 }) {
   const count = selectedIds.length;
   const [confirmInvite, setConfirmInvite] = useState(false);
@@ -62,10 +65,13 @@ export function AthenaTeamBulkBar({
   const [roleOpen, setRoleOpen] = useState(false);
 
   const sendInvites = useServerFn(bulkSendAtlasInvites);
-
+  const resendInvites = useServerFn(bulkResendInvites);
 
   const inviteMut = useMutation({
-    mutationFn: () => sendInvites({ data: { memberIds: selectedIds } }),
+    mutationFn: () =>
+      isPendingTab
+        ? resendInvites({ data: { memberIds: selectedIds } })
+        : sendInvites({ data: { memberIds: selectedIds } }),
     onSuccess: (res: any) => {
       const skipped = res.skipped ?? 0;
       const failed = res.failed ?? 0;
@@ -102,7 +108,7 @@ export function AthenaTeamBulkBar({
             onClick={() => setConfirmInvite(true)}
             disabled={inviteMut.isPending}
           >
-            Send Invites
+            {isPendingTab ? "Resend Invites" : "Send Invites"}
           </Button>
           <Button size="sm" variant="outline" onClick={() => setAssignOpen(true)}>
             Assign to Mission
@@ -116,13 +122,19 @@ export function AthenaTeamBulkBar({
         </div>
       </div>
 
-      {/* Send Invites confirm */}
+      {/* Send / Resend Invites confirm */}
       <AlertDialog open={confirmInvite} onOpenChange={setConfirmInvite}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Send ATLAS invites to {count} people?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {isPendingTab
+                ? `Resend ATLAS invites to ${count} people?`
+                : `Send ATLAS invites to ${count} people?`}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Members who are already invited or active will be skipped automatically.
+              {isPendingTab
+                ? "Each selected person will receive a fresh invitation email and their invite age will reset to 0 days."
+                : "Members who are already invited or active will be skipped automatically."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -134,7 +146,7 @@ export function AthenaTeamBulkBar({
               }}
               disabled={inviteMut.isPending}
             >
-              {inviteMut.isPending ? "Sending…" : "Send Invites"}
+              {inviteMut.isPending ? "Sending…" : isPendingTab ? "Resend Invites" : "Send Invites"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
