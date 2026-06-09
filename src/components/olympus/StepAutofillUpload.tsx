@@ -78,15 +78,50 @@ export function StepAutofillUpload({
       toast.error(`File too large (max ${MAX_BYTES / 1024 / 1024} MB)`);
       return;
     }
-    if (file.type && !file.type.includes("pdf")) {
-      toast.error("Only PDFs are supported for now");
-      return;
-    }
     setLoading(true);
     setFileName(file.name);
     setSuggestions(null);
     try {
-      const b64 = await toBase64(file);
+      const name = file.name.toLowerCase();
+      const type = file.type.toLowerCase();
+      const isPdf = type.includes("pdf") || name.endsWith(".pdf");
+      const isImage = type.startsWith("image/");
+      const isTxt =
+        type === "text/plain" ||
+        name.endsWith(".txt") ||
+        name.endsWith(".md") ||
+        name.endsWith(".csv");
+      const isDocx =
+        name.endsWith(".docx") ||
+        type ===
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+      let fileData: string;
+      let mimeType: string;
+      let sendName: string = file.name;
+
+      if (isPdf || isImage) {
+        fileData = await toBase64(file);
+        mimeType = file.type || (isPdf ? "application/pdf" : "image/png");
+      } else if (isDocx) {
+        const mammoth: any = await import("mammoth/mammoth.browser");
+        const buf = await file.arrayBuffer();
+        const res2 = await mammoth.extractRawText({ arrayBuffer: buf });
+        const text = (res2?.value ?? "").toString().trim();
+        if (!text) throw new Error("Couldn't read any text from that document");
+        fileData = btoa(unescape(encodeURIComponent(text)));
+        mimeType = "text/plain";
+        sendName = file.name.replace(/\.[^.]+$/, "") + ".txt";
+      } else if (isTxt) {
+        const text = await file.text();
+        fileData = btoa(unescape(encodeURIComponent(text)));
+        mimeType = "text/plain";
+      } else {
+        toast.error("Unsupported file type. Use PDF, DOCX, TXT, or an image.");
+        setLoading(false);
+        return;
+      }
+
       const res = await autofill({
         data: {
           missionId,
@@ -98,9 +133,9 @@ export function StepAutofillUpload({
             description: f.description,
             currentValue: f.currentValue,
           })),
-          fileData: b64,
-          fileName: file.name,
-          mimeType: file.type || "application/pdf",
+          fileData,
+          fileName: sendName,
+          mimeType,
         },
       });
       const list = (res?.suggestions ?? []) as Suggestion[];
