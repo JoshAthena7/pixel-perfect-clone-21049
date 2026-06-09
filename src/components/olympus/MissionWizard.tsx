@@ -7,6 +7,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { runWizardQuestionArchitecture } from "@/lib/mission-wizard-architecture.functions";
 import AssignmentReview from "@/components/olympus/AssignmentReview";
+import { StepAutofillUpload, type AutofillField } from "@/components/olympus/StepAutofillUpload";
 
 const GOLD = "#C9A84C";
 const NAVY = "#1F3864";
