@@ -108,7 +108,7 @@ export function AthenaTeamBulkBar({
             onClick={() => setConfirmInvite(true)}
             disabled={inviteMut.isPending}
           >
-            Send Invites
+            {isPendingTab ? "Resend Invites" : "Send Invites"}
           </Button>
           <Button size="sm" variant="outline" onClick={() => setAssignOpen(true)}>
             Assign to Mission
@@ -122,13 +122,19 @@ export function AthenaTeamBulkBar({
         </div>
       </div>
 
-      {/* Send Invites confirm */}
+      {/* Send / Resend Invites confirm */}
       <AlertDialog open={confirmInvite} onOpenChange={setConfirmInvite}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Send ATLAS invites to {count} people?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {isPendingTab
+                ? `Resend ATLAS invites to ${count} people?`
+                : `Send ATLAS invites to ${count} people?`}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Members who are already invited or active will be skipped automatically.
+              {isPendingTab
+                ? "Each selected person will receive a fresh invitation email and their invite age will reset to 0 days."
+                : "Members who are already invited or active will be skipped automatically."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -140,7 +146,7 @@ export function AthenaTeamBulkBar({
               }}
               disabled={inviteMut.isPending}
             >
-              {inviteMut.isPending ? "Sending…" : "Send Invites"}
+              {inviteMut.isPending ? "Sending…" : isPendingTab ? "Resend Invites" : "Send Invites"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
