@@ -133,6 +133,19 @@ export function AthenaTeamRoster() {
   const [exportOpen, setExportOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
 
+  useEffect(() => {
+    function handleOpen(e: Event) {
+      const id = (e as CustomEvent<{ memberId: string }>).detail?.memberId;
+      if (id) setDetailMemberId(id);
+    }
+    window.addEventListener("atlas:open-member", handleOpen as EventListener);
+    return () =>
+      window.removeEventListener(
+        "atlas:open-member",
+        handleOpen as EventListener,
+      );
+  }, []);
+
   const { data: members = [], isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ["atlas-team-members"],
     queryFn: async () => {
