@@ -8,6 +8,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Paperclip,
+  AlertTriangle,
+  RefreshCcw,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -131,7 +133,7 @@ export function AthenaTeamRoster() {
   const [exportOpen, setExportOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
 
-  const { data: members = [], isLoading } = useQuery({
+  const { data: members = [], isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ["atlas-team-members"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -167,6 +169,19 @@ export function AthenaTeamRoster() {
       else if (m.talentdesk_status === "pending_onboarding") pending++;
     }
     return { total: members.length, approved, pending };
+  }, [members]);
+
+  // Names that appear on 2+ active members → flag for duplicate-warning icon.
+  const dupNames = useMemo(() => {
+    const seen = new Map<string, number>();
+    for (const m of members) {
+      const key = `${(m.first_name ?? "").trim().toLowerCase()} ${(m.last_name ?? "").trim().toLowerCase()}`.trim();
+      if (!key) continue;
+      seen.set(key, (seen.get(key) ?? 0) + 1);
+    }
+    const dups = new Set<string>();
+    for (const [k, n] of seen) if (n > 1) dups.add(k);
+    return dups;
   }, [members]);
 
   const tabFilter = useMemo(
@@ -364,7 +379,7 @@ export function AthenaTeamRoster() {
     <TooltipProvider delayDuration={150}>
       <div className="space-y-4">
         {/* Header */}
-        <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-start md:justify-between">
           <div className="min-w-0">
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold tracking-tight">Athena Team</h1>
@@ -429,7 +444,25 @@ export function AthenaTeamRoster() {
           isPendingTab={activeTab === "pending"}
         />
 
-        {activeTab === "pending" ? (
+        {isError ? (
+          <div className="flex flex-col items-center gap-3 rounded-lg border border-border bg-surface/40 px-6 py-12 text-center">
+            <AlertTriangle className="h-6 w-6 text-red-400" />
+            <div className="text-sm font-medium">
+              Unable to load the Athena Team roster.
+            </div>
+            <p className="max-w-md text-xs text-muted-foreground">
+              Please check your connection and try again.
+            </p>
+            <button
+              onClick={() => refetch()}
+              disabled={isRefetching}
+              className="mt-1 inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-medium hover:bg-surface-hover disabled:opacity-60"
+            >
+              <RefreshCcw className={`h-3.5 w-3.5 ${isRefetching ? "animate-spin" : ""}`} />
+              {isRefetching ? "Retrying…" : "Retry"}
+            </button>
+          </div>
+        ) : activeTab === "pending" ? (
           <PendingInvitesPanel
             members={sorted as unknown as PendingMember[]}
             selected={selected}
@@ -457,23 +490,27 @@ export function AthenaTeamRoster() {
                     />
                   </th>
                   <SortHeader label="Name" active={sortKey === "name"} dir={sortDir} onClick={() => toggleSort("name")} />
-                  <th className="px-3 py-2.5 text-left font-medium">TD Status</th>
+                  <th className="hidden md:table-cell px-3 py-2.5 text-left font-medium">TD Status</th>
                   <th className="px-3 py-2.5 text-left font-medium">ATLAS Status</th>
-                  <th className="px-3 py-2.5 text-left font-medium">Role</th>
-                  <th className="px-3 py-2.5 text-left font-medium">Missions</th>
-                  <SortHeader label="Last Active" active={sortKey === "last_active"} dir={sortDir} onClick={() => toggleSort("last_active")} />
-                  <SortHeader label="Profile" active={sortKey === "profile"} dir={sortDir} onClick={() => toggleSort("profile")} />
+                  <th className="hidden md:table-cell px-3 py-2.5 text-left font-medium">Role</th>
+                  <th className="hidden lg:table-cell px-3 py-2.5 text-left font-medium">Missions</th>
+                  <th className="hidden md:table-cell px-3 py-2.5 text-left font-medium">
+                    <SortHeaderInline label="Last Active" active={sortKey === "last_active"} dir={sortDir} onClick={() => toggleSort("last_active")} />
+                  </th>
+                  <th className="hidden md:table-cell px-3 py-2.5 text-left font-medium">
+                    <SortHeaderInline label="Profile" active={sortKey === "profile"} dir={sortDir} onClick={() => toggleSort("profile")} />
+                  </th>
                   <th className="w-10 px-3 py-2.5"></th>
                 </tr>
               </thead>
               <tbody>
                 {isLoading ? (
-                  <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">Loading…</td></tr>
+                  Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} zebra={i % 2 === 1} />)
                 ) : pageRows.length === 0 ? (
-                  <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">
+                  <tr><td colSpan={9} className="px-4 py-10 text-center text-sm text-muted-foreground">
                     {members.length === 0 ? (
-                      "No team members found. Upload a TalentDesk CSV to get started."
-                    ) : isFiltered || activeTab !== "all" ? (
+                      "Roster has not been synced. Upload a TalentDesk CSV to get started."
+                    ) : isFiltered ? (
                       <span>
                         No members match your filters.{" "}
                         <button
@@ -483,13 +520,18 @@ export function AthenaTeamRoster() {
                           Clear filters
                         </button>
                       </span>
+                    ) : activeTab === "active" ? (
+                      "No members have logged into ATLAS in the last 30 days."
+                    ) : activeTab === "no_activity" ? (
+                      "No overdue or inactive members. Good shape."
+                    ) : activeTab === "capacity" ? (
+                      "No capacity data available yet."
                     ) : (
                       "No team members found."
                     )}
                   </td></tr>
-
                 ) : (
-                  pageRows.map((m, i) => <Row key={m.id} m={m} zebra={i % 2 === 1} selected={selected.has(m.id)} onOpenDetail={(id) => setDetailMemberId(id)} onToggle={(v) => {
+                  pageRows.map((m, i) => <Row key={m.id} m={m} zebra={i % 2 === 1} selected={selected.has(m.id)} isDup={dupNames.has(`${(m.first_name ?? "").trim().toLowerCase()} ${(m.last_name ?? "").trim().toLowerCase()}`.trim())} onOpenDetail={(id) => setDetailMemberId(id)} onToggle={(v) => {
                     setSelected((prev) => {
                       const next = new Set(prev);
                       if (v) next.add(m.id); else next.delete(m.id);
@@ -561,8 +603,41 @@ function SortHeader({
   );
 }
 
-function Row({ m, zebra, selected, onToggle, onOpenDetail }: {
-  m: Member; zebra: boolean; selected: boolean; onToggle: (v: boolean) => void;
+function SortHeaderInline({
+  label, active, dir, onClick,
+}: { label: string; active: boolean; dir: SortDir; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center gap-1 ${active ? "text-foreground" : "text-muted-foreground"} hover:text-foreground`}
+    >
+      {label}
+      {active ? (dir === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : null}
+    </button>
+  );
+}
+
+function SkeletonRow({ zebra }: { zebra: boolean }) {
+  const bar = (w: string) => (
+    <div className={`h-3 ${w} animate-pulse rounded bg-surface-hover/60`} />
+  );
+  return (
+    <tr className={`border-t border-border/60 ${zebra ? "bg-surface/30" : "bg-transparent"}`}>
+      <td className="px-3 py-3"><div className="h-3.5 w-3.5 animate-pulse rounded bg-surface-hover/60" /></td>
+      <td className="px-3 py-3">{bar("w-32")}</td>
+      <td className="hidden md:table-cell px-3 py-3">{bar("w-20")}</td>
+      <td className="px-3 py-3">{bar("w-24")}</td>
+      <td className="hidden md:table-cell px-3 py-3">{bar("w-16")}</td>
+      <td className="hidden lg:table-cell px-3 py-3">{bar("w-8")}</td>
+      <td className="hidden md:table-cell px-3 py-3">{bar("w-16")}</td>
+      <td className="hidden md:table-cell px-3 py-3">{bar("w-28")}</td>
+      <td className="px-3 py-3"><div className="h-3 w-3 animate-pulse rounded bg-surface-hover/60" /></td>
+    </tr>
+  );
+}
+
+function Row({ m, zebra, selected, isDup, onToggle, onOpenDetail }: {
+  m: Member; zebra: boolean; selected: boolean; isDup: boolean; onToggle: (v: boolean) => void;
   onOpenDetail: (id: string) => void;
 }) {
   const lastActiveLabel = relativeTime(m.atlas_last_active_at);
@@ -579,10 +654,13 @@ function Row({ m, zebra, selected, onToggle, onOpenDetail }: {
       ? "bg-amber-500/15 text-amber-300 border-amber-500/40"
       : "bg-zinc-700/40 text-zinc-300 border-zinc-600/60";
 
+  // Never display null for completeness — fall back to 0.
   const pct = Math.max(0, Math.min(100, m.atlas_profile_completeness ?? 0));
   const band = getCompletenessBand(pct);
   const breakdown = getCompletenessBreakdown(m);
   const tooltipLine = formatBreakdownTooltip(breakdown);
+
+  const nameMissing = !(m.first_name?.trim()) && !(m.last_name?.trim());
 
   return (
     <tr className={`border-t border-border/60 ${zebra ? "bg-surface/30" : "bg-transparent"} hover:bg-surface-hover/60`}>
@@ -598,6 +676,30 @@ function Row({ m, zebra, selected, onToggle, onOpenDetail }: {
           >
             {fullName(m)}
           </button>
+          {nameMissing && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <AlertTriangle
+                  className="h-3 w-3 cursor-help text-amber-400"
+                  aria-label="Name missing"
+                />
+              </TooltipTrigger>
+              <TooltipContent>Name missing — update in TalentDesk.</TooltipContent>
+            </Tooltip>
+          )}
+          {isDup && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <AlertTriangle
+                  className="h-3 w-3 cursor-help text-amber-400"
+                  aria-label="Possible duplicate"
+                />
+              </TooltipTrigger>
+              <TooltipContent>
+                Another member with this name exists. Verify this is not a duplicate.
+              </TooltipContent>
+            </Tooltip>
+          )}
           {Array.isArray(m.admin_notes) && m.admin_notes.length > 0 && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -615,7 +717,7 @@ function Row({ m, zebra, selected, onToggle, onOpenDetail }: {
         {m.job_title && <div className="text-[11px] text-muted-foreground">{m.job_title}</div>}
       </td>
 
-      <td className="px-3 py-2.5">
+      <td className="hidden md:table-cell px-3 py-2.5">
         {/* TD Status — PILL shape */}
         <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${tdCls}`}>
           TD · {tdLabel}
@@ -627,18 +729,18 @@ function Row({ m, zebra, selected, onToggle, onOpenDetail }: {
           ATLAS · {atlasBadge.label}
         </span>
       </td>
-      <td className="px-3 py-2.5">
+      <td className="hidden md:table-cell px-3 py-2.5">
         <span className={m.atlas_role === "unassigned" ? "text-muted-foreground" : ""}>
           {ROLE_LABEL[m.atlas_role] ?? m.atlas_role}
         </span>
       </td>
-      <td className="px-3 py-2.5 text-muted-foreground">—</td>
-      <td className="px-3 py-2.5">
+      <td className="hidden lg:table-cell px-3 py-2.5 text-muted-foreground">—</td>
+      <td className="hidden md:table-cell px-3 py-2.5">
         <span className={isStaleInvite ? "text-red-400" : m.atlas_last_active_at ? "" : "text-muted-foreground"}>
           {lastActiveLabel}
         </span>
       </td>
-      <td className="px-3 py-2.5">
+      <td className="hidden md:table-cell px-3 py-2.5">
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="flex cursor-default items-center gap-2">

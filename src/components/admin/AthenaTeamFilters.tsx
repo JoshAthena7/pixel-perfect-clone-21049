@@ -180,7 +180,11 @@ export function AthenaTeamFilterBar({
           selected={filters.skills}
           onChange={(next) => setFilters({ ...filters, skills: next })}
           searchable
-          emptyText={skillOptions.length === 0 ? "No skills yet" : "No matches"}
+          emptyText={
+            skillOptions.length === 0
+              ? "No skills on file. Skills are imported from TalentDesk."
+              : "No matches"
+          }
         />
 
         {active && (
