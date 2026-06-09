@@ -484,55 +484,15 @@ function AssignMissionsDialog({ member, onClose }: { member: RowMember; onClose:
 }
 
 function ProfileDrawer({ member, onClose }: { member: RowMember; onClose: () => void }) {
-  const tdLabel =
-    member.talentdesk_status === "approved"
-      ? "Approved"
-      : member.talentdesk_status === "pending_onboarding"
-        ? "Pending Onboarding"
-        : "—";
-  const tdCls =
-    member.talentdesk_status === "approved"
-      ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/40"
-      : member.talentdesk_status === "pending_onboarding"
-        ? "bg-amber-500/15 text-amber-300 border-amber-500/40"
-        : "bg-zinc-700/40 text-zinc-300 border-zinc-600/60";
-  const atlasMap: Record<string, { label: string; cls: string }> = {
-    not_invited: { label: "Not Invited", cls: "bg-zinc-700/40 text-zinc-200 border-zinc-600/60" },
-    invite_sent: { label: "Invite Sent", cls: "bg-amber-500/15 text-amber-300 border-amber-500/40" },
-    active: { label: "Active", cls: "bg-emerald-500/15 text-emerald-300 border-emerald-500/40" },
-    never_logged_in: { label: "Never Logged In", cls: "bg-red-500/15 text-red-300 border-red-500/40" },
-    onboarding_incomplete: { label: "Onboarding Incomplete", cls: "bg-amber-500/15 text-amber-300 border-amber-500/40" },
-  };
-  const atlas = atlasMap[member.atlas_invite_status] ?? { label: member.atlas_invite_status, cls: "bg-zinc-700/40 text-zinc-200 border-zinc-600/60" };
-
+  // Lazy import to keep this module light; the real drawer lives in PersonDetailDrawer.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { PersonDetailDrawer } = require("@/components/admin/PersonDetailDrawer");
   return (
-    <Sheet open onOpenChange={(v) => !v && onClose()}>
-      <SheetContent side="right" className="w-[480px] sm:max-w-[480px]">
-        <SheetHeader>
-          <SheetTitle>{fullName(member)}</SheetTitle>
-        </SheetHeader>
-        <div className="mt-5 space-y-4">
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Email</div>
-            <div className="text-sm">{member.email}</div>
-          </div>
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Job title</div>
-            <div className="text-sm">{member.job_title || "—"}</div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${tdCls}`}>
-              TD · {tdLabel}
-            </span>
-            <span className={`inline-flex items-center rounded-sm border px-2 py-0.5 text-[10px] font-semibold ${atlas.cls}`}>
-              ATLAS · {atlas.label}
-            </span>
-          </div>
-          <div className="rounded-md border border-dashed border-border bg-surface/30 p-4 text-xs text-muted-foreground">
-            Full profile tabs (missions, expertise, notes, activity) coming in a later step.
-          </div>
-        </div>
-      </SheetContent>
-    </Sheet>
+    <PersonDetailDrawer
+      memberId={member.id}
+      open
+      onOpenChange={(v: boolean) => !v && onClose()}
+    />
   );
 }
+
