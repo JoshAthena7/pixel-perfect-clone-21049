@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { FastReportsMenu } from "@/components/olympus/FastReportsMenu";
 import { AthenaTeamRoster } from "@/components/admin/AthenaTeamRoster";
+import { AthenaNotificationBell } from "@/components/admin/AthenaNotificationBell";
 
 export const Route = createFileRoute("/_authenticated/admin/settings")({
   component: AdminSettings,
@@ -15,7 +16,16 @@ function AdminSettings() {
             Olympus · <span className="text-foreground/70">Athena Team</span>
           </h1>
         </div>
-        <FastReportsMenu />
+        <div className="flex items-center gap-2">
+          <AthenaNotificationBell
+            onOpenMember={(memberId) =>
+              window.dispatchEvent(
+                new CustomEvent("atlas:open-member", { detail: { memberId } }),
+              )
+            }
+          />
+          <FastReportsMenu />
+        </div>
       </header>
 
       <div className="p-5">
