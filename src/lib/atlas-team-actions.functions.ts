@@ -406,7 +406,7 @@ export const bulkSendAtlasInvites = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as any;
-    await assertAdmin(supabase, userId);
+    const { adminName } = await assertAdmin(supabase, userId);
 
     const { data: rows, error } = await supabase
       .from("atlas_team_members")
@@ -453,6 +453,9 @@ export const bulkSendAtlasInvites = createServerFn({ method: "POST" })
         failed++;
         continue;
       }
+      await logActivity(supabase, m.id, "ATLAS invite sent (bulk action)", adminName, {
+        email: m.email,
+      });
       sent++;
     }
     return { sent, skipped, failed };
@@ -468,14 +471,34 @@ export const bulkSetAtlasRole = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as any;
-    await assertAdmin(supabase, userId);
+    const { adminName } = await assertAdmin(supabase, userId);
     const now = new Date().toISOString();
+
+    // Snapshot old roles so we can log per-member from→to entries.
+    const { data: priorRows } = await supabase
+      .from("atlas_team_members")
+      .select("id,atlas_role")
+      .in("id", data.memberIds);
+    const oldById = new Map<string, string>(
+      (priorRows ?? []).map((r: any) => [r.id, r.atlas_role]),
+    );
+
     const { error, count } = await supabase
       .from("atlas_team_members")
       .update({ atlas_role: data.role, updated_at: now }, { count: "exact" })
       .in("id", data.memberIds);
     if (error) throw new Error(error.message);
     const updated = count ?? data.memberIds.length;
+
+    for (const id of data.memberIds) {
+      const from = oldById.get(id);
+      if (from === data.role) continue; // no-op for members already on this role
+      await logActivity(supabase, id, "Role updated (bulk action)", adminName, {
+        from: from ?? null,
+        to: data.role,
+      });
+    }
+
     return { updated, failed: data.memberIds.length - updated };
   });
 
