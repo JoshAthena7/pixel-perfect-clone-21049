@@ -336,6 +336,10 @@ export const assignMemberToMissions = createServerFn({ method: "POST" })
       .upsert(rows, { onConflict: "mission_id,user_id", count: "exact" });
     if (error) throw new Error(`Assignment failed: ${error.message}`);
 
+    await logActivity(supabase, m.id, "Assigned to mission", adminName, {
+      assignments: data.assignments,
+    });
+
     return { ok: true, count: count ?? rows.length };
   });
 
