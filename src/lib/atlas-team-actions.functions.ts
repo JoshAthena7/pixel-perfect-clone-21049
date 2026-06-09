@@ -674,7 +674,9 @@ export const bulkResendInvites = createServerFn({ method: "POST" })
         failed++;
         continue;
       }
-      await logActivity(supabase, m.id, "Invite resent", adminName, { email: m.email, bulk: true });
+      await logActivity(supabase, m.id, "ATLAS invite resent (bulk action)", adminName, {
+        email: m.email,
+      });
       sent++;
     }
     return { sent, skipped, failed };
