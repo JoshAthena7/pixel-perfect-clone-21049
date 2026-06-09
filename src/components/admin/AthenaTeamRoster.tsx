@@ -367,7 +367,7 @@ export function AthenaTeamRoster() {
 
         {activeTab === "pending" ? (
           <PendingInvitesPanel
-            members={sorted as unknown as React.ComponentProps<typeof PendingInvitesPanel>["members"]}
+            members={sorted as unknown as PendingMember[]}
             selected={selected}
             onToggleOne={(id, v) =>
               setSelected((prev) => {
