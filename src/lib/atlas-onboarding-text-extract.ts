@@ -33,7 +33,6 @@ async function extractPdfText(file: File): Promise<string> {
   // Inline-worker fallback: provide a no-op workerSrc which forces pdfjs
   // to run on the main thread (acceptable for resumes, which are small).
   try {
-    // @ts-expect-error — fakeWorker path
     pdfjs.GlobalWorkerOptions.workerSrc = "";
   } catch {
     /* noop */
@@ -60,6 +59,7 @@ async function extractPdfText(file: File): Promise<string> {
 }
 
 async function extractDocxText(file: File): Promise<string> {
+  // @ts-expect-error — mammoth ships a browser subpath without typings.
   const mammoth: any = await import("mammoth/mammoth.browser");
   const buf = await file.arrayBuffer();
   const res = await mammoth.extractRawText({ arrayBuffer: buf });
