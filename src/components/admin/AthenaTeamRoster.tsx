@@ -383,13 +383,24 @@ export function AthenaTeamRoster() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              disabled
-              title="Coming soon"
-              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-transparent px-3 py-1.5 text-xs font-medium hover:bg-surface-hover disabled:opacity-60"
-            >
-              <Download className="h-3.5 w-3.5" /> Export Roster
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <button
+                    onClick={() => setExportOpen(true)}
+                    disabled={exporting || members.length === 0}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-border bg-transparent px-3 py-1.5 text-xs font-medium hover:bg-surface-hover disabled:opacity-60"
+                  >
+                    <Download className="h-3.5 w-3.5" /> Export Roster
+                  </button>
+                </span>
+              </TooltipTrigger>
+              {(exporting || members.length === 0) && (
+                <TooltipContent>
+                  {exporting ? "Exporting..." : "No members to export"}
+                </TooltipContent>
+              )}
+            </Tooltip>
             <AtlasTeamSyncButton />
           </div>
         </div>
@@ -401,7 +412,7 @@ export function AthenaTeamRoster() {
         <AthenaTeamFilterBar
           filters={filters}
           setFilters={handleFiltersChange}
-          allSkills={allSkills}
+          skillOptions={skillOptions}
           onClearAll={clearAllFilters}
           filteredCount={filtered.length}
           totalCount={tabCounts[activeTab]}
