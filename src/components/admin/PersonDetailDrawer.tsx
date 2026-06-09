@@ -36,6 +36,7 @@ import {
   getCompletenessBand,
   getCompletenessBreakdown,
 } from "@/lib/atlas-profile-completeness";
+import { useIsAdmin } from "@/hooks/useAccess";
 
 const ROLE_OPTIONS = [
   { value: "admin", label: "Admin" },
