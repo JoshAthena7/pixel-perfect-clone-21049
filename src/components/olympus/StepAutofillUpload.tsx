@@ -123,23 +123,45 @@ export function StepAutofillUpload({
         return;
       }
 
-      const res = await autofill({
-        data: {
-          missionId,
-          stepLabel,
-          fields: fields.map((f) => ({
-            key: f.key,
-            label: f.label,
-            type: f.type,
-            description: f.description,
-            currentValue: f.currentValue,
-          })),
-          fileData,
-          fileName: sendName,
-          mimeType,
-        },
-      });
-      const list = (res?.suggestions ?? []) as Suggestion[];
+      const callAutofill = async (fd: string, fn: string, mt: string) =>
+        autofill({
+          data: {
+            missionId,
+            stepLabel,
+            fields: fields.map((f) => ({
+              key: f.key,
+              label: f.label,
+              type: f.type,
+              description: f.description,
+              currentValue: f.currentValue,
+            })),
+            fileData: fd,
+            fileName: fn,
+            mimeType: mt,
+          },
+        });
+
+      let res = await callAutofill(fileData, sendName, mimeType);
+      let list = (res?.suggestions ?? []) as Suggestion[];
+
+      // OCR fallback: if nothing came back and the original is a PDF or DOCX,
+      // re-send the document as page images so Gemini can OCR scanned content
+      // or read documents where text extraction missed everything.
+      if (list.length === 0 && (isPdf || isDocx)) {
+        try {
+          toast.info("No matches yet — retrying with OCR…");
+          const imageB64 = await renderDocToStitchedJpeg(file, isPdf);
+          if (imageB64) {
+            const ocrName =
+              file.name.replace(/\.[^.]+$/, "") + "-ocr.jpg";
+            res = await callAutofill(imageB64, ocrName, "image/jpeg");
+            list = (res?.suggestions ?? []) as Suggestion[];
+          }
+        } catch (ocrErr) {
+          console.warn("[autofill] OCR fallback failed", ocrErr);
+        }
+      }
+
       setSuggestions(list);
       // Default-accept high+medium confidence
       const next: Record<string, boolean> = {};
