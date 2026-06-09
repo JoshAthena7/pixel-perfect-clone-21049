@@ -134,25 +134,9 @@ function AtlasOnboardingShell() {
             onBack={() => setViewOverride(3)}
           />
         ) : (
-          <div className="w-full text-center">
-            {resuming && state.firstName && (
-              <p className="mb-6 text-sm sm:text-base" style={{ color: GOLD }}>
-                Welcome back {state.firstName}. Pick up right where you left off.
-              </p>
-            )}
-            <div className="text-xs uppercase tracking-[0.32em]" style={{ color: GOLD }}>
-              Step {currentStep} of 5
-            </div>
-            <h1 className="mt-4 text-3xl font-semibold">
-              {STEP_TITLES[currentStep - 1]}
-            </h1>
-            <p
-              className="mt-4 text-sm sm:text-base"
-              style={{ color: "rgba(255,255,255,0.7)" }}
-            >
-              Step content will appear here.
-            </p>
-          </div>
+          <CelebrationStep
+            onComplete={() => navigate({ to: "/flight-deck", replace: true })}
+          />
         )}
       </main>
 
