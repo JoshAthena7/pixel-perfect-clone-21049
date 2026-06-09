@@ -1,12 +1,14 @@
 import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   getAtlasOnboardingState,
   type AtlasOnboardingState,
 } from "@/lib/atlas-onboarding-gate.functions";
+import { WelcomeStep } from "@/components/atlas-onboarding/WelcomeStep";
+
 
 /**
  * Atlas onboarding shell.
