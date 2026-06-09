@@ -55,6 +55,7 @@ type Member = {
   atlas_hipaa_acknowledged: boolean | null;
   atlas_resume_url: string | null;
   skills: string[] | null;
+  admin_notes: Array<{ id?: string; author?: string; timestamp?: string; body?: string }> | null;
 };
 
 type SortKey = "name" | "last_active" | "profile";
