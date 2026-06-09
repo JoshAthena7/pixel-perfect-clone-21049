@@ -4087,6 +4087,123 @@ export type Database = {
         }
         Relationships: []
       }
+      mission_journey_deliverables: {
+        Row: {
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          mission_id: string
+          order_index: number
+          owner_member_id: string | null
+          phase_id: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          mission_id: string
+          order_index?: number
+          owner_member_id?: string | null
+          phase_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          mission_id?: string
+          order_index?: number
+          owner_member_id?: string | null
+          phase_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_journey_deliverables_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_journey_deliverables_owner_member_id_fkey"
+            columns: ["owner_member_id"]
+            isOneToOne: false
+            referencedRelation: "atlas_team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_journey_deliverables_phase_id_fkey"
+            columns: ["phase_id"]
+            isOneToOne: false
+            referencedRelation: "mission_journey_phases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_journey_phases: {
+        Row: {
+          color: string | null
+          created_at: string
+          end_date: string | null
+          id: string
+          is_locked: boolean
+          kind: string
+          mission_id: string
+          name: string
+          notes: string | null
+          order_index: number
+          start_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_locked?: boolean
+          kind?: string
+          mission_id: string
+          name: string
+          notes?: string | null
+          order_index?: number
+          start_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_locked?: boolean
+          kind?: string
+          mission_id?: string
+          name?: string
+          notes?: string | null
+          order_index?: number
+          start_date?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_journey_phases_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_member_expertise: {
         Row: {
           created_at: string
@@ -4191,6 +4308,56 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      mission_qa_log: {
+        Row: {
+          answer: string | null
+          answer_received_at: string | null
+          category: string | null
+          created_at: string
+          id: string
+          mission_id: string
+          question: string
+          question_submitted_at: string | null
+          question_submitted_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          answer?: string | null
+          answer_received_at?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          mission_id: string
+          question: string
+          question_submitted_at?: string | null
+          question_submitted_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          answer?: string | null
+          answer_received_at?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          mission_id?: string
+          question?: string
+          question_submitted_at?: string | null
+          question_submitted_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_qa_log_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mission_questions: {
         Row: {
@@ -4762,6 +4929,109 @@ export type Database = {
         }
         Relationships: []
       }
+      mission_style_guide: {
+        Row: {
+          banned_phrases: string | null
+          created_at: string
+          formatting_rules: string | null
+          grammar_rules: string | null
+          id: string
+          mission_id: string
+          required_phrases: string | null
+          sensitivities: string | null
+          terminology: string | null
+          tone: string | null
+          updated_at: string
+          voice: string | null
+        }
+        Insert: {
+          banned_phrases?: string | null
+          created_at?: string
+          formatting_rules?: string | null
+          grammar_rules?: string | null
+          id?: string
+          mission_id: string
+          required_phrases?: string | null
+          sensitivities?: string | null
+          terminology?: string | null
+          tone?: string | null
+          updated_at?: string
+          voice?: string | null
+        }
+        Update: {
+          banned_phrases?: string | null
+          created_at?: string
+          formatting_rules?: string | null
+          grammar_rules?: string | null
+          id?: string
+          mission_id?: string
+          required_phrases?: string | null
+          sensitivities?: string | null
+          terminology?: string | null
+          tone?: string | null
+          updated_at?: string
+          voice?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_style_guide_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_submission_checklist: {
+        Row: {
+          category: string | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_complete: boolean
+          label: string
+          mission_id: string
+          order_index: number
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_complete?: boolean
+          label: string
+          mission_id: string
+          order_index?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_complete?: boolean
+          label?: string
+          mission_id?: string
+          order_index?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_submission_checklist_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_team_members: {
         Row: {
           added_at: string
@@ -4948,6 +5218,131 @@ export type Database = {
             foreignKeyName: "mission_volumes_mission_id_fkey"
             columns: ["mission_id"]
             isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_win_strategy: {
+        Row: {
+          admin_confirmed_at: string | null
+          admin_confirmed_by: string | null
+          central_claim: string | null
+          central_claim_confirmed_at: string | null
+          central_claim_confirmed_by: string | null
+          client_priorities: string | null
+          client_priorities_confirmed_at: string | null
+          client_priorities_confirmed_by: string | null
+          competitor_analysis: string | null
+          competitor_analysis_confirmed_at: string | null
+          competitor_analysis_confirmed_by: string | null
+          created_at: string
+          discriminators: string | null
+          discriminators_confirmed_at: string | null
+          discriminators_confirmed_by: string | null
+          executive_summary: string | null
+          executive_summary_confirmed_at: string | null
+          executive_summary_confirmed_by: string | null
+          id: string
+          mission_id: string
+          north_star_confirmed_at: string | null
+          north_star_confirmed_by: string | null
+          north_star_message: string | null
+          proof_points: string | null
+          proof_points_confirmed_at: string | null
+          proof_points_confirmed_by: string | null
+          risk_mitigation: string | null
+          risk_mitigation_confirmed_at: string | null
+          risk_mitigation_confirmed_by: string | null
+          updated_at: string
+          value_proposition: string | null
+          value_proposition_confirmed_at: string | null
+          value_proposition_confirmed_by: string | null
+          win_themes: string | null
+          win_themes_confirmed_at: string | null
+          win_themes_confirmed_by: string | null
+        }
+        Insert: {
+          admin_confirmed_at?: string | null
+          admin_confirmed_by?: string | null
+          central_claim?: string | null
+          central_claim_confirmed_at?: string | null
+          central_claim_confirmed_by?: string | null
+          client_priorities?: string | null
+          client_priorities_confirmed_at?: string | null
+          client_priorities_confirmed_by?: string | null
+          competitor_analysis?: string | null
+          competitor_analysis_confirmed_at?: string | null
+          competitor_analysis_confirmed_by?: string | null
+          created_at?: string
+          discriminators?: string | null
+          discriminators_confirmed_at?: string | null
+          discriminators_confirmed_by?: string | null
+          executive_summary?: string | null
+          executive_summary_confirmed_at?: string | null
+          executive_summary_confirmed_by?: string | null
+          id?: string
+          mission_id: string
+          north_star_confirmed_at?: string | null
+          north_star_confirmed_by?: string | null
+          north_star_message?: string | null
+          proof_points?: string | null
+          proof_points_confirmed_at?: string | null
+          proof_points_confirmed_by?: string | null
+          risk_mitigation?: string | null
+          risk_mitigation_confirmed_at?: string | null
+          risk_mitigation_confirmed_by?: string | null
+          updated_at?: string
+          value_proposition?: string | null
+          value_proposition_confirmed_at?: string | null
+          value_proposition_confirmed_by?: string | null
+          win_themes?: string | null
+          win_themes_confirmed_at?: string | null
+          win_themes_confirmed_by?: string | null
+        }
+        Update: {
+          admin_confirmed_at?: string | null
+          admin_confirmed_by?: string | null
+          central_claim?: string | null
+          central_claim_confirmed_at?: string | null
+          central_claim_confirmed_by?: string | null
+          client_priorities?: string | null
+          client_priorities_confirmed_at?: string | null
+          client_priorities_confirmed_by?: string | null
+          competitor_analysis?: string | null
+          competitor_analysis_confirmed_at?: string | null
+          competitor_analysis_confirmed_by?: string | null
+          created_at?: string
+          discriminators?: string | null
+          discriminators_confirmed_at?: string | null
+          discriminators_confirmed_by?: string | null
+          executive_summary?: string | null
+          executive_summary_confirmed_at?: string | null
+          executive_summary_confirmed_by?: string | null
+          id?: string
+          mission_id?: string
+          north_star_confirmed_at?: string | null
+          north_star_confirmed_by?: string | null
+          north_star_message?: string | null
+          proof_points?: string | null
+          proof_points_confirmed_at?: string | null
+          proof_points_confirmed_by?: string | null
+          risk_mitigation?: string | null
+          risk_mitigation_confirmed_at?: string | null
+          risk_mitigation_confirmed_by?: string | null
+          updated_at?: string
+          value_proposition?: string | null
+          value_proposition_confirmed_at?: string | null
+          value_proposition_confirmed_by?: string | null
+          win_themes?: string | null
+          win_themes_confirmed_at?: string | null
+          win_themes_confirmed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_win_strategy_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
             referencedRelation: "missions"
             referencedColumns: ["id"]
           },
