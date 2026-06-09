@@ -88,26 +88,8 @@ export const getMemberDetail = createServerFn({ method: "POST" })
               (b.assigned_at ?? "").localeCompare(a.assigned_at ?? ""),
             );
 
-          // Try question_assignments if it exists
-          try {
-            const { data: qa } = await supabaseAdmin
-              .from("question_assignments")
-              .select(
-                "id,question_id,due_date,status,mission_id,missions(name),questions(question_text,section_id)",
-              )
-              .eq("assigned_to", authUser.id)
-              .neq("status", "complete");
-            assignments = (qa ?? []).map((r: any) => ({
-              mission_id: r.mission_id ?? r.missions?.id ?? "",
-              mission_name: r.missions?.name ?? "Mission",
-              section: r.questions?.section_id ?? null,
-              question: r.questions?.question_text ?? null,
-              due_date: r.due_date ?? null,
-              status: r.status ?? "not_started",
-            }));
-          } catch {
-            // best-effort: leave assignments empty
-          }
+          // question_assignments doesn't track a generic assignee yet;
+          // leave active assignments empty until a per-user assignment model exists.
         }
       }
     } catch {
