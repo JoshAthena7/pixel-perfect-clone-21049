@@ -43,6 +43,7 @@ import {
   assignMemberToMissions,
   getMemberMissionCount,
 } from "@/lib/atlas-team-actions.functions";
+import { PersonDetailDrawer } from "@/components/admin/PersonDetailDrawer";
 
 export type RowMember = {
   id: string;
