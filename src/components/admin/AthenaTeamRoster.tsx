@@ -372,26 +372,18 @@ function Row({ m, zebra, selected, onToggle }: {
         </div>
       </td>
       <td className="px-3 py-2.5 text-right">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="rounded p-1 hover:bg-surface-hover" aria-label="Row actions">
-              <MoreHorizontal className="h-4 w-4" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-52">
-            <DropdownMenuItem disabled>Send ATLAS Invite</DropdownMenuItem>
-            <DropdownMenuItem disabled>Resend Invite</DropdownMenuItem>
-            <DropdownMenuItem disabled>Assign to Mission</DropdownMenuItem>
-            <DropdownMenuItem disabled>Set ATLAS Role</DropdownMenuItem>
-            <DropdownMenuItem disabled>Reset Password</DropdownMenuItem>
-            <DropdownMenuItem disabled>View Profile</DropdownMenuItem>
-            <DropdownMenuItem disabled>Add Note</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem disabled className="text-red-400 focus:text-red-400">
-              Remove from Roster
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <RowActions
+          member={{
+            id: m.id,
+            first_name: m.first_name,
+            last_name: m.last_name,
+            email: m.email,
+            job_title: m.job_title,
+            talentdesk_status: m.talentdesk_status,
+            atlas_invite_status: m.atlas_invite_status,
+            atlas_role: m.atlas_role,
+          }}
+        />
       </td>
     </tr>
   );
