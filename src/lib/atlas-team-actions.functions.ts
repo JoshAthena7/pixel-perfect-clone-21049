@@ -513,7 +513,7 @@ export const bulkAssignToMission = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as any;
-    await assertAdmin(supabase, userId);
+    const { adminName } = await assertAdmin(supabase, userId);
 
     const { data: rows, error: rErr } = await supabase
       .from("atlas_team_members")
@@ -537,7 +537,16 @@ export const bulkAssignToMission = createServerFn({ method: "POST" })
     };
     const mapped = ROLE_MAP[data.role] ?? data.role;
 
+    // Resolve target mission name once for log metadata.
+    const { data: mission } = await supabaseAdmin
+      .from("missions")
+      .select("id,name")
+      .eq("id", data.missionId)
+      .maybeSingle();
+    const missionName = (mission as any)?.name ?? "Unknown mission";
+
     const upserts: any[] = [];
+    const assignedMemberIds: string[] = [];
     let skipped = 0;
     for (const m of rows ?? []) {
       const auth = m.email ? byEmail.get(m.email.toLowerCase()) : null;
@@ -553,6 +562,7 @@ export const bulkAssignToMission = createServerFn({ method: "POST" })
         role: mapped,
         display_name: displayName,
       });
+      assignedMemberIds.push(m.id);
     }
 
     let assigned = 0;
@@ -562,6 +572,14 @@ export const bulkAssignToMission = createServerFn({ method: "POST" })
         .upsert(upserts, { onConflict: "mission_id,user_id", count: "exact" });
       if (error) throw new Error(`Assignment failed: ${error.message}`);
       assigned = count ?? upserts.length;
+
+      for (const id of assignedMemberIds) {
+        await logActivity(supabase, id, "Assigned to mission (bulk action)", adminName, {
+          mission_id: data.missionId,
+          mission_name: missionName,
+          role: data.role,
+        });
+      }
     }
     return { assigned, skipped, failed: data.memberIds.length - assigned - skipped };
   });
