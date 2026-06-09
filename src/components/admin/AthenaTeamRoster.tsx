@@ -531,13 +531,28 @@ function Row({ m, zebra, selected, onToggle, onOpenDetail }: {
         <Checkbox checked={selected} onCheckedChange={(v) => onToggle(Boolean(v))} aria-label={`Select ${fullName(m)}`} />
       </td>
       <td className="px-3 py-2.5">
-        <button
-          type="button"
-          onClick={() => onOpenDetail(m.id)}
-          className="text-left font-medium text-foreground hover:text-[color:var(--athena-gold)]"
-        >
-          {fullName(m)}
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => onOpenDetail(m.id)}
+            className="text-left font-medium text-foreground hover:text-[color:var(--athena-gold)]"
+          >
+            {fullName(m)}
+          </button>
+          {Array.isArray(m.admin_notes) && m.admin_notes.length > 0 && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Paperclip
+                  className="h-3 w-3 cursor-help text-[color:var(--athena-gold,#d4af37)]"
+                  aria-label={`${m.admin_notes.length} admin note(s)`}
+                />
+              </TooltipTrigger>
+              <TooltipContent>
+                {m.admin_notes.length} admin note{m.admin_notes.length === 1 ? "" : "s"}
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
         {m.job_title && <div className="text-[11px] text-muted-foreground">{m.job_title}</div>}
       </td>
 
