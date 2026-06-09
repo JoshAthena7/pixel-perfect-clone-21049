@@ -85,11 +85,16 @@ function AtlasOnboardingShell() {
     );
   }
 
+  if (state.status !== "incomplete") {
+    return null; // navigated away by the effect
+  }
+
   // incomplete — step is 0..4 (= last completed). The "current" step the
   // user should be on is step + 1 (1..5). Resume copy when step > 0.
   const lastCompleted = state.step;
   const currentStep = (lastCompleted + 1) as 1 | 2 | 3 | 4 | 5;
   const resuming = state.resuming;
+
 
   return (
     <div

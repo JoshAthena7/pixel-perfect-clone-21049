@@ -14,6 +14,7 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as OlympusRouteImport } from './routes/olympus'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IrisRouteImport } from './routes/iris'
+import { Route as AtlasOnboardingRouteImport } from './routes/atlas-onboarding'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
@@ -133,6 +134,11 @@ const LoginRoute = LoginRouteImport.update({
 const IrisRoute = IrisRouteImport.update({
   id: '/iris',
   path: '/iris',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AtlasOnboardingRoute = AtlasOnboardingRouteImport.update({
+  id: '/atlas-onboarding',
+  path: '/atlas-onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -676,6 +682,7 @@ const AuthenticatedAdminMissionsMissionIdSetupRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/atlas-onboarding': typeof AtlasOnboardingRoute
   '/iris': typeof IrisRoute
   '/login': typeof LoginRoute
   '/olympus': typeof AuthenticatedOlympusRouteWithChildren
@@ -776,6 +783,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/atlas-onboarding': typeof AtlasOnboardingRoute
   '/iris': typeof IrisRoute
   '/login': typeof LoginRoute
   '/olympus': typeof AuthenticatedOlympusRouteWithChildren
@@ -874,6 +882,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/atlas-onboarding': typeof AtlasOnboardingRoute
   '/iris': typeof IrisRoute
   '/login': typeof LoginRoute
   '/olympus': typeof OlympusRoute
@@ -977,6 +986,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/atlas-onboarding'
     | '/iris'
     | '/login'
     | '/olympus'
@@ -1077,6 +1087,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/atlas-onboarding'
     | '/iris'
     | '/login'
     | '/olympus'
@@ -1174,6 +1185,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/atlas-onboarding'
     | '/iris'
     | '/login'
     | '/olympus'
@@ -1277,6 +1289,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AtlasOnboardingRoute: typeof AtlasOnboardingRoute
   IrisRoute: typeof IrisRoute
   LoginRoute: typeof LoginRoute
   OlympusRoute: typeof OlympusRoute
@@ -1340,6 +1353,13 @@ declare module '@tanstack/react-router' {
       path: '/iris'
       fullPath: '/iris'
       preLoaderRoute: typeof IrisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/atlas-onboarding': {
+      id: '/atlas-onboarding'
+      path: '/atlas-onboarding'
+      fullPath: '/atlas-onboarding'
+      preLoaderRoute: typeof AtlasOnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -2264,6 +2284,7 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AtlasOnboardingRoute: AtlasOnboardingRoute,
   IrisRoute: IrisRoute,
   LoginRoute: LoginRoute,
   OlympusRoute: OlympusRoute,
