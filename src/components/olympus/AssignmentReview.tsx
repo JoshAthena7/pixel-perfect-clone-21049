@@ -548,6 +548,14 @@ export default function AssignmentReview({
           Unassigned Only
         </label>
         <div className="ml-auto flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setImportOpen(true)}
+            className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-semibold hover:bg-surface-hover"
+            title="Import assignment matrix (.xlsx) — merge mode"
+          >
+            <Upload className="h-3 w-3" /> Import Matrix
+          </button>
           {mode === "tab" && isLive && (
             <button
               type="button"
