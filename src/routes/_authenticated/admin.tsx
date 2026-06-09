@@ -57,8 +57,8 @@ function AdminSidebar() {
             Mission Detail
           </NavItem>
         )}
-        <NavItem to="/admin/settings" active={isActive("/admin/settings")} icon={<Settings size={15} strokeWidth={1.5} />}>
-          Settings
+        <NavItem to="/admin/settings" active={isActive("/admin/settings")} icon={<Users size={15} strokeWidth={1.5} />}>
+          Athena Team
         </NavItem>
       </nav>
       <div className="border-t border-border px-2 py-3">
