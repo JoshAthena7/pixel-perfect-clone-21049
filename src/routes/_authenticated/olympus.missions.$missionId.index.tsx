@@ -19,6 +19,15 @@ import { RfpDocumentsTab } from "@/components/mission-command/RfpDocumentsTab";
 import { QaLogTab } from "@/components/mission-command/QaLogTab";
 import { ClientIntelligenceTab } from "@/components/mission-command/ClientIntelligenceTab";
 import { IntelligenceLibraryTab } from "@/components/mission-command/IntelligenceLibraryTab";
+import { ComplianceTab } from "@/components/mission-command/ComplianceTab";
+import { SubmissionChecklistTab } from "@/components/mission-command/SubmissionChecklistTab";
+import { TeamAssignmentsTab } from "@/components/mission-command/TeamAssignmentsTab";
+import { StyleGuideTab } from "@/components/mission-command/StyleGuideTab";
+import { WinStrategyLiveTab } from "@/components/mission-command/WinStrategyLiveTab";
+import { DecisionLogTab } from "@/components/mission-command/DecisionLogTab";
+import { JourneyLiveTab } from "@/components/mission-command/JourneyLiveTab";
+import { MissionSettingsTab } from "@/components/mission-command/MissionSettingsTab";
+import { AuditLogTab } from "@/components/mission-command/AuditLogTab";
 
 const searchSchema = z.object({
   launched: z.coerce.number().optional(),
@@ -107,19 +116,33 @@ function MissionCommandCenter() {
         {activeTab === "qa-log" && <QaLogTab missionId={missionId} />}
         {activeTab === "client-intel" && <ClientIntelligenceTab missionId={missionId} />}
         {activeTab === "intel-library" && <IntelligenceLibraryTab missionId={missionId} />}
-        {activeTab !== "overview" &&
-          activeTab !== "sections-questions" &&
-          activeTab !== "question-health" &&
-          activeTab !== "rfp-documents" &&
-          activeTab !== "qa-log" &&
-          activeTab !== "client-intel" &&
-          activeTab !== "intel-library" && (
-            <div className="rounded-xl border border-dashed border-border p-16 text-center">
-              <p className="text-lg text-muted-foreground">
-                {tabLabel(activeTab)} — Coming in a future sprint.
-              </p>
-            </div>
-          )}
+        {activeTab === "compliance" && (
+          <ComplianceTab
+            missionId={missionId}
+            missionName={mission.name}
+            deadline={mission.submission_deadline}
+          />
+        )}
+        {activeTab === "submission-checklist" && (
+          <SubmissionChecklistTab missionId={missionId} deadline={mission.submission_deadline} />
+        )}
+        {activeTab === "team" && (
+          <TeamAssignmentsTab missionId={missionId} missionName={mission.name} />
+        )}
+        {activeTab === "style-guide" && <StyleGuideTab missionId={missionId} />}
+        {activeTab === "win-strategy" && (
+          <WinStrategyLiveTab missionId={missionId} missionName={mission.name} />
+        )}
+        {activeTab === "decision-log" && (
+          <DecisionLogTab missionId={missionId} missionName={mission.name} />
+        )}
+        {activeTab === "journey" && (
+          <JourneyLiveTab missionId={missionId} deadline={mission.submission_deadline} />
+        )}
+        {activeTab === "settings" && <MissionSettingsTab missionId={missionId} />}
+        {activeTab === "audit-log" && (
+          <AuditLogTab missionId={missionId} missionName={mission.name} />
+        )}
       </div>
     </div>
   );
