@@ -137,3 +137,62 @@ export const removeAtlasTeamMember = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+const GetInput = z.object({ id: z.string().uuid() });
+
+export const getAtlasTeamMember = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => GetInput.parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context as any;
+    await assertAdmin(supabase, userId);
+    const { data: member, error } = await supabase
+      .from("atlas_team_members")
+      .select("*")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!member) throw new Error("Team member not found.");
+
+    const { data: activity } = await supabase
+      .from("atlas_activity_log")
+      .select("id,action,metadata,performed_by,created_at")
+      .eq("member_id", data.id)
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    return { member, activity: activity ?? [] };
+  });
+
+const UpdateInput = z.object({
+  id: z.string().uuid(),
+  first_name: z.string().trim().min(1).max(120).optional(),
+  last_name: z.string().trim().min(1).max(120).optional(),
+  job_title: z.string().trim().max(240).nullable().optional(),
+  phone: z.string().trim().max(64).nullable().optional(),
+  address: z.string().trim().max(500).nullable().optional(),
+  skills: z.array(z.string().trim().min(1).max(80)).max(50).optional(),
+  languages: z.array(z.string().trim().min(1).max(80)).max(20).optional(),
+  atlas_resume_url: z.string().trim().url().max(1000).nullable().optional(),
+});
+
+export const updateAtlasTeamMember = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => UpdateInput.parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context as any;
+    await assertAdmin(supabase, userId);
+    const { id, ...patch } = data;
+    const { error } = await supabase
+      .from("atlas_team_members")
+      .update({ ...patch, updated_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) throw new Error(error.message);
+    await supabase.from("atlas_activity_log").insert({
+      member_id: id,
+      action: "Profile updated",
+      performed_by: userId,
+      metadata: { fields: Object.keys(patch) },
+    });
+    return { ok: true };
+  });
