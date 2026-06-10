@@ -183,11 +183,40 @@ function ResumeWizardPage() {
   }
   if (step === 8) {
     return (
-      <WizardShell step={8} onBack={back} wide>
+      <WizardShell step={8} onBack={back}>
+        <Step7Territory missionId={missionId} onAdvance={() => go(9)} />
+      </WizardShell>
+    );
+  }
+  if (step === 9) {
+    return (
+      <WizardShell step={9} onBack={back} wide>
+        <Step8IntelligenceUpload missionId={missionId} onAdvance={() => go(10)} />
+      </WizardShell>
+    );
+  }
+  if (step === 10) {
+    return (
+      <WizardShell step={10} onBack={back} wide>
+        <Step9MonitoringFeeds missionId={missionId} onAdvance={() => go(11)} />
+      </WizardShell>
+    );
+  }
+  if (step === 11) {
+    return (
+      <WizardShell step={11} onBack={back} wide>
+        <Step10Competitive missionId={missionId} onAdvance={() => go(12)} />
+      </WizardShell>
+    );
+  }
+  if (step === 12) {
+    return (
+      <WizardShell step={12} onBack={back} wide>
         <Step6BlastOff missionId={missionId} />
       </WizardShell>
     );
   }
+
 
   return (
     <WizardShell step={step} onBack={back}>
