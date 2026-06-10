@@ -5,8 +5,10 @@ import type { SVGProps } from "react";
 export function IrisMark({
   className,
   glow = false,
+  size,
   ...props
-}: SVGProps<SVGSVGElement> & { glow?: boolean }) {
+}: Omit<SVGProps<SVGSVGElement>, "size"> & { glow?: boolean; size?: number }) {
+  const sizeProps = size ? { width: size, height: size } : {};
   return (
     <svg
       viewBox="0 0 32 32"
@@ -18,6 +20,7 @@ export function IrisMark({
       className={className}
       aria-hidden="true"
       style={glow ? { filter: "drop-shadow(0 0 6px currentColor)" } : undefined}
+      {...sizeProps}
       {...props}
     >
       {/* outer ring (wisdom / wholeness) */}
