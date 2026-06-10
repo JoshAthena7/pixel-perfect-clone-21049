@@ -79,7 +79,7 @@ function ActionBtn({ label, icon, onClick, danger }: { label: string; icon: Reac
   );
 }
 
-function UpdateRealityDialog({ open, onOpenChange, missionId, onSent }: { open: boolean; onOpenChange: (v: boolean) => void; missionId: string | null; onSent: () => void }) {
+export function UpdateRealityDialog({ open, onOpenChange, missionId, onSent }: { open: boolean; onOpenChange: (v: boolean) => void; missionId: string | null; onSent: () => void }) {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const submit = async () => {
