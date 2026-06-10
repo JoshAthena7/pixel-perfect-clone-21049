@@ -606,6 +606,7 @@ function SectionEditor({
   onSection,
   onQuestion,
   onConfirmQuestion,
+  onConfirmSection,
   onConfirmSectionHigh,
 }: {
   section: Section;
@@ -615,6 +616,7 @@ function SectionEditor({
   onSection: (id: string, patch: Partial<Section>) => void;
   onQuestion: (id: string, patch: Partial<Question>) => void;
   onConfirmQuestion: (id: string) => void;
+  onConfirmSection: (id: string) => void;
   onConfirmSectionHigh: (s: Section) => void;
 }) {
   return (
@@ -622,6 +624,7 @@ function SectionEditor({
       <SectionHeader
         section={section}
         onSection={onSection}
+        onConfirm={() => onConfirmSection(section.id)}
         onConfirmHigh={() => onConfirmSectionHigh(section)}
       />
 
@@ -647,6 +650,7 @@ function SectionEditor({
           <SectionHeader
             section={ch.section}
             onSection={onSection}
+            onConfirm={() => onConfirmSection(ch.section.id)}
             onConfirmHigh={() => onConfirmSectionHigh(ch.section)}
             smaller
           />
