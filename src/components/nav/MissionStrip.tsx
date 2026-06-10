@@ -79,7 +79,7 @@ async function fetchTabAlertsLite(missionId: string) {
 
 export function MissionStrip() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const search = useRouterState({ select: (s) => s.location.search }) as Record<string, unknown>;
+  const search = useRouterState({ select: (s) => s.location.search }) as unknown as Record<string, unknown>;
   const navigate = useNavigate();
   const missionId = useMissionId();
 
