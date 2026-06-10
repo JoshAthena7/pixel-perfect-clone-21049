@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plus, Minus, Maximize2 } from "lucide-react";
+import { Loader2, Plus, Minus, Maximize2, RefreshCw } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
 const NODE_STYLE: Record<string, { color: string; radius: number; shape: "circle" | "star" | "triangle"; labelFill: string }> = {
   requirement: { color: "#1A2B4C", radius: 8, shape: "circle", labelFill: "#fff" },
