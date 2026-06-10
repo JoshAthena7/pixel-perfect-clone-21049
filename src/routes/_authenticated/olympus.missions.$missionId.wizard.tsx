@@ -4,6 +4,9 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { WizardShell } from "@/components/mission-wizard/WizardShell";
 import { Step1Basics, type Step1Values } from "@/components/mission-wizard/Step1Basics";
+import { Step1BUpload } from "@/components/mission-wizard/Step1BUpload";
+import { Step1CProcessing } from "@/components/mission-wizard/Step1CProcessing";
+import { Step1DSummary } from "@/components/mission-wizard/Step1DSummary";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const searchSchema = z.object({
