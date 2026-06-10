@@ -5,6 +5,7 @@ import { processRFPDocuments } from "@/lib/iris-process-rfp.functions";
 import { extractRFPText } from "@/lib/extract-rfp-text.client";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { IrisMark } from "@/components/iris/IrisMark";
 import { cn } from "@/lib/utils";
 
 type StepKey = "download" | "extract" | "analyze" | "save" | "done";
@@ -268,35 +269,39 @@ export function Step1CProcessing({
 
 function IrisPulse({ mode }: { mode: "active" | "idle" | "off" }) {
   return (
-    <div className="relative h-32 w-32 flex items-center justify-center">
+    <div className="relative h-36 w-36 flex items-center justify-center">
       {mode !== "off" && (
         <>
           <span
             className={cn(
-              "absolute inset-0 rounded-full border-2 border-[var(--athena-gold)]",
+              "absolute inset-0 rounded-full border border-[#8b6dff]",
               mode === "active"
-                ? "animate-[iris-pulse_1.5s_ease-out_infinite] opacity-70"
-                : "animate-[iris-pulse_3s_ease-out_infinite] opacity-40",
+                ? "animate-[iris-pulse_1.8s_ease-out_infinite] opacity-60"
+                : "animate-[iris-pulse_3s_ease-out_infinite] opacity-30",
             )}
           />
           <span
             className={cn(
-              "absolute inset-2 rounded-full border-2 border-[var(--athena-gold)]/60",
+              "absolute inset-3 rounded-full border border-[#67e8f9]/60",
               mode === "active"
-                ? "animate-[iris-pulse_1.5s_ease-out_infinite] [animation-delay:0.5s] opacity-50"
-                : "animate-[iris-pulse_3s_ease-out_infinite] opacity-25",
+                ? "animate-[iris-pulse_1.8s_ease-out_infinite] [animation-delay:0.6s] opacity-50"
+                : "animate-[iris-pulse_3s_ease-out_infinite] opacity-20",
             )}
           />
         </>
       )}
-      <span
+      <IrisMark
+        size={88}
+        glow={mode === "active"}
         className={cn(
-          "relative h-14 w-14 rounded-full bg-[var(--athena-gold)]",
-          mode === "active" && "shadow-[0_0_40px_var(--athena-gold-glow)]",
-          mode === "idle" && "opacity-70",
-          mode === "off" && "opacity-30",
+          "relative transition-opacity",
+          mode === "active" && "animate-pulse",
+          mode === "idle" && "opacity-90",
+          mode === "off" && "opacity-40 grayscale",
         )}
       />
+
     </div>
   );
 }
+
