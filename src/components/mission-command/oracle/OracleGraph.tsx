@@ -66,17 +66,26 @@ export function OracleGraph({ missionId, completeness }: { missionId: string; co
     return () => window.removeEventListener("resize", check);
   }, []);
 
+  const qc = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ["oracle-graph", missionId],
     queryFn: async () => {
       const [{ data: nodes }, { data: edges }] = await Promise.all([
-        supabase.from("intelligence_graph_nodes").select("id,label,node_type,description,confidence_level,source").eq("mission_id", missionId).eq("is_active", true),
+        supabase.from("intelligence_graph_nodes").select("id,label,node_type,description,confidence_level,source,updated_at").eq("mission_id", missionId).eq("is_active", true),
         supabase.from("intelligence_graph_edges").select("source_node_id,target_node_id,strength,is_confirmed,relationship_description").eq("mission_id", missionId),
       ]);
       return { nodes: nodes ?? [], edges: edges ?? [] };
     },
     refetchInterval: 30000,
   });
+
+  const lastUpdated = useMemo(() => {
+    const times = (data?.nodes ?? [])
+      .map((n) => new Date((n as { updated_at?: string }).updated_at ?? 0).getTime())
+      .filter((t) => Number.isFinite(t) && t > 0);
+    if (!times.length) return null;
+    return new Date(Math.max(...times));
+  }, [data?.nodes]);
 
   const nodes = useMemo<GNode[]>(() => (data?.nodes ?? []).map((n) => ({ ...n })), [data?.nodes]);
   const edges = useMemo<GEdge[]>(
