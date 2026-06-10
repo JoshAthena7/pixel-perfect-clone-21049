@@ -656,17 +656,7 @@ function IrisAssistsPanel({
   );
 }
 
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          )}
-        </section>
-      </div>
-    </div>
-  );
-}
+
 
 function AcceptanceCard({
   assignment,
