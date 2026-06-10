@@ -3,7 +3,7 @@ import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import Papa from "papaparse";
-import { Home, Upload, UserPlus, Trash2, Loader2 } from "lucide-react";
+import { Home, Upload, UserPlus, Trash2, Loader2, Send, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,9 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -24,6 +27,18 @@ import {
 import {
   previewAtlasTeamSync, commitAtlasTeamSync,
 } from "@/lib/atlas-team-sync.functions";
+import {
+  updateAtlasTeamRole, sendAtlasInvite,
+} from "@/lib/atlas-team-invite.functions";
+
+const ROLE_OPTIONS = [
+  { value: "unassigned", label: "Unassigned" },
+  { value: "admin", label: "Admin" },
+  { value: "engagement_lead", label: "Engagement Lead" },
+  { value: "writer", label: "Writer" },
+  { value: "sme", label: "SME" },
+  { value: "reviewer", label: "Reviewer" },
+] as const;
 
 export const Route = createFileRoute("/_authenticated/admin/team")({
   beforeLoad: async () => {
@@ -63,6 +78,8 @@ function TeamRosterPage() {
   const removeFn = useServerFn(removeAtlasTeamMember);
   const previewFn = useServerFn(previewAtlasTeamSync);
   const commitFn = useServerFn(commitAtlasTeamSync);
+  const updateRoleFn = useServerFn(updateAtlasTeamRole);
+  const inviteFn = useServerFn(sendAtlasInvite);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["atlas-team-roster"],
@@ -106,7 +123,38 @@ function TeamRosterPage() {
     onError: (e: any) => toast.error(e?.message ?? "Failed to remove"),
   });
 
-  // ----- CSV import -----
+  // ----- role update -----
+  const [pendingRoleId, setPendingRoleId] = useState<string | null>(null);
+  const roleMut = useMutation({
+    mutationFn: (input: { id: string; atlas_role: string }) => updateRoleFn({ data: input }),
+    onMutate: (v) => setPendingRoleId(v.id),
+    onSuccess: () => {
+      toast.success("Role updated");
+      qc.invalidateQueries({ queryKey: ["atlas-team-roster"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Failed to update role"),
+    onSettled: () => setPendingRoleId(null),
+  });
+
+  // ----- invite -----
+  const [pendingInviteId, setPendingInviteId] = useState<string | null>(null);
+  const inviteMut = useMutation({
+    mutationFn: (id: string) => inviteFn({ data: { id } }),
+    onMutate: (id) => setPendingInviteId(id),
+    onSuccess: async (r: any) => {
+      const url = `${window.location.origin}/auth?invite=${r.token}`;
+      try {
+        await navigator.clipboard.writeText(url);
+        toast.success("Invite sent · link copied to clipboard");
+      } catch {
+        toast.success("Invite sent", { description: url });
+      }
+      qc.invalidateQueries({ queryKey: ["atlas-team-roster"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Failed to send invite"),
+    onSettled: () => setPendingInviteId(null),
+  });
+
   const fileInput = useRef<HTMLInputElement>(null);
   const [csvRows, setCsvRows] = useState<CsvRow[] | null>(null);
   const [csvFileName, setCsvFileName] = useState<string>("");
@@ -351,22 +399,55 @@ function TeamRosterPage() {
               No team members yet. Add manually or import a TalentDesk CSV.
             </p>
           )}
-          {filtered.map((m: any) => (
-            <div key={m.id} className="grid grid-cols-12 gap-2 border-b px-4 py-3 text-sm items-center last:border-0">
-              <div className="col-span-3 font-medium">{[m.first_name, m.last_name].filter(Boolean).join(" ") || "—"}</div>
-              <div className="col-span-3 text-muted-foreground truncate">{m.email}</div>
-              <div className="col-span-2 truncate">{m.job_title || "—"}</div>
-              <div className="col-span-2 truncate">{m.atlas_role || "—"}</div>
-              <div className="col-span-1">
-                <Badge variant="outline" className="text-[10px]">{m.atlas_invite_status ?? "—"}</Badge>
+          {filtered.map((m: any) => {
+            const currentRole = (m.atlas_role && ROLE_OPTIONS.some(r => r.value === m.atlas_role))
+              ? m.atlas_role : "unassigned";
+            const invited = m.atlas_invite_status === "invited" || m.atlas_invite_status === "accepted";
+            return (
+              <div key={m.id} className="grid grid-cols-12 gap-2 border-b px-4 py-3 text-sm items-center last:border-0">
+                <div className="col-span-3 font-medium">{[m.first_name, m.last_name].filter(Boolean).join(" ") || "—"}</div>
+                <div className="col-span-3 text-muted-foreground truncate">{m.email}</div>
+                <div className="col-span-2 truncate">{m.job_title || "—"}</div>
+                <div className="col-span-2">
+                  <Select
+                    value={currentRole}
+                    disabled={pendingRoleId === m.id}
+                    onValueChange={(v) => {
+                      if (v !== currentRole) roleMut.mutate({ id: m.id, atlas_role: v });
+                    }}
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ROLE_OPTIONS.map((r) => (
+                        <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="col-span-1">
+                  <Badge variant="outline" className="text-[10px]">{m.atlas_invite_status ?? "—"}</Badge>
+                </div>
+                <div className="col-span-1 flex justify-end gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    title={invited ? "Resend invite" : "Send invite"}
+                    disabled={pendingInviteId === m.id}
+                    onClick={() => inviteMut.mutate(m.id)}
+                  >
+                    {pendingInviteId === m.id
+                      ? <Loader2 className="h-4 w-4 animate-spin" />
+                      : invited ? <Copy className="h-4 w-4" /> : <Send className="h-4 w-4" />}
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => setRemoveTarget(m)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-              <div className="col-span-1 text-right">
-                <Button variant="ghost" size="icon" onClick={() => setRemoveTarget(m)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
