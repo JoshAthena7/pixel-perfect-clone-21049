@@ -30,6 +30,7 @@ import { JourneyLiveTab } from "@/components/mission-command/JourneyLiveTab";
 import { MissionSettingsTab } from "@/components/mission-command/MissionSettingsTab";
 import { AuditLogTab } from "@/components/mission-command/AuditLogTab";
 import { OracleTab } from "@/components/mission-command/oracle/OracleTab";
+import { QuickActionsBar } from "@/components/mission-command/QuickActionsBar";
 
 const searchSchema = z.object({
   launched: z.coerce.number().optional(),
@@ -142,6 +143,7 @@ function MissionCommandCenter() {
   return (
     <div className="min-h-screen">
       <MissionHeader mission={mission} unreadCount={unreadCount} />
+      <QuickActionsBar missionId={missionId} />
       <MissionTabs active={activeTab} onChange={setTab} missionId={missionId} />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
         {activeTab === "overview" && (
