@@ -5,6 +5,7 @@ import { processRFPDocuments } from "@/lib/iris-process-rfp.functions";
 import { extractRFPText } from "@/lib/extract-rfp-text.client";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { IrisMark } from "@/components/iris/IrisMark";
 import { cn } from "@/lib/utils";
 
 type StepKey = "download" | "extract" | "analyze" | "save" | "done";
