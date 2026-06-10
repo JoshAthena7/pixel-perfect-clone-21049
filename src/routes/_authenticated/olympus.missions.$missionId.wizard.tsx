@@ -149,6 +149,32 @@ function ResumeWizardPage() {
       </WizardShell>
     );
   }
+  if (step === 7) {
+    const view: SubView = (search.view as SubView) ?? "team";
+    return (
+      <WizardShell step={7} onBack={back} wide>
+        <Step5Team
+          missionId={missionId}
+          view={view}
+          setView={(v) =>
+            navigate({
+              to: "/olympus/missions/$missionId/wizard",
+              params: { missionId },
+              search: { step: 7, view: v },
+            })
+          }
+          onAdvanceToBlastOff={() => go(8)}
+        />
+      </WizardShell>
+    );
+  }
+  if (step === 8) {
+    return (
+      <WizardShell step={8} onBack={back} wide>
+        <Step6BlastOff missionId={missionId} />
+      </WizardShell>
+    );
+  }
 
   return (
     <WizardShell step={step} onBack={back}>
