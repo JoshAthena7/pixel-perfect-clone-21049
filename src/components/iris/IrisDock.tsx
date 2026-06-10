@@ -315,10 +315,13 @@ export function IrisDock({ prefillSignal, openSignal }: Props) {
         title="Ask IRIS"
         className="fixed bottom-5 right-5 z-50 group"
       >
-        <span className="relative inline-flex items-center justify-center h-14 w-14 rounded-full shadow-lg" style={{ background: GOLD, color: "#0F1A2E" }}>
-          <IrisMark className="h-8 w-8" />
-          <span className="absolute inset-0 rounded-full animate-ping opacity-30" style={{ background: GOLD, animationDuration: "3s" }} />
-          {hasUnread && <span className="absolute top-0 right-0 h-3 w-3 rounded-full" style={{ background: GOLD, boxShadow: "0 0 0 2px #0F1A2E" }} />}
+        <span
+          className="relative inline-flex items-center justify-center h-14 w-14 rounded-full shadow-lg"
+          style={{ background: `radial-gradient(circle at 30% 30%, ${IRIS_BRAND}, ${IRIS_BRAND_DEEP} 70%, #1A1140)` }}
+        >
+          <IrisMark className="h-9 w-9 relative z-10" />
+          <span className="absolute inset-0 rounded-full animate-ping opacity-25" style={{ background: IRIS_BRAND, animationDuration: "3s" }} />
+          {hasUnread && <span className="absolute top-0 right-0 h-3 w-3 rounded-full" style={{ background: IRIS_BRAND, boxShadow: "0 0 0 2px #0F1A2E" }} />}
         </span>
         <span className="absolute right-16 bottom-3 hidden group-hover:inline-block px-2 py-1 rounded text-xs bg-card text-foreground border whitespace-nowrap">
           Ask IRIS
