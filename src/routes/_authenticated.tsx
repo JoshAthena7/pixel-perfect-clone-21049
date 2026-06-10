@@ -56,6 +56,7 @@ const NON_ADMIN_ALLOWED_PREFIXES = [
   "/checkin-home",
   "/checkin",
   "/missions", // mission deep links still resolve (legacy)
+  "/olympus", // ATLAS mission system
 ];
 
 function isAllowedForNonAdmin(path: string): boolean {
