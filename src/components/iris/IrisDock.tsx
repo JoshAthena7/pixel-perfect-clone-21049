@@ -192,7 +192,7 @@ export function IrisDock({ prefillSignal, openSignal }: Props) {
     const mid = iris.current_mission_id;
     const [qs, asg] = await Promise.all([
       supabase.from("questions").select("id,question_number,status").eq("mission_id", mid).in("status", ["at_risk", "blocked", "overdue"]).limit(8),
-      supabase.from("mission_assignments").select("id,status").eq("mission_id", mid).eq("status", "pending_acceptance").limit(8),
+      supabase.from("mission_assignments").select("id,acceptance_status").eq("mission_id", mid).eq("acceptance_status", "pending").limit(8),
     ]);
     const items: RiskCard["items"] = [
       ...((qs.data ?? []).map((q) => ({
