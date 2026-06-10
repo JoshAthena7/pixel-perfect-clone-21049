@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
-export function OlympusSecondaryNav() {
+export function OlympusSecondaryNav({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   const { data: activeCount = 0 } = useQuery({
@@ -20,7 +20,9 @@ export function OlympusSecondaryNav() {
 
   const items = [
     { label: "Missions", to: "/olympus/missions", badge: activeCount, match: pathname.startsWith("/olympus") },
-    { label: "Athena Team", to: "/admin/team", badge: null as number | null, match: pathname.startsWith("/admin/team") },
+    ...(isAdmin
+      ? [{ label: "Athena Team", to: "/admin/team", badge: null as number | null, match: pathname.startsWith("/admin") }]
+      : []),
   ];
 
   return (
