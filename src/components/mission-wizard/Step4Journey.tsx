@@ -215,23 +215,38 @@ export function Step4Journey({ missionId }: { missionId: string }) {
       <JourneySummary phases={phases} deliverables={deliverables} deadline={deadline} />
 
       <div className="flex flex-col items-end gap-2 pt-4 border-t">
-        <Button
-          onClick={() =>
-            navigate({
-              to: "/olympus/missions/$missionId/wizard",
-              params: { missionId },
-              search: { step: 7 },
-            })
-          }
-          disabled={!canContinue}
-          className={cn(
-            "bg-[var(--athena-gold)] text-[var(--athena-navy)] hover:bg-[var(--athena-gold-light)] font-semibold",
-            !canContinue && "opacity-40",
-          )}
-          title={!canContinue ? "Add at least 2 phases including a Pens Down phase to continue" : undefined}
-        >
-          Continue to Team Assignment →
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() =>
+              navigate({
+                to: "/olympus/missions/$missionId/wizard",
+                params: { missionId },
+                search: { step: 7 },
+              })
+            }
+            title="Skip Journey for now and set up your team. You can return to Journey via the wizard Back button."
+          >
+            Skip for now — build Team
+          </Button>
+          <Button
+            onClick={() =>
+              navigate({
+                to: "/olympus/missions/$missionId/wizard",
+                params: { missionId },
+                search: { step: 7 },
+              })
+            }
+            disabled={!canContinue}
+            className={cn(
+              "bg-[var(--athena-gold)] text-[var(--athena-navy)] hover:bg-[var(--athena-gold-light)] font-semibold",
+              !canContinue && "opacity-40",
+            )}
+            title={!canContinue ? "Add at least 2 phases including a Pens Down phase to continue" : undefined}
+          >
+            Continue to Team Assignment →
+          </Button>
+        </div>
         <button
           type="button"
           onClick={() => navigate({ to: "/olympus/missions" })}
