@@ -15,6 +15,10 @@ import {
 import { OverviewTab } from "@/components/mission-command/OverviewTab";
 import { SectionsQuestionsTab } from "@/components/mission-command/SectionsQuestionsTab";
 import { QuestionHealthTab } from "@/components/mission-command/QuestionHealthTab";
+import { RfpDocumentsTab } from "@/components/mission-command/RfpDocumentsTab";
+import { QaLogTab } from "@/components/mission-command/QaLogTab";
+import { ClientIntelligenceTab } from "@/components/mission-command/ClientIntelligenceTab";
+import { IntelligenceLibraryTab } from "@/components/mission-command/IntelligenceLibraryTab";
 
 const searchSchema = z.object({
   launched: z.coerce.number().optional(),
@@ -99,9 +103,17 @@ function MissionCommandCenter() {
         {activeTab === "question-health" && (
           <QuestionHealthTab missionId={missionId} onNavigateTab={setTab} />
         )}
+        {activeTab === "rfp-documents" && <RfpDocumentsTab missionId={missionId} />}
+        {activeTab === "qa-log" && <QaLogTab missionId={missionId} />}
+        {activeTab === "client-intel" && <ClientIntelligenceTab missionId={missionId} />}
+        {activeTab === "intel-library" && <IntelligenceLibraryTab missionId={missionId} />}
         {activeTab !== "overview" &&
           activeTab !== "sections-questions" &&
-          activeTab !== "question-health" && (
+          activeTab !== "question-health" &&
+          activeTab !== "rfp-documents" &&
+          activeTab !== "qa-log" &&
+          activeTab !== "client-intel" &&
+          activeTab !== "intel-library" && (
             <div className="rounded-xl border border-dashed border-border p-16 text-center">
               <p className="text-lg text-muted-foreground">
                 {tabLabel(activeTab)} — Coming in a future sprint.
