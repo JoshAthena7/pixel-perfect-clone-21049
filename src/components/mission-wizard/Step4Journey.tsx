@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import {
   DndContext,
   closestCenter,
@@ -16,7 +17,17 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Pencil, Plus, Trash2, X } from "lucide-react";
+import {
+  GripVertical,
+  Pencil,
+  Plus,
+  Trash2,
+  X,
+  Star,
+  Sparkles,
+  Minus,
+  RotateCcw,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -33,6 +44,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import {
+  TEMPLATE_PHASES,
+  defaultDurations,
+  computePhasesFromDurations,
+  adjustDurations,
+  durationsFromPhases,
+  dateToISO,
+  type TemplatePhaseKey,
+} from "@/lib/journey-template";
+import { assessJourneyTimeline } from "@/lib/journey-assessment.functions";
 
 // ---------- types & constants ----------
 export type PhaseType = "planning" | "drafting" | "review" | "gate" | "pens_down";
@@ -135,6 +156,17 @@ export function Step4Journey({ missionId }: { missionId: string }) {
 
   const [panel, setPanel] = useState<{ open: boolean; editing?: Phase }>({ open: false });
   const [confirmDelete, setConfirmDelete] = useState<Phase | null>(null);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return sessionStorage.getItem(`journey-banner-dismissed:${missionId}`) === "1";
+  });
+  const [mode, setMode] = useState<"template" | "fresh" | null>(() => {
+    if (typeof window === "undefined") return null;
+    const v = sessionStorage.getItem(`journey-mode:${missionId}`);
+    return v === "template" || v === "fresh" ? v : null;
+  });
+  const [applying, setApplying] = useState(false);
 
   if (isLoading || !data) {
     return (
@@ -149,8 +181,97 @@ export function Step4Journey({ missionId }: { missionId: string }) {
   const { deadline, phases, deliverables, team } = data;
   const pensDownCount = phases.filter((p) => p.kind === "pens_down").length;
   const canContinue = phases.length >= 2 && pensDownCount >= 1;
-
   const refresh = () => qc.invalidateQueries({ queryKey: ["journey", missionId] });
+
+  // Template selection screen — show when no phases yet and user hasn't picked a mode
+  if (phases.length === 0 && mode === null && !applying) {
+    return (
+      <TemplateSelection
+        deadline={deadline}
+        onUseTemplate={async () => {
+          setApplying(true);
+          try {
+            const startedAt = Date.now();
+            await applyAthenaTemplate(missionId, deadline, team);
+            sessionStorage.setItem(`journey-mode:${missionId}`, "template");
+            setMode("template");
+            // Keep loading state visible for at least 1.5s
+            const elapsed = Date.now() - startedAt;
+            if (elapsed < 1500) {
+              await new Promise((r) => setTimeout(r, 1500 - elapsed));
+            }
+            await refresh();
+            toast.success("Athena Standard journey loaded.");
+          } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Failed to load template");
+          } finally {
+            setApplying(false);
+          }
+        }}
+        onStartFresh={() => {
+          sessionStorage.setItem(`journey-mode:${missionId}`, "fresh");
+          setMode("fresh");
+        }}
+      />
+    );
+  }
+
+  if (applying) {
+    return <TemplateApplyingState />;
+  }
+
+  // Calculate timeline metrics for the summary + IRIS card
+  const today = new Date();
+  const deadlineDate = new Date(deadline);
+  const totalMissionDays = Math.max(0, Math.round((deadlineDate.getTime() - today.getTime()) / 86_400_000));
+  const findByName = (n: string) =>
+    phases.find((p) => p.name.trim().toLowerCase() === n.toLowerCase());
+  const writersWrite = findByName("Writers Write");
+  const writersDays = writersWrite
+    ? Math.max(1, Math.round((new Date(writersWrite.end_date).getTime() - new Date(writersWrite.start_date).getTime()) / 86_400_000))
+    : 0;
+  const reviewPhaseNames = ["Red Team Draft Due", "Mock Score", "Gold Team", "Quality Control", "Executive Review"];
+  const reviewDays = reviewPhaseNames.reduce((s, name) => {
+    const p = findByName(name);
+    if (!p) return s;
+    return s + Math.max(1, Math.round((new Date(p.end_date).getTime() - new Date(p.start_date).getTime()) / 86_400_000));
+  }, 0);
+  const pensDown = phases.find((p) => p.kind === "pens_down");
+  const daysToPensDown = pensDown ? Math.max(0, Math.round((new Date(pensDown.end_date).getTime() - today.getTime()) / 86_400_000)) : totalMissionDays;
+
+  // Buffer days: total mission days minus calendar days actually covered by phases
+  let bufferDays = 0;
+  if (phases.length > 0) {
+    const ranges = phases.map((p) => [new Date(p.start_date).getTime(), new Date(p.end_date).getTime()] as const)
+      .sort((a, b) => a[0] - b[0]);
+    let covered = 0;
+    let curStart = ranges[0][0];
+    let curEnd = ranges[0][1];
+    for (let i = 1; i < ranges.length; i++) {
+      const [s, e] = ranges[i];
+      if (s <= curEnd) curEnd = Math.max(curEnd, e);
+      else {
+        covered += Math.round((curEnd - curStart) / 86_400_000);
+        curStart = s;
+        curEnd = e;
+      }
+    }
+    covered += Math.round((curEnd - curStart) / 86_400_000);
+    bufferDays = totalMissionDays - covered;
+  }
+
+  // Detect overlaps for the timeline indicator + note
+  const overlapPairs: Array<[string, string]> = [];
+  for (let i = 0; i < phases.length; i++) {
+    for (let j = i + 1; j < phases.length; j++) {
+      const a = phases[i], b = phases[j];
+      if (a.kind === "gate" || b.kind === "gate") continue;
+      if (overlaps(a.start_date, a.end_date, b.start_date, b.end_date)) {
+        overlapPairs.push([a.id, b.id]);
+      }
+    }
+  }
+  const overlappingIds = new Set(overlapPairs.flat());
 
   const handleDelete = async (phase: Phase) => {
     const isOnlyPensDown = phase.kind === "pens_down" && pensDownCount === 1;
@@ -169,7 +290,6 @@ export function Step4Journey({ missionId }: { missionId: string }) {
 
   const handleReorder = async (newOrder: Phase[]) => {
     const updates = newOrder.map((p, idx) => ({ id: p.id, order_index: idx }));
-    // Optimistic local-only via query cache invalidation after writes
     await Promise.all(
       updates.map((u) =>
         supabase.from("mission_journey_phases").update({ order_index: u.order_index }).eq("id", u.id),
@@ -177,6 +297,35 @@ export function Step4Journey({ missionId }: { missionId: string }) {
     );
     refresh();
   };
+
+  // Adjust template phase durations (compress/expand/reset)
+  const applyDurations = async (durations: Record<TemplatePhaseKey, number>) => {
+    const computed = computePhasesFromDurations(deadline, durations);
+    const byName = new Map(computed.map((c) => [c.name.toLowerCase(), c]));
+    const updates = phases
+      .map((p) => {
+        const c = byName.get(p.name.trim().toLowerCase());
+        if (!c) return null;
+        return {
+          id: p.id,
+          start_date: dateToISO(c.start),
+          end_date: dateToISO(c.end),
+        };
+      })
+      .filter((u): u is { id: string; start_date: string; end_date: string } => u !== null);
+    await Promise.all(
+      updates.map((u) =>
+        supabase
+          .from("mission_journey_phases")
+          .update({ start_date: u.start_date, end_date: u.end_date })
+          .eq("id", u.id),
+      ),
+    );
+    refresh();
+  };
+
+  const currentDurations = durationsFromPhases(phases);
+  const isTemplate = mode === "template" || currentDurations !== null;
 
   return (
     <div className="space-y-8">
@@ -189,6 +338,24 @@ export function Step4Journey({ missionId }: { missionId: string }) {
         </p>
       </header>
 
+      {isTemplate && !bannerDismissed && (
+        <TemplateBanner
+          deadline={deadline}
+          onDismiss={() => {
+            sessionStorage.setItem(`journey-banner-dismissed:${missionId}`, "1");
+            setBannerDismissed(true);
+          }}
+        />
+      )}
+
+      {isTemplate && currentDurations && (
+        <QuickAdjustControls
+          onCompress={(n) => applyDurations(adjustDurations(currentDurations, n))}
+          onExpand={(n) => applyDurations(adjustDurations(currentDurations, -n))}
+          onReset={() => setConfirmReset(true)}
+        />
+      )}
+
       <Timeline
         phases={phases}
         deadline={deadline}
@@ -196,7 +363,15 @@ export function Step4Journey({ missionId }: { missionId: string }) {
         deliverableCounts={Object.fromEntries(
           phases.map((p) => [p.id, deliverables.filter((d) => d.phase_id === p.id).length]),
         )}
+        overlappingIds={overlappingIds}
       />
+
+      {overlapPairs.length > 0 && (
+        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+          {overlapPairs.length} phase{overlapPairs.length === 1 ? "" : "s"} overlap. This is
+          supported — overlapping phases allow parallel work streams.
+        </p>
+      )}
 
       {phases.length > 0 ? (
         <PhaseCardList
@@ -212,7 +387,23 @@ export function Step4Journey({ missionId }: { missionId: string }) {
         />
       ) : null}
 
-      <JourneySummary phases={phases} deliverables={deliverables} deadline={deadline} />
+      <JourneySummary
+        totalMissionDays={totalMissionDays}
+        writersDays={writersDays}
+        reviewDays={reviewDays}
+        daysToPensDown={daysToPensDown}
+        bufferDays={bufferDays}
+      />
+
+      {isTemplate && (
+        <IrisAssessmentCard
+          missionId={missionId}
+          deadline={deadline}
+          writersDays={writersDays}
+          reviewDays={reviewDays}
+          daysToSubmission={daysToPensDown}
+        />
+      )}
 
       <div className="flex flex-col items-end gap-2 pt-4 border-t">
         <div className="flex items-center gap-2">
@@ -293,9 +484,36 @@ export function Step4Journey({ missionId }: { missionId: string }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={confirmReset} onOpenChange={(o) => !o && setConfirmReset(false)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset to template defaults?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will reset all phase dates to the template defaults. Any manual edits will be
+              lost. Reset?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                setConfirmReset(false);
+                await applyDurations(defaultDurations(deadline));
+                sessionStorage.removeItem(`journey-iris:${missionId}`);
+                toast.success("Reset to template defaults.");
+              }}
+            >
+              Reset
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+
+
 
 // ---------- Timeline ----------
 function Timeline({
@@ -303,11 +521,13 @@ function Timeline({
   deadline,
   onAdd,
   deliverableCounts,
+  overlappingIds,
 }: {
   phases: Phase[];
   deadline: string;
   onAdd: () => void;
   deliverableCounts: Record<string, number>;
+  overlappingIds?: Set<string>;
 }) {
   const sorted = [...phases].sort(
     (a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime(),
@@ -363,9 +583,12 @@ function Timeline({
           return (
             <div
               key={p.id}
-              className="absolute top-1/2 -translate-y-1/2 h-7 rounded px-2 text-[11px] text-white flex items-center overflow-hidden whitespace-nowrap"
+              className={cn(
+                "absolute top-1/2 -translate-y-1/2 h-7 rounded px-2 text-[11px] text-white flex items-center overflow-hidden whitespace-nowrap",
+                overlappingIds?.has(p.id) && "ring-2 ring-amber-400 ring-offset-1",
+              )}
               style={{ left: `${left}%`, width: `${width}%`, background: meta.color }}
-              title={`${p.name} · ${fmt(p.start_date)} → ${fmt(p.end_date)} · ${deliverableCounts[p.id] ?? 0} deliverables`}
+              title={`${p.name} · ${fmt(p.start_date)} → ${fmt(p.end_date)} · ${deliverableCounts[p.id] ?? 0} deliverables${overlappingIds?.has(p.id) ? " · overlaps with another phase" : ""}`}
             >
               <span className="truncate">{p.name}</span>
             </div>
@@ -749,16 +972,7 @@ function PhasePanel({
   if (endDate && new Date(endDate) > new Date(deadline)) {
     errors.push(`End date cannot be after the submission deadline (${fmt(deadline)}).`);
   }
-  if (kind !== "pens_down" && startDate && endDate) {
-    for (const p of phases) {
-      if (p.id === editing?.id) continue;
-      if (p.kind === "gate") continue;
-      if (overlaps(toISO(startDate), toISO(endDate), p.start_date, p.end_date)) {
-        errors.push(`These dates overlap with ${p.name} (${fmt(p.start_date)} → ${fmt(p.end_date)}). Phases cannot overlap.`);
-        break;
-      }
-    }
-  }
+  // Overlap is allowed — phases can run in parallel. Informational only.
 
   const canSave = name.trim().length > 0 && !!startDate && !!endDate && errors.length === 0 && !saving;
 
@@ -1015,33 +1229,22 @@ function PhasePanel({
 
 // ---------- Summary ----------
 function JourneySummary({
-  phases,
-  deliverables,
-  deadline,
+  totalMissionDays,
+  writersDays,
+  reviewDays,
+  daysToPensDown,
+  bufferDays,
 }: {
-  phases: Phase[];
-  deliverables: Deliverable[];
-  deadline: string;
+  totalMissionDays: number;
+  writersDays: number;
+  reviewDays: number;
+  daysToPensDown: number;
+  bufferDays: number;
 }) {
-  const today = new Date();
-  const deadlineDate = new Date(deadline);
-  const totalDays = Math.max(0, dayDiff(today, deadlineDate));
-  const pensDown = phases.find((p) => p.kind === "pens_down");
-  const daysToPens = pensDown ? Math.max(0, dayDiff(today, new Date(pensDown.end_date))) : null;
-  const firstDeliverable = deliverables
-    .filter((d) => d.due_date)
-    .sort((a, b) => new Date(a.due_date!).getTime() - new Date(b.due_date!).getTime())[0];
-  const daysToFirst = firstDeliverable
-    ? Math.max(0, dayDiff(today, new Date(firstDeliverable.due_date!)))
-    : null;
-  const gateCount = phases.filter((p) => p.kind === "gate").length;
-
   const pensColor =
-    daysToPens === null
-      ? "text-foreground"
-      : daysToPens < 14
+    daysToPensDown < 14
       ? "text-red-600"
-      : daysToPens < 30
+      : daysToPensDown < 30
       ? "text-amber-600"
       : "text-foreground";
 
@@ -1054,23 +1257,36 @@ function JourneySummary({
         Journey Summary
       </h3>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-        <Stat label="Total duration" value={`${totalDays} days from today to submission`} />
+        <Stat label="Total mission duration" value={`${totalMissionDays} days from today to submission`} />
+        <Stat label="Days for writing" value={`${writersDays} days`} />
+        <Stat label="Days for review" value={`${reviewDays} days`} />
+        <Stat label="Days to Pens Down" value={`${daysToPensDown} days`} valueClass={pensColor} />
         <Stat
-          label="Days to Pens Down"
-          value={daysToPens === null ? "—" : `${daysToPens} days`}
-          valueClass={pensColor}
+          label="Buffer days"
+          value={
+            bufferDays >= 0
+              ? `${bufferDays} buffer days available`
+              : `${Math.abs(bufferDays)} days over deadline`
+          }
+          valueClass={bufferDays >= 0 ? "text-emerald-700" : "text-amber-700"}
         />
-        <Stat
-          label="Days to first deliverable"
-          value={daysToFirst === null ? "—" : `${daysToFirst} days`}
-        />
-        <Stat label="Phases" value={`${phases.length}`} />
-        <Stat label="Deliverables" value={`${deliverables.length}`} />
-        <Stat label="Gates" value={`${gateCount}`} />
       </div>
+      {bufferDays < 0 && (
+        <p className="mt-3 text-xs bg-amber-50 border border-amber-200 text-amber-800 rounded px-3 py-2">
+          Your phases extend past your submission deadline by {Math.abs(bufferDays)} days. Adjust
+          phase durations before continuing.
+        </p>
+      )}
+      {bufferDays > 0 && (
+        <p className="mt-3 text-xs text-emerald-700/80">
+          {bufferDays} buffer days available.
+        </p>
+      )}
     </div>
   );
 }
+
+
 
 function Stat({ label, value, valueClass }: { label: string; value: string; valueClass?: string }) {
   return (
@@ -1080,3 +1296,380 @@ function Stat({ label, value, valueClass }: { label: string; value: string; valu
     </div>
   );
 }
+
+// ====================================================================
+// Athena Standard Template — selection screen, banner, quick adjust,
+// IRIS assessment, and the template apply function.
+// ====================================================================
+
+function TemplateSelection({
+  deadline,
+  onUseTemplate,
+  onStartFresh,
+}: {
+  deadline: string;
+  onUseTemplate: () => void;
+  onStartFresh: () => void;
+}) {
+  return (
+    <div className="space-y-8">
+      <header>
+        <h1 className="text-4xl font-semibold text-[var(--athena-navy)] tracking-tight">
+          Build the Mission Journey.
+        </h1>
+        <p className="mt-2 text-muted-foreground">
+          Start from the Athena Standard Template or build from scratch.
+        </p>
+      </header>
+
+      <div className="grid md:grid-cols-2 gap-5">
+        {/* Athena Standard */}
+        <div className="relative rounded-xl border-2 p-6 bg-card shadow-sm flex flex-col"
+          style={{ borderColor: "var(--athena-gold)" }}>
+          <span className="absolute top-3 right-3 inline-flex items-center gap-1 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--athena-gold)] text-[var(--athena-navy)] font-semibold">
+            Recommended
+          </span>
+          <div className="flex items-center gap-2">
+            <Star className="h-4 w-4 text-[var(--athena-gold)] fill-[var(--athena-gold)]" />
+            <h3 className="font-semibold text-lg text-[var(--athena-navy)]">Athena Standard</h3>
+          </div>
+          <p className="text-sm text-muted-foreground mt-2">
+            The proven Athena writing lifecycle. 9 phases auto-calculated backwards from your
+            submission deadline ({fmt(deadline)}). Fully editable.
+          </p>
+          <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
+            Writers Write → Red Team Draft Due → Mock Score → Writer Recovery → Gold Team →
+            Final Drafts → Quality Control → Executive Review → Pens Down
+          </p>
+          <div className="flex-1" />
+          <Button
+            onClick={onUseTemplate}
+            className="mt-5 bg-[var(--athena-gold)] text-[var(--athena-navy)] hover:bg-[var(--athena-gold-light)] font-semibold"
+          >
+            Use This Template →
+          </Button>
+        </div>
+
+        {/* Custom */}
+        <div className="rounded-xl border-2 p-6 bg-card shadow-sm flex flex-col"
+          style={{ borderColor: "var(--athena-navy)" }}>
+          <h3 className="font-semibold text-lg text-[var(--athena-navy)]">Custom Journey</h3>
+          <p className="text-sm text-muted-foreground mt-2">
+            Build your own phases from scratch. Start with a blank timeline.
+          </p>
+          <div className="flex-1" />
+          <Button
+            variant="outline"
+            onClick={onStartFresh}
+            className="mt-5 border-[var(--athena-navy)] text-[var(--athena-navy)] hover:bg-[var(--athena-navy)]/5 font-semibold"
+          >
+            Start Fresh →
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TemplateApplyingState() {
+  return (
+    <div className="flex flex-col items-center justify-center py-24 text-center">
+      <div className="relative">
+        <Sparkles className="h-10 w-10 text-[var(--athena-gold)] animate-pulse" />
+      </div>
+      <p className="mt-4 text-base font-medium text-[var(--athena-navy)]">
+        IRIS is building your journey...
+      </p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Calculating 9 phases backwards from your submission deadline.
+      </p>
+    </div>
+  );
+}
+
+function TemplateBanner({ deadline, onDismiss }: { deadline: string; onDismiss: () => void }) {
+  return (
+    <div
+      className="rounded-lg border-2 px-4 py-3 flex items-start gap-3"
+      style={{ borderColor: "var(--athena-gold)", background: "color-mix(in srgb, var(--athena-gold) 8%, transparent)" }}
+    >
+      <Star className="h-4 w-4 text-[var(--athena-gold)] fill-[var(--athena-gold)] mt-0.5 shrink-0" />
+      <p className="text-sm text-[var(--athena-navy)] flex-1">
+        <strong>Athena Standard Template loaded.</strong> All phases are calculated from your
+        submission deadline of {fmt(deadline)}. Review and adjust any phase before continuing.
+      </p>
+      <button
+        onClick={onDismiss}
+        className="text-muted-foreground hover:text-foreground shrink-0"
+        aria-label="Dismiss banner"
+      >
+        <X className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
+function QuickAdjustControls({
+  onCompress,
+  onExpand,
+  onReset,
+}: {
+  onCompress: (n: number) => void;
+  onExpand: (n: number) => void;
+  onReset: () => void;
+}) {
+  const [compressN, setCompressN] = useState(5);
+  const [expandN, setExpandN] = useState(5);
+  return (
+    <div className="rounded-lg border bg-card p-3 flex flex-wrap items-center gap-3">
+      <div className="flex items-center gap-1">
+        <span className="text-xs text-muted-foreground mr-1">Compress by</span>
+        <Input
+          type="number"
+          min={1}
+          max={60}
+          value={compressN}
+          onChange={(e) => setCompressN(Math.max(1, Number(e.target.value) || 1))}
+          className="h-8 w-16"
+        />
+        <span className="text-xs text-muted-foreground mr-1">days</span>
+        <Button size="sm" variant="outline" onClick={() => onCompress(compressN)}>
+          <Minus className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+      <div className="flex items-center gap-1">
+        <span className="text-xs text-muted-foreground mr-1">Expand by</span>
+        <Input
+          type="number"
+          min={1}
+          max={60}
+          value={expandN}
+          onChange={(e) => setExpandN(Math.max(1, Number(e.target.value) || 1))}
+          className="h-8 w-16"
+        />
+        <span className="text-xs text-muted-foreground mr-1">days</span>
+        <Button size="sm" variant="outline" onClick={() => onExpand(expandN)}>
+          <Plus className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+      <button
+        type="button"
+        onClick={onReset}
+        className="ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-[var(--athena-navy)] underline"
+      >
+        <RotateCcw className="h-3 w-3" /> Reset to template defaults
+      </button>
+    </div>
+  );
+}
+
+function IrisAssessmentCard({
+  missionId,
+  deadline,
+  writersDays,
+  reviewDays,
+  daysToSubmission,
+}: {
+  missionId: string;
+  deadline: string;
+  writersDays: number;
+  reviewDays: number;
+  daysToSubmission: number;
+}) {
+  const assess = useServerFn(assessJourneyTimeline);
+  const cacheKey = `journey-iris:${missionId}:${deadline}:${writersDays}:${reviewDays}:${daysToSubmission}`;
+  const [text, setText] = useState<string>(() => {
+    if (typeof window === "undefined") return "";
+    return sessionStorage.getItem(cacheKey) ?? "";
+  });
+  const [loading, setLoading] = useState(false);
+
+  // Hard-coded threshold warnings always shown — independent of AI call.
+  const warnings: string[] = [];
+  if (daysToSubmission < 45) {
+    warnings.push(
+      `This is an aggressive timeline. Writers Write gives your team ${writersDays} days for first drafts. Ensure all assignments are accepted within 48 hours of BLAST OFF.`,
+    );
+  }
+  if (writersDays > 0 && writersDays < 20) {
+    warnings.push(
+      `Writers have ${writersDays} days for first drafts. Consider whether all sections can realistically be drafted in this window.`,
+    );
+  }
+
+  useEffect(() => {
+    if (text) return;
+    let cancelled = false;
+    setLoading(true);
+    (async () => {
+      try {
+        const missionRes = await supabase
+          .from("missions")
+          .select("name")
+          .eq("id", missionId)
+          .single();
+        const res = await assess({
+          data: {
+            missionName: missionRes.data?.name ?? "Mission",
+            deadline,
+            daysToSubmission,
+            writersWriteDays: writersDays,
+            totalReviewDays: reviewDays,
+          },
+        });
+        if (cancelled) return;
+        const out = res.assessment ?? "";
+        setText(out);
+        if (out) sessionStorage.setItem(cacheKey, out);
+      } catch {
+        // Silent — warnings still cover the hard thresholds.
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cacheKey]);
+
+  return (
+    <div
+      className="rounded-lg bg-[var(--athena-navy)] text-white p-4 pl-5 border-l-4"
+      style={{ borderLeftColor: "var(--athena-gold)" }}
+    >
+      <div className="flex items-center gap-2">
+        <Sparkles className="h-3.5 w-3.5 text-[var(--athena-gold)]" />
+        <span className="text-[10px] uppercase tracking-widest text-[var(--athena-gold)] font-semibold">
+          IRIS
+        </span>
+      </div>
+      {loading && !text && (
+        <p className="mt-2 text-sm italic text-white/70">IRIS is reviewing your timeline…</p>
+      )}
+      {text && <p className="mt-2 text-sm italic">{text}</p>}
+      {warnings.map((w) => (
+        <p key={w} className="mt-2 text-sm italic text-amber-200">
+          {w}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+// ---------- Template apply ----------
+
+type DeliverableSpec = { title: string; dueOffset: { from: "start" | "end"; days: number } };
+
+const TEMPLATE_DELIVERABLES: Record<TemplatePhaseKey, DeliverableSpec[]> = {
+  writers_write: [
+    { title: "All question assignments accepted", dueOffset: { from: "start", days: 2 } },
+    { title: "First draft outlines submitted", dueOffset: { from: "start", days: 7 } },
+  ],
+  red_team: [
+    { title: "All first drafts submitted to shared workspace", dueOffset: { from: "end", days: 0 } },
+  ],
+  mock_score: [
+    { title: "IRIS mock scoring complete — gaps report distributed", dueOffset: { from: "end", days: 0 } },
+  ],
+  writer_recovery: [
+    { title: "All red team feedback addressed", dueOffset: { from: "end", days: 0 } },
+    { title: "Score Me re-run on all revised sections", dueOffset: { from: "end", days: -1 } },
+  ],
+  gold_team: [
+    { title: "Gold Team review complete", dueOffset: { from: "end", days: 0 } },
+    { title: "Strategic alignment confirmed", dueOffset: { from: "end", days: 0 } },
+  ],
+  final_drafts: [
+    { title: "All sections finalized and locked", dueOffset: { from: "end", days: 0 } },
+  ],
+  quality_control: [
+    { title: "Compliance matrix verified — all requirements addressed", dueOffset: { from: "end", days: -1 } },
+    { title: "Submission package assembled", dueOffset: { from: "end", days: 0 } },
+  ],
+  executive_review: [
+    { title: "Executive sign-off received", dueOffset: { from: "end", days: 0 } },
+  ],
+  pens_down: [
+    { title: "Proposal submitted to client", dueOffset: { from: "end", days: 0 } },
+  ],
+};
+
+function findEngagementLeadId(team: TeamOption[]): string | null {
+  const match = team.find((t) => /engagement/i.test(t.label));
+  return match?.id ?? null;
+}
+
+async function applyAthenaTemplate(missionId: string, deadline: string, team: TeamOption[]) {
+  const durations = defaultDurations(deadline);
+  const computed = computePhasesFromDurations(deadline, durations);
+
+  // Insert phases in order
+  const phaseRows = TEMPLATE_PHASES.map((spec, idx) => {
+    const c = computed[idx];
+    const meta = TYPE_META[spec.kind];
+    return {
+      mission_id: missionId,
+      name: spec.name,
+      kind: spec.kind,
+      color: meta.color,
+      start_date: dateToISO(c.start),
+      end_date: spec.kind === "pens_down" ? deadline : dateToISO(c.end),
+      is_locked: spec.kind === "pens_down",
+      order_index: idx,
+    };
+  });
+
+  const { data: insertedPhases, error: phasesErr } = await supabase
+    .from("mission_journey_phases")
+    .insert(phaseRows)
+    .select("id, name, start_date, end_date, kind");
+  if (phasesErr) throw phasesErr;
+  if (!insertedPhases) throw new Error("Failed to insert phases");
+
+  // Map phase name -> inserted row
+  const phaseByName = new Map(insertedPhases.map((p) => [p.name.toLowerCase(), p]));
+  const leadId = findEngagementLeadId(team);
+  const leadFallback = leadId ? null : "TBD — assign after team setup";
+
+  const deliverableRows: Array<{
+    mission_id: string;
+    phase_id: string;
+    title: string;
+    owner_member_id: string | null;
+    description: string | null;
+    due_date: string | null;
+    status: string;
+    order_index: number;
+  }> = [];
+
+  for (const spec of TEMPLATE_PHASES) {
+    const phase = phaseByName.get(spec.name.toLowerCase());
+    if (!phase) continue;
+    const items = TEMPLATE_DELIVERABLES[spec.key] ?? [];
+    items.forEach((d, idx) => {
+      const anchorISO = d.dueOffset.from === "start" ? phase.start_date : phase.end_date;
+      if (!anchorISO) return;
+      const anchor = new Date(anchorISO);
+      const due = new Date(anchor.getTime() + d.dueOffset.days * 86_400_000);
+      deliverableRows.push({
+        mission_id: missionId,
+        phase_id: phase.id,
+        title: d.title,
+        owner_member_id: leadId,
+        description: leadFallback,
+        due_date: due.toISOString(),
+        status: "not_started",
+        order_index: idx,
+      });
+    });
+  }
+
+  if (deliverableRows.length > 0) {
+    const { error: dErr } = await supabase
+      .from("mission_journey_deliverables")
+      .insert(deliverableRows);
+    if (dErr) throw dErr;
+  }
+}
+
