@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { IrisProvider } from "@/components/iris/IrisContext";
 import { IrisDock } from "@/components/iris/IrisDock";
 import { AssistsBar } from "@/components/iris/AssistsBar";
+import { AdminQuickBar } from "@/components/admin/AdminQuickBar";
 import { GlobalCommandBar } from "@/components/nav/GlobalCommandBar";
 import { MissionStrip } from "@/components/nav/MissionStrip";
 
