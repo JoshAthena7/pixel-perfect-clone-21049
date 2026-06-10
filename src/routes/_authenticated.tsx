@@ -109,6 +109,8 @@ function AuthenticatedLayout() {
 
   const hideFloatingAssists = path === "/olympus/flight-deck";
 
+  const isOlympusAdminContext = isAdmin && (path.startsWith("/olympus") || path.startsWith("/admin") || path === "/reports" || path === "/home");
+
   const shell = (
     <div className="min-h-screen bg-background text-foreground">
       <GlobalCommandBar email={email} isAdmin={isAdmin} />
@@ -117,10 +119,17 @@ function AuthenticatedLayout() {
         <Outlet />
       </main>
       <div className={hideFloatingAssists ? "md:hidden" : ""}>
-        <AssistsBar
-          onPrefillIris={(value) => setIrisPrefill({ value, nonce: Date.now() })}
-          onOpenIris={() => setIrisOpenSignal(Date.now())}
-        />
+        {isOlympusAdminContext ? (
+          <AdminQuickBar
+            onPrefillIris={(value) => setIrisPrefill({ value, nonce: Date.now() })}
+            onOpenIris={() => setIrisOpenSignal(Date.now())}
+          />
+        ) : (
+          <AssistsBar
+            onPrefillIris={(value) => setIrisPrefill({ value, nonce: Date.now() })}
+            onOpenIris={() => setIrisOpenSignal(Date.now())}
+          />
+        )}
       </div>
       <IrisDock prefillSignal={irisPrefill} openSignal={irisOpenSignal} />
     </div>
