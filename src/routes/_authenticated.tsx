@@ -68,8 +68,15 @@ function AuthenticatedLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
 
   // /admin owns its own layout — bypass the outer Atrium chrome entirely.
-  // Runs before any role gate so admin.tsx renders immediately without flicker.
   if (path === "/admin" || path.startsWith("/admin/")) {
+    return <Outlet />;
+  }
+
+  // Mission setup wizard is a full-page experience — no nav chrome.
+  const isWizard =
+    path === "/olympus/missions/new" ||
+    /^\/olympus\/missions\/[^/]+\/wizard$/.test(path);
+  if (isWizard) {
     return <Outlet />;
   }
 
@@ -80,7 +87,7 @@ function AuthenticatedLayout() {
       <header className="border-b border-border bg-surface/60 px-6 py-3">
         <nav className="mx-auto flex max-w-7xl items-center gap-4 text-sm">
           <Link to="/home" className="font-semibold tracking-[0.18em] text-foreground">ATLAS</Link>
-          <Link to="/missions" className="text-muted-foreground hover:text-foreground">Missions</Link>
+          <Link to="/olympus/missions" className="text-muted-foreground hover:text-foreground">Missions</Link>
           {isAdmin && <Link to="/admin" className="text-muted-foreground hover:text-foreground">Admin</Link>}
           <Link to="/profile" className="ml-auto text-muted-foreground hover:text-foreground">Profile</Link>
         </nav>
@@ -93,9 +100,8 @@ function AuthenticatedLayout() {
 
   if (isAdmin) return shell;
 
-  // Non-admins land on the new Flight Deck instead of the legacy V1 shell.
   if (!isAllowedForNonAdmin(path)) {
-    return <Navigate to="/missions" replace />;
+    return <Navigate to="/olympus/missions" replace />;
   }
 
   return shell;
