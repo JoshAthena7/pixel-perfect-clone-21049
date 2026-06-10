@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { differenceInCalendarDays, format } from "date-fns";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { IntelligenceCompletenessChip } from "@/components/mission-command/IntelligenceCompletenessChip";
 import { cn } from "@/lib/utils";
 
 type Mission = {
