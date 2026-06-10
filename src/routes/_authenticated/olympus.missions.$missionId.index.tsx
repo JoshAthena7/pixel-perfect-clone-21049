@@ -70,7 +70,7 @@ function MissionCommandCenter() {
     navigate({
       to: "/olympus/missions/$missionId",
       params: { missionId },
-      search: (prev) => ({ ...prev, tab: next }),
+      search: (prev: Record<string, unknown>) => ({ ...prev, tab: next }),
     });
   };
 
