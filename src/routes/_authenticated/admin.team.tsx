@@ -123,7 +123,38 @@ function TeamRosterPage() {
     onError: (e: any) => toast.error(e?.message ?? "Failed to remove"),
   });
 
-  // ----- CSV import -----
+  // ----- role update -----
+  const [pendingRoleId, setPendingRoleId] = useState<string | null>(null);
+  const roleMut = useMutation({
+    mutationFn: (input: { id: string; atlas_role: string }) => updateRoleFn({ data: input }),
+    onMutate: (v) => setPendingRoleId(v.id),
+    onSuccess: () => {
+      toast.success("Role updated");
+      qc.invalidateQueries({ queryKey: ["atlas-team-roster"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Failed to update role"),
+    onSettled: () => setPendingRoleId(null),
+  });
+
+  // ----- invite -----
+  const [pendingInviteId, setPendingInviteId] = useState<string | null>(null);
+  const inviteMut = useMutation({
+    mutationFn: (id: string) => inviteFn({ data: { id } }),
+    onMutate: (id) => setPendingInviteId(id),
+    onSuccess: async (r: any) => {
+      const url = `${window.location.origin}/auth?invite=${r.token}`;
+      try {
+        await navigator.clipboard.writeText(url);
+        toast.success("Invite sent · link copied to clipboard");
+      } catch {
+        toast.success("Invite sent", { description: url });
+      }
+      qc.invalidateQueries({ queryKey: ["atlas-team-roster"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Failed to send invite"),
+    onSettled: () => setPendingInviteId(null),
+  });
+
   const fileInput = useRef<HTMLInputElement>(null);
   const [csvRows, setCsvRows] = useState<CsvRow[] | null>(null);
   const [csvFileName, setCsvFileName] = useState<string>("");
