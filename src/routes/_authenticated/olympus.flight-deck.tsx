@@ -179,7 +179,7 @@ function FlightDeck() {
     })();
   }, [data, memberId, userId]);
 
-  if (!memberId && !isLoading) {
+  if (bootstrapped && !memberId && !isAdmin) {
     return (
       <div className="mx-auto max-w-3xl p-8">
         <Link to="/olympus" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
