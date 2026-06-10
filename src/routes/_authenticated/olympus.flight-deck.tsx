@@ -43,11 +43,14 @@ function FlightDeck() {
   const [memberId, setMemberId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [bootstrapped, setBootstrapped] = useState(false);
 
   useEffect(() => {
     (async () => {
       const { data } = await supabase.auth.getUser();
-      setUserId(data.user?.id ?? null);
+      const uid = data.user?.id ?? null;
+      setUserId(uid);
       const { data: m } = await supabase.rpc("current_atlas_member_id");
       setMemberId((m as string) ?? null);
       if (m) {
@@ -58,6 +61,14 @@ function FlightDeck() {
           .single();
         if (atm) setUserName(`${atm.first_name ?? ""} ${atm.last_name ?? ""}`.trim());
       }
+      if (uid) {
+        const { data: admin } = await supabase.rpc("has_role", {
+          _user_id: uid,
+          _role: "admin",
+        });
+        setIsAdmin(!!admin);
+      }
+      setBootstrapped(true);
     })();
   }, []);
 
