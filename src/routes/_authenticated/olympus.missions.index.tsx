@@ -14,6 +14,8 @@ export const Route = createFileRoute("/_authenticated/olympus/missions/")({
 });
 
 import { IntelligenceCompletenessChip } from "@/components/mission-command/IntelligenceCompletenessChip";
+import { MissionCardBadges } from "@/components/nav/MissionCardBadges";
+import { getLastTab } from "@/lib/last-tab";
 
 type MissionRow = {
   id: string;
