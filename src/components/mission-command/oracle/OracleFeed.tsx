@@ -202,7 +202,12 @@ export function OracleFeed({ missionId }: { missionId: string }) {
                 style={{ borderLeftColor: CATEGORY_COLOR[i.category] ?? "#888" }}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <Badge variant="outline" className="text-[10px]">{CATEGORY_LABEL[i.category] ?? i.category}</Badge>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant="outline" className="text-[10px]">{CATEGORY_LABEL[i.category] ?? i.category}</Badge>
+                      {newIds[i.id] && (
+                        <Badge style={{ background: "#C9A55C", color: "#1A2B4C" }} className="text-[10px] animate-pulse">New</Badge>
+                      )}
+                    </div>
                     <h4 className="font-semibold mt-1">{i.headline}</h4>
                     <div className="text-xs text-muted-foreground mt-0.5">
                       {i.source_name ?? "Unknown source"} · {i.published_at ? new Date(i.published_at).toLocaleDateString() : ""}
