@@ -345,13 +345,16 @@ export function IrisDock({ prefillSignal, openSignal }: Props) {
   return (
     <div
       className="fixed z-50 flex flex-col bg-card text-foreground shadow-2xl bottom-0 right-0 md:bottom-5 md:right-5 w-full md:w-[400px] h-full md:h-[520px] md:rounded-lg overflow-hidden"
-      style={{ borderTop: `3px solid ${GOLD}`, background: "#0F1A2E" }}
+      style={{ borderTop: `3px solid ${IRIS_BRAND}`, background: "#0F1A2E" }}
     >
       {/* Header */}
       <div className="flex items-start justify-between px-3 py-2 border-b border-white/10">
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-bold" style={{ color: GOLD }}>IRIS</div>
-          <div className="text-[10px] text-white/60 truncate">{contextLine}</div>
+        <div className="flex-1 min-w-0 flex items-center gap-2">
+          <IrisMark className="h-5 w-5 shrink-0" />
+          <div className="min-w-0">
+            <div className="text-sm font-bold" style={{ color: IRIS_BRAND }}>IRIS</div>
+            <div className="text-[10px] text-white/60 truncate">{contextLine}</div>
+          </div>
         </div>
         <div className="flex items-center gap-1">
           <button onClick={() => setMinimized(true)} title="Minimize" className="h-6 w-6 inline-flex items-center justify-center text-white/70 hover:text-white"><ChevronDown className="h-4 w-4" /></button>
