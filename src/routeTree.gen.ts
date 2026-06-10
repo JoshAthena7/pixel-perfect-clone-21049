@@ -25,6 +25,7 @@ import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/em
 import { Route as AuthenticatedProfileExpertiseRouteImport } from './routes/_authenticated/profile/expertise'
 import { Route as AuthenticatedOlympusFlightDeckRouteImport } from './routes/_authenticated/olympus.flight-deck'
 import { Route as AuthenticatedOlympusSplatRouteImport } from './routes/_authenticated/olympus.$'
+import { Route as AuthenticatedAdminTeamRouteImport } from './routes/_authenticated/admin.team'
 import { Route as AuthenticatedOlympusMissionsIndexRouteImport } from './routes/_authenticated/olympus.missions.index'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -120,6 +121,11 @@ const AuthenticatedOlympusSplatRoute =
     path: '/olympus/$',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminTeamRoute = AuthenticatedAdminTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedOlympusMissionsIndexRoute =
   AuthenticatedOlympusMissionsIndexRouteImport.update({
     id: '/olympus/missions/',
@@ -184,11 +190,12 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/olympus': typeof OlympusRoute
   '/unsubscribe': typeof UnsubscribeRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/help': typeof AuthenticatedHelpRoute
   '/home': typeof AuthenticatedHomeRoute
   '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/olympus/flight-deck': typeof AuthenticatedOlympusFlightDeckRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
@@ -211,11 +218,12 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/olympus': typeof OlympusRoute
   '/unsubscribe': typeof UnsubscribeRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/help': typeof AuthenticatedHelpRoute
   '/home': typeof AuthenticatedHomeRoute
   '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/olympus/flight-deck': typeof AuthenticatedOlympusFlightDeckRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
@@ -240,11 +248,12 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/olympus': typeof OlympusRoute
   '/unsubscribe': typeof UnsubscribeRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/help': typeof AuthenticatedHelpRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRoute
   '/_authenticated/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/_authenticated/olympus/flight-deck': typeof AuthenticatedOlympusFlightDeckRoute
   '/_authenticated/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
@@ -274,6 +283,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/checkin/$token'
     | '/email/unsubscribe'
+    | '/admin/team'
     | '/olympus/$'
     | '/olympus/flight-deck'
     | '/profile/expertise'
@@ -301,6 +311,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/checkin/$token'
     | '/email/unsubscribe'
+    | '/admin/team'
     | '/olympus/$'
     | '/olympus/flight-deck'
     | '/profile/expertise'
@@ -329,6 +340,7 @@ export interface FileRouteTypes {
     | '/_authenticated/home'
     | '/checkin/$token'
     | '/email/unsubscribe'
+    | '/_authenticated/admin/team'
     | '/_authenticated/olympus/$'
     | '/_authenticated/olympus/flight-deck'
     | '/_authenticated/profile/expertise'
@@ -478,6 +490,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOlympusSplatRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/team': {
+      id: '/_authenticated/admin/team'
+      path: '/team'
+      fullPath: '/admin/team'
+      preLoaderRoute: typeof AuthenticatedAdminTeamRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/olympus/missions/': {
       id: '/_authenticated/olympus/missions/'
       path: '/olympus/missions'
@@ -551,8 +570,19 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminTeamRoute: typeof AuthenticatedAdminTeamRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminTeamRoute: AuthenticatedAdminTeamRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedHelpRoute: typeof AuthenticatedHelpRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedOlympusSplatRoute: typeof AuthenticatedOlympusSplatRoute
@@ -567,7 +597,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedHelpRoute: AuthenticatedHelpRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedOlympusSplatRoute: AuthenticatedOlympusSplatRoute,

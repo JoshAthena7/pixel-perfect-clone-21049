@@ -143,20 +143,19 @@ function TeamRosterPage() {
       transformHeader: (h) => h.trim().toLowerCase().replace(/\s+/g, "_"),
       complete: (result) => {
         try {
-          const rows: CsvRow[] = result.data
-            .map((r) => {
-              const email = (r.email || r["email_address"] || "").trim();
-              if (!email) return null;
-              return {
-                email,
-                first_name: (r.first_name || r.firstname || null) as string | null,
-                last_name: (r.last_name || r.lastname || null) as string | null,
-                job_title: (r.job_title || r.title || null) as string | null,
-                phone: (r.phone || null) as string | null,
-                talentdesk_id: (r.talentdesk_id || r.id || null) as string | null,
-              };
-            })
-            .filter((r): r is CsvRow => !!r);
+          const rows: CsvRow[] = [];
+          for (const r of result.data) {
+            const email = (r.email || r["email_address"] || "").trim();
+            if (!email) continue;
+            rows.push({
+              email,
+              first_name: r.first_name || r.firstname || null,
+              last_name: r.last_name || r.lastname || null,
+              job_title: r.job_title || r.title || null,
+              phone: r.phone || null,
+              talentdesk_id: r.talentdesk_id || r.id || null,
+            });
+          }
           if (rows.length === 0) {
             setParseError("No valid rows found. Make sure the CSV has an 'email' column.");
             return;
