@@ -1,8 +1,6 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { MissionsListPage } from "@/routes/_authenticated/olympus.missions.index";
 
-// Legacy /missions path → canonical /olympus/missions.
 export const Route = createFileRoute("/_authenticated/missions/")({
-  beforeLoad: () => {
-    throw redirect({ to: "/olympus/missions" });
-  },
+  component: MissionsListPage,
 });

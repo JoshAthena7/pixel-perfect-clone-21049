@@ -9,10 +9,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { MissionCardMenu } from "@/components/missions/MissionCardMenu";
+import { MissionEditPanel } from "@/components/missions/MissionEditPanel";
 
 export const Route = createFileRoute("/_authenticated/olympus/missions/")({
   component: MissionsListPage,
 });
+
+export { MissionsListPage };
+
 
 import { IntelligenceCompletenessChip } from "@/components/mission-command/IntelligenceCompletenessChip";
 import { MissionCardBadges } from "@/components/nav/MissionCardBadges";
@@ -112,8 +117,15 @@ function MissionsListPage() {
 
   const total = data?.length ?? 0;
 
+  const [editingId, setEditingId] = useState<string | null>(null);
+
   return (
     <div className="min-h-screen bg-background">
+      <MissionEditPanel
+        missionId={editingId}
+        open={!!editingId}
+        onOpenChange={(o) => { if (!o) setEditingId(null); }}
+      />
       <div className="mx-auto max-w-7xl px-6 py-10">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-3">
@@ -205,7 +217,7 @@ function MissionsListPage() {
         {!isLoading && filtered.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {filtered.map((m) => (
-              <MissionCard key={m.id} m={m} />
+              <MissionCard key={m.id} m={m} onEdit={() => setEditingId(m.id)} />
             ))}
           </div>
         )}
@@ -214,7 +226,7 @@ function MissionsListPage() {
   );
 }
 
-function MissionCard({ m }: { m: MissionRow }) {
+function MissionCard({ m, onEdit }: { m: MissionRow; onEdit: () => void }) {
   const isSetup = m.status === "setup";
   const to = isSetup
     ? "/olympus/missions/$missionId/wizard"
@@ -246,11 +258,17 @@ function MissionCard({ m }: { m: MissionRow }) {
 
   return (
     <div className="relative group">
+      <MissionCardMenu
+        missionId={m.id}
+        missionName={m.name}
+        status={m.status}
+        onEdit={onEdit}
+      />
       <Link
         to={to}
         params={{ missionId: m.id }}
         search={search}
-        className="block rounded-xl border border-border bg-surface/40 p-5 hover:bg-surface hover:border-[var(--athena-gold)]/40 transition-colors"
+        className="block rounded-xl border border-border bg-surface/40 p-5 pr-14 hover:bg-surface hover:border-[var(--athena-gold)]/40 transition-colors"
       >
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="min-w-0">
