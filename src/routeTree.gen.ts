@@ -45,6 +45,7 @@ import { Route as ApiPublicHooksMonitorCmsFeedsRouteImport } from './routes/api/
 import { Route as ApiPublicHooksIrisMonitorRouteImport } from './routes/api/public/hooks/iris-monitor'
 import { Route as ApiPublicHooksGenerateDailyBriefsRouteImport } from './routes/api/public/hooks/generate-daily-briefs'
 import { Route as AuthenticatedOlympusMissionsNewRouteImport } from './routes/_authenticated/olympus.missions.new'
+import { Route as AuthenticatedAdminTeamMemberIdRouteImport } from './routes/_authenticated/admin.team.$memberId'
 import { Route as AuthenticatedOlympusMissionsMissionIdIndexRouteImport } from './routes/_authenticated/olympus.missions.$missionId.index'
 import { Route as AuthenticatedOlympusMissionsMissionIdWizardRouteImport } from './routes/_authenticated/olympus.missions.$missionId.wizard'
 
@@ -245,6 +246,12 @@ const AuthenticatedOlympusMissionsNewRoute =
     path: '/olympus/missions/new',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminTeamMemberIdRoute =
+  AuthenticatedAdminTeamMemberIdRouteImport.update({
+    id: '/$memberId',
+    path: '/$memberId',
+    getParentRoute: () => AuthenticatedAdminTeamRoute,
+  } as any)
 const AuthenticatedOlympusMissionsMissionIdIndexRoute =
   AuthenticatedOlympusMissionsMissionIdIndexRouteImport.update({
     id: '/olympus/missions/$missionId/',
@@ -270,7 +277,7 @@ export interface FileRoutesByFullPath {
   '/team': typeof AuthenticatedTeamRoute
   '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
-  '/admin/team': typeof AuthenticatedAdminTeamRoute
+  '/admin/team': typeof AuthenticatedAdminTeamRouteWithChildren
   '/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/olympus/flight-deck': typeof AuthenticatedOlympusFlightDeckRoute
   '/olympus/team': typeof AuthenticatedOlympusTeamRoute
@@ -280,6 +287,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/missions/': typeof AuthenticatedMissionsIndexRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
+  '/admin/team/$memberId': typeof AuthenticatedAdminTeamMemberIdRoute
   '/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
   '/api/public/hooks/generate-daily-briefs': typeof ApiPublicHooksGenerateDailyBriefsRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
@@ -308,7 +316,7 @@ export interface FileRoutesByTo {
   '/team': typeof AuthenticatedTeamRoute
   '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
-  '/admin/team': typeof AuthenticatedAdminTeamRoute
+  '/admin/team': typeof AuthenticatedAdminTeamRouteWithChildren
   '/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/olympus/flight-deck': typeof AuthenticatedOlympusFlightDeckRoute
   '/olympus/team': typeof AuthenticatedOlympusTeamRoute
@@ -318,6 +326,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/missions': typeof AuthenticatedMissionsIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
+  '/admin/team/$memberId': typeof AuthenticatedAdminTeamMemberIdRoute
   '/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
   '/api/public/hooks/generate-daily-briefs': typeof ApiPublicHooksGenerateDailyBriefsRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
@@ -349,7 +358,7 @@ export interface FileRoutesById {
   '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
-  '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRoute
+  '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRouteWithChildren
   '/_authenticated/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/_authenticated/olympus/flight-deck': typeof AuthenticatedOlympusFlightDeckRoute
   '/_authenticated/olympus/team': typeof AuthenticatedOlympusTeamRoute
@@ -359,6 +368,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/missions/': typeof AuthenticatedMissionsIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
+  '/_authenticated/admin/team/$memberId': typeof AuthenticatedAdminTeamMemberIdRoute
   '/_authenticated/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
   '/api/public/hooks/generate-daily-briefs': typeof ApiPublicHooksGenerateDailyBriefsRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
@@ -400,6 +410,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/missions/'
     | '/profile/'
+    | '/admin/team/$memberId'
     | '/olympus/missions/new'
     | '/api/public/hooks/generate-daily-briefs'
     | '/api/public/hooks/iris-monitor'
@@ -438,6 +449,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/missions'
     | '/profile'
+    | '/admin/team/$memberId'
     | '/olympus/missions/new'
     | '/api/public/hooks/generate-daily-briefs'
     | '/api/public/hooks/iris-monitor'
@@ -478,6 +490,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/missions/'
     | '/_authenticated/profile/'
+    | '/_authenticated/admin/team/$memberId'
     | '/_authenticated/olympus/missions/new'
     | '/api/public/hooks/generate-daily-briefs'
     | '/api/public/hooks/iris-monitor'
@@ -774,6 +787,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOlympusMissionsNewRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/team/$memberId': {
+      id: '/_authenticated/admin/team/$memberId'
+      path: '/$memberId'
+      fullPath: '/admin/team/$memberId'
+      preLoaderRoute: typeof AuthenticatedAdminTeamMemberIdRouteImport
+      parentRoute: typeof AuthenticatedAdminTeamRoute
+    }
     '/_authenticated/olympus/missions/$missionId/': {
       id: '/_authenticated/olympus/missions/$missionId/'
       path: '/olympus/missions/$missionId'
@@ -791,13 +811,27 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAdminTeamRouteChildren {
+  AuthenticatedAdminTeamMemberIdRoute: typeof AuthenticatedAdminTeamMemberIdRoute
+}
+
+const AuthenticatedAdminTeamRouteChildren: AuthenticatedAdminTeamRouteChildren =
+  {
+    AuthenticatedAdminTeamMemberIdRoute: AuthenticatedAdminTeamMemberIdRoute,
+  }
+
+const AuthenticatedAdminTeamRouteWithChildren =
+  AuthenticatedAdminTeamRoute._addFileChildren(
+    AuthenticatedAdminTeamRouteChildren,
+  )
+
 interface AuthenticatedAdminRouteChildren {
-  AuthenticatedAdminTeamRoute: typeof AuthenticatedAdminTeamRoute
+  AuthenticatedAdminTeamRoute: typeof AuthenticatedAdminTeamRouteWithChildren
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
-  AuthenticatedAdminTeamRoute: AuthenticatedAdminTeamRoute,
+  AuthenticatedAdminTeamRoute: AuthenticatedAdminTeamRouteWithChildren,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 

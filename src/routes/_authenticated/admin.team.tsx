@@ -402,10 +402,18 @@ function TeamRosterPage() {
           {filtered.map((m: any) => {
             const currentRole = (m.atlas_role && ROLE_OPTIONS.some(r => r.value === m.atlas_role))
               ? m.atlas_role : "unassigned";
-            const invited = m.atlas_invite_status === "invited" || m.atlas_invite_status === "accepted";
+            const invited = m.atlas_invite_status === "invite_sent" || m.atlas_invite_status === "active";
             return (
               <div key={m.id} className="grid grid-cols-12 gap-2 border-b px-4 py-3 text-sm items-center last:border-0">
-                <div className="col-span-3 font-medium">{[m.first_name, m.last_name].filter(Boolean).join(" ") || "—"}</div>
+                <div className="col-span-3 font-medium">
+                  <Link
+                    to="/admin/team/$memberId"
+                    params={{ memberId: m.id }}
+                    className="hover:underline hover:text-primary"
+                  >
+                    {[m.first_name, m.last_name].filter(Boolean).join(" ") || "—"}
+                  </Link>
+                </div>
                 <div className="col-span-3 text-muted-foreground truncate">{m.email}</div>
                 <div className="col-span-2 truncate">{m.job_title || "—"}</div>
                 <div className="col-span-2">
