@@ -12,10 +12,14 @@ import { Step3WinStrategy } from "@/components/mission-wizard/Step3WinStrategy";
 import { Step4Journey } from "@/components/mission-wizard/Step4Journey";
 import { Step5Team, type SubView } from "@/components/mission-wizard/Step5Team";
 import { Step6BlastOff } from "@/components/mission-wizard/Step6BlastOff";
+import { Step7Territory } from "@/components/mission-wizard/Step7Territory";
+import { Step8IntelligenceUpload } from "@/components/mission-wizard/Step8IntelligenceUpload";
+import { Step9MonitoringFeeds } from "@/components/mission-wizard/Step9MonitoringFeeds";
+import { Step10Competitive } from "@/components/mission-wizard/Step10Competitive";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const searchSchema = z.object({
-  step: z.coerce.number().int().min(1).max(8).optional(),
+  step: z.coerce.number().int().min(1).max(12).optional(),
   view: z.enum(["team", "questions", "invites"]).optional(),
 });
 
@@ -23,6 +27,7 @@ export const Route = createFileRoute("/_authenticated/olympus/missions/$missionI
   validateSearch: (s: Record<string, unknown>) => searchSchema.parse(s),
   component: ResumeWizardPage,
 });
+
 
 function toDatetimeLocal(iso: string | null | undefined): string {
   if (!iso) return "";
