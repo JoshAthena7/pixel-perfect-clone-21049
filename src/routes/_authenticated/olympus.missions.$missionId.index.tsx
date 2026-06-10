@@ -17,7 +17,7 @@ import { SectionsQuestionsTab } from "@/components/mission-command/SectionsQuest
 import { QuestionHealthTab } from "@/components/mission-command/QuestionHealthTab";
 import { RfpDocumentsTab } from "@/components/mission-command/RfpDocumentsTab";
 import { QaLogTab } from "@/components/mission-command/QaLogTab";
-import { ClientIntelligenceTab } from "@/components/mission-command/ClientIntelligenceTab";
+// ClientIntelligenceTab now rendered inside OracleTab > Stakeholders sub-tab
 import { IntelligenceLibraryTab } from "@/components/mission-command/IntelligenceLibraryTab";
 import { ComplianceTab } from "@/components/mission-command/ComplianceTab";
 import { SubmissionChecklistTab } from "@/components/mission-command/SubmissionChecklistTab";
