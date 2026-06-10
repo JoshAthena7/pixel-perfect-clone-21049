@@ -327,15 +327,15 @@ export const shareFeedItemWithTeam = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const { data: item } = await supabase.from("intelligence_feed_items").select("*").eq("id", data.feedItemId).single();
     if (!item) throw new Error("Item not found");
-    const { data: team } = await supabase.from("mission_team_members").select("user_id").eq("mission_id", item.mission_id);
-    const recipients = (team ?? []).map((t) => t.user_id).filter((u): u is string => !!u && u !== userId);
+    const { data: team } = await supabase.from("mission_team_members").select("member_id").eq("mission_id", item.mission_id);
+    const recipients = (team ?? []).map((t) => t.member_id).filter((u): u is string => !!u && u !== userId);
     if (recipients.length) {
       await supabase.from("atlas_notifications").insert(recipients.map((uid) => ({
-        user_id: uid,
-        title: `Intelligence: ${item.headline}`,
-        body: item.iris_assessment ?? item.summary ?? "",
-        link_url: item.source_url ?? null,
-        notification_type: "intelligence_shared",
+        recipient_id: uid,
+        recipient_role: "team_member",
+        type: "intelligence_shared",
+        message: `Intelligence: ${item.headline}`,
+        metadata: { feed_item_id: item.id, source_url: item.source_url, mission_id: item.mission_id },
       })));
     }
     await supabase.from("intelligence_feed_items").update({ is_shared_with_team: true }).eq("id", data.feedItemId);
