@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonRows, ErrorState, EmptyState } from "@/components/shared/data-states";
 import { Plus, X } from "lucide-react";
 import { useIsAdmin, logAudit } from "@/lib/mission-helpers";
 
@@ -31,7 +31,7 @@ export function WinStrategyLiveTab({ missionId, missionName }: { missionId: stri
   const [bannerOn, setBannerOn] = useState(false);
   const debounce = useRef<number | undefined>(undefined);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["ws-live", missionId],
     enabled: !!isAdmin,
     queryFn: async () => {
@@ -81,15 +81,17 @@ export function WinStrategyLiveTab({ missionId, missionName }: { missionId: stri
     toast.success("Team notified.");
   };
 
+  if (isError) return <ErrorState message="Couldn't load the win strategy." onRetry={() => refetch()} />;
   if (roleLoading || isLoading || !ws) {
     if (!roleLoading && !isAdmin) {
       return (
-        <div className="rounded-xl border border-dashed p-12 text-center text-muted-foreground">
-          This tab is restricted to mission administrators.
-        </div>
+        <EmptyState
+          title="Admin only"
+          description="The win strategy is restricted to mission administrators."
+        />
       );
     }
-    return <Skeleton className="h-96 w-full" />;
+    return <SkeletonRows rows={6} height="h-24" />;
   }
   if (!isAdmin) return null;
 

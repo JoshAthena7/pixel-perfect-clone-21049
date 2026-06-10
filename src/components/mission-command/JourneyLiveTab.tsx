@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonRows, ErrorState, EmptyState } from "@/components/shared/data-states";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -47,7 +47,7 @@ export function JourneyLiveTab({ missionId, deadline }: { missionId: string; dea
   const [gateTarget, setGateTarget] = useState<Phase | null>(null);
   const [dateWarning, setDateWarning] = useState<{ phase: Phase; field: "start_date" | "end_date"; date: Date } | null>(null);
 
-  const { data: phases, isLoading } = useQuery({
+  const { data: phases, isLoading, isError, refetch } = useQuery({
     queryKey: ["live-phases", missionId],
     queryFn: async () => {
       const { data } = await supabase
@@ -174,12 +174,14 @@ export function JourneyLiveTab({ missionId, deadline }: { missionId: string; dea
     return { min, max };
   }, [phases]);
 
-  if (isLoading) return <Skeleton className="h-96 w-full" />;
+  if (isError) return <ErrorState message="Couldn't load the journey." onRetry={() => refetch()} />;
+  if (isLoading) return <SkeletonRows rows={5} height="h-20" />;
   if (!phases?.length) {
     return (
-      <div className="rounded-xl border border-dashed p-12 text-center text-muted-foreground">
-        No journey phases configured. Build the journey in Mission Setup.
-      </div>
+      <EmptyState
+        title="No journey phases configured"
+        description="Build the journey in Mission Setup."
+      />
     );
   }
 

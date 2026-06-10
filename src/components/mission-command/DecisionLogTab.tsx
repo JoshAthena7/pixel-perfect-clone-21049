@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonRows, ErrorState, EmptyState } from "@/components/shared/data-states";
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -66,7 +66,7 @@ export function DecisionLogTab({ missionId, missionName }: { missionId: string; 
 
   const allowed = !!isAdmin || !!isEngLead;
 
-  const { data: decisions, isLoading } = useQuery({
+  const { data: decisions, isLoading, isError, refetch } = useQuery({
     queryKey: ["decisions", missionId],
     enabled: allowed,
     queryFn: async () => {
@@ -138,12 +138,14 @@ export function DecisionLogTab({ missionId, missionName }: { missionId: string; 
     downloadCsv(`${slugForFilename(missionName)}-decisions-${format(new Date(), "yyyy-MM-dd")}.csv`, rows);
   };
 
-  if (roleLoading || isLoading) return <Skeleton className="h-96 w-full" />;
+  if (roleLoading || isLoading) return <SkeletonRows rows={5} height="h-24" />;
+  if (isError) return <ErrorState message="Couldn't load decisions." onRetry={() => refetch()} />;
   if (!allowed) {
     return (
-      <div className="rounded-xl border border-dashed p-12 text-center text-muted-foreground">
-        This tab is accessible to mission administrators and engagement leads.
-      </div>
+      <EmptyState
+        title="Restricted"
+        description="This tab is accessible to mission administrators and engagement leads."
+      />
     );
   }
 
@@ -191,9 +193,10 @@ export function DecisionLogTab({ missionId, missionName }: { missionId: string; 
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-dashed p-12 text-center text-muted-foreground">
-          No decisions recorded yet. Use this log to track every strategic, compliance, and executive decision made on this mission.
-        </div>
+        <EmptyState
+          title="No decisions recorded yet"
+          description="Use this log to track every strategic, compliance, and executive decision made on this mission."
+        />
       ) : (
         <div className="space-y-3">
           {filtered.map((d) => (

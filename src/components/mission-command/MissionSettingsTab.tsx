@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonRows, ErrorState, EmptyState } from "@/components/shared/data-states";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -29,7 +29,7 @@ export function MissionSettingsTab({ missionId }: { missionId: string }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
 
-  const { data: mission, isLoading } = useQuery({
+  const { data: mission, isLoading, isError, refetch } = useQuery({
     queryKey: ["mission-settings", missionId],
     enabled: !!isAdmin,
     queryFn: async () => {
@@ -61,21 +61,24 @@ export function MissionSettingsTab({ missionId }: { missionId: string }) {
     });
   }, [mission]);
 
+  if (isError) return <ErrorState message="Couldn't load mission settings." onRetry={() => refetch()} />;
   if (roleLoading || isLoading || !mission) {
     if (!roleLoading && !isAdmin) {
       return (
-        <div className="rounded-xl border border-dashed p-12 text-center text-muted-foreground">
-          This tab is restricted to mission administrators.
-        </div>
+        <EmptyState
+          title="Admin only"
+          description="Mission settings are restricted to mission administrators."
+        />
       );
     }
-    return <Skeleton className="h-96 w-full" />;
+    return <SkeletonRows rows={6} height="h-16" />;
   }
   if (!isAdmin) {
     return (
-      <div className="rounded-xl border border-dashed p-12 text-center text-muted-foreground">
-        This tab is restricted to mission administrators.
-      </div>
+      <EmptyState
+        title="Admin only"
+        description="Mission settings are restricted to mission administrators."
+      />
     );
   }
 
