@@ -1,6 +1,5 @@
 import { createFileRoute, Outlet, redirect, useRouterState, Navigate, Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { useIsAdmin } from "@/hooks/useAccess";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -54,7 +53,7 @@ export const Route = createFileRoute("/_authenticated")({
         throw redirect({ to: "/atlas-onboarding" });
       }
     }
-    return { user };
+    return { user, isAdmin };
 
   },
   component: AuthenticatedLayout,
@@ -93,21 +92,7 @@ function AuthenticatedLayout() {
     return <Outlet />;
   }
 
-  // Check-in only users get a minimalist landing.
-  if (path === "/checkin-home" || path.startsWith("/checkin-home/")) {
-    return (
-      <>
-        <Outlet />
-        <ClosingFrame />
-      </>
-    );
-  }
-
-  // While we resolve role, render nothing visible — avoids briefly mounting
-  // the Atrium chrome for non-admins.
-  if (adminLoading) {
-    return <div className="min-h-screen bg-background" />;
-  }
+  const { isAdmin } = Route.useRouteContext();
 
   const shell = (
     <div className="min-h-screen bg-background text-foreground">
@@ -129,7 +114,7 @@ function AuthenticatedLayout() {
 
   // Non-admins land on the new Flight Deck instead of the legacy V1 shell.
   if (!isAllowedForNonAdmin(path)) {
-    return <Navigate to="/flight-deck" replace />;
+    return <Navigate to="/missions" replace />;
   }
 
   return shell;
