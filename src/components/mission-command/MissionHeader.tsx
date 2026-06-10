@@ -1,12 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { Bell } from "lucide-react";
 import { differenceInCalendarDays, format } from "date-fns";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { cn } from "@/lib/utils";
 
 type Mission = {
@@ -101,29 +95,8 @@ export function MissionHeader({
                 <div className="text-sm text-muted-foreground">No deadline set</div>
               )}
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="relative text-primary hover:text-primary"
-                  aria-label="Notifications"
-                >
-                  <Bell className="h-5 w-5" />
-                  {unreadCount > 0 && (
-                    <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary shadow-[0_0_6px_var(--primary)]" />
-                  )}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-72 p-3">
-                <div className="text-sm font-medium mb-1">Notifications</div>
-                <p className="text-xs text-muted-foreground">
-                  {unreadCount > 0
-                    ? `${unreadCount} unread for this mission. Full inbox in next sprint.`
-                    : "No unread notifications."}
-                </p>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <NotificationBell />
+
           </div>
         </div>
         <nav className="mt-3 text-xs text-muted-foreground flex items-center gap-1.5">

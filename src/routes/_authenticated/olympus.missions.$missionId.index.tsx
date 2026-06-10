@@ -14,6 +14,7 @@ import {
 } from "@/components/mission-command/MissionTabs";
 import { OverviewTab } from "@/components/mission-command/OverviewTab";
 import { SectionsQuestionsTab } from "@/components/mission-command/SectionsQuestionsTab";
+import { QuestionHealthTab } from "@/components/mission-command/QuestionHealthTab";
 
 const searchSchema = z.object({
   launched: z.coerce.number().optional(),
@@ -95,13 +96,18 @@ function MissionCommandCenter() {
         {activeTab === "sections-questions" && (
           <SectionsQuestionsTab missionId={missionId} missionName={mission.name} />
         )}
-        {activeTab !== "overview" && activeTab !== "sections-questions" && (
-          <div className="rounded-xl border border-dashed border-border p-16 text-center">
-            <p className="text-lg text-muted-foreground">
-              {tabLabel(activeTab)} — Coming in a future sprint.
-            </p>
-          </div>
+        {activeTab === "question-health" && (
+          <QuestionHealthTab missionId={missionId} onNavigateTab={setTab} />
         )}
+        {activeTab !== "overview" &&
+          activeTab !== "sections-questions" &&
+          activeTab !== "question-health" && (
+            <div className="rounded-xl border border-dashed border-border p-16 text-center">
+              <p className="text-lg text-muted-foreground">
+                {tabLabel(activeTab)} — Coming in a future sprint.
+              </p>
+            </div>
+          )}
       </div>
     </div>
   );
