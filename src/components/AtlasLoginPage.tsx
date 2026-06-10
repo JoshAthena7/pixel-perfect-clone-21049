@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import athenaMark from "@/assets/athena-mark-v3.png.asset.json";
 import atlasWordmark from "@/assets/atlas-wordmark-optical.png";
-import athenaSgLockup from "@/assets/athena-sg-lockup-dark.png.asset.json";
+import athenaSgLockup from "@/assets/athena-lockup-on-dark.png.asset.json";
 import { IrisMark } from "@/components/iris/IrisMark";
 
 
