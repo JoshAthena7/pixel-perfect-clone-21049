@@ -33,18 +33,24 @@ export async function logAudit(args: {
   action: string;
   metadata?: Record<string, unknown>;
 }) {
-  const { data: u } = await supabase.auth.getUser();
-  const performedByName =
-    (u.user?.user_metadata?.full_name as string | undefined) ??
-    u.user?.email ??
-    "Unknown";
-  await supabase.from("mission_audit_log").insert({
-    mission_id: args.missionId,
-    action: args.action,
-    performed_by: u.user?.id ?? null,
-    performed_by_name: performedByName,
-    metadata: (args.metadata ?? {}) as any,
-  });
+  // Fire-and-forget: audit must never block or throw to the caller.
+  try {
+    const { data: u } = await supabase.auth.getUser();
+    const performedByName =
+      (u.user?.user_metadata?.full_name as string | undefined) ??
+      u.user?.email ??
+      "Unknown";
+    const { error } = await supabase.from("mission_audit_log").insert({
+      mission_id: args.missionId,
+      action: args.action,
+      performed_by: u.user?.id ?? null,
+      performed_by_name: performedByName,
+      metadata: (args.metadata ?? {}) as any,
+    });
+    if (error) console.warn("[mission-audit] insert failed:", error.message);
+  } catch (err) {
+    console.warn("[mission-audit] unexpected error:", err);
+  }
 }
 
 export function downloadCsv(filename: string, rows: Record<string, unknown>[]) {
