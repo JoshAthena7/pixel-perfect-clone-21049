@@ -196,7 +196,7 @@ export const Route = createFileRoute("/api/public/hooks/generate-daily-briefs")(
                   recipient_id: recipientId,
                   brief_date: today,
                   brief_type: briefType,
-                  content: aiContent,
+                  content: aiContent as unknown as never,
                   key_intelligence_summary: summary,
                   new_feed_items_count: feedRows.length,
                   at_risk_questions_count: atRiskRows.length,
@@ -211,9 +211,10 @@ export const Route = createFileRoute("/api/public/hooks/generate-daily-briefs")(
 
               await supabaseAdmin.from("atlas_notifications").insert({
                 recipient_id: recipientId,
+                recipient_role: member.mission_role ?? "team_member",
                 type: "iris_alert",
                 message: `Your daily intelligence brief is ready. ${summary}`,
-                metadata: { mission_id: missionId, brief_id: (inserted as { id: string } | null)?.id },
+                metadata: { mission_id: missionId, brief_id: (inserted as { id: string } | null)?.id ?? null },
               }).then(undefined, (e) => console.error("notification insert failed", e));
             }
           } catch (err) {
