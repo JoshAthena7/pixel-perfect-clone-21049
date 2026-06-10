@@ -29,10 +29,9 @@ function statusLabel(s: string | null) {
 
 export function MissionHeader({
   mission,
-  unreadCount,
 }: {
   mission: Mission;
-  unreadCount: number;
+  unreadCount?: number;
 }) {
   const deadline = mission.submission_deadline
     ? new Date(mission.submission_deadline)
@@ -95,21 +94,8 @@ export function MissionHeader({
               )}
             </div>
             <IntelligenceCompletenessChip missionId={mission.id} />
-            <NotificationBell />
-
           </div>
         </div>
-        <nav className="mt-3 text-xs text-muted-foreground flex items-center gap-1.5">
-          <Link to="/olympus" className="hover:text-foreground">
-            Olympus
-          </Link>
-          <span>→</span>
-          <Link to="/olympus/missions" className="hover:text-foreground">
-            Missions
-          </Link>
-          <span>→</span>
-          <span className="text-foreground truncate">{mission.name}</span>
-        </nav>
       </div>
     </div>
   );
