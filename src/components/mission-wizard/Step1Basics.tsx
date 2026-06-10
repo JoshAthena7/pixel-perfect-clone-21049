@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { logAuditEvent } from "@/lib/mission-audit";
 
 export type Step1Values = {
   name: string;
