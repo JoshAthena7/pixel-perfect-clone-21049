@@ -91,6 +91,9 @@ function AuthenticatedLayout() {
     navigate({ to: "/login" });
   };
 
+  const [irisPrefill, setIrisPrefill] = useState<{ value: string; nonce: number } | null>(null);
+  const [irisOpenSignal, setIrisOpenSignal] = useState(0);
+
   const shell = (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-6 py-3">
@@ -119,14 +122,19 @@ function AuthenticatedLayout() {
       <main>
         <Outlet />
       </main>
+      <AssistsBar
+        onPrefillIris={(value) => setIrisPrefill({ value, nonce: Date.now() })}
+        onOpenIris={() => setIrisOpenSignal(Date.now())}
+      />
+      <IrisDock prefillSignal={irisPrefill} openSignal={irisOpenSignal} />
     </div>
   );
 
-  if (isAdmin) return shell;
+  if (isAdmin) return <IrisProvider>{shell}</IrisProvider>;
 
   if (!isAllowedForNonAdmin(path)) {
     return <Navigate to="/olympus/missions" replace />;
   }
 
-  return shell;
+  return <IrisProvider>{shell}</IrisProvider>;
 }
