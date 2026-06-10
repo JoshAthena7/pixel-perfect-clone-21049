@@ -241,10 +241,11 @@ function MissionRadarPanel({ memberId, missionId }: { memberId: string | null; m
     queryFn: async () => {
       const { data } = await supabase
         .from("mission_sections")
-        .select("id, name, completion_percentage, health_status")
+        .select("id, name")
         .eq("mission_id", missionId!)
-        .order("display_order", { ascending: true });
-      return (data ?? []) as any[];
+        .order("order_index", { ascending: true });
+      // completion/health rollup not stored; show 0% baseline until rollup exists
+      return ((data ?? []) as any[]).map((s) => ({ ...s, completion_percentage: 0, health_status: null }));
     },
   });
 
