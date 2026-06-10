@@ -368,3 +368,61 @@ function CustomFeedAdd({ missionId }: { missionId: string }) {
     </div>
   );
 }
+
+function BulkAddPanel({ missionId }: { missionId: string }) {
+  const qc = useQueryClient();
+  const bulkAdd = useServerFn(bulkAddFeedsFromText);
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function run() {
+    if (!text.trim() || busy) return;
+    setBusy(true);
+    try {
+      const res = await bulkAdd({ data: { missionId, text } });
+      const rss = res.feeds.filter((f) => f.isRss).length;
+      const scrape = res.feeds.length - rss;
+      toast.success(
+        `IRIS added ${res.inserted} feeds (${rss} RSS · ${scrape} page-scrape)${
+          res.skipped ? ` — ${res.skipped} duplicates skipped` : ""
+        }.`,
+      );
+      setText("");
+      qc.invalidateQueries({ queryKey: ["feed-configs", missionId] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "IRIS could not parse those sources.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="rounded-lg border border-[var(--athena-gold)]/40 bg-[var(--athena-gold)]/5 p-4 space-y-2">
+      <div className="flex items-center gap-2">
+        <Sparkles className="h-4 w-4 text-[var(--athena-gold)]" />
+        <p className="text-sm font-semibold text-[var(--athena-navy)]">
+          Bulk add with IRIS
+        </p>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Paste a list of websites — URLs, names, even messy notes. IRIS extracts each source, auto-detects RSS feeds where available, and falls back to page-scrape monitoring otherwise.
+      </p>
+      <Textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder={"e.g.\nhttps://www.medicaid.gov/about-us/news/index.html\nKFF Medicaid — kff.org/medicaid\nNASHP blog https://nashp.org/blog/"}
+        rows={5}
+        className="text-sm"
+      />
+      <div className="flex justify-end">
+        <Button
+          onClick={run}
+          disabled={!text.trim() || busy}
+          className="bg-[var(--athena-gold)] text-[var(--athena-navy)] hover:bg-[var(--athena-gold-light)] font-semibold"
+        >
+          {busy ? "IRIS is wiring them up…" : "Add with IRIS"}
+        </Button>
+      </div>
+    </div>
+  );
+}
