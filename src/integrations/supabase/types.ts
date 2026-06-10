@@ -4358,10 +4358,13 @@ export type Database = {
       }
       mission_journey_phases: {
         Row: {
+          cleared_at: string | null
+          cleared_by: string | null
           color: string | null
           created_at: string
           end_date: string | null
           id: string
+          is_cleared: boolean
           is_locked: boolean
           kind: string
           mission_id: string
@@ -4372,10 +4375,13 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cleared_at?: string | null
+          cleared_by?: string | null
           color?: string | null
           created_at?: string
           end_date?: string | null
           id?: string
+          is_cleared?: boolean
           is_locked?: boolean
           kind?: string
           mission_id: string
@@ -4386,10 +4392,13 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cleared_at?: string | null
+          cleared_by?: string | null
           color?: string | null
           created_at?: string
           end_date?: string | null
           id?: string
+          is_cleared?: boolean
           is_locked?: boolean
           kind?: string
           mission_id?: string
@@ -5158,45 +5167,72 @@ export type Database = {
       mission_style_guide: {
         Row: {
           banned_phrases: string | null
+          competitive_sensitivities: string | null
           created_at: string
+          cultural_sensitivities: string | null
+          formatting_requirements: string | null
           formatting_rules: string | null
           grammar_rules: string | null
+          historical_sensitivities: string | null
           id: string
+          length_and_density: string | null
           mission_id: string
+          political_sensitivities: string | null
           required_phrases: string | null
           sensitivities: string | null
           terminology: string | null
+          terminology_preferences: Json
           tone: string | null
           updated_at: string
           voice: string | null
+          voice_and_tone: string | null
+          words_to_avoid: Json
         }
         Insert: {
           banned_phrases?: string | null
+          competitive_sensitivities?: string | null
           created_at?: string
+          cultural_sensitivities?: string | null
+          formatting_requirements?: string | null
           formatting_rules?: string | null
           grammar_rules?: string | null
+          historical_sensitivities?: string | null
           id?: string
+          length_and_density?: string | null
           mission_id: string
+          political_sensitivities?: string | null
           required_phrases?: string | null
           sensitivities?: string | null
           terminology?: string | null
+          terminology_preferences?: Json
           tone?: string | null
           updated_at?: string
           voice?: string | null
+          voice_and_tone?: string | null
+          words_to_avoid?: Json
         }
         Update: {
           banned_phrases?: string | null
+          competitive_sensitivities?: string | null
           created_at?: string
+          cultural_sensitivities?: string | null
+          formatting_requirements?: string | null
           formatting_rules?: string | null
           grammar_rules?: string | null
+          historical_sensitivities?: string | null
           id?: string
+          length_and_density?: string | null
           mission_id?: string
+          political_sensitivities?: string | null
           required_phrases?: string | null
           sensitivities?: string | null
           terminology?: string | null
+          terminology_preferences?: Json
           tone?: string | null
           updated_at?: string
           voice?: string | null
+          voice_and_tone?: string | null
+          words_to_avoid?: Json
         }
         Relationships: [
           {
@@ -5215,12 +5251,15 @@ export type Database = {
           completed_by: string | null
           created_at: string
           description: string | null
+          due_date: string | null
           id: string
           iris_extracted: boolean
           is_complete: boolean
           label: string
           mission_id: string
           order_index: number
+          owner_id: string | null
+          status: string
           updated_at: string
         }
         Insert: {
@@ -5229,12 +5268,15 @@ export type Database = {
           completed_by?: string | null
           created_at?: string
           description?: string | null
+          due_date?: string | null
           id?: string
           iris_extracted?: boolean
           is_complete?: boolean
           label: string
           mission_id: string
           order_index?: number
+          owner_id?: string | null
+          status?: string
           updated_at?: string
         }
         Update: {
@@ -5243,12 +5285,15 @@ export type Database = {
           completed_by?: string | null
           created_at?: string
           description?: string | null
+          due_date?: string | null
           id?: string
           iris_extracted?: boolean
           is_complete?: boolean
           label?: string
           mission_id?: string
           order_index?: number
+          owner_id?: string | null
+          status?: string
           updated_at?: string
         }
         Relationships: [
