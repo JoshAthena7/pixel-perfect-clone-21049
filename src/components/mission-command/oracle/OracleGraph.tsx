@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plus, Minus, Maximize2 } from "lucide-react";
+import { Loader2, Plus, Minus, Maximize2, RefreshCw } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
 const NODE_STYLE: Record<string, { color: string; radius: number; shape: "circle" | "star" | "triangle"; labelFill: string }> = {
   requirement: { color: "#1A2B4C", radius: 8, shape: "circle", labelFill: "#fff" },
@@ -65,17 +66,26 @@ export function OracleGraph({ missionId, completeness }: { missionId: string; co
     return () => window.removeEventListener("resize", check);
   }, []);
 
+  const qc = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ["oracle-graph", missionId],
     queryFn: async () => {
       const [{ data: nodes }, { data: edges }] = await Promise.all([
-        supabase.from("intelligence_graph_nodes").select("id,label,node_type,description,confidence_level,source").eq("mission_id", missionId).eq("is_active", true),
+        supabase.from("intelligence_graph_nodes").select("id,label,node_type,description,confidence_level,source,updated_at").eq("mission_id", missionId).eq("is_active", true),
         supabase.from("intelligence_graph_edges").select("source_node_id,target_node_id,strength,is_confirmed,relationship_description").eq("mission_id", missionId),
       ]);
       return { nodes: nodes ?? [], edges: edges ?? [] };
     },
     refetchInterval: 30000,
   });
+
+  const lastUpdated = useMemo(() => {
+    const times = (data?.nodes ?? [])
+      .map((n) => new Date((n as { updated_at?: string }).updated_at ?? 0).getTime())
+      .filter((t) => Number.isFinite(t) && t > 0);
+    if (!times.length) return null;
+    return new Date(Math.max(...times));
+  }, [data?.nodes]);
 
   const nodes = useMemo<GNode[]>(() => (data?.nodes ?? []).map((n) => ({ ...n })), [data?.nodes]);
   const edges = useMemo<GEdge[]>(
@@ -246,7 +256,13 @@ export function OracleGraph({ missionId, completeness }: { missionId: string; co
           <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => svgRef.current && zoomRef.current && d3.select(svgRef.current).transition().call(zoomRef.current.scaleBy as never, 1.3)}><Plus className="h-4 w-4" /></Button>
           <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => svgRef.current && zoomRef.current && d3.select(svgRef.current).transition().call(zoomRef.current.scaleBy as never, 0.75)}><Minus className="h-4 w-4" /></Button>
           <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => svgRef.current && zoomRef.current && d3.select(svgRef.current).transition().call(zoomRef.current.transform as never, d3.zoomIdentity)}><Maximize2 className="h-4 w-4" /></Button>
+          <Button size="icon" variant="secondary" className="h-8 w-8" title="Refresh Graph" onClick={() => qc.invalidateQueries({ queryKey: ["oracle-graph", missionId] })}><RefreshCw className="h-4 w-4" /></Button>
         </div>
+        {lastUpdated && (
+          <div className="absolute bottom-3 left-3 text-[10px] text-white/70 bg-black/30 px-2 py-0.5 rounded">
+            Graph last updated: {formatDistanceToNow(lastUpdated, { addSuffix: true })}
+          </div>
+        )}
         {/* Filter buttons */}
         <div className="absolute top-3 right-3 flex flex-wrap gap-1 max-w-[60%] justify-end">
           {Object.keys(TYPE_LABELS).map((t) => (

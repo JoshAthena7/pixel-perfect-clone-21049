@@ -1,12 +1,15 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Loader2, Sparkles } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { shareFeedItemWithTeam } from "@/lib/oracle.functions";
+import { runIntelligenceCheck } from "@/lib/intelligence-monitoring.functions";
 import type { Database } from "@/integrations/supabase/types";
 
 type FeedItem = Database["public"]["Tables"]["intelligence_feed_items"]["Row"];
@@ -37,7 +40,11 @@ export function OracleFeed({ missionId }: { missionId: string }) {
   const [range, setRange] = useState<string>("7d");
   const [search, setSearch] = useState("");
 
+  const [newIds, setNewIds] = useState<Record<string, number>>({});
+  const [running, setRunning] = useState(false);
+
   const share = useServerFn(shareFeedItemWithTeam);
+  const runCheck = useServerFn(runIntelligenceCheck);
 
   const { data: items = [] } = useQuery({
     queryKey: ["oracle-feed", missionId],
@@ -50,6 +57,58 @@ export function OracleFeed({ missionId }: { missionId: string }) {
       return (data ?? []) as FeedItem[];
     },
   });
+
+  const { data: lastCheckedAt } = useQuery({
+    queryKey: ["oracle-feed-last-checked", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("intelligence_feed_configs")
+        .select("last_checked_at")
+        .eq("mission_id", missionId)
+        .order("last_checked_at", { ascending: false, nullsFirst: false })
+        .limit(1)
+        .maybeSingle();
+      return (data as { last_checked_at: string | null } | null)?.last_checked_at ?? null;
+    },
+    refetchInterval: 30000,
+  });
+
+  // Realtime: surface newly-inserted feed items without a page refresh.
+  useEffect(() => {
+    const channel = supabase
+      .channel(`oracle-feed-${missionId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "intelligence_feed_items", filter: `mission_id=eq.${missionId}` },
+        (payload) => {
+          const row = payload.new as FeedItem;
+          qc.setQueryData<FeedItem[]>(["oracle-feed", missionId], (prev = []) =>
+            prev.some((p) => p.id === row.id) ? prev : [row, ...prev],
+          );
+          setNewIds((m) => ({ ...m, [row.id]: Date.now() }));
+          setTimeout(() => setNewIds((m) => { const { [row.id]: _drop, ...rest } = m; return rest; }), 10000);
+          toast(`IRIS surfaced new intelligence: ${row.headline.slice(0, 60)}${row.headline.length > 60 ? "…" : ""}`);
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [missionId, qc]);
+
+  const onRunCheck = async () => {
+    setRunning(true);
+    try {
+      const r = await runCheck({ data: { missionId } });
+      toast.success(`Intelligence check complete. ${r.items_created} new items found across ${r.feeds_checked} feeds.`);
+      qc.invalidateQueries({ queryKey: ["oracle-feed", missionId] });
+      qc.invalidateQueries({ queryKey: ["oracle-feed-last-checked", missionId] });
+      qc.invalidateQueries({ queryKey: ["oracle-graph", missionId] });
+    } catch (err) {
+      console.error(err);
+      toast.error("Intelligence check failed. Please try again.");
+    } finally {
+      setRunning(false);
+    }
+  };
 
   const filtered = useMemo(() => {
     const now = Date.now();
@@ -85,9 +144,21 @@ export function OracleFeed({ missionId }: { missionId: string }) {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border bg-card p-4 text-sm">
-        In the last 7 days IRIS surfaced <strong>{summary.total}</strong> intelligence items.{" "}
-        <strong>{summary.attention}</strong> require attention. <strong>{summary.sections}</strong> affect sections currently being written.
+      <div className="rounded-lg border bg-card p-4 text-sm flex items-start justify-between gap-3">
+        <div>
+          In the last 7 days IRIS surfaced <strong>{summary.total}</strong> intelligence items.{" "}
+          <strong>{summary.attention}</strong> require attention. <strong>{summary.sections}</strong> affect sections currently being written.
+          <div className="text-xs text-muted-foreground mt-1">
+            {lastCheckedAt
+              ? <>Feeds last checked: {formatDistanceToNow(new Date(lastCheckedAt), { addSuffix: true })}</>
+              : <>Feeds have not been checked yet.</>}
+          </div>
+        </div>
+        <Button size="sm" onClick={onRunCheck} disabled={running} className="shrink-0">
+          {running
+            ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Checking feeds…</>
+            : <><Sparkles className="h-3 w-3 mr-1" /> Run Intelligence Check</>}
+        </Button>
       </div>
 
       <div className="flex flex-wrap gap-2 items-center">
@@ -131,7 +202,12 @@ export function OracleFeed({ missionId }: { missionId: string }) {
                 style={{ borderLeftColor: CATEGORY_COLOR[i.category] ?? "#888" }}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <Badge variant="outline" className="text-[10px]">{CATEGORY_LABEL[i.category] ?? i.category}</Badge>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant="outline" className="text-[10px]">{CATEGORY_LABEL[i.category] ?? i.category}</Badge>
+                      {newIds[i.id] && (
+                        <Badge style={{ background: "#C9A55C", color: "#1A2B4C" }} className="text-[10px] animate-pulse">New</Badge>
+                      )}
+                    </div>
                     <h4 className="font-semibold mt-1">{i.headline}</h4>
                     <div className="text-xs text-muted-foreground mt-0.5">
                       {i.source_name ?? "Unknown source"} · {i.published_at ? new Date(i.published_at).toLocaleDateString() : ""}
