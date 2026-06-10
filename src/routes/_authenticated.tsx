@@ -84,6 +84,14 @@ function AuthenticatedLayout() {
 
   const { isAdmin } = Route.useRouteContext();
 
+  const navigate = useNavigate();
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) { toast.error(error.message); return; }
+    toast.success("Signed out");
+    navigate({ to: "/login" });
+  };
+
   const shell = (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border bg-surface/60 px-6 py-3">
@@ -92,6 +100,7 @@ function AuthenticatedLayout() {
           <Link to="/olympus/missions" className="text-muted-foreground hover:text-foreground">Missions</Link>
           {isAdmin && <Link to="/admin" className="text-muted-foreground hover:text-foreground">Admin</Link>}
           <Link to="/profile" className="ml-auto text-muted-foreground hover:text-foreground">Profile</Link>
+          <button onClick={handleSignOut} className="text-muted-foreground hover:text-foreground">Sign out</button>
         </nav>
       </header>
       <main>
