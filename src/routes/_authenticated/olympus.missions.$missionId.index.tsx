@@ -17,7 +17,7 @@ import { SectionsQuestionsTab } from "@/components/mission-command/SectionsQuest
 import { QuestionHealthTab } from "@/components/mission-command/QuestionHealthTab";
 import { RfpDocumentsTab } from "@/components/mission-command/RfpDocumentsTab";
 import { QaLogTab } from "@/components/mission-command/QaLogTab";
-import { ClientIntelligenceTab } from "@/components/mission-command/ClientIntelligenceTab";
+// ClientIntelligenceTab now rendered inside OracleTab > Stakeholders sub-tab
 import { IntelligenceLibraryTab } from "@/components/mission-command/IntelligenceLibraryTab";
 import { ComplianceTab } from "@/components/mission-command/ComplianceTab";
 import { SubmissionChecklistTab } from "@/components/mission-command/SubmissionChecklistTab";
@@ -28,10 +28,12 @@ import { DecisionLogTab } from "@/components/mission-command/DecisionLogTab";
 import { JourneyLiveTab } from "@/components/mission-command/JourneyLiveTab";
 import { MissionSettingsTab } from "@/components/mission-command/MissionSettingsTab";
 import { AuditLogTab } from "@/components/mission-command/AuditLogTab";
+import { OracleTab } from "@/components/mission-command/oracle/OracleTab";
 
 const searchSchema = z.object({
   launched: z.coerce.number().optional(),
   tab: z.string().optional(),
+  sub: z.string().optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/olympus/missions/$missionId/")({
@@ -44,7 +46,20 @@ function MissionCommandCenter() {
   const { launched, tab } = Route.useSearch();
   const navigate = useNavigate();
 
-  const activeTab: TabId = isValidTab(tab) ? tab : "overview";
+  let activeTab: TabId = isValidTab(tab) ? tab : "overview";
+  // Redirect old Client Intelligence tab to Oracle stakeholders sub-tab
+  useEffect(() => {
+    if (tab === "client-intel") {
+      navigate({
+        to: "/olympus/missions/$missionId",
+        params: { missionId },
+        search: (prev: Record<string, unknown>) => ({ ...prev, tab: "oracle", sub: "stakeholders" }),
+        replace: true,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
+  if (activeTab === "client-intel") activeTab = "oracle";
 
   const { data: mission, isLoading } = useQuery({
     queryKey: ["mission-header", missionId],
@@ -73,8 +88,8 @@ function MissionCommandCenter() {
   useEffect(() => {
     if (launched) {
       toast.success(
-        "Mission is live. Your team has been notified. The clock is running. Go win this.",
-        { duration: 6000 },
+        "Mission is live. Your team has been notified. IRIS is building your Mission Intelligence Graph in the background. The clock is running.",
+        { duration: 7000 },
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -114,7 +129,7 @@ function MissionCommandCenter() {
         )}
         {activeTab === "rfp-documents" && <RfpDocumentsTab missionId={missionId} />}
         {activeTab === "qa-log" && <QaLogTab missionId={missionId} />}
-        {activeTab === "client-intel" && <ClientIntelligenceTab missionId={missionId} />}
+        {activeTab === "oracle" && <OracleTab missionId={missionId} />}
         {activeTab === "intel-library" && <IntelligenceLibraryTab missionId={missionId} />}
         {activeTab === "compliance" && (
           <ComplianceTab

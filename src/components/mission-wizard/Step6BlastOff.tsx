@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Check, Rocket, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { buildIntelligenceGraph } from "@/lib/oracle.functions";
 
 type CheckKey =
   | "basics"
@@ -133,6 +135,7 @@ type WriteStep = { name: string; status: "pending" | "ok" | "fail"; error?: stri
 
 export function Step6BlastOff({ missionId }: { missionId: string }) {
   const navigate = useNavigate();
+  const buildGraph = useServerFn(buildIntelligenceGraph);
   const { data: checks, isLoading, refetch } = useQuery({
     queryKey: ["launch-checks", missionId],
     queryFn: () => runChecks(missionId),
@@ -190,7 +193,8 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
     const result = await performWrites(missionId, setWrites);
     if (result.success) {
       setPhase("burst");
-      // allow particle animation 800ms
+      // fire-and-forget graph build
+      buildGraph({ data: { missionId } }).catch((e) => console.error("Graph build failed", e));
       await new Promise((r) => setTimeout(r, 900));
       setPhase("done");
       navigate({
@@ -208,6 +212,7 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
     const result = await performWrites(missionId, setWrites, true);
     if (result.success) {
       setPhase("burst");
+      buildGraph({ data: { missionId } }).catch((e) => console.error("Graph build failed", e));
       await new Promise((r) => setTimeout(r, 900));
       navigate({
         to: "/olympus/missions/$missionId",
