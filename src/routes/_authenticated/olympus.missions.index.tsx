@@ -292,17 +292,19 @@ function MissionCard({ m }: { m: MissionRow }) {
         )}
       </Link>
       {isSetup && (
-        <button
-          type="button"
-          onClick={onDelete}
-          disabled={deleting}
-          aria-label="Delete mission and start over"
-          title="Delete mission and start over"
-          className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-md border border-destructive/30 bg-background/80 px-2 py-1 text-[11px] text-destructive opacity-0 group-hover:opacity-100 focus:opacity-100 hover:bg-destructive/10 transition-opacity disabled:opacity-50"
-        >
-          <Trash2 className="h-3 w-3" />
-          {deleting ? "Deleting…" : "Delete & start over"}
-        </button>
+        <div className="mt-2 flex justify-end">
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={deleting}
+            aria-label="Delete mission and start over"
+            title="Delete mission and start over"
+            className="inline-flex items-center gap-1 rounded-md border border-destructive/30 bg-background/80 px-2 py-1 text-[11px] text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
+          >
+            <Trash2 className="h-3 w-3" />
+            {deleting ? "Deleting…" : "Delete & start over"}
+          </button>
+        </div>
       )}
     </div>
   );
