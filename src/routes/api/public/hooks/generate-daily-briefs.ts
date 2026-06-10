@@ -88,7 +88,7 @@ export const Route = createFileRoute("/api/public/hooks/generate-daily-briefs")(
               ? Math.ceil((new Date(m.submission_deadline).getTime() - Date.now()) / 86400000)
               : null;
 
-            const [{ data: members }, { data: feedItems }, { data: atRisk }, { data: watch }] = await Promise.all([
+            const [membersRes, feedRes, atRiskRes, watchRes] = await Promise.all([
               supabaseAdmin.from("mission_team_members").select("id,member_id,mission_role").eq("mission_id", missionId),
               supabaseAdmin
                 .from("intelligence_feed_items")
@@ -98,20 +98,19 @@ export const Route = createFileRoute("/api/public/hooks/generate-daily-briefs")(
                 .gte("created_at", since)
                 .order("iris_relevance_score", { ascending: false })
                 .limit(20),
-              supabaseAdmin.from("mission_questions").select("question_number,health,status").eq("mission_id", missionId).in("health", ["red"]),
-              supabaseAdmin.from("mission_questions").select("question_number,health").eq("mission_id", missionId).in("health", ["yellow"]),
+              supabaseAdmin.from("mission_questions").select("question_number,health_status,status").eq("mission_id", missionId).eq("health_status", "red"),
+              supabaseAdmin.from("mission_questions").select("question_number,health_status").eq("mission_id", missionId).eq("health_status", "yellow"),
             ]);
 
-            const memberRows = (members ?? []) as Array<{ id: string; member_id: string | null; mission_role: string | null }>;
-            const feedRows = (feedItems ?? []) as Array<{ headline: string; iris_assessment: string | null; affected_section_ids: string[] | null; source_url: string | null }>;
-            const atRiskRows = (atRisk ?? []) as Array<{ question_number: string; status: string | null }>;
-            const watchRows = (watch ?? []) as Array<{ question_number: string }>;
+            const memberRows = (membersRes.data ?? []) as Array<{ id: string; member_id: string | null; mission_role: string | null }>;
+            const feedRows = (feedRes.data ?? []) as Array<{ headline: string; iris_assessment: string | null; affected_section_ids: string[] | null; source_url: string | null }>;
+            const atRiskRows = (atRiskRes.data ?? []) as Array<{ question_number: string | null; status: string | null }>;
+            const watchRows = (watchRes.data ?? []) as Array<{ question_number: string | null }>;
 
             for (const member of memberRows) {
               const recipientId = member.member_id;
               if (!recipientId) { skippedCount++; continue; }
 
-              // Skip if today's brief already exists
               const { data: existing } = await supabaseAdmin
                 .from("daily_intelligence_briefs")
                 .select("id")
@@ -124,51 +123,34 @@ export const Route = createFileRoute("/api/public/hooks/generate-daily-briefs")(
               const adminBrief = isAdminRole(member.mission_role);
               const briefType = adminBrief ? "admin_brief" : "consultant_brief";
 
-              // Pull profile name
               const { data: prof } = await supabaseAdmin
                 .from("profiles")
-                .select("display_name,first_name,email")
+                .select("display_name,first_name")
                 .eq("id", recipientId)
                 .maybeSingle();
-              const name = (prof as { display_name?: string; first_name?: string; email?: string } | null)?.first_name
+              const name = (prof as { display_name?: string; first_name?: string } | null)?.first_name
                 ?? (prof as { display_name?: string } | null)?.display_name
                 ?? "there";
 
-              let userPrompt: string;
-              if (adminBrief) {
-                userPrompt = [
-                  `Mission: ${m.name}`,
-                  `Client: ${m.client_name ?? "—"}`,
-                  `State: ${m.state ?? "—"}`,
-                  `Days to submission: ${daysToSubmission ?? "—"}`,
-                  `At-risk questions (${atRiskRows.length}): ${atRiskRows.map((q) => q.question_number).join(", ") || "none"}`,
-                  `Watch questions: ${watchRows.length}`,
-                  `New feed items last 24h:`,
-                  ...feedRows.map((f) => `- ${f.headline} :: ${f.iris_assessment ?? ""}`),
-                ].join("\n");
-              } else {
-                const { data: assignments } = await supabaseAdmin
-                  .from("question_assignments")
-                  .select("question_id,role")
-                  .eq("assigned_to", recipientId);
-                const qIds = ((assignments ?? []) as Array<{ question_id: string }>).map((a) => a.question_id);
-                const { data: qs } = qIds.length ? await supabaseAdmin
-                  .from("mission_questions")
-                  .select("question_number,health,status,due_date,section_id")
-                  .in("id", qIds) : { data: [] as Array<{ question_number: string; health: string; status: string; due_date: string | null; section_id: string | null }> };
-                const myQs = (qs ?? []) as Array<{ question_number: string; health: string; status: string; due_date: string | null; section_id: string | null }>;
-                const mySectionIds = new Set(myQs.map((q) => q.section_id).filter(Boolean) as string[]);
-                const relevantFeed = feedRows.filter((f) => !f.affected_section_ids?.length || f.affected_section_ids.some((s) => mySectionIds.has(s)));
-                userPrompt = [
-                  `User name: ${name}`,
-                  `Role: ${member.mission_role ?? "—"}`,
-                  `Mission days to submission: ${daysToSubmission ?? "—"}`,
-                  `Your assignments:`,
-                  ...myQs.map((q) => `- Q${q.question_number} health=${q.health} status=${q.status} due=${q.due_date ?? "—"}`),
-                  `New feed items relevant to your sections:`,
-                  ...relevantFeed.slice(0, 10).map((f) => `- ${f.headline} :: ${f.iris_assessment ?? ""}`),
-                ].join("\n");
-              }
+              const userPrompt = adminBrief
+                ? [
+                    `Mission: ${m.name}`,
+                    `Client: ${m.client_name ?? "—"}`,
+                    `State: ${m.state ?? "—"}`,
+                    `Days to submission: ${daysToSubmission ?? "—"}`,
+                    `At-risk questions (${atRiskRows.length}): ${atRiskRows.map((q) => q.question_number).filter(Boolean).join(", ") || "none"}`,
+                    `Watch questions: ${watchRows.length}`,
+                    `New feed items last 24h:`,
+                    ...feedRows.map((f) => `- ${f.headline} :: ${f.iris_assessment ?? ""}`),
+                  ].join("\n")
+                : [
+                    `User name: ${name}`,
+                    `Role: ${member.mission_role ?? "—"}`,
+                    `Mission: ${m.name}`,
+                    `Mission days to submission: ${daysToSubmission ?? "—"}`,
+                    `New feed items last 24h:`,
+                    ...feedRows.slice(0, 10).map((f) => `- ${f.headline} :: ${f.iris_assessment ?? ""}`),
+                  ].join("\n");
 
               let aiContent = apiKey
                 ? await callIris(apiKey, adminBrief ? ADMIN_SYSTEM : CONSULTANT_SYSTEM, userPrompt)
