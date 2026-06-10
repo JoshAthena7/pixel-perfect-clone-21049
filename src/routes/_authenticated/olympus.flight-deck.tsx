@@ -17,6 +17,7 @@ import {
   FileText,
   Users,
 } from "lucide-react";
+import { FlightDeckLayout } from "@/components/flight-deck/FlightDeckLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -288,6 +289,15 @@ function FlightDeck() {
             <NotificationBell />
           </div>
         </div>
+      </div>
+
+      <div className="mx-auto max-w-7xl px-6 py-6">
+        <FlightDeckLayout
+          memberId={memberId}
+          activeMissionId={data.assignments[0]?.mission_id ?? null}
+          activeMissionName={data.assignments[0] ? (data.missions.find((m) => m.id === data.assignments[0].mission_id)?.name ?? "Flight Deck") : "Flight Deck"}
+          activeMissionStatus={null}
+        />
       </div>
 
       <div className="mx-auto max-w-6xl px-6 py-6 space-y-8">

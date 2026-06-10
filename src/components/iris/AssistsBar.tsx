@@ -79,7 +79,7 @@ function ActionBtn({ label, icon, onClick, danger }: { label: string; icon: Reac
   );
 }
 
-function UpdateRealityDialog({ open, onOpenChange, missionId, onSent }: { open: boolean; onOpenChange: (v: boolean) => void; missionId: string | null; onSent: () => void }) {
+export function UpdateRealityDialog({ open, onOpenChange, missionId, onSent }: { open: boolean; onOpenChange: (v: boolean) => void; missionId: string | null; onSent: () => void }) {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const submit = async () => {
@@ -127,7 +127,7 @@ function UpdateRealityDialog({ open, onOpenChange, missionId, onSent }: { open: 
   );
 }
 
-function SOSDialog({ open, onOpenChange, missionId }: { open: boolean; onOpenChange: (v: boolean) => void; missionId: string | null }) {
+export function SOSDialog({ open, onOpenChange, missionId }: { open: boolean; onOpenChange: (v: boolean) => void; missionId: string | null }) {
   const [text, setText] = useState("");
   const [priority, setPriority] = useState<"critical" | "high" | "medium">("high");
   const [busy, setBusy] = useState(false);
