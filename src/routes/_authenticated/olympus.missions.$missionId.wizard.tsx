@@ -44,6 +44,7 @@ function ResumeWizardPage() {
   const { missionId } = Route.useParams();
   const search = Route.useSearch();
   const navigate = useNavigate();
+  const qc = useQueryClient();
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["mission-wizard", missionId],
