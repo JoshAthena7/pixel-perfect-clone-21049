@@ -16,17 +16,6 @@ import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { supabase } from "@/integrations/supabase/client";
-import * as PolishModule from "@/components/v2/polish";
-import { resolveGoldEntryLine, SafeRender } from "@/lib/safe-gold-entry";
-
-// Safe fallback: if the polish module fails to load, or GoldEntryLine is
-// missing/undefined (stale SSR bundle, transform error, future refactor),
-// render nothing instead of crashing the entire app.
-const SafeGoldEntryLine = resolveGoldEntryLine(PolishModule);
-
-function GoldEntryLineBoundary() {
-  return <SafeRender Cmp={SafeGoldEntryLine} />;
-}
 
 function NotFoundComponent() {
   return (
@@ -96,7 +85,6 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthSync />
-      <GoldEntryLineBoundary />
       <Outlet />
       <Toaster theme="dark" position="top-right" />
     </QueryClientProvider>
