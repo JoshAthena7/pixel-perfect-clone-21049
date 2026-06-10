@@ -295,11 +295,12 @@ function IrisPulse({ mode }: { mode: "active" | "idle" | "off" }) {
         glow={mode === "active"}
         className={cn(
           "relative transition-opacity",
-          mode === "active" && "animate-[iris-breathe_2.4s_ease-in-out_infinite]",
+          mode === "active" && "animate-pulse",
           mode === "idle" && "opacity-90",
           mode === "off" && "opacity-40 grayscale",
         )}
       />
+
     </div>
   );
 }
