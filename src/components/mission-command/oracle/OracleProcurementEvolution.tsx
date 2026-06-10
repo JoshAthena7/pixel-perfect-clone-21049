@@ -59,9 +59,9 @@ export function OracleProcurementEvolution({ missionId }: { missionId: string })
             <div key={i} className="border-l-2 border-primary/30 pl-2 py-1 text-xs">
               <Badge variant="outline" className="text-[10px]">{String(c.change_type ?? "Change")}</Badge>
               <div className="mt-1">{String(c.description ?? "")}</div>
-              {c.prior_version && <div className="text-muted-foreground"><strong>Prior:</strong> {String(c.prior_version)}</div>}
-              {c.current_version && <div className="text-muted-foreground"><strong>Current:</strong> {String(c.current_version)}</div>}
-              {c.significance && <div className="text-[10px] italic mt-1">{String(c.significance)}</div>}
+              {Boolean(c.prior_version) && <div className="text-muted-foreground"><strong>Prior:</strong> {String(c.prior_version)}</div>}
+              {Boolean(c.current_version) && <div className="text-muted-foreground"><strong>Current:</strong> {String(c.current_version)}</div>}
+              {Boolean(c.significance) && <div className="text-[10px] italic mt-1">{String(c.significance)}</div>}
             </div>
           ))}
         </Card>
@@ -70,8 +70,8 @@ export function OracleProcurementEvolution({ missionId }: { missionId: string })
           {sections.map((s, i) => (
             <div key={i} className="text-xs py-1">
               <div className="font-medium">{String(s.name ?? "Section")}</div>
-              {s.description && <div className="text-muted-foreground">{String(s.description)}</div>}
-              {s.signal && <div className="italic text-[#C9A55C] mt-1">{String(s.signal)}</div>}
+              {Boolean(s.description) && <div className="text-muted-foreground">{String(s.description)}</div>}
+              {Boolean(s.signal) && <div className="italic text-[#C9A55C] mt-1">{String(s.signal)}</div>}
             </div>
           ))}
         </Card>
@@ -80,8 +80,8 @@ export function OracleProcurementEvolution({ missionId }: { missionId: string })
           {tightened.map((t, i) => (
             <div key={i} className="text-xs py-1">
               <div className="font-medium">{String(t.requirement ?? "Requirement")}</div>
-              {t.what_changed && <div className="text-muted-foreground">{String(t.what_changed)}</div>}
-              {t.signal && <div className="italic text-[#C9A55C] mt-1">{String(t.signal)}</div>}
+              {Boolean(t.what_changed) && <div className="text-muted-foreground">{String(t.what_changed)}</div>}
+              {Boolean(t.signal) && <div className="italic text-[#C9A55C] mt-1">{String(t.signal)}</div>}
             </div>
           ))}
         </Card>
@@ -91,7 +91,7 @@ export function OracleProcurementEvolution({ missionId }: { missionId: string })
             <div key={i} className="text-xs py-1">
               <div className="font-medium">{String(s.section ?? "Section")}</div>
               <div>{String(s.old_weight ?? "?")} → {String(s.new_weight ?? "?")}</div>
-              {s.significance && <div className="italic mt-1">{String(s.significance)}</div>}
+              {Boolean(s.significance) && <div className="italic mt-1">{String(s.significance)}</div>}
             </div>
           ))}
         </Card>
