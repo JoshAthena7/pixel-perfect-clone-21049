@@ -14,6 +14,8 @@ export const Route = createFileRoute("/_authenticated/olympus/missions/")({
 });
 
 import { IntelligenceCompletenessChip } from "@/components/mission-command/IntelligenceCompletenessChip";
+import { MissionCardBadges } from "@/components/nav/MissionCardBadges";
+import { getLastTab } from "@/lib/last-tab";
 
 type MissionRow = {
   id: string;
@@ -212,17 +214,19 @@ function MissionsListPage() {
 }
 
 function MissionCard({ m }: { m: MissionRow }) {
-  const to =
-    m.status === "setup"
-      ? "/olympus/missions/$missionId/wizard"
-      : "/olympus/missions/$missionId";
+  const isSetup = m.status === "setup";
+  const to = isSetup
+    ? "/olympus/missions/$missionId/wizard"
+    : "/olympus/missions/$missionId";
   const daysOut = m.submission_deadline
     ? formatDistanceToNowStrict(new Date(m.submission_deadline), { unit: "day" })
     : null;
+  const search = !isSetup ? ({ tab: getLastTab(m.id) ?? "overview" } as any) : undefined;
   return (
     <Link
       to={to}
       params={{ missionId: m.id }}
+      search={search}
       className="block rounded-xl border border-border bg-surface/40 p-5 hover:bg-surface hover:border-[var(--athena-gold)]/40 transition-colors"
     >
       <div className="flex items-start justify-between gap-3 mb-3">
@@ -257,6 +261,7 @@ function MissionCard({ m }: { m: MissionRow }) {
           <ListChecks className="h-3.5 w-3.5" /> {m.question_count} questions
         </span>
       </div>
+      <MissionCardBadges missionId={m.id} />
       {m.status === "active" && m.blast_off_at && (
         <p className="text-[11px] text-muted-foreground mt-2">
           Launched {format(new Date(m.blast_off_at), "MMMM d, yyyy")}

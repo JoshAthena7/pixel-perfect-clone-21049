@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
+import { getLastTab, setLastTab } from "@/lib/last-tab";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MissionHeader } from "@/components/mission-command/MissionHeader";
@@ -47,6 +48,25 @@ function MissionCommandCenter() {
   const navigate = useNavigate();
 
   let activeTab: TabId = isValidTab(tab) ? tab : "overview";
+  // Restore last-visited tab when no tab is in URL
+  useEffect(() => {
+    if (!tab) {
+      const last = getLastTab(missionId);
+      if (last && isValidTab(last)) {
+        navigate({
+          to: "/olympus/missions/$missionId",
+          params: { missionId },
+          search: (prev: Record<string, unknown>) => ({ ...prev, tab: last }),
+          replace: true,
+        });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, missionId]);
+  // Persist tab changes
+  useEffect(() => {
+    if (tab && isValidTab(tab)) setLastTab(missionId, tab);
+  }, [tab, missionId]);
   // Redirect old Client Intelligence tab to Oracle stakeholders sub-tab
   useEffect(() => {
     if (tab === "client-intel") {
@@ -116,7 +136,7 @@ function MissionCommandCenter() {
   return (
     <div className="min-h-screen">
       <MissionHeader mission={mission} unreadCount={unreadCount} />
-      <MissionTabs active={activeTab} onChange={setTab} />
+      <MissionTabs active={activeTab} onChange={setTab} missionId={missionId} />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
         {activeTab === "overview" && (
           <OverviewTab missionId={missionId} onNavigateTab={setTab} />
