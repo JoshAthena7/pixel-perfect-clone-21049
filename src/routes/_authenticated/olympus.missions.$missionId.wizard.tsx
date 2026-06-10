@@ -62,8 +62,14 @@ function ResumeWizardPage() {
     queryFn: () => fetchMissionForWizard(missionId),
   });
 
-  const inferredStep = data?.hasSections ? 3 : data?.hasDocs ? 2 : 1;
+  const intelStep = data?.mission?.intelligence_loadout_step ?? 0;
+  const inferredStep = intelStep >= 4 ? 12
+    : intelStep === 3 ? 11
+    : intelStep === 2 ? 10
+    : intelStep === 1 ? 9
+    : data?.hasSections ? 4 : data?.hasDocs ? 3 : 1;
   const step = search.step ?? inferredStep;
+
 
   const back = () => {
     if (step <= 1) navigate({ to: "/olympus/missions" });
