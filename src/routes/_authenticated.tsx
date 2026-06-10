@@ -89,13 +89,27 @@ function AuthenticatedLayout() {
 
   const shell = (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border bg-surface/60 px-6 py-3">
-        <nav className="mx-auto flex max-w-7xl items-center gap-4 text-sm">
-          <Link to="/home" className="font-semibold tracking-[0.18em] text-foreground">ATLAS</Link>
-          <Link to="/olympus/missions" className="text-muted-foreground hover:text-foreground">Missions</Link>
-          {isAdmin && <Link to="/admin" className="text-muted-foreground hover:text-foreground">Admin</Link>}
-          <Link to="/profile" className="ml-auto text-muted-foreground hover:text-foreground">Profile</Link>
-          <button onClick={handleSignOut} className="text-muted-foreground hover:text-foreground">Sign out</button>
+      <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-6 py-3">
+        <nav className="mx-auto flex max-w-7xl items-center gap-5 text-sm">
+          <Link to="/home" className="font-bold tracking-[0.2em] text-[var(--athena-gold)]">ATLAS</Link>
+          <Link
+            to="/olympus/missions"
+            className="text-muted-foreground hover:text-foreground transition-colors"
+            activeProps={{ className: "text-foreground font-semibold" }}
+          >Missions</Link>
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              activeProps={{ className: "text-foreground font-semibold" }}
+            >Admin</Link>
+          )}
+          <Link
+            to="/profile"
+            className="ml-auto text-muted-foreground hover:text-foreground transition-colors"
+            activeProps={{ className: "text-foreground font-semibold" }}
+          >Profile</Link>
+          <button onClick={handleSignOut} className="text-muted-foreground hover:text-foreground transition-colors">Sign out</button>
         </nav>
       </header>
       <main>
