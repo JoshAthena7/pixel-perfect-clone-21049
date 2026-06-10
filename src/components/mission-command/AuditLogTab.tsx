@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { ChevronDown, ChevronRight, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonRows, ErrorState, EmptyState } from "@/components/shared/data-states";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -32,15 +32,16 @@ export function AuditLogTab({ missionId, missionName }: { missionId: string; mis
   const [performerFilter, setPerformerFilter] = useState("all");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-  const { data: all, isLoading } = useQuery({
+  const { data: all, isLoading, isError, refetch } = useQuery({
     queryKey: ["audit-log", missionId],
     enabled: !!isAdmin,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("mission_audit_log")
         .select("*")
         .eq("mission_id", missionId)
         .order("created_at", { ascending: false });
+      if (error) throw error;
       return (data ?? []) as Entry[];
     },
   });
@@ -81,12 +82,14 @@ export function AuditLogTab({ missionId, missionName }: { missionId: string; mis
     downloadCsv(`${slugForFilename(missionName)}-audit-log-${format(new Date(), "yyyy-MM-dd")}.csv`, rows);
   };
 
-  if (roleLoading || isLoading) return <Skeleton className="h-96 w-full" />;
+  if (roleLoading || isLoading) return <SkeletonRows rows={6} height="h-12" />;
+  if (isError) return <ErrorState message="Couldn't load the audit log." onRetry={() => refetch()} />;
   if (!isAdmin) {
     return (
-      <div className="rounded-xl border border-dashed p-12 text-center text-muted-foreground">
-        This tab is restricted to mission administrators.
-      </div>
+      <EmptyState
+        title="Admin only"
+        description="The audit log is restricted to mission administrators."
+      />
     );
   }
 
@@ -122,9 +125,10 @@ export function AuditLogTab({ missionId, missionName }: { missionId: string; mis
       </div>
 
       {pageRows.length === 0 ? (
-        <div className="rounded-xl border border-dashed p-12 text-center text-muted-foreground">
-          No audit entries yet.
-        </div>
+        <EmptyState
+          title="No audit entries yet"
+          description="Mission activity will appear here as the team takes actions."
+        />
       ) : (
         <div className="rounded-lg border border-border overflow-hidden">
           <table className="w-full text-sm">
