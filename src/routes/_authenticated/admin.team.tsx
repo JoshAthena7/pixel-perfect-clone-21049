@@ -399,22 +399,55 @@ function TeamRosterPage() {
               No team members yet. Add manually or import a TalentDesk CSV.
             </p>
           )}
-          {filtered.map((m: any) => (
-            <div key={m.id} className="grid grid-cols-12 gap-2 border-b px-4 py-3 text-sm items-center last:border-0">
-              <div className="col-span-3 font-medium">{[m.first_name, m.last_name].filter(Boolean).join(" ") || "—"}</div>
-              <div className="col-span-3 text-muted-foreground truncate">{m.email}</div>
-              <div className="col-span-2 truncate">{m.job_title || "—"}</div>
-              <div className="col-span-2 truncate">{m.atlas_role || "—"}</div>
-              <div className="col-span-1">
-                <Badge variant="outline" className="text-[10px]">{m.atlas_invite_status ?? "—"}</Badge>
+          {filtered.map((m: any) => {
+            const currentRole = (m.atlas_role && ROLE_OPTIONS.some(r => r.value === m.atlas_role))
+              ? m.atlas_role : "unassigned";
+            const invited = m.atlas_invite_status === "invited" || m.atlas_invite_status === "accepted";
+            return (
+              <div key={m.id} className="grid grid-cols-12 gap-2 border-b px-4 py-3 text-sm items-center last:border-0">
+                <div className="col-span-3 font-medium">{[m.first_name, m.last_name].filter(Boolean).join(" ") || "—"}</div>
+                <div className="col-span-3 text-muted-foreground truncate">{m.email}</div>
+                <div className="col-span-2 truncate">{m.job_title || "—"}</div>
+                <div className="col-span-2">
+                  <Select
+                    value={currentRole}
+                    disabled={pendingRoleId === m.id}
+                    onValueChange={(v) => {
+                      if (v !== currentRole) roleMut.mutate({ id: m.id, atlas_role: v });
+                    }}
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ROLE_OPTIONS.map((r) => (
+                        <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="col-span-1">
+                  <Badge variant="outline" className="text-[10px]">{m.atlas_invite_status ?? "—"}</Badge>
+                </div>
+                <div className="col-span-1 flex justify-end gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    title={invited ? "Resend invite" : "Send invite"}
+                    disabled={pendingInviteId === m.id}
+                    onClick={() => inviteMut.mutate(m.id)}
+                  >
+                    {pendingInviteId === m.id
+                      ? <Loader2 className="h-4 w-4 animate-spin" />
+                      : invited ? <Copy className="h-4 w-4" /> : <Send className="h-4 w-4" />}
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => setRemoveTarget(m)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-              <div className="col-span-1 text-right">
-                <Button variant="ghost" size="icon" onClick={() => setRemoveTarget(m)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
