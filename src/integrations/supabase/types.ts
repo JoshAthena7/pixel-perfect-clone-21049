@@ -3662,6 +3662,44 @@ export type Database = {
         }
         Relationships: []
       }
+      mission_audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          metadata: Json
+          mission_id: string
+          performed_by: string | null
+          performed_by_name: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          mission_id: string
+          performed_by?: string | null
+          performed_by_name?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          mission_id?: string
+          performed_by?: string | null
+          performed_by_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_audit_log_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_change_log: {
         Row: {
           change_type: string
@@ -3742,6 +3780,117 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      mission_client_intelligence: {
+        Row: {
+          added_by: string | null
+          category: string
+          content: string | null
+          created_at: string
+          date_of_intelligence: string | null
+          id: string
+          mission_id: string
+          source_url: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          added_by?: string | null
+          category: string
+          content?: string | null
+          created_at?: string
+          date_of_intelligence?: string | null
+          id?: string
+          mission_id: string
+          source_url?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          added_by?: string | null
+          category?: string
+          content?: string | null
+          created_at?: string
+          date_of_intelligence?: string | null
+          id?: string
+          mission_id?: string
+          source_url?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_client_intelligence_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_compliance_requirements: {
+        Row: {
+          created_at: string
+          id: string
+          iris_extracted: boolean
+          is_high_risk: boolean
+          mission_id: string
+          owner_id: string | null
+          requirement: string
+          section_id: string | null
+          source: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          iris_extracted?: boolean
+          is_high_risk?: boolean
+          mission_id: string
+          owner_id?: string | null
+          requirement: string
+          section_id?: string | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          iris_extracted?: boolean
+          is_high_risk?: boolean
+          mission_id?: string
+          owner_id?: string | null
+          requirement?: string
+          section_id?: string | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_compliance_requirements_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_compliance_requirements_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "atlas_team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_compliance_requirements_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "mission_sections"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mission_conflict_ack: {
         Row: {
@@ -3844,6 +3993,62 @@ export type Database = {
           title?: string
         }
         Relationships: []
+      }
+      mission_documents: {
+        Row: {
+          amendment_processed_at: string | null
+          content_summary: string | null
+          created_at: string
+          document_type: string
+          file_url: string | null
+          id: string
+          is_amendment: boolean
+          mission_id: string
+          section_tags: string[]
+          source_url: string | null
+          title: string | null
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          amendment_processed_at?: string | null
+          content_summary?: string | null
+          created_at?: string
+          document_type: string
+          file_url?: string | null
+          id?: string
+          is_amendment?: boolean
+          mission_id: string
+          section_tags?: string[]
+          source_url?: string | null
+          title?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          amendment_processed_at?: string | null
+          content_summary?: string | null
+          created_at?: string
+          document_type?: string
+          file_url?: string | null
+          id?: string
+          is_amendment?: boolean
+          mission_id?: string
+          section_tags?: string[]
+          source_url?: string | null
+          title?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_documents_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mission_evaluation_criteria: {
         Row: {
@@ -7417,6 +7622,10 @@ export type Database = {
         Returns: boolean
       }
       is_mission_member: {
+        Args: { _mission_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_mission_member_user: {
         Args: { _mission_id: string; _user_id: string }
         Returns: boolean
       }
