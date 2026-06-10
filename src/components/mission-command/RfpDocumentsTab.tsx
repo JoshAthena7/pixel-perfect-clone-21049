@@ -162,9 +162,13 @@ export function RfpDocumentsTab({ missionId }: { missionId: string }) {
       if (m) flaggedIds.add(m.id);
     }
     if (flaggedIds.size > 0) {
-      const { data: assigns } = await supabase.from("mission_assignments")
-        .select("assigned_writer_id, section_id, mission_questions(question_number)")
-        .eq("mission_id", missionId).in("section_id", Array.from(flaggedIds));
+      const { data: qIds } = await supabase.from("mission_questions")
+        .select("id").eq("mission_id", missionId).in("section_id", Array.from(flaggedIds));
+      const qIdList = (qIds ?? []).map((q) => q.id);
+      const { data: assigns } = qIdList.length
+        ? await supabase.from("mission_assignments")
+            .select("assigned_writer_id").eq("mission_id", missionId).in("question_id", qIdList)
+        : { data: [] as { assigned_writer_id: string | null }[] };
       const notes = (assigns ?? []).filter((a) => a.assigned_writer_id).map((a) => ({
         recipient_id: a.assigned_writer_id!,
         recipient_role: "writer",
