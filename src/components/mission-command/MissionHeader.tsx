@@ -54,8 +54,11 @@ export function MissionHeader({
   const statusKey = (mission.status ?? "setup").toLowerCase();
   const statusClass = STATUS_STYLES[statusKey] ?? STATUS_STYLES.setup;
 
+  const [editOpen, setEditOpen] = useState(false);
+
   return (
     <div className="border-b border-border bg-surface/40 backdrop-blur">
+      <MissionEditPanel missionId={mission.id} open={editOpen} onOpenChange={setEditOpen} />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
           <div className="min-w-0">
@@ -63,6 +66,15 @@ export function MissionHeader({
               <h1 className="truncate text-2xl sm:text-3xl font-bold text-foreground">
                 {mission.name}
               </h1>
+              <button
+                type="button"
+                onClick={() => setEditOpen(true)}
+                aria-label="Edit mission"
+                title="Edit mission"
+                className="inline-flex items-center justify-center h-7 w-7 rounded-md border border-border/60 text-muted-foreground hover:text-foreground hover:bg-surface transition-colors"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
               <span
                 className={cn(
                   "shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide",
