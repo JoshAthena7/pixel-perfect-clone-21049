@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { generateCompetitorProfile, suggestCompetitors } from "@/lib/intelligence-loadout.functions";
+import { bulkAddCompetitorsFromText } from "@/lib/iris-bulk-competitors.functions";
+import { toast } from "sonner";
 
 const TYPE_BADGE: Record<string, string> = {
   incumbent: "bg-red-100 text-red-700",
