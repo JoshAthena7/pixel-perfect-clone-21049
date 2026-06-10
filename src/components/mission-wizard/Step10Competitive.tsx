@@ -426,3 +426,82 @@ function CompetitorForm({ missionId, initial, onClose, onSaved }: { missionId: s
     </div>
   );
 }
+
+function BulkAddCompetitorsPanel({
+  missionId,
+  onDone,
+}: {
+  missionId: string;
+  onDone: (insertedIds: string[]) => void;
+}) {
+  const bulkFn = useServerFn(bulkAddCompetitorsFromText);
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  async function run() {
+    if (!text.trim()) return;
+    setBusy(true);
+    try {
+      const r = await bulkFn({ data: { missionId, text } });
+      if (r.inserted > 0) {
+        toast.success(
+          `IRIS added ${r.inserted} competitor${r.inserted === 1 ? "" : "s"}${
+            r.skipped > 0 ? ` (${r.skipped} duplicate${r.skipped === 1 ? "" : "s"} skipped)` : ""
+          }`,
+        );
+        setText("");
+        setOpen(false);
+        onDone(r.insertedIds);
+      } else if (r.skipped > 0) {
+        toast.info("All detected competitors are already on the list.");
+      } else {
+        toast.error("IRIS could not find any competitors in that text.");
+      }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Bulk add failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="rounded border border-[var(--athena-gold)]/60 bg-[var(--athena-gold)]/5 p-3 space-y-2">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center gap-2 text-sm font-semibold text-[var(--athena-navy)]"
+      >
+        <Sparkles className="h-3.5 w-3.5 text-[var(--athena-gold)]" />
+        Bulk add with IRIS
+        <span className="ml-auto text-xs font-normal text-muted-foreground">
+          {open ? "Hide" : "Paste a list, notes, or copy/paste from a doc"}
+        </span>
+      </button>
+      {open && (
+        <>
+          <Textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            rows={5}
+            disabled={busy}
+            placeholder={
+              "Paste competitor names, notes, or context. Examples:\n• Acme Health Solutions — current vendor since 2019\n• MaxCare Inc, RedPath Consulting (both rumored to bid)\n• Possible wild card: Northbridge Group"
+            }
+          />
+          <div className="flex justify-end">
+            <Button
+              size="sm"
+              onClick={run}
+              disabled={busy || !text.trim()}
+              className="bg-[var(--athena-gold)] text-[var(--athena-navy)] hover:bg-[var(--athena-gold-light)]"
+            >
+              {busy ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />}
+              {busy ? "IRIS is parsing…" : "Parse & add"}
+            </Button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
