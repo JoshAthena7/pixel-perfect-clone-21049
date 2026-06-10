@@ -460,8 +460,10 @@ async function performWrites(
         status: "active",
         blast_off_at: new Date().toISOString(),
         blast_off_by: userId,
+        intelligence_loadout_step: 5,
       })
       .eq("id", missionId);
+
     if (error) {
       updateStep(0, { status: "fail", error: error.message });
       success = false;
