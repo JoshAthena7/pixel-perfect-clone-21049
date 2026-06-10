@@ -191,6 +191,7 @@ export const commitAtlasTeamSync = createServerFn({ method: "POST" })
     if (plan.toInsert.length > 0) {
       const inserts = plan.toInsert.map((r) => ({
         email: r.email.trim(),
+        atlas_role: "unassigned",
         atlas_invite_status: "not_invited",
         ...tdFields(r),
       }));
