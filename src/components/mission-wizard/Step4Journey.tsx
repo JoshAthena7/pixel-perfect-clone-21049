@@ -1296,3 +1296,379 @@ function Stat({ label, value, valueClass }: { label: string; value: string; valu
     </div>
   );
 }
+
+// ====================================================================
+// Athena Standard Template — selection screen, banner, quick adjust,
+// IRIS assessment, and the template apply function.
+// ====================================================================
+
+function TemplateSelection({
+  deadline,
+  onUseTemplate,
+  onStartFresh,
+}: {
+  deadline: string;
+  onUseTemplate: () => void;
+  onStartFresh: () => void;
+}) {
+  return (
+    <div className="space-y-8">
+      <header>
+        <h1 className="text-4xl font-semibold text-[var(--athena-navy)] tracking-tight">
+          Build the Mission Journey.
+        </h1>
+        <p className="mt-2 text-muted-foreground">
+          Start from the Athena Standard Template or build from scratch.
+        </p>
+      </header>
+
+      <div className="grid md:grid-cols-2 gap-5">
+        {/* Athena Standard */}
+        <div className="relative rounded-xl border-2 p-6 bg-card shadow-sm flex flex-col"
+          style={{ borderColor: "var(--athena-gold)" }}>
+          <span className="absolute top-3 right-3 inline-flex items-center gap-1 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--athena-gold)] text-[var(--athena-navy)] font-semibold">
+            Recommended
+          </span>
+          <div className="flex items-center gap-2">
+            <Star className="h-4 w-4 text-[var(--athena-gold)] fill-[var(--athena-gold)]" />
+            <h3 className="font-semibold text-lg text-[var(--athena-navy)]">Athena Standard</h3>
+          </div>
+          <p className="text-sm text-muted-foreground mt-2">
+            The proven Athena writing lifecycle. 9 phases auto-calculated backwards from your
+            submission deadline ({fmt(deadline)}). Fully editable.
+          </p>
+          <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
+            Writers Write → Red Team Draft Due → Mock Score → Writer Recovery → Gold Team →
+            Final Drafts → Quality Control → Executive Review → Pens Down
+          </p>
+          <div className="flex-1" />
+          <Button
+            onClick={onUseTemplate}
+            className="mt-5 bg-[var(--athena-gold)] text-[var(--athena-navy)] hover:bg-[var(--athena-gold-light)] font-semibold"
+          >
+            Use This Template →
+          </Button>
+        </div>
+
+        {/* Custom */}
+        <div className="rounded-xl border-2 p-6 bg-card shadow-sm flex flex-col"
+          style={{ borderColor: "var(--athena-navy)" }}>
+          <h3 className="font-semibold text-lg text-[var(--athena-navy)]">Custom Journey</h3>
+          <p className="text-sm text-muted-foreground mt-2">
+            Build your own phases from scratch. Start with a blank timeline.
+          </p>
+          <div className="flex-1" />
+          <Button
+            variant="outline"
+            onClick={onStartFresh}
+            className="mt-5 border-[var(--athena-navy)] text-[var(--athena-navy)] hover:bg-[var(--athena-navy)]/5 font-semibold"
+          >
+            Start Fresh →
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TemplateApplyingState() {
+  return (
+    <div className="flex flex-col items-center justify-center py-24 text-center">
+      <div className="relative">
+        <Sparkles className="h-10 w-10 text-[var(--athena-gold)] animate-pulse" />
+      </div>
+      <p className="mt-4 text-base font-medium text-[var(--athena-navy)]">
+        IRIS is building your journey...
+      </p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Calculating 9 phases backwards from your submission deadline.
+      </p>
+    </div>
+  );
+}
+
+function TemplateBanner({ deadline, onDismiss }: { deadline: string; onDismiss: () => void }) {
+  return (
+    <div
+      className="rounded-lg border-2 px-4 py-3 flex items-start gap-3"
+      style={{ borderColor: "var(--athena-gold)", background: "color-mix(in srgb, var(--athena-gold) 8%, transparent)" }}
+    >
+      <Star className="h-4 w-4 text-[var(--athena-gold)] fill-[var(--athena-gold)] mt-0.5 shrink-0" />
+      <p className="text-sm text-[var(--athena-navy)] flex-1">
+        <strong>Athena Standard Template loaded.</strong> All phases are calculated from your
+        submission deadline of {fmt(deadline)}. Review and adjust any phase before continuing.
+      </p>
+      <button
+        onClick={onDismiss}
+        className="text-muted-foreground hover:text-foreground shrink-0"
+        aria-label="Dismiss banner"
+      >
+        <X className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
+function QuickAdjustControls({
+  onCompress,
+  onExpand,
+  onReset,
+}: {
+  onCompress: (n: number) => void;
+  onExpand: (n: number) => void;
+  onReset: () => void;
+}) {
+  const [compressN, setCompressN] = useState(5);
+  const [expandN, setExpandN] = useState(5);
+  return (
+    <div className="rounded-lg border bg-card p-3 flex flex-wrap items-center gap-3">
+      <div className="flex items-center gap-1">
+        <span className="text-xs text-muted-foreground mr-1">Compress by</span>
+        <Input
+          type="number"
+          min={1}
+          max={60}
+          value={compressN}
+          onChange={(e) => setCompressN(Math.max(1, Number(e.target.value) || 1))}
+          className="h-8 w-16"
+        />
+        <span className="text-xs text-muted-foreground mr-1">days</span>
+        <Button size="sm" variant="outline" onClick={() => onCompress(compressN)}>
+          <Minus className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+      <div className="flex items-center gap-1">
+        <span className="text-xs text-muted-foreground mr-1">Expand by</span>
+        <Input
+          type="number"
+          min={1}
+          max={60}
+          value={expandN}
+          onChange={(e) => setExpandN(Math.max(1, Number(e.target.value) || 1))}
+          className="h-8 w-16"
+        />
+        <span className="text-xs text-muted-foreground mr-1">days</span>
+        <Button size="sm" variant="outline" onClick={() => onExpand(expandN)}>
+          <Plus className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+      <button
+        type="button"
+        onClick={onReset}
+        className="ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-[var(--athena-navy)] underline"
+      >
+        <RotateCcw className="h-3 w-3" /> Reset to template defaults
+      </button>
+    </div>
+  );
+}
+
+function IrisAssessmentCard({
+  missionId,
+  deadline,
+  writersDays,
+  reviewDays,
+  daysToSubmission,
+}: {
+  missionId: string;
+  deadline: string;
+  writersDays: number;
+  reviewDays: number;
+  daysToSubmission: number;
+}) {
+  const assess = useServerFn(assessJourneyTimeline);
+  const cacheKey = `journey-iris:${missionId}:${deadline}:${writersDays}:${reviewDays}:${daysToSubmission}`;
+  const [text, setText] = useState<string>(() => {
+    if (typeof window === "undefined") return "";
+    return sessionStorage.getItem(cacheKey) ?? "";
+  });
+  const [loading, setLoading] = useState(false);
+
+  // Hard-coded threshold warnings always shown — independent of AI call.
+  const warnings: string[] = [];
+  if (daysToSubmission < 45) {
+    warnings.push(
+      `This is an aggressive timeline. Writers Write gives your team ${writersDays} days for first drafts. Ensure all assignments are accepted within 48 hours of BLAST OFF.`,
+    );
+  }
+  if (writersDays > 0 && writersDays < 20) {
+    warnings.push(
+      `Writers have ${writersDays} days for first drafts. Consider whether all sections can realistically be drafted in this window.`,
+    );
+  }
+
+  useEffect(() => {
+    if (text) return;
+    let cancelled = false;
+    setLoading(true);
+    (async () => {
+      try {
+        const missionRes = await supabase
+          .from("missions")
+          .select("name")
+          .eq("id", missionId)
+          .single();
+        const res = await assess({
+          data: {
+            missionName: missionRes.data?.name ?? "Mission",
+            deadline,
+            daysToSubmission,
+            writersWriteDays: writersDays,
+            totalReviewDays: reviewDays,
+          },
+        });
+        if (cancelled) return;
+        const out = res.assessment ?? "";
+        setText(out);
+        if (out) sessionStorage.setItem(cacheKey, out);
+      } catch {
+        // Silent — warnings still cover the hard thresholds.
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cacheKey]);
+
+  return (
+    <div
+      className="rounded-lg bg-[var(--athena-navy)] text-white p-4 pl-5 border-l-4"
+      style={{ borderLeftColor: "var(--athena-gold)" }}
+    >
+      <div className="flex items-center gap-2">
+        <Sparkles className="h-3.5 w-3.5 text-[var(--athena-gold)]" />
+        <span className="text-[10px] uppercase tracking-widest text-[var(--athena-gold)] font-semibold">
+          IRIS
+        </span>
+      </div>
+      {loading && !text && (
+        <p className="mt-2 text-sm italic text-white/70">IRIS is reviewing your timeline…</p>
+      )}
+      {text && <p className="mt-2 text-sm italic">{text}</p>}
+      {warnings.map((w) => (
+        <p key={w} className="mt-2 text-sm italic text-amber-200">
+          {w}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+// ---------- Template apply ----------
+
+type DeliverableSpec = { title: string; dueOffset: { from: "start" | "end"; days: number } };
+
+const TEMPLATE_DELIVERABLES: Record<TemplatePhaseKey, DeliverableSpec[]> = {
+  writers_write: [
+    { title: "All question assignments accepted", dueOffset: { from: "start", days: 2 } },
+    { title: "First draft outlines submitted", dueOffset: { from: "start", days: 7 } },
+  ],
+  red_team: [
+    { title: "All first drafts submitted to shared workspace", dueOffset: { from: "end", days: 0 } },
+  ],
+  mock_score: [
+    { title: "IRIS mock scoring complete — gaps report distributed", dueOffset: { from: "end", days: 0 } },
+  ],
+  writer_recovery: [
+    { title: "All red team feedback addressed", dueOffset: { from: "end", days: 0 } },
+    { title: "Score Me re-run on all revised sections", dueOffset: { from: "end", days: -1 } },
+  ],
+  gold_team: [
+    { title: "Gold Team review complete", dueOffset: { from: "end", days: 0 } },
+    { title: "Strategic alignment confirmed", dueOffset: { from: "end", days: 0 } },
+  ],
+  final_drafts: [
+    { title: "All sections finalized and locked", dueOffset: { from: "end", days: 0 } },
+  ],
+  quality_control: [
+    { title: "Compliance matrix verified — all requirements addressed", dueOffset: { from: "end", days: -1 } },
+    { title: "Submission package assembled", dueOffset: { from: "end", days: 0 } },
+  ],
+  executive_review: [
+    { title: "Executive sign-off received", dueOffset: { from: "end", days: 0 } },
+  ],
+  pens_down: [
+    { title: "Proposal submitted to client", dueOffset: { from: "end", days: 0 } },
+  ],
+};
+
+function findEngagementLeadId(team: TeamOption[]): string | null {
+  const match = team.find((t) => /engagement/i.test(t.label));
+  return match?.id ?? null;
+}
+
+async function applyAthenaTemplate(missionId: string, deadline: string, team: TeamOption[]) {
+  const durations = defaultDurations(deadline);
+  const computed = computePhasesFromDurations(deadline, durations);
+
+  // Insert phases in order
+  const phaseRows = TEMPLATE_PHASES.map((spec, idx) => {
+    const c = computed[idx];
+    const meta = TYPE_META[spec.kind];
+    return {
+      mission_id: missionId,
+      name: spec.name,
+      kind: spec.kind,
+      color: meta.color,
+      start_date: dateToISO(c.start),
+      end_date: spec.kind === "pens_down" ? deadline : dateToISO(c.end),
+      is_locked: spec.kind === "pens_down",
+      order_index: idx,
+    };
+  });
+
+  const { data: insertedPhases, error: phasesErr } = await supabase
+    .from("mission_journey_phases")
+    .insert(phaseRows)
+    .select("id, name, start_date, end_date, kind");
+  if (phasesErr) throw phasesErr;
+  if (!insertedPhases) throw new Error("Failed to insert phases");
+
+  // Map phase name -> inserted row
+  const phaseByName = new Map(insertedPhases.map((p) => [p.name.toLowerCase(), p]));
+  const leadId = findEngagementLeadId(team);
+  const leadFallback = leadId ? null : "TBD — assign after team setup";
+
+  const deliverableRows: Array<{
+    mission_id: string;
+    phase_id: string;
+    title: string;
+    owner_member_id: string | null;
+    description: string | null;
+    due_date: string | null;
+    status: string;
+    order_index: number;
+  }> = [];
+
+  for (const spec of TEMPLATE_PHASES) {
+    const phase = phaseByName.get(spec.name.toLowerCase());
+    if (!phase) continue;
+    const items = TEMPLATE_DELIVERABLES[spec.key] ?? [];
+    items.forEach((d, idx) => {
+      const anchor =
+        d.dueOffset.from === "start" ? new Date(phase.start_date) : new Date(phase.end_date);
+      const due = new Date(anchor.getTime() + d.dueOffset.days * 86_400_000);
+      deliverableRows.push({
+        mission_id: missionId,
+        phase_id: phase.id,
+        title: d.title,
+        owner_member_id: leadId,
+        description: leadFallback,
+        due_date: due.toISOString(),
+        status: "not_started",
+        order_index: idx,
+      });
+    });
+  }
+
+  if (deliverableRows.length > 0) {
+    const { error: dErr } = await supabase
+      .from("mission_journey_deliverables")
+      .insert(deliverableRows);
+    if (dErr) throw dErr;
+  }
+}
+
