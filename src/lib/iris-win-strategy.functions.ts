@@ -84,7 +84,7 @@ function tryParse(s: string): WinStrategyDraft | null {
 
 export type DraftResult =
   | { ok: true; created: boolean }
-  | { ok: false; created: true; reason: string };
+  | { ok: false; created: boolean; reason: string };
 
 export const draftWinStrategy = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
