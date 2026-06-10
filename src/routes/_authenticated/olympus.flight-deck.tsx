@@ -73,8 +73,8 @@ function FlightDeck() {
   }, []);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["flight-deck", memberId],
-    enabled: !!memberId,
+    queryKey: ["flight-deck", memberId, isAdmin],
+    enabled: bootstrapped && (!!memberId || isAdmin),
     queryFn: async () => {
       const { data: asgs } = await supabase
         .from("mission_assignments")
