@@ -82,15 +82,12 @@ function AnnouncementDialog({ open, onOpenChange }: { open: boolean; onOpenChang
       });
       if (bErr) throw bErr;
 
-      // 2. Fan out an in-app notification to every active team member
-      const { data: members } = await supabase
-        .from("atlas_team_members")
-        .select("user_id")
-        .eq("atlas_invite_status", "active");
+      // 2. Fan out an in-app notification to every profile
+      const { data: profs } = await supabase.from("profiles").select("id");
       const ids = Array.from(
         new Set(
-          (members ?? [])
-            .map((m) => (m as { user_id: string | null }).user_id)
+          (profs ?? [])
+            .map((p) => (p as { id: string | null }).id)
             .filter((v): v is string => !!v),
         ),
       );
