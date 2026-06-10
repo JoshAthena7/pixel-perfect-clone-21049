@@ -1648,8 +1648,9 @@ async function applyAthenaTemplate(missionId: string, deadline: string, team: Te
     if (!phase) continue;
     const items = TEMPLATE_DELIVERABLES[spec.key] ?? [];
     items.forEach((d, idx) => {
-      const anchor =
-        d.dueOffset.from === "start" ? new Date(phase.start_date) : new Date(phase.end_date);
+      const anchorISO = d.dueOffset.from === "start" ? phase.start_date : phase.end_date;
+      if (!anchorISO) return;
+      const anchor = new Date(anchorISO);
       const due = new Date(anchor.getTime() + d.dueOffset.days * 86_400_000);
       deliverableRows.push({
         mission_id: missionId,
