@@ -127,7 +127,7 @@ export function UpdateRealityDialog({ open, onOpenChange, missionId, onSent }: {
   );
 }
 
-function SOSDialog({ open, onOpenChange, missionId }: { open: boolean; onOpenChange: (v: boolean) => void; missionId: string | null }) {
+export function SOSDialog({ open, onOpenChange, missionId }: { open: boolean; onOpenChange: (v: boolean) => void; missionId: string | null }) {
   const [text, setText] = useState("");
   const [priority, setPriority] = useState<"critical" | "high" | "medium">("high");
   const [busy, setBusy] = useState(false);
