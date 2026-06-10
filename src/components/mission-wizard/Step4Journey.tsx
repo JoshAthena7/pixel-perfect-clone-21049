@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import {
   DndContext,
   closestCenter,
@@ -16,7 +17,17 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Pencil, Plus, Trash2, X } from "lucide-react";
+import {
+  GripVertical,
+  Pencil,
+  Plus,
+  Trash2,
+  X,
+  Star,
+  Sparkles,
+  Minus,
+  RotateCcw,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -33,6 +44,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import {
+  TEMPLATE_PHASES,
+  defaultDurations,
+  computePhasesFromDurations,
+  adjustDurations,
+  durationsFromPhases,
+  dateToISO,
+  type TemplatePhaseKey,
+} from "@/lib/journey-template";
+import { assessJourneyTimeline } from "@/lib/journey-assessment.functions";
 
 // ---------- types & constants ----------
 export type PhaseType = "planning" | "drafting" | "review" | "gate" | "pens_down";
