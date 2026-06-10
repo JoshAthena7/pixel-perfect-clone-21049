@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { MissionsListPage } from "@/routes/_authenticated/olympus.missions.index";
+import { MissionsListPage } from "@/components/missions/MissionsListPage";
 
 export const Route = createFileRoute("/_authenticated/missions/")({
   component: MissionsListPage,
