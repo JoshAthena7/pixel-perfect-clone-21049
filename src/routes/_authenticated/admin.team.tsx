@@ -78,6 +78,8 @@ function TeamRosterPage() {
   const removeFn = useServerFn(removeAtlasTeamMember);
   const previewFn = useServerFn(previewAtlasTeamSync);
   const commitFn = useServerFn(commitAtlasTeamSync);
+  const updateRoleFn = useServerFn(updateAtlasTeamRole);
+  const inviteFn = useServerFn(sendAtlasInvite);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["atlas-team-roster"],
