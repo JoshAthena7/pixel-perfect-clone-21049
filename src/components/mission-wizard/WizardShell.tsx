@@ -15,10 +15,12 @@ export function WizardShell({
   step,
   onBack,
   children,
+  wide,
 }: {
   step: number;
   onBack?: () => void;
   children: React.ReactNode;
+  wide?: boolean;
 }) {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
