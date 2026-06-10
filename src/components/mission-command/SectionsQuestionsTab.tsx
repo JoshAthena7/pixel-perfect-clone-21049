@@ -576,6 +576,7 @@ function QuestionRow({
     if (assignment?.assigned_writer_id) {
       await supabase.from("atlas_notifications").insert({
         recipient_id: assignment.assigned_writer_id,
+        recipient_role: "writer",
         type: "assignment_removed",
         message: `Question ${question.question_number} on ${missionName} has been withdrawn by the state.`,
         metadata: { mission_id: missionId, question_id: question.id },
