@@ -40,7 +40,11 @@ export function OracleFeed({ missionId }: { missionId: string }) {
   const [range, setRange] = useState<string>("7d");
   const [search, setSearch] = useState("");
 
+  const [newIds, setNewIds] = useState<Record<string, number>>({});
+  const [running, setRunning] = useState(false);
+
   const share = useServerFn(shareFeedItemWithTeam);
+  const runCheck = useServerFn(runIntelligenceCheck);
 
   const { data: items = [] } = useQuery({
     queryKey: ["oracle-feed", missionId],
@@ -53,6 +57,58 @@ export function OracleFeed({ missionId }: { missionId: string }) {
       return (data ?? []) as FeedItem[];
     },
   });
+
+  const { data: lastCheckedAt } = useQuery({
+    queryKey: ["oracle-feed-last-checked", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("intelligence_feed_configs")
+        .select("last_checked_at")
+        .eq("mission_id", missionId)
+        .order("last_checked_at", { ascending: false, nullsFirst: false })
+        .limit(1)
+        .maybeSingle();
+      return (data as { last_checked_at: string | null } | null)?.last_checked_at ?? null;
+    },
+    refetchInterval: 30000,
+  });
+
+  // Realtime: surface newly-inserted feed items without a page refresh.
+  useEffect(() => {
+    const channel = supabase
+      .channel(`oracle-feed-${missionId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "intelligence_feed_items", filter: `mission_id=eq.${missionId}` },
+        (payload) => {
+          const row = payload.new as FeedItem;
+          qc.setQueryData<FeedItem[]>(["oracle-feed", missionId], (prev = []) =>
+            prev.some((p) => p.id === row.id) ? prev : [row, ...prev],
+          );
+          setNewIds((m) => ({ ...m, [row.id]: Date.now() }));
+          setTimeout(() => setNewIds((m) => { const { [row.id]: _drop, ...rest } = m; return rest; }), 10000);
+          toast(`IRIS surfaced new intelligence: ${row.headline.slice(0, 60)}${row.headline.length > 60 ? "…" : ""}`);
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [missionId, qc]);
+
+  const onRunCheck = async () => {
+    setRunning(true);
+    try {
+      const r = await runCheck({ data: { missionId } });
+      toast.success(`Intelligence check complete. ${r.items_created} new items found across ${r.feeds_checked} feeds.`);
+      qc.invalidateQueries({ queryKey: ["oracle-feed", missionId] });
+      qc.invalidateQueries({ queryKey: ["oracle-feed-last-checked", missionId] });
+      qc.invalidateQueries({ queryKey: ["oracle-graph", missionId] });
+    } catch (err) {
+      console.error(err);
+      toast.error("Intelligence check failed. Please try again.");
+    } finally {
+      setRunning(false);
+    }
+  };
 
   const filtered = useMemo(() => {
     const now = Date.now();
