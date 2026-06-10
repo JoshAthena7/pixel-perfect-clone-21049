@@ -76,10 +76,12 @@ function FlightDeck() {
     queryKey: ["flight-deck", memberId, isAdmin],
     enabled: bootstrapped && (!!memberId || isAdmin),
     queryFn: async () => {
-      const { data: asgs } = await supabase
-        .from("mission_assignments")
-        .select("*")
-        .eq("assigned_writer_id", memberId as string);
+      const { data: asgs } = memberId
+        ? await supabase
+            .from("mission_assignments")
+            .select("*")
+            .eq("assigned_writer_id", memberId)
+        : { data: [] as Assignment[] };
       const assignments = (asgs ?? []) as Assignment[];
       const missionIds = Array.from(new Set(assignments.map((a) => a.mission_id)));
       const questionIds = assignments
