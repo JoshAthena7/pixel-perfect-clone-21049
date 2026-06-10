@@ -15,10 +15,12 @@ export function WizardShell({
   step,
   onBack,
   children,
+  wide,
 }: {
   step: number;
   onBack?: () => void;
   children: React.ReactNode;
+  wide?: boolean;
 }) {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -65,8 +67,8 @@ export function WizardShell({
           })}
         </ol>
       </header>
-      <main className="flex-1 flex items-center justify-center px-6 py-10">
-        <div className="w-full max-w-[720px]">{children}</div>
+      <main className={cn("flex-1 flex justify-center px-6 py-8", !wide && "items-center")}>
+        <div className={cn("w-full", wide ? "max-w-[1400px]" : "max-w-[720px]")}>{children}</div>
       </main>
     </div>
   );

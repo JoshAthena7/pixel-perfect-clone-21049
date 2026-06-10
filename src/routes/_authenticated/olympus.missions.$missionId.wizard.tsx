@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { WizardShell } from "@/components/mission-wizard/WizardShell";
@@ -7,6 +7,7 @@ import { Step1Basics, type Step1Values } from "@/components/mission-wizard/Step1
 import { Step1BUpload } from "@/components/mission-wizard/Step1BUpload";
 import { Step1CProcessing } from "@/components/mission-wizard/Step1CProcessing";
 import { Step1DSummary } from "@/components/mission-wizard/Step1DSummary";
+import { Step2Cascade } from "@/components/mission-wizard/Step2Cascade";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const searchSchema = z.object({
@@ -43,6 +44,7 @@ function ResumeWizardPage() {
   const { missionId } = Route.useParams();
   const search = Route.useSearch();
   const navigate = useNavigate();
+  const qc = useQueryClient();
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["mission-wizard", missionId],
@@ -107,16 +109,24 @@ function ResumeWizardPage() {
     );
   }
   if (step === 3) {
+    // Show Processing first; once sections exist, show the Summary view.
     return (
       <WizardShell step={3} onBack={back}>
-        <Step1CProcessing missionId={missionId} onContinue={() => go(4)} />
+        {data.hasSections ? (
+          <Step1DSummary missionId={missionId} />
+        ) : (
+          <Step1CProcessing
+            missionId={missionId}
+            onContinue={() => qc.invalidateQueries({ queryKey: ["mission-wizard", missionId] })}
+          />
+        )}
       </WizardShell>
     );
   }
   if (step === 4) {
     return (
-      <WizardShell step={4} onBack={back}>
-        <Step1DSummary missionId={missionId} />
+      <WizardShell step={4} onBack={back} wide>
+        <Step2Cascade missionId={missionId} />
       </WizardShell>
     );
   }
