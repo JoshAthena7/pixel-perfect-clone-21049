@@ -1,4 +1,6 @@
 import { differenceInCalendarDays, format } from "date-fns";
+import { Link } from "@tanstack/react-router";
+import { Plane } from "lucide-react";
 import { IntelligenceCompletenessChip } from "@/components/mission-command/IntelligenceCompletenessChip";
 import { cn } from "@/lib/utils";
 
@@ -94,6 +96,13 @@ export function MissionHeader({
               )}
             </div>
             <IntelligenceCompletenessChip missionId={mission.id} />
+            <Link
+              to="/olympus/flight-deck"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[var(--athena-gold)]/40 bg-[var(--athena-gold)]/10 px-3 py-1.5 text-xs font-medium text-[var(--athena-gold)] hover:bg-[var(--athena-gold)]/20 transition-colors"
+            >
+              <Plane className="h-3.5 w-3.5" />
+              Flight Deck
+            </Link>
           </div>
         </div>
       </div>
