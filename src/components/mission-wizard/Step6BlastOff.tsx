@@ -219,7 +219,7 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
     }
   };
 
-  if (isLoading || !checks) {
+  if (isLoading || !items) {
     return (
       <div className="-mx-6 -my-8 min-h-[80vh] bg-[var(--athena-navy)] text-white p-12">
         <h1 className="text-4xl font-semibold">Mission Launch Checklist.</h1>
@@ -241,8 +241,9 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
       </header>
 
       <ul className={cn("space-y-2 max-w-2xl transition-opacity", allGreen && "opacity-80")}>
-        {checks.map((c, i) => {
+        {items.map((c, i) => {
           if (i >= visibleCount) return null;
+          const warn = !c.pass && !c.required;
           return (
             <li
               key={c.key}
@@ -250,13 +251,20 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
             >
               {c.pass ? (
                 <Check className="h-5 w-5 text-green-400 shrink-0" />
+              ) : warn ? (
+                <span className="h-5 w-5 shrink-0 rounded-full bg-yellow-400/20 text-yellow-300 flex items-center justify-center text-xs font-bold">!</span>
               ) : (
                 <X className="h-5 w-5 text-red-400 shrink-0" />
               )}
-              <span className="flex-1">{c.label}</span>
+              <div className="flex-1">
+                <span>{c.label}</span>
+                {warn && c.recommendedMsg && (
+                  <p className="text-[11px] text-yellow-200/70 mt-0.5">{c.recommendedMsg}</p>
+                )}
+              </div>
               {!c.pass && (
                 <button
-                  className="text-xs text-[var(--athena-gold)] hover:underline"
+                  className="text-xs text-[var(--athena-gold)] hover:underline shrink-0"
                   onClick={() => goFix(c)}
                 >
                   Fix this →
@@ -267,16 +275,16 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
         })}
       </ul>
 
-      {allGreen && visibleCount >= checks.length && (
+      {allGreen && visibleCount >= items.length && (
         <div className="mt-10 max-w-2xl">
           <blockquote
             className="italic text-white/90 pl-4 py-1 border-l-2"
             style={{ borderColor: "var(--athena-gold)" }}
           >
-            Everything checks out. This mission is ready. Once you BLAST OFF — the team is notified,
-            Flight Decks go live, and the mission clock starts. This is what we have been building
-            toward. Ready?
+            Everything checks out. I have {counts?.sources ?? 0} intelligence sources loaded, {counts?.feeds ?? 0} monitoring feeds active, and profiles on {counts?.competitors ?? 0} competitors. Once you BLAST OFF I will start building your Mission Intelligence Graph. This mission is ready.
           </blockquote>
+
+
 
           <div className="mt-8 flex justify-center">
             <button
