@@ -1,12 +1,15 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Loader2, Sparkles } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { shareFeedItemWithTeam } from "@/lib/oracle.functions";
+import { runIntelligenceCheck } from "@/lib/intelligence-monitoring.functions";
 import type { Database } from "@/integrations/supabase/types";
 
 type FeedItem = Database["public"]["Tables"]["intelligence_feed_items"]["Row"];
