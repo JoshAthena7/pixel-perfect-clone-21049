@@ -4,7 +4,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { processRFPDocuments } from "@/lib/iris-process-rfp.functions";
 import { extractRFPText } from "@/lib/extract-rfp-text.client";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+
+type StepKey = "download" | "extract" | "analyze" | "save" | "done";
+
+const STEP_LABELS: Record<StepKey, string> = {
+  download: "Downloading documents",
+  extract: "Extracting text",
+  analyze: "IRIS analyzing",
+  save: "Saving structure",
+  done: "Complete",
+};
+
+// Weight each phase's contribution to overall %.
+const STEP_WEIGHTS: Record<Exclude<StepKey, "done">, number> = {
+  download: 10,
+  extract: 30,
+  analyze: 55,
+  save: 5,
+};
 
 const FEED = [
   "Reading primary RFP...",
