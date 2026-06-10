@@ -28,10 +28,12 @@ import { DecisionLogTab } from "@/components/mission-command/DecisionLogTab";
 import { JourneyLiveTab } from "@/components/mission-command/JourneyLiveTab";
 import { MissionSettingsTab } from "@/components/mission-command/MissionSettingsTab";
 import { AuditLogTab } from "@/components/mission-command/AuditLogTab";
+import { OracleTab } from "@/components/mission-command/oracle/OracleTab";
 
 const searchSchema = z.object({
   launched: z.coerce.number().optional(),
   tab: z.string().optional(),
+  sub: z.string().optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/olympus/missions/$missionId/")({
