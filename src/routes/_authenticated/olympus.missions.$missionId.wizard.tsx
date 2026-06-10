@@ -93,6 +93,31 @@ function ResumeWizardPage() {
     );
   }
 
+  const go = (s: number) =>
+    navigate({ to: "/olympus/missions/$missionId/wizard", params: { missionId }, search: { step: s } });
+
+  if (step === 2) {
+    return (
+      <WizardShell step={2} onBack={back}>
+        <Step1BUpload missionId={missionId} onAdvance={() => go(3)} />
+      </WizardShell>
+    );
+  }
+  if (step === 3) {
+    return (
+      <WizardShell step={3} onBack={back}>
+        <Step1CProcessing missionId={missionId} onContinue={() => go(4)} />
+      </WizardShell>
+    );
+  }
+  if (step === 4) {
+    return (
+      <WizardShell step={4} onBack={back}>
+        <Step1DSummary missionId={missionId} />
+      </WizardShell>
+    );
+  }
+
   return (
     <WizardShell step={step} onBack={back}>
       <div className="text-center py-16">
