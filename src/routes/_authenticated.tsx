@@ -1,6 +1,10 @@
 import { createFileRoute, Outlet, redirect, useRouterState, Navigate, Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { IrisProvider } from "@/components/iris/IrisContext";
+import { IrisDock } from "@/components/iris/IrisDock";
+import { AssistsBar } from "@/components/iris/AssistsBar";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
