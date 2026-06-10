@@ -256,7 +256,13 @@ export function OracleGraph({ missionId, completeness }: { missionId: string; co
           <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => svgRef.current && zoomRef.current && d3.select(svgRef.current).transition().call(zoomRef.current.scaleBy as never, 1.3)}><Plus className="h-4 w-4" /></Button>
           <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => svgRef.current && zoomRef.current && d3.select(svgRef.current).transition().call(zoomRef.current.scaleBy as never, 0.75)}><Minus className="h-4 w-4" /></Button>
           <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => svgRef.current && zoomRef.current && d3.select(svgRef.current).transition().call(zoomRef.current.transform as never, d3.zoomIdentity)}><Maximize2 className="h-4 w-4" /></Button>
+          <Button size="icon" variant="secondary" className="h-8 w-8" title="Refresh Graph" onClick={() => qc.invalidateQueries({ queryKey: ["oracle-graph", missionId] })}><RefreshCw className="h-4 w-4" /></Button>
         </div>
+        {lastUpdated && (
+          <div className="absolute bottom-3 left-3 text-[10px] text-white/70 bg-black/30 px-2 py-0.5 rounded">
+            Graph last updated: {formatDistanceToNow(lastUpdated, { addSuffix: true })}
+          </div>
+        )}
         {/* Filter buttons */}
         <div className="absolute top-3 right-3 flex flex-wrap gap-1 max-w-[60%] justify-end">
           {Object.keys(TYPE_LABELS).map((t) => (
