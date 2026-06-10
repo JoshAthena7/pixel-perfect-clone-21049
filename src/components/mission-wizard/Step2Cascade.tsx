@@ -856,14 +856,18 @@ function QuestionCard({
         </div>
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex justify-end pt-2 border-t border-border/50">
         {q.reviewed_by_admin ? (
-          <span className="inline-flex items-center gap-1 text-sm text-emerald-400 font-medium">
-            <CheckCircle2 className="h-4 w-4" /> Confirmed
+          <span className="inline-flex items-center gap-1.5 text-sm text-emerald-400 font-semibold">
+            <CheckCircle2 className="h-4 w-4" /> Question Confirmed
           </span>
         ) : (
-          <Button size="sm" onClick={onConfirm} variant="outline">
-            Confirm
+          <Button
+            size="sm"
+            onClick={onConfirm}
+            className="bg-emerald-600 hover:bg-emerald-500 text-white shadow"
+          >
+            <CheckCircle2 className="h-4 w-4" /> Confirm Question
           </Button>
         )}
       </div>
