@@ -389,13 +389,13 @@ export function IrisDock({ prefillSignal, openSignal }: Props) {
       </div>
 
       {/* Quick chips */}
-      <div className="px-3 py-2 border-t border-white/10 flex flex-wrap gap-1">
+      <div className="px-3 py-2 border-t border-white/10 flex flex-wrap gap-1 relative z-10">
         {chips.map((c) => (
           <button
             key={c}
-            disabled={streaming}
-            onClick={() => send(c)}
-            className="text-[11px] px-2 py-1 rounded-full border border-white/15 text-white/85 hover:bg-white/5 disabled:opacity-40"
+            type="button"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (streaming) { toast("IRIS is still answering — one sec…"); return; } send(c); }}
+            className="text-[11px] px-2 py-1 rounded-full border border-white/15 text-white/85 hover:bg-white/10 cursor-pointer"
           >
             {c}
           </button>
