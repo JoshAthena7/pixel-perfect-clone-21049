@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { cn } from "@/lib/utils";
 import { extractRFPText } from "@/lib/extract-rfp-text.client";
 import { comparePriorRfp, summarizeClientUrl } from "@/lib/intelligence-loadout.functions";
+import { toast } from "sonner";
 
 const BUCKET = "atlas-intelligence";
 
