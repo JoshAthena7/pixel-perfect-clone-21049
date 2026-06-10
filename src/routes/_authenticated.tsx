@@ -5,8 +5,7 @@ import { IrisProvider } from "@/components/iris/IrisContext";
 import { IrisDock } from "@/components/iris/IrisDock";
 import { AssistsBar } from "@/components/iris/AssistsBar";
 import { GlobalCommandBar } from "@/components/nav/GlobalCommandBar";
-import { OlympusSecondaryNav } from "@/components/nav/OlympusSecondaryNav";
-import { Breadcrumbs } from "@/components/nav/Breadcrumbs";
+import { MissionStrip } from "@/components/nav/MissionStrip";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
