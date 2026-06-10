@@ -1,8 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { format, differenceInDays, differenceInHours } from "date-fns";
-import { AlertTriangle, CheckCircle2, ArrowLeft } from "lucide-react";
+import { format, differenceInDays, differenceInHours, formatDistanceToNow } from "date-fns";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ArrowLeft,
+  Target,
+  Sparkles,
+  Activity,
+  ExternalLink,
+  Clock,
+  Flame,
+  Eye,
+  MessageCircle,
+  FileText,
+  Users,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/_authenticated/olympus/flight-deck")({
   component: FlightDeck,
