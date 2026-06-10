@@ -35,7 +35,7 @@ type TeamRow = {
   mission_role: string | null;
   member: AtlasMember | null;
 };
-type Section = { id: string; section_number: string | null; title: string };
+type Section = { id: string; section_number: string | null; name: string };
 type Question = {
   id: string;
   section_id: string | null;
@@ -83,7 +83,7 @@ async function fetchAll(missionId: string) {
       .eq("mission_id", missionId),
     supabase
       .from("mission_sections")
-      .select("id, section_number, title")
+      .select("id, section_number, name")
       .eq("mission_id", missionId)
       .order("section_number", { ascending: true }),
     supabase
@@ -646,7 +646,7 @@ function QuestionAssign({
         <div className="bg-[var(--athena-navy)]/5 px-4 py-2 border-b flex items-center justify-between">
           <div>
             <p className="font-semibold text-sm text-[var(--athena-navy)]">
-              {sec ? `${sec.section_number ?? ""} ${sec.title}`.trim() : "Unsectioned"}
+              {sec ? `${sec.section_number ?? ""} ${sec.name}`.trim() : "Unsectioned"}
             </p>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
               {sectionAssigned} of {secQuestions.length} assigned
@@ -711,7 +711,7 @@ function QuestionAssign({
                 <option value="all">All sections</option>
                 {sections.map((s) => (
                   <option key={s.id} value={s.id}>
-                    {[s.section_number, s.title].filter(Boolean).join(" ")}
+                    {[s.section_number, s.name].filter(Boolean).join(" ")}
                   </option>
                 ))}
               </select>
