@@ -130,6 +130,12 @@ function ResumeWizardPage() {
         <Step2Cascade missionId={missionId} />
       </WizardShell>
     );
+  if (step === 5) {
+    return (
+      <WizardShell step={5} onBack={back}>
+        <Step3WinStrategy missionId={missionId} />
+      </WizardShell>
+    );
   }
 
   return (
