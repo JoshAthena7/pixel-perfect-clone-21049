@@ -5,10 +5,11 @@ import { cn } from "@/lib/utils";
 const STEPS = [
   { n: 1, label: "Basics" },
   { n: 2, label: "RFP" },
-  { n: 3, label: "Review" },
-  { n: 4, label: "Strategy" },
-  { n: 5, label: "Journey" },
-  { n: 6, label: "Team+Launch" },
+  { n: 3, label: "Extract" },
+  { n: 4, label: "Review" },
+  { n: 5, label: "Strategy" },
+  { n: 6, label: "Journey" },
+  { n: 7, label: "Team+Launch" },
 ];
 
 export function WizardShell({
