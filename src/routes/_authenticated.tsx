@@ -114,7 +114,7 @@ function AuthenticatedLayout() {
   const shell = (
     <div className="min-h-screen bg-background text-foreground">
       <GlobalCommandBar email={email} />
-      {showSecondaryNav && <OlympusSecondaryNav />}
+      {showSecondaryNav && <OlympusSecondaryNav isAdmin={isAdmin} />}
       <Breadcrumbs />
       <main>
         <Outlet />
