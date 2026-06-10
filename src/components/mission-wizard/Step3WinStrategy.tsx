@@ -188,7 +188,8 @@ export function Step3WinStrategy({ missionId }: { missionId: string }) {
     save(key, async () => {
       const { error } = await supabase
         .from("mission_win_strategy")
-        .update(patch)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update(patch as any)
         .eq("id", ws.id);
       if (error) throw error;
     });
