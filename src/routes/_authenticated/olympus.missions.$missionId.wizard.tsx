@@ -115,7 +115,10 @@ function ResumeWizardPage() {
         {data.hasSections ? (
           <Step1DSummary missionId={missionId} />
         ) : (
-          <Step1CProcessing missionId={missionId} onContinue={() => go(3)} />
+          <Step1CProcessing
+            missionId={missionId}
+            onContinue={() => qc.invalidateQueries({ queryKey: ["mission-wizard", missionId] })}
+          />
         )}
       </WizardShell>
     );
