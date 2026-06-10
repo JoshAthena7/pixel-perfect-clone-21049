@@ -40,7 +40,7 @@ type Question = {
   id: string;
   section_id: string | null;
   question_number: string | null;
-  question_text: string;
+  question_text: string | null;
 };
 type Assignment = {
   id: string;
