@@ -25,6 +25,7 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as ApiChatIrisRouteImport } from './routes/api/chat/iris'
 import { Route as AuthenticatedProfileExpertiseRouteImport } from './routes/_authenticated/profile/expertise'
+import { Route as AuthenticatedOlympusTeamRouteImport } from './routes/_authenticated/olympus.team'
 import { Route as AuthenticatedOlympusFlightDeckRouteImport } from './routes/_authenticated/olympus.flight-deck'
 import { Route as AuthenticatedOlympusSplatRouteImport } from './routes/_authenticated/olympus.$'
 import { Route as AuthenticatedAdminTeamRouteImport } from './routes/_authenticated/admin.team'
@@ -125,6 +126,12 @@ const AuthenticatedProfileExpertiseRoute =
   AuthenticatedProfileExpertiseRouteImport.update({
     id: '/profile/expertise',
     path: '/profile/expertise',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedOlympusTeamRoute =
+  AuthenticatedOlympusTeamRouteImport.update({
+    id: '/olympus/team',
+    path: '/olympus/team',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedOlympusFlightDeckRoute =
@@ -252,6 +259,7 @@ export interface FileRoutesByFullPath {
   '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/olympus/flight-deck': typeof AuthenticatedOlympusFlightDeckRoute
+  '/olympus/team': typeof AuthenticatedOlympusTeamRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/api/chat/iris': typeof ApiChatIrisRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -287,6 +295,7 @@ export interface FileRoutesByTo {
   '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/olympus/flight-deck': typeof AuthenticatedOlympusFlightDeckRoute
+  '/olympus/team': typeof AuthenticatedOlympusTeamRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/api/chat/iris': typeof ApiChatIrisRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -325,6 +334,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRoute
   '/_authenticated/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/_authenticated/olympus/flight-deck': typeof AuthenticatedOlympusFlightDeckRoute
+  '/_authenticated/olympus/team': typeof AuthenticatedOlympusTeamRoute
   '/_authenticated/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/api/chat/iris': typeof ApiChatIrisRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -363,6 +373,7 @@ export interface FileRouteTypes {
     | '/admin/team'
     | '/olympus/$'
     | '/olympus/flight-deck'
+    | '/olympus/team'
     | '/profile/expertise'
     | '/api/chat/iris'
     | '/lovable/email/suppression'
@@ -398,6 +409,7 @@ export interface FileRouteTypes {
     | '/admin/team'
     | '/olympus/$'
     | '/olympus/flight-deck'
+    | '/olympus/team'
     | '/profile/expertise'
     | '/api/chat/iris'
     | '/lovable/email/suppression'
@@ -435,6 +447,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/team'
     | '/_authenticated/olympus/$'
     | '/_authenticated/olympus/flight-deck'
+    | '/_authenticated/olympus/team'
     | '/_authenticated/profile/expertise'
     | '/api/chat/iris'
     | '/lovable/email/suppression'
@@ -597,6 +610,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileExpertiseRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/olympus/team': {
+      id: '/_authenticated/olympus/team'
+      path: '/olympus/team'
+      fullPath: '/olympus/team'
+      preLoaderRoute: typeof AuthenticatedOlympusTeamRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/olympus/flight-deck': {
       id: '/_authenticated/olympus/flight-deck'
       path: '/olympus/flight-deck'
@@ -752,6 +772,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedOlympusSplatRoute: typeof AuthenticatedOlympusSplatRoute
   AuthenticatedOlympusFlightDeckRoute: typeof AuthenticatedOlympusFlightDeckRoute
+  AuthenticatedOlympusTeamRoute: typeof AuthenticatedOlympusTeamRoute
   AuthenticatedProfileExpertiseRoute: typeof AuthenticatedProfileExpertiseRoute
   AuthenticatedMissionsIndexRoute: typeof AuthenticatedMissionsIndexRoute
   AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
@@ -767,6 +788,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedOlympusSplatRoute: AuthenticatedOlympusSplatRoute,
   AuthenticatedOlympusFlightDeckRoute: AuthenticatedOlympusFlightDeckRoute,
+  AuthenticatedOlympusTeamRoute: AuthenticatedOlympusTeamRoute,
   AuthenticatedProfileExpertiseRoute: AuthenticatedProfileExpertiseRoute,
   AuthenticatedMissionsIndexRoute: AuthenticatedMissionsIndexRoute,
   AuthenticatedProfileIndexRoute: AuthenticatedProfileIndexRoute,
