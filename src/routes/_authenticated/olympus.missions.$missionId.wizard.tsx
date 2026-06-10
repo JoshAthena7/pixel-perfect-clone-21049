@@ -67,8 +67,9 @@ function ResumeWizardPage() {
     : intelStep === 3 ? 11
     : intelStep === 2 ? 10
     : intelStep === 1 ? 9
-    : data?.hasSections ? 4 : data?.hasDocs ? 3 : 1;
+    : data?.hasSections ? 3 : data?.hasDocs ? 2 : 1;
   const step = search.step ?? inferredStep;
+
 
 
   const back = () => {
