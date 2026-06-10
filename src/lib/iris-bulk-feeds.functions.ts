@@ -105,7 +105,8 @@ export const bulkAddFeedsFromText = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase } = context as any;
     const candidates = await extractCandidates(data.text);
-    if (candidates.length === 0) return { inserted: 0, skipped: 0, feeds: [] as Candidate[] };
+    type ResolvedFeed = { name: string; url: string; description: string; isRss: boolean; original: string };
+    if (candidates.length === 0) return { inserted: 0, skipped: 0, feeds: [] as ResolvedFeed[] };
 
     // Existing URLs to avoid duplicates
     const { data: existing } = await supabase
