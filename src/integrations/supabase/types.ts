@@ -7600,6 +7600,7 @@ export type Database = {
       }
       call_hook: { Args: { path: string }; Returns: undefined }
       cleanup_quick_chats: { Args: never; Returns: undefined }
+      current_atlas_member_id: { Args: never; Returns: string }
       current_user_is_admin_or_founder: { Args: never; Returns: boolean }
       delete_email: {
         Args: { message_id: number; queue_name: string }
