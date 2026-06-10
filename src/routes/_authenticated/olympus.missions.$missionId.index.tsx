@@ -15,6 +15,10 @@ import {
 import { OverviewTab } from "@/components/mission-command/OverviewTab";
 import { SectionsQuestionsTab } from "@/components/mission-command/SectionsQuestionsTab";
 import { QuestionHealthTab } from "@/components/mission-command/QuestionHealthTab";
+import { RfpDocumentsTab } from "@/components/mission-command/RfpDocumentsTab";
+import { QaLogTab } from "@/components/mission-command/QaLogTab";
+import { ClientIntelligenceTab } from "@/components/mission-command/ClientIntelligenceTab";
+import { IntelligenceLibraryTab } from "@/components/mission-command/IntelligenceLibraryTab";
 
 const searchSchema = z.object({
   launched: z.coerce.number().optional(),
