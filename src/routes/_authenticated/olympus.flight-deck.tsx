@@ -43,11 +43,14 @@ function FlightDeck() {
   const [memberId, setMemberId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [bootstrapped, setBootstrapped] = useState(false);
 
   useEffect(() => {
     (async () => {
       const { data } = await supabase.auth.getUser();
-      setUserId(data.user?.id ?? null);
+      const uid = data.user?.id ?? null;
+      setUserId(uid);
       const { data: m } = await supabase.rpc("current_atlas_member_id");
       setMemberId((m as string) ?? null);
       if (m) {
@@ -58,17 +61,27 @@ function FlightDeck() {
           .single();
         if (atm) setUserName(`${atm.first_name ?? ""} ${atm.last_name ?? ""}`.trim());
       }
+      if (uid) {
+        const { data: admin } = await supabase.rpc("has_role", {
+          _user_id: uid,
+          _role: "admin",
+        });
+        setIsAdmin(!!admin);
+      }
+      setBootstrapped(true);
     })();
   }, []);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["flight-deck", memberId],
-    enabled: !!memberId,
+    queryKey: ["flight-deck", memberId, isAdmin],
+    enabled: bootstrapped && (!!memberId || isAdmin),
     queryFn: async () => {
-      const { data: asgs } = await supabase
-        .from("mission_assignments")
-        .select("*")
-        .eq("assigned_writer_id", memberId as string);
+      const { data: asgs } = memberId
+        ? await supabase
+            .from("mission_assignments")
+            .select("*")
+            .eq("assigned_writer_id", memberId)
+        : { data: [] as Assignment[] };
       const assignments = (asgs ?? []) as Assignment[];
       const missionIds = Array.from(new Set(assignments.map((a) => a.mission_id)));
       const questionIds = assignments
@@ -166,7 +179,7 @@ function FlightDeck() {
     })();
   }, [data, memberId, userId]);
 
-  if (!memberId && !isLoading) {
+  if (bootstrapped && !memberId && !isAdmin) {
     return (
       <div className="mx-auto max-w-3xl p-8">
         <Link to="/olympus" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
