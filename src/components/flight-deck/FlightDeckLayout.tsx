@@ -411,7 +411,7 @@ function QuestionWorkspacePanel({ memberId, missionId }: { memberId: string | nu
                 <li key={q.id} className="flex items-center gap-2 text-xs">
                   <span className="font-mono text-[10px] text-[color:var(--athena-gold)] w-10 shrink-0">{q.question_number}</span>
                   <span className="flex-1 truncate text-foreground">{q.question_text}</span>
-                  <PriorityBadge p={q.priority} />
+                  <PriorityBadge p={(q as any).priority ?? null} />
                 </li>
               ))}
             </ul>
