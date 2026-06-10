@@ -236,6 +236,9 @@ export function Step9MonitoringFeeds({ missionId, onAdvance }: { missionId: stri
         </p>
       </header>
 
+      <BulkAddPanel missionId={missionId} />
+
+
       <div className="grid md:grid-cols-3 gap-4">
         <Panel title="Federal Policy" missionId={missionId}>
           {federal.map((c) => <FeedRow key={c.id} config={c} />)}
