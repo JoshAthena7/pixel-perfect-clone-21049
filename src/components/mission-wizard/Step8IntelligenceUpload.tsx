@@ -417,7 +417,7 @@ function SlotCard({
         ref={inputRef}
         type="file"
         multiple={slot.multiple}
-        accept=".pdf,.doc,.docx"
+        accept=".pdf,.doc,.docx,.txt,.md,.rtf,.ppt,.pptx,.xls,.xlsx,.csv,.png,.jpg,.jpeg"
         className="hidden"
         onChange={(e) => {
           if (e.target.files?.length) uploadFiles(e.target.files);
