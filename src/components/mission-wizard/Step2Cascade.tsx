@@ -676,11 +676,13 @@ function SectionEditor({
 function SectionHeader({
   section,
   onSection,
+  onConfirm,
   onConfirmHigh,
   smaller,
 }: {
   section: Section;
   onSection: (id: string, patch: Partial<Section>) => void;
+  onConfirm: () => void;
   onConfirmHigh: () => void;
   smaller?: boolean;
 }) {
@@ -707,13 +709,25 @@ function SectionHeader({
             )}
           />
         </div>
-        <button
-          onClick={onConfirmHigh}
-          className="text-xs text-[var(--athena-gold)] hover:underline shrink-0"
-          type="button"
-        >
-          Confirm all high confidence fields in this section
-        </button>
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          <Button
+            type="button"
+            size="sm"
+            onClick={onConfirm}
+            disabled={section.reviewed_by_admin}
+            className="bg-emerald-600 text-white shadow hover:bg-emerald-500 disabled:opacity-80"
+          >
+            <CheckCircle2 className="h-4 w-4" />
+            {section.reviewed_by_admin ? "Section Confirmed" : "Confirm Section"}
+          </Button>
+          <button
+            onClick={onConfirmHigh}
+            className="text-xs text-[var(--athena-gold)] hover:underline shrink-0"
+            type="button"
+          >
+            Confirm all high confidence fields
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
