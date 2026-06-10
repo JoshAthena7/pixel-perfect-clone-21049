@@ -375,7 +375,7 @@ function QuestionWorkspacePanel({ memberId, missionId }: { memberId: string | nu
       const { data: qs } = qids.length
         ? await supabase
             .from("mission_questions")
-            .select("id, question_number, question_text, priority, section_id, due_date")
+            .select("id, question_number, question_text, section_id, due_date")
             .in("id", qids)
         : { data: [] };
       return { asgs: asgs ?? [], qs: qs ?? [] };
