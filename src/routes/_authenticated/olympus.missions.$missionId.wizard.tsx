@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
-import { zodValidator } from "@tanstack/zod-adapter";
 import { supabase } from "@/integrations/supabase/client";
 import { WizardShell } from "@/components/mission-wizard/WizardShell";
 import { Step1Basics, type Step1Values } from "@/components/mission-wizard/Step1Basics";
