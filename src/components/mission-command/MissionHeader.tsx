@@ -1,4 +1,6 @@
 import { differenceInCalendarDays, format } from "date-fns";
+import { Link } from "@tanstack/react-router";
+import { Plane } from "lucide-react";
 import { IntelligenceCompletenessChip } from "@/components/mission-command/IntelligenceCompletenessChip";
 import { cn } from "@/lib/utils";
 
