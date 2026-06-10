@@ -258,11 +258,17 @@ function MissionCard({ m, onEdit }: { m: MissionRow; onEdit: () => void }) {
 
   return (
     <div className="relative group">
+      <MissionCardMenu
+        missionId={m.id}
+        missionName={m.name}
+        status={m.status}
+        onEdit={onEdit}
+      />
       <Link
         to={to}
         params={{ missionId: m.id }}
         search={search}
-        className="block rounded-xl border border-border bg-surface/40 p-5 hover:bg-surface hover:border-[var(--athena-gold)]/40 transition-colors"
+        className="block rounded-xl border border-border bg-surface/40 p-5 pr-14 hover:bg-surface hover:border-[var(--athena-gold)]/40 transition-colors"
       >
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="min-w-0">
