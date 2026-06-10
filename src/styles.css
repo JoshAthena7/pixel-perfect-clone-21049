@@ -651,3 +651,12 @@ html[data-write-mode="on"] .studio-body > .studio-left { border-right: none !imp
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+@keyframes blast-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--athena-gold-glow); }
+  50% { box-shadow: 0 0 0 20px rgba(201, 146, 42, 0); }
+}
+@keyframes particle-fly {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(0.4); opacity: 0; }
+}
