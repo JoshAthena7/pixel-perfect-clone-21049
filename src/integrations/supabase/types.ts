@@ -5195,6 +5195,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          iris_extracted: boolean
           is_complete: boolean
           label: string
           mission_id: string
@@ -5208,6 +5209,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          iris_extracted?: boolean
           is_complete?: boolean
           label: string
           mission_id: string
@@ -5221,6 +5223,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          iris_extracted?: boolean
           is_complete?: boolean
           label?: string
           mission_id?: string
