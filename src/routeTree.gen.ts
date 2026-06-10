@@ -17,6 +17,7 @@ import { Route as AtlasOnboardingRouteImport } from './routes/atlas-onboarding'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
+import { Route as CheckinTokenRouteImport } from './routes/checkin.$token'
 import { Route as AuthenticatedOlympusRouteImport } from './routes/_authenticated/olympus'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedHelpRouteImport } from './routes/_authenticated/help'
@@ -76,6 +77,11 @@ const IndexRoute = IndexRouteImport.update({
 const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   id: '/email/unsubscribe',
   path: '/email/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckinTokenRoute = CheckinTokenRouteImport.update({
+  id: '/checkin/$token',
+  path: '/checkin/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedOlympusRoute = AuthenticatedOlympusRouteImport.update({
@@ -208,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/help': typeof AuthenticatedHelpRoute
   '/home': typeof AuthenticatedHomeRoute
+  '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
@@ -237,6 +244,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/help': typeof AuthenticatedHelpRoute
   '/home': typeof AuthenticatedHomeRoute
+  '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
@@ -269,6 +277,7 @@ export interface FileRoutesById {
   '/_authenticated/help': typeof AuthenticatedHelpRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/olympus': typeof AuthenticatedOlympusRouteWithChildren
+  '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/_authenticated/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/_authenticated/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
@@ -300,6 +309,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/help'
     | '/home'
+    | '/checkin/$token'
     | '/email/unsubscribe'
     | '/olympus/$'
     | '/profile/expertise'
@@ -329,6 +339,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/help'
     | '/home'
+    | '/checkin/$token'
     | '/email/unsubscribe'
     | '/olympus/$'
     | '/profile/expertise'
@@ -360,6 +371,7 @@ export interface FileRouteTypes {
     | '/_authenticated/help'
     | '/_authenticated/home'
     | '/_authenticated/olympus'
+    | '/checkin/$token'
     | '/email/unsubscribe'
     | '/_authenticated/olympus/$'
     | '/_authenticated/profile/expertise'
@@ -388,6 +400,7 @@ export interface RootRouteChildren {
   OlympusRoute: typeof OlympusRoute
   OnboardingRoute: typeof OnboardingRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
+  CheckinTokenRoute: typeof CheckinTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksBackfillAtlasEmbeddingsRoute: typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
@@ -460,6 +473,13 @@ declare module '@tanstack/react-router' {
       path: '/email/unsubscribe'
       fullPath: '/email/unsubscribe'
       preLoaderRoute: typeof EmailUnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkin/$token': {
+      id: '/checkin/$token'
+      path: '/checkin/$token'
+      fullPath: '/checkin/$token'
+      preLoaderRoute: typeof CheckinTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/olympus': {
@@ -655,6 +675,7 @@ const rootRouteChildren: RootRouteChildren = {
   OlympusRoute: OlympusRoute,
   OnboardingRoute: OnboardingRoute,
   UnsubscribeRoute: UnsubscribeRoute,
+  CheckinTokenRoute: CheckinTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksBackfillAtlasEmbeddingsRoute:
@@ -678,3 +699,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
