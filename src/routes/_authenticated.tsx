@@ -1,10 +1,12 @@
-import { createFileRoute, Outlet, redirect, useRouterState, Navigate, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Outlet, redirect, useRouterState, Navigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { IrisProvider } from "@/components/iris/IrisContext";
 import { IrisDock } from "@/components/iris/IrisDock";
 import { AssistsBar } from "@/components/iris/AssistsBar";
+import { GlobalCommandBar } from "@/components/nav/GlobalCommandBar";
+import { OlympusSecondaryNav } from "@/components/nav/OlympusSecondaryNav";
+import { Breadcrumbs } from "@/components/nav/Breadcrumbs";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -83,42 +85,23 @@ function AuthenticatedLayout() {
 
   const { isAdmin } = Route.useRouteContext();
 
-  const navigate = useNavigate();
-  const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) { toast.error(error.message); return; }
-    toast.success("Signed out");
-    navigate({ to: "/login" });
-  };
+  const [email, setEmail] = useState<string | null>(null);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
+  }, []);
 
   const [irisPrefill, setIrisPrefill] = useState<{ value: string; nonce: number } | null>(null);
   const [irisOpenSignal, setIrisOpenSignal] = useState(0);
 
+  const showSecondaryNav =
+    path.startsWith("/olympus") &&
+    !/^\/olympus\/missions\/[^/]+(\/|$)/.test(path);
+
   const shell = (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-6 py-3">
-        <nav className="mx-auto flex max-w-7xl items-center gap-5 text-sm">
-          <Link to="/home" className="font-bold tracking-[0.2em] text-[var(--athena-gold)]">ATLAS</Link>
-          <Link
-            to="/olympus/missions"
-            className="text-muted-foreground hover:text-foreground transition-colors"
-            activeProps={{ className: "text-foreground font-semibold" }}
-          >Missions</Link>
-          {isAdmin && (
-            <Link
-              to="/admin"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-              activeProps={{ className: "text-foreground font-semibold" }}
-            >Admin</Link>
-          )}
-          <Link
-            to="/profile"
-            className="ml-auto text-muted-foreground hover:text-foreground transition-colors"
-            activeProps={{ className: "text-foreground font-semibold" }}
-          >Profile</Link>
-          <button onClick={handleSignOut} className="text-muted-foreground hover:text-foreground transition-colors">Sign out</button>
-        </nav>
-      </header>
+      <GlobalCommandBar email={email} />
+      {showSecondaryNav && <OlympusSecondaryNav />}
+      <Breadcrumbs />
       <main>
         <Outlet />
       </main>
