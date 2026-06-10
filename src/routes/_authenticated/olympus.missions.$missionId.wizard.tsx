@@ -10,10 +10,13 @@ import { Step1DSummary } from "@/components/mission-wizard/Step1DSummary";
 import { Step2Cascade } from "@/components/mission-wizard/Step2Cascade";
 import { Step3WinStrategy } from "@/components/mission-wizard/Step3WinStrategy";
 import { Step4Journey } from "@/components/mission-wizard/Step4Journey";
+import { Step5Team, type SubView } from "@/components/mission-wizard/Step5Team";
+import { Step6BlastOff } from "@/components/mission-wizard/Step6BlastOff";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const searchSchema = z.object({
-  step: z.coerce.number().int().min(1).max(7).optional(),
+  step: z.coerce.number().int().min(1).max(8).optional(),
+  view: z.enum(["team", "questions", "invites"]).optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/olympus/missions/$missionId/wizard")({
