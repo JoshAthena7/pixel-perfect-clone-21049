@@ -1,12 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { Bell } from "lucide-react";
 import { differenceInCalendarDays, format } from "date-fns";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { cn } from "@/lib/utils";
 
 type Mission = {
