@@ -522,6 +522,7 @@ function QuestionRow({
       const notifs: any[] = [
         {
           recipient_id: newWriterId,
+          recipient_role: "writer",
           type: "assignment_acceptance_required",
           message: `You have been assigned ${question.question_number} on ${missionName}. Accept or flag your availability.`,
           metadata: { mission_id: missionId, question_id: question.id },
@@ -530,6 +531,7 @@ function QuestionRow({
       if (oldWriter && oldWriter !== newWriterId) {
         notifs.push({
           recipient_id: oldWriter,
+          recipient_role: "writer",
           type: "assignment_removed",
           message: `Your assignment ${question.question_number} on ${missionName} has been reassigned.`,
           metadata: { mission_id: missionId, question_id: question.id },
