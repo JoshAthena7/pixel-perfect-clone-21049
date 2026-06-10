@@ -117,7 +117,7 @@ export const sendAtlasInvite = createServerFn({ method: "POST" })
     // Mark member as invited
     await supabase
       .from("atlas_team_members")
-      .update({ atlas_invite_status: "invited", updated_at: new Date().toISOString() })
+      .update({ atlas_invite_status: "invite_sent", atlas_invite_sent_at: new Date().toISOString(), updated_at: new Date().toISOString() })
       .eq("id", member.id);
 
     await supabase.from("atlas_activity_log").insert({
