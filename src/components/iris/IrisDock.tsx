@@ -7,7 +7,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Brain, ChevronDown, Mic, Send, Sparkles, X, ExternalLink, Copy } from "lucide-react";
+import { ChevronDown, Mic, Send, Sparkles, X, ExternalLink, Copy } from "lucide-react";
+import { IrisMark } from "@/components/iris/IrisMark";
 import { Button } from "@/components/ui/button";
 import ReactMarkdown from "react-markdown";
 import { useIris, getPageLabel } from "./IrisContext";
@@ -312,7 +313,7 @@ export function IrisDock({ prefillSignal, openSignal }: Props) {
         className="fixed bottom-5 right-5 z-50 group"
       >
         <span className="relative inline-flex items-center justify-center h-14 w-14 rounded-full shadow-lg" style={{ background: GOLD, color: "#0F1A2E" }}>
-          <Brain className="h-7 w-7" />
+          <IrisMark className="h-8 w-8" />
           <span className="absolute inset-0 rounded-full animate-ping opacity-30" style={{ background: GOLD, animationDuration: "3s" }} />
           {hasUnread && <span className="absolute top-0 right-0 h-3 w-3 rounded-full" style={{ background: GOLD, boxShadow: "0 0 0 2px #0F1A2E" }} />}
         </span>
@@ -330,7 +331,7 @@ export function IrisDock({ prefillSignal, openSignal }: Props) {
         className="fixed bottom-5 right-5 z-50 rounded-full shadow-lg px-4 py-2 text-sm font-semibold"
         style={{ background: GOLD, color: "#0F1A2E" }}
       >
-        <Brain className="inline h-4 w-4 mr-1" /> IRIS
+        <IrisMark className="inline h-4 w-4 mr-1 align-[-2px]" /> IRIS
       </button>
     );
   }
@@ -430,7 +431,7 @@ function MessageRow({ m, onOpenInThread, onNavigate }: {
   }
   return (
     <div className="flex gap-2">
-      <span className="mt-1 h-5 w-5 rounded-full shrink-0 inline-flex items-center justify-center" style={{ background: GOLD, color: "#0F1A2E" }}><Brain className="h-3 w-3" /></span>
+      <span className="mt-1 h-5 w-5 rounded-full shrink-0 inline-flex items-center justify-center" style={{ background: GOLD, color: "#0F1A2E" }}><IrisMark className="h-3.5 w-3.5" /></span>
       <div className="rounded-lg px-3 py-2 max-w-[85%] text-white border-l-2" style={{ background: "rgba(255,255,255,0.04)", borderLeftColor: GOLD }}>
         <div className="prose prose-invert prose-sm max-w-none">
           <ReactMarkdown>{m.text || " "}</ReactMarkdown>
