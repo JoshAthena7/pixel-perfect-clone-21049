@@ -1,0 +1,1 @@
+CREATE POLICY "creator can delete setup missions" ON public.missions FOR DELETE USING (created_by = auth.uid() AND status = 'setup');
