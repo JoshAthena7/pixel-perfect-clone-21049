@@ -477,6 +477,7 @@
     animation: shimmer 1.5s ease-in-out infinite;
   }
   @keyframes shimmer { 100% { transform: translateX(100%); } }
+  @keyframes atlas-shimmer { 100% { transform: translateX(100%); } }
 
   /* DESIGN-2: Page transitions */
   .route-fade { animation: routeFade 150ms ease-out both; }
