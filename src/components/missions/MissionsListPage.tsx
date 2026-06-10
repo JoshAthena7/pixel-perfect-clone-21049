@@ -74,7 +74,7 @@ async function fetchMissions(): Promise<MissionRow[]> {
   }));
 }
 
-function MissionsListPage() {
+export function MissionsListPage() {
   const navigate = useNavigate();
   const [tab, setTab] = useState("all");
   const [search, setSearch] = useState("");
