@@ -8,7 +8,7 @@ import atlasWordmark from "@/assets/atlas-wordmark-optical.png";
 
 export function GlobalCommandBar({ email }: { email?: string | null }) {
   return (
-    <div className="sticky top-0 z-50 h-12 bg-[#0D1B3E] border-b border-[#C49A2B]/40 text-white px-4 sm:px-6">
+    <div className="sticky top-0 z-50 h-11 bg-[#0D1B3E] border-b border-[#C49A2B]/40 text-white px-4 sm:px-6">
       <div className="mx-auto max-w-7xl h-full grid grid-cols-[auto_1fr_auto] items-center gap-4">
         <Link
           to="/olympus/missions"
