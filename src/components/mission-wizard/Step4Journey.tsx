@@ -749,16 +749,7 @@ function PhasePanel({
   if (endDate && new Date(endDate) > new Date(deadline)) {
     errors.push(`End date cannot be after the submission deadline (${fmt(deadline)}).`);
   }
-  if (kind !== "pens_down" && startDate && endDate) {
-    for (const p of phases) {
-      if (p.id === editing?.id) continue;
-      if (p.kind === "gate") continue;
-      if (overlaps(toISO(startDate), toISO(endDate), p.start_date, p.end_date)) {
-        errors.push(`These dates overlap with ${p.name} (${fmt(p.start_date)} → ${fmt(p.end_date)}). Phases cannot overlap.`);
-        break;
-      }
-    }
-  }
+  // Overlap is allowed — phases can run in parallel. Informational only.
 
   const canSave = name.trim().length > 0 && !!startDate && !!endDate && errors.length === 0 && !saving;
 
