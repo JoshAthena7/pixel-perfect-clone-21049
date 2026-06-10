@@ -534,9 +534,9 @@ function AirTrafficControlPanel({ missionId }: { missionId: string | null }) {
     queryFn: async () => {
       const [sosRes, decRes, updRes, intRes] = await Promise.all([
         supabase.from("atlas_notifications").select("id, created_at, message").eq("type", "sos").order("created_at", { ascending: false }).limit(5),
-        supabase.from("mission_decisions").select("id, decision_title, created_at, status").eq("mission_id", missionId!).order("created_at", { ascending: false }).limit(5),
-        supabase.from("reality_updates").select("id, update_text, created_at").eq("mission_id", missionId!).order("created_at", { ascending: false }).limit(5),
-        supabase.from("intelligence_feed_items").select("id, title, created_at").eq("mission_id", missionId!).order("created_at", { ascending: false }).limit(5),
+        supabase.from("mission_decisions").select("id, title, created_at, status").eq("mission_id", missionId!).order("created_at", { ascending: false }).limit(5),
+        supabase.from("reality_updates").select("id, details, created_at").eq("mission_id", missionId!).order("created_at", { ascending: false }).limit(5),
+        supabase.from("intelligence_feed_items").select("id, headline, created_at").eq("mission_id", missionId!).order("created_at", { ascending: false }).limit(5),
       ]);
       return {
         sos: sosRes.data ?? [],
@@ -558,22 +558,22 @@ function AirTrafficControlPanel({ missionId }: { missionId: string | null }) {
     {
       label: "LEADERSHIP DECISIONS",
       count: data?.decisions.length ?? 0,
-      sub: data?.decisions[0]?.decision_title ?? "No recent decisions",
-      detail: data?.decisions[0]?.status ?? "",
+      sub: (data?.decisions[0] as any)?.title ?? "No recent decisions",
+      detail: (data?.decisions[0] as any)?.status ?? "",
       tone: "green",
     },
     {
       label: "MISSION UPDATES",
       count: data?.updates.length ?? 0,
-      sub: data?.updates[0]?.update_text?.slice(0, 60) ?? "No updates",
-      detail: data?.updates[0]?.created_at ? formatDistanceToNow(new Date(data.updates[0].created_at), { addSuffix: true }) : "",
+      sub: (data?.updates[0] as any)?.details?.slice(0, 60) ?? "No updates",
+      detail: (data?.updates[0] as any)?.created_at ? formatDistanceToNow(new Date((data!.updates[0] as any).created_at), { addSuffix: true }) : "",
       tone: "blue",
     },
     {
       label: "NEW INTELLIGENCE",
       count: data?.intel.length ?? 0,
-      sub: data?.intel[0]?.title?.slice(0, 60) ?? "No new intel",
-      detail: data?.intel[0]?.created_at ? formatDistanceToNow(new Date(data.intel[0].created_at), { addSuffix: true }) : "",
+      sub: (data?.intel[0] as any)?.headline?.slice(0, 60) ?? "No new intel",
+      detail: (data?.intel[0] as any)?.created_at ? formatDistanceToNow(new Date((data!.intel[0] as any).created_at), { addSuffix: true }) : "",
       tone: "gold",
     },
     {
