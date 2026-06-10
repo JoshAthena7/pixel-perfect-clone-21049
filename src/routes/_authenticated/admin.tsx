@@ -28,6 +28,19 @@ function AdminLayout() {
         </div>
         <h1 className="text-3xl font-bold">Admin</h1>
         <p className="mt-2 text-sm text-muted-foreground">Admin tools are being rebuilt after the legacy cleanup.</p>
+
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          <Link
+            to="/admin/team"
+            className="rounded-lg border p-4 hover:border-primary transition-colors block"
+          >
+            <div className="text-sm font-semibold">Athena Team Roster →</div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Import the team from a TalentDesk CSV, or add members manually. Populates the Mission Wizard team pickers.
+            </p>
+          </Link>
+        </div>
+
         <Link to="/missions" className="mt-6 inline-flex items-center gap-2 text-sm text-primary hover:underline">
           <Home className="h-4 w-4" /> Back to missions
         </Link>
