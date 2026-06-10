@@ -144,9 +144,21 @@ export function OracleFeed({ missionId }: { missionId: string }) {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border bg-card p-4 text-sm">
-        In the last 7 days IRIS surfaced <strong>{summary.total}</strong> intelligence items.{" "}
-        <strong>{summary.attention}</strong> require attention. <strong>{summary.sections}</strong> affect sections currently being written.
+      <div className="rounded-lg border bg-card p-4 text-sm flex items-start justify-between gap-3">
+        <div>
+          In the last 7 days IRIS surfaced <strong>{summary.total}</strong> intelligence items.{" "}
+          <strong>{summary.attention}</strong> require attention. <strong>{summary.sections}</strong> affect sections currently being written.
+          <div className="text-xs text-muted-foreground mt-1">
+            {lastCheckedAt
+              ? <>Feeds last checked: {formatDistanceToNow(new Date(lastCheckedAt), { addSuffix: true })}</>
+              : <>Feeds have not been checked yet.</>}
+          </div>
+        </div>
+        <Button size="sm" onClick={onRunCheck} disabled={running} className="shrink-0">
+          {running
+            ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Checking feeds…</>
+            : <><Sparkles className="h-3 w-3 mr-1" /> Run Intelligence Check</>}
+        </Button>
       </div>
 
       <div className="flex flex-wrap gap-2 items-center">
