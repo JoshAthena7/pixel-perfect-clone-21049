@@ -68,7 +68,7 @@ function FlightDeck() {
       const { data: asgs } = await supabase
         .from("mission_assignments")
         .select("*")
-        .eq("assigned_writer_id", memberId);
+        .eq("assigned_writer_id", memberId as string);
       const assignments = (asgs ?? []) as Assignment[];
       const missionIds = Array.from(new Set(assignments.map((a) => a.mission_id)));
       const questionIds = assignments
