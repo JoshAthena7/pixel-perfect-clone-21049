@@ -521,11 +521,13 @@ function Timeline({
   deadline,
   onAdd,
   deliverableCounts,
+  overlappingIds,
 }: {
   phases: Phase[];
   deadline: string;
   onAdd: () => void;
   deliverableCounts: Record<string, number>;
+  overlappingIds?: Set<string>;
 }) {
   const sorted = [...phases].sort(
     (a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime(),
