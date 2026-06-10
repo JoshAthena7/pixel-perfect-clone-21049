@@ -583,9 +583,12 @@ function Timeline({
           return (
             <div
               key={p.id}
-              className="absolute top-1/2 -translate-y-1/2 h-7 rounded px-2 text-[11px] text-white flex items-center overflow-hidden whitespace-nowrap"
+              className={cn(
+                "absolute top-1/2 -translate-y-1/2 h-7 rounded px-2 text-[11px] text-white flex items-center overflow-hidden whitespace-nowrap",
+                overlappingIds?.has(p.id) && "ring-2 ring-amber-400 ring-offset-1",
+              )}
               style={{ left: `${left}%`, width: `${width}%`, background: meta.color }}
-              title={`${p.name} · ${fmt(p.start_date)} → ${fmt(p.end_date)} · ${deliverableCounts[p.id] ?? 0} deliverables`}
+              title={`${p.name} · ${fmt(p.start_date)} → ${fmt(p.end_date)} · ${deliverableCounts[p.id] ?? 0} deliverables${overlappingIds?.has(p.id) ? " · overlaps with another phase" : ""}`}
             >
               <span className="truncate">{p.name}</span>
             </div>
