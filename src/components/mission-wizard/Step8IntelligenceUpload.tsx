@@ -259,13 +259,19 @@ function SlotCard({
     setBusy(true);
     setErr(null);
     try {
-      const { data: u } = await supabase.auth.getUser();
+      const { data: u, error: authErr } = await supabase.auth.getUser();
+      if (authErr || !u?.user) {
+        throw new Error("You must be signed in to upload. Please refresh and sign in again.");
+      }
       for (const f of Array.from(files)) {
         const path = `${missionId}/${slot.key}/${Date.now()}-${f.name.replace(/[^a-zA-Z0-9_.-]/g, "_")}`;
         const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, f, {
           cacheControl: "3600", upsert: false, contentType: f.type || undefined,
         });
-        if (upErr) throw upErr;
+        if (upErr) {
+          console.error("[Step8] storage upload failed", upErr);
+          throw new Error(`Storage upload failed: ${upErr.message}`);
+        }
         const { data: doc, error: insErr } = await supabase
           .from("mission_documents")
           .insert({
@@ -273,18 +279,21 @@ function SlotCard({
             document_type: "research",
             title: f.name.replace(/\.[^.]+$/, "").slice(0, 200),
             file_url: path,
-            uploaded_by: u.user?.id ?? null,
+            uploaded_by: u.user.id,
             metadata: { intelligence_tier: tier, slot: slot.key },
           })
           .select("id")
           .single();
-        if (insErr) throw insErr;
+        if (insErr) {
+          console.error("[Step8] mission_documents insert failed", insErr);
+          throw new Error(`Saving document record failed: ${insErr.message}`);
+        }
+        toast.success(`Uploaded ${f.name}`);
 
         // Prior RFP — kick off comparison
         if (slot.key === "prior_rfp" && doc) {
           try {
             const priorText = await extractRFPText(f);
-            // pull current RFP text from a primary_rfp doc summary or use a placeholder
             const { data: cur } = await supabase
               .from("mission_documents")
               .select("content_summary, title")
@@ -295,13 +304,17 @@ function SlotCard({
             const currentText = cur?.content_summary ?? cur?.title ?? "Current RFP text unavailable for direct comparison.";
             await compareFn({ data: { missionId, priorDocumentId: doc.id, priorText, currentText } });
           } catch (e: any) {
+            console.error("[Step8] prior RFP comparison failed", e);
             setErr(`Prior RFP saved, but comparison failed: ${e?.message ?? "error"}`);
           }
         }
       }
       onChange();
     } catch (e: any) {
-      setErr(e?.message ?? "Upload failed.");
+      console.error("[Step8] upload failed", e);
+      const msg = e?.message ?? "Upload failed.";
+      setErr(msg);
+      toast.error(msg);
     } finally {
       setBusy(false);
     }
