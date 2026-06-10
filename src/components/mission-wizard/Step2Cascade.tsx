@@ -51,7 +51,7 @@ type Question = {
 };
 type MissionDoc = {
   id: string;
-  file_name: string | null;
+  title: string | null;
   document_type: string | null;
   section_tags: string[] | null;
 };
@@ -123,7 +123,7 @@ async function fetchAll(missionId: string) {
       .order("question_number"),
     supabase
       .from("mission_documents")
-      .select("id,file_name,document_type,section_tags")
+      .select("id,title,document_type,section_tags")
       .eq("mission_id", missionId),
     supabase.from("missions").select("submission_deadline").eq("id", missionId).single(),
   ]);
@@ -902,7 +902,7 @@ function IntelPanel({
       if (upErr) throw upErr;
       const { error: dErr } = await supabase.from("mission_documents").insert({
         mission_id: missionId,
-        file_name: file.name,
+        title: file.name,
         file_url: path,
         document_type: "research",
         section_tags: [sectionId],
@@ -999,7 +999,7 @@ function IntelPanel({
                 key={d.id}
                 className="flex items-center justify-between text-xs rounded border border-border bg-muted/30 px-2 py-1"
               >
-                <span className="truncate">{d.file_name ?? "Document"}</span>
+                <span className="truncate">{d.title ?? "Document"}</span>
                 <button
                   type="button"
                   onClick={() => removeDoc(d)}
