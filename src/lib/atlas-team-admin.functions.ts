@@ -38,6 +38,8 @@ export const listAtlasTeam = createServerFn({ method: "GET" })
     return { members: data ?? [] };
   });
 
+const ALLOWED_ROLES = ["admin", "engagement_lead", "writer", "sme", "reviewer", "unassigned"] as const;
+
 const AddInput = z.object({
   email: z.string().trim().email().max(320),
   first_name: z.string().trim().min(1).max(120),
@@ -46,6 +48,11 @@ const AddInput = z.object({
   phone: z.string().trim().max(64).optional().default(""),
   atlas_role: z.string().trim().max(120).optional().default(""),
 });
+
+function normalizeRole(r: string | null | undefined): string {
+  const v = (r ?? "").trim().toLowerCase().replace(/\s+/g, "_");
+  return (ALLOWED_ROLES as readonly string[]).includes(v) ? v : "unassigned";
+}
 
 export const addAtlasTeamMember = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
