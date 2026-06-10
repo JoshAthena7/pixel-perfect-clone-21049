@@ -36,11 +36,13 @@ export function AuditLogTab({ missionId, missionName }: { missionId: string; mis
     queryKey: ["audit-log", missionId],
     enabled: !!isAdmin,
     queryFn: async () => {
+      // Cap at 2000 most-recent entries to keep client-side filter/export bounded.
       const { data, error } = await supabase
         .from("mission_audit_log")
         .select("*")
         .eq("mission_id", missionId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .range(0, 1999);
       if (error) throw error;
       return (data ?? []) as Entry[];
     },
