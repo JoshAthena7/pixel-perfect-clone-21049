@@ -4,6 +4,9 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { WizardShell } from "@/components/mission-wizard/WizardShell";
 import { Step1Basics, type Step1Values } from "@/components/mission-wizard/Step1Basics";
+import { Step1BUpload } from "@/components/mission-wizard/Step1BUpload";
+import { Step1CProcessing } from "@/components/mission-wizard/Step1CProcessing";
+import { Step1DSummary } from "@/components/mission-wizard/Step1DSummary";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const searchSchema = z.object({
@@ -89,6 +92,31 @@ function ResumeWizardPage() {
     return (
       <WizardShell step={1} onBack={back}>
         <Step1Basics initial={initial} missionId={missionId} />
+      </WizardShell>
+    );
+  }
+
+  const go = (s: number) =>
+    navigate({ to: "/olympus/missions/$missionId/wizard", params: { missionId }, search: { step: s } });
+
+  if (step === 2) {
+    return (
+      <WizardShell step={2} onBack={back}>
+        <Step1BUpload missionId={missionId} onAdvance={() => go(3)} />
+      </WizardShell>
+    );
+  }
+  if (step === 3) {
+    return (
+      <WizardShell step={3} onBack={back}>
+        <Step1CProcessing missionId={missionId} onContinue={() => go(4)} />
+      </WizardShell>
+    );
+  }
+  if (step === 4) {
+    return (
+      <WizardShell step={4} onBack={back}>
+        <Step1DSummary missionId={missionId} />
       </WizardShell>
     );
   }

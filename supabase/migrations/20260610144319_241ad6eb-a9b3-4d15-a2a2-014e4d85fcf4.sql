@@ -1,0 +1,1 @@
+ALTER TABLE public.mission_submission_checklist ADD COLUMN IF NOT EXISTS iris_extracted boolean NOT NULL DEFAULT false;

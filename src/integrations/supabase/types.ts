@@ -5195,6 +5195,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          iris_extracted: boolean
           is_complete: boolean
           label: string
           mission_id: string
@@ -5208,6 +5209,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          iris_extracted?: boolean
           is_complete?: boolean
           label: string
           mission_id: string
@@ -5221,6 +5223,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          iris_extracted?: boolean
           is_complete?: boolean
           label?: string
           mission_id?: string
@@ -5562,6 +5565,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
+          iris_disclaimer: string | null
           name: string
           primary_contact_email: string | null
           primary_contact_name: string | null
@@ -5578,6 +5582,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          iris_disclaimer?: string | null
           name: string
           primary_contact_email?: string | null
           primary_contact_name?: string | null
@@ -5594,6 +5599,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          iris_disclaimer?: string | null
           name?: string
           primary_contact_email?: string | null
           primary_contact_name?: string | null
@@ -7619,6 +7625,10 @@ export type Database = {
       }
       has_thread_access: {
         Args: { _thread_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_mission_creator: {
+        Args: { _mission_id: string; _user_id: string }
         Returns: boolean
       }
       is_mission_member: {
