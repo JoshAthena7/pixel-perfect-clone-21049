@@ -296,6 +296,10 @@ export function Step2Cascade({ missionId }: { missionId: string }) {
     await supabase.from("mission_questions").update({ reviewed_by_admin: true }).eq("id", id);
     qc.invalidateQueries({ queryKey: ["cascade", missionId] });
   };
+  const confirmSection = async (id: string) => {
+    await supabase.from("mission_sections").update({ reviewed_by_admin: true }).eq("id", id);
+    qc.invalidateQueries({ queryKey: ["cascade", missionId] });
+  };
   const confirmSectionHighFields = async (sec: Section) => {
     if ((sec.iris_confidence ?? "").toLowerCase() === "high") {
       await supabase.from("mission_sections").update({ reviewed_by_admin: true }).eq("id", sec.id);
@@ -447,6 +451,7 @@ export function Step2Cascade({ missionId }: { missionId: string }) {
             onSection={updateSection}
             onQuestion={updateQuestion}
             onConfirmQuestion={confirmQuestion}
+            onConfirmSection={confirmSection}
             onConfirmSectionHigh={confirmSectionHighFields}
           />
         )}
@@ -601,6 +606,7 @@ function SectionEditor({
   onSection,
   onQuestion,
   onConfirmQuestion,
+  onConfirmSection,
   onConfirmSectionHigh,
 }: {
   section: Section;
@@ -610,6 +616,7 @@ function SectionEditor({
   onSection: (id: string, patch: Partial<Section>) => void;
   onQuestion: (id: string, patch: Partial<Question>) => void;
   onConfirmQuestion: (id: string) => void;
+  onConfirmSection: (id: string) => void;
   onConfirmSectionHigh: (s: Section) => void;
 }) {
   return (
@@ -617,6 +624,7 @@ function SectionEditor({
       <SectionHeader
         section={section}
         onSection={onSection}
+        onConfirm={() => onConfirmSection(section.id)}
         onConfirmHigh={() => onConfirmSectionHigh(section)}
       />
 
@@ -642,6 +650,7 @@ function SectionEditor({
           <SectionHeader
             section={ch.section}
             onSection={onSection}
+            onConfirm={() => onConfirmSection(ch.section.id)}
             onConfirmHigh={() => onConfirmSectionHigh(ch.section)}
             smaller
           />
@@ -667,11 +676,13 @@ function SectionEditor({
 function SectionHeader({
   section,
   onSection,
+  onConfirm,
   onConfirmHigh,
   smaller,
 }: {
   section: Section;
   onSection: (id: string, patch: Partial<Section>) => void;
+  onConfirm: () => void;
   onConfirmHigh: () => void;
   smaller?: boolean;
 }) {
@@ -698,13 +709,25 @@ function SectionHeader({
             )}
           />
         </div>
-        <button
-          onClick={onConfirmHigh}
-          className="text-xs text-[var(--athena-gold)] hover:underline shrink-0"
-          type="button"
-        >
-          Confirm all high confidence fields in this section
-        </button>
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          <Button
+            type="button"
+            size="sm"
+            onClick={onConfirm}
+            disabled={section.reviewed_by_admin}
+            className="bg-emerald-600 text-white shadow hover:bg-emerald-500 disabled:opacity-80"
+          >
+            <CheckCircle2 className="h-4 w-4" />
+            {section.reviewed_by_admin ? "Section Confirmed" : "Confirm Section"}
+          </Button>
+          <button
+            onClick={onConfirmHigh}
+            className="text-xs text-[var(--athena-gold)] hover:underline shrink-0"
+            type="button"
+          >
+            Confirm all high confidence fields
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
