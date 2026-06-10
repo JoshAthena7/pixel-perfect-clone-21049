@@ -40,6 +40,7 @@ import { Route as ApiPublicHooksMonitorResearchFeedsRouteImport } from './routes
 import { Route as ApiPublicHooksMonitorCustomFeedsRouteImport } from './routes/api/public/hooks/monitor-custom-feeds'
 import { Route as ApiPublicHooksMonitorCmsFeedsRouteImport } from './routes/api/public/hooks/monitor-cms-feeds'
 import { Route as ApiPublicHooksIrisMonitorRouteImport } from './routes/api/public/hooks/iris-monitor'
+import { Route as ApiPublicHooksGenerateDailyBriefsRouteImport } from './routes/api/public/hooks/generate-daily-briefs'
 import { Route as AuthenticatedOlympusMissionsNewRouteImport } from './routes/_authenticated/olympus.missions.new'
 import { Route as AuthenticatedOlympusMissionsMissionIdIndexRouteImport } from './routes/_authenticated/olympus.missions.$missionId.index'
 import { Route as AuthenticatedOlympusMissionsMissionIdWizardRouteImport } from './routes/_authenticated/olympus.missions.$missionId.wizard'
@@ -213,6 +214,12 @@ const ApiPublicHooksIrisMonitorRoute =
     path: '/api/public/hooks/iris-monitor',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksGenerateDailyBriefsRoute =
+  ApiPublicHooksGenerateDailyBriefsRouteImport.update({
+    id: '/api/public/hooks/generate-daily-briefs',
+    path: '/api/public/hooks/generate-daily-briefs',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedOlympusMissionsNewRoute =
   AuthenticatedOlympusMissionsNewRouteImport.update({
     id: '/olympus/missions/new',
@@ -252,6 +259,7 @@ export interface FileRoutesByFullPath {
   '/missions/': typeof AuthenticatedMissionsIndexRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
   '/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
+  '/api/public/hooks/generate-daily-briefs': typeof ApiPublicHooksGenerateDailyBriefsRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/monitor-cms-feeds': typeof ApiPublicHooksMonitorCmsFeedsRoute
   '/api/public/hooks/monitor-custom-feeds': typeof ApiPublicHooksMonitorCustomFeedsRoute
@@ -286,6 +294,7 @@ export interface FileRoutesByTo {
   '/missions': typeof AuthenticatedMissionsIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
   '/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
+  '/api/public/hooks/generate-daily-briefs': typeof ApiPublicHooksGenerateDailyBriefsRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/monitor-cms-feeds': typeof ApiPublicHooksMonitorCmsFeedsRoute
   '/api/public/hooks/monitor-custom-feeds': typeof ApiPublicHooksMonitorCustomFeedsRoute
@@ -323,6 +332,7 @@ export interface FileRoutesById {
   '/_authenticated/missions/': typeof AuthenticatedMissionsIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/_authenticated/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
+  '/api/public/hooks/generate-daily-briefs': typeof ApiPublicHooksGenerateDailyBriefsRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/monitor-cms-feeds': typeof ApiPublicHooksMonitorCmsFeedsRoute
   '/api/public/hooks/monitor-custom-feeds': typeof ApiPublicHooksMonitorCustomFeedsRoute
@@ -360,6 +370,7 @@ export interface FileRouteTypes {
     | '/missions/'
     | '/profile/'
     | '/olympus/missions/new'
+    | '/api/public/hooks/generate-daily-briefs'
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/monitor-cms-feeds'
     | '/api/public/hooks/monitor-custom-feeds'
@@ -394,6 +405,7 @@ export interface FileRouteTypes {
     | '/missions'
     | '/profile'
     | '/olympus/missions/new'
+    | '/api/public/hooks/generate-daily-briefs'
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/monitor-cms-feeds'
     | '/api/public/hooks/monitor-custom-feeds'
@@ -430,6 +442,7 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/'
     | '/_authenticated/profile/'
     | '/_authenticated/olympus/missions/new'
+    | '/api/public/hooks/generate-daily-briefs'
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/monitor-cms-feeds'
     | '/api/public/hooks/monitor-custom-feeds'
@@ -456,6 +469,7 @@ export interface RootRouteChildren {
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   ApiChatIrisRoute: typeof ApiChatIrisRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
+  ApiPublicHooksGenerateDailyBriefsRoute: typeof ApiPublicHooksGenerateDailyBriefsRoute
   ApiPublicHooksIrisMonitorRoute: typeof ApiPublicHooksIrisMonitorRoute
   ApiPublicHooksMonitorCmsFeedsRoute: typeof ApiPublicHooksMonitorCmsFeedsRoute
   ApiPublicHooksMonitorCustomFeedsRoute: typeof ApiPublicHooksMonitorCustomFeedsRoute
@@ -688,6 +702,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksIrisMonitorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/generate-daily-briefs': {
+      id: '/api/public/hooks/generate-daily-briefs'
+      path: '/api/public/hooks/generate-daily-briefs'
+      fullPath: '/api/public/hooks/generate-daily-briefs'
+      preLoaderRoute: typeof ApiPublicHooksGenerateDailyBriefsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/olympus/missions/new': {
       id: '/_authenticated/olympus/missions/new'
       path: '/olympus/missions/new'
@@ -772,6 +793,8 @@ const rootRouteChildren: RootRouteChildren = {
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   ApiChatIrisRoute: ApiChatIrisRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
+  ApiPublicHooksGenerateDailyBriefsRoute:
+    ApiPublicHooksGenerateDailyBriefsRoute,
   ApiPublicHooksIrisMonitorRoute: ApiPublicHooksIrisMonitorRoute,
   ApiPublicHooksMonitorCmsFeedsRoute: ApiPublicHooksMonitorCmsFeedsRoute,
   ApiPublicHooksMonitorCustomFeedsRoute: ApiPublicHooksMonitorCustomFeedsRoute,

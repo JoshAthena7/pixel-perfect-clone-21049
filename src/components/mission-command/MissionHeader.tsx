@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { differenceInCalendarDays, format } from "date-fns";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { IntelligenceCompletenessChip } from "@/components/mission-command/IntelligenceCompletenessChip";
 import { cn } from "@/lib/utils";
 
 type Mission = {
@@ -95,6 +96,7 @@ export function MissionHeader({
                 <div className="text-sm text-muted-foreground">No deadline set</div>
               )}
             </div>
+            <IntelligenceCompletenessChip missionId={mission.id} />
             <NotificationBell />
 
           </div>
