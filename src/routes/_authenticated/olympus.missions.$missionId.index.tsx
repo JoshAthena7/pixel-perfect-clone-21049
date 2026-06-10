@@ -14,6 +14,7 @@ import {
 } from "@/components/mission-command/MissionTabs";
 import { OverviewTab } from "@/components/mission-command/OverviewTab";
 import { SectionsQuestionsTab } from "@/components/mission-command/SectionsQuestionsTab";
+import { QuestionHealthTab } from "@/components/mission-command/QuestionHealthTab";
 
 const searchSchema = z.object({
   launched: z.coerce.number().optional(),
