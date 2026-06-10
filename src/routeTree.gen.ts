@@ -10,10 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
-import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as OlympusRouteImport } from './routes/olympus'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as AtlasOnboardingRouteImport } from './routes/atlas-onboarding'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
@@ -32,22 +30,11 @@ import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/l
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
-import { Route as ApiPublicHooksRefreshIntelligenceRouteImport } from './routes/api/public/hooks/refresh-intelligence'
-import { Route as ApiPublicHooksIrisRescrubAdvocatesRouteImport } from './routes/api/public/hooks/iris-rescrub-advocates'
 import { Route as ApiPublicHooksIrisMonitorRouteImport } from './routes/api/public/hooks/iris-monitor'
-import { Route as ApiPublicHooksIngestIntelRouteImport } from './routes/api/public/hooks/ingest-intel'
-import { Route as ApiPublicHooksBackfillVaultExtractionsRouteImport } from './routes/api/public/hooks/backfill-vault-extractions'
-import { Route as ApiPublicHooksBackfillResearchEmbeddingsRouteImport } from './routes/api/public/hooks/backfill-research-embeddings'
-import { Route as ApiPublicHooksBackfillAtlasEmbeddingsRouteImport } from './routes/api/public/hooks/backfill-atlas-embeddings'
 
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
   id: '/unsubscribe',
   path: '/unsubscribe',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OnboardingRoute = OnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OlympusRoute = OlympusRouteImport.update({
@@ -58,11 +45,6 @@ const OlympusRoute = OlympusRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AtlasOnboardingRoute = AtlasOnboardingRouteImport.update({
-  id: '/atlas-onboarding',
-  path: '/atlas-onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -161,55 +143,17 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   path: '/lovable/email/auth/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicHooksRefreshIntelligenceRoute =
-  ApiPublicHooksRefreshIntelligenceRouteImport.update({
-    id: '/api/public/hooks/refresh-intelligence',
-    path: '/api/public/hooks/refresh-intelligence',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksIrisRescrubAdvocatesRoute =
-  ApiPublicHooksIrisRescrubAdvocatesRouteImport.update({
-    id: '/api/public/hooks/iris-rescrub-advocates',
-    path: '/api/public/hooks/iris-rescrub-advocates',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiPublicHooksIrisMonitorRoute =
   ApiPublicHooksIrisMonitorRouteImport.update({
     id: '/api/public/hooks/iris-monitor',
     path: '/api/public/hooks/iris-monitor',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicHooksIngestIntelRoute =
-  ApiPublicHooksIngestIntelRouteImport.update({
-    id: '/api/public/hooks/ingest-intel',
-    path: '/api/public/hooks/ingest-intel',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksBackfillVaultExtractionsRoute =
-  ApiPublicHooksBackfillVaultExtractionsRouteImport.update({
-    id: '/api/public/hooks/backfill-vault-extractions',
-    path: '/api/public/hooks/backfill-vault-extractions',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksBackfillResearchEmbeddingsRoute =
-  ApiPublicHooksBackfillResearchEmbeddingsRouteImport.update({
-    id: '/api/public/hooks/backfill-research-embeddings',
-    path: '/api/public/hooks/backfill-research-embeddings',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksBackfillAtlasEmbeddingsRoute =
-  ApiPublicHooksBackfillAtlasEmbeddingsRouteImport.update({
-    id: '/api/public/hooks/backfill-atlas-embeddings',
-    path: '/api/public/hooks/backfill-atlas-embeddings',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/atlas-onboarding': typeof AtlasOnboardingRoute
   '/login': typeof LoginRoute
   '/olympus': typeof AuthenticatedOlympusRouteWithChildren
-  '/onboarding': typeof OnboardingRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/help': typeof AuthenticatedHelpRoute
@@ -221,13 +165,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/missions/': typeof AuthenticatedMissionsIndexRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
-  '/api/public/hooks/backfill-atlas-embeddings': typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
-  '/api/public/hooks/backfill-research-embeddings': typeof ApiPublicHooksBackfillResearchEmbeddingsRoute
-  '/api/public/hooks/backfill-vault-extractions': typeof ApiPublicHooksBackfillVaultExtractionsRoute
-  '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
-  '/api/public/hooks/iris-rescrub-advocates': typeof ApiPublicHooksIrisRescrubAdvocatesRoute
-  '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -236,10 +174,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/atlas-onboarding': typeof AtlasOnboardingRoute
   '/login': typeof LoginRoute
   '/olympus': typeof AuthenticatedOlympusRouteWithChildren
-  '/onboarding': typeof OnboardingRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/help': typeof AuthenticatedHelpRoute
@@ -251,13 +187,7 @@ export interface FileRoutesByTo {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/missions': typeof AuthenticatedMissionsIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
-  '/api/public/hooks/backfill-atlas-embeddings': typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
-  '/api/public/hooks/backfill-research-embeddings': typeof ApiPublicHooksBackfillResearchEmbeddingsRoute
-  '/api/public/hooks/backfill-vault-extractions': typeof ApiPublicHooksBackfillVaultExtractionsRoute
-  '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
-  '/api/public/hooks/iris-rescrub-advocates': typeof ApiPublicHooksIrisRescrubAdvocatesRoute
-  '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -268,10 +198,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
-  '/atlas-onboarding': typeof AtlasOnboardingRoute
   '/login': typeof LoginRoute
   '/olympus': typeof OlympusRoute
-  '/onboarding': typeof OnboardingRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/help': typeof AuthenticatedHelpRoute
@@ -284,13 +212,7 @@ export interface FileRoutesById {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/missions/': typeof AuthenticatedMissionsIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
-  '/api/public/hooks/backfill-atlas-embeddings': typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
-  '/api/public/hooks/backfill-research-embeddings': typeof ApiPublicHooksBackfillResearchEmbeddingsRoute
-  '/api/public/hooks/backfill-vault-extractions': typeof ApiPublicHooksBackfillVaultExtractionsRoute
-  '/api/public/hooks/ingest-intel': typeof ApiPublicHooksIngestIntelRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
-  '/api/public/hooks/iris-rescrub-advocates': typeof ApiPublicHooksIrisRescrubAdvocatesRoute
-  '/api/public/hooks/refresh-intelligence': typeof ApiPublicHooksRefreshIntelligenceRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -301,10 +223,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/atlas-onboarding'
     | '/login'
     | '/olympus'
-    | '/onboarding'
     | '/unsubscribe'
     | '/admin'
     | '/help'
@@ -316,13 +236,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/missions/'
     | '/profile/'
-    | '/api/public/hooks/backfill-atlas-embeddings'
-    | '/api/public/hooks/backfill-research-embeddings'
-    | '/api/public/hooks/backfill-vault-extractions'
-    | '/api/public/hooks/ingest-intel'
     | '/api/public/hooks/iris-monitor'
-    | '/api/public/hooks/iris-rescrub-advocates'
-    | '/api/public/hooks/refresh-intelligence'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -331,10 +245,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/atlas-onboarding'
     | '/login'
     | '/olympus'
-    | '/onboarding'
     | '/unsubscribe'
     | '/admin'
     | '/help'
@@ -346,13 +258,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/missions'
     | '/profile'
-    | '/api/public/hooks/backfill-atlas-embeddings'
-    | '/api/public/hooks/backfill-research-embeddings'
-    | '/api/public/hooks/backfill-vault-extractions'
-    | '/api/public/hooks/ingest-intel'
     | '/api/public/hooks/iris-monitor'
-    | '/api/public/hooks/iris-rescrub-advocates'
-    | '/api/public/hooks/refresh-intelligence'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -362,10 +268,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
-    | '/atlas-onboarding'
     | '/login'
     | '/olympus'
-    | '/onboarding'
     | '/unsubscribe'
     | '/_authenticated/admin'
     | '/_authenticated/help'
@@ -378,13 +282,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/_authenticated/missions/'
     | '/_authenticated/profile/'
-    | '/api/public/hooks/backfill-atlas-embeddings'
-    | '/api/public/hooks/backfill-research-embeddings'
-    | '/api/public/hooks/backfill-vault-extractions'
-    | '/api/public/hooks/ingest-intel'
     | '/api/public/hooks/iris-monitor'
-    | '/api/public/hooks/iris-rescrub-advocates'
-    | '/api/public/hooks/refresh-intelligence'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -395,21 +293,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
-  AtlasOnboardingRoute: typeof AtlasOnboardingRoute
   LoginRoute: typeof LoginRoute
   OlympusRoute: typeof OlympusRoute
-  OnboardingRoute: typeof OnboardingRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
   CheckinTokenRoute: typeof CheckinTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
-  ApiPublicHooksBackfillAtlasEmbeddingsRoute: typeof ApiPublicHooksBackfillAtlasEmbeddingsRoute
-  ApiPublicHooksBackfillResearchEmbeddingsRoute: typeof ApiPublicHooksBackfillResearchEmbeddingsRoute
-  ApiPublicHooksBackfillVaultExtractionsRoute: typeof ApiPublicHooksBackfillVaultExtractionsRoute
-  ApiPublicHooksIngestIntelRoute: typeof ApiPublicHooksIngestIntelRoute
   ApiPublicHooksIrisMonitorRoute: typeof ApiPublicHooksIrisMonitorRoute
-  ApiPublicHooksIrisRescrubAdvocatesRoute: typeof ApiPublicHooksIrisRescrubAdvocatesRoute
-  ApiPublicHooksRefreshIntelligenceRoute: typeof ApiPublicHooksRefreshIntelligenceRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -426,13 +316,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/onboarding': {
-      id: '/onboarding'
-      path: '/onboarding'
-      fullPath: '/onboarding'
-      preLoaderRoute: typeof OnboardingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/olympus': {
       id: '/olympus'
       path: '/olympus'
@@ -445,13 +328,6 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/atlas-onboarding': {
-      id: '/atlas-onboarding'
-      path: '/atlas-onboarding'
-      fullPath: '/atlas-onboarding'
-      preLoaderRoute: typeof AtlasOnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -580,53 +456,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/hooks/refresh-intelligence': {
-      id: '/api/public/hooks/refresh-intelligence'
-      path: '/api/public/hooks/refresh-intelligence'
-      fullPath: '/api/public/hooks/refresh-intelligence'
-      preLoaderRoute: typeof ApiPublicHooksRefreshIntelligenceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/iris-rescrub-advocates': {
-      id: '/api/public/hooks/iris-rescrub-advocates'
-      path: '/api/public/hooks/iris-rescrub-advocates'
-      fullPath: '/api/public/hooks/iris-rescrub-advocates'
-      preLoaderRoute: typeof ApiPublicHooksIrisRescrubAdvocatesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/hooks/iris-monitor': {
       id: '/api/public/hooks/iris-monitor'
       path: '/api/public/hooks/iris-monitor'
       fullPath: '/api/public/hooks/iris-monitor'
       preLoaderRoute: typeof ApiPublicHooksIrisMonitorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/ingest-intel': {
-      id: '/api/public/hooks/ingest-intel'
-      path: '/api/public/hooks/ingest-intel'
-      fullPath: '/api/public/hooks/ingest-intel'
-      preLoaderRoute: typeof ApiPublicHooksIngestIntelRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/backfill-vault-extractions': {
-      id: '/api/public/hooks/backfill-vault-extractions'
-      path: '/api/public/hooks/backfill-vault-extractions'
-      fullPath: '/api/public/hooks/backfill-vault-extractions'
-      preLoaderRoute: typeof ApiPublicHooksBackfillVaultExtractionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/backfill-research-embeddings': {
-      id: '/api/public/hooks/backfill-research-embeddings'
-      path: '/api/public/hooks/backfill-research-embeddings'
-      fullPath: '/api/public/hooks/backfill-research-embeddings'
-      preLoaderRoute: typeof ApiPublicHooksBackfillResearchEmbeddingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/backfill-atlas-embeddings': {
-      id: '/api/public/hooks/backfill-atlas-embeddings'
-      path: '/api/public/hooks/backfill-atlas-embeddings'
-      fullPath: '/api/public/hooks/backfill-atlas-embeddings'
-      preLoaderRoute: typeof ApiPublicHooksBackfillAtlasEmbeddingsRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -670,26 +504,13 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
-  AtlasOnboardingRoute: AtlasOnboardingRoute,
   LoginRoute: LoginRoute,
   OlympusRoute: OlympusRoute,
-  OnboardingRoute: OnboardingRoute,
   UnsubscribeRoute: UnsubscribeRoute,
   CheckinTokenRoute: CheckinTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
-  ApiPublicHooksBackfillAtlasEmbeddingsRoute:
-    ApiPublicHooksBackfillAtlasEmbeddingsRoute,
-  ApiPublicHooksBackfillResearchEmbeddingsRoute:
-    ApiPublicHooksBackfillResearchEmbeddingsRoute,
-  ApiPublicHooksBackfillVaultExtractionsRoute:
-    ApiPublicHooksBackfillVaultExtractionsRoute,
-  ApiPublicHooksIngestIntelRoute: ApiPublicHooksIngestIntelRoute,
   ApiPublicHooksIrisMonitorRoute: ApiPublicHooksIrisMonitorRoute,
-  ApiPublicHooksIrisRescrubAdvocatesRoute:
-    ApiPublicHooksIrisRescrubAdvocatesRoute,
-  ApiPublicHooksRefreshIntelligenceRoute:
-    ApiPublicHooksRefreshIntelligenceRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
@@ -699,13 +520,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
