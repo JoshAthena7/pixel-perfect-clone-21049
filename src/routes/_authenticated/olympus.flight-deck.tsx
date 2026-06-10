@@ -291,6 +291,15 @@ function FlightDeck() {
         </div>
       </div>
 
+      <div className="mx-auto max-w-7xl px-6 py-6">
+        <FlightDeckLayout
+          memberId={memberId}
+          activeMissionId={data.assignments[0]?.mission_id ?? null}
+          activeMissionName={data.assignments[0] ? (data.missions.find((m) => m.id === data.assignments[0].mission_id)?.name ?? "Flight Deck") : "Flight Deck"}
+          activeMissionStatus={null}
+        />
+      </div>
+
       <div className="mx-auto max-w-6xl px-6 py-6 space-y-8">
         {/* Action Required — acceptance + IRIS alerts */}
         {(pending.length > 0 || data.alerts.length > 0) && (
