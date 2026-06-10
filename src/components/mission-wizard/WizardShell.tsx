@@ -5,12 +5,16 @@ import { cn } from "@/lib/utils";
 const STEPS = [
   { n: 1, label: "Basics" },
   { n: 2, label: "RFP" },
-  { n: 3, label: "Extract" },
+  { n: 3, label: "Processing" },
   { n: 4, label: "Review" },
   { n: 5, label: "Strategy" },
   { n: 6, label: "Journey" },
   { n: 7, label: "Team" },
-  { n: 8, label: "Blast Off" },
+  { n: 8, label: "Territory" },
+  { n: 9, label: "Intelligence" },
+  { n: 10, label: "Monitoring" },
+  { n: 11, label: "Competitive" },
+  { n: 12, label: "Launch" },
 ];
 
 export function WizardShell({
@@ -39,7 +43,8 @@ export function WizardShell({
   };
 
   const canJump = !!missionId;
-  const canSkip = canJump && step >= 2 && step < 8;
+  const canSkip = canJump && step >= 2 && step < 12;
+
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">

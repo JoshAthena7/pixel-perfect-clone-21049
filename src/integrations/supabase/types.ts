@@ -4454,6 +4454,7 @@ export type Database = {
           file_url: string | null
           id: string
           is_amendment: boolean
+          metadata: Json
           mission_id: string
           section_tags: string[]
           source_url: string | null
@@ -4469,6 +4470,7 @@ export type Database = {
           file_url?: string | null
           id?: string
           is_amendment?: boolean
+          metadata?: Json
           mission_id: string
           section_tags?: string[]
           source_url?: string | null
@@ -4484,6 +4486,7 @@ export type Database = {
           file_url?: string | null
           id?: string
           is_amendment?: boolean
+          metadata?: Json
           mission_id?: string
           section_tags?: string[]
           source_url?: string | null

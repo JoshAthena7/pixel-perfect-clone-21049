@@ -15,7 +15,13 @@ type CheckKey =
   | "journey"
   | "questions"
   | "lead"
-  | "deadline";
+  | "deadline"
+  | "territory"
+  | "monitoring"
+  | "client_intel"
+  | "prior_rfp"
+  | "competitors"
+  | "internal_materials";
 
 type CheckItem = {
   key: CheckKey;
@@ -23,14 +29,17 @@ type CheckItem = {
   pass: boolean;
   fixStep: number;
   fixView?: "team" | "questions";
+  required: boolean;
+  recommendedMsg?: string;
 };
 
-async function runChecks(missionId: string): Promise<CheckItem[]> {
-  const [mission, docs, sections, strat, phases, questions, assignments, team] =
+
+async function runChecks(missionId: string): Promise<{ items: CheckItem[]; counts: { sources: number; feeds: number; competitors: number } }> {
+  const [mission, docs, sections, strat, phases, questions, assignments, team, feeds, intelDocs, evo, comps] =
     await Promise.all([
       supabase
         .from("missions")
-        .select("name, client_name, submission_deadline")
+        .select("name, client_name, submission_deadline, state, program_type")
         .eq("id", missionId)
         .single(),
       supabase
@@ -64,6 +73,24 @@ async function runChecks(missionId: string): Promise<CheckItem[]> {
         .from("mission_team_members")
         .select("mission_role")
         .eq("mission_id", missionId),
+      supabase
+        .from("intelligence_feed_configs")
+        .select("id, is_active")
+        .eq("mission_id", missionId)
+        .eq("is_active", true),
+      supabase
+        .from("mission_documents")
+        .select("id, metadata")
+        .eq("mission_id", missionId),
+      supabase
+        .from("procurement_evolution_records")
+        .select("analysis_completed_at")
+        .eq("mission_id", missionId)
+        .maybeSingle(),
+      supabase
+        .from("competitor_profiles")
+        .select("id")
+        .eq("mission_id", missionId),
     ]);
 
   const m = mission.data;
@@ -74,60 +101,33 @@ async function runChecks(missionId: string): Promise<CheckItem[]> {
       .filter((a) => !!a.assigned_writer_id)
       .map((a) => a.question_id),
   );
+  const intelDocRows = (intelDocs.data ?? []) as Array<{ id: string; metadata: any }>;
+  const clientCount = intelDocRows.filter((d) => d.metadata?.intelligence_tier === "client").length;
+  const internalCount = intelDocRows.filter((d) => d.metadata?.intelligence_tier === "internal").length;
+  const feedCount = (feeds.data ?? []).length;
+  const competitorCount = (comps.data ?? []).length;
+  const totalSources = intelDocRows.length;
 
-  return [
-    {
-      key: "basics",
-      label: "Mission basics complete",
-      pass: !!(m?.name && m?.client_name && m?.submission_deadline),
-      fixStep: 1,
-    },
-    {
-      key: "rfp",
-      label: "RFP uploaded and processed",
-      pass: (docs.data?.length ?? 0) > 0,
-      fixStep: 2,
-    },
-    {
-      key: "sections",
-      label: "All sections reviewed",
-      pass: sectionRows.length > 0 && sectionRows.every((s) => s.reviewed_by_admin),
-      fixStep: 4,
-    },
-    {
-      key: "strategy",
-      label: "Win Strategy confirmed",
-      pass: !!strat.data?.admin_confirmed_at,
-      fixStep: 5,
-    },
-    {
-      key: "journey",
-      label: "Journey configured",
-      pass: (phases.data ?? []).some((p) => p.kind === "pens_down"),
-      fixStep: 6,
-    },
-    {
-      key: "questions",
-      label: "All questions assigned",
-      pass: qs.length === 0 || qs.every((q) => assignedSet.has(q.id)),
-      fixStep: 7,
-      fixView: "questions",
-    },
-    {
-      key: "lead",
-      label: "Engagement Lead assigned",
-      pass: (team.data ?? []).some((t) => t.mission_role === "engagement_lead"),
-      fixStep: 7,
-      fixView: "team",
-    },
-    {
-      key: "deadline",
-      label: "Submission deadline confirmed",
-      pass: !!m?.submission_deadline,
-      fixStep: 1,
-    },
+  const items: CheckItem[] = [
+    { key: "basics", label: "Mission basics complete", pass: !!(m?.name && m?.client_name && m?.submission_deadline), fixStep: 1, required: true },
+    { key: "rfp", label: "RFP uploaded and processed", pass: (docs.data?.length ?? 0) > 0, fixStep: 2, required: true },
+    { key: "sections", label: "All sections reviewed", pass: sectionRows.length > 0 && sectionRows.every((s) => s.reviewed_by_admin), fixStep: 4, required: true },
+    { key: "strategy", label: "Win Strategy confirmed", pass: !!strat.data?.admin_confirmed_at, fixStep: 5, required: true },
+    { key: "journey", label: "Journey configured", pass: (phases.data ?? []).some((p) => p.kind === "pens_down"), fixStep: 6, required: true },
+    { key: "questions", label: "All questions assigned", pass: qs.length === 0 || qs.every((q) => assignedSet.has(q.id)), fixStep: 7, fixView: "questions", required: true },
+    { key: "lead", label: "Engagement Lead assigned", pass: (team.data ?? []).some((t) => t.mission_role === "engagement_lead"), fixStep: 7, fixView: "team", required: true },
+    { key: "deadline", label: "Submission deadline confirmed", pass: !!m?.submission_deadline, fixStep: 1, required: true },
+    { key: "territory", label: "Territory configured", pass: !!(m?.state && m?.program_type), fixStep: 8, required: true },
+    { key: "monitoring", label: "Monitoring feeds activated", pass: feedCount >= 2, fixStep: 10, required: true },
+    { key: "client_intel", label: "Client intelligence loaded", pass: clientCount > 0, fixStep: 9, required: false, recommendedMsg: "Recommended — IRIS will be less effective without this. You can add it after launch." },
+    { key: "prior_rfp", label: "Prior RFP analyzed", pass: !!evo.data?.analysis_completed_at, fixStep: 9, required: false, recommendedMsg: "Recommended — IRIS will be less effective without this. You can add it after launch." },
+    { key: "competitors", label: "Competitors identified", pass: competitorCount > 0, fixStep: 11, required: false, recommendedMsg: "Recommended — IRIS will be less effective without this. You can add it after launch." },
+    { key: "internal_materials", label: "Internal materials loaded", pass: internalCount > 0, fixStep: 9, required: false, recommendedMsg: "Recommended — IRIS will be less effective without this. You can add it after launch." },
   ];
+
+  return { items, counts: { sources: totalSources, feeds: feedCount, competitors: competitorCount } };
 }
+
 
 type WriteStep = { name: string; status: "pending" | "ok" | "fail"; error?: string };
 
@@ -145,20 +145,25 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
   const [countdown, setCountdown] = useState(3);
   const [writes, setWrites] = useState<WriteStep[]>([]);
 
+  const items = checks?.items;
+  const counts = checks?.counts;
+
   // Stagger reveal of checklist items
   useEffect(() => {
-    if (!checks) return;
+    if (!items) return;
     setVisibleCount(0);
     let i = 0;
     const interval = setInterval(() => {
       i += 1;
       setVisibleCount(i);
-      if (i >= checks.length) clearInterval(interval);
+      if (i >= items.length) clearInterval(interval);
     }, 200);
     return () => clearInterval(interval);
-  }, [checks]);
+  }, [items]);
 
-  const allGreen = !!checks && checks.every((c) => c.pass);
+  const blockingFail = !!items && items.some((c) => c.required && !c.pass);
+  const allGreen = !!items && !blockingFail;
+
 
   const goFix = (item: CheckItem) => {
     navigate({
@@ -214,7 +219,7 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
     }
   };
 
-  if (isLoading || !checks) {
+  if (isLoading || !items) {
     return (
       <div className="-mx-6 -my-8 min-h-[80vh] bg-[var(--athena-navy)] text-white p-12">
         <h1 className="text-4xl font-semibold">Mission Launch Checklist.</h1>
@@ -236,8 +241,9 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
       </header>
 
       <ul className={cn("space-y-2 max-w-2xl transition-opacity", allGreen && "opacity-80")}>
-        {checks.map((c, i) => {
+        {items.map((c, i) => {
           if (i >= visibleCount) return null;
+          const warn = !c.pass && !c.required;
           return (
             <li
               key={c.key}
@@ -245,13 +251,20 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
             >
               {c.pass ? (
                 <Check className="h-5 w-5 text-green-400 shrink-0" />
+              ) : warn ? (
+                <span className="h-5 w-5 shrink-0 rounded-full bg-yellow-400/20 text-yellow-300 flex items-center justify-center text-xs font-bold">!</span>
               ) : (
                 <X className="h-5 w-5 text-red-400 shrink-0" />
               )}
-              <span className="flex-1">{c.label}</span>
+              <div className="flex-1">
+                <span>{c.label}</span>
+                {warn && c.recommendedMsg && (
+                  <p className="text-[11px] text-yellow-200/70 mt-0.5">{c.recommendedMsg}</p>
+                )}
+              </div>
               {!c.pass && (
                 <button
-                  className="text-xs text-[var(--athena-gold)] hover:underline"
+                  className="text-xs text-[var(--athena-gold)] hover:underline shrink-0"
                   onClick={() => goFix(c)}
                 >
                   Fix this →
@@ -262,16 +275,16 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
         })}
       </ul>
 
-      {allGreen && visibleCount >= checks.length && (
+      {allGreen && visibleCount >= items.length && (
         <div className="mt-10 max-w-2xl">
           <blockquote
             className="italic text-white/90 pl-4 py-1 border-l-2"
             style={{ borderColor: "var(--athena-gold)" }}
           >
-            Everything checks out. This mission is ready. Once you BLAST OFF — the team is notified,
-            Flight Decks go live, and the mission clock starts. This is what we have been building
-            toward. Ready?
+            Everything checks out. I have {counts?.sources ?? 0} intelligence sources loaded, {counts?.feeds ?? 0} monitoring feeds active, and profiles on {counts?.competitors ?? 0} competitors. Once you BLAST OFF I will start building your Mission Intelligence Graph. This mission is ready.
           </blockquote>
+
+
 
           <div className="mt-8 flex justify-center">
             <button
@@ -447,8 +460,10 @@ async function performWrites(
         status: "active",
         blast_off_at: new Date().toISOString(),
         blast_off_by: userId,
+        intelligence_loadout_step: 5,
       })
       .eq("id", missionId);
+
     if (error) {
       updateStep(0, { status: "fail", error: error.message });
       success = false;

@@ -12,10 +12,14 @@ import { Step3WinStrategy } from "@/components/mission-wizard/Step3WinStrategy";
 import { Step4Journey } from "@/components/mission-wizard/Step4Journey";
 import { Step5Team, type SubView } from "@/components/mission-wizard/Step5Team";
 import { Step6BlastOff } from "@/components/mission-wizard/Step6BlastOff";
+import { Step7Territory } from "@/components/mission-wizard/Step7Territory";
+import { Step8IntelligenceUpload } from "@/components/mission-wizard/Step8IntelligenceUpload";
+import { Step9MonitoringFeeds } from "@/components/mission-wizard/Step9MonitoringFeeds";
+import { Step10Competitive } from "@/components/mission-wizard/Step10Competitive";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const searchSchema = z.object({
-  step: z.coerce.number().int().min(1).max(8).optional(),
+  step: z.coerce.number().int().min(1).max(12).optional(),
   view: z.enum(["team", "questions", "invites"]).optional(),
 });
 
@@ -23,6 +27,7 @@ export const Route = createFileRoute("/_authenticated/olympus/missions/$missionI
   validateSearch: (s: Record<string, unknown>) => searchSchema.parse(s),
   component: ResumeWizardPage,
 });
+
 
 function toDatetimeLocal(iso: string | null | undefined): string {
   if (!iso) return "";
@@ -45,6 +50,7 @@ async function fetchMissionForWizard(missionId: string) {
   };
 }
 
+
 function ResumeWizardPage() {
   const { missionId } = Route.useParams();
   const search = Route.useSearch();
@@ -56,8 +62,15 @@ function ResumeWizardPage() {
     queryFn: () => fetchMissionForWizard(missionId),
   });
 
-  const inferredStep = data?.hasSections ? 3 : data?.hasDocs ? 2 : 1;
+  const intelStep = data?.mission?.intelligence_loadout_step ?? 0;
+  const inferredStep = intelStep >= 4 ? 12
+    : intelStep === 3 ? 11
+    : intelStep === 2 ? 10
+    : intelStep === 1 ? 9
+    : data?.hasSections ? 3 : data?.hasDocs ? 2 : 1;
   const step = search.step ?? inferredStep;
+
+
 
   const back = () => {
     if (step <= 1) navigate({ to: "/olympus/missions" });
@@ -170,11 +183,40 @@ function ResumeWizardPage() {
   }
   if (step === 8) {
     return (
-      <WizardShell step={8} onBack={back} wide>
+      <WizardShell step={8} onBack={back}>
+        <Step7Territory missionId={missionId} onAdvance={() => go(9)} />
+      </WizardShell>
+    );
+  }
+  if (step === 9) {
+    return (
+      <WizardShell step={9} onBack={back} wide>
+        <Step8IntelligenceUpload missionId={missionId} onAdvance={() => go(10)} />
+      </WizardShell>
+    );
+  }
+  if (step === 10) {
+    return (
+      <WizardShell step={10} onBack={back} wide>
+        <Step9MonitoringFeeds missionId={missionId} onAdvance={() => go(11)} />
+      </WizardShell>
+    );
+  }
+  if (step === 11) {
+    return (
+      <WizardShell step={11} onBack={back} wide>
+        <Step10Competitive missionId={missionId} onAdvance={() => go(12)} />
+      </WizardShell>
+    );
+  }
+  if (step === 12) {
+    return (
+      <WizardShell step={12} onBack={back} wide>
         <Step6BlastOff missionId={missionId} />
       </WizardShell>
     );
   }
+
 
   return (
     <WizardShell step={step} onBack={back}>
