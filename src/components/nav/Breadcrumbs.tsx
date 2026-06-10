@@ -7,7 +7,7 @@ type Crumb = { label: string; to?: string; params?: Record<string, string> };
 
 function useCrumbs(): Crumb[] {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const search = useRouterState({ select: (s) => s.location.search }) as Record<string, unknown>;
+  const search = useRouterState({ select: (s) => s.location.search }) as unknown as Record<string, unknown>;
   const params = useParams({ strict: false }) as { missionId?: string };
   const missionId = params.missionId;
 
