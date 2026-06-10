@@ -1605,13 +1605,15 @@ async function applyAthenaTemplate(missionId: string, deadline: string, team: Te
   const computed = computePhasesFromDurations(deadline, durations);
 
   // Insert phases in order
+  const dbKind = (k: PhaseType): "phase" | "gate" | "milestone" | "pens_down" =>
+    k === "gate" ? "gate" : k === "pens_down" ? "pens_down" : "phase";
   const phaseRows = TEMPLATE_PHASES.map((spec, idx) => {
     const c = computed[idx];
     const meta = TYPE_META[spec.kind];
     return {
       mission_id: missionId,
       name: spec.name,
-      kind: spec.kind,
+      kind: dbKind(spec.kind),
       color: meta.color,
       start_date: dateToISO(c.start),
       end_date: spec.kind === "pens_down" ? deadline : dateToISO(c.end),
