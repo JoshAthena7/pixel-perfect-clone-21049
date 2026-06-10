@@ -23,16 +23,28 @@ export const Route = createFileRoute("/_authenticated")({
     // Three-state gate: anyone not ACTIVE (onboarded) and not a platform admin
     // is sent to /welcome to finish onboarding. Platform admins bypass so they
     // can never lock themselves out of Olympus.
-    const { data: prof } = await withTimeout(
-      supabase
-        .from("profiles")
-        .select("has_onboarded,is_platform_admin")
-        .eq("id", user.id)
-        .maybeSingle(),
-      4000,
-      { data: null, error: null, count: null, status: 200, statusText: "OK", success: true },
-    );
-    const isAdmin = prof?.is_platform_admin === true;
+    const [{ data: prof }, { data: roleRow }] = await Promise.all([
+      withTimeout(
+        supabase
+          .from("profiles")
+          .select("has_onboarded,is_platform_admin")
+          .eq("id", user.id)
+          .maybeSingle(),
+        4000,
+        { data: null, error: null, count: null, status: 200, statusText: "OK", success: true },
+      ),
+      withTimeout(
+        supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .eq("role", "admin")
+          .maybeSingle(),
+        4000,
+        { data: null, error: null, count: null, status: 200, statusText: "OK", success: true },
+      ),
+    ]);
+    const isAdmin = prof?.is_platform_admin === true || !!roleRow;
     const onboarded = prof?.has_onboarded === true;
     const path = location.pathname;
     const onWelcome = path === "/welcome" || path.startsWith("/welcome/");
@@ -43,6 +55,8 @@ export const Route = createFileRoute("/_authenticated")({
 
 
     return { user, isAdmin };
+
+
 
   },
   component: AuthenticatedLayout,
