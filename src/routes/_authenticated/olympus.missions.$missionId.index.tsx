@@ -46,7 +46,20 @@ function MissionCommandCenter() {
   const { launched, tab } = Route.useSearch();
   const navigate = useNavigate();
 
-  const activeTab: TabId = isValidTab(tab) ? tab : "overview";
+  let activeTab: TabId = isValidTab(tab) ? tab : "overview";
+  // Redirect old Client Intelligence tab to Oracle stakeholders sub-tab
+  useEffect(() => {
+    if (tab === "client-intel") {
+      navigate({
+        to: "/olympus/missions/$missionId",
+        params: { missionId },
+        search: (prev: Record<string, unknown>) => ({ ...prev, tab: "oracle", sub: "stakeholders" }),
+        replace: true,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
+  if (activeTab === "client-intel") activeTab = "oracle";
 
   const { data: mission, isLoading } = useQuery({
     queryKey: ["mission-header", missionId],
