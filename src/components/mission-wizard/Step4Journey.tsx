@@ -156,6 +156,17 @@ export function Step4Journey({ missionId }: { missionId: string }) {
 
   const [panel, setPanel] = useState<{ open: boolean; editing?: Phase }>({ open: false });
   const [confirmDelete, setConfirmDelete] = useState<Phase | null>(null);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return sessionStorage.getItem(`journey-banner-dismissed:${missionId}`) === "1";
+  });
+  const [mode, setMode] = useState<"template" | "fresh" | null>(() => {
+    if (typeof window === "undefined") return null;
+    const v = sessionStorage.getItem(`journey-mode:${missionId}`);
+    return v === "template" || v === "fresh" ? v : null;
+  });
+  const [applying, setApplying] = useState(false);
 
   if (isLoading || !data) {
     return (
@@ -170,8 +181,97 @@ export function Step4Journey({ missionId }: { missionId: string }) {
   const { deadline, phases, deliverables, team } = data;
   const pensDownCount = phases.filter((p) => p.kind === "pens_down").length;
   const canContinue = phases.length >= 2 && pensDownCount >= 1;
-
   const refresh = () => qc.invalidateQueries({ queryKey: ["journey", missionId] });
+
+  // Template selection screen — show when no phases yet and user hasn't picked a mode
+  if (phases.length === 0 && mode === null && !applying) {
+    return (
+      <TemplateSelection
+        deadline={deadline}
+        onUseTemplate={async () => {
+          setApplying(true);
+          try {
+            const startedAt = Date.now();
+            await applyAthenaTemplate(missionId, deadline, team);
+            sessionStorage.setItem(`journey-mode:${missionId}`, "template");
+            setMode("template");
+            // Keep loading state visible for at least 1.5s
+            const elapsed = Date.now() - startedAt;
+            if (elapsed < 1500) {
+              await new Promise((r) => setTimeout(r, 1500 - elapsed));
+            }
+            await refresh();
+            toast.success("Athena Standard journey loaded.");
+          } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Failed to load template");
+          } finally {
+            setApplying(false);
+          }
+        }}
+        onStartFresh={() => {
+          sessionStorage.setItem(`journey-mode:${missionId}`, "fresh");
+          setMode("fresh");
+        }}
+      />
+    );
+  }
+
+  if (applying) {
+    return <TemplateApplyingState />;
+  }
+
+  // Calculate timeline metrics for the summary + IRIS card
+  const today = new Date();
+  const deadlineDate = new Date(deadline);
+  const totalMissionDays = Math.max(0, Math.round((deadlineDate.getTime() - today.getTime()) / 86_400_000));
+  const findByName = (n: string) =>
+    phases.find((p) => p.name.trim().toLowerCase() === n.toLowerCase());
+  const writersWrite = findByName("Writers Write");
+  const writersDays = writersWrite
+    ? Math.max(1, Math.round((new Date(writersWrite.end_date).getTime() - new Date(writersWrite.start_date).getTime()) / 86_400_000))
+    : 0;
+  const reviewPhaseNames = ["Red Team Draft Due", "Mock Score", "Gold Team", "Quality Control", "Executive Review"];
+  const reviewDays = reviewPhaseNames.reduce((s, name) => {
+    const p = findByName(name);
+    if (!p) return s;
+    return s + Math.max(1, Math.round((new Date(p.end_date).getTime() - new Date(p.start_date).getTime()) / 86_400_000));
+  }, 0);
+  const pensDown = phases.find((p) => p.kind === "pens_down");
+  const daysToPensDown = pensDown ? Math.max(0, Math.round((new Date(pensDown.end_date).getTime() - today.getTime()) / 86_400_000)) : totalMissionDays;
+
+  // Buffer days: total mission days minus calendar days actually covered by phases
+  let bufferDays = 0;
+  if (phases.length > 0) {
+    const ranges = phases.map((p) => [new Date(p.start_date).getTime(), new Date(p.end_date).getTime()] as const)
+      .sort((a, b) => a[0] - b[0]);
+    let covered = 0;
+    let curStart = ranges[0][0];
+    let curEnd = ranges[0][1];
+    for (let i = 1; i < ranges.length; i++) {
+      const [s, e] = ranges[i];
+      if (s <= curEnd) curEnd = Math.max(curEnd, e);
+      else {
+        covered += Math.round((curEnd - curStart) / 86_400_000);
+        curStart = s;
+        curEnd = e;
+      }
+    }
+    covered += Math.round((curEnd - curStart) / 86_400_000);
+    bufferDays = totalMissionDays - covered;
+  }
+
+  // Detect overlaps for the timeline indicator + note
+  const overlapPairs: Array<[string, string]> = [];
+  for (let i = 0; i < phases.length; i++) {
+    for (let j = i + 1; j < phases.length; j++) {
+      const a = phases[i], b = phases[j];
+      if (a.kind === "gate" || b.kind === "gate") continue;
+      if (overlaps(a.start_date, a.end_date, b.start_date, b.end_date)) {
+        overlapPairs.push([a.id, b.id]);
+      }
+    }
+  }
+  const overlappingIds = new Set(overlapPairs.flat());
 
   const handleDelete = async (phase: Phase) => {
     const isOnlyPensDown = phase.kind === "pens_down" && pensDownCount === 1;
@@ -190,7 +290,6 @@ export function Step4Journey({ missionId }: { missionId: string }) {
 
   const handleReorder = async (newOrder: Phase[]) => {
     const updates = newOrder.map((p, idx) => ({ id: p.id, order_index: idx }));
-    // Optimistic local-only via query cache invalidation after writes
     await Promise.all(
       updates.map((u) =>
         supabase.from("mission_journey_phases").update({ order_index: u.order_index }).eq("id", u.id),
@@ -198,6 +297,35 @@ export function Step4Journey({ missionId }: { missionId: string }) {
     );
     refresh();
   };
+
+  // Adjust template phase durations (compress/expand/reset)
+  const applyDurations = async (durations: Record<TemplatePhaseKey, number>) => {
+    const computed = computePhasesFromDurations(deadline, durations);
+    const byName = new Map(computed.map((c) => [c.name.toLowerCase(), c]));
+    const updates = phases
+      .map((p) => {
+        const c = byName.get(p.name.trim().toLowerCase());
+        if (!c) return null;
+        return {
+          id: p.id,
+          start_date: dateToISO(c.start),
+          end_date: dateToISO(c.end),
+        };
+      })
+      .filter((u): u is { id: string; start_date: string; end_date: string } => u !== null);
+    await Promise.all(
+      updates.map((u) =>
+        supabase
+          .from("mission_journey_phases")
+          .update({ start_date: u.start_date, end_date: u.end_date })
+          .eq("id", u.id),
+      ),
+    );
+    refresh();
+  };
+
+  const currentDurations = durationsFromPhases(phases);
+  const isTemplate = mode === "template" || currentDurations !== null;
 
   return (
     <div className="space-y-8">
@@ -210,6 +338,24 @@ export function Step4Journey({ missionId }: { missionId: string }) {
         </p>
       </header>
 
+      {isTemplate && !bannerDismissed && (
+        <TemplateBanner
+          deadline={deadline}
+          onDismiss={() => {
+            sessionStorage.setItem(`journey-banner-dismissed:${missionId}`, "1");
+            setBannerDismissed(true);
+          }}
+        />
+      )}
+
+      {isTemplate && currentDurations && (
+        <QuickAdjustControls
+          onCompress={(n) => applyDurations(adjustDurations(currentDurations, n))}
+          onExpand={(n) => applyDurations(adjustDurations(currentDurations, -n))}
+          onReset={() => setConfirmReset(true)}
+        />
+      )}
+
       <Timeline
         phases={phases}
         deadline={deadline}
@@ -217,7 +363,15 @@ export function Step4Journey({ missionId }: { missionId: string }) {
         deliverableCounts={Object.fromEntries(
           phases.map((p) => [p.id, deliverables.filter((d) => d.phase_id === p.id).length]),
         )}
+        overlappingIds={overlappingIds}
       />
+
+      {overlapPairs.length > 0 && (
+        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+          {overlapPairs.length} phase{overlapPairs.length === 1 ? "" : "s"} overlap. This is
+          supported — overlapping phases allow parallel work streams.
+        </p>
+      )}
 
       {phases.length > 0 ? (
         <PhaseCardList
@@ -233,7 +387,23 @@ export function Step4Journey({ missionId }: { missionId: string }) {
         />
       ) : null}
 
-      <JourneySummary phases={phases} deliverables={deliverables} deadline={deadline} />
+      <JourneySummary
+        totalMissionDays={totalMissionDays}
+        writersDays={writersDays}
+        reviewDays={reviewDays}
+        daysToPensDown={daysToPensDown}
+        bufferDays={bufferDays}
+      />
+
+      {isTemplate && (
+        <IrisAssessmentCard
+          missionId={missionId}
+          deadline={deadline}
+          writersDays={writersDays}
+          reviewDays={reviewDays}
+          daysToSubmission={daysToPensDown}
+        />
+      )}
 
       <div className="flex flex-col items-end gap-2 pt-4 border-t">
         <div className="flex items-center gap-2">
@@ -314,9 +484,36 @@ export function Step4Journey({ missionId }: { missionId: string }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={confirmReset} onOpenChange={(o) => !o && setConfirmReset(false)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset to template defaults?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will reset all phase dates to the template defaults. Any manual edits will be
+              lost. Reset?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                setConfirmReset(false);
+                await applyDurations(defaultDurations(deadline));
+                sessionStorage.removeItem(`journey-iris:${missionId}`);
+                toast.success("Reset to template defaults.");
+              }}
+            >
+              Reset
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+
+
 
 // ---------- Timeline ----------
 function Timeline({
