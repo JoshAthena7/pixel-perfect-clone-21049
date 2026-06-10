@@ -59,7 +59,7 @@ export function WinStrategyLiveTab({ missionId, missionName }: { missionId: stri
     window.clearTimeout(debounce.current);
     debounce.current = window.setTimeout(async () => {
       if (!ws?.id) return;
-      const { error } = await supabase.from("mission_win_strategy").update({ [k]: v }).eq("id", ws.id);
+      const { error } = await supabase.from("mission_win_strategy").update({ [k]: v } as any).eq("id", ws.id);
       if (error) { toast.error(error.message); return; }
       await logAudit({ missionId, action: `Win Strategy field updated: ${k}` });
       setBannerOn(true);

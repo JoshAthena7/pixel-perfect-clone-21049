@@ -126,7 +126,7 @@ export function SubmissionChecklistTab({
     if ("status" in patch) {
       patch.is_complete = patch.status === "complete" || patch.status === "verified";
     }
-    const { error } = await supabase.from("mission_submission_checklist").update(patch).eq("id", id);
+    const { error } = await supabase.from("mission_submission_checklist").update(patch as any).eq("id", id);
     if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["submission-checklist", missionId] });
   };

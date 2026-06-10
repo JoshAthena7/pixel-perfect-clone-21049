@@ -402,7 +402,7 @@ function ReqDialog({
   open: boolean;
   onOpenChange: (o: boolean) => void;
   missionId: string;
-  sections: { id: string; section_number: string | null; name: string }[];
+  sections: { id: string; section_number: string | null; name: string | null }[];
   team: { member_id: string }[];
   memberName: (id: string | null) => string | null;
   onSaved: () => void;
@@ -495,7 +495,7 @@ function EditReqForm({
   req, sections, team, memberName, onClose, onSaved,
 }: {
   req: Req;
-  sections: { id: string; section_number: string | null; name: string }[];
+  sections: { id: string; section_number: string | null; name: string | null }[];
   team: { member_id: string }[];
   memberName: (id: string | null) => string | null;
   onClose: () => void;

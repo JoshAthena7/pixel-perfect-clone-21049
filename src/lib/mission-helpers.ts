@@ -43,7 +43,7 @@ export async function logAudit(args: {
     action: args.action,
     performed_by: u.user?.id ?? null,
     performed_by_name: performedByName,
-    metadata: args.metadata ?? {},
+    metadata: (args.metadata ?? {}) as any,
   });
 }
 

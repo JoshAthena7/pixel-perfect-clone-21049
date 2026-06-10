@@ -157,7 +157,7 @@ export function JourneyLiveTab({ missionId, deadline }: { missionId: string; dea
     if (!dateWarning) return;
     const { phase, field, date } = dateWarning;
     const { error } = await supabase
-      .from("mission_journey_phases").update({ [field]: date.toISOString() }).eq("id", phase.id);
+      .from("mission_journey_phases").update({ [field]: date.toISOString() } as any).eq("id", phase.id);
     setDateWarning(null);
     if (error) { toast.error(error.message); return; }
     await logAudit({ missionId, action: "Phase date adjusted", metadata: { phase_id: phase.id, field } });
