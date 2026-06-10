@@ -88,8 +88,8 @@ function MissionCommandCenter() {
   useEffect(() => {
     if (launched) {
       toast.success(
-        "Mission is live. Your team has been notified. The clock is running. Go win this.",
-        { duration: 6000 },
+        "Mission is live. Your team has been notified. IRIS is building your Mission Intelligence Graph in the background. The clock is running.",
+        { duration: 7000 },
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
