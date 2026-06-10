@@ -2030,6 +2030,90 @@ export type Database = {
           },
         ]
       }
+      competitor_profiles: {
+        Row: {
+          competitor_type: string
+          contract_history: Json
+          created_at: string
+          differentiation_strategy: string | null
+          executive_movements: Json
+          graph_node_id: string | null
+          id: string
+          iris_confidence: string
+          iris_sources: Json
+          is_manually_added: boolean
+          known_relationships: string | null
+          known_strengths: string | null
+          known_weaknesses: string | null
+          likely_narrative: string | null
+          mission_id: string
+          organization_name: string
+          protest_history: Json
+          recent_intelligence: Json
+          updated_at: string
+          vulnerability_flags: Json
+        }
+        Insert: {
+          competitor_type: string
+          contract_history?: Json
+          created_at?: string
+          differentiation_strategy?: string | null
+          executive_movements?: Json
+          graph_node_id?: string | null
+          id?: string
+          iris_confidence?: string
+          iris_sources?: Json
+          is_manually_added?: boolean
+          known_relationships?: string | null
+          known_strengths?: string | null
+          known_weaknesses?: string | null
+          likely_narrative?: string | null
+          mission_id: string
+          organization_name: string
+          protest_history?: Json
+          recent_intelligence?: Json
+          updated_at?: string
+          vulnerability_flags?: Json
+        }
+        Update: {
+          competitor_type?: string
+          contract_history?: Json
+          created_at?: string
+          differentiation_strategy?: string | null
+          executive_movements?: Json
+          graph_node_id?: string | null
+          id?: string
+          iris_confidence?: string
+          iris_sources?: Json
+          is_manually_added?: boolean
+          known_relationships?: string | null
+          known_strengths?: string | null
+          known_weaknesses?: string | null
+          likely_narrative?: string | null
+          mission_id?: string
+          organization_name?: string
+          protest_history?: Json
+          recent_intelligence?: Json
+          updated_at?: string
+          vulnerability_flags?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competitor_profiles_graph_node_id_fkey"
+            columns: ["graph_node_id"]
+            isOneToOne: false
+            referencedRelation: "intelligence_graph_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "competitor_profiles_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compliance_check_results: {
         Row: {
           checked_at: string
@@ -2184,6 +2268,68 @@ export type Database = {
             columns: ["writer_id"]
             isOneToOne: false
             referencedRelation: "writer_identities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_intelligence_briefs: {
+        Row: {
+          at_risk_questions_count: number
+          brief_date: string
+          brief_type: string
+          content: Json
+          created_at: string
+          delivered_at: string | null
+          id: string
+          is_delivered: boolean
+          is_read: boolean
+          key_intelligence_summary: string | null
+          mission_id: string
+          new_feed_items_count: number
+          read_at: string | null
+          recipient_id: string
+          watch_questions_count: number
+        }
+        Insert: {
+          at_risk_questions_count?: number
+          brief_date: string
+          brief_type: string
+          content: Json
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          is_delivered?: boolean
+          is_read?: boolean
+          key_intelligence_summary?: string | null
+          mission_id: string
+          new_feed_items_count?: number
+          read_at?: string | null
+          recipient_id: string
+          watch_questions_count?: number
+        }
+        Update: {
+          at_risk_questions_count?: number
+          brief_date?: string
+          brief_type?: string
+          content?: Json
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          is_delivered?: boolean
+          is_read?: boolean
+          key_intelligence_summary?: string | null
+          mission_id?: string
+          new_feed_items_count?: number
+          read_at?: string | null
+          recipient_id?: string
+          watch_questions_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_intelligence_briefs_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
             referencedColumns: ["id"]
           },
         ]
@@ -2813,6 +2959,311 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      intelligence_feed_configs: {
+        Row: {
+          created_at: string
+          feed_description: string | null
+          feed_name: string
+          feed_type: string
+          feed_url: string | null
+          id: string
+          is_active: boolean
+          is_preselected: boolean
+          last_checked_at: string | null
+          last_item_found_at: string | null
+          mission_id: string
+          monitoring_schedule: string
+          preselection_reason: string | null
+          total_items_found: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          feed_description?: string | null
+          feed_name: string
+          feed_type: string
+          feed_url?: string | null
+          id?: string
+          is_active?: boolean
+          is_preselected?: boolean
+          last_checked_at?: string | null
+          last_item_found_at?: string | null
+          mission_id: string
+          monitoring_schedule?: string
+          preselection_reason?: string | null
+          total_items_found?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          feed_description?: string | null
+          feed_name?: string
+          feed_type?: string
+          feed_url?: string | null
+          id?: string
+          is_active?: boolean
+          is_preselected?: boolean
+          last_checked_at?: string | null
+          last_item_found_at?: string | null
+          mission_id?: string
+          monitoring_schedule?: string
+          preselection_reason?: string | null
+          total_items_found?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intelligence_feed_configs_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      intelligence_feed_items: {
+        Row: {
+          affected_section_ids: string[]
+          category: string
+          created_at: string
+          feed_config_id: string | null
+          full_content: string | null
+          headline: string
+          id: string
+          iris_assessment: string | null
+          iris_relevance_score: number
+          is_dismissed: boolean
+          is_reviewed: boolean
+          is_shared_with_team: boolean
+          mission_id: string
+          published_at: string | null
+          recommended_action: string | null
+          source_name: string | null
+          source_url: string | null
+          summary: string | null
+          updated_at: string
+        }
+        Insert: {
+          affected_section_ids?: string[]
+          category: string
+          created_at?: string
+          feed_config_id?: string | null
+          full_content?: string | null
+          headline: string
+          id?: string
+          iris_assessment?: string | null
+          iris_relevance_score?: number
+          is_dismissed?: boolean
+          is_reviewed?: boolean
+          is_shared_with_team?: boolean
+          mission_id: string
+          published_at?: string | null
+          recommended_action?: string | null
+          source_name?: string | null
+          source_url?: string | null
+          summary?: string | null
+          updated_at?: string
+        }
+        Update: {
+          affected_section_ids?: string[]
+          category?: string
+          created_at?: string
+          feed_config_id?: string | null
+          full_content?: string | null
+          headline?: string
+          id?: string
+          iris_assessment?: string | null
+          iris_relevance_score?: number
+          is_dismissed?: boolean
+          is_reviewed?: boolean
+          is_shared_with_team?: boolean
+          mission_id?: string
+          published_at?: string | null
+          recommended_action?: string | null
+          source_name?: string | null
+          source_url?: string | null
+          summary?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intelligence_feed_items_feed_config_id_fkey"
+            columns: ["feed_config_id"]
+            isOneToOne: false
+            referencedRelation: "intelligence_feed_configs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intelligence_feed_items_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      intelligence_graph_edges: {
+        Row: {
+          created_at: string
+          id: string
+          is_confirmed: boolean
+          mission_id: string
+          relationship_description: string | null
+          relationship_type: string
+          source_node_id: string
+          strength: number
+          target_node_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_confirmed?: boolean
+          mission_id: string
+          relationship_description?: string | null
+          relationship_type: string
+          source_node_id: string
+          strength?: number
+          target_node_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_confirmed?: boolean
+          mission_id?: string
+          relationship_description?: string | null
+          relationship_type?: string
+          source_node_id?: string
+          strength?: number
+          target_node_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intelligence_graph_edges_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intelligence_graph_edges_source_node_id_fkey"
+            columns: ["source_node_id"]
+            isOneToOne: false
+            referencedRelation: "intelligence_graph_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intelligence_graph_edges_target_node_id_fkey"
+            columns: ["target_node_id"]
+            isOneToOne: false
+            referencedRelation: "intelligence_graph_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      intelligence_graph_nodes: {
+        Row: {
+          confidence_level: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          label: string
+          metadata: Json
+          mission_id: string
+          node_type: string
+          source: string | null
+          source_document_id: string | null
+          source_feed_item_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          confidence_level?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          label: string
+          metadata?: Json
+          mission_id: string
+          node_type: string
+          source?: string | null
+          source_document_id?: string | null
+          source_feed_item_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          confidence_level?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string
+          metadata?: Json
+          mission_id?: string
+          node_type?: string
+          source?: string | null
+          source_document_id?: string | null
+          source_feed_item_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intelligence_graph_nodes_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intelligence_graph_nodes_source_feed_item_id_fkey"
+            columns: ["source_feed_item_id"]
+            isOneToOne: false
+            referencedRelation: "intelligence_feed_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      intelligence_loadout_history: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          metadata: Json
+          mission_id: string
+          performed_by: string
+          performed_by_name: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          mission_id: string
+          performed_by: string
+          performed_by_name?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          mission_id?: string
+          performed_by?: string
+          performed_by_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intelligence_loadout_history_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       interview_debriefs: {
         Row: {
@@ -5645,6 +6096,8 @@ export type Database = {
       }
       missions: {
         Row: {
+          agency_code: string | null
+          agency_name: string | null
           blast_off_at: string | null
           blast_off_by: string | null
           client_name: string | null
@@ -5652,16 +6105,25 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
+          intelligence_graph_completeness: number
+          intelligence_loadout_step: number
           iris_disclaimer: string | null
+          monitoring_schedule: string
           name: string
           primary_contact_email: string | null
           primary_contact_name: string | null
+          procurement_evolution_analysis: string | null
           procurement_type: string | null
+          program_type: string | null
+          state: string | null
+          state_code: string | null
           status: string
           submission_deadline: string
           updated_at: string
         }
         Insert: {
+          agency_code?: string | null
+          agency_name?: string | null
           blast_off_at?: string | null
           blast_off_by?: string | null
           client_name?: string | null
@@ -5669,16 +6131,25 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          intelligence_graph_completeness?: number
+          intelligence_loadout_step?: number
           iris_disclaimer?: string | null
+          monitoring_schedule?: string
           name: string
           primary_contact_email?: string | null
           primary_contact_name?: string | null
+          procurement_evolution_analysis?: string | null
           procurement_type?: string | null
+          program_type?: string | null
+          state?: string | null
+          state_code?: string | null
           status?: string
           submission_deadline: string
           updated_at?: string
         }
         Update: {
+          agency_code?: string | null
+          agency_name?: string | null
           blast_off_at?: string | null
           blast_off_by?: string | null
           client_name?: string | null
@@ -5686,11 +6157,18 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          intelligence_graph_completeness?: number
+          intelligence_loadout_step?: number
           iris_disclaimer?: string | null
+          monitoring_schedule?: string
           name?: string
           primary_contact_email?: string | null
           primary_contact_name?: string | null
+          procurement_evolution_analysis?: string | null
           procurement_type?: string | null
+          program_type?: string | null
+          state?: string | null
+          state_code?: string | null
           status?: string
           submission_deadline?: string
           updated_at?: string
@@ -5940,6 +6418,71 @@ export type Database = {
             columns: ["to_user_id"]
             isOneToOne: false
             referencedRelation: "profiles_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      procurement_evolution_records: {
+        Row: {
+          analysis_completed_at: string | null
+          created_at: string
+          current_rfp_document_id: string | null
+          id: string
+          iris_recommendations: string | null
+          iris_signals: string | null
+          iris_summary: string | null
+          material_changes: Json
+          mission_id: string
+          new_sections: Json
+          prior_rfp_document_id: string | null
+          relaxed_requirements: Json
+          removed_sections: Json
+          scoring_changes: Json
+          tightened_requirements: Json
+          updated_at: string
+        }
+        Insert: {
+          analysis_completed_at?: string | null
+          created_at?: string
+          current_rfp_document_id?: string | null
+          id?: string
+          iris_recommendations?: string | null
+          iris_signals?: string | null
+          iris_summary?: string | null
+          material_changes?: Json
+          mission_id: string
+          new_sections?: Json
+          prior_rfp_document_id?: string | null
+          relaxed_requirements?: Json
+          removed_sections?: Json
+          scoring_changes?: Json
+          tightened_requirements?: Json
+          updated_at?: string
+        }
+        Update: {
+          analysis_completed_at?: string | null
+          created_at?: string
+          current_rfp_document_id?: string | null
+          id?: string
+          iris_recommendations?: string | null
+          iris_signals?: string | null
+          iris_summary?: string | null
+          material_changes?: Json
+          mission_id?: string
+          new_sections?: Json
+          prior_rfp_document_id?: string | null
+          relaxed_requirements?: Json
+          removed_sections?: Json
+          scoring_changes?: Json
+          tightened_requirements?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procurement_evolution_records_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
+            referencedRelation: "missions"
             referencedColumns: ["id"]
           },
         ]
@@ -7040,6 +7583,84 @@ export type Database = {
           user_role?: string | null
         }
         Relationships: []
+      }
+      stakeholder_profiles: {
+        Row: {
+          created_at: string
+          graph_node_id: string | null
+          id: string
+          iris_confidence: string
+          iris_sources: Json
+          is_manually_added: boolean
+          known_concerns: string | null
+          mission_id: string
+          name: string
+          organization: string | null
+          public_priorities: string | null
+          recent_statements: Json
+          relationship_to_athena: string | null
+          relationship_to_incumbent: string | null
+          stakeholder_type: string
+          sub_type: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          graph_node_id?: string | null
+          id?: string
+          iris_confidence?: string
+          iris_sources?: Json
+          is_manually_added?: boolean
+          known_concerns?: string | null
+          mission_id: string
+          name: string
+          organization?: string | null
+          public_priorities?: string | null
+          recent_statements?: Json
+          relationship_to_athena?: string | null
+          relationship_to_incumbent?: string | null
+          stakeholder_type: string
+          sub_type?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          graph_node_id?: string | null
+          id?: string
+          iris_confidence?: string
+          iris_sources?: Json
+          is_manually_added?: boolean
+          known_concerns?: string | null
+          mission_id?: string
+          name?: string
+          organization?: string | null
+          public_priorities?: string | null
+          recent_statements?: Json
+          relationship_to_athena?: string | null
+          relationship_to_incumbent?: string | null
+          stakeholder_type?: string
+          sub_type?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stakeholder_profiles_graph_node_id_fkey"
+            columns: ["graph_node_id"]
+            isOneToOne: false
+            referencedRelation: "intelligence_graph_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stakeholder_profiles_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       state_comparables: {
         Row: {
