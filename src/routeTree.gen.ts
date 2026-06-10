@@ -16,6 +16,8 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as CheckinTokenRouteImport } from './routes/checkin.$token'
+import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
+import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedHelpRouteImport } from './routes/_authenticated/help'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -79,6 +81,16 @@ const CheckinTokenRoute = CheckinTokenRouteImport.update({
   id: '/checkin/$token',
   path: '/checkin/$token',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   id: '/home',
@@ -254,6 +266,8 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/help': typeof AuthenticatedHelpRoute
   '/home': typeof AuthenticatedHomeRoute
+  '/reports': typeof AuthenticatedReportsRoute
+  '/team': typeof AuthenticatedTeamRoute
   '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/admin/team': typeof AuthenticatedAdminTeamRoute
@@ -290,6 +304,8 @@ export interface FileRoutesByTo {
   '/unsubscribe': typeof UnsubscribeRoute
   '/help': typeof AuthenticatedHelpRoute
   '/home': typeof AuthenticatedHomeRoute
+  '/reports': typeof AuthenticatedReportsRoute
+  '/team': typeof AuthenticatedTeamRoute
   '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/admin/team': typeof AuthenticatedAdminTeamRoute
@@ -329,6 +345,8 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/help': typeof AuthenticatedHelpRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
+  '/_authenticated/reports': typeof AuthenticatedReportsRoute
+  '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRoute
@@ -368,6 +386,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/help'
     | '/home'
+    | '/reports'
+    | '/team'
     | '/checkin/$token'
     | '/email/unsubscribe'
     | '/admin/team'
@@ -404,6 +424,8 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/help'
     | '/home'
+    | '/reports'
+    | '/team'
     | '/checkin/$token'
     | '/email/unsubscribe'
     | '/admin/team'
@@ -442,6 +464,8 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/help'
     | '/_authenticated/home'
+    | '/_authenticated/reports'
+    | '/_authenticated/team'
     | '/checkin/$token'
     | '/email/unsubscribe'
     | '/_authenticated/admin/team'
@@ -546,6 +570,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/checkin/$token'
       preLoaderRoute: typeof CheckinTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/team': {
+      id: '/_authenticated/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof AuthenticatedTeamRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/reports': {
+      id: '/_authenticated/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AuthenticatedReportsRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/home': {
       id: '/_authenticated/home'
@@ -770,6 +808,8 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedHelpRoute: typeof AuthenticatedHelpRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
+  AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
+  AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
   AuthenticatedOlympusSplatRoute: typeof AuthenticatedOlympusSplatRoute
   AuthenticatedOlympusFlightDeckRoute: typeof AuthenticatedOlympusFlightDeckRoute
   AuthenticatedOlympusTeamRoute: typeof AuthenticatedOlympusTeamRoute
@@ -786,6 +826,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedHelpRoute: AuthenticatedHelpRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
+  AuthenticatedReportsRoute: AuthenticatedReportsRoute,
+  AuthenticatedTeamRoute: AuthenticatedTeamRoute,
   AuthenticatedOlympusSplatRoute: AuthenticatedOlympusSplatRoute,
   AuthenticatedOlympusFlightDeckRoute: AuthenticatedOlympusFlightDeckRoute,
   AuthenticatedOlympusTeamRoute: AuthenticatedOlympusTeamRoute,

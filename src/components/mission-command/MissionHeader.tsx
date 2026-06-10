@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { differenceInCalendarDays, format } from "date-fns";
 import { Link } from "@tanstack/react-router";
-import { Plane } from "lucide-react";
+import { Plane, Pencil } from "lucide-react";
 import { IntelligenceCompletenessChip } from "@/components/mission-command/IntelligenceCompletenessChip";
+import { MissionEditPanel } from "@/components/missions/MissionEditPanel";
 import { cn } from "@/lib/utils";
 
 type Mission = {
