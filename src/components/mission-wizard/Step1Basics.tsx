@@ -109,6 +109,10 @@ export function Step1Basics({
           .single();
         if (error) throw error;
         id = data.id;
+        void logAuditEvent(id!, "Mission created", uid, null, {
+          mission_name: payload.name,
+          client_name: payload.client_name,
+        });
       }
       navigate({
         to: "/olympus/missions/$missionId/wizard",
