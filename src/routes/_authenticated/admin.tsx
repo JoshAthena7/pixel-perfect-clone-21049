@@ -1,7 +1,20 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { Home, Zap } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin")({
+  beforeLoad: async () => {
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) throw redirect({ to: "/auth" });
+    // Platform admin (profiles flag) OR app-role admin (user_roles) may enter.
+    const [{ data: prof }, { data: role }] = await Promise.all([
+      supabase.from("profiles").select("is_platform_admin").eq("id", u.user.id).maybeSingle(),
+      supabase.from("user_roles").select("role").eq("user_id", u.user.id).eq("role", "admin").maybeSingle(),
+    ]);
+    if (!prof?.is_platform_admin && !role) {
+      throw redirect({ to: "/olympus/missions" });
+    }
+  },
   component: AdminLayout,
 });
 
