@@ -32,7 +32,7 @@ export function QuickJump({
 }: {
   open: boolean;
   onClose: () => void;
-  anchorRef: React.RefObject<HTMLElement>;
+  anchorRef: React.RefObject<HTMLElement | null>;
   currentMissionId?: string;
   activeTab?: TabId;
   alerts?: Partial<Record<TabId, number>>;
