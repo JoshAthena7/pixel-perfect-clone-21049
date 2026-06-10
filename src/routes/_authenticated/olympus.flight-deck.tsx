@@ -71,7 +71,9 @@ function FlightDeck() {
         .eq("assigned_writer_id", memberId);
       const assignments = (asgs ?? []) as Assignment[];
       const missionIds = Array.from(new Set(assignments.map((a) => a.mission_id)));
-      const questionIds = assignments.map((a) => a.question_id);
+      const questionIds = assignments
+        .map((a) => a.question_id)
+        .filter((id): id is string => !!id);
       const [missions, questions, alerts] = await Promise.all([
         missionIds.length
           ? supabase.from("missions").select("id, name").in("id", missionIds)

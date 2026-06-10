@@ -24,6 +24,7 @@ import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authent
 import { Route as AuthenticatedMissionsIndexRouteImport } from './routes/_authenticated/missions/index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as AuthenticatedProfileExpertiseRouteImport } from './routes/_authenticated/profile/expertise'
+import { Route as AuthenticatedOlympusFlightDeckRouteImport } from './routes/_authenticated/olympus.flight-deck'
 import { Route as AuthenticatedOlympusSplatRouteImport } from './routes/_authenticated/olympus.$'
 import { Route as AuthenticatedOlympusMissionsIndexRouteImport } from './routes/_authenticated/olympus.missions.index'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
@@ -113,6 +114,12 @@ const AuthenticatedProfileExpertiseRoute =
     path: '/profile/expertise',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedOlympusFlightDeckRoute =
+  AuthenticatedOlympusFlightDeckRouteImport.update({
+    id: '/flight-deck',
+    path: '/flight-deck',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
 const AuthenticatedOlympusSplatRoute =
   AuthenticatedOlympusSplatRouteImport.update({
     id: '/$',
@@ -189,6 +196,7 @@ export interface FileRoutesByFullPath {
   '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/olympus/$': typeof AuthenticatedOlympusSplatRoute
+  '/olympus/flight-deck': typeof AuthenticatedOlympusFlightDeckRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/missions/': typeof AuthenticatedMissionsIndexRoute
@@ -215,6 +223,7 @@ export interface FileRoutesByTo {
   '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/olympus/$': typeof AuthenticatedOlympusSplatRoute
+  '/olympus/flight-deck': typeof AuthenticatedOlympusFlightDeckRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/missions': typeof AuthenticatedMissionsIndexRoute
@@ -244,6 +253,7 @@ export interface FileRoutesById {
   '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/_authenticated/olympus/$': typeof AuthenticatedOlympusSplatRoute
+  '/_authenticated/olympus/flight-deck': typeof AuthenticatedOlympusFlightDeckRoute
   '/_authenticated/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/missions/': typeof AuthenticatedMissionsIndexRoute
@@ -272,6 +282,7 @@ export interface FileRouteTypes {
     | '/checkin/$token'
     | '/email/unsubscribe'
     | '/olympus/$'
+    | '/olympus/flight-deck'
     | '/profile/expertise'
     | '/lovable/email/suppression'
     | '/missions/'
@@ -298,6 +309,7 @@ export interface FileRouteTypes {
     | '/checkin/$token'
     | '/email/unsubscribe'
     | '/olympus/$'
+    | '/olympus/flight-deck'
     | '/profile/expertise'
     | '/lovable/email/suppression'
     | '/missions'
@@ -326,6 +338,7 @@ export interface FileRouteTypes {
     | '/checkin/$token'
     | '/email/unsubscribe'
     | '/_authenticated/olympus/$'
+    | '/_authenticated/olympus/flight-deck'
     | '/_authenticated/profile/expertise'
     | '/lovable/email/suppression'
     | '/_authenticated/missions/'
@@ -466,6 +479,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileExpertiseRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/olympus/flight-deck': {
+      id: '/_authenticated/olympus/flight-deck'
+      path: '/flight-deck'
+      fullPath: '/olympus/flight-deck'
+      preLoaderRoute: typeof AuthenticatedOlympusFlightDeckRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
     '/_authenticated/olympus/$': {
       id: '/_authenticated/olympus/$'
       path: '/$'
@@ -548,6 +568,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedOlympusRouteChildren {
   AuthenticatedOlympusSplatRoute: typeof AuthenticatedOlympusSplatRoute
+  AuthenticatedOlympusFlightDeckRoute: typeof AuthenticatedOlympusFlightDeckRoute
   AuthenticatedOlympusMissionsNewRoute: typeof AuthenticatedOlympusMissionsNewRoute
   AuthenticatedOlympusMissionsIndexRoute: typeof AuthenticatedOlympusMissionsIndexRoute
   AuthenticatedOlympusMissionsMissionIdWizardRoute: typeof AuthenticatedOlympusMissionsMissionIdWizardRoute
@@ -556,6 +577,7 @@ interface AuthenticatedOlympusRouteChildren {
 
 const AuthenticatedOlympusRouteChildren: AuthenticatedOlympusRouteChildren = {
   AuthenticatedOlympusSplatRoute: AuthenticatedOlympusSplatRoute,
+  AuthenticatedOlympusFlightDeckRoute: AuthenticatedOlympusFlightDeckRoute,
   AuthenticatedOlympusMissionsNewRoute: AuthenticatedOlympusMissionsNewRoute,
   AuthenticatedOlympusMissionsIndexRoute:
     AuthenticatedOlympusMissionsIndexRoute,
