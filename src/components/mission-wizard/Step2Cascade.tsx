@@ -296,6 +296,10 @@ export function Step2Cascade({ missionId }: { missionId: string }) {
     await supabase.from("mission_questions").update({ reviewed_by_admin: true }).eq("id", id);
     qc.invalidateQueries({ queryKey: ["cascade", missionId] });
   };
+  const confirmSection = async (id: string) => {
+    await supabase.from("mission_sections").update({ reviewed_by_admin: true }).eq("id", id);
+    qc.invalidateQueries({ queryKey: ["cascade", missionId] });
+  };
   const confirmSectionHighFields = async (sec: Section) => {
     if ((sec.iris_confidence ?? "").toLowerCase() === "high") {
       await supabase.from("mission_sections").update({ reviewed_by_admin: true }).eq("id", sec.id);
@@ -447,6 +451,7 @@ export function Step2Cascade({ missionId }: { missionId: string }) {
             onSection={updateSection}
             onQuestion={updateQuestion}
             onConfirmQuestion={confirmQuestion}
+            onConfirmSection={confirmSection}
             onConfirmSectionHigh={confirmSectionHighFields}
           />
         )}
