@@ -73,7 +73,6 @@ async function fetchAll(missionId: string) {
     supabase
       .from("atlas_team_members")
       .select("id, first_name, last_name, email, job_title, skills, atlas_role, atlas_invite_status")
-      .eq("atlas_invite_status", "active")
       .eq("is_removed", false),
     supabase
       .from("mission_team_members")

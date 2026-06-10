@@ -276,7 +276,7 @@ function AddMemberSheet({
       const { data } = await supabase
         .from("atlas_team_members")
         .select("id, first_name, last_name, job_title, atlas_invite_status")
-        .eq("atlas_invite_status", "active")
+        .eq("is_removed", false)
         .order("first_name");
       return data ?? [];
     },
