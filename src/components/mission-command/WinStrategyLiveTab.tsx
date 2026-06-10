@@ -69,7 +69,8 @@ export function WinStrategyLiveTab({ missionId, missionName }: { missionId: stri
       if (error) { toast.error(error.message); return; }
       await logAudit({ missionId, action: `Win Strategy field updated: ${k}` });
       setBannerOn(true);
-      window.setTimeout(() => setBannerOn(false), 5000);
+      window.clearTimeout(bannerTimer.current);
+      bannerTimer.current = window.setTimeout(() => setBannerOn(false), 5000);
       qc.invalidateQueries({ queryKey: ["ws-audit", missionId] });
     }, 1000);
   };
