@@ -14,6 +14,9 @@ import ReactMarkdown from "react-markdown";
 import { useIris, getPageLabel } from "./IrisContext";
 
 const GOLD = "#C9A55C";
+// IRIS brand mark color (matches the violet/blue eye in the logo)
+const IRIS_BRAND = "#A78BFA";
+const IRIS_BRAND_DEEP = "#6D5BD0";
 
 type Msg = {
   id: string;
