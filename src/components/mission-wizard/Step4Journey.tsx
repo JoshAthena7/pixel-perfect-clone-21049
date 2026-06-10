@@ -1229,33 +1229,22 @@ function PhasePanel({
 
 // ---------- Summary ----------
 function JourneySummary({
-  phases,
-  deliverables,
-  deadline,
+  totalMissionDays,
+  writersDays,
+  reviewDays,
+  daysToPensDown,
+  bufferDays,
 }: {
-  phases: Phase[];
-  deliverables: Deliverable[];
-  deadline: string;
+  totalMissionDays: number;
+  writersDays: number;
+  reviewDays: number;
+  daysToPensDown: number;
+  bufferDays: number;
 }) {
-  const today = new Date();
-  const deadlineDate = new Date(deadline);
-  const totalDays = Math.max(0, dayDiff(today, deadlineDate));
-  const pensDown = phases.find((p) => p.kind === "pens_down");
-  const daysToPens = pensDown ? Math.max(0, dayDiff(today, new Date(pensDown.end_date))) : null;
-  const firstDeliverable = deliverables
-    .filter((d) => d.due_date)
-    .sort((a, b) => new Date(a.due_date!).getTime() - new Date(b.due_date!).getTime())[0];
-  const daysToFirst = firstDeliverable
-    ? Math.max(0, dayDiff(today, new Date(firstDeliverable.due_date!)))
-    : null;
-  const gateCount = phases.filter((p) => p.kind === "gate").length;
-
   const pensColor =
-    daysToPens === null
-      ? "text-foreground"
-      : daysToPens < 14
+    daysToPensDown < 14
       ? "text-red-600"
-      : daysToPens < 30
+      : daysToPensDown < 30
       ? "text-amber-600"
       : "text-foreground";
 
@@ -1268,23 +1257,36 @@ function JourneySummary({
         Journey Summary
       </h3>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-        <Stat label="Total duration" value={`${totalDays} days from today to submission`} />
+        <Stat label="Total mission duration" value={`${totalMissionDays} days from today to submission`} />
+        <Stat label="Days for writing" value={`${writersDays} days`} />
+        <Stat label="Days for review" value={`${reviewDays} days`} />
+        <Stat label="Days to Pens Down" value={`${daysToPensDown} days`} valueClass={pensColor} />
         <Stat
-          label="Days to Pens Down"
-          value={daysToPens === null ? "—" : `${daysToPens} days`}
-          valueClass={pensColor}
+          label="Buffer days"
+          value={
+            bufferDays >= 0
+              ? `${bufferDays} buffer days available`
+              : `${Math.abs(bufferDays)} days over deadline`
+          }
+          valueClass={bufferDays >= 0 ? "text-emerald-700" : "text-amber-700"}
         />
-        <Stat
-          label="Days to first deliverable"
-          value={daysToFirst === null ? "—" : `${daysToFirst} days`}
-        />
-        <Stat label="Phases" value={`${phases.length}`} />
-        <Stat label="Deliverables" value={`${deliverables.length}`} />
-        <Stat label="Gates" value={`${gateCount}`} />
       </div>
+      {bufferDays < 0 && (
+        <p className="mt-3 text-xs bg-amber-50 border border-amber-200 text-amber-800 rounded px-3 py-2">
+          Your phases extend past your submission deadline by {Math.abs(bufferDays)} days. Adjust
+          phase durations before continuing.
+        </p>
+      )}
+      {bufferDays > 0 && (
+        <p className="mt-3 text-xs text-emerald-700/80">
+          {bufferDays} buffer days available.
+        </p>
+      )}
     </div>
   );
 }
+
+
 
 function Stat({ label, value, valueClass }: { label: string; value: string; valueClass?: string }) {
   return (
