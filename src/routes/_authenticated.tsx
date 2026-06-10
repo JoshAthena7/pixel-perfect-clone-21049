@@ -1,14 +1,5 @@
-import { createFileRoute, Outlet, redirect, useRouterState, Navigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useRouterState, Navigate, Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { AppShell } from "@/components/v2/AppShell";
-import { V1Shell } from "@/components/v1/V1Shell";
-import { ClosingFrame } from "@/components/v2/ClosingFrame";
-import { IdleCurtain } from "@/components/v2/IdleCurtain";
-import { FirstLight } from "@/components/v2/FirstLight";
-import { DailyBell } from "@/components/v2/DailyBell";
-import { LoginRouter } from "@/components/v2/LoginRouter";
-import { OrientationTooltip } from "@/components/v2/OrientationTooltip";
-import { useIsAdmin } from "@/hooks/useAccess";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -62,7 +53,7 @@ export const Route = createFileRoute("/_authenticated")({
         throw redirect({ to: "/atlas-onboarding" });
       }
     }
-    return { user };
+    return { user, isAdmin };
 
   },
   component: AuthenticatedLayout,
@@ -93,7 +84,6 @@ function isAllowedForNonAdmin(path: string): boolean {
 
 function AuthenticatedLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const { isAdmin, isLoading: adminLoading } = useIsAdmin();
 
   // /admin owns its own layout — bypass the outer Atrium chrome entirely.
   // Runs before any role gate so admin.tsx renders immediately without flicker.
@@ -101,47 +91,30 @@ function AuthenticatedLayout() {
     return <Outlet />;
   }
 
-  // Check-in only users get a minimalist landing.
-  if (path === "/checkin-home" || path.startsWith("/checkin-home/")) {
-    return (
-      <>
-        <Outlet />
-        <ClosingFrame />
-      </>
-    );
-  }
+  const { isAdmin } = Route.useRouteContext();
 
-  // While we resolve role, render nothing visible — avoids briefly mounting
-  // the Atrium chrome for non-admins.
-  if (adminLoading) {
-    return <div className="min-h-screen bg-background" />;
-  }
-
-  // Admins keep the full Atrium chrome (Athena HQ, top nav, etc.).
-  if (isAdmin) {
-    return (
-      <AppShell>
-        <LoginRouter />
+  const shell = (
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="border-b border-border bg-surface/60 px-6 py-3">
+        <nav className="mx-auto flex max-w-7xl items-center gap-4 text-sm">
+          <Link to="/home" className="font-semibold tracking-[0.18em] text-foreground">ATLAS</Link>
+          <Link to="/missions" className="text-muted-foreground hover:text-foreground">Missions</Link>
+          {isAdmin && <Link to="/admin" className="text-muted-foreground hover:text-foreground">Admin</Link>}
+          <Link to="/profile" className="ml-auto text-muted-foreground hover:text-foreground">Profile</Link>
+        </nav>
+      </header>
+      <main>
         <Outlet />
-        <ClosingFrame />
-        <IdleCurtain />
-        <FirstLight />
-        <DailyBell />
-        <OrientationTooltip />
-      </AppShell>
-    );
-  }
+      </main>
+    </div>
+  );
+
+  if (isAdmin) return shell;
 
   // Non-admins land on the new Flight Deck instead of the legacy V1 shell.
   if (!isAllowedForNonAdmin(path)) {
-    return <Navigate to="/flight-deck" replace />;
+    return <Navigate to="/missions" replace />;
   }
 
-  return (
-    <V1Shell>
-      <Outlet />
-      <ClosingFrame />
-      <IdleCurtain />
-    </V1Shell>
-  );
+  return shell;
 }
