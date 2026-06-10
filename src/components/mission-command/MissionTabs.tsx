@@ -5,6 +5,7 @@ export type TabId =
   | "win-strategy"
   | "decision-log"
   | "journey"
+  | "oracle"
   | "rfp-documents"
   | "qa-log"
   | "client-intel"
@@ -31,6 +32,7 @@ export const TAB_GROUPS: { label: string; tabs: { id: TabId; label: string }[] }
   {
     label: "Intelligence",
     tabs: [
+      { id: "oracle", label: "Oracle" },
       { id: "rfp-documents", label: "RFP & Documents" },
       { id: "qa-log", label: "Q&A Log" },
       { id: "client-intel", label: "Client Intelligence" },
