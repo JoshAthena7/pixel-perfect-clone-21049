@@ -15,7 +15,13 @@ type CheckKey =
   | "journey"
   | "questions"
   | "lead"
-  | "deadline";
+  | "deadline"
+  | "territory"
+  | "monitoring"
+  | "client_intel"
+  | "prior_rfp"
+  | "competitors"
+  | "internal_materials";
 
 type CheckItem = {
   key: CheckKey;
@@ -23,7 +29,10 @@ type CheckItem = {
   pass: boolean;
   fixStep: number;
   fixView?: "team" | "questions";
+  required: boolean;
+  recommendedMsg?: string;
 };
+
 
 async function runChecks(missionId: string): Promise<CheckItem[]> {
   const [mission, docs, sections, strat, phases, questions, assignments, team] =
