@@ -90,7 +90,7 @@ export function MissionEditPanel({
         contract_value: form.contract_value ? Number(form.contract_value) : null,
         submission_deadline: form.submission_deadline
           ? new Date(form.submission_deadline).toISOString()
-          : null,
+          : undefined,
       })
       .eq("id", missionId);
     setSaving(false);
