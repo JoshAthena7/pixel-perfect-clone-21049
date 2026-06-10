@@ -223,52 +223,88 @@ function MissionCard({ m }: { m: MissionRow }) {
     ? formatDistanceToNowStrict(new Date(m.submission_deadline), { unit: "day" })
     : null;
   const search = !isSetup ? ({ tab: getLastTab(m.id) ?? "overview" } as any) : undefined;
+  const qc = useQueryClient();
+  const [deleting, setDeleting] = useState(false);
+
+  const onDelete = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const confirmed = window.confirm(
+      `Delete "${m.name}" and start over?\n\nThis permanently removes the mission and all setup data. This cannot be undone.`,
+    );
+    if (!confirmed) return;
+    setDeleting(true);
+    const { error } = await supabase.from("missions").delete().eq("id", m.id);
+    setDeleting(false);
+    if (error) {
+      toast.error(error.message || "Could not delete mission");
+      return;
+    }
+    toast.success("Mission deleted");
+    qc.invalidateQueries({ queryKey: ["missions-list"] });
+  };
+
   return (
-    <Link
-      to={to}
-      params={{ missionId: m.id }}
-      search={search}
-      className="block rounded-xl border border-border bg-surface/40 p-5 hover:bg-surface hover:border-[var(--athena-gold)]/40 transition-colors"
-    >
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="min-w-0">
-          <h3 className="text-lg font-semibold text-foreground truncate">{m.name}</h3>
-          <p className="text-sm text-muted-foreground truncate">{m.client_name ?? "—"}</p>
-        </div>
-        <span
-          className={cn(
-            "shrink-0 rounded-full border px-2.5 py-0.5 text-[11px] uppercase tracking-wider",
-            STATUS_STYLES[m.status] ?? STATUS_STYLES.archived,
-          )}
-        >
-          {statusLabel(m.status)}
-        </span>
-      </div>
-      {m.intel_completeness != null && (
-        <div className="mb-2">
-          <IntelligenceCompletenessChip missionId={m.id} initial={m.intel_completeness} compact />
-        </div>
-      )}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
-        {daysOut && (
-          <span className="inline-flex items-center gap-1.5">
-            <Calendar className="h-3.5 w-3.5" /> {daysOut} to submission
+    <div className="relative group">
+      <Link
+        to={to}
+        params={{ missionId: m.id }}
+        search={search}
+        className="block rounded-xl border border-border bg-surface/40 p-5 hover:bg-surface hover:border-[var(--athena-gold)]/40 transition-colors"
+      >
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="min-w-0">
+            <h3 className="text-lg font-semibold text-foreground truncate">{m.name}</h3>
+            <p className="text-sm text-muted-foreground truncate">{m.client_name ?? "—"}</p>
+          </div>
+          <span
+            className={cn(
+              "shrink-0 rounded-full border px-2.5 py-0.5 text-[11px] uppercase tracking-wider",
+              STATUS_STYLES[m.status] ?? STATUS_STYLES.archived,
+            )}
+          >
+            {statusLabel(m.status)}
           </span>
+        </div>
+        {m.intel_completeness != null && (
+          <div className="mb-2">
+            <IntelligenceCompletenessChip missionId={m.id} initial={m.intel_completeness} compact />
+          </div>
         )}
-        <span className="inline-flex items-center gap-1.5">
-          <Users className="h-3.5 w-3.5" /> {m.team_count} team
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <ListChecks className="h-3.5 w-3.5" /> {m.question_count} questions
-        </span>
-      </div>
-      <MissionCardBadges missionId={m.id} />
-      {m.status === "active" && m.blast_off_at && (
-        <p className="text-[11px] text-muted-foreground mt-2">
-          Launched {format(new Date(m.blast_off_at), "MMMM d, yyyy")}
-        </p>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+          {daysOut && (
+            <span className="inline-flex items-center gap-1.5">
+              <Calendar className="h-3.5 w-3.5" /> {daysOut} to submission
+            </span>
+          )}
+          <span className="inline-flex items-center gap-1.5">
+            <Users className="h-3.5 w-3.5" /> {m.team_count} team
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <ListChecks className="h-3.5 w-3.5" /> {m.question_count} questions
+          </span>
+        </div>
+        <MissionCardBadges missionId={m.id} />
+        {m.status === "active" && m.blast_off_at && (
+          <p className="text-[11px] text-muted-foreground mt-2">
+            Launched {format(new Date(m.blast_off_at), "MMMM d, yyyy")}
+          </p>
+        )}
+      </Link>
+      {isSetup && (
+        <button
+          type="button"
+          onClick={onDelete}
+          disabled={deleting}
+          aria-label="Delete mission and start over"
+          title="Delete mission and start over"
+          className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-md border border-destructive/30 bg-background/80 px-2 py-1 text-[11px] text-destructive opacity-0 group-hover:opacity-100 focus:opacity-100 hover:bg-destructive/10 transition-opacity disabled:opacity-50"
+        >
+          <Trash2 className="h-3 w-3" />
+          {deleting ? "Deleting…" : "Delete & start over"}
+        </button>
       )}
-    </Link>
+    </div>
   );
 }
 
