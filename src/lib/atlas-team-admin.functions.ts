@@ -78,7 +78,7 @@ export const addAtlasTeamMember = createServerFn({ method: "POST" })
       last_name: data.last_name,
       job_title: data.job_title || null,
       phone: data.phone || null,
-      atlas_role: data.atlas_role || null,
+      atlas_role: normalizeRole(data.atlas_role),
       atlas_invite_status: "not_invited",
       is_removed: false,
       skills: [],
