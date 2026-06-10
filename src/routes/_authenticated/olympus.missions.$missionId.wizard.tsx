@@ -121,7 +121,7 @@ function ResumeWizardPage() {
   }
   if (step === 4) {
     return (
-      <WizardShell step={4} onBack={back}>
+      <WizardShell step={4} onBack={back} wide>
         <Step2Cascade missionId={missionId} />
       </WizardShell>
     );
