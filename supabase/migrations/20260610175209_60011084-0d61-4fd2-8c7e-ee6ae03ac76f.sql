@@ -1,0 +1,2 @@
+ALTER TABLE public.mission_documents ADD COLUMN IF NOT EXISTS metadata jsonb NOT NULL DEFAULT '{}'::jsonb;
+CREATE INDEX IF NOT EXISTS mission_documents_metadata_tier_idx ON public.mission_documents ((metadata->>'intelligence_tier'));
