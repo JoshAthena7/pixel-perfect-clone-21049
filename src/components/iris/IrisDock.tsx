@@ -381,9 +381,9 @@ export function IrisDock({ prefillSignal, openSignal }: Props) {
         ))}
         {streaming && waitingFirstToken && (
           <div className="flex gap-1 items-center pl-2">
-            <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: GOLD, animationDelay: "0ms" }} />
-            <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: GOLD, animationDelay: "150ms" }} />
-            <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: GOLD, animationDelay: "300ms" }} />
+            <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: IRIS_BRAND, animationDelay: "0ms" }} />
+            <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: IRIS_BRAND, animationDelay: "150ms" }} />
+            <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: IRIS_BRAND, animationDelay: "300ms" }} />
           </div>
         )}
       </div>
@@ -415,7 +415,7 @@ export function IrisDock({ prefillSignal, openSignal }: Props) {
           disabled={streaming}
         />
         <Button size="icon" variant="ghost" className="h-8 w-8 text-white/70" onClick={() => toast("Voice input coming soon")} title="Voice input"><Mic className="h-4 w-4" /></Button>
-        <Button size="icon" className="h-8 w-8" style={{ background: GOLD, color: "#0F1A2E" }} disabled={streaming || !input.trim()} onClick={() => send(input)} title="Send">
+        <Button size="icon" className="h-8 w-8" style={{ background: IRIS_BRAND, color: "#0F1A2E" }} disabled={streaming || !input.trim()} onClick={() => send(input)} title="Send">
           <Send className="h-4 w-4" />
         </Button>
       </div>
@@ -440,8 +440,8 @@ function MessageRow({ m, onOpenInThread, onNavigate }: {
   }
   return (
     <div className="flex gap-2">
-      <span className="mt-1 h-5 w-5 rounded-full shrink-0 inline-flex items-center justify-center" style={{ background: GOLD, color: "#0F1A2E" }}><IrisMark className="h-3.5 w-3.5" /></span>
-      <div className="rounded-lg px-3 py-2 max-w-[85%] text-white border-l-2" style={{ background: "rgba(255,255,255,0.04)", borderLeftColor: GOLD }}>
+      <span className="mt-1 h-5 w-5 rounded-full shrink-0 inline-flex items-center justify-center" style={{ background: IRIS_BRAND, color: "#0F1A2E" }}><IrisMark className="h-3.5 w-3.5" /></span>
+      <div className="rounded-lg px-3 py-2 max-w-[85%] text-white border-l-2" style={{ background: "rgba(255,255,255,0.04)", borderLeftColor: IRIS_BRAND }}>
         <div className="prose prose-invert prose-sm max-w-none">
           <ReactMarkdown>{m.text || " "}</ReactMarkdown>
         </div>
@@ -457,14 +457,14 @@ function MessageRow({ m, onOpenInThread, onNavigate }: {
 
 function DraftCardView({ card, onOpenInThread }: { card: DraftCard; onOpenInThread: (draft: string) => void }) {
   return (
-    <div className="mt-2 rounded border-2 p-3" style={{ borderColor: GOLD, background: "rgba(201,165,92,0.05)" }}>
-      <div className="text-[11px] uppercase tracking-wider mb-2" style={{ color: GOLD }}><Sparkles className="inline h-3 w-3 mr-1" />Draft</div>
+    <div className="mt-2 rounded border-2 p-3" style={{ borderColor: IRIS_BRAND, background: "rgba(167,139,250,0.07)" }}>
+      <div className="text-[11px] uppercase tracking-wider mb-2" style={{ color: IRIS_BRAND }}><Sparkles className="inline h-3 w-3 mr-1" />Draft</div>
       <div className="whitespace-pre-wrap text-white text-sm max-h-40 overflow-y-auto">{card.draft}</div>
       <div className="flex gap-2 mt-2">
         <Button size="sm" variant="outline" className="text-xs" onClick={() => { navigator.clipboard.writeText(card.draft); toast.success("Copied to clipboard"); }}>
           <Copy className="h-3 w-3 mr-1" /> Copy
         </Button>
-        <Button size="sm" className="text-xs" style={{ background: GOLD, color: "#0F1A2E" }} onClick={() => onOpenInThread(card.draft)}>
+        <Button size="sm" className="text-xs" style={{ background: IRIS_BRAND, color: "#0F1A2E" }} onClick={() => onOpenInThread(card.draft)}>
           Open in Thread
         </Button>
       </div>
@@ -475,10 +475,10 @@ function DraftCardView({ card, onOpenInThread }: { card: DraftCard; onOpenInThre
 function ScoreCardView({ card }: { card: ScoreCard }) {
   const [expanded, setExpanded] = useState(false);
   return (
-    <div className="mt-2 rounded border p-3" style={{ borderColor: GOLD, background: "rgba(201,165,92,0.06)" }}>
+    <div className="mt-2 rounded border p-3" style={{ borderColor: IRIS_BRAND, background: "rgba(167,139,250,0.08)" }}>
       <div className="flex items-baseline justify-between">
-        <span className="text-[11px] uppercase tracking-wider" style={{ color: GOLD }}>Score</span>
-        <span className="text-2xl font-bold" style={{ color: GOLD }}>{card.total}<span className="text-sm text-white/60">/100</span></span>
+        <span className="text-[11px] uppercase tracking-wider" style={{ color: IRIS_BRAND }}>Score</span>
+        <span className="text-2xl font-bold" style={{ color: IRIS_BRAND }}>{card.total}<span className="text-sm text-white/60">/100</span></span>
       </div>
       <div className="mt-2 space-y-1">
         {card.breakdown.map((b) => (
@@ -490,7 +490,7 @@ function ScoreCardView({ card }: { card: ScoreCard }) {
       </div>
       {card.gaps.length > 0 && (
         <div className="mt-2">
-          <div className="text-[11px] uppercase tracking-wider mb-1" style={{ color: GOLD }}>Gaps</div>
+          <div className="text-[11px] uppercase tracking-wider mb-1" style={{ color: IRIS_BRAND }}>Gaps</div>
           <ul className="text-xs text-white/80 space-y-1 list-disc pl-4">
             {card.gaps.map((g, i) => <li key={i}>{g}</li>)}
           </ul>
@@ -529,8 +529,8 @@ function IntelCardView({ card, onNavigate }: { card: IntelCard; onNavigate: (hre
           <div className="font-semibold text-white">{it.headline}</div>
           {it.assessment && <div className="text-white/60 mt-0.5">{it.assessment}</div>}
           <div className="flex gap-2 mt-1">
-            {it.url && <a href={it.url} target="_blank" rel="noreferrer" className="underline" style={{ color: GOLD }}>Open <ExternalLink className="inline h-3 w-3" /></a>}
-            <button onClick={() => onNavigate(it.href)} className="underline" style={{ color: GOLD }}>View in Oracle</button>
+            {it.url && <a href={it.url} target="_blank" rel="noreferrer" className="underline" style={{ color: IRIS_BRAND }}>Open <ExternalLink className="inline h-3 w-3" /></a>}
+            <button onClick={() => onNavigate(it.href)} className="underline" style={{ color: IRIS_BRAND }}>View in Oracle</button>
           </div>
         </li>
       ))}
