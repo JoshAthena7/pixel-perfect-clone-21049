@@ -69,11 +69,6 @@ function isAllowedForNonAdmin(path: string): boolean {
 function AuthenticatedLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
 
-  // /admin owns its own layout — bypass the outer Atrium chrome entirely.
-  if (path === "/admin" || path.startsWith("/admin/")) {
-    return <Outlet />;
-  }
-
   // Mission setup wizard is a full-page experience — no nav chrome.
   const isWizard =
     path === "/olympus/missions/new" ||
