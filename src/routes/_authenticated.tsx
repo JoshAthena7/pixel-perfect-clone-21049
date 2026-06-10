@@ -94,7 +94,7 @@ function AuthenticatedLayout() {
   const [irisOpenSignal, setIrisOpenSignal] = useState(0);
 
   const showSecondaryNav =
-    path.startsWith("/olympus") &&
+    (path.startsWith("/olympus") || path.startsWith("/admin")) &&
     !/^\/olympus\/missions\/[^/]+(\/|$)/.test(path);
 
   const shell = (
