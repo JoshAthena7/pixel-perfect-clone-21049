@@ -8,6 +8,7 @@ import { Step1BUpload } from "@/components/mission-wizard/Step1BUpload";
 import { Step1CProcessing } from "@/components/mission-wizard/Step1CProcessing";
 import { Step1DSummary } from "@/components/mission-wizard/Step1DSummary";
 import { Step2Cascade } from "@/components/mission-wizard/Step2Cascade";
+import { Step3WinStrategy } from "@/components/mission-wizard/Step3WinStrategy";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const searchSchema = z.object({
@@ -127,6 +128,13 @@ function ResumeWizardPage() {
     return (
       <WizardShell step={4} onBack={back} wide>
         <Step2Cascade missionId={missionId} />
+      </WizardShell>
+    );
+  }
+  if (step === 5) {
+    return (
+      <WizardShell step={5} onBack={back}>
+        <Step3WinStrategy missionId={missionId} />
       </WizardShell>
     );
   }

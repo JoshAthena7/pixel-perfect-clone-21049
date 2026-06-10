@@ -5444,19 +5444,26 @@ export type Database = {
           competitor_analysis: string | null
           competitor_analysis_confirmed_at: string | null
           competitor_analysis_confirmed_by: string | null
+          confirmed_fields: Json
           created_at: string
           discriminators: string | null
           discriminators_confirmed_at: string | null
           discriminators_confirmed_by: string | null
+          evaluator_hot_buttons: string | null
+          evaluator_priorities: string | null
           executive_summary: string | null
           executive_summary_confirmed_at: string | null
           executive_summary_confirmed_by: string | null
           id: string
+          iris_drafted_at: string | null
+          known_competitors: Json
+          known_risks: string | null
           mission_id: string
+          mission_significance: string | null
           north_star_confirmed_at: string | null
           north_star_confirmed_by: string | null
           north_star_message: string | null
-          proof_points: string | null
+          proof_points: Json
           proof_points_confirmed_at: string | null
           proof_points_confirmed_by: string | null
           risk_mitigation: string | null
@@ -5466,7 +5473,7 @@ export type Database = {
           value_proposition: string | null
           value_proposition_confirmed_at: string | null
           value_proposition_confirmed_by: string | null
-          win_themes: string | null
+          win_themes: Json
           win_themes_confirmed_at: string | null
           win_themes_confirmed_by: string | null
         }
@@ -5482,19 +5489,26 @@ export type Database = {
           competitor_analysis?: string | null
           competitor_analysis_confirmed_at?: string | null
           competitor_analysis_confirmed_by?: string | null
+          confirmed_fields?: Json
           created_at?: string
           discriminators?: string | null
           discriminators_confirmed_at?: string | null
           discriminators_confirmed_by?: string | null
+          evaluator_hot_buttons?: string | null
+          evaluator_priorities?: string | null
           executive_summary?: string | null
           executive_summary_confirmed_at?: string | null
           executive_summary_confirmed_by?: string | null
           id?: string
+          iris_drafted_at?: string | null
+          known_competitors?: Json
+          known_risks?: string | null
           mission_id: string
+          mission_significance?: string | null
           north_star_confirmed_at?: string | null
           north_star_confirmed_by?: string | null
           north_star_message?: string | null
-          proof_points?: string | null
+          proof_points?: Json
           proof_points_confirmed_at?: string | null
           proof_points_confirmed_by?: string | null
           risk_mitigation?: string | null
@@ -5504,7 +5518,7 @@ export type Database = {
           value_proposition?: string | null
           value_proposition_confirmed_at?: string | null
           value_proposition_confirmed_by?: string | null
-          win_themes?: string | null
+          win_themes?: Json
           win_themes_confirmed_at?: string | null
           win_themes_confirmed_by?: string | null
         }
@@ -5520,19 +5534,26 @@ export type Database = {
           competitor_analysis?: string | null
           competitor_analysis_confirmed_at?: string | null
           competitor_analysis_confirmed_by?: string | null
+          confirmed_fields?: Json
           created_at?: string
           discriminators?: string | null
           discriminators_confirmed_at?: string | null
           discriminators_confirmed_by?: string | null
+          evaluator_hot_buttons?: string | null
+          evaluator_priorities?: string | null
           executive_summary?: string | null
           executive_summary_confirmed_at?: string | null
           executive_summary_confirmed_by?: string | null
           id?: string
+          iris_drafted_at?: string | null
+          known_competitors?: Json
+          known_risks?: string | null
           mission_id?: string
+          mission_significance?: string | null
           north_star_confirmed_at?: string | null
           north_star_confirmed_by?: string | null
           north_star_message?: string | null
-          proof_points?: string | null
+          proof_points?: Json
           proof_points_confirmed_at?: string | null
           proof_points_confirmed_by?: string | null
           risk_mitigation?: string | null
@@ -5542,7 +5563,7 @@ export type Database = {
           value_proposition?: string | null
           value_proposition_confirmed_at?: string | null
           value_proposition_confirmed_by?: string | null
-          win_themes?: string | null
+          win_themes?: Json
           win_themes_confirmed_at?: string | null
           win_themes_confirmed_by?: string | null
         }
