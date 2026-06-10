@@ -43,7 +43,8 @@ export function WizardShell({
   };
 
   const canJump = !!missionId;
-  const canSkip = canJump && step >= 2 && step < 8;
+  const canSkip = canJump && step >= 2 && step < 12;
+
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
