@@ -25,12 +25,16 @@ import { Route as AuthenticatedMissionsIndexRouteImport } from './routes/_authen
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as AuthenticatedProfileExpertiseRouteImport } from './routes/_authenticated/profile/expertise'
 import { Route as AuthenticatedOlympusSplatRouteImport } from './routes/_authenticated/olympus.$'
+import { Route as AuthenticatedOlympusMissionsIndexRouteImport } from './routes/_authenticated/olympus.missions.index'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicHooksIrisMonitorRouteImport } from './routes/api/public/hooks/iris-monitor'
+import { Route as AuthenticatedOlympusMissionsNewRouteImport } from './routes/_authenticated/olympus.missions.new'
+import { Route as AuthenticatedOlympusMissionsMissionIdIndexRouteImport } from './routes/_authenticated/olympus.missions.$missionId.index'
+import { Route as AuthenticatedOlympusMissionsMissionIdWizardRouteImport } from './routes/_authenticated/olympus.missions.$missionId.wizard'
 
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
   id: '/unsubscribe',
@@ -115,6 +119,12 @@ const AuthenticatedOlympusSplatRoute =
     path: '/$',
     getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
+const AuthenticatedOlympusMissionsIndexRoute =
+  AuthenticatedOlympusMissionsIndexRouteImport.update({
+    id: '/missions/',
+    path: '/missions/',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
 const LovableEmailTransactionalSendRoute =
   LovableEmailTransactionalSendRouteImport.update({
     id: '/lovable/email/transactional/send',
@@ -149,6 +159,24 @@ const ApiPublicHooksIrisMonitorRoute =
     path: '/api/public/hooks/iris-monitor',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedOlympusMissionsNewRoute =
+  AuthenticatedOlympusMissionsNewRouteImport.update({
+    id: '/missions/new',
+    path: '/missions/new',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
+const AuthenticatedOlympusMissionsMissionIdIndexRoute =
+  AuthenticatedOlympusMissionsMissionIdIndexRouteImport.update({
+    id: '/missions/$missionId/',
+    path: '/missions/$missionId/',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
+const AuthenticatedOlympusMissionsMissionIdWizardRoute =
+  AuthenticatedOlympusMissionsMissionIdWizardRouteImport.update({
+    id: '/missions/$missionId/wizard',
+    path: '/missions/$missionId/wizard',
+    getParentRoute: () => AuthenticatedOlympusRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -165,12 +193,16 @@ export interface FileRoutesByFullPath {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/missions/': typeof AuthenticatedMissionsIndexRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
+  '/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/olympus/missions/': typeof AuthenticatedOlympusMissionsIndexRoute
+  '/olympus/missions/$missionId/wizard': typeof AuthenticatedOlympusMissionsMissionIdWizardRoute
+  '/olympus/missions/$missionId/': typeof AuthenticatedOlympusMissionsMissionIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -187,12 +219,16 @@ export interface FileRoutesByTo {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/missions': typeof AuthenticatedMissionsIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
+  '/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/olympus/missions': typeof AuthenticatedOlympusMissionsIndexRoute
+  '/olympus/missions/$missionId/wizard': typeof AuthenticatedOlympusMissionsMissionIdWizardRoute
+  '/olympus/missions/$missionId': typeof AuthenticatedOlympusMissionsMissionIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -212,12 +248,16 @@ export interface FileRoutesById {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/missions/': typeof AuthenticatedMissionsIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
+  '/_authenticated/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/_authenticated/olympus/missions/': typeof AuthenticatedOlympusMissionsIndexRoute
+  '/_authenticated/olympus/missions/$missionId/wizard': typeof AuthenticatedOlympusMissionsMissionIdWizardRoute
+  '/_authenticated/olympus/missions/$missionId/': typeof AuthenticatedOlympusMissionsMissionIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -236,12 +276,16 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/missions/'
     | '/profile/'
+    | '/olympus/missions/new'
     | '/api/public/hooks/iris-monitor'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/olympus/missions/'
+    | '/olympus/missions/$missionId/wizard'
+    | '/olympus/missions/$missionId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -258,12 +302,16 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/missions'
     | '/profile'
+    | '/olympus/missions/new'
     | '/api/public/hooks/iris-monitor'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/olympus/missions'
+    | '/olympus/missions/$missionId/wizard'
+    | '/olympus/missions/$missionId'
   id:
     | '__root__'
     | '/'
@@ -282,12 +330,16 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/_authenticated/missions/'
     | '/_authenticated/profile/'
+    | '/_authenticated/olympus/missions/new'
     | '/api/public/hooks/iris-monitor'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/_authenticated/olympus/missions/'
+    | '/_authenticated/olympus/missions/$missionId/wizard'
+    | '/_authenticated/olympus/missions/$missionId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -421,6 +473,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOlympusSplatRouteImport
       parentRoute: typeof AuthenticatedOlympusRoute
     }
+    '/_authenticated/olympus/missions/': {
+      id: '/_authenticated/olympus/missions/'
+      path: '/missions'
+      fullPath: '/olympus/missions/'
+      preLoaderRoute: typeof AuthenticatedOlympusMissionsIndexRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
     '/lovable/email/transactional/send': {
       id: '/lovable/email/transactional/send'
       path: '/lovable/email/transactional/send'
@@ -463,15 +522,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksIrisMonitorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/olympus/missions/new': {
+      id: '/_authenticated/olympus/missions/new'
+      path: '/missions/new'
+      fullPath: '/olympus/missions/new'
+      preLoaderRoute: typeof AuthenticatedOlympusMissionsNewRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
+    '/_authenticated/olympus/missions/$missionId/': {
+      id: '/_authenticated/olympus/missions/$missionId/'
+      path: '/missions/$missionId'
+      fullPath: '/olympus/missions/$missionId/'
+      preLoaderRoute: typeof AuthenticatedOlympusMissionsMissionIdIndexRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
+    '/_authenticated/olympus/missions/$missionId/wizard': {
+      id: '/_authenticated/olympus/missions/$missionId/wizard'
+      path: '/missions/$missionId/wizard'
+      fullPath: '/olympus/missions/$missionId/wizard'
+      preLoaderRoute: typeof AuthenticatedOlympusMissionsMissionIdWizardRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
+    }
   }
 }
 
 interface AuthenticatedOlympusRouteChildren {
   AuthenticatedOlympusSplatRoute: typeof AuthenticatedOlympusSplatRoute
+  AuthenticatedOlympusMissionsNewRoute: typeof AuthenticatedOlympusMissionsNewRoute
+  AuthenticatedOlympusMissionsIndexRoute: typeof AuthenticatedOlympusMissionsIndexRoute
+  AuthenticatedOlympusMissionsMissionIdWizardRoute: typeof AuthenticatedOlympusMissionsMissionIdWizardRoute
+  AuthenticatedOlympusMissionsMissionIdIndexRoute: typeof AuthenticatedOlympusMissionsMissionIdIndexRoute
 }
 
 const AuthenticatedOlympusRouteChildren: AuthenticatedOlympusRouteChildren = {
   AuthenticatedOlympusSplatRoute: AuthenticatedOlympusSplatRoute,
+  AuthenticatedOlympusMissionsNewRoute: AuthenticatedOlympusMissionsNewRoute,
+  AuthenticatedOlympusMissionsIndexRoute:
+    AuthenticatedOlympusMissionsIndexRoute,
+  AuthenticatedOlympusMissionsMissionIdWizardRoute:
+    AuthenticatedOlympusMissionsMissionIdWizardRoute,
+  AuthenticatedOlympusMissionsMissionIdIndexRoute:
+    AuthenticatedOlympusMissionsMissionIdIndexRoute,
 }
 
 const AuthenticatedOlympusRouteWithChildren =
