@@ -109,7 +109,13 @@ function MissionCommandCenter() {
     if (launched) {
       toast.success(
         "Mission is live. Your team has been notified. IRIS is building your Mission Intelligence Graph in the background. The clock is running.",
-        { duration: 7000 },
+        {
+          duration: 10000,
+          action: {
+            label: "Go to Flight Deck",
+            onClick: () => navigate({ to: "/olympus/flight-deck" }),
+          },
+        },
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
