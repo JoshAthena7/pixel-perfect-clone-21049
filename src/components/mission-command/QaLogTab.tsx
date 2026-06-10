@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonRows, ErrorState, EmptyState } from "@/components/shared/data-states";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -66,7 +66,7 @@ export function QaLogTab({ missionId }: { missionId: string }) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [sectionFilter, setSectionFilter] = useState("all");
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["qa-log", missionId],
     queryFn: async () => {
       const [qaRes, secsRes] = await Promise.all([
@@ -142,7 +142,8 @@ export function QaLogTab({ missionId }: { missionId: string }) {
     toast.success("Q&A deleted.");
   }
 
-  if (isLoading || !data) return <Skeleton className="h-96 w-full" />;
+  if (isError) return <ErrorState message="Couldn't load the Q&A log." onRetry={() => refetch()} />;
+  if (isLoading || !data) return <SkeletonRows rows={5} height="h-16" />;
 
   return (
     <div className="space-y-5">
@@ -195,11 +196,14 @@ export function QaLogTab({ missionId }: { missionId: string }) {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-dashed p-12 text-center text-muted-foreground">
-          {data.rows.length === 0
-            ? "No Q&A entries yet. Add entries as the state publishes them during the procurement period."
-            : "No entries match your filters."}
-        </div>
+        <EmptyState
+          title={data.rows.length === 0 ? "No Q&A entries yet" : "No entries match your filters"}
+          description={
+            data.rows.length === 0
+              ? "Add entries as the state publishes them during the procurement period."
+              : undefined
+          }
+        />
       ) : (
         <div className="rounded-lg border bg-card divide-y">
           <div className="grid grid-cols-12 px-4 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">

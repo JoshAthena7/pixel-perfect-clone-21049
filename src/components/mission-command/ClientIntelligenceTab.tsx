@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonRows, ErrorState, EmptyState } from "@/components/shared/data-states";
 import { Badge } from "@/components/ui/badge";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter,
@@ -59,7 +59,7 @@ export function ClientIntelligenceTab({ missionId }: { missionId: string }) {
     },
   });
 
-  const { data: entries, isLoading } = useQuery({
+  const { data: entries, isLoading, isError, refetch } = useQuery({
     queryKey: ["client-intel", missionId],
     enabled: !!isAdmin,
     queryFn: async () => {
@@ -86,14 +86,16 @@ export function ClientIntelligenceTab({ missionId }: { missionId: string }) {
     return `${e.title ?? ""} ${e.content ?? ""}`.toLowerCase().includes(q);
   };
 
-  if (roleLoading) return <Skeleton className="h-32 w-full" />;
+  if (roleLoading) return <SkeletonRows rows={3} height="h-16" />;
   if (!isAdmin) {
     return (
-      <div className="rounded-xl border border-dashed p-12 text-center text-muted-foreground">
-        You do not have permission to view this tab.
-      </div>
+      <EmptyState
+        title="Admin only"
+        description="You do not have permission to view this tab."
+      />
     );
   }
+  if (isError) return <ErrorState message="Couldn't load client intelligence." onRetry={() => refetch()} />;
 
   return (
     <div className="space-y-5">
@@ -109,7 +111,7 @@ export function ClientIntelligenceTab({ missionId }: { missionId: string }) {
 
       <Input placeholder="Search across all categories…" value={search} onChange={(e) => setSearch(e.target.value)} />
 
-      {isLoading ? <Skeleton className="h-64 w-full" /> : (
+      {isLoading ? <SkeletonRows rows={4} height="h-16" /> : (
         <div className="space-y-2">
           {CATEGORIES.map((c) => {
             const items = (byCategory.get(c.value) ?? []).filter(matchesSearch);

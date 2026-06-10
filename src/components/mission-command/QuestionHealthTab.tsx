@@ -9,7 +9,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonRows, ErrorState, EmptyState } from "@/components/shared/data-states";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -70,7 +70,7 @@ export function QuestionHealthTab({
   const [sortBy, setSortBy] = useState<"health" | "due" | "activity" | "writer">("health");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["question-health", missionId],
     queryFn: async () => {
       const [qs, secs, asgs, team, smes, flags] = await Promise.all([
@@ -202,22 +202,17 @@ export function QuestionHealthTab({
     setDueTo(undefined);
   };
 
+  if (isError) return <ErrorState message="Couldn't load question health." onRetry={() => refetch()} />;
   if (isLoading || !data) {
-    return (
-      <div className="space-y-4">
-        <Skeleton className="h-28" />
-        {[0, 1, 2].map((i) => (
-          <Skeleton key={i} className="h-32" />
-        ))}
-      </div>
-    );
+    return <SkeletonRows rows={5} height="h-28" />;
   }
 
   if (data.questions.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-border p-16 text-center">
-        <p className="text-muted-foreground">No questions found for this mission.</p>
-      </div>
+      <EmptyState
+        title="No questions yet"
+        description="Add sections and questions to begin tracking question health."
+      />
     );
   }
 

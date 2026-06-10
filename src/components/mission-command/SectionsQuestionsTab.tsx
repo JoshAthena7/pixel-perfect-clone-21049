@@ -260,19 +260,22 @@ export function SectionsQuestionsTab({
       </div>
 
       {emptyByFilter && (
-        <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-          No questions match your filters.{" "}
-          <button onClick={clearFilters} className="text-primary hover:underline">
-            Clear filters
-          </button>
-        </div>
+        <EmptyState
+          title="No questions match your filters"
+          action={
+            <button onClick={clearFilters} className="text-primary hover:underline text-sm">
+              Clear filters
+            </button>
+          }
+        />
       )}
 
       {/* Hierarchy */}
       {data.volumes.length === 0 && (
-        <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-          No volumes yet. Add structure via the Cascade Review.
-        </div>
+        <EmptyState
+          title="No volumes yet"
+          description="Add structure via the Cascade Review to start organizing this mission."
+        />
       )}
 
       {data.volumes.map((vol) => {
