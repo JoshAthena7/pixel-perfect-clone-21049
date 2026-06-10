@@ -217,7 +217,7 @@ function MissionsListPage() {
         {!isLoading && filtered.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {filtered.map((m) => (
-              <MissionCard key={m.id} m={m} />
+              <MissionCard key={m.id} m={m} onEdit={() => setEditingId(m.id)} />
             ))}
           </div>
         )}
@@ -226,7 +226,7 @@ function MissionsListPage() {
   );
 }
 
-function MissionCard({ m }: { m: MissionRow }) {
+function MissionCard({ m, onEdit }: { m: MissionRow; onEdit: () => void }) {
   const isSetup = m.status === "setup";
   const to = isSetup
     ? "/olympus/missions/$missionId/wizard"
