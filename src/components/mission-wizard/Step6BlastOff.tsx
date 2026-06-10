@@ -145,20 +145,25 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
   const [countdown, setCountdown] = useState(3);
   const [writes, setWrites] = useState<WriteStep[]>([]);
 
+  const items = checks?.items;
+  const counts = checks?.counts;
+
   // Stagger reveal of checklist items
   useEffect(() => {
-    if (!checks) return;
+    if (!items) return;
     setVisibleCount(0);
     let i = 0;
     const interval = setInterval(() => {
       i += 1;
       setVisibleCount(i);
-      if (i >= checks.length) clearInterval(interval);
+      if (i >= items.length) clearInterval(interval);
     }, 200);
     return () => clearInterval(interval);
-  }, [checks]);
+  }, [items]);
 
-  const allGreen = !!checks && checks.every((c) => c.pass);
+  const blockingFail = !!items && items.some((c) => c.required && !c.pass);
+  const allGreen = !!items && !blockingFail;
+
 
   const goFix = (item: CheckItem) => {
     navigate({
