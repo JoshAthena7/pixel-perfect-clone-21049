@@ -98,7 +98,7 @@ function Breadcrumb() {
   );
 }
 
-export function GlobalCommandBar({ email }: { email?: string | null }) {
+export function GlobalCommandBar({ email, isAdmin = false }: { email?: string | null; isAdmin?: boolean }) {
   return (
     <div className="sticky top-0 z-50 h-11 bg-[#0a1628] border-b border-white/[0.06] text-white px-4 sm:px-6">
       <div className="mx-auto max-w-7xl h-full grid grid-cols-[auto_1fr_auto] items-center gap-4">
@@ -126,6 +126,15 @@ export function GlobalCommandBar({ email }: { email?: string | null }) {
           <Breadcrumb />
         </div>
         <div className="flex items-center gap-3">
+          {isAdmin && (
+            <Link
+              to="/admin/team"
+              className="hidden sm:inline-flex items-center gap-1.5 text-[12px] font-medium px-2.5 py-1 rounded border border-[var(--athena-gold)]/40 text-[var(--athena-gold)] hover:bg-[var(--athena-gold)]/10 transition-colors"
+              activeProps={{ className: "bg-[var(--athena-gold)]/15" }}
+            >
+              Athena Team
+            </Link>
+          )}
           <IntelAlertCount />
           <NotificationBell />
           <UserMenu email={email} />

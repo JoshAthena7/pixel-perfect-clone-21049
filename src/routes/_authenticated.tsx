@@ -110,7 +110,7 @@ function AuthenticatedLayout() {
 
   const shell = (
     <div className="min-h-screen bg-background text-foreground">
-      <GlobalCommandBar email={email} />
+      <GlobalCommandBar email={email} isAdmin={isAdmin} />
       <MissionStrip />
       <main>
         <Outlet />
