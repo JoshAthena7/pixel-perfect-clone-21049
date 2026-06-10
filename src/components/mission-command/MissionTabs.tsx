@@ -93,8 +93,7 @@ async function fetchTabAlerts(missionId: string) {
       .from("compliance_check_results")
       .select("id", { count: "exact", head: true })
       .eq("mission_id", missionId)
-      .eq("risk_level", "high")
-      .eq("is_addressed", false),
+      .eq("status", "fail"),
   ]);
   return {
     "question-health": atRisk.count ?? 0,
