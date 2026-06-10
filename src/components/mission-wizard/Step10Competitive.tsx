@@ -192,6 +192,14 @@ export function Step10Competitive({ missionId, onAdvance }: { missionId: string;
             </div>
           </div>
 
+          <BulkAddCompetitorsPanel
+            missionId={missionId}
+            onDone={(insertedIds) => {
+              qc.invalidateQueries({ queryKey: ["competitors", missionId] });
+              insertedIds.forEach((id) => generateProfile(id));
+            }}
+          />
+
           {competitors.length === 0 && !suggestions && (
             <div className="rounded border border-dashed border-border p-6 text-center">
               <p className="text-sm text-muted-foreground">No competitors added yet. Add known or likely bidders.</p>
