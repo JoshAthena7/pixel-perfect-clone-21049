@@ -9,10 +9,11 @@ import { Step1CProcessing } from "@/components/mission-wizard/Step1CProcessing";
 import { Step1DSummary } from "@/components/mission-wizard/Step1DSummary";
 import { Step2Cascade } from "@/components/mission-wizard/Step2Cascade";
 import { Step3WinStrategy } from "@/components/mission-wizard/Step3WinStrategy";
+import { Step4Journey } from "@/components/mission-wizard/Step4Journey";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const searchSchema = z.object({
-  step: z.coerce.number().int().min(1).max(6).optional(),
+  step: z.coerce.number().int().min(1).max(7).optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/olympus/missions/$missionId/wizard")({
@@ -135,6 +136,13 @@ function ResumeWizardPage() {
     return (
       <WizardShell step={5} onBack={back}>
         <Step3WinStrategy missionId={missionId} />
+      </WizardShell>
+    );
+  }
+  if (step === 6) {
+    return (
+      <WizardShell step={6} onBack={back} wide>
+        <Step4Journey missionId={missionId} />
       </WizardShell>
     );
   }
