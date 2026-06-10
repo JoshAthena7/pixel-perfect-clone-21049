@@ -33,6 +33,7 @@ import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/l
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as ApiPublicHooksMonitorStateFeedsRouteImport } from './routes/api/public/hooks/monitor-state-feeds'
 import { Route as ApiPublicHooksMonitorCmsFeedsRouteImport } from './routes/api/public/hooks/monitor-cms-feeds'
 import { Route as ApiPublicHooksIrisMonitorRouteImport } from './routes/api/public/hooks/iris-monitor'
 import { Route as AuthenticatedOlympusMissionsNewRouteImport } from './routes/_authenticated/olympus.missions.new'
@@ -167,6 +168,12 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   path: '/lovable/email/auth/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksMonitorStateFeedsRoute =
+  ApiPublicHooksMonitorStateFeedsRouteImport.update({
+    id: '/api/public/hooks/monitor-state-feeds',
+    path: '/api/public/hooks/monitor-state-feeds',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksMonitorCmsFeedsRoute =
   ApiPublicHooksMonitorCmsFeedsRouteImport.update({
     id: '/api/public/hooks/monitor-cms-feeds',
@@ -219,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/monitor-cms-feeds': typeof ApiPublicHooksMonitorCmsFeedsRoute
+  '/api/public/hooks/monitor-state-feeds': typeof ApiPublicHooksMonitorStateFeedsRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -248,6 +256,7 @@ export interface FileRoutesByTo {
   '/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/monitor-cms-feeds': typeof ApiPublicHooksMonitorCmsFeedsRoute
+  '/api/public/hooks/monitor-state-feeds': typeof ApiPublicHooksMonitorStateFeedsRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -280,6 +289,7 @@ export interface FileRoutesById {
   '/_authenticated/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/monitor-cms-feeds': typeof ApiPublicHooksMonitorCmsFeedsRoute
+  '/api/public/hooks/monitor-state-feeds': typeof ApiPublicHooksMonitorStateFeedsRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -312,6 +322,7 @@ export interface FileRouteTypes {
     | '/olympus/missions/new'
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/monitor-cms-feeds'
+    | '/api/public/hooks/monitor-state-feeds'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -341,6 +352,7 @@ export interface FileRouteTypes {
     | '/olympus/missions/new'
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/monitor-cms-feeds'
+    | '/api/public/hooks/monitor-state-feeds'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -372,6 +384,7 @@ export interface FileRouteTypes {
     | '/_authenticated/olympus/missions/new'
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/monitor-cms-feeds'
+    | '/api/public/hooks/monitor-state-feeds'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -393,6 +406,7 @@ export interface RootRouteChildren {
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksIrisMonitorRoute: typeof ApiPublicHooksIrisMonitorRoute
   ApiPublicHooksMonitorCmsFeedsRoute: typeof ApiPublicHooksMonitorCmsFeedsRoute
+  ApiPublicHooksMonitorStateFeedsRoute: typeof ApiPublicHooksMonitorStateFeedsRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -570,6 +584,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/monitor-state-feeds': {
+      id: '/api/public/hooks/monitor-state-feeds'
+      path: '/api/public/hooks/monitor-state-feeds'
+      fullPath: '/api/public/hooks/monitor-state-feeds'
+      preLoaderRoute: typeof ApiPublicHooksMonitorStateFeedsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/monitor-cms-feeds': {
       id: '/api/public/hooks/monitor-cms-feeds'
       path: '/api/public/hooks/monitor-cms-feeds'
@@ -669,6 +690,7 @@ const rootRouteChildren: RootRouteChildren = {
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksIrisMonitorRoute: ApiPublicHooksIrisMonitorRoute,
   ApiPublicHooksMonitorCmsFeedsRoute: ApiPublicHooksMonitorCmsFeedsRoute,
+  ApiPublicHooksMonitorStateFeedsRoute: ApiPublicHooksMonitorStateFeedsRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
