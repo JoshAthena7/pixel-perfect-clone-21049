@@ -1,15 +1,24 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { z } from "zod";
 import { ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
+const searchSchema = z.object({
+  launched: z.coerce.number().optional(),
+});
+
 export const Route = createFileRoute("/_authenticated/olympus/missions/$missionId/")({
+  validateSearch: (s: Record<string, unknown>) => searchSchema.parse(s),
   component: MissionCommandCenter,
 });
 
 function MissionCommandCenter() {
   const { missionId } = Route.useParams();
+  const { launched } = Route.useSearch();
   const { data, isLoading } = useQuery({
     queryKey: ["mission", missionId],
     queryFn: async () => {
@@ -22,6 +31,16 @@ function MissionCommandCenter() {
       return data;
     },
   });
+
+  useEffect(() => {
+    if (launched) {
+      toast.success(
+        "Mission is live. Your team has been notified. The clock is running. Go win this.",
+        { duration: 6000 },
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [launched]);
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">

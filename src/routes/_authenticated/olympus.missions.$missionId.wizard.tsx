@@ -10,10 +10,13 @@ import { Step1DSummary } from "@/components/mission-wizard/Step1DSummary";
 import { Step2Cascade } from "@/components/mission-wizard/Step2Cascade";
 import { Step3WinStrategy } from "@/components/mission-wizard/Step3WinStrategy";
 import { Step4Journey } from "@/components/mission-wizard/Step4Journey";
+import { Step5Team, type SubView } from "@/components/mission-wizard/Step5Team";
+import { Step6BlastOff } from "@/components/mission-wizard/Step6BlastOff";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const searchSchema = z.object({
-  step: z.coerce.number().int().min(1).max(7).optional(),
+  step: z.coerce.number().int().min(1).max(8).optional(),
+  view: z.enum(["team", "questions", "invites"]).optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/olympus/missions/$missionId/wizard")({
@@ -143,6 +146,32 @@ function ResumeWizardPage() {
     return (
       <WizardShell step={6} onBack={back} wide>
         <Step4Journey missionId={missionId} />
+      </WizardShell>
+    );
+  }
+  if (step === 7) {
+    const view: SubView = (search.view as SubView) ?? "team";
+    return (
+      <WizardShell step={7} onBack={back} wide>
+        <Step5Team
+          missionId={missionId}
+          view={view}
+          setView={(v) =>
+            navigate({
+              to: "/olympus/missions/$missionId/wizard",
+              params: { missionId },
+              search: { step: 7, view: v },
+            })
+          }
+          onAdvanceToBlastOff={() => go(8)}
+        />
+      </WizardShell>
+    );
+  }
+  if (step === 8) {
+    return (
+      <WizardShell step={8} onBack={back} wide>
+        <Step6BlastOff missionId={missionId} />
       </WizardShell>
     );
   }

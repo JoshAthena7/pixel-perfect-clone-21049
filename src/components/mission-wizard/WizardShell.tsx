@@ -9,7 +9,8 @@ const STEPS = [
   { n: 4, label: "Review" },
   { n: 5, label: "Strategy" },
   { n: 6, label: "Journey" },
-  { n: 7, label: "Team+Launch" },
+  { n: 7, label: "Team" },
+  { n: 8, label: "Blast Off" },
 ];
 
 export function WizardShell({
