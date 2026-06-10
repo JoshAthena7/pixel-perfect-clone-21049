@@ -89,6 +89,34 @@ export function OracleTab({ missionId }: { missionId: string }) {
     finally { setBriefLoading(false); }
   };
 
+  const refreshAll = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    const tid = toast.loading("IRIS is refreshing all intelligence…");
+    try {
+      const [graphRes, feedsRes] = await Promise.allSettled([
+        build({ data: { missionId, force: true } }),
+        refreshFeeds({ data: { missionId } }),
+      ]);
+      const parts: string[] = [];
+      if (graphRes.status === "fulfilled") {
+        parts.push(`Graph: ${graphRes.value.created} nodes, ${graphRes.value.edges} edges (${graphRes.value.completeness}%)`);
+      } else {
+        parts.push(`Graph failed: ${(graphRes.reason as Error).message}`);
+      }
+      if (feedsRes.status === "fulfilled") {
+        parts.push(`Feeds: ${feedsRes.value.created} new items across ${feedsRes.value.feeds} sources`);
+      } else {
+        parts.push(`Feeds failed: ${(feedsRes.reason as Error).message}`);
+      }
+      toast.success(parts.join(" · "), { id: tid });
+    } catch (e) {
+      toast.error((e as Error).message, { id: tid });
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const completeness = mission?.intelligence_graph_completeness ?? 0;
 
   return (
