@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { logAuditEvent } from "@/lib/mission-audit";
 
 export type Step1Values = {
   name: string;
@@ -109,6 +110,10 @@ export function Step1Basics({
           .single();
         if (error) throw error;
         id = data.id;
+        void logAuditEvent(id!, "Mission created", uid, null, {
+          mission_name: payload.name,
+          client_name: payload.client_name,
+        });
       }
       navigate({
         to: "/olympus/missions/$missionId/wizard",
