@@ -122,20 +122,32 @@ function FlightDeck() {
       const sectionIds = Array.from(
         new Set(((questions.data ?? []) as Question[]).map((q) => q.section_id)),
       );
-      const { data: secs } = sectionIds.length
-        ? await supabase.from("mission_sections").select("id, name").in("id", sectionIds)
-        : { data: [] as Section[] };
+      const [secsRes, signalsRes] = await Promise.all([
+        sectionIds.length
+          ? supabase.from("mission_sections").select("id, name").in("id", sectionIds)
+          : Promise.resolve({ data: [] as Section[] }),
+        questionIds.length
+          ? supabase
+              .from("signals")
+              .select("id, signal_type, signal_title, signal_summary, severity, created_at, related_question_id, mission_id, source_module")
+              .in("related_question_id", questionIds)
+              .order("created_at", { ascending: false })
+              .limit(40)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
       return {
         assignments,
         missions: (missions.data ?? []) as Mission[],
         questions: (questions.data ?? []) as Question[],
-        sections: (secs ?? []) as Section[],
+        sections: (secsRes.data ?? []) as Section[],
+        signals: (signalsRes.data ?? []) as any[],
         alerts: ((alerts.data ?? []) as any[]).filter(
           (n) => n.recipient_id === memberId || n.recipient_id === userId,
         ),
       };
     },
   });
+
 
   // Escalation checks on load
   useEffect(() => {
