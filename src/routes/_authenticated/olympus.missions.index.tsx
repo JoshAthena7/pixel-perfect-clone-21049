@@ -9,10 +9,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { MissionCardMenu } from "@/components/missions/MissionCardMenu";
+import { MissionEditPanel } from "@/components/missions/MissionEditPanel";
 
 export const Route = createFileRoute("/_authenticated/olympus/missions/")({
   component: MissionsListPage,
 });
+
+export { MissionsListPage };
+
 
 import { IntelligenceCompletenessChip } from "@/components/mission-command/IntelligenceCompletenessChip";
 import { MissionCardBadges } from "@/components/nav/MissionCardBadges";
