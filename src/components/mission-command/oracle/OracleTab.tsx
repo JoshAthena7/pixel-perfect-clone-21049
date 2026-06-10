@@ -6,10 +6,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { buildIntelligenceGraph, generateMissionBrief } from "@/lib/oracle.functions";
+import { refreshAllMissionFeeds } from "@/lib/iris-refresh-all.functions";
 import { OracleGraph } from "./OracleGraph";
 import { OracleFeed } from "./OracleFeed";
 import { OracleStakeholders } from "./OracleStakeholders";
@@ -41,9 +42,11 @@ export function OracleTab({ missionId }: { missionId: string }) {
   const [briefLoading, setBriefLoading] = useState(false);
   const [briefAt, setBriefAt] = useState<number>(0);
   const [building, setBuilding] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const build = useServerFn(buildIntelligenceGraph);
   const brief = useServerFn(generateMissionBrief);
+  const refreshFeeds = useServerFn(refreshAllMissionFeeds);
 
   const { data: mission } = useQuery({
     queryKey: ["oracle-mission", missionId],
@@ -86,6 +89,34 @@ export function OracleTab({ missionId }: { missionId: string }) {
     finally { setBriefLoading(false); }
   };
 
+  const refreshAll = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    const tid = toast.loading("IRIS is refreshing all intelligence…");
+    try {
+      const [graphRes, feedsRes] = await Promise.allSettled([
+        build({ data: { missionId, force: true } }),
+        refreshFeeds({ data: { missionId } }),
+      ]);
+      const parts: string[] = [];
+      if (graphRes.status === "fulfilled") {
+        parts.push(`Graph: ${graphRes.value.created} nodes, ${graphRes.value.edges} edges (${graphRes.value.completeness}%)`);
+      } else {
+        parts.push(`Graph failed: ${(graphRes.reason as Error).message}`);
+      }
+      if (feedsRes.status === "fulfilled") {
+        parts.push(`Feeds: ${feedsRes.value.created} new items across ${feedsRes.value.feeds} sources`);
+      } else {
+        parts.push(`Feeds failed: ${(feedsRes.reason as Error).message}`);
+      }
+      toast.success(parts.join(" · "), { id: tid });
+    } catch (e) {
+      toast.error((e as Error).message, { id: tid });
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const completeness = mission?.intelligence_graph_completeness ?? 0;
 
   return (
@@ -107,6 +138,10 @@ export function OracleTab({ missionId }: { missionId: string }) {
           </div>
           <Button variant="outline" className="border-[#C9A55C] text-[#C9A55C] hover:bg-[#C9A55C]/10" onClick={openBrief}>
             <Sparkles className="h-4 w-4 mr-1" /> Brief Me
+          </Button>
+          <Button variant="outline" disabled={refreshing} onClick={refreshAll}>
+            <RefreshCw className={`h-4 w-4 mr-1 ${refreshing ? "animate-spin" : ""}`} />
+            {refreshing ? "Refreshing…" : "Refresh all intelligence"}
           </Button>
           <Button onClick={() => navigate({ to: "/olympus/missions/$missionId", params: { missionId }, search: (p: Record<string, unknown>) => ({ ...p, tab: "intel-library" }) })}>
             Add Intelligence +
