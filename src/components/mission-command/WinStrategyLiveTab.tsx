@@ -30,6 +30,12 @@ export function WinStrategyLiveTab({ missionId, missionName }: { missionId: stri
   const [ws, setWs] = useState<WS | null>(null);
   const [bannerOn, setBannerOn] = useState(false);
   const debounce = useRef<number | undefined>(undefined);
+  const bannerTimer = useRef<number | undefined>(undefined);
+
+  useEffect(() => () => {
+    window.clearTimeout(debounce.current);
+    window.clearTimeout(bannerTimer.current);
+  }, []);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["ws-live", missionId],
