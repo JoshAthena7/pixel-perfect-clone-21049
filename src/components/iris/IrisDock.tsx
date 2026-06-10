@@ -334,8 +334,8 @@ export function IrisDock({ prefillSignal, openSignal }: Props) {
     return (
       <button
         onClick={() => setMinimized(false)}
-        className="fixed bottom-5 right-5 z-50 rounded-full shadow-lg px-4 py-2 text-sm font-semibold"
-        style={{ background: GOLD, color: "#0F1A2E" }}
+        className="fixed bottom-5 right-5 z-50 rounded-full shadow-lg px-4 py-2 text-sm font-semibold text-white"
+        style={{ background: `linear-gradient(135deg, ${IRIS_BRAND}, ${IRIS_BRAND_DEEP})` }}
       >
         <IrisMark className="inline h-4 w-4 mr-1 align-[-2px]" /> IRIS
       </button>
