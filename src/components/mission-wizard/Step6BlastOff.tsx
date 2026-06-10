@@ -34,12 +34,12 @@ type CheckItem = {
 };
 
 
-async function runChecks(missionId: string): Promise<CheckItem[]> {
-  const [mission, docs, sections, strat, phases, questions, assignments, team] =
+async function runChecks(missionId: string): Promise<{ items: CheckItem[]; counts: { sources: number; feeds: number; competitors: number } }> {
+  const [mission, docs, sections, strat, phases, questions, assignments, team, feeds, intelDocs, evo, comps] =
     await Promise.all([
       supabase
         .from("missions")
-        .select("name, client_name, submission_deadline")
+        .select("name, client_name, submission_deadline, state, program_type")
         .eq("id", missionId)
         .single(),
       supabase
@@ -73,6 +73,24 @@ async function runChecks(missionId: string): Promise<CheckItem[]> {
         .from("mission_team_members")
         .select("mission_role")
         .eq("mission_id", missionId),
+      supabase
+        .from("intelligence_feed_configs")
+        .select("id, is_active")
+        .eq("mission_id", missionId)
+        .eq("is_active", true),
+      supabase
+        .from("mission_documents")
+        .select("id, metadata")
+        .eq("mission_id", missionId),
+      supabase
+        .from("procurement_evolution_records")
+        .select("analysis_completed_at")
+        .eq("mission_id", missionId)
+        .maybeSingle(),
+      supabase
+        .from("competitor_profiles")
+        .select("id")
+        .eq("mission_id", missionId),
     ]);
 
   const m = mission.data;
@@ -83,60 +101,33 @@ async function runChecks(missionId: string): Promise<CheckItem[]> {
       .filter((a) => !!a.assigned_writer_id)
       .map((a) => a.question_id),
   );
+  const intelDocRows = (intelDocs.data ?? []) as Array<{ id: string; metadata: any }>;
+  const clientCount = intelDocRows.filter((d) => d.metadata?.intelligence_tier === "client").length;
+  const internalCount = intelDocRows.filter((d) => d.metadata?.intelligence_tier === "internal").length;
+  const feedCount = (feeds.data ?? []).length;
+  const competitorCount = (comps.data ?? []).length;
+  const totalSources = intelDocRows.length;
 
-  return [
-    {
-      key: "basics",
-      label: "Mission basics complete",
-      pass: !!(m?.name && m?.client_name && m?.submission_deadline),
-      fixStep: 1,
-    },
-    {
-      key: "rfp",
-      label: "RFP uploaded and processed",
-      pass: (docs.data?.length ?? 0) > 0,
-      fixStep: 2,
-    },
-    {
-      key: "sections",
-      label: "All sections reviewed",
-      pass: sectionRows.length > 0 && sectionRows.every((s) => s.reviewed_by_admin),
-      fixStep: 4,
-    },
-    {
-      key: "strategy",
-      label: "Win Strategy confirmed",
-      pass: !!strat.data?.admin_confirmed_at,
-      fixStep: 5,
-    },
-    {
-      key: "journey",
-      label: "Journey configured",
-      pass: (phases.data ?? []).some((p) => p.kind === "pens_down"),
-      fixStep: 6,
-    },
-    {
-      key: "questions",
-      label: "All questions assigned",
-      pass: qs.length === 0 || qs.every((q) => assignedSet.has(q.id)),
-      fixStep: 7,
-      fixView: "questions",
-    },
-    {
-      key: "lead",
-      label: "Engagement Lead assigned",
-      pass: (team.data ?? []).some((t) => t.mission_role === "engagement_lead"),
-      fixStep: 7,
-      fixView: "team",
-    },
-    {
-      key: "deadline",
-      label: "Submission deadline confirmed",
-      pass: !!m?.submission_deadline,
-      fixStep: 1,
-    },
+  const items: CheckItem[] = [
+    { key: "basics", label: "Mission basics complete", pass: !!(m?.name && m?.client_name && m?.submission_deadline), fixStep: 1, required: true },
+    { key: "rfp", label: "RFP uploaded and processed", pass: (docs.data?.length ?? 0) > 0, fixStep: 2, required: true },
+    { key: "sections", label: "All sections reviewed", pass: sectionRows.length > 0 && sectionRows.every((s) => s.reviewed_by_admin), fixStep: 4, required: true },
+    { key: "strategy", label: "Win Strategy confirmed", pass: !!strat.data?.admin_confirmed_at, fixStep: 5, required: true },
+    { key: "journey", label: "Journey configured", pass: (phases.data ?? []).some((p) => p.kind === "pens_down"), fixStep: 6, required: true },
+    { key: "questions", label: "All questions assigned", pass: qs.length === 0 || qs.every((q) => assignedSet.has(q.id)), fixStep: 7, fixView: "questions", required: true },
+    { key: "lead", label: "Engagement Lead assigned", pass: (team.data ?? []).some((t) => t.mission_role === "engagement_lead"), fixStep: 7, fixView: "team", required: true },
+    { key: "deadline", label: "Submission deadline confirmed", pass: !!m?.submission_deadline, fixStep: 1, required: true },
+    { key: "territory", label: "Territory configured", pass: !!(m?.state && m?.program_type), fixStep: 8, required: true },
+    { key: "monitoring", label: "Monitoring feeds activated", pass: feedCount >= 2, fixStep: 10, required: true },
+    { key: "client_intel", label: "Client intelligence loaded", pass: clientCount > 0, fixStep: 9, required: false, recommendedMsg: "Recommended — IRIS will be less effective without this. You can add it after launch." },
+    { key: "prior_rfp", label: "Prior RFP analyzed", pass: !!evo.data?.analysis_completed_at, fixStep: 9, required: false, recommendedMsg: "Recommended — IRIS will be less effective without this. You can add it after launch." },
+    { key: "competitors", label: "Competitors identified", pass: competitorCount > 0, fixStep: 11, required: false, recommendedMsg: "Recommended — IRIS will be less effective without this. You can add it after launch." },
+    { key: "internal_materials", label: "Internal materials loaded", pass: internalCount > 0, fixStep: 9, required: false, recommendedMsg: "Recommended — IRIS will be less effective without this. You can add it after launch." },
   ];
+
+  return { items, counts: { sources: totalSources, feeds: feedCount, competitors: competitorCount } };
 }
+
 
 type WriteStep = { name: string; status: "pending" | "ok" | "fail"; error?: string };
 
