@@ -1,10 +1,6 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { HelpCircle, LifeBuoy, MessageSquare } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { ExpertiseProfileEditor } from "@/components/v2/ExpertiseProfileEditor";
-import { DataPrivacyPanel } from "@/components/v2/DataPrivacyPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const profileSearch = z.object({
@@ -17,32 +13,11 @@ export const Route = createFileRoute("/_authenticated/profile/")({
 });
 
 function MyProfilePage() {
-  const navigate = useNavigate();
   const { tab } = Route.useSearch();
-  const [meId, setMeId] = useState<string | null>(null);
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setMeId(data.user?.id ?? null));
-  }, []);
-
-  if (!meId) {
-    return (
-      <div className="mx-auto max-w-2xl px-8 py-10 text-sm text-muted-foreground">
-        Loading your profile…
-      </div>
-    );
-  }
 
   return (
     <Tabs
       value={tab ?? "profile"}
-      onValueChange={(value) =>
-        navigate({
-          to: "/profile",
-          search: { tab: value === "profile" ? undefined : (value as "privacy" | "help") },
-          replace: true,
-        })
-      }
       className="w-full"
     >
       <div className="border-b border-white/8 px-8 pt-6">
@@ -54,20 +29,26 @@ function MyProfilePage() {
       </div>
 
       <TabsContent value="profile" className="mt-0">
-        <ExpertiseProfileEditor
-          profileId={meId}
-          onClose={() => navigate({ to: "/home" })}
-        />
+        <ProfilePlaceholder />
       </TabsContent>
 
       <TabsContent value="privacy" className="mt-0">
-        <DataPrivacyPanel />
+        <ProfilePlaceholder title="Data & Privacy" />
       </TabsContent>
 
       <TabsContent value="help" className="mt-0">
         <HelpPanel />
       </TabsContent>
     </Tabs>
+  );
+}
+
+function ProfilePlaceholder({ title = "Profile" }: { title?: string }) {
+  return (
+    <div className="mx-auto max-w-3xl px-8 py-12">
+      <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
+      <p className="mt-3 text-sm text-muted-foreground">This area is being rebuilt after the legacy cleanup.</p>
+    </div>
   );
 }
 

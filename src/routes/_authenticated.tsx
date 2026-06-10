@@ -84,7 +84,6 @@ function isAllowedForNonAdmin(path: string): boolean {
 
 function AuthenticatedLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const { isAdmin, isLoading: adminLoading } = useIsAdmin();
 
   // /admin owns its own layout — bypass the outer Atrium chrome entirely.
   // Runs before any role gate so admin.tsx renders immediately without flicker.
