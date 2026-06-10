@@ -13,6 +13,8 @@ export const Route = createFileRoute("/_authenticated/olympus/missions/")({
   component: MissionsListPage,
 });
 
+import { IntelligenceCompletenessChip } from "@/components/mission-command/IntelligenceCompletenessChip";
+
 type MissionRow = {
   id: string;
   name: string;
@@ -22,6 +24,7 @@ type MissionRow = {
   blast_off_at: string | null;
   team_count: number;
   question_count: number;
+  intel_completeness: number | null;
 };
 
 const STATUSES: { key: string; label: string }[] = [
