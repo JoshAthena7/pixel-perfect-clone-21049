@@ -1,12 +1,11 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { Home, Zap } from "lucide-react";
+import { createFileRoute, Link, Outlet, redirect, useRouterState } from "@tanstack/react-router";
+import { Users, LayoutGrid } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) throw redirect({ to: "/auth" });
-    // Platform admin (profiles flag) OR app-role admin (user_roles) may enter.
     const [{ data: prof }, { data: role }] = await Promise.all([
       supabase.from("profiles").select("is_platform_admin").eq("id", u.user.id).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", u.user.id).eq("role", "admin").maybeSingle(),
@@ -18,33 +17,38 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
 });
 
+const TABS = [
+  { to: "/admin", label: "Overview", icon: LayoutGrid, exact: true },
+  { to: "/admin/team", label: "Team Roster", icon: Users, exact: false },
+];
+
 function AdminLayout() {
+  const path = useRouterState({ select: (s) => s.location.pathname });
   return (
-    <div className="min-h-screen bg-background px-8 py-8 text-foreground">
-      <div className="mx-auto max-w-5xl">
-        <div className="mb-6 flex items-center gap-2">
-          <Zap className="h-4 w-4 text-primary" />
-          <span className="text-[11px] font-extrabold uppercase tracking-[0.28em]">Olympus</span>
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="border-b border-border bg-surface/40">
+        <div className="mx-auto flex max-w-6xl items-center gap-1 px-6 overflow-x-auto">
+          {TABS.map((t) => {
+            const active = t.exact ? path === t.to : path === t.to || path.startsWith(t.to + "/");
+            const Icon = t.icon;
+            return (
+              <Link
+                key={t.to}
+                to={t.to}
+                className={`flex items-center gap-2 px-4 py-3 text-sm border-b-2 -mb-px whitespace-nowrap transition-colors ${
+                  active
+                    ? "border-primary text-foreground font-medium"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                {t.label}
+              </Link>
+            );
+          })}
         </div>
-        <h1 className="text-3xl font-bold">Admin</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Admin tools are being rebuilt after the legacy cleanup.</p>
-
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          <Link
-            to="/admin/team"
-            className="rounded-lg border p-4 hover:border-primary transition-colors block"
-          >
-            <div className="text-sm font-semibold">Athena Team Roster →</div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Import the team from a TalentDesk CSV, or add members manually. Populates the Mission Wizard team pickers.
-            </p>
-          </Link>
-        </div>
-
-        <Link to="/missions" className="mt-6 inline-flex items-center gap-2 text-sm text-primary hover:underline">
-          <Home className="h-4 w-4" /> Back to missions
-        </Link>
       </div>
+      <Outlet />
     </div>
   );
 }
