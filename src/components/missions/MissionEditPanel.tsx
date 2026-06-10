@@ -65,7 +65,7 @@ export function MissionEditPanel({
         setForm({
           name: data.name ?? "",
           client_name: data.client_name ?? "",
-          procurement_type: (data.procurement_type as string | null) ?? "RFP",
+          procurement_type: String(data.procurement_type ?? "RFP"),
           primary_contact_name: data.primary_contact_name ?? "",
           primary_contact_email: data.primary_contact_email ?? "",
           contract_value: data.contract_value?.toString() ?? "",
