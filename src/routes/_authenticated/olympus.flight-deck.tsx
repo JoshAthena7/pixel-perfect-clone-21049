@@ -17,6 +17,7 @@ import {
   FileText,
   Users,
 } from "lucide-react";
+import { FlightDeckLayout } from "@/components/flight-deck/FlightDeckLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
