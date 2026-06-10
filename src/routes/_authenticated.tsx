@@ -33,26 +33,8 @@ export const Route = createFileRoute("/_authenticated")({
       throw redirect({ to: "/welcome" });
     }
 
-    // ATLAS onboarding gate. Every consultant must finish the 5-step Atlas
-    // onboarding flow before they can access any part of ATLAS. Platform
-    // admins are exempt (so they can never lock themselves out). The check
-    // runs server-side on every navigation — no cookie / device escape.
-    if (!isAdmin && user.email) {
-      const { data: member } = await withTimeout(
-        supabase
-          .from("atlas_team_members")
-          .select("atlas_onboarding_complete,is_removed")
-          .ilike("email", user.email)
-          .maybeSingle(),
-        4000,
-        { data: null, error: null, count: null, status: 200, statusText: "OK", success: true },
-      );
-      const needsAtlasOnboarding =
-        member && !member.is_removed && member.atlas_onboarding_complete !== true;
-      if (needsAtlasOnboarding) {
-        throw redirect({ to: "/atlas-onboarding" });
-      }
-    }
+
+
     return { user, isAdmin };
 
   },
