@@ -162,8 +162,8 @@ Create between 20 and 60 nodes and 30 and 100 edges. strength is 1-10.`;
 
     let edgeCount = 0;
     if (edgeRows.length) {
-      const { count } = await supabase.from("intelligence_graph_edges").insert(edgeRows).select("id", { count: "exact" });
-      edgeCount = count ?? edgeRows.length;
+      const { data: ins } = await supabase.from("intelligence_graph_edges").insert(edgeRows).select("id");
+      edgeCount = ins?.length ?? 0;
     }
 
     const completeness = Math.min(100, Math.round((insertedNodes.length / 40) * 100));
