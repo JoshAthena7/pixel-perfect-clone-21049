@@ -30,8 +30,8 @@ export function DailyPulseModal({ open, onOpenChange, missionId }: { open: boole
         const startOfDay = new Date(); startOfDay.setHours(0, 0, 0, 0);
         const { data: existing } = await supabase
           .from("daily_intelligence_briefs")
-          .select("brief_text")
-          .eq("user_id", user.id)
+          .select("content,key_intelligence_summary")
+          .eq("recipient_id", user.id)
           .eq("mission_id", missionId)
           .gte("created_at", startOfDay.toISOString())
           .order("created_at", { ascending: false })
@@ -45,7 +45,9 @@ export function DailyPulseModal({ open, onOpenChange, missionId }: { open: boole
         if (cancelled) return;
         setCounts({ newIntel: (newIntel ?? []).length, atRisk: (atRiskQ ?? []).length });
 
-        if (existing?.brief_text) { setBriefText(existing.brief_text); return; }
+        const existingText = existing?.key_intelligence_summary
+          ?? (typeof existing?.content === "string" ? existing.content : null);
+        if (existingText) { setBriefText(existingText); return; }
 
         // Otherwise generate inline through the iris chat endpoint (auth via JWT).
         const { data: { session } } = await supabase.auth.getSession();
