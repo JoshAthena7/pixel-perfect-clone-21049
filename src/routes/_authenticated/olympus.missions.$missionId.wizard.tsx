@@ -108,16 +108,21 @@ function ResumeWizardPage() {
     );
   }
   if (step === 3) {
+    // Show Processing first; once sections exist, show the Summary view.
     return (
       <WizardShell step={3} onBack={back}>
-        <Step1CProcessing missionId={missionId} onContinue={() => go(4)} />
+        {data.hasSections ? (
+          <Step1DSummary missionId={missionId} />
+        ) : (
+          <Step1CProcessing missionId={missionId} onContinue={() => go(3)} />
+        )}
       </WizardShell>
     );
   }
   if (step === 4) {
     return (
       <WizardShell step={4} onBack={back}>
-        <Step1DSummary missionId={missionId} />
+        <Step2Cascade missionId={missionId} />
       </WizardShell>
     );
   }
