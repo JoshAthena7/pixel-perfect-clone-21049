@@ -19,10 +19,9 @@ export function OlympusSecondaryNav({ isAdmin = false }: { isAdmin?: boolean }) 
   });
 
   const items = [
-    { label: "Missions", to: "/olympus/missions", badge: activeCount, match: pathname === "/olympus/missions" || pathname.startsWith("/olympus/missions") },
-    { label: "Flight Deck", to: "/olympus/flight-deck", badge: null as number | null, match: pathname.startsWith("/olympus/flight-deck") },
+    { label: "Missions", to: "/olympus/missions", badge: activeCount, match: pathname === "/olympus/missions" || pathname.startsWith("/olympus/missions") || pathname === "/missions" || pathname.startsWith("/missions") },
     ...(isAdmin
-      ? [{ label: "Athena Team", to: "/admin/team", badge: null as number | null, match: pathname.startsWith("/admin") }]
+      ? [{ label: "Athena Team", to: "/admin/team", badge: null as number | null, match: pathname.startsWith("/admin") || pathname.startsWith("/team") }]
       : []),
   ];
 
