@@ -3,7 +3,7 @@ import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import Papa from "papaparse";
-import { Home, Upload, UserPlus, Trash2, Loader2 } from "lucide-react";
+import { Home, Upload, UserPlus, Trash2, Loader2, Send, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,9 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -24,6 +27,18 @@ import {
 import {
   previewAtlasTeamSync, commitAtlasTeamSync,
 } from "@/lib/atlas-team-sync.functions";
+import {
+  updateAtlasTeamRole, sendAtlasInvite,
+} from "@/lib/atlas-team-invite.functions";
+
+const ROLE_OPTIONS = [
+  { value: "unassigned", label: "Unassigned" },
+  { value: "admin", label: "Admin" },
+  { value: "engagement_lead", label: "Engagement Lead" },
+  { value: "writer", label: "Writer" },
+  { value: "sme", label: "SME" },
+  { value: "reviewer", label: "Reviewer" },
+] as const;
 
 export const Route = createFileRoute("/_authenticated/admin/team")({
   beforeLoad: async () => {
