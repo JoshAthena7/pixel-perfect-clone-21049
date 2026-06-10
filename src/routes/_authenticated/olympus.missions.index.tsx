@@ -239,6 +239,11 @@ function MissionCard({ m }: { m: MissionRow }) {
           {statusLabel(m.status)}
         </span>
       </div>
+      {m.intel_completeness != null && (
+        <div className="mb-2">
+          <IntelligenceCompletenessChip missionId={m.id} initial={m.intel_completeness} compact />
+        </div>
+      )}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
         {daysOut && (
           <span className="inline-flex items-center gap-1.5">
