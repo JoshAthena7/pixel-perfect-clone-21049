@@ -23,6 +23,7 @@ import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authent
 import { Route as AuthenticatedMissionsIndexRouteImport } from './routes/_authenticated/missions/index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
+import { Route as ApiChatIrisRouteImport } from './routes/api/chat/iris'
 import { Route as AuthenticatedProfileExpertiseRouteImport } from './routes/_authenticated/profile/expertise'
 import { Route as AuthenticatedOlympusFlightDeckRouteImport } from './routes/_authenticated/olympus.flight-deck'
 import { Route as AuthenticatedOlympusSplatRouteImport } from './routes/_authenticated/olympus.$'
@@ -112,6 +113,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
 const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   id: '/lovable/email/suppression',
   path: '/lovable/email/suppression',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiChatIrisRoute = ApiChatIrisRouteImport.update({
+  id: '/api/chat/iris',
+  path: '/api/chat/iris',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedProfileExpertiseRoute =
@@ -240,6 +246,7 @@ export interface FileRoutesByFullPath {
   '/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/olympus/flight-deck': typeof AuthenticatedOlympusFlightDeckRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
+  '/api/chat/iris': typeof ApiChatIrisRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/missions/': typeof AuthenticatedMissionsIndexRoute
@@ -273,6 +280,7 @@ export interface FileRoutesByTo {
   '/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/olympus/flight-deck': typeof AuthenticatedOlympusFlightDeckRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
+  '/api/chat/iris': typeof ApiChatIrisRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/missions': typeof AuthenticatedMissionsIndexRoute
@@ -309,6 +317,7 @@ export interface FileRoutesById {
   '/_authenticated/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/_authenticated/olympus/flight-deck': typeof AuthenticatedOlympusFlightDeckRoute
   '/_authenticated/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
+  '/api/chat/iris': typeof ApiChatIrisRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/missions/': typeof AuthenticatedMissionsIndexRoute
@@ -345,6 +354,7 @@ export interface FileRouteTypes {
     | '/olympus/$'
     | '/olympus/flight-deck'
     | '/profile/expertise'
+    | '/api/chat/iris'
     | '/lovable/email/suppression'
     | '/admin/'
     | '/missions/'
@@ -378,6 +388,7 @@ export interface FileRouteTypes {
     | '/olympus/$'
     | '/olympus/flight-deck'
     | '/profile/expertise'
+    | '/api/chat/iris'
     | '/lovable/email/suppression'
     | '/admin'
     | '/missions'
@@ -413,6 +424,7 @@ export interface FileRouteTypes {
     | '/_authenticated/olympus/$'
     | '/_authenticated/olympus/flight-deck'
     | '/_authenticated/profile/expertise'
+    | '/api/chat/iris'
     | '/lovable/email/suppression'
     | '/_authenticated/admin/'
     | '/_authenticated/missions/'
@@ -442,6 +454,7 @@ export interface RootRouteChildren {
   UnsubscribeRoute: typeof UnsubscribeRoute
   CheckinTokenRoute: typeof CheckinTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  ApiChatIrisRoute: typeof ApiChatIrisRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksIrisMonitorRoute: typeof ApiPublicHooksIrisMonitorRoute
   ApiPublicHooksMonitorCmsFeedsRoute: typeof ApiPublicHooksMonitorCmsFeedsRoute
@@ -554,6 +567,13 @@ declare module '@tanstack/react-router' {
       path: '/lovable/email/suppression'
       fullPath: '/lovable/email/suppression'
       preLoaderRoute: typeof LovableEmailSuppressionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/chat/iris': {
+      id: '/api/chat/iris'
+      path: '/api/chat/iris'
+      fullPath: '/api/chat/iris'
+      preLoaderRoute: typeof ApiChatIrisRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/profile/expertise': {
@@ -750,6 +770,7 @@ const rootRouteChildren: RootRouteChildren = {
   UnsubscribeRoute: UnsubscribeRoute,
   CheckinTokenRoute: CheckinTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  ApiChatIrisRoute: ApiChatIrisRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksIrisMonitorRoute: ApiPublicHooksIrisMonitorRoute,
   ApiPublicHooksMonitorCmsFeedsRoute: ApiPublicHooksMonitorCmsFeedsRoute,
