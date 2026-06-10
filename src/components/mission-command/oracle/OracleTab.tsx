@@ -42,9 +42,11 @@ export function OracleTab({ missionId }: { missionId: string }) {
   const [briefLoading, setBriefLoading] = useState(false);
   const [briefAt, setBriefAt] = useState<number>(0);
   const [building, setBuilding] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const build = useServerFn(buildIntelligenceGraph);
   const brief = useServerFn(generateMissionBrief);
+  const refreshFeeds = useServerFn(refreshAllMissionFeeds);
 
   const { data: mission } = useQuery({
     queryKey: ["oracle-mission", missionId],
