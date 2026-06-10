@@ -117,8 +117,15 @@ function MissionsListPage() {
 
   const total = data?.length ?? 0;
 
+  const [editingId, setEditingId] = useState<string | null>(null);
+
   return (
     <div className="min-h-screen bg-background">
+      <MissionEditPanel
+        missionId={editingId}
+        open={!!editingId}
+        onOpenChange={(o) => { if (!o) setEditingId(null); }}
+      />
       <div className="mx-auto max-w-7xl px-6 py-10">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-3">
