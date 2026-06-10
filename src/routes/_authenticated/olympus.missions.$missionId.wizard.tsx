@@ -139,6 +139,13 @@ function ResumeWizardPage() {
       </WizardShell>
     );
   }
+  if (step === 6) {
+    return (
+      <WizardShell step={6} onBack={back} wide>
+        <Step4Journey missionId={missionId} />
+      </WizardShell>
+    );
+  }
 
   return (
     <WizardShell step={step} onBack={back}>
