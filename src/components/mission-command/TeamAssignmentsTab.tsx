@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonRows, ErrorState, EmptyState } from "@/components/shared/data-states";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -75,7 +75,7 @@ function TeamSub({ missionId }: { missionId: string }) {
   const [removeTarget, setRemoveTarget] = useState<any>(null);
   const [blockOpen, setBlockOpen] = useState<{ count: number } | null>(null);
 
-  const { data: members, isLoading } = useQuery({
+  const { data: members, isLoading, isError, refetch } = useQuery({
     queryKey: ["mt-team", missionId],
     queryFn: async () => {
       const { data } = await supabase
@@ -141,7 +141,8 @@ function TeamSub({ missionId }: { missionId: string }) {
     qc.invalidateQueries({ queryKey: ["mt-team", missionId] });
   };
 
-  if (isLoading) return <Skeleton className="h-64 w-full" />;
+  if (isError) return <ErrorState message="Couldn't load mission team." onRetry={() => refetch()} />;
+  if (isLoading) return <SkeletonRows rows={5} height="h-14" />;
 
   return (
     <div className="space-y-4">
@@ -357,7 +358,7 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
   const [bulkWriter, setBulkWriter] = useState<string | null>(null);
   const [bulkDate, setBulkDate] = useState<Date | undefined>();
 
-  const { data: assignments, isLoading } = useQuery({
+  const { data: assignments, isLoading, isError, refetch } = useQuery({
     queryKey: ["mt-assignments", missionId],
     queryFn: async () => {
       const { data } = await supabase
@@ -461,7 +462,8 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
     toast.success("Due dates updated.");
   };
 
-  if (isLoading) return <Skeleton className="h-64 w-full" />;
+  if (isError) return <ErrorState message="Couldn't load assignments." onRetry={() => refetch()} />;
+  if (isLoading) return <SkeletonRows rows={5} height="h-14" />;
 
   return (
     <div className="space-y-4">

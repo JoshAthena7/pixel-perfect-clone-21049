@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonRows, ErrorState, EmptyState } from "@/components/shared/data-states";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -63,7 +63,7 @@ export function SubmissionChecklistTab({
   const [addOpen, setAddOpen] = useState(false);
   const [dragId, setDragId] = useState<string | null>(null);
 
-  const { data: items, isLoading } = useQuery({
+  const { data: items, isLoading, isError, refetch } = useQuery({
     queryKey: ["submission-checklist", missionId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -154,7 +154,8 @@ export function SubmissionChecklistTab({
     qc.invalidateQueries({ queryKey: ["submission-checklist", missionId] });
   };
 
-  if (isLoading) return <Skeleton className="h-96 w-full" />;
+  if (isError) return <ErrorState message="Couldn't load the submission checklist." onRetry={() => refetch()} />;
+  if (isLoading) return <SkeletonRows rows={5} height="h-20" />;
 
   return (
     <div className="space-y-5">
@@ -206,9 +207,10 @@ export function SubmissionChecklistTab({
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-dashed p-12 text-center text-muted-foreground">
-          No checklist items yet. IRIS will extract submission requirements automatically when you upload the RFP. You can also add items manually.
-        </div>
+        <EmptyState
+          title="No checklist items yet"
+          description="IRIS will extract submission requirements automatically when you upload the RFP. You can also add items manually."
+        />
       ) : (
         <div className="space-y-2">
           {filtered.map((i) => {

@@ -10,7 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonRows, ErrorState, EmptyState } from "@/components/shared/data-states";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -100,7 +100,7 @@ export function SectionsQuestionsTab({
   const [filterAcceptance, setFilterAcceptance] = useState<string>("all");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["mission-hierarchy", missionId],
     queryFn: async () => {
       const [vols, secs, qs, asgs, team] = await Promise.all([
@@ -167,15 +167,9 @@ export function SectionsQuestionsTab({
     });
   }, [data, search, filterWriter, filterHealth, filterAcceptance]);
 
+  if (isError) return <ErrorState message="Couldn't load sections and questions." onRetry={() => refetch()} />;
   if (isLoading || !data) {
-    return (
-      <div className="space-y-3">
-        <Skeleton className="h-12" />
-        {[0, 1, 2].map((i) => (
-          <Skeleton key={i} className="h-24" />
-        ))}
-      </div>
-    );
+    return <SkeletonRows rows={5} height="h-24" />;
   }
 
   const sectionsByVolume = (volId: string) =>
@@ -266,19 +260,22 @@ export function SectionsQuestionsTab({
       </div>
 
       {emptyByFilter && (
-        <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-          No questions match your filters.{" "}
-          <button onClick={clearFilters} className="text-primary hover:underline">
-            Clear filters
-          </button>
-        </div>
+        <EmptyState
+          title="No questions match your filters"
+          action={
+            <button onClick={clearFilters} className="text-primary hover:underline text-sm">
+              Clear filters
+            </button>
+          }
+        />
       )}
 
       {/* Hierarchy */}
       {data.volumes.length === 0 && (
-        <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-          No volumes yet. Add structure via the Cascade Review.
-        </div>
+        <EmptyState
+          title="No volumes yet"
+          description="Add structure via the Cascade Review to start organizing this mission."
+        />
       )}
 
       {data.volumes.map((vol) => {

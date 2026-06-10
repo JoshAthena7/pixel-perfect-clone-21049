@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonRows, ErrorState, EmptyState } from "@/components/shared/data-states";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -65,7 +65,7 @@ export function ComplianceTab({
   const [editing, setEditing] = useState<Req | null>(null);
   const [delTarget, setDelTarget] = useState<Req | null>(null);
 
-  const { data: reqs, isLoading } = useQuery({
+  const { data: reqs, isLoading, isError, refetch } = useQuery({
     queryKey: ["compliance", missionId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -180,7 +180,8 @@ export function ComplianceTab({
     downloadCsv(`${slugForFilename(missionName)}-compliance-matrix-${date}.csv`, rows);
   };
 
-  if (isLoading) return <Skeleton className="h-96 w-full" />;
+  if (isError) return <ErrorState message="Couldn't load compliance requirements." onRetry={() => refetch()} />;
+  if (isLoading) return <SkeletonRows rows={5} height="h-20" />;
 
   return (
     <div className="space-y-5">
@@ -247,9 +248,10 @@ export function ComplianceTab({
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-dashed p-12 text-center text-muted-foreground">
-          No compliance requirements extracted. IRIS may not have found explicit requirements in your RFP. Add them manually.
-        </div>
+        <EmptyState
+          title="No compliance requirements"
+          description="IRIS may not have found explicit requirements in your RFP. Add them manually."
+        />
       ) : (
         <div className="space-y-2">
           {filtered.map((r) => {

@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonRows, ErrorState, EmptyState } from "@/components/shared/data-states";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -57,7 +57,7 @@ export function IntelligenceLibraryTab({ missionId }: { missionId: string }) {
   const [openFolders, setOpenFolders] = useState<Set<string>>(new Set(FOLDERS.map((f) => f.id)));
   const [tagEdit, setTagEdit] = useState<Doc | null>(null);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["intel-library", missionId],
     queryFn: async () => {
       const [docsRes, secsRes, missionRes] = await Promise.all([
@@ -84,7 +84,8 @@ export function IntelligenceLibraryTab({ missionId }: { missionId: string }) {
     );
   }, [data, search]);
 
-  if (isLoading || !data) return <Skeleton className="h-96 w-full" />;
+  if (isError) return <ErrorState message="Couldn't load the intelligence library." onRetry={() => refetch()} />;
+  if (isLoading || !data) return <SkeletonRows rows={6} height="h-16" />;
 
   return (
     <div className="space-y-5">
@@ -184,9 +185,10 @@ export function IntelligenceLibraryTab({ missionId }: { missionId: string }) {
       )}
 
       {data.docs.length === 0 && (
-        <div className="rounded-xl border border-dashed p-12 text-center text-muted-foreground">
-          No documents in the library yet. Add your first piece of intelligence.
-        </div>
+        <EmptyState
+          title="No documents in the library yet"
+          description="Add your first piece of intelligence."
+        />
       )}
 
       <AddContentModal

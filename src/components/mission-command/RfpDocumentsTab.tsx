@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonRows, ErrorState, EmptyState } from "@/components/shared/data-states";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -71,7 +71,7 @@ export function RfpDocumentsTab({ missionId }: { missionId: string }) {
   const [applyConfirm, setApplyConfirm] = useState(false);
   const analyze = useServerFn(analyzeAmendment);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["rfp-docs", missionId],
     queryFn: async () => {
       const [docsRes, secsRes, clientRes] = await Promise.all([
@@ -189,8 +189,9 @@ export function RfpDocumentsTab({ missionId }: { missionId: string }) {
     qc.invalidateQueries({ queryKey: ["rfp-docs", missionId] });
   }
 
+  if (isError) return <ErrorState message="Couldn't load RFP documents." onRetry={() => refetch()} />;
   if (isLoading || !data) {
-    return <Skeleton className="h-96 w-full" />;
+    return <SkeletonRows rows={5} height="h-16" />;
   }
 
   return (
@@ -230,9 +231,10 @@ export function RfpDocumentsTab({ missionId }: { missionId: string }) {
           );
         })}
         {(data.docs.length ?? 0) === 0 && (
-          <div className="rounded-xl border border-dashed p-12 text-center text-muted-foreground">
-            No documents yet. Click "Upload Document" to add the RFP and supporting intel.
-          </div>
+          <EmptyState
+            title="No documents yet"
+            description='Click "Upload Document" to add the RFP and supporting intel.'
+          />
         )}
       </div>
 

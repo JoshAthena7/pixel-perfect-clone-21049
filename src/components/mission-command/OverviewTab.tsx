@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { differenceInCalendarDays, format, formatDistanceToNow } from "date-fns";
 import { CheckCircle2, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonCards, SkeletonRows, ErrorState, EmptyState } from "@/components/shared/data-states";
 import { cn } from "@/lib/utils";
 import type { TabId } from "./MissionTabs";
 
@@ -14,7 +14,7 @@ export function OverviewTab({
   missionId: string;
   onNavigateTab: (t: TabId) => void;
 }) {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["mission-overview", missionId],
     queryFn: async () => {
       const [
@@ -92,16 +92,12 @@ export function OverviewTab({
     },
   });
 
+  if (isError) return <ErrorState message="Couldn't load the mission overview." onRetry={() => refetch()} />;
   if (isLoading || !data) {
     return (
       <div className="space-y-6">
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          {[0, 1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-32" />
-          ))}
-        </div>
-        <Skeleton className="h-24" />
-        <Skeleton className="h-32" />
+        <SkeletonCards count={4} height="h-32" />
+        <SkeletonRows rows={2} height="h-24" />
       </div>
     );
   }

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonRows, ErrorState, EmptyState } from "@/components/shared/data-states";
 import { useIsAdmin, logAudit } from "@/lib/mission-helpers";
 
 type TermRow = { use_this: string; not_this: string; context: string };
@@ -46,7 +46,7 @@ export function StyleGuideTab({ missionId }: { missionId: string }) {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const debounce = useRef<number | undefined>(undefined);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["style-guide", missionId],
     enabled: !!isAdmin,
     queryFn: async () => {
@@ -117,12 +117,14 @@ export function StyleGuideTab({ missionId }: { missionId: string }) {
     [lastSaved],
   );
 
-  if (roleLoading || isLoading) return <Skeleton className="h-96 w-full" />;
+  if (roleLoading || isLoading) return <SkeletonRows rows={6} height="h-24" />;
+  if (isError) return <ErrorState message="Couldn't load the style guide." onRetry={() => refetch()} />;
   if (!isAdmin) {
     return (
-      <div className="rounded-xl border border-dashed p-12 text-center text-muted-foreground">
-        This tab is restricted to mission administrators.
-      </div>
+      <EmptyState
+        title="Admin only"
+        description="The style guide is restricted to mission administrators."
+      />
     );
   }
 
