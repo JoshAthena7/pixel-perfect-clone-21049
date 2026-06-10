@@ -139,6 +139,10 @@ export function OracleTab({ missionId }: { missionId: string }) {
           <Button variant="outline" className="border-[#C9A55C] text-[#C9A55C] hover:bg-[#C9A55C]/10" onClick={openBrief}>
             <Sparkles className="h-4 w-4 mr-1" /> Brief Me
           </Button>
+          <Button variant="outline" disabled={refreshing} onClick={refreshAll}>
+            <RefreshCw className={`h-4 w-4 mr-1 ${refreshing ? "animate-spin" : ""}`} />
+            {refreshing ? "Refreshing…" : "Refresh all intelligence"}
+          </Button>
           <Button onClick={() => navigate({ to: "/olympus/missions/$missionId", params: { missionId }, search: (p: Record<string, unknown>) => ({ ...p, tab: "intel-library" }) })}>
             Add Intelligence +
           </Button>
