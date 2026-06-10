@@ -5,8 +5,7 @@ import { IrisProvider } from "@/components/iris/IrisContext";
 import { IrisDock } from "@/components/iris/IrisDock";
 import { AssistsBar } from "@/components/iris/AssistsBar";
 import { GlobalCommandBar } from "@/components/nav/GlobalCommandBar";
-import { OlympusSecondaryNav } from "@/components/nav/OlympusSecondaryNav";
-import { Breadcrumbs } from "@/components/nav/Breadcrumbs";
+import { MissionStrip } from "@/components/nav/MissionStrip";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -107,17 +106,12 @@ function AuthenticatedLayout() {
   const [irisPrefill, setIrisPrefill] = useState<{ value: string; nonce: number } | null>(null);
   const [irisOpenSignal, setIrisOpenSignal] = useState(0);
 
-  const showSecondaryNav =
-    (path.startsWith("/olympus") || path.startsWith("/admin")) &&
-    !/^\/olympus\/missions\/[^/]+(\/|$)/.test(path);
-
   const hideFloatingAssists = path === "/olympus/flight-deck";
 
   const shell = (
     <div className="min-h-screen bg-background text-foreground">
       <GlobalCommandBar email={email} />
-      {showSecondaryNav && <OlympusSecondaryNav isAdmin={isAdmin} />}
-      <Breadcrumbs />
+      <MissionStrip />
       <main>
         <Outlet />
       </main>
