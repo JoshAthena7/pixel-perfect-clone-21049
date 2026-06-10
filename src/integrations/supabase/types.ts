@@ -4520,11 +4520,17 @@ export type Database = {
           answer_received_at: string | null
           category: string | null
           created_at: string
+          date_issued: string | null
           id: string
+          impact_level: string
+          iris_interpretation: string | null
           mission_id: string
+          qa_number: string | null
           question: string
           question_submitted_at: string | null
           question_submitted_by: string | null
+          sections_affected: string[]
+          state_response: string | null
           status: string
           updated_at: string
         }
@@ -4533,11 +4539,17 @@ export type Database = {
           answer_received_at?: string | null
           category?: string | null
           created_at?: string
+          date_issued?: string | null
           id?: string
+          impact_level?: string
+          iris_interpretation?: string | null
           mission_id: string
+          qa_number?: string | null
           question: string
           question_submitted_at?: string | null
           question_submitted_by?: string | null
+          sections_affected?: string[]
+          state_response?: string | null
           status?: string
           updated_at?: string
         }
@@ -4546,11 +4558,17 @@ export type Database = {
           answer_received_at?: string | null
           category?: string | null
           created_at?: string
+          date_issued?: string | null
           id?: string
+          impact_level?: string
+          iris_interpretation?: string | null
           mission_id?: string
+          qa_number?: string | null
           question?: string
           question_submitted_at?: string | null
           question_submitted_by?: string | null
+          sections_affected?: string[]
+          state_response?: string | null
           status?: string
           updated_at?: string
         }
@@ -4946,6 +4964,7 @@ export type Database = {
       }
       mission_sections: {
         Row: {
+          amendment_flagged: boolean
           created_at: string
           description: string | null
           evaluation_weight: number | null
@@ -4962,6 +4981,7 @@ export type Database = {
           volume_id: string | null
         }
         Insert: {
+          amendment_flagged?: boolean
           created_at?: string
           description?: string | null
           evaluation_weight?: number | null
@@ -4978,6 +4998,7 @@ export type Database = {
           volume_id?: string | null
         }
         Update: {
+          amendment_flagged?: boolean
           created_at?: string
           description?: string | null
           evaluation_weight?: number | null
