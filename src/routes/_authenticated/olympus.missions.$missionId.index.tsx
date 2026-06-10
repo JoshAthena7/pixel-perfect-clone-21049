@@ -129,7 +129,7 @@ function MissionCommandCenter() {
         )}
         {activeTab === "rfp-documents" && <RfpDocumentsTab missionId={missionId} />}
         {activeTab === "qa-log" && <QaLogTab missionId={missionId} />}
-        {activeTab === "client-intel" && <ClientIntelligenceTab missionId={missionId} />}
+        {activeTab === "oracle" && <OracleTab missionId={missionId} />}
         {activeTab === "intel-library" && <IntelligenceLibraryTab missionId={missionId} />}
         {activeTab === "compliance" && (
           <ComplianceTab
