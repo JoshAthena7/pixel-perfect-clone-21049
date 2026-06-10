@@ -54,10 +54,32 @@ export function Step1CProcessing({
   const [lines, setLines] = useState<string[]>([]);
   const [phase, setPhase] = useState<Phase>("running");
   const [errMsg, setErrMsg] = useState<string | null>(null);
+  const [step, setStep] = useState<StepKey>("download");
+  const [extractIdx, setExtractIdx] = useState(0);
+  const [extractTotal, setExtractTotal] = useState(0);
+  const [analyzePct, setAnalyzePct] = useState(0); // smooth fake fill inside analyze phase
   const startedAt = useRef<number>(Date.now());
   const aiDone = useRef<boolean>(false);
   const aiError = useRef<string | null>(null);
   const ran = useRef(false);
+
+  // Compute overall %.
+  const overallPct = (() => {
+    if (step === "done") return 100;
+    let pct = 0;
+    if (step === "download") {
+      pct = 0;
+    } else if (step === "extract") {
+      pct = STEP_WEIGHTS.download;
+      if (extractTotal > 0) pct += (extractIdx / extractTotal) * STEP_WEIGHTS.extract;
+    } else if (step === "analyze") {
+      pct = STEP_WEIGHTS.download + STEP_WEIGHTS.extract;
+      pct += (analyzePct / 100) * STEP_WEIGHTS.analyze;
+    } else if (step === "save") {
+      pct = STEP_WEIGHTS.download + STEP_WEIGHTS.extract + STEP_WEIGHTS.analyze;
+    }
+    return Math.min(99, Math.round(pct));
+  })();
 
   useEffect(() => {
     if (ran.current) return;
@@ -71,9 +93,15 @@ export function Step1CProcessing({
       if (i >= FEED.length) clearInterval(interval);
     }, LINE_DELAY_MS);
 
+    // Smooth analyze-phase fake fill (eases toward 95% while AI runs)
+    const analyzeTick = setInterval(() => {
+      setAnalyzePct((p) => (p < 95 ? p + (95 - p) * 0.04 : p));
+    }, 400);
+
     // Background processing
     (async () => {
       try {
+        setStep("download");
         // 1. Fetch primary RFP documents
         const { data: docs, error } = await supabase
           .from("mission_documents")
@@ -84,11 +112,14 @@ export function Step1CProcessing({
         if (!docs || docs.length === 0) throw new Error("No primary RFP found.");
 
         // 2. Download each, extract text (browser-side)
+        setStep("extract");
+        setExtractTotal(docs.length);
         const allText: string[] = [];
-        for (const d of docs) {
-          if (!d.file_url) continue;
+        for (let idx = 0; idx < docs.length; idx++) {
+          const d = docs[idx];
+          if (!d.file_url) { setExtractIdx(idx + 1); continue; }
           const { data: blob, error: dErr } = await supabase.storage.from(BUCKET).download(d.file_url);
-          if (dErr || !blob) continue;
+          if (dErr || !blob) { setExtractIdx(idx + 1); continue; }
           const fname = d.file_url.split("/").pop() || d.title || "doc.pdf";
           const file = new File([blob], fname, { type: blob.type });
           try {
@@ -99,12 +130,16 @@ export function Step1CProcessing({
           } catch (e) {
             console.warn("extract failed", fname, e);
           }
+          setExtractIdx(idx + 1);
         }
         const combined = allText.join("\n\n---\n\n").slice(0, 700_000);
         if (combined.trim().length < 50) throw new Error("Could not extract text from the uploaded documents.");
 
         // 3. Server fn → AI → DB writes
+        setStep("analyze");
         await runProcess({ data: { mission_id: missionId, primary_rfp_text: combined } });
+        setStep("save");
+        setAnalyzePct(100);
         aiDone.current = true;
       } catch (e: any) {
         console.error("IRIS processing failed", e);
@@ -123,6 +158,7 @@ export function Step1CProcessing({
           setErrMsg(aiError.current);
           setPhase("error");
         } else {
+          setStep("done");
           setPhase("done");
         }
       }
@@ -133,6 +169,7 @@ export function Step1CProcessing({
           setErrMsg(aiError.current);
           setPhase("error");
         } else if (aiDone.current) {
+          setStep("done");
           setPhase("done");
         } else {
           setErrMsg("Processing timed out.");
@@ -143,24 +180,46 @@ export function Step1CProcessing({
 
     return () => {
       clearInterval(interval);
+      clearInterval(analyzeTick);
       clearInterval(watcher);
     };
   }, [missionId, runProcess]);
+
+  const stepLabel =
+    step === "extract" && extractTotal > 0
+      ? `${STEP_LABELS.extract} (${Math.min(extractIdx, extractTotal)} of ${extractTotal})`
+      : STEP_LABELS[step];
 
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4 py-10">
       <IrisPulse mode={phase === "running" ? "active" : phase === "done" ? "idle" : "off"} />
 
       {phase === "running" && (
-        <div className="mt-10 space-y-2 max-w-xl">
-          {lines.map((l, i) => (
-            <p
-              key={i}
-              className="text-foreground text-base animate-[wizard-rise_0.4s_ease-out_both]"
-            >
-              {l}
+        <div className="mt-8 w-full max-w-xl space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-baseline justify-between text-sm">
+              <span className="text-foreground/80 font-medium">{stepLabel}</span>
+              <span className="text-[var(--athena-gold)] font-mono tabular-nums">{overallPct}%</span>
+            </div>
+            <Progress
+              value={overallPct}
+              className="h-2 bg-[var(--athena-gold)]/15 [&>div]:bg-[var(--athena-gold)]"
+            />
+            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              Step {step === "download" ? 1 : step === "extract" ? 2 : step === "analyze" ? 3 : 4} of 4
             </p>
-          ))}
+          </div>
+
+          <div className="space-y-2 pt-4">
+            {lines.map((l, i) => (
+              <p
+                key={i}
+                className="text-foreground/90 text-sm animate-[wizard-rise_0.4s_ease-out_both]"
+              >
+                {l}
+              </p>
+            ))}
+          </div>
         </div>
       )}
 
@@ -177,6 +236,7 @@ export function Step1CProcessing({
           </Button>
         </div>
       )}
+
 
       {phase === "error" && (
         <div className="mt-10 max-w-xl space-y-6">
