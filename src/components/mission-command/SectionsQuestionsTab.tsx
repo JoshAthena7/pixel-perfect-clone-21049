@@ -522,7 +522,7 @@ function QuestionRow({
       const notifs: any[] = [
         {
           recipient_id: newWriterId,
-          recipient_role: "writer",
+          recipient_role: "specific_user",
           type: "assignment_acceptance_required",
           message: `You have been assigned ${question.question_number} on ${missionName}. Accept or flag your availability.`,
           metadata: { mission_id: missionId, question_id: question.id },
@@ -531,7 +531,7 @@ function QuestionRow({
       if (oldWriter && oldWriter !== newWriterId) {
         notifs.push({
           recipient_id: oldWriter,
-          recipient_role: "writer",
+          recipient_role: "specific_user",
           type: "assignment_removed",
           message: `Your assignment ${question.question_number} on ${missionName} has been reassigned.`,
           metadata: { mission_id: missionId, question_id: question.id },
@@ -576,7 +576,7 @@ function QuestionRow({
     if (assignment?.assigned_writer_id) {
       await supabase.from("atlas_notifications").insert({
         recipient_id: assignment.assigned_writer_id,
-        recipient_role: "writer",
+        recipient_role: "specific_user",
         type: "assignment_removed",
         message: `Question ${question.question_number} on ${missionName} has been withdrawn by the state.`,
         metadata: { mission_id: missionId, question_id: question.id },
