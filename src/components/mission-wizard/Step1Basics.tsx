@@ -225,10 +225,11 @@ export function Step1Basics({
       <div className="flex justify-center pt-2">
         <Button
           onClick={handleNext}
-          disabled={!isValid || saving}
+          disabled={saving}
           className={cn(
             "w-full sm:w-auto sm:min-w-[260px] bg-[var(--athena-gold)] text-[var(--athena-navy-dark)] hover:bg-[var(--athena-gold-light)]",
-            (!isValid || saving) && "opacity-40",
+            saving && "opacity-40",
+            !isValid && !saving && "opacity-70",
           )}
         >
           {saving ? "Saving…" : "Next — Upload RFP →"}
