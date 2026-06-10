@@ -1,14 +1,23 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { z } from "zod";
-import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MissionHeader } from "@/components/mission-command/MissionHeader";
+import {
+  MissionTabs,
+  isValidTab,
+  tabLabel,
+  type TabId,
+} from "@/components/mission-command/MissionTabs";
+import { OverviewTab } from "@/components/mission-command/OverviewTab";
+import { SectionsQuestionsTab } from "@/components/mission-command/SectionsQuestionsTab";
 
 const searchSchema = z.object({
   launched: z.coerce.number().optional(),
+  tab: z.string().optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/olympus/missions/$missionId/")({
@@ -18,17 +27,32 @@ export const Route = createFileRoute("/_authenticated/olympus/missions/$missionI
 
 function MissionCommandCenter() {
   const { missionId } = Route.useParams();
-  const { launched } = Route.useSearch();
-  const { data, isLoading } = useQuery({
-    queryKey: ["mission", missionId],
+  const { launched, tab } = Route.useSearch();
+  const navigate = useNavigate();
+
+  const activeTab: TabId = isValidTab(tab) ? tab : "overview";
+
+  const { data: mission, isLoading } = useQuery({
+    queryKey: ["mission-header", missionId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("missions")
-        .select("id, name, client_name, status")
+        .select("id, name, client_name, status, submission_deadline")
         .eq("id", missionId)
         .single();
       if (error) throw error;
       return data;
+    },
+  });
+
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ["mission-unread", missionId],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("atlas_notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("is_read", false);
+      return count ?? 0;
     },
   });
 
@@ -42,25 +66,43 @@ function MissionCommandCenter() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [launched]);
 
+  const setTab = (next: TabId) => {
+    navigate({
+      to: "/olympus/missions/$missionId",
+      params: { missionId },
+      search: (prev: Record<string, unknown>) => ({ ...prev, tab: next }),
+    });
+  };
+
+  if (isLoading || !mission) {
+    return (
+      <div className="mx-auto max-w-7xl px-6 py-8 space-y-4">
+        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-96 w-full" />
+      </div>
+    );
+  }
+
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
-      <Link
-        to="/olympus/missions"
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6"
-      >
-        <ArrowLeft className="h-4 w-4" /> All missions
-      </Link>
-      {isLoading ? (
-        <Skeleton className="h-10 w-2/3" />
-      ) : (
-        <>
-          <h1 className="text-3xl font-bold text-foreground">{data?.name ?? "Mission"}</h1>
-          <p className="text-muted-foreground mb-8">{data?.client_name}</p>
-          <div className="rounded-xl border border-border bg-surface/40 p-10 text-center">
-            <p className="text-lg text-muted-foreground">Mission Command Center — coming soon.</p>
+    <div className="min-h-screen">
+      <MissionHeader mission={mission} unreadCount={unreadCount} />
+      <MissionTabs active={activeTab} onChange={setTab} />
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
+        {activeTab === "overview" && (
+          <OverviewTab missionId={missionId} onNavigateTab={setTab} />
+        )}
+        {activeTab === "sections-questions" && (
+          <SectionsQuestionsTab missionId={missionId} missionName={mission.name} />
+        )}
+        {activeTab !== "overview" && activeTab !== "sections-questions" && (
+          <div className="rounded-xl border border-dashed border-border p-16 text-center">
+            <p className="text-lg text-muted-foreground">
+              {tabLabel(activeTab)} — Coming in a future sprint.
+            </p>
           </div>
-        </>
-      )}
+        )}
+      </div>
     </div>
   );
 }
