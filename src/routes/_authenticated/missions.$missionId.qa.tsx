@@ -1,0 +1,15 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { QaLogTab } from "@/components/mission-command/QaLogTab";
+
+export const Route = createFileRoute("/_authenticated/missions/$missionId/qa")({
+  component: QaRoute,
+});
+
+function QaRoute() {
+  const { missionId } = Route.useParams();
+  return (
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
+      <QaLogTab missionId={missionId} />
+    </div>
+  );
+}
