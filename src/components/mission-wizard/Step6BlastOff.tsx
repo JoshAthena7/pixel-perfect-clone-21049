@@ -269,7 +269,11 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
       <header className="mb-8">
         <h1 className="text-4xl md:text-5xl font-semibold">Mission Launch Checklist.</h1>
         <p className="text-white/70 mt-2">IRIS is verifying everything before launch.</p>
+        <div className="mt-3">
+          <StepMetaIndicator irisCount={4} youCount={4} />
+        </div>
       </header>
+
 
       <ul className={cn("space-y-2 max-w-2xl transition-opacity", allGreen && "opacity-80")}>
         {items.map((c, i) => {
