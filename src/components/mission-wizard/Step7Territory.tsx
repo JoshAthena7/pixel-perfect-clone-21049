@@ -7,6 +7,7 @@ import { seedTerritoryIntelligence } from "@/lib/iris-territory.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { InputSourceBadge, ConfirmationBar, StepMetaIndicator } from "@/components/InputSourceBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
