@@ -308,8 +308,23 @@ export async function createFeedItem(
         })),
       );
     }
+
+    // Promote high-relevance feed items to research nodes on the Intelligence Graph.
+    try {
+      const { promoteFeedItemToResearchNode } = await import("@/lib/iris-territory.server");
+      await promoteFeedItemToResearchNode(supabase as never, missionId, {
+        id: (inserted as { id: string }).id,
+        headline: item.title,
+        summary: item.description,
+        source_name: feedConfigName ?? null,
+        iris_relevance_score: assessment.relevance_score,
+      });
+    } catch (e) {
+      console.error("promoteFeedItemToResearchNode failed", e);
+    }
   }
 }
+
 
 /** Process a single feed config: fetch URL, filter by date, assess, create items. */
 export async function processFeedConfig(
