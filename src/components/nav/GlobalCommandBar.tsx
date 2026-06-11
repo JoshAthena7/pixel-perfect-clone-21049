@@ -308,6 +308,22 @@ export function GlobalCommandBar({ email, isAdmin = false }: { email?: string | 
               Athena Team
             </Link>
           )}
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent("atlas:iris:prefill", { detail: "Score my draft" }))}
+            className="hidden sm:inline-flex items-center gap-1 rounded-md text-[11px] font-medium px-2.5 py-1 transition-colors"
+            style={{ background: "rgba(196,154,43,0.15)", border: "1px solid rgba(196,154,43,0.4)", color: "#C49A2B" }}
+          >
+            Score Draft
+          </button>
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent("atlas:iris:open"))}
+            className="hidden sm:inline-flex items-center gap-1 rounded-md text-[11px] font-medium px-2.5 py-1 transition-colors"
+            style={{ background: "rgba(127,119,221,0.12)", border: "1px solid rgba(127,119,221,0.3)", color: "rgba(200,195,255,0.9)" }}
+          >
+            Ask IRIS
+          </button>
           <span className="hidden sm:inline-block h-5 w-px" style={{ background: "rgba(255,255,255,0.08)" }} />
           <IntelAlertCount />
           <NotificationBell />
