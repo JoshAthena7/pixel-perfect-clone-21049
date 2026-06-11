@@ -187,12 +187,7 @@ export function JourneyLiveTab({ missionId, deadline }: { missionId: string; dea
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-semibold">Mission Journey</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Live mission timeline. Adjust phases within constraints. Engagement Leads clear gates.
-        </p>
-      </div>
+
 
       {/* Timeline */}
       {timelineBounds && (

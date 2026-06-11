@@ -159,18 +159,13 @@ export function SubmissionChecklistTab({
 
   return (
     <div className="space-y-5">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold">Submission Checklist</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Everything required to submit the proposal package. Complete these before Pens Down — not after.
-          </p>
-        </div>
+      <div className="flex items-start justify-end gap-4">
         <Button variant="outline" className="border-primary text-primary hover:bg-primary/10"
                 onClick={() => setAddOpen(true)}>
           <Plus className="size-4 mr-2" />Add Item
         </Button>
       </div>
+
 
       <div className="rounded-lg border bg-muted/30 p-3 text-sm text-muted-foreground">
         Submission requirements are separate from content requirements. These are the physical and administrative items the client requires in the submission package.

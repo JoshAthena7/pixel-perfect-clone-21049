@@ -151,18 +151,13 @@ export function DecisionLogTab({ missionId, missionName }: { missionId: string; 
 
   return (
     <div className="space-y-5">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold">Decision Log</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            A permanent record of every strategic decision on this mission. Decisions cannot be edited after saving.
-          </p>
-        </div>
+      <div className="flex items-start justify-end gap-4">
         <Button variant="outline" className="border-primary text-primary hover:bg-primary/10"
                 onClick={() => setAddOpen(true)}>
           <Plus className="size-4 mr-2" />Add Decision
         </Button>
       </div>
+
 
       <div className="rounded-lg border bg-muted/30 p-3 text-sm text-muted-foreground">
         Decisions are append-only. Once saved they cannot be edited or deleted. This is by design — it creates an honest and auditable record of how the mission evolved.
