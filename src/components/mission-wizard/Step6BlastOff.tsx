@@ -262,6 +262,7 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
       setPhase("burst");
       seedTerritory({ data: { missionId } }).catch((e) => console.error("[BLAST OFF] seedTerritoryIntelligence failed:", e));
       buildGraph({ data: { missionId } }).catch((e) => console.error("[BLAST OFF] buildIntelligenceGraph failed:", e));
+      fireSectionInsights();
       await new Promise((r) => setTimeout(r, 900));
 
       navigate({
