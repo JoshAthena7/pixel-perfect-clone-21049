@@ -15,6 +15,7 @@ import { useIris } from "@/components/iris/IrisContext";
 import { IrisIntelligenceBrief } from "@/components/iris/IrisIntelligenceBrief";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScoreDraftPanel } from "./ScoreDraftPanel";
+import { AskIrisButton } from "@/components/iris/AskIrisButton";
 import { listMyRecentScores } from "@/lib/v2-home.functions";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -255,20 +256,8 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
             <Sparkles className="h-3.5 w-3.5" />
             Score Draft
           </button>
-          <button
-            type="button"
-            onClick={onOpenIris}
-            className="inline-flex items-center gap-1.5 rounded-md text-[13px] font-medium"
-            style={{
-              background: IRIS_PURPLE_BG,
-              border: `1px solid ${IRIS_PURPLE_BORDER}`,
-              color: IRIS_PURPLE_TEXT,
-              padding: "6px 14px",
-            }}
-          >
-            <MessageSquare className="h-3.5 w-3.5" />
-            Ask IRIS
-          </button>
+          <AskIrisButton />
+
         </div>
       </div>
 

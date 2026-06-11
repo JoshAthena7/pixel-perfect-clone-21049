@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { MissionEditPanel } from "@/components/missions/MissionEditPanel";
 import { refreshAllMissionFeeds } from "@/lib/iris-refresh-all.functions";
 import { ScoreDraftPanel } from "@/components/my-work/ScoreDraftPanel";
+import { AskIrisButton } from "@/components/iris/AskIrisButton";
 import { tabLabel, type TabId } from "./MissionTabs";
 
 const TAB_SUBTITLES: Partial<Record<TabId, string>> = {
@@ -86,6 +87,7 @@ export function MissionContentHeader({
         >
           <Target className="h-3.5 w-3.5" /> Score Draft
         </button>
+        <AskIrisButton />
         <button type="button" className={btn} style={baseBtnStyle} onClick={() => setEditOpen(true)}>
           <Pencil className="h-3.5 w-3.5" /> Edit Mission
         </button>
