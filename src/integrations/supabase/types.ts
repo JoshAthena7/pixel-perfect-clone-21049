@@ -181,6 +181,57 @@ export type Database = {
         }
         Relationships: []
       }
+      athena_insights: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_daily_insight: boolean
+          mission_id: string
+          question_id: string | null
+          quote: string
+          updated_at: string
+          writers_note: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_daily_insight?: boolean
+          mission_id: string
+          question_id?: string | null
+          quote: string
+          updated_at?: string
+          writers_note?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_daily_insight?: boolean
+          mission_id?: string
+          question_id?: string | null
+          quote?: string
+          updated_at?: string
+          writers_note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "athena_insights_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "athena_insights_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       athena_smes: {
         Row: {
           availability: string | null
@@ -8472,7 +8523,14 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "lead" | "writer" | "sme" | "project_manager"
+      app_role:
+        | "admin"
+        | "lead"
+        | "writer"
+        | "sme"
+        | "project_manager"
+        | "engagement_lead"
+        | "executive"
       briefing_type: "global" | "direct"
       executive_decision_source: "team" | "iris"
       executive_decision_status:
@@ -8634,7 +8692,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "lead", "writer", "sme", "project_manager"],
+      app_role: [
+        "admin",
+        "lead",
+        "writer",
+        "sme",
+        "project_manager",
+        "engagement_lead",
+        "executive",
+      ],
       briefing_type: ["global", "direct"],
       executive_decision_source: ["team", "iris"],
       executive_decision_status: [

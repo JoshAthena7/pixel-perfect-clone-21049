@@ -1,11 +1,15 @@
-import { createFileRoute, Outlet, redirect, useRouterState, Navigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useRouterState, Navigate, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { IrisProvider } from "@/components/iris/IrisContext";
 import { IrisDock } from "@/components/iris/IrisDock";
 import { AssistsBar } from "@/components/iris/AssistsBar";
 import { AdminQuickBar } from "@/components/admin/AdminQuickBar";
 import { GlobalCommandBar } from "@/components/nav/GlobalCommandBar";
+import { getMyHome } from "@/lib/v2-home.functions";
 
 
 export const Route = createFileRoute("/_authenticated")({
@@ -71,6 +75,8 @@ function withTimeout<T>(promise: PromiseLike<T>, ms: number, fallback: T): Promi
 
 // Paths a non-admin is allowed to view outside the V1 shell.
 const NON_ADMIN_ALLOWED_PREFIXES = [
+  "/my-work",
+  "/portfolio",
   "/flight-deck",
   "/v1",
   "/profile",
@@ -98,6 +104,7 @@ function AuthenticatedLayout() {
   }
 
   const { isAdmin } = Route.useRouteContext();
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState<string | null>(null);
   useEffect(() => {
@@ -107,7 +114,60 @@ function AuthenticatedLayout() {
   const [irisPrefill, setIrisPrefill] = useState<{ value: string; nonce: number } | null>(null);
   const [irisOpenSignal, setIrisOpenSignal] = useState(0);
 
-  const hideFloatingAssists = path === "/olympus/flight-deck";
+  // Bridge window events from My Work / Portfolio buttons into IRIS Dock signals.
+  useEffect(() => {
+    const onOpen = () => setIrisOpenSignal(Date.now());
+    const onPrefill = (e: Event) => {
+      const ce = e as CustomEvent<string>;
+      if (typeof ce.detail === "string") {
+        setIrisPrefill({ value: ce.detail, nonce: Date.now() });
+      }
+    };
+    window.addEventListener("atlas:iris:open", onOpen);
+    window.addEventListener("atlas:iris:prefill", onPrefill as EventListener);
+    return () => {
+      window.removeEventListener("atlas:iris:open", onOpen);
+      window.removeEventListener("atlas:iris:prefill", onPrefill as EventListener);
+    };
+  }, []);
+
+  // Role-based home: resolve once per session, redirect on canonical landing paths.
+  const homeFn = useServerFn(getMyHome);
+  const { data: homeInfo } = useQuery({
+    queryKey: ["my-home"],
+    queryFn: () => homeFn(),
+    staleTime: 5 * 60_000,
+  });
+  useEffect(() => {
+    if (!homeInfo) return;
+    try {
+      localStorage.setItem("atlas_role_home", homeInfo.home);
+    } catch { /* ignore */ }
+    const landingPaths = new Set(["/", "/home", "/atrium", "/olympus", "/v1", "/flight-deck"]);
+    if (landingPaths.has(path)) {
+      const target =
+        homeInfo.home === "my-work"
+          ? "/my-work"
+          : homeInfo.home === "portfolio"
+            ? "/portfolio"
+            : "/olympus/missions";
+      navigate({ to: target as never, replace: true });
+      return;
+    }
+    // Cross-role guard: /portfolio is executive-only.
+    if (path.startsWith("/portfolio") && homeInfo.home !== "portfolio" && !isAdmin) {
+      toast.info("That page is for executives.");
+      navigate({ to: "/my-work", replace: true });
+      return;
+    }
+    if (path.startsWith("/my-work") && homeInfo.home === "portfolio") {
+      toast.info("Writers use that page.");
+      navigate({ to: "/portfolio", replace: true });
+    }
+  }, [homeInfo, path, navigate, isAdmin]);
+
+  const hideFloatingAssists =
+    path === "/olympus/flight-deck" || path === "/my-work" || path === "/portfolio";
 
   const isOlympusAdminContext = isAdmin && (path.startsWith("/olympus") || path.startsWith("/admin") || path === "/reports" || path === "/home");
 
@@ -142,3 +202,4 @@ function AuthenticatedLayout() {
 
   return <IrisProvider>{shell}</IrisProvider>;
 }
+
