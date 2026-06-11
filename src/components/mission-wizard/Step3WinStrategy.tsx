@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { InputSourceBadge, StepMetaIndicator, type InputSource } from "@/components/InputSourceBadge";
 
 const FIELD_KEYS = [
   "mission_significance",
