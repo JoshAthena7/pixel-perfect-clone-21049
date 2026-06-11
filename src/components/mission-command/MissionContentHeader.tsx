@@ -7,21 +7,11 @@ import { refreshAllMissionFeeds } from "@/lib/iris-refresh-all.functions";
 import { tabLabel, type TabId } from "./MissionTabs";
 
 const TAB_SUBTITLES: Partial<Record<TabId, string>> = {
-  overview: "What you need to know · what the mission is · what you own",
-  "win-strategy": "The North Star and competitive positioning",
-  "decision-log": "Recorded decisions and their rationale",
-  journey: "Phases and milestones to submission",
+  overview: "Mission health, strategy, journey, and progress in one place.",
+  work: "Sections, questions, Q&A, and Athena insights.",
   oracle: "Your complete intelligence picture. Updated continuously by IRIS.",
-  "rfp-documents": "Solicitation documents and amendments",
-  "qa-log": "Questions submitted to the client",
-  "sections-questions": "Response sections and assigned questions",
-  "question-health": "At-risk questions and response readiness",
-  compliance: "Compliance checks and fails",
-  "submission-checklist": "Pre-submission checklist",
-  team: "Team members and assignments",
-  "style-guide": "Voice, tone, and writing standards",
-  settings: "Mission configuration",
-  "audit-log": "A complete record of every action taken on this mission. Read-only.",
+  team: "Roster, assignments, and style guide.",
+  settings: "Mission details, documents, and audit log.",
 };
 
 const btn =

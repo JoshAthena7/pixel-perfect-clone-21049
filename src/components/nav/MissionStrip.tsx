@@ -5,11 +5,9 @@ import { Calendar, AlertTriangle, Command, MoreHorizontal } from "lucide-react";
 import { differenceInCalendarDays } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { TAB_GROUPS, type TabId, isValidTab } from "@/components/mission-command/MissionTabs";
+import { ALL_TABS, type TabId, isValidTab, useViewerMissionRole, visibleTabsForRole } from "@/components/mission-command/MissionTabs";
 import { MissionSwitcher } from "./MissionSwitcher";
 import { QuickJump } from "./QuickJump";
-
-const ALL_TABS = TAB_GROUPS.flatMap((g) => g.tabs);
 
 function useMissionId(): string | undefined {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
