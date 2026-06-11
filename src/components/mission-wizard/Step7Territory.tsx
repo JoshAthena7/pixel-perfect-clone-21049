@@ -226,7 +226,10 @@ export function Step7Territory({ missionId, onAdvance }: { missionId: string; on
       {stateCode && (
         <div className="space-y-3">
           <div className="space-y-2">
-            <Label>Procuring Agency</Label>
+            <div className="flex items-center justify-between gap-3">
+              <Label>Procuring Agency</Label>
+              <InputSourceBadge source="you" />
+            </div>
             <Input
               placeholder="e.g. Department of Children and Families"
               value={agencyName}
