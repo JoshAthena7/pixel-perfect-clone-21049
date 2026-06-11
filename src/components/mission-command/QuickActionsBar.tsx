@@ -1,30 +1,10 @@
 import { useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
-import { Pencil, Activity, Link2, Loader2 } from "lucide-react";
+import { Pencil, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import { MissionEditPanel } from "@/components/missions/MissionEditPanel";
-import { refreshAllMissionFeeds } from "@/lib/iris-refresh-all.functions";
 
 export function QuickActionsBar({ missionId }: { missionId: string }) {
   const [editOpen, setEditOpen] = useState(false);
-  const [running, setRunning] = useState(false);
-  const refresh = useServerFn(refreshAllMissionFeeds);
-
-  const runIntel = async () => {
-    setRunning(true);
-    const t = toast.loading("Running intelligence check…");
-    try {
-      const r: any = await refresh({ data: { missionId } });
-      toast.success(
-        `Intelligence check complete. ${r?.inserted ?? 0} new signals, ${r?.scanned ?? 0} scanned.`,
-        { id: t },
-      );
-    } catch (e: any) {
-      toast.error(e?.message ?? "Intelligence check failed", { id: t });
-    } finally {
-      setRunning(false);
-    }
-  };
 
   const shareLink = async () => {
     const url = `${window.location.origin}/olympus/missions/${missionId}`;
@@ -48,14 +28,6 @@ export function QuickActionsBar({ missionId }: { missionId: string }) {
         </span>
         <button type="button" className={btn} onClick={() => setEditOpen(true)}>
           <Pencil className="h-3.5 w-3.5" /> Edit Mission
-        </button>
-        <button type="button" className={btn} onClick={runIntel} disabled={running}>
-          {running ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            <Activity className="h-3.5 w-3.5" />
-          )}
-          Run Intelligence Check
         </button>
         <button type="button" className={btn} onClick={shareLink}>
           <Link2 className="h-3.5 w-3.5" /> Share Mission Link
