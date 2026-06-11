@@ -6,7 +6,7 @@ import { IrisDock } from "@/components/iris/IrisDock";
 import { AssistsBar } from "@/components/iris/AssistsBar";
 import { AdminQuickBar } from "@/components/admin/AdminQuickBar";
 import { GlobalCommandBar } from "@/components/nav/GlobalCommandBar";
-import { MissionStrip } from "@/components/nav/MissionStrip";
+
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -114,7 +114,6 @@ function AuthenticatedLayout() {
   const shell = (
     <div className="min-h-screen bg-background text-foreground">
       <GlobalCommandBar email={email} isAdmin={isAdmin} />
-      <MissionStrip />
       <main>
         <Outlet />
       </main>

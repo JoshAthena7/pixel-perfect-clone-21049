@@ -110,15 +110,6 @@ function useTabAlerts(missionId: string) {
   });
 }
 
-function Badge({ n }: { n: number }) {
-  if (n <= 0) return null;
-  return (
-    <span className="ml-1.5 inline-flex items-center justify-center min-w-4 h-4 px-1 rounded-full bg-orange-500 text-[10px] font-bold text-white">
-      {n > 99 ? "99+" : n}
-    </span>
-  );
-}
-
 export function MissionTabs({
   active,
   onChange,
@@ -131,61 +122,70 @@ export function MissionTabs({
   const { data: alerts = {} } = useTabAlerts(missionId);
 
   return (
-    <div className="border-b border-border bg-background/50 sticky top-[44px] z-30">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        {/* Desktop: grouped */}
-        <div className="hidden md:flex gap-8 py-2 overflow-x-auto">
-          {TAB_GROUPS.map((group) => (
-            <div key={group.label} className="shrink-0">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                {group.label}
-              </div>
-              <div className="flex gap-1">
-                {group.tabs.map((tab) => {
-                  const isActive = tab.id === active;
-                  const n = alerts[tab.id] ?? 0;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => onChange(tab.id)}
-                      className={cn(
-                        "px-3 py-1.5 text-sm whitespace-nowrap border-b-2 transition-colors flex items-center",
-                        isActive
-                          ? "border-primary text-foreground font-medium"
-                          : "border-transparent text-muted-foreground hover:text-foreground",
-                      )}
-                    >
-                      {tab.label}
-                      <Badge n={n} />
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-        {/* Mobile: flat strip */}
-        <div className="md:hidden flex gap-1 py-2 overflow-x-auto">
-          {ALL_TABS.map((tab) => {
-            const isActive = tab.id === active;
-            const n = alerts[tab.id] ?? 0;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => onChange(tab.id)}
-                className={cn(
-                  "px-3 py-1.5 text-sm whitespace-nowrap border-b-2 transition-colors shrink-0 flex items-center",
-                  isActive
-                    ? "border-primary text-foreground font-medium"
-                    : "border-transparent text-muted-foreground",
-                )}
-              >
-                {tab.label}
-                <Badge n={n} />
-              </button>
-            );
-          })}
-        </div>
+    <div
+      className="sticky top-12 z-30"
+      style={{ background: "#0a1628", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+    >
+      <div
+        className="mx-auto max-w-7xl flex items-center gap-1 overflow-x-auto no-scrollbar"
+        style={{ height: 38, padding: "0 20px", scrollbarWidth: "none" }}
+      >
+        {TAB_GROUPS.map((group, gi) => (
+          <div key={group.label} className="flex items-center gap-1 shrink-0">
+            <span
+              className="shrink-0 select-none uppercase"
+              style={{
+                fontSize: 10,
+                color: "rgba(196,154,43,0.5)",
+                letterSpacing: "0.08em",
+                fontWeight: 500,
+                margin: gi === 0 ? "0 6px 0 0" : "0 6px 0 14px",
+              }}
+            >
+              {group.label}
+            </span>
+            {group.tabs.map((tab) => {
+              const isActive = tab.id === active;
+              const n = alerts[tab.id] ?? 0;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => onChange(tab.id)}
+                  className={cn(
+                    "shrink-0 rounded-full whitespace-nowrap inline-flex items-center gap-1.5 transition-colors",
+                    !isActive && "hover:bg-white/[0.06]",
+                  )}
+                  style={
+                    isActive
+                      ? {
+                          background: "rgba(196,154,43,0.15)",
+                          border: "1px solid rgba(196,154,43,0.4)",
+                          color: "#C49A2B",
+                          fontSize: 12,
+                          padding: "4px 12px",
+                          fontWeight: 500,
+                        }
+                      : {
+                          background: "transparent",
+                          color: "rgba(255,255,255,0.5)",
+                          fontSize: 12,
+                          padding: "4px 12px",
+                          border: "1px solid transparent",
+                        }
+                  }
+                >
+                  {tab.label}
+                  {n > 0 && (
+                    <span
+                      className="rounded-full"
+                      style={{ width: 6, height: 6, background: "#f08080" }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        ))}
       </div>
     </div>
   );
