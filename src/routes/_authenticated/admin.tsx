@@ -1,5 +1,4 @@
-import { createFileRoute, Link, Outlet, redirect, useRouterState } from "@tanstack/react-router";
-import { Users, LayoutGrid, Activity } from "lucide-react";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -17,43 +16,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
 });
 
-const TABS = [
-  { to: "/admin", label: "Overview", icon: LayoutGrid, exact: true },
-  { to: "/admin/team", label: "Team Roster", icon: Users, exact: false },
-  { to: "/admin/iris-health", label: "IRIS Health", icon: Activity, exact: false },
-];
-
 function AdminLayout() {
-  const path = useRouterState({ select: (s) => s.location.pathname });
-  return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="border-b border-border bg-surface/40">
-        <div className="mx-auto max-w-6xl px-6 pt-5">
-          <h1 className="text-[20px] font-semibold tracking-wide uppercase text-foreground leading-tight">ADMIN — OLYMPUS</h1>
-          <p className="text-[13px] text-muted-foreground mt-1">Platform administration and IRIS infrastructure controls.</p>
-        </div>
-        <div className="mx-auto flex max-w-6xl items-center gap-1 px-6 overflow-x-auto mt-4">
-          {TABS.map((t) => {
-            const active = t.exact ? path === t.to : path === t.to || path.startsWith(t.to + "/");
-            const Icon = t.icon;
-            return (
-              <Link
-                key={t.to}
-                to={t.to}
-                className={`flex items-center gap-2 px-4 py-3 text-sm border-b-2 -mb-px whitespace-nowrap transition-colors ${
-                  active
-                    ? "border-primary text-foreground font-medium"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                {t.label}
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-      <Outlet />
-    </div>
-  );
+  // Tab strip removed — navigation lives in the left sidebar (Admin section).
+  return <Outlet />;
 }
