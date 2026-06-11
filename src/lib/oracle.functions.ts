@@ -56,6 +56,18 @@ export const buildIntelligenceGraph = createServerFn({ method: "POST" })
     const { supabase } = context;
     const missionId = data.missionId;
 
+    // Catch-up: if territory is configured but never seeded, seed now.
+    // Idempotent — seedTerritoryForMission short-circuits when already seeded.
+    try {
+      const apiKey = process.env.LOVABLE_API_KEY;
+      if (apiKey) {
+        const { seedTerritoryForMission } = await import("@/lib/iris-territory.server");
+        await seedTerritoryForMission(missionId, supabase as never, apiKey);
+      }
+    } catch (e) {
+      console.error("[buildIntelligenceGraph] territory seed skipped:", e);
+    }
+
     if (!data.force) {
       const { count } = await supabase
         .from("intelligence_graph_nodes")
@@ -66,6 +78,7 @@ export const buildIntelligenceGraph = createServerFn({ method: "POST" })
         return { created: 0, edges: 0, completeness: pct };
       }
     }
+
 
     // Gather mission context
     const [m, docs, comps, stakes, win, sections, qs] = await Promise.all([
