@@ -361,7 +361,7 @@ export function QuestionHealthTab({
                 writerLabel={writerName(a?.assigned_writer_id ?? null)}
                 expanded={expanded}
                 onToggle={() => setExpandedId(expanded ? null : q.id)}
-                onGoToSection={() => onNavigateTab("sections-questions")}
+                onGoToSection={() => onNavigateTab("work")}
                 flag={flag}
                 smes={smesForQ}
               />

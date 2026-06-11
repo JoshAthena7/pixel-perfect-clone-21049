@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { getLastTab, setLastTab } from "@/lib/last-tab";
@@ -10,27 +10,17 @@ import { MissionContentHeader } from "@/components/mission-command/MissionConten
 import {
   MissionTabs,
   isValidTab,
-  tabLabel,
+  TAB_REDIRECTS,
+  visibleTabsForRole,
+  defaultTabForRole,
+  useViewerMissionRole,
   type TabId,
 } from "@/components/mission-command/MissionTabs";
 import { OverviewTab } from "@/components/mission-command/OverviewTab";
-import { SectionsQuestionsTab } from "@/components/mission-command/SectionsQuestionsTab";
-import { QuestionHealthTab } from "@/components/mission-command/QuestionHealthTab";
-import { RfpDocumentsTab } from "@/components/mission-command/RfpDocumentsTab";
-import { QaLogTab } from "@/components/mission-command/QaLogTab";
-// ClientIntelligenceTab → embedded in OracleTab > Stakeholders sub-tab
-// IntelligenceLibraryTab → embedded in OracleTab > Research Library sub-tab
-import { ComplianceTab } from "@/components/mission-command/ComplianceTab";
-import { SubmissionChecklistTab } from "@/components/mission-command/SubmissionChecklistTab";
-import { TeamAssignmentsTab } from "@/components/mission-command/TeamAssignmentsTab";
-import { StyleGuideTab } from "@/components/mission-command/StyleGuideTab";
-import { WinStrategyLiveTab } from "@/components/mission-command/WinStrategyLiveTab";
-import { DecisionLogTab } from "@/components/mission-command/DecisionLogTab";
-import { JourneyLiveTab } from "@/components/mission-command/JourneyLiveTab";
-import { MissionSettingsTab } from "@/components/mission-command/MissionSettingsTab";
-import { AuditLogTab } from "@/components/mission-command/AuditLogTab";
+import { WorkTab } from "@/components/mission-command/WorkTab";
+import { TeamTab } from "@/components/mission-command/TeamTab";
+import { SettingsTab } from "@/components/mission-command/SettingsTab";
 import { OracleTab } from "@/components/mission-command/oracle/OracleTab";
-
 
 const searchSchema = z.object({
   launched: z.coerce.number().optional(),
@@ -46,48 +36,77 @@ export const Route = createFileRoute("/_authenticated/olympus/missions/$missionI
 
 function MissionCommandCenter() {
   const { missionId } = Route.useParams();
-  const { launched, tab } = Route.useSearch();
+  const { launched, tab, sub } = Route.useSearch();
   const navigate = useNavigate();
+  const { data: role } = useViewerMissionRole(missionId);
 
-  let activeTab: TabId = isValidTab(tab) ? tab : "overview";
-  // Restore last-visited tab when no tab is in URL
+  // Compute the resolved tab + redirect target (if any) for the raw `tab` value.
+  const resolved = useMemo(() => {
+    if (!tab) return null;
+    if (isValidTab(tab)) return { tab: tab as TabId, sub: sub as string | undefined, section: null as string | null };
+    const r = TAB_REDIRECTS[tab];
+    if (r) return { tab: r.tab, sub: r.sub ?? (sub as string | undefined), section: r.section ?? null };
+    return null;
+  }, [tab, sub]);
+
+  const activeTab: TabId = resolved?.tab ?? "overview";
+  const activeSub = resolved?.sub;
+  const scrollTo = resolved?.section ?? null;
+
+  // Apply redirects: if the URL had an old tab id, normalize to the new one.
   useEffect(() => {
-    if (!tab) {
-      const last = getLastTab(missionId);
-      if (last && isValidTab(last)) {
-        navigate({
-          to: "/olympus/missions/$missionId",
-          params: { missionId },
-          search: (prev: Record<string, unknown>) => ({ ...prev, tab: last }),
-          replace: true,
-        });
-      }
+    if (!tab) return;
+    if (isValidTab(tab)) return;
+    const r = TAB_REDIRECTS[tab];
+    if (r) {
+      navigate({
+        to: "/olympus/missions/$missionId",
+        params: { missionId },
+        search: (prev: Record<string, unknown>) => ({
+          ...prev,
+          tab: r.tab,
+          ...(r.sub ? { sub: r.sub } : {}),
+        }),
+        replace: true,
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, missionId]);
+
+  // Restore last-visited tab when no tab is in URL
+  useEffect(() => {
+    if (tab) return;
+    const last = getLastTab(missionId);
+    const target = last ?? defaultTabForRole(role ?? null);
+    navigate({
+      to: "/olympus/missions/$missionId",
+      params: { missionId },
+      search: (prev: Record<string, unknown>) => ({ ...prev, tab: target }),
+      replace: true,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, missionId, role]);
+
   // Persist tab changes
   useEffect(() => {
     if (tab && isValidTab(tab)) setLastTab(missionId, tab);
   }, [tab, missionId]);
-  // Redirect retired tabs into their new home inside Oracle.
+
+  // Enforce role-based visibility — if user navigates to a tab they cannot see,
+  // bounce to their default. Silent.
   useEffect(() => {
-    if (tab === "client-intel") {
+    if (!role || !tab || !isValidTab(tab)) return;
+    const visible = visibleTabsForRole(role);
+    if (!visible.includes(tab)) {
       navigate({
         to: "/olympus/missions/$missionId",
         params: { missionId },
-        search: (prev: Record<string, unknown>) => ({ ...prev, tab: "oracle", sub: "stakeholders" }),
-        replace: true,
-      });
-    } else if (tab === "intel-library") {
-      navigate({
-        to: "/olympus/missions/$missionId",
-        params: { missionId },
-        search: (prev: Record<string, unknown>) => ({ ...prev, tab: "oracle", sub: "research-library" }),
+        search: (prev: Record<string, unknown>) => ({ ...prev, tab: defaultTabForRole(role) }),
         replace: true,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab]);
+  }, [role, tab, missionId]);
 
   const { data: mission, isLoading } = useQuery({
     queryKey: ["mission-header", missionId],
@@ -99,17 +118,6 @@ function MissionCommandCenter() {
         .single();
       if (error) throw error;
       return data;
-    },
-  });
-
-  const { data: unreadCount = 0 } = useQuery({
-    queryKey: ["mission-unread", missionId],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("atlas_notifications")
-        .select("id", { count: "exact", head: true })
-        .eq("is_read", false);
-      return count ?? 0;
     },
   });
 
@@ -133,7 +141,7 @@ function MissionCommandCenter() {
     navigate({
       to: "/olympus/missions/$missionId",
       params: { missionId },
-      search: (prev: Record<string, unknown>) => ({ ...prev, tab: next }),
+      search: (prev: Record<string, unknown>) => ({ ...prev, tab: next, sub: undefined }),
     });
   };
 
@@ -153,44 +161,17 @@ function MissionCommandCenter() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
         <MissionContentHeader missionId={missionId} activeTab={activeTab} />
         {activeTab === "overview" && (
-          <OverviewTab missionId={missionId} onNavigateTab={setTab} />
+          <OverviewTab missionId={missionId} scrollTo={scrollTo} onNavigateTab={setTab} />
         )}
-        {activeTab === "sections-questions" && (
-          <SectionsQuestionsTab missionId={missionId} missionName={mission.name} />
+        {activeTab === "work" && (
+          <WorkTab missionId={missionId} missionName={mission.name} sub={activeSub} />
         )}
-        {activeTab === "question-health" && (
-          <QuestionHealthTab missionId={missionId} onNavigateTab={setTab} />
-        )}
-        {activeTab === "rfp-documents" && <RfpDocumentsTab missionId={missionId} />}
-        {activeTab === "qa-log" && <QaLogTab missionId={missionId} />}
         {activeTab === "oracle" && <OracleTab missionId={missionId} />}
-        
-        {activeTab === "compliance" && (
-          <ComplianceTab
-            missionId={missionId}
-            missionName={mission.name}
-            deadline={mission.submission_deadline}
-          />
-        )}
-        {activeTab === "submission-checklist" && (
-          <SubmissionChecklistTab missionId={missionId} deadline={mission.submission_deadline} />
-        )}
         {activeTab === "team" && (
-          <TeamAssignmentsTab missionId={missionId} missionName={mission.name} />
+          <TeamTab missionId={missionId} missionName={mission.name} sub={activeSub} />
         )}
-        {activeTab === "style-guide" && <StyleGuideTab missionId={missionId} />}
-        {activeTab === "win-strategy" && (
-          <WinStrategyLiveTab missionId={missionId} missionName={mission.name} />
-        )}
-        {activeTab === "decision-log" && (
-          <DecisionLogTab missionId={missionId} missionName={mission.name} />
-        )}
-        {activeTab === "journey" && (
-          <JourneyLiveTab missionId={missionId} deadline={mission.submission_deadline} />
-        )}
-        {activeTab === "settings" && <MissionSettingsTab missionId={missionId} />}
-        {activeTab === "audit-log" && (
-          <AuditLogTab missionId={missionId} missionName={mission.name} />
+        {activeTab === "settings" && (
+          <SettingsTab missionId={missionId} missionName={mission.name} sub={activeSub} />
         )}
       </div>
     </div>

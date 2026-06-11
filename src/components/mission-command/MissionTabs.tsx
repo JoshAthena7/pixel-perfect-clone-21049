@@ -2,69 +2,49 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
-export type TabId =
-  | "overview"
-  | "win-strategy"
-  | "decision-log"
-  | "journey"
-  | "oracle"
-  | "rfp-documents"
-  | "qa-log"
-  | "sections-questions"
-  | "question-health"
-  | "compliance"
-  | "submission-checklist"
-  | "team"
-  | "style-guide"
-  | "settings"
-  | "audit-log";
+export type TabId = "overview" | "work" | "oracle" | "team" | "settings";
 
-export const TAB_GROUPS: { label: string; tabs: { id: TabId; label: string }[] }[] = [
-  {
-    label: "Mission",
-    tabs: [
-      { id: "overview", label: "Briefing Room" },
-      { id: "win-strategy", label: "Win Strategy" },
-      { id: "decision-log", label: "Decision Log" },
-      { id: "journey", label: "Journey" },
-    ],
-  },
-  {
-    label: "Intelligence",
-    tabs: [
-      { id: "oracle", label: "Oracle" },
-      { id: "rfp-documents", label: "RFP & Documents" },
-      { id: "qa-log", label: "Q&A Log" },
-    ],
-  },
-  {
-    label: "Execution",
-    tabs: [
-      { id: "sections-questions", label: "Sections & Questions" },
-      { id: "question-health", label: "Question Health" },
-      { id: "compliance", label: "Compliance Tracker" },
-      { id: "submission-checklist", label: "Submission Checklist" },
-    ],
-  },
-  {
-    label: "Team",
-    tabs: [
-      { id: "team", label: "Team & Assignments" },
-      { id: "style-guide", label: "Style Guide" },
-    ],
-  },
-  {
-    label: "Settings",
-    tabs: [
-      { id: "settings", label: "Mission Settings" },
-      { id: "audit-log", label: "Audit Log" },
-    ],
-  },
+export type MissionViewRole = "admin" | "engagement_lead" | "writer" | "sme" | "executive";
+
+export const ALL_TABS: { id: TabId; label: string }[] = [
+  { id: "overview", label: "Overview" },
+  { id: "work", label: "Work" },
+  { id: "oracle", label: "Oracle" },
+  { id: "team", label: "Team" },
+  { id: "settings", label: "Settings" },
 ];
 
-const ALL_TABS = TAB_GROUPS.flatMap((g) => g.tabs);
+// Back-compat: every old tab id maps to a {tab, sub?} pair in the new structure.
+export const TAB_REDIRECTS: Record<string, { tab: TabId; sub?: string; section?: string }> = {
+  // Overview absorbs
+  "win-strategy": { tab: "overview", section: "win-strategy" },
+  "decision-log": { tab: "overview", section: "decision-log" },
+  journey: { tab: "overview", section: "journey" },
+  "question-health": { tab: "overview", section: "question-health" },
+  compliance: { tab: "overview", section: "compliance" },
+  "compliance-tracker": { tab: "overview", section: "compliance" },
+  "submission-checklist": { tab: "overview", section: "compliance" },
+  // Work absorbs
+  "sections-questions": { tab: "work", sub: "questions" },
+  "qa-log": { tab: "work", sub: "qa" },
+  insights: { tab: "work", sub: "insights" },
+  "athena-insights": { tab: "work", sub: "insights" },
+  // Team absorbs
+  "team-assignments": { tab: "team", sub: "roster" },
+  "style-guide": { tab: "team", sub: "style-guide" },
+  // Settings absorbs
+  "mission-settings": { tab: "settings", sub: "details" },
+  "audit-log": { tab: "settings", sub: "audit-log" },
+  "rfp-documents": { tab: "settings", sub: "documents" },
+  "rfd-documents": { tab: "settings", sub: "documents" },
+  // Oracle absorbs
+  "client-intelligence": { tab: "oracle", sub: "stakeholders" },
+  "client-intel": { tab: "oracle", sub: "stakeholders" },
+  "intelligence-library": { tab: "oracle", sub: "research-library" },
+  "intel-library": { tab: "oracle", sub: "research-library" },
+};
 
-export function tabLabel(id: TabId) {
+export function tabLabel(id: TabId): string {
   return ALL_TABS.find((t) => t.id === id)?.label ?? id;
 }
 
@@ -72,8 +52,58 @@ export function isValidTab(s: string | undefined): s is TabId {
   return !!s && ALL_TABS.some((t) => t.id === s);
 }
 
+export function visibleTabsForRole(role: MissionViewRole | null): TabId[] {
+  if (role === "admin" || role === "engagement_lead") return ["overview", "work", "oracle", "team", "settings"];
+  if (role === "executive") return ["overview", "oracle", "team"];
+  // writer, sme, unknown
+  return ["overview", "work", "oracle"];
+}
+
+export function defaultTabForRole(role: MissionViewRole | null): TabId {
+  if (role === "admin" || role === "engagement_lead") return "overview";
+  if (role === "executive") return "overview";
+  return "work";
+}
+
+// Resolve the current user's effective role on this mission.
+// Global admins are admin; otherwise use mission_team_members.mission_role.
+async function fetchViewerRole(missionId: string): Promise<MissionViewRole | null> {
+  const { data: auth } = await supabase.auth.getUser();
+  const userId = auth.user?.id;
+  if (!userId) return null;
+
+  const { data: globalAdmin } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (globalAdmin) return "admin";
+
+  const { data: member } = await supabase
+    .from("mission_team_members")
+    .select("mission_role")
+    .eq("mission_id", missionId)
+    .eq("member_id", userId)
+    .maybeSingle();
+  const r = (member?.mission_role as string | null) ?? null;
+  if (r === "engagement_lead") return "engagement_lead";
+  if (r === "writer") return "writer";
+  if (r === "sme") return "sme";
+  if (r === "executive") return "executive";
+  return null;
+}
+
+export function useViewerMissionRole(missionId: string) {
+  return useQuery({
+    queryKey: ["viewer-mission-role", missionId],
+    queryFn: () => fetchViewerRole(missionId),
+    staleTime: 5 * 60_000,
+  });
+}
+
 async function fetchTabAlerts(missionId: string) {
-  const [atRisk, intel, compliance] = await Promise.all([
+  const [atRisk, intel, unreadQa] = await Promise.all([
     supabase
       .from("mission_questions")
       .select("id", { count: "exact", head: true })
@@ -86,15 +116,14 @@ async function fetchTabAlerts(missionId: string) {
       .gte("iris_relevance_score", 70)
       .eq("is_reviewed", false),
     supabase
-      .from("compliance_check_results")
+      .from("client_clarifications")
       .select("id", { count: "exact", head: true })
-      .eq("mission_id", missionId)
-      .eq("status", "fail"),
+      .eq("mission_id", missionId),
   ]);
   return {
-    "question-health": atRisk.count ?? 0,
-    "oracle": intel.count ?? 0,
-    "compliance": compliance.count ?? 0,
+    overview: atRisk.count ?? 0,
+    work: unreadQa.count ?? 0,
+    oracle: intel.count ?? 0,
   } as Partial<Record<TabId, number>>;
 }
 
@@ -116,72 +145,60 @@ export function MissionTabs({
   missionId: string;
 }) {
   const { data: alerts = {} } = useTabAlerts(missionId);
+  const { data: role } = useViewerMissionRole(missionId);
+  const visible = visibleTabsForRole(role ?? null);
 
   return (
     <div
       className="sticky top-12 z-30"
-      style={{ background: "#0a1628", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+      style={{ background: "rgba(0,0,0,0.2)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
     >
       <div
         className="mx-auto max-w-7xl flex items-center gap-1 overflow-x-auto no-scrollbar"
         style={{ height: 38, padding: "0 20px", scrollbarWidth: "none" }}
       >
-        {TAB_GROUPS.map((group, gi) => (
-          <div key={group.label} className="flex items-center gap-1 shrink-0">
-            <span
-              className="shrink-0 select-none uppercase"
-              style={{
-                fontSize: 10,
-                color: "rgba(196,154,43,0.5)",
-                letterSpacing: "0.08em",
-                fontWeight: 500,
-                margin: gi === 0 ? "0 6px 0 0" : "0 6px 0 14px",
-              }}
+        {ALL_TABS.filter((t) => visible.includes(t.id)).map((tab) => {
+          const isActive = tab.id === active;
+          const n = alerts[tab.id] ?? 0;
+          const dotColor =
+            tab.id === "overview" ? "#f08080" : tab.id === "oracle" || tab.id === "work" ? "#f5b86b" : "#f08080";
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onChange(tab.id)}
+              className={cn(
+                "shrink-0 rounded-full whitespace-nowrap inline-flex items-center gap-1.5 transition-colors",
+                !isActive && "hover:bg-white/[0.06]",
+              )}
+              style={
+                isActive
+                  ? {
+                      background: "rgba(196,154,43,0.15)",
+                      border: "1px solid rgba(196,154,43,0.4)",
+                      color: "#C49A2B",
+                      fontSize: 13,
+                      padding: "5px 14px",
+                      fontWeight: 500,
+                    }
+                  : {
+                      background: "transparent",
+                      color: "rgba(255,255,255,0.5)",
+                      fontSize: 13,
+                      padding: "5px 14px",
+                      border: "1px solid transparent",
+                    }
+              }
             >
-              {group.label}
-            </span>
-            {group.tabs.map((tab) => {
-              const isActive = tab.id === active;
-              const n = alerts[tab.id] ?? 0;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => onChange(tab.id)}
-                  className={cn(
-                    "shrink-0 rounded-full whitespace-nowrap inline-flex items-center gap-1.5 transition-colors",
-                    !isActive && "hover:bg-white/[0.06]",
-                  )}
-                  style={
-                    isActive
-                      ? {
-                          background: "rgba(196,154,43,0.15)",
-                          border: "1px solid rgba(196,154,43,0.4)",
-                          color: "#C49A2B",
-                          fontSize: 12,
-                          padding: "4px 12px",
-                          fontWeight: 500,
-                        }
-                      : {
-                          background: "transparent",
-                          color: "rgba(255,255,255,0.5)",
-                          fontSize: 12,
-                          padding: "4px 12px",
-                          border: "1px solid transparent",
-                        }
-                  }
-                >
-                  {tab.label}
-                  {n > 0 && (
-                    <span
-                      className="rounded-full"
-                      style={{ width: 6, height: 6, background: "#f08080" }}
-                    />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        ))}
+              {tab.label}
+              {n > 0 && (
+                <span
+                  className="rounded-full"
+                  style={{ width: 6, height: 6, background: dotColor }}
+                />
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
