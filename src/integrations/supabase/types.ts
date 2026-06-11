@@ -2430,6 +2430,90 @@ export type Database = {
         }
         Relationships: []
       }
+      draft_scores: {
+        Row: {
+          conciseness_explanation: string | null
+          conciseness_score: number | null
+          created_at: string
+          draft_word_count: number | null
+          evidence_explanation: string | null
+          evidence_score: number | null
+          gaps: Json
+          id: string
+          iris_recommendation: string | null
+          mission_id: string
+          overall_score: number
+          question_id: string | null
+          requirements_explanation: string | null
+          requirements_score: number | null
+          scoring_mode: string
+          style_explanation: string | null
+          style_score: number | null
+          user_id: string
+          win_theme_explanation: string | null
+          win_theme_score: number | null
+        }
+        Insert: {
+          conciseness_explanation?: string | null
+          conciseness_score?: number | null
+          created_at?: string
+          draft_word_count?: number | null
+          evidence_explanation?: string | null
+          evidence_score?: number | null
+          gaps?: Json
+          id?: string
+          iris_recommendation?: string | null
+          mission_id: string
+          overall_score: number
+          question_id?: string | null
+          requirements_explanation?: string | null
+          requirements_score?: number | null
+          scoring_mode?: string
+          style_explanation?: string | null
+          style_score?: number | null
+          user_id: string
+          win_theme_explanation?: string | null
+          win_theme_score?: number | null
+        }
+        Update: {
+          conciseness_explanation?: string | null
+          conciseness_score?: number | null
+          created_at?: string
+          draft_word_count?: number | null
+          evidence_explanation?: string | null
+          evidence_score?: number | null
+          gaps?: Json
+          id?: string
+          iris_recommendation?: string | null
+          mission_id?: string
+          overall_score?: number
+          question_id?: string | null
+          requirements_explanation?: string | null
+          requirements_score?: number | null
+          scoring_mode?: string
+          style_explanation?: string | null
+          style_score?: number | null
+          user_id?: string
+          win_theme_explanation?: string | null
+          win_theme_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "draft_scores_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "draft_scores_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_send_log: {
         Row: {
           created_at: string
