@@ -605,3 +605,22 @@ function ConfidenceBadge({ value }: { value: string | null }) {
     </span>
   );
 }
+
+function ScorePill({ score }: { score: number }) {
+  const color =
+    score >= 90 ? "#C49A2B" : score >= 75 ? "#7dcf7d" : score >= 60 ? "#EF9F27" : "#f08080";
+  return (
+    <span
+      title={`Latest draft score: ${score}/100`}
+      className="rounded-full px-1.5 py-0.5 font-semibold tabular-nums"
+      style={{
+        background: `${color}22`,
+        color,
+        fontSize: 10,
+        border: `0.5px solid ${color}66`,
+      }}
+    >
+      {score}
+    </span>
+  );
+}
