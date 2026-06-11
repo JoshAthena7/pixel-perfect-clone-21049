@@ -456,10 +456,6 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
           )}
         </div>
       </div>
-            </div>
-          )}
-        </div>
-      </div>
 
       <ScoreDraftPanel
         open={scoreOpen}
