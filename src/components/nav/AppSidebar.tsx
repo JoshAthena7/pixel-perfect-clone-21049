@@ -4,8 +4,13 @@ import { differenceInCalendarDays } from "date-fns";
 import {
   FileText, Brain, Lightbulb, LayoutDashboard, MessageSquare, Target,
   Trophy, Users, Route as RouteIcon, ListChecks, BarChart3, Settings,
-  ArrowLeft, LogOut, Menu, X,
+  ArrowLeft, LogOut, Menu, X, Icon as LucideIcon,
 } from "lucide-react";
+import { owl } from "@lucide/lab";
+
+const Owl = (props: React.ComponentProps<typeof LucideIcon> extends infer _ ? any : never) => (
+  <LucideIcon iconNode={owl} {...props} />
+);
 import { cn } from "@/lib/utils";
 import { useMissionMeta, useMissionAtRiskCount } from "@/hooks/useMissionMeta";
 import { useIsMobile } from "@/hooks/use-mobile";
