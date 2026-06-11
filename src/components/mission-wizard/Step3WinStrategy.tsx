@@ -391,6 +391,7 @@ export function Step3WinStrategy({ missionId }: { missionId: string }) {
       {/* 8 — Proof Points */}
       <FieldShell
         title="Proof Points"
+        source="you"
         helper="Specific evidence, data, case studies, or references that support the Central Claim and Win Themes."
         confirmed={confirmed.has("proof_points")}
         onConfirm={() => confirmField("proof_points")}
