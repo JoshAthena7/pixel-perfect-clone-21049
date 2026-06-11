@@ -10,8 +10,6 @@ export type TabId =
   | "oracle"
   | "rfp-documents"
   | "qa-log"
-  | "client-intel"
-  | "intel-library"
   | "sections-questions"
   | "question-health"
   | "compliance"
@@ -37,8 +35,6 @@ export const TAB_GROUPS: { label: string; tabs: { id: TabId; label: string }[] }
       { id: "oracle", label: "Oracle" },
       { id: "rfp-documents", label: "RFP & Documents" },
       { id: "qa-log", label: "Q&A Log" },
-      { id: "client-intel", label: "Client Intelligence" },
-      { id: "intel-library", label: "Intelligence Library" },
     ],
   },
   {
