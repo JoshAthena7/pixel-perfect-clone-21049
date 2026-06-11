@@ -1,12 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Sparkles, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { seedTerritoryIntelligence } from "@/lib/iris-territory.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+
 
 const STATES: Array<{ name: string; code: string }> = [
   ["Alabama","AL"],["Alaska","AK"],["Arizona","AZ"],["Arkansas","AR"],["California","CA"],
@@ -72,6 +75,8 @@ const FEED_CHIPS: Record<string, { federal: string[]; research: string[] }> = {
 
 export function Step7Territory({ missionId, onAdvance }: { missionId: string; onAdvance: () => void }) {
   const qc = useQueryClient();
+  const seedTerritory = useServerFn(seedTerritoryIntelligence);
+  const seededRef = useRef(false);
   const { data: mission, isLoading } = useQuery({
     queryKey: ["mission-territory", missionId],
     queryFn: async () => {
@@ -91,6 +96,17 @@ export function Step7Territory({ missionId, onAdvance }: { missionId: string; on
   const [programType, setProgramType] = useState<string>("");
   const [search, setSearch] = useState<string>("");
 
+  // Fire seedTerritoryIntelligence once when all three territory fields are set.
+  function maybeSeed(s: string, agency: string, prog: string) {
+    if (seededRef.current) return;
+    if (!s || !agency.trim() || !prog) return;
+    seededRef.current = true;
+    seedTerritory({ data: { missionId } }).catch((err) =>
+      console.error("[Step7Territory] seedTerritoryIntelligence failed", err),
+    );
+  }
+
+
   useEffect(() => {
     if (mission) {
       setStateCode(mission.state_code ?? "");
@@ -107,6 +123,7 @@ export function Step7Territory({ missionId, onAdvance }: { missionId: string; on
     const s = STATES.find((x) => x.code === code);
     await supabase.from("missions").update({ state_code: code, state: s?.name ?? null }).eq("id", missionId);
     qc.invalidateQueries({ queryKey: ["mission-territory", missionId] });
+    maybeSeed(s?.name ?? "", agencyName, programType);
   }
 
   // Debounce agency name/code
@@ -117,11 +134,12 @@ export function Step7Territory({ missionId, onAdvance }: { missionId: string; on
         supabase
           .from("missions")
           .update({ agency_name: agencyName || null, agency_code: agencyCode || null })
-          .eq("id", missionId);
+          .eq("id", missionId)
+          .then(() => maybeSeed(mission.state ?? "", agencyName, programType));
       }
     }, 500);
     return () => clearTimeout(t);
-  }, [agencyName, agencyCode, missionId, mission]);
+  }, [agencyName, agencyCode, missionId, mission, programType]);
 
   async function saveProgramType(v: string) {
     setProgramType(v);
@@ -129,7 +147,9 @@ export function Step7Territory({ missionId, onAdvance }: { missionId: string; on
       .from("missions")
       .update({ program_type: v, intelligence_loadout_step: 1 })
       .eq("id", missionId);
+    maybeSeed(mission?.state ?? "", agencyName, v);
   }
+
 
   if (isLoading) return <Skeleton className="h-64 w-full" />;
 

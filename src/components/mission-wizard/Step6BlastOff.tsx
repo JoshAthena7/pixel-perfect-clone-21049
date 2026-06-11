@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { buildIntelligenceGraph } from "@/lib/oracle.functions";
+import { seedTerritoryIntelligence } from "@/lib/iris-territory.functions";
+
 
 type CheckKey =
   | "basics"
@@ -136,6 +138,8 @@ type WriteStep = { name: string; status: "pending" | "ok" | "fail"; error?: stri
 export function Step6BlastOff({ missionId }: { missionId: string }) {
   const navigate = useNavigate();
   const buildGraph = useServerFn(buildIntelligenceGraph);
+  const seedTerritory = useServerFn(seedTerritoryIntelligence);
+
   const { data: checks, isLoading, refetch } = useQuery({
     queryKey: ["launch-checks", missionId],
     queryFn: () => runChecks(missionId),
@@ -193,9 +197,11 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
     const result = await performWrites(missionId, setWrites);
     if (result.success) {
       setPhase("burst");
-      // fire-and-forget graph build
-      buildGraph({ data: { missionId } }).catch((e) => console.error("Graph build failed", e));
+      // fire-and-forget graph build + territory seed
+      seedTerritory({ data: { missionId } }).catch((e) => console.error("[BLAST OFF] seedTerritoryIntelligence failed:", e));
+      buildGraph({ data: { missionId } }).catch((e) => console.error("[BLAST OFF] buildIntelligenceGraph failed:", e));
       await new Promise((r) => setTimeout(r, 900));
+
       setPhase("done");
       navigate({
         to: "/olympus/missions/$missionId",
@@ -212,8 +218,10 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
     const result = await performWrites(missionId, setWrites, true);
     if (result.success) {
       setPhase("burst");
-      buildGraph({ data: { missionId } }).catch((e) => console.error("Graph build failed", e));
+      seedTerritory({ data: { missionId } }).catch((e) => console.error("[BLAST OFF] seedTerritoryIntelligence failed:", e));
+      buildGraph({ data: { missionId } }).catch((e) => console.error("[BLAST OFF] buildIntelligenceGraph failed:", e));
       await new Promise((r) => setTimeout(r, 900));
+
       navigate({
         to: "/olympus/missions/$missionId",
         params: { missionId },

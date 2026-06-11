@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { processRFPDocuments } from "@/lib/iris-process-rfp.functions";
+import { extractRequirementNodesFromRFP } from "@/lib/iris-territory.functions";
 import { extractRFPText } from "@/lib/extract-rfp-text.client";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { IrisMark } from "@/components/iris/IrisMark";
 import { cn } from "@/lib/utils";
+
 
 type StepKey = "download" | "extract" | "analyze" | "save" | "done";
 
@@ -52,6 +54,8 @@ export function Step1CProcessing({
   onContinue: () => void;
 }) {
   const runProcess = useServerFn(processRFPDocuments);
+  const extractReqs = useServerFn(extractRequirementNodesFromRFP);
+
   const [lines, setLines] = useState<string[]>([]);
   const [phase, setPhase] = useState<Phase>("running");
   const [errMsg, setErrMsg] = useState<string | null>(null);
@@ -139,9 +143,14 @@ export function Step1CProcessing({
         // 3. Server fn → AI → DB writes
         setStep("analyze");
         await runProcess({ data: { mission_id: missionId, primary_rfp_text: combined } });
+        // Fire-and-forget: extract requirement nodes into the Intelligence Graph.
+        extractReqs({ data: { missionId } }).catch((err) =>
+          console.error("[Step1CProcessing] extractRequirementNodesFromRFP failed", err),
+        );
         setStep("save");
         setAnalyzePct(100);
         aiDone.current = true;
+
       } catch (e: any) {
         console.error("IRIS processing failed", e);
         aiError.current = e?.message ?? "Processing failed.";
@@ -184,7 +193,7 @@ export function Step1CProcessing({
       clearInterval(analyzeTick);
       clearInterval(watcher);
     };
-  }, [missionId, runProcess]);
+  }, [missionId, runProcess, extractReqs]);
 
   const stepLabel =
     step === "extract" && extractTotal > 0
