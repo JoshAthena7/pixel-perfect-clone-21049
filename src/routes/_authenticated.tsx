@@ -167,13 +167,13 @@ function AuthedShell({ email, isAdmin }: { email: string | null; isAdmin: boolea
       if (!u.user) return;
       const { data: p } = await supabase
         .from("profiles")
-        .select("first_name,last_name")
+        .select("display_name,email")
         .eq("id", u.user.id)
         .maybeSingle();
       if (p) {
-        setUserName(((p.first_name ?? "") + " " + (p.last_name ?? "")).trim() || (email ?? null));
+        setUserName(p.display_name?.trim() || p.email || email);
       } else {
-        setUserName(email ?? null);
+        setUserName(email);
       }
       const { data: m } = await supabase.rpc("current_atlas_member_id");
       if (m) {
