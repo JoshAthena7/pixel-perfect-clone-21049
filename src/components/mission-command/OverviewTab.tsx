@@ -136,9 +136,11 @@ function MissionHealthBar({
           .eq("health_status", "not_started"),
         supabase
           .from("mission_journey_phases")
-          .select("name, status")
+          .select("name, is_cleared, order_index")
           .eq("mission_id", missionId)
-          .eq("status", "in_progress")
+          .eq("is_cleared", false)
+          .order("order_index", { ascending: true })
+          .limit(1)
           .maybeSingle(),
       ]);
       return {

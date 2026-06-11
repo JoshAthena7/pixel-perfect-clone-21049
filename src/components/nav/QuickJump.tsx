@@ -1,14 +1,17 @@
-import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useParams, useRouterState } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, X } from "lucide-react";
 import { differenceInCalendarDays } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { getLastTab } from "@/lib/last-tab";
-import { TAB_GROUPS, type TabId } from "@/components/mission-command/MissionTabs";
-
-const ALL_TAB_IDS = TAB_GROUPS.flatMap((g) => g.tabs);
+import {
+  ALL_TABS,
+  visibleTabsForRole,
+  useViewerMissionRole,
+  type TabId,
+} from "@/components/mission-command/MissionTabs";
 
 type QJMission = { id: string; name: string; status: string; submission_deadline: string | null };
 
@@ -21,6 +24,24 @@ async function fetchQJMissions(): Promise<QJMission[]> {
   if (error) throw error;
   return data ?? [];
 }
+
+// Sub-items grouped under each main tab in Quick Jump
+const TAB_SUB_ITEMS: Partial<Record<TabId, { id: string; label: string; sub?: string; section?: string }[]>> = {
+  overview: [
+    { id: "win-strategy", label: "Win Strategy", section: "win-strategy" },
+    { id: "journey", label: "Journey", section: "journey" },
+    { id: "question-health", label: "Question Health", section: "question-health" },
+  ],
+  work: [
+    { id: "qa", label: "Q&A", sub: "qa" },
+    { id: "insights", label: "Insights", sub: "insights" },
+  ],
+  oracle: [
+    { id: "feed", label: "Intelligence Feed", sub: "feed" },
+    { id: "stakeholders", label: "Stakeholders", sub: "stakeholders" },
+    { id: "competitors", label: "Competitors", sub: "competitors" },
+  ],
+};
 
 export function QuickJump({
   open,
@@ -39,6 +60,8 @@ export function QuickJump({
 }) {
   const navigate = useNavigate();
   const popRef = useRef<HTMLDivElement>(null);
+  const { data: role } = useViewerMissionRole(currentMissionId ?? "");
+  const visible = visibleTabsForRole(role ?? null);
 
   const { data: missions } = useQuery({
     queryKey: ["quick-jump-missions"],
@@ -77,37 +100,33 @@ export function QuickJump({
     });
   };
 
-  const pickTab = (tabId: TabId) => {
+  const pickTab = (tabId: TabId, extra?: { sub?: string; section?: string }) => {
     if (!currentMissionId) return;
     onClose();
     navigate({
       to: "/olympus/missions/$missionId",
       params: { missionId: currentMissionId },
-      search: (prev: Record<string, unknown>) => ({ ...prev, tab: tabId }),
+      search: (prev: Record<string, unknown>) => ({
+        ...prev,
+        tab: tabId,
+        ...(extra?.sub ? { sub: extra.sub } : { sub: undefined }),
+      }),
     });
-  };
-
-  const pickOracleSub = (sub: string) => {
-    if (!currentMissionId) return;
-    onClose();
-    navigate({
-      to: "/olympus/missions/$missionId",
-      params: { missionId: currentMissionId },
-      search: (prev: Record<string, unknown>) => ({ ...prev, tab: "oracle", sub }),
-    });
+    if (extra?.section) {
+      setTimeout(() => {
+        document.getElementById(extra.section!)?.scrollIntoView({ behavior: "smooth" });
+      }, 300);
+    }
   };
 
   return (
     <>
-      {/* Mobile full-screen scrim */}
       <div className="fixed inset-0 z-[70] md:hidden bg-black/60" onClick={onClose} />
       <div
         ref={popRef}
         className={cn(
           "z-[71] rounded-[10px] border border-[var(--athena-gold)]/40 bg-[#0D1B3E] shadow-2xl overflow-hidden",
-          // Desktop: absolute popover
           "md:absolute md:right-0 md:top-full md:mt-2 md:w-[280px] md:max-h-[480px]",
-          // Mobile: full-width slide-up
           "fixed inset-x-0 bottom-0 max-h-[80vh] md:bottom-auto md:inset-x-auto",
           "flex flex-col",
         )}
@@ -120,7 +139,6 @@ export function QuickJump({
         </div>
 
         <div className="overflow-y-auto">
-          {/* Active Missions */}
           <div className="px-4 pt-3 pb-1 text-[10px] uppercase tracking-widest text-[var(--athena-gold)] font-bold">
             Active Missions
           </div>
@@ -166,7 +184,6 @@ export function QuickJump({
             </Link>
           </div>
 
-          {/* Olympus */}
           <div className="px-4 pt-3 pb-1 text-[10px] uppercase tracking-widest text-[var(--athena-gold)] font-bold border-t border-white/10">
             Olympus
           </div>
@@ -177,16 +194,16 @@ export function QuickJump({
           <Link to="/reports" onClick={onClose}
                 className="block px-4 py-2 text-[13px] text-white hover:bg-white/5">Reports</Link>
 
-          {/* This Mission */}
           {currentMissionId && (
             <>
               <div className="px-4 pt-3 pb-1 text-[10px] uppercase tracking-widest text-[var(--athena-gold)] font-bold border-t border-white/10">
                 This Mission
               </div>
               <div>
-                {ALL_TAB_IDS.map((t) => {
+                {ALL_TABS.filter((t) => visible.includes(t.id)).map((t) => {
                   const isActive = t.id === activeTab;
                   const alertN = alerts?.[t.id] ?? 0;
+                  const subs = TAB_SUB_ITEMS[t.id] ?? [];
                   return (
                     <div key={t.id}>
                       <button
@@ -199,17 +216,12 @@ export function QuickJump({
                         <span className="flex-1 min-w-0 truncate">{t.label}</span>
                         {alertN > 0 && <span className="h-1.5 w-1.5 rounded-full bg-red-500 shrink-0" />}
                       </button>
-                      {t.id === "oracle" && (
+                      {subs.length > 0 && (
                         <div className="pl-3">
-                          {[
-                            { id: "feed", label: "Intelligence Feed" },
-                            { id: "stakeholders", label: "Stakeholders" },
-                            { id: "competitors", label: "Competitors" },
-                            { id: "research-library", label: "Research Library" },
-                          ].map((s) => (
+                          {subs.map((s) => (
                             <button
                               key={s.id}
-                              onClick={() => pickOracleSub(s.id)}
+                              onClick={() => pickTab(t.id, { sub: s.sub, section: s.section })}
                               className="w-full text-left px-4 py-1 flex items-center gap-2 hover:bg-white/5 text-[12px] text-white/60 hover:text-white"
                             >
                               <span className="text-white/30">↳</span>
