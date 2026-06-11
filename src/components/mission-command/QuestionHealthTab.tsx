@@ -457,6 +457,7 @@ function HealthCard({
   onGoToSection,
   flag,
   smes,
+  latestScore,
 }: {
   q: Question;
   a?: Assignment;
@@ -467,6 +468,7 @@ function HealthCard({
   onGoToSection: () => void;
   flag?: any;
   smes: string[];
+  latestScore?: number;
 }) {
   const h = q.health_status ?? "healthy";
   const borderColor =
