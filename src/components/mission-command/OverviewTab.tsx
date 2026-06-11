@@ -275,11 +275,11 @@ function PulseCard({ children }: { children: React.ReactNode }) {
 
 function NewSinceYesterdayCard({
   missionId,
-  onNavigateTab,
 }: {
   missionId: string;
   onNavigateTab: (t: TabId) => void;
 }) {
+  const navigate = useNavigate();
   const { data, isLoading } = useQuery({
     queryKey: ["briefing-new-intel", missionId],
     queryFn: async () => {
@@ -326,7 +326,17 @@ function NewSinceYesterdayCard({
             </div>
           )}
           <button
-            onClick={() => onNavigateTab("oracle")}
+            onClick={() =>
+              navigate({
+                to: "/olympus/missions/$missionId",
+                params: { missionId },
+                search: (prev: Record<string, unknown>) => ({
+                  ...prev,
+                  tab: "oracle",
+                  sub: "feed",
+                }),
+              })
+            }
             className="mt-2 inline-flex items-center gap-1"
             style={{ color: GOLD, fontSize: 12 }}
           >
