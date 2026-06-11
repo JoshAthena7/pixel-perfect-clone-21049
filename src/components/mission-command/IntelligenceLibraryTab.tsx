@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -49,13 +49,24 @@ function iconFor(d: Doc) {
   return <FileIcon className="h-4 w-4" />;
 }
 
-export function IntelligenceLibraryTab({ missionId }: { missionId: string }) {
+export function IntelligenceLibraryTab({
+  missionId,
+  autoOpenAdd = false,
+}: {
+  missionId: string;
+  autoOpenAdd?: boolean;
+}) {
   const qc = useQueryClient();
   const [view, setView] = useState<"type" | "section">("type");
   const [addOpen, setAddOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [openFolders, setOpenFolders] = useState<Set<string>>(new Set(FOLDERS.map((f) => f.id)));
   const [tagEdit, setTagEdit] = useState<Doc | null>(null);
+
+  // Allow Oracle's "Add Intelligence" button to auto-open the modal via ?add=1.
+  useEffect(() => {
+    if (autoOpenAdd) setAddOpen(true);
+  }, [autoOpenAdd]);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["intel-library", missionId],
