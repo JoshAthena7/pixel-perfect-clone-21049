@@ -253,7 +253,9 @@ export function Step3WinStrategy({ missionId }: { missionId: string }) {
           IRIS has drafted a strategy based on your RFP. Review every field. Edit freely. Confirm each one when
           it is right. Writers cannot start until this is done.
         </p>
+        <StepMetaIndicator irisCount={7} youCount={3} />
       </div>
+
 
       <div className="rounded-lg border-l-4 border-amber-500 bg-amber-500/10 p-4">
         <p className="text-sm text-amber-100/90">
