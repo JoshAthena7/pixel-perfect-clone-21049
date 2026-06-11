@@ -104,19 +104,8 @@ export function PortfolioPage({ onOpenIris }: Props) {
           <h1 className="text-white text-[22px] font-medium">Portfolio</h1>
           <p className="text-white/50 text-[13px] mt-0.5">{format(new Date(), "EEEE, MMMM d, yyyy")}</p>
         </div>
-        <button
-          type="button"
-          onClick={onOpenIris}
-          className="inline-flex items-center gap-1.5 rounded-md text-[13px] font-medium"
-          style={{
-            background: "rgba(127,119,221,0.12)",
-            border: "1px solid rgba(127,119,221,0.3)",
-            color: "rgba(200,195,255,0.9)",
-            padding: "6px 14px",
-          }}
-        >
-          <MessageSquare className="h-3.5 w-3.5" /> Ask IRIS
-        </button>
+        <AskIrisButton />
+
       </div>
 
       {/* Stat cards */}
