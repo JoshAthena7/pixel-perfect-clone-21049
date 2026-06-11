@@ -49,7 +49,7 @@ export const Route = createFileRoute("/_authenticated/admin/team")({
       supabase.from("user_roles").select("role").eq("user_id", u.user.id).eq("role", "admin").maybeSingle(),
     ]);
     if (!prof?.is_platform_admin && !role) {
-      throw redirect({ to: "/olympus/missions" });
+      throw redirect({ to: "/my-work" });
     }
   },
   component: TeamRosterPage,
