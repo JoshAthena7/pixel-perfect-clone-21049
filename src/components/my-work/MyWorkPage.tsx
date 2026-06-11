@@ -350,6 +350,20 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
                   {selected.question?.question_text ?? ""}
                 </h2>
                 <p className="text-[12px] text-white/45 mt-1">{selected.sectionName}</p>
+                <Link
+                  to="/olympus/missions/$missionId"
+                  params={{ missionId: selected.mission_id }}
+                  search={{ tab: "work", sub: "questions" } as never}
+                  className="inline-flex items-center gap-1.5 mt-3 text-[12px] font-medium rounded-md px-3 py-1.5"
+                  style={{
+                    background: "rgba(196,154,43,0.12)",
+                    border: "1px solid rgba(196,154,43,0.35)",
+                    color: GOLD,
+                  }}
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  Open Question Workspace
+                </Link>
               </div>
 
               {/* Athena Strategy */}
