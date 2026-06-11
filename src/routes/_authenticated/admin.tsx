@@ -28,7 +28,11 @@ function AdminLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="border-b border-border bg-surface/40">
-        <div className="mx-auto flex max-w-6xl items-center gap-1 px-6 overflow-x-auto">
+        <div className="mx-auto max-w-6xl px-6 pt-5">
+          <h1 className="text-[20px] font-medium text-foreground leading-tight">Admin · Olympus</h1>
+          <p className="text-[13px] text-muted-foreground mt-1">Platform administration and IRIS infrastructure controls.</p>
+        </div>
+        <div className="mx-auto flex max-w-6xl items-center gap-1 px-6 overflow-x-auto mt-4">
           {TABS.map((t) => {
             const active = t.exact ? path === t.to : path === t.to || path.startsWith(t.to + "/");
             const Icon = t.icon;
