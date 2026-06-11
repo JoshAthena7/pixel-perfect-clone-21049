@@ -63,8 +63,7 @@ export const Route = createFileRoute("/api/public/dev/seed-test-env")({
           await supabaseAdmin.from("profiles").upsert({
             id: userIds[u.email],
             email: u.email,
-            first_name: u.firstName,
-            last_name: u.lastName,
+            display_name: `${u.firstName} ${u.lastName}`,
           }, { onConflict: "id" });
         }
 
