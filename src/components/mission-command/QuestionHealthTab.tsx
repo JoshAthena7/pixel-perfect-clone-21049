@@ -376,6 +376,7 @@ export function QuestionHealthTab({
                 onGoToSection={() => onNavigateTab("work")}
                 flag={flag}
                 smes={smesForQ}
+                latestScore={scoreMap[q.id]?.score}
               />
             );
           })}
