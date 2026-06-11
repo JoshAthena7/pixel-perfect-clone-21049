@@ -4,8 +4,13 @@ import { differenceInCalendarDays } from "date-fns";
 import {
   FileText, Brain, Lightbulb, LayoutDashboard, MessageSquare, Target,
   Trophy, Users, Route as RouteIcon, ListChecks, BarChart3, Settings,
-  ArrowLeft, LogOut, Menu, X,
+  ArrowLeft, LogOut, Menu, X, Icon as LucideIcon,
 } from "lucide-react";
+import { owl } from "@lucide/lab";
+
+const Owl = (props: Omit<React.ComponentProps<typeof LucideIcon>, "iconNode">) => (
+  <LucideIcon iconNode={owl} {...props} />
+);
 import { cn } from "@/lib/utils";
 import { useMissionMeta, useMissionAtRiskCount } from "@/hooks/useMissionMeta";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -22,7 +27,7 @@ type NavItem = {
 
 const MISSION_ITEMS: NavItem[] = [
   { to: "/missions/$missionId/briefing", label: "Briefing", Icon: FileText, needsMission: true },
-  { to: "/missions/$missionId/oracle", label: "Oracle", Icon: Brain, needsMission: true },
+  { to: "/missions/$missionId/oracle", label: "Oracle", Icon: Owl as unknown as IconType, needsMission: true },
   { to: "/missions/$missionId/insights", label: "Insights", Icon: Lightbulb, needsMission: true },
 ];
 
