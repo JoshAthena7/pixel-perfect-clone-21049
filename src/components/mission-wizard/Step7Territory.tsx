@@ -250,7 +250,10 @@ export function Step7Territory({ missionId, onAdvance }: { missionId: string; on
       {/* Program type */}
       {stateCode && agencyName.trim() && (
         <div className="space-y-3">
-          <Label>Program Type</Label>
+          <div className="flex items-center justify-between gap-3">
+            <Label>Program Type</Label>
+            <InputSourceBadge source="you" />
+          </div>
           <div className="flex flex-wrap gap-2">
             {PROGRAM_TYPES.map((p) => {
               const selected = programType === p.v;
