@@ -255,20 +255,8 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
             <Sparkles className="h-3.5 w-3.5" />
             Score Draft
           </button>
-          <button
-            type="button"
-            onClick={onOpenIris}
-            className="inline-flex items-center gap-1.5 rounded-md text-[13px] font-medium"
-            style={{
-              background: IRIS_PURPLE_BG,
-              border: `1px solid ${IRIS_PURPLE_BORDER}`,
-              color: IRIS_PURPLE_TEXT,
-              padding: "6px 14px",
-            }}
-          >
-            <MessageSquare className="h-3.5 w-3.5" />
-            Ask IRIS
-          </button>
+          <AskIrisButton />
+
         </div>
       </div>
 
