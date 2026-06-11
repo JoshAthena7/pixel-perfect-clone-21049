@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { getLastTab, setLastTab } from "@/lib/last-tab";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MissionHeader } from "@/components/mission-command/MissionHeader";
+import { MissionContentHeader } from "@/components/mission-command/MissionContentHeader";
 import {
   MissionTabs,
   isValidTab,
