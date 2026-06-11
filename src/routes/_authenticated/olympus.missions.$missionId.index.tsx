@@ -18,8 +18,8 @@ import { SectionsQuestionsTab } from "@/components/mission-command/SectionsQuest
 import { QuestionHealthTab } from "@/components/mission-command/QuestionHealthTab";
 import { RfpDocumentsTab } from "@/components/mission-command/RfpDocumentsTab";
 import { QaLogTab } from "@/components/mission-command/QaLogTab";
-// ClientIntelligenceTab now rendered inside OracleTab > Stakeholders sub-tab
-import { IntelligenceLibraryTab } from "@/components/mission-command/IntelligenceLibraryTab";
+// ClientIntelligenceTab → embedded in OracleTab > Stakeholders sub-tab
+// IntelligenceLibraryTab → embedded in OracleTab > Research Library sub-tab
 import { ComplianceTab } from "@/components/mission-command/ComplianceTab";
 import { SubmissionChecklistTab } from "@/components/mission-command/SubmissionChecklistTab";
 import { TeamAssignmentsTab } from "@/components/mission-command/TeamAssignmentsTab";
@@ -68,7 +68,7 @@ function MissionCommandCenter() {
   useEffect(() => {
     if (tab && isValidTab(tab)) setLastTab(missionId, tab);
   }, [tab, missionId]);
-  // Redirect old Client Intelligence tab to Oracle stakeholders sub-tab
+  // Redirect retired tabs into their new home inside Oracle.
   useEffect(() => {
     if (tab === "client-intel") {
       navigate({
@@ -77,10 +77,16 @@ function MissionCommandCenter() {
         search: (prev: Record<string, unknown>) => ({ ...prev, tab: "oracle", sub: "stakeholders" }),
         replace: true,
       });
+    } else if (tab === "intel-library") {
+      navigate({
+        to: "/olympus/missions/$missionId",
+        params: { missionId },
+        search: (prev: Record<string, unknown>) => ({ ...prev, tab: "oracle", sub: "research-library" }),
+        replace: true,
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
-  if (activeTab === "client-intel") activeTab = "oracle";
 
   const { data: mission, isLoading } = useQuery({
     queryKey: ["mission-header", missionId],
