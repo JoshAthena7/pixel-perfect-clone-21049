@@ -436,11 +436,13 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
         questionId={selected?.question?.id ?? null}
         questionNumber={selected?.question?.question_number ?? null}
         questionText={selected?.question?.question_text ?? null}
-        onFixWithIris={(gaps) => {
+        lockQuestion={!!selected?.question?.id}
+        onFixWithIris={(gaps, draftText, score, qLabel) => {
           setScoreOpen(false);
-          const text = `Help me fix these gaps in my draft for ${selected?.question?.question_number ?? "this question"}:\n${gaps
-            .map((g, i) => `${i + 1}. ${g.description} — fix: ${g.fix}`)
-            .join("\n")}`;
+          const gapList = gaps
+            .map((g, i) => `${i + 1}. ${g.description} (${g.impact})`)
+            .join("\n");
+          const text = `Help me fix my draft for ${qLabel}. My score was ${score}/100. The main gaps are:\n${gapList}\n\nHere is my current draft:\n${draftText}`;
           onPrefillIris(text);
         }}
       />
