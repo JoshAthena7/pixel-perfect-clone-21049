@@ -87,6 +87,7 @@ export function MissionContentHeader({
         >
           <Target className="h-3.5 w-3.5" /> Score Draft
         </button>
+        <AskIrisButton />
         <button type="button" className={btn} style={baseBtnStyle} onClick={() => setEditOpen(true)}>
           <Pencil className="h-3.5 w-3.5" /> Edit Mission
         </button>
