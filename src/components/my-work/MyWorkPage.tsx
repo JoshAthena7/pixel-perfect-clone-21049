@@ -482,6 +482,16 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
           onPrefillIris(text);
         }}
       />
+
+      {historicalScore && (
+        <ScoreDraftPanel
+          open={!!historicalScore}
+          onOpenChange={(v) => !v && setHistoricalScore(null)}
+          missionId={currentMission?.id ?? null}
+          initialResult={historicalScore.result}
+          initialQuestion={historicalScore.question}
+        />
+      )}
     </div>
   );
 }
