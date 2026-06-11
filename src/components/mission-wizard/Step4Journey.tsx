@@ -54,6 +54,7 @@ import {
   type TemplatePhaseKey,
 } from "@/lib/journey-template";
 import { assessJourneyTimeline } from "@/lib/journey-assessment.functions";
+import { InputSourceBadge, StepMetaIndicator } from "@/components/InputSourceBadge";
 
 // ---------- types & constants ----------
 export type PhaseType = "planning" | "drafting" | "review" | "gate" | "pens_down";
