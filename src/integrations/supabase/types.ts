@@ -181,38 +181,124 @@ export type Database = {
         }
         Relationships: []
       }
+      athena_insight_mappings: {
+        Row: {
+          created_at: string
+          id: string
+          insight_id: string
+          mission_id: string
+          question_id: string | null
+          scope: string
+          section_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          insight_id: string
+          mission_id: string
+          question_id?: string | null
+          scope?: string
+          section_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          insight_id?: string
+          mission_id?: string
+          question_id?: string | null
+          scope?: string
+          section_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "athena_insight_mappings_insight_id_fkey"
+            columns: ["insight_id"]
+            isOneToOne: false
+            referencedRelation: "athena_insights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "athena_insight_mappings_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "athena_insight_mappings_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "athena_insight_mappings_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "mission_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       athena_insights: {
         Row: {
           created_at: string
           created_by: string | null
+          created_by_name: string | null
           id: string
+          insight_number: number | null
+          insight_type: string
           is_daily_insight: boolean
+          is_iris_generated: boolean
           mission_id: string
           question_id: string | null
           quote: string
+          section_id: string | null
+          strategic_quote: string | null
+          tags: string[]
+          title: string | null
           updated_at: string
+          why_it_matters: string | null
           writers_note: string | null
         }
         Insert: {
           created_at?: string
           created_by?: string | null
+          created_by_name?: string | null
           id?: string
+          insight_number?: number | null
+          insight_type?: string
           is_daily_insight?: boolean
+          is_iris_generated?: boolean
           mission_id: string
           question_id?: string | null
           quote: string
+          section_id?: string | null
+          strategic_quote?: string | null
+          tags?: string[]
+          title?: string | null
           updated_at?: string
+          why_it_matters?: string | null
           writers_note?: string | null
         }
         Update: {
           created_at?: string
           created_by?: string | null
+          created_by_name?: string | null
           id?: string
+          insight_number?: number | null
+          insight_type?: string
           is_daily_insight?: boolean
+          is_iris_generated?: boolean
           mission_id?: string
           question_id?: string | null
           quote?: string
+          section_id?: string | null
+          strategic_quote?: string | null
+          tags?: string[]
+          title?: string | null
           updated_at?: string
+          why_it_matters?: string | null
           writers_note?: string | null
         }
         Relationships: [
@@ -228,6 +314,13 @@ export type Database = {
             columns: ["question_id"]
             isOneToOne: false
             referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "athena_insights_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "mission_sections"
             referencedColumns: ["id"]
           },
         ]
