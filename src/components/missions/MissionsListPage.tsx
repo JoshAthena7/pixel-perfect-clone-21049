@@ -269,7 +269,16 @@ function MissionCard({ m, onEdit }: { m: MissionRow; onEdit: () => void }) {
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="min-w-0">
             <h3 className="text-lg font-semibold text-foreground truncate">{m.name}</h3>
-            <p className="text-sm text-muted-foreground truncate">{m.client_name ?? "—"}</p>
+            {(() => {
+              const client = m.client_name ?? m.agency_name;
+              if (client && client !== m.name) {
+                return <p className="text-sm text-muted-foreground truncate">{client}</p>;
+              }
+              if (!client) {
+                return <p className="text-sm text-muted-foreground/60 italic truncate">Client TBD</p>;
+              }
+              return null;
+            })()}
           </div>
           <span
             className={cn(
