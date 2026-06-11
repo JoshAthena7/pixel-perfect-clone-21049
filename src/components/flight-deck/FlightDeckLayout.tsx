@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIris } from "@/components/iris/IrisContext";
-import { UpdateRealityDialog, SOSDialog } from "@/components/iris/AssistsBar";
+import { UpdateRealityDialog, SOSDialog } from "@/components/iris/AssistsDialogs";
 import { DailyPulseModal } from "@/components/iris/DailyPulseModal";
 import { IntelligencePanel } from "@/components/flight-deck/IntelligencePanel";
 import { cn } from "@/lib/utils";
