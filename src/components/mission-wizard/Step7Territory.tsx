@@ -168,11 +168,24 @@ export function Step7Territory({ missionId, onAdvance }: { missionId: string; on
         <p className="text-muted-foreground">
           Tell IRIS where this mission lives. Everything she knows about this state, this agency, and this program type becomes yours.
         </p>
+        <div className="flex items-center gap-3 pt-1">
+          <span className="text-[11px] text-muted-foreground">3 fields you provide → unlocks IRIS seeding</span>
+        </div>
       </header>
+
+      <ConfirmationBar
+        ok={!!(stateCode && agencyName.trim() && programType)}
+        okText="Territory set — IRIS is seeding policy and stakeholder nodes now."
+        pendingText="Set all three fields below to unlock automatic policy and stakeholder seeding by IRIS."
+      />
 
       {/* State */}
       <div className="space-y-2">
-        <Label>State or Territory</Label>
+        <div className="flex items-center justify-between gap-3">
+          <Label>State or Territory</Label>
+          <InputSourceBadge source="you" />
+        </div>
+
         <Input
           placeholder="Search states…"
           value={search}
