@@ -499,6 +499,7 @@ function HealthCard({
         <HealthBadge value={h} />
         <span className="font-mono text-primary">{q.question_number}</span>
         <span className="text-muted-foreground">{section?.name ?? "—"}</span>
+        {typeof latestScore === "number" && <ScorePill score={latestScore} />}
         <span className={cn("ml-auto", dueColor)}>
           {due
             ? `${format(due, "MMM d, yyyy")} · ${days !== null && days < 0 ? `${Math.abs(days)}d overdue` : `${days}d`}`
