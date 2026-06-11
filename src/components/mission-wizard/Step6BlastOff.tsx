@@ -159,6 +159,27 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
   const navigate = useNavigate();
   const buildGraph = useServerFn(buildIntelligenceGraph);
   const seedTerritory = useServerFn(seedTerritoryIntelligence);
+  const buildInsight = useServerFn(buildAthenaInsight);
+
+  const fireSectionInsights = async () => {
+    try {
+      const { data: sections } = await supabaseClient
+        .from("mission_sections")
+        .select("id")
+        .eq("mission_id", missionId);
+      const ids = (sections ?? []).map((s: any) => s.id as string);
+      const all = [
+        buildInsight({ data: { missionId, type: "daily" as const } }).catch((e) => console.error("[BLAST OFF] daily insight failed:", e)),
+        ...ids.map((sid) =>
+          buildInsight({ data: { missionId, type: "section" as const, section_id: sid } })
+            .catch((e) => console.error("[BLAST OFF] section insight failed:", sid, e))
+        ),
+      ];
+      Promise.all(all).catch(() => {});
+    } catch (e) {
+      console.error("[BLAST OFF] fireSectionInsights setup failed", e);
+    }
+  };
 
   const { data: checks, isLoading, refetch } = useQuery({
     queryKey: ["launch-checks", missionId],
