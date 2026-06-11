@@ -297,6 +297,9 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
                   <p className="text-[11px] text-yellow-200/70 mt-0.5">{c.recommendedMsg}</p>
                 )}
               </div>
+              {ITEM_SOURCE[c.key] && (
+                <InputSourceBadge source={ITEM_SOURCE[c.key]!} />
+              )}
               {!c.pass && (
                 <button
                   className="text-xs text-[var(--athena-gold)] hover:underline shrink-0"
