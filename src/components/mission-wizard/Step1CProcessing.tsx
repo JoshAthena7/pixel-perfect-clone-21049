@@ -143,9 +143,14 @@ export function Step1CProcessing({
         // 3. Server fn → AI → DB writes
         setStep("analyze");
         await runProcess({ data: { mission_id: missionId, primary_rfp_text: combined } });
+        // Fire-and-forget: extract requirement nodes into the Intelligence Graph.
+        extractReqs({ data: { missionId } }).catch((err) =>
+          console.error("[Step1CProcessing] extractRequirementNodesFromRFP failed", err),
+        );
         setStep("save");
         setAnalyzePct(100);
         aiDone.current = true;
+
       } catch (e: any) {
         console.error("IRIS processing failed", e);
         aiError.current = e?.message ?? "Processing failed.";
