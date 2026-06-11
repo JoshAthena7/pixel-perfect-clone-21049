@@ -103,7 +103,7 @@ export function AppSidebar({
       <aside
         className="fixed left-0 z-[58] flex flex-col"
         style={{
-          top: 44,
+          top: 48,
           bottom: 0,
           width,
           background: "#050d18",
