@@ -407,6 +407,7 @@ export function Step3WinStrategy({ missionId }: { missionId: string }) {
       {/* 9 */}
       <FieldShell
         title="Discriminators"
+        source="you"
         helper="What makes Athena different from every other bidder on this specific procurement."
         confirmed={confirmed.has("discriminators")}
         onConfirm={() => confirmField("discriminators")}
