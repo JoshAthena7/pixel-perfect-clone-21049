@@ -1,12 +1,36 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { differenceInCalendarDays, format, formatDistanceToNow } from "date-fns";
-import { CheckCircle2, AlertTriangle } from "lucide-react";
+import { formatDistanceToNow, format, differenceInCalendarDays } from "date-fns";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ArrowRight,
+  Sparkles,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { SkeletonCards, SkeletonRows, ErrorState, EmptyState } from "@/components/shared/data-states";
-import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useIris } from "@/components/iris/IrisContext";
 import type { TabId } from "./MissionTabs";
 
+const GOLD = "#C49A2B";
+const GOLD_DIM = "rgba(196,154,43,0.5)";
+const DIVIDER = "rgba(255,255,255,0.06)";
+const SURFACE = "rgba(255,255,255,0.03)";
+const SURFACE_BORDER = "rgba(255,255,255,0.07)";
+
+/**
+ * Mission Briefing Room.
+ *
+ * The first page a consultant sees when they enter a mission.
+ * Top-to-bottom reading order:
+ *   1. TODAY      — Daily Insight + Intelligence Pulse
+ *   2. THE MISSION — North Star, Evaluators, Competitors, Watch List
+ *   3. MY WORK    — Needs Attention + Assignments table
+ *
+ * The route, navigation, and tab id ("overview") are unchanged — only
+ * the contents of this component are rebuilt.
+ */
 export function OverviewTab({
   missionId,
   onNavigateTab,
@@ -14,501 +38,1237 @@ export function OverviewTab({
   missionId: string;
   onNavigateTab: (t: TabId) => void;
 }) {
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["mission-overview", missionId],
+  const iris = useIris();
+  useEffect(() => {
+    iris.setSection(null, "Mission Briefing Room");
+  }, [iris, missionId]);
+
+  return (
+    <div className="mx-auto w-full" style={{ maxWidth: 900 }}>
+      <PageHeader missionId={missionId} onNavigateTab={onNavigateTab} />
+      <SectionDivider label="TODAY" />
+      <TodaySection missionId={missionId} onNavigateTab={onNavigateTab} />
+      <SectionDivider label="THE MISSION" />
+      <TheMissionSection missionId={missionId} onNavigateTab={onNavigateTab} />
+      <SectionDivider label="MY WORK" />
+      <MyWorkSection missionId={missionId} />
+    </div>
+  );
+}
+
+/* --------------------------- Page Header --------------------------- */
+
+function PageHeader({
+  missionId,
+  onNavigateTab,
+}: {
+  missionId: string;
+  onNavigateTab: (t: TabId) => void;
+}) {
+  const { data: mission } = useQuery({
+    queryKey: ["briefing-header", missionId],
     queryFn: async () => {
-      const [
-        mission,
-        questions,
-        team,
-        assignments,
-        phases,
-        deliverables,
-        winStrategy,
-        audit,
-        notifications,
-      ] = await Promise.all([
+      const { data } = await supabase
+        .from("missions")
+        .select("name, client_name, program_type")
+        .eq("id", missionId)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  return (
+    <div className="pt-2 pb-5">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div
+          className="truncate min-w-0"
+          style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}
+        >
+          {mission
+            ? [mission.name, mission.client_name, mission.program_type]
+                .filter(Boolean)
+                .join(" · ")
+            : "Loading…"}
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <Link
+            to="/olympus/flight-deck"
+            className="inline-flex items-center gap-1 rounded-md transition-colors"
+            style={{
+              background: "rgba(196,154,43,0.15)",
+              border: "1px solid rgba(196,154,43,0.4)",
+              color: GOLD,
+              fontSize: 13,
+              padding: "6px 16px",
+              fontWeight: 500,
+            }}
+          >
+            Enter Flight Deck <ArrowRight size={13} />
+          </Link>
+          <button
+            onClick={() => onNavigateTab("oracle")}
+            className="inline-flex items-center gap-1 rounded-md transition-colors hover:bg-white/[0.08]"
+            style={{
+              background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: "rgba(255,255,255,0.5)",
+              fontSize: 13,
+              padding: "6px 16px",
+              fontWeight: 500,
+            }}
+          >
+            View Oracle <ArrowRight size={13} />
+          </button>
+        </div>
+      </div>
+      <div
+        className="mt-5"
+        style={{
+          height: 1,
+          background: "rgba(196,154,43,0.3)",
+        }}
+      />
+    </div>
+  );
+}
+
+/* --------------------------- Section Divider --------------------------- */
+
+function SectionDivider({ label }: { label: string }) {
+  return (
+    <div className="relative my-8 flex items-center">
+      <div className="flex-1" style={{ height: 1, background: DIVIDER }} />
+      <span
+        className="mx-4 uppercase"
+        style={{
+          color: GOLD,
+          fontSize: 11,
+          letterSpacing: "0.18em",
+          fontWeight: 600,
+        }}
+      >
+        {label}
+      </span>
+      <div className="flex-1" style={{ height: 1, background: DIVIDER }} />
+    </div>
+  );
+}
+
+/* =========================================================================
+ * SECTION 1 — TODAY
+ * ========================================================================= */
+
+function TodaySection({
+  missionId,
+  onNavigateTab,
+}: {
+  missionId: string;
+  onNavigateTab: (t: TabId) => void;
+}) {
+  return (
+    <div className="grid gap-4 grid-cols-1 lg:grid-cols-5">
+      <div className="lg:col-span-3">
+        <DailyInsightCard missionId={missionId} />
+      </div>
+      <div className="lg:col-span-2 space-y-2.5">
+        <div
+          className="uppercase"
+          style={{
+            color: GOLD,
+            fontSize: 11,
+            letterSpacing: "0.18em",
+            fontWeight: 600,
+            marginBottom: 4,
+          }}
+        >
+          Intelligence Pulse
+        </div>
+        <NewSinceYesterdayCard missionId={missionId} onNavigateTab={onNavigateTab} />
+        <MonitoringStatusCard missionId={missionId} />
+        <OracleHealthCard missionId={missionId} />
+      </div>
+    </div>
+  );
+}
+
+function DailyInsightCard({ missionId }: { missionId: string }) {
+  // The athena_insights table and AthenaInsightCard component do not yet exist.
+  // We always render the empty-state placeholder. Admins see a CTA; non-admins
+  // see nothing in this slot.
+  const { data: isAdmin } = useQuery({
+    queryKey: ["is-admin"],
+    queryFn: async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user?.id) return false;
+      const { data } = await supabase.rpc("has_role", {
+        _user_id: u.user.id,
+        _role: "admin",
+      });
+      return !!data;
+    },
+  });
+
+  if (isAdmin === undefined) {
+    return <Skeleton className="h-44 w-full" />;
+  }
+
+  if (!isAdmin) return <div className="hidden" aria-hidden />;
+
+  return (
+    <div>
+      <div
+        className="uppercase"
+        style={{
+          color: GOLD,
+          fontSize: 10,
+          letterSpacing: "0.24em",
+          fontWeight: 600,
+          marginBottom: 8,
+        }}
+      >
+        ✦ Today's Athena Insight
+      </div>
+      <div
+        className="rounded-lg p-5"
+        style={{
+          borderLeft: `3px solid ${GOLD}`,
+          background: "rgba(196,154,43,0.04)",
+          border: "1px solid rgba(196,154,43,0.15)",
+          borderLeftWidth: 3,
+        }}
+      >
+        <div
+          className="flex items-start gap-3"
+          style={{ color: "rgba(255,255,255,0.6)", fontSize: 14 }}
+        >
+          <Sparkles size={16} style={{ color: GOLD, marginTop: 2 }} />
+          <div className="flex-1">
+            <p>No Daily Insight set for today.</p>
+            <p
+              className="mt-1"
+              style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}
+            >
+              The Daily Insight surface is reserved for an upcoming Athena
+              Insights feature.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PulseCard({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="rounded-lg"
+      style={{
+        background: SURFACE,
+        border: `1px solid ${SURFACE_BORDER}`,
+        padding: 12,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function NewSinceYesterdayCard({
+  missionId,
+  onNavigateTab,
+}: {
+  missionId: string;
+  onNavigateTab: (t: TabId) => void;
+}) {
+  const { data, isLoading } = useQuery({
+    queryKey: ["briefing-new-intel", missionId],
+    queryFn: async () => {
+      const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+      const { data, count } = await supabase
+        .from("intelligence_feed_items")
+        .select("id, headline, source_name", { count: "exact" })
+        .eq("mission_id", missionId)
+        .gte("iris_relevance_score", 60)
+        .gte("created_at", since)
+        .order("iris_relevance_score", { ascending: false })
+        .limit(1);
+      return { count: count ?? 0, top: (data ?? [])[0] ?? null };
+    },
+  });
+
+  if (isLoading) return <PulseCard><Skeleton className="h-14 w-full" /></PulseCard>;
+
+  return (
+    <PulseCard>
+      {data && data.count > 0 ? (
+        <>
+          <div className="flex items-baseline gap-2">
+            <span style={{ color: GOLD, fontSize: 18, fontWeight: 600 }}>
+              {data.count}
+            </span>
+            <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}>
+              new intelligence items
+            </span>
+          </div>
+          {data.top && (
+            <div className="mt-1.5">
+              <div className="text-white truncate" style={{ fontSize: 13 }}>
+                {data.top.headline}
+              </div>
+              {data.top.source_name && (
+                <div
+                  className="truncate"
+                  style={{ color: "rgba(255,255,255,0.45)", fontSize: 11 }}
+                >
+                  {data.top.source_name}
+                </div>
+              )}
+            </div>
+          )}
+          <button
+            onClick={() => onNavigateTab("oracle")}
+            className="mt-2 inline-flex items-center gap-1"
+            style={{ color: GOLD, fontSize: 12 }}
+          >
+            View in Oracle <ArrowRight size={12} />
+          </button>
+        </>
+      ) : (
+        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>
+          No new intelligence since yesterday.
+        </div>
+      )}
+    </PulseCard>
+  );
+}
+
+function MonitoringStatusCard({ missionId }: { missionId: string }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ["briefing-monitoring", missionId],
+    queryFn: async () => {
+      const { data, count } = await supabase
+        .from("intelligence_feed_configs")
+        .select("id, last_checked_at", { count: "exact" })
+        .eq("mission_id", missionId)
+        .eq("is_active", true)
+        .order("last_checked_at", { ascending: false, nullsFirst: false })
+        .limit(1);
+      return { count: count ?? 0, lastChecked: data?.[0]?.last_checked_at ?? null };
+    },
+  });
+
+  if (isLoading) return <PulseCard><Skeleton className="h-14 w-full" /></PulseCard>;
+
+  if (!data || data.count === 0) {
+    return (
+      <PulseCard>
+        <div
+          className="flex items-start gap-2"
+          style={{ color: "#fbbf24", fontSize: 13 }}
+        >
+          <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+          <span>No monitoring feeds active. Set up feeds in Intelligence Loadout.</span>
+        </div>
+      </PulseCard>
+    );
+  }
+
+  return (
+    <PulseCard>
+      <div className="text-white" style={{ fontSize: 14, fontWeight: 500 }}>
+        {data.count} feed{data.count === 1 ? "" : "s"} active
+      </div>
+      <div
+        className="mt-0.5"
+        style={{ color: "rgba(255,255,255,0.45)", fontSize: 12 }}
+      >
+        {data.lastChecked
+          ? `Last checked ${formatDistanceToNow(new Date(data.lastChecked), { addSuffix: true })}`
+          : "No checks recorded yet"}
+      </div>
+    </PulseCard>
+  );
+}
+
+function OracleHealthCard({ missionId }: { missionId: string }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ["briefing-oracle-health", missionId],
+    queryFn: async () => {
+      const [mission, nodes, items, competitors] = await Promise.all([
         supabase
           .from("missions")
-          .select("id, name, submission_deadline, blast_off_at")
+          .select("intelligence_graph_completeness")
           .eq("id", missionId)
-          .single(),
-        supabase
-          .from("mission_questions")
-          .select("id, status, health_status, is_withdrawn, due_date, question_number, section_id")
-          .eq("mission_id", missionId),
-        supabase
-          .from("mission_team_members")
-          .select(
-            "id, member:atlas_team_members(id, first_name, last_name, atlas_invite_status)",
-          )
-          .eq("mission_id", missionId),
-        supabase
-          .from("mission_assignments")
-          .select(
-            "id, question_id, assigned_writer_id, acceptance_status, assigned_at",
-          )
-          .eq("mission_id", missionId),
-        supabase
-          .from("mission_journey_phases")
-          .select("id, name, color, start_date, end_date, order_index, kind")
-          .eq("mission_id", missionId)
-          .order("order_index"),
-        supabase
-          .from("mission_journey_deliverables")
-          .select("id, title, due_date, status")
-          .eq("mission_id", missionId)
-          .neq("status", "complete")
-          .order("due_date", { ascending: true }),
-        supabase
-          .from("mission_win_strategy")
-          .select("north_star_message, central_claim")
-          .eq("mission_id", missionId)
           .maybeSingle(),
         supabase
-          .from("mission_audit_log")
-          .select("id, action, performed_by_name, created_at")
-          .eq("mission_id", missionId)
-          .order("created_at", { ascending: false })
-          .limit(8),
+          .from("intelligence_graph_nodes")
+          .select("id", { count: "exact", head: true })
+          .eq("mission_id", missionId),
         supabase
-          .from("atlas_notifications")
-          .select("id")
-          .eq("type", "iris_alert")
-          .eq("is_read", false),
+          .from("intelligence_feed_items")
+          .select("id", { count: "exact", head: true })
+          .eq("mission_id", missionId),
+        supabase
+          .from("competitor_profiles")
+          .select("id", { count: "exact", head: true })
+          .eq("mission_id", missionId),
       ]);
-
       return {
-        mission: mission.data,
-        questions: questions.data ?? [],
-        team: team.data ?? [],
-        assignments: assignments.data ?? [],
-        phases: phases.data ?? [],
-        deliverables: deliverables.data ?? [],
-        winStrategy: winStrategy.data,
-        audit: audit.data ?? [],
-        unreadAlerts: notifications.data?.length ?? 0,
+        pct: Math.max(
+          0,
+          Math.min(100, mission.data?.intelligence_graph_completeness ?? 0),
+        ),
+        nodes: nodes.count ?? 0,
+        items: items.count ?? 0,
+        competitors: competitors.count ?? 0,
       };
     },
   });
 
-  if (isError) return <ErrorState message="Couldn't load the mission overview." onRetry={() => refetch()} />;
-  if (isLoading || !data) {
+  if (isLoading || !data) return <PulseCard><Skeleton className="h-16 w-full" /></PulseCard>;
+
+  const color =
+    data.pct >= 90 ? GOLD : data.pct >= 70 ? "#34d399" : data.pct >= 40 ? "#fbbf24" : "#f87171";
+
+  return (
+    <PulseCard>
+      <div className="flex items-baseline justify-between">
+        <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}>
+          Intelligence Graph
+        </span>
+        <span style={{ color, fontSize: 13, fontWeight: 600 }}>{data.pct}%</span>
+      </div>
+      <div
+        className="mt-1.5 rounded-full overflow-hidden"
+        style={{ height: 6, background: "rgba(255,255,255,0.08)" }}
+      >
+        <div
+          style={{
+            height: "100%",
+            width: `${data.pct}%`,
+            background: color,
+            transition: "width 0.3s ease",
+          }}
+        />
+      </div>
+      <div
+        className="mt-1.5"
+        style={{ color: "rgba(255,255,255,0.45)", fontSize: 11 }}
+      >
+        {data.nodes} nodes · {data.items} feed items · {data.competitors} competitors profiled
+      </div>
+    </PulseCard>
+  );
+}
+
+/* =========================================================================
+ * SECTION 2 — THE MISSION
+ * ========================================================================= */
+
+function TheMissionSection({
+  missionId,
+  onNavigateTab,
+}: {
+  missionId: string;
+  onNavigateTab: (t: TabId) => void;
+}) {
+  return (
+    <div className="space-y-5">
+      <NorthStarBlock missionId={missionId} onNavigateTab={onNavigateTab} />
+      <div className="grid gap-5 grid-cols-1 md:grid-cols-2">
+        <EvaluatorsBlock missionId={missionId} onNavigateTab={onNavigateTab} />
+        <CompetitorsBlock missionId={missionId} onNavigateTab={onNavigateTab} />
+      </div>
+      <WatchListBlock missionId={missionId} onNavigateTab={onNavigateTab} />
+    </div>
+  );
+}
+
+function NorthStarBlock({
+  missionId,
+  onNavigateTab,
+}: {
+  missionId: string;
+  onNavigateTab: (t: TabId) => void;
+}) {
+  const { data, isLoading } = useQuery({
+    queryKey: ["briefing-win-strategy", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_win_strategy")
+        .select("north_star_message, central_claim, win_themes")
+        .eq("mission_id", missionId)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  if (isLoading) return <Skeleton className="h-40 w-full" />;
+
+  const themes: string[] = Array.isArray((data as any)?.win_themes)
+    ? ((data as any).win_themes as any[]).map((t) =>
+        typeof t === "string" ? t : (t?.title ?? t?.name ?? t?.theme ?? ""),
+      ).filter(Boolean)
+    : [];
+
+  return (
+    <div
+      className="rounded-lg"
+      style={{
+        background: "rgba(196,154,43,0.04)",
+        border: "1px solid rgba(196,154,43,0.15)",
+        borderTop: `2px solid ${GOLD}`,
+        padding: "20px 24px",
+      }}
+    >
+      <div
+        className="uppercase"
+        style={{
+          color: GOLD,
+          fontSize: 10,
+          letterSpacing: "0.24em",
+          fontWeight: 600,
+        }}
+      >
+        North Star
+      </div>
+      {data?.north_star_message ? (
+        <>
+          <p
+            className="mt-3 text-white"
+            style={{ fontSize: 20, lineHeight: 1.5, fontStyle: "italic" }}
+          >
+            {data.north_star_message}
+          </p>
+          {data.central_claim && (
+            <p className="mt-3" style={{ fontSize: 14 }}>
+              <span style={{ color: GOLD, fontSize: 12, fontWeight: 600 }}>
+                Central Claim:{" "}
+              </span>
+              <span style={{ color: "rgba(255,255,255,0.7)" }}>
+                {data.central_claim}
+              </span>
+            </p>
+          )}
+          {themes.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {themes.map((t, i) => (
+                <span
+                  key={i}
+                  style={{
+                    background: "rgba(196,154,43,0.1)",
+                    border: "1px solid rgba(196,154,43,0.25)",
+                    color: GOLD,
+                    fontSize: 12,
+                    padding: "3px 10px",
+                    borderRadius: 20,
+                  }}
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="mt-3" style={{ color: "rgba(255,255,255,0.5)", fontSize: 14 }}>
+          Win Strategy not yet set. Complete mission setup to add the North Star.{" "}
+          <button
+            onClick={() => onNavigateTab("win-strategy")}
+            style={{ color: GOLD }}
+            className="hover:underline"
+          >
+            Open Win Strategy →
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EvaluatorsBlock({
+  missionId,
+  onNavigateTab,
+}: {
+  missionId: string;
+  onNavigateTab: (t: TabId) => void;
+}) {
+  const { data, isLoading } = useQuery({
+    queryKey: ["briefing-evaluators", missionId],
+    queryFn: async () => {
+      const { data, count } = await supabase
+        .from("stakeholder_profiles")
+        .select("id, name, title, organization, stakeholder_type, public_priorities", {
+          count: "exact",
+        })
+        .eq("mission_id", missionId)
+        .in("stakeholder_type", ["evaluator", "influencer"])
+        .order("stakeholder_type")
+        .limit(4);
+      return { rows: data ?? [], total: count ?? 0 };
+    },
+  });
+
+  return (
+    <div>
+      <SubLabel>Key Evaluators</SubLabel>
+      {isLoading ? (
+        <Skeleton className="h-32 w-full" />
+      ) : !data || data.rows.length === 0 ? (
+        <MutedEmpty>
+          No evaluator profiles yet.{" "}
+          <button
+            onClick={() => onNavigateTab("oracle")}
+            style={{ color: GOLD }}
+            className="hover:underline"
+          >
+            Add in Oracle →
+          </button>
+        </MutedEmpty>
+      ) : (
+        <>
+          <ul className="space-y-2.5 mt-2">
+            {data.rows.map((p: any) => {
+              const isEval = p.stakeholder_type === "evaluator";
+              return (
+                <li key={p.id} className="flex items-start gap-2.5">
+                  <span
+                    className="mt-1.5 shrink-0 rounded-full"
+                    style={{
+                      width: 6,
+                      height: 6,
+                      background: isEval ? GOLD : "#94a3b8",
+                    }}
+                  />
+                  <div className="min-w-0">
+                    <div className="text-white" style={{ fontSize: 13, fontWeight: 500 }}>
+                      {p.name}
+                    </div>
+                    {(p.title || p.organization) && (
+                      <div
+                        style={{ color: "rgba(255,255,255,0.45)", fontSize: 11 }}
+                        className="truncate"
+                      >
+                        {[p.title, p.organization].filter(Boolean).join(" · ")}
+                      </div>
+                    )}
+                    {p.public_priorities && (
+                      <div
+                        className="truncate"
+                        style={{
+                          color: "rgba(255,255,255,0.5)",
+                          fontSize: 12,
+                          fontStyle: "italic",
+                        }}
+                      >
+                        {truncate(p.public_priorities, 80)}
+                      </div>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          {data.total > 4 && (
+            <button
+              onClick={() => onNavigateTab("oracle")}
+              className="mt-3 inline-flex items-center gap-1"
+              style={{ color: GOLD, fontSize: 12 }}
+            >
+              {data.total - 4} more evaluators <ArrowRight size={12} />
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function CompetitorsBlock({
+  missionId,
+  onNavigateTab,
+}: {
+  missionId: string;
+  onNavigateTab: (t: TabId) => void;
+}) {
+  const { data, isLoading } = useQuery({
+    queryKey: ["briefing-competitors", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("competitor_profiles")
+        .select("id, organization_name, competitor_type, likely_narrative")
+        .eq("mission_id", missionId)
+        .limit(3);
+      return data ?? [];
+    },
+  });
+
+  return (
+    <div>
+      <SubLabel>Competitive Landscape</SubLabel>
+      {isLoading ? (
+        <Skeleton className="h-32 w-full" />
+      ) : !data || data.length === 0 ? (
+        <MutedEmpty>
+          No competitors identified yet.{" "}
+          <button
+            onClick={() => onNavigateTab("oracle")}
+            style={{ color: GOLD }}
+            className="hover:underline"
+          >
+            Add in Oracle →
+          </button>
+        </MutedEmpty>
+      ) : (
+        <ul className="space-y-2.5 mt-2">
+          {data.map((c: any) => {
+            const t = (c.competitor_type ?? "").toLowerCase();
+            const badge =
+              t === "incumbent"
+                ? { label: "Incumbent", bg: "rgba(224,74,74,0.15)", color: "#fca5a5" }
+                : t === "likely" || t === "likely_bidder"
+                ? { label: "Likely Bidder", bg: "rgba(251,191,36,0.15)", color: "#fbbf24" }
+                : { label: "Possible", bg: "rgba(148,163,184,0.15)", color: "#cbd5e1" };
+            return (
+              <li key={c.id}>
+                <div className="flex items-center gap-2">
+                  <span
+                    className="uppercase rounded"
+                    style={{
+                      background: badge.bg,
+                      color: badge.color,
+                      fontSize: 9,
+                      letterSpacing: "0.1em",
+                      padding: "2px 6px",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {badge.label}
+                  </span>
+                  <span className="text-white truncate" style={{ fontSize: 13 }}>
+                    {c.organization_name}
+                  </span>
+                </div>
+                {c.likely_narrative && (
+                  <div
+                    className="mt-0.5 truncate"
+                    style={{
+                      color: "rgba(255,255,255,0.5)",
+                      fontSize: 12,
+                      fontStyle: "italic",
+                      paddingLeft: 4,
+                    }}
+                  >
+                    {truncate(c.likely_narrative, 80)}
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function WatchListBlock({
+  missionId,
+  onNavigateTab,
+}: {
+  missionId: string;
+  onNavigateTab: (t: TabId) => void;
+}) {
+  const { data, isLoading } = useQuery({
+    queryKey: ["briefing-watchlist", missionId],
+    queryFn: async () => {
+      const [risks, atRisk] = await Promise.all([
+        supabase
+          .from("intelligence_graph_nodes")
+          .select("id, label, description, created_at")
+          .eq("mission_id", missionId)
+          .eq("node_type", "risk")
+          .order("created_at", { ascending: false })
+          .limit(3),
+        supabase
+          .from("mission_questions")
+          .select("id, question_number")
+          .eq("mission_id", missionId)
+          .eq("health_status", "at_risk")
+          .eq("is_withdrawn", false),
+      ]);
+      return {
+        risks: risks.data ?? [],
+        atRiskQs: atRisk.data ?? [],
+      };
+    },
+  });
+
+  if (isLoading) return <Skeleton className="h-24 w-full" />;
+
+  const empty = !data || (data.risks.length === 0 && data.atRiskQs.length === 0);
+
+  return (
+    <div
+      className="rounded-lg"
+      style={{
+        background: empty ? "rgba(52,211,153,0.03)" : "rgba(224,74,74,0.03)",
+        border: `1px solid ${empty ? "rgba(52,211,153,0.15)" : "rgba(224,74,74,0.12)"}`,
+        padding: "16px 20px",
+      }}
+    >
+      <div
+        className="uppercase"
+        style={{
+          color: empty ? "rgba(52,211,153,0.7)" : "rgba(224,74,74,0.7)",
+          fontSize: 11,
+          letterSpacing: "0.18em",
+          fontWeight: 600,
+        }}
+      >
+        Watch List
+      </div>
+
+      {empty ? (
+        <div
+          className="mt-2 flex items-center gap-2"
+          style={{ color: "rgba(255,255,255,0.55)", fontSize: 13 }}
+        >
+          <CheckCircle2 size={14} style={{ color: "#34d399" }} />
+          No active risks identified. Mission is healthy.
+        </div>
+      ) : (
+        <div className="mt-3 space-y-2.5">
+          {data!.atRiskQs.length > 0 && (
+            <div className="flex items-start gap-2">
+              <AlertTriangle size={14} className="mt-0.5 shrink-0" style={{ color: "#f87171" }} />
+              <div className="flex-1 min-w-0">
+                <div className="text-white" style={{ fontSize: 13 }}>
+                  {data!.atRiskQs.length} question
+                  {data!.atRiskQs.length === 1 ? " is" : "s are"} At Risk
+                </div>
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {data!.atRiskQs.slice(0, 8).map((q: any) => (
+                    <span
+                      key={q.id}
+                      className="rounded"
+                      style={{
+                        background: "rgba(224,74,74,0.1)",
+                        color: "#fca5a5",
+                        fontSize: 11,
+                        padding: "1px 6px",
+                        fontFamily: "ui-monospace, monospace",
+                      }}
+                    >
+                      {q.question_number}
+                    </span>
+                  ))}
+                </div>
+                <button
+                  onClick={() => onNavigateTab("question-health")}
+                  className="mt-1 inline-flex items-center gap-1"
+                  style={{ color: GOLD, fontSize: 12 }}
+                >
+                  View in Question Health <ArrowRight size={12} />
+                </button>
+              </div>
+            </div>
+          )}
+          {data!.risks.map((r: any) => (
+            <div key={r.id} className="flex items-start gap-2">
+              <AlertTriangle size={14} className="mt-0.5 shrink-0" style={{ color: "#fbbf24" }} />
+              <div className="min-w-0">
+                <div className="text-white" style={{ fontSize: 13 }}>
+                  {r.label}
+                </div>
+                {r.description && (
+                  <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 12 }}>
+                    {truncate(r.description, 100)}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* =========================================================================
+ * SECTION 3 — MY WORK
+ * ========================================================================= */
+
+function MyWorkSection({ missionId }: { missionId: string }) {
+  const { data: memberId, isLoading: loadingMember } = useQuery({
+    queryKey: ["current-atlas-member-id"],
+    queryFn: async () => {
+      const { data } = await supabase.rpc("current_atlas_member_id");
+      return (data as string) ?? null;
+    },
+  });
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["briefing-my-work", missionId, memberId],
+    enabled: !!memberId,
+    queryFn: async () => {
+      const { data: asgs } = await supabase
+        .from("mission_assignments")
+        .select("id, question_id, acceptance_status, due_date, writer_confidence")
+        .eq("mission_id", missionId)
+        .eq("assigned_writer_id", memberId!);
+      const list = asgs ?? [];
+      const qIds = list.map((a: any) => a.question_id).filter(Boolean);
+      const [qRes, sRes] = await Promise.all([
+        qIds.length
+          ? supabase
+              .from("mission_questions")
+              .select("id, question_number, section_id, health_status, due_date")
+              .in("id", qIds)
+          : Promise.resolve({ data: [] as any[] }),
+        supabase
+          .from("mission_sections")
+          .select("id, name")
+          .eq("mission_id", missionId),
+      ]);
+      const qMap = new Map<string, any>((qRes.data ?? []).map((q: any) => [q.id, q]));
+      const sMap = new Map<string, string>(
+        (sRes.data ?? []).map((s: any) => [s.id, s.name]),
+      );
+      return list.map((a: any) => {
+        const q = qMap.get(a.question_id);
+        return {
+          assignmentId: a.id,
+          questionId: a.question_id,
+          questionNumber: q?.question_number ?? "—",
+          sectionName: q ? sMap.get(q.section_id) ?? "—" : "—",
+          health: q?.health_status ?? null,
+          dueDate: a.due_date ?? q?.due_date ?? null,
+          confidence: a.writer_confidence ?? null,
+          acceptance: a.acceptance_status ?? null,
+        };
+      });
+    },
+  });
+
+  if (loadingMember || isLoading) {
     return (
-      <div className="space-y-6">
-        <SkeletonCards count={4} height="h-32" />
-        <SkeletonRows rows={2} height="h-24" />
+      <div className="space-y-3">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
       </div>
     );
   }
 
-  const questions = data.questions.filter((q) => !q.is_withdrawn);
-  const assignedQs = data.assignments.length;
-  const completeQs = questions.filter((q) => q.status === "complete").length;
-  const atRiskQs = questions.filter((q) => q.health_status === "at_risk");
-  const healthy = questions.filter((q) => q.health_status === "healthy").length;
-  const watch = questions.filter((q) => q.health_status === "watch").length;
-  const totalQ = questions.length;
-  const pct = totalQ > 0 ? Math.round((completeQs / totalQ) * 100) : 0;
+  if (!memberId || !data || data.length === 0) {
+    return (
+      <div className="text-center py-6">
+        <div style={{ color: "rgba(255,255,255,0.55)", fontSize: 14 }}>
+          No assignments yet. Your Engagement Lead will assign questions to you.
+        </div>
+        <div
+          className="mt-2"
+          style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, fontStyle: "italic" }}
+        >
+          While you wait — read the North Star above and review the Intelligence Graph in Oracle.
+        </div>
+      </div>
+    );
+  }
 
-  const inviteActive = data.team.filter(
-    (t) => (t.member as any)?.atlas_invite_status === "accepted",
-  ).length;
-  const invitePending = data.team.filter(
-    (t) => (t.member as any)?.atlas_invite_status === "sent",
-  ).length;
-  const inviteNone = data.team.filter(
-    (t) =>
-      !(t.member as any)?.atlas_invite_status ||
-      (t.member as any)?.atlas_invite_status === "not_invited",
-  ).length;
-
-  const now = new Date();
-  const deadline = data.mission?.submission_deadline
-    ? new Date(data.mission.submission_deadline)
-    : null;
-  const daysToDeadline = deadline ? differenceInCalendarDays(deadline, now) : null;
-  const nextDeliverable = data.deliverables[0];
-  const currentPhase = data.phases.find((p) => {
-    if (!p.start_date || !p.end_date) return false;
-    const s = new Date(p.start_date);
-    const e = new Date(p.end_date);
-    return s <= now && now <= e;
+  const now = Date.now();
+  const pending = data.filter((a) => a.acceptance === "pending");
+  const atRisk = data.filter((a) => a.health === "at_risk");
+  const dueSoon = data.filter((a) => {
+    if (!a.dueDate || a.health === "at_risk") return false;
+    const d = new Date(a.dueDate).getTime();
+    const days = Math.ceil((d - now) / (24 * 3600 * 1000));
+    return days >= 0 && days < 7;
   });
-  const daysSinceLaunch = data.mission?.blast_off_at
-    ? differenceInCalendarDays(now, new Date(data.mission.blast_off_at))
-    : null;
-
-  const pendingAcceptances = data.assignments.filter(
-    (a) =>
-      a.acceptance_status === "pending" &&
-      a.assigned_at &&
-      differenceInCalendarDays(now, new Date(a.assigned_at)) >= 1,
-  );
-
-  const writerNameMap = new Map<string, string>();
-  data.team.forEach((t) => {
-    const m = t.member as any;
-    if (m?.id) writerNameMap.set(m.id, `${m.first_name ?? ""} ${m.last_name ?? ""}`.trim());
-  });
+  const hasAttention = pending.length > 0 || atRisk.length > 0 || dueSoon.length > 0;
 
   return (
     <div className="space-y-6">
-      {/* Stat cards */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Questions"
-          value={totalQ.toString()}
-          sub={
-            <span>
-              Assigned {assignedQs} · Complete {completeQs} ·{" "}
-              <span className={atRiskQs.length > 0 ? "text-red-400" : ""}>
-                At Risk {atRiskQs.length}
-              </span>
-            </span>
-          }
-        />
-        <StatCard
-          title="Team"
-          value={data.team.length.toString()}
-          sub={`Active ${inviteActive} · Invite Pending ${invitePending} · Not Invited ${inviteNone}`}
-        />
-        <StatCard
-          title="Progress"
-          value={`${pct}%`}
-          accessory={<ProgressRing pct={pct} />}
-          sub="Overall completion"
-        />
-        <StatCard
-          title="Health"
-          value={
-            <div className="flex gap-3 text-xl font-semibold">
-              <span className="text-green-400">{healthy}</span>
-              <span className="text-amber-400">{watch}</span>
-              <span className="text-red-400">{atRiskQs.length}</span>
-            </div>
-          }
-          sub="Question health"
-        />
-      </div>
-
-      {/* Key dates */}
-      <div className="rounded-xl border border-border bg-surface/40 p-5">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <KeyDate
-            label="Submission Deadline"
-            value={deadline ? format(deadline, "MMMM d, yyyy") : "Not set"}
-            sub={daysToDeadline !== null ? `${daysToDeadline} days remaining` : ""}
-          />
-          <KeyDate
-            label="Next Deliverable Due"
-            value={
-              nextDeliverable?.due_date
-                ? format(new Date(nextDeliverable.due_date), "MMM d, yyyy")
-                : "None scheduled"
-            }
-            sub={nextDeliverable?.title ?? ""}
-          />
-          <KeyDate
-            label="Current Phase"
-            value={currentPhase?.name ?? "Between phases"}
-            sub=""
-          />
-          <KeyDate
-            label="Days Since Launch"
-            value={daysSinceLaunch === null ? "Not yet launched" : `${daysSinceLaunch} days`}
-            sub=""
-          />
-        </div>
-      </div>
-
-      {/* Win Strategy */}
-      <div className="rounded-xl border border-border border-l-4 border-l-primary bg-surface/60 p-6">
-        {data.winStrategy?.north_star_message ? (
-          <>
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-primary">
-              North Star
-            </div>
-            <p className="mt-2 text-xl italic text-foreground">
-              {data.winStrategy.north_star_message}
-            </p>
-            {data.winStrategy.central_claim && (
-              <p className="mt-3 text-sm">
-                <span className="text-muted-foreground">Central Claim: </span>
-                <span className="text-foreground">{data.winStrategy.central_claim}</span>
-              </p>
-            )}
-          </>
-        ) : (
-          <div className="text-sm text-muted-foreground">
-            Win Strategy not yet configured.{" "}
-            <button
-              onClick={() => onNavigateTab("win-strategy")}
-              className="text-primary hover:underline"
-            >
-              Open Win Strategy
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Mini Journey */}
-      <div className="rounded-xl border border-border bg-surface/40 p-4">
-        <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-          Journey
-        </div>
-        {data.phases.length === 0 ? (
-          <div className="text-sm text-muted-foreground">
-            Journey not yet configured.{" "}
-            <button
-              onClick={() => onNavigateTab("journey")}
-              className="text-primary hover:underline"
-            >
-              Open Journey
-            </button>
-          </div>
-        ) : (
-          <MiniJourney
-            phases={data.phases as any}
-            currentPhaseId={currentPhase?.id}
-            onClick={() => onNavigateTab("journey")}
-          />
-        )}
-      </div>
-
-      {/* Needs Attention */}
-      <div className="rounded-xl border border-border bg-surface/40 p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <h3 className="font-semibold text-foreground">Needs Attention</h3>
-          <span className="rounded-full bg-surface-hover px-2 py-0.5 text-xs text-muted-foreground">
-            {atRiskQs.length + pendingAcceptances.length + data.unreadAlerts}
-          </span>
-        </div>
-
-        <div className="space-y-5">
-          <div>
-            <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-2">
-              At Risk Questions
-            </div>
-            {atRiskQs.length === 0 ? (
-              <div className="flex items-center gap-2 text-sm text-green-400">
-                <CheckCircle2 className="h-4 w-4" /> No at-risk questions. Good shape.
+      {hasAttention && (
+        <div>
+          <SubLabel color="#f87171">Needs Attention</SubLabel>
+          <div className="mt-2 space-y-2">
+            {pending.length > 0 && (
+              <div
+                className="rounded-md flex items-center justify-between gap-3"
+                style={{
+                  background: "rgba(251,191,36,0.06)",
+                  border: "1px solid rgba(251,191,36,0.3)",
+                  padding: "10px 14px",
+                }}
+              >
+                <div className="text-white" style={{ fontSize: 13 }}>
+                  You have {pending.length} unaccepted assignment
+                  {pending.length === 1 ? "" : "s"}. Accept them in the Flight Deck.
+                </div>
+                <Link
+                  to="/olympus/flight-deck"
+                  className="inline-flex items-center gap-1 shrink-0"
+                  style={{ color: GOLD, fontSize: 12 }}
+                >
+                  Go to Flight Deck <ArrowRight size={12} />
+                </Link>
               </div>
-            ) : (
-              <ul className="space-y-1.5">
-                {atRiskQs.slice(0, 8).map((q) => {
-                  const assignment = data.assignments.find((a) => a.question_id === q.id);
-                  const writer = assignment?.assigned_writer_id
-                    ? writerNameMap.get(assignment.assigned_writer_id)
-                    : null;
-                  const due = q.due_date ? new Date(q.due_date) : null;
-                  const daysToDue = due ? differenceInCalendarDays(due, now) : null;
-                  return (
-                    <li
-                      key={q.id}
-                      className="flex flex-wrap items-center gap-3 rounded-md bg-surface px-3 py-2 text-sm"
-                    >
-                      <span className="font-mono text-primary text-xs">
-                        {q.question_number}
-                      </span>
-                      <span className="text-muted-foreground">{writer ?? "Unassigned"}</span>
-                      {due && (
-                        <span className="text-muted-foreground">
-                          {format(due, "MMM d")}
-                          {daysToDue !== null && ` · ${daysToDue}d`}
-                        </span>
-                      )}
-                      <button
-                        onClick={() => onNavigateTab("sections-questions")}
-                        className="ml-auto text-xs text-primary hover:underline"
-                      >
-                        View Question
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
             )}
-          </div>
-
-          {pendingAcceptances.length > 0 && (
-            <div>
-              <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-2">
-                Pending Acceptances
-              </div>
-              <ul className="space-y-1.5">
-                {pendingAcceptances.map((a) => {
-                  const q = data.questions.find((qq) => qq.id === a.question_id);
-                  const writer = a.assigned_writer_id
-                    ? writerNameMap.get(a.assigned_writer_id)
-                    : null;
-                  const days = a.assigned_at
-                    ? differenceInCalendarDays(now, new Date(a.assigned_at))
-                    : 0;
-                  return (
-                    <li
-                      key={a.id}
-                      className="flex flex-wrap items-center gap-3 rounded-md bg-surface px-3 py-2 text-sm"
-                    >
-                      <span className="font-mono text-primary text-xs">
-                        {q?.question_number ?? "—"}
-                      </span>
-                      <span className="text-muted-foreground">{writer ?? "Unknown"}</span>
-                      <span className="text-amber-400">{days}d pending</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          )}
-
-          {data.unreadAlerts > 0 && (
-            <div className="flex items-center gap-2 text-sm">
-              <AlertTriangle className="h-4 w-4 text-amber-400" />
-              <span>{data.unreadAlerts} unread IRIS alerts</span>
-              <button className="text-primary hover:underline ml-auto text-xs">
-                View alerts
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Activity */}
-      <div className="rounded-xl border border-border bg-surface/40 p-5">
-        <h3 className="font-semibold text-foreground mb-3">Recent Activity</h3>
-        {data.audit.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No activity recorded yet.</p>
-        ) : (
-          <ul className="space-y-2">
-            {data.audit.map((a) => (
-              <li key={a.id} className="flex flex-wrap items-baseline gap-2 text-sm">
-                <span className="text-foreground">{a.action}</span>
-                {a.performed_by_name && (
-                  <span className="text-muted-foreground">— {a.performed_by_name}</span>
-                )}
-                {a.created_at && (
-                  <span className="ml-auto text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(a.created_at), { addSuffix: true })}
-                  </span>
-                )}
-              </li>
+            {atRisk.map((a) => (
+              <AttentionRow
+                key={a.assignmentId}
+                color="#f87171"
+                bg="rgba(224,74,74,0.05)"
+                border="rgba(224,74,74,0.25)"
+                row={a}
+              />
             ))}
-          </ul>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function StatCard({
-  title,
-  value,
-  sub,
-  accessory,
-}: {
-  title: string;
-  value: React.ReactNode;
-  sub: React.ReactNode;
-  accessory?: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-xl border border-border bg-surface/60 p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            {title}
+            {dueSoon.map((a) => (
+              <AttentionRow
+                key={a.assignmentId}
+                color="#fbbf24"
+                bg="rgba(251,191,36,0.05)"
+                border="rgba(251,191,36,0.25)"
+                row={a}
+              />
+            ))}
           </div>
-          <div className="mt-1 text-3xl font-bold text-foreground">{value}</div>
         </div>
-        {accessory}
+      )}
+
+      <div>
+        <SubLabel>My Assignments</SubLabel>
+        <div className="mt-2 overflow-x-auto">
+          <table className="w-full" style={{ fontSize: 13 }}>
+            <thead>
+              <tr
+                style={{
+                  color: "rgba(255,255,255,0.4)",
+                  fontSize: 11,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  borderBottom: "1px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                <Th>Q#</Th>
+                <Th>Section</Th>
+                <Th>Status</Th>
+                <Th>Due</Th>
+                <Th>Confidence</Th>
+                <Th align="right">Action</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((row) => (
+                <tr
+                  key={row.assignmentId}
+                  style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+                >
+                  <Td>
+                    <span style={{ color: GOLD, fontSize: 12, fontFamily: "ui-monospace, monospace" }}>
+                      {row.questionNumber}
+                    </span>
+                  </Td>
+                  <Td>
+                    <span className="text-white">{row.sectionName}</span>
+                  </Td>
+                  <Td>
+                    <HealthBadge value={row.health} />
+                  </Td>
+                  <Td>
+                    <DueDate value={row.dueDate} />
+                  </Td>
+                  <Td>
+                    <ConfidenceBadge value={row.confidence} />
+                  </Td>
+                  <Td align="right">
+                    <Link
+                      to="/olympus/flight-deck"
+                      style={{ color: GOLD, fontSize: 12 }}
+                      className="inline-flex items-center gap-1 hover:underline"
+                    >
+                      Open <ArrowRight size={12} />
+                    </Link>
+                  </Td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-      <div className="mt-2 text-xs text-muted-foreground">{sub}</div>
+
+      <div className="pt-2">
+        <Link
+          to="/olympus/flight-deck"
+          className="inline-flex items-center justify-center gap-2 rounded-md w-full sm:w-auto"
+          style={{
+            background: "rgba(196,154,43,0.15)",
+            border: `1px solid ${GOLD}`,
+            color: GOLD,
+            fontSize: 14,
+            padding: "10px 24px",
+            fontWeight: 600,
+          }}
+        >
+          Enter Flight Deck <ArrowRight size={14} />
+        </Link>
+      </div>
     </div>
   );
 }
 
-function ProgressRing({ pct }: { pct: number }) {
-  const r = 22;
-  const c = 2 * Math.PI * r;
-  const dash = (pct / 100) * c;
-  return (
-    <svg width="56" height="56" viewBox="0 0 56 56" className="shrink-0">
-      <circle cx="28" cy="28" r={r} stroke="var(--surface-hover)" strokeWidth="5" fill="none" />
-      <circle
-        cx="28"
-        cy="28"
-        r={r}
-        stroke="var(--primary)"
-        strokeWidth="5"
-        fill="none"
-        strokeDasharray={`${dash} ${c}`}
-        strokeLinecap="round"
-        transform="rotate(-90 28 28)"
-      />
-    </svg>
-  );
-}
+/* --------------------------- Small helpers --------------------------- */
 
-function KeyDate({ label, value, sub }: { label: string; value: string; sub: string }) {
+function SubLabel({ children, color }: { children: React.ReactNode; color?: string }) {
   return (
-    <div>
-      <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className="mt-1 text-base font-semibold text-foreground">{value}</div>
-      {sub && <div className="text-xs text-muted-foreground truncate">{sub}</div>}
+    <div
+      className="uppercase"
+      style={{
+        color: color ?? "rgba(255,255,255,0.4)",
+        fontSize: 11,
+        letterSpacing: "0.18em",
+        fontWeight: 600,
+      }}
+    >
+      {children}
     </div>
   );
 }
 
-function MiniJourney({
-  phases,
-  currentPhaseId,
-  onClick,
+function MutedEmpty({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mt-2" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>
+      {children}
+    </div>
+  );
+}
+
+function Th({ children, align }: { children: React.ReactNode; align?: "right" }) {
+  return (
+    <th
+      className="font-medium"
+      style={{ textAlign: align ?? "left", padding: "8px 8px" }}
+    >
+      {children}
+    </th>
+  );
+}
+
+function Td({ children, align }: { children: React.ReactNode; align?: "right" }) {
+  return (
+    <td style={{ textAlign: align ?? "left", padding: "10px 8px" }}>{children}</td>
+  );
+}
+
+function HealthBadge({ value }: { value: string | null }) {
+  const map: Record<string, { label: string; bg: string; color: string }> = {
+    healthy: { label: "Healthy", bg: "rgba(52,211,153,0.12)", color: "#34d399" },
+    watch: { label: "Watch", bg: "rgba(251,191,36,0.12)", color: "#fbbf24" },
+    at_risk: { label: "At Risk", bg: "rgba(224,74,74,0.12)", color: "#fca5a5" },
+  };
+  const v = value && map[value] ? map[value] : { label: "Not Started", bg: "rgba(148,163,184,0.12)", color: "#cbd5e1" };
+  return (
+    <span
+      className="uppercase rounded"
+      style={{
+        background: v.bg,
+        color: v.color,
+        fontSize: 10,
+        letterSpacing: "0.08em",
+        padding: "2px 8px",
+        fontWeight: 600,
+      }}
+    >
+      {v.label}
+    </span>
+  );
+}
+
+function ConfidenceBadge({ value }: { value: string | null }) {
+  const map: Record<string, { label: string; bg: string; color: string }> = {
+    high: { label: "High", bg: "rgba(52,211,153,0.12)", color: "#34d399" },
+    medium: { label: "Medium", bg: "rgba(251,191,36,0.12)", color: "#fbbf24" },
+    low: { label: "Low", bg: "rgba(224,74,74,0.12)", color: "#fca5a5" },
+  };
+  const key = (value ?? "").toLowerCase();
+  const v = map[key] ?? { label: "Not Set", bg: "rgba(148,163,184,0.12)", color: "#cbd5e1" };
+  return (
+    <span
+      className="uppercase rounded"
+      style={{
+        background: v.bg,
+        color: v.color,
+        fontSize: 10,
+        letterSpacing: "0.08em",
+        padding: "2px 8px",
+        fontWeight: 600,
+      }}
+    >
+      {v.label}
+    </span>
+  );
+}
+
+function DueDate({ value }: { value: string | null }) {
+  if (!value) return <span style={{ color: "rgba(255,255,255,0.4)" }}>—</span>;
+  const d = new Date(value);
+  const days = differenceInCalendarDays(d, new Date());
+  const color = days < 0 ? "#f87171" : days < 7 ? "#fbbf24" : "rgba(255,255,255,0.75)";
+  return <span style={{ color }}>{format(d, "MMM d")}</span>;
+}
+
+function AttentionRow({
+  row,
+  color,
+  bg,
+  border,
 }: {
-  phases: { id: string; name: string; color: string | null; start_date: string | null; end_date: string | null }[];
-  currentPhaseId?: string;
-  onClick: () => void;
+  row: {
+    questionNumber: string;
+    sectionName: string;
+    dueDate: string | null;
+  };
+  color: string;
+  bg: string;
+  border: string;
 }) {
-  const sorted = phases.filter((p) => p.start_date && p.end_date);
-  if (sorted.length === 0) return null;
-  const start = Math.min(...sorted.map((p) => new Date(p.start_date!).getTime()));
-  const end = Math.max(...sorted.map((p) => new Date(p.end_date!).getTime()));
-  const total = end - start || 1;
-  const todayPct = Math.max(0, Math.min(100, ((Date.now() - start) / total) * 100));
-
+  const days = row.dueDate
+    ? differenceInCalendarDays(new Date(row.dueDate), new Date())
+    : null;
   return (
-    <div className="relative h-[60px] w-full" onClick={onClick} role="button" tabIndex={0}>
-      <div className="absolute inset-0 flex rounded-md overflow-hidden bg-surface-hover">
-        {sorted.map((p) => {
-          const s = new Date(p.start_date!).getTime();
-          const e = new Date(p.end_date!).getTime();
-          const widthPct = ((e - s) / total) * 100;
-          const isCurrent = p.id === currentPhaseId;
-          return (
-            <div
-              key={p.id}
-              className={cn(
-                "h-full flex items-center justify-center text-[10px] px-1 truncate border-r border-background last:border-r-0",
-                isCurrent && "ring-2 ring-primary ring-inset",
-              )}
-              style={{
-                width: `${widthPct}%`,
-                backgroundColor: p.color ?? "var(--surface-deep)",
-                color: "white",
-              }}
-              title={p.name}
-            >
-              {p.name}
-            </div>
-          );
-        })}
-      </div>
-      {todayPct >= 0 && todayPct <= 100 && (
-        <div
-          className="absolute top-0 bottom-0 w-0.5 bg-primary"
-          style={{ left: `${todayPct}%` }}
-        />
+    <div
+      className="rounded-md flex items-center gap-3"
+      style={{
+        background: bg,
+        border: `1px solid ${border}`,
+        padding: "8px 14px",
+      }}
+    >
+      <span
+        style={{
+          color: GOLD,
+          fontSize: 12,
+          fontFamily: "ui-monospace, monospace",
+          minWidth: 40,
+        }}
+      >
+        {row.questionNumber}
+      </span>
+      <span className="text-white truncate flex-1" style={{ fontSize: 13 }}>
+        {row.sectionName}
+      </span>
+      {row.dueDate && (
+        <span style={{ color, fontSize: 12 }}>
+          {format(new Date(row.dueDate), "MMM d")}
+          {days !== null && ` · ${days}d`}
+        </span>
       )}
     </div>
   );
+}
+
+function truncate(s: string, n: number) {
+  if (!s) return "";
+  return s.length <= n ? s : s.slice(0, n - 1).trimEnd() + "…";
 }

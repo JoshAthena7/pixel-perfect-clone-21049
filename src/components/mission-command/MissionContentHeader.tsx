@@ -7,7 +7,7 @@ import { refreshAllMissionFeeds } from "@/lib/iris-refresh-all.functions";
 import { tabLabel, type TabId } from "./MissionTabs";
 
 const TAB_SUBTITLES: Partial<Record<TabId, string>> = {
-  overview: "Mission snapshot and key metrics",
+  overview: "What you need to know · what the mission is · what you own",
   "win-strategy": "The North Star and competitive positioning",
   "decision-log": "Recorded decisions and their rationale",
   journey: "Phases and milestones to submission",
