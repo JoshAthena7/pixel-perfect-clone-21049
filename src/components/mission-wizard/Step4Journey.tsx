@@ -54,6 +54,7 @@ import {
   type TemplatePhaseKey,
 } from "@/lib/journey-template";
 import { assessJourneyTimeline } from "@/lib/journey-assessment.functions";
+import { InputSourceBadge, StepMetaIndicator } from "@/components/InputSourceBadge";
 
 // ---------- types & constants ----------
 export type PhaseType = "planning" | "drafting" | "review" | "gate" | "pens_down";
@@ -329,14 +330,31 @@ export function Step4Journey({ missionId }: { missionId: string }) {
 
   return (
     <div className="space-y-8">
-      <header>
+      <header className="space-y-2">
         <h1 className="text-4xl font-semibold text-[var(--athena-navy)] tracking-tight">
           Build the Mission Journey.
         </h1>
         <p className="mt-2 text-muted-foreground">
           Map out your phases, deliverables, and gates. The clock starts at BLAST OFF.
         </p>
+        <div className="flex items-center gap-3 pt-1">
+          <StepMetaIndicator irisCount={2} youCount={1} />
+          <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <span>Submission Deadline</span>
+            <InputSourceBadge source="you" />
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <span>Mission Journey</span>
+            <InputSourceBadge source="iris" />
+          </span>
+        </div>
+        <p className="text-[11px] italic text-muted-foreground hidden md:block">
+          {deadline
+            ? "Calculated by IRIS from your deadline. Adjust any phase if needed."
+            : "Set the deadline and IRIS calculates the full journey automatically."}
+        </p>
       </header>
+
 
       {isTemplate && !bannerDismissed && (
         <TemplateBanner

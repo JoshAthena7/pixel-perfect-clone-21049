@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { InputSourceBadge, StepMetaIndicator, type InputSource } from "@/components/InputSourceBadge";
 
 const FIELD_KEYS = [
   "mission_significance",
@@ -252,7 +253,9 @@ export function Step3WinStrategy({ missionId }: { missionId: string }) {
           IRIS has drafted a strategy based on your RFP. Review every field. Edit freely. Confirm each one when
           it is right. Writers cannot start until this is done.
         </p>
+        <StepMetaIndicator irisCount={7} youCount={3} />
       </div>
+
 
       <div className="rounded-lg border-l-4 border-amber-500 bg-amber-500/10 p-4">
         <p className="text-sm text-amber-100/90">
@@ -332,6 +335,7 @@ export function Step3WinStrategy({ missionId }: { missionId: string }) {
       {/* Field 4 — Known Competitors */}
       <FieldShell
         title="Known Competitors"
+        source="you"
         helper="Who else is likely bidding and what do you know about them."
         confirmed={confirmed.has("known_competitors")}
         onConfirm={() => confirmField("known_competitors")}
@@ -387,6 +391,7 @@ export function Step3WinStrategy({ missionId }: { missionId: string }) {
       {/* 8 — Proof Points */}
       <FieldShell
         title="Proof Points"
+        source="you"
         helper="Specific evidence, data, case studies, or references that support the Central Claim and Win Themes."
         confirmed={confirmed.has("proof_points")}
         onConfirm={() => confirmField("proof_points")}
@@ -402,6 +407,7 @@ export function Step3WinStrategy({ missionId }: { missionId: string }) {
       {/* 9 */}
       <FieldShell
         title="Discriminators"
+        source="you"
         helper="What makes Athena different from every other bidder on this specific procurement."
         confirmed={confirmed.has("discriminators")}
         onConfirm={() => confirmField("discriminators")}
@@ -458,6 +464,7 @@ function FieldShell({
   confirmed,
   onConfirm,
   elevated,
+  source = "iris-with-fallback",
   children,
 }: {
   title: string;
@@ -465,6 +472,7 @@ function FieldShell({
   confirmed: boolean;
   onConfirm: () => void;
   elevated?: boolean;
+  source?: InputSource;
   children: React.ReactNode;
 }) {
   return (
@@ -481,12 +489,9 @@ function FieldShell({
           <h3 className="text-base font-semibold text-foreground">{title}</h3>
           <p className="text-xs text-muted-foreground mt-0.5">{helper}</p>
         </div>
-        {!confirmed && (
-          <span className="inline-flex items-center rounded-full bg-[var(--athena-gold)]/20 text-[var(--athena-gold)] border border-[var(--athena-gold)]/40 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider shrink-0">
-            IRIS Draft
-          </span>
-        )}
+        <InputSourceBadge source={source} />
       </div>
+
       {children}
       <div>
         {confirmed ? (

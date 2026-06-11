@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { InputSourceBadge, StepMetaIndicator, IrisInfoCard } from "@/components/InputSourceBadge";
 
 const BUCKET = "atlas-rfp-documents";
 const MAX_BYTES = 100 * 1024 * 1024;
@@ -217,6 +218,7 @@ export function Step1BUpload({
     <div className="space-y-7">
       <div className="space-y-2">
         <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Feed IRIS your intelligence.</h1>
+        <StepMetaIndicator irisCount={3} youCount={4} />
       </div>
 
       <div className="rounded-lg border-l-4 border-l-[var(--athena-gold)] border border-border bg-[var(--athena-navy-light)]/10 p-4 flex gap-3">
@@ -226,6 +228,19 @@ export function Step1BUpload({
           The more I have, the better I can build this mission. I will read everything.
         </p>
       </div>
+
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-[12px] uppercase tracking-wider text-[var(--athena-gold)] font-medium">
+          RFP Document
+        </span>
+        <InputSourceBadge source="you" />
+      </div>
+      {rows.length === 0 && (
+        <p className="-mt-5 text-[11px] italic text-muted-foreground hidden md:block">
+          Upload the PDF or Word file. IRIS reads it automatically after upload.
+        </p>
+      )}
+
 
       <button
         type="button"
@@ -263,6 +278,18 @@ export function Step1BUpload({
       </button>
 
       {error && <p className="text-sm text-amber-400 -mt-3">{error}</p>}
+
+      {rows.length > 0 && (
+        <IrisInfoCard
+          title="What IRIS does after upload"
+          items={[
+            "Extracts all sections and questions from the RFP",
+            "Identifies key requirements and compliance obligations",
+            "Begins building your Intelligence Graph",
+          ]}
+        />
+      )}
+
 
       {rows.length > 0 && (
         <div className="space-y-2">

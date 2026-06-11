@@ -9,6 +9,24 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { buildIntelligenceGraph } from "@/lib/oracle.functions";
 import { seedTerritoryIntelligence } from "@/lib/iris-territory.functions";
+import { InputSourceBadge, IrisInfoCard, StepMetaIndicator, type InputSource } from "@/components/InputSourceBadge";
+
+const ITEM_SOURCE: Partial<Record<CheckKey, InputSource>> = {
+  basics: "you",
+  rfp: "you",
+  sections: "iris",
+  strategy: "iris-with-fallback",
+  journey: "iris",
+  questions: "you",
+  lead: "you",
+  deadline: "you",
+  territory: "you",
+  monitoring: "iris",
+  client_intel: "you",
+  prior_rfp: "you",
+  competitors: "iris-with-fallback",
+  internal_materials: "you",
+};
 
 
 type CheckKey =
@@ -251,7 +269,11 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
       <header className="mb-8">
         <h1 className="text-4xl md:text-5xl font-semibold">Mission Launch Checklist.</h1>
         <p className="text-white/70 mt-2">IRIS is verifying everything before launch.</p>
+        <div className="mt-3">
+          <StepMetaIndicator irisCount={4} youCount={4} />
+        </div>
       </header>
+
 
       <ul className={cn("space-y-2 max-w-2xl transition-opacity", allGreen && "opacity-80")}>
         {items.map((c, i) => {
@@ -275,6 +297,9 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
                   <p className="text-[11px] text-yellow-200/70 mt-0.5">{c.recommendedMsg}</p>
                 )}
               </div>
+              {ITEM_SOURCE[c.key] && (
+                <InputSourceBadge source={ITEM_SOURCE[c.key]!} />
+              )}
               {!c.pass && (
                 <button
                   className="text-xs text-[var(--athena-gold)] hover:underline shrink-0"
@@ -287,6 +312,19 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
           );
         })}
       </ul>
+
+      <div className="mt-6 max-w-2xl">
+        <IrisInfoCard
+          title="What IRIS does at launch"
+          items={[
+            "Notifies your team",
+            "Begins building the Intelligence Graph",
+            "Seeds policy and stakeholder nodes from mission context",
+            "Activates intelligence monitoring feeds",
+            "Generates your first daily brief overnight",
+          ]}
+        />
+      </div>
 
       {allGreen && visibleCount >= items.length && (
         <div className="mt-10 max-w-2xl">

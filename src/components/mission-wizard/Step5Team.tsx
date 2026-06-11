@@ -17,6 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { HumanOnlyInfoBar, StepMetaIndicator } from "@/components/InputSourceBadge";
 
 // ---------- types ----------
 type AtlasMember = {
@@ -296,7 +297,15 @@ function TeamAssign({
         <p className="mt-2 text-muted-foreground">
           Assign the people who will execute this mission. At least one Engagement Lead is required.
         </p>
+        <div className="mt-2">
+          <StepMetaIndicator irisCount={0} youCount={0} allYou />
+        </div>
       </header>
+
+      <HumanOnlyInfoBar>
+        This step is all you — IRIS cannot assign your team. Take your time.
+      </HumanOnlyInfoBar>
+
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Left: Available */}
