@@ -1,11 +1,15 @@
-import { createFileRoute, Outlet, redirect, useRouterState, Navigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useRouterState, Navigate, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { IrisProvider } from "@/components/iris/IrisContext";
 import { IrisDock } from "@/components/iris/IrisDock";
 import { AssistsBar } from "@/components/iris/AssistsBar";
 import { AdminQuickBar } from "@/components/admin/AdminQuickBar";
 import { GlobalCommandBar } from "@/components/nav/GlobalCommandBar";
+import { getMyHome, type RoleHome } from "@/lib/v2-home.functions";
 
 
 export const Route = createFileRoute("/_authenticated")({
@@ -71,6 +75,8 @@ function withTimeout<T>(promise: PromiseLike<T>, ms: number, fallback: T): Promi
 
 // Paths a non-admin is allowed to view outside the V1 shell.
 const NON_ADMIN_ALLOWED_PREFIXES = [
+  "/my-work",
+  "/portfolio",
   "/flight-deck",
   "/v1",
   "/profile",
