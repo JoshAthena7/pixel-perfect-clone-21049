@@ -118,7 +118,7 @@ export function Step1Basics({
       navigate({
         to: "/olympus/missions/$missionId/wizard",
         params: { missionId: id! },
-        search: { step: 2 },
+        search: { step: 1 },
       });
     } catch (e) {
       console.error(e);
