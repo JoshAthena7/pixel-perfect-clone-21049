@@ -75,6 +75,8 @@ const FEED_CHIPS: Record<string, { federal: string[]; research: string[] }> = {
 
 export function Step7Territory({ missionId, onAdvance }: { missionId: string; onAdvance: () => void }) {
   const qc = useQueryClient();
+  const seedTerritory = useServerFn(seedTerritoryIntelligence);
+  const seededRef = useRef(false);
   const { data: mission, isLoading } = useQuery({
     queryKey: ["mission-territory", missionId],
     queryFn: async () => {
@@ -93,6 +95,17 @@ export function Step7Territory({ missionId, onAdvance }: { missionId: string; on
   const [agencyCode, setAgencyCode] = useState<string>("");
   const [programType, setProgramType] = useState<string>("");
   const [search, setSearch] = useState<string>("");
+
+  // Fire seedTerritoryIntelligence once when all three territory fields are set.
+  function maybeSeed(s: string, agency: string, prog: string) {
+    if (seededRef.current) return;
+    if (!s || !agency.trim() || !prog) return;
+    seededRef.current = true;
+    seedTerritory({ data: { missionId } }).catch((err) =>
+      console.error("[Step7Territory] seedTerritoryIntelligence failed", err),
+    );
+  }
+
 
   useEffect(() => {
     if (mission) {
