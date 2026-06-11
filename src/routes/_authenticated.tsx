@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { IrisProvider } from "@/components/iris/IrisContext";
 import { AskIrisPanel } from "@/components/iris/AskIrisPanel";
 import { GlobalCommandBar } from "@/components/nav/GlobalCommandBar";
+import { AppSidebar } from "@/components/nav/AppSidebar";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { getMyHome } from "@/lib/v2-home.functions";
 
 
