@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useIris } from "@/components/iris/IrisContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getPortfolioBrief } from "@/lib/v2-home.functions";
+import { AskIrisButton } from "@/components/iris/AskIrisButton";
 
 const GOLD = "#C9A55C";
 
