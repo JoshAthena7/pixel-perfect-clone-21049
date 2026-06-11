@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { format, formatDistanceToNow, differenceInDays } from "date-fns";
 import {
   AlertTriangle,
@@ -22,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { runHealthCalculation } from "@/lib/health-calc";
+import { listQuestionLatestScores } from "@/lib/v2-home.functions";
 import { cn } from "@/lib/utils";
 import type { TabId } from "./MissionTabs";
 
