@@ -25,7 +25,7 @@ export const TAB_GROUPS: { label: string; tabs: { id: TabId; label: string }[] }
   {
     label: "Mission",
     tabs: [
-      { id: "overview", label: "Overview" },
+      { id: "overview", label: "Briefing Room" },
       { id: "win-strategy", label: "Win Strategy" },
       { id: "decision-log", label: "Decision Log" },
       { id: "journey", label: "Journey" },
