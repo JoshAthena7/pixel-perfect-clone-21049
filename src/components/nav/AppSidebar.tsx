@@ -27,7 +27,7 @@ type NavItem = {
 
 const MISSION_ITEMS: NavItem[] = [
   { to: "/missions/$missionId/briefing", label: "Briefing", Icon: FileText, needsMission: true },
-  { to: "/missions/$missionId/oracle", label: "Oracle", Icon: Brain, needsMission: true },
+  { to: "/missions/$missionId/oracle", label: "Oracle", Icon: Owl as unknown as IconType, needsMission: true },
   { to: "/missions/$missionId/insights", label: "Insights", Icon: Lightbulb, needsMission: true },
 ];
 
