@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { buildIntelligenceGraph } from "@/lib/oracle.functions";
+import { seedTerritoryIntelligence } from "@/lib/iris-territory.functions";
+
 
 type CheckKey =
   | "basics"
