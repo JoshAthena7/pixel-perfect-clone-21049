@@ -9,7 +9,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { format, differenceInDays, formatDistanceToNow } from "date-fns";
-import { Sparkles, MessageSquare, ChevronDown, ChevronRight, ArrowUp, ArrowDown, Minus, Target } from "lucide-react";
+import { Sparkles, MessageSquare, ChevronDown, ChevronRight, ArrowUp, ArrowDown, Minus, Target, ExternalLink } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useIris } from "@/components/iris/IrisContext";
 import { IrisIntelligenceBrief } from "@/components/iris/IrisIntelligenceBrief";
@@ -349,6 +350,20 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
                   {selected.question?.question_text ?? ""}
                 </h2>
                 <p className="text-[12px] text-white/45 mt-1">{selected.sectionName}</p>
+                <Link
+                  to="/olympus/missions/$missionId"
+                  params={{ missionId: selected.mission_id }}
+                  search={{ tab: "work", sub: "questions" } as never}
+                  className="inline-flex items-center gap-1.5 mt-3 text-[12px] font-medium rounded-md px-3 py-1.5"
+                  style={{
+                    background: "rgba(196,154,43,0.12)",
+                    border: "1px solid rgba(196,154,43,0.35)",
+                    color: GOLD,
+                  }}
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  Open Question Workspace
+                </Link>
               </div>
 
               {/* Athena Strategy */}
