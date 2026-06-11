@@ -313,6 +313,19 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
         })}
       </ul>
 
+      <div className="mt-6 max-w-2xl">
+        <IrisInfoCard
+          title="What IRIS does at launch"
+          items={[
+            "Notifies your team",
+            "Begins building the Intelligence Graph",
+            "Seeds policy and stakeholder nodes from mission context",
+            "Activates intelligence monitoring feeds",
+            "Generates your first daily brief overnight",
+          ]}
+        />
+      </div>
+
       {allGreen && visibleCount >= items.length && (
         <div className="mt-10 max-w-2xl">
           <blockquote
