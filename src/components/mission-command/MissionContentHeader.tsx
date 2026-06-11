@@ -36,6 +36,7 @@ export function MissionContentHeader({
   title?: string;
 }) {
   const [editOpen, setEditOpen] = useState(false);
+  const [scoreOpen, setScoreOpen] = useState(false);
   const [running, setRunning] = useState(false);
   const refresh = useServerFn(refreshAllMissionFeeds);
 
