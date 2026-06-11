@@ -36,6 +36,7 @@ const searchSchema = z.object({
   launched: z.coerce.number().optional(),
   tab: z.string().optional(),
   sub: z.string().optional(),
+  add: z.union([z.string(), z.number()]).optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/olympus/missions/$missionId/")({
