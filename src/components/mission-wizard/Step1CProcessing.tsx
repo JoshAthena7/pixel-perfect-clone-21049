@@ -54,6 +54,8 @@ export function Step1CProcessing({
   onContinue: () => void;
 }) {
   const runProcess = useServerFn(processRFPDocuments);
+  const extractReqs = useServerFn(extractRequirementNodesFromRFP);
+
   const [lines, setLines] = useState<string[]>([]);
   const [phase, setPhase] = useState<Phase>("running");
   const [errMsg, setErrMsg] = useState<string | null>(null);
