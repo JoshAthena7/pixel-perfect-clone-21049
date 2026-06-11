@@ -17,6 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { HumanOnlyInfoBar, StepMetaIndicator } from "@/components/InputSourceBadge";
 
 // ---------- types ----------
 type AtlasMember = {
