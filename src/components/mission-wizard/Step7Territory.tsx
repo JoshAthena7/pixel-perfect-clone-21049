@@ -123,6 +123,7 @@ export function Step7Territory({ missionId, onAdvance }: { missionId: string; on
     const s = STATES.find((x) => x.code === code);
     await supabase.from("missions").update({ state_code: code, state: s?.name ?? null }).eq("id", missionId);
     qc.invalidateQueries({ queryKey: ["mission-territory", missionId] });
+    maybeSeed(s?.name ?? "", agencyName, programType);
   }
 
   // Debounce agency name/code
@@ -133,11 +134,12 @@ export function Step7Territory({ missionId, onAdvance }: { missionId: string; on
         supabase
           .from("missions")
           .update({ agency_name: agencyName || null, agency_code: agencyCode || null })
-          .eq("id", missionId);
+          .eq("id", missionId)
+          .then(() => maybeSeed(mission.state ?? "", agencyName, programType));
       }
     }, 500);
     return () => clearTimeout(t);
-  }, [agencyName, agencyCode, missionId, mission]);
+  }, [agencyName, agencyCode, missionId, mission, programType]);
 
   async function saveProgramType(v: string) {
     setProgramType(v);
@@ -145,7 +147,9 @@ export function Step7Territory({ missionId, onAdvance }: { missionId: string; on
       .from("missions")
       .update({ program_type: v, intelligence_loadout_step: 1 })
       .eq("id", missionId);
+    maybeSeed(mission?.state ?? "", agencyName, v);
   }
+
 
   if (isLoading) return <Skeleton className="h-64 w-full" />;
 
