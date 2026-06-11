@@ -145,15 +145,7 @@ function AuthenticatedLayout() {
     }
   }, [homeInfo, path, navigate, isAdmin]);
 
-  const shell = (
-    <div className="min-h-screen bg-background text-foreground">
-      <GlobalCommandBar email={email} isAdmin={isAdmin} />
-      <main>
-        <Outlet />
-      </main>
-      <AskIrisPanel />
-    </div>
-  );
+  const shell = <AuthedShell email={email} isAdmin={isAdmin} />;
 
   if (isAdmin) return <IrisProvider>{shell}</IrisProvider>;
 
