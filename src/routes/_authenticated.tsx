@@ -6,7 +6,7 @@ import { IrisDock } from "@/components/iris/IrisDock";
 import { AssistsBar } from "@/components/iris/AssistsBar";
 import { AdminQuickBar } from "@/components/admin/AdminQuickBar";
 import { GlobalCommandBar } from "@/components/nav/GlobalCommandBar";
-import { MissionStrip } from "@/components/nav/MissionStrip";
+
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
