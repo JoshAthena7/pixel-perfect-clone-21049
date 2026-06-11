@@ -52,6 +52,7 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
   const iris = useIris();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [scoreOpen, setScoreOpen] = useState(false);
+  const [historicalScore, setHistoricalScore] = useState<HistoricalScore | null>(null);
   const [activeMissionId, setActiveMissionIdState] = useState<string | null>(null);
 
   // Resolve current user → atlas team member id (assignments key off of this).
