@@ -5,9 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { IrisProvider } from "@/components/iris/IrisContext";
-import { IrisDock } from "@/components/iris/IrisDock";
-import { AssistsBar } from "@/components/iris/AssistsBar";
-import { AdminQuickBar } from "@/components/admin/AdminQuickBar";
+import { AskIrisPanel } from "@/components/iris/AskIrisPanel";
 import { GlobalCommandBar } from "@/components/nav/GlobalCommandBar";
 import { getMyHome } from "@/lib/v2-home.functions";
 
