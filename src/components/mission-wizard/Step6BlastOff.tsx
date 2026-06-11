@@ -138,6 +138,8 @@ type WriteStep = { name: string; status: "pending" | "ok" | "fail"; error?: stri
 export function Step6BlastOff({ missionId }: { missionId: string }) {
   const navigate = useNavigate();
   const buildGraph = useServerFn(buildIntelligenceGraph);
+  const seedTerritory = useServerFn(seedTerritoryIntelligence);
+
   const { data: checks, isLoading, refetch } = useQuery({
     queryKey: ["launch-checks", missionId],
     queryFn: () => runChecks(missionId),
