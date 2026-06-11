@@ -35,6 +35,7 @@ import { Route as AuthenticatedOlympusSplatRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminTeamRouteImport } from './routes/_authenticated/admin.team'
 import { Route as AuthenticatedAdminIrisHealthRouteImport } from './routes/_authenticated/admin.iris-health'
 import { Route as AuthenticatedOlympusMissionsIndexRouteImport } from './routes/_authenticated/olympus.missions.index'
+import { Route as AuthenticatedMissionsMissionIdIndexRouteImport } from './routes/_authenticated/missions.$missionId.index'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -48,6 +49,18 @@ import { Route as ApiPublicHooksMonitorCmsFeedsRouteImport } from './routes/api/
 import { Route as ApiPublicHooksIrisMonitorRouteImport } from './routes/api/public/hooks/iris-monitor'
 import { Route as ApiPublicHooksGenerateDailyBriefsRouteImport } from './routes/api/public/hooks/generate-daily-briefs'
 import { Route as AuthenticatedOlympusMissionsNewRouteImport } from './routes/_authenticated/olympus.missions.new'
+import { Route as AuthenticatedMissionsMissionIdWinStrategyRouteImport } from './routes/_authenticated/missions.$missionId.win-strategy'
+import { Route as AuthenticatedMissionsMissionIdTeamRouteImport } from './routes/_authenticated/missions.$missionId.team'
+import { Route as AuthenticatedMissionsMissionIdSettingsRouteImport } from './routes/_authenticated/missions.$missionId.settings'
+import { Route as AuthenticatedMissionsMissionIdScoresRouteImport } from './routes/_authenticated/missions.$missionId.scores'
+import { Route as AuthenticatedMissionsMissionIdReportsRouteImport } from './routes/_authenticated/missions.$missionId.reports'
+import { Route as AuthenticatedMissionsMissionIdQaRouteImport } from './routes/_authenticated/missions.$missionId.qa'
+import { Route as AuthenticatedMissionsMissionIdOracleRouteImport } from './routes/_authenticated/missions.$missionId.oracle'
+import { Route as AuthenticatedMissionsMissionIdJourneyRouteImport } from './routes/_authenticated/missions.$missionId.journey'
+import { Route as AuthenticatedMissionsMissionIdInsightsRouteImport } from './routes/_authenticated/missions.$missionId.insights'
+import { Route as AuthenticatedMissionsMissionIdFlightDeckRouteImport } from './routes/_authenticated/missions.$missionId.flight-deck'
+import { Route as AuthenticatedMissionsMissionIdComplianceRouteImport } from './routes/_authenticated/missions.$missionId.compliance'
+import { Route as AuthenticatedMissionsMissionIdBriefingRouteImport } from './routes/_authenticated/missions.$missionId.briefing'
 import { Route as AuthenticatedAdminTeamMemberIdRouteImport } from './routes/_authenticated/admin.team.$memberId'
 import { Route as AuthenticatedOlympusMissionsMissionIdIndexRouteImport } from './routes/_authenticated/olympus.missions.$missionId.index'
 import { Route as AuthenticatedOlympusMissionsMissionIdWizardRouteImport } from './routes/_authenticated/olympus.missions.$missionId.wizard'
@@ -189,6 +202,12 @@ const AuthenticatedOlympusMissionsIndexRoute =
     path: '/olympus/missions/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedMissionsMissionIdIndexRoute =
+  AuthenticatedMissionsMissionIdIndexRouteImport.update({
+    id: '/missions/$missionId/',
+    path: '/missions/$missionId/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const LovableEmailTransactionalSendRoute =
   LovableEmailTransactionalSendRouteImport.update({
     id: '/lovable/email/transactional/send',
@@ -265,6 +284,78 @@ const AuthenticatedOlympusMissionsNewRoute =
     path: '/olympus/missions/new',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedMissionsMissionIdWinStrategyRoute =
+  AuthenticatedMissionsMissionIdWinStrategyRouteImport.update({
+    id: '/missions/$missionId/win-strategy',
+    path: '/missions/$missionId/win-strategy',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMissionsMissionIdTeamRoute =
+  AuthenticatedMissionsMissionIdTeamRouteImport.update({
+    id: '/missions/$missionId/team',
+    path: '/missions/$missionId/team',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMissionsMissionIdSettingsRoute =
+  AuthenticatedMissionsMissionIdSettingsRouteImport.update({
+    id: '/missions/$missionId/settings',
+    path: '/missions/$missionId/settings',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMissionsMissionIdScoresRoute =
+  AuthenticatedMissionsMissionIdScoresRouteImport.update({
+    id: '/missions/$missionId/scores',
+    path: '/missions/$missionId/scores',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMissionsMissionIdReportsRoute =
+  AuthenticatedMissionsMissionIdReportsRouteImport.update({
+    id: '/missions/$missionId/reports',
+    path: '/missions/$missionId/reports',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMissionsMissionIdQaRoute =
+  AuthenticatedMissionsMissionIdQaRouteImport.update({
+    id: '/missions/$missionId/qa',
+    path: '/missions/$missionId/qa',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMissionsMissionIdOracleRoute =
+  AuthenticatedMissionsMissionIdOracleRouteImport.update({
+    id: '/missions/$missionId/oracle',
+    path: '/missions/$missionId/oracle',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMissionsMissionIdJourneyRoute =
+  AuthenticatedMissionsMissionIdJourneyRouteImport.update({
+    id: '/missions/$missionId/journey',
+    path: '/missions/$missionId/journey',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMissionsMissionIdInsightsRoute =
+  AuthenticatedMissionsMissionIdInsightsRouteImport.update({
+    id: '/missions/$missionId/insights',
+    path: '/missions/$missionId/insights',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMissionsMissionIdFlightDeckRoute =
+  AuthenticatedMissionsMissionIdFlightDeckRouteImport.update({
+    id: '/missions/$missionId/flight-deck',
+    path: '/missions/$missionId/flight-deck',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMissionsMissionIdComplianceRoute =
+  AuthenticatedMissionsMissionIdComplianceRouteImport.update({
+    id: '/missions/$missionId/compliance',
+    path: '/missions/$missionId/compliance',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMissionsMissionIdBriefingRoute =
+  AuthenticatedMissionsMissionIdBriefingRouteImport.update({
+    id: '/missions/$missionId/briefing',
+    path: '/missions/$missionId/briefing',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminTeamMemberIdRoute =
   AuthenticatedAdminTeamMemberIdRouteImport.update({
     id: '/$memberId',
@@ -310,6 +401,18 @@ export interface FileRoutesByFullPath {
   '/missions/': typeof AuthenticatedMissionsIndexRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
   '/admin/team/$memberId': typeof AuthenticatedAdminTeamMemberIdRoute
+  '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
+  '/missions/$missionId/compliance': typeof AuthenticatedMissionsMissionIdComplianceRoute
+  '/missions/$missionId/flight-deck': typeof AuthenticatedMissionsMissionIdFlightDeckRoute
+  '/missions/$missionId/insights': typeof AuthenticatedMissionsMissionIdInsightsRoute
+  '/missions/$missionId/journey': typeof AuthenticatedMissionsMissionIdJourneyRoute
+  '/missions/$missionId/oracle': typeof AuthenticatedMissionsMissionIdOracleRoute
+  '/missions/$missionId/qa': typeof AuthenticatedMissionsMissionIdQaRoute
+  '/missions/$missionId/reports': typeof AuthenticatedMissionsMissionIdReportsRoute
+  '/missions/$missionId/scores': typeof AuthenticatedMissionsMissionIdScoresRoute
+  '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
+  '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
+  '/missions/$missionId/win-strategy': typeof AuthenticatedMissionsMissionIdWinStrategyRoute
   '/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
   '/api/public/hooks/generate-daily-briefs': typeof ApiPublicHooksGenerateDailyBriefsRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
@@ -323,6 +426,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/olympus/missions/': typeof AuthenticatedOlympusMissionsIndexRoute
   '/olympus/missions/$missionId/wizard': typeof AuthenticatedOlympusMissionsMissionIdWizardRoute
   '/olympus/missions/$missionId/': typeof AuthenticatedOlympusMissionsMissionIdIndexRoute
@@ -352,6 +456,18 @@ export interface FileRoutesByTo {
   '/missions': typeof AuthenticatedMissionsIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
   '/admin/team/$memberId': typeof AuthenticatedAdminTeamMemberIdRoute
+  '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
+  '/missions/$missionId/compliance': typeof AuthenticatedMissionsMissionIdComplianceRoute
+  '/missions/$missionId/flight-deck': typeof AuthenticatedMissionsMissionIdFlightDeckRoute
+  '/missions/$missionId/insights': typeof AuthenticatedMissionsMissionIdInsightsRoute
+  '/missions/$missionId/journey': typeof AuthenticatedMissionsMissionIdJourneyRoute
+  '/missions/$missionId/oracle': typeof AuthenticatedMissionsMissionIdOracleRoute
+  '/missions/$missionId/qa': typeof AuthenticatedMissionsMissionIdQaRoute
+  '/missions/$missionId/reports': typeof AuthenticatedMissionsMissionIdReportsRoute
+  '/missions/$missionId/scores': typeof AuthenticatedMissionsMissionIdScoresRoute
+  '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
+  '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
+  '/missions/$missionId/win-strategy': typeof AuthenticatedMissionsMissionIdWinStrategyRoute
   '/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
   '/api/public/hooks/generate-daily-briefs': typeof ApiPublicHooksGenerateDailyBriefsRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
@@ -365,6 +481,7 @@ export interface FileRoutesByTo {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/missions/$missionId': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/olympus/missions': typeof AuthenticatedOlympusMissionsIndexRoute
   '/olympus/missions/$missionId/wizard': typeof AuthenticatedOlympusMissionsMissionIdWizardRoute
   '/olympus/missions/$missionId': typeof AuthenticatedOlympusMissionsMissionIdIndexRoute
@@ -397,6 +514,18 @@ export interface FileRoutesById {
   '/_authenticated/missions/': typeof AuthenticatedMissionsIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/_authenticated/admin/team/$memberId': typeof AuthenticatedAdminTeamMemberIdRoute
+  '/_authenticated/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
+  '/_authenticated/missions/$missionId/compliance': typeof AuthenticatedMissionsMissionIdComplianceRoute
+  '/_authenticated/missions/$missionId/flight-deck': typeof AuthenticatedMissionsMissionIdFlightDeckRoute
+  '/_authenticated/missions/$missionId/insights': typeof AuthenticatedMissionsMissionIdInsightsRoute
+  '/_authenticated/missions/$missionId/journey': typeof AuthenticatedMissionsMissionIdJourneyRoute
+  '/_authenticated/missions/$missionId/oracle': typeof AuthenticatedMissionsMissionIdOracleRoute
+  '/_authenticated/missions/$missionId/qa': typeof AuthenticatedMissionsMissionIdQaRoute
+  '/_authenticated/missions/$missionId/reports': typeof AuthenticatedMissionsMissionIdReportsRoute
+  '/_authenticated/missions/$missionId/scores': typeof AuthenticatedMissionsMissionIdScoresRoute
+  '/_authenticated/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
+  '/_authenticated/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
+  '/_authenticated/missions/$missionId/win-strategy': typeof AuthenticatedMissionsMissionIdWinStrategyRoute
   '/_authenticated/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
   '/api/public/hooks/generate-daily-briefs': typeof ApiPublicHooksGenerateDailyBriefsRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
@@ -410,6 +539,7 @@ export interface FileRoutesById {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/_authenticated/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/_authenticated/olympus/missions/': typeof AuthenticatedOlympusMissionsIndexRoute
   '/_authenticated/olympus/missions/$missionId/wizard': typeof AuthenticatedOlympusMissionsMissionIdWizardRoute
   '/_authenticated/olympus/missions/$missionId/': typeof AuthenticatedOlympusMissionsMissionIdIndexRoute
@@ -442,6 +572,18 @@ export interface FileRouteTypes {
     | '/missions/'
     | '/profile/'
     | '/admin/team/$memberId'
+    | '/missions/$missionId/briefing'
+    | '/missions/$missionId/compliance'
+    | '/missions/$missionId/flight-deck'
+    | '/missions/$missionId/insights'
+    | '/missions/$missionId/journey'
+    | '/missions/$missionId/oracle'
+    | '/missions/$missionId/qa'
+    | '/missions/$missionId/reports'
+    | '/missions/$missionId/scores'
+    | '/missions/$missionId/settings'
+    | '/missions/$missionId/team'
+    | '/missions/$missionId/win-strategy'
     | '/olympus/missions/new'
     | '/api/public/hooks/generate-daily-briefs'
     | '/api/public/hooks/iris-monitor'
@@ -455,6 +597,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/missions/$missionId/'
     | '/olympus/missions/'
     | '/olympus/missions/$missionId/wizard'
     | '/olympus/missions/$missionId/'
@@ -484,6 +627,18 @@ export interface FileRouteTypes {
     | '/missions'
     | '/profile'
     | '/admin/team/$memberId'
+    | '/missions/$missionId/briefing'
+    | '/missions/$missionId/compliance'
+    | '/missions/$missionId/flight-deck'
+    | '/missions/$missionId/insights'
+    | '/missions/$missionId/journey'
+    | '/missions/$missionId/oracle'
+    | '/missions/$missionId/qa'
+    | '/missions/$missionId/reports'
+    | '/missions/$missionId/scores'
+    | '/missions/$missionId/settings'
+    | '/missions/$missionId/team'
+    | '/missions/$missionId/win-strategy'
     | '/olympus/missions/new'
     | '/api/public/hooks/generate-daily-briefs'
     | '/api/public/hooks/iris-monitor'
@@ -497,6 +652,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/missions/$missionId'
     | '/olympus/missions'
     | '/olympus/missions/$missionId/wizard'
     | '/olympus/missions/$missionId'
@@ -528,6 +684,18 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/'
     | '/_authenticated/profile/'
     | '/_authenticated/admin/team/$memberId'
+    | '/_authenticated/missions/$missionId/briefing'
+    | '/_authenticated/missions/$missionId/compliance'
+    | '/_authenticated/missions/$missionId/flight-deck'
+    | '/_authenticated/missions/$missionId/insights'
+    | '/_authenticated/missions/$missionId/journey'
+    | '/_authenticated/missions/$missionId/oracle'
+    | '/_authenticated/missions/$missionId/qa'
+    | '/_authenticated/missions/$missionId/reports'
+    | '/_authenticated/missions/$missionId/scores'
+    | '/_authenticated/missions/$missionId/settings'
+    | '/_authenticated/missions/$missionId/team'
+    | '/_authenticated/missions/$missionId/win-strategy'
     | '/_authenticated/olympus/missions/new'
     | '/api/public/hooks/generate-daily-briefs'
     | '/api/public/hooks/iris-monitor'
@@ -541,6 +709,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/_authenticated/missions/$missionId/'
     | '/_authenticated/olympus/missions/'
     | '/_authenticated/olympus/missions/$missionId/wizard'
     | '/_authenticated/olympus/missions/$missionId/'
@@ -754,6 +923,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOlympusMissionsIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/missions/$missionId/': {
+      id: '/_authenticated/missions/$missionId/'
+      path: '/missions/$missionId'
+      fullPath: '/missions/$missionId/'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/lovable/email/transactional/send': {
       id: '/lovable/email/transactional/send'
       path: '/lovable/email/transactional/send'
@@ -845,6 +1021,90 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOlympusMissionsNewRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/missions/$missionId/win-strategy': {
+      id: '/_authenticated/missions/$missionId/win-strategy'
+      path: '/missions/$missionId/win-strategy'
+      fullPath: '/missions/$missionId/win-strategy'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdWinStrategyRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/missions/$missionId/team': {
+      id: '/_authenticated/missions/$missionId/team'
+      path: '/missions/$missionId/team'
+      fullPath: '/missions/$missionId/team'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdTeamRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/missions/$missionId/settings': {
+      id: '/_authenticated/missions/$missionId/settings'
+      path: '/missions/$missionId/settings'
+      fullPath: '/missions/$missionId/settings'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/missions/$missionId/scores': {
+      id: '/_authenticated/missions/$missionId/scores'
+      path: '/missions/$missionId/scores'
+      fullPath: '/missions/$missionId/scores'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdScoresRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/missions/$missionId/reports': {
+      id: '/_authenticated/missions/$missionId/reports'
+      path: '/missions/$missionId/reports'
+      fullPath: '/missions/$missionId/reports'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdReportsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/missions/$missionId/qa': {
+      id: '/_authenticated/missions/$missionId/qa'
+      path: '/missions/$missionId/qa'
+      fullPath: '/missions/$missionId/qa'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdQaRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/missions/$missionId/oracle': {
+      id: '/_authenticated/missions/$missionId/oracle'
+      path: '/missions/$missionId/oracle'
+      fullPath: '/missions/$missionId/oracle'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdOracleRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/missions/$missionId/journey': {
+      id: '/_authenticated/missions/$missionId/journey'
+      path: '/missions/$missionId/journey'
+      fullPath: '/missions/$missionId/journey'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdJourneyRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/missions/$missionId/insights': {
+      id: '/_authenticated/missions/$missionId/insights'
+      path: '/missions/$missionId/insights'
+      fullPath: '/missions/$missionId/insights'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdInsightsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/missions/$missionId/flight-deck': {
+      id: '/_authenticated/missions/$missionId/flight-deck'
+      path: '/missions/$missionId/flight-deck'
+      fullPath: '/missions/$missionId/flight-deck'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdFlightDeckRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/missions/$missionId/compliance': {
+      id: '/_authenticated/missions/$missionId/compliance'
+      path: '/missions/$missionId/compliance'
+      fullPath: '/missions/$missionId/compliance'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdComplianceRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/missions/$missionId/briefing': {
+      id: '/_authenticated/missions/$missionId/briefing'
+      path: '/missions/$missionId/briefing'
+      fullPath: '/missions/$missionId/briefing'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdBriefingRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/team/$memberId': {
       id: '/_authenticated/admin/team/$memberId'
       path: '/$memberId'
@@ -912,7 +1172,20 @@ interface AuthenticatedRouteChildren {
   AuthenticatedProfileExpertiseRoute: typeof AuthenticatedProfileExpertiseRoute
   AuthenticatedMissionsIndexRoute: typeof AuthenticatedMissionsIndexRoute
   AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
+  AuthenticatedMissionsMissionIdBriefingRoute: typeof AuthenticatedMissionsMissionIdBriefingRoute
+  AuthenticatedMissionsMissionIdComplianceRoute: typeof AuthenticatedMissionsMissionIdComplianceRoute
+  AuthenticatedMissionsMissionIdFlightDeckRoute: typeof AuthenticatedMissionsMissionIdFlightDeckRoute
+  AuthenticatedMissionsMissionIdInsightsRoute: typeof AuthenticatedMissionsMissionIdInsightsRoute
+  AuthenticatedMissionsMissionIdJourneyRoute: typeof AuthenticatedMissionsMissionIdJourneyRoute
+  AuthenticatedMissionsMissionIdOracleRoute: typeof AuthenticatedMissionsMissionIdOracleRoute
+  AuthenticatedMissionsMissionIdQaRoute: typeof AuthenticatedMissionsMissionIdQaRoute
+  AuthenticatedMissionsMissionIdReportsRoute: typeof AuthenticatedMissionsMissionIdReportsRoute
+  AuthenticatedMissionsMissionIdScoresRoute: typeof AuthenticatedMissionsMissionIdScoresRoute
+  AuthenticatedMissionsMissionIdSettingsRoute: typeof AuthenticatedMissionsMissionIdSettingsRoute
+  AuthenticatedMissionsMissionIdTeamRoute: typeof AuthenticatedMissionsMissionIdTeamRoute
+  AuthenticatedMissionsMissionIdWinStrategyRoute: typeof AuthenticatedMissionsMissionIdWinStrategyRoute
   AuthenticatedOlympusMissionsNewRoute: typeof AuthenticatedOlympusMissionsNewRoute
+  AuthenticatedMissionsMissionIdIndexRoute: typeof AuthenticatedMissionsMissionIdIndexRoute
   AuthenticatedOlympusMissionsIndexRoute: typeof AuthenticatedOlympusMissionsIndexRoute
   AuthenticatedOlympusMissionsMissionIdWizardRoute: typeof AuthenticatedOlympusMissionsMissionIdWizardRoute
   AuthenticatedOlympusMissionsMissionIdIndexRoute: typeof AuthenticatedOlympusMissionsMissionIdIndexRoute
@@ -932,7 +1205,32 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedProfileExpertiseRoute: AuthenticatedProfileExpertiseRoute,
   AuthenticatedMissionsIndexRoute: AuthenticatedMissionsIndexRoute,
   AuthenticatedProfileIndexRoute: AuthenticatedProfileIndexRoute,
+  AuthenticatedMissionsMissionIdBriefingRoute:
+    AuthenticatedMissionsMissionIdBriefingRoute,
+  AuthenticatedMissionsMissionIdComplianceRoute:
+    AuthenticatedMissionsMissionIdComplianceRoute,
+  AuthenticatedMissionsMissionIdFlightDeckRoute:
+    AuthenticatedMissionsMissionIdFlightDeckRoute,
+  AuthenticatedMissionsMissionIdInsightsRoute:
+    AuthenticatedMissionsMissionIdInsightsRoute,
+  AuthenticatedMissionsMissionIdJourneyRoute:
+    AuthenticatedMissionsMissionIdJourneyRoute,
+  AuthenticatedMissionsMissionIdOracleRoute:
+    AuthenticatedMissionsMissionIdOracleRoute,
+  AuthenticatedMissionsMissionIdQaRoute: AuthenticatedMissionsMissionIdQaRoute,
+  AuthenticatedMissionsMissionIdReportsRoute:
+    AuthenticatedMissionsMissionIdReportsRoute,
+  AuthenticatedMissionsMissionIdScoresRoute:
+    AuthenticatedMissionsMissionIdScoresRoute,
+  AuthenticatedMissionsMissionIdSettingsRoute:
+    AuthenticatedMissionsMissionIdSettingsRoute,
+  AuthenticatedMissionsMissionIdTeamRoute:
+    AuthenticatedMissionsMissionIdTeamRoute,
+  AuthenticatedMissionsMissionIdWinStrategyRoute:
+    AuthenticatedMissionsMissionIdWinStrategyRoute,
   AuthenticatedOlympusMissionsNewRoute: AuthenticatedOlympusMissionsNewRoute,
+  AuthenticatedMissionsMissionIdIndexRoute:
+    AuthenticatedMissionsMissionIdIndexRoute,
   AuthenticatedOlympusMissionsIndexRoute:
     AuthenticatedOlympusMissionsIndexRoute,
   AuthenticatedOlympusMissionsMissionIdWizardRoute:

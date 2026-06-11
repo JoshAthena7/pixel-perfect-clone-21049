@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { IrisProvider } from "@/components/iris/IrisContext";
 import { AskIrisPanel } from "@/components/iris/AskIrisPanel";
 import { GlobalCommandBar } from "@/components/nav/GlobalCommandBar";
+import { AppSidebar } from "@/components/nav/AppSidebar";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { getMyHome } from "@/lib/v2-home.functions";
 
 
@@ -143,15 +145,7 @@ function AuthenticatedLayout() {
     }
   }, [homeInfo, path, navigate, isAdmin]);
 
-  const shell = (
-    <div className="min-h-screen bg-background text-foreground">
-      <GlobalCommandBar email={email} isAdmin={isAdmin} />
-      <main>
-        <Outlet />
-      </main>
-      <AskIrisPanel />
-    </div>
-  );
+  const shell = <AuthedShell email={email} isAdmin={isAdmin} />;
 
   if (isAdmin) return <IrisProvider>{shell}</IrisProvider>;
 
@@ -161,4 +155,52 @@ function AuthenticatedLayout() {
 
   return <IrisProvider>{shell}</IrisProvider>;
 }
+
+function AuthedShell({ email, isAdmin }: { email: string | null; isAdmin: boolean }) {
+  const isMobile = useIsMobile();
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return;
+      const { data: p } = await supabase
+        .from("profiles")
+        .select("display_name,email")
+        .eq("id", u.user.id)
+        .maybeSingle();
+      if (p) {
+        setUserName(p.display_name?.trim() || p.email || email);
+      } else {
+        setUserName(email);
+      }
+      const { data: m } = await supabase.rpc("current_atlas_member_id");
+      if (m) {
+        const { data: atm } = await supabase
+          .from("atlas_team_members")
+          .select("atlas_role")
+          .eq("id", m as string)
+          .maybeSingle();
+        if (atm?.atlas_role) setUserRole(String(atm.atlas_role));
+      }
+      if (!userRole && isAdmin) setUserRole("admin");
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [email, isAdmin]);
+
+  const sidebarWidth = isMobile ? 48 : 200;
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <GlobalCommandBar email={email} isAdmin={isAdmin} />
+      <AppSidebar userName={userName} userRole={userRole} />
+      <main style={{ marginLeft: sidebarWidth, paddingTop: 0 }}>
+        <Outlet />
+      </main>
+      <AskIrisPanel />
+    </div>
+  );
+}
+
 

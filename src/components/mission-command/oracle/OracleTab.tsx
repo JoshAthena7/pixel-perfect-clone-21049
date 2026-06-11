@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate, useSearch } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,19 +30,15 @@ type SubId = (typeof SUB_TABS)[number]["id"];
 const GOLD = "#C9A55C";
 
 export function OracleTab({ missionId }: { missionId: string }) {
-  const navigate = useNavigate();
-  const search = useSearch({ from: "/_authenticated/olympus/missions/$missionId/" }) as {
-    sub?: string;
-    tab?: string;
-    add?: string;
+  // Oracle sub-views are an internal segmented control, not URL state.
+  const [active, setActive] = useState<SubId>("graph");
+  const [addAutoOpen, setAddAutoOpen] = useState(false);
+  const setSub = (sub: SubId, extra: { add?: boolean } = {}) => {
+    setActive(sub);
+    if (extra.add) setAddAutoOpen(true);
   };
-  const active: SubId = (SUB_TABS.find((t) => t.id === search.sub)?.id ?? "graph") as SubId;
-  const setSub = (sub: SubId, extra: Record<string, unknown> = {}) =>
-    navigate({
-      to: "/olympus/missions/$missionId",
-      params: { missionId },
-      search: (prev: Record<string, unknown>) => ({ ...prev, tab: "oracle", sub, ...extra }),
-    });
+  // back-compat shim for the old `search.add === "1"` flag path below
+  const search = { add: addAutoOpen ? "1" : undefined };
 
   const [briefOpen, setBriefOpen] = useState(false);
   const [briefText, setBriefText] = useState<string>("");
@@ -181,7 +176,7 @@ export function OracleTab({ missionId }: { missionId: string }) {
     }
   };
 
-  const addIntelligence = () => setSub("research-library", { add: 1 });
+  const addIntelligence = () => setSub("research-library", { add: true });
 
   const completeness = mission?.intelligence_graph_completeness ?? 0;
 
