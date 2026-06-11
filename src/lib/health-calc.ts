@@ -160,6 +160,14 @@ export async function runHealthCalculation(missionId: string): Promise<{
         if (t.writerId) recipients.push(t.writerId);
         recipients.push(...leadIds);
         message = `IRIS Alert: ${t.questionNumber} is At Risk. Immediate attention needed. Due in ${daysTxt}.`;
+        // Trigger an at-risk Athena Insight (fire and forget).
+        try {
+          const { buildAthenaInsight } = await import("@/lib/athena-insights.functions");
+          (buildAthenaInsight as any)({ data: { missionId, type: "at_risk", question_id: t.questionId } })
+            .catch((e: unknown) => console.error("[at-risk insight] failed", t.questionId, e));
+        } catch (e) {
+          console.error("[at-risk insight] import failed", e);
+        }
       }
       for (const rId of Array.from(new Set(recipients))) {
         // dup check

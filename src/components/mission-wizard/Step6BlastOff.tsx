@@ -9,6 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { buildIntelligenceGraph } from "@/lib/oracle.functions";
 import { seedTerritoryIntelligence } from "@/lib/iris-territory.functions";
+import { buildAthenaInsight } from "@/lib/athena-insights.functions";
+import { supabase as supabaseClient } from "@/integrations/supabase/client";
 import { InputSourceBadge, IrisInfoCard, StepMetaIndicator, type InputSource } from "@/components/InputSourceBadge";
 
 const ITEM_SOURCE: Partial<Record<CheckKey, InputSource>> = {
@@ -157,6 +159,27 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
   const navigate = useNavigate();
   const buildGraph = useServerFn(buildIntelligenceGraph);
   const seedTerritory = useServerFn(seedTerritoryIntelligence);
+  const buildInsight = useServerFn(buildAthenaInsight);
+
+  const fireSectionInsights = async () => {
+    try {
+      const { data: sections } = await supabaseClient
+        .from("mission_sections")
+        .select("id")
+        .eq("mission_id", missionId);
+      const ids = (sections ?? []).map((s: any) => s.id as string);
+      const all = [
+        buildInsight({ data: { missionId, type: "daily" as const } }).catch((e) => console.error("[BLAST OFF] daily insight failed:", e)),
+        ...ids.map((sid) =>
+          buildInsight({ data: { missionId, type: "section" as const, section_id: sid } })
+            .catch((e) => console.error("[BLAST OFF] section insight failed:", sid, e))
+        ),
+      ];
+      Promise.all(all).catch(() => {});
+    } catch (e) {
+      console.error("[BLAST OFF] fireSectionInsights setup failed", e);
+    }
+  };
 
   const { data: checks, isLoading, refetch } = useQuery({
     queryKey: ["launch-checks", missionId],
@@ -218,6 +241,7 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
       // fire-and-forget graph build + territory seed
       seedTerritory({ data: { missionId } }).catch((e) => console.error("[BLAST OFF] seedTerritoryIntelligence failed:", e));
       buildGraph({ data: { missionId } }).catch((e) => console.error("[BLAST OFF] buildIntelligenceGraph failed:", e));
+      fireSectionInsights();
       await new Promise((r) => setTimeout(r, 900));
 
       setPhase("done");
@@ -238,6 +262,7 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
       setPhase("burst");
       seedTerritory({ data: { missionId } }).catch((e) => console.error("[BLAST OFF] seedTerritoryIntelligence failed:", e));
       buildGraph({ data: { missionId } }).catch((e) => console.error("[BLAST OFF] buildIntelligenceGraph failed:", e));
+      fireSectionInsights();
       await new Promise((r) => setTimeout(r, 900));
 
       navigate({

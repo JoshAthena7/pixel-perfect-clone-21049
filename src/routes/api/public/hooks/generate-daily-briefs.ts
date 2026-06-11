@@ -217,6 +217,15 @@ export const Route = createFileRoute("/api/public/hooks/generate-daily-briefs")(
                 metadata: { mission_id: missionId, brief_id: (inserted as { id: string } | null)?.id ?? null },
               }).then(undefined, (e) => console.error("notification insert failed", e));
             }
+
+            // Fire daily Athena Insight generation (do not block on it)
+            try {
+              const { buildAthenaInsight } = await import("@/lib/athena-insights.functions");
+              (buildAthenaInsight as any)({ data: { missionId, type: "daily" } })
+                .catch((e: unknown) => console.error("daily athena insight failed", missionId, e));
+            } catch (e) {
+              console.error("daily athena insight import failed", e);
+            }
           } catch (err) {
             failedCount++;
             console.error("generate-daily-briefs mission failed", m.id, err);
