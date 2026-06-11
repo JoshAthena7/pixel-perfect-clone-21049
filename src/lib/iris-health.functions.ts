@@ -1,0 +1,124 @@
+import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { getRequestHost, getRequestHeader } from "@tanstack/react-start/server";
+
+export type PipelineJob = {
+  jobid: number;
+  jobname: string;
+  schedule: string;
+  active: boolean;
+  hookPath: string | null;
+};
+
+export type PipelineRun = {
+  runid: number;
+  status: string;
+  return_message: string | null;
+  start_time: string;
+  end_time: string | null;
+};
+
+// Maps cron job name → hook path. Jobs without a public hook (SQL-only or
+// internal) are still listed but have a disabled Run Now button.
+const JOB_HOOK_PATHS: Record<string, string> = {
+  "generate-daily-briefs": "/api/public/hooks/generate-daily-briefs",
+  "iris-daily-intelligence-refresh": "/api/public/hooks/refresh-intelligence-graph",
+  "iris-refresh-intelligence-graph": "/api/public/hooks/refresh-intelligence-graph",
+  "iris-monitor-hourly": "/api/public/hooks/iris-monitor",
+  "iris-monitor-state-feeds": "/api/public/hooks/monitor-state-feeds",
+  "iris-monitor-research-feeds": "/api/public/hooks/monitor-research-feeds",
+  "iris-monitor-cms-feeds": "/api/public/hooks/monitor-cms-feeds",
+  "iris-monitor-custom-feeds": "/api/public/hooks/monitor-custom-feeds",
+};
+
+async function assertAdmin(supabase: any, userId: string) {
+  const { data, error } = await supabase.rpc("has_role", {
+    _user_id: userId,
+    _role: "admin",
+  });
+  if (error) throw new Error(`Role check failed: ${error.message}`);
+  if (!data) throw new Error("Forbidden: admin role required");
+}
+
+export const getIrisPipelineStatus = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context as any;
+    await assertAdmin(supabase, userId);
+
+    const { data: jobs, error: jobsErr } = await supabase.rpc("iris_pipeline_jobs");
+    if (jobsErr) throw new Error(jobsErr.message);
+
+    const out: Array<PipelineJob & { runs: PipelineRun[] }> = [];
+    for (const j of (jobs ?? []) as any[]) {
+      const { data: runs, error: runsErr } = await supabase.rpc(
+        "iris_pipeline_recent_runs",
+        { _jobid: j.jobid, _limit: 20 },
+      );
+      if (runsErr) throw new Error(runsErr.message);
+      out.push({
+        jobid: Number(j.jobid),
+        jobname: j.jobname,
+        schedule: j.schedule,
+        active: j.active,
+        hookPath: JOB_HOOK_PATHS[j.jobname] ?? null,
+        runs: (runs ?? []).map((r: any) => ({
+          runid: Number(r.runid),
+          status: r.status,
+          return_message: r.return_message,
+          start_time: r.start_time,
+          end_time: r.end_time,
+        })),
+      });
+    }
+    return { jobs: out };
+  });
+
+export const runIrisPipeline = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { jobname: string }) => {
+    if (!data?.jobname || typeof data.jobname !== "string") {
+      throw new Error("jobname required");
+    }
+    return data;
+  })
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context as any;
+    await assertAdmin(supabase, userId);
+
+    const hookPath = JOB_HOOK_PATHS[data.jobname];
+    if (!hookPath) throw new Error(`No public hook mapped for job: ${data.jobname}`);
+
+    const host = getRequestHost();
+    const proto = getRequestHeader("x-forwarded-proto") ?? "https";
+    const url = `${proto}://${host}${hookPath}`;
+
+    const startedAt = Date.now();
+    let status = 0;
+    let body = "";
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      });
+      status = res.status;
+      body = (await res.text()).slice(0, 1000);
+    } catch (e: any) {
+      return {
+        ok: false,
+        url,
+        status: 0,
+        durationMs: Date.now() - startedAt,
+        body: `fetch failed: ${e?.message ?? "unknown"}`,
+      };
+    }
+
+    return {
+      ok: status >= 200 && status < 300,
+      url,
+      status,
+      durationMs: Date.now() - startedAt,
+      body,
+    };
+  });
