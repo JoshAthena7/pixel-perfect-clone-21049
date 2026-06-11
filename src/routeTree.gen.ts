@@ -46,6 +46,7 @@ import { Route as ApiPublicHooksMonitorCustomFeedsRouteImport } from './routes/a
 import { Route as ApiPublicHooksMonitorCmsFeedsRouteImport } from './routes/api/public/hooks/monitor-cms-feeds'
 import { Route as ApiPublicHooksIrisMonitorRouteImport } from './routes/api/public/hooks/iris-monitor'
 import { Route as ApiPublicHooksGenerateDailyBriefsRouteImport } from './routes/api/public/hooks/generate-daily-briefs'
+import { Route as ApiPublicDevSeedTestEnvRouteImport } from './routes/api/public/dev.seed-test-env'
 import { Route as AuthenticatedOlympusMissionsNewRouteImport } from './routes/_authenticated/olympus.missions.new'
 import { Route as AuthenticatedAdminTeamMemberIdRouteImport } from './routes/_authenticated/admin.team.$memberId'
 import { Route as AuthenticatedOlympusMissionsMissionIdIndexRouteImport } from './routes/_authenticated/olympus.missions.$missionId.index'
@@ -252,6 +253,11 @@ const ApiPublicHooksGenerateDailyBriefsRoute =
     path: '/api/public/hooks/generate-daily-briefs',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicDevSeedTestEnvRoute = ApiPublicDevSeedTestEnvRouteImport.update({
+  id: '/api/public/dev/seed-test-env',
+  path: '/api/public/dev/seed-test-env',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedOlympusMissionsNewRoute =
   AuthenticatedOlympusMissionsNewRouteImport.update({
     id: '/olympus/missions/new',
@@ -303,6 +309,7 @@ export interface FileRoutesByFullPath {
   '/profile/': typeof AuthenticatedProfileIndexRoute
   '/admin/team/$memberId': typeof AuthenticatedAdminTeamMemberIdRoute
   '/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
+  '/api/public/dev/seed-test-env': typeof ApiPublicDevSeedTestEnvRoute
   '/api/public/hooks/generate-daily-briefs': typeof ApiPublicHooksGenerateDailyBriefsRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/monitor-cms-feeds': typeof ApiPublicHooksMonitorCmsFeedsRoute
@@ -344,6 +351,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileIndexRoute
   '/admin/team/$memberId': typeof AuthenticatedAdminTeamMemberIdRoute
   '/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
+  '/api/public/dev/seed-test-env': typeof ApiPublicDevSeedTestEnvRoute
   '/api/public/hooks/generate-daily-briefs': typeof ApiPublicHooksGenerateDailyBriefsRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/monitor-cms-feeds': typeof ApiPublicHooksMonitorCmsFeedsRoute
@@ -388,6 +396,7 @@ export interface FileRoutesById {
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/_authenticated/admin/team/$memberId': typeof AuthenticatedAdminTeamMemberIdRoute
   '/_authenticated/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
+  '/api/public/dev/seed-test-env': typeof ApiPublicDevSeedTestEnvRoute
   '/api/public/hooks/generate-daily-briefs': typeof ApiPublicHooksGenerateDailyBriefsRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/monitor-cms-feeds': typeof ApiPublicHooksMonitorCmsFeedsRoute
@@ -432,6 +441,7 @@ export interface FileRouteTypes {
     | '/profile/'
     | '/admin/team/$memberId'
     | '/olympus/missions/new'
+    | '/api/public/dev/seed-test-env'
     | '/api/public/hooks/generate-daily-briefs'
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/monitor-cms-feeds'
@@ -473,6 +483,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/admin/team/$memberId'
     | '/olympus/missions/new'
+    | '/api/public/dev/seed-test-env'
     | '/api/public/hooks/generate-daily-briefs'
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/monitor-cms-feeds'
@@ -516,6 +527,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile/'
     | '/_authenticated/admin/team/$memberId'
     | '/_authenticated/olympus/missions/new'
+    | '/api/public/dev/seed-test-env'
     | '/api/public/hooks/generate-daily-briefs'
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/monitor-cms-feeds'
@@ -543,6 +555,7 @@ export interface RootRouteChildren {
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   ApiChatIrisRoute: typeof ApiChatIrisRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
+  ApiPublicDevSeedTestEnvRoute: typeof ApiPublicDevSeedTestEnvRoute
   ApiPublicHooksGenerateDailyBriefsRoute: typeof ApiPublicHooksGenerateDailyBriefsRoute
   ApiPublicHooksIrisMonitorRoute: typeof ApiPublicHooksIrisMonitorRoute
   ApiPublicHooksMonitorCmsFeedsRoute: typeof ApiPublicHooksMonitorCmsFeedsRoute
@@ -818,6 +831,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksGenerateDailyBriefsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/dev/seed-test-env': {
+      id: '/api/public/dev/seed-test-env'
+      path: '/api/public/dev/seed-test-env'
+      fullPath: '/api/public/dev/seed-test-env'
+      preLoaderRoute: typeof ApiPublicDevSeedTestEnvRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/olympus/missions/new': {
       id: '/_authenticated/olympus/missions/new'
       path: '/olympus/missions/new'
@@ -933,6 +953,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   ApiChatIrisRoute: ApiChatIrisRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
+  ApiPublicDevSeedTestEnvRoute: ApiPublicDevSeedTestEnvRoute,
   ApiPublicHooksGenerateDailyBriefsRoute:
     ApiPublicHooksGenerateDailyBriefsRoute,
   ApiPublicHooksIrisMonitorRoute: ApiPublicHooksIrisMonitorRoute,
@@ -952,13 +973,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
