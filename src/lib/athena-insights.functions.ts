@@ -416,22 +416,6 @@ export const buildAthenaInsight = createServerFn({ method: "POST" })
     return { insight: full, skipped: false };
   });
 
-/* ------- helper callable from non-auth contexts (BLAST OFF UI uses this via useServerFn) ------- */
-export const regenerateInsight = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => BuildSchema.parse(input))
-  .handler(async ({ data, context }) => {
-    // admin check
-    const { data: isAdmin } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
-    if (!isAdmin) throw new Error("Admin only");
-    // delegate by calling the public-callable buildAthenaInsight handler directly
-    const admin = await loadAdmin();
-    // Just reuse the logic via a fetch-like internal call — simplest is to inline-call:
-    // Inline call: we cannot import handler easily; re-invoke through createServerFn is awkward.
-    // Use a fire-and-forget HTTP call to ourselves is overkill. Instead, duplicate dispatch:
-    return (buildAthenaInsight as any)({ data: { ...data, force_regenerate: true } });
-  });
-
 export const listMissionInsights = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ missionId: z.string().uuid() }).parse(input))
@@ -445,18 +429,15 @@ export const listMissionInsights = createServerFn({ method: "GET" })
     return { insights: rows ?? [] };
   });
 
-export const generateAllSectionInsights = createServerFn({ method: "POST" })
+export const listMissionSections = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ missionId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    const { data: isAdmin } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
-    if (!isAdmin) throw new Error("Admin only");
-    const admin = await loadAdmin();
-    const { data: sections } = await admin
+    const { data: rows } = await context.supabase
       .from("mission_sections")
-      .select("id")
+      .select("id,section_number,description,order_index")
       .eq("mission_id", data.missionId)
       .order("order_index", { ascending: true });
-    const ids = (sections ?? []).map((s: any) => s.id as string);
-    return { total: ids.length, sectionIds: ids };
+    return { sections: rows ?? [] };
   });
+
