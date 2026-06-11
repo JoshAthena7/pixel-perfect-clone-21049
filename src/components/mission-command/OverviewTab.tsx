@@ -45,7 +45,7 @@ export function OverviewTab({
 
   return (
     <div className="mx-auto w-full" style={{ maxWidth: 900 }}>
-      <PageHeader missionId={missionId} />
+      <PageHeader missionId={missionId} onNavigateTab={onNavigateTab} />
       <SectionDivider label="TODAY" />
       <TodaySection missionId={missionId} onNavigateTab={onNavigateTab} />
       <SectionDivider label="THE MISSION" />
@@ -58,7 +58,13 @@ export function OverviewTab({
 
 /* --------------------------- Page Header --------------------------- */
 
-function PageHeader({ missionId }: { missionId: string }) {
+function PageHeader({
+  missionId,
+  onNavigateTab,
+}: {
+  missionId: string;
+  onNavigateTab: (t: TabId) => void;
+}) {
   const { data: mission } = useQuery({
     queryKey: ["briefing-header", missionId],
     queryFn: async () => {
