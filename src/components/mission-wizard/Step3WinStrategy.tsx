@@ -461,6 +461,7 @@ function FieldShell({
   confirmed,
   onConfirm,
   elevated,
+  source = "iris-with-fallback",
   children,
 }: {
   title: string;
@@ -468,6 +469,7 @@ function FieldShell({
   confirmed: boolean;
   onConfirm: () => void;
   elevated?: boolean;
+  source?: InputSource;
   children: React.ReactNode;
 }) {
   return (
@@ -484,12 +486,9 @@ function FieldShell({
           <h3 className="text-base font-semibold text-foreground">{title}</h3>
           <p className="text-xs text-muted-foreground mt-0.5">{helper}</p>
         </div>
-        {!confirmed && (
-          <span className="inline-flex items-center rounded-full bg-[var(--athena-gold)]/20 text-[var(--athena-gold)] border border-[var(--athena-gold)]/40 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider shrink-0">
-            IRIS Draft
-          </span>
-        )}
+        <InputSourceBadge source={source} />
       </div>
+
       {children}
       <div>
         {confirmed ? (
