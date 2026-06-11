@@ -193,7 +193,7 @@ export function Step1CProcessing({
       clearInterval(analyzeTick);
       clearInterval(watcher);
     };
-  }, [missionId, runProcess]);
+  }, [missionId, runProcess, extractReqs]);
 
   const stepLabel =
     step === "extract" && extractTotal > 0
