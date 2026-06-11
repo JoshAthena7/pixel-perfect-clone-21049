@@ -1,83 +1,13 @@
 /**
- * Floating Assists Bar — six quick actions. Lives on Flight Deck and
- * Mission Command pages. Most actions either open a modal or pop the
- * IRIS Dock with a pre-filled prompt; SOS / Update Reality also write
- * to atlas_notifications + mission_audit_log.
+ * Reality + SOS dialogs used by the Flight Deck horizontal assists bar.
+ * Extracted from the legacy floating AssistsBar (now removed).
  */
 import { useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { AlertTriangle, Bell, PencilLine, Phone, Sparkles, MessagesSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
-import { useIris } from "./IrisContext";
-import { DailyPulseModal } from "./DailyPulseModal";
-
-const GOLD = "#C9A55C";
-
-type Props = {
-  onPrefillIris: (text: string) => void;
-  onOpenIris: () => void;
-};
-
-export function AssistsBar({ onPrefillIris, onOpenIris }: Props) {
-  const navigate = useNavigate();
-  const iris = useIris();
-  const [updateOpen, setUpdateOpen] = useState(false);
-  const [sosOpen, setSosOpen] = useState(false);
-  const [pulseOpen, setPulseOpen] = useState(false);
-
-  const handleThread = () => {
-    if (iris.current_question_id && iris.current_mission_id) {
-      navigate({
-        to: "/olympus/missions/$missionId",
-        params: { missionId: iris.current_mission_id },
-        search: { tab: "questions", question: iris.current_question_id } as never,
-      });
-    } else if (iris.current_mission_id) {
-      navigate({
-        to: "/olympus/missions/$missionId",
-        params: { missionId: iris.current_mission_id },
-        search: { tab: "questions" } as never,
-      });
-    } else {
-      toast.info("Open a mission first to start a Thread.");
-    }
-  };
-
-  return (
-    <>
-      <div className="fixed bottom-5 left-5 z-40 flex flex-col gap-2 bg-card/95 backdrop-blur border rounded-full px-2 py-2 shadow-lg">
-        <ActionBtn label="Update Reality" icon={<PencilLine className="h-4 w-4" />} onClick={() => setUpdateOpen(true)} />
-        <ActionBtn label="Phone a Friend" icon={<Phone className="h-4 w-4" />} onClick={() => { onPrefillIris("I need an SME for: "); }} />
-        <ActionBtn label="Score Me" icon={<Sparkles className="h-4 w-4" />} onClick={() => { onPrefillIris("Score my draft: "); }} />
-        <ActionBtn label="Daily Pulse" icon={<Bell className="h-4 w-4" />} onClick={() => setPulseOpen(true)} />
-        <ActionBtn label="Thread" icon={<MessagesSquare className="h-4 w-4" />} onClick={handleThread} />
-        <ActionBtn label="SOS" icon={<AlertTriangle className="h-4 w-4" />} onClick={() => setSosOpen(true)} danger />
-      </div>
-
-      <UpdateRealityDialog open={updateOpen} onOpenChange={setUpdateOpen} missionId={iris.current_mission_id} onSent={() => { onOpenIris(); }} />
-      <SOSDialog open={sosOpen} onOpenChange={setSosOpen} missionId={iris.current_mission_id} />
-      <DailyPulseModal open={pulseOpen} onOpenChange={setPulseOpen} missionId={iris.current_mission_id} />
-    </>
-  );
-}
-
-function ActionBtn({ label, icon, onClick, danger }: { label: string; icon: React.ReactNode; onClick: () => void; danger?: boolean }) {
-  return (
-    <button
-      onClick={onClick}
-      title={label}
-      className="group h-10 w-10 rounded-full flex items-center justify-center transition-colors"
-      style={{ background: danger ? "rgba(220,38,38,0.15)" : "rgba(201,165,92,0.12)", color: danger ? "#fca5a5" : GOLD }}
-    >
-      {icon}
-      <span className="absolute left-14 hidden group-hover:inline-block px-2 py-1 rounded text-xs bg-card text-foreground border whitespace-nowrap">{label}</span>
-    </button>
-  );
-}
 
 export function UpdateRealityDialog({ open, onOpenChange, missionId, onSent }: { open: boolean; onOpenChange: (v: boolean) => void; missionId: string | null; onSent: () => void }) {
   const [text, setText] = useState("");
