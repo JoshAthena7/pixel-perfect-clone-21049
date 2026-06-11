@@ -335,6 +335,7 @@ export function Step3WinStrategy({ missionId }: { missionId: string }) {
       {/* Field 4 — Known Competitors */}
       <FieldShell
         title="Known Competitors"
+        source="you"
         helper="Who else is likely bidding and what do you know about them."
         confirmed={confirmed.has("known_competitors")}
         onConfirm={() => confirmField("known_competitors")}
