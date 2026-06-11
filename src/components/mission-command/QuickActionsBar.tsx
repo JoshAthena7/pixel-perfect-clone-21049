@@ -29,14 +29,6 @@ export function QuickActionsBar({ missionId }: { missionId: string }) {
         <button type="button" className={btn} onClick={() => setEditOpen(true)}>
           <Pencil className="h-3.5 w-3.5" /> Edit Mission
         </button>
-        <button type="button" className={btn} onClick={runIntel} disabled={running}>
-          {running ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            <Activity className="h-3.5 w-3.5" />
-          )}
-          Run Intelligence Check
-        </button>
         <button type="button" className={btn} onClick={shareLink}>
           <Link2 className="h-3.5 w-3.5" /> Share Mission Link
         </button>
