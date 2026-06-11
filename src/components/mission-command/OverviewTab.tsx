@@ -106,13 +106,7 @@ function PageHeader({
             Enter Flight Deck <ArrowRight size={13} />
           </Link>
           <button
-            onClick={() => {
-              // Navigate to Oracle tab via the parent's tab handler indirectly via URL
-              const url = new URL(window.location.href);
-              url.searchParams.set("tab", "oracle");
-              window.history.pushState({}, "", url.toString());
-              window.dispatchEvent(new PopStateEvent("popstate"));
-            }}
+            onClick={() => onNavigateTab("oracle")}
             className="inline-flex items-center gap-1 rounded-md transition-colors hover:bg-white/[0.08]"
             style={{
               background: "rgba(255,255,255,0.06)",
