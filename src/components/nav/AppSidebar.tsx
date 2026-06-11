@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { owl } from "@lucide/lab";
 
-const Owl = (props: React.ComponentProps<typeof LucideIcon>) => (
+const Owl = (props: Omit<React.ComponentProps<typeof LucideIcon>, "iconNode">) => (
   <LucideIcon iconNode={owl} {...props} />
 );
 import { cn } from "@/lib/utils";
