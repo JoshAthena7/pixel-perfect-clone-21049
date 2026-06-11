@@ -21,6 +21,7 @@ type MissionRow = {
   id: string;
   name: string;
   client_name: string | null;
+  agency_name: string | null;
   status: string;
   submission_deadline: string | null;
   blast_off_at: string | null;
@@ -57,7 +58,7 @@ async function fetchMissions(): Promise<MissionRow[]> {
   const { data, error } = await supabase
     .from("missions")
     .select(
-      "id, name, client_name, status, submission_deadline, blast_off_at, intelligence_graph_completeness, mission_team_members(count), mission_questions(count)",
+      "id, name, client_name, agency_name, status, submission_deadline, blast_off_at, intelligence_graph_completeness, mission_team_members(count), mission_questions(count)",
     )
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -65,6 +66,7 @@ async function fetchMissions(): Promise<MissionRow[]> {
     id: m.id,
     name: m.name,
     client_name: m.client_name,
+    agency_name: m.agency_name,
     status: m.status,
     submission_deadline: m.submission_deadline,
     blast_off_at: m.blast_off_at,
@@ -267,7 +269,16 @@ function MissionCard({ m, onEdit }: { m: MissionRow; onEdit: () => void }) {
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="min-w-0">
             <h3 className="text-lg font-semibold text-foreground truncate">{m.name}</h3>
-            <p className="text-sm text-muted-foreground truncate">{m.client_name ?? "—"}</p>
+            {(() => {
+              const client = m.client_name ?? m.agency_name;
+              if (client && client !== m.name) {
+                return <p className="text-sm text-muted-foreground truncate">{client}</p>;
+              }
+              if (!client) {
+                return <p className="text-sm text-muted-foreground/60 italic truncate">Client TBD</p>;
+              }
+              return null;
+            })()}
           </div>
           <span
             className={cn(
@@ -324,12 +335,18 @@ function MissionCard({ m, onEdit }: { m: MissionRow; onEdit: () => void }) {
 
 function EmptyMissions({ onCreate }: { onCreate: () => void }) {
   return (
-    <div className="rounded-xl border border-border bg-surface/40 p-16 text-center">
-      <div className="mx-auto mb-5 h-14 w-14 rounded-full border-2 border-[var(--athena-gold)] flex items-center justify-center text-[var(--athena-gold)] font-bold tracking-widest">
-        A
-      </div>
-      <p className="text-muted-foreground mb-5">
-        No missions yet. Create your first mission to get started.
+    <div className="rounded-xl border border-border bg-surface/40 p-16 text-center flex flex-col items-center">
+      <img
+        src="/athena-mark-white.png"
+        alt=""
+        aria-hidden
+        draggable={false}
+        className="h-16 w-16 mb-6 opacity-90"
+        style={{ objectFit: "contain" }}
+      />
+      <p className="text-white mb-1" style={{ fontSize: 18 }}>No active missions yet.</p>
+      <p className="text-muted-foreground mb-6" style={{ fontSize: 14 }}>
+        Create your first mission to get started.
       </p>
       <Button
         onClick={onCreate}

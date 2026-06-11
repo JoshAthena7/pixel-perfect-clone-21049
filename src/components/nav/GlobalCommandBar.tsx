@@ -141,7 +141,7 @@ export function GlobalCommandBar({ email, isAdmin = false }: { email?: string | 
         <MissionEditPanel missionId={missionId} open={editOpen} onOpenChange={setEditOpen} />
       )}
       <div className="mx-auto max-w-7xl h-full flex items-center gap-3 min-w-0">
-        {/* LEFT — Wordmark + breadcrumb */}
+        {/* LEFT — Wordmark + primary nav */}
         <Link
           to="/olympus/missions"
           className="shrink-0 text-white font-semibold select-none"
@@ -152,49 +152,77 @@ export function GlobalCommandBar({ email, isAdmin = false }: { email?: string | 
         </Link>
         <span className="hidden sm:inline-block h-5 w-px shrink-0" style={{ background: "rgba(255,255,255,0.08)" }} />
 
-        <nav className="hidden md:flex items-center gap-1.5 min-w-0 overflow-hidden">
-          {crumbs.map((c, i) => {
-            const last = i === crumbs.length - 1;
-            const inner = c.pill ? (
-              <span
-                className="inline-flex items-center rounded-full text-white font-medium truncate"
-                style={{ background: "rgba(255,255,255,0.06)", padding: "2px 10px", fontSize: 12 }}
-              >
-                {c.label}
-              </span>
-            ) : (
-              <span
-                className={cn("truncate", last ? "text-white font-medium" : "text-white/40")}
-                style={{ fontSize: 12 }}
-              >
-                {c.label}
-              </span>
-            );
-            return (
-              <span key={`${c.label}-${i}`} className="flex items-center gap-1.5 min-w-0">
-                {c.to && !last ? (
-                  <Link to={c.to as any} params={c.params as any} className="hover:opacity-80 min-w-0">
-                    {inner}
-                  </Link>
-                ) : (
-                  inner
-                )}
-                {c.pill && missionId && (
-                  <button
-                    type="button"
-                    onClick={() => setEditOpen(true)}
-                    aria-label="Edit mission"
-                    title="Edit mission"
-                    className="text-white/40 hover:text-white shrink-0"
-                  >
-                    <Pencil className="h-3 w-3" />
-                  </button>
-                )}
-                {!last && <span style={{ color: "rgba(196,154,43,0.5)", fontSize: 12 }}>›</span>}
-              </span>
-            );
-          })}
+        <nav className="hidden md:flex items-center gap-1 shrink-0">
+          <Link
+            to="/olympus/missions"
+            className="px-2.5 py-1 rounded text-[12px] text-white/70 hover:text-white hover:bg-white/[0.06] transition-colors"
+            activeProps={{ className: "px-2.5 py-1 rounded text-[12px] text-white font-medium bg-white/[0.06]" }}
+          >
+            Missions
+          </Link>
+          <Link
+            to="/admin/team"
+            className="px-2.5 py-1 rounded text-[12px] text-white/70 hover:text-white hover:bg-white/[0.06] transition-colors"
+            activeProps={{ className: "px-2.5 py-1 rounded text-[12px] text-white font-medium bg-white/[0.06]" }}
+          >
+            Team
+          </Link>
+          <Link
+            to="/reports"
+            className="px-2.5 py-1 rounded text-[12px] text-white/70 hover:text-white hover:bg-white/[0.06] transition-colors"
+            activeProps={{ className: "px-2.5 py-1 rounded text-[12px] text-white font-medium bg-white/[0.06]" }}
+          >
+            Reports
+          </Link>
         </nav>
+
+        {/* Contextual breadcrumb tail — only when inside a mission */}
+        {missionId && (
+          <nav className="hidden lg:flex items-center gap-1.5 min-w-0 overflow-hidden">
+            <span style={{ color: "rgba(196,154,43,0.5)", fontSize: 12 }}>›</span>
+            {crumbs.slice(1).map((c, i, arr) => {
+              const last = i === arr.length - 1;
+              const inner = c.pill ? (
+                <span
+                  className="inline-flex items-center rounded-full text-white font-medium truncate"
+                  style={{ background: "rgba(255,255,255,0.06)", padding: "2px 10px", fontSize: 12 }}
+                >
+                  {c.label}
+                </span>
+              ) : (
+                <span
+                  className={cn("truncate", last ? "text-white font-medium" : "text-white/40")}
+                  style={{ fontSize: 12 }}
+                >
+                  {c.label}
+                </span>
+              );
+              return (
+                <span key={`${c.label}-${i}`} className="flex items-center gap-1.5 min-w-0">
+                  {c.to && !last ? (
+                    <Link to={c.to as any} params={c.params as any} className="hover:opacity-80 min-w-0">
+                      {inner}
+                    </Link>
+                  ) : (
+                    inner
+                  )}
+                  {c.pill && (
+                    <button
+                      type="button"
+                      onClick={() => setEditOpen(true)}
+                      aria-label="Edit mission"
+                      title="Edit mission"
+                      className="text-white/40 hover:text-white shrink-0"
+                    >
+                      <Pencil className="h-3 w-3" />
+                    </button>
+                  )}
+                  {!last && <span style={{ color: "rgba(196,154,43,0.5)", fontSize: 12 }}>›</span>}
+                </span>
+              );
+            })}
+          </nav>
+        )}
 
         {/* CENTER — mission chips */}
         {missionId && ctx && (
@@ -280,6 +308,22 @@ export function GlobalCommandBar({ email, isAdmin = false }: { email?: string | 
               Athena Team
             </Link>
           )}
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent("atlas:iris:prefill", { detail: "Score my draft" }))}
+            className="hidden sm:inline-flex items-center gap-1 rounded-md text-[11px] font-medium px-2.5 py-1 transition-colors"
+            style={{ background: "rgba(196,154,43,0.15)", border: "1px solid rgba(196,154,43,0.4)", color: "#C49A2B" }}
+          >
+            Score Draft
+          </button>
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent("atlas:iris:open"))}
+            className="hidden sm:inline-flex items-center gap-1 rounded-md text-[11px] font-medium px-2.5 py-1 transition-colors"
+            style={{ background: "rgba(127,119,221,0.12)", border: "1px solid rgba(127,119,221,0.3)", color: "rgba(200,195,255,0.9)" }}
+          >
+            Ask IRIS
+          </button>
           <span className="hidden sm:inline-block h-5 w-px" style={{ background: "rgba(255,255,255,0.08)" }} />
           <IntelAlertCount />
           <NotificationBell />
