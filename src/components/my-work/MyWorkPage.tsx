@@ -15,6 +15,7 @@ import { useIris } from "@/components/iris/IrisContext";
 import { IrisIntelligenceBrief } from "@/components/iris/IrisIntelligenceBrief";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScoreDraftPanel } from "./ScoreDraftPanel";
+import { AskIrisButton } from "@/components/iris/AskIrisButton";
 import { listMyRecentScores } from "@/lib/v2-home.functions";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
