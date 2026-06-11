@@ -2727,6 +2727,86 @@ export type Database = {
         }
         Relationships: []
       }
+      evaluator_pictures: {
+        Row: {
+          confidence_overall: string
+          generated_at: string
+          generated_by: string
+          how_to_fill_gaps: Json
+          id: string
+          inferred_defensibility_needs: Json
+          inferred_fears: Json
+          inferred_panel_mindset: string | null
+          inferred_pressures: Json
+          mission_id: string
+          named_individual_signals: Json
+          one_sentence_bottom_line: string | null
+          political_signals: Json
+          prior_procurement_signals: Json
+          public_record_signals: Json
+          question_snapshots: Json
+          rfp_signals: Json
+          scoring_lens: string | null
+          signals_count: number
+          updated_at: string
+          what_iris_does_not_know: string | null
+        }
+        Insert: {
+          confidence_overall?: string
+          generated_at?: string
+          generated_by?: string
+          how_to_fill_gaps?: Json
+          id?: string
+          inferred_defensibility_needs?: Json
+          inferred_fears?: Json
+          inferred_panel_mindset?: string | null
+          inferred_pressures?: Json
+          mission_id: string
+          named_individual_signals?: Json
+          one_sentence_bottom_line?: string | null
+          political_signals?: Json
+          prior_procurement_signals?: Json
+          public_record_signals?: Json
+          question_snapshots?: Json
+          rfp_signals?: Json
+          scoring_lens?: string | null
+          signals_count?: number
+          updated_at?: string
+          what_iris_does_not_know?: string | null
+        }
+        Update: {
+          confidence_overall?: string
+          generated_at?: string
+          generated_by?: string
+          how_to_fill_gaps?: Json
+          id?: string
+          inferred_defensibility_needs?: Json
+          inferred_fears?: Json
+          inferred_panel_mindset?: string | null
+          inferred_pressures?: Json
+          mission_id?: string
+          named_individual_signals?: Json
+          one_sentence_bottom_line?: string | null
+          political_signals?: Json
+          prior_procurement_signals?: Json
+          public_record_signals?: Json
+          question_snapshots?: Json
+          rfp_signals?: Json
+          scoring_lens?: string | null
+          signals_count?: number
+          updated_at?: string
+          what_iris_does_not_know?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluator_pictures_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       executive_decisions: {
         Row: {
           created_at: string
