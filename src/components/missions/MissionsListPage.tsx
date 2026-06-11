@@ -21,6 +21,7 @@ type MissionRow = {
   id: string;
   name: string;
   client_name: string | null;
+  agency_name: string | null;
   status: string;
   submission_deadline: string | null;
   blast_off_at: string | null;
