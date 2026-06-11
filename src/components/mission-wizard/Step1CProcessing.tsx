@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { processRFPDocuments } from "@/lib/iris-process-rfp.functions";
+import { extractRequirementNodesFromRFP } from "@/lib/iris-territory.functions";
 import { extractRFPText } from "@/lib/extract-rfp-text.client";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { IrisMark } from "@/components/iris/IrisMark";
 import { cn } from "@/lib/utils";
+
 
 type StepKey = "download" | "extract" | "analyze" | "save" | "done";
 
