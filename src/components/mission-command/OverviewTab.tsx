@@ -73,24 +73,16 @@ function PageHeader({ missionId }: { missionId: string }) {
 
   return (
     <div className="pt-2 pb-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h1
-            className="text-white truncate"
-            style={{ fontSize: 22, fontWeight: 500, letterSpacing: "-0.01em" }}
-          >
-            Mission Briefing Room
-          </h1>
-          <div
-            className="mt-1 truncate"
-            style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}
-          >
-            {mission
-              ? [mission.name, mission.client_name, mission.program_type]
-                  .filter(Boolean)
-                  .join(" · ")
-              : "Loading…"}
-          </div>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div
+          className="truncate min-w-0"
+          style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}
+        >
+          {mission
+            ? [mission.name, mission.client_name, mission.program_type]
+                .filter(Boolean)
+                .join(" · ")
+            : "Loading…"}
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Link
