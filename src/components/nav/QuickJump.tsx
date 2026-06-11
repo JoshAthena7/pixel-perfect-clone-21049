@@ -188,17 +188,37 @@ export function QuickJump({
                   const isActive = t.id === activeTab;
                   const alertN = alerts?.[t.id] ?? 0;
                   return (
-                    <button
-                      key={t.id}
-                      onClick={() => pickTab(t.id)}
-                      className={cn(
-                        "w-full text-left px-4 py-1.5 flex items-center gap-2 hover:bg-white/5 border-l-2 text-[13px]",
-                        isActive ? "border-[var(--athena-gold)] bg-white/5 text-[var(--athena-gold)]" : "border-transparent text-white/80",
+                    <div key={t.id}>
+                      <button
+                        onClick={() => pickTab(t.id)}
+                        className={cn(
+                          "w-full text-left px-4 py-1.5 flex items-center gap-2 hover:bg-white/5 border-l-2 text-[13px]",
+                          isActive ? "border-[var(--athena-gold)] bg-white/5 text-[var(--athena-gold)]" : "border-transparent text-white/80",
+                        )}
+                      >
+                        <span className="flex-1 min-w-0 truncate">{t.label}</span>
+                        {alertN > 0 && <span className="h-1.5 w-1.5 rounded-full bg-red-500 shrink-0" />}
+                      </button>
+                      {t.id === "oracle" && (
+                        <div className="pl-3">
+                          {[
+                            { id: "feed", label: "Intelligence Feed" },
+                            { id: "stakeholders", label: "Stakeholders" },
+                            { id: "competitors", label: "Competitors" },
+                            { id: "research-library", label: "Research Library" },
+                          ].map((s) => (
+                            <button
+                              key={s.id}
+                              onClick={() => pickOracleSub(s.id)}
+                              className="w-full text-left px-4 py-1 flex items-center gap-2 hover:bg-white/5 text-[12px] text-white/60 hover:text-white"
+                            >
+                              <span className="text-white/30">↳</span>
+                              <span className="flex-1 min-w-0 truncate">{s.label}</span>
+                            </button>
+                          ))}
+                        </div>
                       )}
-                    >
-                      <span className="flex-1 min-w-0 truncate">{t.label}</span>
-                      {alertN > 0 && <span className="h-1.5 w-1.5 rounded-full bg-red-500 shrink-0" />}
-                    </button>
+                    </div>
                   );
                 })}
               </div>
