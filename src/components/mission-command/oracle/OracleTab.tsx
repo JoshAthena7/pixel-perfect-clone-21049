@@ -176,7 +176,7 @@ export function OracleTab({ missionId }: { missionId: string }) {
     }
   };
 
-  const addIntelligence = () => setSub("research-library", { add: 1 });
+  const addIntelligence = () => setSub("research-library", { add: true });
 
   const completeness = mission?.intelligence_graph_completeness ?? 0;
 
