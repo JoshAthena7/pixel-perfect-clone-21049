@@ -4,7 +4,7 @@
  */
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { X, Sparkles, Loader2, Copy } from "lucide-react";
+import { Sparkles, Loader2, Copy } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogHeader } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";

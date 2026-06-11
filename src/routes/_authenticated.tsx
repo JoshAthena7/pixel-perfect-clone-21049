@@ -9,7 +9,7 @@ import { IrisDock } from "@/components/iris/IrisDock";
 import { AssistsBar } from "@/components/iris/AssistsBar";
 import { AdminQuickBar } from "@/components/admin/AdminQuickBar";
 import { GlobalCommandBar } from "@/components/nav/GlobalCommandBar";
-import { getMyHome, type RoleHome } from "@/lib/v2-home.functions";
+import { getMyHome } from "@/lib/v2-home.functions";
 
 
 export const Route = createFileRoute("/_authenticated")({
