@@ -604,3 +604,139 @@ function QuickAction({ label, onClick }: { label: string; onClick: () => void })
     </button>
   );
 }
+
+/* ----------------- Recent Scores section + historical viewer ----------------- */
+
+type HistoricalScore = {
+  result: import("@/lib/v2-home.functions").ScoreResult;
+  question: { number?: string | null; text?: string | null };
+};
+
+function scoreBadgeColor(n: number): string {
+  if (n >= 90) return "#C49A2B";
+  if (n >= 75) return "#7dcf7d";
+  if (n >= 60) return "#EF9F27";
+  return "#f08080";
+}
+
+function RecentScoresSection({
+  missionId,
+  onOpenScore,
+}: {
+  missionId: string;
+  onOpenScore: (s: HistoricalScore) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const listScores = useServerFn(listMyRecentScores);
+  const { data } = useQuery({
+    queryKey: ["my-work-recent-scores", missionId],
+    queryFn: () => listScores({ data: { missionId, limit: 5 } }),
+    enabled: open,
+    staleTime: 30_000,
+  });
+  const rows = (data?.scores ?? []) as Array<{
+    id: string;
+    question_id: string | null;
+    overall_score: number;
+    scoring_mode: string;
+    created_at: string;
+    mission_questions: { question_number: string | null; question_text: string } | null;
+  }>;
+
+  // Compute trends per question
+  const trendMap = useMemo(() => {
+    const byQ = new Map<string, number[]>();
+    [...rows]
+      .reverse()
+      .forEach((r) => {
+        if (!r.question_id) return;
+        const list = byQ.get(r.question_id) ?? [];
+        list.push(r.overall_score);
+        byQ.set(r.question_id, list);
+      });
+    const trends = new Map<string, "up" | "down" | "same">();
+    for (const [qid, scores] of byQ) {
+      if (scores.length < 2) continue;
+      const last = scores[scores.length - 1];
+      const prev = scores[scores.length - 2];
+      trends.set(qid, last > prev ? "up" : last < prev ? "down" : "same");
+    }
+    return trends;
+  }, [rows]);
+
+  return (
+    <div
+      className="mt-5 rounded-md overflow-hidden"
+      style={{
+        background: "rgba(255,255,255,0.02)",
+        border: "1px solid rgba(255,255,255,0.06)",
+      }}
+    >
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-white/70 hover:bg-white/5"
+      >
+        {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+        <span className="font-medium">Recent Scores</span>
+        <span className="text-white/40">· my last 5 on this mission</span>
+      </button>
+      {open && (
+        <div className="px-3 pb-3">
+          {rows.length === 0 ? (
+            <div className="text-[12px] text-white/40 py-3">
+              You haven't scored a draft on this mission yet.
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {rows.map((r) => {
+                const color = scoreBadgeColor(r.overall_score);
+                const trend = r.question_id ? trendMap.get(r.question_id) : undefined;
+                return (
+                  <button
+                    key={r.id}
+                    onClick={() =>
+                      onOpenScore({
+                        result: {
+                          overall: r.overall_score,
+                          label:
+                            r.overall_score >= 90
+                              ? "Exceptional"
+                              : r.overall_score >= 75
+                                ? "Strong draft"
+                                : r.overall_score >= 60
+                                  ? "Good — gaps to close"
+                                  : "Needs significant work",
+                          breakdown: [],
+                          gaps: [],
+                          mode: (r.scoring_mode as "full" | "quick") ?? "full",
+                        },
+                        question: {
+                          number: r.mission_questions?.question_number,
+                          text: r.mission_questions?.question_text,
+                        },
+                      })
+                    }
+                    className="w-full text-left flex items-center gap-2 py-1.5 px-2 rounded hover:bg-white/5"
+                  >
+                    <span style={{ color: "#C9A55C", fontSize: 12, minWidth: 32 }}>
+                      {r.mission_questions?.question_number ?? "—"}
+                    </span>
+                    <span style={{ color, fontSize: 13, fontWeight: 500, minWidth: 60 }}>
+                      {r.overall_score} / 100
+                    </span>
+                    {trend === "up" && <ArrowUp className="h-3 w-3" style={{ color: "#7dcf7d" }} />}
+                    {trend === "down" && <ArrowDown className="h-3 w-3" style={{ color: "#f08080" }} />}
+                    {trend === "same" && <Minus className="h-3 w-3 text-white/30" />}
+                    <span className="flex-1 text-[11px] text-white/40 text-right truncate">
+                      {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
