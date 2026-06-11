@@ -108,7 +108,7 @@ export function WinStrategyLiveTab({ missionId, missionName }: { missionId: stri
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-semibold">Win Strategy</h2>
+
 
       <div className="rounded-xl border-2 border-primary bg-card p-6 text-center space-y-2">
         <div className="text-xs uppercase tracking-wider text-primary font-semibold">North Star</div>

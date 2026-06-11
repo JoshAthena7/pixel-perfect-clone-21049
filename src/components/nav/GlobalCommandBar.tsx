@@ -1,12 +1,10 @@
-import { useRef, useState } from "react";
-import { Link, useNavigate, useParams, useRouterState } from "@tanstack/react-router";
+import { Link, useParams, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { differenceInCalendarDays } from "date-fns";
-import { Pencil, Plane, Command, AlertTriangle } from "lucide-react";
+import { Pencil } from "lucide-react";
+import { useState } from "react";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { IntelAlertCount } from "./IntelAlertCount";
 import { UserMenu } from "./UserMenu";
-import { QuickJump } from "./QuickJump";
 import { MissionEditPanel } from "@/components/missions/MissionEditPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { tabLabel, isValidTab } from "@/components/mission-command/MissionTabs";
@@ -24,36 +22,13 @@ function useMissionId(): string | undefined {
   return inside ? params.missionId : undefined;
 }
 
-type MissionCtx = {
-  id: string;
-  name: string;
-  status: string;
-  submission_deadline: string | null;
-  intelligence_graph_completeness: number | null;
-  at_risk: number;
-};
-
-async function fetchMissionCtx(missionId: string): Promise<MissionCtx> {
-  const [{ data: m }, atRisk] = await Promise.all([
-    supabase
-      .from("missions")
-      .select("id,name,status,submission_deadline,intelligence_graph_completeness")
-      .eq("id", missionId)
-      .maybeSingle(),
-    supabase
-      .from("mission_questions")
-      .select("id", { count: "exact", head: true })
-      .eq("mission_id", missionId)
-      .eq("health_status", "at_risk"),
-  ]);
-  return {
-    id: missionId,
-    name: m?.name ?? "Mission",
-    status: m?.status ?? "setup",
-    submission_deadline: m?.submission_deadline ?? null,
-    intelligence_graph_completeness: m?.intelligence_graph_completeness ?? null,
-    at_risk: atRisk.count ?? 0,
-  };
+async function fetchMissionName(missionId: string): Promise<string> {
+  const { data } = await supabase
+    .from("missions")
+    .select("name")
+    .eq("id", missionId)
+    .maybeSingle();
+  return data?.name ?? "Mission";
 }
 
 function useCrumbs(missionName?: string | null): Crumb[] {
@@ -85,52 +60,20 @@ function useCrumbs(missionName?: string | null): Crumb[] {
   return [];
 }
 
-function StatusChip({ status }: { status: string }) {
-  const s = status.toLowerCase();
-  const styles =
-    s === "active"
-      ? { bg: "rgba(74,200,74,0.12)", color: "#7dcf7d", border: "rgba(74,200,74,0.3)" }
-      : s === "setup"
-      ? { bg: "rgba(148,163,184,0.15)", color: "#cbd5e1", border: "rgba(148,163,184,0.3)" }
-      : { bg: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.7)", border: "rgba(255,255,255,0.15)" };
-  return (
-    <span
-      className="rounded-full px-2 py-[2px] text-[11px] font-semibold uppercase tracking-wider border"
-      style={{ background: styles.bg, color: styles.color, borderColor: styles.border }}
-    >
-      {s}
-    </span>
-  );
-}
-
-export function GlobalCommandBar({ email, isAdmin = false }: { email?: string | null; isAdmin?: boolean }) {
+export function GlobalCommandBar({ email, isAdmin: _isAdmin = false }: { email?: string | null; isAdmin?: boolean }) {
+  void _isAdmin;
   const missionId = useMissionId();
-  const navigate = useNavigate();
-  const jumpBtnRef = useRef<HTMLButtonElement>(null);
-  const [jumpOpen, setJumpOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
 
-  const { data: ctx } = useQuery({
-    queryKey: ["topbar-mission-ctx", missionId],
+  const { data: missionName } = useQuery({
+    queryKey: ["topbar-mission-name", missionId],
     enabled: !!missionId,
     staleTime: 60_000,
     refetchOnWindowFocus: false,
-    queryFn: () => fetchMissionCtx(missionId!),
+    queryFn: () => fetchMissionName(missionId!),
   });
 
-  const crumbs = useCrumbs(ctx?.name);
-
-  const days = ctx?.submission_deadline
-    ? differenceInCalendarDays(new Date(ctx.submission_deadline), new Date())
-    : null;
-  const dayColor =
-    days === null
-      ? "text-white"
-      : days < 14
-      ? "text-red-400"
-      : days < 30
-      ? "text-amber-400"
-      : "text-white";
+  const crumbs = useCrumbs(missionName);
 
   return (
     <div
@@ -224,90 +167,8 @@ export function GlobalCommandBar({ email, isAdmin = false }: { email?: string | 
           </nav>
         )}
 
-        {/* CENTER — mission chips */}
-        {missionId && ctx && (
-          <div className="hidden lg:flex items-center gap-2 min-w-0 overflow-hidden ml-2">
-            <StatusChip status={ctx.status} />
-            {days !== null && (
-              <span
-                className={cn("text-[12px] font-medium", dayColor)}
-                title="Days to submission"
-              >
-                {days < 0 ? `${Math.abs(days)}d past` : `${days}d`}
-              </span>
-            )}
-            {ctx.intelligence_graph_completeness != null && (
-              <span
-                className="inline-flex items-center rounded-full px-2 py-[2px] border"
-                style={{
-                  background: "rgba(196,154,43,0.15)",
-                  borderColor: "rgba(196,154,43,0.35)",
-                  color: "#C49A2B",
-                  fontSize: 11,
-                }}
-              >
-                Intel: {Math.round(ctx.intelligence_graph_completeness)}%
-              </span>
-            )}
-            {ctx.at_risk > 0 && (
-              <span
-                className="inline-flex items-center gap-1 rounded-full px-2 py-[2px]"
-                style={{ background: "rgba(224,74,74,0.12)", color: "#f08080", fontSize: 11 }}
-              >
-                <AlertTriangle className="h-3 w-3" /> {ctx.at_risk} at risk
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* RIGHT */}
+        {/* RIGHT — Score Draft · Ask IRIS · bell · avatar */}
         <div className="ml-auto flex items-center gap-2 shrink-0">
-          {missionId && (
-            <Link
-              to="/olympus/flight-deck"
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-md"
-              style={{
-                background: "rgba(196,154,43,0.12)",
-                border: "1px solid rgba(196,154,43,0.35)",
-                color: "#C49A2B",
-                fontSize: 11,
-                padding: "4px 10px",
-              }}
-            >
-              <Plane className="h-3 w-3" />
-              Flight Deck
-            </Link>
-          )}
-          <div className="relative">
-            <button
-              ref={jumpBtnRef}
-              onClick={() => setJumpOpen((v) => !v)}
-              className="inline-flex items-center gap-1.5 rounded-md"
-              style={{
-                background: "rgba(255,255,255,0.06)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                color: "rgba(255,255,255,0.6)",
-                fontSize: 11,
-                padding: "4px 10px",
-              }}
-            >
-              <Command className="h-3 w-3" /> Jump
-            </button>
-            <QuickJump
-              open={jumpOpen}
-              onClose={() => setJumpOpen(false)}
-              anchorRef={jumpBtnRef}
-              currentMissionId={missionId}
-            />
-          </div>
-          {isAdmin && (
-            <Link
-              to="/admin/team"
-              className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-1 rounded border border-[var(--athena-gold)]/40 text-[var(--athena-gold)] hover:bg-[var(--athena-gold)]/10 transition-colors"
-            >
-              Athena Team
-            </Link>
-          )}
           <button
             type="button"
             onClick={() => window.dispatchEvent(new CustomEvent("atlas:iris:prefill", { detail: "Score my draft" }))}

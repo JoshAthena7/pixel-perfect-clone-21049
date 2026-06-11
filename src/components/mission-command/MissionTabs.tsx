@@ -1,5 +1,9 @@
+import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { differenceInCalendarDays } from "date-fns";
+import { Command, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { QuickJump } from "@/components/nav/QuickJump";
 import { cn } from "@/lib/utils";
 
 export type TabId = "overview" | "work" | "oracle" | "team" | "settings";
@@ -135,6 +139,43 @@ function useTabAlerts(missionId: string) {
   });
 }
 
+type MissionCtx = {
+  status: string;
+  submission_deadline: string | null;
+  intelligence_graph_completeness: number | null;
+};
+
+async function fetchMissionCtxLite(missionId: string): Promise<MissionCtx> {
+  const { data } = await supabase
+    .from("missions")
+    .select("status,submission_deadline,intelligence_graph_completeness")
+    .eq("id", missionId)
+    .maybeSingle();
+  return {
+    status: data?.status ?? "setup",
+    submission_deadline: data?.submission_deadline ?? null,
+    intelligence_graph_completeness: data?.intelligence_graph_completeness ?? null,
+  };
+}
+
+function StatusPill({ status }: { status: string }) {
+  const s = status.toLowerCase();
+  const styles =
+    s === "active"
+      ? { bg: "rgba(74,200,74,0.12)", color: "#7dcf7d", border: "rgba(74,200,74,0.3)" }
+      : s === "setup"
+        ? { bg: "rgba(148,163,184,0.15)", color: "#cbd5e1", border: "rgba(148,163,184,0.3)" }
+        : { bg: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.7)", border: "rgba(255,255,255,0.12)" };
+  return (
+    <span
+      className="rounded-full font-semibold uppercase tracking-wider border"
+      style={{ background: styles.bg, color: styles.color, borderColor: styles.border, fontSize: 10, padding: "2px 8px" }}
+    >
+      {s}
+    </span>
+  );
+}
+
 export function MissionTabs({
   active,
   onChange,
@@ -147,6 +188,24 @@ export function MissionTabs({
   const { data: alerts = {} } = useTabAlerts(missionId);
   const { data: role } = useViewerMissionRole(missionId);
   const visible = visibleTabsForRole(role ?? null);
+  const { data: ctx } = useQuery({
+    queryKey: ["mission-tabs-ctx", missionId],
+    queryFn: () => fetchMissionCtxLite(missionId),
+    staleTime: 60_000,
+  });
+
+  const days = ctx?.submission_deadline
+    ? differenceInCalendarDays(new Date(ctx.submission_deadline), new Date())
+    : null;
+  const dayColor =
+    days === null
+      ? "rgba(255,255,255,0.6)"
+      : days < 14
+        ? "#f08080"
+        : "#f5b86b";
+
+  const jumpBtnRef = useRef<HTMLButtonElement>(null);
+  const [jumpOpen, setJumpOpen] = useState(false);
 
   return (
     <div
@@ -199,6 +258,58 @@ export function MissionTabs({
             </button>
           );
         })}
+
+        {/* Right side — status chips + Jump */}
+        <div className="ml-auto flex items-center gap-2 shrink-0">
+          {ctx && <StatusPill status={ctx.status} />}
+          {days !== null && (
+            <span
+              className="inline-flex items-center gap-1"
+              style={{ color: dayColor, fontSize: 10 }}
+              title="Days to submission"
+            >
+              <Calendar className="h-3 w-3" />
+              {days < 0 ? `${Math.abs(days)}d past` : `${days}d`}
+            </span>
+          )}
+          {ctx?.intelligence_graph_completeness != null && (
+            <span
+              className="inline-flex items-center rounded-full border"
+              style={{
+                background: "rgba(196,154,43,0.1)",
+                borderColor: "rgba(196,154,43,0.3)",
+                color: "#C49A2B",
+                fontSize: 10,
+                padding: "2px 8px",
+              }}
+            >
+              Intel {Math.round(ctx.intelligence_graph_completeness)}%
+            </span>
+          )}
+          <div className="relative">
+            <button
+              ref={jumpBtnRef}
+              onClick={() => setJumpOpen((v) => !v)}
+              className="inline-flex items-center gap-1 rounded-md"
+              style={{
+                background: "transparent",
+                border: "1px solid rgba(255,255,255,0.08)",
+                color: "rgba(255,255,255,0.5)",
+                fontSize: 10,
+                padding: "3px 8px",
+              }}
+              title="Quick jump"
+            >
+              <Command className="h-3 w-3" /> Jump
+            </button>
+            <QuickJump
+              open={jumpOpen}
+              onClose={() => setJumpOpen(false)}
+              anchorRef={jumpBtnRef}
+              currentMissionId={missionId}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

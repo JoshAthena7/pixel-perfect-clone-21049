@@ -185,13 +185,7 @@ export function ComplianceTab({
 
   return (
     <div className="space-y-5">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold">Compliance Tracker</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Every mandatory requirement must be addressed before submission.
-          </p>
-        </div>
+      <div className="flex items-start justify-end gap-4">
         <Button
           variant="outline"
           className="border-primary text-primary hover:bg-primary/10"
@@ -200,6 +194,7 @@ export function ComplianceTab({
           <Plus className="size-4 mr-2" />Add Requirement
         </Button>
       </div>
+
 
       <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 flex gap-2 text-sm">
         <AlertTriangle className="size-4 text-amber-500 shrink-0 mt-0.5" />

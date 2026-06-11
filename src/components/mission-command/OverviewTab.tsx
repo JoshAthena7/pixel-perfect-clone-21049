@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
 import { differenceInCalendarDays, format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useIris } from "@/components/iris/IrisContext";
@@ -109,8 +108,6 @@ function MissionHealthBar({
   missionId: string;
   deadline: string | null;
 }) {
-  const navigate = useNavigate();
-
   const { data } = useQuery({
     queryKey: ["overview-health-bar", missionId],
     queryFn: async () => {
@@ -154,77 +151,81 @@ function MissionHealthBar({
   });
 
   const total = data?.total ?? 0;
-  const pct = total > 0 ? Math.round(((data?.healthy ?? 0) / total) * 100) : 0;
+  const healthy = data?.healthy ?? 0;
+  const atRisk = data?.at_risk ?? 0;
+  const notStarted = data?.not_started ?? 0;
+  const healthyPct = total > 0 ? (healthy / total) * 100 : 0;
+  const atRiskPct = total > 0 ? (atRisk / total) * 100 : 0;
+  const notStartedPct = total > 0 ? (notStarted / total) * 100 : 0;
   const days = deadline ? differenceInCalendarDays(new Date(deadline), new Date()) : null;
   const dueColor =
     days === null
-      ? "rgba(255,255,255,0.7)"
+      ? "rgba(255,255,255,0.55)"
       : days < 14
         ? "#f08080"
         : days < 30
           ? "#f5b86b"
-          : "rgba(255,255,255,0.85)";
+          : "rgba(255,255,255,0.7)";
 
   return (
     <div
-      className="sticky top-[88px] z-20 mb-5 rounded-lg px-4 py-3"
+      className="mb-5 rounded-lg"
       style={{
-        background: "rgba(13,27,62,0.85)",
-        backdropFilter: "blur(8px)",
-        border: "1px solid rgba(255,255,255,0.06)",
+        background: "rgba(255,255,255,0.03)",
+        border: "0.5px solid rgba(255,255,255,0.06)",
+        padding: "14px 20px",
       }}
     >
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-        <div className="flex-1 min-w-[220px]">
-          <div
-            className="rounded-full overflow-hidden"
-            style={{ height: 6, background: "rgba(255,255,255,0.06)" }}
+      <div className="flex items-center gap-5">
+        {/* Left — counts */}
+        <div className="flex items-center gap-1.5 shrink-0" style={{ fontSize: 12 }}>
+          <span style={{ color: "rgba(255,255,255,0.5)" }}>
+            {total} question{total === 1 ? "" : "s"}
+          </span>
+          <span style={{ color: "rgba(255,255,255,0.25)" }}>·</span>
+          <span style={{ color: healthy > 0 ? "#7dcf7d" : "rgba(255,255,255,0.5)" }}>
+            {healthy} healthy
+          </span>
+          <span style={{ color: "rgba(255,255,255,0.25)" }}>·</span>
+          <button
+            onClick={() => document.getElementById("question-health")?.scrollIntoView({ behavior: "smooth" })}
+            className="hover:underline"
+            style={{ color: atRisk > 0 ? "#f08080" : "rgba(255,255,255,0.5)", fontWeight: atRisk > 0 ? 500 : 400 }}
           >
-            <div
-              style={{
-                height: 6,
-                width: `${pct}%`,
-                background: GOLD,
-                transition: "width 0.3s",
-              }}
-            />
-          </div>
-          <div className="mt-1.5" style={{ color: "rgba(255,255,255,0.55)", fontSize: 12 }}>
-            {total} question{total === 1 ? "" : "s"} · {data?.healthy ?? 0} healthy ·{" "}
-            <button
-              className="hover:underline"
-              style={{ color: (data?.at_risk ?? 0) > 0 ? "#f08080" : "rgba(255,255,255,0.55)" }}
-              onClick={() => {
-                document
-                  .getElementById("question-health")
-                  ?.scrollIntoView({ behavior: "smooth" });
-              }}
-            >
-              {data?.at_risk ?? 0} at risk
-            </button>{" "}
-            · {data?.not_started ?? 0} not started
-          </div>
+            {atRisk} at risk
+          </button>
+          <span style={{ color: "rgba(255,255,255,0.25)" }}>·</span>
+          <span style={{ color: "rgba(255,255,255,0.5)" }}>{notStarted} not started</span>
         </div>
-        {deadline && (
-          <div style={{ fontSize: 12, color: dueColor }}>
-            Due {format(new Date(deadline), "MMM d")} ·{" "}
-            {days !== null && (days < 0 ? `${Math.abs(days)}d past` : `${days}d`)}
-          </div>
-        )}
-        {data?.phase && (
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.55)" }}>
-            Current phase: <span style={{ color: "rgba(255,255,255,0.85)" }}>{data.phase}</span>
-          </div>
-        )}
+
+        {/* Center — progress bar */}
+        <div
+          className="flex-1 rounded-full overflow-hidden flex"
+          style={{ height: 6, background: "rgba(255,255,255,0.04)" }}
+        >
+          {atRiskPct > 0 && <div style={{ width: `${atRiskPct}%`, background: "#f08080" }} />}
+          {healthyPct > 0 && <div style={{ width: `${healthyPct}%`, background: "#7dcf7d" }} />}
+          {notStartedPct > 0 && <div style={{ width: `${notStartedPct}%`, background: "rgba(255,255,255,0.18)" }} />}
+        </div>
+
+        {/* Right — deadline + phase */}
+        <div className="flex items-center gap-1.5 shrink-0" style={{ fontSize: 12 }}>
+          {deadline && (
+            <>
+              <span style={{ color: dueColor }}>
+                Due {format(new Date(deadline), "MMM d")}
+                {days !== null && (
+                  <> · {days < 0 ? `${Math.abs(days)}d past` : `${days} day${days === 1 ? "" : "s"}`}</>
+                )}
+              </span>
+              {data?.phase && <span style={{ color: "rgba(255,255,255,0.25)" }}>·</span>}
+            </>
+          )}
+          {data?.phase && (
+            <span style={{ color: "rgba(255,255,255,0.55)" }}>{data.phase} phase</span>
+          )}
+        </div>
       </div>
-      <button
-        onClick={() =>
-          navigate({
-            to: "/olympus/flight-deck",
-          })
-        }
-        className="hidden"
-      />
     </div>
   );
 }
