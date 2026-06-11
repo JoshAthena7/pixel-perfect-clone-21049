@@ -7,13 +7,15 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { format, differenceInDays } from "date-fns";
-import { Sparkles, MessageSquare } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { format, differenceInDays, formatDistanceToNow } from "date-fns";
+import { Sparkles, MessageSquare, ChevronDown, ChevronRight, ArrowUp, ArrowDown, Minus, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIris } from "@/components/iris/IrisContext";
 import { IrisIntelligenceBrief } from "@/components/iris/IrisIntelligenceBrief";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScoreDraftPanel } from "./ScoreDraftPanel";
+import { listMyRecentScores } from "@/lib/v2-home.functions";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
