@@ -38,9 +38,9 @@ export const getMyHome = createServerFn({ method: "GET" })
       role = "writer";
       home = "my-work";
     } else {
-      // No role row at all — default to missions list.
+      // No role row at all — keep the user in the writer workspace.
       role = "writer";
-      home = "missions";
+      home = "my-work";
     }
 
     return { role, home, roles: Array.from(roles) };

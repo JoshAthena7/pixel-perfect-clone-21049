@@ -150,7 +150,7 @@ function AuthenticatedLayout() {
   if (isAdmin) return <IrisProvider>{shell}</IrisProvider>;
 
   if (!isAllowedForNonAdmin(path)) {
-    return <Navigate to="/olympus/missions" replace />;
+    return <Navigate to="/my-work" replace />;
   }
 
   return <IrisProvider>{shell}</IrisProvider>;

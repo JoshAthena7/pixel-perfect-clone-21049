@@ -16,7 +16,7 @@ export function AtlasLoginPage() {
   const [loading, setLoading] = useState(false);
 
   async function routeAfterAuth(_userId: string) {
-    navigate({ to: "/olympus/missions", replace: true });
+    navigate({ to: "/home", replace: true });
   }
 
   useEffect(() => {

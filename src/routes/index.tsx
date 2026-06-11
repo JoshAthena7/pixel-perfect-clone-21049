@@ -6,6 +6,6 @@ export const Route = createFileRoute("/")({
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
     if (!data.session) throw redirect({ to: "/login" });
-    throw redirect({ to: "/olympus/missions" });
+    throw redirect({ to: "/home" });
   },
 });
