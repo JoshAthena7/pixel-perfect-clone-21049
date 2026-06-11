@@ -323,6 +323,13 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
               ))}
             </div>
           )}
+
+          {currentMission && (
+            <RecentScoresSection
+              missionId={currentMission.id}
+              onOpenScore={(s) => setHistoricalScore(s)}
+            />
+          )}
         </div>
 
         {/* Right — intelligence */}
