@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Pencil, Activity, Loader2 } from "lucide-react";
+import { Pencil, Activity, Loader2, Target } from "lucide-react";
 import { toast } from "sonner";
 import { MissionEditPanel } from "@/components/missions/MissionEditPanel";
 import { refreshAllMissionFeeds } from "@/lib/iris-refresh-all.functions";
+import { ScoreDraftPanel } from "@/components/my-work/ScoreDraftPanel";
 import { tabLabel, type TabId } from "./MissionTabs";
 
 const TAB_SUBTITLES: Partial<Record<TabId, string>> = {
