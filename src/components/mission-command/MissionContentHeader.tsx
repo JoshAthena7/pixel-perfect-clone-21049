@@ -72,6 +72,20 @@ export function MissionContentHeader({
         )}
       </div>
       <div className="flex items-center gap-2 shrink-0">
+        <button
+          type="button"
+          onClick={() => setScoreOpen(true)}
+          className="inline-flex items-center gap-1.5 rounded-md transition-colors"
+          style={{
+            background: "rgba(196,154,43,0.15)",
+            border: "1px solid rgba(196,154,43,0.4)",
+            color: "#C49A2B",
+            fontSize: 12,
+            padding: "5px 12px",
+          }}
+        >
+          <Target className="h-3.5 w-3.5" /> Score Draft
+        </button>
         <button type="button" className={btn} style={baseBtnStyle} onClick={() => setEditOpen(true)}>
           <Pencil className="h-3.5 w-3.5" /> Edit Mission
         </button>
@@ -92,6 +106,11 @@ export function MissionContentHeader({
           </button>
         )}
       </div>
+      <ScoreDraftPanel
+        open={scoreOpen}
+        onOpenChange={setScoreOpen}
+        missionId={missionId}
+      />
     </div>
   );
 }
