@@ -9,6 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { buildIntelligenceGraph } from "@/lib/oracle.functions";
 import { seedTerritoryIntelligence } from "@/lib/iris-territory.functions";
+import { buildAthenaInsight } from "@/lib/athena-insights.functions";
+import { supabase as supabaseClient } from "@/integrations/supabase/client";
 import { InputSourceBadge, IrisInfoCard, StepMetaIndicator, type InputSource } from "@/components/InputSourceBadge";
 
 const ITEM_SOURCE: Partial<Record<CheckKey, InputSource>> = {
