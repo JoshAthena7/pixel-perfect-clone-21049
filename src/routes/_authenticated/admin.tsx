@@ -20,6 +20,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
 const TABS = [
   { to: "/admin", label: "Overview", icon: LayoutGrid, exact: true },
   { to: "/admin/team", label: "Team Roster", icon: Users, exact: false },
+  { to: "/admin/iris-health", label: "IRIS Health", icon: Activity, exact: false },
 ];
 
 function AdminLayout() {
