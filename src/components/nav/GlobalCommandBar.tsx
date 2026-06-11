@@ -95,29 +95,7 @@ export function GlobalCommandBar({ email, isAdmin: _isAdmin = false }: { email?:
         </Link>
         <span className="hidden sm:inline-block h-5 w-px shrink-0" style={{ background: "rgba(255,255,255,0.08)" }} />
 
-        <nav className="hidden md:flex items-center gap-1 shrink-0">
-          <Link
-            to="/olympus/missions"
-            className="px-2.5 py-1 rounded text-[12px] text-white/70 hover:text-white hover:bg-white/[0.06] transition-colors"
-            activeProps={{ className: "px-2.5 py-1 rounded text-[12px] text-white font-medium bg-white/[0.06]" }}
-          >
-            Missions
-          </Link>
-          <Link
-            to="/admin/team"
-            className="px-2.5 py-1 rounded text-[12px] text-white/70 hover:text-white hover:bg-white/[0.06] transition-colors"
-            activeProps={{ className: "px-2.5 py-1 rounded text-[12px] text-white font-medium bg-white/[0.06]" }}
-          >
-            Team
-          </Link>
-          <Link
-            to="/reports"
-            className="px-2.5 py-1 rounded text-[12px] text-white/70 hover:text-white hover:bg-white/[0.06] transition-colors"
-            activeProps={{ className: "px-2.5 py-1 rounded text-[12px] text-white font-medium bg-white/[0.06]" }}
-          >
-            Reports
-          </Link>
-        </nav>
+        {/* Primary nav links removed — navigation lives in the left sidebar. */}
 
         {/* Contextual breadcrumb tail — only when inside a mission */}
         {missionId && (
