@@ -15,6 +15,7 @@ import { useIris } from "@/components/iris/IrisContext";
 import { IrisIntelligenceBrief } from "@/components/iris/IrisIntelligenceBrief";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScoreDraftPanel } from "./ScoreDraftPanel";
+import { DailyIntelligenceBanner } from "./DailyIntelligenceBanner";
 import { AskIrisButton } from "@/components/iris/AskIrisButton";
 import { listMyRecentScores } from "@/lib/v2-home.functions";
 import { toast } from "sonner";
@@ -260,6 +261,9 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
 
         </div>
       </div>
+
+      {/* Daily Intelligence Banner — once per day, top of My Work */}
+      <DailyIntelligenceBanner />
 
       {/* Body */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-[45%_55%] min-h-0">
