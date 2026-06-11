@@ -87,6 +87,16 @@ export function QuickJump({
     });
   };
 
+  const pickOracleSub = (sub: string) => {
+    if (!currentMissionId) return;
+    onClose();
+    navigate({
+      to: "/olympus/missions/$missionId",
+      params: { missionId: currentMissionId },
+      search: (prev: Record<string, unknown>) => ({ ...prev, tab: "oracle", sub }),
+    });
+  };
+
   return (
     <>
       {/* Mobile full-screen scrim */}
