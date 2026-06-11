@@ -76,7 +76,7 @@ export const scoreDraft = createServerFn({ method: "POST" })
         .maybeSingle(),
       supabase
         .from("mission_compliance_requirements")
-        .select("requirement_text")
+        .select("requirement")
         .eq("mission_id", data.missionId)
         .limit(20),
       supabase
@@ -97,7 +97,7 @@ export const scoreDraft = createServerFn({ method: "POST" })
       evaluation_criteria?: string;
       word_limit?: number | null;
     };
-    const requirements = (reqs.data ?? []).map((r: { requirement_text: string }) => r.requirement_text);
+    const requirements = ((reqs.data ?? []) as Array<{ requirement: string }>).map((r) => r.requirement);
     const wsData = (ws.data ?? {}) as {
       central_claim?: string;
       win_themes?: string[] | null;
@@ -186,33 +186,18 @@ Maximum 5 gaps, most impactful first. Be specific and reference the actual requi
     return parsed;
   });
 
-/** Generate or fetch cached IRIS executive portfolio brief (cached 4h). */
+/**
+ * Generate the IRIS executive portfolio brief. Client owns the 4-hour
+ * cache via React Query staleTime (iris_brief_cache RLS blocks non-admin
+ * writes, so we don't try to persist here).
+ */
 export const getPortfolioBrief = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ force: z.boolean().optional() }).parse(d ?? {}))
-  .handler(async ({ data, context }) => {
+  .handler(async ({ context }) => {
     const apiKey = process.env.LOVABLE_API_KEY;
-    const { supabase, userId } = context;
-
-    if (!data.force) {
-      const { data: cached } = await supabase
-        .from("iris_brief_cache")
-        .select("brief_text, created_at")
-        .eq("scope_type", "portfolio")
-        .eq("scope_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      const row = cached as { brief_text?: string; created_at?: string } | null;
-      if (row?.brief_text && row.created_at) {
-        const age = Date.now() - new Date(row.created_at).getTime();
-        if (age < 4 * 60 * 60 * 1000) {
-          return { brief: row.brief_text, generatedAt: row.created_at, cached: true };
-        }
-      }
-    }
-
     if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
+    const { supabase } = context;
 
     const { data: missions } = await supabase
       .from("missions")
@@ -231,10 +216,10 @@ export const getPortfolioBrief = createServerFn({ method: "POST" })
       missionIds.length
         ? supabase
             .from("mission_decisions")
-            .select("mission_id, decision_text:title")
+            .select("mission_id, title")
             .in("mission_id", missionIds)
-            .eq("status", "open")
-        : Promise.resolve({ data: [] as Array<{ mission_id: string; decision_text: string }> }),
+            .eq("status", "Pending")
+        : Promise.resolve({ data: [] as Array<{ mission_id: string; title: string }> }),
       missionIds.length
         ? supabase
             .from("intelligence_feed_items")
@@ -246,14 +231,18 @@ export const getPortfolioBrief = createServerFn({ method: "POST" })
         : Promise.resolve({ data: [] as Array<{ headline: string; iris_assessment: string | null }> }),
     ]);
 
+    const atRiskRows = (atRisk.data ?? []) as Array<{ mission_id: string }>;
+    const decisionRows = (decisions.data ?? []) as Array<{ title: string }>;
+    const intelRows = (intel.data ?? []) as Array<{ headline: string; iris_assessment: string | null }>;
+
     const prompt = `You are IRIS briefing an executive on the current state of the proposal portfolio. Be direct. Be specific. Flag only what requires executive attention — decisions, risks, and timeline issues. Do not summarize what is going well. Maximum 4 sentences.
 
 Active missions: ${(missions ?? [])
       .map((m) => `${m.name} (deadline ${m.submission_deadline ?? "TBD"})`)
       .join(", ") || "(none)"}
-At-risk questions: ${(atRisk.data ?? []).length} total across ${new Set((atRisk.data ?? []).map((r) => r.mission_id)).size} missions
-Open decisions: ${(decisions.data ?? []).slice(0, 5).map((d) => d.decision_text).join("; ") || "(none)"}
-Recent intelligence: ${(intel.data ?? []).map((i) => `${i.headline} — ${i.iris_assessment ?? ""}`).join(" | ") || "(none)"}`;
+At-risk questions: ${atRiskRows.length} total across ${new Set(atRiskRows.map((r) => r.mission_id)).size} missions
+Open decisions: ${decisionRows.slice(0, 5).map((d) => d.title).join("; ") || "(none)"}
+Recent intelligence: ${intelRows.map((i) => `${i.headline} — ${i.iris_assessment ?? ""}`).join(" | ") || "(none)"}`;
 
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -269,17 +258,5 @@ Recent intelligence: ${(intel.data ?? []).map((i) => `${i.headline} — ${i.iris
     if (!resp.ok) throw new Error(`Brief generation failed (${resp.status})`);
     const json = await resp.json();
     const brief = (json?.choices?.[0]?.message?.content as string) ?? "No brief available.";
-    const generatedAt = new Date().toISOString();
-
-    try {
-      await supabase.from("iris_brief_cache").insert({
-        scope_type: "portfolio",
-        scope_id: userId,
-        brief_text: brief,
-      });
-    } catch {
-      /* non-fatal — cache schema may differ */
-    }
-
-    return { brief, generatedAt, cached: false };
+    return { brief, generatedAt: new Date().toISOString(), cached: false };
   });
