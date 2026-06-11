@@ -58,7 +58,7 @@ async function fetchMissions(): Promise<MissionRow[]> {
   const { data, error } = await supabase
     .from("missions")
     .select(
-      "id, name, client_name, status, submission_deadline, blast_off_at, intelligence_graph_completeness, mission_team_members(count), mission_questions(count)",
+      "id, name, client_name, agency_name, status, submission_deadline, blast_off_at, intelligence_graph_completeness, mission_team_members(count), mission_questions(count)",
     )
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -66,6 +66,7 @@ async function fetchMissions(): Promise<MissionRow[]> {
     id: m.id,
     name: m.name,
     client_name: m.client_name,
+    agency_name: m.agency_name,
     status: m.status,
     submission_deadline: m.submission_deadline,
     blast_off_at: m.blast_off_at,
