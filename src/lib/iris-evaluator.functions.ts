@@ -197,7 +197,7 @@ Days to submission: ${days ?? "—"}
 
 RFP structure signals:
 Sections and their relative length and specificity:
-${sections.map((s) => `- ${s.title}: ${(s.description ?? "").slice(0, 220)}`).join("\n") || "No sections imported"}
+${sections.map((s) => `- ${s.name}: ${(s.description ?? "").slice(0, 220)}`).join("\n") || "No sections imported"}
 Material changes from prior RFP: ${evoRes.data?.material_changes ? JSON.stringify(evoRes.data.material_changes).slice(0, 1200) : "Unknown"}
 
 Prior procurement record:
@@ -205,22 +205,22 @@ IRIS summary: ${evoRes.data?.iris_summary ?? "Unknown"}
 IRIS signals: ${evoRes.data?.iris_signals ? JSON.stringify(evoRes.data.iris_signals).slice(0, 1500) : "Unknown"}
 
 Known competitors and their history:
-${competitors.map((c) => `- ${c.organization_name} (${c.competitor_type ?? "?"}): strengths=${(c.strengths ?? "").toString().slice(0, 120)}, prior=${(c.prior_relationships ?? "").toString().slice(0, 120)}`).join("\n") || "None tracked"}
+${competitors.map((c) => `- ${c.organization_name} (${c.competitor_type ?? "?"}): strengths=${(c.known_strengths ?? "").toString().slice(0, 120)}, prior=${(c.known_relationships ?? "").toString().slice(0, 120)}`).join("\n") || "None tracked"}
 
 Public record of agency problems (audits, hearings, oversight):
 ${agencyFeedItems.map((f) => `- [${f.iris_relevance_score}] ${f.headline} (${f.source_name ?? "?"})`).join("\n") || "None tracked"}
 
 Risk nodes related to agency accountability:
-${riskNodes.map((n) => `- ${n.title}: ${(n.description ?? "").slice(0, 180)}`).join("\n") || "None"}
+${riskNodes.map((n) => `- ${n.label}: ${(n.description ?? "").slice(0, 180)}`).join("\n") || "None"}
 
 Political environment:
-Policy nodes: ${policyNodes.map((n) => `${n.title}: ${(n.description ?? "").slice(0, 120)}`).join(" | ") || "None"}
+Policy nodes: ${policyNodes.map((n) => `${n.label}: ${(n.description ?? "").slice(0, 120)}`).join(" | ") || "None"}
 Political signals from feed: ${feedItems.filter((f) => /elect|legislat|governor|polic/i.test(f.category ?? "")).map((f) => f.headline).join(" | ") || "None"}
 
 Named individuals with public records:
 ${stakeholders.length === 0
   ? "NO NAMED EVALUATORS IDENTIFIED. The named_individual_signals array MUST be empty."
-  : stakeholders.map((s) => `- ${s.name} (${s.role ?? s.stakeholder_type ?? "?"}): priorities=${(s.public_priorities ?? "").toString().slice(0, 160)} | concerns=${(s.known_concerns ?? "").toString().slice(0, 160)}`).join("\n")}
+  : stakeholders.map((s) => `- ${s.name} (${s.title ?? s.stakeholder_type ?? "?"}): priorities=${(s.public_priorities ?? "").toString().slice(0, 160)} | concerns=${(s.known_concerns ?? "").toString().slice(0, 160)}`).join("\n")}
 
 Win Strategy context (so IRIS can assess fit):
 North Star: ${winRes.data?.north_star_message ?? "—"}
