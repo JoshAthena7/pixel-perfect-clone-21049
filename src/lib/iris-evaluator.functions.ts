@@ -155,12 +155,12 @@ export const buildEvaluatorPicture = createServerFn({ method: "POST" })
     ] = await Promise.all([
       supabase.from("missions").select("id,name,client_name,state,state_code,program_type,submission_deadline,agency_name").eq("id", missionId).single(),
       supabase.from("mission_win_strategy").select("north_star_message,central_claim,win_themes,known_competitors").eq("mission_id", missionId).maybeSingle(),
-      supabase.from("mission_sections").select("id,title,description").eq("mission_id", missionId).order("sort_order", { ascending: true }),
+      supabase.from("mission_sections").select("id,name,description").eq("mission_id", missionId).order("order_index", { ascending: true }),
       supabase.from("procurement_evolution_records").select("iris_summary,iris_signals,iris_recommendations,material_changes").eq("mission_id", missionId).maybeSingle(),
-      supabase.from("stakeholder_profiles").select("name,role,stakeholder_type,public_priorities,known_concerns,background").eq("mission_id", missionId).order("stakeholder_type", { ascending: true }),
-      supabase.from("competitor_profiles").select("organization_name,competitor_type,strengths,weaknesses,prior_relationships").eq("mission_id", missionId),
+      supabase.from("stakeholder_profiles").select("name,title,stakeholder_type,public_priorities,known_concerns").eq("mission_id", missionId).order("stakeholder_type", { ascending: true }),
+      supabase.from("competitor_profiles").select("organization_name,competitor_type,known_strengths,known_weaknesses,known_relationships").eq("mission_id", missionId),
       supabase.from("intelligence_feed_items").select("headline,summary,category,iris_relevance_score,source_name,published_at").eq("mission_id", missionId).gte("iris_relevance_score", 65).order("iris_relevance_score", { ascending: false }).limit(10),
-      supabase.from("intelligence_graph_nodes").select("title,description,node_type").eq("mission_id", missionId).in("node_type", ["policy", "risk"]).limit(15),
+      supabase.from("intelligence_graph_nodes").select("label,description,node_type").eq("mission_id", missionId).in("node_type", ["policy", "risk"]).limit(15),
     ]);
 
     const mission = missionRes.data;
