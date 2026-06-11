@@ -197,9 +197,11 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
     const result = await performWrites(missionId, setWrites);
     if (result.success) {
       setPhase("burst");
-      // fire-and-forget graph build
-      buildGraph({ data: { missionId } }).catch((e) => console.error("Graph build failed", e));
+      // fire-and-forget graph build + territory seed
+      seedTerritory({ data: { missionId } }).catch((e) => console.error("[BLAST OFF] seedTerritoryIntelligence failed:", e));
+      buildGraph({ data: { missionId } }).catch((e) => console.error("[BLAST OFF] buildIntelligenceGraph failed:", e));
       await new Promise((r) => setTimeout(r, 900));
+
       setPhase("done");
       navigate({
         to: "/olympus/missions/$missionId",
