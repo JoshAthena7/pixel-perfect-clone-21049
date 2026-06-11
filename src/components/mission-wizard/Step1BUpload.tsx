@@ -217,6 +217,7 @@ export function Step1BUpload({
     <div className="space-y-7">
       <div className="space-y-2">
         <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Feed IRIS your intelligence.</h1>
+        <StepMetaIndicator irisCount={3} youCount={4} />
       </div>
 
       <div className="rounded-lg border-l-4 border-l-[var(--athena-gold)] border border-border bg-[var(--athena-navy-light)]/10 p-4 flex gap-3">
@@ -226,6 +227,19 @@ export function Step1BUpload({
           The more I have, the better I can build this mission. I will read everything.
         </p>
       </div>
+
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-[12px] uppercase tracking-wider text-[var(--athena-gold)] font-medium">
+          RFP Document
+        </span>
+        <InputSourceBadge source="you" />
+      </div>
+      {rows.length === 0 && (
+        <p className="-mt-5 text-[11px] italic text-muted-foreground hidden md:block">
+          Upload the PDF or Word file. IRIS reads it automatically after upload.
+        </p>
+      )}
+
 
       <button
         type="button"
