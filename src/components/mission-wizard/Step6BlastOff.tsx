@@ -9,6 +9,24 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { buildIntelligenceGraph } from "@/lib/oracle.functions";
 import { seedTerritoryIntelligence } from "@/lib/iris-territory.functions";
+import { InputSourceBadge, IrisInfoCard, StepMetaIndicator, type InputSource } from "@/components/InputSourceBadge";
+
+const ITEM_SOURCE: Partial<Record<CheckKey, InputSource>> = {
+  basics: "you",
+  rfp: "you",
+  sections: "iris",
+  strategy: "iris-with-fallback",
+  journey: "iris",
+  questions: "you",
+  lead: "you",
+  deadline: "you",
+  territory: "you",
+  monitoring: "iris",
+  client_intel: "you",
+  prior_rfp: "you",
+  competitors: "iris-with-fallback",
+  internal_materials: "you",
+};
 
 
 type CheckKey =
