@@ -109,26 +109,6 @@ function AuthenticatedLayout() {
     supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
   }, []);
 
-  const [irisPrefill, setIrisPrefill] = useState<{ value: string; nonce: number } | null>(null);
-  const [irisOpenSignal, setIrisOpenSignal] = useState(0);
-
-  // Bridge window events from My Work / Portfolio buttons into IRIS Dock signals.
-  useEffect(() => {
-    const onOpen = () => setIrisOpenSignal(Date.now());
-    const onPrefill = (e: Event) => {
-      const ce = e as CustomEvent<string>;
-      if (typeof ce.detail === "string") {
-        setIrisPrefill({ value: ce.detail, nonce: Date.now() });
-      }
-    };
-    window.addEventListener("atlas:iris:open", onOpen);
-    window.addEventListener("atlas:iris:prefill", onPrefill as EventListener);
-    return () => {
-      window.removeEventListener("atlas:iris:open", onOpen);
-      window.removeEventListener("atlas:iris:prefill", onPrefill as EventListener);
-    };
-  }, []);
-
   // Role-based home: resolve once per session, redirect on canonical landing paths.
   const homeFn = useServerFn(getMyHome);
   const { data: homeInfo } = useQuery({
@@ -152,7 +132,6 @@ function AuthenticatedLayout() {
       navigate({ to: target as never, replace: true });
       return;
     }
-    // Cross-role guard: /portfolio is executive-only.
     if (path.startsWith("/portfolio") && homeInfo.home !== "portfolio" && !isAdmin) {
       toast.info("That page is for executives.");
       navigate({ to: "/my-work", replace: true });
@@ -164,31 +143,13 @@ function AuthenticatedLayout() {
     }
   }, [homeInfo, path, navigate, isAdmin]);
 
-  const hideFloatingAssists =
-    path === "/olympus/flight-deck" || path === "/my-work" || path === "/portfolio";
-
-  const isOlympusAdminContext = isAdmin && (path.startsWith("/olympus") || path.startsWith("/admin") || path === "/reports" || path === "/home");
-
   const shell = (
     <div className="min-h-screen bg-background text-foreground">
       <GlobalCommandBar email={email} isAdmin={isAdmin} />
       <main>
         <Outlet />
       </main>
-      <div className={hideFloatingAssists ? "md:hidden" : ""}>
-        {isOlympusAdminContext ? (
-          <AdminQuickBar
-            onPrefillIris={(value) => setIrisPrefill({ value, nonce: Date.now() })}
-            onOpenIris={() => setIrisOpenSignal(Date.now())}
-          />
-        ) : (
-          <AssistsBar
-            onPrefillIris={(value) => setIrisPrefill({ value, nonce: Date.now() })}
-            onOpenIris={() => setIrisOpenSignal(Date.now())}
-          />
-        )}
-      </div>
-      <IrisDock prefillSignal={irisPrefill} openSignal={irisOpenSignal} />
+      <AskIrisPanel />
     </div>
   );
 
