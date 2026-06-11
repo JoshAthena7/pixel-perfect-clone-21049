@@ -426,6 +426,36 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
                   }}
                 />
               </div>
+
+              {/* Score Draft card — the flagship feature, one click away */}
+              <div
+                className="rounded-lg"
+                style={{
+                  background: "rgba(196,154,43,0.06)",
+                  border: "1px solid rgba(196,154,43,0.15)",
+                  borderTop: "2px solid rgba(196,154,43,0.5)",
+                  padding: "14px 16px",
+                }}
+              >
+                <div className="text-white text-[13px] font-medium">
+                  Ready to score your draft?
+                </div>
+                <div className="text-[12px] mt-1 mb-3" style={{ color: "rgba(255,255,255,0.55)" }}>
+                  IRIS will score it against the actual RFP criteria for this question.
+                </div>
+                <button
+                  onClick={() => setScoreOpen(true)}
+                  className="w-full rounded-md text-[13px] font-medium"
+                  style={{ background: GOLD, color: "#0D1B3E", padding: "8px 14px" }}
+                >
+                  <Target className="h-3.5 w-3.5 inline mr-1.5" />
+                  Score My Draft →
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
             </div>
           )}
         </div>
