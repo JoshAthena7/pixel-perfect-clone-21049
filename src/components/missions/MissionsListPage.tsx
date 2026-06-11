@@ -335,12 +335,18 @@ function MissionCard({ m, onEdit }: { m: MissionRow; onEdit: () => void }) {
 
 function EmptyMissions({ onCreate }: { onCreate: () => void }) {
   return (
-    <div className="rounded-xl border border-border bg-surface/40 p-16 text-center">
-      <div className="mx-auto mb-5 h-14 w-14 rounded-full border-2 border-[var(--athena-gold)] flex items-center justify-center text-[var(--athena-gold)] font-bold tracking-widest">
-        A
-      </div>
-      <p className="text-muted-foreground mb-5">
-        No missions yet. Create your first mission to get started.
+    <div className="rounded-xl border border-border bg-surface/40 p-16 text-center flex flex-col items-center">
+      <img
+        src="/athena-mark-white.png"
+        alt=""
+        aria-hidden
+        draggable={false}
+        className="h-16 w-16 mb-6 opacity-90"
+        style={{ objectFit: "contain" }}
+      />
+      <p className="text-white mb-1" style={{ fontSize: 18 }}>No active missions yet.</p>
+      <p className="text-muted-foreground mb-6" style={{ fontSize: 14 }}>
+        Create your first mission to get started.
       </p>
       <Button
         onClick={onCreate}
