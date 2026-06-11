@@ -101,6 +101,16 @@ export function QuestionHealthTab({
     },
   });
 
+  // Per-question latest scores (last 7 days). RLS filters: writers see only
+  // their own; admins/engagement leads see all scores for the mission.
+  const listScores = useServerFn(listQuestionLatestScores);
+  const { data: latestScores } = useQuery({
+    queryKey: ["question-latest-scores", missionId],
+    queryFn: () => listScores({ data: { missionId, scope: "all" } }),
+    staleTime: 60_000,
+  });
+  const scoreMap = latestScores?.latest ?? {};
+
   // Run health calc on mount, then every 30 minutes
   useEffect(() => {
     let cancelled = false;
