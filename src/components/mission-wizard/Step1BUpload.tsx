@@ -280,6 +280,18 @@ export function Step1BUpload({
       {error && <p className="text-sm text-amber-400 -mt-3">{error}</p>}
 
       {rows.length > 0 && (
+        <IrisInfoCard
+          title="What IRIS does after upload"
+          items={[
+            "Extracts all sections and questions from the RFP",
+            "Identifies key requirements and compliance obligations",
+            "Begins building your Intelligence Graph",
+          ]}
+        />
+      )}
+
+
+      {rows.length > 0 && (
         <div className="space-y-2">
           {rows.map((r) => (
             <div
