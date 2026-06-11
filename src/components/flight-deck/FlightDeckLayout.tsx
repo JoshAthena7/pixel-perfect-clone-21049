@@ -8,7 +8,7 @@
  *   3. Question Workspace (4 sub-panels + intelligence chips + external bar)
  *   4. Air Traffic Control (5 sub-panels)
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { format, formatDistanceToNow } from "date-fns";
@@ -16,12 +16,13 @@ import {
   AlertTriangle, Bell, PencilLine, Phone, Sparkles, MessagesSquare,
   Clock, ShieldAlert, AtSign, LifeBuoy, ShieldCheck, UserCheck,
   Eye, ExternalLink, Calendar, FileText, Users, Target,
-  ChevronRight, MessageCircle, BookOpen, Lightbulb, Trophy, AlertCircle,
+  ChevronRight, MessageCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIris } from "@/components/iris/IrisContext";
 import { UpdateRealityDialog, SOSDialog } from "@/components/iris/AssistsBar";
 import { DailyPulseModal } from "@/components/iris/DailyPulseModal";
+import { IntelligencePanel } from "@/components/flight-deck/IntelligencePanel";
 import { cn } from "@/lib/utils";
 
 const GOLD = "#C9A55C";
