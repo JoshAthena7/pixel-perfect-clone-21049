@@ -401,7 +401,7 @@ function QuestionWorkspacePanel({ memberId, missionId }: { memberId: string | nu
       const { data } = await supabase
         .from("mission_sections")
         .select("id, name")
-        .eq("id", activeQ!.section_id)
+        .eq("id", activeQ!.section_id as string)
         .maybeSingle();
       return data;
     },
