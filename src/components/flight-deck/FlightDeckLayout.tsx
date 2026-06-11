@@ -8,7 +8,7 @@
  *   3. Question Workspace (4 sub-panels + intelligence chips + external bar)
  *   4. Air Traffic Control (5 sub-panels)
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { format, formatDistanceToNow } from "date-fns";
@@ -16,12 +16,13 @@ import {
   AlertTriangle, Bell, PencilLine, Phone, Sparkles, MessagesSquare,
   Clock, ShieldAlert, AtSign, LifeBuoy, ShieldCheck, UserCheck,
   Eye, ExternalLink, Calendar, FileText, Users, Target,
-  ChevronRight, MessageCircle, BookOpen, Lightbulb, Trophy, AlertCircle,
+  ChevronRight, MessageCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIris } from "@/components/iris/IrisContext";
 import { UpdateRealityDialog, SOSDialog } from "@/components/iris/AssistsBar";
 import { DailyPulseModal } from "@/components/iris/DailyPulseModal";
+import { IntelligencePanel } from "@/components/flight-deck/IntelligencePanel";
 import { cn } from "@/lib/utils";
 
 const GOLD = "#C9A55C";
@@ -363,6 +364,10 @@ function Ring({ pct }: { pct: number }) {
 
 /* ---------------- Question Workspace ---------------- */
 function QuestionWorkspacePanel({ memberId, missionId }: { memberId: string | null; missionId: string | null }) {
+  const iris = useIris();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [mobileTab, setMobileTab] = useState<"work" | "intel">("work");
+
   const { data: questions } = useQuery({
     queryKey: ["workspace-questions", memberId],
     enabled: !!memberId,
@@ -383,44 +388,67 @@ function QuestionWorkspacePanel({ memberId, missionId }: { memberId: string | nu
     },
   });
 
-  const active = (questions?.asgs ?? [])[0];
-  const activeQ = active ? (questions?.qs ?? []).find((q: any) => q.id === active.question_id) : null;
+  // Default to first assignment if none selected
+  const effectiveId = selectedId ?? (questions?.asgs ?? [])[0]?.question_id ?? null;
+  const active = (questions?.asgs ?? []).find((a: any) => a.question_id === effectiveId);
+  const activeQ = effectiveId ? (questions?.qs ?? []).find((q: any) => q.id === effectiveId) : null;
 
-  return (
-    <section className="rounded-xl border border-border bg-surface/30 p-4">
-      <div className="flex items-start justify-between mb-3">
-        <PanelHeader title="QUESTION WORKSPACE" subtitle="Your mission operations hub. You do the writing in the client environment." />
-        {missionId && (
-          <Link
-            to="/olympus/missions/$missionId"
-            params={{ missionId }}
-            className="text-xs text-[color:var(--athena-gold)] hover:underline shrink-0"
-          >
-            View My Questions →
-          </Link>
-        )}
-      </div>
+  // Fetch section name for IRIS context
+  const { data: sectionInfo } = useQuery({
+    queryKey: ["workspace-section", activeQ?.section_id],
+    enabled: !!activeQ?.section_id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_sections")
+        .select("id, name")
+        .eq("id", activeQ!.section_id as string)
+        .maybeSingle();
+      return data;
+    },
+  });
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        {/* 1. My Questions list */}
+  // Wire IrisContext when active question changes
+  useEffect(() => {
+    if (activeQ) {
+      iris.setQuestion(activeQ.id, activeQ.question_text, activeQ.question_number);
+      iris.setSection(activeQ.section_id ?? null, sectionInfo?.name ?? null);
+    } else {
+      iris.setQuestion(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeQ?.id, sectionInfo?.name]);
+
+  const workColumn = (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* My Questions */}
         <SubPanel label="MY QUESTIONS">
           {(questions?.qs ?? []).length === 0 ? (
             <p className="text-xs text-muted-foreground">No assignments yet.</p>
           ) : (
-            <ul className="space-y-1.5">
-              {(questions?.qs ?? []).slice(0, 5).map((q: any) => (
-                <li key={q.id} className="flex items-center gap-2 text-xs">
-                  <span className="font-mono text-[10px] text-[color:var(--athena-gold)] w-10 shrink-0">{q.question_number}</span>
-                  <span className="flex-1 truncate text-foreground">{q.question_text}</span>
-                  <PriorityBadge p={(q as any).priority ?? null} />
-                </li>
-              ))}
+            <ul className="space-y-1">
+              {(questions?.qs ?? []).slice(0, 6).map((q: any) => {
+                const isActive = q.id === effectiveId;
+                return (
+                  <li key={q.id}>
+                    <button
+                      onClick={() => setSelectedId(q.id)}
+                      className={cn(
+                        "w-full flex items-center gap-2 text-xs text-left rounded-md px-2 py-1.5 transition-colors",
+                        isActive ? "bg-[color:var(--athena-gold)]/10 ring-1 ring-[color:var(--athena-gold)]/40" : "hover:bg-surface/50",
+                      )}
+                    >
+                      <span className="font-mono text-[10px] text-[color:var(--athena-gold)] w-10 shrink-0">{q.question_number}</span>
+                      <span className="flex-1 truncate text-foreground">{q.question_text}</span>
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           )}
-          <button className="mt-2 text-[11px] text-[color:var(--athena-gold)] hover:underline">View all questions →</button>
         </SubPanel>
 
-        {/* 2. Assignment Snapshot */}
+        {/* Assignment Snapshot */}
         <SubPanel label="ASSIGNMENT SNAPSHOT">
           {!activeQ ? (
             <p className="text-xs text-muted-foreground">No active question.</p>
@@ -437,17 +465,17 @@ function QuestionWorkspacePanel({ memberId, missionId }: { memberId: string | nu
           )}
         </SubPanel>
 
-        {/* 3. Line of Sight */}
+        {/* Line of Sight */}
         <SubPanel label="LINE OF SIGHT">
           <ul className="space-y-1.5 text-xs">
             <li className="flex items-center justify-between"><span className="text-muted-foreground">Dependencies</span><span className="text-foreground">0</span></li>
-            <li className="flex items-center justify-between"><span className="text-muted-foreground">Related Section</span><span className="text-foreground">—</span></li>
+            <li className="flex items-center justify-between"><span className="text-muted-foreground">Related Section</span><span className="text-foreground">{sectionInfo?.name ?? "—"}</span></li>
             <li className="flex items-center justify-between"><span className="text-muted-foreground">Neighbors</span><span className="text-foreground">—</span></li>
             <li className="flex items-center justify-between"><span className="text-muted-foreground">Recent Activity</span><span className="text-foreground">0</span></li>
           </ul>
         </SubPanel>
 
-        {/* 4. Collaborate */}
+        {/* Collaborate */}
         <SubPanel label="COLLABORATE">
           <div className="grid grid-cols-1 gap-1.5">
             {[
@@ -468,33 +496,8 @@ function QuestionWorkspacePanel({ memberId, missionId }: { memberId: string | nu
         </SubPanel>
       </div>
 
-      {/* Mission Intelligence chips */}
-      <div className="mt-4">
-        <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Mission Intelligence</div>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-          {[
-            { label: "Question Brief", sub: "What the question asks", Icon: FileText },
-            { label: "Key Requirements", sub: "Must-have answers", Icon: BookOpen },
-            { label: "IRIS Insights", sub: "AI-discovered context", Icon: Sparkles },
-            { label: "Win Themes", sub: "Why we win", Icon: Trophy },
-            { label: "Risks & Considerations", sub: "Watch-outs", Icon: AlertCircle },
-          ].map((c) => (
-            <button
-              key={c.label}
-              className="text-left rounded-lg border border-border bg-background/40 px-3 py-2 hover:bg-surface transition-colors"
-            >
-              <div className="flex items-center gap-1.5">
-                <c.Icon className="h-3.5 w-3.5 text-[color:var(--athena-gold)]" />
-                <span className="text-xs font-semibold text-foreground">{c.label}</span>
-              </div>
-              <div className="text-[10px] text-muted-foreground mt-0.5 truncate">{c.sub}</div>
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* External Workspace */}
-      <div className="mt-4 rounded-lg border border-[color:var(--athena-gold)]/30 bg-[color:var(--athena-gold)]/5 p-3">
+      <div className="rounded-lg border border-[color:var(--athena-gold)]/30 bg-[color:var(--athena-gold)]/5 p-3">
         <div className="flex items-center gap-2 mb-2">
           <ExternalLink className="h-3.5 w-3.5 text-[color:var(--athena-gold)]" />
           <span className="text-[10px] uppercase tracking-wider font-semibold text-[color:var(--athena-gold)]">
@@ -514,6 +517,61 @@ function QuestionWorkspacePanel({ memberId, missionId }: { memberId: string | nu
             </button>
           ))}
         </div>
+      </div>
+    </div>
+  );
+
+  const intelColumn = (
+    <IntelligencePanel
+      missionId={missionId}
+      questionId={effectiveId}
+      questionText={activeQ?.question_text ?? null}
+      questionNumber={activeQ?.question_number ?? null}
+      sectionId={activeQ?.section_id ?? null}
+      sectionName={sectionInfo?.name ?? null}
+    />
+  );
+
+  return (
+    <section className="rounded-xl border border-border bg-surface/30 p-4">
+      <div className="flex items-start justify-between mb-3">
+        <PanelHeader title="QUESTION WORKSPACE" subtitle="Your mission operations hub. You do the writing in the client environment." />
+        {missionId && (
+          <Link
+            to="/olympus/missions/$missionId"
+            params={{ missionId }}
+            className="text-xs text-[color:var(--athena-gold)] hover:underline shrink-0"
+          >
+            View My Questions →
+          </Link>
+        )}
+      </div>
+
+      {/* Mobile tab toggle */}
+      <div className="md:hidden mb-3 sticky top-0 z-10 -mx-4 px-4 py-2 bg-surface/80 backdrop-blur border-b border-border">
+        <div className="grid grid-cols-2 gap-1 rounded-md bg-background/60 p-1">
+          {(["work", "intel"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setMobileTab(t)}
+              className={cn(
+                "rounded text-xs font-medium py-1.5 transition-colors",
+                mobileTab === t ? "bg-[color:var(--athena-gold)]/15 text-[color:var(--athena-gold)]" : "text-muted-foreground",
+              )}
+            >
+              {t === "work" ? "Work" : "Intelligence"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Desktop: side-by-side; Mobile: stacked with tab toggle */}
+      <div className="hidden md:grid md:grid-cols-[55%_45%] md:gap-4 md:items-start">
+        <div>{workColumn}</div>
+        <div className="md:max-h-[calc(100vh-12rem)] md:overflow-y-auto md:pr-1">{intelColumn}</div>
+      </div>
+      <div className="md:hidden">
+        {mobileTab === "work" ? workColumn : intelColumn}
       </div>
     </section>
   );
