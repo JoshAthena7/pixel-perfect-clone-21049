@@ -30,7 +30,7 @@ export const getDailyBannerSummary = createServerFn({ method: "POST" })
 
     // Pull profile (first name) and existing brief in parallel.
     const [{ data: profile }, { data: brief }] = await Promise.all([
-      supabase.from("profiles").select("first_name, full_name").eq("id", userId).maybeSingle(),
+      supabase.from("profiles").select("display_name").eq("id", userId).maybeSingle(),
       supabase
         .from("daily_intelligence_briefs")
         .select("key_intelligence_summary")
@@ -39,9 +39,8 @@ export const getDailyBannerSummary = createServerFn({ method: "POST" })
         .maybeSingle(),
     ]);
 
-    const firstName =
-      (profile as { first_name?: string | null; full_name?: string | null } | null)?.first_name ??
-      ((profile as { full_name?: string | null } | null)?.full_name?.split(" ")[0] ?? null);
+    const displayName = (profile as { display_name?: string | null } | null)?.display_name ?? null;
+    const firstName = displayName ? displayName.split(/\s+/)[0] : null;
 
     if (brief?.key_intelligence_summary) {
       return { summary: truncate(brief.key_intelligence_summary), fallback: false, hasAssignments: true, firstName };
