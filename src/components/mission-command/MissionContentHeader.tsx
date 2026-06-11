@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Pencil, Activity, Loader2 } from "lucide-react";
+import { Pencil, Activity, Loader2, Target } from "lucide-react";
 import { toast } from "sonner";
 import { MissionEditPanel } from "@/components/missions/MissionEditPanel";
 import { refreshAllMissionFeeds } from "@/lib/iris-refresh-all.functions";
+import { ScoreDraftPanel } from "@/components/my-work/ScoreDraftPanel";
 import { tabLabel, type TabId } from "./MissionTabs";
 
 const TAB_SUBTITLES: Partial<Record<TabId, string>> = {
@@ -35,6 +36,7 @@ export function MissionContentHeader({
   title?: string;
 }) {
   const [editOpen, setEditOpen] = useState(false);
+  const [scoreOpen, setScoreOpen] = useState(false);
   const [running, setRunning] = useState(false);
   const refresh = useServerFn(refreshAllMissionFeeds);
 
@@ -70,6 +72,20 @@ export function MissionContentHeader({
         )}
       </div>
       <div className="flex items-center gap-2 shrink-0">
+        <button
+          type="button"
+          onClick={() => setScoreOpen(true)}
+          className="inline-flex items-center gap-1.5 rounded-md transition-colors"
+          style={{
+            background: "rgba(196,154,43,0.15)",
+            border: "1px solid rgba(196,154,43,0.4)",
+            color: "#C49A2B",
+            fontSize: 12,
+            padding: "5px 12px",
+          }}
+        >
+          <Target className="h-3.5 w-3.5" /> Score Draft
+        </button>
         <button type="button" className={btn} style={baseBtnStyle} onClick={() => setEditOpen(true)}>
           <Pencil className="h-3.5 w-3.5" /> Edit Mission
         </button>
@@ -90,6 +106,11 @@ export function MissionContentHeader({
           </button>
         )}
       </div>
+      <ScoreDraftPanel
+        open={scoreOpen}
+        onOpenChange={setScoreOpen}
+        missionId={missionId}
+      />
     </div>
   );
 }

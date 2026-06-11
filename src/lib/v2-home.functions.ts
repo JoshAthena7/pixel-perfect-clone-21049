@@ -50,14 +50,45 @@ const ScoreInput = z.object({
   questionId: z.string().uuid(),
   missionId: z.string().uuid(),
   draftText: z.string().min(20).max(20000),
+  mode: z.enum(["full", "quick"]).optional().default("full"),
+  includeWinStrategy: z.boolean().optional().default(true),
+  includeStyleGuide: z.boolean().optional().default(true),
+  includeEvaluatorPriorities: z.boolean().optional().default(true),
 });
+
+export type ScoreDimension = {
+  category: string;
+  score: number;
+  max: number;
+  explanation?: string;
+};
+
+export type ScoreGap = {
+  description: string;
+  impact: "high" | "medium" | "low";
+  potential_points: number;
+};
 
 export type ScoreResult = {
   overall: number;
   label: string;
-  breakdown: Array<{ category: string; score: number; max: number }>;
-  gaps: Array<{ severity: "high" | "medium" | "low"; description: string; fix: string }>;
+  breakdown: ScoreDimension[];
+  // legacy gap shape kept for callers that still use it; new fields below.
+  gaps: ScoreGap[];
+  iris_recommendation?: string;
+  word_count?: number;
+  mode: "full" | "quick";
+  saved_id?: string | null;
+  // Quick-check checklist (only populated when mode === "quick")
+  requirements_checklist?: Array<{ requirement: string; covered: boolean }>;
 };
+
+function labelFor(score: number): string {
+  if (score >= 90) return "Exceptional";
+  if (score >= 75) return "Strong draft";
+  if (score >= 60) return "Good — gaps to close";
+  return "Needs significant work";
+}
 
 /** Score a draft against the question's actual requirements + win themes. */
 export const scoreDraft = createServerFn({ method: "POST" })
@@ -68,27 +99,38 @@ export const scoreDraft = createServerFn({ method: "POST" })
     if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
     const { supabase, userId } = context;
 
-    const [q, reqs, ws, sg] = await Promise.all([
+    const [q, reqs, ws, sg, stake] = await Promise.all([
       supabase
         .from("mission_questions")
-        .select("question_number, question_text, evaluation_criteria, word_limit")
+        .select("question_number, question_text, evaluation_criteria, word_limit, section_id")
         .eq("id", data.questionId)
         .maybeSingle(),
       supabase
         .from("mission_compliance_requirements")
         .select("requirement")
         .eq("mission_id", data.missionId)
-        .limit(20),
-      supabase
-        .from("mission_win_strategy")
-        .select("central_claim, win_themes, north_star_message")
-        .eq("mission_id", data.missionId)
-        .maybeSingle(),
-      supabase
-        .from("mission_style_guide")
-        .select("voice_and_tone, banned_words")
-        .eq("mission_id", data.missionId)
-        .maybeSingle(),
+        .limit(30),
+      data.includeWinStrategy
+        ? supabase
+            .from("mission_win_strategy")
+            .select("central_claim, win_themes, north_star_message")
+            .eq("mission_id", data.missionId)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+      data.includeStyleGuide
+        ? supabase
+            .from("mission_style_guide")
+            .select("voice_and_tone, banned_words")
+            .eq("mission_id", data.missionId)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+      data.includeEvaluatorPriorities
+        ? supabase
+            .from("stakeholder_profiles")
+            .select("name, role, public_priorities")
+            .eq("mission_id", data.missionId)
+            .limit(5)
+        : Promise.resolve({ data: [] as Array<{ name: string; role: string; public_priorities: string }> }),
     ]);
 
     const qData = (q.data ?? {}) as {
@@ -96,95 +138,320 @@ export const scoreDraft = createServerFn({ method: "POST" })
       question_text?: string;
       evaluation_criteria?: string;
       word_limit?: number | null;
+      section_id?: string;
     };
     const requirements = ((reqs.data ?? []) as Array<{ requirement: string }>).map((r) => r.requirement);
-    const wsData = (ws.data ?? {}) as {
+    const wsData = (ws?.data ?? {}) as {
       central_claim?: string;
       win_themes?: string[] | null;
       north_star_message?: string;
     };
-    const sgData = (sg.data ?? {}) as { voice_and_tone?: string; banned_words?: string[] | null };
+    const sgData = (sg?.data ?? {}) as { voice_and_tone?: string; banned_words?: string[] | null };
+    const stakeData = (stake.data ?? []) as Array<{ name: string; role: string; public_priorities: string }>;
 
-    const prompt = `You are IRIS, an evaluator scoring a proposal draft against the actual RFP criteria.
+    const wordCount = data.draftText.trim().split(/\s+/).filter(Boolean).length;
 
-QUESTION ${qData.question_number ?? ""}: ${qData.question_text ?? ""}
-EVALUATION CRITERIA: ${qData.evaluation_criteria ?? "(none specified)"}
-WORD LIMIT: ${qData.word_limit ?? "n/a"}
+    // QUICK CHECK — simpler, faster, requirements-only prompt
+    if (data.mode === "quick") {
+      const quickPrompt = `You are IRIS, scoring whether a Medicaid proposal draft covers the explicit requirements.
 
-KEY REQUIREMENTS:
-${requirements.map((r, i) => `${i + 1}. ${r}`).join("\n") || "(no requirements indexed)"}
-
-WIN THEMES: ${(wsData.win_themes ?? []).join("; ") || "(none)"}
-CENTRAL CLAIM: ${wsData.central_claim ?? "(none)"}
-NORTH STAR: ${wsData.north_star_message ?? "(none)"}
-VOICE: ${sgData.voice_and_tone ?? "(none)"}
+QUESTION: ${qData.question_text ?? ""}
+REQUIREMENTS:
+${requirements.map((r, i) => `${i + 1}. ${r}`).join("\n") || "(none indexed)"}
 
 DRAFT:
 """
 ${data.draftText}
 """
 
-Score the draft on five dimensions. Return ONLY valid JSON, no prose:
+Return ONLY valid JSON:
 {
-  "overall": <0-100>,
-  "label": "<one-line verdict like 'Strong draft' or 'Needs work'>",
-  "breakdown": [
-    {"category":"Requirements Coverage","score":<0-30>,"max":30},
-    {"category":"Win Theme Alignment","score":<0-25>,"max":25},
-    {"category":"Evidence Quality","score":<0-20>,"max":20},
-    {"category":"Style Compliance","score":<0-15>,"max":15},
-    {"category":"Conciseness","score":<0-10>,"max":10}
-  ],
-  "gaps": [
-    {"severity":"high|medium|low","description":"<gap>","fix":"<one-line recommended fix>"}
-  ]
-}
-Maximum 5 gaps, most impactful first. Be specific and reference the actual requirements.`;
-
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Lovable-API-Key": apiKey,
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: "You return strict JSON only. No markdown, no commentary." },
-          { role: "user", content: prompt },
+  "requirements_score": <0-30>,
+  "explanation": "<one sentence>",
+  "checklist": [{"requirement":"<exact requirement text>","covered":true|false}]
+}`;
+      const qresp = await callGateway(apiKey, quickPrompt, 600);
+      const qjson = safeParseJson(qresp);
+      const reqScore = clamp(qjson.requirements_score, 0, 30);
+      const overall = Math.round((reqScore / 30) * 100);
+      const result: ScoreResult = {
+        overall,
+        label: labelFor(overall),
+        breakdown: [
+          {
+            category: "Requirements Coverage",
+            score: reqScore,
+            max: 30,
+            explanation: qjson.explanation ?? "",
+          },
         ],
-        response_format: { type: "json_object" },
-      }),
-    });
-
-    if (!resp.ok) {
-      const text = await resp.text().catch(() => "");
-      throw new Error(`Scoring failed (${resp.status}): ${text.slice(0, 200)}`);
-    }
-    const json = await resp.json();
-    const content = json?.choices?.[0]?.message?.content ?? "{}";
-    let parsed: ScoreResult;
-    try {
-      parsed = JSON.parse(content) as ScoreResult;
-    } catch {
-      throw new Error("Score response was not valid JSON.");
+        gaps: [],
+        word_count: wordCount,
+        mode: "quick",
+        requirements_checklist: Array.isArray(qjson.checklist) ? qjson.checklist : [],
+      };
+      const saved = await persistScore(supabase, userId, data, result, wordCount);
+      result.saved_id = saved;
+      return result;
     }
 
-    // Fire-and-forget metadata log.
-    try {
-      await supabase.from("score_me_interactions").insert({
-        writer_id: userId,
-        question_id: data.questionId,
-        mission_id: data.missionId,
-        dimension: "overall",
-        action: "viewed",
-      });
-    } catch {
-      /* non-fatal */
-    }
+    // FULL SCORE prompt
+    const stakeLine = stakeData.length
+      ? stakeData
+          .map((s) => `${s.name} (${s.role}): ${s.public_priorities ?? "(unknown)"}`)
+          .join(" | ")
+      : "(no stakeholder profiles)";
+    const prompt = `You are IRIS, an expert Medicaid proposal evaluator. Score this draft response against the RFP criteria provided. Be honest. Be specific. Do not award points for vague claims — only for clear evidence, specific commitments, and demonstrated understanding.
 
-    return parsed;
+Return ONLY valid JSON in exactly this format with no other text:
+{
+  "overall_score": <0-100>,
+  "requirements_score": <0-30>,
+  "win_theme_score": <0-25>,
+  "evidence_score": <0-20>,
+  "style_score": <0-15>,
+  "conciseness_score": <0-10>,
+  "requirements_explanation": "<one sentence>",
+  "win_theme_explanation": "<one sentence>",
+  "evidence_explanation": "<one sentence>",
+  "style_explanation": "<one sentence>",
+  "conciseness_explanation": "<one sentence>",
+  "gaps": [{"description":"<specific>","impact":"high|medium|low","potential_points":<number>}],
+  "iris_recommendation": "<one specific forward-looking recommendation>",
+  "word_count": <number>
+}
+
+Scoring criteria:
+Requirements Coverage (0-30): Award points only for explicit requirements addressed. Deduct for missing requirements. Partial mention without direct answer = partial credit only.
+Win Theme Alignment (0-25): Award points for reflecting the mission's strategic positioning. Technically-correct-but-strategically-generic scores low.
+  Central claim: ${wsData.central_claim ?? "(none)"}
+  Win themes: ${(wsData.win_themes ?? []).join("; ") || "(none)"}
+Evidence Quality (0-20): Award points only for specific data, outcomes, named programs, or cited research. Assertions without support = 0.
+Style Compliance (0-15): Check against the style guide; deduct for sensitivity violations.
+  Voice/tone: ${sgData.voice_and_tone ?? "(none)"}
+  Banned words: ${(sgData.banned_words ?? []).join(", ") || "(none)"}
+Conciseness (0-10): Word/page limit: ${qData.word_limit ?? "n/a"}. Over 1-10%: lose 3. Over 11-25%: lose 6. Over 26%+: lose 10. Under: full points.
+
+RFP question: ${qData.question_text ?? ""}
+Question number: ${qData.question_number ?? ""}
+Evaluator priorities: ${stakeLine}
+Key requirements (max 30):
+${requirements.map((r, i) => `${i + 1}. ${r}`).join("\n") || "(none indexed)"}
+
+Draft to score:
+"""
+${data.draftText}
+"""`;
+
+    const content = await callGateway(apiKey, prompt, 1500);
+    const parsed = safeParseJson(content);
+
+    const breakdown: ScoreDimension[] = [
+      {
+        category: "Requirements Coverage",
+        score: clamp(parsed.requirements_score, 0, 30),
+        max: 30,
+        explanation: parsed.requirements_explanation ?? "",
+      },
+      {
+        category: "Win Theme Alignment",
+        score: clamp(parsed.win_theme_score, 0, 25),
+        max: 25,
+        explanation: parsed.win_theme_explanation ?? "",
+      },
+      {
+        category: "Evidence Quality",
+        score: clamp(parsed.evidence_score, 0, 20),
+        max: 20,
+        explanation: parsed.evidence_explanation ?? "",
+      },
+      {
+        category: "Style Compliance",
+        score: clamp(parsed.style_score, 0, 15),
+        max: 15,
+        explanation: parsed.style_explanation ?? "",
+      },
+      {
+        category: "Conciseness",
+        score: clamp(parsed.conciseness_score, 0, 10),
+        max: 10,
+        explanation: parsed.conciseness_explanation ?? "",
+      },
+    ];
+    const overall = clamp(
+      parsed.overall_score ?? breakdown.reduce((s, b) => s + b.score, 0),
+      0,
+      100,
+    );
+    const gaps: ScoreGap[] = Array.isArray(parsed.gaps)
+      ? parsed.gaps
+          .slice(0, 5)
+          .map((g: any) => ({
+            description: String(g?.description ?? ""),
+            impact: (["high", "medium", "low"].includes(g?.impact) ? g.impact : "medium") as
+              | "high"
+              | "medium"
+              | "low",
+            potential_points: Number(g?.potential_points ?? 0),
+          }))
+          .sort((a: ScoreGap, b: ScoreGap) => b.potential_points - a.potential_points)
+      : [];
+
+    const result: ScoreResult = {
+      overall,
+      label: labelFor(overall),
+      breakdown,
+      gaps,
+      iris_recommendation: parsed.iris_recommendation ?? "",
+      word_count: parsed.word_count ?? wordCount,
+      mode: "full",
+    };
+    const saved = await persistScore(supabase, userId, data, result, wordCount);
+    result.saved_id = saved;
+    return result;
   });
+
+function clamp(n: unknown, min: number, max: number): number {
+  const v = Number.isFinite(Number(n)) ? Number(n) : 0;
+  return Math.max(min, Math.min(max, Math.round(v)));
+}
+
+function safeParseJson(text: string): any {
+  try {
+    return JSON.parse(text);
+  } catch {
+    // Try to extract JSON object from a wrapped response
+    const m = text.match(/\{[\s\S]*\}/);
+    if (m) {
+      try {
+        return JSON.parse(m[0]);
+      } catch {
+        /* fall through */
+      }
+    }
+    throw new Error("Score response was not valid JSON.");
+  }
+}
+
+async function callGateway(apiKey: string, prompt: string, maxTokens: number): Promise<string> {
+  const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Lovable-API-Key": apiKey,
+    },
+    body: JSON.stringify({
+      // Per Phase 3 spec — use Claude Sonnet for higher-quality scoring.
+      // The Lovable AI gateway is OpenAI-compatible and routes by model id.
+      model: "anthropic/claude-sonnet-4-20250514",
+      max_tokens: maxTokens,
+      messages: [
+        { role: "system", content: "You return strict JSON only. No markdown, no commentary." },
+        { role: "user", content: prompt },
+      ],
+      response_format: { type: "json_object" },
+    }),
+  });
+  if (!resp.ok) {
+    const text = await resp.text().catch(() => "");
+    if (resp.status === 429) throw new Error("IRIS is rate limited. Please retry in a moment.");
+    if (resp.status === 402) throw new Error("Workspace credits exhausted. Add credits in Settings → Workspace → Usage.");
+    throw new Error(`Scoring failed (${resp.status}): ${text.slice(0, 200)}`);
+  }
+  const json = await resp.json();
+  return json?.choices?.[0]?.message?.content ?? "{}";
+}
+
+async function persistScore(
+  supabase: any,
+  userId: string,
+  data: z.infer<typeof ScoreInput>,
+  r: ScoreResult,
+  wordCount: number,
+): Promise<string | null> {
+  try {
+    const row = {
+      mission_id: data.missionId,
+      question_id: data.questionId,
+      user_id: userId,
+      overall_score: r.overall,
+      requirements_score: r.breakdown.find((b) => b.category.startsWith("Requirements"))?.score ?? null,
+      win_theme_score: r.breakdown.find((b) => b.category.startsWith("Win Theme"))?.score ?? null,
+      evidence_score: r.breakdown.find((b) => b.category.startsWith("Evidence"))?.score ?? null,
+      style_score: r.breakdown.find((b) => b.category.startsWith("Style"))?.score ?? null,
+      conciseness_score: r.breakdown.find((b) => b.category.startsWith("Conciseness"))?.score ?? null,
+      requirements_explanation: r.breakdown.find((b) => b.category.startsWith("Requirements"))?.explanation ?? null,
+      win_theme_explanation: r.breakdown.find((b) => b.category.startsWith("Win Theme"))?.explanation ?? null,
+      evidence_explanation: r.breakdown.find((b) => b.category.startsWith("Evidence"))?.explanation ?? null,
+      style_explanation: r.breakdown.find((b) => b.category.startsWith("Style"))?.explanation ?? null,
+      conciseness_explanation: r.breakdown.find((b) => b.category.startsWith("Conciseness"))?.explanation ?? null,
+      gaps: r.gaps,
+      iris_recommendation: r.iris_recommendation ?? null,
+      draft_word_count: wordCount,
+      scoring_mode: r.mode,
+    };
+    const { data: ins } = await supabase
+      .from("draft_scores")
+      .insert(row)
+      .select("id")
+      .maybeSingle();
+    return (ins?.id as string | undefined) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** List the calling user's recent draft scores for a mission. Used by My Work. */
+export const listMyRecentScores = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({ missionId: z.string().uuid(), limit: z.number().min(1).max(20).optional() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: rows } = await supabase
+      .from("draft_scores")
+      .select(
+        "id, question_id, overall_score, scoring_mode, created_at, mission_questions(question_number, question_text)",
+      )
+      .eq("user_id", userId)
+      .eq("mission_id", data.missionId)
+      .order("created_at", { ascending: false })
+      .limit(data.limit ?? 5);
+    return { scores: rows ?? [] };
+  });
+
+/** Per-question latest score map (used for Question Health badges). */
+export const listQuestionLatestScores = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        missionId: z.string().uuid(),
+        scope: z.enum(["mine", "all"]).optional().default("mine"),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    let q = supabase
+      .from("draft_scores")
+      .select("question_id, overall_score, created_at, user_id")
+      .eq("mission_id", data.missionId)
+      .not("question_id", "is", null)
+      .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+      .order("created_at", { ascending: false });
+    if (data.scope === "mine") q = q.eq("user_id", userId);
+    const { data: rows } = await q;
+    const latest: Record<string, { score: number; created_at: string }> = {};
+    for (const r of (rows ?? []) as Array<{ question_id: string; overall_score: number; created_at: string }>) {
+      if (!latest[r.question_id]) {
+        latest[r.question_id] = { score: r.overall_score, created_at: r.created_at };
+      }
+    }
+    return { latest };
+  });
+
 
 /**
  * Generate the IRIS executive portfolio brief. Client owns the 4-hour

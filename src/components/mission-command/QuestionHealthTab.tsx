@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { format, formatDistanceToNow, differenceInDays } from "date-fns";
 import {
   AlertTriangle,
@@ -22,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { runHealthCalculation } from "@/lib/health-calc";
+import { listQuestionLatestScores } from "@/lib/v2-home.functions";
 import { cn } from "@/lib/utils";
 import type { TabId } from "./MissionTabs";
 
@@ -98,6 +100,16 @@ export function QuestionHealthTab({
       };
     },
   });
+
+  // Per-question latest scores (last 7 days). RLS filters: writers see only
+  // their own; admins/engagement leads see all scores for the mission.
+  const listScores = useServerFn(listQuestionLatestScores);
+  const { data: latestScores } = useQuery({
+    queryKey: ["question-latest-scores", missionId],
+    queryFn: () => listScores({ data: { missionId, scope: "all" } }),
+    staleTime: 60_000,
+  });
+  const scoreMap = latestScores?.latest ?? {};
 
   // Run health calc on mount, then every 30 minutes
   useEffect(() => {
@@ -364,6 +376,7 @@ export function QuestionHealthTab({
                 onGoToSection={() => onNavigateTab("work")}
                 flag={flag}
                 smes={smesForQ}
+                latestScore={scoreMap[q.id]?.score}
               />
             );
           })}
@@ -444,6 +457,7 @@ function HealthCard({
   onGoToSection,
   flag,
   smes,
+  latestScore,
 }: {
   q: Question;
   a?: Assignment;
@@ -454,6 +468,7 @@ function HealthCard({
   onGoToSection: () => void;
   flag?: any;
   smes: string[];
+  latestScore?: number;
 }) {
   const h = q.health_status ?? "healthy";
   const borderColor =
@@ -484,6 +499,7 @@ function HealthCard({
         <HealthBadge value={h} />
         <span className="font-mono text-primary">{q.question_number}</span>
         <span className="text-muted-foreground">{section?.name ?? "—"}</span>
+        {typeof latestScore === "number" && <ScorePill score={latestScore} />}
         <span className={cn("ml-auto", dueColor)}>
           {due
             ? `${format(due, "MMM d, yyyy")} · ${days !== null && days < 0 ? `${Math.abs(days)}d overdue` : `${days}d`}`
@@ -586,6 +602,25 @@ function ConfidenceBadge({ value }: { value: string | null }) {
   return (
     <span className={cn("px-1.5 py-0.5 rounded uppercase", map[v] ?? "bg-muted")}>
       {label}
+    </span>
+  );
+}
+
+function ScorePill({ score }: { score: number }) {
+  const color =
+    score >= 90 ? "#C49A2B" : score >= 75 ? "#7dcf7d" : score >= 60 ? "#EF9F27" : "#f08080";
+  return (
+    <span
+      title={`Latest draft score: ${score}/100`}
+      className="rounded-full px-1.5 py-0.5 font-semibold tabular-nums"
+      style={{
+        background: `${color}22`,
+        color,
+        fontSize: 10,
+        border: `0.5px solid ${color}66`,
+      }}
+    >
+      {score}
     </span>
   );
 }
