@@ -164,7 +164,7 @@ export function SectionMissionMap({ missionId, isAdmin }: { missionId: string; i
                       </tr>
                     ))
                   )}
-                </>
+                </Fragment>
               ))}
             </tbody>
           </table>
