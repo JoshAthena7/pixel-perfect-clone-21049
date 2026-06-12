@@ -15,7 +15,8 @@ export type ActivityStream =
   | "phone_a_friend"
   | "score_me"
   | "mission_pulse"
-  | "sos";
+  | "sos"
+  | "conflict";
 
 export type ActivityItem = {
   id: string;
@@ -36,7 +37,16 @@ export type ActivityItem = {
   update_type?: string | null;
   resolved?: boolean;
   emerging_risk?: boolean;
+  // conflict-specific
+  conflict_id?: string;
+  conflict_description?: string;
+  detected_from?: string | null;
+  question_id_a?: string;
+  question_id_b?: string;
+  section_a_label?: string | null;
+  section_b_label?: string | null;
 };
+
 
 export type AttentionRail = {
   staleQuestions: Array<{ id: string; question_number: string | null; question_text: string | null; due_date: string | null; health_status: string }>;
