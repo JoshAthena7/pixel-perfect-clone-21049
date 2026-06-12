@@ -19,10 +19,10 @@ function AdminInsightsPage() {
     <div className="p-8" style={{ background: "#080c14", minHeight: "100vh", color: "rgba(255,255,255,0.9)" }}>
       <div className="max-w-4xl">
         <h1 className="text-2xl font-semibold mb-2" style={{ color: "#c9a84c" }}>
-          Insights
+          Debriefs
         </h1>
         <p className="text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
-          Platform-wide insights. Coming in V2.
+          Platform-wide debriefs. Coming in V2.
         </p>
       </div>
     </div>
