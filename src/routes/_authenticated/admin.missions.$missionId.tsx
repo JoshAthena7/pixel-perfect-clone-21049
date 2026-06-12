@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Save, Search, Plus, X, AlertCircle, GripVertical, Trash2, FileText, Shield, BookOpen, HeartPulse, Send } from "lucide-react";
+import { ArrowLeft, Save, Search, Plus, X, AlertCircle, GripVertical, Trash2, FileText, Shield, BookOpen, HeartPulse, Send, Users, ClipboardCheck, Route as RouteIcon, FileDown, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -1395,33 +1395,153 @@ function StaffPanelRow({
 }
 
 function ReportsTab({ missionId }: { missionId: string }) {
-  const { data: outcomes = [] } = useQuery({
-    queryKey: ["admin-mission-reports", missionId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("mission_outcomes")
-        .select("id,outcome_type,description,created_at")
-        .eq("mission_id", missionId)
-        .order("created_at", { ascending: false });
-      return data ?? [];
-    },
-  });
+  const [scheduled, setScheduled] = useState(false);
+  const [recipients, setRecipients] = useState("");
+
+  const cards: {
+    id: string;
+    icon: React.ComponentType<any>;
+    title: string;
+    subtitle: string;
+  }[] = [
+    { id: "roster", icon: Users, title: "Staff Roster", subtitle: "Assignments & roles" },
+    { id: "compliance", icon: ClipboardCheck, title: "Compliance Status", subtitle: "Items & completion rates" },
+    { id: "journey", icon: RouteIcon, title: "Journey Progress", subtitle: "Milestone tracking" },
+    { id: "export-all", icon: FileDown, title: "Export All", subtitle: "Download full mission report as PDF" },
+  ];
+
+  function pull(id: string, title: string) {
+    toast.success(`${title} report queued`, {
+      description: `Mission ${missionId.slice(0, 8)}… — preparing ${id} report.`,
+    });
+  }
+
+  function saveSchedule() {
+    if (scheduled && !recipients.trim()) {
+      toast.error("Add at least one recipient email");
+      return;
+    }
+    toast.success(scheduled ? "Weekly reports scheduled" : "Weekly reports disabled");
+  }
+
   return (
-    <SectionCard title="Mission Reports">
-      {outcomes.length === 0 ? (
-        <div className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
-          No reports generated yet for this mission.
+    <div className="space-y-6">
+      <div className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
+        Generate snapshot reports for this mission, or schedule a recurring digest.
+      </div>
+
+      {/* 2x2 grid */}
+      <div className="grid sm:grid-cols-2 gap-4">
+        {cards.map((c) => {
+          const Icon = c.icon;
+          return (
+            <div
+              key={c.id}
+              className="rounded-lg p-5 flex flex-col"
+              style={{
+                background: "rgba(255,255,255,0.02)",
+                border: "1px solid rgba(255,255,255,0.06)",
+              }}
+            >
+              <div
+                className="h-10 w-10 rounded-md flex items-center justify-center mb-3"
+                style={{
+                  background: "rgba(201,168,76,0.1)",
+                  border: "1px solid rgba(201,168,76,0.3)",
+                  color: "#c9a84c",
+                }}
+              >
+                <Icon className="h-5 w-5" />
+              </div>
+              <div className="text-sm font-semibold text-white">{c.title}</div>
+              <div className="text-xs mt-0.5 mb-4 flex-1" style={{ color: "rgba(255,255,255,0.55)" }}>
+                {c.subtitle}
+              </div>
+              <button
+                type="button"
+                onClick={() => pull(c.id, c.title)}
+                className="inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold w-full"
+                style={{ background: "#c9a84c", color: "#080c14" }}
+              >
+                <FileDown className="h-3.5 w-3.5" />
+                Pull report
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Scheduled Reports */}
+      <div
+        className="rounded-lg p-5"
+        style={{
+          background: "rgba(255,255,255,0.02)",
+          border: "1px solid rgba(255,255,255,0.06)",
+        }}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#c9a84c" }}>
+              Scheduled Reports
+            </div>
+            <div className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.55)" }}>
+              Email a weekly digest of mission status to your team.
+            </div>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={scheduled}
+            onClick={() => setScheduled((v) => !v)}
+            className="relative inline-flex h-6 w-11 rounded-full transition-colors shrink-0"
+            style={{
+              background: scheduled ? "#c9a84c" : "rgba(255,255,255,0.12)",
+            }}
+          >
+            <span
+              className="inline-block h-5 w-5 rounded-full bg-white shadow transition-transform"
+              style={{
+                transform: scheduled ? "translateX(22px)" : "translateX(2px)",
+                marginTop: 2,
+              }}
+            />
+          </button>
         </div>
-      ) : (
-        <ul className="space-y-2">
-          {outcomes.map((o: any) => (
-            <li key={o.id} className="rounded-md px-3 py-2.5" style={{ background: "rgba(255,255,255,0.03)" }}>
-              <div className="text-xs font-semibold" style={{ color: "#c9a84c" }}>{o.outcome_type}</div>
-              <div className="text-sm text-white/80 mt-0.5">{o.description}</div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </SectionCard>
+
+        <div className={scheduled ? "opacity-100" : "opacity-50 pointer-events-none"}>
+          <Field label="Recipient emails">
+            <div className="relative">
+              <Mail
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4"
+                style={{ color: "rgba(255,255,255,0.35)" }}
+              />
+              <input
+                value={recipients}
+                onChange={(e) => setRecipients(e.target.value)}
+                placeholder="ops@team.com, lead@team.com"
+                style={{ ...inputStyle, paddingLeft: 36 }}
+              />
+            </div>
+          </Field>
+          <div className="flex items-center justify-between mt-4">
+            <div className="text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>
+              Sent every Monday at 9:00 AM in recipient's local time.
+            </div>
+            <button
+              type="button"
+              onClick={saveSchedule}
+              className="rounded-md px-3 py-1.5 text-xs font-semibold"
+              style={{
+                background: "rgba(201,168,76,0.1)",
+                border: "1px solid rgba(201,168,76,0.4)",
+                color: "#c9a84c",
+              }}
+            >
+              Save schedule
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
