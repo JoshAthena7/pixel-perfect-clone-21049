@@ -288,6 +288,24 @@ export function JourneyLiveTab({ missionId, deadline }: { missionId: string; dea
                 <span className="absolute -top-5 left-1 text-[10px] text-primary">Today</span>
               </div>
             )}
+            {/* Submission marker */}
+            {deadline && (() => {
+              const d = new Date(deadline).getTime();
+              if (d < timelineBounds.min || d > timelineBounds.max) return null;
+              const left = ((d - timelineBounds.min) / (timelineBounds.max - timelineBounds.min)) * 100;
+              return (
+                <div
+                  className="absolute top-0 h-20 border-l-2 border-red-500"
+                  style={{ left: `${left}%` }}
+                >
+                  <span
+                    className="absolute -top-5 right-0 text-[10px] text-red-500 whitespace-nowrap font-semibold tracking-wide"
+                  >
+                    SUBMISSION · {format(new Date(deadline), "MMM d")}
+                  </span>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}
