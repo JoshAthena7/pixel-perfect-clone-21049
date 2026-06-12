@@ -393,7 +393,21 @@ function Ring({ pct }: { pct: number }) {
 }
 
 /* ---------------- Question Workspace ---------------- */
-function QuestionWorkspacePanel({ memberId, missionId }: { memberId: string | null; missionId: string | null }) {
+function QuestionWorkspacePanel({
+  memberId,
+  missionId,
+  onActiveChange,
+}: {
+  memberId: string | null;
+  missionId: string | null;
+  onActiveChange?: (a: {
+    questionId: string | null;
+    questionNumber: string | null;
+    questionText: string | null;
+    dueDate: string | null;
+    confidence: string | null;
+  }) => void;
+}) {
   const iris = useIris();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<"work" | "intel">("work");
@@ -406,7 +420,7 @@ function QuestionWorkspacePanel({ memberId, missionId }: { memberId: string | nu
         .from("mission_assignments")
         .select("id, question_id, mission_id, due_date, writer_confidence, acceptance_status")
         .eq("assigned_writer_id", memberId!)
-        .limit(20);
+        .limit(50);
       const qids = (asgs ?? []).map((a: any) => a.question_id).filter(Boolean);
       const { data: qs } = qids.length
         ? await supabase
@@ -418,10 +432,29 @@ function QuestionWorkspacePanel({ memberId, missionId }: { memberId: string | nu
     },
   });
 
+  // Sort questions by section then question number
+  const sortedQs = useMemo(() => {
+    const qs = [...(questions?.qs ?? [])];
+    qs.sort((a: any, b: any) => {
+      const s = String(a.section_id ?? "").localeCompare(String(b.section_id ?? ""));
+      if (s !== 0) return s;
+      return String(a.question_number ?? "").localeCompare(
+        String(b.question_number ?? ""),
+        undefined,
+        { numeric: true },
+      );
+    });
+    return qs;
+  }, [questions?.qs]);
+
   // Default to first assignment if none selected
-  const effectiveId = selectedId ?? (questions?.asgs ?? [])[0]?.question_id ?? null;
+  const effectiveId = selectedId ?? sortedQs[0]?.id ?? null;
   const active = (questions?.asgs ?? []).find((a: any) => a.question_id === effectiveId);
-  const activeQ = effectiveId ? (questions?.qs ?? []).find((q: any) => q.id === effectiveId) : null;
+  const activeQ = effectiveId ? sortedQs.find((q: any) => q.id === effectiveId) : null;
+
+  const currentIndex = sortedQs.findIndex((q: any) => q.id === effectiveId);
+  const prevQ = currentIndex > 0 ? sortedQs[currentIndex - 1] : null;
+  const nextQ = currentIndex >= 0 && currentIndex < sortedQs.length - 1 ? sortedQs[currentIndex + 1] : null;
 
   // Fetch section name for IRIS context
   const { data: sectionInfo } = useQuery({
@@ -437,7 +470,7 @@ function QuestionWorkspacePanel({ memberId, missionId }: { memberId: string | nu
     },
   });
 
-  // Wire IrisContext when active question changes
+  // Wire IrisContext + bubble active up to parent
   useEffect(() => {
     if (activeQ) {
       iris.setQuestion(activeQ.id, activeQ.question_text, activeQ.question_number);
@@ -445,8 +478,15 @@ function QuestionWorkspacePanel({ memberId, missionId }: { memberId: string | nu
     } else {
       iris.setQuestion(null);
     }
+    onActiveChange?.({
+      questionId: activeQ?.id ?? null,
+      questionNumber: activeQ?.question_number ?? null,
+      questionText: activeQ?.question_text ?? null,
+      dueDate: active?.due_date ?? activeQ?.due_date ?? null,
+      confidence: active?.writer_confidence ?? null,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeQ?.id, sectionInfo?.name]);
+  }, [activeQ?.id, sectionInfo?.name, active?.due_date, active?.writer_confidence]);
 
   const workColumn = (
     <div className="space-y-4">
