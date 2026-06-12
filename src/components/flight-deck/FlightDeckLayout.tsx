@@ -1,32 +1,31 @@
 /**
- * Restored Flight Deck layout. Renders above the legacy Today's Focus /
- * Capacity / IRIS Assists / My Questions sections (kept for continuity).
+ * Flight Deck — restructured workspace centered on a single assigned question.
  *
- * Sections (top → bottom):
- *   1. Horizontal Assists Bar (6 labeled actions)
- *   2. Flight Status (left)  +  Mission Radar (right, 3 sub-panels)
- *   3. Question Workspace (4 sub-panels + intelligence chips + external bar)
- *   4. Air Traffic Control (5 sub-panels)
+ *  Question Nav Strip   ← all questions  •  Q-number title • health  • prev/next
+ *  ┌────────────────────────┬────────────────────────────────────┐
+ *  │  INTELLIGENCE (45%)    │  MY WORK (55%)                     │
+ *  │  · Athena Strategy     │  · The Question                    │
+ *  │  · IRIS Brief          │  · My Status (+ Post Update)       │
+ *  │  · How They're Thinking│  · My Confidence (Low/Med/High)    │
+ *  │  · Key Requirements    │  · Score Me CTA                    │
+ *  │                        │  · Ask IRIS quick prompts          │
+ *  └────────────────────────┴────────────────────────────────────┘
+ *  ─ FlightDeckAssistBar (pinned bottom) ─
  */
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { format, formatDistanceToNow } from "date-fns";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import {
-  AlertTriangle, Bell, PencilLine, Phone, Sparkles, MessagesSquare,
-  Clock, ShieldAlert, AtSign, LifeBuoy, ShieldCheck, UserCheck,
-  Eye, ExternalLink, Calendar, FileText, Users, Target,
-  ChevronRight, ChevronLeft, MessageCircle, ArrowLeft,
+  ArrowLeft, ChevronLeft, ChevronRight, Eye, Sparkles, Target,
+  AlertTriangle, CheckCircle2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIris } from "@/components/iris/IrisContext";
-import { UpdateRealityDialog, SOSDialog } from "@/components/iris/AssistsDialogs";
-import { DailyPulseModal } from "@/components/iris/DailyPulseModal";
-import { IntelligencePanel } from "@/components/flight-deck/IntelligencePanel";
 import { FlightDeckAssistBar } from "@/components/flight-deck/FlightDeckAssistBar";
+import { ScoreMeDialog } from "@/components/flight-deck/ScoreMeDialog";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-
-const GOLD = "#C9A55C";
 
 type Props = {
   memberId: string | null;
@@ -36,58 +35,149 @@ type Props = {
   onPrefillIris?: (text: string) => void;
 };
 
-type ActiveCtx = {
-  questionId: string | null;
-  questionNumber: string | null;
-  questionText: string | null;
-  dueDate: string | null;
-  confidence: string | null;
-};
-
 export function FlightDeckLayout({
   memberId,
   activeMissionId,
   activeMissionName,
   activeMissionStatus,
-  onPrefillIris: _onPrefillIris,
 }: Props) {
-  const [active, setActive] = useState<ActiveCtx>({
-    questionId: null,
-    questionNumber: null,
-    questionText: null,
-    dueDate: null,
-    confidence: null,
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const iris = useIris();
+  const qc = useQueryClient();
+
+  // Fetch this writer's assignments + question rows
+  const { data } = useQuery({
+    queryKey: ["fd-assignments", memberId, activeMissionId],
+    enabled: !!memberId,
+    queryFn: async () => {
+      const { data: asgs } = await supabase
+        .from("mission_assignments")
+        .select("id, question_id, mission_id, due_date, writer_confidence, acceptance_status")
+        .eq("assigned_writer_id", memberId!)
+        .limit(100);
+      const filteredAsgs = (asgs ?? []).filter((a: any) =>
+        !activeMissionId || a.mission_id === activeMissionId,
+      );
+      const qids = filteredAsgs.map((a: any) => a.question_id).filter(Boolean);
+      if (!qids.length) return { asgs: filteredAsgs, qs: [] };
+      const { data: qs } = await supabase
+        .from("mission_questions")
+        .select("id, question_number, question_text, section_id, due_date, health_status, status")
+        .in("id", qids);
+      return { asgs: filteredAsgs, qs: qs ?? [] };
+    },
   });
 
+  // Sort by section then question number
+  const sortedQs = useMemo(() => {
+    const qs = [...(data?.qs ?? [])];
+    qs.sort((a: any, b: any) => {
+      const s = String(a.section_id ?? "").localeCompare(String(b.section_id ?? ""));
+      if (s !== 0) return s;
+      return String(a.question_number ?? "").localeCompare(
+        String(b.question_number ?? ""),
+        undefined,
+        { numeric: true },
+      );
+    });
+    return qs;
+  }, [data?.qs]);
+
+  const effectiveId = selectedId ?? sortedQs[0]?.id ?? null;
+  const activeQ = effectiveId ? sortedQs.find((q: any) => q.id === effectiveId) : null;
+  const activeAsg = (data?.asgs ?? []).find((a: any) => a.question_id === effectiveId);
+  const idx = sortedQs.findIndex((q: any) => q.id === effectiveId);
+  const prevQ = idx > 0 ? sortedQs[idx - 1] : null;
+  const nextQ = idx >= 0 && idx < sortedQs.length - 1 ? sortedQs[idx + 1] : null;
+
+  // Section info
+  const { data: sectionInfo } = useQuery({
+    queryKey: ["fd-section", activeQ?.section_id],
+    enabled: !!activeQ?.section_id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_sections")
+        .select("id, name")
+        .eq("id", activeQ!.section_id as string)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  // Wire IRIS context and log question_views
+  useEffect(() => {
+    if (activeQ) {
+      iris.setQuestion(activeQ.id, activeQ.question_text, activeQ.question_number);
+      iris.setSection(activeQ.section_id ?? null, sectionInfo?.name ?? null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeQ?.id, sectionInfo?.name]);
+
+  useEffect(() => {
+    if (!activeQ || !activeMissionId) return;
+    let cancelled = false;
+    (async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (cancelled || !u.user) return;
+      await supabase.from("question_views" as any).insert({
+        mission_id: activeMissionId,
+        question_id: activeQ.id,
+        user_id: u.user.id,
+      });
+    })();
+    return () => { cancelled = true; };
+  }, [activeQ?.id, activeMissionId]);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <FlightDeckHeader name={activeMissionName} status={activeMissionStatus} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-[35%_1fr] gap-6">
-        <FlightStatusPanel memberId={memberId} />
-        <MissionRadarPanel memberId={memberId} missionId={activeMissionId} />
-      </div>
-
-      <QuestionWorkspacePanel
-        memberId={memberId}
+      <NavStrip
         missionId={activeMissionId}
-        onActiveChange={setActive}
+        activeQ={activeQ}
+        dueDate={activeAsg?.due_date ?? activeQ?.due_date ?? null}
+        prevQ={prevQ}
+        nextQ={nextQ}
+        onSelect={setSelectedId}
       />
-      <AirTrafficControlPanel missionId={activeMissionId} />
+
+      {!activeQ ? (
+        <div className="rounded-xl border border-border bg-surface/30 p-8 text-center text-sm text-muted-foreground">
+          You have no assigned questions yet.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-[45%_55%] gap-4 items-start">
+          <IntelligenceColumn
+            missionId={activeMissionId}
+            questionId={activeQ.id}
+            sectionId={activeQ.section_id ?? null}
+          />
+          <MyWorkColumn
+            missionId={activeMissionId}
+            questionId={activeQ.id}
+            questionNumber={activeQ.question_number}
+            questionText={activeQ.question_text}
+            sectionName={sectionInfo?.name ?? null}
+            assignmentId={activeAsg?.id ?? null}
+            writerConfidence={activeAsg?.writer_confidence ?? null}
+            onChanged={() => qc.invalidateQueries({ queryKey: ["fd-assignments"] })}
+          />
+        </div>
+      )}
 
       <FlightDeckAssistBar
         missionId={activeMissionId}
-        questionId={active.questionId}
-        questionNumber={active.questionNumber}
-        questionText={active.questionText}
-        dueDate={active.dueDate}
-        confidence={active.confidence}
+        questionId={activeQ?.id ?? null}
+        questionNumber={activeQ?.question_number ?? null}
+        questionText={activeQ?.question_text ?? null}
+        dueDate={activeAsg?.due_date ?? activeQ?.due_date ?? null}
+        confidence={activeAsg?.writer_confidence ?? null}
       />
     </div>
   );
 }
 
-/* ---------------- Header ---------------- */
+/* -------------------- Header -------------------- */
 function FlightDeckHeader({ name, status }: { name: string; status: string | null }) {
   const tone =
     status === "active" ? "bg-green-500/15 text-green-400 border-green-500/40"
@@ -105,700 +195,482 @@ function FlightDeckHeader({ name, status }: { name: string; status: string | nul
   );
 }
 
-/* ---------------- Horizontal Assists Bar ---------------- */
-function HorizontalAssistsBar({
-  missionId,
-  onPrefillIris,
+/* -------------------- Question Nav Strip -------------------- */
+function NavStrip({
+  missionId, activeQ, dueDate, prevQ, nextQ, onSelect,
 }: {
   missionId: string | null;
-  onPrefillIris?: (text: string) => void;
+  activeQ: any;
+  dueDate: string | null;
+  prevQ: any;
+  nextQ: any;
+  onSelect: (id: string) => void;
 }) {
-  const [updateOpen, setUpdateOpen] = useState(false);
-  const [sosOpen, setSosOpen] = useState(false);
-  const [pulseOpen, setPulseOpen] = useState(false);
-
-  const items = [
-    { Icon: PencilLine, label: "Update Reality", sub: "Post a status update", onClick: () => setUpdateOpen(true) },
-    { Icon: Sparkles, label: "Score Me", sub: "AI scorecard", onClick: () => onPrefillIris?.("Score my draft: ") },
-    { Icon: Phone, label: "Phone a Friend", sub: "Find an SME", onClick: () => onPrefillIris?.("I need an SME for: ") },
-    { Icon: Bell, label: "Daily Pulse", sub: "Quick check-in", onClick: () => setPulseOpen(true) },
-    { Icon: MessagesSquare, label: "Thread", sub: "Question thread", onClick: () => onPrefillIris?.("Open a thread on: ") },
-    { Icon: AlertTriangle, label: "SOS", sub: "Get help now", onClick: () => setSosOpen(true), danger: true },
-  ];
+  const health = activeQ?.health_status as string | undefined;
+  const badge =
+    health === "at_risk" || health === "blocked" || health === "critical"
+      ? { label: "AT RISK", cls: "bg-red-500/15 text-red-400 border-red-500/30" }
+      : health === "healthy" || health === "on_track"
+        ? { label: "ON TRACK", cls: "bg-green-500/15 text-green-400 border-green-500/30" }
+        : { label: "NOT STARTED", cls: "bg-slate-500/15 text-slate-400 border-slate-500/30" };
 
   return (
-    <>
-      <div className="hidden md:block rounded-xl border border-border bg-surface/30 backdrop-blur">
-        <div className="grid grid-cols-6">
-          {items.map((it, i) => (
-            <button
-              key={it.label}
-              onClick={it.onClick}
-              className={cn(
-                "group flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-surface/60",
-                i < items.length - 1 && "border-r border-border",
-                it.danger && "hover:bg-red-500/10",
-              )}
-            >
-              <div
-                className="shrink-0 h-9 w-9 rounded-lg flex items-center justify-center"
-                style={{
-                  background: it.danger ? "rgba(220,38,38,0.15)" : "rgba(201,165,92,0.12)",
-                  color: it.danger ? "#fca5a5" : GOLD,
-                }}
-              >
-                <it.Icon className="h-4 w-4" />
-              </div>
-              <div className="min-w-0">
-                <div className={cn("text-sm font-semibold truncate", it.danger ? "text-red-300" : "text-foreground")}>
-                  {it.label}
-                </div>
-                <div className="text-[11px] text-muted-foreground truncate">{it.sub}</div>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-      <UpdateRealityDialog open={updateOpen} onOpenChange={setUpdateOpen} missionId={missionId} onSent={() => {}} />
-      <SOSDialog open={sosOpen} onOpenChange={setSosOpen} missionId={missionId} />
-      <DailyPulseModal open={pulseOpen} onOpenChange={setPulseOpen} missionId={missionId} />
-    </>
-  );
-}
-
-/* ---------------- Flight Status ---------------- */
-function FlightStatusPanel({ memberId }: { memberId: string | null }) {
-  const { data } = useQuery({
-    queryKey: ["flight-status", memberId],
-    enabled: !!memberId,
-    queryFn: async () => {
-      const [asgRes, notifRes] = await Promise.all([
-        supabase
-          .from("mission_assignments")
-          .select("id, question_id, due_date, acceptance_status")
-          .eq("assigned_writer_id", memberId!),
-        supabase
-          .from("atlas_notifications")
-          .select("type, is_read")
-          .eq("recipient_id", memberId!)
-          .eq("is_read", false),
-      ]);
-      const asgs = asgRes.data ?? [];
-      const now = Date.now();
-      const due72 = asgs.filter((a: any) => a.due_date && new Date(a.due_date).getTime() - now < 72 * 3600 * 1000 && new Date(a.due_date).getTime() > now).length;
-      const atRisk = asgs.filter((a: any) => a.acceptance_status === "need_help" || a.acceptance_status === "capacity_concern").length;
-      const notifs = notifRes.data ?? [];
-      const irisAlerts = notifs.filter((n: any) => n.type === "iris_alert").length;
-      const mentions = notifs.filter((n: any) => n.type === "mention" || n.type === "comment_mention").length;
-      const helpReqs = notifs.filter((n: any) => n.type === "sme_needed" || n.type === "help_request").length;
-      const compliance = notifs.filter((n: any) => n.type === "compliance_issue").length;
-      const reassigned = notifs.filter((n: any) => n.type === "assignment_reassigned").length;
-      return { due72, atRisk, irisAlerts, mentions, helpReqs, compliance, reassigned };
-    },
-  });
-
-  const items = [
-    { label: "Due in 72h", Icon: Clock, count: data?.due72 ?? 0, tone: "amber" },
-    { label: "At Risk", Icon: ShieldAlert, count: data?.atRisk ?? 0, tone: "red" },
-    { label: "IRIS Alerts", Icon: Sparkles, count: data?.irisAlerts ?? 0, tone: "gold" },
-    { label: "Mentions", Icon: AtSign, count: data?.mentions ?? 0, tone: "blue" },
-    { label: "Help Requests", Icon: LifeBuoy, count: data?.helpReqs ?? 0, tone: "amber" },
-    { label: "Compliance Issues", Icon: ShieldCheck, count: data?.compliance ?? 0, tone: "red" },
-    { label: "Reassigned to You", Icon: UserCheck, count: data?.reassigned ?? 0, tone: "blue" },
-  ];
-
-  return (
-    <section className="rounded-xl border border-border bg-surface/30 p-4">
-      <PanelHeader title="FLIGHT STATUS" subtitle="What needs my attention?" />
-      <ul className="mt-3 space-y-1">
-        {items.map((it) => (
-          <li key={it.label} className="flex items-center gap-3 px-2 py-2 rounded-md hover:bg-surface/60 transition-colors cursor-pointer">
-            <it.Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-            <span className="text-sm text-foreground flex-1 truncate">{it.label}</span>
-            <CountBadge n={it.count} tone={it.tone as any} />
-          </li>
-        ))}
-      </ul>
-      <div className="mt-3 pt-3 border-t border-border">
-        <button className="text-xs text-[color:var(--athena-gold)] hover:underline">View all →</button>
-      </div>
-    </section>
-  );
-}
-
-function CountBadge({ n, tone }: { n: number; tone: "amber" | "red" | "gold" | "blue" }) {
-  const map: Record<string, string> = {
-    amber: "bg-amber-500/15 text-amber-400 border-amber-500/30",
-    red: "bg-red-500/15 text-red-400 border-red-500/30",
-    gold: "bg-[color:var(--athena-gold)]/15 text-[color:var(--athena-gold)] border-[color:var(--athena-gold)]/30",
-    blue: "bg-blue-500/15 text-blue-400 border-blue-500/30",
-  };
-  return (
-    <span className={cn("min-w-[1.75rem] text-center rounded-full border px-2 py-0.5 text-xs font-semibold", map[tone])}>
-      {n}
-    </span>
-  );
-}
-
-/* ---------------- Mission Radar ---------------- */
-function MissionRadarPanel({ memberId, missionId }: { memberId: string | null; missionId: string | null }) {
-  const { data: qhealth } = useQuery({
-    queryKey: ["radar-my-questions", memberId],
-    enabled: !!memberId,
-    queryFn: async () => {
-      const { data: asgs } = await supabase
-        .from("mission_assignments")
-        .select("question_id")
-        .eq("assigned_writer_id", memberId!);
-      const qids = (asgs ?? []).map((a: any) => a.question_id).filter(Boolean);
-      if (!qids.length) return { total: 0, onTrack: 0, atRisk: 0, blocked: 0, notStarted: 0 };
-      const { data: qs } = await supabase
-        .from("mission_questions")
-        .select("id, health_status, status")
-        .in("id", qids);
-      const rows = qs ?? [];
-      const onTrack = rows.filter((q: any) => q.health_status === "healthy" || q.health_status === "on_track").length;
-      const atRisk = rows.filter((q: any) => q.health_status === "watch" || q.health_status === "at_risk").length;
-      const blocked = rows.filter((q: any) => q.health_status === "blocked" || q.health_status === "critical").length;
-      const notStarted = rows.filter((q: any) => !q.health_status || q.status === "not_started").length;
-      return { total: rows.length, onTrack, atRisk, blocked, notStarted };
-    },
-  });
-
-  const { data: sections } = useQuery({
-    queryKey: ["radar-sections", missionId],
-    enabled: !!missionId,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("mission_sections")
-        .select("id, name")
-        .eq("mission_id", missionId!)
-        .order("order_index", { ascending: true });
-      // completion/health rollup not stored; show 0% baseline until rollup exists
-      return ((data ?? []) as any[]).map((s) => ({ ...s, completion_percentage: 0, health_status: null }));
-    },
-  });
-
-  const { data: mission } = useQuery({
-    queryKey: ["radar-mission", missionId],
-    enabled: !!missionId,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("missions")
-        .select("submission_deadline, status")
-        .eq("id", missionId!)
-        .single();
-      return data as any;
-    },
-  });
-
-  const overall = useMemo(() => {
-    if (!sections?.length) return 0;
-    const sum = sections.reduce((acc: number, s: any) => acc + (s.completion_percentage ?? 0), 0);
-    return Math.round(sum / sections.length);
-  }, [sections]);
-
-  const daysToDue = mission?.submission_deadline
-    ? Math.ceil((new Date(mission.submission_deadline).getTime() - Date.now()) / (24 * 3600 * 1000))
-    : null;
-
-  return (
-    <section className="rounded-xl border border-border bg-surface/30 p-4">
-      <PanelHeader title="MISSION RADAR" subtitle="Where am I relative to the mission?" />
-      <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* My Questions */}
-        <SubPanel label="MY QUESTIONS">
-          <div className="text-2xl font-bold text-foreground">Total {qhealth?.total ?? 0}</div>
-          <SegmentedBar
-            segments={[
-              { v: qhealth?.onTrack ?? 0, c: "bg-green-500" },
-              { v: qhealth?.atRisk ?? 0, c: "bg-amber-500" },
-              { v: qhealth?.blocked ?? 0, c: "bg-red-500" },
-              { v: qhealth?.notStarted ?? 0, c: "bg-slate-500" },
-            ]}
-          />
-          <div className="text-[11px] text-muted-foreground leading-relaxed">
-            On Track {qhealth?.onTrack ?? 0} · At Risk {qhealth?.atRisk ?? 0} · Blocked {qhealth?.blocked ?? 0} · Not Started {qhealth?.notStarted ?? 0}
-          </div>
-        </SubPanel>
-        {/* Section Health */}
-        <SubPanel label="SECTION HEALTH">
-          {(sections ?? []).length === 0 ? (
-            <div className="text-xs text-muted-foreground">No sections yet</div>
-          ) : (
-            <ul className="space-y-2">
-              {(sections ?? []).slice(0, 6).map((s: any) => {
-                const pct = s.completion_percentage ?? 0;
-                const low = pct < 40;
-                return (
-                  <li key={s.id} className="text-xs">
-                    <div className="flex items-center gap-2">
-                      {low && <AlertTriangle className="h-3 w-3 text-amber-400 shrink-0" />}
-                      <span className="flex-1 truncate text-foreground">{s.name}</span>
-                      <span className="text-muted-foreground">{pct}%</span>
-                    </div>
-                    <div className="mt-1 h-1.5 w-full rounded-full bg-background/60 overflow-hidden">
-                      <div className={cn("h-full", low ? "bg-amber-500" : "bg-green-500")} style={{ width: `${pct}%` }} />
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </SubPanel>
-        {/* Mission Health */}
-        <SubPanel label="MISSION HEALTH">
-          <div className="text-[11px] text-muted-foreground">Overall Progress</div>
-          <Ring pct={overall} />
-          <div className="text-xs font-semibold text-foreground">
-            {overall >= 75 ? "On Track" : overall >= 40 ? "Watch" : "At Risk"}
-          </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-            <Calendar className="h-3 w-3" />
-            {daysToDue !== null ? `${daysToDue} days to due date` : "No deadline"}
-          </div>
-        </SubPanel>
-      </div>
-    </section>
-  );
-}
-
-function SegmentedBar({ segments }: { segments: { v: number; c: string }[] }) {
-  const total = segments.reduce((a, s) => a + s.v, 0) || 1;
-  return (
-    <div className="my-2 flex h-2 w-full rounded-full overflow-hidden bg-background/60">
-      {segments.map((s, i) => (
-        <div key={i} className={s.c} style={{ width: `${(s.v / total) * 100}%` }} />
-      ))}
-    </div>
-  );
-}
-
-function Ring({ pct }: { pct: number }) {
-  const r = 28;
-  const c = 2 * Math.PI * r;
-  const dash = (pct / 100) * c;
-  return (
-    <div className="relative h-20 w-20 my-1">
-      <svg viewBox="0 0 72 72" className="h-20 w-20 -rotate-90">
-        <circle cx="36" cy="36" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="6" />
-        <circle cx="36" cy="36" r={r} fill="none" stroke={GOLD} strokeWidth="6" strokeDasharray={`${dash} ${c - dash}`} strokeLinecap="round" />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center text-sm font-bold text-foreground">
-        {pct}%
-      </div>
-    </div>
-  );
-}
-
-/* ---------------- Question Workspace ---------------- */
-function QuestionWorkspacePanel({
-  memberId,
-  missionId,
-  onActiveChange,
-}: {
-  memberId: string | null;
-  missionId: string | null;
-  onActiveChange?: (a: {
-    questionId: string | null;
-    questionNumber: string | null;
-    questionText: string | null;
-    dueDate: string | null;
-    confidence: string | null;
-  }) => void;
-}) {
-  const iris = useIris();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [mobileTab, setMobileTab] = useState<"work" | "intel">("work");
-
-  const { data: questions } = useQuery({
-    queryKey: ["workspace-questions", memberId],
-    enabled: !!memberId,
-    queryFn: async () => {
-      const { data: asgs } = await supabase
-        .from("mission_assignments")
-        .select("id, question_id, mission_id, due_date, writer_confidence, acceptance_status")
-        .eq("assigned_writer_id", memberId!)
-        .limit(50);
-      const qids = (asgs ?? []).map((a: any) => a.question_id).filter(Boolean);
-      const { data: qs } = qids.length
-        ? await supabase
-            .from("mission_questions")
-            .select("id, question_number, question_text, section_id, due_date")
-            .in("id", qids)
-        : { data: [] };
-      return { asgs: asgs ?? [], qs: qs ?? [] };
-    },
-  });
-
-  // Sort questions by section then question number
-  const sortedQs = useMemo(() => {
-    const qs = [...(questions?.qs ?? [])];
-    qs.sort((a: any, b: any) => {
-      const s = String(a.section_id ?? "").localeCompare(String(b.section_id ?? ""));
-      if (s !== 0) return s;
-      return String(a.question_number ?? "").localeCompare(
-        String(b.question_number ?? ""),
-        undefined,
-        { numeric: true },
-      );
-    });
-    return qs;
-  }, [questions?.qs]);
-
-  // Default to first assignment if none selected
-  const effectiveId = selectedId ?? sortedQs[0]?.id ?? null;
-  const active = (questions?.asgs ?? []).find((a: any) => a.question_id === effectiveId);
-  const activeQ = effectiveId ? sortedQs.find((q: any) => q.id === effectiveId) : null;
-
-  const currentIndex = sortedQs.findIndex((q: any) => q.id === effectiveId);
-  const prevQ = currentIndex > 0 ? sortedQs[currentIndex - 1] : null;
-  const nextQ = currentIndex >= 0 && currentIndex < sortedQs.length - 1 ? sortedQs[currentIndex + 1] : null;
-
-  // Fetch section name for IRIS context
-  const { data: sectionInfo } = useQuery({
-    queryKey: ["workspace-section", activeQ?.section_id],
-    enabled: !!activeQ?.section_id,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("mission_sections")
-        .select("id, name")
-        .eq("id", activeQ!.section_id as string)
-        .maybeSingle();
-      return data;
-    },
-  });
-
-  // Wire IrisContext + bubble active up to parent
-  useEffect(() => {
-    if (activeQ) {
-      iris.setQuestion(activeQ.id, activeQ.question_text, activeQ.question_number);
-      iris.setSection(activeQ.section_id ?? null, sectionInfo?.name ?? null);
-    } else {
-      iris.setQuestion(null);
-    }
-    onActiveChange?.({
-      questionId: activeQ?.id ?? null,
-      questionNumber: activeQ?.question_number ?? null,
-      questionText: activeQ?.question_text ?? null,
-      dueDate: active?.due_date ?? activeQ?.due_date ?? null,
-      confidence: active?.writer_confidence ?? null,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeQ?.id, sectionInfo?.name, active?.due_date, active?.writer_confidence]);
-
-  const workColumn = (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* My Questions */}
-        <SubPanel label="MY QUESTIONS">
-          {(questions?.qs ?? []).length === 0 ? (
-            <p className="text-xs text-muted-foreground">No assignments yet.</p>
-          ) : (
-            <ul className="space-y-1">
-              {(questions?.qs ?? []).slice(0, 6).map((q: any) => {
-                const isActive = q.id === effectiveId;
-                return (
-                  <li key={q.id}>
-                    <button
-                      onClick={() => setSelectedId(q.id)}
-                      className={cn(
-                        "w-full flex items-center gap-2 text-xs text-left rounded-md px-2 py-1.5 transition-colors",
-                        isActive ? "bg-[color:var(--athena-gold)]/10 ring-1 ring-[color:var(--athena-gold)]/40" : "hover:bg-surface/50",
-                      )}
-                    >
-                      <span className="font-mono text-[10px] text-[color:var(--athena-gold)] w-10 shrink-0">{q.question_number}</span>
-                      <span className="flex-1 truncate text-foreground">{q.question_text}</span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </SubPanel>
-
-        {/* Assignment Snapshot */}
-        <SubPanel label="ASSIGNMENT SNAPSHOT">
-          {!activeQ ? (
-            <p className="text-xs text-muted-foreground">No active question.</p>
-          ) : (
-            <div className="space-y-1 text-xs">
-              <div className="font-mono text-[color:var(--athena-gold)]">{activeQ.question_number}</div>
-              <div className="text-foreground line-clamp-2">{activeQ.question_text}</div>
-              {active?.due_date && (
-                <div className="text-muted-foreground">Due {format(new Date(active.due_date), "MMM d")}</div>
-              )}
-              <div className="text-muted-foreground">Owner: You</div>
-              <div className="text-muted-foreground">Confidence: {active?.writer_confidence ?? "—"}</div>
-            </div>
-          )}
-        </SubPanel>
-
-        {/* Line of Sight */}
-        <SubPanel label="LINE OF SIGHT">
-          <ul className="space-y-1.5 text-xs">
-            <li className="flex items-center justify-between"><span className="text-muted-foreground">Dependencies</span><span className="text-foreground">0</span></li>
-            <li className="flex items-center justify-between"><span className="text-muted-foreground">Related Section</span><span className="text-foreground">{sectionInfo?.name ?? "—"}</span></li>
-            <li className="flex items-center justify-between"><span className="text-muted-foreground">Neighbors</span><span className="text-foreground">—</span></li>
-            <li className="flex items-center justify-between"><span className="text-muted-foreground">Recent Activity</span><span className="text-foreground">0</span></li>
-          </ul>
-        </SubPanel>
-
-        {/* Collaborate */}
-        <SubPanel label="COLLABORATE">
-          <div className="grid grid-cols-1 gap-1.5">
-            {[
-              { label: "Ask a Question", Icon: MessageCircle },
-              { label: "Post an Update", Icon: PencilLine },
-              { label: "Request Review", Icon: Eye },
-              { label: "Open Thread", Icon: MessagesSquare },
-            ].map((b) => (
-              <button
-                key={b.label}
-                className="flex items-center gap-2 rounded-md border border-border bg-background/40 px-2 py-1.5 text-xs text-foreground hover:bg-surface transition-colors"
-              >
-                <b.Icon className="h-3.5 w-3.5 text-[color:var(--athena-gold)]" />
-                {b.label}
-              </button>
-            ))}
-          </div>
-        </SubPanel>
-      </div>
-
-      {/* External Workspace */}
-      <div className="rounded-lg border border-[color:var(--athena-gold)]/30 bg-[color:var(--athena-gold)]/5 p-3">
-        <div className="flex items-center gap-2 mb-2">
-          <ExternalLink className="h-3.5 w-3.5 text-[color:var(--athena-gold)]" />
-          <span className="text-[10px] uppercase tracking-wider font-semibold text-[color:var(--athena-gold)]">
-            External Workspace (Where writing happens)
+    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-surface/30 px-3 py-2">
+      {missionId ? (
+        <Link
+          to="/missions/$missionId/briefing"
+          params={{ missionId }}
+          hash="my-assignments"
+          className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-3 w-3" /> All Questions
+        </Link>
+      ) : (
+        <Link to="/my-work" className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="h-3 w-3" /> All Questions
+        </Link>
+      )}
+      <span className="text-muted-foreground/40">·</span>
+      {activeQ && (
+        <>
+          <span className="font-mono text-[11px] text-[color:var(--athena-gold)]">{activeQ.question_number}</span>
+          <span className="text-[12px] font-medium text-foreground truncate max-w-[40ch]">{activeQ.question_text}</span>
+          <span className={cn("rounded-full border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider", badge.cls)}>
+            {badge.label}
           </span>
-        </div>
-        <p className="text-xs text-muted-foreground mb-2">
-          Open your client environment to create or update your response.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {["SharePoint", "Loopio", "Qvidian", "Word", "Other"].map((w) => (
-            <button
-              key={w}
-              className="rounded-md border border-border bg-background/60 px-3 py-1 text-xs text-foreground hover:bg-surface transition-colors"
-            >
-              {w}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  const intelColumn = (
-    <IntelligencePanel
-      missionId={missionId}
-      questionId={effectiveId}
-      questionText={activeQ?.question_text ?? null}
-      questionNumber={activeQ?.question_number ?? null}
-      sectionId={activeQ?.section_id ?? null}
-      sectionName={sectionInfo?.name ?? null}
-    />
-  );
-
-  return (
-    <section className="rounded-xl border border-border bg-surface/30 p-4">
-      <div className="flex items-start justify-between mb-3 gap-3">
-        <PanelHeader title="QUESTION WORKSPACE" subtitle="Your mission operations hub. You do the writing in the client environment." />
-        {missionId && (
-          <Link
-            to="/olympus/missions/$missionId"
-            params={{ missionId }}
-            className="text-xs text-[color:var(--athena-gold)] hover:underline shrink-0"
+          {dueDate && (
+            <span className="text-[10px] text-muted-foreground">Due {format(new Date(dueDate), "MMM d")}</span>
+          )}
+        </>
+      )}
+      <div className="ml-auto flex items-center gap-1">
+        {prevQ && (
+          <button
+            onClick={() => onSelect(prevQ.id)}
+            className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground rounded px-2 py-1 hover:bg-surface/50"
           >
-            View My Questions →
-          </Link>
+            <ChevronLeft className="h-3 w-3" /> prev
+          </button>
+        )}
+        {nextQ && (
+          <button
+            onClick={() => onSelect(nextQ.id)}
+            className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground rounded px-2 py-1 hover:bg-surface/50"
+          >
+            next <ChevronRight className="h-3 w-3" />
+          </button>
         )}
       </div>
-
-      {/* Question header strip: All Questions + prev/next + active question label */}
-      {activeQ && (
-        <div className="flex flex-wrap items-center gap-2 mb-3 pb-3 border-b border-border">
-          {missionId ? (
-            <Link
-              to="/missions/$missionId/briefing"
-              params={{ missionId }}
-              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="h-3 w-3" />
-              All Questions
-            </Link>
-          ) : (
-            <Link
-              to="/my-work"
-              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="h-3 w-3" />
-              All Questions
-            </Link>
-          )}
-          <span className="text-muted-foreground/40">·</span>
-          <span className="font-mono text-[11px] text-[color:var(--athena-gold)]">
-            {activeQ.question_number}
-          </span>
-          <span className="text-[11px] text-foreground/80 truncate max-w-md">
-            {activeQ.question_text}
-          </span>
-          <div className="ml-auto flex items-center gap-1">
-            {prevQ && (
-              <button
-                onClick={() => setSelectedId(prevQ.id)}
-                className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground rounded px-2 py-1 hover:bg-surface/50"
-              >
-                <ChevronLeft className="h-3 w-3" />
-                prev
-              </button>
-            )}
-            {nextQ && (
-              <button
-                onClick={() => setSelectedId(nextQ.id)}
-                className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground rounded px-2 py-1 hover:bg-surface/50"
-              >
-                next
-                <ChevronRight className="h-3 w-3" />
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Mobile tab toggle */}
-      <div className="md:hidden mb-3 sticky top-0 z-10 -mx-4 px-4 py-2 bg-surface/80 backdrop-blur border-b border-border">
-        <div className="grid grid-cols-2 gap-1 rounded-md bg-background/60 p-1">
-          {(["work", "intel"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setMobileTab(t)}
-              className={cn(
-                "rounded text-xs font-medium py-1.5 transition-colors",
-                mobileTab === t ? "bg-[color:var(--athena-gold)]/15 text-[color:var(--athena-gold)]" : "text-muted-foreground",
-              )}
-            >
-              {t === "work" ? "Work" : "Intelligence"}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Desktop: side-by-side; Mobile: stacked with tab toggle */}
-      <div className="hidden md:grid md:grid-cols-[55%_45%] md:gap-4 md:items-start">
-        <div>{workColumn}</div>
-        <div className="md:max-h-[calc(100vh-12rem)] md:overflow-y-auto md:pr-1">{intelColumn}</div>
-      </div>
-      <div className="md:hidden">
-        {mobileTab === "work" ? workColumn : intelColumn}
-      </div>
-    </section>
+    </div>
   );
 }
 
-function PriorityBadge({ p }: { p: string | null }) {
-  if (!p) return null;
-  const tone = p === "high" ? "bg-red-500/15 text-red-400 border-red-500/30"
-    : p === "medium" ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
-    : "bg-slate-500/15 text-slate-300 border-slate-500/30";
-  return <span className={cn("rounded border px-1.5 py-0.5 text-[9px] uppercase font-semibold", tone)}>{p}</span>;
-}
-
-/* ---------------- Air Traffic Control ---------------- */
-function AirTrafficControlPanel({ missionId }: { missionId: string | null }) {
-  const { data } = useQuery({
-    queryKey: ["atc", missionId],
+/* -------------------- LEFT: Intelligence -------------------- */
+function IntelligenceColumn({
+  missionId, questionId, sectionId,
+}: {
+  missionId: string | null;
+  questionId: string;
+  sectionId: string | null;
+}) {
+  // Athena insight — by section mapping, fall back to daily
+  const { data: athena } = useQuery({
+    queryKey: ["fd-athena", missionId, sectionId],
     enabled: !!missionId,
     queryFn: async () => {
-      const [sosRes, decRes, updRes, intRes] = await Promise.all([
-        supabase.from("atlas_notifications").select("id, created_at, message").eq("type", "sos").order("created_at", { ascending: false }).limit(5),
-        supabase.from("mission_decisions").select("id, title, created_at, status").eq("mission_id", missionId!).order("created_at", { ascending: false }).limit(5),
-        supabase.from("reality_updates").select("id, details, created_at").eq("mission_id", missionId!).order("created_at", { ascending: false }).limit(5),
-        supabase.from("intelligence_feed_items").select("id, headline, created_at").eq("mission_id", missionId!).order("created_at", { ascending: false }).limit(5),
-      ]);
+      if (sectionId) {
+        const { data: maps } = await supabase
+          .from("athena_insight_mappings")
+          .select("insight_id")
+          .eq("mission_id", missionId!)
+          .eq("section_id", sectionId);
+        const ids = (maps ?? []).map((m: any) => m.insight_id).filter(Boolean);
+        if (ids.length) {
+          const { data } = await supabase
+            .from("athena_insights")
+            .select("strategic_quote, quote, writers_note, why_it_matters, title")
+            .in("id", ids)
+            .limit(1);
+          if (data?.length) return data[0];
+        }
+      }
+      const { data: daily } = await supabase
+        .from("athena_insights")
+        .select("strategic_quote, quote, writers_note, why_it_matters, title")
+        .eq("mission_id", missionId!)
+        .eq("is_daily_insight", true)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      return daily?.[0] ?? null;
+    },
+  });
+
+  // Section brief
+  const { data: brief } = useQuery({
+    queryKey: ["fd-brief", sectionId],
+    enabled: !!sectionId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("section_briefs")
+        .select("refined_brief, content, section_name")
+        .eq("section_id", sectionId!)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      return data?.[0] ?? null;
+    },
+  });
+
+  // Evaluator picture
+  const { data: evaluator } = useQuery({
+    queryKey: ["fd-evaluator", missionId, questionId],
+    enabled: !!missionId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("evaluator_pictures")
+        .select("inferred_fears, inferred_defensibility_needs, one_sentence_bottom_line, question_snapshots")
+        .eq("mission_id", missionId!)
+        .order("generated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!data) return null;
+      const snaps = Array.isArray(data.question_snapshots) ? data.question_snapshots : [];
+      const snap = snaps.find((s: any) => s?.question_id === questionId || s?.section_id === sectionId) as any;
       return {
-        sos: sosRes.data ?? [],
-        decisions: decRes.data ?? [],
-        updates: updRes.data ?? [],
-        intel: intRes.data ?? [],
+        oneThing: snap?.one_thing_to_know ?? data.one_sentence_bottom_line ?? null,
+        fears: (Array.isArray(data.inferred_fears) ? data.inferred_fears : []).slice(0, 2),
+        needs: (Array.isArray(data.inferred_defensibility_needs) ? data.inferred_defensibility_needs : []).slice(0, 2),
       };
     },
   });
 
-  const cards = [
-    {
-      label: "SOS STATUS",
-      count: data?.sos.length ?? 0,
-      sub: "Direction Needed",
-      detail: data?.sos[0]?.created_at ? `Last ${formatDistanceToNow(new Date(data.sos[0].created_at), { addSuffix: true })}` : "No SOS items",
-      tone: "red",
+  // Compliance requirements (section, fallback to question linkage)
+  const { data: reqs } = useQuery({
+    queryKey: ["fd-reqs", sectionId, missionId],
+    enabled: !!sectionId || !!missionId,
+    queryFn: async () => {
+      if (sectionId) {
+        const { data } = await supabase
+          .from("mission_compliance_requirements")
+          .select("id, requirement, is_high_risk, status")
+          .eq("section_id", sectionId);
+        return data ?? [];
+      }
+      return [];
     },
-    {
-      label: "LEADERSHIP DECISIONS",
-      count: data?.decisions.length ?? 0,
-      sub: (data?.decisions[0] as any)?.title ?? "No recent decisions",
-      detail: (data?.decisions[0] as any)?.status ?? "",
-      tone: "green",
-    },
-    {
-      label: "MISSION UPDATES",
-      count: data?.updates.length ?? 0,
-      sub: (data?.updates[0] as any)?.details?.slice(0, 60) ?? "No updates",
-      detail: (data?.updates[0] as any)?.created_at ? formatDistanceToNow(new Date((data!.updates[0] as any).created_at), { addSuffix: true }) : "",
-      tone: "blue",
-    },
-    {
-      label: "NEW INTELLIGENCE",
-      count: data?.intel.length ?? 0,
-      sub: (data?.intel[0] as any)?.headline?.slice(0, 60) ?? "No new intel",
-      detail: (data?.intel[0] as any)?.created_at ? formatDistanceToNow(new Date((data!.intel[0] as any).created_at), { addSuffix: true }) : "",
-      tone: "gold",
-    },
-    {
-      label: "ESCALATIONS",
-      count: 0,
-      sub: "No open escalations",
-      detail: "",
-      tone: "amber",
-    },
-  ];
+  });
 
   return (
-    <section className="rounded-xl border border-border bg-surface/30 p-4">
-      <PanelHeader title="AIR TRAFFIC CONTROL" subtitle="Leadership has you on their screen." />
-      <div className="mt-3 grid grid-cols-1 md:grid-cols-5 gap-3">
-        {cards.map((c) => (
-          <div key={c.label} className="rounded-lg border border-border bg-background/40 p-3">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{c.label}</div>
-            <div className="mt-1 flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-foreground">{c.count}</span>
-              <CountBadge n={c.count} tone={c.tone as any} />
-            </div>
-            <div className="mt-1 text-xs text-foreground truncate">{c.sub}</div>
-            {c.detail && <div className="text-[10px] text-muted-foreground truncate">{c.detail}</div>}
-          </div>
-        ))}
+    <div className="space-y-3">
+      <div>
+        <div className="text-[9px] uppercase tracking-[0.07em] text-muted-foreground font-semibold">INTELLIGENCE</div>
+        <div className="text-[8px] text-muted-foreground/60 italic mt-0.5">Sourced from Oracle · Updated by IRIS</div>
       </div>
-    </section>
-  );
-}
 
-/* ---------------- Shared ---------------- */
-function PanelHeader({ title, subtitle }: { title: string; subtitle?: string }) {
-  return (
-    <div>
-      <h2 className="text-xs font-bold uppercase tracking-wider text-[color:var(--athena-gold)]">{title}</h2>
-      {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
+      {/* Athena */}
+      {athena ? (
+        <div className="rounded-lg p-3" style={{ background: "rgba(196,154,43,0.06)", border: "1px solid rgba(196,154,43,0.3)" }}>
+          <div className="text-[9px] uppercase tracking-wider font-semibold" style={{ color: "#C49A2B" }}>✦ ATHENA STRATEGY</div>
+          <div className="mt-2 text-[13px] italic text-white" style={{ lineHeight: 1.6 }}>
+            {athena.strategic_quote || athena.quote || athena.title}
+          </div>
+          {athena.writers_note && (
+            <div className="mt-2 pl-2 text-[11px] italic text-muted-foreground" style={{ borderLeft: "2px solid #C49A2B" }}>
+              {athena.writers_note}
+            </div>
+          )}
+        </div>
+      ) : (
+        <PurplePlaceholder text="IRIS is generating the strategic insight for this section." />
+      )}
+
+      {/* IRIS Brief */}
+      <div className="rounded-lg p-3" style={{ background: "rgba(127,119,221,0.06)", border: "0.5px solid rgba(127,119,221,0.2)" }}>
+        <div className="text-[9px] uppercase tracking-wider font-semibold" style={{ color: "#C8C3FF" }}>IRIS BRIEF</div>
+        {brief?.refined_brief || brief?.content ? (
+          <div className="mt-2 text-[11px]" style={{ color: "rgba(255,255,255,0.75)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+            {brief.refined_brief || brief.content}
+          </div>
+        ) : (
+          <div className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
+            <Eye className="h-3 w-3 animate-pulse" style={{ color: "#C8C3FF" }} />
+            IRIS is preparing your brief...
+          </div>
+        )}
+      </div>
+
+      {/* How They Are Thinking */}
+      <div className="rounded-lg p-3" style={{ background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.06)" }}>
+        <div className="text-[9px] uppercase tracking-wider font-semibold text-muted-foreground">HOW THEY ARE THINKING</div>
+        {evaluator ? (
+          <div className="mt-2 space-y-2">
+            {evaluator.oneThing && (
+              <div className="text-[12px] italic text-white pl-2" style={{ borderLeft: "2px solid #C49A2B" }}>
+                {evaluator.oneThing}
+              </div>
+            )}
+            {evaluator.fears.map((f: string, i: number) => (
+              <div key={`f${i}`} className="flex items-start gap-2 text-[10px] text-muted-foreground">
+                <span className="mt-1 h-1.5 w-1.5 rounded-full shrink-0" style={{ background: "#E04A4A" }} />
+                <span>{f}</span>
+              </div>
+            ))}
+            {evaluator.needs.map((n: string, i: number) => (
+              <div key={`n${i}`} className="flex items-start gap-2 text-[10px] text-muted-foreground">
+                <span className="mt-1 h-1.5 w-1.5 rounded-full shrink-0" style={{ background: "#C49A2B" }} />
+                <span>{n}</span>
+              </div>
+            ))}
+            {missionId && (
+              <Link
+                to="/missions/$missionId/oracle"
+                params={{ missionId }}
+                search={{ tab: "evaluator-picture" }}
+                className="inline-block text-[10px] font-medium hover:underline"
+                style={{ color: "#C49A2B" }}
+              >
+                Full Evaluator Picture →
+              </Link>
+            )}
+          </div>
+        ) : (
+          <div className="mt-2 text-[11px] italic text-muted-foreground">
+            Evaluator Picture not yet built. It appears after BLAST OFF.
+          </div>
+        )}
+      </div>
+
+      {/* Requirements */}
+      <div className="rounded-lg p-3" style={{ background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.06)" }}>
+        <div className="text-[9px] uppercase tracking-wider font-semibold text-muted-foreground">KEY REQUIREMENTS</div>
+        {reqs && reqs.length > 0 ? (
+          <ul className="mt-2 space-y-1.5">
+            {reqs.map((r: any) => {
+              const dot = r.is_high_risk ? "#E04A4A" : r.status === "in_progress" ? "#EF9F27" : "rgba(255,255,255,0.4)";
+              return (
+                <li key={r.id} className="flex items-start gap-2 text-[11px]" style={{ color: "rgba(255,255,255,0.65)" }}>
+                  <span className="mt-1.5 h-1.5 w-1.5 rounded-full shrink-0" style={{ background: dot }} />
+                  <span>{r.requirement}</span>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <div className="mt-2 text-[11px] italic text-muted-foreground">
+            No compliance requirements linked to this section. Check the Compliance section in the sidebar.
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-function SubPanel({ label, children }: { label: string; children: React.ReactNode }) {
+function PurplePlaceholder({ text }: { text: string }) {
   return (
-    <div className="rounded-lg border border-border bg-background/40 p-3 space-y-1.5">
-      <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{label}</div>
-      {children}
+    <div className="rounded-lg p-3 flex items-center gap-2" style={{ background: "rgba(127,119,221,0.06)", border: "0.5px solid rgba(127,119,221,0.2)" }}>
+      <Eye className="h-3 w-3 animate-pulse" style={{ color: "#C8C3FF" }} />
+      <span className="text-[11px] italic" style={{ color: "rgba(200,195,255,0.8)" }}>{text}</span>
+    </div>
+  );
+}
+
+/* -------------------- RIGHT: My Work -------------------- */
+function MyWorkColumn({
+  missionId, questionId, questionNumber, questionText, sectionName,
+  assignmentId, writerConfidence, onChanged,
+}: {
+  missionId: string | null;
+  questionId: string;
+  questionNumber: string | null;
+  questionText: string | null;
+  sectionName: string | null;
+  assignmentId: string | null;
+  writerConfidence: string | null;
+  onChanged: () => void;
+}) {
+  const [status, setStatus] = useState("");
+  const [posting, setPosting] = useState(false);
+  const [scoreOpen, setScoreOpen] = useState(false);
+  const [confidence, setConfidence] = useState<string | null>(writerConfidence);
+
+  useEffect(() => setConfidence(writerConfidence), [writerConfidence]);
+
+  async function postUpdate() {
+    if (!status.trim() || !missionId) return;
+    setPosting(true);
+    try {
+      const { data: u } = await supabase.auth.getUser();
+      const { data: prof } = u.user
+        ? await supabase.from("profiles").select("display_name,email").eq("id", u.user.id).maybeSingle()
+        : { data: null };
+      const senderName = prof?.display_name || prof?.email || "Writer";
+
+      await Promise.all([
+        supabase.from("thread_messages").insert({
+          mission_id: missionId,
+          question_id: questionId,
+          sender_id: u.user?.id ?? null,
+          sender_name: senderName,
+          message_body: status.trim(),
+          message_type: "status_update",
+        } as any),
+        supabase.from("team_updates" as any).insert({
+          mission_id: missionId,
+          question_id: questionId,
+          sender_id: u.user?.id ?? null,
+          sender_name: senderName,
+          update_type: "writer_update",
+          body: status.trim(),
+        }),
+      ]);
+      setStatus("");
+      toast.success("Update posted to the team and the thread.");
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not post update");
+    } finally {
+      setPosting(false);
+    }
+  }
+
+  async function pickConfidence(c: "low" | "medium" | "high") {
+    setConfidence(c); // optimistic
+    if (!assignmentId) return;
+    try {
+      await supabase.from("mission_assignments").update({ writer_confidence: c } as any).eq("id", assignmentId);
+      onChanged();
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not save confidence");
+      setConfidence(writerConfidence);
+    }
+  }
+
+  function askIris(prompt: string) {
+    const context = [
+      questionNumber ? `Question ${questionNumber}` : null,
+      sectionName ? `Section: ${sectionName}` : null,
+      questionText ? `Question: ${questionText}` : null,
+    ].filter(Boolean).join("\n");
+    window.dispatchEvent(new CustomEvent("atlas:iris:prefill", { detail: `${prompt}\n\n${context}` }));
+  }
+
+  const prompts = [
+    "Draft a response for me",
+    "What evidence is strongest?",
+    "What is the evaluator afraid of?",
+    "Am I missing anything?",
+  ];
+
+  return (
+    <div className="space-y-3">
+      {/* The Question */}
+      <div className="rounded-lg p-3 border border-border bg-background/40">
+        {sectionName && (
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{sectionName}</div>
+        )}
+        <div className="mt-1 text-[13px] text-white" style={{ lineHeight: 1.7 }}>
+          {questionText}
+        </div>
+      </div>
+
+      {/* My Status */}
+      <div className="rounded-lg p-3 border border-border bg-background/40">
+        <div className="text-[10px] text-muted-foreground">My status</div>
+        <textarea
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          rows={2}
+          placeholder="What changed? What do you need? What is the current state of this response?"
+          className="mt-2 w-full bg-black/30 border border-white/10 rounded-md p-2 text-[12px] text-white"
+          style={{ fontFamily: "inherit", resize: "vertical" }}
+        />
+        <div className="mt-2 flex justify-end">
+          <button
+            onClick={postUpdate}
+            disabled={!status.trim() || posting}
+            className="px-3 py-1.5 rounded text-[12px] font-medium disabled:opacity-50"
+            style={{ background: "#C49A2B", color: "#0a1420", cursor: status.trim() && !posting ? "pointer" : "not-allowed" }}
+          >
+            {posting ? "Posting..." : "Post Update"}
+          </button>
+        </div>
+      </div>
+
+      {/* Confidence */}
+      <div className="rounded-lg p-3 border border-border bg-background/40">
+        <div className="text-[10px] text-muted-foreground">My confidence</div>
+        <div className="mt-2 grid grid-cols-3 gap-2">
+          {(["low", "medium", "high"] as const).map((c) => {
+            const active = confidence === c;
+            const map = {
+              low: { bg: "rgba(224,74,74,0.15)", border: "rgba(224,74,74,0.5)", color: "#f08080", icon: AlertTriangle },
+              medium: { bg: "rgba(239,159,39,0.15)", border: "rgba(239,159,39,0.5)", color: "#EF9F27", icon: Sparkles },
+              high: { bg: "rgba(26,122,74,0.15)", border: "rgba(26,122,74,0.5)", color: "#3DBE7D", icon: CheckCircle2 },
+            }[c];
+            const Icon = map.icon;
+            return (
+              <button
+                key={c}
+                onClick={() => pickConfidence(c)}
+                className="rounded-md py-2.5 text-[12px] font-semibold capitalize flex items-center justify-center gap-1.5"
+                style={{
+                  background: active ? map.bg : "rgba(255,255,255,0.03)",
+                  border: `1px solid ${active ? map.border : "rgba(255,255,255,0.08)"}`,
+                  color: active ? map.color : "rgba(255,255,255,0.55)",
+                }}
+              >
+                <Icon className="h-3.5 w-3.5" /> {c}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Score Me CTA */}
+      <button
+        onClick={() => setScoreOpen(true)}
+        className="w-full text-left rounded-lg p-3"
+        style={{ background: "rgba(196,154,43,0.06)", border: "1px solid rgba(196,154,43,0.4)" }}
+      >
+        <div className="flex items-center gap-2 text-[13px] font-medium" style={{ color: "#C49A2B" }}>
+          <Target className="h-3.5 w-3.5" /> Score My Response
+        </div>
+        <div className="mt-1 text-[11px] text-muted-foreground">
+          Paste your draft — IRIS coaches it before anyone else sees it.
+        </div>
+      </button>
+
+      {/* Ask IRIS */}
+      <div className="rounded-lg p-3" style={{ background: "rgba(127,119,221,0.06)", border: "0.5px solid rgba(127,119,221,0.2)" }}>
+        <div className="text-[12px] font-medium" style={{ color: "#C8C3FF" }}>
+          Ask IRIS anything about this question
+        </div>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {prompts.map((p) => (
+            <button
+              key={p}
+              onClick={() => askIris(p)}
+              className="px-2.5 py-1 rounded-full text-[10px]"
+              style={{
+                background: "rgba(127,119,221,0.1)",
+                border: "1px solid rgba(127,119,221,0.3)",
+                color: "rgba(200,195,255,0.9)",
+              }}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <ScoreMeDialog
+        open={scoreOpen}
+        onOpenChange={setScoreOpen}
+        missionId={missionId}
+        questionId={questionId}
+        questionNumber={questionNumber}
+        questionText={questionText}
+      />
     </div>
   );
 }
