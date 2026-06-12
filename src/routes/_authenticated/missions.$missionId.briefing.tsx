@@ -14,6 +14,7 @@ import { SectionMissionMap } from "@/components/briefing-room/SectionMissionMap"
 import { SectionRisks } from "@/components/briefing-room/SectionRisks";
 import { SectionDocuments } from "@/components/briefing-room/SectionDocuments";
 import { SectionSignals } from "@/components/briefing-room/SectionSignals";
+import { SectionTimeline } from "@/components/briefing-room/SectionTimeline";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/briefing")({
   component: BriefingPage,
@@ -41,6 +42,7 @@ function BriefingPage() {
 
       <div className="space-y-4">
         <Suspense fallback={<SectionSkeleton height={220} />}><SectionSnapshot {...props} /></Suspense>
+        <Suspense fallback={<SectionSkeleton height={200} />}><SectionTimeline {...props} /></Suspense>
         <Suspense fallback={<SectionSkeleton height={180} />}><SectionWhyMatters {...props} /></Suspense>
         <Suspense fallback={<SectionSkeleton height={260} />}><SectionNorthStar {...props} /></Suspense>
         <Suspense fallback={<SectionSkeleton height={300} />}><SectionIntelligence {...props} /></Suspense>
