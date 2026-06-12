@@ -383,36 +383,306 @@ function SectionCard({ title, children }: { title: string; children: React.React
   );
 }
 
+const MISSION_ROLES = [
+  "Mission Lead",
+  "Analyst",
+  "Advisor",
+  "Reviewer",
+  "Copy Editor",
+] as const;
+
+const AVATAR_COLORS = [
+  "#7c5cff", "#c9a84c", "#3b82f6", "#10b981", "#ef4444",
+  "#f59e0b", "#ec4899", "#06b6d4", "#8b5cf6", "#84cc16",
+];
+
+function initialsOf(first?: string | null, last?: string | null, email?: string | null) {
+  const a = (first ?? "").trim()[0];
+  const b = (last ?? "").trim()[0];
+  if (a || b) return `${a ?? ""}${b ?? ""}`.toUpperCase();
+  return (email ?? "?").slice(0, 2).toUpperCase();
+}
+function colorFor(id: string) {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
+}
+
+type TeamMemberRow = {
+  id: string;
+  member_id: string;
+  mission_role: string | null;
+};
+type StaffRow = {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  job_title: string | null;
+};
+
 function TeamTab({ missionId }: { missionId: string }) {
-  const { data: members = [] } = useQuery({
+  const qc = useQueryClient();
+  const [search, setSearch] = useState("");
+
+  const { data: assigned = [] } = useQuery({
     queryKey: ["admin-mission-team", missionId],
-    queryFn: async () => {
+    queryFn: async (): Promise<TeamMemberRow[]> => {
       const { data } = await supabase
         .from("mission_team_members")
-        .select("id,role,user_id")
+        .select("id,member_id,mission_role")
         .eq("mission_id", missionId);
-      return data ?? [];
+      return (data as TeamMemberRow[]) ?? [];
     },
   });
+
+  const { data: staff = [] } = useQuery({
+    queryKey: ["admin-mission-team-staff"],
+    queryFn: async (): Promise<StaffRow[]> => {
+      const { data } = await supabase
+        .from("atlas_team_members")
+        .select("id,first_name,last_name,email,job_title")
+        .eq("is_removed", false)
+        .order("first_name", { ascending: true });
+      return (data as StaffRow[]) ?? [];
+    },
+  });
+
+  const { data: qStats } = useQuery({
+    queryKey: ["admin-mission-team-stats", missionId],
+    queryFn: async () => {
+      const [{ count: totalQ }, { data: qaRows }] = await Promise.all([
+        supabase.from("questions").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
+        supabase.from("question_assignments").select("workstream_lead,athena_sme_name").eq("mission_id", missionId),
+      ]);
+      const assignedCount = (qaRows ?? []).filter((r: any) => r.workstream_lead).length;
+      const missingSme = (qaRows ?? []).filter((r: any) => !r.athena_sme_name).length;
+      const total = totalQ ?? 0;
+      const unassigned = Math.max(0, total - assignedCount);
+      return { total, assignedCount, missingSme, unassigned };
+    },
+  });
+
+  const staffById = new Map(staff.map((s) => [s.id, s]));
+  const assignedIds = new Set(assigned.map((a) => a.member_id));
+  const q = search.trim().toLowerCase();
+  const matches = (s: StaffRow) =>
+    !q ||
+    `${s.first_name ?? ""} ${s.last_name ?? ""}`.toLowerCase().includes(q) ||
+    (s.email ?? "").toLowerCase().includes(q) ||
+    (s.job_title ?? "").toLowerCase().includes(q);
+
+  const assignedFiltered = assigned.filter((a) => {
+    const s = staffById.get(a.member_id);
+    return s ? matches(s) : true;
+  });
+  const available = staff.filter((s) => !assignedIds.has(s.id) && matches(s));
+
+  async function updateRole(rowId: string, role: string) {
+    const { error } = await (supabase.from("mission_team_members").update({ mission_role: role }) as any).eq("id", rowId);
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries({ queryKey: ["admin-mission-team", missionId] });
+  }
+  async function removeMember(rowId: string) {
+    const { error } = await (supabase.from("mission_team_members").delete() as any).eq("id", rowId);
+    if (error) return toast.error(error.message);
+    toast.success("Removed from mission");
+    qc.invalidateQueries({ queryKey: ["admin-mission-team", missionId] });
+  }
+  async function addMember(memberId: string) {
+    const { error } = await supabase
+      .from("mission_team_members")
+      .insert({ mission_id: missionId, member_id: memberId, mission_role: "Analyst" } as any);
+    if (error) return toast.error(error.message);
+    toast.success("Added to mission");
+    qc.invalidateQueries({ queryKey: ["admin-mission-team", missionId] });
+  }
+
+  const totalQ = qStats?.total ?? 24;
+
   return (
-    <SectionCard title={`Team (${members.length})`}>
-      {members.length === 0 ? (
-        <div className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
-          No team members assigned yet.
+    <div className="space-y-5">
+      {/* Header row */}
+      <div className="flex items-center justify-between">
+        <div className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
+          Assign and manage staff for this mission
         </div>
-      ) : (
-        <ul className="space-y-2">
-          {members.map((m: any) => (
-            <li key={m.id} className="flex items-center justify-between rounded-md px-3 py-2" style={{ background: "rgba(255,255,255,0.03)" }}>
-              <span className="text-sm text-white/80 font-mono text-xs">{m.user_id?.slice(0, 8)}…</span>
-              <span className="text-xs px-2 py-0.5 rounded" style={{ background: "rgba(201,168,76,0.12)", color: "#c9a84c" }}>
-                {m.role ?? "—"}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </SectionCard>
+        <button
+          type="button"
+          onClick={() => {
+            const first = available[0];
+            if (first) addMember(first.id);
+            else toast.info("No available staff to add");
+          }}
+          className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold"
+          style={{ background: "#c9a84c", color: "#080c14" }}
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Add member
+        </button>
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <Search
+          className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4"
+          style={{ color: "rgba(255,255,255,0.35)" }}
+        />
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search staff by name or role…"
+          style={{
+            ...inputStyle,
+            paddingLeft: 36,
+            paddingTop: 10,
+            paddingBottom: 10,
+          }}
+        />
+      </div>
+
+      {/* Assigned list */}
+      <SectionCard title={`Assigned (${assignedFiltered.length})`}>
+        {assignedFiltered.length === 0 ? (
+          <div className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
+            No staff assigned yet — add members from the list below.
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            {assignedFiltered.map((row) => {
+              const s = staffById.get(row.member_id);
+              const name = s ? `${s.first_name ?? ""} ${s.last_name ?? ""}`.trim() || s.email : row.member_id.slice(0, 8);
+              return (
+                <li
+                  key={row.id}
+                  className="flex items-center gap-3 rounded-md px-3 py-2.5"
+                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}
+                >
+                  <div
+                    className="h-8 w-8 rounded-full flex items-center justify-center text-[11px] font-semibold text-white shrink-0"
+                    style={{ background: colorFor(row.member_id) }}
+                  >
+                    {initialsOf(s?.first_name, s?.last_name, s?.email)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm text-white/90 truncate">{name}</div>
+                    {s?.job_title && (
+                      <div className="text-xs truncate" style={{ color: "rgba(255,255,255,0.45)" }}>
+                        {s.job_title}
+                      </div>
+                    )}
+                  </div>
+                  <select
+                    value={MISSION_ROLES.includes(row.mission_role as any) ? (row.mission_role as string) : "Analyst"}
+                    onChange={(e) => updateRole(row.id, e.target.value)}
+                    style={{
+                      background: "rgba(201,168,76,0.08)",
+                      border: "1px solid rgba(201,168,76,0.3)",
+                      color: "#c9a84c",
+                      borderRadius: 6,
+                      padding: "5px 8px",
+                      fontSize: 12,
+                    }}
+                  >
+                    {MISSION_ROLES.map((r) => (
+                      <option key={r} value={r} style={{ background: "#0a121f" }}>
+                        {r}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => removeMember(row.id)}
+                    className="p-1.5 rounded hover:bg-white/5 transition-colors"
+                    style={{ color: "rgba(255,255,255,0.4)" }}
+                    aria-label="Remove"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </SectionCard>
+
+      {/* Available */}
+      <SectionCard title={`Available staff (${available.length})`}>
+        {available.length === 0 ? (
+          <div className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
+            All matching staff are already assigned.
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            {available.slice(0, 8).map((s) => {
+              const name = `${s.first_name ?? ""} ${s.last_name ?? ""}`.trim() || s.email || "Staff";
+              return (
+                <li
+                  key={s.id}
+                  className="flex items-center gap-3 rounded-md px-3 py-2.5 opacity-70 hover:opacity-100 transition-opacity"
+                  style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.08)" }}
+                >
+                  <div
+                    className="h-8 w-8 rounded-full flex items-center justify-center text-[11px] font-semibold text-white shrink-0"
+                    style={{ background: colorFor(s.id) }}
+                  >
+                    {initialsOf(s.first_name, s.last_name, s.email)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm text-white/80 truncate">{name}</div>
+                    {s.job_title && (
+                      <div className="text-xs truncate" style={{ color: "rgba(255,255,255,0.4)" }}>
+                        {s.job_title}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => addMember(s.id)}
+                    className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium"
+                    style={{
+                      background: "rgba(201,168,76,0.1)",
+                      border: "1px solid rgba(201,168,76,0.3)",
+                      color: "#c9a84c",
+                    }}
+                  >
+                    <Plus className="h-3 w-3" />
+                    Add
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </SectionCard>
+
+      {/* IRIS coverage banner */}
+      <div
+        className="rounded-lg p-4 flex items-start gap-3"
+        style={{
+          background: "rgba(201,168,76,0.06)",
+          border: "1px solid rgba(201,168,76,0.4)",
+        }}
+      >
+        <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" style={{ color: "#c9a84c" }} />
+        <div className="flex-1 text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.8)" }}>
+          <div className="font-semibold mb-0.5" style={{ color: "#c9a84c" }}>
+            IRIS coverage
+          </div>
+          <span className="text-white/90">{qStats?.assignedCount ?? 0}</span> of {totalQ} questions assigned ·{" "}
+          <span className="text-white/90">{qStats?.missingSme ?? 0}</span> sections missing SMEs ·{" "}
+          <span className="text-white/90">{qStats?.unassigned ?? totalQ}</span> unassigned questions
+        </div>
+        <button
+          type="button"
+          className="text-xs font-medium underline-offset-2 hover:underline shrink-0"
+          style={{ color: "#c9a84c" }}
+          onClick={() => toast.info("Coverage gaps view coming soon")}
+        >
+          View gaps →
+        </button>
+      </div>
+    </div>
   );
 }
 
