@@ -80,7 +80,7 @@ function StaffPage() {
     queryFn: async (): Promise<Staff[]> => {
       const { data } = await supabase
         .from("atlas_team_members")
-        .select("id,first_name,last_name,email,job_title,atlas_role,atlas_hipaa_acknowledged,atlas_invite_status")
+        .select("id,first_name,last_name,email,job_title,atlas_role,atlas_hipaa_acknowledged,atlas_invite_status,clearance_status")
         .eq("is_removed", false)
         .order("first_name", { ascending: true });
       return (data ?? []) as Staff[];
