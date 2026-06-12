@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { CheckCircle2, FileText, Plus, UploadCloud, X, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { IrisMark } from "@/components/iris/IrisMark";
+import { MissionAnalysisAnimation } from "@/components/mission-wizard/MissionAnalysisAnimation";
 import { cn } from "@/lib/utils";
 
 const BUCKET = "atlas-rfp-documents";
@@ -87,6 +88,7 @@ export function Step1BUpload({
   const [rows, setRows] = useState<Row[]>([]);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -247,6 +249,10 @@ export function Step1BUpload({
     }
   }
 
+  if (analyzing) {
+    return <MissionAnalysisAnimation onComplete={onAdvance} />;
+  }
+
   return (
     <div
       className="min-h-screen flex flex-col px-4 py-10"
@@ -375,7 +381,7 @@ export function Step1BUpload({
         {/* Continue */}
         <div className="mt-12 flex justify-end">
           <button
-            onClick={onAdvance}
+            onClick={() => setAnalyzing(true)}
             disabled={!hasAnyDone}
             className={cn(
               "inline-flex items-center gap-2 rounded-lg px-6 py-3 text-[14px] font-medium transition-all",
