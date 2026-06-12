@@ -7,21 +7,19 @@ import { BriefingHeader } from "@/components/briefing-room/BriefingHeader";
 import { SectionSkeleton } from "@/components/briefing-room/SectionCard";
 import { SectionSnapshot } from "@/components/briefing-room/SectionSnapshot";
 import { SectionWhyMatters } from "@/components/briefing-room/SectionWhyMatters";
-import { SectionNorthStar } from "@/components/briefing-room/SectionNorthStar";
 import { SectionIntelligence } from "@/components/briefing-room/SectionIntelligence";
 import { SectionClientStory } from "@/components/briefing-room/SectionClientStory";
-import { SectionMissionMap } from "@/components/briefing-room/SectionMissionMap";
-import { SectionRisks } from "@/components/briefing-room/SectionRisks";
+import { SectionBriefAtRisk } from "@/components/briefing-room/SectionBriefAtRisk";
 import { SectionDocuments } from "@/components/briefing-room/SectionDocuments";
 import { SectionSignals } from "@/components/briefing-room/SectionSignals";
 import { SectionTimeline } from "@/components/briefing-room/SectionTimeline";
-import { WinStrategyLiveTab } from "@/components/mission-command/WinStrategyLiveTab";
+import { StrategyView } from "@/components/mission-command/StrategyView";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/briefing")({
   component: BriefingPage,
 });
 
-const GOLD = "#C49A2B";
+const GOLD = "#c9a84c";
 type SubTab = "brief" | "strategy";
 
 function BriefingPage() {
@@ -78,20 +76,17 @@ function BriefingPage() {
 
       {tab === "brief" ? (
         <div className="space-y-4">
-          <Suspense fallback={<SectionSkeleton height={220} />}><SectionSnapshot {...props} /></Suspense>
+          <Suspense fallback={<SectionSkeleton height={140} />}><SectionSnapshot {...props} /></Suspense>
           <Suspense fallback={<SectionSkeleton height={200} />}><SectionTimeline {...props} /></Suspense>
           <Suspense fallback={<SectionSkeleton height={180} />}><SectionWhyMatters {...props} /></Suspense>
-          <Suspense fallback={<SectionSkeleton height={260} />}><SectionNorthStar {...props} /></Suspense>
-          <Suspense fallback={<SectionSkeleton height={300} />}><SectionIntelligence {...props} /></Suspense>
+          <Suspense fallback={<SectionSkeleton height={260} />}><SectionIntelligence {...props} /></Suspense>
           <Suspense fallback={<SectionSkeleton height={220} />}><SectionClientStory {...props} /></Suspense>
-          <Suspense fallback={<SectionSkeleton height={300} />}><SectionMissionMap {...props} /></Suspense>
-          <Suspense fallback={<SectionSkeleton height={160} />}><SectionRisks {...props} /></Suspense>
-          <Suspense fallback={<SectionSkeleton height={160} />}><SectionDocuments {...props} /></Suspense>
-          <Suspense fallback={<SectionSkeleton height={180} />}><SectionSignals {...props} /></Suspense>
-          <Suspense fallback={<SectionSkeleton height={180} />}><SectionSignals {...props} /></Suspense>
+          <Suspense fallback={<SectionSkeleton height={200} />}><SectionBriefAtRisk {...props} /></Suspense>
+          <Suspense fallback={<SectionSkeleton height={120} />}><SectionDocuments {...props} /></Suspense>
+          <Suspense fallback={<SectionSkeleton height={160} />}><SectionSignals {...props} /></Suspense>
         </div>
       ) : (
-        <WinStrategyLiveTab missionId={missionId} missionName={header.mission?.name ?? "Mission"} />
+        <StrategyView missionId={missionId} missionName={header.mission?.name ?? "Mission"} />
       )}
     </div>
   );
