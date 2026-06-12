@@ -200,14 +200,17 @@ function AuthedShell({ email, isAdmin }: { email: string | null; isAdmin: boolea
   }, [email, isAdmin]);
 
   const onDesk = pathname.startsWith("/olympus/flight-deck");
-  const sidebarWidth = onDesk ? 0 : (isMobile ? 48 : 200);
+  const inMission = /^\/(?:olympus\/)?missions\/[^/]+/.test(pathname);
+  const hideSidebar = onDesk || inMission;
+  const sidebarWidth = hideSidebar ? 0 : (isMobile ? 48 : 200);
   const railWidth = 48;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <GlobalCommandBar email={email} isAdmin={isAdmin} />
       <IconRail />
-      {!onDesk && <AppSidebar userName={userName} userRole={userRole} />}
+      {!hideSidebar && <AppSidebar userName={userName} userRole={userRole} />}
+
       <main style={{ marginLeft: sidebarWidth + railWidth, paddingTop: 0, position: "relative" }}>
         <IrisExplainThisPage />
         <Outlet />

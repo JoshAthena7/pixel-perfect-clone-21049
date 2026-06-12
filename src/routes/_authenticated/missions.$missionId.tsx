@@ -37,6 +37,14 @@ function MissionLayout() {
           className="sticky top-12 z-30 flex items-center gap-1 px-6 h-10"
           style={{ background: "#070f1c", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
         >
+          <Link
+            to="/home"
+            className="inline-flex items-center mr-3 hover:text-white"
+            style={{ color: "rgba(255,255,255,0.5)", fontSize: 12 }}
+          >
+            ← Missions
+          </Link>
+
           {TABS.map((t) => {
             const active = seg === t.id || (seg === "" && t.id === "briefing");
             return (
