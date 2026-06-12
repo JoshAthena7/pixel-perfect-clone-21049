@@ -337,8 +337,9 @@ function MissionContextBlock({
         className="px-3 py-3"
         style={{ borderBottom: "0.5px solid rgba(255,255,255,0.06)" }}
       >
-        <div style={{ color: "#c9a84c", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em" }}>
-          ATLAS · ADMIN
+        <div className="flex items-center gap-2">
+          <img src={atlasWordmark.url} alt="ATLAS" draggable={false} style={{ height: 14, width: "auto", objectFit: "contain" }} />
+          <span style={{ color: "#c9a84c", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em" }}>· ADMIN</span>
         </div>
         <div className="mt-0.5" style={{ color: "rgba(255,255,255,0.35)", fontSize: 9 }}>
           Platform administration
