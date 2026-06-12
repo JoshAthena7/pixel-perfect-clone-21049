@@ -74,6 +74,19 @@ export const buildLineOfSight = createServerFn({ method: "POST" })
 
     const missionId = data.missionId;
 
+    // Duplicate-run guard: skip if a full-mission scan ran in the last 5 minutes.
+    const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const { data: recent } = await supabase
+      .from("question_connections")
+      .select("id")
+      .eq("mission_id", missionId)
+      .gte("created_at", fiveMinAgo)
+      .limit(1);
+    if (recent && recent.length > 0) {
+      console.log(`[buildLineOfSight] already ran recently for mission ${missionId} — skipping`);
+      return { connections: 0, conflicts: 0, updatedQuestions: 0, skipped: true };
+    }
+
     // ---- Mission + sections ----
     const { data: mission } = await supabase
       .from("missions")
