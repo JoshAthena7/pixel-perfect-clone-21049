@@ -111,6 +111,16 @@ export const postThreadMessage = createServerFn({ method: "POST" })
         message_body:
           "Decision recorded. I have noted this in the question context — it will inform my guidance for this section going forward.",
       });
+      // Best-effort: recompute Line of Sight so this decision can surface
+      // in connected sections and trigger conflict detection. Non-blocking.
+      try {
+        const { buildLineOfSightInternal } = await import("@/lib/iris-line-of-sight.server");
+        void buildLineOfSightInternal(data.missionId).catch((e) =>
+          console.error("[thread] line-of-sight recompute failed", e),
+        );
+      } catch (e) {
+        console.error("[thread] line-of-sight import failed", e);
+      }
       return { ok: true, message: inserted };
     }
 
