@@ -1,44 +1,11 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { useMemo, useRef, useState } from "react";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
-import Papa from "papaparse";
-import { Home, Upload, UserPlus, Trash2, Loader2, Send, Copy } from "lucide-react";
+import { Search, Plus, MoreHorizontal, X, Mail, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  listAtlasTeam, addAtlasTeamMember, removeAtlasTeamMember,
-} from "@/lib/atlas-team-admin.functions";
-import {
-  previewAtlasTeamSync, commitAtlasTeamSync,
-} from "@/lib/atlas-team-sync.functions";
-import {
-  updateAtlasTeamRole, sendAtlasInvite,
-} from "@/lib/atlas-team-invite.functions";
-
-const ROLE_OPTIONS = [
-  { value: "unassigned", label: "Unassigned" },
-  { value: "admin", label: "Admin" },
-  { value: "engagement_lead", label: "Engagement Lead" },
-  { value: "writer", label: "Writer" },
-  { value: "sme", label: "SME" },
-  { value: "reviewer", label: "Reviewer" },
-] as const;
+import { addAtlasTeamMember } from "@/lib/atlas-team-admin.functions";
+import { useServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/_authenticated/admin/team")({
   beforeLoad: async () => {
@@ -48,448 +15,514 @@ export const Route = createFileRoute("/_authenticated/admin/team")({
       supabase.from("profiles").select("is_platform_admin").eq("id", u.user.id).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", u.user.id).eq("role", "admin").maybeSingle(),
     ]);
-    if (!prof?.is_platform_admin && !role) {
-      throw redirect({ to: "/my-work" });
-    }
+    if (!prof?.is_platform_admin && !role) throw redirect({ to: "/my-work" });
   },
-  component: TeamRosterPage,
+  component: StaffPage,
 });
 
-type CsvRow = {
+type Staff = {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
   email: string;
-  first_name?: string | null;
-  last_name?: string | null;
-  job_title?: string | null;
-  phone?: string | null;
-  talentdesk_id?: string | null;
+  job_title: string | null;
+  atlas_role: string | null;
+  atlas_hipaa_acknowledged: boolean | null;
+  atlas_invite_status: string | null;
 };
 
-type PreviewResult = {
-  newMembers: Array<{ email: string; first_name: string | null; last_name: string | null }>;
-  updatedMembers: Array<{ id: string; email: string; first_name: string | null; last_name: string | null }>;
-  missing: Array<{ id: string; email: string; first_name: string | null; last_name: string | null }>;
-  conflicts: Array<{ email: string; count: number }>;
-};
+type Clearance = "Cleared" | "Pending" | "Not cleared";
 
-function TeamRosterPage() {
-  const qc = useQueryClient();
-  const fetchList = useServerFn(listAtlasTeam);
-  const addFn = useServerFn(addAtlasTeamMember);
-  const removeFn = useServerFn(removeAtlasTeamMember);
-  const previewFn = useServerFn(previewAtlasTeamSync);
-  const commitFn = useServerFn(commitAtlasTeamSync);
-  const updateRoleFn = useServerFn(updateAtlasTeamRole);
-  const inviteFn = useServerFn(sendAtlasInvite);
+function clearanceFor(s: Staff): Clearance {
+  if (s.atlas_hipaa_acknowledged) return "Cleared";
+  if (s.atlas_invite_status === "invite_sent") return "Pending";
+  return "Not cleared";
+}
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["atlas-team-roster"],
-    queryFn: () => fetchList(),
-  });
+function fullName(s: Staff) {
+  const n = [s.first_name, s.last_name].filter(Boolean).join(" ").trim();
+  return n || s.email;
+}
 
-  const [filter, setFilter] = useState("");
-  const filtered = useMemo(() => {
-    const list = data?.members ?? [];
-    const q = filter.trim().toLowerCase();
-    if (!q) return list;
-    return list.filter((m: any) =>
-      [m.email, m.first_name, m.last_name, m.job_title, m.atlas_role]
-        .filter(Boolean).some((s: string) => s.toLowerCase().includes(q)),
-    );
-  }, [data, filter]);
+function initialsOf(s: Staff) {
+  const f = (s.first_name ?? "").trim()[0] ?? "";
+  const l = (s.last_name ?? "").trim()[0] ?? "";
+  const out = (f + l).toUpperCase();
+  return out || s.email.slice(0, 2).toUpperCase();
+}
 
-  // ----- manual add -----
+const AVATAR_COLORS = [
+  "#7c5cff", "#22c55e", "#c9a84c", "#3b82f6", "#ef4444",
+  "#14b8a6", "#f97316", "#a855f7", "#06b6d4", "#eab308",
+];
+
+function colorFor(id: string) {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+}
+
+function roleLabel(r: string | null | undefined) {
+  if (!r) return "Unassigned";
+  return r.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function StaffPage() {
+  const [query, setQuery] = useState("");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
-  const [form, setForm] = useState({ email: "", first_name: "", last_name: "", job_title: "", phone: "", atlas_role: "" });
-  const addMut = useMutation({
-    mutationFn: (input: typeof form) => addFn({ data: input }),
-    onSuccess: (r: any) => {
-      toast.success(r.mode === "reactivated" ? "Member re-added" : "Member added");
-      setAddOpen(false);
-      setForm({ email: "", first_name: "", last_name: "", job_title: "", phone: "", atlas_role: "" });
-      qc.invalidateQueries({ queryKey: ["atlas-team-roster"] });
+
+  const { data: staff = [], isLoading } = useQuery({
+    queryKey: ["admin-staff-list"],
+    queryFn: async (): Promise<Staff[]> => {
+      const { data } = await supabase
+        .from("atlas_team_members")
+        .select("id,first_name,last_name,email,job_title,atlas_role,atlas_hipaa_acknowledged,atlas_invite_status")
+        .eq("is_removed", false)
+        .order("first_name", { ascending: true });
+      return (data ?? []) as Staff[];
     },
-    onError: (e: any) => toast.error(e?.message ?? "Failed to add member"),
   });
 
-  // ----- remove -----
-  const [removeTarget, setRemoveTarget] = useState<any | null>(null);
-  const removeMut = useMutation({
-    mutationFn: (id: string) => removeFn({ data: { id } }),
-    onSuccess: () => {
-      toast.success("Member removed");
-      setRemoveTarget(null);
-      qc.invalidateQueries({ queryKey: ["atlas-team-roster"] });
+  // Map mission counts by email → user_id → mission_team_members
+  const { data: missionCounts = {} } = useQuery({
+    queryKey: ["admin-staff-mission-counts"],
+    queryFn: async (): Promise<Record<string, number>> => {
+      const ids = staff.map((s) => s.id);
+      if (ids.length === 0) return {};
+      const { data: mems } = await supabase
+        .from("mission_team_members")
+        .select("member_id")
+        .in("member_id", ids);
+      const byId: Record<string, number> = {};
+      (mems ?? []).forEach((m: any) => {
+        byId[m.member_id] = (byId[m.member_id] ?? 0) + 1;
+      });
+      return byId;
     },
-    onError: (e: any) => toast.error(e?.message ?? "Failed to remove"),
+    enabled: staff.length > 0,
   });
 
-  // ----- role update -----
-  const [pendingRoleId, setPendingRoleId] = useState<string | null>(null);
-  const roleMut = useMutation({
-    mutationFn: (input: { id: string; atlas_role: string }) => updateRoleFn({ data: input }),
-    onMutate: (v) => setPendingRoleId(v.id),
-    onSuccess: () => {
-      toast.success("Role updated");
-      qc.invalidateQueries({ queryKey: ["atlas-team-roster"] });
-    },
-    onError: (e: any) => toast.error(e?.message ?? "Failed to update role"),
-    onSettled: () => setPendingRoleId(null),
-  });
-
-  // ----- invite -----
-  const [pendingInviteId, setPendingInviteId] = useState<string | null>(null);
-  const inviteMut = useMutation({
-    mutationFn: (id: string) => inviteFn({ data: { id } }),
-    onMutate: (id) => setPendingInviteId(id),
-    onSuccess: async (r: any) => {
-      const url = `${window.location.origin}/auth?invite=${r.token}`;
-      try {
-        await navigator.clipboard.writeText(url);
-        toast.success("Invite sent · link copied to clipboard");
-      } catch {
-        toast.success("Invite sent", { description: url });
-      }
-      qc.invalidateQueries({ queryKey: ["atlas-team-roster"] });
-    },
-    onError: (e: any) => toast.error(e?.message ?? "Failed to send invite"),
-    onSettled: () => setPendingInviteId(null),
-  });
-
-  const fileInput = useRef<HTMLInputElement>(null);
-  const [csvRows, setCsvRows] = useState<CsvRow[] | null>(null);
-  const [csvFileName, setCsvFileName] = useState<string>("");
-  const [parseError, setParseError] = useState<string>("");
-  const [preview, setPreview] = useState<PreviewResult | null>(null);
-  const [removeChecked, setRemoveChecked] = useState<Set<string>>(new Set());
-
-  const previewMut = useMutation({
-    mutationFn: (rows: CsvRow[]) => previewFn({ data: { rows } }),
-    onSuccess: (r: any) => setPreview(r),
-    onError: (e: any) => toast.error(e?.message ?? "Preview failed"),
-  });
-  const commitMut = useMutation({
-    mutationFn: () => commitFn({
-      data: {
-        rows: csvRows!,
-        removeIds: Array.from(removeChecked),
-        fileName: csvFileName || undefined,
-      },
-    }),
-    onSuccess: (r: any) => {
-      toast.success(`Sync complete · +${r.added} added · ${r.updated} updated · ${r.removed} removed`);
-      setCsvRows(null); setPreview(null); setRemoveChecked(new Set()); setCsvFileName("");
-      qc.invalidateQueries({ queryKey: ["atlas-team-roster"] });
-    },
-    onError: (e: any) => toast.error(e?.message ?? "Commit failed"),
-  });
-
-  const handleFile = (file: File) => {
-    setParseError(""); setPreview(null); setRemoveChecked(new Set()); setCsvFileName(file.name);
-    Papa.parse<Record<string, string>>(file, {
-      header: true,
-      skipEmptyLines: true,
-      transformHeader: (h) => h.trim().toLowerCase().replace(/\s+/g, "_"),
-      complete: (result) => {
-        try {
-          const rows: CsvRow[] = [];
-          for (const r of result.data) {
-            const email = (r.email || r["email_address"] || "").trim();
-            if (!email) continue;
-            rows.push({
-              email,
-              first_name: r.first_name || r.firstname || null,
-              last_name: r.last_name || r.lastname || null,
-              job_title: r.job_title || r.title || null,
-              phone: r.phone || null,
-              talentdesk_id: r.talentdesk_id || r.id || null,
-            });
-          }
-          if (rows.length === 0) {
-            setParseError("No valid rows found. Make sure the CSV has an 'email' column.");
-            return;
-          }
-          setCsvRows(rows);
-          previewMut.mutate(rows);
-        } catch (err: any) {
-          setParseError(err?.message ?? "Failed to parse CSV");
-        }
-      },
-      error: (err) => setParseError(err.message),
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return staff;
+    return staff.filter((s) => {
+      const name = fullName(s).toLowerCase();
+      const role = (s.atlas_role ?? "").toLowerCase();
+      const title = (s.job_title ?? "").toLowerCase();
+      const clearance = clearanceFor(s).toLowerCase();
+      return name.includes(q) || role.includes(q) || title.includes(q) || clearance.includes(q) || s.email.toLowerCase().includes(q);
     });
-  };
+  }, [query, staff]);
+
+  const selected = selectedId ? staff.find((s) => s.id === selectedId) ?? null : null;
 
   return (
-    <div className="min-h-screen bg-background px-8 py-8 text-foreground">
-      <div className="mx-auto max-w-6xl space-y-8">
-        <div>
-          <Link to="/admin" className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground">
-            <Home className="h-3.5 w-3.5" /> Admin
-          </Link>
-          <h1 className="mt-3 text-3xl font-bold">Athena Team Roster</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Manage the people who appear in Mission Wizard team pickers, assignments, and journey owners.
-          </p>
+    <div className="min-h-[calc(100vh-48px)]" style={{ background: "#080c14" }}>
+      <div className="mx-auto max-w-5xl px-6 py-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-semibold text-white">Staff</h1>
+            <p className="mt-1 text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>
+              {staff.length} member{staff.length === 1 ? "" : "s"} across ATLAS.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setAddOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-sm font-medium transition-opacity hover:opacity-90"
+            style={{ background: "#c9a84c", color: "#080c14" }}
+          >
+            <Plus className="h-4 w-4" />
+            Add staff member
+          </button>
         </div>
 
-        {/* Actions */}
-        <div className="flex flex-wrap items-center gap-3">
-          <Dialog open={addOpen} onOpenChange={setAddOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline"><UserPlus className="mr-2 h-4 w-4" /> Add manually</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add team member</DialogTitle>
-                <DialogDescription>One-off addition. For bulk, use the CSV importer.</DialogDescription>
-              </DialogHeader>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2">
-                  <Label htmlFor="email">Email *</Label>
-                  <Input id="email" type="email" value={form.email}
-                         onChange={(e) => setForm({ ...form, email: e.target.value })} />
-                </div>
-                <div>
-                  <Label htmlFor="fn">First name *</Label>
-                  <Input id="fn" value={form.first_name}
-                         onChange={(e) => setForm({ ...form, first_name: e.target.value })} />
-                </div>
-                <div>
-                  <Label htmlFor="ln">Last name *</Label>
-                  <Input id="ln" value={form.last_name}
-                         onChange={(e) => setForm({ ...form, last_name: e.target.value })} />
-                </div>
-                <div>
-                  <Label htmlFor="jt">Job title</Label>
-                  <Input id="jt" value={form.job_title}
-                         onChange={(e) => setForm({ ...form, job_title: e.target.value })} />
-                </div>
-                <div>
-                  <Label htmlFor="role">Atlas role</Label>
-                  <Input id="role" value={form.atlas_role} placeholder="e.g. Engagement Lead"
-                         onChange={(e) => setForm({ ...form, atlas_role: e.target.value })} />
-                </div>
-                <div className="col-span-2">
-                  <Label htmlFor="ph">Phone</Label>
-                  <Input id="ph" value={form.phone}
-                         onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setAddOpen(false)}>Cancel</Button>
-                <Button
-                  disabled={!form.email || !form.first_name || !form.last_name || addMut.isPending}
-                  onClick={() => addMut.mutate(form)}>
-                  {addMut.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Add member
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
+        {/* Search */}
+        <div className="relative mb-5">
+          <Search
+            className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2"
+            style={{ color: "rgba(255,255,255,0.35)" }}
+          />
           <input
-            ref={fileInput}
-            type="file"
-            accept=".csv,text/csv"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handleFile(f);
-              e.target.value = "";
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by name, role, or clearance level…"
+            className="w-full rounded-md pl-9 pr-3 py-2.5 text-sm outline-none focus:border-[#c9a84c]/60 transition-colors"
+            style={{
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              color: "white",
             }}
           />
-          <Button onClick={() => fileInput.current?.click()}>
-            <Upload className="mr-2 h-4 w-4" /> Import CSV (TalentDesk)
-          </Button>
-
-          <Input
-            placeholder="Filter roster…"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="ml-auto max-w-xs"
-          />
         </div>
 
-        {/* CSV preview panel */}
-        {(parseError || previewMut.isPending || preview) && (
-          <div className="rounded-lg border p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="text-sm font-medium">
-                CSV preview {csvFileName && <span className="text-muted-foreground">· {csvFileName}</span>}
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => {
-                setCsvRows(null); setPreview(null); setRemoveChecked(new Set()); setParseError("");
-              }}>Cancel</Button>
-            </div>
-            {parseError && <p className="text-sm text-destructive">{parseError}</p>}
-            {previewMut.isPending && (
-              <p className="text-sm text-muted-foreground inline-flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" /> Building preview…
-              </p>
-            )}
-            {preview && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm">
-                <Stat label="New" value={preview.newMembers.length} tone="add" />
-                <Stat label="Will update" value={preview.updatedMembers.length} tone="update" />
-                <Stat label="Missing from CSV" value={preview.missing.length} tone="warn" />
-                <Stat label="Duplicates in CSV" value={preview.conflicts.length} tone="error" />
-              </div>
-            )}
-            {preview && preview.conflicts.length > 0 && (
-              <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs">
-                <p className="font-semibold mb-1">Duplicate emails block commit. Fix the CSV and re-upload:</p>
-                <ul className="list-disc pl-4">
-                  {preview.conflicts.map((c) => <li key={c.email}>{c.email} ({c.count}×)</li>)}
-                </ul>
-              </div>
-            )}
-            {preview && preview.missing.length > 0 && (
-              <div className="rounded-md border p-3 text-xs space-y-2">
-                <p className="font-medium">
-                  {preview.missing.length} existing member(s) are NOT in this CSV. Check any you want to mark removed:
-                </p>
-                <div className="max-h-40 overflow-auto space-y-1">
-                  {preview.missing.map((m) => (
-                    <label key={m.id} className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={removeChecked.has(m.id)}
-                        onChange={(e) => {
-                          const next = new Set(removeChecked);
-                          e.target.checked ? next.add(m.id) : next.delete(m.id);
-                          setRemoveChecked(next);
-                        }}
-                      />
-                      <span>{m.first_name} {m.last_name} · <span className="text-muted-foreground">{m.email}</span></span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-            {preview && (
-              <div className="flex justify-end">
-                <Button
-                  onClick={() => commitMut.mutate()}
-                  disabled={preview.conflicts.length > 0 || commitMut.isPending}>
-                  {commitMut.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Commit sync
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Roster table */}
-        <div className="rounded-lg border">
-          <div className="grid grid-cols-12 gap-2 border-b px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            <div className="col-span-3">Name</div>
-            <div className="col-span-3">Email</div>
-            <div className="col-span-2">Job title</div>
-            <div className="col-span-2">Atlas role</div>
-            <div className="col-span-1">Invite</div>
-            <div className="col-span-1 text-right">Actions</div>
-          </div>
+        {/* Cards */}
+        <div className="space-y-2">
           {isLoading && (
-            <div className="p-4 space-y-2">
-              {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+            <div className="rounded-lg p-6 text-sm" style={{ border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)" }}>
+              Loading staff…
             </div>
           )}
-          {isError && <p className="p-4 text-sm text-destructive">Failed to load roster.</p>}
           {!isLoading && filtered.length === 0 && (
-            <p className="p-6 text-center text-sm text-muted-foreground">
-              No team members yet. Add manually or import a TalentDesk CSV.
-            </p>
+            <div className="rounded-lg p-6 text-sm text-center" style={{ border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.45)" }}>
+              No staff match “{query}”.
+            </div>
           )}
-          {filtered.map((m: any) => {
-            const currentRole = (m.atlas_role && ROLE_OPTIONS.some(r => r.value === m.atlas_role))
-              ? m.atlas_role : "unassigned";
-            const invited = m.atlas_invite_status === "invite_sent" || m.atlas_invite_status === "active";
-            return (
-              <div key={m.id} className="grid grid-cols-12 gap-2 border-b px-4 py-3 text-sm items-center last:border-0">
-                <div className="col-span-3 font-medium">
-                  <Link
-                    to="/admin/team/$memberId"
-                    params={{ memberId: m.id }}
-                    className="hover:underline hover:text-primary"
-                  >
-                    {[m.first_name, m.last_name].filter(Boolean).join(" ") || "—"}
-                  </Link>
-                </div>
-                <div className="col-span-3 text-muted-foreground truncate">{m.email}</div>
-                <div className="col-span-2 truncate">{m.job_title || "—"}</div>
-                <div className="col-span-2">
-                  <Select
-                    value={currentRole}
-                    disabled={pendingRoleId === m.id}
-                    onValueChange={(v) => {
-                      if (v !== currentRole) roleMut.mutate({ id: m.id, atlas_role: v });
-                    }}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ROLE_OPTIONS.map((r) => (
-                        <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="col-span-1">
-                  <Badge variant="outline" className="text-[10px]">{m.atlas_invite_status ?? "—"}</Badge>
-                </div>
-                <div className="col-span-1 flex justify-end gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    title={invited ? "Resend invite" : "Send invite"}
-                    disabled={pendingInviteId === m.id}
-                    onClick={() => inviteMut.mutate(m.id)}
-                  >
-                    {pendingInviteId === m.id
-                      ? <Loader2 className="h-4 w-4 animate-spin" />
-                      : invited ? <Copy className="h-4 w-4" /> : <Send className="h-4 w-4" />}
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => setRemoveTarget(m)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            );
-          })}
+          {filtered.map((s) => (
+            <StaffCard
+              key={s.id}
+              staff={s}
+              missionCount={missionCounts[s.id] ?? 0}
+              onClick={() => setSelectedId(s.id)}
+            />
+          ))}
         </div>
       </div>
 
-      <AlertDialog open={!!removeTarget} onOpenChange={(o) => !o && setRemoveTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remove team member?</AlertDialogTitle>
-            <AlertDialogDescription>
-              {removeTarget?.email} will be hidden from wizard pickers and assignments. Their history is preserved and they can be re-added later.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => removeTarget && removeMut.mutate(removeTarget.id)}>
-              Remove
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Side panel */}
+      {selected && (
+        <StaffDetailPanel
+          staff={selected}
+          missionCount={missionCounts[selected.id] ?? 0}
+          onClose={() => setSelectedId(null)}
+        />
+      )}
+
+      {addOpen && <AddStaffDialog onClose={() => setAddOpen(false)} />}
     </div>
   );
 }
 
-function Stat({ label, value, tone }: { label: string; value: number; tone: "add" | "update" | "warn" | "error" }) {
-  const colors = {
-    add: "border-emerald-500/40 bg-emerald-500/10 text-emerald-500",
-    update: "border-sky-500/40 bg-sky-500/10 text-sky-500",
-    warn: "border-amber-500/40 bg-amber-500/10 text-amber-500",
-    error: "border-red-500/40 bg-red-500/10 text-red-500",
-  }[tone];
+function StaffCard({
+  staff,
+  missionCount,
+  onClick,
+}: {
+  staff: Staff;
+  missionCount: number;
+  onClick: () => void;
+}) {
+  const c = clearanceFor(staff);
+  const clearanceColors: Record<Clearance, { bg: string; fg: string; bd: string }> = {
+    "Cleared": { bg: "rgba(34,197,94,0.12)", fg: "#22c55e", bd: "rgba(34,197,94,0.3)" },
+    "Pending": { bg: "rgba(201,168,76,0.12)", fg: "#c9a84c", bd: "rgba(201,168,76,0.3)" },
+    "Not cleared": { bg: "rgba(239,68,68,0.12)", fg: "#ef4444", bd: "rgba(239,68,68,0.3)" },
+  };
+  const cc = clearanceColors[c];
   return (
-    <div className={`rounded-md border p-3 ${colors}`}>
-      <div className="text-2xl font-bold">{value}</div>
-      <div className="text-xs uppercase tracking-wider">{label}</div>
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full text-left rounded-lg px-4 py-3.5 flex items-center gap-4 transition-colors"
+      style={{
+        background: "rgba(255,255,255,0.02)",
+        border: "1px solid rgba(255,255,255,0.06)",
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(201,168,76,0.5)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; }}
+    >
+      <div
+        className="h-10 w-10 rounded-full flex items-center justify-center shrink-0 text-sm font-semibold text-white"
+        style={{ background: colorFor(staff.id) }}
+      >
+        {initialsOf(staff)}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-white font-medium text-sm truncate">{fullName(staff)}</div>
+        <div className="text-xs mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.45)" }}>
+          {staff.job_title ?? roleLabel(staff.atlas_role)}
+        </div>
+      </div>
+      <span
+        className="rounded-full text-[10px] font-semibold uppercase tracking-wider shrink-0"
+        style={{
+          padding: "3px 9px",
+          background: cc.bg,
+          color: cc.fg,
+          border: `1px solid ${cc.bd}`,
+        }}
+      >
+        {c}
+      </span>
+      <div className="hidden sm:flex items-center text-xs shrink-0 tabular-nums" style={{ color: "rgba(255,255,255,0.5)" }}>
+        {missionCount} {missionCount === 1 ? "mission" : "missions"}
+      </div>
+      <span
+        onClick={(e) => { e.stopPropagation(); }}
+        className="rounded-md p-1.5 hover:bg-white/[0.05] shrink-0"
+        style={{ color: "rgba(255,255,255,0.4)" }}
+      >
+        <MoreHorizontal className="h-4 w-4" />
+      </span>
+    </button>
+  );
+}
+
+function StaffDetailPanel({
+  staff,
+  missionCount,
+  onClose,
+}: {
+  staff: Staff;
+  missionCount: number;
+  onClose: () => void;
+}) {
+  const navigate = useNavigate();
+  const c = clearanceFor(staff);
+
+  const { data: missions = [] } = useQuery({
+    queryKey: ["staff-missions", staff.id],
+    queryFn: async () => {
+      const { data: mems } = await supabase
+        .from("mission_team_members")
+        .select("mission_role,mission_id,missions:mission_id(name,status)")
+        .eq("member_id", staff.id);
+      return (mems ?? []).map((m: any) => ({
+        mission_id: m.mission_id,
+        role: m.mission_role,
+        name: m.missions?.name ?? "Mission",
+        status: m.missions?.status,
+      }));
+    },
+  });
+
+  return (
+    <>
+      <div
+        className="fixed inset-0 z-[70] bg-black/40 animate-in fade-in"
+        onClick={onClose}
+      />
+      <aside
+        className="fixed top-0 right-0 bottom-0 z-[71] w-full sm:w-[420px] flex flex-col animate-in slide-in-from-right"
+        style={{
+          background: "#0a121f",
+          borderLeft: "1px solid rgba(255,255,255,0.08)",
+        }}
+      >
+        <div
+          className="flex items-center justify-between px-5 py-4"
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+        >
+          <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#c9a84c" }}>
+            Staff profile
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 rounded hover:bg-white/[0.05]"
+            style={{ color: "rgba(255,255,255,0.5)" }}
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-5 space-y-5">
+          <div className="flex items-center gap-4">
+            <div
+              className="h-14 w-14 rounded-full flex items-center justify-center text-base font-semibold text-white"
+              style={{ background: colorFor(staff.id) }}
+            >
+              {initialsOf(staff)}
+            </div>
+            <div className="min-w-0">
+              <div className="text-white font-semibold">{fullName(staff)}</div>
+              <div className="text-xs mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.5)" }}>
+                {staff.email}
+              </div>
+            </div>
+          </div>
+
+          <DetailRow label="Role">{roleLabel(staff.atlas_role)}</DetailRow>
+          {staff.job_title && <DetailRow label="Title">{staff.job_title}</DetailRow>}
+          <DetailRow label="Clearance">
+            <span style={{ color: c === "Cleared" ? "#22c55e" : c === "Pending" ? "#c9a84c" : "#ef4444" }}>
+              {c}
+            </span>
+          </DetailRow>
+
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>
+              Missions assigned ({missions.length || missionCount})
+            </div>
+            {missions.length === 0 ? (
+              <div className="text-sm rounded-md px-3 py-2.5" style={{ background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.45)" }}>
+                Not assigned to any missions yet.
+              </div>
+            ) : (
+              <ul className="space-y-1.5">
+                {missions.map((m) => (
+                  <li
+                    key={m.mission_id}
+                    className="flex items-center justify-between rounded-md px-3 py-2.5"
+                    style={{ background: "rgba(255,255,255,0.03)" }}
+                  >
+                    <div className="min-w-0">
+                      <div className="text-sm text-white truncate">{m.name}</div>
+                      <div className="text-[10px] mt-0.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.4)" }}>
+                        {m.status ?? "—"}
+                      </div>
+                    </div>
+                    <span
+                      className="text-xs rounded shrink-0 ml-3"
+                      style={{
+                        background: "rgba(201,168,76,0.12)",
+                        color: "#c9a84c",
+                        padding: "2px 8px",
+                      }}
+                    >
+                      {roleLabel(m.role)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+
+        <div
+          className="px-5 py-4 flex items-center justify-end gap-2"
+          style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+        >
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-3 py-1.5 text-xs rounded-md hover:bg-white/[0.05]"
+            style={{ color: "rgba(255,255,255,0.6)" }}
+          >
+            Close
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/admin/team/$memberId", params: { memberId: staff.id } })}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold"
+            style={{ background: "#c9a84c", color: "#080c14" }}
+          >
+            Edit
+          </button>
+        </div>
+      </aside>
+    </>
+  );
+}
+
+function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+        {label}
+      </div>
+      <div className="text-sm text-white">{children}</div>
     </div>
+  );
+}
+
+function AddStaffDialog({ onClose }: { onClose: () => void }) {
+  const qc = useQueryClient();
+  const [first, setFirst] = useState("");
+  const [last, setLast] = useState("");
+  const [email, setEmail] = useState("");
+  const [title, setTitle] = useState("");
+  const addFn = useServerFn(addAtlasTeamMember);
+  const m = useMutation({
+    mutationFn: async () => addFn({
+      data: {
+        first_name: first.trim(),
+        last_name: last.trim(),
+        email: email.trim().toLowerCase(),
+        job_title: title.trim(),
+        atlas_role: "unassigned",
+      },
+    }),
+    onSuccess: () => {
+      toast.success("Staff member added");
+      qc.invalidateQueries({ queryKey: ["admin-staff-list"] });
+      onClose();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <>
+      <div className="fixed inset-0 z-[80] bg-black/50" onClick={onClose} />
+      <div
+        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[81] w-full max-w-md rounded-lg p-5"
+        style={{ background: "#0a121f", border: "1px solid rgba(255,255,255,0.1)" }}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-sm font-semibold text-white">Add staff member</div>
+          <button onClick={onClose} className="p-1 rounded hover:bg-white/[0.05]" style={{ color: "rgba(255,255,255,0.5)" }}>
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <Input label="First name" value={first} onChange={setFirst} />
+            <Input label="Last name" value={last} onChange={setLast} />
+          </div>
+          <Input label="Email" value={email} onChange={setEmail} type="email" icon={<Mail className="h-3.5 w-3.5" />} />
+          <Input label="Job title" value={title} onChange={setTitle} />
+        </div>
+        <div className="mt-5 flex items-center justify-end gap-2">
+          <button onClick={onClose} className="px-3 py-1.5 text-xs rounded-md hover:bg-white/[0.05]" style={{ color: "rgba(255,255,255,0.6)" }}>
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => m.mutate()}
+            disabled={!email.trim() || !first.trim() || !last.trim() || m.isPending}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold disabled:opacity-50"
+            style={{ background: "#c9a84c", color: "#080c14" }}
+          >
+            {m.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+            Add member
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function Input({
+  label,
+  value,
+  onChange,
+  type = "text",
+  icon,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <label className="block">
+      <div className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+        {label}
+      </div>
+      <div className="relative">
+        {icon && (
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: "rgba(255,255,255,0.35)" }}>
+            {icon}
+          </span>
+        )}
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full rounded-md py-2 text-sm outline-none focus:border-[#c9a84c]/60"
+          style={{
+            background: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            color: "white",
+            paddingLeft: icon ? 30 : 10,
+            paddingRight: 10,
+          }}
+        />
+      </div>
+    </label>
   );
 }
