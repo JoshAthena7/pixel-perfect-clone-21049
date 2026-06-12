@@ -227,7 +227,7 @@ export function FlightDeckAssistBar({
                   height: 16,
                   padding: "0 4px",
                   borderRadius: 999,
-                  background: "#E04A4A",
+                  background: b.id === "pulse" ? "rgba(127,119,221,0.9)" : "#E04A4A",
                   color: "white",
                   fontSize: 9,
                   fontWeight: 700,
