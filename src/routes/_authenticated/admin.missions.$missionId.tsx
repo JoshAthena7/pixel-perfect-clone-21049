@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Save, Search, Plus, X, AlertCircle, GripVertical, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, Search, Plus, X, AlertCircle, GripVertical, Trash2, FileText, Shield, BookOpen, HeartPulse, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -980,34 +980,417 @@ function JourneyTab({
   );
 }
 
+type ComplianceStatus = "complete" | "pending" | "not_started";
+type ComplianceIconKey = "file" | "shield" | "book" | "medical";
+type ComplianceReq = {
+  id: string;
+  icon: ComplianceIconKey;
+  name: string;
+  description: string;
+  required: boolean;
+  completedMemberIds: string[]; // subset of mission_team_members.member_id
+};
+
+const COMPLIANCE_ICONS: Record<ComplianceIconKey, React.ComponentType<any>> = {
+  file: FileText,
+  shield: Shield,
+  book: BookOpen,
+  medical: HeartPulse,
+};
+
+const STATUS_STYLE: Record<ComplianceStatus, { label: string; color: string; bg: string; border: string }> = {
+  complete: { label: "Complete", color: "#4ade80", bg: "rgba(34,197,94,0.12)", border: "rgba(34,197,94,0.35)" },
+  pending: { label: "Pending", color: "#fbbf24", bg: "rgba(251,191,36,0.12)", border: "rgba(251,191,36,0.35)" },
+  not_started: { label: "Not started", color: "#f87171", bg: "rgba(239,68,68,0.12)", border: "rgba(239,68,68,0.35)" },
+};
+
 function ComplianceTab({ missionId }: { missionId: string }) {
-  const { data: reqs = [] } = useQuery({
-    queryKey: ["admin-mission-compliance", missionId],
+  // Pull assigned team for completion counts and side-panel breakdown
+  const { data: teamRows = [] } = useQuery({
+    queryKey: ["admin-mission-team", missionId],
     queryFn: async () => {
       const { data } = await supabase
-        .from("compliance_requirements")
-        .select("id,title,status")
+        .from("mission_team_members")
+        .select("id,member_id,mission_role")
         .eq("mission_id", missionId);
       return data ?? [];
     },
   });
+  const memberIds = teamRows.map((r: any) => r.member_id);
+
+  const { data: staff = [] } = useQuery({
+    queryKey: ["admin-mission-team-staff"],
+    queryFn: async (): Promise<StaffRow[]> => {
+      const { data } = await supabase
+        .from("atlas_team_members")
+        .select("id,first_name,last_name,email,job_title")
+        .eq("is_removed", false);
+      return (data as StaffRow[]) ?? [];
+    },
+  });
+  const staffById = new Map(staff.map((s) => [s.id, s]));
+
+  // Local pre-seeded requirements (visual / not yet persisted)
+  const [reqs, setReqs] = useState<ComplianceReq[]>([]);
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (reqs.length > 0 || memberIds.length === 0) return;
+    const allDone = memberIds.slice();
+    const allButTwo = memberIds.slice(0, Math.max(0, memberIds.length - 2));
+    setReqs([
+      {
+        id: "nda",
+        icon: "file",
+        name: "NDA Signing",
+        description: "All mission staff must sign the Non-Disclosure Agreement before accessing mission materials.",
+        required: true,
+        completedMemberIds: allDone,
+      },
+      {
+        id: "clearance",
+        icon: "shield",
+        name: "Security Clearance Verification",
+        description: "Verify each staff member's clearance level matches mission classification requirements.",
+        required: true,
+        completedMemberIds: allDone,
+      },
+      {
+        id: "brief-ack",
+        icon: "book",
+        name: "Mission Brief Acknowledgement",
+        description: "Each staff member must acknowledge reading and understanding the mission brief.",
+        required: true,
+        completedMemberIds: allButTwo,
+      },
+      {
+        id: "medical",
+        icon: "medical",
+        name: "Medical Clearance",
+        description: "Optional pre-deployment medical screening for field-eligible roles.",
+        required: false,
+        completedMemberIds: [],
+      },
+    ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [memberIds.length]);
+
+  function statusOf(r: ComplianceReq): ComplianceStatus {
+    const total = memberIds.length;
+    const done = r.completedMemberIds.length;
+    if (total > 0 && done >= total) return "complete";
+    if (done === 0) return "not_started";
+    return "pending";
+  }
+
+  function addReq() {
+    const id = `req-${Date.now()}`;
+    setReqs((xs) => [
+      ...xs,
+      {
+        id,
+        icon: "file",
+        name: "New requirement",
+        description: "Describe the compliance requirement…",
+        required: true,
+        completedMemberIds: [],
+      },
+    ]);
+    setOpenId(id);
+  }
+
+  function removeReq(id: string) {
+    setReqs((xs) => xs.filter((x) => x.id !== id));
+    if (openId === id) setOpenId(null);
+  }
+
+  const openReq = reqs.find((r) => r.id === openId) ?? null;
+
   return (
-    <SectionCard title={`Compliance (${reqs.length})`}>
-      {reqs.length === 0 ? (
-        <div className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
-          No compliance requirements yet.
-        </div>
-      ) : (
-        <ul className="space-y-2">
-          {reqs.map((r: any) => (
-            <li key={r.id} className="flex items-center gap-3 rounded-md px-3 py-2" style={{ background: "rgba(255,255,255,0.03)" }}>
-              <span className="text-sm text-white/80 flex-1 truncate">{r.title}</span>
-              <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>{r.status ?? "—"}</span>
+    <div className="space-y-4 relative">
+      <div className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
+        Compliance requirements for this mission — click any card for the staff breakdown.
+      </div>
+
+      <ul className="space-y-2.5">
+        {reqs.map((r) => {
+          const Icon = COMPLIANCE_ICONS[r.icon];
+          const s = STATUS_STYLE[statusOf(r)];
+          const total = memberIds.length;
+          const done = r.completedMemberIds.length;
+          return (
+            <li key={r.id}>
+              <button
+                type="button"
+                onClick={() => setOpenId(r.id)}
+                className="w-full text-left rounded-lg p-4 flex items-start gap-4 transition-colors hover:bg-white/[0.04]"
+                style={{
+                  background: "rgba(255,255,255,0.02)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                <div
+                  className="h-9 w-9 rounded-md flex items-center justify-center shrink-0"
+                  style={{
+                    background: "rgba(201,168,76,0.08)",
+                    border: "1px solid rgba(201,168,76,0.25)",
+                    color: "#c9a84c",
+                  }}
+                >
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm font-semibold text-white truncate">{r.name}</div>
+                    {!r.required && (
+                      <span
+                        className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded"
+                        style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.5)" }}
+                      >
+                        Optional
+                      </span>
+                    )}
+                  </div>
+                  <div
+                    className="text-xs mt-0.5 leading-relaxed"
+                    style={{ color: "rgba(255,255,255,0.55)" }}
+                  >
+                    {r.description}
+                  </div>
+                  <div className="mt-2 text-[11px]" style={{ color: "rgba(255,255,255,0.45)" }}>
+                    {done} of {total || "—"} staff complete
+                  </div>
+                </div>
+                <span
+                  className="text-[11px] font-semibold px-2 py-1 rounded shrink-0"
+                  style={{ background: s.bg, color: s.color, border: `1px solid ${s.border}` }}
+                >
+                  {s.label}
+                </span>
+              </button>
             </li>
-          ))}
-        </ul>
+          );
+        })}
+      </ul>
+
+      <button
+        type="button"
+        onClick={addReq}
+        className="w-full rounded-md py-3 text-xs font-medium transition-colors hover:bg-white/[0.03]"
+        style={{
+          border: "1px dashed rgba(201,168,76,0.4)",
+          color: "#c9a84c",
+          background: "transparent",
+        }}
+      >
+        + Add requirement
+      </button>
+
+      {openReq && (
+        <CompliancePanel
+          req={openReq}
+          memberIds={memberIds}
+          staffById={staffById}
+          onClose={() => setOpenId(null)}
+          onDelete={() => removeReq(openReq.id)}
+          onToggle={(memberId) =>
+            setReqs((xs) =>
+              xs.map((r) =>
+                r.id === openReq.id
+                  ? {
+                      ...r,
+                      completedMemberIds: r.completedMemberIds.includes(memberId)
+                        ? r.completedMemberIds.filter((m) => m !== memberId)
+                        : [...r.completedMemberIds, memberId],
+                    }
+                  : r,
+              ),
+            )
+          }
+        />
       )}
-    </SectionCard>
+    </div>
+  );
+}
+
+function CompliancePanel({
+  req,
+  memberIds,
+  staffById,
+  onClose,
+  onDelete,
+  onToggle,
+}: {
+  req: ComplianceReq;
+  memberIds: string[];
+  staffById: Map<string, StaffRow>;
+  onClose: () => void;
+  onDelete: () => void;
+  onToggle: (memberId: string) => void;
+}) {
+  const done = memberIds.filter((id) => req.completedMemberIds.includes(id));
+  const pending = memberIds.filter((id) => !req.completedMemberIds.includes(id));
+  const Icon = COMPLIANCE_ICONS[req.icon];
+
+  return (
+    <>
+      <div
+        className="fixed inset-0 z-40"
+        style={{ background: "rgba(0,0,0,0.5)" }}
+        onClick={onClose}
+      />
+      <aside
+        className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-md overflow-y-auto"
+        style={{ background: "#0a121f", borderLeft: "1px solid rgba(255,255,255,0.08)" }}
+      >
+        <div
+          className="sticky top-0 px-5 py-4 flex items-center gap-3"
+          style={{ background: "#0a121f", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+        >
+          <div
+            className="h-8 w-8 rounded-md flex items-center justify-center shrink-0"
+            style={{ background: "rgba(201,168,76,0.1)", color: "#c9a84c", border: "1px solid rgba(201,168,76,0.25)" }}
+          >
+            <Icon className="h-4 w-4" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-semibold text-white truncate">{req.name}</div>
+            <div className="text-[11px]" style={{ color: "rgba(255,255,255,0.5)" }}>
+              {done.length} complete · {pending.length} pending
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded hover:bg-white/5"
+            style={{ color: "rgba(255,255,255,0.5)" }}
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="p-5 space-y-5">
+          <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>
+            {req.description}
+          </p>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "#fbbf24" }}>
+                Pending ({pending.length})
+              </div>
+              {pending.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => toast.success(`Reminder sent to ${pending.length} staff`)}
+                  className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-semibold"
+                  style={{ background: "#c9a84c", color: "#080c14" }}
+                >
+                  <Send className="h-3 w-3" />
+                  Send reminder
+                </button>
+              )}
+            </div>
+            <ul className="space-y-1.5">
+              {pending.length === 0 ? (
+                <li className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                  All assigned staff have completed this requirement.
+                </li>
+              ) : (
+                pending.map((id) => (
+                  <StaffPanelRow
+                    key={id}
+                    staff={staffById.get(id)}
+                    memberId={id}
+                    done={false}
+                    onToggle={() => onToggle(id)}
+                  />
+                ))
+              )}
+            </ul>
+          </div>
+
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: "#4ade80" }}>
+              Complete ({done.length})
+            </div>
+            <ul className="space-y-1.5">
+              {done.length === 0 ? (
+                <li className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                  No completions yet.
+                </li>
+              ) : (
+                done.map((id) => (
+                  <StaffPanelRow
+                    key={id}
+                    staff={staffById.get(id)}
+                    memberId={id}
+                    done
+                    onToggle={() => onToggle(id)}
+                  />
+                ))
+              )}
+            </ul>
+          </div>
+
+          <button
+            type="button"
+            onClick={onDelete}
+            className="w-full rounded-md py-2 text-xs font-medium transition-colors"
+            style={{
+              border: "1px solid rgba(239,68,68,0.3)",
+              color: "#f87171",
+              background: "rgba(239,68,68,0.05)",
+            }}
+          >
+            Delete requirement
+          </button>
+        </div>
+      </aside>
+    </>
+  );
+}
+
+function StaffPanelRow({
+  staff,
+  memberId,
+  done,
+  onToggle,
+}: {
+  staff: StaffRow | undefined;
+  memberId: string;
+  done: boolean;
+  onToggle: () => void;
+}) {
+  const name = staff
+    ? `${staff.first_name ?? ""} ${staff.last_name ?? ""}`.trim() || staff.email || "Staff"
+    : memberId.slice(0, 8);
+  return (
+    <li
+      className="flex items-center gap-2.5 rounded-md px-2.5 py-1.5"
+      style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}
+    >
+      <div
+        className="h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-semibold text-white shrink-0"
+        style={{ background: colorFor(memberId) }}
+      >
+        {initialsOf(staff?.first_name, staff?.last_name, staff?.email)}
+      </div>
+      <span className="text-xs text-white/85 flex-1 truncate">{name}</span>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="text-[10px] px-1.5 py-0.5 rounded"
+        style={{
+          background: done ? "rgba(34,197,94,0.12)" : "rgba(255,255,255,0.05)",
+          color: done ? "#4ade80" : "rgba(255,255,255,0.55)",
+          border: `1px solid ${done ? "rgba(34,197,94,0.3)" : "rgba(255,255,255,0.08)"}`,
+        }}
+      >
+        {done ? "✓ Done" : "Mark done"}
+      </button>
+    </li>
   );
 }
 
