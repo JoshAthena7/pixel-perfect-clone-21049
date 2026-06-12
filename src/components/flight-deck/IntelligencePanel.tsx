@@ -15,10 +15,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import {
   ChevronDown, Eye, CheckSquare, Star, Activity, Compass,
-  ArrowLeft, Sparkles, ExternalLink, X as XIcon,
+  ArrowLeft, Sparkles, ExternalLink, X as XIcon, Search,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { IrisIntelligenceBrief } from "@/components/iris/IrisIntelligenceBrief";
+import { EvaluatorPicturePanel } from "@/components/flight-deck/EvaluatorPicturePanel";
 import { cn } from "@/lib/utils";
 
 const GOLD = "#C9A55C";
