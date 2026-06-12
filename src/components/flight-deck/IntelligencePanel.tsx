@@ -86,7 +86,7 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
       const raw = typeof window !== "undefined" ? localStorage.getItem(storageKey) : null;
       if (raw) return JSON.parse(raw);
     } catch {}
-    return { athena: true, iris: true, evaluator: true, reqs: true, themes: true, live: true };
+    return { athena: true, iris: true, lineofsight: true, evaluator: true, reqs: true, themes: true, live: true };
   });
 
   useEffect(() => {
