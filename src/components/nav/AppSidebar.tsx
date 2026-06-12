@@ -146,22 +146,8 @@ export function AppSidebar({
             </>
 
           )}
-          <Divider />
-          <div className={cn("px-1.5", collapsed && "px-0")}>
-            <Link
-              to="/home"
-              className={cn(
-                "flex items-center gap-2 px-2.5 py-1.5 rounded-md mx-1.5 mb-0.5 transition-colors hover:bg-white/[0.05]",
-                collapsed && "mx-1 px-2 justify-center",
-              )}
-              style={{ color: "rgba(255,255,255,0.45)" }}
-              title="All Missions"
-            >
-              <ArrowLeft className="h-[15px] w-[15px] shrink-0" style={{ color: "rgba(255,255,255,0.3)" }} />
-              {!collapsed && <span style={{ fontSize: 10 }}>All Missions</span>}
-            </Link>
-          </div>
         </div>
+
 
         {/* Footer */}
         {!collapsed && (
