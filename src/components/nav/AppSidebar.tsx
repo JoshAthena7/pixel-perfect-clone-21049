@@ -5,6 +5,7 @@ import {
   FileText, Brain, Lightbulb, LayoutDashboard, MessageSquare, Target,
   Trophy, Users, Route as RouteIcon, ListChecks, BarChart3, Settings,
   ArrowLeft, LogOut, Menu, X, Activity as ActivityIcon, Icon as LucideIcon,
+  Flag, Megaphone,
 } from "lucide-react";
 
 import { owl } from "@lucide/lab";
@@ -24,6 +25,8 @@ type NavItem = {
   label: string;
   Icon: IconType;
   needsMission?: boolean;
+  disabled?: boolean;
+  badge?: string;
 };
 
 const MISSION_ITEMS: NavItem[] = [
@@ -50,9 +53,10 @@ const ADMIN_ITEMS: NavItem[] = [
 
 
 const ADMIN_AREA_ITEMS: NavItem[] = [
-  { to: "/admin", label: "Overview", Icon: LayoutDashboard },
-  { to: "/admin/team", label: "Team Roster", Icon: Users },
-  { to: "/admin/iris-health", label: "IRIS Health", Icon: Settings },
+  { to: "/admin", label: "Missions", Icon: Flag },
+  { to: "/admin/team", label: "Staff", Icon: Users },
+  { to: "/admin/messaging", label: "Messaging", Icon: Megaphone },
+  { to: "/admin/insights", label: "Insights", Icon: BarChart3, disabled: true, badge: "V2" },
 ];
 
 export function AppSidebar({
@@ -356,8 +360,8 @@ function MissionContextBlock({
         className="px-3 py-3"
         style={{ borderBottom: "0.5px solid rgba(255,255,255,0.06)" }}
       >
-        <div style={{ color: "#C49A2B", fontSize: 10, fontWeight: 600, letterSpacing: "0.1em" }}>
-          ADMIN · OLYMPUS
+        <div style={{ color: "#c9a84c", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em" }}>
+          ATLAS · ADMIN
         </div>
         <div className="mt-0.5" style={{ color: "rgba(255,255,255,0.35)", fontSize: 9 }}>
           Platform administration
