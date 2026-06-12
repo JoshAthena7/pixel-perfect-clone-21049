@@ -9,6 +9,7 @@ import { MissionEditPanel } from "@/components/missions/MissionEditPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { tabLabel, isValidTab } from "@/components/mission-command/MissionTabs";
 import { cn } from "@/lib/utils";
+import atlasWordmark from "@/assets/atlas-wordmark.png.asset.json";
 
 type Crumb = { label: string; to?: string; params?: Record<string, string>; pill?: boolean };
 
