@@ -64,9 +64,11 @@ export function OracleFeed({ missionId, isAdmin, highlightId }: { missionId: str
   const sweep = useMutation({
     mutationFn: () => sweepFn({ data: { missionId } }),
     onSuccess: (r) => {
-      toast.success(`IRIS sweep complete — ${r.inserted} items added`);
+      toast.success(`IRIS sweep complete — ${r.inserted} new item${r.inserted === 1 ? "" : "s"} added`);
       if (r.failures.length) toast.warning(`${r.failures.length} category(ies) had issues`);
       qc.invalidateQueries({ queryKey: ["oracle-ro-feed", missionId] });
+      qc.invalidateQueries({ queryKey: ["oracle-counts", missionId] });
+      qc.invalidateQueries({ queryKey: ["oracle-mission-header", missionId] });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "IRIS sweep failed"),
   });
