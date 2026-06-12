@@ -34,23 +34,45 @@ export function SectionNorthStar({ missionId, isAdmin }: { missionId: string; is
       showAdminEdit={isAdmin}
       editInOlympusHref={`/olympus/missions/${missionId}/wizard?step=3`}
     >
-      {/* A — Central Claim */}
+      {/* A — Central Claim (most prominent element in the Briefing Room) */}
       <div
-        className="rounded-xl p-5 mb-5"
+        className="rounded-xl p-6 mb-6"
         style={{
           background: "rgba(196,154,43,0.07)",
-          border: "1px solid rgba(196,154,43,0.3)",
+          borderLeft: "3px solid #C49A2B",
+          border: "1px solid rgba(196,154,43,0.2)",
+          borderLeftWidth: 3,
+          borderLeftColor: "#C49A2B",
         }}
       >
-        <div style={{ color: "#C49A2B", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 500 }}>
+        <div
+          style={{
+            color: "#C49A2B",
+            fontSize: 9,
+            textTransform: "uppercase",
+            letterSpacing: "0.06em",
+            fontWeight: 500,
+          }}
+        >
           Central Claim — Why should the evaluator choose our client?
         </div>
         <div
-          className="mt-2"
+          className="mt-3"
           style={
             data.centralClaim
-              ? { color: "white", fontSize: 15, fontStyle: "italic", fontWeight: 500, lineHeight: 1.6 }
-              : { color: "rgba(255,255,255,0.4)", fontSize: 13, fontStyle: "italic", lineHeight: 1.6 }
+              ? {
+                  color: "white",
+                  fontSize: 16,
+                  fontStyle: "italic",
+                  fontWeight: 500,
+                  lineHeight: 1.7,
+                }
+              : {
+                  color: "rgba(196,154,43,0.7)",
+                  fontSize: 14,
+                  fontStyle: "italic",
+                  lineHeight: 1.6,
+                }
           }
         >
           {data.centralClaim ??
@@ -63,11 +85,11 @@ export function SectionNorthStar({ missionId, isAdmin }: { missionId: string; is
         <div className="mb-2" style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>
           Win Themes — every writer reinforces these
         </div>
-        {data.winThemes.length === 0 ? (
-          <MutedItalic>Win themes will be configured in Olympus before BLAST OFF.</MutedItalic>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            {data.winThemes.map((t: any, i: number) => (
+        <div className="flex flex-wrap gap-2">
+          {data.winThemes.length === 0 ? (
+            <MutedItalic>Win Themes will be set in Olympus</MutedItalic>
+          ) : (
+            data.winThemes.map((t: any, i: number) => (
               <span
                 key={i}
                 className="inline-flex items-center"
@@ -82,9 +104,9 @@ export function SectionNorthStar({ missionId, isAdmin }: { missionId: string; is
               >
                 {asText(t)}
               </span>
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
       </div>
 
       {/* C + D side by side */}
