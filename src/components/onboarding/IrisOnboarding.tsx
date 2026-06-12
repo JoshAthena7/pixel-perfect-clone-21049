@@ -488,7 +488,7 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
       {/* Step indicator */}
       <div className="px-8 pb-6">
         <div className="mx-auto flex w-full max-w-3xl items-center gap-1.5">
-          {[1, 2, 3, 4, 5, 6, 7].map((n) => {
+          {[1, 2, 3, 4, 5, 6].map((n) => {
             const state = n < currentModule ? "complete" : n === currentModule ? "active" : "upcoming";
             return (
               <div
