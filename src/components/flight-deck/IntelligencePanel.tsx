@@ -150,6 +150,48 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
         )}
       </Section>
 
+      {props.missionId && props.questionId && (
+        <Section
+          id="lineofsight"
+          open={open.lineofsight}
+          onToggle={() => toggle("lineofsight")}
+          header={
+            <>
+              <GitBranch className="h-3.5 w-3.5" style={{ color: IRIS_PURPLE }} />
+              <span className="text-xs font-medium text-foreground">Line of Sight</span>
+              <span
+                className="ml-auto text-[9px] uppercase tracking-wider italic"
+                style={{ color: "rgba(255,255,255,0.45)" }}
+              >
+                Decisions · Intelligence · Alignment
+              </span>
+            </>
+          }
+        >
+          <LineOfSightBlock
+            missionId={props.missionId}
+            questionId={props.questionId}
+            onOpenConnectedThread={(qid) => {
+              window.dispatchEvent(
+                new CustomEvent("atlas:thread:open", { detail: { questionId: qid } }),
+              );
+            }}
+            onOpenOracleItem={(feedId) => {
+              window.dispatchEvent(
+                new CustomEvent("atlas:oracle:open", { detail: { feedItemId: feedId } }),
+              );
+            }}
+            onFlagInPulse={(desc) => {
+              window.dispatchEvent(
+                new CustomEvent("atlas:pulse:prefill", {
+                  detail: { type: "risk_alert", body: desc },
+                }),
+              );
+            }}
+          />
+        </Section>
+      )}
+
       <Section
         id="evaluator"
         open={open.evaluator}
