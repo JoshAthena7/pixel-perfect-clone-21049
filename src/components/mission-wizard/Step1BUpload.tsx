@@ -10,6 +10,7 @@ import { MissionIntelDropScreen } from "@/components/mission-wizard/MissionIntel
 import { MissionTeamAssignScreen } from "@/components/mission-wizard/MissionTeamAssignScreen";
 import { MissionBrainScreen } from "@/components/mission-wizard/MissionBrainScreen";
 import { AthenaInsightsScreen } from "@/components/mission-wizard/AthenaInsightsScreen";
+import { MissionLaunchScreen } from "@/components/mission-wizard/MissionLaunchScreen";
 import { cn } from "@/lib/utils";
 
 const BUCKET = "atlas-rfp-documents";
@@ -94,7 +95,7 @@ export function Step1BUpload({
   const [rows, setRows] = useState<Row[]>([]);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [phase, setPhase] = useState<"upload" | "analyzing" | "results" | "memory" | "intel" | "team" | "brain" | "insights">("upload");
+  const [phase, setPhase] = useState<"upload" | "analyzing" | "results" | "memory" | "intel" | "team" | "brain" | "insights" | "launch">("upload");
 
   useEffect(() => {
     (async () => {
@@ -280,7 +281,16 @@ export function Step1BUpload({
     );
   }
   if (phase === "insights") {
-    return <AthenaInsightsScreen missionId={missionId} onContinue={onAdvance} />;
+    return <AthenaInsightsScreen missionId={missionId} onContinue={() => setPhase("launch")} />;
+  }
+  if (phase === "launch") {
+    return (
+      <MissionLaunchScreen
+        missionId={missionId}
+        onLaunched={onAdvance}
+        onJumpToPhase={(p) => setPhase(p as typeof phase)}
+      />
+    );
   }
 
   return (
