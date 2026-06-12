@@ -111,21 +111,21 @@ export const lookupWelcomeInvite = createServerFn({ method: "POST" })
             .from("mission_assignments")
             .select("question_id, due_date")
             .eq("mission_id", m.id)
-            .eq("assignee_user_id", invite.accepted_user_id)
+            .eq("assigned_writer_id", invite.accepted_user_id)
             .order("due_date", { ascending: true, nullsFirst: false })
             .limit(1)
             .maybeSingle();
           if (asn?.question_id) {
             const { data: q } = await supabaseAdmin
               .from("mission_questions")
-              .select("id, question_number, section_name, health_status")
+              .select("id, question_number, health_status")
               .eq("id", asn.question_id)
               .maybeSingle();
             if (q) {
               result.assignment = {
                 questionId: q.id,
                 questionNumber: q.question_number,
-                sectionName: q.section_name,
+                sectionName: null,
                 dueDate: asn.due_date,
                 health: q.health_status,
               };
