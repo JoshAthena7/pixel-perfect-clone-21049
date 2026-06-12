@@ -64,7 +64,7 @@ export function SectionNorthStar({ missionId, isAdmin }: { missionId: string; is
           Win Themes — every writer reinforces these
         </div>
         {data.winThemes.length === 0 ? (
-          <Empty>No win themes yet — set them in Olympus.</Empty>
+          <MutedItalic>Win themes will be configured in Olympus before BLAST OFF.</MutedItalic>
         ) : (
           <div className="flex flex-wrap gap-2">
             {data.winThemes.map((t: any, i: number) => (
