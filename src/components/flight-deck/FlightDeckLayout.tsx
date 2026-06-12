@@ -658,9 +658,9 @@ function MyWorkColumn({
   }
 
   const prompts = [
-    "Explain what evaluators are really asking",
-    "Recommend proof points for this section",
-    "What risks should I watch for?",
+    "Explain what evaluators are really asking in this section",
+    "Recommend proof points for this question",
+    "What risks should I watch for in this section?",
     "What does the scoring panel care most about here?",
   ];
 
