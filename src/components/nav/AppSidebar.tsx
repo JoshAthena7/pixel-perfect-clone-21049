@@ -41,9 +41,7 @@ const MY_WORK_ITEMS: NavItem[] = [
   
 ];
 
-const ADMIN_ITEMS: NavItem[] = [
-  { to: "/missions/$missionId/win-strategy", label: "Win Strategy", Icon: Trophy, needsMission: true },
-];
+const ADMIN_ITEMS: NavItem[] = [];
 
 
 const ADMIN_AREA_ITEMS: NavItem[] = [
