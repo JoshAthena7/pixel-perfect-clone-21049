@@ -89,7 +89,7 @@ export function SectionTimeline({ missionId, isAdmin }: { missionId: string; isA
       {/* Element 2 — Phase rail */}
       {data.rail.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-4">
-          {data.rail.map((p) => {
+          {data.rail.map((p: any) => {
             const base = {
               fontSize: 10,
               padding: "3px 10px",
@@ -152,7 +152,7 @@ export function SectionTimeline({ missionId, isAdmin }: { missionId: string; isA
           </div>
         ) : (
           <ul className="space-y-1.5">
-            {data.milestones.map((m) => {
+            {data.milestones.map((m: any) => {
               const c = milestoneColor(m.daysUntil);
               const dueDate = new Date(m.dueDate!);
               const dayName = dueDate.toLocaleDateString("en-US", { weekday: "short" });
