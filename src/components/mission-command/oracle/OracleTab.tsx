@@ -33,6 +33,7 @@ type SubId = (typeof SUB_TABS)[number]["id"];
 const GOLD = "#C9A55C";
 
 export function OracleTab({ missionId }: { missionId: string }) {
+  const { isAdmin } = useIsAdmin();
   // Oracle sub-views are an internal segmented control, not URL state.
   const [active, setActive] = useState<SubId>("graph");
   const [addAutoOpen, setAddAutoOpen] = useState(false);
